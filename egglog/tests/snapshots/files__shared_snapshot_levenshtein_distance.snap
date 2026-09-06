@@ -1,0 +1,15 @@
+---
+source: tests/files.rs
+expression: snapshot_content_across_treatments
+---
+(extraction-costs 1)
+(extraction-costs 1)
+(extraction-costs 1)
+((Add 8)
+ (Cons 22)
+ (EditDist 110)
+ (EmptyConst 1)
+ (Length 19)
+ (Min 25)
+ (Num 9)
+ (Unwrap 9))

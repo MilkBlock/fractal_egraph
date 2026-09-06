@@ -1,0 +1,17 @@
+---
+source: tests/files.rs
+expression: snapshot_content_across_treatments
+---
+(extraction-costs 3)
+(extraction-costs 1)
+(extraction-costs 3)
+(extraction-costs 7)
+((App 3)
+ (Cons 6)
+ (Lam 4)
+ (MyUnitConst 1)
+ (NilConst 1)
+ (TArr 4)
+ (TUnitConst 1)
+ (Var 3)
+ (typeof 19))

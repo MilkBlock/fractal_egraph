@@ -1,0 +1,16 @@
+[package]
+name = "egglog-add-primitive"
+version = { workspace = true }
+edition = { workspace = true }
+description = { workspace = true }
+repository = { workspace = true }
+keywords = { workspace = true }
+license = { workspace = true }
+readme = { workspace = true }
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = { workspace = true }
+syn = { workspace = true }

@@ -1,0 +1,20 @@
+---
+source: tests/files.rs
+expression: snapshot_content_across_treatments
+---
+(extraction-costs 1)
+(extraction-costs 1)
+(extraction-costs 1)
+(extraction-costs 1)
+(extraction-costs 1)
+(extraction-costs 1)
+(extraction-costs 1)
+((Add 4)
+ (Div 2)
+ (Mul 0)
+ (Num 4)
+ (Var 1)
+ (best-error 0)
+ (lower-bound 6)
+ (true-value 6)
+ (upper-bound 6))

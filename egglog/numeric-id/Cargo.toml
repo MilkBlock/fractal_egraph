@@ -1,0 +1,15 @@
+[package]
+name = "egglog-numeric-id"
+version = { workspace = true }
+edition = { workspace = true }
+description = { workspace = true }
+repository = { workspace = true }
+keywords = { workspace = true }
+license = { workspace = true }
+readme = { workspace = true }
+
+[dependencies]
+rayon = { workspace = true }
+
+[features]
+default = []

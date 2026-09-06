@@ -1,0 +1,24 @@
+disallowed-types = [
+    # prefer hashbrown
+    "std::collections::HashMap",
+    "std::collections::HashSet",
+]
+
+disallowed-macros = [
+    # only allowed in main.rs
+    "std::print",
+    "std::println",
+    # use log crate instead
+    "std::eprint",
+    "std::eprintln",
+]
+
+# Run time of these methods scales linearly with the number of cores.
+# Useful for performance debugging
+# disallowed-methods = [
+#     "dashmap::DashMap::len",
+#     "dashmap::DashMap::iter",
+#     "dashmap::DashMap::clear",
+# ]
+
+type-complexity-threshold = 350
