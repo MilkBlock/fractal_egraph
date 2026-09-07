@@ -1,0 +1,11 @@
+{
+  "collected_at_utc": "2026-09-06T17:16:31.205935+00:00",
+  "platform": "macOS-15.3.1-arm64-arm-64bit-Mach-O",
+  "machine": "arm64",
+  "rustc": "rustc 1.94.0 (4a4ef493e 2026-03-02)",
+  "cpu": "Apple M3 Max",
+  "measurement_scope": "standalone dynamic local-eclass store, not the egglog process",
+  "build_profile": "release",
+  "repetitions": 3,
+  "validation": "7920 snapshot comparisons; 4 Rust tests including 4000 forced-collision differential updates"
+}
