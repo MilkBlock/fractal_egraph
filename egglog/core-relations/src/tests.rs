@@ -9,7 +9,7 @@ use egglog_reports::ReportLevel;
 use crate::numeric_id::NumericId;
 
 use crate::{
-    PlanStrategy,
+    PlanStrategy, TraceSession,
     action::WriteVal,
     common::Value,
     free_join::{CounterId, Database, TableId},
@@ -121,10 +121,29 @@ fn basic_query_inner() {
     rules.build_with_description("add");
     let rule_set = rsb.build();
 
-    let report = db.run_rule_set(&rule_set, ReportLevel::TimeOnly);
+    let trace = TraceSession::new();
+    let report = db.run_rule_set_with_trace(&rule_set, ReportLevel::TimeOnly, &trace);
 
     assert!(report.changed, "{report:?}");
     assert_eq!(report.num_matches("add"), 5, "{report:?}");
+    let matches = trace.drain_matches();
+    let outcomes = trace.drain_action_outcomes();
+    assert_eq!(matches.len(), 5, "{matches:#?}");
+    assert_eq!(outcomes.len(), 5, "{outcomes:#?}");
+    for event in matches {
+        assert_eq!(&*event.rule, "add");
+        let names = event
+            .bindings
+            .iter()
+            .filter_map(|binding| binding.name.as_deref())
+            .collect::<std::collections::BTreeSet<_>>();
+        assert_eq!(
+            names,
+            std::collections::BTreeSet::from(["a", "b", "x", "y", "z"]),
+            "the trace should expose the planner's surviving logical substitution"
+        );
+        assert!(!event.physical_witness_complete);
+    }
     let num_table = db.get_table(num);
     let all_num = num_table.all();
     let items = num_table.scan(all_num.as_ref());

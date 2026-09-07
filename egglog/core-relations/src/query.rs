@@ -44,6 +44,8 @@ pub struct CachedPlan {
 pub(crate) struct ActionInfo {
     pub(crate) used_vars: SmallVec<[Variable; 4]>,
     pub(crate) instrs: Arc<Pooled<Vec<Instr>>>,
+    pub(crate) trace_rule: Arc<str>,
+    pub(crate) trace_symbols: SymbolMap,
 }
 
 /// A set of rules to run against a [`Database`].
@@ -552,20 +554,18 @@ impl RuleBuilder<'_, '_> {
                 None
             }
         }));
+        let desc: Arc<str> = Arc::from(desc.into());
         let action_id = self.qb.rsb.rule_set.actions.push(ActionInfo {
             instrs: Arc::new(self.qb.instrs),
             used_vars,
+            trace_rule: desc.clone(),
+            trace_symbols: symbol_map.clone(),
         });
         self.qb.query.action = action_id;
         // Plan the query
         let plan = self.qb.rsb.db.plan_query(self.qb.query);
-        let desc: String = desc.into();
         // Add it to the ruleset.
-        self.qb
-            .rsb
-            .rule_set
-            .plans
-            .push((plan, desc.into(), symbol_map))
+        self.qb.rsb.rule_set.plans.push((plan, desc, symbol_map))
     }
 
     /// Return a variable containing the result of reading the specified counter.

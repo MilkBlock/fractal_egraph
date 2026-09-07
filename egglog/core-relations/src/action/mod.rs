@@ -598,6 +598,26 @@ impl<'a> ExecutionState<'a> {
 impl ExecutionState<'_> {
     /// Returns the number of matches that make it to the end of the instructions
     pub(crate) fn run_instrs(&mut self, instrs: &[Instr], bindings: &mut Bindings) -> usize {
+        self.run_instrs_mask(instrs, bindings).count_ones()
+    }
+
+    pub(crate) fn run_instrs_with_trace(
+        &mut self,
+        instrs: &[Instr],
+        bindings: &mut Bindings,
+        match_event_ids: &[u64],
+        trace: &crate::trace::TraceSession,
+    ) -> usize {
+        let mask = self.run_instrs_mask(instrs, bindings);
+        debug_assert_eq!(match_event_ids.len(), mask.len());
+        trace.record_action_outcomes(
+            match_event_ids,
+            (0..match_event_ids.len()).map(|index| mask.contains(index)),
+        );
+        mask.count_ones()
+    }
+
+    fn run_instrs_mask(&mut self, instrs: &[Instr], bindings: &mut Bindings) -> Mask {
         if bindings.var_offsets.next_id().rep() == 0 {
             // If we have no variables, we want to run the rules once.
             bindings.matches = 1;
@@ -607,11 +627,11 @@ impl ExecutionState<'_> {
         let mut mask = with_pool_set(|ps| Mask::new(0..bindings.matches, ps));
         for instr in instrs {
             if mask.is_empty() {
-                return 0;
+                break;
             }
             self.run_instr(&mut mask, instr, bindings);
         }
-        mask.count_ones()
+        mask
     }
     fn run_instr(&mut self, mask: &mut Mask, inst: &Instr, bindings: &mut Bindings) {
         fn assert_impl(

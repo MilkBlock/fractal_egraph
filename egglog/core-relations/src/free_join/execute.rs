@@ -346,6 +346,30 @@ impl Prober {
 
 impl Database {
     pub fn run_rule_set(&mut self, rule_set: &RuleSet, report_level: ReportLevel) -> RuleSetReport {
+        self.run_rule_set_impl(rule_set, report_level, None)
+    }
+
+    /// Run a rule set while recording every completed logical substitution.
+    ///
+    /// Match events are emitted before actions are executed. Query planners may
+    /// have eliminated body-only variables, and the events do not imply that a
+    /// mutation was committed. Later tracing layers will add physical row
+    /// witnesses and join staged/committed mutations back to these events.
+    pub fn run_rule_set_with_trace(
+        &mut self,
+        rule_set: &RuleSet,
+        report_level: ReportLevel,
+        trace: &crate::trace::TraceSession,
+    ) -> RuleSetReport {
+        self.run_rule_set_impl(rule_set, report_level, Some(trace))
+    }
+
+    fn run_rule_set_impl(
+        &mut self,
+        rule_set: &RuleSet,
+        report_level: ReportLevel,
+        trace: Option<&crate::trace::TraceSession>,
+    ) -> RuleSetReport {
         if rule_set.plans.is_empty() {
             return RuleSetReport::default();
         }
@@ -380,8 +404,12 @@ impl Database {
                             let table = join_state.db.get_table(info.table);
                             binding_info.insert_subset(id, table.all());
                         }
-                        let mut action_buf =
-                            ScopedActionBuffer::new(rule_scope, rule_set, match_counter.clone());
+                        let mut action_buf = ScopedActionBuffer::new(
+                            rule_scope,
+                            rule_set,
+                            match_counter.clone(),
+                            trace,
+                        );
                         let search_and_apply_timer = Instant::now();
 
                         'eval: {
@@ -506,6 +534,7 @@ impl Database {
                 rule_set,
                 match_counter: match_counter.as_ref(),
                 batches: Default::default(),
+                trace,
             };
             for (plan, desc, symbol_map) in rule_set.plans.values() {
                 let report_plan = match report_level {
@@ -639,6 +668,7 @@ struct ActionState {
     n_runs: usize,
     len: usize,
     bindings: Bindings,
+    trace_match_ids: Vec<u64>,
 }
 
 impl Default for ActionState {
@@ -647,6 +677,7 @@ impl Default for ActionState {
             n_runs: 0,
             len: 0,
             bindings: Bindings::new(VAR_BATCH_SIZE),
+            trace_match_ids: Vec::new(),
         }
     }
 }
@@ -1747,6 +1778,7 @@ struct InPlaceActionBuffer<'a> {
     rule_set: &'a RuleSet,
     match_counter: &'a MatchCounter,
     batches: DenseIdMap<ActionId, ActionState>,
+    trace: Option<&'a crate::trace::TraceSession>,
 }
 
 impl<'a, 'outer: 'a> ActionBuffer<'a, ActionId> for InPlaceActionBuffer<'outer> {
@@ -1765,6 +1797,14 @@ impl<'a, 'outer: 'a> ActionBuffer<'a, ActionId> for InPlaceActionBuffer<'outer> 
         action_state.n_runs += 1;
         action_state.len += 1;
         let action_info = &self.rule_set.actions[action];
+        if let Some(trace) = self.trace {
+            let match_event_id = trace.record_match(
+                action_info.trace_rule.clone(),
+                &action_info.trace_symbols,
+                bindings,
+            );
+            action_state.trace_match_ids.push(match_event_id);
+        }
         // SAFETY: `used_vars` is a constant per-rule. This module only ever calls it with
         // `bindings` produced by the same join.
         unsafe {
@@ -1772,8 +1812,17 @@ impl<'a, 'outer: 'a> ActionBuffer<'a, ActionId> for InPlaceActionBuffer<'outer> 
         }
         if action_state.len >= VAR_BATCH_SIZE {
             let mut state = to_exec_state();
-            let succeeded = state.run_instrs(&action_info.instrs, &mut action_state.bindings);
+            let succeeded = match self.trace {
+                Some(trace) => state.run_instrs_with_trace(
+                    &action_info.instrs,
+                    &mut action_state.bindings,
+                    &action_state.trace_match_ids,
+                    trace,
+                ),
+                None => state.run_instrs(&action_info.instrs, &mut action_state.bindings),
+            };
             action_state.bindings.clear();
+            action_state.trace_match_ids.clear();
             self.match_counter.inc_matches(action, succeeded);
             action_state.len = 0;
         }
@@ -1785,6 +1834,7 @@ impl<'a, 'outer: 'a> ActionBuffer<'a, ActionId> for InPlaceActionBuffer<'outer> 
             &mut self.batches,
             self.rule_set,
             self.match_counter,
+            self.trace,
         );
     }
 
@@ -1809,6 +1859,7 @@ struct ScopedActionBuffer<'inner, 'scope> {
     match_counter: Arc<MatchCounter>,
     batches: DenseIdMap<ActionId, ActionState>,
     needs_flush: bool,
+    trace: Option<&'scope crate::trace::TraceSession>,
 }
 
 impl<'inner, 'scope> ScopedActionBuffer<'inner, 'scope> {
@@ -1816,6 +1867,7 @@ impl<'inner, 'scope> ScopedActionBuffer<'inner, 'scope> {
         scope: &'inner rayon::Scope<'scope>,
         rule_set: &'scope RuleSet,
         match_counter: Arc<MatchCounter>,
+        trace: Option<&'scope crate::trace::TraceSession>,
     ) -> Self {
         Self {
             scope,
@@ -1823,6 +1875,7 @@ impl<'inner, 'scope> ScopedActionBuffer<'inner, 'scope> {
             batches: Default::default(),
             match_counter,
             needs_flush: false,
+            trace,
         }
     }
 }
@@ -1843,6 +1896,14 @@ impl<'scope> ActionBuffer<'scope, ActionId> for ScopedActionBuffer<'_, 'scope> {
         action_state.n_runs += 1;
         action_state.len += 1;
         let action_info = &self.rule_set.actions[action];
+        if let Some(trace) = self.trace {
+            let match_event_id = trace.record_match(
+                action_info.trace_rule.clone(),
+                &action_info.trace_symbols,
+                bindings,
+            );
+            action_state.trace_match_ids.push(match_event_id);
+        }
         // SAFETY: `used_vars` is a constant per-rule. This module only ever calls it with
         // `bindings` produced by the same join.
         unsafe {
@@ -1852,10 +1913,20 @@ impl<'scope> ActionBuffer<'scope, ActionId> for ScopedActionBuffer<'_, 'scope> {
             let mut state = to_exec_state();
             let mut bindings =
                 mem::replace(&mut action_state.bindings, Bindings::new(VAR_BATCH_SIZE));
+            let match_event_ids = mem::take(&mut action_state.trace_match_ids);
             action_state.len = 0;
             let match_counter = self.match_counter.clone();
+            let trace = self.trace;
             self.scope.spawn(move |_| {
-                let succeeded = state.run_instrs(&action_info.instrs, &mut bindings);
+                let succeeded = match trace {
+                    Some(trace) => state.run_instrs_with_trace(
+                        &action_info.instrs,
+                        &mut bindings,
+                        &match_event_ids,
+                        trace,
+                    ),
+                    None => state.run_instrs(&action_info.instrs, &mut bindings),
+                };
                 match_counter.inc_matches(action, succeeded);
             });
         }
@@ -1867,6 +1938,7 @@ impl<'scope> ActionBuffer<'scope, ActionId> for ScopedActionBuffer<'_, 'scope> {
             &mut self.batches,
             self.rule_set,
             self.match_counter.as_ref(),
+            self.trace,
         );
         self.needs_flush = false;
     }
@@ -1880,6 +1952,7 @@ impl<'scope> ActionBuffer<'scope, ActionId> for ScopedActionBuffer<'_, 'scope> {
     ) {
         let rule_set = self.rule_set;
         let match_counter = self.match_counter.clone();
+        let trace = self.trace;
         let mut inner = local.clone_state();
         self.scope.spawn(move |scope| {
             let mut buf: ScopedActionBuffer<'_, 'scope> = ScopedActionBuffer {
@@ -1888,6 +1961,7 @@ impl<'scope> ActionBuffer<'scope, ActionId> for ScopedActionBuffer<'_, 'scope> {
                 match_counter,
                 needs_flush: false,
                 batches: Default::default(),
+                trace,
             };
             work(inner.borrow_mut(), &mut buf);
             if buf.needs_flush {
@@ -1896,6 +1970,7 @@ impl<'scope> ActionBuffer<'scope, ActionId> for ScopedActionBuffer<'_, 'scope> {
                     &mut buf.batches,
                     buf.rule_set,
                     buf.match_counter.as_ref(),
+                    buf.trace,
                 );
             }
         });
@@ -1915,11 +1990,30 @@ fn flush_action_states(
     actions: &mut DenseIdMap<ActionId, ActionState>,
     rule_set: &RuleSet,
     match_counter: &MatchCounter,
+    trace: Option<&crate::trace::TraceSession>,
 ) {
-    for (action, ActionState { bindings, len, .. }) in actions.iter_mut() {
+    for (
+        action,
+        ActionState {
+            bindings,
+            len,
+            trace_match_ids,
+            ..
+        },
+    ) in actions.iter_mut()
+    {
         if *len > 0 {
-            let succeeded = exec_state.run_instrs(&rule_set.actions[action].instrs, bindings);
+            let succeeded = match trace {
+                Some(trace) => exec_state.run_instrs_with_trace(
+                    &rule_set.actions[action].instrs,
+                    bindings,
+                    trace_match_ids,
+                    trace,
+                ),
+                None => exec_state.run_instrs(&rule_set.actions[action].instrs, bindings),
+            };
             bindings.clear();
+            trace_match_ids.clear();
             match_counter.inc_matches(action, succeeded);
             *len = 0;
         }

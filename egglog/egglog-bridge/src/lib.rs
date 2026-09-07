@@ -19,8 +19,8 @@ use std::{
 use crate::core_relations::{
     BaseValue, BaseValueId, BaseValues, ColumnId, Constraint, ContainerValue, ContainerValues,
     CounterId, Database, DisplacedTable, ExecutionState, ExternalFunction, ExternalFunctionId,
-    MergeVal, Offset, PlanStrategy, SortedWritesTable, TableId, TaggedRowBuffer, Value,
-    WrappedTable,
+    MergeVal, Offset, PlanStrategy, SortedWritesTable, TableId, TaggedRowBuffer, TraceSession,
+    Value, WrappedTable,
 };
 use crate::numeric_id::{DenseIdMap, DenseIdMapWithReuse, NumericId, define_id};
 use egglog_core_relations as core_relations;
@@ -572,11 +572,38 @@ impl EGraph {
     }
 
     fn run_rules_inner(&mut self, rules: &[RuleId]) -> Result<IterationReport> {
+        self.run_rules_inner_impl(rules, None)
+    }
+
+    /// Run rules while recording their logical substitutions in `trace`.
+    ///
+    /// The trace follows internal rebuild rules as well as the requested rules.
+    /// Each event carries the core rule description so callers can distinguish
+    /// user rules from generated rebuild work.
+    pub fn run_rules_with_trace(
+        &mut self,
+        rules: &[RuleId],
+        trace: &TraceSession,
+    ) -> Result<IterationReport> {
+        self.run_rules_inner_impl(rules, Some(trace))
+    }
+
+    fn run_rules_inner_impl(
+        &mut self,
+        rules: &[RuleId],
+        trace: Option<&TraceSession>,
+    ) -> Result<IterationReport> {
         let ts = self.next_ts();
 
         let uf_size_before = self.db.get_table(self.uf_table).len();
-        let rule_set_report =
-            run_rules_impl(&mut self.db, &mut self.rules, rules, ts, self.report_level)?;
+        let rule_set_report = run_rules_impl(
+            &mut self.db,
+            &mut self.rules,
+            rules,
+            ts,
+            self.report_level,
+            trace,
+        )?;
         if let Some(message) = self.panic_message.lock().unwrap().take() {
             return Err(PanicError(message).into());
         }
@@ -596,7 +623,7 @@ impl EGraph {
         }
 
         let rebuild_timer = Instant::now();
-        self.rebuild()?;
+        self.rebuild(trace)?;
         iteration_report.rebuild_time = rebuild_timer.elapsed();
 
         if let Some(message) = self.panic_message.lock().unwrap().take() {
@@ -606,7 +633,7 @@ impl EGraph {
         Ok(iteration_report)
     }
 
-    fn rebuild(&mut self) -> Result<()> {
+    fn rebuild(&mut self, trace: Option<&TraceSession>) -> Result<()> {
         let do_parallel = rayon::current_num_threads() > 1;
         if self.db.get_table(self.uf_table).rebuilder(&[]).is_some() {
             // The UF implementation supports "native"  rebuilding.
@@ -664,7 +691,7 @@ impl EGraph {
             return Ok(());
         }
         if do_parallel {
-            return self.rebuild_parallel();
+            return self.rebuild_parallel(trace);
         }
         let start = Instant::now();
 
@@ -699,6 +726,7 @@ impl EGraph {
                                 &[*rule],
                                 ts,
                                 ReportLevel::TimeOnly,
+                                trace,
                             )?
                             .changed;
                         }
@@ -714,6 +742,7 @@ impl EGraph {
                             &[info.nonincremental_rebuild_rule],
                             ts,
                             ReportLevel::TimeOnly,
+                            trace,
                         )?
                         .changed;
                         for rule in &info.incremental_rebuild_rules {
@@ -732,7 +761,7 @@ impl EGraph {
     /// larger rulesets to increase parallelism. This kind of preprocessing can
     /// slow processing down in a single-threaded setting, so it is only used
     /// when the number of active threads is greater than 1.
-    fn rebuild_parallel(&mut self) -> Result<()> {
+    fn rebuild_parallel(&mut self, trace: Option<&TraceSession>) -> Result<()> {
         let start = Instant::now();
         #[derive(Default)]
         struct RebuildState {
@@ -787,6 +816,7 @@ impl EGraph {
                 &scratch,
                 ts,
                 ReportLevel::TimeOnly,
+                trace,
             )?
             .changed;
             scratch.clear();
@@ -803,6 +833,7 @@ impl EGraph {
                     &scratch,
                     ts,
                     ReportLevel::TimeOnly,
+                    trace,
                 )?
                 .changed;
                 scratch.clear();
@@ -936,7 +967,7 @@ impl EGraph {
         if uf_size_before != uf_size_after {
             // Rebuilding is only necessary when new unions have been made because ids may need to be updated.
             // Adding terms doesn't necessarily touch the union-find, only doing a union between existing ids does.
-            self.rebuild().unwrap();
+            self.rebuild(None).unwrap();
         }
         updated
     }
@@ -1383,6 +1414,7 @@ fn run_rules_impl(
     rules: &[RuleId],
     next_ts: Timestamp,
     report_level: ReportLevel,
+    trace: Option<&TraceSession>,
 ) -> Result<RuleSetReport> {
     for rule in rules {
         let info = &mut rule_info[*rule];
@@ -1399,7 +1431,10 @@ fn run_rules_impl(
         info.last_run_at = next_ts;
     }
     let ruleset = rsb.build();
-    Ok(db.run_rule_set(&ruleset, report_level))
+    Ok(match trace {
+        Some(trace) => db.run_rule_set_with_trace(&ruleset, report_level, trace),
+        None => db.run_rule_set(&ruleset, report_level),
+    })
 }
 
 // These markers are just used to make it easy to distinguish time spent in

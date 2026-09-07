@@ -105,6 +105,10 @@ impl Mask {
     pub(crate) fn count_ones(&self) -> usize {
         self.data.count_ones(..)
     }
+
+    pub(crate) fn contains(&self, index: usize) -> bool {
+        self.data.contains(index)
+    }
 }
 
 pub(crate) enum IterResult<T> {

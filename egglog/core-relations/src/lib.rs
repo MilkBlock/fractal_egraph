@@ -15,6 +15,7 @@ pub(crate) mod pool;
 pub(crate) mod query;
 pub(crate) mod row_buffer;
 pub(crate) mod table;
+pub mod trace;
 
 pub(crate) mod table_spec;
 pub(crate) mod uf;
@@ -41,6 +42,9 @@ pub use table::{MergeFn, SortedWritesTable};
 pub use table_spec::{
     ColumnId, Constraint, MutationBuffer, Offset, Rebuilder, Row, Table, TableChange, TableSpec,
     TableVersion, WrappedTable,
+};
+pub use trace::{
+    RuleActionOutcome, RuleActionOutcomeEvent, RuleMatchBinding, RuleMatchEvent, TraceSession,
 };
 pub use uf::DisplacedTable;
 

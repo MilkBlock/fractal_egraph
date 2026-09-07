@@ -40,7 +40,10 @@ use core::CoreActionContext;
 use core::ResolvedAtomTerm;
 pub use core::{Atom, AtomTerm};
 pub use core::{ResolvedCall, SpecializedPrimitive};
-pub use core_relations::{BaseValue, ContainerValue, ExecutionState, Value};
+pub use core_relations::{
+    BaseValue, ContainerValue, ExecutionState, RuleActionOutcome, RuleActionOutcomeEvent,
+    RuleMatchBinding, RuleMatchEvent, TraceSession, Value,
+};
 use core_relations::{ExternalFunctionId, make_external_func};
 use csv::Writer;
 pub use egglog_add_primitive::add_literal_prim;
@@ -980,6 +983,49 @@ impl EGraph {
         let iteration_report = self
             .backend
             .run_rules(&rule_ids)
+            .map_err(|e| Error::BackendError(e.to_string()))?;
+
+        Ok(RunReport::singleton(ruleset, iteration_report))
+    }
+
+    /// Runs a ruleset for one iteration and records the logical substitution
+    /// produced for every match before its actions execute.
+    ///
+    /// These events are deliberately narrower than mutation provenance: query
+    /// planning may eliminate body-only variables, and a recorded match may
+    /// later stage only redundant updates. The distinction is exposed through
+    /// [`RuleMatchEvent::physical_witness_complete`] rather than hidden behind
+    /// an "application" label.
+    pub fn step_rules_with_trace(
+        &mut self,
+        ruleset: &str,
+        trace: &TraceSession,
+    ) -> Result<RunReport, Error> {
+        fn collect_rule_ids(
+            ruleset: &str,
+            rulesets: &IndexMap<String, Ruleset>,
+            ids: &mut Vec<egglog_bridge::RuleId>,
+        ) {
+            match &rulesets[ruleset] {
+                Ruleset::Rules(rules) => {
+                    for (_, id) in rules.values() {
+                        ids.push(*id);
+                    }
+                }
+                Ruleset::Combined(sub_rulesets) => {
+                    for sub_ruleset in sub_rulesets {
+                        collect_rule_ids(sub_ruleset, rulesets, ids);
+                    }
+                }
+            }
+        }
+
+        let mut rule_ids = Vec::new();
+        collect_rule_ids(ruleset, &self.rulesets, &mut rule_ids);
+
+        let iteration_report = self
+            .backend
+            .run_rules_with_trace(&rule_ids, trace)
             .map_err(|e| Error::BackendError(e.to_string()))?;
 
         Ok(RunReport::singleton(ruleset, iteration_report))
