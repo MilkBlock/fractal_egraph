@@ -34,6 +34,8 @@ git log --oneline --reverse egglog-baseline..HEAD
 
 ## 实验入口
 
+- [Slotted e-graph 真实基线](experiments/slotted_baseline/README.md)：固定上游版本，验证跨层 slot 共享，并与本地 egglog 比较实际构建和饱和。
+
 - [局部规则历史消融](experiments/rule_history/README.md)：1,536 个真实执行快照；区分结构、规则身份和绑定关系的贡献。
 - [动态 Zobrist 存储实验](experiments/zobrist_storage/README.md)：原始存储、仅检测、共享并重算指纹、共享并增量更新四组对照。
 - [上游来源](egglog/UPSTREAM.md)：导入版本及本地内核扩展的边界。

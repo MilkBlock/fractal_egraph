@@ -6,3 +6,7 @@ edition = "2024"
 [dependencies]
 egglog = { path = "egglog", default-features = false }
 serde_json = "1.0"
+slotted-egraphs = { version = "=0.0.36", default-features = false }
+
+[features]
+slotted-checks = ["slotted-egraphs/checks"]
