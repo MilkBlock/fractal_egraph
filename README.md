@@ -34,6 +34,8 @@ git log --oneline --reverse egglog-baseline..HEAD
 
 ## 实验入口
 
+- [连续 rewrite 在线组合](experiments/rule_combine/README.md)：预处理等价快捷规则，按局部匹配动态启用，比较完整闭包、轮次和实际开销。
+
 - [Slotted e-graph 真实基线](experiments/slotted_baseline/README.md)：固定上游版本，验证跨层 slot 共享，并与本地 egglog 比较实际构建和饱和。
 
 - [局部规则历史消融](experiments/rule_history/README.md)：1,536 个真实执行快照；区分结构、规则身份和绑定关系的贡献。
