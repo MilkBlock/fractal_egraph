@@ -370,6 +370,13 @@ impl Database {
         report_level: ReportLevel,
         trace: Option<&crate::trace::TraceSession>,
     ) -> RuleSetReport {
+        if let Some(trace) = trace.filter(|t| t.dependencies_enabled()) {
+            trace.register_table_names(
+                self.tables
+                    .iter()
+                    .filter_map(|(id, t)| t.name.clone().map(|n| (id, n))),
+            );
+        }
         if rule_set.plans.is_empty() {
             return RuleSetReport::default();
         }

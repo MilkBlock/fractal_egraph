@@ -71,6 +71,7 @@ pub struct RuleActionOutcomeEvent {
 struct TraceState {
     next_event_id: AtomicU64,
     dependencies_enabled: bool,
+    table_names: Mutex<std::collections::HashMap<crate::TableId, Arc<str>>>,
     writes: Mutex<Vec<WriteEvent>>,
     invalidations: Mutex<Vec<OriginInvalidation>>,
     reads: Mutex<Vec<RowReadEvent>>,
@@ -104,6 +105,22 @@ impl TraceSession {
                 ..Default::default()
             }),
         }
+    }
+    /// Diagnostic table-name registry for interpreting committed row events.
+    pub fn table_names(&self) -> Vec<(crate::TableId, Arc<str>)> {
+        self.state
+            .table_names
+            .lock()
+            .unwrap()
+            .iter()
+            .map(|(id, n)| (*id, n.clone()))
+            .collect()
+    }
+    pub(crate) fn register_table_names(
+        &self,
+        names: impl IntoIterator<Item = (crate::TableId, Arc<str>)>,
+    ) {
+        self.state.table_names.lock().unwrap().extend(names);
     }
     pub fn same_session(&self, other: &Self) -> bool {
         Arc::ptr_eq(&self.state, &other.state)

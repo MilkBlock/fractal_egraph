@@ -143,6 +143,9 @@ impl DependencyBlockStore {
         self.catalog.insert(spec.name.clone(), spec);
         Ok(())
     }
+    pub fn uses_trace(&self, trace: &TraceSession) -> bool {
+        self.session.as_ref().is_some_and(|s| s.same_session(trace))
+    }
     pub fn blocks(&self) -> &[BlockMeta] {
         &self.blocks
     }
