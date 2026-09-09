@@ -34,6 +34,8 @@ git log --oneline --reverse egglog-baseline..HEAD
 
 ## 实验入口
 
+- [依赖驱动的活跃 block 索引](experiments/dependency_blocks/README.md)：A→B→C 增长、组合 prefix、跨块交互和来源失效传播；尚未改变原生匹配或存储路径。
+
 - [提交结果驱动的组合见证](experiments/dependency_witness/README.md)：内核记录实际插入与后续行读取，生成带 producer–consumer 证据的 A+B prefix seed；明确保留 union 来源缺口。
 
 - [Prefix 见证消融 1](experiments/prefix_witness/README.md)：单独测量 rule apply 见证能否替代局部 prefix 重新匹配，保留全局和同 class 覆盖缺口反例。

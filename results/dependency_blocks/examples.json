@@ -1,0 +1,593 @@
+{
+  "cases": [
+    {
+      "phases": [
+        {
+          "blocks": [],
+          "interactions": [],
+          "phase": "a",
+          "rejected": {}
+        },
+        {
+          "blocks": [
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "key": "[Value(0)]",
+                  "read": 1,
+                  "source_block": null,
+                  "table": "A"
+                }
+              ],
+              "combined_prefixes": [
+                {
+                  "bindings": {
+                    "v0": "Value(0)"
+                  },
+                  "lhs": "(A v0)",
+                  "rhs": "(C v0)",
+                  "rules": [
+                    "a",
+                    "b"
+                  ],
+                  "supporting_reads": [
+                    5
+                  ],
+                  "usable": true
+                }
+              ],
+              "entry_bindings": {
+                "x": "Value(0)"
+              },
+              "entry_lhs": "(A x)",
+              "entry_rule": "a",
+              "id": 0,
+              "invalidations": [],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 0,
+                  "rule": "a"
+                },
+                {
+                  "match": 4,
+                  "rule": "b"
+                }
+              ],
+              "potential_exports": [
+                3,
+                7
+              ],
+              "version": 2
+            }
+          ],
+          "interactions": [],
+          "phase": "b",
+          "rejected": {}
+        },
+        {
+          "blocks": [
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "key": "[Value(0)]",
+                  "read": 1,
+                  "source_block": null,
+                  "table": "A"
+                }
+              ],
+              "combined_prefixes": [
+                {
+                  "bindings": {
+                    "v0": "Value(0)"
+                  },
+                  "lhs": "(A v0)",
+                  "rhs": "(C v0)",
+                  "rules": [
+                    "a",
+                    "b"
+                  ],
+                  "supporting_reads": [
+                    5
+                  ],
+                  "usable": true
+                },
+                {
+                  "bindings": {
+                    "v0": "Value(0)"
+                  },
+                  "lhs": "(A v0)",
+                  "rhs": "(D v0)",
+                  "rules": [
+                    "a",
+                    "b",
+                    "c"
+                  ],
+                  "supporting_reads": [
+                    5,
+                    9
+                  ],
+                  "usable": true
+                }
+              ],
+              "entry_bindings": {
+                "x": "Value(0)"
+              },
+              "entry_lhs": "(A x)",
+              "entry_rule": "a",
+              "id": 0,
+              "invalidations": [],
+              "member_capacity": 4,
+              "members": [
+                {
+                  "match": 0,
+                  "rule": "a"
+                },
+                {
+                  "match": 4,
+                  "rule": "b"
+                },
+                {
+                  "match": 8,
+                  "rule": "c"
+                }
+              ],
+              "potential_exports": [
+                3,
+                7,
+                11
+              ],
+              "version": 3
+            }
+          ],
+          "interactions": [],
+          "phase": "c",
+          "rejected": {}
+        }
+      ],
+      "scenario": "chain_growth"
+    },
+    {
+      "phases": [
+        {
+          "blocks": [],
+          "interactions": [],
+          "phase": "la",
+          "rejected": {}
+        },
+        {
+          "blocks": [
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "key": "[Value(7)]",
+                  "read": 1,
+                  "source_block": null,
+                  "table": "LS"
+                }
+              ],
+              "combined_prefixes": [],
+              "entry_bindings": {
+                "@LS1": "Value(0)",
+                "x": "Value(7)"
+              },
+              "entry_lhs": "(LS x)",
+              "entry_rule": "la",
+              "id": 0,
+              "invalidations": [],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 0,
+                  "rule": "la"
+                },
+                {
+                  "match": 4,
+                  "rule": "lb"
+                }
+              ],
+              "potential_exports": [
+                3,
+                7
+              ],
+              "version": 2
+            }
+          ],
+          "interactions": [],
+          "phase": "lb",
+          "rejected": {}
+        },
+        {
+          "blocks": [
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "key": "[Value(7)]",
+                  "read": 1,
+                  "source_block": null,
+                  "table": "LS"
+                }
+              ],
+              "combined_prefixes": [],
+              "entry_bindings": {
+                "@LS1": "Value(0)",
+                "x": "Value(7)"
+              },
+              "entry_lhs": "(LS x)",
+              "entry_rule": "la",
+              "id": 0,
+              "invalidations": [],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 0,
+                  "rule": "la"
+                },
+                {
+                  "match": 4,
+                  "rule": "lb"
+                }
+              ],
+              "potential_exports": [
+                3,
+                7
+              ],
+              "version": 2
+            }
+          ],
+          "interactions": [],
+          "phase": "ra",
+          "rejected": {}
+        },
+        {
+          "blocks": [
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "key": "[Value(7)]",
+                  "read": 1,
+                  "source_block": null,
+                  "table": "LS"
+                }
+              ],
+              "combined_prefixes": [],
+              "entry_bindings": {
+                "@LS1": "Value(0)",
+                "x": "Value(7)"
+              },
+              "entry_lhs": "(LS x)",
+              "entry_rule": "la",
+              "id": 0,
+              "invalidations": [],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 0,
+                  "rule": "la"
+                },
+                {
+                  "match": 4,
+                  "rule": "lb"
+                }
+              ],
+              "potential_exports": [
+                3,
+                7
+              ],
+              "version": 2
+            },
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "key": "[Value(7)]",
+                  "read": 9,
+                  "source_block": null,
+                  "table": "RS"
+                }
+              ],
+              "combined_prefixes": [],
+              "entry_bindings": {
+                "@RS1": "Value(1)",
+                "x": "Value(7)"
+              },
+              "entry_lhs": "(RS x)",
+              "entry_rule": "ra",
+              "id": 1,
+              "invalidations": [],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 8,
+                  "rule": "ra"
+                },
+                {
+                  "match": 12,
+                  "rule": "rb"
+                }
+              ],
+              "potential_exports": [
+                11,
+                15
+              ],
+              "version": 2
+            }
+          ],
+          "interactions": [],
+          "phase": "rb",
+          "rejected": {}
+        },
+        {
+          "blocks": [
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "key": "[Value(7)]",
+                  "read": 1,
+                  "source_block": null,
+                  "table": "LS"
+                }
+              ],
+              "combined_prefixes": [],
+              "entry_bindings": {
+                "@LS1": "Value(0)",
+                "x": "Value(7)"
+              },
+              "entry_lhs": "(LS x)",
+              "entry_rule": "la",
+              "id": 0,
+              "invalidations": [],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 0,
+                  "rule": "la"
+                },
+                {
+                  "match": 4,
+                  "rule": "lb"
+                }
+              ],
+              "potential_exports": [
+                3,
+                7
+              ],
+              "version": 2
+            },
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "key": "[Value(7)]",
+                  "read": 9,
+                  "source_block": null,
+                  "table": "RS"
+                }
+              ],
+              "combined_prefixes": [],
+              "entry_bindings": {
+                "@RS1": "Value(1)",
+                "x": "Value(7)"
+              },
+              "entry_lhs": "(RS x)",
+              "entry_rule": "ra",
+              "id": 1,
+              "invalidations": [],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 8,
+                  "rule": "ra"
+                },
+                {
+                  "match": 12,
+                  "rule": "rb"
+                }
+              ],
+              "potential_exports": [
+                11,
+                15
+              ],
+              "version": 2
+            },
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "key": "[Value(7)]",
+                  "read": 17,
+                  "source_block": 0,
+                  "table": "LL"
+                },
+                {
+                  "key": "[Value(7)]",
+                  "read": 18,
+                  "source_block": 1,
+                  "table": "RR"
+                }
+              ],
+              "combined_prefixes": [],
+              "entry_bindings": {
+                "x": "Value(7)"
+              },
+              "entry_lhs": "((LL x) (RR x))",
+              "entry_rule": "join",
+              "id": 2,
+              "invalidations": [],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 16,
+                  "rule": "join"
+                }
+              ],
+              "potential_exports": [
+                20
+              ],
+              "version": 1
+            }
+          ],
+          "interactions": [
+            {
+              "id": 0,
+              "parents": [
+                0,
+                1
+              ],
+              "rule": "join",
+              "supporting_reads": [
+                17,
+                18
+              ],
+              "target": 2
+            }
+          ],
+          "phase": "join",
+          "rejected": {}
+        },
+        {
+          "blocks": [
+            {
+              "active": false,
+              "boundary": [
+                {
+                  "key": "[Value(7)]",
+                  "read": 1,
+                  "source_block": null,
+                  "table": "LS"
+                }
+              ],
+              "combined_prefixes": [],
+              "entry_bindings": {
+                "@LS1": "Value(0)",
+                "x": "Value(7)"
+              },
+              "entry_lhs": "(LS x)",
+              "entry_rule": "la",
+              "id": 0,
+              "invalidations": [
+                "origin 7 invalidated: RemovedOrRebuilt"
+              ],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 0,
+                  "rule": "la"
+                },
+                {
+                  "match": 4,
+                  "rule": "lb"
+                }
+              ],
+              "potential_exports": [
+                3
+              ],
+              "version": 3
+            },
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "key": "[Value(7)]",
+                  "read": 9,
+                  "source_block": null,
+                  "table": "RS"
+                }
+              ],
+              "combined_prefixes": [],
+              "entry_bindings": {
+                "@RS1": "Value(1)",
+                "x": "Value(7)"
+              },
+              "entry_lhs": "(RS x)",
+              "entry_rule": "ra",
+              "id": 1,
+              "invalidations": [],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 8,
+                  "rule": "ra"
+                },
+                {
+                  "match": 12,
+                  "rule": "rb"
+                }
+              ],
+              "potential_exports": [
+                11,
+                15
+              ],
+              "version": 2
+            },
+            {
+              "active": false,
+              "boundary": [
+                {
+                  "key": "[Value(7)]",
+                  "read": 17,
+                  "source_block": 0,
+                  "table": "LL"
+                },
+                {
+                  "key": "[Value(7)]",
+                  "read": 18,
+                  "source_block": 1,
+                  "table": "RR"
+                }
+              ],
+              "combined_prefixes": [],
+              "entry_bindings": {
+                "x": "Value(7)"
+              },
+              "entry_lhs": "((LL x) (RR x))",
+              "entry_rule": "join",
+              "id": 2,
+              "invalidations": [
+                "origin 7 invalidated: RemovedOrRebuilt"
+              ],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 16,
+                  "rule": "join"
+                }
+              ],
+              "potential_exports": [
+                20
+              ],
+              "version": 2
+            }
+          ],
+          "interactions": [
+            {
+              "id": 0,
+              "parents": [
+                0,
+                1
+              ],
+              "rule": "join",
+              "supporting_reads": [
+                17,
+                18
+              ],
+              "target": 2
+            }
+          ],
+          "phase": "delete_LL",
+          "rejected": {}
+        }
+      ],
+      "scenario": "cross_block_and_invalidation"
+    }
+  ],
+  "local_shortcuts_installed": false,
+  "physical_nodes_moved": false,
+  "scope": "diagnostic dependency block index"
+}

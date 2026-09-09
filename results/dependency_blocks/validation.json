@@ -1,0 +1,16 @@
+{
+  "block_tests": 11,
+  "dependency_trace_tests": 12,
+  "legacy_trace_tests": 2,
+  "core_tests": 53,
+  "bridge_tests": 18,
+  "total_tests": 96,
+  "demo_phase_snapshots": 9,
+  "block_handles_stable": true,
+  "three_rule_prefix_observed": true,
+  "cross_block_join_and_invalidation_verified": true,
+  "scope": "diagnostic event block index",
+  "native_local_matching": false,
+  "physical_node_storage_changed": false,
+  "performance_claim": false
+}
