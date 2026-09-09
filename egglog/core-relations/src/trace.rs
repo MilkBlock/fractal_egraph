@@ -72,6 +72,7 @@ struct TraceState {
     next_event_id: AtomicU64,
     dependencies_enabled: bool,
     writes: Mutex<Vec<WriteEvent>>,
+    invalidations: Mutex<Vec<OriginInvalidation>>,
     reads: Mutex<Vec<RowReadEvent>>,
     matches: Mutex<Vec<RuleMatchEvent>>,
     action_outcomes: Mutex<Vec<RuleActionOutcomeEvent>>,
@@ -103,6 +104,13 @@ impl TraceSession {
                 ..Default::default()
             }),
         }
+    }
+    pub fn same_session(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.state, &other.state)
+    }
+    /// Provenance invalidations, not claims that every affected row was deleted.
+    pub fn origin_invalidations(&self) -> Vec<OriginInvalidation> {
+        self.state.invalidations.lock().unwrap().clone()
     }
     pub fn dependencies_enabled(&self) -> bool {
         self.state.dependencies_enabled
@@ -294,4 +302,38 @@ pub(crate) struct RowWitness {
 pub(crate) struct TraceAtom {
     pub table: crate::TableId,
     pub keys: Vec<Option<crate::action::QueryEntry>>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum OriginInvalidationReason {
+    Updated,
+    RemovedOrRebuilt,
+    TableCleared,
+}
+#[derive(Clone, Debug)]
+pub struct OriginInvalidation {
+    pub event_id: u64,
+    pub write_event_id: u64,
+    pub reason: OriginInvalidationReason,
+}
+impl TraceCause {
+    pub(crate) fn invalidate(&self, reason: OriginInvalidationReason) {
+        if let Some(write_event_id) = self.commit_event_id {
+            let event_id = self
+                .trace
+                .state
+                .next_event_id
+                .fetch_add(1, Ordering::Relaxed);
+            self.trace
+                .state
+                .invalidations
+                .lock()
+                .unwrap()
+                .push(OriginInvalidation {
+                    event_id,
+                    write_event_id,
+                    reason,
+                });
+        }
+    }
 }

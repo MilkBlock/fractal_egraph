@@ -732,7 +732,8 @@ impl SortedWritesTable {
         let total = self.pending_state.total_removals.swap(0, Ordering::Relaxed);
         if total > 0 && self.pending_state.has_provenance.load(Ordering::Relaxed) {
             // Conservative invalidation, also covering remove/reinsert during rebuild.
-            self.pending_state.producers.lock().unwrap().clear();
+            self.pending_state
+                .invalidate_origins(crate::trace::OriginInvalidationReason::RemovedOrRebuilt);
         }
 
         if parallelize_table_op(total) {
@@ -1408,6 +1409,11 @@ struct PendingState {
 }
 
 impl PendingState {
+    fn invalidate_origins(&self, reason: crate::trace::OriginInvalidationReason) {
+        for (_, (_, cause)) in self.producers.lock().unwrap().drain() {
+            cause.invalidate(reason);
+        }
+    }
     fn finish(
         &self,
         cause: Option<&crate::trace::TraceCause>,
@@ -1424,7 +1430,9 @@ impl PendingState {
         let mut origins = self.producers.lock().unwrap();
         match outcome {
             WriteOutcome::Inserted => {
-                origins.remove(&proposed[..n_keys]);
+                if let Some((_, old)) = origins.remove(&proposed[..n_keys]) {
+                    old.invalidate(crate::trace::OriginInvalidationReason::Updated);
+                }
                 if let Some(cause) = cause {
                     let mut origin = cause.clone();
                     origin.commit_event_id = commit_event;
@@ -1432,7 +1440,9 @@ impl PendingState {
                 }
             }
             WriteOutcome::Updated => {
-                origins.remove(&proposed[..n_keys]);
+                if let Some((_, old)) = origins.remove(&proposed[..n_keys]) {
+                    old.invalidate(crate::trace::OriginInvalidationReason::Updated);
+                }
             }
             _ => {}
         }
@@ -1456,7 +1466,7 @@ impl PendingState {
         }
     }
     fn clear(&self) {
-        self.producers.lock().unwrap().clear();
+        self.invalidate_origins(crate::trace::OriginInvalidationReason::TableCleared);
         self.has_provenance.store(false, Ordering::Relaxed);
         for (_, queue) in self.pending_rows.iter() {
             while queue.pop().is_some() {}
