@@ -680,6 +680,10 @@ impl SortedWritesTable {
                                     == to_remove
                         }) {
                             let (ent, _) = entry.remove();
+                            self.pending_state.invalidate_origin(
+                                to_remove,
+                                crate::trace::OriginInvalidationReason::RemovedOrRebuilt,
+                            );
                             // SAFETY: The safety requirements of
                             // `set_stale_shared` are that there are no
                             // concurrent accesses to `row`. No other threads
@@ -719,6 +723,10 @@ impl SortedWritesTable {
                                     == to_remove
                         }) {
                             let (ent, _) = entry.remove();
+                            self.pending_state.invalidate_origin(
+                                to_remove,
+                                crate::trace::OriginInvalidationReason::RemovedOrRebuilt,
+                            );
                             self.data.set_stale(ent.row);
                             changed = true;
                         }
@@ -730,11 +738,6 @@ impl SortedWritesTable {
 
     fn do_delete(&mut self) -> bool {
         let total = self.pending_state.total_removals.swap(0, Ordering::Relaxed);
-        if total > 0 && self.pending_state.has_provenance.load(Ordering::Relaxed) {
-            // Conservative invalidation, also covering remove/reinsert during rebuild.
-            self.pending_state
-                .invalidate_origins(crate::trace::OriginInvalidationReason::RemovedOrRebuilt);
-        }
 
         if parallelize_table_op(total) {
             self.parallel_delete()
@@ -1409,6 +1412,17 @@ struct PendingState {
 }
 
 impl PendingState {
+    fn invalidate_origin(&self, key: &[Value], reason: crate::trace::OriginInvalidationReason) {
+        if !self.has_provenance.load(Ordering::Relaxed) {
+            return;
+        }
+        // Only a row actually removed loses its origin. Rebuild still invalidates
+        // changed rows; this does not assert lineage through canonicalization.
+        if let Some((_, cause)) = self.producers.lock().unwrap().remove(key) {
+            cause.invalidate(reason);
+        }
+    }
+
     fn invalidate_origins(&self, reason: crate::trace::OriginInvalidationReason) {
         for (_, (_, cause)) in self.producers.lock().unwrap().drain() {
             cause.invalidate(reason);

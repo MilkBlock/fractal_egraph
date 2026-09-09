@@ -352,3 +352,32 @@ fn parallel_search_preserves_every_committed_row_dependency() {
             assert_eq!(collect(&eg).len(), N);
         });
 }
+
+#[test]
+fn deleting_one_key_preserves_other_row_origins() {
+    let mut eg = graph(false);
+    eg.parse_and_run_program(None, "(Seed 8)").unwrap();
+    let t = TraceSession::with_dependencies();
+    eg.step_rules_with_trace("a", &t).unwrap();
+    eg.parse_and_run_program(None, "(delete (Mid 999))")
+        .unwrap();
+    assert!(t.origin_invalidations().is_empty());
+    eg.parse_and_run_program(None, "(delete (Mid 7)) (Mid 7)")
+        .unwrap();
+    assert_eq!(t.origin_invalidations().len(), 1);
+    eg.step_rules_with_trace("b", &t).unwrap();
+    let reads = t.row_reads();
+    let mid: Vec<_> = reads
+        .iter()
+        .filter(|r| r.table_name.as_deref() == Some("Mid"))
+        .collect();
+    assert_eq!(mid.len(), 2);
+    assert_eq!(
+        mid.iter()
+            .filter(|r| r.producer_write_event_id.is_some())
+            .count(),
+        1
+    );
+    eg.parse_and_run_program(None, "(check (Out 7)) (check (Out 8))")
+        .unwrap();
+}
