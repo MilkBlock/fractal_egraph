@@ -1,0 +1,26 @@
+{
+  "kernel_commit": "b4071160ce04584b5c3d26a735a40c73c4f4e49e",
+  "checks": {
+    "dependency_integration": 12,
+    "core_relations_unit": 53,
+    "bridge_unit": 18,
+    "legacy_trace_integration": 2
+  },
+  "parallel_case": {
+    "workers": 4,
+    "rows": 20001,
+    "all_reads_linked_to_insert_commits": true,
+    "untraced_result_equal": true
+  },
+  "demo_cases": {
+    "fresh": 1,
+    "preexisting": 0,
+    "competing": 1,
+    "no_source_match": 0
+  },
+  "scope": "diagnostic keyed-row insertion provenance and witnessed two-rule prefix seeds",
+  "complete_union_lineage": false,
+  "shortcuts_installed": false,
+  "blocks_created": false,
+  "performance_claim": false
+}

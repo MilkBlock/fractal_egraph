@@ -34,6 +34,8 @@ git log --oneline --reverse egglog-baseline..HEAD
 
 ## 实验入口
 
+- [提交结果驱动的组合见证](experiments/dependency_witness/README.md)：内核记录实际插入与后续行读取，生成带 producer–consumer 证据的 A+B prefix seed；明确保留 union 来源缺口。
+
 - [Prefix 见证消融 1](experiments/prefix_witness/README.md)：单独测量 rule apply 见证能否替代局部 prefix 重新匹配，保留全局和同 class 覆盖缺口反例。
 
 - [连续 rewrite 在线组合](experiments/rule_combine/README.md)：预处理等价快捷规则，按局部匹配动态启用，比较完整闭包、轮次和实际开销。
