@@ -46,6 +46,7 @@ pub(crate) struct ActionInfo {
     pub(crate) instrs: Arc<Pooled<Vec<Instr>>>,
     pub(crate) trace_rule: Arc<str>,
     pub(crate) trace_symbols: SymbolMap,
+    pub(crate) trace_atoms: Arc<Vec<crate::trace::TraceAtom>>,
 }
 
 /// A set of rules to run against a [`Database`].
@@ -554,12 +555,45 @@ impl RuleBuilder<'_, '_> {
                 None
             }
         }));
+        let trace_atoms = Arc::new(
+            self.qb
+                .query
+                .atoms
+                .iter()
+                .map(|(_, atom)| {
+                    let spec = &self.table_info(atom.table).spec;
+                    let keys = (0..spec.n_keys)
+                        .map(|i| {
+                            let col = ColumnId::from_usize(i);
+                            atom.get_var(col).map(QueryEntry::Var).or_else(|| {
+                                atom.constraints
+                                    .fast
+                                    .iter()
+                                    .chain(atom.constraints.slow.iter())
+                                    .find_map(|c| {
+                                        if let Constraint::EqConst { col: c, val } = c {
+                                            (*c == col).then_some(QueryEntry::Const(*val))
+                                        } else {
+                                            None
+                                        }
+                                    })
+                            })
+                        })
+                        .collect();
+                    crate::trace::TraceAtom {
+                        table: atom.table,
+                        keys,
+                    }
+                })
+                .collect(),
+        );
         let desc: Arc<str> = Arc::from(desc.into());
         let action_id = self.qb.rsb.rule_set.actions.push(ActionInfo {
             instrs: Arc::new(self.qb.instrs),
             used_vars,
             trace_rule: desc.clone(),
             trace_symbols: symbol_map.clone(),
+            trace_atoms,
         });
         self.qb.query.action = action_id;
         // Plan the query

@@ -371,6 +371,7 @@ pub struct ExecutionState<'a> {
 /// A basic wrapper around an map from table id to a mutation buffer for that table that also
 /// tracks if a table has been modified.
 struct MutationBuffers<'a> {
+    trace_cause: Option<(crate::trace::TraceSession, u64)>,
     notify_list: &'a NotificationList<TableId>,
     buffers: DenseIdMap<TableId, Box<dyn MutationBuffer>>,
 }
@@ -381,6 +382,7 @@ impl Clone for MutationBuffers<'_> {
         for (id, buf) in self.buffers.iter() {
             res.buffers.insert(id, buf.fresh_handle());
         }
+        res.trace_cause = self.trace_cause.clone();
         res
     }
 }
@@ -391,6 +393,7 @@ impl<'a> MutationBuffers<'a> {
         buffers: DenseIdMap<TableId, Box<dyn MutationBuffer>>,
     ) -> MutationBuffers<'a> {
         MutationBuffers {
+            trace_cause: None,
             notify_list,
             buffers,
         }
@@ -399,7 +402,19 @@ impl<'a> MutationBuffers<'a> {
         self.buffers.get_or_insert(table_id, f);
     }
     fn stage_insert(&mut self, table_id: TableId, row: &[Value]) {
-        self.buffers[table_id].stage_insert(row);
+        if let Some((trace, match_event_id)) = &self.trace_cause {
+            self.buffers[table_id].stage_insert_with_cause(
+                row,
+                crate::trace::TraceCause {
+                    trace: trace.clone(),
+                    match_event_id: *match_event_id,
+                    table: table_id,
+                    commit_event_id: None,
+                },
+            );
+        } else {
+            self.buffers[table_id].stage_insert(row);
+        }
         self.notify_list.notify(table_id);
     }
 
@@ -596,6 +611,52 @@ impl<'a> ExecutionState<'a> {
 }
 
 impl ExecutionState<'_> {
+    pub(crate) fn record_lhs_reads(
+        &self,
+        trace: &crate::trace::TraceSession,
+        event: u64,
+        atoms: &[crate::trace::TraceAtom],
+        bindings: &DenseIdMap<Variable, Value>,
+    ) {
+        if !trace.dependencies_enabled() {
+            return;
+        }
+        let mut reads = Vec::new();
+        let mut complete = true;
+        for atom in atoms {
+            let table = &self.db.table_info[atom.table].table;
+            if !table.supports_row_provenance() {
+                complete = false;
+                continue;
+            }
+            let keys: Option<Vec<Value>> = atom
+                .keys
+                .iter()
+                .map(|entry| match entry {
+                    Some(QueryEntry::Const(v)) => Some(*v),
+                    Some(QueryEntry::Var(v)) => bindings.get(*v).copied(),
+                    None => None,
+                })
+                .collect();
+            let Some(keys) = keys else {
+                complete = false;
+                continue;
+            };
+            let Some(row) = table.get_row(&keys) else {
+                complete = false;
+                continue;
+            };
+            let producer = table.row_producer(&keys, &row.vals);
+            reads.push(crate::trace::RowWitness {
+                table: atom.table,
+                table_name: self.db.table_info[atom.table].name.clone(),
+                key: keys,
+                row: row.vals.to_vec(),
+                producer,
+            });
+        }
+        trace.record_reads(event, reads, complete);
+    }
     /// Returns the number of matches that make it to the end of the instructions
     pub(crate) fn run_instrs(&mut self, instrs: &[Instr], bindings: &mut Bindings) -> usize {
         self.run_instrs_mask(instrs, bindings).count_ones()
@@ -608,6 +669,23 @@ impl ExecutionState<'_> {
         match_event_ids: &[u64],
         trace: &crate::trace::TraceSession,
     ) -> usize {
+        if trace.dependencies_enabled() {
+            let previous = self.buffers.trace_cause.take();
+            let mut outcomes = Vec::with_capacity(match_event_ids.len());
+            for (lane, event_id) in match_event_ids.iter().enumerate() {
+                let mut one = Bindings::new(1);
+                for (var, _) in bindings.var_offsets.iter() {
+                    one.insert(var, &[bindings[var][lane]]);
+                }
+                one.matches = 1;
+                self.buffers.trace_cause = Some((trace.clone(), *event_id));
+                outcomes.push(self.run_instrs_mask(instrs, &mut one).count_ones() != 0);
+            }
+            self.buffers.trace_cause = previous;
+            let survived = outcomes.iter().filter(|x| **x).count();
+            trace.record_action_outcomes(match_event_ids, outcomes);
+            return survived;
+        }
         let mask = self.run_instrs_mask(instrs, bindings);
         debug_assert_eq!(match_event_ids.len(), mask.len());
         trace.record_action_outcomes(

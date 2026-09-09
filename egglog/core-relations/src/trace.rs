@@ -6,6 +6,11 @@
 //! physical table-row witnesses. It also intentionally does not claim that the
 //! actions changed the database: mutations are staged and only acquire a
 //! committed/no-op outcome later, while tables are merged.
+//!
+//! `TraceSession::with_dependencies()` additionally records exact keyed-table
+//! witnesses and propagates per-lane causes to actual insertion/merge decisions.
+//! It is a diagnostic mode for pure relational/constructor rules, not a complete
+//! equality proof tracer: unavailable keys and virtual-table reads remain gaps.
 
 use std::sync::{
     Arc, Mutex,
@@ -37,8 +42,10 @@ pub struct RuleMatchEvent {
     /// The logical substitution retained at the query/action boundary.
     /// Variables eliminated by the query planner are not present.
     pub bindings: Vec<RuleMatchBinding>,
-    /// False until physical atom/row witnesses are captured by a deeper join
-    /// tracing layer.
+    /// True only in dependency mode when every explicit LHS atom was resolved
+    /// to a unique concrete row by its complete key while the database was read-only.
+    /// This does not assert coverage of union proofs, external-function reads,
+    /// or complete semantic causes. Normal logical tracing keeps this false.
     pub physical_witness_complete: bool,
 }
 
@@ -63,15 +70,19 @@ pub struct RuleActionOutcomeEvent {
 #[derive(Default)]
 struct TraceState {
     next_event_id: AtomicU64,
+    dependencies_enabled: bool,
+    writes: Mutex<Vec<WriteEvent>>,
+    reads: Mutex<Vec<RowReadEvent>>,
     matches: Mutex<Vec<RuleMatchEvent>>,
     action_outcomes: Mutex<Vec<RuleActionOutcomeEvent>>,
 }
 
 /// A shareable collection session for core rule-match events.
 ///
-/// The session is passed explicitly to a traced run, so it does not become
-/// part of [`crate::Database`]'s clone semantics. Calls without a trace
-/// session retain the existing execution path.
+/// Normal logical tracing is passed explicitly to each run. Dependency mode
+/// additionally stores origin references in tables; table clones copy those
+/// references, but producer IDs are returned only to the same trace session.
+/// Tables which have never carried provenance retain the normal commit path.
 #[derive(Clone, Default)]
 pub struct TraceSession {
     state: Arc<TraceState>,
@@ -81,6 +92,82 @@ impl TraceSession {
     /// Create an empty trace session.
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Opt in to diagnostic row provenance. Actions run one lane at a time and
+    /// tables carrying provenance use serial commit so the observed winner is exact.
+    pub fn with_dependencies() -> Self {
+        Self {
+            state: Arc::new(TraceState {
+                dependencies_enabled: true,
+                ..Default::default()
+            }),
+        }
+    }
+    pub fn dependencies_enabled(&self) -> bool {
+        self.state.dependencies_enabled
+    }
+    /// Inserted/Deduplicated/Updated are emitted at SortedWritesTable commit.
+    /// Unsupported is only a staging notification for a table without commit hooks.
+    pub fn write_events(&self) -> Vec<WriteEvent> {
+        self.state.writes.lock().unwrap().clone()
+    }
+    /// A producer ID is present only for a still-valid inserted row from this
+    /// trace session. None means unknown/input, not proof of independence.
+    pub fn row_reads(&self) -> Vec<RowReadEvent> {
+        self.state.reads.lock().unwrap().clone()
+    }
+    pub(crate) fn record_write(
+        &self,
+        cause: &TraceCause,
+        proposed: &[Value],
+        actual: &[Value],
+        outcome: WriteOutcome,
+    ) -> u64 {
+        let event_id = self.state.next_event_id.fetch_add(1, Ordering::Relaxed);
+        self.state.writes.lock().unwrap().push(WriteEvent {
+            event_id,
+            match_event_id: cause.match_event_id,
+            table: cause.table,
+            proposed: proposed.to_vec(),
+            actual: actual.to_vec(),
+            outcome,
+        });
+        event_id
+    }
+    pub(crate) fn record_reads(&self, match_id: u64, reads: Vec<RowWitness>, complete: bool) {
+        // This is a diagnostic path. No producer is inferred from value similarity.
+        if complete {
+            if let Some(m) = self
+                .state
+                .matches
+                .lock()
+                .unwrap()
+                .iter_mut()
+                .rev()
+                .find(|m| m.event_id == match_id)
+            {
+                m.physical_witness_complete = true;
+            }
+        }
+        let mut out = self.state.reads.lock().unwrap();
+        for r in reads {
+            let origin = r
+                .producer
+                .filter(|p| Arc::ptr_eq(&p.trace.state, &self.state));
+            let producer = origin.as_ref().map(|p| p.match_event_id);
+            let producer_write = origin.as_ref().and_then(|p| p.commit_event_id);
+            out.push(RowReadEvent {
+                event_id: self.state.next_event_id.fetch_add(1, Ordering::Relaxed),
+                match_event_id: match_id,
+                table: r.table,
+                table_name: r.table_name,
+                key: r.key,
+                row: r.row,
+                producer_match_event_id: producer,
+                producer_write_event_id: producer_write,
+            });
+        }
     }
 
     pub(crate) fn record_match(
@@ -146,4 +233,65 @@ impl TraceSession {
     pub fn action_outcomes(&self) -> Vec<RuleActionOutcomeEvent> {
         self.state.action_outcomes.lock().unwrap().clone()
     }
+}
+
+/// Results of tracked writes. Unsupported is emitted before commit and means
+/// the table does not implement attribution. Updated versions are deliberately
+/// not credited as newly produced facts; their merge/equality lineage is incomplete.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum WriteOutcome {
+    Inserted,
+    Deduplicated,
+    Updated,
+    Unsupported,
+}
+#[derive(Clone, Debug)]
+pub struct WriteEvent {
+    pub event_id: u64,
+    pub match_event_id: u64,
+    pub table: crate::TableId,
+    pub proposed: Vec<Value>,
+    pub actual: Vec<Value>,
+    pub outcome: WriteOutcome,
+}
+#[derive(Clone, Debug)]
+pub struct RowReadEvent {
+    pub event_id: u64,
+    pub match_event_id: u64,
+    pub table: crate::TableId,
+    pub table_name: Option<Arc<str>>,
+    pub key: Vec<Value>,
+    pub row: Vec<Value>,
+    pub producer_match_event_id: Option<u64>,
+    pub producer_write_event_id: Option<u64>,
+}
+/// Origin attached to a staged write, never reconstructed from a snapshot delta.
+#[derive(Clone)]
+pub struct TraceCause {
+    pub(crate) trace: TraceSession,
+    pub(crate) match_event_id: u64,
+    pub(crate) table: crate::TableId,
+    pub(crate) commit_event_id: Option<u64>,
+}
+impl TraceCause {
+    pub(crate) fn finish(
+        &self,
+        proposed: &[Value],
+        actual: &[Value],
+        outcome: WriteOutcome,
+    ) -> u64 {
+        self.trace.record_write(self, proposed, actual, outcome)
+    }
+}
+pub(crate) struct RowWitness {
+    pub table: crate::TableId,
+    pub table_name: Option<Arc<str>>,
+    pub key: Vec<Value>,
+    pub row: Vec<Value>,
+    pub producer: Option<TraceCause>,
+}
+#[derive(Clone, Debug)]
+pub(crate) struct TraceAtom {
+    pub table: crate::TableId,
+    pub keys: Vec<Option<crate::action::QueryEntry>>,
 }

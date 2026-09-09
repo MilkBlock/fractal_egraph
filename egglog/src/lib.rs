@@ -41,8 +41,9 @@ use core::ResolvedAtomTerm;
 pub use core::{Atom, AtomTerm};
 pub use core::{ResolvedCall, SpecializedPrimitive};
 pub use core_relations::{
-    BaseValue, ContainerValue, ExecutionState, RuleActionOutcome, RuleActionOutcomeEvent,
-    RuleMatchBinding, RuleMatchEvent, TraceSession, Value,
+    BaseValue, ContainerValue, ExecutionState, RowReadEvent, RuleActionOutcome,
+    RuleActionOutcomeEvent, RuleMatchBinding, RuleMatchEvent, TraceSession, Value, WriteEvent,
+    WriteOutcome,
 };
 use core_relations::{ExternalFunctionId, make_external_func};
 use csv::Writer;

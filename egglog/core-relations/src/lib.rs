@@ -44,7 +44,8 @@ pub use table_spec::{
     TableVersion, WrappedTable,
 };
 pub use trace::{
-    RuleActionOutcome, RuleActionOutcomeEvent, RuleMatchBinding, RuleMatchEvent, TraceSession,
+    RowReadEvent, RuleActionOutcome, RuleActionOutcomeEvent, RuleMatchBinding, RuleMatchEvent,
+    TraceCause, TraceSession, WriteEvent, WriteOutcome,
 };
 pub use uf::DisplacedTable;
 

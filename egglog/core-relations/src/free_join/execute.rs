@@ -1803,6 +1803,14 @@ impl<'a, 'outer: 'a> ActionBuffer<'a, ActionId> for InPlaceActionBuffer<'outer> 
                 &action_info.trace_symbols,
                 bindings,
             );
+            if trace.dependencies_enabled() {
+                to_exec_state().record_lhs_reads(
+                    trace,
+                    match_event_id,
+                    &action_info.trace_atoms,
+                    bindings,
+                );
+            }
             action_state.trace_match_ids.push(match_event_id);
         }
         // SAFETY: `used_vars` is a constant per-rule. This module only ever calls it with
@@ -1902,6 +1910,14 @@ impl<'scope> ActionBuffer<'scope, ActionId> for ScopedActionBuffer<'_, 'scope> {
                 &action_info.trace_symbols,
                 bindings,
             );
+            if trace.dependencies_enabled() {
+                to_exec_state().record_lhs_reads(
+                    trace,
+                    match_event_id,
+                    &action_info.trace_atoms,
+                    bindings,
+                );
+            }
             action_state.trace_match_ids.push(match_event_id);
         }
         // SAFETY: `used_vars` is a constant per-rule. This module only ever calls it with

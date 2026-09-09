@@ -10,8 +10,8 @@ use std::{
     hash::Hasher,
     mem,
     sync::{
-        Arc, Weak,
-        atomic::{AtomicUsize, Ordering},
+        Arc, Mutex, Weak,
+        atomic::{AtomicBool, AtomicUsize, Ordering},
     },
 };
 
@@ -224,8 +224,47 @@ impl ArbitraryRowBuffer {
     }
 }
 
+/// Optional origins travel with the same row buffer through sharding and staging.
+#[derive(Clone)]
+struct PendingBatch {
+    rows: RowBuffer,
+    causes: Vec<Option<crate::trace::TraceCause>>,
+}
+impl PendingBatch {
+    fn new(cols: usize) -> Self {
+        Self {
+            rows: RowBuffer::new(cols),
+            causes: Vec::new(),
+        }
+    }
+    fn add_row(&mut self, row: &[Value]) {
+        if !self.causes.is_empty() {
+            self.causes.push(None);
+        }
+        self.rows.add_row(row);
+    }
+    fn add_traced(&mut self, row: &[Value], cause: crate::trace::TraceCause) {
+        self.causes.resize(self.rows.len(), None);
+        self.causes.push(Some(cause));
+        self.rows.add_row(row);
+    }
+    fn traced_rows(&self) -> impl Iterator<Item = (&[Value], Option<&crate::trace::TraceCause>)> {
+        self.rows
+            .iter()
+            .enumerate()
+            .filter(|(_, r)| !r.first().is_some_and(Value::is_stale))
+            .map(|(i, r)| (r, self.causes.get(i).and_then(Option::as_ref)))
+    }
+}
+impl std::ops::Deref for PendingBatch {
+    type Target = RowBuffer;
+    fn deref(&self) -> &RowBuffer {
+        &self.rows
+    }
+}
+
 struct Buffer {
-    pending_rows: DenseIdMap<ShardId, RowBuffer>,
+    pending_rows: DenseIdMap<ShardId, PendingBatch>,
     pending_removals: DenseIdMap<ShardId, ArbitraryRowBuffer>,
     state: Weak<PendingState>,
     n_cols: u32,
@@ -234,10 +273,16 @@ struct Buffer {
 }
 
 impl MutationBuffer for Buffer {
+    fn stage_insert_with_cause(&mut self, row: &[Value], cause: crate::trace::TraceCause) {
+        let (shard, _) = hash_code(self.shard_data, row, self.n_keys as _);
+        self.pending_rows
+            .get_or_insert(shard, || PendingBatch::new(self.n_cols as _))
+            .add_traced(row, cause);
+    }
     fn stage_insert(&mut self, row: &[Value]) {
         let (shard, _) = hash_code(self.shard_data, row, self.n_keys as _);
         self.pending_rows
-            .get_or_insert(shard, || RowBuffer::new(self.n_cols as _))
+            .get_or_insert(shard, || PendingBatch::new(self.n_cols as _))
             .add_row(row);
     }
     fn stage_remove(&mut self, key: &[Value]) {
@@ -268,6 +313,9 @@ impl Drop for Buffer {
                     continue;
                 };
                 rows += buf.len();
+                if !buf.causes.is_empty() {
+                    state.has_provenance.store(true, Ordering::Relaxed);
+                }
                 state.pending_rows[shard].push(buf);
             }
             state.total_rows.fetch_add(rows, Ordering::Relaxed);
@@ -287,6 +335,21 @@ impl Drop for Buffer {
 }
 
 impl Table for SortedWritesTable {
+    fn supports_row_provenance(&self) -> bool {
+        true
+    }
+    fn row_producer(&self, key: &[Value], row: &[Value]) -> Option<crate::trace::TraceCause> {
+        if !self.pending_state.has_provenance.load(Ordering::Relaxed) {
+            return None;
+        }
+        self.pending_state
+            .producers
+            .lock()
+            .unwrap()
+            .get(key)
+            .filter(|(stored, _)| stored.as_slice() == row)
+            .map(|(_, cause)| cause.clone())
+    }
     fn dyn_clone(&self) -> Box<dyn Table> {
         Box::new(self.clone())
     }
@@ -667,6 +730,10 @@ impl SortedWritesTable {
 
     fn do_delete(&mut self) -> bool {
         let total = self.pending_state.total_removals.swap(0, Ordering::Relaxed);
+        if total > 0 && self.pending_state.has_provenance.load(Ordering::Relaxed) {
+            // Conservative invalidation, also covering remove/reinsert during rebuild.
+            self.pending_state.producers.lock().unwrap().clear();
+        }
 
         if parallelize_table_op(total) {
             self.parallel_delete()
@@ -678,7 +745,8 @@ impl SortedWritesTable {
     fn do_insert(&mut self, exec_state: &mut ExecutionState) -> bool {
         let total = self.pending_state.total_rows.swap(0, Ordering::Relaxed);
         self.data.data.reserve(total);
-        if parallelize_table_op(total) {
+        if !self.pending_state.has_provenance.load(Ordering::Relaxed) && parallelize_table_op(total)
+        {
             if let Some(col) = self.sort_by {
                 self.parallel_insert(
                     exec_state,
@@ -703,7 +771,7 @@ impl SortedWritesTable {
         for (_outer_shard, queue) in self.pending_state.pending_rows.iter() {
             if let Some(sort_by) = self.sort_by {
                 while let Some(buf) = queue.pop() {
-                    for query in buf.non_stale() {
+                    for (query, cause) in buf.traced_rows() {
                         let key = &query[0..n_keys];
                         let entry = get_entry_mut(query, n_keys, &mut self.hash, |row| {
                             let Some(row) = self.data.get_row(row) else {
@@ -737,6 +805,21 @@ impl SortedWritesTable {
                                 self.data.set_stale(*row);
                                 *row = new;
                                 changed = true;
+                                self.pending_state.finish(
+                                    cause,
+                                    query,
+                                    &scratch,
+                                    crate::trace::WriteOutcome::Updated,
+                                    n_keys,
+                                );
+                            } else {
+                                self.pending_state.finish(
+                                    cause,
+                                    query,
+                                    cur,
+                                    crate::trace::WriteOutcome::Deduplicated,
+                                    n_keys,
+                                );
                             }
                             scratch.clear();
                         } else {
@@ -765,13 +848,20 @@ impl SortedWritesTable {
                                 TableEntry::hashcode,
                             );
                             changed = true;
+                            self.pending_state.finish(
+                                cause,
+                                query,
+                                query,
+                                crate::trace::WriteOutcome::Inserted,
+                                n_keys,
+                            );
                         }
                     }
                 }
             } else {
                 // Simplified variant without the sorting constraint.
                 while let Some(buf) = queue.pop() {
-                    for query in buf.non_stale() {
+                    for (query, cause) in buf.traced_rows() {
                         let key = &query[0..n_keys];
                         let entry = get_entry_mut(query, n_keys, &mut self.hash, |row| {
                             let Some(row) = self.data.get_row(row) else {
@@ -790,6 +880,21 @@ impl SortedWritesTable {
                                 self.data.set_stale(*row);
                                 *row = new;
                                 changed = true;
+                                self.pending_state.finish(
+                                    cause,
+                                    query,
+                                    &scratch,
+                                    crate::trace::WriteOutcome::Updated,
+                                    n_keys,
+                                );
+                            } else {
+                                self.pending_state.finish(
+                                    cause,
+                                    query,
+                                    cur,
+                                    crate::trace::WriteOutcome::Deduplicated,
+                                    n_keys,
+                                );
                             }
                             scratch.clear();
                         } else {
@@ -806,6 +911,13 @@ impl SortedWritesTable {
                                 TableEntry::hashcode,
                             );
                             changed = true;
+                            self.pending_state.finish(
+                                cause,
+                                query,
+                                query,
+                                crate::trace::WriteOutcome::Inserted,
+                                n_keys,
+                            );
                         }
                     }
                 }
@@ -1287,13 +1399,44 @@ fn hash_code(shard_data: ShardData, row: &[Value], n_keys: usize) -> (ShardId, u
 
 /// A simple struct for packaging up pending mutations to a `SortedWritesTable`.
 struct PendingState {
-    pending_rows: DenseIdMap<ShardId, SegQueue<RowBuffer>>,
+    has_provenance: AtomicBool,
+    producers: Mutex<HashMap<Vec<Value>, (Vec<Value>, crate::trace::TraceCause)>>,
+    pending_rows: DenseIdMap<ShardId, SegQueue<PendingBatch>>,
     pending_removals: DenseIdMap<ShardId, SegQueue<ArbitraryRowBuffer>>,
     total_removals: AtomicUsize,
     total_rows: AtomicUsize,
 }
 
 impl PendingState {
+    fn finish(
+        &self,
+        cause: Option<&crate::trace::TraceCause>,
+        proposed: &[Value],
+        actual: &[Value],
+        outcome: crate::trace::WriteOutcome,
+        n_keys: usize,
+    ) {
+        use crate::trace::WriteOutcome;
+        let commit_event = cause.map(|cause| cause.finish(proposed, actual, outcome));
+        if !self.has_provenance.load(Ordering::Relaxed) {
+            return;
+        }
+        let mut origins = self.producers.lock().unwrap();
+        match outcome {
+            WriteOutcome::Inserted => {
+                origins.remove(&proposed[..n_keys]);
+                if let Some(cause) = cause {
+                    let mut origin = cause.clone();
+                    origin.commit_event_id = commit_event;
+                    origins.insert(proposed[..n_keys].to_vec(), (actual.to_vec(), origin));
+                }
+            }
+            WriteOutcome::Updated => {
+                origins.remove(&proposed[..n_keys]);
+            }
+            _ => {}
+        }
+    }
     fn new(shard_data: ShardData) -> PendingState {
         let n_shards = shard_data.n_shards();
         let mut pending_rows = DenseIdMap::with_capacity(n_shards);
@@ -1304,6 +1447,8 @@ impl PendingState {
         }
 
         PendingState {
+            has_provenance: AtomicBool::new(false),
+            producers: Mutex::new(HashMap::default()),
             pending_rows,
             pending_removals,
             total_removals: AtomicUsize::new(0),
@@ -1311,6 +1456,8 @@ impl PendingState {
         }
     }
     fn clear(&self) {
+        self.producers.lock().unwrap().clear();
+        self.has_provenance.store(false, Ordering::Relaxed);
         for (_, queue) in self.pending_rows.iter() {
             while queue.pop().is_some() {}
         }
@@ -1356,6 +1503,8 @@ impl PendingState {
         }
 
         PendingState {
+            has_provenance: AtomicBool::new(self.has_provenance.load(Ordering::Relaxed)),
+            producers: Mutex::new(self.producers.lock().unwrap().clone()),
             pending_rows,
             pending_removals,
             total_removals: AtomicUsize::new(self.total_removals.load(Ordering::Acquire)),

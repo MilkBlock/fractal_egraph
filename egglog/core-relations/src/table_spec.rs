@@ -342,6 +342,14 @@ pub trait Table: Any + Send + Sync {
     /// primary keys for the table.
     fn get_row(&self, key: &[Value]) -> Option<Row>;
 
+    /// Only concrete keyed tables opt in; virtual union-find reads remain unsupported.
+    fn supports_row_provenance(&self) -> bool {
+        false
+    }
+    fn row_producer(&self, _key: &[Value], _row: &[Value]) -> Option<crate::trace::TraceCause> {
+        None
+    }
+
     /// Look up the given column of single row by the given key values, if it is
     /// in the table.
     ///
@@ -371,6 +379,10 @@ pub trait MutationBuffer: Any + Send + Sync {
     /// this buffer is dropped, and after `merge` is called on the underlying
     /// table.
     fn stage_insert(&mut self, row: &[Value]);
+    fn stage_insert_with_cause(&mut self, row: &[Value], cause: crate::trace::TraceCause) {
+        cause.finish(row, &[], crate::trace::WriteOutcome::Unsupported);
+        self.stage_insert(row);
+    }
 
     /// Stage the keyed entries for removal. Changes may not be visible until
     /// this buffer is dropped, and after `merge` is called on the underlying
