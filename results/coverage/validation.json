@@ -1,0 +1,15 @@
+{
+  "coverage_tests": 7,
+  "dependency_block_tests": 11,
+  "dependency_trace_tests": 12,
+  "legacy_trace_tests": 2,
+  "core_tests": 53,
+  "bridge_tests": 18,
+  "total_tests": 103,
+  "phase_snapshots": 6,
+  "overlap_memberships": 7,
+  "distinct_covered_facts": 4,
+  "native_storage_owners_unchanged": true,
+  "uniform_exploration_implemented": false,
+  "performance_claim": false
+}

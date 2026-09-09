@@ -34,6 +34,8 @@ git log --oneline --reverse egglog-baseline..HEAD
 
 ## 实验入口
 
+- [覆盖账本与重叠视图](experiments/coverage/README.md)：以全部选定活跃行计分母，分离 membership 与原生 owner，按并集计费并记录覆盖缺口。
+
 - [依赖驱动的活跃 block 索引](experiments/dependency_blocks/README.md)：A→B→C 增长、组合 prefix、跨块交互和来源失效传播；尚未改变原生匹配或存储路径。
 
 - [提交结果驱动的组合见证](experiments/dependency_witness/README.md)：内核记录实际插入与后续行读取，生成带 producer–consumer 证据的 A+B prefix seed；明确保留 union 来源缺口。

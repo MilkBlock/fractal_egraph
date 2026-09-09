@@ -1,0 +1,512 @@
+{
+  "native_execution_changed": false,
+  "payload_bytes_are_not_allocated_memory": true,
+  "phases": [
+    {
+      "active_memberships": 0,
+      "covered_facts": 0,
+      "covered_logical_payload_bytes": 0,
+      "duplicated_memberships": 0,
+      "facts": [
+        {
+          "fields": "[Value(0), Value(1)]",
+          "id": 0,
+          "owner": "A",
+          "state": "Unobserved",
+          "table": "A",
+          "views": []
+        },
+        {
+          "fields": "[Value(2), Value(3)]",
+          "id": 1,
+          "owner": "Cold",
+          "state": "Unobserved",
+          "table": "Cold",
+          "views": []
+        },
+        {
+          "fields": "[Value(7), Value(0)]",
+          "id": 2,
+          "owner": "Var",
+          "state": "Unobserved",
+          "table": "Var",
+          "views": []
+        },
+        {
+          "fields": "[Value(99), Value(2)]",
+          "id": 3,
+          "owner": "Var",
+          "state": "Unobserved",
+          "table": "Var",
+          "views": []
+        }
+      ],
+      "live_facts": 4,
+      "logical_payload_bytes": 32,
+      "phase": "initial_inventory",
+      "states": {
+        "Unobserved": 4
+      },
+      "views": []
+    },
+    {
+      "active_memberships": 0,
+      "covered_facts": 0,
+      "covered_logical_payload_bytes": 0,
+      "duplicated_memberships": 0,
+      "facts": [
+        {
+          "fields": "[Value(0), Value(1)]",
+          "id": 0,
+          "owner": "A",
+          "state": "SeedOnly",
+          "table": "A",
+          "views": []
+        },
+        {
+          "fields": "[Value(2), Value(3)]",
+          "id": 1,
+          "owner": "Cold",
+          "state": "Unobserved",
+          "table": "Cold",
+          "views": []
+        },
+        {
+          "fields": "[Value(7), Value(0)]",
+          "id": 2,
+          "owner": "Var",
+          "state": "Unobserved",
+          "table": "Var",
+          "views": []
+        },
+        {
+          "fields": "[Value(99), Value(2)]",
+          "id": 3,
+          "owner": "Var",
+          "state": "Unobserved",
+          "table": "Var",
+          "views": []
+        },
+        {
+          "fields": "[Value(0), Value(1)]",
+          "id": 4,
+          "owner": "B",
+          "state": "SeedOnly",
+          "table": "B",
+          "views": []
+        }
+      ],
+      "live_facts": 5,
+      "logical_payload_bytes": 40,
+      "phase": "a",
+      "states": {
+        "SeedOnly": 2,
+        "Unobserved": 3
+      },
+      "views": []
+    },
+    {
+      "active_memberships": 3,
+      "covered_facts": 3,
+      "covered_logical_payload_bytes": 24,
+      "duplicated_memberships": 0,
+      "facts": [
+        {
+          "fields": "[Value(0), Value(1)]",
+          "id": 0,
+          "owner": "A",
+          "state": "Covered",
+          "table": "A",
+          "views": [
+            0
+          ]
+        },
+        {
+          "fields": "[Value(2), Value(3)]",
+          "id": 1,
+          "owner": "Cold",
+          "state": "Unobserved",
+          "table": "Cold",
+          "views": []
+        },
+        {
+          "fields": "[Value(7), Value(0)]",
+          "id": 2,
+          "owner": "Var",
+          "state": "Unobserved",
+          "table": "Var",
+          "views": []
+        },
+        {
+          "fields": "[Value(99), Value(2)]",
+          "id": 3,
+          "owner": "Var",
+          "state": "Unobserved",
+          "table": "Var",
+          "views": []
+        },
+        {
+          "fields": "[Value(0), Value(1)]",
+          "id": 4,
+          "owner": "B",
+          "state": "Covered",
+          "table": "B",
+          "views": [
+            0
+          ]
+        },
+        {
+          "fields": "[Value(0), Value(1)]",
+          "id": 5,
+          "owner": "C",
+          "state": "Covered",
+          "table": "C",
+          "views": [
+            0
+          ]
+        }
+      ],
+      "live_facts": 6,
+      "logical_payload_bytes": 48,
+      "phase": "b",
+      "states": {
+        "Covered": 3,
+        "Unobserved": 3
+      },
+      "views": [
+        {
+          "active": true,
+          "block": 0,
+          "facts": [
+            0,
+            4,
+            5
+          ],
+          "id": 0,
+          "invalid_reason": null,
+          "lhs": "(A v0)",
+          "rhs": "(C v0)"
+        }
+      ]
+    },
+    {
+      "active_memberships": 7,
+      "covered_facts": 4,
+      "covered_logical_payload_bytes": 32,
+      "duplicated_memberships": 3,
+      "facts": [
+        {
+          "fields": "[Value(0), Value(1)]",
+          "id": 0,
+          "owner": "A",
+          "state": "Covered",
+          "table": "A",
+          "views": [
+            0,
+            1
+          ]
+        },
+        {
+          "fields": "[Value(2), Value(3)]",
+          "id": 1,
+          "owner": "Cold",
+          "state": "Unobserved",
+          "table": "Cold",
+          "views": []
+        },
+        {
+          "fields": "[Value(7), Value(0)]",
+          "id": 2,
+          "owner": "Var",
+          "state": "Unobserved",
+          "table": "Var",
+          "views": []
+        },
+        {
+          "fields": "[Value(99), Value(2)]",
+          "id": 3,
+          "owner": "Var",
+          "state": "Unobserved",
+          "table": "Var",
+          "views": []
+        },
+        {
+          "fields": "[Value(0), Value(1)]",
+          "id": 4,
+          "owner": "B",
+          "state": "Covered",
+          "table": "B",
+          "views": [
+            0,
+            1
+          ]
+        },
+        {
+          "fields": "[Value(0), Value(1)]",
+          "id": 5,
+          "owner": "C",
+          "state": "Covered",
+          "table": "C",
+          "views": [
+            0,
+            1
+          ]
+        },
+        {
+          "fields": "[Value(0), Value(1)]",
+          "id": 6,
+          "owner": "D",
+          "state": "Covered",
+          "table": "D",
+          "views": [
+            1
+          ]
+        }
+      ],
+      "live_facts": 7,
+      "logical_payload_bytes": 56,
+      "phase": "c",
+      "states": {
+        "Covered": 4,
+        "Unobserved": 3
+      },
+      "views": [
+        {
+          "active": true,
+          "block": 0,
+          "facts": [
+            0,
+            4,
+            5
+          ],
+          "id": 0,
+          "invalid_reason": null,
+          "lhs": "(A v0)",
+          "rhs": "(C v0)"
+        },
+        {
+          "active": true,
+          "block": 0,
+          "facts": [
+            0,
+            4,
+            5,
+            6
+          ],
+          "id": 1,
+          "invalid_reason": null,
+          "lhs": "(A v0)",
+          "rhs": "(D v0)"
+        }
+      ]
+    },
+    {
+      "active_memberships": 3,
+      "covered_facts": 3,
+      "covered_logical_payload_bytes": 24,
+      "duplicated_memberships": 0,
+      "facts": [
+        {
+          "fields": "[Value(0), Value(1)]",
+          "id": 0,
+          "owner": "A",
+          "state": "Covered",
+          "table": "A",
+          "views": [
+            0
+          ]
+        },
+        {
+          "fields": "[Value(2), Value(3)]",
+          "id": 1,
+          "owner": "Cold",
+          "state": "Unobserved",
+          "table": "Cold",
+          "views": []
+        },
+        {
+          "fields": "[Value(7), Value(0)]",
+          "id": 2,
+          "owner": "Var",
+          "state": "Unobserved",
+          "table": "Var",
+          "views": []
+        },
+        {
+          "fields": "[Value(99), Value(2)]",
+          "id": 3,
+          "owner": "Var",
+          "state": "Unobserved",
+          "table": "Var",
+          "views": []
+        },
+        {
+          "fields": "[Value(0), Value(1)]",
+          "id": 4,
+          "owner": "B",
+          "state": "Covered",
+          "table": "B",
+          "views": [
+            0
+          ]
+        },
+        {
+          "fields": "[Value(0), Value(1)]",
+          "id": 5,
+          "owner": "C",
+          "state": "Covered",
+          "table": "C",
+          "views": [
+            0
+          ]
+        },
+        {
+          "fields": "[Value(0), Value(1)]",
+          "id": 6,
+          "owner": "D",
+          "state": "Invalidated",
+          "table": "D",
+          "views": []
+        }
+      ],
+      "live_facts": 7,
+      "logical_payload_bytes": 56,
+      "phase": "withdraw_longer_view",
+      "states": {
+        "Covered": 3,
+        "Invalidated": 1,
+        "Unobserved": 3
+      },
+      "views": [
+        {
+          "active": true,
+          "block": 0,
+          "facts": [
+            0,
+            4,
+            5
+          ],
+          "id": 0,
+          "invalid_reason": null,
+          "lhs": "(A v0)",
+          "rhs": "(C v0)"
+        },
+        {
+          "active": false,
+          "block": 0,
+          "facts": [
+            0,
+            4,
+            5,
+            6
+          ],
+          "id": 1,
+          "invalid_reason": "explicitly withdraw the longer view",
+          "lhs": "(A v0)",
+          "rhs": "(D v0)"
+        }
+      ]
+    },
+    {
+      "active_memberships": 0,
+      "covered_facts": 0,
+      "covered_logical_payload_bytes": 0,
+      "duplicated_memberships": 0,
+      "facts": [
+        {
+          "fields": "[Value(0), Value(1)]",
+          "id": 0,
+          "owner": "A",
+          "state": "Invalidated",
+          "table": "A",
+          "views": []
+        },
+        {
+          "fields": "[Value(2), Value(3)]",
+          "id": 1,
+          "owner": "Cold",
+          "state": "Unobserved",
+          "table": "Cold",
+          "views": []
+        },
+        {
+          "fields": "[Value(7), Value(0)]",
+          "id": 2,
+          "owner": "Var",
+          "state": "Unobserved",
+          "table": "Var",
+          "views": []
+        },
+        {
+          "fields": "[Value(99), Value(2)]",
+          "id": 3,
+          "owner": "Var",
+          "state": "Unobserved",
+          "table": "Var",
+          "views": []
+        },
+        {
+          "fields": "[Value(0), Value(1)]",
+          "id": 4,
+          "owner": "B",
+          "state": "Retired",
+          "table": "B",
+          "views": []
+        },
+        {
+          "fields": "[Value(0), Value(1)]",
+          "id": 5,
+          "owner": "C",
+          "state": "Invalidated",
+          "table": "C",
+          "views": []
+        },
+        {
+          "fields": "[Value(0), Value(1)]",
+          "id": 6,
+          "owner": "D",
+          "state": "Invalidated",
+          "table": "D",
+          "views": []
+        }
+      ],
+      "live_facts": 6,
+      "logical_payload_bytes": 48,
+      "phase": "remove_B",
+      "states": {
+        "Invalidated": 3,
+        "Unobserved": 3
+      },
+      "views": [
+        {
+          "active": false,
+          "block": 0,
+          "facts": [
+            0,
+            4,
+            5
+          ],
+          "id": 0,
+          "invalid_reason": "block/prefix or a concrete row is no longer valid",
+          "lhs": "(A v0)",
+          "rhs": "(C v0)"
+        },
+        {
+          "active": false,
+          "block": 0,
+          "facts": [
+            0,
+            4,
+            5,
+            6
+          ],
+          "id": 1,
+          "invalid_reason": "block/prefix or a concrete row is no longer valid",
+          "lhs": "(A v0)",
+          "rhs": "(D v0)"
+        }
+      ]
+    }
+  ],
+  "scope": "constructor-row coverage ledger"
+}
