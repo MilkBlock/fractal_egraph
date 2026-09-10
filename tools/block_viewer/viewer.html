@@ -18,11 +18,14 @@ let data=JSON.parse(document.getElementById('dataset').textContent);
 const $=id=>document.getElementById(id), esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const scenarios={chain_growth:'链式增长',cross_block_and_invalidation:'双块交互与失效',union_overlap:'Union：根合并与输入合并'};
 const phaseNames={a:'a 后：仅种子',b:'b 后：A+B',c:'c 后：A+B+C',la:'la 后',lb:'lb 后：左侧 block',ra:'ra 后',rb:'rb 后：两侧 block',join:'join 后：交汇 block',delete_LL:'删除 LL 后',before_union:'Union 前',root_union:'只 union 根 e-class',input_union:'再 union 输入端口'};
+function basename(s){return String(s||'').split('/').pop()}
+function caseLabel(c,i){return scenarios[c.scenario]||(c.name?basename(c.name):c.scenario)||('样例 '+i)}
+function phaseLabel(p,i){const n=phaseNames[p.phase];if(n)return n;if(!p.phase)return '步骤 '+i;const m=p.phase.match(/^command (\d+):\s*\(([^)]*)\)/);if(m){const tail=p.phase.slice(m[0].length).trim();return `#${m[1]} ${m[2]}${tail?' '+tail.slice(0,24):''}`;}const short=p.phase.length>44?p.phase.slice(0,43)+'…':p.phase;return short;}
 function options(el,items,value){el.replaceChildren(...items.map(([v,label])=>{const o=document.createElement('option');o.value=String(v);o.textContent=label;return o}));if(value!==undefined)el.value=String(value)}
 function current(){return data.cases[Number($('scenario').value)].phases[Number($('phase').value)]}
 function selected(){return (current().blocks||[]).find(b=>String(b.id)===$('block').value)}
-function init(){if(!Array.isArray(data.cases)||!data.cases.length)throw Error('记录需要非空 cases 数组');options($('scenario'),data.cases.map((c,i)=>[i,scenarios[c.scenario]||c.scenario]),0);setScenario()}
-function setScenario(){const c=data.cases[Number($('scenario').value)];options($('phase'),c.phases.map((p,i)=>[i,phaseNames[p.phase]||p.phase]),c.scenario==='union_overlap'?0:c.phases.length-1);setPhase()}
+function init(){if(!Array.isArray(data.cases)||!data.cases.length)throw Error('记录需要非空 cases 数组');options($('scenario'),data.cases.map((c,i)=>[i,caseLabel(c,i)]),0);setScenario()}
+function setScenario(){const c=data.cases[Number($('scenario').value)];options($('phase'),c.phases.map((p,i)=>[i,phaseLabel(p,i)]),c.scenario==='union_overlap'?0:c.phases.length-1);setPhase()}
 function setPhase(){const p=current();options($('block'),p.blocks.map(b=>[b.id,`Block ${b.id}${b.active?'':' · 待验证'}`]),p.blocks[0]?.id);$('block').disabled=!p.blocks.length;setBlock()}
 function setBlock(){const b=selected(),ps=b?.combined_prefixes||[];options($('prefix'),ps.length?ps.map((p,i)=>[i,`${p.rules.join(' → ')}${p.usable?'':' · 失效'}`]):[['none','仅入口 prefix']],ps.length?ps.length-1:'none');$('prefix').disabled=!ps.length;render()}
 function eventGraph(b,highlight,usable){const W=270, nodes=b.members||[], ids=new Set(nodes.map(n=>n.match));const edges=(b.dependencies||[]).filter(e=>ids.has(e.producer)&&ids.has(e.consumer));const levels=new Map();for(let pass=0;pass<nodes.length;pass++)for(const n of nodes){const parents=edges.filter(e=>e.consumer===n.match);levels.set(n.match,parents.length?1+Math.max(...parents.map(e=>levels.get(e.producer)||0)):0)}

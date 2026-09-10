@@ -23,7 +23,27 @@ diagnostic blocks, not compression or measured speedup. The viewer lists rejecte
 match candidates, including action guards that filtered them.
 
 UI regression uses Python Playwright with installed Chrome; run
-`python tools/block_viewer/test_ui.py` after generating index.html and cyk.html.
+`python tools/block_viewer/test_ui.py` after generating index.html, cyk.html,
+union.html and simplify.html.
+
+## Sample programs and what they exercise
+
+The viewer renders any `egg_trace` export. A sample produces a meaningful picture
+when it has either active blocks or an honest rejection list (or both):
+
+| program | blocks | what it shows |
+|---|---|---|
+| `native_programs/simplify.egg` | 3 active | two `mul-fold` producers joined by `add-fold` (`Const 26`) |
+| `native_programs/union.egg` | 2 active | committed/redundant unions, rebuild row versions, equality edge |
+| `web-demo/cyk.egg` | 24/36/66 | self-referential `P` span chain; pops retire all blocks |
+| `web-demo/herbie-tutorial.egg` | up to 35 | interval bounds + constant folding across scopes |
+| `web-demo/fibonacci.egg` | 1 active | self-referential `fib` chain |
+| `factoring-multisets.egg` | 0 | container/multiset canonicalization: 5625 rejected, honestly listed |
+
+The scenario selector labels native programs by basename (e.g. `cyk.egg`); the
+phase selector shows command number plus the schedule/action (e.g.
+`#31 run-schedule …`, `#37 pop 1`). The old hardcoded fixtures keep their Chinese
+labels.
 
 
 Native union/rebuild example:

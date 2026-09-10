@@ -6,7 +6,9 @@
           "blocks": [],
           "interactions": [],
           "phase": "a",
-          "rejected": {}
+          "rebuild_versions": [],
+          "rejected": {},
+          "union_events": []
         },
         {
           "blocks": [
@@ -128,7 +130,9 @@
           ],
           "interactions": [],
           "phase": "b",
-          "rejected": {}
+          "rebuild_versions": [],
+          "rejected": {},
+          "union_events": []
         },
         {
           "blocks": [
@@ -298,7 +302,9 @@
           ],
           "interactions": [],
           "phase": "c",
-          "rejected": {}
+          "rebuild_versions": [],
+          "rejected": {},
+          "union_events": []
         }
       ],
       "scenario": "chain_growth"
@@ -309,7 +315,9 @@
           "blocks": [],
           "interactions": [],
           "phase": "la",
-          "rejected": {}
+          "rebuild_versions": [],
+          "rejected": {},
+          "union_events": []
         },
         {
           "blocks": [
@@ -409,7 +417,9 @@
           ],
           "interactions": [],
           "phase": "lb",
-          "rejected": {}
+          "rebuild_versions": [],
+          "rejected": {},
+          "union_events": []
         },
         {
           "blocks": [
@@ -509,7 +519,9 @@
           ],
           "interactions": [],
           "phase": "ra",
-          "rejected": {}
+          "rebuild_versions": [],
+          "rejected": {},
+          "union_events": []
         },
         {
           "blocks": [
@@ -702,7 +714,9 @@
           ],
           "interactions": [],
           "phase": "rb",
-          "rejected": {}
+          "rebuild_versions": [],
+          "rejected": {},
+          "union_events": []
         },
         {
           "blocks": [
@@ -1018,7 +1032,9 @@
             }
           ],
           "phase": "join",
-          "rejected": {}
+          "rebuild_versions": [],
+          "rejected": {},
+          "union_events": []
         },
         {
           "blocks": [
@@ -1324,7 +1340,9 @@
             }
           ],
           "phase": "delete_LL",
-          "rejected": {}
+          "rebuild_versions": [],
+          "rejected": {},
+          "union_events": []
         }
       ],
       "scenario": "cross_block_and_invalidation"
@@ -1569,7 +1587,9 @@
           ],
           "interactions": [],
           "phase": "before_union",
-          "rejected": {}
+          "rebuild_versions": [],
+          "rejected": {},
+          "union_events": []
         },
         {
           "blocks": [
@@ -1660,7 +1680,34 @@
                   "rule": "b"
                 }
               ],
-              "outputs": [],
+              "outputs": [
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "E-1",
+                    "key": [
+                      "E-0"
+                    ],
+                    "label": "B(E-0)",
+                    "table": "B"
+                  },
+                  "producer_match": 0,
+                  "write": 6
+                },
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "E-1",
+                    "key": [
+                      "E-0"
+                    ],
+                    "label": "C(E-0)",
+                    "table": "C"
+                  },
+                  "producer_match": 8,
+                  "write": 14
+                }
+              ],
               "version": 3
             },
             {
@@ -1756,7 +1803,9 @@
           ],
           "interactions": [],
           "phase": "root_union",
-          "rejected": {}
+          "rebuild_versions": [],
+          "rejected": {},
+          "union_events": []
         },
         {
           "blocks": [
@@ -1847,7 +1896,34 @@
                   "rule": "b"
                 }
               ],
-              "outputs": [],
+              "outputs": [
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "E-1",
+                    "key": [
+                      "E-0"
+                    ],
+                    "label": "B(E-0)",
+                    "table": "B"
+                  },
+                  "producer_match": 0,
+                  "write": 6
+                },
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "E-1",
+                    "key": [
+                      "E-0"
+                    ],
+                    "label": "C(E-0)",
+                    "table": "C"
+                  },
+                  "producer_match": 8,
+                  "write": 14
+                }
+              ],
               "version": 3
             },
             {
@@ -1943,7 +2019,9 @@
           ],
           "interactions": [],
           "phase": "input_union",
-          "rejected": {}
+          "rebuild_versions": [],
+          "rejected": {},
+          "union_events": []
         }
       ],
       "scenario": "union_overlap"

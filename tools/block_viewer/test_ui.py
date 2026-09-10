@@ -47,16 +47,22 @@ with sync_playwright() as p:
     page.locator('#load').set_input_files(str(OUT/'data.json'));page.wait_for_timeout(100)
     assert page.locator('#error').inner_text()==''
     page.goto((OUT/'cyk.html').as_uri())
+    assert page.locator('#scenario option').first.inner_text()=='cyk.egg'
     page.select_option('#phase','0')
     assert page.locator('.block').count()>0
     assert 'action lane did not survive' in page.locator('#rejections').inner_text()
     page.select_option('#phase','1')
     assert page.locator('.block:not(.dirty)').count()==0
     page.goto((OUT/'union.html').as_uri())
+    assert page.locator('#scenario option').first.inner_text()=='union.egg'
     page.select_option('#phase','2')
     assert page.locator('.block').count()==2
     assert '发生合并' in page.locator('#rejections').inner_text()
     assert 'Inserted' in page.locator('#rejections').inner_text()
+    page.goto((OUT/'simplify.html').as_uri())
+    assert page.locator('#scenario option').first.inner_text()=='simplify.egg'
+    assert page.locator('.block').count()==3
+    assert page.locator('.block:not(.dirty)').count()==3
     assert not errors,errors
     browser.close()
-print('UI checks passed: prefix highlighting, phases, block selection, join edges, two union stages, upload, mobile and dark mode; no page errors.')
+print('UI checks passed: prefix highlighting, phases, block selection, join edges, two union stages, native program labels, upload, mobile and dark mode; no page errors.')
