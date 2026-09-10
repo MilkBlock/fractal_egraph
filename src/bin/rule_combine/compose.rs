@@ -6,12 +6,14 @@ use std::{
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Pat {
     Var(String),
+    Lit(Literal),
     App(String, Vec<Pat>),
 }
 impl fmt::Display for Pat {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Var(v) => write!(f, "{v}"),
+            Self::Lit(v) => write!(f, "{v}"),
             Self::App(op, args) => {
                 write!(f, "({op}")?;
                 for a in args {
@@ -28,8 +30,7 @@ impl Pat {
             match e {
                 Expr::Var(_, v) => Pat::Var(v),
                 Expr::Call(_, op, args) => Pat::App(op, args.into_iter().map(convert).collect()),
-                Expr::Lit(_, Literal::Unit) => panic!("unit is not an E constructor"),
-                _ => panic!("only E constructors and variables are supported"),
+                Expr::Lit(_, literal) => Pat::Lit(literal),
             }
         }
         convert(Parser::default().get_expr_from_string(None, s).unwrap())
@@ -37,18 +38,20 @@ impl Pat {
     fn rename(&self, p: &str) -> Self {
         match self {
             Self::Var(v) => Self::Var(format!("{p}{v}")),
+            Self::Lit(_) => self.clone(),
             Self::App(op, a) => Self::App(op.clone(), a.iter().map(|a| a.rename(p)).collect()),
         }
     }
     pub fn vars(&self) -> BTreeSet<String> {
         match self {
             Self::Var(v) => BTreeSet::from([v.clone()]),
+            Self::Lit(_) => BTreeSet::new(),
             Self::App(_, a) => a.iter().flat_map(Pat::vars).collect(),
         }
     }
     fn size(&self) -> usize {
         match self {
-            Self::Var(_) => 1,
+            Self::Var(_) | Self::Lit(_) => 1,
             Self::App(_, a) => 1 + a.iter().map(Pat::size).sum::<usize>(),
         }
     }
@@ -94,6 +97,7 @@ type Sub = BTreeMap<String, Pat>;
 fn subst(p: &Pat, s: &Sub) -> Pat {
     match p {
         Pat::Var(v) => s.get(v).map(|x| subst(x, s)).unwrap_or_else(|| p.clone()),
+        Pat::Lit(_) => p.clone(),
         Pat::App(op, a) => Pat::App(op.clone(), a.iter().map(|a| subst(a, s)).collect()),
     }
 }
@@ -115,6 +119,7 @@ fn unify(a: &Pat, b: &Pat, s: &mut Sub) -> bool {
         (Pat::App(f, a), Pat::App(g, b)) => {
             f == g && a.len() == b.len() && a.iter().zip(&b).all(|(a, b)| unify(a, b, s))
         }
+        _ => false,
     }
 }
 #[derive(Clone, Debug)]
@@ -122,6 +127,8 @@ pub struct Rule {
     pub name: String,
     pub lhs: Pat,
     pub rhs: Pat,
+    pub conditions: Vec<Pat>,
+    pub stages: Vec<Pat>,
 }
 impl Rule {
     pub fn new(name: &str, l: &str, r: &str) -> Self {
@@ -132,12 +139,52 @@ impl Rule {
             name: name.into(),
             lhs,
             rhs,
+            conditions: vec![],
+            stages: vec![],
         }
     }
+    pub fn guarded(name: &str, lhs: &str, rhs: &str, conditions: &[&str]) -> Self {
+        let mut rule = Self::new(name, lhs, rhs);
+        rule.conditions = conditions.iter().map(|s| Pat::parse(s)).collect();
+        assert!(
+            rule.conditions
+                .iter()
+                .all(|p| p.vars().is_subset(&rule.lhs.vars()))
+        );
+        rule
+    }
     pub fn command(&self, ruleset: &str) -> String {
+        let conditions = self
+            .conditions
+            .iter()
+            .map(ToString::to_string)
+            .collect::<Vec<_>>()
+            .join(" ");
+        if self.stages.is_empty() {
+            let guard = if conditions.is_empty() {
+                String::new()
+            } else {
+                format!(" :when ({conditions})")
+            };
+            return format!(
+                "(rewrite {} {}{} :ruleset {ruleset} :name {:?})",
+                self.lhs, self.rhs, guard, self.name
+            );
+        }
+        let mut root = "_shortcut_root".to_string();
+        while self.lhs.vars().contains(&root) {
+            root.push('_');
+        }
+        let actions = self
+            .stages
+            .iter()
+            .chain(std::iter::once(&self.rhs))
+            .map(|stage| format!("(union {root} {stage})"))
+            .collect::<Vec<_>>()
+            .join(" ");
         format!(
-            "(rewrite {} {} :ruleset {ruleset} :name \"{}\")",
-            self.lhs, self.rhs, self.name
+            "(rule ((= {root} {}) {conditions}) ({actions}) :ruleset {ruleset} :name {:?})",
+            self.lhs, self.name
         )
     }
 }
@@ -166,10 +213,33 @@ pub fn candidates(rules: &[Rule]) -> Vec<Candidate> {
                 let lhs = subst(&al, &s);
                 let middle = subst(&ar, &s);
                 let rhs = middle.replace(&path, &subst(&br, &s));
+                let conditions: Vec<_> = a
+                    .conditions
+                    .iter()
+                    .map(|p| subst(&p.rename("a_"), &s))
+                    .chain(b.conditions.iter().map(|p| subst(&p.rename("b_"), &s)))
+                    .collect();
+                // Preserve intermediate evaluation, including primitive failure.
+                // These shortcuts reduce repeated matching, not intermediate storage.
+                let stages: Vec<_> = a
+                    .stages
+                    .iter()
+                    .map(|p| subst(&p.rename("a_"), &s))
+                    .chain(std::iter::once(middle.clone()))
+                    .chain(
+                        b.stages
+                            .iter()
+                            .map(|p| middle.replace(&path, &subst(&p.rename("b_"), &s))),
+                    )
+                    .collect();
                 if lhs == rhs
                     || lhs.size() > 32
                     || rhs.size() > 32
                     || !rhs.vars().is_subset(&lhs.vars())
+                    || conditions
+                        .iter()
+                        .chain(&stages)
+                        .any(|p| !p.vars().is_subset(&lhs.vars()))
                 {
                     continue;
                 }
@@ -177,6 +247,7 @@ pub fn candidates(rules: &[Rule]) -> Vec<Candidate> {
                 let mut names = Sub::new();
                 fn name(p: &Pat, n: &mut Sub) {
                     match p {
+                        Pat::Lit(_) => {}
                         Pat::Var(v) => {
                             let len = n.len();
                             n.entry(v.clone()).or_insert(Pat::Var(format!("v{len}")));
@@ -191,10 +262,13 @@ pub fn candidates(rules: &[Rule]) -> Vec<Candidate> {
                 name(&lhs, &mut names);
                 name(&middle, &mut names);
                 name(&rhs, &mut names);
+                for p in conditions.iter().chain(&stages) {
+                    name(p, &mut names);
+                }
                 let lhs = subst(&lhs, &names);
                 let middle = subst(&middle, &names);
                 let rhs = subst(&rhs, &names);
-                if !seen.insert((lhs.clone(), rhs.clone())) {
+                if !seen.insert((lhs.clone(), rhs.clone(), conditions.clone(), stages.clone())) {
                     continue;
                 }
                 out.push(Candidate {
@@ -205,6 +279,8 @@ pub fn candidates(rules: &[Rule]) -> Vec<Candidate> {
                         name: format!("shortcut_{}", out.len()),
                         lhs,
                         rhs,
+                        conditions: conditions.iter().map(|p| subst(p, &names)).collect(),
+                        stages: stages.iter().map(|p| subst(p, &names)).collect(),
                     },
                     middle,
                 });
@@ -212,6 +288,66 @@ pub fn candidates(rules: &[Rule]) -> Vec<Candidate> {
         }
     }
     out
+}
+/// Compose a producer into a proper subtree of a consumer's LHS.
+/// Example: mul-fold feeds a Const child of add-fold.
+/// Kept separate from the legacy E-only observation matcher.
+pub fn contextual_candidates(rules: &[Rule]) -> Vec<Candidate> {
+    let mut result = Vec::new();
+    for (i, a) in rules.iter().enumerate() {
+        for (j, b) in rules.iter().enumerate() {
+            let al = a.lhs.rename("producer_");
+            let ar = a.rhs.rename("producer_");
+            let bl = b.lhs.rename("consumer_");
+            let br = b.rhs.rename("consumer_");
+            for path in bl.paths().into_iter().filter(|p| !p.is_empty()) {
+                let mut sub = Sub::new();
+                if !unify(&ar, bl.at(&path), &mut sub) {
+                    continue;
+                }
+                let left = Rule {
+                    name: "lifted".into(),
+                    lhs: subst(&bl.replace(&path, &al), &sub),
+                    rhs: subst(&bl, &sub),
+                    conditions: a
+                        .conditions
+                        .iter()
+                        .map(|p| subst(&p.rename("producer_"), &sub))
+                        .collect(),
+                    stages: a
+                        .stages
+                        .iter()
+                        .map(|p| subst(&bl.replace(&path, &p.rename("producer_")), &sub))
+                        .collect(),
+                };
+                let right = Rule {
+                    name: "consumer".into(),
+                    lhs: subst(&bl, &sub),
+                    rhs: subst(&br, &sub),
+                    conditions: b
+                        .conditions
+                        .iter()
+                        .map(|p| subst(&p.rename("consumer_"), &sub))
+                        .collect(),
+                    stages: b
+                        .stages
+                        .iter()
+                        .map(|p| subst(&p.rename("consumer_"), &sub))
+                        .collect(),
+                };
+                for mut candidate in candidates(&[left, right])
+                    .into_iter()
+                    .filter(|c| c.first == 0 && c.second == 1 && c.path.is_empty())
+                {
+                    candidate.first = i;
+                    candidate.second = j;
+                    candidate.rule.name = format!("context_shortcut_{}", result.len());
+                    result.push(candidate);
+                }
+            }
+        }
+    }
+    result
 }
 pub fn rules(case: &str) -> Vec<Rule> {
     if case == "chain" {
@@ -270,5 +406,66 @@ mod tests {
             && c.rule.lhs.to_string().contains("(One)")
             && c.first == 0
             && c.second == 1));
+    }
+}
+
+#[cfg(test)]
+mod typed_tests {
+    use super::*;
+    use egglog::EGraph;
+    #[test]
+    fn literal_types_and_strings_are_preserved() {
+        assert_ne!(Pat::parse("1"), Pat::parse("1.0"));
+        assert_ne!(Pat::parse("1"), Pat::parse("\"1\""));
+        assert_eq!(Pat::parse("(Const 0)").to_string(), "(Const 0)");
+    }
+    #[test]
+    fn native_contextual_constant_folding_preserves_guards_and_overflow() {
+        let rules = [
+            Rule::new("mul", "(Mul (Const a) (Const b))", "(Const (* a b))"),
+            Rule::guarded(
+                "add",
+                "(Add (Const a) (Const b))",
+                "(Const (+ a b))",
+                &["(>= b 0)"],
+            ),
+        ];
+        let candidate = contextual_candidates(&rules)
+            .into_iter()
+            .find(|c| c.first == 0 && c.second == 1)
+            .unwrap();
+        for (seed, check, should_fail) in [
+            (
+                "(Add (Mul (Const 2) (Const 3)) (Const 20))",
+                "(check (= seed (Const 26)))",
+                false,
+            ),
+            (
+                "(Add (Mul (Const 2) (Const 3)) (Const -1))",
+                "(fail (check (= seed (Const 5))))",
+                false,
+            ),
+            (
+                "(Add (Mul (Const 9223372036854775807) (Const 2)) (Const 0))",
+                "",
+                true,
+            ),
+        ] {
+            let mut eg = EGraph::default();
+            eg.parse_and_run_program(
+                None,
+                "(datatype E (Const i64) (Mul E E) (Add E E)) (ruleset shortcut)",
+            )
+            .unwrap();
+            eg.parse_and_run_program(None, &candidate.rule.command("shortcut"))
+                .unwrap();
+            eg.parse_and_run_program(None, &format!("(let seed {seed})"))
+                .unwrap();
+            let run = eg.parse_and_run_program(None, "(run shortcut 1)");
+            assert_eq!(run.is_err(), should_fail, "{run:?}");
+            if !should_fail {
+                eg.parse_and_run_program(None, check).unwrap();
+            }
+        }
     }
 }

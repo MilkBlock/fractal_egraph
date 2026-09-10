@@ -68,6 +68,7 @@ impl Snapshot {
         }
         *budget -= 1;
         match pat {
+            Pat::Lit(_) => vec![], // This legacy snapshot matcher supports E-only fixtures.
             Pat::Var(v) => {
                 if env.get(v).is_some_and(|x| *x != root) {
                     vec![]
@@ -175,6 +176,7 @@ impl Snapshot {
 }
 fn eval(eg: &EGraph, p: &Pat, env: &Env) -> Option<Value> {
     match p {
+        Pat::Lit(_) => None, // Typed programs execute through the native runner.
         Pat::Var(v) => env.get(v).copied().map(|v| canon(eg, v)),
         Pat::App(op, a) => {
             let args: Option<Vec<_>> = a.iter().map(|p| eval(eg, p, env)).collect();
@@ -420,6 +422,7 @@ mod tests {
                 }
                 fn ground(p: &Pat) -> String {
                     match p {
+                        Pat::Lit(v) => v.to_string(),
                         Pat::Var(v) => format!(
                             "(Var {})",
                             v.strip_prefix('v').unwrap().parse::<usize>().unwrap() + 100
