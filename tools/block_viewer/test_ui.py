@@ -68,11 +68,17 @@ with sync_playwright() as p:
     assert page.locator('.cov-stat').count()==4
     assert page.locator('.cov-bar').count()==1
     assert page.locator('.cov-table tbody tr').count()>0
-    # E-graph view: native dot rendered as an inline SVG (graphviz).
+    # E-graph view: native dot rendered as an inline SVG (graphviz), zoomable.
     page.select_option('#view','egraph')
     assert page.locator('.egraph-svg svg').count()==1
     assert page.locator('.dotbox').count()==1  # dot source stays in a collapsed <details>
     assert 'digraph' in page.locator('.dotbox').first.text_content()
+    svg=page.locator('.egraph-svg svg').first
+    assert svg.evaluate('(e)=>e.style.transform')==''  # starts at identity
+    page.locator('[data-zoom="+"]').click()
+    assert 'scale' in svg.evaluate('(e)=>e.style.transform')
+    page.locator('[data-zoom="fit"]').click()
+    assert svg.evaluate('(e)=>e.style.transform')=='translate(0px, 0px) scale(1)'
     page.select_option('#view','blocks')
     assert page.locator('.block').count()==3
     assert not errors,errors
