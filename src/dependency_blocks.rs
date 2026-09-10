@@ -110,6 +110,7 @@ pub struct IngestReport {
 #[derive(Default)]
 pub struct DependencyBlockStore {
     session: Option<TraceSession>,
+    last_scope_reset: Option<u64>,
     catalog: HashMap<String, RuleSpec>,
     matches: HashMap<u64, RuleMatchEvent>,
     reads: HashMap<u64, Vec<RowReadEvent>>,
@@ -209,12 +210,19 @@ impl DependencyBlockStore {
     }
     fn eligible(&self, m: u64, survived: &HashSet<u64>) -> Result<(), String> {
         let x = self.matches.get(&m).ok_or("missing producer match")?;
+        // Opaque observations certify individual committed outputs only. An
+        // unrelated invalidated side output cannot erase a still-valid P row.
+        // Composed rewrites keep the stronger whole-recipe validity gate.
         if self
-            .outputs
-            .get(&m)
-            .into_iter()
-            .flatten()
-            .any(|w| self.invalid_facts.contains(w))
+            .catalog
+            .get(x.rule.as_ref())
+            .is_some_and(|s| s.rewrite.is_some())
+            && self
+                .outputs
+                .get(&m)
+                .into_iter()
+                .flatten()
+                .any(|w| self.invalid_facts.contains(w))
         {
             return Err("match has invalidated output provenance".into());
         }
@@ -332,6 +340,12 @@ impl DependencyBlockStore {
             self.rejected.len(),
             self.interactions.len(),
         );
+        if let Some(reset) = trace.scope_resets().into_iter().max() {
+            if self.last_scope_reset != Some(reset) {
+                self.invalidate_all("scope rollback: previous block certificates retired");
+                self.last_scope_reset = Some(reset);
+            }
+        }
         for m in trace.matches() {
             self.matches.insert(m.event_id, m);
         }
@@ -381,6 +395,11 @@ impl DependencyBlockStore {
         pending.sort();
         for m in pending {
             self.processed.insert(m);
+            if self.last_scope_reset.is_some_and(|reset| m < reset) {
+                self.rejected
+                    .insert(m, "historical match before scope rollback".into());
+                continue;
+            }
             if let Err(reason) = self.eligible(m, &survived) {
                 self.rejected.insert(m, reason);
                 continue;
@@ -405,6 +424,9 @@ impl DependencyBlockStore {
                 else {
                     continue;
                 };
+                if self.last_scope_reset.is_some_and(|reset| w < reset) {
+                    continue; // Restored inputs are boundaries, not live block producers.
+                }
                 let valid = self.writes.get(&w).is_some_and(|x| {
                     x.outcome == WriteOutcome::Inserted
                         && x.match_event_id == p

@@ -665,6 +665,7 @@ impl EGraph {
     pub fn pop(&mut self) -> Result<(), Error> {
         match self.pushed_egraph.take() {
             Some(mut e) => {
+                if let Some(trace) = &self.program_trace { trace.record_scope_reset(); }
                 // Preserve the overall report from the popped egraph
                 std::mem::swap(&mut self.overall_run_report, &mut e.overall_run_report);
                 // Preserve the symbol generator so that fresh symbols

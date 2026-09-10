@@ -1,0 +1,1955 @@
+{
+  "cases": [
+    {
+      "phases": [
+        {
+          "blocks": [],
+          "interactions": [],
+          "phase": "a",
+          "rejected": {}
+        },
+        {
+          "blocks": [
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "consumer": 0,
+                  "current": {
+                    "available": true,
+                    "eclass": "E-1",
+                    "key": [
+                      "E-0"
+                    ],
+                    "label": "A(E-0)",
+                    "table": "A"
+                  },
+                  "key": "[Value(0)]",
+                  "producer_write": null,
+                  "read": 1,
+                  "source_block": null,
+                  "table": "A"
+                }
+              ],
+              "combined_prefixes": [
+                {
+                  "bindings": {
+                    "v0": "Value(0)"
+                  },
+                  "canonical_bindings": {
+                    "v0": "E-0"
+                  },
+                  "lhs": "(A v0)",
+                  "member_matches": [
+                    0,
+                    4
+                  ],
+                  "rhs": "(C v0)",
+                  "rules": [
+                    "a",
+                    "b"
+                  ],
+                  "supporting_reads": [
+                    5
+                  ],
+                  "usable": true
+                }
+              ],
+              "current_root_classes": [
+                "E-1"
+              ],
+              "dependencies": [
+                {
+                  "consumer": 4,
+                  "producer": 0,
+                  "read": 5,
+                  "write": 3
+                }
+              ],
+              "entry_bindings": {
+                "x": "Value(0)"
+              },
+              "entry_facts": [
+                {
+                  "available": true,
+                  "eclass": "E-1",
+                  "key": [
+                    "E-0"
+                  ],
+                  "label": "A(E-0)",
+                  "table": "A"
+                }
+              ],
+              "entry_lhs": "(A x)",
+              "entry_rule": "a",
+              "id": 0,
+              "invalidations": [],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 0,
+                  "rule": "a"
+                },
+                {
+                  "match": 4,
+                  "rule": "b"
+                }
+              ],
+              "outputs": [
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "E-1",
+                    "key": [
+                      "E-0"
+                    ],
+                    "label": "B(E-0)",
+                    "table": "B"
+                  },
+                  "producer_match": 0,
+                  "write": 3
+                },
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "E-1",
+                    "key": [
+                      "E-0"
+                    ],
+                    "label": "C(E-0)",
+                    "table": "C"
+                  },
+                  "producer_match": 4,
+                  "write": 7
+                }
+              ],
+              "version": 2
+            }
+          ],
+          "interactions": [],
+          "phase": "b",
+          "rejected": {}
+        },
+        {
+          "blocks": [
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "consumer": 0,
+                  "current": {
+                    "available": true,
+                    "eclass": "E-1",
+                    "key": [
+                      "E-0"
+                    ],
+                    "label": "A(E-0)",
+                    "table": "A"
+                  },
+                  "key": "[Value(0)]",
+                  "producer_write": null,
+                  "read": 1,
+                  "source_block": null,
+                  "table": "A"
+                }
+              ],
+              "combined_prefixes": [
+                {
+                  "bindings": {
+                    "v0": "Value(0)"
+                  },
+                  "canonical_bindings": {
+                    "v0": "E-0"
+                  },
+                  "lhs": "(A v0)",
+                  "member_matches": [
+                    0,
+                    4
+                  ],
+                  "rhs": "(C v0)",
+                  "rules": [
+                    "a",
+                    "b"
+                  ],
+                  "supporting_reads": [
+                    5
+                  ],
+                  "usable": true
+                },
+                {
+                  "bindings": {
+                    "v0": "Value(0)"
+                  },
+                  "canonical_bindings": {
+                    "v0": "E-0"
+                  },
+                  "lhs": "(A v0)",
+                  "member_matches": [
+                    0,
+                    4,
+                    8
+                  ],
+                  "rhs": "(D v0)",
+                  "rules": [
+                    "a",
+                    "b",
+                    "c"
+                  ],
+                  "supporting_reads": [
+                    5,
+                    9
+                  ],
+                  "usable": true
+                }
+              ],
+              "current_root_classes": [
+                "E-1"
+              ],
+              "dependencies": [
+                {
+                  "consumer": 4,
+                  "producer": 0,
+                  "read": 5,
+                  "write": 3
+                },
+                {
+                  "consumer": 8,
+                  "producer": 4,
+                  "read": 9,
+                  "write": 7
+                }
+              ],
+              "entry_bindings": {
+                "x": "Value(0)"
+              },
+              "entry_facts": [
+                {
+                  "available": true,
+                  "eclass": "E-1",
+                  "key": [
+                    "E-0"
+                  ],
+                  "label": "A(E-0)",
+                  "table": "A"
+                }
+              ],
+              "entry_lhs": "(A x)",
+              "entry_rule": "a",
+              "id": 0,
+              "invalidations": [],
+              "member_capacity": 4,
+              "members": [
+                {
+                  "match": 0,
+                  "rule": "a"
+                },
+                {
+                  "match": 4,
+                  "rule": "b"
+                },
+                {
+                  "match": 8,
+                  "rule": "c"
+                }
+              ],
+              "outputs": [
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "E-1",
+                    "key": [
+                      "E-0"
+                    ],
+                    "label": "B(E-0)",
+                    "table": "B"
+                  },
+                  "producer_match": 0,
+                  "write": 3
+                },
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "E-1",
+                    "key": [
+                      "E-0"
+                    ],
+                    "label": "C(E-0)",
+                    "table": "C"
+                  },
+                  "producer_match": 4,
+                  "write": 7
+                },
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "E-1",
+                    "key": [
+                      "E-0"
+                    ],
+                    "label": "D(E-0)",
+                    "table": "D"
+                  },
+                  "producer_match": 8,
+                  "write": 11
+                }
+              ],
+              "version": 3
+            }
+          ],
+          "interactions": [],
+          "phase": "c",
+          "rejected": {}
+        }
+      ],
+      "scenario": "chain_growth"
+    },
+    {
+      "phases": [
+        {
+          "blocks": [],
+          "interactions": [],
+          "phase": "la",
+          "rejected": {}
+        },
+        {
+          "blocks": [
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "consumer": 0,
+                  "current": {
+                    "available": true,
+                    "eclass": "@LSSort-0",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "LS(7)",
+                    "table": "LS"
+                  },
+                  "key": "[Value(7)]",
+                  "producer_write": null,
+                  "read": 1,
+                  "source_block": null,
+                  "table": "LS"
+                }
+              ],
+              "combined_prefixes": [],
+              "current_root_classes": [
+                "@LSSort-0"
+              ],
+              "dependencies": [
+                {
+                  "consumer": 4,
+                  "producer": 0,
+                  "read": 5,
+                  "write": 3
+                }
+              ],
+              "entry_bindings": {
+                "@LS1": "Value(0)",
+                "x": "Value(7)"
+              },
+              "entry_facts": [
+                {
+                  "available": true,
+                  "eclass": "@LSSort-0",
+                  "key": [
+                    "7"
+                  ],
+                  "label": "LS(7)",
+                  "table": "LS"
+                }
+              ],
+              "entry_lhs": "(LS x)",
+              "entry_rule": "la",
+              "id": 0,
+              "invalidations": [],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 0,
+                  "rule": "la"
+                },
+                {
+                  "match": 4,
+                  "rule": "lb"
+                }
+              ],
+              "outputs": [
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "@LMSort-2",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "LM(7)",
+                    "table": "LM"
+                  },
+                  "producer_match": 0,
+                  "write": 3
+                },
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "@LLSort-3",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "LL(7)",
+                    "table": "LL"
+                  },
+                  "producer_match": 4,
+                  "write": 7
+                }
+              ],
+              "version": 2
+            }
+          ],
+          "interactions": [],
+          "phase": "lb",
+          "rejected": {}
+        },
+        {
+          "blocks": [
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "consumer": 0,
+                  "current": {
+                    "available": true,
+                    "eclass": "@LSSort-0",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "LS(7)",
+                    "table": "LS"
+                  },
+                  "key": "[Value(7)]",
+                  "producer_write": null,
+                  "read": 1,
+                  "source_block": null,
+                  "table": "LS"
+                }
+              ],
+              "combined_prefixes": [],
+              "current_root_classes": [
+                "@LSSort-0"
+              ],
+              "dependencies": [
+                {
+                  "consumer": 4,
+                  "producer": 0,
+                  "read": 5,
+                  "write": 3
+                }
+              ],
+              "entry_bindings": {
+                "@LS1": "Value(0)",
+                "x": "Value(7)"
+              },
+              "entry_facts": [
+                {
+                  "available": true,
+                  "eclass": "@LSSort-0",
+                  "key": [
+                    "7"
+                  ],
+                  "label": "LS(7)",
+                  "table": "LS"
+                }
+              ],
+              "entry_lhs": "(LS x)",
+              "entry_rule": "la",
+              "id": 0,
+              "invalidations": [],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 0,
+                  "rule": "la"
+                },
+                {
+                  "match": 4,
+                  "rule": "lb"
+                }
+              ],
+              "outputs": [
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "@LMSort-2",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "LM(7)",
+                    "table": "LM"
+                  },
+                  "producer_match": 0,
+                  "write": 3
+                },
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "@LLSort-3",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "LL(7)",
+                    "table": "LL"
+                  },
+                  "producer_match": 4,
+                  "write": 7
+                }
+              ],
+              "version": 2
+            }
+          ],
+          "interactions": [],
+          "phase": "ra",
+          "rejected": {}
+        },
+        {
+          "blocks": [
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "consumer": 0,
+                  "current": {
+                    "available": true,
+                    "eclass": "@LSSort-0",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "LS(7)",
+                    "table": "LS"
+                  },
+                  "key": "[Value(7)]",
+                  "producer_write": null,
+                  "read": 1,
+                  "source_block": null,
+                  "table": "LS"
+                }
+              ],
+              "combined_prefixes": [],
+              "current_root_classes": [
+                "@LSSort-0"
+              ],
+              "dependencies": [
+                {
+                  "consumer": 4,
+                  "producer": 0,
+                  "read": 5,
+                  "write": 3
+                }
+              ],
+              "entry_bindings": {
+                "@LS1": "Value(0)",
+                "x": "Value(7)"
+              },
+              "entry_facts": [
+                {
+                  "available": true,
+                  "eclass": "@LSSort-0",
+                  "key": [
+                    "7"
+                  ],
+                  "label": "LS(7)",
+                  "table": "LS"
+                }
+              ],
+              "entry_lhs": "(LS x)",
+              "entry_rule": "la",
+              "id": 0,
+              "invalidations": [],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 0,
+                  "rule": "la"
+                },
+                {
+                  "match": 4,
+                  "rule": "lb"
+                }
+              ],
+              "outputs": [
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "@LMSort-2",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "LM(7)",
+                    "table": "LM"
+                  },
+                  "producer_match": 0,
+                  "write": 3
+                },
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "@LLSort-3",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "LL(7)",
+                    "table": "LL"
+                  },
+                  "producer_match": 4,
+                  "write": 7
+                }
+              ],
+              "version": 2
+            },
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "consumer": 8,
+                  "current": {
+                    "available": true,
+                    "eclass": "@RSSort-1",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "RS(7)",
+                    "table": "RS"
+                  },
+                  "key": "[Value(7)]",
+                  "producer_write": null,
+                  "read": 9,
+                  "source_block": null,
+                  "table": "RS"
+                }
+              ],
+              "combined_prefixes": [],
+              "current_root_classes": [
+                "@RSSort-1"
+              ],
+              "dependencies": [
+                {
+                  "consumer": 12,
+                  "producer": 8,
+                  "read": 13,
+                  "write": 11
+                }
+              ],
+              "entry_bindings": {
+                "@RS1": "Value(1)",
+                "x": "Value(7)"
+              },
+              "entry_facts": [
+                {
+                  "available": true,
+                  "eclass": "@RSSort-1",
+                  "key": [
+                    "7"
+                  ],
+                  "label": "RS(7)",
+                  "table": "RS"
+                }
+              ],
+              "entry_lhs": "(RS x)",
+              "entry_rule": "ra",
+              "id": 1,
+              "invalidations": [],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 8,
+                  "rule": "ra"
+                },
+                {
+                  "match": 12,
+                  "rule": "rb"
+                }
+              ],
+              "outputs": [
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "@RMSort-4",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "RM(7)",
+                    "table": "RM"
+                  },
+                  "producer_match": 8,
+                  "write": 11
+                },
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "@RRSort-5",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "RR(7)",
+                    "table": "RR"
+                  },
+                  "producer_match": 12,
+                  "write": 15
+                }
+              ],
+              "version": 2
+            }
+          ],
+          "interactions": [],
+          "phase": "rb",
+          "rejected": {}
+        },
+        {
+          "blocks": [
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "consumer": 0,
+                  "current": {
+                    "available": true,
+                    "eclass": "@LSSort-0",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "LS(7)",
+                    "table": "LS"
+                  },
+                  "key": "[Value(7)]",
+                  "producer_write": null,
+                  "read": 1,
+                  "source_block": null,
+                  "table": "LS"
+                }
+              ],
+              "combined_prefixes": [],
+              "current_root_classes": [
+                "@LSSort-0"
+              ],
+              "dependencies": [
+                {
+                  "consumer": 4,
+                  "producer": 0,
+                  "read": 5,
+                  "write": 3
+                }
+              ],
+              "entry_bindings": {
+                "@LS1": "Value(0)",
+                "x": "Value(7)"
+              },
+              "entry_facts": [
+                {
+                  "available": true,
+                  "eclass": "@LSSort-0",
+                  "key": [
+                    "7"
+                  ],
+                  "label": "LS(7)",
+                  "table": "LS"
+                }
+              ],
+              "entry_lhs": "(LS x)",
+              "entry_rule": "la",
+              "id": 0,
+              "invalidations": [],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 0,
+                  "rule": "la"
+                },
+                {
+                  "match": 4,
+                  "rule": "lb"
+                }
+              ],
+              "outputs": [
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "@LMSort-2",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "LM(7)",
+                    "table": "LM"
+                  },
+                  "producer_match": 0,
+                  "write": 3
+                },
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "@LLSort-3",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "LL(7)",
+                    "table": "LL"
+                  },
+                  "producer_match": 4,
+                  "write": 7
+                }
+              ],
+              "version": 2
+            },
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "consumer": 8,
+                  "current": {
+                    "available": true,
+                    "eclass": "@RSSort-1",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "RS(7)",
+                    "table": "RS"
+                  },
+                  "key": "[Value(7)]",
+                  "producer_write": null,
+                  "read": 9,
+                  "source_block": null,
+                  "table": "RS"
+                }
+              ],
+              "combined_prefixes": [],
+              "current_root_classes": [
+                "@RSSort-1"
+              ],
+              "dependencies": [
+                {
+                  "consumer": 12,
+                  "producer": 8,
+                  "read": 13,
+                  "write": 11
+                }
+              ],
+              "entry_bindings": {
+                "@RS1": "Value(1)",
+                "x": "Value(7)"
+              },
+              "entry_facts": [
+                {
+                  "available": true,
+                  "eclass": "@RSSort-1",
+                  "key": [
+                    "7"
+                  ],
+                  "label": "RS(7)",
+                  "table": "RS"
+                }
+              ],
+              "entry_lhs": "(RS x)",
+              "entry_rule": "ra",
+              "id": 1,
+              "invalidations": [],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 8,
+                  "rule": "ra"
+                },
+                {
+                  "match": 12,
+                  "rule": "rb"
+                }
+              ],
+              "outputs": [
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "@RMSort-4",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "RM(7)",
+                    "table": "RM"
+                  },
+                  "producer_match": 8,
+                  "write": 11
+                },
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "@RRSort-5",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "RR(7)",
+                    "table": "RR"
+                  },
+                  "producer_match": 12,
+                  "write": 15
+                }
+              ],
+              "version": 2
+            },
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "consumer": 16,
+                  "current": {
+                    "available": true,
+                    "eclass": "@LLSort-3",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "LL(7)",
+                    "table": "LL"
+                  },
+                  "key": "[Value(7)]",
+                  "producer_write": 7,
+                  "read": 17,
+                  "source_block": 0,
+                  "table": "LL"
+                },
+                {
+                  "consumer": 16,
+                  "current": {
+                    "available": true,
+                    "eclass": "@RRSort-5",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "RR(7)",
+                    "table": "RR"
+                  },
+                  "key": "[Value(7)]",
+                  "producer_write": 15,
+                  "read": 18,
+                  "source_block": 1,
+                  "table": "RR"
+                }
+              ],
+              "combined_prefixes": [],
+              "current_root_classes": [
+                "@LLSort-3",
+                "@RRSort-5"
+              ],
+              "dependencies": [
+                {
+                  "consumer": 16,
+                  "producer": 4,
+                  "read": 17,
+                  "write": 7
+                },
+                {
+                  "consumer": 16,
+                  "producer": 12,
+                  "read": 18,
+                  "write": 15
+                }
+              ],
+              "entry_bindings": {
+                "x": "Value(7)"
+              },
+              "entry_facts": [
+                {
+                  "available": true,
+                  "eclass": "@LLSort-3",
+                  "key": [
+                    "7"
+                  ],
+                  "label": "LL(7)",
+                  "table": "LL"
+                },
+                {
+                  "available": true,
+                  "eclass": "@RRSort-5",
+                  "key": [
+                    "7"
+                  ],
+                  "label": "RR(7)",
+                  "table": "RR"
+                }
+              ],
+              "entry_lhs": "((LL x) (RR x))",
+              "entry_rule": "join",
+              "id": 2,
+              "invalidations": [],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 16,
+                  "rule": "join"
+                }
+              ],
+              "outputs": [
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "@OutSort-6",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "Out(7)",
+                    "table": "Out"
+                  },
+                  "producer_match": 16,
+                  "write": 20
+                }
+              ],
+              "version": 1
+            }
+          ],
+          "interactions": [
+            {
+              "consumer": 16,
+              "id": 0,
+              "parents": [
+                0,
+                1
+              ],
+              "rule": "join",
+              "supporting_reads": [
+                17,
+                18
+              ],
+              "target": 2
+            }
+          ],
+          "phase": "join",
+          "rejected": {}
+        },
+        {
+          "blocks": [
+            {
+              "active": false,
+              "boundary": [
+                {
+                  "consumer": 0,
+                  "current": {
+                    "available": true,
+                    "eclass": "@LSSort-0",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "LS(7)",
+                    "table": "LS"
+                  },
+                  "key": "[Value(7)]",
+                  "producer_write": null,
+                  "read": 1,
+                  "source_block": null,
+                  "table": "LS"
+                }
+              ],
+              "combined_prefixes": [],
+              "current_root_classes": [
+                "@LSSort-0"
+              ],
+              "dependencies": [
+                {
+                  "consumer": 4,
+                  "producer": 0,
+                  "read": 5,
+                  "write": 3
+                }
+              ],
+              "entry_bindings": {
+                "@LS1": "Value(0)",
+                "x": "Value(7)"
+              },
+              "entry_facts": [
+                {
+                  "available": true,
+                  "eclass": "@LSSort-0",
+                  "key": [
+                    "7"
+                  ],
+                  "label": "LS(7)",
+                  "table": "LS"
+                }
+              ],
+              "entry_lhs": "(LS x)",
+              "entry_rule": "la",
+              "id": 0,
+              "invalidations": [
+                "origin 7 invalidated: RemovedOrRebuilt"
+              ],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 0,
+                  "rule": "la"
+                },
+                {
+                  "match": 4,
+                  "rule": "lb"
+                }
+              ],
+              "outputs": [
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "@LMSort-2",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "LM(7)",
+                    "table": "LM"
+                  },
+                  "producer_match": 0,
+                  "write": 3
+                }
+              ],
+              "version": 3
+            },
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "consumer": 8,
+                  "current": {
+                    "available": true,
+                    "eclass": "@RSSort-1",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "RS(7)",
+                    "table": "RS"
+                  },
+                  "key": "[Value(7)]",
+                  "producer_write": null,
+                  "read": 9,
+                  "source_block": null,
+                  "table": "RS"
+                }
+              ],
+              "combined_prefixes": [],
+              "current_root_classes": [
+                "@RSSort-1"
+              ],
+              "dependencies": [
+                {
+                  "consumer": 12,
+                  "producer": 8,
+                  "read": 13,
+                  "write": 11
+                }
+              ],
+              "entry_bindings": {
+                "@RS1": "Value(1)",
+                "x": "Value(7)"
+              },
+              "entry_facts": [
+                {
+                  "available": true,
+                  "eclass": "@RSSort-1",
+                  "key": [
+                    "7"
+                  ],
+                  "label": "RS(7)",
+                  "table": "RS"
+                }
+              ],
+              "entry_lhs": "(RS x)",
+              "entry_rule": "ra",
+              "id": 1,
+              "invalidations": [],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 8,
+                  "rule": "ra"
+                },
+                {
+                  "match": 12,
+                  "rule": "rb"
+                }
+              ],
+              "outputs": [
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "@RMSort-4",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "RM(7)",
+                    "table": "RM"
+                  },
+                  "producer_match": 8,
+                  "write": 11
+                },
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "@RRSort-5",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "RR(7)",
+                    "table": "RR"
+                  },
+                  "producer_match": 12,
+                  "write": 15
+                }
+              ],
+              "version": 2
+            },
+            {
+              "active": false,
+              "boundary": [
+                {
+                  "consumer": 16,
+                  "current": {
+                    "available": false,
+                    "eclass": null,
+                    "key": [
+                      "7"
+                    ],
+                    "label": "LL(7)",
+                    "table": "LL"
+                  },
+                  "key": "[Value(7)]",
+                  "producer_write": 7,
+                  "read": 17,
+                  "source_block": 0,
+                  "table": "LL"
+                },
+                {
+                  "consumer": 16,
+                  "current": {
+                    "available": true,
+                    "eclass": "@RRSort-5",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "RR(7)",
+                    "table": "RR"
+                  },
+                  "key": "[Value(7)]",
+                  "producer_write": 15,
+                  "read": 18,
+                  "source_block": 1,
+                  "table": "RR"
+                }
+              ],
+              "combined_prefixes": [],
+              "current_root_classes": [
+                "@RRSort-5"
+              ],
+              "dependencies": [
+                {
+                  "consumer": 16,
+                  "producer": 4,
+                  "read": 17,
+                  "write": 7
+                },
+                {
+                  "consumer": 16,
+                  "producer": 12,
+                  "read": 18,
+                  "write": 15
+                }
+              ],
+              "entry_bindings": {
+                "x": "Value(7)"
+              },
+              "entry_facts": [
+                {
+                  "available": false,
+                  "eclass": null,
+                  "key": [
+                    "7"
+                  ],
+                  "label": "LL(7)",
+                  "table": "LL"
+                },
+                {
+                  "available": true,
+                  "eclass": "@RRSort-5",
+                  "key": [
+                    "7"
+                  ],
+                  "label": "RR(7)",
+                  "table": "RR"
+                }
+              ],
+              "entry_lhs": "((LL x) (RR x))",
+              "entry_rule": "join",
+              "id": 2,
+              "invalidations": [
+                "origin 7 invalidated: RemovedOrRebuilt"
+              ],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 16,
+                  "rule": "join"
+                }
+              ],
+              "outputs": [
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "@OutSort-6",
+                    "key": [
+                      "7"
+                    ],
+                    "label": "Out(7)",
+                    "table": "Out"
+                  },
+                  "producer_match": 16,
+                  "write": 20
+                }
+              ],
+              "version": 2
+            }
+          ],
+          "interactions": [
+            {
+              "consumer": 16,
+              "id": 0,
+              "parents": [
+                0,
+                1
+              ],
+              "rule": "join",
+              "supporting_reads": [
+                17,
+                18
+              ],
+              "target": 2
+            }
+          ],
+          "phase": "delete_LL",
+          "rejected": {}
+        }
+      ],
+      "scenario": "cross_block_and_invalidation"
+    },
+    {
+      "automatic_block_merge": false,
+      "automatic_prefix_revalidation": false,
+      "explicit_union_demo": true,
+      "phases": [
+        {
+          "blocks": [
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "consumer": 0,
+                  "current": {
+                    "available": true,
+                    "eclass": "E-1",
+                    "key": [
+                      "E-0"
+                    ],
+                    "label": "A(E-0)",
+                    "table": "A"
+                  },
+                  "key": "[Value(0)]",
+                  "producer_write": null,
+                  "read": 1,
+                  "source_block": null,
+                  "table": "A"
+                }
+              ],
+              "combined_prefixes": [
+                {
+                  "bindings": {
+                    "v0": "Value(0)"
+                  },
+                  "canonical_bindings": {
+                    "v0": "E-0"
+                  },
+                  "lhs": "(A v0)",
+                  "member_matches": [
+                    0,
+                    8
+                  ],
+                  "rhs": "(C v0)",
+                  "rules": [
+                    "a",
+                    "b"
+                  ],
+                  "supporting_reads": [
+                    9
+                  ],
+                  "usable": true
+                }
+              ],
+              "current_root_classes": [
+                "E-1"
+              ],
+              "dependencies": [
+                {
+                  "consumer": 8,
+                  "producer": 0,
+                  "read": 9,
+                  "write": 6
+                }
+              ],
+              "entry_bindings": {
+                "x": "Value(0)"
+              },
+              "entry_facts": [
+                {
+                  "available": true,
+                  "eclass": "E-1",
+                  "key": [
+                    "E-0"
+                  ],
+                  "label": "A(E-0)",
+                  "table": "A"
+                }
+              ],
+              "entry_lhs": "(A x)",
+              "entry_rule": "a",
+              "id": 0,
+              "invalidations": [],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 0,
+                  "rule": "a"
+                },
+                {
+                  "match": 8,
+                  "rule": "b"
+                }
+              ],
+              "outputs": [
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "E-1",
+                    "key": [
+                      "E-0"
+                    ],
+                    "label": "B(E-0)",
+                    "table": "B"
+                  },
+                  "producer_match": 0,
+                  "write": 6
+                },
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "E-1",
+                    "key": [
+                      "E-0"
+                    ],
+                    "label": "C(E-0)",
+                    "table": "C"
+                  },
+                  "producer_match": 8,
+                  "write": 14
+                }
+              ],
+              "version": 2
+            },
+            {
+              "active": true,
+              "boundary": [
+                {
+                  "consumer": 2,
+                  "current": {
+                    "available": true,
+                    "eclass": "E-3",
+                    "key": [
+                      "E-2"
+                    ],
+                    "label": "A(E-2)",
+                    "table": "A"
+                  },
+                  "key": "[Value(2)]",
+                  "producer_write": null,
+                  "read": 3,
+                  "source_block": null,
+                  "table": "A"
+                }
+              ],
+              "combined_prefixes": [
+                {
+                  "bindings": {
+                    "v0": "Value(2)"
+                  },
+                  "canonical_bindings": {
+                    "v0": "E-2"
+                  },
+                  "lhs": "(A v0)",
+                  "member_matches": [
+                    2,
+                    10
+                  ],
+                  "rhs": "(C v0)",
+                  "rules": [
+                    "a",
+                    "b"
+                  ],
+                  "supporting_reads": [
+                    11
+                  ],
+                  "usable": true
+                }
+              ],
+              "current_root_classes": [
+                "E-3"
+              ],
+              "dependencies": [
+                {
+                  "consumer": 10,
+                  "producer": 2,
+                  "read": 11,
+                  "write": 7
+                }
+              ],
+              "entry_bindings": {
+                "x": "Value(2)"
+              },
+              "entry_facts": [
+                {
+                  "available": true,
+                  "eclass": "E-3",
+                  "key": [
+                    "E-2"
+                  ],
+                  "label": "A(E-2)",
+                  "table": "A"
+                }
+              ],
+              "entry_lhs": "(A x)",
+              "entry_rule": "a",
+              "id": 1,
+              "invalidations": [],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 2,
+                  "rule": "a"
+                },
+                {
+                  "match": 10,
+                  "rule": "b"
+                }
+              ],
+              "outputs": [
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "E-3",
+                    "key": [
+                      "E-2"
+                    ],
+                    "label": "B(E-2)",
+                    "table": "B"
+                  },
+                  "producer_match": 2,
+                  "write": 7
+                },
+                {
+                  "current": {
+                    "available": true,
+                    "eclass": "E-3",
+                    "key": [
+                      "E-2"
+                    ],
+                    "label": "C(E-2)",
+                    "table": "C"
+                  },
+                  "producer_match": 10,
+                  "write": 15
+                }
+              ],
+              "version": 2
+            }
+          ],
+          "interactions": [],
+          "phase": "before_union",
+          "rejected": {}
+        },
+        {
+          "blocks": [
+            {
+              "active": false,
+              "boundary": [
+                {
+                  "consumer": 0,
+                  "current": {
+                    "available": true,
+                    "eclass": "E-1",
+                    "key": [
+                      "E-0"
+                    ],
+                    "label": "A(E-0)",
+                    "table": "A"
+                  },
+                  "key": "[Value(0)]",
+                  "producer_write": null,
+                  "read": 1,
+                  "source_block": null,
+                  "table": "A"
+                }
+              ],
+              "combined_prefixes": [
+                {
+                  "bindings": {
+                    "v0": "Value(0)"
+                  },
+                  "canonical_bindings": {
+                    "v0": "E-0"
+                  },
+                  "lhs": "(A v0)",
+                  "member_matches": [
+                    0,
+                    8
+                  ],
+                  "rhs": "(C v0)",
+                  "rules": [
+                    "a",
+                    "b"
+                  ],
+                  "supporting_reads": [
+                    9
+                  ],
+                  "usable": false
+                }
+              ],
+              "current_root_classes": [
+                "E-1"
+              ],
+              "dependencies": [
+                {
+                  "consumer": 8,
+                  "producer": 0,
+                  "read": 9,
+                  "write": 6
+                }
+              ],
+              "entry_bindings": {
+                "x": "Value(0)"
+              },
+              "entry_facts": [
+                {
+                  "available": true,
+                  "eclass": "E-1",
+                  "key": [
+                    "E-0"
+                  ],
+                  "label": "A(E-0)",
+                  "table": "A"
+                }
+              ],
+              "entry_lhs": "(A x)",
+              "entry_rule": "a",
+              "id": 0,
+              "invalidations": [
+                "explicit union: concrete prefix witnesses need revalidation"
+              ],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 0,
+                  "rule": "a"
+                },
+                {
+                  "match": 8,
+                  "rule": "b"
+                }
+              ],
+              "outputs": [],
+              "version": 3
+            },
+            {
+              "active": false,
+              "boundary": [
+                {
+                  "consumer": 2,
+                  "current": {
+                    "available": true,
+                    "eclass": "E-1",
+                    "key": [
+                      "E-2"
+                    ],
+                    "label": "A(E-2)",
+                    "table": "A"
+                  },
+                  "key": "[Value(2)]",
+                  "producer_write": null,
+                  "read": 3,
+                  "source_block": null,
+                  "table": "A"
+                }
+              ],
+              "combined_prefixes": [
+                {
+                  "bindings": {
+                    "v0": "Value(2)"
+                  },
+                  "canonical_bindings": {
+                    "v0": "E-2"
+                  },
+                  "lhs": "(A v0)",
+                  "member_matches": [
+                    2,
+                    10
+                  ],
+                  "rhs": "(C v0)",
+                  "rules": [
+                    "a",
+                    "b"
+                  ],
+                  "supporting_reads": [
+                    11
+                  ],
+                  "usable": false
+                }
+              ],
+              "current_root_classes": [
+                "E-1"
+              ],
+              "dependencies": [
+                {
+                  "consumer": 10,
+                  "producer": 2,
+                  "read": 11,
+                  "write": 7
+                }
+              ],
+              "entry_bindings": {
+                "x": "Value(2)"
+              },
+              "entry_facts": [
+                {
+                  "available": true,
+                  "eclass": "E-1",
+                  "key": [
+                    "E-2"
+                  ],
+                  "label": "A(E-2)",
+                  "table": "A"
+                }
+              ],
+              "entry_lhs": "(A x)",
+              "entry_rule": "a",
+              "id": 1,
+              "invalidations": [
+                "explicit union: concrete prefix witnesses need revalidation"
+              ],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 2,
+                  "rule": "a"
+                },
+                {
+                  "match": 10,
+                  "rule": "b"
+                }
+              ],
+              "outputs": [],
+              "version": 3
+            }
+          ],
+          "interactions": [],
+          "phase": "root_union",
+          "rejected": {}
+        },
+        {
+          "blocks": [
+            {
+              "active": false,
+              "boundary": [
+                {
+                  "consumer": 0,
+                  "current": {
+                    "available": true,
+                    "eclass": "E-1",
+                    "key": [
+                      "E-0"
+                    ],
+                    "label": "A(E-0)",
+                    "table": "A"
+                  },
+                  "key": "[Value(0)]",
+                  "producer_write": null,
+                  "read": 1,
+                  "source_block": null,
+                  "table": "A"
+                }
+              ],
+              "combined_prefixes": [
+                {
+                  "bindings": {
+                    "v0": "Value(0)"
+                  },
+                  "canonical_bindings": {
+                    "v0": "E-0"
+                  },
+                  "lhs": "(A v0)",
+                  "member_matches": [
+                    0,
+                    8
+                  ],
+                  "rhs": "(C v0)",
+                  "rules": [
+                    "a",
+                    "b"
+                  ],
+                  "supporting_reads": [
+                    9
+                  ],
+                  "usable": false
+                }
+              ],
+              "current_root_classes": [
+                "E-1"
+              ],
+              "dependencies": [
+                {
+                  "consumer": 8,
+                  "producer": 0,
+                  "read": 9,
+                  "write": 6
+                }
+              ],
+              "entry_bindings": {
+                "x": "Value(0)"
+              },
+              "entry_facts": [
+                {
+                  "available": true,
+                  "eclass": "E-1",
+                  "key": [
+                    "E-0"
+                  ],
+                  "label": "A(E-0)",
+                  "table": "A"
+                }
+              ],
+              "entry_lhs": "(A x)",
+              "entry_rule": "a",
+              "id": 0,
+              "invalidations": [
+                "explicit union: concrete prefix witnesses need revalidation"
+              ],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 0,
+                  "rule": "a"
+                },
+                {
+                  "match": 8,
+                  "rule": "b"
+                }
+              ],
+              "outputs": [],
+              "version": 3
+            },
+            {
+              "active": false,
+              "boundary": [
+                {
+                  "consumer": 2,
+                  "current": {
+                    "available": true,
+                    "eclass": "E-1",
+                    "key": [
+                      "E-0"
+                    ],
+                    "label": "A(E-0)",
+                    "table": "A"
+                  },
+                  "key": "[Value(2)]",
+                  "producer_write": null,
+                  "read": 3,
+                  "source_block": null,
+                  "table": "A"
+                }
+              ],
+              "combined_prefixes": [
+                {
+                  "bindings": {
+                    "v0": "Value(2)"
+                  },
+                  "canonical_bindings": {
+                    "v0": "E-0"
+                  },
+                  "lhs": "(A v0)",
+                  "member_matches": [
+                    2,
+                    10
+                  ],
+                  "rhs": "(C v0)",
+                  "rules": [
+                    "a",
+                    "b"
+                  ],
+                  "supporting_reads": [
+                    11
+                  ],
+                  "usable": false
+                }
+              ],
+              "current_root_classes": [
+                "E-1"
+              ],
+              "dependencies": [
+                {
+                  "consumer": 10,
+                  "producer": 2,
+                  "read": 11,
+                  "write": 7
+                }
+              ],
+              "entry_bindings": {
+                "x": "Value(2)"
+              },
+              "entry_facts": [
+                {
+                  "available": true,
+                  "eclass": "E-1",
+                  "key": [
+                    "E-0"
+                  ],
+                  "label": "A(E-0)",
+                  "table": "A"
+                }
+              ],
+              "entry_lhs": "(A x)",
+              "entry_rule": "a",
+              "id": 1,
+              "invalidations": [
+                "explicit union: concrete prefix witnesses need revalidation"
+              ],
+              "member_capacity": 2,
+              "members": [
+                {
+                  "match": 2,
+                  "rule": "a"
+                },
+                {
+                  "match": 10,
+                  "rule": "b"
+                }
+              ],
+              "outputs": [],
+              "version": 3
+            }
+          ],
+          "interactions": [],
+          "phase": "input_union",
+          "rejected": {}
+        }
+      ],
+      "scenario": "union_overlap"
+    }
+  ],
+  "local_shortcuts_installed": false,
+  "physical_nodes_moved": false,
+  "scope": "diagnostic dependency block index"
+}

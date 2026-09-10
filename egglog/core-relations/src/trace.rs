@@ -70,6 +70,7 @@ pub struct RuleActionOutcomeEvent {
 #[derive(Default)]
 struct TraceState {
     next_event_id: AtomicU64,
+    scope_resets: Mutex<Vec<u64>>,
     dependencies_enabled: bool,
     table_names: Mutex<std::collections::HashMap<crate::TableId, Arc<str>>>,
     writes: Mutex<Vec<WriteEvent>>,
@@ -106,6 +107,16 @@ impl TraceSession {
             }),
         }
     }
+    /// Record a successful scope rollback. Earlier block certificates need
+    /// revalidation even when restored rows still carry historical origins.
+    pub fn record_scope_reset(&self) {
+        let id = self.state.next_event_id.fetch_add(1, Ordering::Relaxed);
+        self.state.scope_resets.lock().unwrap().push(id);
+    }
+    pub fn scope_resets(&self) -> Vec<u64> {
+        self.state.scope_resets.lock().unwrap().clone()
+    }
+
     /// Diagnostic table-name registry for interpreting committed row events.
     pub fn table_names(&self) -> Vec<(crate::TableId, Arc<str>)> {
         self.state
