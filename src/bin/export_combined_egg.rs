@@ -301,7 +301,7 @@ fn generate(source: &str, report: &Value, overlay: &Value) -> Result<String, Box
             &command,
         );
     }
-    Ok(out)
+    Ok(format!("{}\n", out.trim_end()))
 }
 fn main() -> Result<(), Box<dyn Error>> {
     let args: Vec<_> = std::env::args().collect();
