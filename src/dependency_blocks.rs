@@ -111,6 +111,7 @@ pub struct IngestReport {
 pub struct DependencyBlockStore {
     session: Option<TraceSession>,
     last_scope_reset: Option<u64>,
+    seen_equality_reads: HashSet<(u64, u64)>,
     catalog: HashMap<String, RuleSpec>,
     matches: HashMap<u64, RuleMatchEvent>,
     reads: HashMap<u64, Vec<RowReadEvent>>,
@@ -176,6 +177,125 @@ impl DependencyBlockStore {
         for b in 0..self.blocks.len() {
             self.dirty(b, reason);
         }
+    }
+    /// Revalidate whole unconditional recipes against physical row versions.
+    /// Never merges instances on the basis of a common canonical root.
+    /// Unknown guards, scope rollback, deletion/reinsertion and missing lineage
+    /// remain inactive. A present entry alone is insufficient.
+    pub fn revalidate_after_union(&mut self, eg: &egglog::EGraph) -> usize {
+        let Some(trace) = &self.session else {
+            return 0;
+        };
+        let names: HashMap<_, _> = trace.table_names().into_iter().collect();
+        let mut all_writes = trace.write_events();
+        all_writes.sort_by_key(|w| w.event_id);
+        let valid_row = |table, old: &[Value]| -> bool {
+            let Some(name) = names.get(&table) else {
+                return false;
+            };
+            let Some(function) = eg.get_function(name) else {
+                return false;
+            };
+            let n = function.schema().input.len();
+            if old.len() <= n {
+                return false;
+            }
+            let keys: Vec<_> = old[..n]
+                .iter()
+                .zip(&function.schema().input)
+                .map(|(&v, s)| {
+                    if s.is_eq_sort() {
+                        eg.get_canonical_value(v, s)
+                    } else {
+                        v
+                    }
+                })
+                .collect();
+            let Some(current) = eg.lookup_function_row(name, &keys) else {
+                return false;
+            };
+            if current == old {
+                return true;
+            }
+            let mut versions: HashSet<_> = all_writes
+                .iter()
+                .filter(|w| {
+                    w.table == table && w.actual == old && w.outcome == WriteOutcome::Inserted
+                })
+                .map(|w| w.event_id)
+                .collect();
+            for w in &all_writes {
+                if w.table != table || !w.rebuild_of.is_some_and(|id| versions.contains(&id)) {
+                    continue;
+                }
+                if !matches!(
+                    w.outcome,
+                    WriteOutcome::Inserted | WriteOutcome::Deduplicated
+                ) {
+                    continue;
+                }
+                versions.insert(w.event_id);
+                if w.actual == current && !self.invalid_facts.contains(&w.event_id) {
+                    return true;
+                }
+            }
+            false
+        };
+        let mut ready = HashSet::new();
+        for b in &self.blocks {
+            if b.active
+                || b.prefixes.is_empty()
+                || self.last_scope_reset.is_some_and(|r| b.entry.match_id < r)
+            {
+                continue;
+            }
+            let valid = b.members.iter().all(|m| {
+                self.catalog
+                    .get(self.matches[m].rule.as_ref())
+                    .is_some_and(|s| s.rewrite.is_some())
+                    && self
+                        .reads
+                        .get(m)
+                        .is_some_and(|rs| rs.iter().all(|r| valid_row(r.table, &r.row)))
+                    && self
+                        .outputs
+                        .get(m)
+                        .into_iter()
+                        .flatten()
+                        .all(|w| valid_row(self.writes[w].table, &self.writes[w].actual))
+            });
+            if valid {
+                ready.insert(b.id);
+            }
+        }
+        loop {
+            let bad: Vec<_> = ready
+                .iter()
+                .copied()
+                .filter(|b| {
+                    self.blocks[*b].boundary.iter().any(|r| {
+                        r.source_block.is_some_and(|p| {
+                            p != *b && !self.blocks[p].active && !ready.contains(&p)
+                        })
+                    })
+                })
+                .collect();
+            if bad.is_empty() {
+                break;
+            }
+            for b in bad {
+                ready.remove(&b);
+            }
+        }
+        for &id in &ready {
+            let block = &mut self.blocks[id];
+            block.active = true;
+            block.version += 1;
+            for prefix in &mut block.prefixes {
+                prefix.usable = true;
+            }
+        }
+        ready.len()
     }
     fn dirty(&mut self, start: BlockId, reason: &str) {
         let mut queue = VecDeque::from([start]);
@@ -511,6 +631,75 @@ impl DependencyBlockStore {
             }
             self.blocks[b].dependencies.extend(edges);
         }
+        // Equality interactions are separate from row writes: a union is never
+        // relabelled as an Inserted fact. Follow committed rebuild versions back
+        // to the exact union events used by canonicalization.
+        let unions: HashMap<_, _> = trace
+            .union_events()
+            .into_iter()
+            .map(|u| (u.event_id, u))
+            .collect();
+        for read in trace.row_reads() {
+            let Some(target) = self.block_for_match(read.match_event_id) else {
+                continue;
+            };
+            if !self.blocks[target].active {
+                continue;
+            }
+            let mut current = read.producer_write_event_id;
+            let mut visited = HashSet::new();
+            let mut equality_events = BTreeSet::new();
+            while let Some(id) = current {
+                if !visited.insert(id) {
+                    break;
+                }
+                let Some(w) = self.writes.get(&id) else {
+                    break;
+                };
+                equality_events.extend(w.union_dependencies.iter().copied());
+                current = w.rebuild_of;
+            }
+            for id in equality_events {
+                if self.seen_equality_reads.contains(&(read.event_id, id)) {
+                    continue;
+                }
+                let Some(union) = unions.get(&id) else {
+                    continue;
+                };
+                if self.last_scope_reset.is_some_and(|r| id < r)
+                    || union.event_id >= read.event_id
+                    || self.eligible(union.match_event_id, &survived).is_err()
+                {
+                    continue;
+                }
+                let source = self
+                    .block_for_match(union.match_event_id)
+                    .unwrap_or_else(|| self.allocate(union.match_event_id));
+                if !self.blocks[source].active {
+                    continue;
+                }
+                self.seen_equality_reads.insert((read.event_id, id));
+                for prefix in &mut self.blocks[target].prefixes {
+                    prefix.usable = false;
+                }
+                if source == target {
+                    continue;
+                }
+                let edge_id = self.interactions.len();
+                let rule = format!("union #{id}: {}", self.matches[&union.match_event_id].rule);
+                self.interactions.push(Interaction {
+                    id: edge_id,
+                    rule: rule.clone(),
+                    parents: vec![source],
+                    target,
+                    consumer: read.match_event_id,
+                    reads: vec![read.event_id],
+                });
+                self.by_rule.entry(rule).or_default().push(edge_id);
+                self.by_block.entry(source).or_default().push(edge_id);
+                self.by_block.entry(target).or_default().push(edge_id);
+            }
+        }
         Ok(IngestReport {
             invalidated_blocks: active_before
                 .iter()
@@ -592,6 +781,7 @@ impl DependencyBlockStore {
 }
 fn align(new: &pattern::Pat, old: &pattern::Pat, known: &Env, out: &mut Env) -> bool {
     match (new, old) {
+        (pattern::Pat::Lit(a), pattern::Pat::Lit(b)) => a == b,
         (pattern::Pat::Var(a), pattern::Pat::Var(b)) => {
             let Some(v) = known.get(b) else {
                 return false;
@@ -611,6 +801,7 @@ fn align(new: &pattern::Pat, old: &pattern::Pat, known: &Env, out: &mut Env) -> 
 }
 fn equal_terms(a: &pattern::Pat, ae: &Env, b: &pattern::Pat, be: &Env) -> bool {
     match (a, b) {
+        (pattern::Pat::Lit(a), pattern::Pat::Lit(b)) => a == b,
         (pattern::Pat::Var(a), pattern::Pat::Var(b)) => {
             ae.get(a).is_some() && ae.get(a) == be.get(b)
         }

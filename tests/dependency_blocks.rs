@@ -276,3 +276,27 @@ fn an_actual_row_update_invalidates_the_concrete_block() {
     s.ingest_committed(&t).unwrap();
     assert!(!s.blocks()[0].active);
 }
+
+#[test]
+fn revalidation_checks_internal_rows_not_only_the_entry() {
+    let (mut eg, mut store, trace) = chain();
+    for rule in ["a", "b", "c"] {
+        eg.step_rules_with_trace(rule, &trace).unwrap();
+        store.ingest_committed(&trace).unwrap();
+    }
+    store.invalidate_all("request full validation");
+    assert_eq!(store.revalidate_after_union(&eg), 1);
+    eg.parse_and_run_program(None, "(delete (B (Var 7)))")
+        .unwrap();
+    store.ingest_committed(&trace).unwrap();
+    assert_eq!(store.revalidate_after_union(&eg), 0);
+    assert!(!store.blocks()[0].active);
+    eg.parse_and_run_program(None, "(check (= (A (Var 7)) (D (Var 7))))")
+        .unwrap();
+    eg.parse_and_run_program(None, "(B (Var 7))").unwrap();
+    assert_eq!(
+        store.revalidate_after_union(&eg),
+        0,
+        "untraced reinsertion cannot revive a certificate"
+    );
+}

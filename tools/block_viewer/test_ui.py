@@ -52,6 +52,11 @@ with sync_playwright() as p:
     assert 'action lane did not survive' in page.locator('#rejections').inner_text()
     page.select_option('#phase','1')
     assert page.locator('.block:not(.dirty)').count()==0
+    page.goto((OUT/'union.html').as_uri())
+    page.select_option('#phase','2')
+    assert page.locator('.block').count()==2
+    assert '发生合并' in page.locator('#rejections').inner_text()
+    assert 'Inserted' in page.locator('#rejections').inner_text()
     assert not errors,errors
     browser.close()
 print('UI checks passed: prefix highlighting, phases, block selection, join edges, two union stages, upload, mobile and dark mode; no page errors.')

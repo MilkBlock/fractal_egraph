@@ -1,4 +1,8 @@
-# Native .egg generalization: diagnosis and repair boundaries
+# Native .egg generalization: initial diagnosis (874e9a2)
+
+Historical record: the later repairs and current boundaries are documented in
+`../native_programs/README.md`. In particular CYK witness retention and native
+schedule execution have since been repaired.
 
 These are actual egglog runtime checks on the master kernel, not a standalone
 simulation or a claim of memory savings. The dpsk working tree is left intact.

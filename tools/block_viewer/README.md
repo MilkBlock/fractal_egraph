@@ -18,9 +18,21 @@ side output does not invalidate a different committed output of an opaque rule.
 Composed rewrites retain the stronger whole-recipe validity gate.
 
 Full CYK (all native checks passed): active blocks before the three scope pops:
-23, 23, 45. All earlier blocks are retired after each pop. These counts describe
+24, 36, 66 (including explicit equality interactions). All earlier blocks are retired after each pop. These counts describe
 diagnostic blocks, not compression or measured speedup. The viewer lists rejected
 match candidates, including action guards that filtered them.
 
 UI regression uses Python Playwright with installed Chrome; run
 `python tools/block_viewer/test_ui.py` after generating index.html and cyk.html.
+
+
+Native union/rebuild example:
+
+```
+cargo run --bin egg_trace -- experiments/native_programs/union.egg results/block_viewer/union.json
+python3 tools/block_viewer/render.py results/block_viewer/union.json --output results/block_viewer/union.html
+```
+
+The viewer shows committed versus redundant unions, old/new row versions, and
+union event IDs supporting a rebuild. Equality interactions appear as labelled
+block edges. Such edges do not automatically certify an equality shortcut.

@@ -34,3 +34,30 @@ fn cyk_keeps_valid_outputs_and_retires_blocks_on_pop() {
         "CYK must have real committed producer-consumer blocks"
     );
 }
+
+#[test]
+fn union_to_rebuild_to_read_creates_an_equality_interaction() {
+    let mut eg = EGraph::default();
+    let commands = eg
+        .parse_program(
+            None,
+            include_str!("../experiments/native_programs/union.egg"),
+        )
+        .unwrap();
+    let trace = TraceSession::with_dependencies();
+    eg.run_program_with_trace(commands, &trace).unwrap();
+    let names: BTreeSet<_> = trace.matches().iter().map(|m| m.rule.to_string()).collect();
+    let mut store = DependencyBlockStore::new(names.iter().map(|n| RuleSpec::opaque(n, n, "")));
+    store.ingest_committed(&trace).unwrap();
+    assert!(
+        store
+            .interactions()
+            .iter()
+            .any(|e| e.rule.starts_with("union #"))
+    );
+    assert!(store.blocks().iter().any(|b| b.entry.rule == "merge"));
+    assert!(store.blocks().iter().all(|b| b.prefixes.is_empty()));
+    let count = store.interactions().len();
+    store.ingest_committed(&trace).unwrap();
+    assert_eq!(store.interactions().len(), count);
+}
