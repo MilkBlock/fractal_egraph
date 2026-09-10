@@ -41,6 +41,22 @@ JSON 必须为单行；换行、引号等由 JSON 编码转义。egglog 将整�
 - 组合中的 `stages` 给出 producer/consumer 的 body/head 范围，`connections`
   给出追加的端口相等约束以及 read/write/rebuild/union 见证。
 
+### dsl_type 与 typst 模板
+
+`kind":"dsl_type"` 为 datatype/constructor/relation/function 声明提供字段名与
+typst 数学模板：
+
+```egg
+; @egg-viz-json {"schema":"egg-viz/v1","kind":"dsl_type","id":"nonterm","variants":{"NonTerm":{"fields":["label"],"typst":"NonTerm({label})","precedence":100}}}
+(datatype nonterm (NonTerm String :args_name "label"))
+```
+
+模板内只写自然写法：占位符 `{field}` 由渲染器按字段解析，标识符由渲染器
+自动插入 `upright(...)`。**不要在 `typst` 里手写 `upright(...)`**——宏里写了，
+渲染器会在字符串字面量里再包一层，产出 `upright("upright("NonTerm")")`。
+`precedence` 只在同时给出 `typst` 时导出；原子子项（叶子/constructor）用 100，
+避免多余括号。
+
 ## 组合是什么
 
 当前 profile 的八类是历史生产—消费结构，不是已证明的快捷 rewrite。
