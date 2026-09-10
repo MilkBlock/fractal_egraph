@@ -74,8 +74,10 @@ The viewer has three views, selected from the `视图` dropdown:
    storage or a memory-saving claim.
 
 3. **e-graph** — the native egraph serialized to a graphviz dot string via
-   egglog's own `serialize().to_dot()`. e-classes are clusters; the dot is shown
-   as source and can be saved to a `.dot` file and rendered with `dot -Tsvg`.
+   egglog's own `serialize().to_dot()`, then rendered to an inline SVG by the
+   system `dot` (graphviz) at render time. e-classes are clusters; the dot source
+   stays available in a collapsed `<details>` for saving to a `.dot` file. When
+   `dot` is not installed, the viewer falls back to showing the dot source.
 
 `egg_trace` now exports both `coverage` and `egraph_dot` per phase. Coverage is
 only produced when the program declares traversable constructor/relation tables;

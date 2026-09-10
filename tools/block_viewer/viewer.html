@@ -50,11 +50,13 @@ function renderCoverage(){const p=current();const c=p.coverage;const d=$('diagra
  const rejections=$('rejections');if(rejections){rejections.remove()}
  $('detail').innerHTML=html;
 }
-function renderEgraph(){const p=current();const d=$('diagram');const dot=p.egraph_dot;
- $('notice').textContent='原生 e-graph：egglog 序列化后生成的 graphviz dot。同一 e-class 的节点聚成一个 cluster（rank=same）。有 graphviz 的机器可保存为 .dot 或 .svg 渲染。';
- if(dot){d.style.minWidth='0';d.innerHTML=`<div class="egraph-svg"><pre class="dotbox">${esc(dot)}</pre></div>`;}else{d.innerHTML='<div class="empty">此阶段没有 egraph dot 数据。</div>';}
+function renderEgraph(){const p=current();const d=$('diagram');const dot=p.egraph_dot;const svg=p.egraph_svg;
+ $('notice').textContent=svg?'原生 e-graph：egglog 序列化后经 graphviz 渲染为 SVG。同一 e-class 的节点聚成一个 cluster。':'原生 e-graph：egglog 序列化生成的 graphviz dot（未内联渲染）。';
+ if(svg){d.style.minWidth='0';d.innerHTML=`<div class="egraph-svg">${svg}</div>`;}
+ else if(dot){d.style.minWidth='0';d.innerHTML=`<div class="egraph-svg"><pre class="dotbox">${esc(dot)}</pre></div>`;}
+ else{d.innerHTML='<div class="empty">此阶段没有 egraph dot 数据。</div>';}
  const rejections=$('rejections');if(rejections){rejections.remove()}
- $('detail').innerHTML='<h2>e-graph dot 源码</h2><p class="muted">'+(dot?`${dot.split('\\n').length} 行。复制保存为 .dot 后可用 <code>dot -Tsvg</code> 渲染，或直接在图里查看 e-class cluster。`:'')+'</p>';
+ $('detail').innerHTML=dot?`<h2>e-graph 图</h2><p class="muted">${svg?'上方为渲染后的图。':'未内联 SVG（渲染时缺 `dot` 命令），下方为 dot 源码。'}</p><details><summary>dot 源码 · ${esc(dot.split('\\n').length)} 行</summary><pre class="dotbox">${esc(dot)}</pre></details>`:'<h2>e-graph 图</h2><p class="muted">此阶段没有 egraph 数据。</p>';
 }
 function renderBlocks(){const p=current(),b=selected(),pi=Number($('prefix').value),pref=b?.combined_prefixes?.[pi],cs=data.cases[Number($('scenario').value)];$('prev').disabled=Number($('phase').value)===0;$('next').disabled=Number($('phase').value)===cs.phases.length-1;
  let note=`${p.blocks.length} 个 block · ${p.blocks.reduce((a,b)=>a+b.members.length,0)} 个 apply 成员。蓝色只标记所选组合的成员，不表示整个块都是一条串行链。`;
