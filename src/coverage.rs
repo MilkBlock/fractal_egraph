@@ -37,7 +37,9 @@ pub struct Fact {
 pub struct PrefixView {
     pub id: ViewId,
     pub block: BlockId,
-    pub prefix_index: usize,
+    /// Some(i) is a certified combined prefix; None is an entry-level view of an
+    /// opaque block (no composed shortcut), covering the rows its members touched.
+    pub prefix_index: Option<usize>,
     pub lhs: String,
     pub rhs: String,
     pub facts: BTreeSet<FactId>,
@@ -61,7 +63,7 @@ pub struct CoverageLedger {
     live: HashMap<FactKey, FactId>,
     facts: Vec<Fact>,
     views: Vec<PrefixView>,
-    view_keys: HashMap<(BlockId, usize), ViewId>,
+    view_keys: HashMap<(BlockId, Option<usize>), ViewId>,
     memberships: HashMap<FactId, BTreeSet<ViewId>>,
     session: Option<TraceSession>,
     epoch: u64,
@@ -138,9 +140,14 @@ impl CoverageLedger {
             widths.insert(name.clone(), f.schema().input.len() + 1);
             eg.function_for_each(name, |r| {
                 if !r.subsumed {
+                    // Keep only the schema columns (input + output); the native
+                    // row carries extra trailing columns (timestamp/subsume) that
+                    // are not part of the logical fact identity.
+                    let n = f.schema().input.len() + 1;
+                    let fields: Vec<_> = r.vals[..r.vals.len().min(n)].to_vec();
                     inventory.push(FactKey {
                         table: name.clone(),
-                        fields: r.vals.to_vec(),
+                        fields,
                     });
                 }
             })
@@ -182,15 +189,36 @@ impl CoverageLedger {
         }
         Ok(())
     }
-    fn row_id(&self, table: &str, row: &[Value]) -> Option<FactId> {
+    fn row_id(&self, eg: &EGraph, table: &str, row: &[Value]) -> Option<FactId> {
         let n = *self.widths.get(table)?;
         if row.len() < n {
             return None;
         }
+        let Some(f) = eg.get_function(table) else {
+            return None;
+        };
+        // Canonicalize eq-sort columns so event rows recorded before a union match
+        // the post-union canonical fact inventory.
+        let fields: Vec<_> = row[..n]
+            .iter()
+            .enumerate()
+            .map(|(i, &v)| {
+                let sort = if i < f.schema().input.len() {
+                    &f.schema().input[i]
+                } else {
+                    &f.schema().output
+                };
+                if sort.is_eq_sort() {
+                    eg.get_canonical_value(v, sort)
+                } else {
+                    v
+                }
+            })
+            .collect();
         self.live
             .get(&FactKey {
                 table: table.into(),
-                fields: row[..n].to_vec(),
+                fields,
             })
             .copied()
     }
@@ -223,7 +251,7 @@ impl CoverageLedger {
         let mut unresolved = HashSet::new();
         for r in &reads {
             if let Some(name) = r.table_name.as_deref() {
-                if let Some(id) = self.row_id(name, &r.row) {
+                if let Some(id) = self.row_id(eg, name, &r.row) {
                     by_match.entry(r.match_event_id).or_default().insert(id);
                     self.facts[id].seeded = true;
                     if let Some(reason) = store.rejected().get(&r.match_event_id) {
@@ -241,7 +269,7 @@ impl CoverageLedger {
                 continue;
             }
             if let Some(name) = names.get(&w.table) {
-                if let Some(id) = self.row_id(name, &w.actual) {
+                if let Some(id) = self.row_id(eg, name, &w.actual) {
                     by_match.entry(w.match_event_id).or_default().insert(id);
                     self.facts[id].seeded = true;
                     if let Some(reason) = store.rejected().get(&w.match_event_id) {
@@ -255,49 +283,82 @@ impl CoverageLedger {
             }
         }
         for b in store.blocks() {
-            for (pi, p) in b.prefixes.iter().enumerate() {
-                let key = (b.id, pi);
-                let valid =
-                    b.active && p.usable && !p.members.iter().any(|m| unresolved.contains(m));
-                if let Some(id) = self.view_keys.get(&key).copied() {
-                    if !valid {
-                        self.invalidate_view(
-                            id,
-                            "block/prefix or a concrete row is no longer valid",
-                        );
-                    }
-                    continue;
-                }
-                if !valid {
-                    continue;
-                }
-                let facts: BTreeSet<_> = p
-                    .members
-                    .iter()
-                    .flat_map(|m| by_match.get(m).into_iter().flatten().copied())
-                    .collect();
-                if facts.is_empty() {
-                    continue;
-                }
-                let id = self.views.len();
-                self.views.push(PrefixView {
-                    id,
-                    block: b.id,
-                    prefix_index: pi,
-                    lhs: p.lhs.clone(),
-                    rhs: p.rhs.clone(),
-                    facts: facts.clone(),
-                    active: true,
-                    invalid_reason: None,
-                });
-                self.view_keys.insert(key, id);
-                for fact in facts {
-                    self.memberships.entry(fact).or_default().insert(id);
-                    self.facts[fact].ever_covered = true;
+            if b.prefixes.is_empty() {
+                // Opaque block: admit an entry-level view over the rows its members
+                // touched. This observes coverage but certifies no equality shortcut.
+                self.admit_view(
+                    b.id,
+                    None,
+                    &b.entry.lhs,
+                    "",
+                    &b.members,
+                    b.active,
+                    &by_match,
+                    &unresolved,
+                );
+            } else {
+                for (pi, p) in b.prefixes.iter().enumerate() {
+                    self.admit_view(
+                        b.id,
+                        Some(pi),
+                        &p.lhs,
+                        &p.rhs,
+                        &p.members,
+                        b.active && p.usable,
+                        &by_match,
+                        &unresolved,
+                    );
                 }
             }
         }
         Ok(())
+    }
+
+    fn admit_view(
+        &mut self,
+        block: BlockId,
+        prefix_index: Option<usize>,
+        lhs: &str,
+        rhs: &str,
+        members: &[u64],
+        active: bool,
+        by_match: &HashMap<u64, BTreeSet<FactId>>,
+        unresolved: &HashSet<u64>,
+    ) {
+        let key = (block, prefix_index);
+        let valid = active && !members.iter().any(|m| unresolved.contains(m));
+        if let Some(id) = self.view_keys.get(&key).copied() {
+            if !valid {
+                self.invalidate_view(id, "block/prefix or a concrete row is no longer valid");
+            }
+            return;
+        }
+        if !valid {
+            return;
+        }
+        let facts: BTreeSet<_> = members
+            .iter()
+            .flat_map(|m| by_match.get(m).into_iter().flatten().copied())
+            .collect();
+        if facts.is_empty() {
+            return;
+        }
+        let id = self.views.len();
+        self.views.push(PrefixView {
+            id,
+            block,
+            prefix_index,
+            lhs: lhs.to_string(),
+            rhs: rhs.to_string(),
+            facts: facts.clone(),
+            active: true,
+            invalid_reason: None,
+        });
+        self.view_keys.insert(key, id);
+        for fact in facts {
+            self.memberships.entry(fact).or_default().insert(id);
+            self.facts[fact].ever_covered = true;
+        }
     }
     pub fn marginal_new_facts(&self, view: ViewId, selected: &[ViewId]) -> usize {
         let mut covered = BTreeSet::new();

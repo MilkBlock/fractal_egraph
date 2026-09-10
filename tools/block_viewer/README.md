@@ -56,3 +56,27 @@ python3 tools/block_viewer/render.py results/block_viewer/union.json --output re
 The viewer shows committed versus redundant unions, old/new row versions, and
 union event IDs supporting a rebuild. Equality interactions appear as labelled
 block edges. Such edges do not automatically certify an equality shortcut.
+
+## Views
+
+The viewer has three views, selected from the `视图` dropdown:
+
+1. **依赖块 (blocks)** — block cards with entry prefix, member dependency DAG,
+   combined prefixes, potential exports, boundary reads, and cross-block
+   interaction edges. Below the cards: rejected match reasons, committed/redundant
+   unions, and rebuild row versions.
+
+2. **覆盖 (coverage)** — the logical coverage ledger. Shows how many live
+   constructor rows are covered by prefix views, per-fact 6-state (Covered /
+   SeedOnly / Unobserved / Unsupported / Invalidated / Retired), a stacked state
+   bar, uncovered rows, per-view marginal new facts, and overlap (duplicated
+   memberships counted once, not summed). This is logical coverage, not physical
+   storage or a memory-saving claim.
+
+3. **e-graph** — the native egraph serialized to a graphviz dot string via
+   egglog's own `serialize().to_dot()`. e-classes are clusters; the dot is shown
+   as source and can be saved to a `.dot` file and rendered with `dot -Tsvg`.
+
+`egg_trace` now exports both `coverage` and `egraph_dot` per phase. Coverage is
+only produced when the program declares traversable constructor/relation tables;
+a container-only program degrades to "no coverage" rather than aborting.

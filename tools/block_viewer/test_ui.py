@@ -63,6 +63,17 @@ with sync_playwright() as p:
     assert page.locator('#scenario option').first.inner_text()=='simplify.egg'
     assert page.locator('.block').count()==3
     assert page.locator('.block:not(.dirty)').count()==3
+    # Coverage view: stats, coverage bar, fact rows and uncovered accounting.
+    page.select_option('#view','coverage')
+    assert page.locator('.cov-stat').count()==4
+    assert page.locator('.cov-bar').count()==1
+    assert page.locator('.cov-table tbody tr').count()>0
+    # E-graph view: native dot source.
+    page.select_option('#view','egraph')
+    assert page.locator('.dotbox').count()==1
+    assert 'digraph' in page.locator('.dotbox').inner_text()
+    page.select_option('#view','blocks')
+    assert page.locator('.block').count()==3
     assert not errors,errors
     browser.close()
-print('UI checks passed: prefix highlighting, phases, block selection, join edges, two union stages, native program labels, upload, mobile and dark mode; no page errors.')
+print('UI checks passed: prefix highlighting, phases, block selection, join edges, two union stages, native program labels, coverage view, egraph dot view, upload, mobile and dark mode; no page errors.')
