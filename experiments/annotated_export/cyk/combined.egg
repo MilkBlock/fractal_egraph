@@ -31,7 +31,7 @@
       ((P (+ p1 p2) s (NonTerm a)))
          )
 
-; @egg-viz-json {"id":"R2","kind":"original_rule","labels":{"bindings":{"f1":"left subtree","f2":"right subtree"},"positions":{"body/1/expr/1":"left subtree lookup","body/2/expr/1":"right subtree lookup"}},"schema":"egg-viz/v1","statistics":{"committed_unions":47,"complete_witnesses":460,"definition":"(rule ((Prod (NonTerm a) (NonTerm b) (NonTerm c))\n       (= f1 (B p1 s (NonTerm b)))\n       (= f2 (B p2 (+ s p1) (NonTerm c))))\n      ((union (B (+ p1 p2) s (NonTerm a)) (NT a f1 f2)))\n         )","direct_inserted_rows":74,"matches":460,"survived":50}}
+; @egg-viz-json {"id":"R2","kind":"original_rule","labels":{"bindings":{"a":"parent nonterminal","b":"left nonterminal","c":"right nonterminal","p1":"left span length","p2":"right span length","s":"span start","f1":"left subtree","f2":"right subtree"},"positions":{"body/1/expr/1":"left subtree lookup","body/2/expr/1":"right subtree lookup","body/1/expr/1/args/2":"left subtree nonterminal","body/2/expr/1/args/2":"right subtree nonterminal"}},"schema":"egg-viz/v1","statistics":{"committed_unions":47,"complete_witnesses":460,"definition":"(rule ((Prod (NonTerm a) (NonTerm b) (NonTerm c))\n       (= f1 (B p1 s (NonTerm b)))\n       (= f2 (B p2 (+ s p1) (NonTerm c))))\n      ((union (B (+ p1 p2) s (NonTerm a)) (NT a f1 f2)))\n         )","direct_inserted_rows":74,"matches":460,"survived":50}}
 (rule ((Prod (NonTerm a) (NonTerm b) (NonTerm c))
        (= f1 (B p1 s (NonTerm b)))
        (= f2 (B p2 (+ s p1) (NonTerm c))))
