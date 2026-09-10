@@ -286,13 +286,14 @@ impl RuleBuilder<'_> {
         let res = self.query.rule_id;
         let cached_plan = self
             .query
-            .build_cached_plan(&mut self.egraph.db, &self.desc)
+            .build_cached_plan(&mut self.egraph.db, &self.desc, false)
             .ok();
         let info = RuleInfo {
             last_run_at: Timestamp::new(0),
             query: self.query,
             // cached_plan: None,
             cached_plan,
+            witness_plan: None,
             desc: self.desc,
         };
         debug!("created rule {res:?} / {}", info.desc);
@@ -749,8 +750,10 @@ impl Query {
         &self,
         db: &mut core_relations::Database,
         desc: &str,
+        retain_witnesses: bool,
     ) -> Result<CachedPlanInfo> {
         let mut rsb = RuleSetBuilder::new(db);
+        rsb.retain_witnesses(retain_witnesses);
         let (mut qb, mut inner) = self.query_state(&mut rsb);
         let mut atom_mapping = Vec::with_capacity(self.atoms.len());
         for (table, entries, _schema_info) in &self.atoms {

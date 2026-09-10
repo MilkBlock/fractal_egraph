@@ -263,6 +263,7 @@ impl std::fmt::Display for CommandOutput {
 /// ```
 #[derive(Clone)]
 pub struct EGraph {
+    program_trace: Option<TraceSession>,
     backend: egglog_bridge::EGraph,
     pub parser: Parser,
     names: check_shadowing::Names,
@@ -362,6 +363,7 @@ impl Default for EGraph {
         let mut parser = Parser::default();
         let proof_state = EncodingState::new(&mut parser.symbol_gen);
         let mut eg = Self {
+            program_trace: None,
             backend: Default::default(),
             parser,
             names: Default::default(),
@@ -668,6 +670,7 @@ impl EGraph {
                 // Preserve the symbol generator so that fresh symbols
                 // generated after pop don't collide with ones generated before pop.
                 std::mem::swap(&mut self.parser.symbol_gen, &mut e.parser.symbol_gen);
+                std::mem::swap(&mut self.program_trace, &mut e.program_trace);
                 *self = *e;
                 Ok(())
             }
@@ -959,6 +962,9 @@ impl EGraph {
     ///
     /// This will return an error if an egglog primitive returns None in an action.
     pub fn step_rules(&mut self, ruleset: &str) -> Result<RunReport, Error> {
+        if let Some(trace) = self.program_trace.clone() {
+            return self.step_rules_with_trace(ruleset, &trace);
+        }
         fn collect_rule_ids(
             ruleset: &str,
             rulesets: &IndexMap<String, Ruleset>,
@@ -1794,6 +1800,17 @@ impl EGraph {
     pub fn run_program(&mut self, program: Vec<Command>) -> Result<Vec<CommandOutput>, Error> {
         let res = self.process_program_internal(program, true)?;
         Ok(res.outputs)
+    }
+
+    /// Execute the original command stream with tracing inside native schedules.
+    /// Push/pop, until, repeats, checks, includes and command order are preserved.
+    pub fn run_program_with_trace(
+        &mut self, program: Vec<Command>, trace: &TraceSession,
+    ) -> Result<Vec<CommandOutput>, Error> {
+        let previous = self.program_trace.replace(trace.clone());
+        let result = self.run_program(program);
+        self.program_trace = previous;
+        result
     }
 
     /// Resolves an egglog program by parsing, typechecking, and desugaring each command.

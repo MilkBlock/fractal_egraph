@@ -982,6 +982,7 @@ struct RuleInfo {
     last_run_at: Timestamp,
     query: rule::Query,
     cached_plan: Option<CachedPlanInfo>,
+    witness_plan: Option<CachedPlanInfo>,
     desc: Arc<str>,
 }
 
@@ -1416,16 +1417,28 @@ fn run_rules_impl(
     report_level: ReportLevel,
     trace: Option<&TraceSession>,
 ) -> Result<RuleSetReport> {
+    let witnesses = trace.is_some_and(TraceSession::dependencies_enabled);
     for rule in rules {
         let info = &mut rule_info[*rule];
-        if info.cached_plan.is_none() {
-            info.cached_plan = Some(info.query.build_cached_plan(db, &info.desc)?);
+        let plan = if witnesses {
+            &mut info.witness_plan
+        } else {
+            &mut info.cached_plan
+        };
+        if plan.is_none() {
+            *plan = Some(info.query.build_cached_plan(db, &info.desc, witnesses)?);
         }
     }
     let mut rsb = db.new_rule_set();
     for rule in rules {
         let info = &mut rule_info[*rule];
-        let cached_plan = info.cached_plan.as_ref().unwrap();
+        let cached_plan = if witnesses {
+            &info.witness_plan
+        } else {
+            &info.cached_plan
+        }
+        .as_ref()
+        .unwrap();
         info.query
             .add_rules_from_cached(&mut rsb, info.last_run_at, cached_plan);
         info.last_run_at = next_ts;

@@ -82,7 +82,7 @@ fn cyk_first_case_preserves_command_order_and_checks() {
             traced.run_program(vec![command]).unwrap();
         }
     }
-    assert!(trace.matches().iter().any(|m| !m.physical_witness_complete));
+    assert!(trace.matches().iter().all(|m| m.physical_witness_complete));
     assert!(
         trace
             .row_reads()

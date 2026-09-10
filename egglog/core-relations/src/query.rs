@@ -95,6 +95,7 @@ impl RuleSet {
 ///
 /// See [`Database::new_rule_set`] for more information.
 pub struct RuleSetBuilder<'outer> {
+    retain_witnesses: bool,
     rule_set: RuleSet,
     db: &'outer mut Database,
 }
@@ -102,9 +103,16 @@ pub struct RuleSetBuilder<'outer> {
 impl<'outer> RuleSetBuilder<'outer> {
     pub fn new(db: &'outer mut Database) -> Self {
         Self {
+            retain_witnesses: false,
             rule_set: Default::default(),
             db,
         }
+    }
+
+    /// Retain LHS bindings for complete diagnostic row witnesses.
+    /// This may enumerate existential alternatives omitted by ordinary planning.
+    pub fn retain_witnesses(&mut self, enabled: bool) {
+        self.retain_witnesses = enabled;
     }
 
     /// Estimate the size of the subset of the table matching the given
@@ -587,6 +595,17 @@ impl RuleBuilder<'_, '_> {
                 })
                 .collect(),
         );
+        // Retention changes planning only, not action inputs (which can include
+        // counters and other variables computed by the action program).
+        if self.qb.rsb.retain_witnesses {
+            for (_, atom) in self.qb.query.atoms.iter() {
+                for i in 0..self.table_info(atom.table).spec.n_keys {
+                    if let Some(v) = atom.get_var(ColumnId::from_usize(i)) {
+                        self.qb.query.var_info[v].used_in_rhs = true;
+                    }
+                }
+            }
+        }
         let desc: Arc<str> = Arc::from(desc.into());
         let action_id = self.qb.rsb.rule_set.actions.push(ActionInfo {
             instrs: Arc::new(self.qb.instrs),
