@@ -1,0 +1,291 @@
+{
+  "method": "source-pair routing learned on phase 0 only; counterexamples and safe fallback evaluated on later phases",
+  "phases": [
+    {
+      "expected_outputs": 32,
+      "facts": 64,
+      "index_maintenance": {
+        "implemented_strategy": "rebuild composite index per phase",
+        "inserted_q_rows": 32,
+        "rows_scanned": 64
+      },
+      "keys_changed_by_union": 0,
+      "learned_source_pairs": 8,
+      "logical_index_entries": {
+        "canonical_buckets": 32,
+        "learned_rule_pairs": 8,
+        "q_row_references": 32,
+        "source_index_buckets": 32,
+        "source_index_q_references": 32
+      },
+      "phase": "train_one_per_group",
+      "variants": [
+        {
+          "candidate_pairs_after_routing": 256,
+          "extra": 0,
+          "fallback_pairs": 0,
+          "fast_pairs": 0,
+          "missing": 0,
+          "mode": "key_only",
+          "outputs": 32,
+          "residual_equality_checks": 256
+        },
+        {
+          "candidate_pairs_after_routing": 32,
+          "extra": 0,
+          "fallback_pairs": 0,
+          "fast_pairs": 0,
+          "missing": 0,
+          "mode": "canonical_composite",
+          "outputs": 32,
+          "residual_equality_checks": 0
+        },
+        {
+          "candidate_pairs_after_routing": 32,
+          "extra": 0,
+          "fallback_pairs": 0,
+          "fast_pairs": 0,
+          "missing": 0,
+          "mode": "learned_source_only",
+          "outputs": 32,
+          "residual_equality_checks": 32
+        },
+        {
+          "candidate_pairs_after_routing": 32,
+          "extra": 0,
+          "fallback_pairs": 0,
+          "fast_pairs": 32,
+          "missing": 0,
+          "mode": "learned_source_with_fallback",
+          "outputs": 32,
+          "residual_equality_checks": 0
+        },
+        {
+          "candidate_pairs_after_routing": 32,
+          "extra": 0,
+          "fallback_pairs": 0,
+          "fast_pairs": 0,
+          "missing": 0,
+          "mode": "stale_composite",
+          "outputs": 32,
+          "residual_equality_checks": 32
+        }
+      ]
+    },
+    {
+      "expected_outputs": 512,
+      "facts": 256,
+      "index_maintenance": {
+        "implemented_strategy": "rebuild composite index per phase",
+        "inserted_q_rows": 128,
+        "rows_scanned": 256
+      },
+      "keys_changed_by_union": 0,
+      "learned_source_pairs": 8,
+      "logical_index_entries": {
+        "canonical_buckets": 32,
+        "learned_rule_pairs": 8,
+        "q_row_references": 128,
+        "source_index_buckets": 32,
+        "source_index_q_references": 128
+      },
+      "phase": "held_out_fanout_four",
+      "variants": [
+        {
+          "candidate_pairs_after_routing": 4096,
+          "extra": 0,
+          "fallback_pairs": 0,
+          "fast_pairs": 0,
+          "missing": 0,
+          "mode": "key_only",
+          "outputs": 512,
+          "residual_equality_checks": 4096
+        },
+        {
+          "candidate_pairs_after_routing": 512,
+          "extra": 0,
+          "fallback_pairs": 0,
+          "fast_pairs": 0,
+          "missing": 0,
+          "mode": "canonical_composite",
+          "outputs": 512,
+          "residual_equality_checks": 0
+        },
+        {
+          "candidate_pairs_after_routing": 512,
+          "extra": 0,
+          "fallback_pairs": 0,
+          "fast_pairs": 0,
+          "missing": 0,
+          "mode": "learned_source_only",
+          "outputs": 512,
+          "residual_equality_checks": 512
+        },
+        {
+          "candidate_pairs_after_routing": 512,
+          "extra": 0,
+          "fallback_pairs": 0,
+          "fast_pairs": 512,
+          "missing": 0,
+          "mode": "learned_source_with_fallback",
+          "outputs": 512,
+          "residual_equality_checks": 0
+        },
+        {
+          "candidate_pairs_after_routing": 512,
+          "extra": 0,
+          "fallback_pairs": 0,
+          "fast_pairs": 0,
+          "missing": 0,
+          "mode": "stale_composite",
+          "outputs": 512,
+          "residual_equality_checks": 512
+        }
+      ]
+    },
+    {
+      "expected_outputs": 548,
+      "facts": 264,
+      "index_maintenance": {
+        "implemented_strategy": "rebuild composite index per phase",
+        "inserted_q_rows": 132,
+        "rows_scanned": 264
+      },
+      "keys_changed_by_union": 0,
+      "learned_source_pairs": 8,
+      "logical_index_entries": {
+        "canonical_buckets": 32,
+        "learned_rule_pairs": 8,
+        "q_row_references": 132,
+        "source_index_buckets": 36,
+        "source_index_q_references": 132
+      },
+      "phase": "external_facts",
+      "variants": [
+        {
+          "candidate_pairs_after_routing": 4356,
+          "extra": 0,
+          "fallback_pairs": 0,
+          "fast_pairs": 0,
+          "missing": 0,
+          "mode": "key_only",
+          "outputs": 548,
+          "residual_equality_checks": 4356
+        },
+        {
+          "candidate_pairs_after_routing": 548,
+          "extra": 0,
+          "fallback_pairs": 0,
+          "fast_pairs": 0,
+          "missing": 0,
+          "mode": "canonical_composite",
+          "outputs": 548,
+          "residual_equality_checks": 0
+        },
+        {
+          "candidate_pairs_after_routing": 512,
+          "extra": 0,
+          "fallback_pairs": 0,
+          "fast_pairs": 0,
+          "missing": 36,
+          "mode": "learned_source_only",
+          "outputs": 512,
+          "residual_equality_checks": 512
+        },
+        {
+          "candidate_pairs_after_routing": 548,
+          "extra": 0,
+          "fallback_pairs": 36,
+          "fast_pairs": 512,
+          "missing": 0,
+          "mode": "learned_source_with_fallback",
+          "outputs": 548,
+          "residual_equality_checks": 0
+        },
+        {
+          "candidate_pairs_after_routing": 548,
+          "extra": 0,
+          "fallback_pairs": 0,
+          "fast_pairs": 0,
+          "missing": 0,
+          "mode": "stale_composite",
+          "outputs": 548,
+          "residual_equality_checks": 548
+        }
+      ]
+    },
+    {
+      "expected_outputs": 676,
+      "facts": 264,
+      "index_maintenance": {
+        "implemented_strategy": "rebuild composite index per phase",
+        "inserted_q_rows": 132,
+        "rows_scanned": 264
+      },
+      "keys_changed_by_union": 32,
+      "learned_source_pairs": 8,
+      "logical_index_entries": {
+        "canonical_buckets": 28,
+        "learned_rule_pairs": 8,
+        "q_row_references": 132,
+        "source_index_buckets": 36,
+        "source_index_q_references": 132
+      },
+      "phase": "union_groups_0_1",
+      "variants": [
+        {
+          "candidate_pairs_after_routing": 4356,
+          "extra": 0,
+          "fallback_pairs": 0,
+          "fast_pairs": 0,
+          "missing": 0,
+          "mode": "key_only",
+          "outputs": 676,
+          "residual_equality_checks": 4356
+        },
+        {
+          "candidate_pairs_after_routing": 676,
+          "extra": 0,
+          "fallback_pairs": 0,
+          "fast_pairs": 0,
+          "missing": 0,
+          "mode": "canonical_composite",
+          "outputs": 676,
+          "residual_equality_checks": 0
+        },
+        {
+          "candidate_pairs_after_routing": 512,
+          "extra": 0,
+          "fallback_pairs": 0,
+          "fast_pairs": 0,
+          "missing": 164,
+          "mode": "learned_source_only",
+          "outputs": 512,
+          "residual_equality_checks": 512
+        },
+        {
+          "candidate_pairs_after_routing": 676,
+          "extra": 0,
+          "fallback_pairs": 164,
+          "fast_pairs": 512,
+          "missing": 0,
+          "mode": "learned_source_with_fallback",
+          "outputs": 676,
+          "residual_equality_checks": 0
+        },
+        {
+          "candidate_pairs_after_routing": 548,
+          "extra": 0,
+          "fallback_pairs": 0,
+          "fast_pairs": 0,
+          "missing": 128,
+          "mode": "stale_composite",
+          "outputs": 548,
+          "residual_equality_checks": 548
+        }
+      ]
+    }
+  ],
+  "scope": "actual ordinary/traced egglog facts and canonicalization; offline residual-search ablation, not kernel acceleration",
+  "timing": "no performance claim; operation counts only"
+}
