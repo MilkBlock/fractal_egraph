@@ -1,11 +1,11 @@
 ; Original program plus visualization-only combined witness bundles.
 ; Metadata is JSON in line comments; combined ruleset is never scheduled.
 
-; @egg-viz-json {"schema":"egg-viz/v1","kind":"dsl_type","id":"term","variants":{"Term":{"fields":["value"],"precedence":20}}}
+; @egg-viz-json {"schema":"egg-viz/v1","kind":"dsl_type","id":"term","variants":{"Term":{"fields":["value"]}}}
 (datatype term (Term String :args_name "value"))
-; @egg-viz-json {"schema":"egg-viz/v1","kind":"dsl_type","id":"nonterm","variants":{"NonTerm":{"fields":["label"],"precedence":20}}}
+; @egg-viz-json {"schema":"egg-viz/v1","kind":"dsl_type","id":"nonterm","variants":{"NonTerm":{"fields":["label"]}}}
 (datatype nonterm (NonTerm String :args_name "label"))
-; @egg-viz-json {"schema":"egg-viz/v1","kind":"dsl_type","id":"tree","variants":{"NT":{"fields":["label","left","right"],"typst":"NT({label}, {left}, {right})","precedence":10},"T":{"fields":["label","value"],"typst":"T({label}, {value})","precedence":10},"B":{"fields":["i","j","nt"],"precedence":1000}}}
+; @egg-viz-json {"schema":"egg-viz/v1","kind":"dsl_type","id":"tree","variants":{"NT":{"fields":["label","left","right"],"typst":"NT({label}, {left}, {right})","precedence":10},"T":{"fields":["label","value"],"typst":"T({label}, {value})","precedence":10},"B":{"fields":["i","j","nt"]}}}
 (datatype tree (NT String tree tree :args_name "label,left,right") (T String String :args_name "label,value"))
 ; @egg-viz-json {"schema":"egg-viz/v1","kind":"dsl_type","id":"getString","variants":{"getString":{"fields":["pos"],"typst":"getString({pos})"}}}
 (function getString (i64) String :no-merge)
@@ -15,7 +15,7 @@
 (relation End (nonterm String))
 ; @egg-viz-json {"schema":"egg-viz/v1","kind":"dsl_type","id":"P","variants":{"P":{"fields":["len","start","nt"],"typst":"P({nt})","precedence":50}}}
 (relation P (i64 i64 nonterm))
-; @egg-viz-json {"schema":"egg-viz/v1","kind":"dsl_type","id":"B","variants":{"B":{"fields":["i","j","nt"],"precedence":1000}}}
+; @egg-viz-json {"schema":"egg-viz/v1","kind":"dsl_type","id":"B","variants":{"B":{"fields":["i","j","nt"]}}}
 (constructor B (i64 i64 nonterm) tree :cost 1000)
 ; @egg-viz-json {"id":"R0","kind":"original_rule","labels":{"bindings":{"a":"terminal category","pos":"word position","s":"input word"},"positions":{"body/0/expr/0":"terminal rule","body/1/expr/1":"input word at position"}},"schema":"egg-viz/v1","statistics":{"committed_unions":26,"complete_witnesses":26,"definition":"(rule ((End (NonTerm a) s)\n       (= s (getString pos)))\n      ((P 1 pos (NonTerm a))\n       (union (B 1 pos (NonTerm a)) (T a s)))\n         )","direct_inserted_rows":64,"matches":26,"survived":26}}
 (rule ((End (NonTerm a) s)
