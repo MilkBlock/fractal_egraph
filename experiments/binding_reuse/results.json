@@ -1,0 +1,408 @@
+{
+  "build_mode": "debug; timings are diagnostic only",
+  "cases": [
+    {
+      "bootstrap_rows": 0,
+      "case": "smooth_permutation",
+      "factorized_validation": {
+        "construct_ns": 232417,
+        "encoded_index_bytes": 12312,
+        "enumerate_and_validate_ns": 193000,
+        "guard_program_required": false
+      },
+      "fanout_per_key": 1,
+      "fixed_width_encoding_bytes": {
+        "additional_origin_and_parent_records": 8192,
+        "factorized_unguarded_output": 12312,
+        "materialized_output_bindings": 6144,
+        "note": "Fixed-width bytes, not peak heap/RSS. shared_binding_index is a layout estimate; factorized and origin records are actually encoded. Factorized output is an alternative snapshot layout, not additive to the matching index; emitting distinct facts still needs enumeration.",
+        "shared_binding_index": 0
+      },
+      "input_rows": 256,
+      "keys": 256,
+      "native": {
+        "consumer_candidates": 256,
+        "consumer_ns": 3499956,
+        "consumer_survived": 256,
+        "duplicate_seed_assertions": 512,
+        "ordinary_consumer_ns": 1340459,
+        "ordinary_producer_ns": 1653916,
+        "producer_ns": 3652333,
+        "scope": "actual ordinary and dependency-traced egglog, equal after each wave; native times are single-run diagnostics, replay times are not end-to-end speedups"
+      },
+      "producer_origin_rows": 256,
+      "replay_scope": "standalone Rust ablation over real committed P/Q notifications plus explicit initial inputs; not an alternative egglog runtime",
+      "results": [
+        {
+          "candidate_bindings": 1152,
+          "index_probes_or_pair_comparisons": 0,
+          "median_ns": 462584,
+          "mode": "full_rescan",
+          "origin_dispatches": 0,
+          "unique_output_bindings": 256
+        },
+        {
+          "candidate_bindings": 1152,
+          "index_probes_or_pair_comparisons": 0,
+          "median_ns": 461000,
+          "mode": "indexed_rescan",
+          "origin_dispatches": 0,
+          "unique_output_bindings": 256
+        },
+        {
+          "candidate_bindings": 256,
+          "index_probes_or_pair_comparisons": 0,
+          "median_ns": 126542,
+          "mode": "delta_join",
+          "origin_dispatches": 0,
+          "unique_output_bindings": 256
+        },
+        {
+          "candidate_bindings": 256,
+          "index_probes_or_pair_comparisons": 0,
+          "median_ns": 127291,
+          "mode": "provenance_dispatch",
+          "origin_dispatches": 256,
+          "unique_output_bindings": 256
+        }
+      ],
+      "waves": 8
+    },
+    {
+      "bootstrap_rows": 0,
+      "case": "coarse_unique_key",
+      "factorized_validation": {
+        "construct_ns": 208416,
+        "encoded_index_bytes": 14360,
+        "enumerate_and_validate_ns": 207000,
+        "guard_program_required": false
+      },
+      "fanout_per_key": 1,
+      "fixed_width_encoding_bytes": {
+        "additional_origin_and_parent_records": 16384,
+        "factorized_unguarded_output": 14360,
+        "materialized_output_bindings": 6144,
+        "note": "Fixed-width bytes, not peak heap/RSS. shared_binding_index is a layout estimate; factorized and origin records are actually encoded. Factorized output is an alternative snapshot layout, not additive to the matching index; emitting distinct facts still needs enumeration.",
+        "shared_binding_index": 16384
+      },
+      "input_rows": 512,
+      "keys": 256,
+      "native": {
+        "consumer_candidates": 256,
+        "consumer_ns": 5792875,
+        "consumer_survived": 256,
+        "duplicate_seed_assertions": 1024,
+        "ordinary_consumer_ns": 2925541,
+        "ordinary_producer_ns": 2750875,
+        "producer_ns": 6114625,
+        "scope": "actual ordinary and dependency-traced egglog, equal after each wave; native times are single-run diagnostics, replay times are not end-to-end speedups"
+      },
+      "producer_origin_rows": 512,
+      "replay_scope": "standalone Rust ablation over real committed P/Q notifications plus explicit initial inputs; not an alternative egglog runtime",
+      "results": [
+        {
+          "candidate_bindings": 928,
+          "index_probes_or_pair_comparisons": 208896,
+          "median_ns": 1179917,
+          "mode": "full_rescan",
+          "origin_dispatches": 0,
+          "unique_output_bindings": 256
+        },
+        {
+          "candidate_bindings": 928,
+          "index_probes_or_pair_comparisons": 1152,
+          "median_ns": 749667,
+          "mode": "indexed_rescan",
+          "origin_dispatches": 0,
+          "unique_output_bindings": 256
+        },
+        {
+          "candidate_bindings": 256,
+          "index_probes_or_pair_comparisons": 512,
+          "median_ns": 436291,
+          "mode": "delta_join",
+          "origin_dispatches": 0,
+          "unique_output_bindings": 256
+        },
+        {
+          "candidate_bindings": 256,
+          "index_probes_or_pair_comparisons": 512,
+          "median_ns": 435000,
+          "mode": "provenance_dispatch",
+          "origin_dispatches": 512,
+          "unique_output_bindings": 256
+        }
+      ],
+      "waves": 8
+    },
+    {
+      "bootstrap_rows": 0,
+      "case": "coarse_many_to_many",
+      "factorized_validation": {
+        "construct_ns": 98791,
+        "encoded_index_bytes": 5400,
+        "enumerate_and_validate_ns": 2087625,
+        "guard_program_required": false
+      },
+      "fanout_per_key": 8,
+      "fixed_width_encoding_bytes": {
+        "additional_origin_and_parent_records": 16384,
+        "factorized_unguarded_output": 5400,
+        "materialized_output_bindings": 49152,
+        "note": "Fixed-width bytes, not peak heap/RSS. shared_binding_index is a layout estimate; factorized and origin records are actually encoded. Factorized output is an alternative snapshot layout, not additive to the matching index; emitting distinct facts still needs enumeration.",
+        "shared_binding_index": 5632
+      },
+      "input_rows": 512,
+      "keys": 32,
+      "native": {
+        "consumer_candidates": 2048,
+        "consumer_ns": 25478294,
+        "consumer_survived": 2048,
+        "duplicate_seed_assertions": 1024,
+        "ordinary_consumer_ns": 8651127,
+        "ordinary_producer_ns": 2588459,
+        "producer_ns": 6156416,
+        "scope": "actual ordinary and dependency-traced egglog, equal after each wave; native times are single-run diagnostics, replay times are not end-to-end speedups"
+      },
+      "producer_origin_rows": 512,
+      "replay_scope": "standalone Rust ablation over real committed P/Q notifications plus explicit initial inputs; not an alternative egglog runtime",
+      "results": [
+        {
+          "candidate_bindings": 6528,
+          "index_probes_or_pair_comparisons": 208896,
+          "median_ns": 4713958,
+          "mode": "full_rescan",
+          "origin_dispatches": 0,
+          "unique_output_bindings": 2048
+        },
+        {
+          "candidate_bindings": 6528,
+          "index_probes_or_pair_comparisons": 1152,
+          "median_ns": 4148083,
+          "mode": "indexed_rescan",
+          "origin_dispatches": 0,
+          "unique_output_bindings": 2048
+        },
+        {
+          "candidate_bindings": 2048,
+          "index_probes_or_pair_comparisons": 512,
+          "median_ns": 1654542,
+          "mode": "delta_join",
+          "origin_dispatches": 0,
+          "unique_output_bindings": 2048
+        },
+        {
+          "candidate_bindings": 2048,
+          "index_probes_or_pair_comparisons": 512,
+          "median_ns": 1651250,
+          "mode": "provenance_dispatch",
+          "origin_dispatches": 512,
+          "unique_output_bindings": 2048
+        }
+      ],
+      "waves": 8
+    },
+    {
+      "bootstrap_rows": 0,
+      "case": "coarse_hot_key",
+      "factorized_validation": {
+        "construct_ns": 41125,
+        "encoded_index_bytes": 4160,
+        "enumerate_and_validate_ns": 74724458,
+        "guard_program_required": false
+      },
+      "fanout_per_key": 256,
+      "fixed_width_encoding_bytes": {
+        "additional_origin_and_parent_records": 16384,
+        "factorized_unguarded_output": 4160,
+        "materialized_output_bindings": 1572864,
+        "note": "Fixed-width bytes, not peak heap/RSS. shared_binding_index is a layout estimate; factorized and origin records are actually encoded. Factorized output is an alternative snapshot layout, not additive to the matching index; emitting distinct facts still needs enumeration.",
+        "shared_binding_index": 4144
+      },
+      "input_rows": 512,
+      "keys": 1,
+      "native": {
+        "consumer_candidates": 65536,
+        "consumer_ns": 405721916,
+        "consumer_survived": 65536,
+        "duplicate_seed_assertions": 1024,
+        "ordinary_consumer_ns": 104469998,
+        "ordinary_producer_ns": 2878666,
+        "producer_ns": 6323167,
+        "scope": "actual ordinary and dependency-traced egglog, equal after each wave; native times are single-run diagnostics, replay times are not end-to-end speedups"
+      },
+      "producer_origin_rows": 512,
+      "replay_scope": "standalone Rust ablation over real committed P/Q notifications plus explicit initial inputs; not an alternative egglog runtime",
+      "results": [
+        {
+          "candidate_bindings": 208896,
+          "index_probes_or_pair_comparisons": 208896,
+          "median_ns": 192451292,
+          "mode": "full_rescan",
+          "origin_dispatches": 0,
+          "unique_output_bindings": 65536
+        },
+        {
+          "candidate_bindings": 208896,
+          "index_probes_or_pair_comparisons": 1152,
+          "median_ns": 191956458,
+          "mode": "indexed_rescan",
+          "origin_dispatches": 0,
+          "unique_output_bindings": 65536
+        },
+        {
+          "candidate_bindings": 65536,
+          "index_probes_or_pair_comparisons": 512,
+          "median_ns": 70954333,
+          "mode": "delta_join",
+          "origin_dispatches": 0,
+          "unique_output_bindings": 65536
+        },
+        {
+          "candidate_bindings": 65536,
+          "index_probes_or_pair_comparisons": 512,
+          "median_ns": 71179792,
+          "mode": "provenance_dispatch",
+          "origin_dispatches": 512,
+          "unique_output_bindings": 65536
+        }
+      ],
+      "waves": 8
+    },
+    {
+      "bootstrap_rows": 0,
+      "case": "coarse_guard",
+      "factorized_validation": {
+        "construct_ns": 102042,
+        "encoded_index_bytes": 5400,
+        "enumerate_and_validate_ns": 25917,
+        "guard_program_required": true
+      },
+      "fanout_per_key": 8,
+      "fixed_width_encoding_bytes": {
+        "additional_origin_and_parent_records": 16384,
+        "factorized_unguarded_output": null,
+        "materialized_output_bindings": 672,
+        "note": "Fixed-width bytes, not peak heap/RSS. shared_binding_index is a layout estimate; factorized and origin records are actually encoded. Factorized output is an alternative snapshot layout, not additive to the matching index; emitting distinct facts still needs enumeration.",
+        "shared_binding_index": 5632
+      },
+      "input_rows": 512,
+      "keys": 32,
+      "native": {
+        "consumer_candidates": 2048,
+        "consumer_ns": 15987750,
+        "consumer_survived": 28,
+        "duplicate_seed_assertions": 1024,
+        "ordinary_consumer_ns": 4303209,
+        "ordinary_producer_ns": 2854207,
+        "producer_ns": 6298624,
+        "scope": "actual ordinary and dependency-traced egglog, equal after each wave; native times are single-run diagnostics, replay times are not end-to-end speedups"
+      },
+      "producer_origin_rows": 512,
+      "replay_scope": "standalone Rust ablation over real committed P/Q notifications plus explicit initial inputs; not an alternative egglog runtime",
+      "results": [
+        {
+          "candidate_bindings": 6528,
+          "index_probes_or_pair_comparisons": 208896,
+          "median_ns": 790916,
+          "mode": "full_rescan",
+          "origin_dispatches": 0,
+          "unique_output_bindings": 28
+        },
+        {
+          "candidate_bindings": 6528,
+          "index_probes_or_pair_comparisons": 1152,
+          "median_ns": 327875,
+          "mode": "indexed_rescan",
+          "origin_dispatches": 0,
+          "unique_output_bindings": 28
+        },
+        {
+          "candidate_bindings": 2048,
+          "index_probes_or_pair_comparisons": 512,
+          "median_ns": 198584,
+          "mode": "delta_join",
+          "origin_dispatches": 0,
+          "unique_output_bindings": 28
+        },
+        {
+          "candidate_bindings": 2048,
+          "index_probes_or_pair_comparisons": 512,
+          "median_ns": 198625,
+          "mode": "provenance_dispatch",
+          "origin_dispatches": 512,
+          "unique_output_bindings": 28
+        }
+      ],
+      "waves": 8
+    },
+    {
+      "bootstrap_rows": 64,
+      "case": "initial_fact_boundary",
+      "factorized_validation": {
+        "construct_ns": 111875,
+        "encoded_index_bytes": 5400,
+        "enumerate_and_validate_ns": 2103083,
+        "guard_program_required": false
+      },
+      "fanout_per_key": 8,
+      "fixed_width_encoding_bytes": {
+        "additional_origin_and_parent_records": 14336,
+        "factorized_unguarded_output": 5400,
+        "materialized_output_bindings": 49152,
+        "note": "Fixed-width bytes, not peak heap/RSS. shared_binding_index is a layout estimate; factorized and origin records are actually encoded. Factorized output is an alternative snapshot layout, not additive to the matching index; emitting distinct facts still needs enumeration.",
+        "shared_binding_index": 5632
+      },
+      "input_rows": 512,
+      "keys": 32,
+      "native": {
+        "consumer_candidates": 2048,
+        "consumer_ns": 24960583,
+        "consumer_survived": 2048,
+        "duplicate_seed_assertions": 896,
+        "ordinary_consumer_ns": 8735041,
+        "ordinary_producer_ns": 2291084,
+        "producer_ns": 5248168,
+        "scope": "actual ordinary and dependency-traced egglog, equal after each wave; native times are single-run diagnostics, replay times are not end-to-end speedups"
+      },
+      "producer_origin_rows": 448,
+      "replay_scope": "standalone Rust ablation over real committed P/Q notifications plus explicit initial inputs; not an alternative egglog runtime",
+      "results": [
+        {
+          "candidate_bindings": 6528,
+          "index_probes_or_pair_comparisons": 208896,
+          "median_ns": 4613250,
+          "mode": "full_rescan",
+          "origin_dispatches": 0,
+          "unique_output_bindings": 2048
+        },
+        {
+          "candidate_bindings": 6528,
+          "index_probes_or_pair_comparisons": 1152,
+          "median_ns": 4183291,
+          "mode": "indexed_rescan",
+          "origin_dispatches": 0,
+          "unique_output_bindings": 2048
+        },
+        {
+          "candidate_bindings": 2048,
+          "index_probes_or_pair_comparisons": 512,
+          "median_ns": 1649625,
+          "mode": "delta_join",
+          "origin_dispatches": 0,
+          "unique_output_bindings": 2048
+        },
+        {
+          "candidate_bindings": 2048,
+          "index_probes_or_pair_comparisons": 512,
+          "median_ns": 1683333,
+          "mode": "provenance_dispatch",
+          "origin_dispatches": 512,
+          "unique_output_bindings": 2048
+        }
+      ],
+      "waves": 8
+    }
+  ],
+  "experiment": "binding reuse ablation"
+}
