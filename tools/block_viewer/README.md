@@ -3,6 +3,9 @@
 ```
 cargo run --bin egg_trace -- egglog/tests/web-demo/cyk.egg results/block_viewer/cyk.json
 python3 tools/block_viewer/render.py results/block_viewer/cyk.json --output results/block_viewer/cyk.html
+# optionally inline the rule-combine candidates as a fourth view:
+cargo run --bin rule_prepare -- experiments/native_programs/simplify.egg results/block_viewer/prepared.json
+python3 tools/block_viewer/render.py results/block_viewer/simplify.json --output results/block_viewer/simplify.html --prepare results/block_viewer/prepared.json
 ```
 
 Open the resulting HTML or load the JSON through the viewer. Snapshots are taken
@@ -59,7 +62,7 @@ block edges. Such edges do not automatically certify an equality shortcut.
 
 ## Views
 
-The viewer has three views, selected from the `视图` dropdown:
+The viewer has four views, selected from the `视图` dropdown:
 
 1. **依赖块 (blocks)** — block cards with entry prefix, member dependency DAG,
    combined prefixes, potential exports, boundary reads, and cross-block
@@ -78,6 +81,13 @@ The viewer has three views, selected from the `视图` dropdown:
    system `dot` (graphviz) at render time. e-classes are clusters; the dot source
    stays available in a collapsed `<details>` for saving to a `.dot` file. When
    `dot` is not installed, the viewer falls back to showing the dot source.
+
+4. **组合候选 (combine)** — the `rule_prepare` output, inlined via
+   `render.py --prepare prepared.json`. Lists each two-step `producer → consumer`
+   shortcut candidate with its `lhs → rhs` and the generated egglog command,
+   grouped by the command after which it was derived. These are candidates only:
+   activation still needs native typechecking and a concrete witness, and the
+   original rules must remain. Without `--prepare` the view degrades to a notice.
 
 `egg_trace` now exports both `coverage` and `egraph_dot` per phase. Coverage is
 only produced when the program declares traversable constructor/relation tables;

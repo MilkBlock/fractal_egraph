@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Render a self-contained offline inspector from exported block snapshots."""
+"""Render a self-contained offline inspector from exported block snapshots.
+
+Optionally inline a rule-combine candidate export (`rule_prepare` output) as a
+fourth view via `--prepare prepared.json`.
+"""
 import argparse,json,shutil,subprocess
 from pathlib import Path
 
@@ -21,7 +25,7 @@ def dot_to_svg(dot):
         return None
     return proc.stdout
 
-def render(source, output):
+def render(source, output, prepare=None):
     data=json.loads(Path(source).read_text())
     if not isinstance(data.get('cases'),list) or not data['cases']:
         raise ValueError('expected nonempty cases list')
@@ -44,8 +48,16 @@ def render(source, output):
     payload=json.dumps(data,ensure_ascii=False).replace('<','\\u003c')
     template=Path(__file__).with_name('viewer.html').read_text()
     assert template.count('__BLOCK_DATA__')==1
+    assert template.count('__PREPARE_DATA__')==1
+    html=template.replace('__BLOCK_DATA__',payload)
+    if prepare:
+        prep=json.loads(Path(prepare).read_text())
+        prep_payload=json.dumps(prep,ensure_ascii=False).replace('<','\\u003c')
+    else:
+        prep_payload='null'
+    html=html.replace('__PREPARE_DATA__',prep_payload)
     Path(output).parent.mkdir(parents=True,exist_ok=True)
-    Path(output).write_text(template.replace('__BLOCK_DATA__',payload))
+    Path(output).write_text(html)
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('source');p.add_argument('--output',default='results/block_viewer/index.html');a=p.parse_args();render(a.source,a.output)
+    p=argparse.ArgumentParser();p.add_argument('source');p.add_argument('--output',default='results/block_viewer/index.html');p.add_argument('--prepare',default=None);a=p.parse_args();render(a.source,a.output,a.prepare)

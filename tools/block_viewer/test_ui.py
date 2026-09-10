@@ -81,6 +81,10 @@ with sync_playwright() as p:
     assert svg.evaluate('(e)=>e.style.transform')=='translate(0px, 0px) scale(1)'
     page.select_option('#view','blocks')
     assert page.locator('.block').count()==3
+    # Rule-combine view: candidate shortcuts from rule_prepare.
+    page.select_option('#view','combine')
+    assert '组合候选' in page.locator('#detail').inner_text()
+    assert page.locator('#detail tbody tr').count()>0
     assert not errors,errors
     browser.close()
-print('UI checks passed: prefix highlighting, phases, block selection, join edges, two union stages, native program labels, coverage view, egraph dot view, upload, mobile and dark mode; no page errors.')
+print('UI checks passed: prefix highlighting, phases, block selection, join edges, two union stages, native program labels, coverage view, egraph dot view, rule-combine view, upload, mobile and dark mode; no page errors.')
