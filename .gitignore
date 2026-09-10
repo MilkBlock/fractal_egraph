@@ -3,6 +3,9 @@
 # dpsk (DeepSeek) agent linked worktree
 /dpsk_workspace
 
+# viz integration worktrees (eggplant-pattern-web-editor etc.)
+/viz-web-editor
+
 # Local Python and desktop caches
 __pycache__/
 *.py[cod]
