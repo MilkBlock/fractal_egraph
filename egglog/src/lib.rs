@@ -1942,6 +1942,11 @@ impl EGraph {
     ///
     /// Returns `None` if the tuple does not exist.
     /// `panics` if the function does not exist.
+    /// Read a physical row, including version metadata, without creating it.
+    pub fn lookup_function_row(&self, name: &str, key: &[Value]) -> Option<Vec<Value>> {
+        self.backend.lookup_row(self.functions.get(name)?.backend_id, key)
+    }
+
     pub fn lookup_function(&self, name: &str, key: &[Value]) -> Option<Value> {
         let func = self
             .functions

@@ -386,6 +386,14 @@ impl EGraph {
 
     /// Lookup the id associated with a function `func` and the given arguments
     /// (`key`).
+    /// Exact current physical row for diagnostic version validation.
+    pub fn lookup_row(&self, func: FunctionId, key: &[Value]) -> Option<Vec<Value>> {
+        self.db
+            .get_table(self.funcs[func].table)
+            .get_row(key)
+            .map(|r| r.vals.to_vec())
+    }
+
     pub fn lookup_id(&self, func: FunctionId, key: &[Value]) -> Option<Value> {
         let info = &self.funcs[func];
         let schema_math = SchemaMath {

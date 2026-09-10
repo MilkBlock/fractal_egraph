@@ -56,7 +56,7 @@ pub struct DisplacedTable {
     displaced: Vec<(Value, Value)>,
     changed: bool,
     lookup_table: HashMap<Value, RowId>,
-    buffered_writes: Arc<SegQueue<RowBuffer>>,
+    buffered_writes: Arc<SegQueue<(RowBuffer, HashMap<usize, crate::trace::TraceCause>)>>,
 }
 
 struct Canonicalizer<'a> {
@@ -220,8 +220,9 @@ impl Clone for DisplacedTable {
 }
 
 struct UfBuffer {
+    causes: HashMap<usize, crate::trace::TraceCause>,
     to_insert: ManuallyDrop<RowBuffer>,
-    buffered_writes: Weak<SegQueue<RowBuffer>>,
+    buffered_writes: Weak<SegQueue<(RowBuffer, HashMap<usize, crate::trace::TraceCause>)>>,
 }
 
 impl Drop for UfBuffer {
@@ -238,7 +239,7 @@ impl Drop for UfBuffer {
         // This avoids creating a fresh row buffer via `mem::take` or `mem::swap` and
         // dropping it immediately.
         let to_insert = unsafe { ManuallyDrop::take(&mut self.to_insert) };
-        buffered_writes.push(to_insert);
+        buffered_writes.push((to_insert, mem::take(&mut self.causes)));
     }
 }
 
@@ -246,11 +247,16 @@ impl MutationBuffer for UfBuffer {
     fn stage_insert(&mut self, row: &[Value]) {
         self.to_insert.add_row(row);
     }
+    fn stage_insert_with_cause(&mut self, row: &[Value], cause: crate::trace::TraceCause) {
+        self.causes.insert(self.to_insert.len(), cause);
+        self.to_insert.add_row(row);
+    }
     fn stage_remove(&mut self, _: &[Value]) {
         panic!("attempting to remove data from a DisplacedTable")
     }
     fn fresh_handle(&self) -> Box<dyn MutationBuffer> {
         Box::new(UfBuffer {
+            causes: HashMap::default(),
             to_insert: ManuallyDrop::new(RowBuffer::new(self.to_insert.arity())),
             buffered_writes: self.buffered_writes.clone(),
         })
@@ -438,15 +444,25 @@ impl Table for DisplacedTable {
 
     fn new_buffer(&self) -> Box<dyn MutationBuffer> {
         Box::new(UfBuffer {
+            causes: HashMap::default(),
             to_insert: ManuallyDrop::new(RowBuffer::new(3)),
             buffered_writes: Arc::downgrade(&self.buffered_writes),
         })
     }
 
     fn merge(&mut self, _: &mut ExecutionState) -> TableChange {
-        while let Some(rowbuf) = self.buffered_writes.pop() {
-            for row in rowbuf.iter() {
-                self.changed |= self.insert_impl(row).is_some();
+        while let Some((rowbuf, mut causes)) = self.buffered_writes.pop() {
+            for (index, row) in rowbuf.iter().enumerate() {
+                let change = self.insert_impl(row);
+                self.changed |= change.is_some();
+                if let Some(cause) = causes.remove(&index) {
+                    cause.finish_union(
+                        row[0],
+                        row[1],
+                        self.uf.find_naive(row[0]),
+                        change.map(|(_, child)| child),
+                    );
+                }
             }
         }
         let changed = mem::take(&mut self.changed);

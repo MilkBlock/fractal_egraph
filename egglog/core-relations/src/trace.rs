@@ -74,6 +74,7 @@ struct TraceState {
     dependencies_enabled: bool,
     table_names: Mutex<std::collections::HashMap<crate::TableId, Arc<str>>>,
     writes: Mutex<Vec<WriteEvent>>,
+    unions: Mutex<Vec<UnionEvent>>,
     invalidations: Mutex<Vec<OriginInvalidation>>,
     reads: Mutex<Vec<RowReadEvent>>,
     matches: Mutex<Vec<RuleMatchEvent>>,
@@ -117,6 +118,57 @@ impl TraceSession {
         self.state.scope_resets.lock().unwrap().clone()
     }
 
+    /// Find an explicit committed equality path in the current scope epoch.
+    /// Missing paths stay unknown; initial/untraced equalities are not invented.
+    pub fn equality_path(&self, lhs: Value, rhs: Value) -> Option<Vec<u64>> {
+        use std::collections::{HashMap, VecDeque};
+        if lhs == rhs {
+            return Some(vec![]);
+        }
+        let reset = self.scope_resets().into_iter().max();
+        let mut adjacency: HashMap<Value, Vec<(Value, u64)>> = HashMap::new();
+        for e in self.union_events() {
+            if e.displaced.is_none() || reset.is_some_and(|r| e.event_id < r) {
+                continue;
+            }
+            adjacency
+                .entry(e.lhs)
+                .or_default()
+                .push((e.rhs, e.event_id));
+            adjacency
+                .entry(e.rhs)
+                .or_default()
+                .push((e.lhs, e.event_id));
+        }
+        let mut queue = VecDeque::from([lhs]);
+        let mut parents = HashMap::from([(lhs, (lhs, 0))]);
+        while let Some(v) = queue.pop_front() {
+            for &(next, event) in adjacency.get(&v).into_iter().flatten() {
+                if parents.contains_key(&next) {
+                    continue;
+                }
+                parents.insert(next, (v, event));
+                if next == rhs {
+                    let mut path = Vec::new();
+                    let mut cur = rhs;
+                    while cur != lhs {
+                        let (prev, id) = parents[&cur];
+                        path.push(id);
+                        cur = prev;
+                    }
+                    path.reverse();
+                    return Some(path);
+                }
+                queue.push_back(next);
+            }
+        }
+        None
+    }
+
+    /// Union decisions recorded at the union-find commit point.
+    pub fn union_events(&self) -> Vec<UnionEvent> {
+        self.state.unions.lock().unwrap().clone()
+    }
     /// Diagnostic table-name registry for interpreting committed row events.
     pub fn table_names(&self) -> Vec<(crate::TableId, Arc<str>)> {
         self.state
@@ -168,6 +220,8 @@ impl TraceSession {
             proposed: proposed.to_vec(),
             actual: actual.to_vec(),
             outcome,
+            rebuild_of: cause.rebuild_of,
+            union_dependencies: cause.union_dependencies.clone(),
         });
         event_id
     }
@@ -283,6 +337,10 @@ pub enum WriteOutcome {
 }
 #[derive(Clone, Debug)]
 pub struct WriteEvent {
+    /// Previous committed row version, when native rebuild transports provenance.
+    pub rebuild_of: Option<u64>,
+    /// Committed equality edges used to canonicalize that version.
+    pub union_dependencies: Vec<u64>,
     pub event_id: u64,
     pub match_event_id: u64,
     pub table: crate::TableId,
@@ -304,6 +362,8 @@ pub struct RowReadEvent {
 /// Origin attached to a staged write, never reconstructed from a snapshot delta.
 #[derive(Clone)]
 pub struct TraceCause {
+    pub(crate) rebuild_of: Option<u64>,
+    pub(crate) union_dependencies: Vec<u64>,
     pub(crate) trace: TraceSession,
     pub(crate) match_event_id: u64,
     pub(crate) table: crate::TableId,
@@ -363,5 +423,42 @@ impl TraceCause {
                     reason,
                 });
         }
+    }
+}
+
+/// A committed union decision, distinct from a relational row insertion.
+#[derive(Clone, Debug)]
+pub struct UnionEvent {
+    pub event_id: u64,
+    pub match_event_id: u64,
+    pub table: crate::TableId,
+    pub lhs: Value,
+    pub rhs: Value,
+    pub canonical: Value,
+    /// None means the two values were already equivalent at commit.
+    pub displaced: Option<Value>,
+}
+impl TraceCause {
+    pub(crate) fn finish_union(
+        &self,
+        lhs: Value,
+        rhs: Value,
+        canonical: Value,
+        displaced: Option<Value>,
+    ) {
+        let event_id = self
+            .trace
+            .state
+            .next_event_id
+            .fetch_add(1, Ordering::Relaxed);
+        self.trace.state.unions.lock().unwrap().push(UnionEvent {
+            event_id,
+            match_event_id: self.match_event_id,
+            table: self.table,
+            lhs,
+            rhs,
+            canonical,
+            displaced,
+        });
     }
 }

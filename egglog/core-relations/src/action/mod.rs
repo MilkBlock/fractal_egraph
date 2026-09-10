@@ -406,6 +406,8 @@ impl<'a> MutationBuffers<'a> {
             self.buffers[table_id].stage_insert_with_cause(
                 row,
                 crate::trace::TraceCause {
+                    rebuild_of: None,
+                    union_dependencies: vec![],
                     trace: trace.clone(),
                     match_event_id: *match_event_id,
                     table: table_id,

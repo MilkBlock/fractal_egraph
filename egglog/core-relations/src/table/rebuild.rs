@@ -19,18 +19,40 @@ use super::SortedWritesTable;
 
 // Helper macro used for adjusting sort before inserting to a mutation buffer.
 macro_rules! insert_row {
-    ($this: expr, $mutation_buf: expr, $row:expr, $next_ts:expr) => {{
+    ($this: expr, $mutation_buf: expr, $row:expr, $row_id:expr, $next_ts:expr) => {{
         let row = $row;
         let this = &*$this;
-        let next_ts = $next_ts;
         if let Some(sort_by) = this.sort_by {
-            row[sort_by.index()] = next_ts;
+            row[sort_by.index()] = $next_ts;
         }
-        $mutation_buf.stage_insert(row);
+        if let Some(cause) = this.rebuild_origin($row_id, row) {
+            $mutation_buf.stage_insert_with_cause(row, cause);
+        } else {
+            $mutation_buf.stage_insert(row);
+        }
     }};
 }
 
 impl SortedWritesTable {
+    fn rebuild_origin(&self, row_id: RowId, after: &[Value]) -> Option<crate::trace::TraceCause> {
+        let before = self.data.get_row(row_id)?;
+        let mut origin = self.row_producer(&before[..self.n_keys], before)?;
+        let source = origin.commit_event_id?;
+        let mut equalities = std::collections::BTreeSet::new();
+        for (i, (&old, &new)) in before.iter().zip(after).enumerate() {
+            if old == new || self.sort_by.is_some_and(|c| c.index() == i) {
+                continue;
+            }
+            if !self.to_rebuild.iter().any(|c| c.index() == i) {
+                return None;
+            }
+            equalities.extend(origin.trace.equality_path(old, new)?);
+        }
+        origin.rebuild_of = Some(source);
+        origin.union_dependencies = equalities.into_iter().collect();
+        Some(origin)
+    }
+
     fn refresh_rebuild_index(&mut self) {
         let mut index = mem::replace(
             &mut self.rebuild_index,
@@ -160,7 +182,7 @@ impl SortedWritesTable {
                                     mutation_buf.stage_remove(key);
                                 }
                                 changed = true;
-                                insert_row!(self, mutation_buf, row, next_ts);
+                                insert_row!(self, mutation_buf, row, row_id, next_ts);
                             }
                             (mutation_buf, exec_state, changed)
                         },
@@ -187,7 +209,7 @@ impl SortedWritesTable {
                     if let Some(to_remove) = self.data.get_row(row_id).map(|x| &x[0..self.n_keys]) {
                         write_buf.stage_remove(to_remove);
                     }
-                    insert_row!(self, write_buf, row, next_ts);
+                    insert_row!(self, write_buf, row, row_id, next_ts);
                 }
             }
             changed
@@ -231,7 +253,7 @@ impl SortedWritesTable {
                             if let Some(key) = to_remove {
                                 mutation_buf.stage_remove(key);
                             }
-                            insert_row!(self, mutation_buf, row, next_ts);
+                            insert_row!(self, mutation_buf, row, row_id, next_ts);
                         }
                         buf.clear();
                         (mutation_buf, buf, exec_state, changed)
@@ -260,7 +282,7 @@ impl SortedWritesTable {
                     if let Some(to_remove) = self.data.get_row(row_id).map(|x| &x[0..self.n_keys]) {
                         write_buf.stage_remove(to_remove);
                     }
-                    insert_row!(self, write_buf, row, next_ts);
+                    insert_row!(self, write_buf, row, row_id, next_ts);
                     changed = true;
                 }
             }
