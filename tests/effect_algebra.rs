@@ -1,7 +1,11 @@
-//! Native tests and a finite closure over fixed-interface monotone effect summaries.
+use egg_layout::{binding_program, effect_program};
+#[path = "support/effect_fixtures.rs"]
+mod fixtures;
+use fixtures::{FixtureOps, port, swap_interface};
+// Native tests and a finite closure over fixed-interface monotone effect summaries.
 use egg_layout::{
     binding_program::Term,
-    effect_program::{Fact, Summary, port, swap_interface},
+    effect_program::{Fact, Summary},
 };
 use egglog::{EGraph, Value};
 use serde_json::json;
@@ -216,14 +220,6 @@ fn run() -> serde_json::Value {
 
     json!({"absorption":{"E_then_E_full":swaps[2].absorbs(&swaps[2]).unwrap(),"E_then_S_full":swaps[2].absorbs(&swaps[1]).unwrap(),"E_then_S_graph_only":swaps[2].absorbs_graph(&swaps[1]).unwrap()},"two_position_closure":{"closed":pair.closed,"states":pair.states.len(),"transitions":pair.transitions,"native_words_checked_through_length_four":words},"scope":"fixed selected Add nodes, positive constructor/Seen facts and union effects; actual native validation, not an optimized egglog scheduler","observations":{"focus":"selected enode syntax, not just its eclass","ignored":["timestamps","provenance multiplicity","match counts"],"excluded":["deletions","I/O","custom merge effects","unmodeled interleaved rules"]},"finite_closure":{"state_names":["Id","S","E"],"multiplication_table":table,"states":states.iter().map(Summary::json).collect::<Vec<_>>(),"transitions":transitions,"laws":["S^3 = S","S^4 = S^2","E = S^2; E^2 = E","S^2 != Id on the minimally seeded graph"],"proof":"symbolic simultaneous port substitution plus exact set/equality-closure normalization; the three-state transition table gives the inductive recurrence for all n"},"native_cases":cases,"limitations":"Normalization is sufficient but not complete: it does not quotient arbitrary nested facts by congruence, nor infer recursive families for unbounded effects. Per-step counts are not an end-to-end performance claim."})
 }
-fn main() {
-    let text = serde_json::to_string_pretty(&run()).unwrap();
-    if let Some(path) = std::env::args().nth(1) {
-        std::fs::write(path, text).unwrap();
-    } else {
-        println!("{text}");
-    }
-}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -231,5 +227,8 @@ mod tests {
     fn native_effect_laws_and_counterexamples() {
         let r = run();
         assert_eq!(r["finite_closure"]["states"].as_array().unwrap().len(), 3);
+        if let Ok(path) = std::env::var("EFFECT_ALGEBRA_REPORT") {
+            std::fs::write(path, serde_json::to_string_pretty(&r).unwrap()).unwrap();
+        }
     }
 }

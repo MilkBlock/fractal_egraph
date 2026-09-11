@@ -15,6 +15,7 @@ pub struct Summary {
     pub requires: BTreeSet<Fact>,
     pub adds: BTreeSet<Fact>,
     pub equalities: BTreeSet<(Term, Term)>,
+    pub required_equalities: BTreeSet<(Term, Term)>,
 }
 fn nodes(t: &Term, out: &mut BTreeSet<Fact>) {
     if t.op.starts_with("in:") || t.op.starts_with("literal:") {
@@ -123,35 +124,8 @@ impl Summary {
             requires,
             adds: BTreeSet::new(),
             equalities: BTreeSet::new(),
+            required_equalities: BTreeSet::new(),
         }
-    }
-    pub fn swap(entry: BTreeMap<String, Term>, slot: &str) -> Result<Self, String> {
-        let mut s = Self::identity(entry);
-        let before = s.entry.get(slot).ok_or("unknown focus slot")?.clone();
-        if before.op != "Add" || before.args.len() != 2 {
-            return Err("swap requires a selected binary Add node".into());
-        }
-        let after = Term::new(
-            &before.sort,
-            "Add",
-            vec![before.args[1].clone(), before.args[0].clone()],
-        );
-        nodes(&after, &mut s.adds);
-        s.equalities.insert(pair(before, after.clone()));
-        s.exit.insert(slot.into(), after);
-        Ok(s.normalized())
-    }
-    pub fn grow(entry: BTreeMap<String, Term>, slot: &str) -> Result<Self, String> {
-        let mut s = Self::identity(entry);
-        let before = s.entry.get(slot).ok_or("unknown focus slot")?.clone();
-        s.requires
-            .insert(Fact::Relation("Seen".into(), vec![before.clone()]));
-        let after = Term::new(before.sort.clone(), "Step", vec![before]);
-        nodes(&after, &mut s.adds);
-        s.adds
-            .insert(Fact::Relation("Seen".into(), vec![after.clone()]));
-        s.exit.insert(slot.into(), after);
-        Ok(s.normalized())
     }
     pub fn then(&self, next: &Self) -> Result<Self, String> {
         if self.exit.keys().collect::<Vec<_>>() != next.entry.keys().collect::<Vec<_>>() {
@@ -163,30 +137,96 @@ impl Summary {
                 return Err("next selected-node pattern requires additional matching".into());
             }
         }
+        self.compose_bound(
+            next,
+            &subst,
+            next.exit
+                .iter()
+                .map(|(k, v)| Ok((k.clone(), substitute(v, &subst)?)))
+                .collect::<Result<_, String>>()?,
+        )
+    }
+    /// Lift a consumer to a selected subtree; does not materialize a rebuilt outer context.
+    pub fn then_at(&self, next: &Self, slot: &str, path: &[usize]) -> Result<Self, String> {
+        if self.exit.len() != 1 || next.entry.len() != 1 {
+            return Err("subtree composition currently requires one focused interface".into());
+        }
+        let root = self.exit.get(slot).ok_or("missing focused slot")?;
+        let mut selected = root;
+        for &i in path {
+            selected = selected.args.get(i).ok_or("source path out of bounds")?;
+        }
+        let mut subst = BTreeMap::new();
+        if !match_focus(next.entry.values().next().unwrap(), selected, &mut subst) {
+            return Err("additional matching or shape specialization required".into());
+        }
+        fn replace(t: &Term, path: &[usize], value: &Term) -> Term {
+            if path.is_empty() {
+                return value.clone();
+            }
+            let mut args = t.args.clone();
+            args[path[0]] = replace(&args[path[0]], &path[1..], value);
+            Term::new(&t.sort, &t.op, args)
+        }
+        let value = substitute(next.exit.values().next().unwrap(), &subst)?;
+        self.compose_bound(
+            next,
+            &subst,
+            BTreeMap::from([(slot.into(), replace(root, path, &value))]),
+        )
+    }
+    fn compose_bound(
+        &self,
+        next: &Self,
+        subst: &BTreeMap<String, Term>,
+        exit: BTreeMap<String, Term>,
+    ) -> Result<Self, String> {
         let available: BTreeSet<_> = self.requires.union(&self.adds).cloned().collect();
         let mut result = self.clone();
         for f in &next.requires {
-            let f = subst_fact(f, &subst)?;
+            let f = subst_fact(f, subst)?;
             if !available.contains(&f) {
                 result.requires.insert(f);
             }
         }
+        for (a, b) in &next.required_equalities {
+            let a = substitute(a, subst)?;
+            let b = substitute(b, subst)?;
+            if !self.equivalent_terms(&a, &b) {
+                result.record_equality(a, b, true);
+            }
+        }
         for f in &next.adds {
-            result.adds.insert(subst_fact(f, &subst)?);
+            result.adds.insert(subst_fact(f, subst)?);
         }
         for (a, b) in &next.equalities {
-            result
-                .equalities
-                .insert(pair(substitute(a, &subst)?, substitute(b, &subst)?));
+            result.record_equality(substitute(a, subst)?, substitute(b, subst)?, false);
         }
-        result.exit = next
-            .exit
-            .iter()
-            .map(|(k, v)| Ok((k.clone(), substitute(v, &subst)?)))
-            .collect::<Result<_, String>>()?;
+        result.exit = exit;
         Ok(result.normalized())
     }
+    pub fn record_nodes(&mut self, t: &Term, initial: bool) {
+        nodes(
+            t,
+            if initial {
+                &mut self.requires
+            } else {
+                &mut self.adds
+            },
+        );
+    }
+    pub fn record_equality(&mut self, a: Term, b: Term, initial: bool) {
+        let p = pair(a, b);
+        if initial {
+            self.required_equalities.insert(p);
+        } else {
+            self.equalities.insert(p);
+        }
+    }
     pub fn normalized(mut self) -> Self {
+        self.required_equalities = equality_closure(&self.required_equalities);
+        self.equalities
+            .extend(self.required_equalities.iter().cloned());
         self.adds.retain(|f| !self.requires.contains(f));
         self.equalities = equality_closure(&self.equalities);
         self
@@ -214,7 +254,13 @@ impl Summary {
         if a == b {
             return true;
         }
-        let edges = equality_closure(&self.equalities);
+        let edges = equality_closure(
+            &self
+                .equalities
+                .union(&self.required_equalities)
+                .cloned()
+                .collect(),
+        );
         let root = |t: &Term| {
             edges
                 .iter()
@@ -297,24 +343,14 @@ impl Summary {
                 })
                 .collect::<Vec<_>>()
         };
-        json!({"entry_focus":self.entry.iter().map(|(k,t)|(k,t.json())).collect::<BTreeMap<_,_>>(),"exit_focus":self.exit.iter().map(|(k,t)|(k,t.json())).collect::<BTreeMap<_,_>>(),"requires":facts(&self.requires),"adds":facts(&self.adds),"equalities":self.equalities.iter().map(|(a,b)|json!([a.json(),b.json()])).collect::<Vec<_>>(),"binding_route":self.binding_route().map(|r|r.json())})
+        json!({"entry_focus":self.entry.iter().map(|(k,t)|(k,t.json())).collect::<BTreeMap<_,_>>(),"exit_focus":self.exit.iter().map(|(k,t)|(k,t.json())).collect::<BTreeMap<_,_>>(),"requires":facts(&self.requires),"adds":facts(&self.adds),"required_equalities":self.required_equalities.iter().map(|(a,b)|json!([a.json(),b.json()])).collect::<Vec<_>>(),"equalities":self.equalities.iter().map(|(a,b)|json!([a.json(),b.json()])).collect::<Vec<_>>(),"binding_route":self.binding_route().map(|r|r.json())})
     }
 }
-pub fn port(i: usize) -> Term {
-    Term::new("Math", format!("in:{i}"), vec![])
-}
-pub fn swap_interface() -> BTreeMap<String, Term> {
-    BTreeMap::from([
-        (
-            "left".into(),
-            Term::new("Math", "Add", vec![port(0), port(1)]),
-        ),
-        (
-            "right".into(),
-            Term::new("Math", "Add", vec![port(2), port(3)]),
-        ),
-    ])
-}
+#[cfg(test)]
+#[path = "../tests/support/effect_fixtures.rs"]
+mod fixtures;
+#[cfg(test)]
+use fixtures::{FixtureOps, port, swap_interface};
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -57,9 +57,37 @@ S³=S, S⁴=S², E²=E
 
 ```
 CARGO_INCREMENTAL=0 cargo test --lib effect_program
-CARGO_INCREMENTAL=0 cargo test --bin effect_algebra
-CARGO_INCREMENTAL=0 cargo run --release --bin effect_algebra -- experiments/effect_algebra/results.json
+EFFECT_ALGEBRA_REPORT=experiments/effect_algebra/results.json CARGO_INCREMENTAL=0 cargo test --test effect_algebra
 python3 experiments/effect_algebra/render.py
 ```
 
 algebra.md 是可读状态表和原生结果，results.json 保存完整摘要。
+
+## 通用接口与 trigger state
+
+具体 swap/grow 配方已移到 `tests/support/effect_fixtures.rs`；生产模块不再
+根据这些规则名或算子名选择规律。原生实验移为 integration test，以上报告
+环境变量仅用于显式重生成该测试夹具的报告。旧 results.json 是此前运行快照。
+
+`effect_orbit::discover(startup, step, limit)` 接受调用者提供的任意正向摘要，
+探索 startup 后重复 step 的联合状态。它保留 entry、exit、初始事实和等价
+前提、累积事实和等价效果。遇到同一完整摘要才记录条件性的周期；effect
+类只用于报告分组，不能抹掉 exit/binding 再以代表元代替组合。
+
+trigger 输出包含首次进入该周期的状态契约和周期。步数仅用于定位 witness，
+触发条件由契约给出，不是全局的“执行 N 次就启动”。它是保守充分条件，
+并不是自动求得的最弱前提，也不保证所有运行都可达。coarse combine 需要
+的事实若由之前阶段提供，不再成为外部条件；其余事实/等价前提被保留。
+尚未绑定的外部变量返回 unresolved，不猜测绑定。当前使用精确事实比较，
+没有利用完整 congruence 去消除所有冗余条件。
+
+这实现了有限周期这一特殊情况，不是完整 fractal 识别器：增长型递推可能
+没有任何重复的完整状态。预算耗尽返回 unknown，不能当成发散或无规律。
+当前不自动提取 .egg 摘要、不寻找任意分叉 DAG 的 trigger、不替换内核调度。
+新增的 trigger 检查是独立符号原型；既有 integration test 仍实际运行 egglog。
+
+通用 fractal 研究下一步应表示参数化状态族 Q(k, binding)，验证启动前缀
+进入 Q(0, binding)，并验证每次组合把 Q(k, binding) 送到
+Q(k+1, transform(binding))。初期累积的 effect 属于启动摘要，后续新增
+effect 属于递推；若每次还需要新的 coarse 事实，递推必须显式携带该条件。
+不能从有限周期检测直接声称已经证明这种归纳规律。
