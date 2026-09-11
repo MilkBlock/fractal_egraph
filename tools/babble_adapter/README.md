@@ -92,3 +92,9 @@ are ordered as upstream PartialExpr values to preserve beam tie behavior.
 The comparison script runs both complete routes, checks costs and selected
 definitions, and verifies train/test expansion. Co-occurrence reference flags in
 the fixture are now comparison-only; native egglog computes them from roots/edges.
+
+For learning relationships between generated combs themselves, run
+`python3 tools/babble_adapter/scripts/compress_combs.py`. This exports atomic rule
+references with structured connection positions and wiring, then invokes the
+`comb-mining` mode. It filters candidates to contain a concrete combination edge
+and reports an exact-subtree DAG storage control in addition to AST cost.

@@ -1,0 +1,154 @@
+{
+  "5": [
+    {
+      "split": "train",
+      "class": "[R1@p0:Mul#0{head/0/expr/1=>body/0/expr/1/args/1} + R15@p1:Diff#0{head/0/expr/1/args/1/args/1=>body/0/expr/1}] -> R15",
+      "arguments": [
+        "1"
+      ],
+      "occurrence_weight": 6
+    },
+    {
+      "split": "train",
+      "class": "[R3@p0:Mul#0{head/0/expr/1=>body/0/expr/1/args/1} + R15@p1:Diff#0{head/0/expr/1/args/1/args/1=>body/0/expr/1}] -> R15",
+      "arguments": [
+        "1"
+      ],
+      "occurrence_weight": 2
+    },
+    {
+      "split": "train",
+      "class": "[R13@p0:Mul#0{head/0/expr/1=>body/0/expr/1/args/1} + R15@p1:Diff#0{head/0/expr/1/args/0/args/1=>body/0/expr/1}] -> R15",
+      "arguments": [
+        "0"
+      ],
+      "occurrence_weight": 1
+    },
+    {
+      "split": "train",
+      "class": "[R1@p0:Mul#0{head/0/expr/1=>body/0/expr/1/args/1} + R15@p1:Diff#0{head/0/expr/1/args/0/args/1=>body/0/expr/1}] -> R15",
+      "arguments": [
+        "0"
+      ],
+      "occurrence_weight": 1
+    },
+    {
+      "split": "train",
+      "class": "[R3@p0:Mul#0{head/0/expr/1/args/0=>body/0/expr/1/args/1} + R15@p1:Diff#0{head/0/expr/1/args/0/args/1=>body/0/expr/1}] -> R15",
+      "arguments": [
+        "0"
+      ],
+      "occurrence_weight": 1
+    },
+    {
+      "split": "test",
+      "class": "[R3@p0:Mul#0{head/0/expr/1/args/0=>body/0/expr/1/args/1} + R15@p1:Diff#0{head/0/expr/1/args/1/args/1=>body/0/expr/1}] -> R15",
+      "arguments": [
+        "1"
+      ],
+      "occurrence_weight": 2
+    },
+    {
+      "split": "test",
+      "class": "[R9@p0:Mul#0{head/0/expr/1/args/0=>body/0/expr/1/args/1} + R15@p1:Diff#0{head/0/expr/1/args/1/args/1=>body/0/expr/1}] -> R15",
+      "arguments": [
+        "1"
+      ],
+      "occurrence_weight": 1
+    }
+  ],
+  "57": [
+    {
+      "split": "train",
+      "class": "[R1@p0:Mul#0{head/0/expr/1=>body/0/expr/1/args/1} + R14@p1:Diff#0{head/0/expr/1/args/1=>body/0/expr/1}] -> R15",
+      "arguments": [
+        "(use:R14->R15:Diff p1 0 (path head 0 expr 1 args 1) (path body 0 expr 1))"
+      ],
+      "occurrence_weight": 6
+    },
+    {
+      "split": "train",
+      "class": "[R1@p0:Mul#0{head/0/expr/1=>body/0/expr/1/args/1} + R15@p1:Diff#0{head/0/expr/1/args/1/args/1=>body/0/expr/1}] -> R15",
+      "arguments": [
+        "(Apply Ref(5) 1)"
+      ],
+      "occurrence_weight": 6
+    },
+    {
+      "split": "train",
+      "class": "[R1@p0:Mul#0{head/0/expr/1=>body/0/expr/1/args/1} + R23@p1:Diff#0{head/0/expr/1/args/1/args/0/args/0=>body/0/expr/1}] -> R15",
+      "arguments": [
+        "(use:R23->R15:Diff p1 0 (path head 0 expr 1 args 1 args 0 args 0) (path body 0 expr 1))"
+      ],
+      "occurrence_weight": 2
+    },
+    {
+      "split": "train",
+      "class": "[R1@p0:Mul#0{head/0/expr/1=>body/0/expr/1/args/1} + R15@p1:Diff#0{head/0/expr/1/args/0/args/1=>body/0/expr/1}] -> R15",
+      "arguments": [
+        "(Apply Ref(5) 0)"
+      ],
+      "occurrence_weight": 1
+    }
+  ],
+  "74": [
+    {
+      "split": "train",
+      "class": "[R0@p0:Add#0{head/0/expr/1=>body/0/expr/1/args/1} + R0@p1:Add#1{head/0/expr/1=>body/0/expr/1}] -> R2",
+      "arguments": [
+        "(use:R0->R2:Add p0 0 (path head 0 expr 1) (path body 0 expr 1 args 1))"
+      ],
+      "occurrence_weight": 32
+    },
+    {
+      "split": "train",
+      "class": "[R2@p0:Add#0{head/0/expr/1/args/0=>body/0/expr/1/args/1} + R0@p1:Add#1{head/0/expr/1=>body/0/expr/1}] -> R2",
+      "arguments": [
+        "(use:R2->R2:Add p0 0 (path head 0 expr 1 args 0) (path body 0 expr 1 args 1))"
+      ],
+      "occurrence_weight": 13
+    },
+    {
+      "split": "train",
+      "class": "[R9@p0:Add#0{head/0/expr/1=>body/0/expr/1/args/1} + R0@p1:Add#1{head/0/expr/1=>body/0/expr/1}] -> R2",
+      "arguments": [
+        "(use:R9->R2:Add p0 0 (path head 0 expr 1) (path body 0 expr 1 args 1))"
+      ],
+      "occurrence_weight": 7
+    },
+    {
+      "split": "train",
+      "class": "[R4@p0:Add#0{head/0/expr/1=>body/0/expr/1/args/1} + R0@p1:Add#1{head/0/expr/1=>body/0/expr/1}] -> R2",
+      "arguments": [
+        "(use:R4->R2:Add p0 0 (path head 0 expr 1) (path body 0 expr 1 args 1))"
+      ],
+      "occurrence_weight": 2
+    },
+    {
+      "split": "test",
+      "class": "[R2@p0:Add#0{head/0/expr/1=>body/0/expr/1/args/1} + R0@p1:Add#1{head/0/expr/1=>body/0/expr/1}] -> R2",
+      "arguments": [
+        "(use:R2->R2:Add p0 0 (path head 0 expr 1) (path body 0 expr 1 args 1))"
+      ],
+      "occurrence_weight": 20
+    }
+  ],
+  "46": [
+    {
+      "split": "train",
+      "class": "[R15@p0:Mul#0{head/0/expr/1/args/0=>body/0/expr/1}] -> R1",
+      "arguments": [
+        "0"
+      ],
+      "occurrence_weight": 11
+    },
+    {
+      "split": "train",
+      "class": "[R15@p0:Mul#0{head/0/expr/1/args/1=>body/0/expr/1}] -> R1",
+      "arguments": [
+        "1"
+      ],
+      "occurrence_weight": 11
+    }
+  ]
+}

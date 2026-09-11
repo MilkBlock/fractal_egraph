@@ -2,7 +2,7 @@
 use super::*;
 use babble::{co_occurrence::COBuilder, learn::LearnedLibrary};
 use std::collections::BTreeSet;
-fn pattern(ast: &egg::PatternAst<AstNode<Op>>) -> Value {
+pub(crate) fn pattern(ast: &egg::PatternAst<AstNode<Op>>) -> Value {
     fn go(
         ast: &egg::PatternAst<AstNode<Op>>,
         i: usize,

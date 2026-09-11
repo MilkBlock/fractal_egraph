@@ -42,6 +42,13 @@ fn append(e: &Expr<Op>, ast: &mut Ast) -> egg::Id {
     push(ast, e.0.operation().clone(), args)
 }
 pub fn run(train: &[Expr<Op>], patterns: &[Value]) -> ExperimentResult<Op> {
+    run_with_limit(train, patterns, 2)
+}
+pub fn run_with_limit(
+    train: &[Expr<Op>],
+    patterns: &[Value],
+    library_limit: usize,
+) -> ExperimentResult<Op> {
     fn collect(e: &Expr<Op>, ops: &mut BTreeMap<String, Op>) {
         assert!(
             matches!(e.0.operation(), Op::Data(..)),
@@ -94,14 +101,14 @@ pub fn run(train: &[Expr<Op>], patterns: &[Value]) -> ExperimentResult<Op> {
             egg::Rewrite::new(format!("native-au-{id}"), lhs, egg::Pattern::new(rhs)).unwrap()
         })
         .collect();
-    let mut g = egg::EGraph::new(PartialLibCost::new(16, 16, 2));
+    let mut g = egg::EGraph::new(PartialLibCost::new(16, 16, library_limit));
     let roots: Vec<_> = train
         .iter()
         .cloned()
         .map(|e| g.add_expr(&e.into()))
         .collect();
     g.rebuild();
-    let runner = egg::Runner::<_, _, ()>::new(PartialLibCost::new(16, 16, 2))
+    let runner = egg::Runner::<_, _, ()>::new(PartialLibCost::new(16, 16, library_limit))
         .with_egraph(g.clone())
         .with_iter_limit(2)
         .with_node_limit(1_000_000)

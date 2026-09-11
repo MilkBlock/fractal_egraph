@@ -8,6 +8,7 @@ use babble::{
 use serde_json::{json, Value};
 use std::{collections::BTreeMap, fmt};
 mod au_reference;
+mod comb_learning;
 mod from_candidates;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
@@ -311,7 +312,13 @@ fn main() {
     }
     let experiment = BeamExperiment::<Op, ()>::new(vec![], 16, 16, 2, (), false, Some(3), 2);
     let candidate_path = args.get(3).and_then(|s| s.strip_prefix("candidates="));
-    let learned = if let Some(path) = candidate_path {
+    let comb_mode = args.get(3).is_some_and(|s| s == "comb-mining");
+    let mut mining = Value::Null;
+    let learned = if comb_mode {
+        let (result, report) = comb_learning::run(&train);
+        mining = report;
+        result
+    } else if let Some(path) = candidate_path {
         let patterns: Value =
             serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
         from_candidates::run(&train, patterns.as_array().unwrap())
@@ -329,7 +336,20 @@ fn main() {
     let heldout: Expr<Op> = apply_libs(graph, &roots, &learned.rewrites).into();
     let test_verified = verify(&heldout, &test);
     let metrics = |input: &[Expr<Op>], out: &Expr<Op>| json!({"programs":input.len(),"raw_ast_nodes":1+input.iter().map(Expr::len).sum::<usize>(),"exact_whole_program_dictionary_nodes":exact_cost(input),"babble_corpus_plus_library_nodes":out.len()});
-    let report = json!({"engine":if candidate_path.is_some(){"native egglog candidates + upstream beam/extraction"}else{"upstream babble BeamExperiment"},"encoding":if compact {"typed-ast"} else {"json-control"},"domain_equations":0,"settings":{"beam":16,"libraries_per_step":2,"max_arity":3,"library_iterations":2},"train":metrics(&train,&learned.final_expr),"test":metrics(&test,&heldout),"selected_train_libraries":learned.num_libs,"lossless_expansion":{"train":train_verified,"test":test_verified},"libraries":definitions(&learned.final_expr),"corpus_reference_counts":{"train":corpus_refs(&learned.final_expr),"test":corpus_refs(&heldout)},"scope":"offline syntax learning; conditional effects preserved as source syntax, not inferred or certified; heldout classes within one trace, not independent runs; AST counts are not runtime memory savings"});
+    let mut report = json!({"engine":if candidate_path.is_some(){"native egglog candidates + upstream beam/extraction"}else{"upstream babble BeamExperiment"},"encoding":if compact {"typed-ast"} else {"json-control"},"domain_equations":0,"settings":{"beam":16,"libraries_per_step":2,"max_arity":3,"library_iterations":2},"train":metrics(&train,&learned.final_expr),"test":metrics(&test,&heldout),"selected_train_libraries":learned.num_libs,"lossless_expansion":{"train":train_verified,"test":test_verified},"libraries":definitions(&learned.final_expr),"corpus_reference_counts":{"train":corpus_refs(&learned.final_expr),"test":corpus_refs(&heldout)},"scope":"offline syntax learning; conditional effects preserved as source syntax, not inferred or certified; heldout classes within one trace, not independent runs; AST counts are not runtime memory savings"});
+    if comb_mode {
+        report["engine"] = json!("upstream babble learning connected rule combs");
+        report["settings"]["libraries_per_step"] = json!(4);
+        report["comb_mining"] = mining;
+        report["exact_dag_control"] = json!({
+            "train_raw":comb_learning::dag_metrics(&node(Op::List,train.clone())),
+            "train_learned":comb_learning::dag_metrics(&learned.final_expr),
+            "test_raw":comb_learning::dag_metrics(&node(Op::List,test.clone())),
+            "test_learned":comb_learning::dag_metrics(&heldout),
+            "shared_rule_dictionary_json_bytes":serde_json::to_vec(&corpus["rule_dictionary"]).unwrap().len(),
+            "scope":"same exact-subtree DAG codec including symbol table; occurrence metadata excluded from both; not runtime RSS"
+        });
+    }
     std::fs::write(
         format!("{}.programs.json", args[2]),
         serde_json::to_string(&json!({"train":dump(&learned.final_expr),"test":dump(&heldout)}))

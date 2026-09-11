@@ -5,6 +5,7 @@
 /experiments/egglog_babble/*.fixture.json
 /experiments/egglog_babble/*.candidates.json
 /experiments/egglog_babble/*.programs.json
+/experiments/comb_compression/*.programs.json
 
 # dpsk (DeepSeek) agent linked worktree
 /dpsk_workspace
