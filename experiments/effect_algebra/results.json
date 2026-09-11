@@ -1,0 +1,4187 @@
+{
+  "absorption": {
+    "E_then_E_full": true,
+    "E_then_S_full": false,
+    "E_then_S_graph_only": true
+  },
+  "finite_closure": {
+    "laws": [
+      "S^3 = S",
+      "S^4 = S^2",
+      "E = S^2; E^2 = E",
+      "S^2 != Id on the minimally seeded graph"
+    ],
+    "multiplication_table": [
+      [
+        0,
+        1,
+        2
+      ],
+      [
+        1,
+        2,
+        1
+      ],
+      [
+        2,
+        1,
+        2
+      ]
+    ],
+    "proof": "symbolic simultaneous port substitution plus exact set/equality-closure normalization; the three-state transition table gives the inductive recurrence for all n",
+    "state_names": [
+      "Id",
+      "S",
+      "E"
+    ],
+    "states": [
+      {
+        "adds": [],
+        "binding_route": {
+          "args": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "inputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "outputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:0",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:0",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:1",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:1",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:2",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:2",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:3",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:3",
+                  "sort": "Assignment"
+                }
+              ],
+              "op": "ops",
+              "sort": "Ops"
+            }
+          ],
+          "op": "binding-map",
+          "sort": "BindingMap"
+        },
+        "entry_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "equalities": [],
+        "exit_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "requires": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          },
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:2",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:3",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ]
+      },
+      {
+        "adds": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ],
+        "binding_route": {
+          "args": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "inputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "outputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:1",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:0",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:0",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:1",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:2",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:2",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:3",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:3",
+                  "sort": "Assignment"
+                }
+              ],
+              "op": "ops",
+              "sort": "Ops"
+            }
+          ],
+          "op": "binding-map",
+          "sort": "BindingMap"
+        },
+        "entry_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "equalities": [
+          [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          ]
+        ],
+        "exit_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "requires": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          },
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:2",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:3",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ]
+      },
+      {
+        "adds": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ],
+        "binding_route": {
+          "args": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "inputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "outputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:0",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:0",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:1",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:1",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:2",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:2",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:3",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:3",
+                  "sort": "Assignment"
+                }
+              ],
+              "op": "ops",
+              "sort": "Ops"
+            }
+          ],
+          "op": "binding-map",
+          "sort": "BindingMap"
+        },
+        "entry_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "equalities": [
+          [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          ]
+        ],
+        "exit_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "requires": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          },
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:2",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:3",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ]
+      }
+    ],
+    "transitions": [
+      {
+        "from": 0,
+        "operation": "S",
+        "to": 1
+      },
+      {
+        "from": 1,
+        "operation": "S",
+        "to": 2
+      },
+      {
+        "from": 2,
+        "operation": "S",
+        "to": 1
+      }
+    ]
+  },
+  "limitations": "Normalization is sufficient but not complete: it does not quotient arbitrary nested facts by congruence, nor infer recursive families for unbounded effects. Per-step counts are not an end-to-end performance claim.",
+  "native_cases": [
+    {
+      "native_rows": {
+        "Add": 2,
+        "Seen": 0,
+        "Step": 0
+      },
+      "steps": [],
+      "summary": {
+        "adds": [],
+        "binding_route": {
+          "args": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "inputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "outputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:0",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:0",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:1",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:1",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:2",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:2",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:3",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:3",
+                  "sort": "Assignment"
+                }
+              ],
+              "op": "ops",
+              "sort": "Ops"
+            }
+          ],
+          "op": "binding-map",
+          "sort": "BindingMap"
+        },
+        "entry_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "equalities": [],
+        "exit_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "requires": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          },
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:2",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:3",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ]
+      },
+      "updated_iterations": 0,
+      "verification": "after every step, fact counts, individual facts and represented equality partition match native egglog"
+    },
+    {
+      "native_rows": {
+        "Add": 3,
+        "Seen": 0,
+        "Step": 0
+      },
+      "steps": [
+        "left"
+      ],
+      "summary": {
+        "adds": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ],
+        "binding_route": {
+          "args": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "inputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "outputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:1",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:0",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:0",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:1",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:2",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:2",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:3",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:3",
+                  "sort": "Assignment"
+                }
+              ],
+              "op": "ops",
+              "sort": "Ops"
+            }
+          ],
+          "op": "binding-map",
+          "sort": "BindingMap"
+        },
+        "entry_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "equalities": [
+          [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          ]
+        ],
+        "exit_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "requires": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          },
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:2",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:3",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ]
+      },
+      "updated_iterations": 1,
+      "verification": "after every step, fact counts, individual facts and represented equality partition match native egglog"
+    },
+    {
+      "native_rows": {
+        "Add": 3,
+        "Seen": 0,
+        "Step": 0
+      },
+      "steps": [
+        "left",
+        "left"
+      ],
+      "summary": {
+        "adds": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ],
+        "binding_route": {
+          "args": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "inputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "outputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:0",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:0",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:1",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:1",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:2",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:2",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:3",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:3",
+                  "sort": "Assignment"
+                }
+              ],
+              "op": "ops",
+              "sort": "Ops"
+            }
+          ],
+          "op": "binding-map",
+          "sort": "BindingMap"
+        },
+        "entry_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "equalities": [
+          [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          ]
+        ],
+        "exit_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "requires": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          },
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:2",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:3",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ]
+      },
+      "updated_iterations": 1,
+      "verification": "after every step, fact counts, individual facts and represented equality partition match native egglog"
+    },
+    {
+      "native_rows": {
+        "Add": 3,
+        "Seen": 0,
+        "Step": 0
+      },
+      "steps": [
+        "left",
+        "left",
+        "left"
+      ],
+      "summary": {
+        "adds": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ],
+        "binding_route": {
+          "args": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "inputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "outputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:1",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:0",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:0",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:1",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:2",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:2",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:3",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:3",
+                  "sort": "Assignment"
+                }
+              ],
+              "op": "ops",
+              "sort": "Ops"
+            }
+          ],
+          "op": "binding-map",
+          "sort": "BindingMap"
+        },
+        "entry_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "equalities": [
+          [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          ]
+        ],
+        "exit_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "requires": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          },
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:2",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:3",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ]
+      },
+      "updated_iterations": 1,
+      "verification": "after every step, fact counts, individual facts and represented equality partition match native egglog"
+    },
+    {
+      "native_rows": {
+        "Add": 3,
+        "Seen": 0,
+        "Step": 0
+      },
+      "steps": [
+        "left",
+        "left",
+        "left",
+        "left"
+      ],
+      "summary": {
+        "adds": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ],
+        "binding_route": {
+          "args": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "inputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "outputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:0",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:0",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:1",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:1",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:2",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:2",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:3",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:3",
+                  "sort": "Assignment"
+                }
+              ],
+              "op": "ops",
+              "sort": "Ops"
+            }
+          ],
+          "op": "binding-map",
+          "sort": "BindingMap"
+        },
+        "entry_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "equalities": [
+          [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          ]
+        ],
+        "exit_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "requires": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          },
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:2",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:3",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ]
+      },
+      "updated_iterations": 1,
+      "verification": "after every step, fact counts, individual facts and represented equality partition match native egglog"
+    },
+    {
+      "native_rows": {
+        "Add": 3,
+        "Seen": 0,
+        "Step": 0
+      },
+      "steps": [
+        "left",
+        "left",
+        "left",
+        "left",
+        "left"
+      ],
+      "summary": {
+        "adds": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ],
+        "binding_route": {
+          "args": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "inputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "outputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:1",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:0",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:0",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:1",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:2",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:2",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:3",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:3",
+                  "sort": "Assignment"
+                }
+              ],
+              "op": "ops",
+              "sort": "Ops"
+            }
+          ],
+          "op": "binding-map",
+          "sort": "BindingMap"
+        },
+        "entry_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "equalities": [
+          [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          ]
+        ],
+        "exit_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "requires": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          },
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:2",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:3",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ]
+      },
+      "updated_iterations": 1,
+      "verification": "after every step, fact counts, individual facts and represented equality partition match native egglog"
+    },
+    {
+      "native_rows": {
+        "Add": 3,
+        "Seen": 0,
+        "Step": 0
+      },
+      "steps": [
+        "left",
+        "left",
+        "left",
+        "left",
+        "left",
+        "left"
+      ],
+      "summary": {
+        "adds": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ],
+        "binding_route": {
+          "args": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "inputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "outputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:0",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:0",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:1",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:1",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:2",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:2",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:3",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:3",
+                  "sort": "Assignment"
+                }
+              ],
+              "op": "ops",
+              "sort": "Ops"
+            }
+          ],
+          "op": "binding-map",
+          "sort": "BindingMap"
+        },
+        "entry_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "equalities": [
+          [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          ]
+        ],
+        "exit_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "requires": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          },
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:2",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:3",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ]
+      },
+      "updated_iterations": 1,
+      "verification": "after every step, fact counts, individual facts and represented equality partition match native egglog"
+    },
+    {
+      "native_rows": {
+        "Add": 3,
+        "Seen": 0,
+        "Step": 0
+      },
+      "steps": [
+        "left",
+        "left",
+        "left",
+        "left",
+        "left",
+        "left",
+        "left"
+      ],
+      "summary": {
+        "adds": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ],
+        "binding_route": {
+          "args": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "inputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "outputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:1",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:0",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:0",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:1",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:2",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:2",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:3",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:3",
+                  "sort": "Assignment"
+                }
+              ],
+              "op": "ops",
+              "sort": "Ops"
+            }
+          ],
+          "op": "binding-map",
+          "sort": "BindingMap"
+        },
+        "entry_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "equalities": [
+          [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          ]
+        ],
+        "exit_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "requires": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          },
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:2",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:3",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ]
+      },
+      "updated_iterations": 1,
+      "verification": "after every step, fact counts, individual facts and represented equality partition match native egglog"
+    },
+    {
+      "native_rows": {
+        "Add": 3,
+        "Seen": 0,
+        "Step": 0
+      },
+      "steps": [
+        "left",
+        "left",
+        "left",
+        "left",
+        "left",
+        "left",
+        "left",
+        "left"
+      ],
+      "summary": {
+        "adds": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ],
+        "binding_route": {
+          "args": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "inputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "outputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:0",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:0",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:1",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:1",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:2",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:2",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:3",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:3",
+                  "sort": "Assignment"
+                }
+              ],
+              "op": "ops",
+              "sort": "Ops"
+            }
+          ],
+          "op": "binding-map",
+          "sort": "BindingMap"
+        },
+        "entry_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "equalities": [
+          [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          ]
+        ],
+        "exit_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "requires": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          },
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:2",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:3",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ]
+      },
+      "updated_iterations": 1,
+      "verification": "after every step, fact counts, individual facts and represented equality partition match native egglog"
+    },
+    {
+      "native_rows": {
+        "Add": 4,
+        "Seen": 0,
+        "Step": 0
+      },
+      "steps": [
+        "left",
+        "left",
+        "right",
+        "right"
+      ],
+      "summary": {
+        "adds": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          },
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:3",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:2",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ],
+        "binding_route": {
+          "args": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "inputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                },
+                {
+                  "args": [],
+                  "op": "Math",
+                  "sort": "Sort"
+                }
+              ],
+              "op": "outputs",
+              "sort": "Signature"
+            },
+            {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:0",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:0",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:1",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:1",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:2",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:2",
+                  "sort": "Assignment"
+                },
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:3",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "assign:3",
+                  "sort": "Assignment"
+                }
+              ],
+              "op": "ops",
+              "sort": "Ops"
+            }
+          ],
+          "op": "binding-map",
+          "sort": "BindingMap"
+        },
+        "entry_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "equalities": [
+          [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          ],
+          [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:2",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:3",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:3",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:2",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          ]
+        ],
+        "exit_focus": {
+          "left": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:1",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          },
+          "right": {
+            "args": [
+              {
+                "args": [],
+                "op": "in:2",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "in:3",
+                "sort": "Math"
+              }
+            ],
+            "op": "Add",
+            "sort": "Math"
+          }
+        },
+        "requires": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:1",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          },
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:2",
+                  "sort": "Math"
+                },
+                {
+                  "args": [],
+                  "op": "in:3",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Add",
+              "sort": "Math"
+            }
+          }
+        ]
+      },
+      "updated_iterations": 2,
+      "verification": "after every step, fact counts, individual facts and represented equality partition match native egglog"
+    },
+    {
+      "native_rows": {
+        "Add": 0,
+        "Seen": 3,
+        "Step": 2
+      },
+      "steps": [
+        "grow",
+        "grow"
+      ],
+      "summary": {
+        "adds": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:0",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "Step",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Step",
+              "sort": "Math"
+            }
+          },
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Step",
+              "sort": "Math"
+            }
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "args": [],
+                        "op": "in:0",
+                        "sort": "Math"
+                      }
+                    ],
+                    "op": "Step",
+                    "sort": "Math"
+                  }
+                ],
+                "op": "Step",
+                "sort": "Math"
+              }
+            ],
+            "relation": "Seen"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "op": "in:0",
+                    "sort": "Math"
+                  }
+                ],
+                "op": "Step",
+                "sort": "Math"
+              }
+            ],
+            "relation": "Seen"
+          }
+        ],
+        "binding_route": null,
+        "entry_focus": {
+          "cursor": {
+            "args": [],
+            "op": "in:0",
+            "sort": "Math"
+          }
+        },
+        "equalities": [],
+        "exit_focus": {
+          "cursor": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "op": "in:0",
+                    "sort": "Math"
+                  }
+                ],
+                "op": "Step",
+                "sort": "Math"
+              }
+            ],
+            "op": "Step",
+            "sort": "Math"
+          }
+        },
+        "requires": [
+          {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              }
+            ],
+            "relation": "Seen"
+          }
+        ]
+      },
+      "updated_iterations": 2,
+      "verification": "after every step, fact counts, individual facts and represented equality partition match native egglog"
+    },
+    {
+      "native_rows": {
+        "Add": 0,
+        "Seen": 5,
+        "Step": 4
+      },
+      "steps": [
+        "grow",
+        "grow",
+        "grow",
+        "grow"
+      ],
+      "summary": {
+        "adds": [
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [
+                        {
+                          "args": [
+                            {
+                              "args": [],
+                              "op": "in:0",
+                              "sort": "Math"
+                            }
+                          ],
+                          "op": "Step",
+                          "sort": "Math"
+                        }
+                      ],
+                      "op": "Step",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "Step",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Step",
+              "sort": "Math"
+            }
+          },
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [
+                        {
+                          "args": [],
+                          "op": "in:0",
+                          "sort": "Math"
+                        }
+                      ],
+                      "op": "Step",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "Step",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Step",
+              "sort": "Math"
+            }
+          },
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "args": [],
+                      "op": "in:0",
+                      "sort": "Math"
+                    }
+                  ],
+                  "op": "Step",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Step",
+              "sort": "Math"
+            }
+          },
+          {
+            "node": {
+              "args": [
+                {
+                  "args": [],
+                  "op": "in:0",
+                  "sort": "Math"
+                }
+              ],
+              "op": "Step",
+              "sort": "Math"
+            }
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "args": [
+                          {
+                            "args": [
+                              {
+                                "args": [],
+                                "op": "in:0",
+                                "sort": "Math"
+                              }
+                            ],
+                            "op": "Step",
+                            "sort": "Math"
+                          }
+                        ],
+                        "op": "Step",
+                        "sort": "Math"
+                      }
+                    ],
+                    "op": "Step",
+                    "sort": "Math"
+                  }
+                ],
+                "op": "Step",
+                "sort": "Math"
+              }
+            ],
+            "relation": "Seen"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "args": [
+                          {
+                            "args": [],
+                            "op": "in:0",
+                            "sort": "Math"
+                          }
+                        ],
+                        "op": "Step",
+                        "sort": "Math"
+                      }
+                    ],
+                    "op": "Step",
+                    "sort": "Math"
+                  }
+                ],
+                "op": "Step",
+                "sort": "Math"
+              }
+            ],
+            "relation": "Seen"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "args": [],
+                        "op": "in:0",
+                        "sort": "Math"
+                      }
+                    ],
+                    "op": "Step",
+                    "sort": "Math"
+                  }
+                ],
+                "op": "Step",
+                "sort": "Math"
+              }
+            ],
+            "relation": "Seen"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "op": "in:0",
+                    "sort": "Math"
+                  }
+                ],
+                "op": "Step",
+                "sort": "Math"
+              }
+            ],
+            "relation": "Seen"
+          }
+        ],
+        "binding_route": null,
+        "entry_focus": {
+          "cursor": {
+            "args": [],
+            "op": "in:0",
+            "sort": "Math"
+          }
+        },
+        "equalities": [],
+        "exit_focus": {
+          "cursor": {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "args": [
+                          {
+                            "args": [],
+                            "op": "in:0",
+                            "sort": "Math"
+                          }
+                        ],
+                        "op": "Step",
+                        "sort": "Math"
+                      }
+                    ],
+                    "op": "Step",
+                    "sort": "Math"
+                  }
+                ],
+                "op": "Step",
+                "sort": "Math"
+              }
+            ],
+            "op": "Step",
+            "sort": "Math"
+          }
+        },
+        "requires": [
+          {
+            "args": [
+              {
+                "args": [],
+                "op": "in:0",
+                "sort": "Math"
+              }
+            ],
+            "relation": "Seen"
+          }
+        ]
+      },
+      "updated_iterations": 4,
+      "verification": "after every step, fact counts, individual facts and represented equality partition match native egglog"
+    }
+  ],
+  "observations": {
+    "excluded": [
+      "deletions",
+      "I/O",
+      "custom merge effects",
+      "unmodeled interleaved rules"
+    ],
+    "focus": "selected enode syntax, not just its eclass",
+    "ignored": [
+      "timestamps",
+      "provenance multiplicity",
+      "match counts"
+    ]
+  },
+  "scope": "fixed selected Add nodes, positive constructor/Seen facts and union effects; actual native validation, not an optimized egglog scheduler",
+  "two_position_closure": {
+    "closed": true,
+    "native_words_checked_through_length_four": 31,
+    "states": 9,
+    "transitions": [
+      [
+        0,
+        0,
+        1
+      ],
+      [
+        0,
+        1,
+        2
+      ],
+      [
+        1,
+        0,
+        3
+      ],
+      [
+        1,
+        1,
+        4
+      ],
+      [
+        2,
+        0,
+        4
+      ],
+      [
+        2,
+        1,
+        5
+      ],
+      [
+        3,
+        0,
+        1
+      ],
+      [
+        3,
+        1,
+        6
+      ],
+      [
+        4,
+        0,
+        6
+      ],
+      [
+        4,
+        1,
+        7
+      ],
+      [
+        5,
+        0,
+        7
+      ],
+      [
+        5,
+        1,
+        2
+      ],
+      [
+        6,
+        0,
+        4
+      ],
+      [
+        6,
+        1,
+        8
+      ],
+      [
+        7,
+        0,
+        8
+      ],
+      [
+        7,
+        1,
+        4
+      ],
+      [
+        8,
+        0,
+        7
+      ],
+      [
+        8,
+        1,
+        6
+      ]
+    ]
+  }
+}

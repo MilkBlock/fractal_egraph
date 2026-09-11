@@ -5,3 +5,5 @@ pub mod pattern_store;
 pub mod visual_rule;
 
 pub mod binding_program;
+
+pub mod effect_program;
