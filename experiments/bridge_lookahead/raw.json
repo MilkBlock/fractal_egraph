@@ -1,0 +1,3474 @@
+{
+  "encoding": "local-ids",
+  "model_sha256": "e02b7f26ecf047211735abd2c2906717a8e720d4f139f7cc81aed54781cdca71",
+  "aggregate": {
+    "immediate": {
+      "choices": 89,
+      "anchors_reached": 25,
+      "completed_multi_step_plans": 0,
+      "nonpositive_first_step_plans": 0,
+      "negative_first_step_plans": 0,
+      "planning_states": 124
+    },
+    "three-step-bridge": {
+      "choices": 89,
+      "anchors_reached": 25,
+      "completed_multi_step_plans": 6,
+      "nonpositive_first_step_plans": 0,
+      "negative_first_step_plans": 0,
+      "planning_states": 252
+    }
+  },
+  "runs": [
+    {
+      "anchor": [
+        0,
+        1389
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            185
+          ],
+          "base": [
+            0,
+            16
+          ],
+          "immediate_gain": 0,
+          "selection_score": -402,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            403
+          ],
+          "base": [
+            0,
+            185
+          ],
+          "immediate_gain": 0,
+          "selection_score": -714,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            712
+          ],
+          "base": [
+            0,
+            403
+          ],
+          "immediate_gain": 0,
+          "selection_score": -273,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            1389
+          ],
+          "base": [
+            0,
+            712
+          ],
+          "immediate_gain": 0,
+          "selection_score": -497,
+          "reason": "exploration-quota",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 4,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        1389
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            185
+          ],
+          "base": [
+            0,
+            16
+          ],
+          "immediate_gain": 0,
+          "selection_score": -402,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            403
+          ],
+          "base": [
+            0,
+            185
+          ],
+          "immediate_gain": 0,
+          "selection_score": -714,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            712
+          ],
+          "base": [
+            0,
+            403
+          ],
+          "immediate_gain": 0,
+          "selection_score": -273,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            1389
+          ],
+          "base": [
+            0,
+            712
+          ],
+          "immediate_gain": 0,
+          "selection_score": -497,
+          "reason": "exploration-quota",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 9,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        1733
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            110
+          ],
+          "base": [
+            0,
+            24
+          ],
+          "immediate_gain": 0,
+          "selection_score": -570,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            172
+          ],
+          "base": [
+            0,
+            24
+          ],
+          "immediate_gain": 0,
+          "selection_score": -977,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            394
+          ],
+          "base": [
+            0,
+            110
+          ],
+          "immediate_gain": 0,
+          "selection_score": -546,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            849
+          ],
+          "base": [
+            0,
+            172
+          ],
+          "immediate_gain": 0,
+          "selection_score": -1166,
+          "reason": "exploration-quota",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            676
+          ],
+          "base": [
+            0,
+            394
+          ],
+          "immediate_gain": 0,
+          "selection_score": -292,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            1733
+          ],
+          "base": [
+            0,
+            849
+          ],
+          "immediate_gain": 0,
+          "selection_score": -633,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 11,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        1733
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            110
+          ],
+          "base": [
+            0,
+            24
+          ],
+          "immediate_gain": 0,
+          "selection_score": -570,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            172
+          ],
+          "base": [
+            0,
+            24
+          ],
+          "immediate_gain": 0,
+          "selection_score": -977,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            394
+          ],
+          "base": [
+            0,
+            110
+          ],
+          "immediate_gain": 0,
+          "selection_score": -546,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            849
+          ],
+          "base": [
+            0,
+            172
+          ],
+          "immediate_gain": 0,
+          "selection_score": -1166,
+          "reason": "exploration-quota",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            676
+          ],
+          "base": [
+            0,
+            394
+          ],
+          "immediate_gain": 0,
+          "selection_score": -292,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            1733
+          ],
+          "base": [
+            0,
+            849
+          ],
+          "immediate_gain": 0,
+          "selection_score": -633,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 30,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        1597
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            203
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 49,
+          "selection_score": 49,
+          "reason": "positive-marginal-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            378
+          ],
+          "base": [
+            0,
+            203
+          ],
+          "immediate_gain": -1,
+          "selection_score": -168,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            885
+          ],
+          "base": [
+            0,
+            378
+          ],
+          "immediate_gain": -24,
+          "selection_score": -811,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            1597
+          ],
+          "base": [
+            0,
+            885
+          ],
+          "immediate_gain": 74,
+          "selection_score": -162,
+          "reason": "exploration-quota",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 4,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        1597
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            203
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 49,
+          "selection_score": 49,
+          "reason": "positive-marginal-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            378
+          ],
+          "base": [
+            0,
+            203
+          ],
+          "immediate_gain": -1,
+          "selection_score": -168,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            885
+          ],
+          "base": [
+            0,
+            378
+          ],
+          "immediate_gain": -24,
+          "selection_score": -811,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            1597
+          ],
+          "base": [
+            0,
+            885
+          ],
+          "immediate_gain": 74,
+          "selection_score": -162,
+          "reason": "exploration-quota",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 9,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        2130
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            158
+          ],
+          "base": [
+            0,
+            18
+          ],
+          "immediate_gain": 0,
+          "selection_score": -924,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            433
+          ],
+          "base": [
+            0,
+            158
+          ],
+          "immediate_gain": 0,
+          "selection_score": -520,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            940
+          ],
+          "base": [
+            0,
+            433
+          ],
+          "immediate_gain": 63,
+          "selection_score": 63,
+          "reason": "positive-marginal-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            457
+          ],
+          "base": [
+            0,
+            158
+          ],
+          "immediate_gain": 0,
+          "selection_score": -740,
+          "reason": "exploration-quota",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            2130
+          ],
+          "base": [
+            0,
+            940
+          ],
+          "immediate_gain": 0,
+          "selection_score": -641,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 8,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        2130
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            158
+          ],
+          "base": [
+            0,
+            18
+          ],
+          "immediate_gain": 0,
+          "selection_score": -924,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            433
+          ],
+          "base": [
+            0,
+            158
+          ],
+          "immediate_gain": 0,
+          "selection_score": -520,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            940
+          ],
+          "base": [
+            0,
+            433
+          ],
+          "immediate_gain": 63,
+          "selection_score": 63,
+          "reason": "positive-marginal-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            457
+          ],
+          "base": [
+            0,
+            158
+          ],
+          "immediate_gain": 0,
+          "selection_score": -740,
+          "reason": "exploration-quota",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            2130
+          ],
+          "base": [
+            0,
+            940
+          ],
+          "immediate_gain": 0,
+          "selection_score": -641,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 23,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        1573
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            200
+          ],
+          "base": [
+            0,
+            14
+          ],
+          "immediate_gain": 0,
+          "selection_score": -477,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            472
+          ],
+          "base": [
+            0,
+            200
+          ],
+          "immediate_gain": 49,
+          "selection_score": 49,
+          "reason": "positive-marginal-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            902
+          ],
+          "base": [
+            0,
+            472
+          ],
+          "immediate_gain": 41,
+          "selection_score": 41,
+          "reason": "positive-marginal-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            1573
+          ],
+          "base": [
+            0,
+            902
+          ],
+          "immediate_gain": -35,
+          "selection_score": -460,
+          "reason": "exploration-quota",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 4,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        1573
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            200
+          ],
+          "base": [
+            0,
+            14
+          ],
+          "immediate_gain": 0,
+          "selection_score": -477,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            472
+          ],
+          "base": [
+            0,
+            200
+          ],
+          "immediate_gain": 49,
+          "selection_score": 90,
+          "reason": "positive-marginal-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            902
+          ],
+          "base": [
+            0,
+            472
+          ],
+          "immediate_gain": 41,
+          "selection_score": 41,
+          "reason": "reserved-bridge-step",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            1573
+          ],
+          "base": [
+            0,
+            902
+          ],
+          "immediate_gain": -35,
+          "selection_score": -460,
+          "reason": "exploration-quota",
+          "coarse": false
+        }
+      ],
+      "plans": [
+        {
+          "base": [
+            0,
+            200
+          ],
+          "path": [
+            [
+              0,
+              472
+            ],
+            [
+              0,
+              902
+            ]
+          ],
+          "predicted_gain": 90,
+          "compression_gain": 90,
+          "startup_bytes": 0,
+          "first_gain": 49,
+          "library_entry": true
+        }
+      ],
+      "completed_plans": [
+        {
+          "base": [
+            0,
+            200
+          ],
+          "path": [
+            [
+              0,
+              472
+            ],
+            [
+              0,
+              902
+            ]
+          ],
+          "predicted_gain": 90,
+          "compression_gain": 90,
+          "startup_bytes": 0,
+          "first_gain": 49,
+          "library_entry": true,
+          "realized_gain": 90
+        }
+      ],
+      "planning_states": 7,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        2290
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            203
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 49,
+          "selection_score": 49,
+          "reason": "positive-marginal-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            466
+          ],
+          "base": [
+            0,
+            203
+          ],
+          "immediate_gain": 48,
+          "selection_score": 48,
+          "reason": "positive-marginal-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            788
+          ],
+          "base": [
+            0,
+            466
+          ],
+          "immediate_gain": -25,
+          "selection_score": -111,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            2290
+          ],
+          "base": [
+            0,
+            466
+          ],
+          "immediate_gain": 40,
+          "selection_score": -78,
+          "reason": "exploration-quota",
+          "coarse": true
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 5,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        2290
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            203
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 49,
+          "selection_score": 137,
+          "reason": "positive-marginal-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            466
+          ],
+          "base": [
+            0,
+            203
+          ],
+          "immediate_gain": 48,
+          "selection_score": 48,
+          "reason": "reserved-bridge-step",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            2290
+          ],
+          "base": [
+            0,
+            466
+          ],
+          "immediate_gain": 40,
+          "selection_score": 40,
+          "reason": "reserved-bridge-step",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            788
+          ],
+          "base": [
+            0,
+            466
+          ],
+          "immediate_gain": -25,
+          "selection_score": -111,
+          "reason": "exploration-quota",
+          "coarse": false
+        }
+      ],
+      "plans": [
+        {
+          "base": [
+            0,
+            42
+          ],
+          "path": [
+            [
+              0,
+              203
+            ],
+            [
+              0,
+              466
+            ],
+            [
+              0,
+              2290
+            ]
+          ],
+          "predicted_gain": 137,
+          "compression_gain": 137,
+          "startup_bytes": 0,
+          "first_gain": 49,
+          "library_entry": true
+        }
+      ],
+      "completed_plans": [
+        {
+          "base": [
+            0,
+            42
+          ],
+          "path": [
+            [
+              0,
+              203
+            ],
+            [
+              0,
+              466
+            ],
+            [
+              0,
+              2290
+            ]
+          ],
+          "predicted_gain": 137,
+          "compression_gain": 137,
+          "startup_bytes": 0,
+          "first_gain": 49,
+          "library_entry": true,
+          "realized_gain": 137
+        }
+      ],
+      "planning_states": 5,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        1961
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            427
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -1304,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            780
+          ],
+          "base": [
+            0,
+            427
+          ],
+          "immediate_gain": 0,
+          "selection_score": -202,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            1961
+          ],
+          "base": [
+            0,
+            780
+          ],
+          "immediate_gain": 0,
+          "selection_score": -713,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 3,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        1961
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            427
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -1304,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            780
+          ],
+          "base": [
+            0,
+            427
+          ],
+          "immediate_gain": 0,
+          "selection_score": -202,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            1961
+          ],
+          "base": [
+            0,
+            780
+          ],
+          "immediate_gain": 0,
+          "selection_score": -713,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 6,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        1575
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            203
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 49,
+          "selection_score": 49,
+          "reason": "positive-marginal-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            362
+          ],
+          "base": [
+            0,
+            203
+          ],
+          "immediate_gain": -1,
+          "selection_score": -95,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            460
+          ],
+          "base": [
+            0,
+            203
+          ],
+          "immediate_gain": -1,
+          "selection_score": -570,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            906
+          ],
+          "base": [
+            0,
+            362
+          ],
+          "immediate_gain": 80,
+          "selection_score": -916,
+          "reason": "exploration-quota",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            1575
+          ],
+          "base": [
+            0,
+            906
+          ],
+          "immediate_gain": -78,
+          "selection_score": -644,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 7,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        1575
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            203
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 49,
+          "selection_score": 128,
+          "reason": "positive-marginal-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            362
+          ],
+          "base": [
+            0,
+            203
+          ],
+          "immediate_gain": -1,
+          "selection_score": -1,
+          "reason": "reserved-bridge-step",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            906
+          ],
+          "base": [
+            0,
+            362
+          ],
+          "immediate_gain": 80,
+          "selection_score": 80,
+          "reason": "reserved-bridge-step",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            460
+          ],
+          "base": [
+            0,
+            203
+          ],
+          "immediate_gain": -1,
+          "selection_score": -570,
+          "reason": "exploration-quota",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            1575
+          ],
+          "base": [
+            0,
+            906
+          ],
+          "immediate_gain": -78,
+          "selection_score": -644,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        }
+      ],
+      "plans": [
+        {
+          "base": [
+            0,
+            42
+          ],
+          "path": [
+            [
+              0,
+              203
+            ],
+            [
+              0,
+              362
+            ],
+            [
+              0,
+              906
+            ]
+          ],
+          "predicted_gain": 128,
+          "compression_gain": 128,
+          "startup_bytes": 0,
+          "first_gain": 49,
+          "library_entry": true
+        }
+      ],
+      "completed_plans": [
+        {
+          "base": [
+            0,
+            42
+          ],
+          "path": [
+            [
+              0,
+              203
+            ],
+            [
+              0,
+              362
+            ],
+            [
+              0,
+              906
+            ]
+          ],
+          "predicted_gain": 128,
+          "compression_gain": 128,
+          "startup_bytes": 0,
+          "first_gain": 49,
+          "library_entry": true,
+          "realized_gain": 128
+        }
+      ],
+      "planning_states": 8,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        1697
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            164
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -962,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            182
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -764,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            454
+          ],
+          "base": [
+            0,
+            164
+          ],
+          "immediate_gain": 0,
+          "selection_score": -515,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            1697
+          ],
+          "base": [
+            0,
+            182
+          ],
+          "immediate_gain": 0,
+          "selection_score": -1636,
+          "reason": "exploration-quota",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            702
+          ],
+          "base": [
+            0,
+            454
+          ],
+          "immediate_gain": 0,
+          "selection_score": -315,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 9,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        1697
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            164
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -962,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            182
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -764,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            454
+          ],
+          "base": [
+            0,
+            164
+          ],
+          "immediate_gain": 0,
+          "selection_score": -515,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            1697
+          ],
+          "base": [
+            0,
+            182
+          ],
+          "immediate_gain": 0,
+          "selection_score": -1636,
+          "reason": "exploration-quota",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            702
+          ],
+          "base": [
+            0,
+            454
+          ],
+          "immediate_gain": 0,
+          "selection_score": -315,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 22,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        2230
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            203
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 49,
+          "selection_score": 49,
+          "reason": "positive-marginal-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            466
+          ],
+          "base": [
+            0,
+            203
+          ],
+          "immediate_gain": 48,
+          "selection_score": 48,
+          "reason": "positive-marginal-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            460
+          ],
+          "base": [
+            0,
+            203
+          ],
+          "immediate_gain": -1,
+          "selection_score": -570,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            916
+          ],
+          "base": [
+            0,
+            466
+          ],
+          "immediate_gain": 40,
+          "selection_score": -972,
+          "reason": "exploration-quota",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            2230
+          ],
+          "base": [
+            0,
+            916
+          ],
+          "immediate_gain": 11,
+          "selection_score": -362,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 7,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        2230
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            203
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 49,
+          "selection_score": 137,
+          "reason": "positive-marginal-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            460
+          ],
+          "base": [
+            0,
+            203
+          ],
+          "immediate_gain": -1,
+          "selection_score": -1,
+          "reason": "reserved-bridge-step",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            916
+          ],
+          "base": [
+            0,
+            460
+          ],
+          "immediate_gain": 89,
+          "selection_score": 89,
+          "reason": "reserved-bridge-step",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            2230
+          ],
+          "base": [
+            0,
+            916
+          ],
+          "immediate_gain": 11,
+          "selection_score": -362,
+          "reason": "exploration-quota",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            466
+          ],
+          "base": [
+            0,
+            203
+          ],
+          "immediate_gain": 48,
+          "selection_score": 48,
+          "reason": "positive-marginal-gain",
+          "coarse": false
+        }
+      ],
+      "plans": [
+        {
+          "base": [
+            0,
+            42
+          ],
+          "path": [
+            [
+              0,
+              203
+            ],
+            [
+              0,
+              460
+            ],
+            [
+              0,
+              916
+            ]
+          ],
+          "predicted_gain": 137,
+          "compression_gain": 137,
+          "startup_bytes": 0,
+          "first_gain": 49,
+          "library_entry": true
+        }
+      ],
+      "completed_plans": [
+        {
+          "base": [
+            0,
+            42
+          ],
+          "path": [
+            [
+              0,
+              203
+            ],
+            [
+              0,
+              460
+            ],
+            [
+              0,
+              916
+            ]
+          ],
+          "predicted_gain": 137,
+          "compression_gain": 137,
+          "startup_bytes": 0,
+          "first_gain": 49,
+          "library_entry": true,
+          "realized_gain": 137
+        }
+      ],
+      "planning_states": 8,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        867
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            867
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -1659,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 1,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        867
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            867
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -1659,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 1,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        955
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            164
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -962,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            182
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -764,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            454
+          ],
+          "base": [
+            0,
+            164
+          ],
+          "immediate_gain": 0,
+          "selection_score": -515,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            955
+          ],
+          "base": [
+            0,
+            164
+          ],
+          "immediate_gain": 0,
+          "selection_score": -847,
+          "reason": "exploration-quota",
+          "coarse": true
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 8,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        955
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            164
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -962,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            182
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -764,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            454
+          ],
+          "base": [
+            0,
+            164
+          ],
+          "immediate_gain": 0,
+          "selection_score": -515,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            955
+          ],
+          "base": [
+            0,
+            164
+          ],
+          "immediate_gain": 0,
+          "selection_score": -847,
+          "reason": "exploration-quota",
+          "coarse": true
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 17,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        1907
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            155
+          ],
+          "base": [
+            0,
+            10
+          ],
+          "immediate_gain": 0,
+          "selection_score": -731,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            324
+          ],
+          "base": [
+            0,
+            155
+          ],
+          "immediate_gain": 0,
+          "selection_score": -293,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            837
+          ],
+          "base": [
+            0,
+            324
+          ],
+          "immediate_gain": 0,
+          "selection_score": -1073,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            1907
+          ],
+          "base": [
+            0,
+            837
+          ],
+          "immediate_gain": 0,
+          "selection_score": -1093,
+          "reason": "exploration-quota",
+          "coarse": true
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 4,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        1907
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            155
+          ],
+          "base": [
+            0,
+            10
+          ],
+          "immediate_gain": 0,
+          "selection_score": -731,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            324
+          ],
+          "base": [
+            0,
+            155
+          ],
+          "immediate_gain": 0,
+          "selection_score": -293,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            837
+          ],
+          "base": [
+            0,
+            324
+          ],
+          "immediate_gain": 0,
+          "selection_score": -1073,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            1907
+          ],
+          "base": [
+            0,
+            837
+          ],
+          "immediate_gain": 0,
+          "selection_score": -1093,
+          "reason": "exploration-quota",
+          "coarse": true
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 9,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        197
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            197
+          ],
+          "base": [
+            0,
+            0
+          ],
+          "immediate_gain": 0,
+          "selection_score": -735,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 1,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        197
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            197
+          ],
+          "base": [
+            0,
+            0
+          ],
+          "immediate_gain": 0,
+          "selection_score": -735,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 1,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        1525
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            172
+          ],
+          "base": [
+            0,
+            24
+          ],
+          "immediate_gain": 0,
+          "selection_score": -977,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            360
+          ],
+          "base": [
+            0,
+            172
+          ],
+          "immediate_gain": 0,
+          "selection_score": -257,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            912
+          ],
+          "base": [
+            0,
+            172
+          ],
+          "immediate_gain": 0,
+          "selection_score": -974,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            1525
+          ],
+          "base": [
+            0,
+            912
+          ],
+          "immediate_gain": 0,
+          "selection_score": -225,
+          "reason": "exploration-quota",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 5,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        1525
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            172
+          ],
+          "base": [
+            0,
+            24
+          ],
+          "immediate_gain": 0,
+          "selection_score": -977,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            360
+          ],
+          "base": [
+            0,
+            172
+          ],
+          "immediate_gain": 0,
+          "selection_score": -257,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            912
+          ],
+          "base": [
+            0,
+            172
+          ],
+          "immediate_gain": 0,
+          "selection_score": -974,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            1525
+          ],
+          "base": [
+            0,
+            912
+          ],
+          "immediate_gain": 0,
+          "selection_score": -225,
+          "reason": "exploration-quota",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 13,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        430
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            164
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -962,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            430
+          ],
+          "base": [
+            0,
+            164
+          ],
+          "immediate_gain": 0,
+          "selection_score": -643,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 2,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        430
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            164
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -962,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            430
+          ],
+          "base": [
+            0,
+            164
+          ],
+          "immediate_gain": 0,
+          "selection_score": -643,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 3,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        188
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            188
+          ],
+          "base": [
+            0,
+            36
+          ],
+          "immediate_gain": 0,
+          "selection_score": -440,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 1,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        188
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            188
+          ],
+          "base": [
+            0,
+            36
+          ],
+          "immediate_gain": 0,
+          "selection_score": -440,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 1,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        2187
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            164
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -962,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            182
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -764,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            454
+          ],
+          "base": [
+            0,
+            164
+          ],
+          "immediate_gain": 0,
+          "selection_score": -515,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            958
+          ],
+          "base": [
+            0,
+            454
+          ],
+          "immediate_gain": 0,
+          "selection_score": -688,
+          "reason": "exploration-quota",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            2187
+          ],
+          "base": [
+            0,
+            958
+          ],
+          "immediate_gain": 0,
+          "selection_score": -748,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 7,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        2187
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            164
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -962,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            182
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -764,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            454
+          ],
+          "base": [
+            0,
+            164
+          ],
+          "immediate_gain": 0,
+          "selection_score": -515,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            958
+          ],
+          "base": [
+            0,
+            454
+          ],
+          "immediate_gain": 0,
+          "selection_score": -688,
+          "reason": "exploration-quota",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            2187
+          ],
+          "base": [
+            0,
+            958
+          ],
+          "immediate_gain": 0,
+          "selection_score": -748,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 18,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        973
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            136
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 0,
+          "selection_score": -107,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            469
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 0,
+          "selection_score": -242,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            973
+          ],
+          "base": [
+            0,
+            469
+          ],
+          "immediate_gain": 0,
+          "selection_score": -275,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 4,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        973
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            136
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 0,
+          "selection_score": -107,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            469
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 0,
+          "selection_score": -242,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            973
+          ],
+          "base": [
+            0,
+            469
+          ],
+          "immediate_gain": 0,
+          "selection_score": -275,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 8,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        2221
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            427
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -1304,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            736
+          ],
+          "base": [
+            0,
+            427
+          ],
+          "immediate_gain": 0,
+          "selection_score": -234,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            2221
+          ],
+          "base": [
+            0,
+            736
+          ],
+          "immediate_gain": 0,
+          "selection_score": -512,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 3,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        2221
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            427
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -1304,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            736
+          ],
+          "base": [
+            0,
+            427
+          ],
+          "immediate_gain": 0,
+          "selection_score": -234,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            2221
+          ],
+          "base": [
+            0,
+            736
+          ],
+          "immediate_gain": 0,
+          "selection_score": -512,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 6,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        191
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            191
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 0,
+          "selection_score": -662,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 1,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        191
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            191
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 0,
+          "selection_score": -662,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 1,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        2263
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            136
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 0,
+          "selection_score": -107,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            979
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 0,
+          "selection_score": -1245,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            424
+          ],
+          "base": [
+            0,
+            136
+          ],
+          "immediate_gain": 0,
+          "selection_score": -795,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            2263
+          ],
+          "base": [
+            0,
+            979
+          ],
+          "immediate_gain": 0,
+          "selection_score": -364,
+          "reason": "exploration-quota",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 7,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        2263
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            136
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 0,
+          "selection_score": -107,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            979
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 0,
+          "selection_score": -1245,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            424
+          ],
+          "base": [
+            0,
+            136
+          ],
+          "immediate_gain": 0,
+          "selection_score": -795,
+          "reason": "fifo-no-positive-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            2263
+          ],
+          "base": [
+            0,
+            979
+          ],
+          "immediate_gain": 0,
+          "selection_score": -364,
+          "reason": "exploration-quota",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 16,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        427
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            427
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -1304,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 1,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        427
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            427
+          ],
+          "base": [
+            0,
+            22
+          ],
+          "immediate_gain": 0,
+          "selection_score": -1304,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 1,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        2096
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            203
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 49,
+          "selection_score": 49,
+          "reason": "positive-marginal-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            167
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 43,
+          "selection_score": 43,
+          "reason": "positive-marginal-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            909
+          ],
+          "base": [
+            0,
+            167
+          ],
+          "immediate_gain": 132,
+          "selection_score": 132,
+          "reason": "positive-marginal-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            2096
+          ],
+          "base": [
+            0,
+            909
+          ],
+          "immediate_gain": -63,
+          "selection_score": -794,
+          "reason": "exploration-quota",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            436
+          ],
+          "base": [
+            0,
+            203
+          ],
+          "immediate_gain": 42,
+          "selection_score": 42,
+          "reason": "positive-marginal-gain",
+          "coarse": false
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 9,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        2096
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            167
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 43,
+          "selection_score": 175,
+          "reason": "positive-marginal-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            909
+          ],
+          "base": [
+            0,
+            167
+          ],
+          "immediate_gain": 132,
+          "selection_score": 132,
+          "reason": "reserved-bridge-step",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            203
+          ],
+          "base": [
+            0,
+            42
+          ],
+          "immediate_gain": 49,
+          "selection_score": 112,
+          "reason": "positive-marginal-gain",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            436
+          ],
+          "base": [
+            0,
+            203
+          ],
+          "immediate_gain": 42,
+          "selection_score": 42,
+          "reason": "reserved-bridge-step",
+          "coarse": false
+        },
+        {
+          "target": [
+            0,
+            2096
+          ],
+          "base": [
+            0,
+            436
+          ],
+          "immediate_gain": 21,
+          "selection_score": 21,
+          "reason": "reserved-bridge-step",
+          "coarse": true
+        }
+      ],
+      "plans": [
+        {
+          "base": [
+            0,
+            42
+          ],
+          "path": [
+            [
+              0,
+              167
+            ],
+            [
+              0,
+              909
+            ]
+          ],
+          "predicted_gain": 175,
+          "compression_gain": 175,
+          "startup_bytes": 0,
+          "first_gain": 43,
+          "library_entry": true
+        },
+        {
+          "base": [
+            0,
+            42
+          ],
+          "path": [
+            [
+              0,
+              203
+            ],
+            [
+              0,
+              436
+            ],
+            [
+              0,
+              2096
+            ]
+          ],
+          "predicted_gain": 112,
+          "compression_gain": 112,
+          "startup_bytes": 0,
+          "first_gain": 49,
+          "library_entry": true
+        }
+      ],
+      "completed_plans": [
+        {
+          "base": [
+            0,
+            42
+          ],
+          "path": [
+            [
+              0,
+              167
+            ],
+            [
+              0,
+              909
+            ]
+          ],
+          "predicted_gain": 175,
+          "compression_gain": 175,
+          "startup_bytes": 0,
+          "first_gain": 43,
+          "library_entry": true,
+          "realized_gain": 175
+        },
+        {
+          "base": [
+            0,
+            42
+          ],
+          "path": [
+            [
+              0,
+              203
+            ],
+            [
+              0,
+              436
+            ],
+            [
+              0,
+              2096
+            ]
+          ],
+          "predicted_gain": 112,
+          "compression_gain": 112,
+          "startup_bytes": 0,
+          "first_gain": 49,
+          "library_entry": true,
+          "realized_gain": 112
+        }
+      ],
+      "planning_states": 11,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        2254
+      ],
+      "mode": "immediate",
+      "decisions": [
+        {
+          "target": [
+            0,
+            158
+          ],
+          "base": [
+            0,
+            18
+          ],
+          "immediate_gain": 0,
+          "selection_score": -924,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            433
+          ],
+          "base": [
+            0,
+            158
+          ],
+          "immediate_gain": 0,
+          "selection_score": -520,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            940
+          ],
+          "base": [
+            0,
+            433
+          ],
+          "immediate_gain": 63,
+          "selection_score": 63,
+          "reason": "positive-marginal-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            457
+          ],
+          "base": [
+            0,
+            158
+          ],
+          "immediate_gain": 0,
+          "selection_score": -740,
+          "reason": "exploration-quota",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            2254
+          ],
+          "base": [
+            0,
+            940
+          ],
+          "immediate_gain": -63,
+          "selection_score": -1209,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 8,
+      "reached_anchor": true
+    },
+    {
+      "anchor": [
+        0,
+        2254
+      ],
+      "mode": "three-step-bridge",
+      "decisions": [
+        {
+          "target": [
+            0,
+            158
+          ],
+          "base": [
+            0,
+            18
+          ],
+          "immediate_gain": 0,
+          "selection_score": -924,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            433
+          ],
+          "base": [
+            0,
+            158
+          ],
+          "immediate_gain": 0,
+          "selection_score": -520,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            940
+          ],
+          "base": [
+            0,
+            433
+          ],
+          "immediate_gain": 63,
+          "selection_score": 63,
+          "reason": "positive-marginal-gain",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            457
+          ],
+          "base": [
+            0,
+            158
+          ],
+          "immediate_gain": 0,
+          "selection_score": -740,
+          "reason": "exploration-quota",
+          "coarse": true
+        },
+        {
+          "target": [
+            0,
+            2254
+          ],
+          "base": [
+            0,
+            940
+          ],
+          "immediate_gain": -63,
+          "selection_score": -1209,
+          "reason": "fifo-no-positive-gain",
+          "coarse": true
+        }
+      ],
+      "plans": [],
+      "completed_plans": [],
+      "planning_states": 19,
+      "reached_anchor": true
+    }
+  ],
+  "scope": "known-history lookahead, same 25 overlapping heldout cones; successful library entry is a finite reuse witness, not a fractal invariant or online speedup",
+  "budget": {
+    "total_adoptions": 6,
+    "bridge_steps": 3,
+    "states_per_head": 128
+  },
+  "startup_charged": true,
+  "cost": "compression advantage minus positive encoded-prefix growth before first library entry; conservative startup fee, not tier-0 bytes; fixed metadata cancels within each encoding"
+}

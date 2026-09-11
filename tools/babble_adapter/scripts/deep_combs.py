@@ -16,7 +16,8 @@ def stable(value):
     return json.dumps(value, sort_keys=True, separators=(",", ":"))
 
 def decode_graph(program):
-    assert program["sort"] == "CombDAG" and program["args"][0]["op"] == "0"
+    assert program["sort"] == "CombDAG"
+    root = int(program["args"][0]["op"])
     definitions, table = {}, program["args"][1]
     while table["op"] == "cons":
         stage, table = table["args"]
@@ -24,6 +25,7 @@ def decode_graph(program):
         assert ident not in definitions
         definitions[ident] = stage
     assert table["op"] == "nil"
+    assert root in definitions
     edges = []
     for ident, stage in definitions.items():
         if stage["args"][1]["op"] != "expanded":

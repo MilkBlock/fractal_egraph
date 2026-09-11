@@ -8,6 +8,9 @@
 /experiments/comb_compression/*.programs.json
 /experiments/deep_combs/*.windows.json
 /experiments/deep_combs/*.programs.json
+/experiments/relative_bindings/*.programs.json
+/experiments/relative_bindings/corpus.json
+/experiments/relative_bindings/renaming.json
 
 # dpsk (DeepSeek) agent linked worktree
 /dpsk_workspace

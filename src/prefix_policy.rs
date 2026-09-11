@@ -20,6 +20,8 @@ pub struct Policy {
     born: BTreeMap<u64, u64>,
     period: u64,
     max_wait: u64,
+    owed_exploration: bool,
+    reserved_steps: u8,
 }
 impl Policy {
     pub fn new(epoch: u64, period: u64, max_wait: u64) -> Self {
@@ -31,6 +33,8 @@ impl Policy {
             born: BTreeMap::new(),
             period,
             max_wait,
+            owed_exploration: false,
+            reserved_steps: 0,
         }
     }
     pub fn bind_context(&mut self, context: u64, epoch: u64) -> Result<(), String> {
@@ -43,11 +47,7 @@ impl Policy {
         self.context = Some(context);
         Ok(())
     }
-    pub fn choose(
-        &mut self,
-        epoch: u64,
-        candidates: &[Candidate],
-    ) -> Result<Option<Decision>, String> {
+    fn synchronize(&mut self, epoch: u64, candidates: &[Candidate]) -> Result<(), String> {
         if epoch != self.epoch {
             return Err("score model epoch mismatch".into());
         }
@@ -59,12 +59,48 @@ impl Policy {
         for c in candidates {
             self.born.entry(c.id).or_insert(self.tick);
         }
+        Ok(())
+    }
+    /// Finish at most two protected continuation steps after a selected head.
+    /// Any exploration slot crossed here is owed at the next ordinary choice.
+    pub fn record_reserved(
+        &mut self,
+        epoch: u64,
+        candidates: &[Candidate],
+        id: u64,
+    ) -> Result<Decision, String> {
+        if self.tick == 0 || self.reserved_steps >= 2 {
+            return Err("reservation requires a head and at most two continuation steps".into());
+        }
+        let c = candidates
+            .iter()
+            .find(|c| c.id == id)
+            .ok_or("reserved continuation is unavailable")?;
+        self.synchronize(epoch, candidates)?;
+        let d = Decision {
+            candidate: id,
+            reason: "reserved-bridge-step",
+            age: self.tick - self.born[&id],
+            marginal_bytes: c.marginal_bytes,
+        };
+        self.owed_exploration |= self.tick % self.period == self.period - 1;
+        self.born.remove(&id);
+        self.tick += 1;
+        self.reserved_steps += 1;
+        Ok(d)
+    }
+    pub fn choose(
+        &mut self,
+        epoch: u64,
+        candidates: &[Candidate],
+    ) -> Result<Option<Decision>, String> {
+        self.synchronize(epoch, candidates)?;
         let oldest = |c: &&Candidate| (self.born[&c.id], c.id);
         let aged = candidates
             .iter()
             .filter(|c| self.tick - self.born[&c.id] >= self.max_wait)
             .min_by_key(oldest);
-        let exploration = if self.tick % self.period == self.period - 1 {
+        let exploration = if self.owed_exploration || self.tick % self.period == self.period - 1 {
             candidates
                 .iter()
                 .filter(|c| c.coarse || c.marginal_bytes <= 0)
@@ -101,8 +137,14 @@ impl Policy {
             age: self.tick - self.born[&c.id],
             marginal_bytes: c.marginal_bytes,
         };
+        if reason == "exploration-quota"
+            || (reason == "age-priority" && (c.coarse || c.marginal_bytes <= 0))
+        {
+            self.owed_exploration = false;
+        }
         self.born.remove(&c.id);
         self.tick += 1;
+        self.reserved_steps = 0;
         Ok(Some(decision))
     }
 }
@@ -172,5 +214,28 @@ mod tests {
         p.bind_context(0, 1).unwrap();
         assert!(p.bind_context(1, 1).is_err());
         p.bind_context(0, 1).unwrap();
+    }
+    #[test]
+    fn reservation_defers_but_does_not_erase_exploration() {
+        let mut p = Policy::new(1, 2, 99);
+        p.choose(1, &[c(1, 10, false), c(99, -1, true)]).unwrap();
+        p.record_reserved(1, &[c(2, 20, false), c(99, -1, true)], 2)
+            .unwrap();
+        let d = p
+            .choose(1, &[c(3, 100, false), c(99, -1, true)])
+            .unwrap()
+            .unwrap();
+        assert_eq!(d.candidate, 99);
+        assert_eq!(d.reason, "exploration-quota");
+    }
+    #[test]
+    fn protected_steps_are_bounded_and_require_an_available_candidate() {
+        let mut p = Policy::new(1, 4, 8);
+        assert!(p.record_reserved(1, &[c(1, 1, false)], 1).is_err());
+        p.choose(1, &[c(1, 1, false)]).unwrap();
+        assert!(p.record_reserved(1, &[c(2, 1, false)], 3).is_err());
+        p.record_reserved(1, &[c(2, 1, false)], 2).unwrap();
+        p.record_reserved(1, &[c(3, 1, false)], 3).unwrap();
+        assert!(p.record_reserved(1, &[c(4, 1, false)], 4).is_err());
     }
 }

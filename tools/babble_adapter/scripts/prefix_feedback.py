@@ -122,7 +122,14 @@ class FrozenLibrary:
             return body
         # Charge the SAME resident model to both representations. Otherwise mere
         # symbol/subtree overlap with the library would masquerade as macro reuse.
-        return {"raw_bytes": codec_bytes(installed(raw)), "coded_bytes": codec_bytes(installed(compressed)),
+        calls = defaultdict(int)
+        def count(t):
+            if t[0].startswith("Ref("):
+                calls[int(t[0][4:-1])] += 1
+            for a in t[1]:
+                count(a)
+        count(compressed)
+        return {"raw_bytes": codec_bytes(installed(raw)), "coded_bytes": codec_bytes(installed(compressed)), "library_calls": dict(calls),
                 "raw_ast": size(raw), "coded_body_ast": size(compressed)}
 
 def main():

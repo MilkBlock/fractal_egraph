@@ -24,11 +24,16 @@ fn main() {
                     coarse: c["coarse"].as_bool().unwrap(),
                 })
                 .collect();
-            let d = policy
-                .as_mut()
-                .unwrap()
-                .choose(v["epoch"].as_u64().unwrap(), &candidates)
-                .unwrap();
+            let p = policy.as_mut().unwrap();
+            let epoch = v["epoch"].as_u64().unwrap();
+            let d = if let Some(id) = v.get("reserved") {
+                Some(
+                    p.record_reserved(epoch, &candidates, id.as_u64().unwrap())
+                        .unwrap(),
+                )
+            } else {
+                p.choose(epoch, &candidates).unwrap()
+            };
             println!("{}",d.map(|d|json!({"candidate":d.candidate,"reason":d.reason,"age":d.age,"gain":d.marginal_bytes})).unwrap_or(Value::Null));
         }
         io::stdout().flush().unwrap();
