@@ -60,3 +60,86 @@ mod tests {
         }
     }
 }
+
+/// Source occurrence IDs and stable paths in the normalized, unrenamed rule AST.
+pub fn positions(rule: &Rule) -> Vec<(String, String, String)> {
+    fn walk(e: &Expr, path: String, out: &mut Vec<(String, String, String)>) {
+        if let Expr::Call(span, op, args) = e {
+            if let egglog::ast::Span::Egglog(s) = span {
+                out.push((
+                    format!("{:?}:{}:{}", s.file.name, s.i, s.j),
+                    path.clone(),
+                    op.clone(),
+                ));
+            }
+            for (i, arg) in args.iter().enumerate() {
+                walk(arg, format!("{path}/args/{i}"), out);
+            }
+        }
+    }
+    let mut out = vec![];
+    for (i, f) in rule.body.iter().enumerate() {
+        match f {
+            Fact::Eq(_, a, b) => {
+                walk(a, format!("body/{i}/expr/0"), &mut out);
+                walk(b, format!("body/{i}/expr/1"), &mut out);
+            }
+            Fact::Fact(e) => walk(e, format!("body/{i}/expr/0"), &mut out),
+        }
+    }
+    for (i, a) in rule.head.0.iter().enumerate() {
+        match a {
+            Action::Expr(_, e) | Action::Let(_, _, e) => {
+                walk(e, format!("head/{i}/expr/0"), &mut out)
+            }
+            Action::Union(_, a, b) => {
+                walk(a, format!("head/{i}/expr/0"), &mut out);
+                walk(b, format!("head/{i}/expr/1"), &mut out);
+            }
+            _ => {}
+        }
+    }
+    out
+}
+pub fn expression_at<'a>(rule: &'a Rule, path: &str) -> Option<&'a Expr> {
+    let p: Vec<_> = path.split('/').collect();
+    if p.len() < 4 || p[2] != "expr" {
+        return None;
+    }
+    let i = p[1].parse::<usize>().ok()?;
+    let j = p[3].parse::<usize>().ok()?;
+    let mut e = match p[0] {
+        "body" => match rule.body.get(i)? {
+            Fact::Eq(_, a, b) => match j {
+                0 => a,
+                1 => b,
+                _ => return None,
+            },
+            Fact::Fact(e) if j == 0 => e,
+            _ => return None,
+        },
+        "head" => match rule.head.0.get(i)? {
+            Action::Expr(_, e) | Action::Let(_, _, e) if j == 0 => e,
+            Action::Union(_, a, b) => match j {
+                0 => a,
+                1 => b,
+                _ => return None,
+            },
+            _ => return None,
+        },
+        _ => return None,
+    };
+    if p[4..].len() % 2 != 0 {
+        return None;
+    }
+    for pair in p[4..].chunks_exact(2) {
+        if pair[0] != "args" {
+            return None;
+        }
+        let Expr::Call(_, _, args) = e else {
+            return None;
+        };
+        e = args.get(pair[1].parse::<usize>().ok()?)?;
+    }
+    Some(e)
+}

@@ -297,14 +297,32 @@ fn generate(source: &str, report: &Value, overlay: &Value) -> Result<String, Box
             let (role, _name) = &producers[&s["producer"].as_u64().unwrap()];
             let table = s["table"].as_str().ok_or("table")?;
             let slot = s["slot"].as_u64().ok_or("slot")? as usize;
-            let outputs = write_calls(&transformed[role], table);
-            let inputs = read_calls(&renamed_consumer, table);
-            if outputs.len() != 1 || inputs.len() != 1 {
-                connections.push(json!({"producer_role":role,"consumer_role":"c","table":table,"read_slot":slot,"mapping_status":"unresolved_ast_occurrence","candidate_input_expressions":inputs.iter().map(ToString::to_string).collect::<Vec<_>>(),"candidate_output_expressions":outputs.iter().map(ToString::to_string).collect::<Vec<_>>(),"evidence":s,"note":"Committed event dependency is known; AST output occurrence is not uniquely identified. No guessed equality constraint was added."}));
+            let producer_sites = s["producer_sites"].as_array();
+            let consumer_sites = s["consumer_sites"].as_array();
+            let located = producer_sites
+                .zip(consumer_sites)
+                .filter(|(p, c)| p.len() == 1 && c.len() == 1)
+                .and_then(|(p, c)| {
+                    let pp = p[0].as_str()?;
+                    let cp = c[0].as_str()?;
+                    Some((
+                        egg_layout::visual_rule::expression_at(&transformed[role], pp)?,
+                        egg_layout::visual_rule::expression_at(&renamed_consumer, cp)?,
+                        pp,
+                        cp,
+                    ))
+                });
+            let Some((output, input, producer_path, consumer_path)) = located else {
+                let outputs = write_calls(&transformed[role], table);
+                let inputs = read_calls(&renamed_consumer, table);
+                connections.push(json!({"producer_role":role,"consumer_role":"c","table":table,"read_slot":slot,"mapping_status":"unresolved_ast_occurrence","producer_sites":s["producer_sites"],"consumer_sites":s["consumer_sites"],"candidate_input_expressions":inputs.iter().map(ToString::to_string).collect::<Vec<_>>(),"candidate_output_expressions":outputs.iter().map(ToString::to_string).collect::<Vec<_>>(),"evidence":s,"note":"Missing or multiple compiler source positions; all supplied positions are retained, no guessed equality constraint was added."}));
                 continue;
+            };
+            match (output, input) {
+                (Expr::Call(_, a, _), Expr::Call(_, b, _)) if a == table && b == table => {}
+                _ => return Err("source site operation differs from witnessed table".into()),
             }
-            let input = &inputs[0];
-            let (Expr::Call(_, _, pa), Expr::Call(_, _, ca)) = (&outputs[0], input) else {
+            let (Expr::Call(_, _, pa), Expr::Call(_, _, ca)) = (output, input) else {
                 return Err("expected table calls".into());
             };
             if pa.len() != ca.len() {
@@ -314,7 +332,27 @@ fn generate(source: &str, report: &Value, overlay: &Value) -> Result<String, Box
             for (a, b) in pa.iter().zip(ca) {
                 body.push(format!("(= {a} {b})"));
             }
-            connections.push(json!({"producer_role":role,"consumer_role":"c","table":table,"read_slot":slot,"constraint_start":start,"constraint_count":pa.len(),"evidence":s}));
+            let combined_path = |role: &str, path: &str| -> Result<String, Box<dyn Error>> {
+                let stage = stage_meta
+                    .iter()
+                    .find(|s| s["role"].as_str() == Some(role))
+                    .ok_or("missing stage")?;
+                let parts: Vec<_> = path.split('/').collect();
+                let offset = match parts[0] {
+                    "body" => stage["body_start"].as_u64().unwrap(),
+                    "head" => stage["head_start"].as_u64().unwrap(),
+                    _ => return Err("invalid source side".into()),
+                };
+                Ok(format!(
+                    "{}/{}/{}",
+                    parts[0],
+                    parts[1].parse::<u64>()? + offset,
+                    parts[2..].join("/")
+                ))
+            };
+            let producer_combined_position = combined_path(role, producer_path)?;
+            let consumer_combined_position = combined_path("c", consumer_path)?;
+            connections.push(json!({"producer_combined_position":producer_combined_position,"consumer_combined_position":consumer_combined_position,"producer_role":role,"consumer_role":"c","table":table,"read_slot":slot,"producer_position":producer_path,"consumer_position":consumer_path,"mapping_method":"compiler_source_span","constraint_start":start,"constraint_count":pa.len(),"evidence":s}));
         }
         let id = format!("combined_{:03}", ranking["rank"].as_u64().unwrap());
         let command = format!(

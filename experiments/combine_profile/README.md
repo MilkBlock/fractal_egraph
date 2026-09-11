@@ -66,3 +66,9 @@ producer 见证，不是同一事实的所有可能推导。不能将某个来�
 为该规则组合不存在，也不能把一个样本中的频率当成普适选择概率。
 JSON 中的 binding/key/row 值是运行时 Value 编号，须结合原生表 schema
 解释；它们没有被当成跨类型或跨运行的结构同构证据。
+
+当前签名加入了编译期源端口位置。Math 的旧粗粒度 101 类因此细分为
+124 类，coarse_motif_classes 保留旧计数用于对照。producer_sites 与
+consumer_sites 指向 normalized Rule AST；source_span 是这次编译源文件
+中的 byte range，不能当作跨源文件版本的全局标识。旧 profile 应重新
+生成，不能依赖 read_slot 猜测 AST 顺序。

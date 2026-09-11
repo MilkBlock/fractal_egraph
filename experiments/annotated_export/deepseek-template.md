@@ -27,3 +27,5 @@
 
 本文件统计轮数上限：{{ROUND_LIMIT}}（null 表示没有设置采样上限）。必须展示统计范围，不能把前几轮的频率当作完整原始 schedule 的频率。原始运行轮数不因统计采样改变。
 若 ast_connections_complete=false，connections 中的 unresolved_ast_occurrence 只有事件级连接已确认，AST 节点位置尚未唯一确定。展示候选位置或阶段级虚线，不要任选一个节点画实线。同表 read_slot 是 trace 内的序号，不保证等同于源 AST 的前序遍历序号。
+
+已有 compiler_source_span 映射时，优先使用 producer_combined_position / consumer_combined_position 定位整个 combined rule 内的节点；producer_position / consumer_position 是各自源阶段内的相对位置。两者均采用 body/N/expr/J/args/K 协议。位置来自编译期 span 透传到实际读写事件，不能再用 read_slot 或同名操作个数替代。新的统计签名包含连接两端的位置，所以同一对规则作用于内/外层节点会分成不同组合类。

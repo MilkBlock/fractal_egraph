@@ -123,3 +123,11 @@ ast_connections_complete=false 与 unresolved_ast_occurrence 显式表示，
 保留事件证据和候选表达式。read_slot 不能一般地作为 AST 遍历下标。
 原先“多输出直接报错”的策略已改为输出有标记的阶段级可视化连接，
 不添加猜测的等式。不支持 subsuming rewrite 的动作展开。
+
+## 编译期位置映射
+
+Math 的 834 条连接现已通过编译期源 span 传递到实际读写事件。导出器优先
+使用 producer_sites / consumer_sites，并提供整个 combined AST 的对应
+位置。旧 profile 没有这些数据时需重新运行 combine_profile，不再使用
+同名调用数量或读取序号作为定位依据。详情见 math_microbenchmark 的
+source-location-validation.md。此前描述的 70 类未定位已在本例中消除。

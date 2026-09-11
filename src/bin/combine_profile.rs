@@ -24,6 +24,7 @@ fn profile_rounds(path: &str, max_rounds: Option<usize>) -> Json {
     let mut eg = EGraph::default();
     let mut commands = eg.parse_program(Some(path.into()), &source).unwrap();
     let mut catalogue = BTreeMap::new();
+    let mut source_positions = BTreeMap::new();
     let mut index = 0;
     for command in &mut commands {
         *command = egg_layout::visual_rule::normalize(command.clone(), index);
@@ -32,6 +33,7 @@ fn profile_rounds(path: &str, max_rounds: Option<usize>) -> Json {
             if rule.name.is_empty() {
                 rule.name = format!("R{index}");
             }
+            source_positions.insert(rule.name.clone(), egg_layout::visual_rule::positions(rule));
             catalogue.insert(rule.name.clone(), original);
             index += 1;
         }
@@ -101,6 +103,7 @@ fn profile_rounds(path: &str, max_rounds: Option<usize>) -> Json {
     let mut instance_motif = BTreeMap::new();
     let mut edges = BTreeSet::new();
     let mut pairs = BTreeMap::<String, Count>::new();
+    let mut coarse_shapes = BTreeSet::new();
     let mut unknown_reads = 0;
     let mut evidence = Vec::new();
     for (&consumer, rs) in &reads {
@@ -111,6 +114,7 @@ fn profile_rounds(path: &str, max_rounds: Option<usize>) -> Json {
         let mut ordinals = BTreeMap::<String, usize>::new();
         let mut parents = BTreeMap::new();
         let mut signature = Vec::new();
+        let mut coarse_signature = Vec::new();
         let mut support = Vec::new();
         for r in rs {
             let table = r.table_name.as_deref().unwrap_or("?").to_string();
@@ -147,8 +151,25 @@ fn profile_rounds(path: &str, max_rounds: Option<usize>) -> Json {
             } else {
                 "row"
             };
-            signature.push(format!("{}@p{parent}:{table}#{slot}", pm.rule));
-            support.push(json!({"producer":producer,"consumer":consumer,"read":r.event_id,"write":write,"table":table,"slot":slot,"kind":kind,"key_values":r.key.iter().map(|v|format!("{v:?}")).collect::<Vec<_>>(),"row_values":r.row.iter().map(|v|format!("{v:?}")).collect::<Vec<_>>(),"producer_bindings":pm.bindings.iter().filter_map(|b|b.name.as_ref().map(|n|(n.to_string(),format!("{:?}",b.value)))).collect::<BTreeMap<_,_>>(),"rebuild_of":w.rebuild_of,"union_dependencies":w.union_dependencies}));
+            coarse_signature.push(format!("{}@p{parent}:{table}#{slot}", pm.rule));
+            let locate = |rule: &str, span: Option<&str>| -> Vec<String> {
+                source_positions
+                    .get(rule)
+                    .into_iter()
+                    .flatten()
+                    .filter(|(id, _, op)| Some(id.as_str()) == span && op == &table)
+                    .map(|(_, path, _)| path.clone())
+                    .collect()
+            };
+            let producer_sites = locate(pm.rule.as_ref(), w.source_span.as_deref());
+            let consumer_sites = locate(matches[&consumer].rule.as_ref(), r.source_span.as_deref());
+            signature.push(format!(
+                "{}@p{parent}:{table}#{slot}{{{}=>{}}}",
+                pm.rule,
+                producer_sites.join("|"),
+                consumer_sites.join("|")
+            ));
+            support.push(json!({"producer_source_span":w.source_span,"consumer_source_span":r.source_span,"producer_sites":producer_sites,"consumer_sites":consumer_sites,"producer":producer,"consumer":consumer,"read":r.event_id,"write":write,"table":table,"slot":slot,"kind":kind,"key_values":r.key.iter().map(|v|format!("{v:?}")).collect::<Vec<_>>(),"row_values":r.row.iter().map(|v|format!("{v:?}")).collect::<Vec<_>>(),"producer_bindings":pm.bindings.iter().filter_map(|b|b.name.as_ref().map(|n|(n.to_string(),format!("{:?}",b.value)))).collect::<BTreeMap<_,_>>(),"rebuild_of":w.rebuild_of,"union_dependencies":w.union_dependencies}));
             edges.insert((producer, consumer));
             let key = format!("{} -> {} via {}#{slot}/{kind}", pm.rule, target, table);
             let c = pairs.entry(key).or_default();
@@ -163,6 +184,7 @@ fn profile_rounds(path: &str, max_rounds: Option<usize>) -> Json {
             continue;
         }
         let key = format!("[{}] -> {target}", signature.join(" + "));
+        coarse_shapes.insert(format!("[{}] -> {target}", coarse_signature.join(" + ")));
         let c = motifs.entry(key.clone()).or_default();
         c.occurrences += 1;
         c.productive += usize::from(productive.contains(&consumer));
@@ -194,7 +216,7 @@ fn profile_rounds(path: &str, max_rounds: Option<usize>) -> Json {
         rows.sort_by(|a, b| b.1.occurrences.cmp(&a.1.occurrences).then(a.0.cmp(&b.0)));
         rows.into_iter().enumerate().map(|(i,(shape,c))|json!({"rank":i+1,"shape":shape,"observed_occurrences":c.occurrences,"productive_consumer_occurrences":c.productive,"scopes":c.scopes,"example_matches":c.examples,"continued_instances":c.continued.len(),"next_motif_counts":c.next_motifs,"next_rule_counts":c.next})).collect::<Vec<_>>()
     };
-    json!({"profile_round_limit":max_rounds,"source":path,"scope":"historical committed row-dependency motifs, not generated or executed shortcut rules","native_checks":"original native program completed; normalized profiled program completed with explicit profile_round_limit when supplied","rule_labels":rule_stats,"pair_rankings":ranked(pairs),"motif_rankings":ranked(motifs),"witnesses":evidence,"surviving_reads_without_same_session_producer":unknown_reads,"executed_compiled_macros":0,"selection_policy":"none: ranking is observational, no activation policy","limitations":["one execution per scope, not independent benchmark repetitions","motifs retain producer-instance aliasing and same-table read ordinals; not full typed binding-isomorphism classes","boundary inputs and union support remain explicit; not closed rewrite certificates","historical support remains counted even if row origins are invalidated later","union-only causes are shown as rebuild support, not ranked as Inserted producers"]})
+    json!({"coarse_motif_classes":coarse_shapes.len(),"source_mapping":"compiler source spans mapped to normalized AST positions; motif identity includes endpoint positions","profile_round_limit":max_rounds,"source":path,"scope":"historical committed row-dependency motifs, not generated or executed shortcut rules","native_checks":"original native program completed; normalized profiled program completed with explicit profile_round_limit when supplied","rule_labels":rule_stats,"pair_rankings":ranked(pairs),"motif_rankings":ranked(motifs),"witnesses":evidence,"surviving_reads_without_same_session_producer":unknown_reads,"executed_compiled_macros":0,"selection_policy":"none: ranking is observational, no activation policy","limitations":["one execution per scope, not independent benchmark repetitions","motifs retain producer-instance aliasing and same-table read ordinals; not full typed binding-isomorphism classes","boundary inputs and union support remain explicit; not closed rewrite certificates","historical support remains counted even if row origins are invalidated later","union-only causes are shown as rebuild support, not ranked as Inserted producers"]})
 }
 fn main() {
     let path = std::env::args()

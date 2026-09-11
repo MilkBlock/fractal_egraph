@@ -16,7 +16,7 @@
 6. 检查两仓库 AGENTS.md 和工作区，不覆盖未提交工作；不要手改 vendor WASM 来假装完成，若修改了 transpiler 必须找出真实构建源并重建适配的产物。
 
 验收：
-- combined.egg 中 24 条 original_rule 和 101 条 combined_witness_bundle 全部展示，排序和 JSON 一致。
+- combined.egg 中 24 条 original_rule 和 124 条 combined_witness_bundle 全部展示，排序和 JSON 一致。
 - 中文标签、重复显示名、变量复用、嵌套 position、缺失标签回退、非法 JSON/未知 schema/过期 selector 的诊断均有测试。
 - 未标注 .egg 与现有 Rust 示例仍正常；用户字符串不得当作可执行 Typst 或 HTML 注入，应使用现有转义方式。
 - 保留所有输入/输出/guard/union；不要把 producer 两个角色 p0/p1 无条件合并。
@@ -27,3 +27,5 @@
 
 本文件统计轮数上限：5（null 表示没有设置采样上限）。必须展示统计范围，不能把前几轮的频率当作完整原始 schedule 的频率。原始运行轮数不因统计采样改变。
 若 ast_connections_complete=false，connections 中的 unresolved_ast_occurrence 只有事件级连接已确认，AST 节点位置尚未唯一确定。展示候选位置或阶段级虚线，不要任选一个节点画实线。同表 read_slot 是 trace 内的序号，不保证等同于源 AST 的前序遍历序号。
+
+已有 compiler_source_span 映射时，优先使用 producer_combined_position / consumer_combined_position 定位整个 combined rule 内的节点；producer_position / consumer_position 是各自源阶段内的相对位置。两者均采用 body/N/expr/J/args/K 协议。位置来自编译期 span 透传到实际读写事件，不能再用 read_slot 或同名操作个数替代。新的统计签名包含连接两端的位置，所以同一对规则作用于内/外层节点会分成不同组合类。
