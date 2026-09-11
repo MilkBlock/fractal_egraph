@@ -99,7 +99,17 @@ fn run(f: &Json) -> Json {
         }
         writeln!(source, "(Node {} {} {tail})", n["id"], n["op"]).unwrap();
     }
-    for (id, p) in f["pairs"].as_array().unwrap().iter().enumerate() {
+    eg.parse_and_run_program(None, &source).unwrap();
+    source.clear();
+    let (pairs, co_report) = if f.get("roots").is_some() {
+        co_occurrence(&mut eg, f)
+    } else {
+        (
+            f["pairs"].as_array().unwrap().clone(),
+            json!({"mode":"explicit AU unit-test fixture"}),
+        )
+    };
+    for (id, p) in pairs.iter().enumerate() {
         writeln!(source, "(Need {} {})", p[0], p[1]).unwrap();
         if p[2] == true {
             writeln!(source, "(Allowed {} {} {id})", p[0], p[1]).unwrap();
@@ -159,10 +169,85 @@ fn run(f: &Json) -> Json {
     } else {
         Json::Null
     };
-    json!({"engine":"native egglog fixed-point AU rules","input_nodes":f["nodes"].as_array().unwrap().len(),"pair_frontier":f["pairs"].as_array().unwrap().len(),"au_rows":au_rows,"actual_candidates":candidates.len(),"expected_candidates":expected.len(),"exact_candidate_parity":candidates==expected,"matching_and_dedup":dedup,
+    json!({"engine":"native egglog fixed-point AU rules","input_nodes":f["nodes"].as_array().unwrap().len(),"pair_frontier":f["pairs"].as_array().unwrap().len(),"au_rows":au_rows,"actual_candidates":candidates.len(),"expected_candidates":expected.len(),"exact_candidate_parity":candidates==expected,"matching_and_dedup":dedup,"co_occurrence":co_report,
         "missing":expected.difference(&candidates).take(10).map(|s|serde_json::from_str::<Json>(s).unwrap()).collect::<Vec<_>>(),
         "extra":candidates.difference(&expected).take(10).map(|s|serde_json::from_str::<Json>(s).unwrap()).collect::<Vec<_>>(),
-        "scope":"raw candidates before deduplication and library selection; finite acyclic syntax DAG; upstream co-occurrence frontier supplied; not an equality-saturation or full babble replacement"})
+        "scope":"raw candidates before deduplication and library selection; finite acyclic syntax DAG; native co-occurrence when roots are supplied; not an equality-saturation or full babble replacement"})
+}
+fn co_occurrence(eg: &mut EGraph, f: &Json) -> (Vec<Json>, Json) {
+    eg.parse_and_run_program(
+        None,
+        include_str!("../../experiments/egglog_babble/co_occurrence.egg"),
+    )
+    .unwrap();
+    let nodes: BTreeMap<_, _> = f["nodes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|n| (n["id"].as_u64().unwrap(), n))
+        .collect();
+    let mut pairs = BTreeSet::new();
+    let mut pending: Vec<_> = nodes
+        .iter()
+        .flat_map(|(&a, x)| {
+            nodes
+                .iter()
+                .filter(move |(_, y)| x["op"] == y["op"])
+                .map(move |(&b, _)| (a, b))
+        })
+        .collect();
+    while let Some((a, b)) = pending.pop() {
+        if !pairs.insert((a, b)) {
+            continue;
+        }
+        if nodes[&a]["op"] == nodes[&b]["op"] {
+            pending.extend(
+                nodes[&a]["children"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .zip(nodes[&b]["children"].as_array().unwrap())
+                    .map(|(a, b)| (a.as_u64().unwrap(), b.as_u64().unwrap())),
+            );
+        }
+    }
+    let mut source = String::new();
+    for (pos, root) in f["roots"].as_array().unwrap().iter().enumerate() {
+        assert!(nodes.contains_key(&root.as_u64().unwrap()));
+        writeln!(source, "(Use -1 {pos} {root})").unwrap();
+    }
+    for (&id, n) in &nodes {
+        for (pos, child) in n["children"].as_array().unwrap().iter().enumerate() {
+            writeln!(source, "(Use {id} {pos} {child})").unwrap();
+        }
+    }
+    for &(a, b) in &pairs {
+        writeln!(source, "(CoQuery {a} {b})").unwrap();
+    }
+    eg.parse_and_run_program(None, &source).unwrap();
+    eg.parse_and_run_program(None, "(run-schedule (saturate (run)))")
+        .unwrap();
+    let mut yes = BTreeSet::new();
+    eg.function_for_each("CoYes", |r| {
+        yes.insert((
+            eg.value_to_base::<i64>(r.vals[0]) as u64,
+            eg.value_to_base::<i64>(r.vals[1]) as u64,
+        ));
+    })
+    .unwrap();
+    let actual: Vec<_> = pairs
+        .iter()
+        .map(|&(a, b)| json!([a, b, yes.contains(&(a, b))]))
+        .collect();
+    let expected: BTreeSet<_> = f["pairs"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(Json::to_string)
+        .collect();
+    let actual_set: BTreeSet<_> = actual.iter().map(Json::to_string).collect();
+    let report = json!({"mode":"native egglog capped occurrence analysis","frontier_from_nodes_only":true,"queried_pairs":pairs.len(),"true_pairs":yes.len(),"exact_parity":actual_set==expected});
+    (actual, report)
 }
 fn match_candidates(eg: &mut EGraph, candidates: &BTreeSet<String>, reference: &Json) -> Json {
     eg.parse_and_run_program(None,"(sort BS) (constructor BNil () BS) (constructor BCons (i64 BS) BS) (relation Matched (i64 i64 BS)) (ruleset candidates)").unwrap();
@@ -291,17 +376,17 @@ fn match_candidates(eg: &mut EGraph, candidates: &BTreeSet<String>, reference: &
         matches[id].push((root, actuals));
     })
     .unwrap();
-    let mut grouped = BTreeMap::<Vec<(i64, Vec<i64>)>, usize>::new();
-    for (mut signature, size) in matches.into_iter().zip(sizes) {
+    let mut grouped = BTreeMap::<Vec<(i64, Vec<i64>)>, (usize, usize)>::new();
+    for (id, (mut signature, size)) in matches.into_iter().zip(sizes).enumerate() {
         signature.sort();
         grouped
             .entry(signature)
-            .and_modify(|s| *s = (*s).min(size))
-            .or_insert(size);
+            .and_modify(|s| *s = (*s).min((size, id)))
+            .or_insert((size, id));
     }
     let actual: BTreeSet<_> = grouped
         .iter()
-        .map(|(m, s)| json!({"matches":m,"size":s}).to_string())
+        .map(|(m, s)| json!({"matches":m,"size":s.0}).to_string())
         .collect();
     let expected: BTreeSet<_> = reference
         .as_array()
@@ -309,15 +394,24 @@ fn match_candidates(eg: &mut EGraph, candidates: &BTreeSet<String>, reference: &
         .iter()
         .map(Json::to_string)
         .collect();
-    json!({"native_match_rows":rows,"actual_groups":actual.len(),"expected_groups":expected.len(),"signature_and_minimum_size_parity":actual==expected,"missing_groups":expected.difference(&actual).count(),"extra_groups":actual.difference(&expected).count(),"scope":"native egglog matching; Rust groups exact match signatures and chooses minimum pattern size; tied syntactic representatives need not be identical"})
+    json!({"selected_candidates":grouped.values().map(|(_,id)|serde_json::from_str::<Json>(candidates.iter().nth(*id).unwrap()).unwrap()).collect::<Vec<_>>(),"native_match_rows":rows,"actual_groups":actual.len(),"expected_groups":expected.len(),"signature_and_minimum_size_parity":actual==expected,"missing_groups":expected.difference(&actual).count(),"extra_groups":actual.difference(&expected).count(),"scope":"native egglog matching; Rust groups exact match signatures and chooses minimum pattern size; tied syntactic representatives need not be identical"})
 }
 fn main() {
     let a: Vec<_> = std::env::args().collect();
     assert_eq!(a.len(), 3, "egglog_babble fixture.json report.json");
     let fixture: Json = serde_json::from_str(&std::fs::read_to_string(&a[1]).unwrap()).unwrap();
-    let report = run(&fixture);
+    let mut report = run(&fixture);
+    if !report["matching_and_dedup"].is_null() {
+        let patterns = report["matching_and_dedup"]["selected_candidates"].take();
+        let path = format!("{}.candidates.json", a[2]);
+        std::fs::write(&path, serde_json::to_string(&patterns).unwrap()).unwrap();
+        report["candidate_file"] = json!(path);
+    }
     std::fs::write(&a[2], serde_json::to_string_pretty(&report).unwrap()).unwrap();
     println!("{report}");
+    if fixture.get("roots").is_some() {
+        assert_eq!(report["co_occurrence"]["exact_parity"], true);
+    }
     assert_eq!(report["exact_candidate_parity"], true);
     if !report["matching_and_dedup"].is_null() {
         assert_eq!(
@@ -329,6 +423,33 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn co_occurrence_counts_duplicate_root_positions() {
+        for (roots, yes) in [(json!([0]), false), (json!([0, 0]), true)] {
+            let f = json!({"nodes":[{"id":0,"op":"leaf","children":[]}],"roots":roots,"pairs":[[0,0,yes]]});
+            let (_, r) = co_occurrence(&mut EGraph::default(), &f);
+            assert_eq!(r["exact_parity"], true);
+        }
+    }
+    #[test]
+    fn co_occurrence_does_not_trust_reference_flags() {
+        let f = json!({"nodes":[{"id":0,"op":"leaf","children":[]}],"roots":[0,0],"pairs":[[0,0,false]]});
+        let (actual, r) = co_occurrence(&mut EGraph::default(), &f);
+        assert_eq!(actual, vec![json!([0, 0, true])]);
+        assert_eq!(r["exact_parity"], false);
+    }
+    #[test]
+    fn repeated_sibling_slots_count_as_two_occurrences() {
+        let f = json!({"nodes":[{"id":0,"op":"leaf","children":[]},{"id":1,"op":"pair","children":[0,0]}],"roots":[1],"pairs":[[0,0,true],[1,1,false]]});
+        let (_, r) = co_occurrence(&mut EGraph::default(), &f);
+        assert_eq!(r["exact_parity"], true);
+    }
+    #[test]
+    fn repeated_parent_propagates_multiplicity_and_unreachable_stays_absent() {
+        let f = json!({"nodes":[{"id":0,"op":"leaf","children":[]},{"id":1,"op":"parent","children":[0]},{"id":2,"op":"unused","children":[]}],"roots":[1,1],"pairs":[[0,0,true],[1,1,true],[2,2,false]]});
+        let (_, r) = co_occurrence(&mut EGraph::default(), &f);
+        assert_eq!(r["exact_parity"], true);
+    }
     fn fixture(allowed: bool) -> Json {
         json!({"max_arity":1,"nodes":[{"id":0,"op":"a","children":[]},{"id":1,"op":"b","children":[]},{"id":2,"op":"pair","children":[0,0]},{"id":3,"op":"pair","children":[1,1]}],
             "pairs":[[2,3,true],[0,1,allowed]],

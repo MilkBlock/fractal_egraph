@@ -1,6 +1,14 @@
 {
   "actual_candidates": 915,
   "au_rows": 99451,
+  "candidate_file": "experiments/egglog_babble/results.json.candidates.json",
+  "co_occurrence": {
+    "exact_parity": true,
+    "frontier_from_nodes_only": true,
+    "mode": "native egglog capped occurrence analysis",
+    "queried_pairs": 100180,
+    "true_pairs": 99451
+  },
   "engine": "native egglog fixed-point AU rules",
   "exact_candidate_parity": true,
   "expected_candidates": 915,
@@ -13,9 +21,10 @@
     "missing_groups": 0,
     "native_match_rows": 3992,
     "scope": "native egglog matching; Rust groups exact match signatures and chooses minimum pattern size; tied syntactic representatives need not be identical",
+    "selected_candidates": null,
     "signature_and_minimum_size_parity": true
   },
   "missing": [],
   "pair_frontier": 100180,
-  "scope": "raw candidates before deduplication and library selection; finite acyclic syntax DAG; upstream co-occurrence frontier supplied; not an equality-saturation or full babble replacement"
+  "scope": "raw candidates before deduplication and library selection; finite acyclic syntax DAG; native co-occurrence when roots are supplied; not an equality-saturation or full babble replacement"
 }

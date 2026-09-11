@@ -1,0 +1,20 @@
+{
+  "scope": "same syntax corpus and upstream selector; native co-occurrence, AU and matching; not independent workloads",
+  "train_cost_equal": true,
+  "test_cost_equal": true,
+  "library_count_equal": true,
+  "selected_definitions_equal": true,
+  "both_expansions_verified": true,
+  "train": {
+    "babble_corpus_plus_library_nodes": 7237,
+    "exact_whole_program_dictionary_nodes": 9009,
+    "programs": 99,
+    "raw_ast_nodes": 8811
+  },
+  "test": {
+    "babble_corpus_plus_library_nodes": 1847,
+    "exact_whole_program_dictionary_nodes": 2258,
+    "programs": 25,
+    "raw_ast_nodes": 2208
+  }
+}

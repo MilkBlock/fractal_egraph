@@ -1,0 +1,15 @@
+; Exact for a fixed acyclic syntax forest (one node per class, no alternatives).
+; All distinct reachable nodes coexist. A node coexists with itself only if its
+; unfolded occurrence count is at least two. Track that threshold, not all paths.
+(relation Use (i64 i64 i64))
+(relation Active (i64))
+(relation Many (i64))
+(relation CoQuery (i64 i64))
+(relation CoYes (i64 i64))
+(Active -1)
+(rule ((Active p) (Use p i x)) ((Active x)))
+(rule ((Active p) (Active q) (Use p i x) (Use q j x) (!= p q)) ((Many x)))
+(rule ((Active p) (Use p i x) (Use p j x) (!= i j)) ((Many x)))
+(rule ((Many p) (Use p i x)) ((Many x)))
+(rule ((CoQuery a b) (Active a) (Active b) (!= a b)) ((CoYes a b)))
+(rule ((CoQuery a a) (Many a)) ((CoYes a a)))

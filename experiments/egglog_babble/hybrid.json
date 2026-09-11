@@ -1,0 +1,226 @@
+{
+  "corpus_reference_counts": {
+    "test": {
+      "262": 3,
+      "583": 43
+    },
+    "train": {
+      "262": 10,
+      "583": 178
+    }
+  },
+  "domain_equations": 0,
+  "encoding": "typed-ast",
+  "engine": "native egglog candidates + upstream beam/extraction",
+  "libraries": [
+    {
+      "ast_nodes": 15,
+      "definition": {
+        "args": [
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "args": [
+                          {
+                            "args": [
+                              {
+                                "args": [],
+                                "op": "Data(\"leaf:{\\\"var\\\":\\\"local:3\\\"}\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Var(0)"
+                              }
+                            ],
+                            "op": "Data(\"field-array:\\\"require_eq\\\"\", 2)"
+                          }
+                        ],
+                        "op": "Data(\"array\", 1)"
+                      }
+                    ],
+                    "op": "Data(\"key:body\", 1)"
+                  },
+                  {
+                    "args": [
+                      {
+                        "args": [
+                          {
+                            "args": [
+                              {
+                                "args": [],
+                                "op": "Data(\"leaf:{\\\"var\\\":\\\"local:3\\\"}\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Var(1)"
+                              }
+                            ],
+                            "op": "Data(\"field-array:\\\"union\\\"\", 2)"
+                          }
+                        ],
+                        "op": "Data(\"array\", 1)"
+                      }
+                    ],
+                    "op": "Data(\"key:head\", 1)"
+                  },
+                  {
+                    "args": [
+                      {
+                        "args": [],
+                        "op": "Data(\"atom:false\", 0)"
+                      }
+                    ],
+                    "op": "Data(\"key:naive\", 1)"
+                  }
+                ],
+                "op": "Data(\"object\", 3)"
+              }
+            ],
+            "op": "Lambda"
+          }
+        ],
+        "op": "Lambda"
+      },
+      "id": 583
+    },
+    {
+      "ast_nodes": 23,
+      "definition": {
+        "args": [
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "args": [
+                          {
+                            "args": [
+                              {
+                                "args": [
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"leaf:{\\\"var\\\":\\\"local:2\\\"}\", 0)"
+                                      },
+                                      {
+                                        "args": [
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"leaf:{\\\"var\\\":\\\"in:0\\\"}\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"leaf:{\\\"var\\\":\\\"in:1\\\"}\", 0)"
+                                          }
+                                        ],
+                                        "op": "Data(\"call:\\\"Mul\\\"\", 2)"
+                                      }
+                                    ],
+                                    "op": "Data(\"field-array:\\\"require_eq\\\"\", 2)"
+                                  }
+                                ],
+                                "op": "Data(\"array\", 1)"
+                              }
+                            ],
+                            "op": "Data(\"key:body\", 1)"
+                          },
+                          {
+                            "args": [
+                              {
+                                "args": [
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"leaf:{\\\"var\\\":\\\"local:2\\\"}\", 0)"
+                                      },
+                                      {
+                                        "args": [
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"leaf:{\\\"var\\\":\\\"in:1\\\"}\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"leaf:{\\\"var\\\":\\\"in:0\\\"}\", 0)"
+                                          }
+                                        ],
+                                        "op": "Data(\"call:\\\"Mul\\\"\", 2)"
+                                      }
+                                    ],
+                                    "op": "Data(\"field-array:\\\"union\\\"\", 2)"
+                                  }
+                                ],
+                                "op": "Data(\"array\", 1)"
+                              }
+                            ],
+                            "op": "Data(\"key:head\", 1)"
+                          },
+                          {
+                            "args": [
+                              {
+                                "args": [],
+                                "op": "Data(\"atom:false\", 0)"
+                              }
+                            ],
+                            "op": "Data(\"key:naive\", 1)"
+                          }
+                        ],
+                        "op": "Data(\"object\", 3)"
+                      }
+                    ],
+                    "op": "Data(\"key:p0\", 1)"
+                  },
+                  {
+                    "args": [
+                      {
+                        "args": [],
+                        "op": "Var(0)"
+                      }
+                    ],
+                    "op": "Data(\"key:p1\", 1)"
+                  }
+                ],
+                "op": "Data(\"object\", 2)"
+              }
+            ],
+            "op": "Data(\"key:producers\", 1)"
+          }
+        ],
+        "op": "Lambda"
+      },
+      "id": 262
+    }
+  ],
+  "lossless_expansion": {
+    "test": true,
+    "train": true
+  },
+  "scope": "offline syntax learning; conditional effects preserved as source syntax, not inferred or certified; heldout classes within one trace, not independent runs; AST counts are not runtime memory savings",
+  "selected_train_libraries": 2,
+  "settings": {
+    "beam": 16,
+    "libraries_per_step": 2,
+    "library_iterations": 2,
+    "max_arity": 3
+  },
+  "test": {
+    "babble_corpus_plus_library_nodes": 1847,
+    "exact_whole_program_dictionary_nodes": 2258,
+    "programs": 25,
+    "raw_ast_nodes": 2208
+  },
+  "train": {
+    "babble_corpus_plus_library_nodes": 7237,
+    "exact_whole_program_dictionary_nodes": 9009,
+    "programs": 99,
+    "raw_ast_nodes": 8811
+  }
+}

@@ -84,3 +84,11 @@ The `au-reference` mode exports raw AU candidates and match signatures directly
 from upstream for the native egglog differential test. It skips library selection.
 Run `python3 tools/babble_adapter/scripts/compare_egglog.py`; the scoped replacement
 experiment is documented in `experiments/egglog_babble/README.md`.
+
+`candidates=PATH` selects the hybrid route: read the native candidate JSON, turn
+its binder-free patterns into library rewrites, and use upstream beam selection
+and extraction without running upstream candidate generation again. Candidates
+are ordered as upstream PartialExpr values to preserve beam tie behavior.
+The comparison script runs both complete routes, checks costs and selected
+definitions, and verifies train/test expansion. Co-occurrence reference flags in
+the fixture are now comparison-only; native egglog computes them from roots/edges.

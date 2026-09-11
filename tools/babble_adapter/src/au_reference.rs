@@ -65,7 +65,7 @@ pub fn export(train: &[Expr<Op>], path: &str) {
         })
         .collect();
     // All same-operator pairs can produce nontrivial patterns. Other pairs are
-    // needed only when reached as their children; preserve upstream co-occurrence.
+    // needed only when reached as their children; flags below are reference only.
     let mut pairs = BTreeSet::new();
     let mut pending: Vec<_> = nodes
         .iter()
@@ -80,7 +80,7 @@ pub fn export(train: &[Expr<Op>], path: &str) {
         if !pairs.insert((a, b)) {
             continue;
         }
-        if co.may_co_occur(a.into(), b.into()) && nodes[&a].operation() == nodes[&b].operation() {
+        if nodes[&a].operation() == nodes[&b].operation() {
             pending.extend(
                 nodes[&a]
                     .args()
@@ -113,7 +113,7 @@ pub fn export(train: &[Expr<Op>], path: &str) {
             json!({"matches":matches,"size":tree_size(&pattern(&p.ast))})
         })
         .collect();
-    let data = json!({"scope":"upstream raw candidates before deduplication; acyclic single-enode classes; maximum arity 3; co-occurrence supplied by upstream", "max_arity":3,
+    let data = json!({"scope":"reference only; co-occurrence flags must not feed native inference", "max_arity":3,"roots":roots.iter().map(|i|usize::from(*i)).collect::<Vec<_>>(),
         "nodes":nodes.iter().map(|(i,n)|json!({"id":i,"op":n.operation().to_string(),"children":n.args().iter().map(|x|usize::from(*x)).collect::<Vec<_>>()})).collect::<Vec<_>>(),
         "pairs":pairs.iter().map(|&(a,b)|json!([a,b,co.may_co_occur(a.into(),b.into())])).collect::<Vec<_>>(),
         "expected":candidates.iter().map(|s|serde_json::from_str::<Value>(s).unwrap()).collect::<Vec<_>>(),"expected_dedup_signatures":signatures});

@@ -8,6 +8,7 @@ use babble::{
 use serde_json::{json, Value};
 use std::{collections::BTreeMap, fmt};
 mod au_reference;
+mod from_candidates;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 enum Op {
@@ -309,7 +310,14 @@ fn main() {
         );
     }
     let experiment = BeamExperiment::<Op, ()>::new(vec![], 16, 16, 2, (), false, Some(3), 2);
-    let learned = experiment.run_multi(train.iter().cloned().map(|e| vec![e]).collect());
+    let candidate_path = args.get(3).and_then(|s| s.strip_prefix("candidates="));
+    let learned = if let Some(path) = candidate_path {
+        let patterns: Value =
+            serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+        from_candidates::run(&train, patterns.as_array().unwrap())
+    } else {
+        experiment.run_multi(train.iter().cloned().map(|e| vec![e]).collect())
+    };
     let train_verified = verify(&learned.final_expr, &train);
     let mut graph = egg::EGraph::<AstNode<Op>, PartialLibCost>::default();
     let roots: Vec<_> = test
@@ -321,7 +329,7 @@ fn main() {
     let heldout: Expr<Op> = apply_libs(graph, &roots, &learned.rewrites).into();
     let test_verified = verify(&heldout, &test);
     let metrics = |input: &[Expr<Op>], out: &Expr<Op>| json!({"programs":input.len(),"raw_ast_nodes":1+input.iter().map(Expr::len).sum::<usize>(),"exact_whole_program_dictionary_nodes":exact_cost(input),"babble_corpus_plus_library_nodes":out.len()});
-    let report = json!({"engine":"upstream babble BeamExperiment","encoding":if compact {"typed-ast"} else {"json-control"},"domain_equations":0,"settings":{"beam":16,"libraries_per_step":2,"max_arity":3,"library_iterations":2},"train":metrics(&train,&learned.final_expr),"test":metrics(&test,&heldout),"selected_train_libraries":learned.num_libs,"lossless_expansion":{"train":train_verified,"test":test_verified},"libraries":definitions(&learned.final_expr),"corpus_reference_counts":{"train":corpus_refs(&learned.final_expr),"test":corpus_refs(&heldout)},"scope":"offline syntax learning; conditional effects preserved as source syntax, not inferred or certified; heldout classes within one trace, not independent runs; AST counts are not runtime memory savings"});
+    let report = json!({"engine":if candidate_path.is_some(){"native egglog candidates + upstream beam/extraction"}else{"upstream babble BeamExperiment"},"encoding":if compact {"typed-ast"} else {"json-control"},"domain_equations":0,"settings":{"beam":16,"libraries_per_step":2,"max_arity":3,"library_iterations":2},"train":metrics(&train,&learned.final_expr),"test":metrics(&test,&heldout),"selected_train_libraries":learned.num_libs,"lossless_expansion":{"train":train_verified,"test":test_verified},"libraries":definitions(&learned.final_expr),"corpus_reference_counts":{"train":corpus_refs(&learned.final_expr),"test":corpus_refs(&heldout)},"scope":"offline syntax learning; conditional effects preserved as source syntax, not inferred or certified; heldout classes within one trace, not independent runs; AST counts are not runtime memory savings"});
     std::fs::write(
         format!("{}.programs.json", args[2]),
         serde_json::to_string(&json!({"train":dump(&learned.final_expr),"test":dump(&heldout)}))
