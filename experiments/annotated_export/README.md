@@ -87,3 +87,25 @@ vendor WASM 的 transpile_egg_to_eggplant。所以 DeepSeek 必须在 .egg 注�
 仍存在时提取元数据，并通过 source map 传到生成 Rust/PatternIr，再由
 已有 Typst→SVG 流程渲染。完整工作提示词由 deepseek-template.md 生成，
 含输入路径、协议、默认回退、统计含义和验收测试。
+
+
+## dsl_type 扩展（2026-09-11 检查）
+
+支持 kind=dsl_type，id 对应 datatype/function/relation/constructor 名字；
+variants 中的 fields 是输入字段名，typst 是可选显示模板，precedence 是
+可选显示优先级。导出器保留整个元数据对象，不把它误当作 rule labels。
+字段数量已与 CYK 原生函数 schema 核对。P/End 模板有意不显示全部参数，
+显示缩略不表示可删除对应绑定或边。
+
+之前直接写入 datatype 的 :args_name 不被本地 egglog 接受，已移除；
+同样的信息完整保留在 JSON fields 中。R2 新增标签现已同步到组合的各
+producer/consumer 命名空间。可复现的当前注释源保存为 cyk/source.egg。
+
+重新生成时使用：
+
+```
+cargo run --bin export_combined_egg -- experiments/annotated_export/cyk/source.egg experiments/combine_profile/cyk.json experiments/annotated_export/cyk
+```
+
+不要用无注释的上游 CYK 覆盖这个源，否则无法保留新增的 DSL 显示模板。
+此次验证覆盖原生解析、执行和元数据传播，不包含浏览器/Typst 渲染测试。

@@ -151,6 +151,7 @@ fn generate(source: &str, report: &Value, overlay: &Value) -> Result<String, Box
     let mut parser = EGraph::default();
     let commands = parser.parse_program(None, source)?;
     let mut all = json!({});
+    let mut dsl_types = BTreeMap::new();
     for line in source.lines() {
         if let Some(raw) = line.trim_start().strip_prefix(PREFIX) {
             let meta: Value = serde_json::from_str(raw)?;
@@ -158,6 +159,15 @@ fn generate(source: &str, report: &Value, overlay: &Value) -> Result<String, Box
                 return Err("unknown egg-viz schema".into());
             }
             let id = meta["id"].as_str().ok_or("annotation lacks id")?;
+            if meta["kind"] == "dsl_type" {
+                if !meta["variants"].is_object() {
+                    return Err("dsl_type variants must be an object".into());
+                }
+                if dsl_types.insert(id.to_string(), meta.clone()).is_some() {
+                    return Err("duplicate dsl_type id".into());
+                }
+                continue;
+            }
             if all.get(id).is_some() {
                 return Err("duplicate annotation id".into());
             }
@@ -198,8 +208,23 @@ fn generate(source: &str, report: &Value, overlay: &Value) -> Result<String, Box
             );
             original.insert(id, rule.clone());
         } else {
-            out += &format!("{command}\n");
+            let id = match &command {
+                Command::Datatype { name, .. }
+                | Command::Constructor { name, .. }
+                | Command::Function { name, .. }
+                | Command::Relation { name, .. }
+                | Command::Sort { name, .. } => Some(name),
+                _ => None,
+            };
+            if let Some(meta) = id.and_then(|name| dsl_types.remove(name)) {
+                out += &annotate(meta, &command.to_string());
+            } else {
+                out += &format!("{command}\n");
+            }
         }
+    }
+    if !dsl_types.is_empty() {
+        return Err(format!("unattached dsl_type annotations: {:?}", dsl_types.keys()).into());
     }
     for id in all.as_object().unwrap().keys() {
         if !original.contains_key(id) {
@@ -414,5 +439,56 @@ mod export_tests {
         );
         p["rule_labels"]["R0"]["definition"] = json!("stale");
         assert!(generate(&s, &p, &json!({})).is_err());
+    }
+}
+
+#[cfg(test)]
+mod dsl_metadata_tests {
+    use super::*;
+    #[test]
+    fn preserves_dsl_templates_and_lifts_updated_labels() {
+        let source =
+            std::fs::read_to_string("experiments/annotated_export/cyk/source.egg").unwrap();
+        let report: Value = serde_json::from_str(
+            &std::fs::read_to_string("experiments/combine_profile/cyk.json").unwrap(),
+        )
+        .unwrap();
+        let out = generate(&source, &report, &json!({})).unwrap();
+        let metas: Vec<Value> = out
+            .lines()
+            .filter_map(|l| l.strip_prefix(PREFIX))
+            .map(|s| serde_json::from_str(s).unwrap())
+            .collect();
+        assert_eq!(metas.iter().filter(|m| m["kind"] == "dsl_type").count(), 8);
+        assert!(
+            !out.lines()
+                .filter(|l| !l.trim_start().starts_with(';'))
+                .any(|l| l.contains(":args_name"))
+        );
+        let mut eg = EGraph::default();
+        eg.parse_and_run_program(None, &out).unwrap();
+        for meta in metas.iter().filter(|m| m["kind"] == "dsl_type") {
+            for (variant, config) in meta["variants"].as_object().unwrap() {
+                let fields = config["fields"].as_array().unwrap();
+                assert_eq!(
+                    fields.len(),
+                    eg.get_function(variant).unwrap().schema().input.len()
+                );
+            }
+        }
+        for meta in metas
+            .iter()
+            .filter(|m| m["kind"] == "combined_witness_bundle")
+        {
+            for stage in meta["stages"].as_array().unwrap() {
+                if stage["source_rule"] == "R2" {
+                    let role = stage["role"].as_str().unwrap();
+                    assert_eq!(
+                        meta["labels"]["bindings"][format!("{role}_a")],
+                        "parent nonterminal"
+                    );
+                }
+            }
+        }
     }
 }
