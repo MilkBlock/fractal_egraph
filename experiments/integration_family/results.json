@@ -1,0 +1,888 @@
+{
+  "all_lhs_starts_control": {
+    "checkpoints": [
+      {
+        "beyond_trigger_lhs": 26165,
+        "blocked_bindings": {
+          "rhs-not-present": 56725
+        },
+        "complete_rule_states": 12548,
+        "coverage_ratio": 0.11354943620359273,
+        "depth": 1,
+        "joint_unique": 118988,
+        "lhs_unique": 92823,
+        "new_since_previous_checkpoint": 118988,
+        "remaining_frontier": 0,
+        "revisited_transitions": 12548,
+        "rhs_unique": 54458,
+        "visited_bindings": 69273
+      },
+      {
+        "beyond_trigger_lhs": 26165,
+        "blocked_bindings": {
+          "rhs-not-present": 56725
+        },
+        "complete_rule_states": 12548,
+        "coverage_ratio": 0.11354943620359273,
+        "depth": 2,
+        "joint_unique": 118988,
+        "lhs_unique": 92823,
+        "new_since_previous_checkpoint": 0,
+        "remaining_frontier": 0,
+        "revisited_transitions": 12548,
+        "rhs_unique": 54458,
+        "visited_bindings": 69273
+      },
+      {
+        "beyond_trigger_lhs": 26165,
+        "blocked_bindings": {
+          "rhs-not-present": 56725
+        },
+        "complete_rule_states": 12548,
+        "coverage_ratio": 0.11354943620359273,
+        "depth": 4,
+        "joint_unique": 118988,
+        "lhs_unique": 92823,
+        "new_since_previous_checkpoint": 0,
+        "remaining_frontier": 0,
+        "revisited_transitions": 12548,
+        "rhs_unique": 54458,
+        "visited_bindings": 69273
+      },
+      {
+        "beyond_trigger_lhs": 26165,
+        "blocked_bindings": {
+          "rhs-not-present": 56725
+        },
+        "complete_rule_states": 12548,
+        "coverage_ratio": 0.11354943620359273,
+        "depth": 8,
+        "joint_unique": 118988,
+        "lhs_unique": 92823,
+        "new_since_previous_checkpoint": 0,
+        "remaining_frontier": 0,
+        "revisited_transitions": 12548,
+        "rhs_unique": 54458,
+        "visited_bindings": 69273
+      }
+    ],
+    "sample_complete_transitions": [
+      {
+        "binding": [
+          "Value(19319)",
+          "Value(3)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          658013,
+          720744
+        ],
+        "next_binding": [
+          "Value(756766)",
+          "Value(45)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          653795,
+          655260,
+          667790,
+          756864,
+          894173,
+          1047204
+        ]
+      },
+      {
+        "binding": [
+          "Value(44)",
+          "Value(45)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          655371,
+          687782
+        ],
+        "next_binding": [
+          "Value(109)",
+          "Value(91)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641767,
+          655284,
+          655566,
+          688390,
+          688938,
+          1032958
+        ]
+      },
+      {
+        "binding": [
+          "Value(564)",
+          "Value(1109)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          661167,
+          699203
+        ],
+        "next_binding": [
+          "Value(60609)",
+          "Value(16524)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          643285,
+          656179,
+          671563,
+          902402,
+          934901,
+          1039730
+        ]
+      },
+      {
+        "binding": [
+          "Value(1689)",
+          "Value(252)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          661167,
+          707684
+        ],
+        "next_binding": [
+          "Value(12797)",
+          "Value(1607)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          642104,
+          655409,
+          675858,
+          861464,
+          910609,
+          1038117
+        ]
+      },
+      {
+        "binding": [
+          "Value(103)",
+          "Value(188)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          659972,
+          695588
+        ],
+        "next_binding": [
+          "Value(365)",
+          "Value(700)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641782,
+          655345,
+          671549,
+          772014,
+          967695,
+          1038792
+        ]
+      },
+      {
+        "binding": [
+          "Value(1710)",
+          "Value(699)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          660889,
+          717869
+        ],
+        "next_binding": [
+          "Value(3580)",
+          "Value(1596)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          642007,
+          655496,
+          668532,
+          780116,
+          877847,
+          1040824
+        ]
+      },
+      {
+        "binding": [
+          "Value(176)",
+          "Value(3579)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          655937,
+          692085
+        ],
+        "next_binding": [
+          "Value(758)",
+          "Value(81242)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641814,
+          657551,
+          659017,
+          699011,
+          709461,
+          1034452
+        ]
+      },
+      {
+        "binding": [
+          "Value(750)",
+          "Value(658)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          659468,
+          689196
+        ],
+        "next_binding": [
+          "Value(1695)",
+          "Value(1598)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641874,
+          655544,
+          683808,
+          702975,
+          703930,
+          1038330
+        ]
+      }
+    ],
+    "seed_bindings": 69273,
+    "trigger_lhs_nodes": 92823
+  },
+  "complete_states": 12548,
+  "entry_class_seed_count": 2,
+  "fixed_binding": {
+    "checkpoints": [
+      {
+        "beyond_trigger_lhs": 6,
+        "blocked_bindings": {},
+        "complete_rule_states": 1,
+        "coverage_ratio": 7.634345393054273e-6,
+        "depth": 1,
+        "joint_unique": 8,
+        "lhs_unique": 2,
+        "new_since_previous_checkpoint": 8,
+        "remaining_frontier": 1,
+        "revisited_transitions": 0,
+        "rhs_unique": 6,
+        "visited_bindings": 1
+      },
+      {
+        "beyond_trigger_lhs": 12,
+        "blocked_bindings": {},
+        "complete_rule_states": 2,
+        "coverage_ratio": 0.000013360104437844976,
+        "depth": 2,
+        "joint_unique": 14,
+        "lhs_unique": 4,
+        "new_since_previous_checkpoint": 6,
+        "remaining_frontier": 1,
+        "revisited_transitions": 0,
+        "rhs_unique": 12,
+        "visited_bindings": 2
+      },
+      {
+        "beyond_trigger_lhs": 24,
+        "blocked_bindings": {},
+        "complete_rule_states": 4,
+        "coverage_ratio": 0.000024811622527426384,
+        "depth": 4,
+        "joint_unique": 26,
+        "lhs_unique": 8,
+        "new_since_previous_checkpoint": 12,
+        "remaining_frontier": 1,
+        "revisited_transitions": 0,
+        "rhs_unique": 24,
+        "visited_bindings": 4
+      },
+      {
+        "beyond_trigger_lhs": 48,
+        "blocked_bindings": {},
+        "complete_rule_states": 8,
+        "coverage_ratio": 0.000047714658706589204,
+        "depth": 8,
+        "joint_unique": 50,
+        "lhs_unique": 16,
+        "new_since_previous_checkpoint": 24,
+        "remaining_frontier": 1,
+        "revisited_transitions": 0,
+        "rhs_unique": 48,
+        "visited_bindings": 8
+      }
+    ],
+    "sample_complete_transitions": [
+      {
+        "binding": [
+          "Value(3)",
+          "Value(0)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          655258,
+          687691
+        ],
+        "next_binding": [
+          "Value(47)",
+          "Value(44)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641751,
+          655259,
+          655261,
+          687697,
+          687700,
+          1032774
+        ]
+      },
+      {
+        "binding": [
+          "Value(47)",
+          "Value(44)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          655261,
+          687700
+        ],
+        "next_binding": [
+          "Value(67)",
+          "Value(64)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641756,
+          655262,
+          655264,
+          687715,
+          687721,
+          1032775
+        ]
+      },
+      {
+        "binding": [
+          "Value(67)",
+          "Value(64)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          655264,
+          687715
+        ],
+        "next_binding": [
+          "Value(108)",
+          "Value(102)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641761,
+          655265,
+          655268,
+          687754,
+          687761,
+          1032779
+        ]
+      },
+      {
+        "binding": [
+          "Value(108)",
+          "Value(102)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          655265,
+          687754
+        ],
+        "next_binding": [
+          "Value(185)",
+          "Value(173)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641768,
+          655273,
+          655280,
+          687798,
+          687812,
+          1032782
+        ]
+      },
+      {
+        "binding": [
+          "Value(185)",
+          "Value(173)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          655280,
+          687812
+        ],
+        "next_binding": [
+          "Value(361)",
+          "Value(338)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641780,
+          655307,
+          655313,
+          687916,
+          687948,
+          1032797
+        ]
+      },
+      {
+        "binding": [
+          "Value(361)",
+          "Value(338)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          655307,
+          687948
+        ],
+        "next_binding": [
+          "Value(760)",
+          "Value(702)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641816,
+          655338,
+          655339,
+          688117,
+          688181,
+          1032835
+        ]
+      },
+      {
+        "binding": [
+          "Value(760)",
+          "Value(702)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          655338,
+          688117
+        ],
+        "next_binding": [
+          "Value(1703)",
+          "Value(1600)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641852,
+          655422,
+          655548,
+          688336,
+          688818,
+          1032900
+        ]
+      },
+      {
+        "binding": [
+          "Value(1703)",
+          "Value(1600)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          655422,
+          688336
+        ],
+        "next_binding": [
+          "Value(4517)",
+          "Value(4441)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641916,
+          655732,
+          655868,
+          690094,
+          690519,
+          1033044
+        ]
+      }
+    ],
+    "seed_bindings": 1,
+    "trigger_lhs_nodes": 2
+  },
+  "fixed_entry_eclass": {
+    "checkpoints": [
+      {
+        "beyond_trigger_lhs": 12,
+        "blocked_bindings": {},
+        "complete_rule_states": 2,
+        "coverage_ratio": 0.00001431439761197676,
+        "depth": 1,
+        "joint_unique": 15,
+        "lhs_unique": 3,
+        "new_since_previous_checkpoint": 15,
+        "remaining_frontier": 2,
+        "revisited_transitions": 0,
+        "rhs_unique": 12,
+        "visited_bindings": 2
+      },
+      {
+        "beyond_trigger_lhs": 24,
+        "blocked_bindings": {},
+        "complete_rule_states": 4,
+        "coverage_ratio": 0.00002576591570155817,
+        "depth": 2,
+        "joint_unique": 27,
+        "lhs_unique": 7,
+        "new_since_previous_checkpoint": 12,
+        "remaining_frontier": 2,
+        "revisited_transitions": 0,
+        "rhs_unique": 24,
+        "visited_bindings": 4
+      },
+      {
+        "beyond_trigger_lhs": 48,
+        "blocked_bindings": {},
+        "complete_rule_states": 8,
+        "coverage_ratio": 0.00004866895188072099,
+        "depth": 4,
+        "joint_unique": 51,
+        "lhs_unique": 15,
+        "new_since_previous_checkpoint": 24,
+        "remaining_frontier": 2,
+        "revisited_transitions": 0,
+        "rhs_unique": 48,
+        "visited_bindings": 8
+      },
+      {
+        "beyond_trigger_lhs": 96,
+        "blocked_bindings": {},
+        "complete_rule_states": 16,
+        "coverage_ratio": 0.00009447502423904662,
+        "depth": 8,
+        "joint_unique": 99,
+        "lhs_unique": 31,
+        "new_since_previous_checkpoint": 48,
+        "remaining_frontier": 2,
+        "revisited_transitions": 0,
+        "rhs_unique": 96,
+        "visited_bindings": 16
+      }
+    ],
+    "sample_complete_transitions": [
+      {
+        "binding": [
+          "Value(3)",
+          "Value(0)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          655258,
+          687691
+        ],
+        "next_binding": [
+          "Value(47)",
+          "Value(44)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641751,
+          655259,
+          655261,
+          687697,
+          687700,
+          1032774
+        ]
+      },
+      {
+        "binding": [
+          "Value(0)",
+          "Value(3)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          655258,
+          687696
+        ],
+        "next_binding": [
+          "Value(61)",
+          "Value(45)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641754,
+          655260,
+          655263,
+          687717,
+          687723,
+          1032776
+        ]
+      },
+      {
+        "binding": [
+          "Value(47)",
+          "Value(44)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          655261,
+          687700
+        ],
+        "next_binding": [
+          "Value(67)",
+          "Value(64)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641756,
+          655262,
+          655264,
+          687715,
+          687721,
+          1032775
+        ]
+      },
+      {
+        "binding": [
+          "Value(61)",
+          "Value(45)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          655263,
+          687723
+        ],
+        "next_binding": [
+          "Value(110)",
+          "Value(91)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641759,
+          655269,
+          655284,
+          687829,
+          687833,
+          1032777
+        ]
+      },
+      {
+        "binding": [
+          "Value(67)",
+          "Value(64)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          655264,
+          687715
+        ],
+        "next_binding": [
+          "Value(108)",
+          "Value(102)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641761,
+          655265,
+          655268,
+          687754,
+          687761,
+          1032779
+        ]
+      },
+      {
+        "binding": [
+          "Value(110)",
+          "Value(91)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          655269,
+          687833
+        ],
+        "next_binding": [
+          "Value(188)",
+          "Value(176)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641775,
+          655277,
+          655283,
+          687773,
+          687791,
+          1032783
+        ]
+      },
+      {
+        "binding": [
+          "Value(108)",
+          "Value(102)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          655265,
+          687754
+        ],
+        "next_binding": [
+          "Value(185)",
+          "Value(173)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641768,
+          655273,
+          655280,
+          687798,
+          687812,
+          1032782
+        ]
+      },
+      {
+        "binding": [
+          "Value(188)",
+          "Value(176)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          655277,
+          687773
+        ],
+        "next_binding": [
+          "Value(367)",
+          "Value(344)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641781,
+          655291,
+          655292,
+          687840,
+          687911,
+          1032802
+        ]
+      }
+    ],
+    "seed_bindings": 2,
+    "trigger_lhs_nodes": 3
+  },
+  "lhs_states": 69273,
+  "limitations": [
+    "only direct residual-integral continuation; no intervening commutation or coarse rules",
+    "entry-eclass roots may contain alternatives learned during the original run",
+    "missing RHS or union stops expansion; no missing nodes are manufactured",
+    "a repeated canonical binding is visited once, even if multiple roots reach it"
+  ],
+  "original_enodes": 1047896,
+  "original_rows_unchanged": true,
+  "primitive_lhs_probe": {
+    "cross_instance_repeated_coverage": 45723,
+    "external_reference_filtered_model": {
+      "best_of_this_packing_or_noop": 0,
+      "covered_or_interior_nodes": 0,
+      "net_node_estimate": 0,
+      "new_instance_nodes": 0,
+      "packing": "greedy by immediate node gain, conflicts include removals against retained interfaces; not optimal",
+      "ratio_of_original_nodes": 0.0,
+      "selected_instances": 0,
+      "template_node_cost": 0
+    },
+    "frozen_original_rows_unchanged": true,
+    "gross_distinct_per_instance": 138546,
+    "instances": 69273,
+    "marker_type": "separate __ProbeInstance, no union into Math",
+    "naive_instances_times_pattern_size": 138546,
+    "pattern_node_occurrences": 2,
+    "probe_source": "(sort __ProbeInstance) (constructor __Probe (Math Math Math Math Math Math) __ProbeInstance) (ruleset __probe_only) (rule ((= __probe_v0 (Mul a b)) (= __probe_v1 (Integral __probe_v0 x)) (= __viz_root __probe_v1)) ((__Probe __probe_v0 __probe_v1 __viz_root a b x)) :ruleset __probe_only) (run __probe_only 1)",
+    "projected_columns": [
+      "__probe_v0",
+      "__probe_v1",
+      "__viz_root",
+      "a",
+      "b",
+      "x"
+    ],
+    "rule": "R23",
+    "side": "lhs",
+    "status": "complete",
+    "unique_coverage_ratio": 0.08858035530243459,
+    "unique_covered_nodes": 92823,
+    "whole_footprint_disjoint_model": {
+      "best_of_this_packing_or_noop": 23547,
+      "covered_or_interior_nodes": 47100,
+      "net_node_estimate": 23547,
+      "new_instance_nodes": 23550,
+      "packing": "greedy by immediate node gain, conflicts include removals against retained interfaces; not optimal",
+      "ratio_of_original_nodes": 0.02247074137128112,
+      "selected_instances": 23550,
+      "template_node_cost": 3
+    },
+    "within_instance_duplicate_occurrences": 0
+  },
+  "primitive_rhs_probe": {
+    "cross_instance_repeated_coverage": 20830,
+    "external_reference_filtered_model": {
+      "best_of_this_packing_or_noop": 12923,
+      "covered_or_interior_nodes": 19263,
+      "net_node_estimate": 12923,
+      "new_instance_nodes": 6332,
+      "packing": "greedy by immediate node gain, conflicts include removals against retained interfaces; not optimal",
+      "ratio_of_original_nodes": 0.012332330689305046,
+      "selected_instances": 6332,
+      "template_node_cost": 8
+    },
+    "frozen_original_rows_unchanged": true,
+    "gross_distinct_per_instance": 75288,
+    "instances": 12548,
+    "marker_type": "separate __ProbeInstance, no union into Math",
+    "naive_instances_times_pattern_size": 87836,
+    "pattern_node_occurrences": 7,
+    "probe_source": "(sort __ProbeInstance) (constructor __Probe (Math Math Math Math Math Math Math Math Math Math Math) __ProbeInstance) (ruleset __probe_only) (rule ((= __probe_v0 (Integral b x)) (= __probe_v1 (Mul a __probe_v0)) (= __probe_v2 (Diff x a)) (= __probe_v3 (Integral b x)) (= __probe_v4 (Mul __probe_v2 __probe_v3)) (= __probe_v5 (Integral __probe_v4 x)) (= __probe_v6 (Sub __probe_v1 __probe_v5)) (= __viz_root __probe_v6)) ((__Probe __probe_v0 __probe_v1 __probe_v2 __probe_v3 __probe_v4 __probe_v5 __probe_v6 __viz_root a b x)) :ruleset __probe_only) (run __probe_only 1)",
+    "projected_columns": [
+      "__probe_v0",
+      "__probe_v1",
+      "__probe_v2",
+      "__probe_v3",
+      "__probe_v4",
+      "__probe_v5",
+      "__probe_v6",
+      "__viz_root",
+      "a",
+      "b",
+      "x"
+    ],
+    "rule": "R23",
+    "side": "rhs",
+    "status": "complete",
+    "unique_coverage_ratio": 0.0519688976768687,
+    "unique_covered_nodes": 54458,
+    "whole_footprint_disjoint_model": {
+      "best_of_this_packing_or_noop": 2797,
+      "covered_or_interior_nodes": 3366,
+      "net_node_estimate": 2797,
+      "new_instance_nodes": 561,
+      "packing": "greedy by immediate node gain, conflicts include removals against retained interfaces; not optimal",
+      "ratio_of_original_nodes": 0.0026691580080466,
+      "selected_instances": 561,
+      "template_node_cost": 8
+    },
+    "within_instance_duplicate_occurrences": 12548
+  },
+  "rhs_instances_without_lhs": 0,
+  "rhs_instances_without_union": 0,
+  "scope": "read-only finite family coverage in the native final graph; complete states require LHS, RHS and union equality already present; not historical execution counts or an infinite-rule proof",
+  "seed_expression": "(Integral (Mul (Cos (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+  "source": "experiments/annotated_export/math_microbenchmark/combined.egg",
+  "transition": "(a,b,x) -> (Diff(x,a), Integral(b,x), x)"
+}
