@@ -1,0 +1,270 @@
+[
+  {
+    "depth": 1,
+    "roots": 582,
+    "unique_window_encodings": 124,
+    "max_nodes": 4,
+    "max_edges": 3,
+    "windows_with_shared_ancestors": 0,
+    "events_in_multiple_windows": 182,
+    "learning_anchors": 124,
+    "anchor_mean_nodes": 2.5403225806451615,
+    "learning": {
+      "train": {
+        "babble_corpus_plus_library_nodes": 8053,
+        "exact_whole_program_dictionary_nodes": 8345,
+        "programs": 99,
+        "raw_ast_nodes": 8147
+      },
+      "test": {
+        "babble_corpus_plus_library_nodes": 2035,
+        "exact_whole_program_dictionary_nodes": 2080,
+        "programs": 25,
+        "raw_ast_nodes": 2030
+      },
+      "selected_train_libraries": 4,
+      "lossless_expansion": {
+        "test": true,
+        "train": true
+      },
+      "exact_dag_control": {
+        "scope": "same exact-subtree DAG codec including symbol table; occurrence metadata excluded from both; not runtime RSS",
+        "shared_rule_dictionary_json_bytes": 5566,
+        "test_learned": {
+          "child_references": 1123,
+          "self_contained_json_codec_bytes": 14659,
+          "unique_nodes": 396
+        },
+        "test_raw": {
+          "child_references": 1118,
+          "self_contained_json_codec_bytes": 14432,
+          "unique_nodes": 391
+        },
+        "train_learned": {
+          "child_references": 3291,
+          "self_contained_json_codec_bytes": 30440,
+          "unique_nodes": 1010
+        },
+        "train_raw": {
+          "child_references": 3263,
+          "self_contained_json_codec_bytes": 29584,
+          "unique_nodes": 987
+        }
+      },
+      "comb_mining": {
+        "connection_containing_candidates": 181,
+        "deduplicated_candidates": 652,
+        "filter": "at least one concrete producer-consumer CombEdge; no specific rule names hardcoded",
+        "library_limit": 4,
+        "raw_candidates": 652
+      }
+    },
+    "library_order_normalization": {
+      "scope": "pure lifted closed library definitions topologically ordered before lexical expansion; cycles and missing definitions rejected",
+      "test_changed": false,
+      "train_changed": false
+    },
+    "learning_status": "completed"
+  },
+  {
+    "depth": 2,
+    "roots": 582,
+    "unique_window_encodings": 348,
+    "max_nodes": 9,
+    "max_edges": 9,
+    "windows_with_shared_ancestors": 111,
+    "events_in_multiple_windows": 182,
+    "learning_anchors": 124,
+    "anchor_mean_nodes": 4.217741935483871,
+    "learning": {
+      "train": {
+        "babble_corpus_plus_library_nodes": 16832,
+        "exact_whole_program_dictionary_nodes": 18022,
+        "programs": 99,
+        "raw_ast_nodes": 17824
+      },
+      "test": {
+        "babble_corpus_plus_library_nodes": 4222,
+        "exact_whole_program_dictionary_nodes": 4262,
+        "programs": 25,
+        "raw_ast_nodes": 4212
+      },
+      "selected_train_libraries": 4,
+      "lossless_expansion": {
+        "test": true,
+        "train": true
+      },
+      "exact_dag_control": {
+        "scope": "same exact-subtree DAG codec including symbol table; occurrence metadata excluded from both; not runtime RSS",
+        "shared_rule_dictionary_json_bytes": 5566,
+        "test_learned": {
+          "child_references": 1992,
+          "self_contained_json_codec_bytes": 20717,
+          "unique_nodes": 640
+        },
+        "test_raw": {
+          "child_references": 1981,
+          "self_contained_json_codec_bytes": 20344,
+          "unique_nodes": 630
+        },
+        "train_learned": {
+          "child_references": 5135,
+          "self_contained_json_codec_bytes": 40956,
+          "unique_nodes": 1462
+        },
+        "train_raw": {
+          "child_references": 5149,
+          "self_contained_json_codec_bytes": 39964,
+          "unique_nodes": 1454
+        }
+      },
+      "comb_mining": {
+        "connection_containing_candidates": 586,
+        "deduplicated_candidates": 1230,
+        "filter": "at least one concrete producer-consumer CombEdge; no specific rule names hardcoded",
+        "library_limit": 4,
+        "raw_candidates": 1230
+      }
+    },
+    "library_order_normalization": {
+      "scope": "pure lifted closed library definitions topologically ordered before lexical expansion; cycles and missing definitions rejected",
+      "test_changed": false,
+      "train_changed": false
+    },
+    "learning_status": "completed"
+  },
+  {
+    "depth": 3,
+    "roots": 582,
+    "unique_window_encodings": 522,
+    "max_nodes": 11,
+    "max_edges": 13,
+    "windows_with_shared_ancestors": 250,
+    "events_in_multiple_windows": 182,
+    "learning_anchors": 124,
+    "anchor_mean_nodes": 5.314516129032258,
+    "learning": {
+      "train": {
+        "babble_corpus_plus_library_nodes": 23819,
+        "exact_whole_program_dictionary_nodes": 26763,
+        "programs": 99,
+        "raw_ast_nodes": 26565
+      },
+      "test": {
+        "babble_corpus_plus_library_nodes": 5943,
+        "exact_whole_program_dictionary_nodes": 6241,
+        "programs": 25,
+        "raw_ast_nodes": 6191
+      },
+      "selected_train_libraries": 4,
+      "lossless_expansion": {
+        "test": true,
+        "train": true
+      },
+      "exact_dag_control": {
+        "scope": "same exact-subtree DAG codec including symbol table; occurrence metadata excluded from both; not runtime RSS",
+        "shared_rule_dictionary_json_bytes": 5566,
+        "test_learned": {
+          "child_references": 2474,
+          "self_contained_json_codec_bytes": 23577,
+          "unique_nodes": 773
+        },
+        "test_raw": {
+          "child_references": 2485,
+          "self_contained_json_codec_bytes": 23246,
+          "unique_nodes": 756
+        },
+        "train_learned": {
+          "child_references": 6588,
+          "self_contained_json_codec_bytes": 49082,
+          "unique_nodes": 1843
+        },
+        "train_raw": {
+          "child_references": 6695,
+          "self_contained_json_codec_bytes": 48752,
+          "unique_nodes": 1831
+        }
+      },
+      "comb_mining": {
+        "connection_containing_candidates": 863,
+        "deduplicated_candidates": 1489,
+        "filter": "at least one concrete producer-consumer CombEdge; no specific rule names hardcoded",
+        "library_limit": 4,
+        "raw_candidates": 1489
+      }
+    },
+    "library_order_normalization": {
+      "scope": "pure lifted closed library definitions topologically ordered before lexical expansion; cycles and missing definitions rejected",
+      "test_changed": false,
+      "train_changed": true
+    },
+    "learning_status": "completed"
+  },
+  {
+    "depth": 4,
+    "roots": 582,
+    "unique_window_encodings": 557,
+    "max_nodes": 12,
+    "max_edges": 15,
+    "windows_with_shared_ancestors": 318,
+    "events_in_multiple_windows": 182,
+    "learning_anchors": 124,
+    "anchor_mean_nodes": 5.782258064516129,
+    "learning": {
+      "train": {
+        "babble_corpus_plus_library_nodes": 26982,
+        "exact_whole_program_dictionary_nodes": 30390,
+        "programs": 99,
+        "raw_ast_nodes": 30192
+      },
+      "test": {
+        "babble_corpus_plus_library_nodes": 6751,
+        "exact_whole_program_dictionary_nodes": 7166,
+        "programs": 25,
+        "raw_ast_nodes": 7116
+      },
+      "selected_train_libraries": 4,
+      "lossless_expansion": {
+        "test": true,
+        "train": true
+      },
+      "exact_dag_control": {
+        "scope": "same exact-subtree DAG codec including symbol table; occurrence metadata excluded from both; not runtime RSS",
+        "shared_rule_dictionary_json_bytes": 5566,
+        "test_learned": {
+          "child_references": 2699,
+          "self_contained_json_codec_bytes": 24878,
+          "unique_nodes": 831
+        },
+        "test_raw": {
+          "child_references": 2707,
+          "self_contained_json_codec_bytes": 24383,
+          "unique_nodes": 811
+        },
+        "train_learned": {
+          "child_references": 7075,
+          "self_contained_json_codec_bytes": 51716,
+          "unique_nodes": 1958
+        },
+        "train_raw": {
+          "child_references": 7159,
+          "self_contained_json_codec_bytes": 51049,
+          "unique_nodes": 1934
+        }
+      },
+      "comb_mining": {
+        "connection_containing_candidates": 972,
+        "deduplicated_candidates": 1559,
+        "filter": "at least one concrete producer-consumer CombEdge; no specific rule names hardcoded",
+        "library_limit": 4,
+        "raw_candidates": 1559
+      }
+    },
+    "library_order_normalization": {
+      "scope": "pure lifted closed library definitions topologically ordered before lexical expansion; cycles and missing definitions rejected",
+      "test_changed": false,
+      "train_changed": false
+    },
+    "learning_status": "completed"
+  }
+]

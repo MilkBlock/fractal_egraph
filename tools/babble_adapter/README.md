@@ -98,3 +98,10 @@ For learning relationships between generated combs themselves, run
 references with structured connection positions and wiring, then invokes the
 `comb-mining` mode. It filters candidates to contain a concrete combination edge
 and reports an exact-subtree DAG storage control in addition to AST cost.
+
+`deep_combs.py --learn` expands real dependency history to depth 1–4, preserving
+shared ancestors by explicit references. All roots are exported; learning uses
+fixed representative roots to control the depth comparison. See
+`experiments/deep_combs/README.md`. Lifted pure library definitions are dependency
+ordered before lexical expansion; valid existing orders are preserved, while
+missing definitions, cycles and free term variables are rejected.

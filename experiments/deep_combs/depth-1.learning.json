@@ -1,0 +1,465 @@
+{
+  "comb_mining": {
+    "connection_containing_candidates": 181,
+    "deduplicated_candidates": 652,
+    "filter": "at least one concrete producer-consumer CombEdge; no specific rule names hardcoded",
+    "library_limit": 4,
+    "raw_candidates": 652
+  },
+  "corpus_reference_counts": {
+    "test": {
+      "155": 1
+    },
+    "train": {
+      "126": 2,
+      "155": 4,
+      "56": 3,
+      "58": 2
+    }
+  },
+  "domain_equations": 0,
+  "encoding": "typed-ast",
+  "engine": "upstream babble learning connected rule combs",
+  "exact_dag_control": {
+    "scope": "same exact-subtree DAG codec including symbol table; occurrence metadata excluded from both; not runtime RSS",
+    "shared_rule_dictionary_json_bytes": 5566,
+    "test_learned": {
+      "child_references": 1123,
+      "self_contained_json_codec_bytes": 14659,
+      "unique_nodes": 396
+    },
+    "test_raw": {
+      "child_references": 1118,
+      "self_contained_json_codec_bytes": 14432,
+      "unique_nodes": 391
+    },
+    "train_learned": {
+      "child_references": 3291,
+      "self_contained_json_codec_bytes": 30440,
+      "unique_nodes": 1010
+    },
+    "train_raw": {
+      "child_references": 3263,
+      "self_contained_json_codec_bytes": 29584,
+      "unique_nodes": 987
+    }
+  },
+  "libraries": [
+    {
+      "ast_nodes": 23,
+      "definition": {
+        "args": [
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"EventRef\\\",\\\"1\\\"]\", 0)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Var(0)"
+                  },
+                  {
+                    "args": [
+                      {
+                        "args": [
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"head\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"args\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                          }
+                        ],
+                        "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 6)"
+                      }
+                    ],
+                    "op": "Data(\"term:[\\\"Positions\\\",\\\"producer\\\"]\", 1)"
+                  },
+                  {
+                    "args": [
+                      {
+                        "args": [
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"body\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"args\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Var(1)"
+                          }
+                        ],
+                        "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 6)"
+                      }
+                    ],
+                    "op": "Data(\"term:[\\\"Positions\\\",\\\"consumer\\\"]\", 1)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"SupportKind\\\",\\\"row\\\"]\", 0)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"UnionSupport\\\",\\\"none\\\"]\", 0)"
+                  }
+                ],
+                "op": "Data(\"term:[\\\"CombEdge\\\",\\\"use:R9->R10:Mul\\\"]\", 6)"
+              }
+            ],
+            "op": "Lambda"
+          }
+        ],
+        "op": "Lambda"
+      },
+      "id": 58
+    },
+    {
+      "ast_nodes": 22,
+      "definition": {
+        "args": [
+          {
+            "args": [
+              {
+                "args": [],
+                "op": "Data(\"term:[\\\"EventRef\\\",\\\"1\\\"]\", 0)"
+              },
+              {
+                "args": [],
+                "op": "Data(\"term:[\\\"ReadSlot\\\",\\\"0\\\"]\", 0)"
+              },
+              {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"PositionPart\\\",\\\"head\\\"]\", 0)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"PositionPart\\\",\\\"args\\\"]\", 0)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Var(0)"
+                      }
+                    ],
+                    "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 6)"
+                  }
+                ],
+                "op": "Data(\"term:[\\\"Positions\\\",\\\"producer\\\"]\", 1)"
+              },
+              {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"PositionPart\\\",\\\"body\\\"]\", 0)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"PositionPart\\\",\\\"args\\\"]\", 0)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                      }
+                    ],
+                    "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 6)"
+                  }
+                ],
+                "op": "Data(\"term:[\\\"Positions\\\",\\\"consumer\\\"]\", 1)"
+              },
+              {
+                "args": [],
+                "op": "Data(\"term:[\\\"SupportKind\\\",\\\"row\\\"]\", 0)"
+              },
+              {
+                "args": [],
+                "op": "Data(\"term:[\\\"UnionSupport\\\",\\\"none\\\"]\", 0)"
+              }
+            ],
+            "op": "Data(\"term:[\\\"CombEdge\\\",\\\"use:R9->R10:Mul\\\"]\", 6)"
+          }
+        ],
+        "op": "Lambda"
+      },
+      "id": 56
+    },
+    {
+      "ast_nodes": 20,
+      "definition": {
+        "args": [
+          {
+            "args": [
+              {
+                "args": [],
+                "op": "Var(0)"
+              },
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"EventRef\\\",\\\"2\\\"]\", 0)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"ReadSlot\\\",\\\"1\\\"]\", 0)"
+                  },
+                  {
+                    "args": [
+                      {
+                        "args": [
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"head\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                          }
+                        ],
+                        "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 4)"
+                      }
+                    ],
+                    "op": "Data(\"term:[\\\"Positions\\\",\\\"producer\\\"]\", 1)"
+                  },
+                  {
+                    "args": [
+                      {
+                        "args": [
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"body\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                          }
+                        ],
+                        "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 4)"
+                      }
+                    ],
+                    "op": "Data(\"term:[\\\"Positions\\\",\\\"consumer\\\"]\", 1)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"SupportKind\\\",\\\"row\\\"]\", 0)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"UnionSupport\\\",\\\"none\\\"]\", 0)"
+                  }
+                ],
+                "op": "Data(\"term:[\\\"CombEdge\\\",\\\"use:R0->R2:Add\\\"]\", 6)"
+              }
+            ],
+            "op": "Data(\"term:[\\\"CombSupport\\\",\\\"supports\\\"]\", 2)"
+          }
+        ],
+        "op": "Lambda"
+      },
+      "id": 155
+    },
+    {
+      "ast_nodes": 21,
+      "definition": {
+        "args": [
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"EventRef\\\",\\\"1\\\"]\", 0)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"ReadSlot\\\",\\\"0\\\"]\", 0)"
+                  },
+                  {
+                    "args": [
+                      {
+                        "args": [
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"head\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"args\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Var(0)"
+                          }
+                        ],
+                        "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 6)"
+                      }
+                    ],
+                    "op": "Data(\"term:[\\\"Positions\\\",\\\"producer\\\"]\", 1)"
+                  },
+                  {
+                    "args": [
+                      {
+                        "args": [
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"body\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                          }
+                        ],
+                        "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 4)"
+                      }
+                    ],
+                    "op": "Data(\"term:[\\\"Positions\\\",\\\"consumer\\\"]\", 1)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"SupportKind\\\",\\\"row\\\"]\", 0)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"UnionSupport\\\",\\\"none\\\"]\", 0)"
+                  }
+                ],
+                "op": "Data(\"term:[\\\"CombEdge\\\",\\\"use:R15->R1:Mul\\\"]\", 6)"
+              }
+            ],
+            "op": "Data(\"term:[\\\"CombSupport\\\",\\\"supports\\\"]\", 1)"
+          }
+        ],
+        "op": "Lambda"
+      },
+      "id": 126
+    }
+  ],
+  "library_order_normalization": {
+    "scope": "pure lifted closed library definitions topologically ordered before lexical expansion; cycles and missing definitions rejected",
+    "test_changed": false,
+    "train_changed": false
+  },
+  "lossless_expansion": {
+    "test": true,
+    "train": true
+  },
+  "scope": "offline syntax learning; conditional effects preserved as source syntax, not inferred or certified; heldout classes within one trace, not independent runs; AST counts are not runtime memory savings",
+  "selected_train_libraries": 4,
+  "settings": {
+    "beam": 16,
+    "libraries_per_step": 4,
+    "library_iterations": 2,
+    "max_arity": 3
+  },
+  "test": {
+    "babble_corpus_plus_library_nodes": 2035,
+    "exact_whole_program_dictionary_nodes": 2080,
+    "programs": 25,
+    "raw_ast_nodes": 2030
+  },
+  "train": {
+    "babble_corpus_plus_library_nodes": 8053,
+    "exact_whole_program_dictionary_nodes": 8345,
+    "programs": 99,
+    "raw_ast_nodes": 8147
+  }
+}

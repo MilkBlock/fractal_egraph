@@ -1,0 +1,1835 @@
+{
+  "comb_mining": {
+    "connection_containing_candidates": 972,
+    "deduplicated_candidates": 1559,
+    "filter": "at least one concrete producer-consumer CombEdge; no specific rule names hardcoded",
+    "library_limit": 4,
+    "raw_candidates": 1559
+  },
+  "corpus_reference_counts": {
+    "test": {
+      "406": 3,
+      "663": 1,
+      "887": 8
+    },
+    "train": {
+      "23": 3,
+      "406": 15,
+      "663": 5,
+      "887": 42
+    }
+  },
+  "domain_equations": 0,
+  "encoding": "typed-ast",
+  "engine": "upstream babble learning connected rule combs",
+  "exact_dag_control": {
+    "scope": "same exact-subtree DAG codec including symbol table; occurrence metadata excluded from both; not runtime RSS",
+    "shared_rule_dictionary_json_bytes": 5566,
+    "test_learned": {
+      "child_references": 2699,
+      "self_contained_json_codec_bytes": 24878,
+      "unique_nodes": 831
+    },
+    "test_raw": {
+      "child_references": 2707,
+      "self_contained_json_codec_bytes": 24383,
+      "unique_nodes": 811
+    },
+    "train_learned": {
+      "child_references": 7075,
+      "self_contained_json_codec_bytes": 51716,
+      "unique_nodes": 1958
+    },
+    "train_raw": {
+      "child_references": 7159,
+      "self_contained_json_codec_bytes": 51049,
+      "unique_nodes": 1934
+    }
+  },
+  "libraries": [
+    {
+      "ast_nodes": 87,
+      "definition": {
+        "args": [
+          {
+            "args": [
+              {
+                "args": [],
+                "op": "Data(\"term:[\\\"EventRef\\\",\\\"2\\\"]\", 0)"
+              },
+              {
+                "args": [],
+                "op": "Data(\"term:[\\\"Coverage\\\",\\\"expanded\\\"]\", 0)"
+              },
+              {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"EventRef\\\",\\\"4\\\"]\", 0)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"ReadSlot\\\",\\\"0\\\"]\", 0)"
+                      },
+                      {
+                        "args": [
+                          {
+                            "args": [
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"head\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                              }
+                            ],
+                            "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 4)"
+                          }
+                        ],
+                        "op": "Data(\"term:[\\\"Positions\\\",\\\"producer\\\"]\", 1)"
+                      },
+                      {
+                        "args": [
+                          {
+                            "args": [
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"body\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"args\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                              }
+                            ],
+                            "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 6)"
+                          }
+                        ],
+                        "op": "Data(\"term:[\\\"Positions\\\",\\\"consumer\\\"]\", 1)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"SupportKind\\\",\\\"row\\\"]\", 0)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"UnionSupport\\\",\\\"none\\\"]\", 0)"
+                      }
+                    ],
+                    "op": "Data(\"term:[\\\"CombEdge\\\",\\\"use:R3->R15:Mul\\\"]\", 6)"
+                  },
+                  {
+                    "args": [
+                      {
+                        "args": [],
+                        "op": "Var(0)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"ReadSlot\\\",\\\"0\\\"]\", 0)"
+                      },
+                      {
+                        "args": [
+                          {
+                            "args": [
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"head\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"args\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                              }
+                            ],
+                            "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 6)"
+                          }
+                        ],
+                        "op": "Data(\"term:[\\\"Positions\\\",\\\"producer\\\"]\", 1)"
+                      },
+                      {
+                        "args": [
+                          {
+                            "args": [
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"body\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                              }
+                            ],
+                            "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 4)"
+                          }
+                        ],
+                        "op": "Data(\"term:[\\\"Positions\\\",\\\"consumer\\\"]\", 1)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"SupportKind\\\",\\\"row\\\"]\", 0)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"UnionSupport\\\",\\\"none\\\"]\", 0)"
+                      }
+                    ],
+                    "op": "Data(\"term:[\\\"CombEdge\\\",\\\"use:R14->R15:Diff\\\"]\", 6)"
+                  }
+                ],
+                "op": "Data(\"term:[\\\"CombSupport\\\",\\\"supports\\\"]\", 2)"
+              },
+              {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"EventRef\\\",\\\"4\\\"]\", 0)"
+                      }
+                    ],
+                    "op": "Data(\"term:[\\\"Role\\\",\\\"p0\\\"]\", 1)"
+                  },
+                  {
+                    "args": [
+                      {
+                        "args": [],
+                        "op": "Var(0)"
+                      }
+                    ],
+                    "op": "Data(\"term:[\\\"Role\\\",\\\"p1\\\"]\", 1)"
+                  }
+                ],
+                "op": "Data(\"term:[\\\"RoleMap\\\",\\\"producer-roles\\\"]\", 2)"
+              },
+              {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                      }
+                    ],
+                    "op": "Data(\"term:[\\\"Signature\\\",\\\"inputs\\\"]\", 6)"
+                  },
+                  {
+                    "args": [
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                      }
+                    ],
+                    "op": "Data(\"term:[\\\"Signature\\\",\\\"outputs\\\"]\", 3)"
+                  },
+                  {
+                    "args": [
+                      {
+                        "args": [
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"Math\\\",\\\"in:3\\\"]\", 0)"
+                          }
+                        ],
+                        "op": "Data(\"term:[\\\"Assignment\\\",\\\"assign:0\\\"]\", 1)"
+                      },
+                      {
+                        "args": [
+                          {
+                            "args": [
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"Math\\\",\\\"in:0\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"Math\\\",\\\"in:1\\\"]\", 0)"
+                              }
+                            ],
+                            "op": "Data(\"term:[\\\"Math\\\",\\\"materialized:Mul\\\"]\", 2)"
+                          }
+                        ],
+                        "op": "Data(\"term:[\\\"Assignment\\\",\\\"assign:1\\\"]\", 1)"
+                      },
+                      {
+                        "args": [
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"Math\\\",\\\"in:2\\\"]\", 0)"
+                          }
+                        ],
+                        "op": "Data(\"term:[\\\"Assignment\\\",\\\"assign:2\\\"]\", 1)"
+                      },
+                      {
+                        "args": [
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"Math\\\",\\\"in:5\\\"]\", 0)"
+                          },
+                          {
+                            "args": [
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"Math\\\",\\\"out:1\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"Math\\\",\\\"out:2\\\"]\", 0)"
+                              }
+                            ],
+                            "op": "Data(\"term:[\\\"Math\\\",\\\"materialized:Mul\\\"]\", 2)"
+                          }
+                        ],
+                        "op": "Data(\"term:[\\\"Constraint\\\",\\\"Eq\\\"]\", 2)"
+                      }
+                    ],
+                    "op": "Data(\"term:[\\\"Ops\\\",\\\"ops\\\"]\", 4)"
+                  }
+                ],
+                "op": "Data(\"term:[\\\"BindingMap\\\",\\\"binding-map\\\"]\", 3)"
+              },
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"PortLabel\\\",\\\"p0.a\\\"]\", 0)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"PortLabel\\\",\\\"p0.b\\\"]\", 0)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"PortLabel\\\",\\\"p0.c\\\"]\", 0)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"PortLabel\\\",\\\"p1.x\\\"]\", 0)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"PortLabel\\\",\\\"p1.a\\\"]\", 0)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"PortLabel\\\",\\\"p1.b\\\"]\", 0)"
+                  }
+                ],
+                "op": "Data(\"term:[\\\"PortLabels\\\",\\\"inputs\\\"]\", 6)"
+              },
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"PortLabel\\\",\\\"x\\\"]\", 0)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"PortLabel\\\",\\\"a\\\"]\", 0)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"PortLabel\\\",\\\"b\\\"]\", 0)"
+                  }
+                ],
+                "op": "Data(\"term:[\\\"PortLabels\\\",\\\"outputs\\\"]\", 3)"
+              },
+              {
+                "args": [],
+                "op": "Data(\"term:[\\\"Boundary\\\",\\\"ports\\\"]\", 0)"
+              },
+              {
+                "args": [],
+                "op": "Data(\"term:[\\\"Coverage\\\",\\\"unexplained-reads:0\\\"]\", 0)"
+              }
+            ],
+            "op": "Data(\"term:[\\\"CombStage\\\",\\\"rule:R15\\\"]\", 9)"
+          }
+        ],
+        "op": "Lambda"
+      },
+      "id": 663
+    },
+    {
+      "ast_nodes": 44,
+      "definition": {
+        "args": [
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "op": "Var(0)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"ReadSlot\\\",\\\"0\\\"]\", 0)"
+                  },
+                  {
+                    "args": [
+                      {
+                        "args": [
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"head\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"args\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"args\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                          }
+                        ],
+                        "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 8)"
+                      }
+                    ],
+                    "op": "Data(\"term:[\\\"Positions\\\",\\\"producer\\\"]\", 1)"
+                  },
+                  {
+                    "args": [
+                      {
+                        "args": [
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"body\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"args\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                          }
+                        ],
+                        "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 6)"
+                      }
+                    ],
+                    "op": "Data(\"term:[\\\"Positions\\\",\\\"consumer\\\"]\", 1)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"SupportKind\\\",\\\"row\\\"]\", 0)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"UnionSupport\\\",\\\"none\\\"]\", 0)"
+                  }
+                ],
+                "op": "Data(\"term:[\\\"CombEdge\\\",\\\"use:R23->R23:Mul\\\"]\", 6)"
+              },
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "op": "Var(0)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"ReadSlot\\\",\\\"0\\\"]\", 0)"
+                  },
+                  {
+                    "args": [
+                      {
+                        "args": [
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"head\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"args\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                          }
+                        ],
+                        "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 6)"
+                      }
+                    ],
+                    "op": "Data(\"term:[\\\"Positions\\\",\\\"producer\\\"]\", 1)"
+                  },
+                  {
+                    "args": [
+                      {
+                        "args": [
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"body\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                          }
+                        ],
+                        "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 4)"
+                      }
+                    ],
+                    "op": "Data(\"term:[\\\"Positions\\\",\\\"consumer\\\"]\", 1)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"SupportKind\\\",\\\"row\\\"]\", 0)"
+                  },
+                  {
+                    "args": [],
+                    "op": "Data(\"term:[\\\"UnionSupport\\\",\\\"none\\\"]\", 0)"
+                  }
+                ],
+                "op": "Data(\"term:[\\\"CombEdge\\\",\\\"use:R23->R23:Integral\\\"]\", 6)"
+              }
+            ],
+            "op": "Data(\"term:[\\\"CombSupport\\\",\\\"supports\\\"]\", 2)"
+          }
+        ],
+        "op": "Lambda"
+      },
+      "id": 887
+    },
+    {
+      "ast_nodes": 63,
+      "definition": {
+        "args": [
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "args": [
+                          {
+                            "args": [],
+                            "op": "Var(0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"Coverage\\\",\\\"expanded\\\"]\", 0)"
+                          },
+                          {
+                            "args": [
+                              {
+                                "args": [
+                                  {
+                                    "args": [],
+                                    "op": "Var(1)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"ReadSlot\\\",\\\"0\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"head\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                                          }
+                                        ],
+                                        "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 4)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"Positions\\\",\\\"producer\\\"]\", 1)"
+                                  },
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"body\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                                          }
+                                        ],
+                                        "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 4)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"Positions\\\",\\\"consumer\\\"]\", 1)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"SupportKind\\\",\\\"row\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"UnionSupport\\\",\\\"none\\\"]\", 0)"
+                                  }
+                                ],
+                                "op": "Data(\"term:[\\\"CombEdge\\\",\\\"use:R23->R4:Sub\\\"]\", 6)"
+                              }
+                            ],
+                            "op": "Data(\"term:[\\\"CombSupport\\\",\\\"supports\\\"]\", 1)"
+                          },
+                          {
+                            "args": [
+                              {
+                                "args": [
+                                  {
+                                    "args": [],
+                                    "op": "Var(1)"
+                                  }
+                                ],
+                                "op": "Data(\"term:[\\\"Role\\\",\\\"p0\\\"]\", 1)"
+                              }
+                            ],
+                            "op": "Data(\"term:[\\\"RoleMap\\\",\\\"producer-roles\\\"]\", 1)"
+                          },
+                          {
+                            "args": [
+                              {
+                                "args": [
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                  }
+                                ],
+                                "op": "Data(\"term:[\\\"Signature\\\",\\\"inputs\\\"]\", 3)"
+                              },
+                              {
+                                "args": [
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                  }
+                                ],
+                                "op": "Data(\"term:[\\\"Signature\\\",\\\"outputs\\\"]\", 2)"
+                              },
+                              {
+                                "args": [
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"Math\\\",\\\"in:0\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"Math\\\",\\\"in:1\\\"]\", 0)"
+                                              },
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"Math\\\",\\\"in:2\\\"]\", 0)"
+                                              }
+                                            ],
+                                            "op": "Data(\"term:[\\\"Math\\\",\\\"materialized:Integral\\\"]\", 2)"
+                                          }
+                                        ],
+                                        "op": "Data(\"term:[\\\"Math\\\",\\\"materialized:Mul\\\"]\", 2)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"Assignment\\\",\\\"assign:0\\\"]\", 1)"
+                                  },
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [
+                                          {
+                                            "args": [
+                                              {
+                                                "args": [
+                                                  {
+                                                    "args": [],
+                                                    "op": "Data(\"term:[\\\"Math\\\",\\\"in:2\\\"]\", 0)"
+                                                  },
+                                                  {
+                                                    "args": [],
+                                                    "op": "Data(\"term:[\\\"Math\\\",\\\"in:0\\\"]\", 0)"
+                                                  }
+                                                ],
+                                                "op": "Data(\"term:[\\\"Math\\\",\\\"materialized:Diff\\\"]\", 2)"
+                                              },
+                                              {
+                                                "args": [
+                                                  {
+                                                    "args": [],
+                                                    "op": "Data(\"term:[\\\"Math\\\",\\\"in:1\\\"]\", 0)"
+                                                  },
+                                                  {
+                                                    "args": [],
+                                                    "op": "Data(\"term:[\\\"Math\\\",\\\"in:2\\\"]\", 0)"
+                                                  }
+                                                ],
+                                                "op": "Data(\"term:[\\\"Math\\\",\\\"materialized:Integral\\\"]\", 2)"
+                                              }
+                                            ],
+                                            "op": "Data(\"term:[\\\"Math\\\",\\\"materialized:Mul\\\"]\", 2)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"Math\\\",\\\"in:2\\\"]\", 0)"
+                                          }
+                                        ],
+                                        "op": "Data(\"term:[\\\"Math\\\",\\\"materialized:Integral\\\"]\", 2)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"Assignment\\\",\\\"assign:1\\\"]\", 1)"
+                                  }
+                                ],
+                                "op": "Data(\"term:[\\\"Ops\\\",\\\"ops\\\"]\", 2)"
+                              }
+                            ],
+                            "op": "Data(\"term:[\\\"BindingMap\\\",\\\"binding-map\\\"]\", 3)"
+                          },
+                          {
+                            "args": [
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PortLabel\\\",\\\"p0.a\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PortLabel\\\",\\\"p0.b\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PortLabel\\\",\\\"p0.x\\\"]\", 0)"
+                              }
+                            ],
+                            "op": "Data(\"term:[\\\"PortLabels\\\",\\\"inputs\\\"]\", 3)"
+                          },
+                          {
+                            "args": [
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PortLabel\\\",\\\"a\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PortLabel\\\",\\\"b\\\"]\", 0)"
+                              }
+                            ],
+                            "op": "Data(\"term:[\\\"PortLabels\\\",\\\"outputs\\\"]\", 2)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"Boundary\\\",\\\"ports\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"Coverage\\\",\\\"unexplained-reads:0\\\"]\", 0)"
+                          }
+                        ],
+                        "op": "Data(\"term:[\\\"CombStage\\\",\\\"rule:R4\\\"]\", 9)"
+                      },
+                      {
+                        "args": [],
+                        "op": "Var(2)"
+                      }
+                    ],
+                    "op": "Data(\"term:[\\\"CombNodes\\\",\\\"cons\\\"]\", 2)"
+                  }
+                ],
+                "op": "Lambda"
+              }
+            ],
+            "op": "Lambda"
+          }
+        ],
+        "op": "Lambda"
+      },
+      "id": 406
+    },
+    {
+      "ast_nodes": 205,
+      "definition": {
+        "args": [
+          {
+            "args": [
+              {
+                "args": [],
+                "op": "Data(\"term:[\\\"EventRef\\\",\\\"0\\\"]\", 0)"
+              },
+              {
+                "args": [
+                  {
+                    "args": [],
+                    "op": "Var(0)"
+                  },
+                  {
+                    "args": [
+                      {
+                        "args": [
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"EventRef\\\",\\\"1\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"Coverage\\\",\\\"expanded\\\"]\", 0)"
+                          },
+                          {
+                            "args": [
+                              {
+                                "args": [
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"EventRef\\\",\\\"2\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"ReadSlot\\\",\\\"0\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"head\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                                          }
+                                        ],
+                                        "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 4)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"Positions\\\",\\\"producer\\\"]\", 1)"
+                                  },
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"body\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"args\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                                          }
+                                        ],
+                                        "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 6)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"Positions\\\",\\\"consumer\\\"]\", 1)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"SupportKind\\\",\\\"row\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"UnionSupport\\\",\\\"none\\\"]\", 0)"
+                                  }
+                                ],
+                                "op": "Data(\"term:[\\\"CombEdge\\\",\\\"use:R1->R23:Mul\\\"]\", 6)"
+                              },
+                              {
+                                "args": [
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"EventRef\\\",\\\"3\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"ReadSlot\\\",\\\"0\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"head\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"args\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                                          }
+                                        ],
+                                        "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 6)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"Positions\\\",\\\"producer\\\"]\", 1)"
+                                  },
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"body\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                                          }
+                                        ],
+                                        "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 4)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"Positions\\\",\\\"consumer\\\"]\", 1)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"SupportKind\\\",\\\"row\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"UnionSupport\\\",\\\"none\\\"]\", 0)"
+                                  }
+                                ],
+                                "op": "Data(\"term:[\\\"CombEdge\\\",\\\"use:R23->R23:Integral\\\"]\", 6)"
+                              }
+                            ],
+                            "op": "Data(\"term:[\\\"CombSupport\\\",\\\"supports\\\"]\", 2)"
+                          },
+                          {
+                            "args": [
+                              {
+                                "args": [
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"EventRef\\\",\\\"2\\\"]\", 0)"
+                                  }
+                                ],
+                                "op": "Data(\"term:[\\\"Role\\\",\\\"p0\\\"]\", 1)"
+                              },
+                              {
+                                "args": [
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"EventRef\\\",\\\"3\\\"]\", 0)"
+                                  }
+                                ],
+                                "op": "Data(\"term:[\\\"Role\\\",\\\"p1\\\"]\", 1)"
+                              }
+                            ],
+                            "op": "Data(\"term:[\\\"RoleMap\\\",\\\"producer-roles\\\"]\", 2)"
+                          },
+                          {
+                            "args": [
+                              {
+                                "args": [
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                  }
+                                ],
+                                "op": "Data(\"term:[\\\"Signature\\\",\\\"inputs\\\"]\", 5)"
+                              },
+                              {
+                                "args": [
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                  }
+                                ],
+                                "op": "Data(\"term:[\\\"Signature\\\",\\\"outputs\\\"]\", 3)"
+                              },
+                              {
+                                "args": [
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"Math\\\",\\\"in:1\\\"]\", 0)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"Assignment\\\",\\\"assign:0\\\"]\", 1)"
+                                  },
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"Math\\\",\\\"in:0\\\"]\", 0)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"Assignment\\\",\\\"assign:1\\\"]\", 1)"
+                                  },
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"Math\\\",\\\"in:4\\\"]\", 0)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"Assignment\\\",\\\"assign:2\\\"]\", 1)"
+                                  },
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [
+                                          {
+                                            "args": [
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"Math\\\",\\\"in:4\\\"]\", 0)"
+                                              },
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"Math\\\",\\\"in:2\\\"]\", 0)"
+                                              }
+                                            ],
+                                            "op": "Data(\"term:[\\\"Math\\\",\\\"materialized:Diff\\\"]\", 2)"
+                                          },
+                                          {
+                                            "args": [
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"Math\\\",\\\"in:3\\\"]\", 0)"
+                                              },
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"Math\\\",\\\"in:4\\\"]\", 0)"
+                                              }
+                                            ],
+                                            "op": "Data(\"term:[\\\"Math\\\",\\\"materialized:Integral\\\"]\", 2)"
+                                          }
+                                        ],
+                                        "op": "Data(\"term:[\\\"Math\\\",\\\"materialized:Mul\\\"]\", 2)"
+                                      },
+                                      {
+                                        "args": [
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"Math\\\",\\\"out:0\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"Math\\\",\\\"out:1\\\"]\", 0)"
+                                          }
+                                        ],
+                                        "op": "Data(\"term:[\\\"Math\\\",\\\"materialized:Mul\\\"]\", 2)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"Constraint\\\",\\\"Eq\\\"]\", 2)"
+                                  }
+                                ],
+                                "op": "Data(\"term:[\\\"Ops\\\",\\\"ops\\\"]\", 4)"
+                              }
+                            ],
+                            "op": "Data(\"term:[\\\"BindingMap\\\",\\\"binding-map\\\"]\", 3)"
+                          },
+                          {
+                            "args": [
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PortLabel\\\",\\\"p0.a\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PortLabel\\\",\\\"p0.b\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PortLabel\\\",\\\"p1.a\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PortLabel\\\",\\\"p1.b\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PortLabel\\\",\\\"p1.x\\\"]\", 0)"
+                              }
+                            ],
+                            "op": "Data(\"term:[\\\"PortLabels\\\",\\\"inputs\\\"]\", 5)"
+                          },
+                          {
+                            "args": [
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PortLabel\\\",\\\"a\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PortLabel\\\",\\\"b\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"PortLabel\\\",\\\"x\\\"]\", 0)"
+                              }
+                            ],
+                            "op": "Data(\"term:[\\\"PortLabels\\\",\\\"outputs\\\"]\", 3)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"Boundary\\\",\\\"ports\\\"]\", 0)"
+                          },
+                          {
+                            "args": [],
+                            "op": "Data(\"term:[\\\"Coverage\\\",\\\"unexplained-reads:0\\\"]\", 0)"
+                          }
+                        ],
+                        "op": "Data(\"term:[\\\"CombStage\\\",\\\"rule:R23\\\"]\", 9)"
+                      },
+                      {
+                        "args": [
+                          {
+                            "args": [
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"EventRef\\\",\\\"2\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"Coverage\\\",\\\"expanded\\\"]\", 0)"
+                              },
+                              {
+                                "args": [
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"EventRef\\\",\\\"3\\\"]\", 0)"
+                                      },
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"ReadSlot\\\",\\\"0\\\"]\", 0)"
+                                      },
+                                      {
+                                        "args": [
+                                          {
+                                            "args": [
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"head\\\"]\", 0)"
+                                              },
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                                              },
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                                              },
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                                              },
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"args\\\"]\", 0)"
+                                              },
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                                              },
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"args\\\"]\", 0)"
+                                              },
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                                              }
+                                            ],
+                                            "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 8)"
+                                          }
+                                        ],
+                                        "op": "Data(\"term:[\\\"Positions\\\",\\\"producer\\\"]\", 1)"
+                                      },
+                                      {
+                                        "args": [
+                                          {
+                                            "args": [
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"body\\\"]\", 0)"
+                                              },
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"0\\\"]\", 0)"
+                                              },
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"expr\\\"]\", 0)"
+                                              },
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"PositionPart\\\",\\\"1\\\"]\", 0)"
+                                              }
+                                            ],
+                                            "op": "Data(\"term:[\\\"Position\\\",\\\"path\\\"]\", 4)"
+                                          }
+                                        ],
+                                        "op": "Data(\"term:[\\\"Positions\\\",\\\"consumer\\\"]\", 1)"
+                                      },
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"SupportKind\\\",\\\"row\\\"]\", 0)"
+                                      },
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"UnionSupport\\\",\\\"none\\\"]\", 0)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"CombEdge\\\",\\\"use:R23->R1:Mul\\\"]\", 6)"
+                                  }
+                                ],
+                                "op": "Data(\"term:[\\\"CombSupport\\\",\\\"supports\\\"]\", 1)"
+                              },
+                              {
+                                "args": [
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"EventRef\\\",\\\"3\\\"]\", 0)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"Role\\\",\\\"p0\\\"]\", 1)"
+                                  }
+                                ],
+                                "op": "Data(\"term:[\\\"RoleMap\\\",\\\"producer-roles\\\"]\", 1)"
+                              },
+                              {
+                                "args": [
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                      },
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                      },
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"Signature\\\",\\\"inputs\\\"]\", 3)"
+                                  },
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                      },
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"Signature\\\",\\\"outputs\\\"]\", 2)"
+                                  },
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [
+                                          {
+                                            "args": [
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"Math\\\",\\\"in:2\\\"]\", 0)"
+                                              },
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"Math\\\",\\\"in:0\\\"]\", 0)"
+                                              }
+                                            ],
+                                            "op": "Data(\"term:[\\\"Math\\\",\\\"materialized:Diff\\\"]\", 2)"
+                                          }
+                                        ],
+                                        "op": "Data(\"term:[\\\"Assignment\\\",\\\"assign:0\\\"]\", 1)"
+                                      },
+                                      {
+                                        "args": [
+                                          {
+                                            "args": [
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"Math\\\",\\\"in:1\\\"]\", 0)"
+                                              },
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"Math\\\",\\\"in:2\\\"]\", 0)"
+                                              }
+                                            ],
+                                            "op": "Data(\"term:[\\\"Math\\\",\\\"materialized:Integral\\\"]\", 2)"
+                                          }
+                                        ],
+                                        "op": "Data(\"term:[\\\"Assignment\\\",\\\"assign:1\\\"]\", 1)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"Ops\\\",\\\"ops\\\"]\", 2)"
+                                  }
+                                ],
+                                "op": "Data(\"term:[\\\"BindingMap\\\",\\\"binding-map\\\"]\", 3)"
+                              },
+                              {
+                                "args": [
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"PortLabel\\\",\\\"p0.a\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"PortLabel\\\",\\\"p0.b\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"PortLabel\\\",\\\"p0.x\\\"]\", 0)"
+                                  }
+                                ],
+                                "op": "Data(\"term:[\\\"PortLabels\\\",\\\"inputs\\\"]\", 3)"
+                              },
+                              {
+                                "args": [
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"PortLabel\\\",\\\"a\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"PortLabel\\\",\\\"b\\\"]\", 0)"
+                                  }
+                                ],
+                                "op": "Data(\"term:[\\\"PortLabels\\\",\\\"outputs\\\"]\", 2)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"Boundary\\\",\\\"ports\\\"]\", 0)"
+                              },
+                              {
+                                "args": [],
+                                "op": "Data(\"term:[\\\"Coverage\\\",\\\"unexplained-reads:0\\\"]\", 0)"
+                              }
+                            ],
+                            "op": "Data(\"term:[\\\"CombStage\\\",\\\"rule:R1\\\"]\", 9)"
+                          },
+                          {
+                            "args": [
+                              {
+                                "args": [
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"EventRef\\\",\\\"3\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"Coverage\\\",\\\"expanded\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [],
+                                        "op": "Ref(887)"
+                                      },
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"EventRef\\\",\\\"4\\\"]\", 0)"
+                                      }
+                                    ],
+                                    "op": "Apply"
+                                  },
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"EventRef\\\",\\\"4\\\"]\", 0)"
+                                          }
+                                        ],
+                                        "op": "Data(\"term:[\\\"Role\\\",\\\"p0\\\"]\", 1)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"RoleMap\\\",\\\"producer-roles\\\"]\", 1)"
+                                  },
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                          }
+                                        ],
+                                        "op": "Data(\"term:[\\\"Signature\\\",\\\"inputs\\\"]\", 3)"
+                                      },
+                                      {
+                                        "args": [
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                          },
+                                          {
+                                            "args": [],
+                                            "op": "Data(\"term:[\\\"Sort\\\",\\\"Math\\\"]\", 0)"
+                                          }
+                                        ],
+                                        "op": "Data(\"term:[\\\"Signature\\\",\\\"outputs\\\"]\", 3)"
+                                      },
+                                      {
+                                        "args": [
+                                          {
+                                            "args": [
+                                              {
+                                                "args": [
+                                                  {
+                                                    "args": [],
+                                                    "op": "Data(\"term:[\\\"Math\\\",\\\"in:2\\\"]\", 0)"
+                                                  },
+                                                  {
+                                                    "args": [],
+                                                    "op": "Data(\"term:[\\\"Math\\\",\\\"in:0\\\"]\", 0)"
+                                                  }
+                                                ],
+                                                "op": "Data(\"term:[\\\"Math\\\",\\\"materialized:Diff\\\"]\", 2)"
+                                              }
+                                            ],
+                                            "op": "Data(\"term:[\\\"Assignment\\\",\\\"assign:0\\\"]\", 1)"
+                                          },
+                                          {
+                                            "args": [
+                                              {
+                                                "args": [
+                                                  {
+                                                    "args": [],
+                                                    "op": "Data(\"term:[\\\"Math\\\",\\\"in:1\\\"]\", 0)"
+                                                  },
+                                                  {
+                                                    "args": [],
+                                                    "op": "Data(\"term:[\\\"Math\\\",\\\"in:2\\\"]\", 0)"
+                                                  }
+                                                ],
+                                                "op": "Data(\"term:[\\\"Math\\\",\\\"materialized:Integral\\\"]\", 2)"
+                                              }
+                                            ],
+                                            "op": "Data(\"term:[\\\"Assignment\\\",\\\"assign:1\\\"]\", 1)"
+                                          },
+                                          {
+                                            "args": [
+                                              {
+                                                "args": [],
+                                                "op": "Data(\"term:[\\\"Math\\\",\\\"in:2\\\"]\", 0)"
+                                              }
+                                            ],
+                                            "op": "Data(\"term:[\\\"Assignment\\\",\\\"assign:2\\\"]\", 1)"
+                                          },
+                                          {
+                                            "args": [
+                                              {
+                                                "args": [
+                                                  {
+                                                    "args": [
+                                                      {
+                                                        "args": [],
+                                                        "op": "Data(\"term:[\\\"Math\\\",\\\"in:2\\\"]\", 0)"
+                                                      },
+                                                      {
+                                                        "args": [],
+                                                        "op": "Data(\"term:[\\\"Math\\\",\\\"in:0\\\"]\", 0)"
+                                                      }
+                                                    ],
+                                                    "op": "Data(\"term:[\\\"Math\\\",\\\"materialized:Diff\\\"]\", 2)"
+                                                  },
+                                                  {
+                                                    "args": [
+                                                      {
+                                                        "args": [],
+                                                        "op": "Data(\"term:[\\\"Math\\\",\\\"in:1\\\"]\", 0)"
+                                                      },
+                                                      {
+                                                        "args": [],
+                                                        "op": "Data(\"term:[\\\"Math\\\",\\\"in:2\\\"]\", 0)"
+                                                      }
+                                                    ],
+                                                    "op": "Data(\"term:[\\\"Math\\\",\\\"materialized:Integral\\\"]\", 2)"
+                                                  }
+                                                ],
+                                                "op": "Data(\"term:[\\\"Math\\\",\\\"materialized:Mul\\\"]\", 2)"
+                                              },
+                                              {
+                                                "args": [
+                                                  {
+                                                    "args": [],
+                                                    "op": "Data(\"term:[\\\"Math\\\",\\\"out:0\\\"]\", 0)"
+                                                  },
+                                                  {
+                                                    "args": [],
+                                                    "op": "Data(\"term:[\\\"Math\\\",\\\"out:1\\\"]\", 0)"
+                                                  }
+                                                ],
+                                                "op": "Data(\"term:[\\\"Math\\\",\\\"materialized:Mul\\\"]\", 2)"
+                                              }
+                                            ],
+                                            "op": "Data(\"term:[\\\"Constraint\\\",\\\"Eq\\\"]\", 2)"
+                                          }
+                                        ],
+                                        "op": "Data(\"term:[\\\"Ops\\\",\\\"ops\\\"]\", 4)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"BindingMap\\\",\\\"binding-map\\\"]\", 3)"
+                                  },
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"PortLabel\\\",\\\"p0.a\\\"]\", 0)"
+                                      },
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"PortLabel\\\",\\\"p0.b\\\"]\", 0)"
+                                      },
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"PortLabel\\\",\\\"p0.x\\\"]\", 0)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"PortLabels\\\",\\\"inputs\\\"]\", 3)"
+                                  },
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"PortLabel\\\",\\\"a\\\"]\", 0)"
+                                      },
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"PortLabel\\\",\\\"b\\\"]\", 0)"
+                                      },
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"PortLabel\\\",\\\"x\\\"]\", 0)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"PortLabels\\\",\\\"outputs\\\"]\", 3)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"Boundary\\\",\\\"ports\\\"]\", 0)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"Coverage\\\",\\\"unexplained-reads:0\\\"]\", 0)"
+                                  }
+                                ],
+                                "op": "Data(\"term:[\\\"CombStage\\\",\\\"rule:R23\\\"]\", 9)"
+                              },
+                              {
+                                "args": [
+                                  {
+                                    "args": [
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"EventRef\\\",\\\"4\\\"]\", 0)"
+                                      },
+                                      {
+                                        "args": [],
+                                        "op": "Data(\"term:[\\\"Coverage\\\",\\\"no-recorded-incoming\\\"]\", 0)"
+                                      }
+                                    ],
+                                    "op": "Data(\"term:[\\\"CombStage\\\",\\\"rule:R23\\\"]\", 2)"
+                                  },
+                                  {
+                                    "args": [],
+                                    "op": "Data(\"term:[\\\"CombNodes\\\",\\\"nil\\\"]\", 0)"
+                                  }
+                                ],
+                                "op": "Data(\"term:[\\\"CombNodes\\\",\\\"cons\\\"]\", 2)"
+                              }
+                            ],
+                            "op": "Data(\"term:[\\\"CombNodes\\\",\\\"cons\\\"]\", 2)"
+                          }
+                        ],
+                        "op": "Data(\"term:[\\\"CombNodes\\\",\\\"cons\\\"]\", 2)"
+                      }
+                    ],
+                    "op": "Data(\"term:[\\\"CombNodes\\\",\\\"cons\\\"]\", 2)"
+                  }
+                ],
+                "op": "Data(\"term:[\\\"CombNodes\\\",\\\"cons\\\"]\", 2)"
+              }
+            ],
+            "op": "Data(\"term:[\\\"CombDAG\\\",\\\"root\\\"]\", 2)"
+          }
+        ],
+        "op": "Lambda"
+      },
+      "id": 23
+    }
+  ],
+  "library_order_normalization": {
+    "scope": "pure lifted closed library definitions topologically ordered before lexical expansion; cycles and missing definitions rejected",
+    "test_changed": false,
+    "train_changed": false
+  },
+  "lossless_expansion": {
+    "test": true,
+    "train": true
+  },
+  "scope": "offline syntax learning; conditional effects preserved as source syntax, not inferred or certified; heldout classes within one trace, not independent runs; AST counts are not runtime memory savings",
+  "selected_train_libraries": 4,
+  "settings": {
+    "beam": 16,
+    "libraries_per_step": 4,
+    "library_iterations": 2,
+    "max_arity": 3
+  },
+  "test": {
+    "babble_corpus_plus_library_nodes": 6751,
+    "exact_whole_program_dictionary_nodes": 7166,
+    "programs": 25,
+    "raw_ast_nodes": 7116
+  },
+  "train": {
+    "babble_corpus_plus_library_nodes": 26982,
+    "exact_whole_program_dictionary_nodes": 30390,
+    "programs": 99,
+    "raw_ast_nodes": 30192
+  }
+}
