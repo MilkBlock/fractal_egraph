@@ -186,6 +186,7 @@ fn generate(source: &str, report: &Value, overlay: &Value) -> Result<String, Box
     );
     let mut ordinal = 0;
     for command in commands {
+        let command = egg_layout::visual_rule::normalize(command, ordinal);
         if let Command::Rule { rule } = &command {
             let id = if rule.name.is_empty() {
                 format!("R{ordinal}")
@@ -203,7 +204,7 @@ fn generate(source: &str, report: &Value, overlay: &Value) -> Result<String, Box
             let labels = labels_for(&all, &id);
             validate_labels(rule, &labels)?;
             out += &annotate(
-                json!({"schema":"egg-viz/v1","id":id,"kind":"original_rule","labels":labels,"statistics":report["rule_labels"][&id]}),
+                json!({"schema":"egg-viz/v1","id":id,"kind":"original_rule","labels":labels,"profile_round_limit":report["profile_round_limit"],"statistics":report["rule_labels"][&id]}),
                 &command.to_string(),
             );
             original.insert(id, rule.clone());
@@ -293,15 +294,16 @@ fn generate(source: &str, report: &Value, overlay: &Value) -> Result<String, Box
         let renamed_consumer = renamed(consumer, "c");
         let mut connections = Vec::new();
         for s in support {
-            let (role, name) = &producers[&s["producer"].as_u64().unwrap()];
+            let (role, _name) = &producers[&s["producer"].as_u64().unwrap()];
             let table = s["table"].as_str().ok_or("table")?;
             let slot = s["slot"].as_u64().ok_or("slot")? as usize;
             let outputs = write_calls(&transformed[role], table);
-            if outputs.len() != 1 {
-                return Err(format!("ambiguous producer output {name}:{table}").into());
-            }
             let inputs = read_calls(&renamed_consumer, table);
-            let input = inputs.get(slot).ok_or("read slot mismatch")?;
+            if outputs.len() != 1 || inputs.len() != 1 {
+                connections.push(json!({"producer_role":role,"consumer_role":"c","table":table,"read_slot":slot,"mapping_status":"unresolved_ast_occurrence","candidate_input_expressions":inputs.iter().map(ToString::to_string).collect::<Vec<_>>(),"candidate_output_expressions":outputs.iter().map(ToString::to_string).collect::<Vec<_>>(),"evidence":s,"note":"Committed event dependency is known; AST output occurrence is not uniquely identified. No guessed equality constraint was added."}));
+                continue;
+            }
+            let input = &inputs[0];
             let (Expr::Call(_, _, pa), Expr::Call(_, _, ca)) = (&outputs[0], input) else {
                 return Err("expected table calls".into());
             };
@@ -322,7 +324,7 @@ fn generate(source: &str, report: &Value, overlay: &Value) -> Result<String, Box
             id
         );
         out += &annotate(
-            json!({"schema":"egg-viz/v1","id":id,"kind":"combined_witness_bundle","status":"visualization_only_not_a_shortcut","labels":labels,"statistics":ranking,"compiled_macro_executions":0,"stages":stage_meta,"connections":connections,"boundary_policy":"all source and consumer LHS retained, including intermediate reads; no causal prerequisite is eliminated"}),
+            json!({"schema":"egg-viz/v1","id":id,"kind":"combined_witness_bundle","status":"visualization_only_not_a_shortcut","labels":labels,"profile_round_limit":report["profile_round_limit"],"ast_connections_complete":connections.iter().all(|c|c.get("mapping_status").is_none()),"statistics":ranking,"compiled_macro_executions":0,"stages":stage_meta,"connections":connections,"boundary_policy":"all source and consumer LHS retained, including intermediate reads; no causal prerequisite is eliminated"}),
             &command,
         );
     }
@@ -344,19 +346,54 @@ fn main() -> Result<(), Box<dyn Error>> {
     };
     let output = generate(&source, &report, &labels)?;
     let mut baseline = EGraph::default();
-    baseline.parse_and_run_program(Some(args[1].clone()), &source)?;
+    let baseline_outputs = baseline.parse_and_run_program(Some(args[1].clone()), &source)?;
     let mut check = EGraph::default();
-    check.parse_and_run_program(None, &output)?;
+    let exported_outputs = check.parse_and_run_program(None, &output)?;
+    let sizes = |outputs: Vec<egglog::CommandOutput>| {
+        outputs
+            .into_iter()
+            .filter(|o| {
+                matches!(
+                    o,
+                    egglog::CommandOutput::PrintFunctionSize(_)
+                        | egglog::CommandOutput::PrintAllFunctionsSize(_)
+                )
+            })
+            .map(|o| o.to_string())
+            .collect::<Vec<_>>()
+    };
+    if sizes(baseline_outputs) != sizes(exported_outputs) {
+        return Err("export changed printed table sizes".into());
+    }
     let dir = Path::new(&args[3]);
     std::fs::create_dir_all(dir)?;
     std::fs::write(dir.join("combined.egg"), &output)?;
-    let prompt = include_str!("../../experiments/annotated_export/deepseek-template.md").replace(
-        "{{ARTIFACT}}",
-        &dir.canonicalize()?
-            .join("combined.egg")
-            .display()
-            .to_string(),
-    );
+    let prompt = include_str!("../../experiments/annotated_export/deepseek-template.md")
+        .replace(
+            "{{ARTIFACT}}",
+            &dir.canonicalize()?
+                .join("combined.egg")
+                .display()
+                .to_string(),
+        )
+        .replace(
+            "{{ORIGINAL_COUNT}}",
+            &report["rule_labels"]
+                .as_object()
+                .map_or(0, |x| x.len())
+                .to_string(),
+        )
+        .replace(
+            "{{COMBINED_COUNT}}",
+            &report["motif_rankings"]
+                .as_array()
+                .map_or(0, |x| x.len())
+                .to_string(),
+        )
+        .replace(
+            "{{ROUND_LIMIT}}",
+            &report["profile_round_limit"].to_string(),
+        );
     std::fs::write(dir.join("DEEPSEEK.md"), prompt)?;
     println!(
         "validated original program and annotated export; wrote {}",

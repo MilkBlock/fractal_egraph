@@ -109,3 +109,17 @@ cargo run --bin export_combined_egg -- experiments/annotated_export/cyk/source.e
 
 不要用无注释的上游 CYK 覆盖这个源，否则无法保留新增的 DSL 显示模板。
 此次验证覆盖原生解析、执行和元数据传播，不包含浏览器/Typst 渲染测试。
+
+
+## Math rewrite 支持
+
+统计与导出共用 visual_rule::normalize，将普通非 subsuming rewrite
+展开为保留 guard 的显式 rule，生成不捕获原变量的 root 名。Math 示例
+位于 math_microbenchmark/combined.egg，原始 11 轮不变，统计限前 5 轮。
+profile_round_limit=null 表示未设置采样上限。
+
+当前 math 的 70 类组合存在源/目标 AST 节点歧义。新协议用
+ast_connections_complete=false 与 unresolved_ast_occurrence 显式表示，
+保留事件证据和候选表达式。read_slot 不能一般地作为 AST 遍历下标。
+原先“多输出直接报错”的策略已改为输出有标记的阶段级可视化连接，
+不添加猜测的等式。不支持 subsuming rewrite 的动作展开。

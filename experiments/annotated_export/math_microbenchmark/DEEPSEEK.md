@@ -1,5 +1,5 @@
 请将以下已生成的 .egg 接入现有可视化链路：
-{{ARTIFACT}}
+/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/annotated_export/math_microbenchmark/combined.egg
 
 工作仓库：
 - /Users/mineralsteins/Repos/egg_related/eggplant-pattern-web-editor
@@ -16,7 +16,7 @@
 6. 检查两仓库 AGENTS.md 和工作区，不覆盖未提交工作；不要手改 vendor WASM 来假装完成，若修改了 transpiler 必须找出真实构建源并重建适配的产物。
 
 验收：
-- combined.egg 中 {{ORIGINAL_COUNT}} 条 original_rule 和 {{COMBINED_COUNT}} 条 combined_witness_bundle 全部展示，排序和 JSON 一致。
+- combined.egg 中 24 条 original_rule 和 101 条 combined_witness_bundle 全部展示，排序和 JSON 一致。
 - 中文标签、重复显示名、变量复用、嵌套 position、缺失标签回退、非法 JSON/未知 schema/过期 selector 的诊断均有测试。
 - 未标注 .egg 与现有 Rust 示例仍正常；用户字符串不得当作可执行 Typst 或 HTML 注入，应使用现有转义方式。
 - 保留所有输入/输出/guard/union；不要把 producer 两个角色 p0/p1 无条件合并。
@@ -25,5 +25,5 @@
 
 本任务不要求生成新的宏规则、证明交换律、做 FlashAttention 推导，也不要求改变 egglog 内核。生成器已验证原程序与导出文件均可由本地 egglog 执行全部原始检查；这不等于现有 WASM/transpiler 已支持文件中的所有构造，需要你实际验证。
 
-本文件统计轮数上限：{{ROUND_LIMIT}}（null 表示没有设置采样上限）。必须展示统计范围，不能把前几轮的频率当作完整原始 schedule 的频率。原始运行轮数不因统计采样改变。
+本文件统计轮数上限：5（null 表示没有设置采样上限）。必须展示统计范围，不能把前几轮的频率当作完整原始 schedule 的频率。原始运行轮数不因统计采样改变。
 若 ast_connections_complete=false，connections 中的 unresolved_ast_occurrence 只有事件级连接已确认，AST 节点位置尚未唯一确定。展示候选位置或阶段级虚线，不要任选一个节点画实线。同表 read_slot 是 trace 内的序号，不保证等同于源 AST 的前序遍历序号。

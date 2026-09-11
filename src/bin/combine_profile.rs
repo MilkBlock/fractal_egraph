@@ -13,6 +13,9 @@ struct Count {
     next: BTreeMap<String, usize>,
 }
 fn profile(path: &str) -> Json {
+    profile_rounds(path, None)
+}
+fn profile_rounds(path: &str, max_rounds: Option<usize>) -> Json {
     let source = std::fs::read_to_string(path).unwrap();
     let mut reference = EGraph::default();
     reference
@@ -23,6 +26,7 @@ fn profile(path: &str) -> Json {
     let mut catalogue = BTreeMap::new();
     let mut index = 0;
     for command in &mut commands {
+        *command = egg_layout::visual_rule::normalize(command.clone(), index);
         if let Command::Rule { rule } = command {
             let original = rule.to_string();
             if rule.name.is_empty() {
@@ -30,6 +34,18 @@ fn profile(path: &str) -> Json {
             }
             catalogue.insert(rule.name.clone(), original);
             index += 1;
+        }
+    }
+    if let Some(limit) = max_rounds {
+        for command in &mut commands {
+            if let Command::RunSchedule(egglog::ast::GenericSchedule::Repeat(_, n, inner)) = command
+            {
+                assert!(
+                    matches!(**inner, egglog::ast::GenericSchedule::Run(..)),
+                    "sampling supports simple repeat(run) only"
+                );
+                *n = (*n).min(limit);
+            }
         }
     }
     let trace = TraceSession::with_dependencies();
@@ -178,13 +194,16 @@ fn profile(path: &str) -> Json {
         rows.sort_by(|a, b| b.1.occurrences.cmp(&a.1.occurrences).then(a.0.cmp(&b.0)));
         rows.into_iter().enumerate().map(|(i,(shape,c))|json!({"rank":i+1,"shape":shape,"observed_occurrences":c.occurrences,"productive_consumer_occurrences":c.productive,"scopes":c.scopes,"example_matches":c.examples,"continued_instances":c.continued.len(),"next_motif_counts":c.next_motifs,"next_rule_counts":c.next})).collect::<Vec<_>>()
     };
-    json!({"source":path,"scope":"historical committed row-dependency motifs, not generated or executed shortcut rules","native_checks":"original and name-labelled native program both completed all commands/checks","rule_labels":rule_stats,"pair_rankings":ranked(pairs),"motif_rankings":ranked(motifs),"witnesses":evidence,"surviving_reads_without_same_session_producer":unknown_reads,"executed_compiled_macros":0,"selection_policy":"none: ranking is observational, no activation policy","limitations":["one execution per scope, not independent benchmark repetitions","motifs retain producer-instance aliasing and same-table read ordinals; not full typed binding-isomorphism classes","boundary inputs and union support remain explicit; not closed rewrite certificates","historical support remains counted even if row origins are invalidated later","union-only causes are shown as rebuild support, not ranked as Inserted producers"]})
+    json!({"profile_round_limit":max_rounds,"source":path,"scope":"historical committed row-dependency motifs, not generated or executed shortcut rules","native_checks":"original native program completed; normalized profiled program completed with explicit profile_round_limit when supplied","rule_labels":rule_stats,"pair_rankings":ranked(pairs),"motif_rankings":ranked(motifs),"witnesses":evidence,"surviving_reads_without_same_session_producer":unknown_reads,"executed_compiled_macros":0,"selection_policy":"none: ranking is observational, no activation policy","limitations":["one execution per scope, not independent benchmark repetitions","motifs retain producer-instance aliasing and same-table read ordinals; not full typed binding-isomorphism classes","boundary inputs and union support remain explicit; not closed rewrite certificates","historical support remains counted even if row origins are invalidated later","union-only causes are shown as rebuild support, not ranked as Inserted producers"]})
 }
 fn main() {
     let path = std::env::args()
         .nth(1)
         .unwrap_or("egglog/tests/web-demo/cyk.egg".into());
-    let result = profile(&path);
+    let limit = std::env::args()
+        .nth(3)
+        .map(|s| s.parse().expect("round limit"));
+    let result = profile_rounds(&path, limit);
     let text = serde_json::to_string_pretty(&result).unwrap();
     if let Some(out) = std::env::args().nth(2) {
         std::fs::write(out, text).unwrap();
