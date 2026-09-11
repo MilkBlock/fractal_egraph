@@ -1,0 +1,310 @@
+{
+  "cases": [
+    {
+      "binding": [
+        10,
+        20
+      ],
+      "bridge": {
+        "explored_states": 1,
+        "plan": [],
+        "relation_key": "{\"equalities\":[],\"facts\":[{\"args\":[{\"args\":[],\"op\":\"in:0\",\"sort\":\"i64\"},{\"args\":[],\"op\":\"in:1\",\"sort\":\"i64\"}],\"relation\":\"Ready\"}],\"inputs\":[{\"args\":[],\"op\":\"in:0\",\"sort\":\"i64\"}],\"outputs\":[{\"args\":[],\"op\":\"in:1\",\"sort\":\"i64\"}]}",
+        "remaining_gap": {
+          "missing_equalities": [],
+          "missing_facts": [],
+          "satisfied": true,
+          "unbound": []
+        },
+        "scope": "supplied ground positive-effect contracts; no native mutation certification",
+        "state_contract": {
+          "adds": [],
+          "binding_route": {
+            "args": [
+              {
+                "args": [],
+                "op": "inputs",
+                "sort": "Signature"
+              },
+              {
+                "args": [],
+                "op": "outputs",
+                "sort": "Signature"
+              },
+              {
+                "args": [],
+                "op": "ops",
+                "sort": "Ops"
+              }
+            ],
+            "op": "binding-map",
+            "sort": "BindingMap"
+          },
+          "entry_focus": {},
+          "equalities": [],
+          "exit_focus": {},
+          "required_equalities": [],
+          "requires": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "literal:10",
+                  "sort": "i64"
+                },
+                {
+                  "args": [],
+                  "op": "literal:20",
+                  "sort": "i64"
+                }
+              ],
+              "relation": "Ready"
+            }
+          ]
+        },
+        "status": "found_in_supplied_symbolic_actions"
+      },
+      "initial": "Ready",
+      "initial_gap": {
+        "missing_equalities": [],
+        "missing_facts": [],
+        "satisfied": true,
+        "unbound": []
+      },
+      "native_check": true,
+      "template_key": "{\"equalities\":[],\"facts\":[{\"args\":[{\"args\":[],\"op\":\"in:0\",\"sort\":\"i64\"},{\"args\":[],\"op\":\"in:1\",\"sort\":\"i64\"}],\"relation\":\"Ready\"}],\"inputs\":[{\"args\":[],\"op\":\"in:0\",\"sort\":\"i64\"}],\"outputs\":[{\"args\":[],\"op\":\"in:1\",\"sort\":\"i64\"}]}"
+    },
+    {
+      "binding": [
+        11,
+        21
+      ],
+      "bridge": {
+        "explored_states": 2,
+        "plan": [
+          "link-to-ready"
+        ],
+        "relation_key": "{\"equalities\":[],\"facts\":[{\"args\":[{\"args\":[],\"op\":\"in:0\",\"sort\":\"i64\"},{\"args\":[],\"op\":\"in:1\",\"sort\":\"i64\"}],\"relation\":\"Ready\"}],\"inputs\":[{\"args\":[],\"op\":\"in:0\",\"sort\":\"i64\"}],\"outputs\":[{\"args\":[],\"op\":\"in:1\",\"sort\":\"i64\"}]}",
+        "remaining_gap": {
+          "missing_equalities": [],
+          "missing_facts": [],
+          "satisfied": true,
+          "unbound": []
+        },
+        "scope": "supplied ground positive-effect contracts; no native mutation certification",
+        "state_contract": {
+          "adds": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "literal:11",
+                  "sort": "i64"
+                },
+                {
+                  "args": [],
+                  "op": "literal:21",
+                  "sort": "i64"
+                }
+              ],
+              "relation": "Ready"
+            }
+          ],
+          "binding_route": {
+            "args": [
+              {
+                "args": [],
+                "op": "inputs",
+                "sort": "Signature"
+              },
+              {
+                "args": [],
+                "op": "outputs",
+                "sort": "Signature"
+              },
+              {
+                "args": [],
+                "op": "ops",
+                "sort": "Ops"
+              }
+            ],
+            "op": "binding-map",
+            "sort": "BindingMap"
+          },
+          "entry_focus": {},
+          "equalities": [],
+          "exit_focus": {},
+          "required_equalities": [],
+          "requires": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "literal:11",
+                  "sort": "i64"
+                },
+                {
+                  "args": [],
+                  "op": "literal:21",
+                  "sort": "i64"
+                }
+              ],
+              "relation": "Link"
+            }
+          ]
+        },
+        "status": "found_in_supplied_symbolic_actions"
+      },
+      "initial": "Link",
+      "initial_gap": {
+        "missing_equalities": [],
+        "missing_facts": [
+          {
+            "args": [
+              {
+                "args": [],
+                "op": "literal:11",
+                "sort": "i64"
+              },
+              {
+                "args": [],
+                "op": "literal:21",
+                "sort": "i64"
+              }
+            ],
+            "relation": "Ready"
+          }
+        ],
+        "satisfied": false,
+        "unbound": []
+      },
+      "native_check": true,
+      "template_key": "{\"equalities\":[],\"facts\":[{\"args\":[{\"args\":[],\"op\":\"in:0\",\"sort\":\"i64\"},{\"args\":[],\"op\":\"in:1\",\"sort\":\"i64\"}],\"relation\":\"Ready\"}],\"inputs\":[{\"args\":[],\"op\":\"in:0\",\"sort\":\"i64\"}],\"outputs\":[{\"args\":[],\"op\":\"in:1\",\"sort\":\"i64\"}]}"
+    },
+    {
+      "binding": [
+        12,
+        22
+      ],
+      "bridge": {
+        "explored_states": 3,
+        "plan": [
+          "seed-to-link",
+          "link-to-ready"
+        ],
+        "relation_key": "{\"equalities\":[],\"facts\":[{\"args\":[{\"args\":[],\"op\":\"in:0\",\"sort\":\"i64\"},{\"args\":[],\"op\":\"in:1\",\"sort\":\"i64\"}],\"relation\":\"Ready\"}],\"inputs\":[{\"args\":[],\"op\":\"in:0\",\"sort\":\"i64\"}],\"outputs\":[{\"args\":[],\"op\":\"in:1\",\"sort\":\"i64\"}]}",
+        "remaining_gap": {
+          "missing_equalities": [],
+          "missing_facts": [],
+          "satisfied": true,
+          "unbound": []
+        },
+        "scope": "supplied ground positive-effect contracts; no native mutation certification",
+        "state_contract": {
+          "adds": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "literal:12",
+                  "sort": "i64"
+                },
+                {
+                  "args": [],
+                  "op": "literal:22",
+                  "sort": "i64"
+                }
+              ],
+              "relation": "Link"
+            },
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "literal:12",
+                  "sort": "i64"
+                },
+                {
+                  "args": [],
+                  "op": "literal:22",
+                  "sort": "i64"
+                }
+              ],
+              "relation": "Ready"
+            }
+          ],
+          "binding_route": {
+            "args": [
+              {
+                "args": [],
+                "op": "inputs",
+                "sort": "Signature"
+              },
+              {
+                "args": [],
+                "op": "outputs",
+                "sort": "Signature"
+              },
+              {
+                "args": [],
+                "op": "ops",
+                "sort": "Ops"
+              }
+            ],
+            "op": "binding-map",
+            "sort": "BindingMap"
+          },
+          "entry_focus": {},
+          "equalities": [],
+          "exit_focus": {},
+          "required_equalities": [],
+          "requires": [
+            {
+              "args": [
+                {
+                  "args": [],
+                  "op": "literal:12",
+                  "sort": "i64"
+                },
+                {
+                  "args": [],
+                  "op": "literal:22",
+                  "sort": "i64"
+                }
+              ],
+              "relation": "Seed"
+            }
+          ]
+        },
+        "status": "found_in_supplied_symbolic_actions"
+      },
+      "initial": "Seed",
+      "initial_gap": {
+        "missing_equalities": [],
+        "missing_facts": [
+          {
+            "args": [
+              {
+                "args": [],
+                "op": "literal:12",
+                "sort": "i64"
+              },
+              {
+                "args": [],
+                "op": "literal:22",
+                "sort": "i64"
+              }
+            ],
+            "relation": "Ready"
+          }
+        ],
+        "satisfied": false,
+        "unbound": []
+      },
+      "native_check": true,
+      "template_key": "{\"equalities\":[],\"facts\":[{\"args\":[{\"args\":[],\"op\":\"in:0\",\"sort\":\"i64\"},{\"args\":[],\"op\":\"in:1\",\"sort\":\"i64\"}],\"relation\":\"Ready\"}],\"inputs\":[{\"args\":[],\"op\":\"in:0\",\"sort\":\"i64\"}],\"outputs\":[{\"args\":[],\"op\":\"in:1\",\"sort\":\"i64\"}]}"
+    }
+  ],
+  "concrete_bindings": 3,
+  "scope": "symbolic bridge search with independently executed native egglog fixtures; no trace-driven extraction or scheduler replacement",
+  "shared_relation_templates": 1
+}

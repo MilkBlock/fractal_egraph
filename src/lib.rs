@@ -8,3 +8,4 @@ pub mod binding_program;
 
 pub mod effect_program;
 pub mod effect_orbit;
+pub mod trigger_bridge;
