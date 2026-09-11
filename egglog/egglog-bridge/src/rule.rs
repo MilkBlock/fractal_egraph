@@ -105,6 +105,7 @@ pub(crate) struct Query {
     rule_id: RuleId,
     vars: DenseIdMap<VariableId, VarInfo>,
     atoms: Vec<(TableId, Vec<QueryEntry>, SchemaMath)>,
+    atom_sources: std::collections::HashMap<usize, Arc<str>>,
     /// The builders for queries in this module essentially wrap the lower-level
     /// builders from the `core_relations` crate. A single egglog rule can turn
     /// into N core-relations rules. The code is structured by constructing a
@@ -145,6 +146,7 @@ impl EGraph {
                 sole_focus: None,
                 vars: Default::default(),
                 atoms: Default::default(),
+                atom_sources: Default::default(),
                 add_rule: Default::default(),
                 plan_strategy: Default::default(),
             },
@@ -401,6 +403,15 @@ impl RuleBuilder<'_> {
     /// Add the given table atom to query. As elsewhere in the crate, the last
     /// argument is the "return value" of the function. Can also optionally
     /// check the subsumption bit.
+    pub fn set_atom_source(&mut self, atom: AtomId, source: Arc<str>) {
+        self.query.atom_sources.insert(atom.index(), source);
+    }
+    pub fn set_trace_source(&mut self, source: Option<Arc<str>>) {
+        self.query.add_rule.push(Box::new(move |_, rb| {
+            rb.set_trace_source(source.clone());
+            Ok(())
+        }));
+    }
     pub fn query_table(
         &mut self,
         func: FunctionId,
@@ -756,8 +767,12 @@ impl Query {
         rsb.retain_witnesses(retain_witnesses);
         let (mut qb, mut inner) = self.query_state(&mut rsb);
         let mut atom_mapping = Vec::with_capacity(self.atoms.len());
-        for (table, entries, _schema_info) in &self.atoms {
-            atom_mapping.push(add_atom(&mut qb, *table, entries, &[], &mut inner)?);
+        for (index, (table, entries, _schema_info)) in self.atoms.iter().enumerate() {
+            let atom = add_atom(&mut qb, *table, entries, &[], &mut inner)?;
+            if let Some(source) = self.atom_sources.get(&index) {
+                qb.set_atom_source(atom, source.clone());
+            }
+            atom_mapping.push(atom);
         }
         let rule_id = self.run_rules_and_build(qb, inner, desc)?;
         let rs = rsb.build();

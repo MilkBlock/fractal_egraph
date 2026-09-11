@@ -127,6 +127,7 @@ impl<'outer> RuleSetBuilder<'outer> {
     pub fn new_rule<'a>(&'a mut self) -> QueryBuilder<'outer, 'a> {
         let instrs = with_pool_set(PoolSet::get);
         QueryBuilder {
+            trace_sources: HashMap::default(),
             rsb: self,
             instrs,
             query: Query {
@@ -294,12 +295,16 @@ impl<'outer> RuleSetBuilder<'outer> {
 /// Queries specify scans or joins over the database that bind variables that
 /// are accessible to rules.
 pub struct QueryBuilder<'outer, 'a> {
+    trace_sources: HashMap<AtomId, Arc<str>>,
     rsb: &'a mut RuleSetBuilder<'outer>,
     query: Query,
     instrs: Pooled<Vec<Instr>>,
 }
 
 impl<'outer, 'a> QueryBuilder<'outer, 'a> {
+    pub fn set_atom_source(&mut self, atom: AtomId, source: Arc<str>) {
+        self.trace_sources.insert(atom, source);
+    }
     /// Finish the query and start building the right-hand side of the rule.
     pub fn build(self) -> RuleBuilder<'outer, 'a> {
         RuleBuilder { qb: self }
@@ -552,6 +557,11 @@ impl RuleBuilder<'_, '_> {
         }
     }
 
+    pub fn set_trace_source(&mut self, source: Option<Arc<str>>) {
+        if self.qb.rsb.retain_witnesses {
+            self.qb.instrs.push(Instr::TraceSource(source));
+        }
+    }
     pub fn build_with_description(mut self, desc: impl Into<String>) -> RuleId {
         let var_info = &self.qb.query.var_info;
         let symbol_map = self.build_symbol_map();
@@ -568,7 +578,7 @@ impl RuleBuilder<'_, '_> {
                 .query
                 .atoms
                 .iter()
-                .map(|(_, atom)| {
+                .map(|(id, atom)| {
                     let spec = &self.table_info(atom.table).spec;
                     let keys = (0..spec.n_keys)
                         .map(|i| {
@@ -589,6 +599,7 @@ impl RuleBuilder<'_, '_> {
                         })
                         .collect();
                     crate::trace::TraceAtom {
+                        source_span: self.qb.trace_sources.get(&id).cloned(),
                         table: atom.table,
                         keys,
                     }

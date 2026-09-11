@@ -214,6 +214,7 @@ impl TraceSession {
     ) -> u64 {
         let event_id = self.state.next_event_id.fetch_add(1, Ordering::Relaxed);
         self.state.writes.lock().unwrap().push(WriteEvent {
+            source_span: cause.source_span.clone(),
             event_id,
             match_event_id: cause.match_event_id,
             table: cause.table,
@@ -248,6 +249,7 @@ impl TraceSession {
             let producer = origin.as_ref().map(|p| p.match_event_id);
             let producer_write = origin.as_ref().and_then(|p| p.commit_event_id);
             out.push(RowReadEvent {
+                source_span: r.source_span,
                 event_id: self.state.next_event_id.fetch_add(1, Ordering::Relaxed),
                 match_event_id: match_id,
                 table: r.table,
@@ -337,6 +339,9 @@ pub enum WriteOutcome {
 }
 #[derive(Clone, Debug)]
 pub struct WriteEvent {
+    /// Source-file identity and byte range of the originating expression/action.
+    /// Copied through rebuild lineage; None for low-level/unmapped actions.
+    pub source_span: Option<Arc<str>>,
     /// Previous committed row version, when native rebuild transports provenance.
     pub rebuild_of: Option<u64>,
     /// Committed equality edges used to canonicalize that version.
@@ -350,6 +355,9 @@ pub struct WriteEvent {
 }
 #[derive(Clone, Debug)]
 pub struct RowReadEvent {
+    /// Source-file identity and byte range of the query atom before planning.
+    /// This is not the row's position in a join traversal.
+    pub source_span: Option<Arc<str>>,
     pub event_id: u64,
     pub match_event_id: u64,
     pub table: crate::TableId,
@@ -362,6 +370,7 @@ pub struct RowReadEvent {
 /// Origin attached to a staged write, never reconstructed from a snapshot delta.
 #[derive(Clone)]
 pub struct TraceCause {
+    pub(crate) source_span: Option<Arc<str>>,
     pub(crate) rebuild_of: Option<u64>,
     pub(crate) union_dependencies: Vec<u64>,
     pub(crate) trace: TraceSession,
@@ -380,6 +389,7 @@ impl TraceCause {
     }
 }
 pub(crate) struct RowWitness {
+    pub source_span: Option<Arc<str>>,
     pub table: crate::TableId,
     pub table_name: Option<Arc<str>>,
     pub key: Vec<Value>,
@@ -388,6 +398,7 @@ pub(crate) struct RowWitness {
 }
 #[derive(Clone, Debug)]
 pub(crate) struct TraceAtom {
+    pub source_span: Option<Arc<str>>,
     pub table: crate::TableId,
     pub keys: Vec<Option<crate::action::QueryEntry>>,
 }

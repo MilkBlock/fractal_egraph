@@ -53,6 +53,15 @@ fn rebuild_transports_a_row_only_with_a_committed_equality_path() {
         "expected a changed-key Mid version: {writes:?}"
     );
     for w in &rebuilt {
+        let old = writes
+            .iter()
+            .find(|old| Some(old.event_id) == w.rebuild_of)
+            .unwrap();
+        assert!(old.source_span.is_some());
+        assert_eq!(
+            w.source_span, old.source_span,
+            "rebuild must retain the originating source site"
+        );
         assert!(writes.iter().any(|old| Some(old.event_id) == w.rebuild_of));
         assert!(!w.union_dependencies.is_empty());
         assert!(w.union_dependencies.iter().all(|id| {

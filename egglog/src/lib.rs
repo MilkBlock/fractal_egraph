@@ -665,7 +665,9 @@ impl EGraph {
     pub fn pop(&mut self) -> Result<(), Error> {
         match self.pushed_egraph.take() {
             Some(mut e) => {
-                if let Some(trace) = &self.program_trace { trace.record_scope_reset(); }
+                if let Some(trace) = &self.program_trace {
+                    trace.record_scope_reset();
+                }
                 // Preserve the overall report from the popped egraph
                 std::mem::swap(&mut self.overall_run_report, &mut e.overall_run_report);
                 // Preserve the symbol generator so that fresh symbols
@@ -1806,7 +1808,9 @@ impl EGraph {
     /// Execute the original command stream with tracing inside native schedules.
     /// Push/pop, until, repeats, checks, includes and command order are preserved.
     pub fn run_program_with_trace(
-        &mut self, program: Vec<Command>, trace: &TraceSession,
+        &mut self,
+        program: Vec<Command>,
+        trace: &TraceSession,
     ) -> Result<Vec<CommandOutput>, Error> {
         let previous = self.program_trace.replace(trace.clone());
         let result = self.run_program(program);
@@ -1944,7 +1948,8 @@ impl EGraph {
     /// `panics` if the function does not exist.
     /// Read a physical row, including version metadata, without creating it.
     pub fn lookup_function_row(&self, name: &str, key: &[Value]) -> Option<Vec<Value>> {
-        self.backend.lookup_row(self.functions.get(name)?.backend_id, key)
+        self.backend
+            .lookup_row(self.functions.get(name)?.backend_id, key)
     }
 
     pub fn lookup_function(&self, name: &str, key: &[Value]) -> Option<Value> {
@@ -2182,7 +2187,10 @@ impl<'a> BackendRule<'a> {
                         true => None,
                         false => Some(false),
                     };
-                    self.rb.query_table(f, &args, is_subsumed).unwrap();
+                    let id = self.rb.query_table(f, &args, is_subsumed).unwrap();
+                    if let Some(source) = trace_span_id(&atom.span) {
+                        self.rb.set_atom_source(id, source);
+                    }
                 }
                 ResolvedCall::Primitive(p) => {
                     let ctx = self.query_context();
@@ -2195,6 +2203,15 @@ impl<'a> BackendRule<'a> {
 
     fn actions(&mut self, actions: &core::ResolvedCoreActions) -> Result<(), Error> {
         for action in &actions.0 {
+            let source = match action {
+                core::GenericCoreAction::Let(span, ..)
+                | core::GenericCoreAction::LetAtomTerm(span, ..)
+                | core::GenericCoreAction::Set(span, ..)
+                | core::GenericCoreAction::Change(span, ..)
+                | core::GenericCoreAction::Union(span, ..)
+                | core::GenericCoreAction::Panic(span, ..) => trace_span_id(span),
+            };
+            self.rb.set_trace_source(source);
             match action {
                 core::GenericCoreAction::Let(span, v, f, args) => {
                     let v = core::GenericAtomTerm::Var(span.clone(), v.clone());
@@ -2262,6 +2279,13 @@ impl<'a> BackendRule<'a> {
 
     fn build(self) -> egglog_bridge::RuleId {
         self.rb.build()
+    }
+}
+
+fn trace_span_id(span: &Span) -> Option<std::sync::Arc<str>> {
+    match span {
+        Span::Egglog(s) => Some(format!("{:?}:{}:{}", s.file.name, s.i, s.j).into()),
+        _ => None,
     }
 }
 

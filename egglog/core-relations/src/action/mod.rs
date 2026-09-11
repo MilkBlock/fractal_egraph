@@ -372,6 +372,7 @@ pub struct ExecutionState<'a> {
 /// tracks if a table has been modified.
 struct MutationBuffers<'a> {
     trace_cause: Option<(crate::trace::TraceSession, u64)>,
+    trace_source: Option<std::sync::Arc<str>>,
     notify_list: &'a NotificationList<TableId>,
     buffers: DenseIdMap<TableId, Box<dyn MutationBuffer>>,
 }
@@ -383,6 +384,7 @@ impl Clone for MutationBuffers<'_> {
             res.buffers.insert(id, buf.fresh_handle());
         }
         res.trace_cause = self.trace_cause.clone();
+        res.trace_source = self.trace_source.clone();
         res
     }
 }
@@ -394,6 +396,7 @@ impl<'a> MutationBuffers<'a> {
     ) -> MutationBuffers<'a> {
         MutationBuffers {
             trace_cause: None,
+            trace_source: None,
             notify_list,
             buffers,
         }
@@ -406,6 +409,7 @@ impl<'a> MutationBuffers<'a> {
             self.buffers[table_id].stage_insert_with_cause(
                 row,
                 crate::trace::TraceCause {
+                    source_span: self.trace_source.clone(),
                     rebuild_of: None,
                     union_dependencies: vec![],
                     trace: trace.clone(),
@@ -650,6 +654,7 @@ impl ExecutionState<'_> {
             };
             let producer = table.row_producer(&keys, &row.vals);
             reads.push(crate::trace::RowWitness {
+                source_span: atom.source_span.clone(),
                 table: atom.table,
                 table_name: self.db.table_info[atom.table].name.clone(),
                 key: keys,
@@ -673,6 +678,7 @@ impl ExecutionState<'_> {
     ) -> usize {
         if trace.dependencies_enabled() {
             let previous = self.buffers.trace_cause.take();
+            let previous_source = self.buffers.trace_source.take();
             let mut outcomes = Vec::with_capacity(match_event_ids.len());
             for (lane, event_id) in match_event_ids.iter().enumerate() {
                 let mut one = Bindings::new(1);
@@ -681,9 +687,11 @@ impl ExecutionState<'_> {
                 }
                 one.matches = 1;
                 self.buffers.trace_cause = Some((trace.clone(), *event_id));
+                self.buffers.trace_source = None;
                 outcomes.push(self.run_instrs_mask(instrs, &mut one).count_ones() != 0);
             }
             self.buffers.trace_cause = previous;
+            self.buffers.trace_source = previous_source;
             let survived = outcomes.iter().filter(|x| **x).count();
             trace.record_action_outcomes(match_event_ids, outcomes);
             return survived;
@@ -740,6 +748,9 @@ impl ExecutionState<'_> {
         }
 
         match inst {
+            Instr::TraceSource(source) => {
+                self.buffers.trace_source = source.clone();
+            }
             Instr::LookupOrInsertDefault {
                 table: table_id,
                 args,
@@ -984,6 +995,7 @@ impl ExecutionState<'_> {
 
 #[derive(Debug, Clone)]
 pub(crate) enum Instr {
+    TraceSource(Option<std::sync::Arc<str>>),
     /// Look up the value of the given table, inserting a new entry with a
     /// default value if it is not there.
     LookupOrInsertDefault {

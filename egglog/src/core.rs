@@ -711,8 +711,8 @@ where
                     // We disable this with union_to_set_optimization flag for term/proof mode.
                     // TODO move this optimization to later stage so we can keep it enabled in term/proof mode.
                     match (e1, e2) {
-                        (var @ GenericExpr::Var(..), GenericExpr::Call(_, f, args))
-                        | (GenericExpr::Call(_, f, args), var @ GenericExpr::Var(..))
+                        (var @ GenericExpr::Var(..), GenericExpr::Call(call_span, f, args))
+                        | (GenericExpr::Call(call_span, f, args), var @ GenericExpr::Var(..))
                             if f.is_constructor(typeinfo) && union_to_set_optimization =>
                         {
                             let head = f;
@@ -724,7 +724,7 @@ where
                             }
                             let mapped_expr = expr.to_core_actions(ctx, &mut norm_actions)?;
                             norm_actions.push(GenericCoreAction::Set(
-                                span.clone(),
+                                call_span.clone(),
                                 head.clone(),
                                 mapped_args
                                     .iter()
