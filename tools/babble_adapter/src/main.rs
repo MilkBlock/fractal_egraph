@@ -7,6 +7,7 @@ use babble::{
 };
 use serde_json::{json, Value};
 use std::{collections::BTreeMap, fmt};
+mod au_reference;
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash)]
 enum Op {
@@ -297,6 +298,10 @@ fn main() {
         .map(|x| encode_mode(&x["program"], compact))
         .collect();
     assert!(!train.is_empty() && !test.is_empty());
+    if args.get(3).is_some_and(|x| x == "au-reference") {
+        au_reference::export(&train, &args[2]);
+        return;
+    }
     for entry in entries {
         assert_eq!(
             decode(&encode_mode(&entry["program"], compact)),

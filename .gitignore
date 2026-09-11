@@ -2,6 +2,7 @@
 /tools/.deps/
 /tools/babble_adapter/target/
 /experiments/babble/*.programs.json
+/experiments/egglog_babble/*.fixture.json
 
 # dpsk (DeepSeek) agent linked worktree
 /dpsk_workspace

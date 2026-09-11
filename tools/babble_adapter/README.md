@@ -79,3 +79,8 @@ Tests:
 CARGO_INCREMENTAL=0 cargo test --bin babble_corpus
 cargo test --release --locked --manifest-path tools/babble_adapter/Cargo.toml
 ```
+
+The `au-reference` mode exports raw AU candidates and match signatures directly
+from upstream for the native egglog differential test. It skips library selection.
+Run `python3 tools/babble_adapter/scripts/compare_egglog.py`; the scoped replacement
+experiment is documented in `experiments/egglog_babble/README.md`.
