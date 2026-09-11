@@ -48,4 +48,3 @@
 
 - `[R15@p0:Mul#0{head/0/expr/1/args/0=>body/0/expr/1}] -> R1`，参数 `['0']`。
 - `[R15@p0:Mul#0{head/0/expr/1/args/1=>body/0/expr/1}] -> R1`，参数 `['1']`。
-

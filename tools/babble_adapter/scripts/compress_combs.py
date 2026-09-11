@@ -67,4 +67,4 @@ for lib in result["libraries"]:
         lines += [f"- `{u['class']}`，参数 `{u['arguments']}`。"]
     lines.append("")
 (OUT / "library_usage.json").write_text(json.dumps(usage, indent=2, ensure_ascii=False) + "\n")
-(OUT / "libraries.md").write_text("\n".join(lines) + "\n")
+(OUT / "libraries.md").write_text("\n".join(lines).rstrip() + "\n")
