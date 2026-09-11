@@ -1,0 +1,6589 @@
+{
+  "runs_with_different_order": 6,
+  "model_sha256": "e02b7f26ecf047211735abd2c2906717a8e720d4f139f7cc81aed54781cdca71",
+  "model_epoch": 1009571518353441906,
+  "heldout_anchors": 25,
+  "settings": {
+    "budget_per_anchor": 6,
+    "exploration_period": 4,
+    "maximum_wait_priority": 8
+  },
+  "score": "delta(raw exact-DAG bytes) - delta(frozen-library exact-DAG bytes), relative to each candidate's parent prefix",
+  "scope": "offline selection of recorded prefix continuations; coarse support already exists in recorded history; overlapping heldout cones; no runtime rule reordering or tier-0 compression",
+  "cost_scope": "same fixed installed library included in BOTH raw and coded baselines; shared original rule dictionary constant and omitted from both; source metadata excluded; local estimates cannot be summed as global memory savings",
+  "aggregate": {
+    "fifo": {
+      "runs_with_positive_choice": 8,
+      "mean_first_positive_choice": 1.875,
+      "choices": 89,
+      "positive_gain_choices": 20,
+      "coarse_choices": 35,
+      "anchors_reached": 25,
+      "exploration_choices": 0,
+      "sum_local_priority_estimates": 839
+    },
+    "compression-with-exploration": {
+      "runs_with_positive_choice": 8,
+      "mean_first_positive_choice": 1.625,
+      "choices": 89,
+      "positive_gain_choices": 19,
+      "coarse_choices": 34,
+      "anchors_reached": 25,
+      "exploration_choices": 15,
+      "sum_local_priority_estimates": 727
+    }
+  },
+  "scenarios": [
+    {
+      "anchor": [
+        0,
+        1389
+      ],
+      "seed": [
+        0,
+        16
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 185,
+          "parent": [
+            0,
+            16
+          ],
+          "gain": 0,
+          "raw_delta": 402,
+          "coded_delta": 402,
+          "coarse": true,
+          "born": 0,
+          "target": [
+            0,
+            185
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 185,
+              "parent": [
+                0,
+                16
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 403,
+          "parent": [
+            0,
+            185
+          ],
+          "gain": 0,
+          "raw_delta": 714,
+          "coded_delta": 714,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            403
+          ],
+          "reason": "fifo-control",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 403,
+              "parent": [
+                0,
+                185
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 712,
+          "parent": [
+            0,
+            403
+          ],
+          "gain": 0,
+          "raw_delta": 273,
+          "coded_delta": 273,
+          "coarse": false,
+          "born": 2,
+          "target": [
+            0,
+            712
+          ],
+          "reason": "fifo-control",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 712,
+              "parent": [
+                0,
+                403
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 1389,
+          "parent": [
+            0,
+            712
+          ],
+          "gain": 0,
+          "raw_delta": 497,
+          "coded_delta": 497,
+          "coarse": false,
+          "born": 3,
+          "target": [
+            0,
+            1389
+          ],
+          "reason": "fifo-control",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 1389,
+              "parent": [
+                0,
+                712
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        1389
+      ],
+      "seed": [
+        0,
+        16
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 185,
+          "parent": [
+            0,
+            16
+          ],
+          "gain": 0,
+          "raw_delta": 402,
+          "coded_delta": 402,
+          "coarse": true,
+          "born": 0,
+          "target": [
+            0,
+            185
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 185,
+              "parent": [
+                0,
+                16
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 403,
+          "parent": [
+            0,
+            185
+          ],
+          "gain": 0,
+          "raw_delta": 714,
+          "coded_delta": 714,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            403
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 403,
+              "parent": [
+                0,
+                185
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 712,
+          "parent": [
+            0,
+            403
+          ],
+          "gain": 0,
+          "raw_delta": 273,
+          "coded_delta": 273,
+          "coarse": false,
+          "born": 2,
+          "target": [
+            0,
+            712
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 712,
+              "parent": [
+                0,
+                403
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 1389,
+          "parent": [
+            0,
+            712
+          ],
+          "gain": 0,
+          "raw_delta": 497,
+          "coded_delta": 497,
+          "coarse": false,
+          "born": 3,
+          "target": [
+            0,
+            1389
+          ],
+          "reason": "exploration-quota",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 1389,
+              "parent": [
+                0,
+                712
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        1733
+      ],
+      "seed": [
+        0,
+        24
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 110,
+          "parent": [
+            0,
+            24
+          ],
+          "gain": 0,
+          "raw_delta": 570,
+          "coded_delta": 570,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            110
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 110,
+              "parent": [
+                0,
+                24
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 172,
+              "parent": [
+                0,
+                24
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 172,
+          "parent": [
+            0,
+            24
+          ],
+          "gain": 0,
+          "raw_delta": 977,
+          "coded_delta": 977,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            172
+          ],
+          "reason": "fifo-control",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 172,
+              "parent": [
+                0,
+                24
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 394,
+              "parent": [
+                0,
+                110
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 394,
+          "parent": [
+            0,
+            110
+          ],
+          "gain": 0,
+          "raw_delta": 546,
+          "coded_delta": 546,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            394
+          ],
+          "reason": "fifo-control",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 394,
+              "parent": [
+                0,
+                110
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 849,
+              "parent": [
+                0,
+                172
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 849,
+          "parent": [
+            0,
+            172
+          ],
+          "gain": 0,
+          "raw_delta": 1166,
+          "coded_delta": 1166,
+          "coarse": true,
+          "born": 2,
+          "target": [
+            0,
+            849
+          ],
+          "reason": "fifo-control",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 849,
+              "parent": [
+                0,
+                172
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 676,
+              "parent": [
+                0,
+                394
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 676,
+          "parent": [
+            0,
+            394
+          ],
+          "gain": 0,
+          "raw_delta": 292,
+          "coded_delta": 292,
+          "coarse": false,
+          "born": 3,
+          "target": [
+            0,
+            676
+          ],
+          "reason": "fifo-control",
+          "tick": 4,
+          "available_candidates": [
+            {
+              "id": 676,
+              "parent": [
+                0,
+                394
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 1733,
+              "parent": [
+                0,
+                849
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 1733,
+          "parent": [
+            0,
+            849
+          ],
+          "gain": 0,
+          "raw_delta": 633,
+          "coded_delta": 633,
+          "coarse": true,
+          "born": 4,
+          "target": [
+            0,
+            1733
+          ],
+          "reason": "fifo-control",
+          "tick": 5,
+          "available_candidates": [
+            {
+              "id": 1733,
+              "parent": [
+                0,
+                849
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        1733
+      ],
+      "seed": [
+        0,
+        24
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 110,
+          "parent": [
+            0,
+            24
+          ],
+          "gain": 0,
+          "raw_delta": 570,
+          "coded_delta": 570,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            110
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 110,
+              "parent": [
+                0,
+                24
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 172,
+              "parent": [
+                0,
+                24
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 172,
+          "parent": [
+            0,
+            24
+          ],
+          "gain": 0,
+          "raw_delta": 977,
+          "coded_delta": 977,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            172
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 172,
+              "parent": [
+                0,
+                24
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 394,
+              "parent": [
+                0,
+                110
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 394,
+          "parent": [
+            0,
+            110
+          ],
+          "gain": 0,
+          "raw_delta": 546,
+          "coded_delta": 546,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            394
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 394,
+              "parent": [
+                0,
+                110
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 849,
+              "parent": [
+                0,
+                172
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 849,
+          "parent": [
+            0,
+            172
+          ],
+          "gain": 0,
+          "raw_delta": 1166,
+          "coded_delta": 1166,
+          "coarse": true,
+          "born": 2,
+          "target": [
+            0,
+            849
+          ],
+          "reason": "exploration-quota",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 849,
+              "parent": [
+                0,
+                172
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 676,
+              "parent": [
+                0,
+                394
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 676,
+          "parent": [
+            0,
+            394
+          ],
+          "gain": 0,
+          "raw_delta": 292,
+          "coded_delta": 292,
+          "coarse": false,
+          "born": 3,
+          "target": [
+            0,
+            676
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 4,
+          "available_candidates": [
+            {
+              "id": 676,
+              "parent": [
+                0,
+                394
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 1733,
+              "parent": [
+                0,
+                849
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 1733,
+          "parent": [
+            0,
+            849
+          ],
+          "gain": 0,
+          "raw_delta": 633,
+          "coded_delta": 633,
+          "coarse": true,
+          "born": 4,
+          "target": [
+            0,
+            1733
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 5,
+          "available_candidates": [
+            {
+              "id": 1733,
+              "parent": [
+                0,
+                849
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        1597
+      ],
+      "seed": [
+        0,
+        42
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 203,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 49,
+          "raw_delta": 136,
+          "coded_delta": 87,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            203
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 203,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 49,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 378,
+          "parent": [
+            0,
+            203
+          ],
+          "gain": -1,
+          "raw_delta": 166,
+          "coded_delta": 167,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            378
+          ],
+          "reason": "fifo-control",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 378,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": -1,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 885,
+          "parent": [
+            0,
+            378
+          ],
+          "gain": -24,
+          "raw_delta": 763,
+          "coded_delta": 787,
+          "coarse": false,
+          "born": 2,
+          "target": [
+            0,
+            885
+          ],
+          "reason": "fifo-control",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 885,
+              "parent": [
+                0,
+                378
+              ],
+              "gain": -24,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 1597,
+          "parent": [
+            0,
+            885
+          ],
+          "gain": 74,
+          "raw_delta": 310,
+          "coded_delta": 236,
+          "coarse": false,
+          "born": 3,
+          "target": [
+            0,
+            1597
+          ],
+          "reason": "fifo-control",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 1597,
+              "parent": [
+                0,
+                885
+              ],
+              "gain": 74,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        1597
+      ],
+      "seed": [
+        0,
+        42
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 203,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 49,
+          "raw_delta": 136,
+          "coded_delta": 87,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            203
+          ],
+          "reason": "positive-marginal-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 203,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 49,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 378,
+          "parent": [
+            0,
+            203
+          ],
+          "gain": -1,
+          "raw_delta": 166,
+          "coded_delta": 167,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            378
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 378,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": -1,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 885,
+          "parent": [
+            0,
+            378
+          ],
+          "gain": -24,
+          "raw_delta": 763,
+          "coded_delta": 787,
+          "coarse": false,
+          "born": 2,
+          "target": [
+            0,
+            885
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 885,
+              "parent": [
+                0,
+                378
+              ],
+              "gain": -24,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 1597,
+          "parent": [
+            0,
+            885
+          ],
+          "gain": 74,
+          "raw_delta": 310,
+          "coded_delta": 236,
+          "coarse": false,
+          "born": 3,
+          "target": [
+            0,
+            1597
+          ],
+          "reason": "positive-marginal-gain",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 1597,
+              "parent": [
+                0,
+                885
+              ],
+              "gain": 74,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        2130
+      ],
+      "seed": [
+        0,
+        18
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 158,
+          "parent": [
+            0,
+            18
+          ],
+          "gain": 0,
+          "raw_delta": 924,
+          "coded_delta": 924,
+          "coarse": true,
+          "born": 0,
+          "target": [
+            0,
+            158
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 158,
+              "parent": [
+                0,
+                18
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 433,
+          "parent": [
+            0,
+            158
+          ],
+          "gain": 0,
+          "raw_delta": 520,
+          "coded_delta": 520,
+          "coarse": true,
+          "born": 1,
+          "target": [
+            0,
+            433
+          ],
+          "reason": "fifo-control",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 433,
+              "parent": [
+                0,
+                158
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 457,
+              "parent": [
+                0,
+                158
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 457,
+          "parent": [
+            0,
+            158
+          ],
+          "gain": 0,
+          "raw_delta": 740,
+          "coded_delta": 740,
+          "coarse": true,
+          "born": 1,
+          "target": [
+            0,
+            457
+          ],
+          "reason": "fifo-control",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 457,
+              "parent": [
+                0,
+                158
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 940,
+              "parent": [
+                0,
+                433
+              ],
+              "gain": 63,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 940,
+          "parent": [
+            0,
+            433
+          ],
+          "gain": 63,
+          "raw_delta": 1226,
+          "coded_delta": 1163,
+          "coarse": true,
+          "born": 2,
+          "target": [
+            0,
+            940
+          ],
+          "reason": "fifo-control",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 940,
+              "parent": [
+                0,
+                433
+              ],
+              "gain": 63,
+              "coarse": true
+            },
+            {
+              "id": 2130,
+              "parent": [
+                0,
+                457
+              ],
+              "gain": 63,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 2130,
+          "parent": [
+            0,
+            457
+          ],
+          "gain": 63,
+          "raw_delta": 1647,
+          "coded_delta": 1584,
+          "coarse": true,
+          "born": 3,
+          "target": [
+            0,
+            2130
+          ],
+          "reason": "fifo-control",
+          "tick": 4,
+          "available_candidates": [
+            {
+              "id": 2130,
+              "parent": [
+                0,
+                457
+              ],
+              "gain": 63,
+              "coarse": true
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        2130
+      ],
+      "seed": [
+        0,
+        18
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 158,
+          "parent": [
+            0,
+            18
+          ],
+          "gain": 0,
+          "raw_delta": 924,
+          "coded_delta": 924,
+          "coarse": true,
+          "born": 0,
+          "target": [
+            0,
+            158
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 158,
+              "parent": [
+                0,
+                18
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 433,
+          "parent": [
+            0,
+            158
+          ],
+          "gain": 0,
+          "raw_delta": 520,
+          "coded_delta": 520,
+          "coarse": true,
+          "born": 1,
+          "target": [
+            0,
+            433
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 433,
+              "parent": [
+                0,
+                158
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 457,
+              "parent": [
+                0,
+                158
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 940,
+          "parent": [
+            0,
+            433
+          ],
+          "gain": 63,
+          "raw_delta": 1226,
+          "coded_delta": 1163,
+          "coarse": true,
+          "born": 2,
+          "target": [
+            0,
+            940
+          ],
+          "reason": "positive-marginal-gain",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 457,
+              "parent": [
+                0,
+                158
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 940,
+              "parent": [
+                0,
+                433
+              ],
+              "gain": 63,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 457,
+          "parent": [
+            0,
+            158
+          ],
+          "gain": 0,
+          "raw_delta": 740,
+          "coded_delta": 740,
+          "coarse": true,
+          "born": 1,
+          "target": [
+            0,
+            457
+          ],
+          "reason": "exploration-quota",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 457,
+              "parent": [
+                0,
+                158
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 2130,
+              "parent": [
+                0,
+                940
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 2130,
+          "parent": [
+            0,
+            940
+          ],
+          "gain": 0,
+          "raw_delta": 641,
+          "coded_delta": 641,
+          "coarse": false,
+          "born": 3,
+          "target": [
+            0,
+            2130
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 4,
+          "available_candidates": [
+            {
+              "id": 2130,
+              "parent": [
+                0,
+                940
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        1573
+      ],
+      "seed": [
+        0,
+        14
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 200,
+          "parent": [
+            0,
+            14
+          ],
+          "gain": 0,
+          "raw_delta": 477,
+          "coded_delta": 477,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            200
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 200,
+              "parent": [
+                0,
+                14
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 472,
+          "parent": [
+            0,
+            200
+          ],
+          "gain": 49,
+          "raw_delta": 100,
+          "coded_delta": 51,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            472
+          ],
+          "reason": "fifo-control",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 472,
+              "parent": [
+                0,
+                200
+              ],
+              "gain": 49,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 902,
+          "parent": [
+            0,
+            472
+          ],
+          "gain": 41,
+          "raw_delta": 106,
+          "coded_delta": 65,
+          "coarse": false,
+          "born": 2,
+          "target": [
+            0,
+            902
+          ],
+          "reason": "fifo-control",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 902,
+              "parent": [
+                0,
+                472
+              ],
+              "gain": 41,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 1573,
+          "parent": [
+            0,
+            902
+          ],
+          "gain": -35,
+          "raw_delta": 390,
+          "coded_delta": 425,
+          "coarse": false,
+          "born": 3,
+          "target": [
+            0,
+            1573
+          ],
+          "reason": "fifo-control",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 1573,
+              "parent": [
+                0,
+                902
+              ],
+              "gain": -35,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        1573
+      ],
+      "seed": [
+        0,
+        14
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 200,
+          "parent": [
+            0,
+            14
+          ],
+          "gain": 0,
+          "raw_delta": 477,
+          "coded_delta": 477,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            200
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 200,
+              "parent": [
+                0,
+                14
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 472,
+          "parent": [
+            0,
+            200
+          ],
+          "gain": 49,
+          "raw_delta": 100,
+          "coded_delta": 51,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            472
+          ],
+          "reason": "positive-marginal-gain",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 472,
+              "parent": [
+                0,
+                200
+              ],
+              "gain": 49,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 902,
+          "parent": [
+            0,
+            472
+          ],
+          "gain": 41,
+          "raw_delta": 106,
+          "coded_delta": 65,
+          "coarse": false,
+          "born": 2,
+          "target": [
+            0,
+            902
+          ],
+          "reason": "positive-marginal-gain",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 902,
+              "parent": [
+                0,
+                472
+              ],
+              "gain": 41,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 1573,
+          "parent": [
+            0,
+            902
+          ],
+          "gain": -35,
+          "raw_delta": 390,
+          "coded_delta": 425,
+          "coarse": false,
+          "born": 3,
+          "target": [
+            0,
+            1573
+          ],
+          "reason": "exploration-quota",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 1573,
+              "parent": [
+                0,
+                902
+              ],
+              "gain": -35,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        2290
+      ],
+      "seed": [
+        0,
+        42
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 203,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 49,
+          "raw_delta": 136,
+          "coded_delta": 87,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            203
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 203,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 49,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 466,
+          "parent": [
+            0,
+            203
+          ],
+          "gain": 48,
+          "raw_delta": 122,
+          "coded_delta": 74,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            466
+          ],
+          "reason": "fifo-control",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 466,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": 48,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 788,
+          "parent": [
+            0,
+            466
+          ],
+          "gain": -25,
+          "raw_delta": 61,
+          "coded_delta": 86,
+          "coarse": false,
+          "born": 2,
+          "target": [
+            0,
+            788
+          ],
+          "reason": "fifo-control",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 788,
+              "parent": [
+                0,
+                466
+              ],
+              "gain": -25,
+              "coarse": false
+            },
+            {
+              "id": 2290,
+              "parent": [
+                0,
+                466
+              ],
+              "gain": 40,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 2290,
+          "parent": [
+            0,
+            466
+          ],
+          "gain": 40,
+          "raw_delta": 158,
+          "coded_delta": 118,
+          "coarse": true,
+          "born": 2,
+          "target": [
+            0,
+            2290
+          ],
+          "reason": "fifo-control",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 2290,
+              "parent": [
+                0,
+                466
+              ],
+              "gain": 40,
+              "coarse": true
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        2290
+      ],
+      "seed": [
+        0,
+        42
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 203,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 49,
+          "raw_delta": 136,
+          "coded_delta": 87,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            203
+          ],
+          "reason": "positive-marginal-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 203,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 49,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 466,
+          "parent": [
+            0,
+            203
+          ],
+          "gain": 48,
+          "raw_delta": 122,
+          "coded_delta": 74,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            466
+          ],
+          "reason": "positive-marginal-gain",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 466,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": 48,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 2290,
+          "parent": [
+            0,
+            466
+          ],
+          "gain": 40,
+          "raw_delta": 158,
+          "coded_delta": 118,
+          "coarse": true,
+          "born": 2,
+          "target": [
+            0,
+            2290
+          ],
+          "reason": "positive-marginal-gain",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 788,
+              "parent": [
+                0,
+                466
+              ],
+              "gain": -25,
+              "coarse": false
+            },
+            {
+              "id": 2290,
+              "parent": [
+                0,
+                466
+              ],
+              "gain": 40,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 788,
+          "parent": [
+            0,
+            466
+          ],
+          "gain": -25,
+          "raw_delta": 61,
+          "coded_delta": 86,
+          "coarse": false,
+          "born": 2,
+          "target": [
+            0,
+            788
+          ],
+          "reason": "exploration-quota",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 788,
+              "parent": [
+                0,
+                466
+              ],
+              "gain": -25,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        1961
+      ],
+      "seed": [
+        0,
+        22
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 427,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 1304,
+          "coded_delta": 1304,
+          "coarse": true,
+          "born": 0,
+          "target": [
+            0,
+            427
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 427,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 780,
+          "parent": [
+            0,
+            427
+          ],
+          "gain": 0,
+          "raw_delta": 202,
+          "coded_delta": 202,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            780
+          ],
+          "reason": "fifo-control",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 780,
+              "parent": [
+                0,
+                427
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 1961,
+          "parent": [
+            0,
+            780
+          ],
+          "gain": 0,
+          "raw_delta": 713,
+          "coded_delta": 713,
+          "coarse": false,
+          "born": 2,
+          "target": [
+            0,
+            1961
+          ],
+          "reason": "fifo-control",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 1961,
+              "parent": [
+                0,
+                780
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        1961
+      ],
+      "seed": [
+        0,
+        22
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 427,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 1304,
+          "coded_delta": 1304,
+          "coarse": true,
+          "born": 0,
+          "target": [
+            0,
+            427
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 427,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 780,
+          "parent": [
+            0,
+            427
+          ],
+          "gain": 0,
+          "raw_delta": 202,
+          "coded_delta": 202,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            780
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 780,
+              "parent": [
+                0,
+                427
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 1961,
+          "parent": [
+            0,
+            780
+          ],
+          "gain": 0,
+          "raw_delta": 713,
+          "coded_delta": 713,
+          "coarse": false,
+          "born": 2,
+          "target": [
+            0,
+            1961
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 1961,
+              "parent": [
+                0,
+                780
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        1575
+      ],
+      "seed": [
+        0,
+        42
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 203,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 49,
+          "raw_delta": 136,
+          "coded_delta": 87,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            203
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 203,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 49,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 362,
+          "parent": [
+            0,
+            203
+          ],
+          "gain": -1,
+          "raw_delta": 93,
+          "coded_delta": 94,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            362
+          ],
+          "reason": "fifo-control",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 362,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": -1,
+              "coarse": false
+            },
+            {
+              "id": 460,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": -1,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 460,
+          "parent": [
+            0,
+            203
+          ],
+          "gain": -1,
+          "raw_delta": 568,
+          "coded_delta": 569,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            460
+          ],
+          "reason": "fifo-control",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 460,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": -1,
+              "coarse": false
+            },
+            {
+              "id": 906,
+              "parent": [
+                0,
+                362
+              ],
+              "gain": 80,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 906,
+          "parent": [
+            0,
+            362
+          ],
+          "gain": 80,
+          "raw_delta": 1076,
+          "coded_delta": 996,
+          "coarse": true,
+          "born": 2,
+          "target": [
+            0,
+            906
+          ],
+          "reason": "fifo-control",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 906,
+              "parent": [
+                0,
+                362
+              ],
+              "gain": 80,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 1575,
+          "parent": [
+            0,
+            906
+          ],
+          "gain": -78,
+          "raw_delta": 488,
+          "coded_delta": 566,
+          "coarse": false,
+          "born": 4,
+          "target": [
+            0,
+            1575
+          ],
+          "reason": "fifo-control",
+          "tick": 4,
+          "available_candidates": [
+            {
+              "id": 1575,
+              "parent": [
+                0,
+                906
+              ],
+              "gain": -78,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        1575
+      ],
+      "seed": [
+        0,
+        42
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 203,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 49,
+          "raw_delta": 136,
+          "coded_delta": 87,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            203
+          ],
+          "reason": "positive-marginal-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 203,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 49,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 362,
+          "parent": [
+            0,
+            203
+          ],
+          "gain": -1,
+          "raw_delta": 93,
+          "coded_delta": 94,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            362
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 362,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": -1,
+              "coarse": false
+            },
+            {
+              "id": 460,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": -1,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 906,
+          "parent": [
+            0,
+            362
+          ],
+          "gain": 80,
+          "raw_delta": 1076,
+          "coded_delta": 996,
+          "coarse": true,
+          "born": 2,
+          "target": [
+            0,
+            906
+          ],
+          "reason": "positive-marginal-gain",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 460,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": -1,
+              "coarse": false
+            },
+            {
+              "id": 906,
+              "parent": [
+                0,
+                362
+              ],
+              "gain": 80,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 460,
+          "parent": [
+            0,
+            203
+          ],
+          "gain": -1,
+          "raw_delta": 568,
+          "coded_delta": 569,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            460
+          ],
+          "reason": "exploration-quota",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 460,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": -1,
+              "coarse": false
+            },
+            {
+              "id": 1575,
+              "parent": [
+                0,
+                906
+              ],
+              "gain": -78,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 1575,
+          "parent": [
+            0,
+            906
+          ],
+          "gain": -78,
+          "raw_delta": 488,
+          "coded_delta": 566,
+          "coarse": false,
+          "born": 3,
+          "target": [
+            0,
+            1575
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 4,
+          "available_candidates": [
+            {
+              "id": 1575,
+              "parent": [
+                0,
+                906
+              ],
+              "gain": -78,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        1697
+      ],
+      "seed": [
+        0,
+        22
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 164,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 962,
+          "coded_delta": 962,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            164
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 164,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 182,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 182,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 764,
+          "coded_delta": 764,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            182
+          ],
+          "reason": "fifo-control",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 182,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 454,
+              "parent": [
+                0,
+                164
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 454,
+          "parent": [
+            0,
+            164
+          ],
+          "gain": 0,
+          "raw_delta": 515,
+          "coded_delta": 515,
+          "coarse": true,
+          "born": 1,
+          "target": [
+            0,
+            454
+          ],
+          "reason": "fifo-control",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 454,
+              "parent": [
+                0,
+                164
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 1697,
+              "parent": [
+                0,
+                182
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 1697,
+          "parent": [
+            0,
+            182
+          ],
+          "gain": 0,
+          "raw_delta": 1636,
+          "coded_delta": 1636,
+          "coarse": true,
+          "born": 2,
+          "target": [
+            0,
+            1697
+          ],
+          "reason": "fifo-control",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 1697,
+              "parent": [
+                0,
+                182
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 702,
+              "parent": [
+                0,
+                454
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 702,
+          "parent": [
+            0,
+            454
+          ],
+          "gain": 0,
+          "raw_delta": 315,
+          "coded_delta": 315,
+          "coarse": false,
+          "born": 3,
+          "target": [
+            0,
+            702
+          ],
+          "reason": "fifo-control",
+          "tick": 4,
+          "available_candidates": [
+            {
+              "id": 702,
+              "parent": [
+                0,
+                454
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        1697
+      ],
+      "seed": [
+        0,
+        22
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 164,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 962,
+          "coded_delta": 962,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            164
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 164,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 182,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 182,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 764,
+          "coded_delta": 764,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            182
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 182,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 454,
+              "parent": [
+                0,
+                164
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 454,
+          "parent": [
+            0,
+            164
+          ],
+          "gain": 0,
+          "raw_delta": 515,
+          "coded_delta": 515,
+          "coarse": true,
+          "born": 1,
+          "target": [
+            0,
+            454
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 454,
+              "parent": [
+                0,
+                164
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 1697,
+              "parent": [
+                0,
+                182
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 1697,
+          "parent": [
+            0,
+            182
+          ],
+          "gain": 0,
+          "raw_delta": 1636,
+          "coded_delta": 1636,
+          "coarse": true,
+          "born": 2,
+          "target": [
+            0,
+            1697
+          ],
+          "reason": "exploration-quota",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 1697,
+              "parent": [
+                0,
+                182
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 702,
+              "parent": [
+                0,
+                454
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 702,
+          "parent": [
+            0,
+            454
+          ],
+          "gain": 0,
+          "raw_delta": 315,
+          "coded_delta": 315,
+          "coarse": false,
+          "born": 3,
+          "target": [
+            0,
+            702
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 4,
+          "available_candidates": [
+            {
+              "id": 702,
+              "parent": [
+                0,
+                454
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        2230
+      ],
+      "seed": [
+        0,
+        42
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 203,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 49,
+          "raw_delta": 136,
+          "coded_delta": 87,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            203
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 203,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 49,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 460,
+          "parent": [
+            0,
+            203
+          ],
+          "gain": -1,
+          "raw_delta": 568,
+          "coded_delta": 569,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            460
+          ],
+          "reason": "fifo-control",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 460,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": -1,
+              "coarse": false
+            },
+            {
+              "id": 466,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": 48,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 466,
+          "parent": [
+            0,
+            203
+          ],
+          "gain": 48,
+          "raw_delta": 122,
+          "coded_delta": 74,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            466
+          ],
+          "reason": "fifo-control",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 466,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": 48,
+              "coarse": false
+            },
+            {
+              "id": 916,
+              "parent": [
+                0,
+                460
+              ],
+              "gain": 89,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 916,
+          "parent": [
+            0,
+            460
+          ],
+          "gain": 89,
+          "raw_delta": 606,
+          "coded_delta": 517,
+          "coarse": true,
+          "born": 2,
+          "target": [
+            0,
+            916
+          ],
+          "reason": "fifo-control",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 916,
+              "parent": [
+                0,
+                460
+              ],
+              "gain": 89,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 2230,
+          "parent": [
+            0,
+            916
+          ],
+          "gain": 11,
+          "raw_delta": 384,
+          "coded_delta": 373,
+          "coarse": false,
+          "born": 4,
+          "target": [
+            0,
+            2230
+          ],
+          "reason": "fifo-control",
+          "tick": 4,
+          "available_candidates": [
+            {
+              "id": 2230,
+              "parent": [
+                0,
+                916
+              ],
+              "gain": 11,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        2230
+      ],
+      "seed": [
+        0,
+        42
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 203,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 49,
+          "raw_delta": 136,
+          "coded_delta": 87,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            203
+          ],
+          "reason": "positive-marginal-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 203,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 49,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 466,
+          "parent": [
+            0,
+            203
+          ],
+          "gain": 48,
+          "raw_delta": 122,
+          "coded_delta": 74,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            466
+          ],
+          "reason": "positive-marginal-gain",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 460,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": -1,
+              "coarse": false
+            },
+            {
+              "id": 466,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": 48,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 916,
+          "parent": [
+            0,
+            466
+          ],
+          "gain": 40,
+          "raw_delta": 1052,
+          "coded_delta": 1012,
+          "coarse": true,
+          "born": 2,
+          "target": [
+            0,
+            916
+          ],
+          "reason": "positive-marginal-gain",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 460,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": -1,
+              "coarse": false
+            },
+            {
+              "id": 916,
+              "parent": [
+                0,
+                466
+              ],
+              "gain": 40,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 460,
+          "parent": [
+            0,
+            203
+          ],
+          "gain": -1,
+          "raw_delta": 568,
+          "coded_delta": 569,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            460
+          ],
+          "reason": "exploration-quota",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 460,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": -1,
+              "coarse": false
+            },
+            {
+              "id": 2230,
+              "parent": [
+                0,
+                916
+              ],
+              "gain": 11,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 2230,
+          "parent": [
+            0,
+            916
+          ],
+          "gain": 11,
+          "raw_delta": 384,
+          "coded_delta": 373,
+          "coarse": false,
+          "born": 3,
+          "target": [
+            0,
+            2230
+          ],
+          "reason": "positive-marginal-gain",
+          "tick": 4,
+          "available_candidates": [
+            {
+              "id": 2230,
+              "parent": [
+                0,
+                916
+              ],
+              "gain": 11,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        867
+      ],
+      "seed": [
+        0,
+        22
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 867,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 1659,
+          "coded_delta": 1659,
+          "coarse": true,
+          "born": 0,
+          "target": [
+            0,
+            867
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 867,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        867
+      ],
+      "seed": [
+        0,
+        22
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 867,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 1659,
+          "coded_delta": 1659,
+          "coarse": true,
+          "born": 0,
+          "target": [
+            0,
+            867
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 867,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        955
+      ],
+      "seed": [
+        0,
+        22
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 164,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 962,
+          "coded_delta": 962,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            164
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 164,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 182,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 182,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 764,
+          "coded_delta": 764,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            182
+          ],
+          "reason": "fifo-control",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 182,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 454,
+              "parent": [
+                0,
+                164
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 955,
+              "parent": [
+                0,
+                164
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 454,
+          "parent": [
+            0,
+            164
+          ],
+          "gain": 0,
+          "raw_delta": 515,
+          "coded_delta": 515,
+          "coarse": true,
+          "born": 1,
+          "target": [
+            0,
+            454
+          ],
+          "reason": "fifo-control",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 454,
+              "parent": [
+                0,
+                164
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 955,
+              "parent": [
+                0,
+                164
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 955,
+          "parent": [
+            0,
+            164
+          ],
+          "gain": 0,
+          "raw_delta": 847,
+          "coded_delta": 847,
+          "coarse": true,
+          "born": 1,
+          "target": [
+            0,
+            955
+          ],
+          "reason": "fifo-control",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 955,
+              "parent": [
+                0,
+                164
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        955
+      ],
+      "seed": [
+        0,
+        22
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 164,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 962,
+          "coded_delta": 962,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            164
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 164,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 182,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 182,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 764,
+          "coded_delta": 764,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            182
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 182,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 454,
+              "parent": [
+                0,
+                164
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 955,
+              "parent": [
+                0,
+                164
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 454,
+          "parent": [
+            0,
+            164
+          ],
+          "gain": 0,
+          "raw_delta": 515,
+          "coded_delta": 515,
+          "coarse": true,
+          "born": 1,
+          "target": [
+            0,
+            454
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 454,
+              "parent": [
+                0,
+                164
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 955,
+              "parent": [
+                0,
+                164
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 955,
+          "parent": [
+            0,
+            164
+          ],
+          "gain": 0,
+          "raw_delta": 847,
+          "coded_delta": 847,
+          "coarse": true,
+          "born": 1,
+          "target": [
+            0,
+            955
+          ],
+          "reason": "exploration-quota",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 955,
+              "parent": [
+                0,
+                164
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        1907
+      ],
+      "seed": [
+        0,
+        10
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 155,
+          "parent": [
+            0,
+            10
+          ],
+          "gain": 0,
+          "raw_delta": 731,
+          "coded_delta": 731,
+          "coarse": true,
+          "born": 0,
+          "target": [
+            0,
+            155
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 155,
+              "parent": [
+                0,
+                10
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 324,
+          "parent": [
+            0,
+            155
+          ],
+          "gain": 0,
+          "raw_delta": 293,
+          "coded_delta": 293,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            324
+          ],
+          "reason": "fifo-control",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 324,
+              "parent": [
+                0,
+                155
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 837,
+          "parent": [
+            0,
+            324
+          ],
+          "gain": 0,
+          "raw_delta": 1073,
+          "coded_delta": 1073,
+          "coarse": true,
+          "born": 2,
+          "target": [
+            0,
+            837
+          ],
+          "reason": "fifo-control",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 837,
+              "parent": [
+                0,
+                324
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 1907,
+          "parent": [
+            0,
+            837
+          ],
+          "gain": 0,
+          "raw_delta": 1093,
+          "coded_delta": 1093,
+          "coarse": true,
+          "born": 3,
+          "target": [
+            0,
+            1907
+          ],
+          "reason": "fifo-control",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 1907,
+              "parent": [
+                0,
+                837
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        1907
+      ],
+      "seed": [
+        0,
+        10
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 155,
+          "parent": [
+            0,
+            10
+          ],
+          "gain": 0,
+          "raw_delta": 731,
+          "coded_delta": 731,
+          "coarse": true,
+          "born": 0,
+          "target": [
+            0,
+            155
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 155,
+              "parent": [
+                0,
+                10
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 324,
+          "parent": [
+            0,
+            155
+          ],
+          "gain": 0,
+          "raw_delta": 293,
+          "coded_delta": 293,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            324
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 324,
+              "parent": [
+                0,
+                155
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 837,
+          "parent": [
+            0,
+            324
+          ],
+          "gain": 0,
+          "raw_delta": 1073,
+          "coded_delta": 1073,
+          "coarse": true,
+          "born": 2,
+          "target": [
+            0,
+            837
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 837,
+              "parent": [
+                0,
+                324
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 1907,
+          "parent": [
+            0,
+            837
+          ],
+          "gain": 0,
+          "raw_delta": 1093,
+          "coded_delta": 1093,
+          "coarse": true,
+          "born": 3,
+          "target": [
+            0,
+            1907
+          ],
+          "reason": "exploration-quota",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 1907,
+              "parent": [
+                0,
+                837
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        197
+      ],
+      "seed": [
+        0,
+        0
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 197,
+          "parent": [
+            0,
+            0
+          ],
+          "gain": 0,
+          "raw_delta": 735,
+          "coded_delta": 735,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            197
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 197,
+              "parent": [
+                0,
+                0
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        197
+      ],
+      "seed": [
+        0,
+        0
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 197,
+          "parent": [
+            0,
+            0
+          ],
+          "gain": 0,
+          "raw_delta": 735,
+          "coded_delta": 735,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            197
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 197,
+              "parent": [
+                0,
+                0
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        1525
+      ],
+      "seed": [
+        0,
+        24
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 172,
+          "parent": [
+            0,
+            24
+          ],
+          "gain": 0,
+          "raw_delta": 977,
+          "coded_delta": 977,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            172
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 172,
+              "parent": [
+                0,
+                24
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 360,
+          "parent": [
+            0,
+            172
+          ],
+          "gain": 0,
+          "raw_delta": 257,
+          "coded_delta": 257,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            360
+          ],
+          "reason": "fifo-control",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 360,
+              "parent": [
+                0,
+                172
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 912,
+              "parent": [
+                0,
+                172
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 912,
+          "parent": [
+            0,
+            172
+          ],
+          "gain": 0,
+          "raw_delta": 974,
+          "coded_delta": 974,
+          "coarse": true,
+          "born": 1,
+          "target": [
+            0,
+            912
+          ],
+          "reason": "fifo-control",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 912,
+              "parent": [
+                0,
+                172
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 1525,
+          "parent": [
+            0,
+            912
+          ],
+          "gain": 0,
+          "raw_delta": 225,
+          "coded_delta": 225,
+          "coarse": false,
+          "born": 3,
+          "target": [
+            0,
+            1525
+          ],
+          "reason": "fifo-control",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 1525,
+              "parent": [
+                0,
+                912
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        1525
+      ],
+      "seed": [
+        0,
+        24
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 172,
+          "parent": [
+            0,
+            24
+          ],
+          "gain": 0,
+          "raw_delta": 977,
+          "coded_delta": 977,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            172
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 172,
+              "parent": [
+                0,
+                24
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 360,
+          "parent": [
+            0,
+            172
+          ],
+          "gain": 0,
+          "raw_delta": 257,
+          "coded_delta": 257,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            360
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 360,
+              "parent": [
+                0,
+                172
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 912,
+              "parent": [
+                0,
+                172
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 912,
+          "parent": [
+            0,
+            172
+          ],
+          "gain": 0,
+          "raw_delta": 974,
+          "coded_delta": 974,
+          "coarse": true,
+          "born": 1,
+          "target": [
+            0,
+            912
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 912,
+              "parent": [
+                0,
+                172
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 1525,
+          "parent": [
+            0,
+            912
+          ],
+          "gain": 0,
+          "raw_delta": 225,
+          "coded_delta": 225,
+          "coarse": false,
+          "born": 3,
+          "target": [
+            0,
+            1525
+          ],
+          "reason": "exploration-quota",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 1525,
+              "parent": [
+                0,
+                912
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        430
+      ],
+      "seed": [
+        0,
+        22
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 164,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 962,
+          "coded_delta": 962,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            164
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 164,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 430,
+          "parent": [
+            0,
+            164
+          ],
+          "gain": 0,
+          "raw_delta": 643,
+          "coded_delta": 643,
+          "coarse": true,
+          "born": 1,
+          "target": [
+            0,
+            430
+          ],
+          "reason": "fifo-control",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 430,
+              "parent": [
+                0,
+                164
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        430
+      ],
+      "seed": [
+        0,
+        22
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 164,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 962,
+          "coded_delta": 962,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            164
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 164,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 430,
+          "parent": [
+            0,
+            164
+          ],
+          "gain": 0,
+          "raw_delta": 643,
+          "coded_delta": 643,
+          "coarse": true,
+          "born": 1,
+          "target": [
+            0,
+            430
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 430,
+              "parent": [
+                0,
+                164
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        188
+      ],
+      "seed": [
+        0,
+        36
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 188,
+          "parent": [
+            0,
+            36
+          ],
+          "gain": 0,
+          "raw_delta": 440,
+          "coded_delta": 440,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            188
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 188,
+              "parent": [
+                0,
+                36
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        188
+      ],
+      "seed": [
+        0,
+        36
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 188,
+          "parent": [
+            0,
+            36
+          ],
+          "gain": 0,
+          "raw_delta": 440,
+          "coded_delta": 440,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            188
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 188,
+              "parent": [
+                0,
+                36
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        2187
+      ],
+      "seed": [
+        0,
+        22
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 164,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 962,
+          "coded_delta": 962,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            164
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 164,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 182,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 182,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 764,
+          "coded_delta": 764,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            182
+          ],
+          "reason": "fifo-control",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 182,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 454,
+              "parent": [
+                0,
+                164
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 454,
+          "parent": [
+            0,
+            164
+          ],
+          "gain": 0,
+          "raw_delta": 515,
+          "coded_delta": 515,
+          "coarse": true,
+          "born": 1,
+          "target": [
+            0,
+            454
+          ],
+          "reason": "fifo-control",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 454,
+              "parent": [
+                0,
+                164
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 958,
+          "parent": [
+            0,
+            454
+          ],
+          "gain": 0,
+          "raw_delta": 688,
+          "coded_delta": 688,
+          "coarse": true,
+          "born": 3,
+          "target": [
+            0,
+            958
+          ],
+          "reason": "fifo-control",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 958,
+              "parent": [
+                0,
+                454
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 2187,
+          "parent": [
+            0,
+            958
+          ],
+          "gain": 0,
+          "raw_delta": 748,
+          "coded_delta": 748,
+          "coarse": false,
+          "born": 4,
+          "target": [
+            0,
+            2187
+          ],
+          "reason": "fifo-control",
+          "tick": 4,
+          "available_candidates": [
+            {
+              "id": 2187,
+              "parent": [
+                0,
+                958
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        2187
+      ],
+      "seed": [
+        0,
+        22
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 164,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 962,
+          "coded_delta": 962,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            164
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 164,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 182,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 182,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 764,
+          "coded_delta": 764,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            182
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 182,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 454,
+              "parent": [
+                0,
+                164
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 454,
+          "parent": [
+            0,
+            164
+          ],
+          "gain": 0,
+          "raw_delta": 515,
+          "coded_delta": 515,
+          "coarse": true,
+          "born": 1,
+          "target": [
+            0,
+            454
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 454,
+              "parent": [
+                0,
+                164
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 958,
+          "parent": [
+            0,
+            454
+          ],
+          "gain": 0,
+          "raw_delta": 688,
+          "coded_delta": 688,
+          "coarse": true,
+          "born": 3,
+          "target": [
+            0,
+            958
+          ],
+          "reason": "exploration-quota",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 958,
+              "parent": [
+                0,
+                454
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 2187,
+          "parent": [
+            0,
+            958
+          ],
+          "gain": 0,
+          "raw_delta": 748,
+          "coded_delta": 748,
+          "coarse": false,
+          "born": 4,
+          "target": [
+            0,
+            2187
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 4,
+          "available_candidates": [
+            {
+              "id": 2187,
+              "parent": [
+                0,
+                958
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        973
+      ],
+      "seed": [
+        0,
+        42
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 136,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 0,
+          "raw_delta": 107,
+          "coded_delta": 107,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            136
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 136,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 469,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 469,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 0,
+          "raw_delta": 242,
+          "coded_delta": 242,
+          "coarse": true,
+          "born": 0,
+          "target": [
+            0,
+            469
+          ],
+          "reason": "fifo-control",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 469,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 973,
+          "parent": [
+            0,
+            469
+          ],
+          "gain": 0,
+          "raw_delta": 275,
+          "coded_delta": 275,
+          "coarse": true,
+          "born": 2,
+          "target": [
+            0,
+            973
+          ],
+          "reason": "fifo-control",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 973,
+              "parent": [
+                0,
+                469
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        973
+      ],
+      "seed": [
+        0,
+        42
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 136,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 0,
+          "raw_delta": 107,
+          "coded_delta": 107,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            136
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 136,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 469,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 469,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 0,
+          "raw_delta": 242,
+          "coded_delta": 242,
+          "coarse": true,
+          "born": 0,
+          "target": [
+            0,
+            469
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 469,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 973,
+          "parent": [
+            0,
+            469
+          ],
+          "gain": 0,
+          "raw_delta": 275,
+          "coded_delta": 275,
+          "coarse": true,
+          "born": 2,
+          "target": [
+            0,
+            973
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 973,
+              "parent": [
+                0,
+                469
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        2221
+      ],
+      "seed": [
+        0,
+        22
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 427,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 1304,
+          "coded_delta": 1304,
+          "coarse": true,
+          "born": 0,
+          "target": [
+            0,
+            427
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 427,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 736,
+          "parent": [
+            0,
+            427
+          ],
+          "gain": 0,
+          "raw_delta": 234,
+          "coded_delta": 234,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            736
+          ],
+          "reason": "fifo-control",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 736,
+              "parent": [
+                0,
+                427
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 2221,
+          "parent": [
+            0,
+            736
+          ],
+          "gain": 0,
+          "raw_delta": 512,
+          "coded_delta": 512,
+          "coarse": false,
+          "born": 2,
+          "target": [
+            0,
+            2221
+          ],
+          "reason": "fifo-control",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 2221,
+              "parent": [
+                0,
+                736
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        2221
+      ],
+      "seed": [
+        0,
+        22
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 427,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 1304,
+          "coded_delta": 1304,
+          "coarse": true,
+          "born": 0,
+          "target": [
+            0,
+            427
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 427,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 736,
+          "parent": [
+            0,
+            427
+          ],
+          "gain": 0,
+          "raw_delta": 234,
+          "coded_delta": 234,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            736
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 736,
+              "parent": [
+                0,
+                427
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 2221,
+          "parent": [
+            0,
+            736
+          ],
+          "gain": 0,
+          "raw_delta": 512,
+          "coded_delta": 512,
+          "coarse": false,
+          "born": 2,
+          "target": [
+            0,
+            2221
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 2221,
+              "parent": [
+                0,
+                736
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        191
+      ],
+      "seed": [
+        0,
+        42
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 191,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 0,
+          "raw_delta": 662,
+          "coded_delta": 662,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            191
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 191,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        191
+      ],
+      "seed": [
+        0,
+        42
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 191,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 0,
+          "raw_delta": 662,
+          "coded_delta": 662,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            191
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 191,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        2263
+      ],
+      "seed": [
+        0,
+        42
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 136,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 0,
+          "raw_delta": 107,
+          "coded_delta": 107,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            136
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 136,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 979,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 979,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 0,
+          "raw_delta": 1245,
+          "coded_delta": 1245,
+          "coarse": true,
+          "born": 0,
+          "target": [
+            0,
+            979
+          ],
+          "reason": "fifo-control",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 979,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 424,
+              "parent": [
+                0,
+                136
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 424,
+          "parent": [
+            0,
+            136
+          ],
+          "gain": 0,
+          "raw_delta": 795,
+          "coded_delta": 795,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            424
+          ],
+          "reason": "fifo-control",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 424,
+              "parent": [
+                0,
+                136
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 2263,
+              "parent": [
+                0,
+                979
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 2263,
+          "parent": [
+            0,
+            979
+          ],
+          "gain": 0,
+          "raw_delta": 364,
+          "coded_delta": 364,
+          "coarse": false,
+          "born": 2,
+          "target": [
+            0,
+            2263
+          ],
+          "reason": "fifo-control",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 2263,
+              "parent": [
+                0,
+                979
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        2263
+      ],
+      "seed": [
+        0,
+        42
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 136,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 0,
+          "raw_delta": 107,
+          "coded_delta": 107,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            136
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 136,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 979,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 979,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 0,
+          "raw_delta": 1245,
+          "coded_delta": 1245,
+          "coarse": true,
+          "born": 0,
+          "target": [
+            0,
+            979
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 979,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 424,
+              "parent": [
+                0,
+                136
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 424,
+          "parent": [
+            0,
+            136
+          ],
+          "gain": 0,
+          "raw_delta": 795,
+          "coded_delta": 795,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            424
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 424,
+              "parent": [
+                0,
+                136
+              ],
+              "gain": 0,
+              "coarse": false
+            },
+            {
+              "id": 2263,
+              "parent": [
+                0,
+                979
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 2263,
+          "parent": [
+            0,
+            979
+          ],
+          "gain": 0,
+          "raw_delta": 364,
+          "coded_delta": 364,
+          "coarse": false,
+          "born": 2,
+          "target": [
+            0,
+            2263
+          ],
+          "reason": "exploration-quota",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 2263,
+              "parent": [
+                0,
+                979
+              ],
+              "gain": 0,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        427
+      ],
+      "seed": [
+        0,
+        22
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 427,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 1304,
+          "coded_delta": 1304,
+          "coarse": true,
+          "born": 0,
+          "target": [
+            0,
+            427
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 427,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        427
+      ],
+      "seed": [
+        0,
+        22
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 427,
+          "parent": [
+            0,
+            22
+          ],
+          "gain": 0,
+          "raw_delta": 1304,
+          "coded_delta": 1304,
+          "coarse": true,
+          "born": 0,
+          "target": [
+            0,
+            427
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 427,
+              "parent": [
+                0,
+                22
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        2096
+      ],
+      "seed": [
+        0,
+        42
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 167,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 43,
+          "raw_delta": 105,
+          "coded_delta": 62,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            167
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 167,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 43,
+              "coarse": false
+            },
+            {
+              "id": 203,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 49,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 203,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 49,
+          "raw_delta": 136,
+          "coded_delta": 87,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            203
+          ],
+          "reason": "fifo-control",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 203,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 49,
+              "coarse": false
+            },
+            {
+              "id": 909,
+              "parent": [
+                0,
+                167
+              ],
+              "gain": 132,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 909,
+          "parent": [
+            0,
+            167
+          ],
+          "gain": 132,
+          "raw_delta": 1003,
+          "coded_delta": 871,
+          "coarse": true,
+          "born": 1,
+          "target": [
+            0,
+            909
+          ],
+          "reason": "fifo-control",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 909,
+              "parent": [
+                0,
+                167
+              ],
+              "gain": 132,
+              "coarse": true
+            },
+            {
+              "id": 436,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": 42,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 436,
+          "parent": [
+            0,
+            203
+          ],
+          "gain": 42,
+          "raw_delta": 91,
+          "coded_delta": 49,
+          "coarse": false,
+          "born": 2,
+          "target": [
+            0,
+            436
+          ],
+          "reason": "fifo-control",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 436,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": 42,
+              "coarse": false
+            },
+            {
+              "id": 2096,
+              "parent": [
+                0,
+                909
+              ],
+              "gain": -63,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 2096,
+          "parent": [
+            0,
+            909
+          ],
+          "gain": -63,
+          "raw_delta": 668,
+          "coded_delta": 731,
+          "coarse": false,
+          "born": 3,
+          "target": [
+            0,
+            2096
+          ],
+          "reason": "fifo-control",
+          "tick": 4,
+          "available_candidates": [
+            {
+              "id": 2096,
+              "parent": [
+                0,
+                909
+              ],
+              "gain": -63,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        2096
+      ],
+      "seed": [
+        0,
+        42
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 203,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 49,
+          "raw_delta": 136,
+          "coded_delta": 87,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            203
+          ],
+          "reason": "positive-marginal-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 167,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 43,
+              "coarse": false
+            },
+            {
+              "id": 203,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 49,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 167,
+          "parent": [
+            0,
+            42
+          ],
+          "gain": 43,
+          "raw_delta": 105,
+          "coded_delta": 62,
+          "coarse": false,
+          "born": 0,
+          "target": [
+            0,
+            167
+          ],
+          "reason": "positive-marginal-gain",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 167,
+              "parent": [
+                0,
+                42
+              ],
+              "gain": 43,
+              "coarse": false
+            },
+            {
+              "id": 436,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": 42,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 909,
+          "parent": [
+            0,
+            167
+          ],
+          "gain": 132,
+          "raw_delta": 1003,
+          "coded_delta": 871,
+          "coarse": true,
+          "born": 2,
+          "target": [
+            0,
+            909
+          ],
+          "reason": "positive-marginal-gain",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 436,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": 42,
+              "coarse": false
+            },
+            {
+              "id": 909,
+              "parent": [
+                0,
+                167
+              ],
+              "gain": 132,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 2096,
+          "parent": [
+            0,
+            909
+          ],
+          "gain": -63,
+          "raw_delta": 668,
+          "coded_delta": 731,
+          "coarse": false,
+          "born": 3,
+          "target": [
+            0,
+            2096
+          ],
+          "reason": "exploration-quota",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 436,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": 42,
+              "coarse": false
+            },
+            {
+              "id": 2096,
+              "parent": [
+                0,
+                909
+              ],
+              "gain": -63,
+              "coarse": false
+            }
+          ]
+        },
+        {
+          "id": 436,
+          "parent": [
+            0,
+            203
+          ],
+          "gain": 42,
+          "raw_delta": 91,
+          "coded_delta": 49,
+          "coarse": false,
+          "born": 1,
+          "target": [
+            0,
+            436
+          ],
+          "reason": "positive-marginal-gain",
+          "tick": 4,
+          "available_candidates": [
+            {
+              "id": 436,
+              "parent": [
+                0,
+                203
+              ],
+              "gain": 42,
+              "coarse": false
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        2254
+      ],
+      "seed": [
+        0,
+        18
+      ],
+      "policy": "fifo",
+      "decisions": [
+        {
+          "id": 158,
+          "parent": [
+            0,
+            18
+          ],
+          "gain": 0,
+          "raw_delta": 924,
+          "coded_delta": 924,
+          "coarse": true,
+          "born": 0,
+          "target": [
+            0,
+            158
+          ],
+          "reason": "fifo-control",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 158,
+              "parent": [
+                0,
+                18
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 433,
+          "parent": [
+            0,
+            158
+          ],
+          "gain": 0,
+          "raw_delta": 520,
+          "coded_delta": 520,
+          "coarse": true,
+          "born": 1,
+          "target": [
+            0,
+            433
+          ],
+          "reason": "fifo-control",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 433,
+              "parent": [
+                0,
+                158
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 457,
+              "parent": [
+                0,
+                158
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 457,
+          "parent": [
+            0,
+            158
+          ],
+          "gain": 0,
+          "raw_delta": 740,
+          "coded_delta": 740,
+          "coarse": true,
+          "born": 1,
+          "target": [
+            0,
+            457
+          ],
+          "reason": "fifo-control",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 457,
+              "parent": [
+                0,
+                158
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 940,
+              "parent": [
+                0,
+                433
+              ],
+              "gain": 63,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 940,
+          "parent": [
+            0,
+            433
+          ],
+          "gain": 63,
+          "raw_delta": 1226,
+          "coded_delta": 1163,
+          "coarse": true,
+          "born": 2,
+          "target": [
+            0,
+            940
+          ],
+          "reason": "fifo-control",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 940,
+              "parent": [
+                0,
+                433
+              ],
+              "gain": 63,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 2254,
+          "parent": [
+            0,
+            940
+          ],
+          "gain": -63,
+          "raw_delta": 1083,
+          "coded_delta": 1146,
+          "coarse": true,
+          "born": 4,
+          "target": [
+            0,
+            2254
+          ],
+          "reason": "fifo-control",
+          "tick": 4,
+          "available_candidates": [
+            {
+              "id": 2254,
+              "parent": [
+                0,
+                940
+              ],
+              "gain": -63,
+              "coarse": true
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    },
+    {
+      "anchor": [
+        0,
+        2254
+      ],
+      "seed": [
+        0,
+        18
+      ],
+      "policy": "compression-with-exploration",
+      "decisions": [
+        {
+          "id": 158,
+          "parent": [
+            0,
+            18
+          ],
+          "gain": 0,
+          "raw_delta": 924,
+          "coded_delta": 924,
+          "coarse": true,
+          "born": 0,
+          "target": [
+            0,
+            158
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 0,
+          "available_candidates": [
+            {
+              "id": 158,
+              "parent": [
+                0,
+                18
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 433,
+          "parent": [
+            0,
+            158
+          ],
+          "gain": 0,
+          "raw_delta": 520,
+          "coded_delta": 520,
+          "coarse": true,
+          "born": 1,
+          "target": [
+            0,
+            433
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 1,
+          "available_candidates": [
+            {
+              "id": 433,
+              "parent": [
+                0,
+                158
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 457,
+              "parent": [
+                0,
+                158
+              ],
+              "gain": 0,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 940,
+          "parent": [
+            0,
+            433
+          ],
+          "gain": 63,
+          "raw_delta": 1226,
+          "coded_delta": 1163,
+          "coarse": true,
+          "born": 2,
+          "target": [
+            0,
+            940
+          ],
+          "reason": "positive-marginal-gain",
+          "tick": 2,
+          "available_candidates": [
+            {
+              "id": 457,
+              "parent": [
+                0,
+                158
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 940,
+              "parent": [
+                0,
+                433
+              ],
+              "gain": 63,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 457,
+          "parent": [
+            0,
+            158
+          ],
+          "gain": 0,
+          "raw_delta": 740,
+          "coded_delta": 740,
+          "coarse": true,
+          "born": 1,
+          "target": [
+            0,
+            457
+          ],
+          "reason": "exploration-quota",
+          "tick": 3,
+          "available_candidates": [
+            {
+              "id": 457,
+              "parent": [
+                0,
+                158
+              ],
+              "gain": 0,
+              "coarse": true
+            },
+            {
+              "id": 2254,
+              "parent": [
+                0,
+                940
+              ],
+              "gain": -63,
+              "coarse": true
+            }
+          ]
+        },
+        {
+          "id": 2254,
+          "parent": [
+            0,
+            940
+          ],
+          "gain": -63,
+          "raw_delta": 1083,
+          "coded_delta": 1146,
+          "coarse": true,
+          "born": 3,
+          "target": [
+            0,
+            2254
+          ],
+          "reason": "fifo-no-positive-gain",
+          "tick": 4,
+          "available_candidates": [
+            {
+              "id": 2254,
+              "parent": [
+                0,
+                940
+              ],
+              "gain": -63,
+              "coarse": true
+            }
+          ]
+        }
+      ],
+      "reached_anchor": true,
+      "pending": 0
+    }
+  ]
+}

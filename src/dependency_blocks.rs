@@ -9,6 +9,81 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque};
 pub type BlockId = usize;
 type Env = BTreeMap<String, Value>;
 
+#[cfg(test)]
+mod prefix_selection_tests {
+    use super::*;
+    use crate::prefix_policy::{Candidate, Policy};
+    fn store() -> DependencyBlockStore {
+        let mut s = DependencyBlockStore::default();
+        let prefix = |name: &str| CombinedPrefix {
+            lhs: name.into(),
+            rhs: name.into(),
+            bindings: Env::new(),
+            members: vec![],
+            reads: vec![],
+            usable: true,
+        };
+        s.blocks.push(BlockMeta {
+            id: 0,
+            version: 7,
+            active: true,
+            capacity: 2,
+            entry: EntryPrefix {
+                rule: "R".into(),
+                lhs: "x".into(),
+                match_id: 0,
+                bindings: Env::new(),
+            },
+            members: vec![],
+            potential_exports: BTreeSet::new(),
+            boundary: vec![],
+            dependencies: vec![],
+            prefixes: vec![prefix("a"), prefix("b")],
+            invalidations: vec![],
+        });
+        s
+    }
+    #[test]
+    fn active_choice_is_versioned_and_does_not_delete_alternatives() {
+        let mut s = store();
+        let mut p = Policy::new(3, 4, 8);
+        let candidates = [
+            Candidate {
+                id: 0,
+                marginal_bytes: 1,
+                coarse: false,
+            },
+            Candidate {
+                id: 1,
+                marginal_bytes: 10,
+                coarse: false,
+            },
+        ];
+        s.choose_prefix(0, 7, 3, &candidates, &mut p).unwrap();
+        assert_eq!(s.selected_prefix(0, 3).unwrap().lhs, "b");
+        assert_eq!(s.blocks[0].prefixes.len(), 2);
+        assert!(s.selected_prefix(0, 4).is_none());
+        s.blocks[0].version += 1;
+        assert!(s.selected_prefix(0, 3).is_none());
+        assert!(s.choose_prefix(0, 7, 3, &candidates, &mut p).is_err());
+    }
+    #[test]
+    fn missing_scores_and_unusable_prefixes_cannot_be_selected() {
+        let mut s = store();
+        let mut p = Policy::new(3, 4, 8);
+        let c = [Candidate {
+            id: 0,
+            marginal_bytes: 10,
+            coarse: false,
+        }];
+        assert!(s.choose_prefix(0, 7, 3, &c, &mut p).is_err());
+        s.blocks[0].prefixes[1].usable = false;
+        s.choose_prefix(0, 7, 3, &c, &mut p).unwrap();
+        s.blocks[0].active = false;
+        assert!(s.selected_prefix(0, 3).is_none());
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct RuleSpec {
     pub name: String,
@@ -129,8 +204,51 @@ pub struct DependencyBlockStore {
     by_rule: HashMap<String, Vec<usize>>,
     recipes: HashMap<u64, Recipe>,
     rejected: BTreeMap<u64, String>,
+    selected_prefixes: HashMap<BlockId, (u64, u64, usize)>,
 }
 impl DependencyBlockStore {
+    /// Select among existing usable prefixes. Scores must cover that whole set
+    /// and match both the block version and the caller's frozen model epoch.
+    pub fn choose_prefix(
+        &mut self,
+        block: BlockId,
+        version: u64,
+        epoch: u64,
+        candidates: &[crate::prefix_policy::Candidate],
+        policy: &mut crate::prefix_policy::Policy,
+    ) -> Result<Option<crate::prefix_policy::Decision>, String> {
+        let b = self.blocks.get(block).ok_or("unknown block")?;
+        if !b.active || b.version != version {
+            return Err("inactive block or stale prefix scores".into());
+        }
+        let expected: BTreeSet<_> = b
+            .prefixes
+            .iter()
+            .enumerate()
+            .filter(|(_, p)| p.usable)
+            .map(|(i, _)| i as u64)
+            .collect();
+        let supplied: BTreeSet<_> = candidates.iter().map(|c| c.id).collect();
+        if expected != supplied {
+            return Err("scores must cover exactly the usable prefixes".into());
+        }
+        policy.bind_context(block as u64, epoch)?;
+        let choice = policy.choose(epoch, candidates)?;
+        self.selected_prefixes.remove(&block);
+        if let Some(d) = &choice {
+            self.selected_prefixes
+                .insert(block, (version, epoch, d.candidate as usize));
+        }
+        Ok(choice)
+    }
+    pub fn selected_prefix(&self, block: BlockId, epoch: u64) -> Option<&CombinedPrefix> {
+        let (version, model, index) = self.selected_prefixes.get(&block)?;
+        let b = self.blocks.get(block)?;
+        if !b.active || b.version != *version || *model != epoch {
+            return None;
+        }
+        b.prefixes.get(*index).filter(|p| p.usable)
+    }
     pub fn new(specs: impl IntoIterator<Item = RuleSpec>) -> Self {
         let mut s = Self::default();
         for r in specs {
