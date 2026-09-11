@@ -29,3 +29,17 @@ target/release/export_combined_egg experiments/annotated_export/math_microbenchm
 source.egg 是原 microbenchmark 加显示注释；profile.json 是真实事件统计；
 DEEPSEEK.md 包含本文件对应的规则数量、采样范围和渲染要求。当前交付
 只验证原生解析、运行、表大小一致和导出协议，没有验证网页/Typst SVG。
+
+dsl_type 的 `typst` 与 `precedence` 与 `samples/math_microbenchmark.rs` 中的
+`#[eggplant::typst(..)]` / `#[eggplant::precedence(..)]` 保持一致（占位符改用本
+文件的字段名），因此 .egg 与 .rs 两条链路渲染出同一套数学记法：`{left} + {right}`、
+`frac(..)`、`{base}^{exponent}`、`integral {integrand} quad d {variable}`、
+`{expression}'({variable})`，优先级 Add/Sub 50、Mul/Div 60、Pow 80、其余 90/100。
+模板只写自然形式，`upright(..)` 由渲染器自动插入。
+
+离线核对（125 条规则、1647 个 typst 目标、0 失败）：
+
+```
+cd dpsk_workspace/viz-web-editor
+npm run render:rules -- --egg ../../experiments/annotated_export/math_microbenchmark/combined.egg --out /tmp/rule-mm
+```
