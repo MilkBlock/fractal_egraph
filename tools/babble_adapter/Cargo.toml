@@ -9,4 +9,3 @@ edition = "2021"
 babble = { path = "../.deps/babble" }
 egg = { path = "../.deps/egg", features = ["serde-1"] }
 serde_json = "1"
-
