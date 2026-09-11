@@ -1,0 +1,8 @@
+{
+  "build": "debug",
+  "elapsed_seconds": 0.001666,
+  "error": "In 5:40-46 of combined.egg: \"value\"\nparse error: expected variant argument type",
+  "execution": "original native program; no dependency tracing or schedule modification",
+  "outputs": [],
+  "source": "experiments/annotated_export/cyk/combined.egg"
+}

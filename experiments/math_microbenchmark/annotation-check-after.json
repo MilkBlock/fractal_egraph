@@ -1,0 +1,15 @@
+{
+  "build": "release",
+  "elapsed_seconds": 0.012472209,
+  "error": null,
+  "execution": "original native program; no dependency tracing or schedule modification",
+  "outputs": [
+    "",
+    "(NT \"S\" (T \"NP\" \"she\") (NT \"VP\" (NT \"VP\" (T \"V\" \"eats\") (NT \"NP\" (T \"DET\" \"a\") (T \"N\" \"fish\"))) (NT \"PP\" (T \"P\" \"with\") (NT \"NP\" (T \"DET\" \"a\") (T \"N\" \"fork\")))))\n",
+    "",
+    "(\n   (NT \"S\" (NT \"B\" (NT \"C\" (T \"A\" \"a\") (T \"B\" \"b\")) (T \"C\" \"a\")) (NT \"C\" (T \"A\" \"a\") (T \"B\" \"b\")))\n   (NT \"S\" (NT \"A\" (NT \"B\" (NT \"C\" (T \"A\" \"a\") (T \"B\" \"b\")) (T \"C\" \"a\")) (T \"A\" \"a\")) (T \"B\" \"b\"))\n   (B 5 1 (NonTerm \"S\"))\n)\n",
+    "",
+    "(\n   (NT \"S\" (T \"A\" \"a\") (NT \"B\" (T \"C\" \"a\") (NT \"C\" (T \"A\" \"a\") (NT \"B\" (T \"C\" \"a\") (T \"C\" \"a\")))))\n   (NT \"S\" (NT \"B\" (T \"C\" \"a\") (T \"C\" \"a\")) (NT \"C\" (T \"A\" \"a\") (NT \"B\" (T \"C\" \"a\") (T \"C\" \"a\"))))\n   (NT \"S\" (NT \"A\" (NT \"B\" (T \"C\" \"a\") (T \"C\" \"a\")) (T \"A\" \"a\")) (NT \"B\" (T \"C\" \"a\") (T \"C\" \"a\")))\n   (NT \"S\" (NT \"B\" (T \"C\" \"a\") (NT \"C\" (T \"A\" \"a\") (NT \"B\" (T \"C\" \"a\") (T \"C\" \"a\")))) (T \"C\" \"a\"))\n   (B 5 1 (NonTerm \"S\"))\n)\n"
+  ],
+  "source": "experiments/annotated_export/cyk/combined.egg"
+}

@@ -1,0 +1,138 @@
+{
+  "source_sha256": "aaa8942131b4db57e76710486718790e1d7f2cb9288aeb702c0c17019439cf16",
+  "native_rounds": 11,
+  "build": "release",
+  "trace": false,
+  "native_elapsed_seconds": 0.409762917,
+  "max_rss_bytes_macos_time": 482050048,
+  "sizes_match_checked_in_snapshot": true,
+  "table_rows": {
+    "Add": 641743,
+    "Const": 5,
+    "Cos": 1,
+    "Diff": 13504,
+    "Div": 3,
+    "Integral": 32434,
+    "Ln": 1,
+    "Mul": 345075,
+    "Pow": 2,
+    "Sin": 1,
+    "Sqrt": 1,
+    "Sub": 15123,
+    "Var": 3
+  },
+  "total_table_rows": 1047896,
+  "rule_counts": [
+    {
+      "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
+      "search_apply_seconds_rounded": 0.023,
+      "native_num_matches": 318575
+    },
+    {
+      "rule": "(rewrite (Mul a (Add b c)) (Add (Mul a b) (Mul a c)))",
+      "search_apply_seconds_rounded": 0.027,
+      "native_num_matches": 309894
+    },
+    {
+      "rule": "(rewrite (Mul a (Mul b c)) (Mul (Mul a b) c))",
+      "search_apply_seconds_rounded": 0.012,
+      "native_num_matches": 81729
+    },
+    {
+      "rule": "(rewrite (Add a b) (Add b a))",
+      "search_apply_seconds_rounded": 0.007,
+      "native_num_matches": 72889
+    },
+    {
+      "rule": "(rewrite (Mul a b) (Mul b a))",
+      "search_apply_seconds_rounded": 0.011,
+      "native_num_matches": 53412
+    },
+    {
+      "rule": "(rewrite (Add (Mul a b) (Mul a c)) (Mul a (Add b c)))",
+      "search_apply_seconds_rounded": 0.029,
+      "native_num_matches": 44273
+    },
+    {
+      "rule": "(rewrite (Integral (Add f g) x) (Add (Integral f x) (Integral g x)))",
+      "search_apply_seconds_rounded": 0.011,
+      "native_num_matches": 24077
+    },
+    {
+      "rule": "(rewrite (Diff x (Add a b)) (Add (Diff x a) (Diff x b)))",
+      "search_apply_seconds_rounded": 0.009,
+      "native_num_matches": 15261
+    },
+    {
+      "rule": "(rewrite (Integral (Mul a b) x) (Sub (Mul a (Integral b x)) (Integral (Mul (Diff...",
+      "search_apply_seconds_rounded": 0.005,
+      "native_num_matches": 12840
+    },
+    {
+      "rule": "(rewrite (Diff x (Mul a b)) (Add (Mul a (Diff x b)) (Mul b (Diff x a))))",
+      "search_apply_seconds_rounded": 0.011,
+      "native_num_matches": 4474
+    },
+    {
+      "rule": "(rewrite (Sub a b) (Add a (Mul (Const -1) b)))",
+      "search_apply_seconds_rounded": 0.0,
+      "native_num_matches": 4169
+    },
+    {
+      "rule": "(rewrite (Integral (Sub f g) x) (Sub (Integral f x) (Integral g x)))",
+      "search_apply_seconds_rounded": 0.004,
+      "native_num_matches": 2654
+    },
+    {
+      "rule": "(rewrite (Diff x (Sin x)) (Cos x))",
+      "search_apply_seconds_rounded": 0.0,
+      "native_num_matches": 2
+    },
+    {
+      "rule": "(rewrite (Integral (Sin x) x) (Mul (Const -1) (Cos x)))",
+      "search_apply_seconds_rounded": 0.002,
+      "native_num_matches": 2
+    },
+    {
+      "rule": "(rewrite (Diff x (Cos x)) (Mul (Const -1) (Sin x)))",
+      "search_apply_seconds_rounded": 0.0,
+      "native_num_matches": 1
+    },
+    {
+      "rule": "(rewrite (Integral (Cos x) x) (Sin x))",
+      "search_apply_seconds_rounded": 0.001,
+      "native_num_matches": 1
+    },
+    {
+      "rule": "(rewrite (Pow x (Const 2)) (Mul x x))",
+      "search_apply_seconds_rounded": 0.0,
+      "native_num_matches": 1
+    },
+    {
+      "rule": "(rewrite (Integral (Const 1) x) x)",
+      "search_apply_seconds_rounded": 0.001,
+      "native_num_matches": 0
+    },
+    {
+      "rule": "(rewrite (Mul (Pow a b) (Pow a c)) (Pow a (Add b c)))",
+      "search_apply_seconds_rounded": 0.002,
+      "native_num_matches": 0
+    },
+    {
+      "rule": "(rewrite (Mul a (Const 1)) a)",
+      "search_apply_seconds_rounded": 0.001,
+      "native_num_matches": 0
+    },
+    {
+      "rule": "(rewrite (Pow x (Const 1)) x)",
+      "search_apply_seconds_rounded": 0.0,
+      "native_num_matches": 0
+    },
+    {
+      "rule": "(rewrite (Sub a a) (Const 0))",
+      "search_apply_seconds_rounded": 0.0,
+      "native_num_matches": 0
+    }
+  ],
+  "count_semantics": "native aggregate matches, not committed mutations or combined rule usage"
+}

@@ -1,0 +1,14 @@
+{
+  "build": "release",
+  "elapsed_seconds": 0.409762917,
+  "error": null,
+  "execution": "original native program; no dependency tracing or schedule modification",
+  "outputs": [
+    "",
+    "641743\n",
+    "345075\n",
+    "((Add 641743)\n (Const 5)\n (Cos 1)\n (Diff 13504)\n (Div 3)\n (Integral 32434)\n (Ln 1)\n (Mul 345075)\n (Pow 2)\n (Sin 1)\n (Sqrt 1)\n (Sub 15123)\n (Var 3))\n",
+    "Overall statistics:\nRule (rewrite (Pow x (Const 1)) x): search and apply 0.000s, num matches 0\nRule (rewrite (Pow x (Const 2)) (Mul x x)): search and apply 0.000s, num matches 1\nRule (rewrite (Diff x (Sin x)) (Cos x)): search and apply 0.000s, num matches 2\nRule (rewrite (Sub a a) (Const 0)): search and apply 0.000s, num matches 0\nRule (rewrite (Diff x (Cos x)) (Mul (Const -1) (Sin x))): search and apply 0.000s, num matches 1\nRule (rewrite (Sub a b) (Add a (Mul (Const -1) b))): search and apply 0.000s, num matches 4169\nRule (rewrite (Integral (Const 1) x) x): search and apply 0.001s, num matches 0\nRule (rewrite (Integral (Cos x) x) (Sin x)): search and apply 0.001s, num matches 1\nRule (rewrite (Mul a (Const 1)) a): search and apply 0.001s, num matches 0\nRule (rewrite (Integral (Sin x) x) (Mul (Const -1) (Cos x))): search and apply 0.002s, num matches 2\nRule (rewrite (Mul (Pow a b) (Pow a c)) (Pow a (Add b c))): search and apply 0.002s, num matches 0\nRule (rewrite (Integral (Sub f g) x) (Sub (Integral f x) (Integral g x))): search and apply 0.004s, num matches 2654\nRule (rewrite (Integral (Mul a b) x) (Sub (Mul a (Integral b x)) (Integral (Mul (Diff...: search and apply 0.005s, num matches 12840\nRule (rewrite (Add a b) (Add b a)): search and apply 0.007s, num matches 72889\nRule (rewrite (Diff x (Add a b)) (Add (Diff x a) (Diff x b))): search and apply 0.009s, num matches 15261\nRule (rewrite (Mul a b) (Mul b a)): search and apply 0.011s, num matches 53412\nRule (rewrite (Diff x (Mul a b)) (Add (Mul a (Diff x b)) (Mul b (Diff x a)))): search and apply 0.011s, num matches 4474\nRule (rewrite (Integral (Add f g) x) (Add (Integral f x) (Integral g x))): search and apply 0.011s, num matches 24077\nRule (rewrite (Mul a (Mul b c)) (Mul (Mul a b) c)): search and apply 0.012s, num matches 81729\nRule (rewrite (Add a (Add b c)) (Add (Add a b) c)): search and apply 0.023s, num matches 318575\nRule (rewrite (Mul a (Add b c)) (Add (Mul a b) (Mul a c))): search and apply 0.027s, num matches 309894\nRule (rewrite (Add (Mul a b) (Mul a c)) (Mul a (Add b c))): search and apply 0.029s, num matches 44273\nRuleset : search 0.174s, merge 0.125s, rebuild 0.098s\n"
+  ],
+  "source": "egglog/tests/math-microbenchmark.egg"
+}
