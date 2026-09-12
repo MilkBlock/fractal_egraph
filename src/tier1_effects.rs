@@ -64,7 +64,7 @@ fn effect_json(e: &Effect) -> Value {
 impl Tier1 {
     pub fn new() -> Result<Self> {
         let mut eg = EGraph::default();
-        eg.parse_and_run_program(None, include_str!("../experiments/tier1_effects/ir.egg"))
+        eg.parse_and_run_program(None, include_str!("../experiments/tier1_effects/tier1_rule_comb_ir.egg"))
             .map_err(|e| e.to_string())?;
         Ok(Self {
             eg,

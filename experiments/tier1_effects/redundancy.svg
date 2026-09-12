@@ -9,7 +9,7 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(21.6 608.85)">
 <title>G</title>
 <polygon fill="#fafaf7" stroke="none" points="-21.6,21.6 -21.6,-608.85 973.1,-608.85 973.1,21.6 -21.6,21.6"/>
-<text xml:space="preserve" text-anchor="middle" x="475.75" y="-564.25" font-family="Times,serif" font-size="20.00">局部依赖冗余 · 上下文/effect 视图</text>
+<text xml:space="preserve" text-anchor="middle" x="475.75" y="-564.25" font-family="Times,serif" font-size="20.00">局部依赖冗余 · Rule&#45;comb 上下文 / effect 视图</text>
 <!-- c0 -->
 <g id="node1" class="node">
 <title>c0</title>

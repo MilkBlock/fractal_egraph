@@ -1,3 +1,5 @@
+; Tier-1 meta-egraph: analyze rule combinations originating in tier-0.
+; Ctx describes a rule-combination context, not a tier-0 expression node.
 ; Equality is scoped to a context. Never union tier-1 Values or Contexts here.
 (datatype Val (V String String))
 (datatype Args (ANil) (ACons Val Args))

@@ -2,7 +2,7 @@ digraph G {
 graph [rankdir=LR,bgcolor="#fafaf7",pad=0.3,nodesep=0.45,ranksep=0.8];
 node [fontname="Arial",fontsize=12,shape=box,style="rounded,filled",color="#62706f"];
 edge [fontname="Arial",fontsize=10,color="#637577"];
-label="Equality effect 解锁 · 上下文/effect 视图";labelloc=t;fontsize=20;
+label="Equality effect 解锁 · Rule-comb 上下文 / effect 视图";labelloc=t;fontsize=20;
 c0 [label="C0 · Entry\nready",fillcolor="#dcefe5"];
 e0_given_0 [label="P(0)",shape=note,fillcolor="#edf0fa"];
 c0 -> e0_given_0 [style=dotted,label="given"];

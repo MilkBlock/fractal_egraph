@@ -291,8 +291,8 @@ fn concrete_factor_then_product_derivative_matches_native_math_rules() {
 #[test]
 fn standalone_concrete_egg_files_execute_all_embedded_checks() {
     for path in [
-        "experiments/tier1_effects/concrete_math.egg",
-        "experiments/tier1_effects/concrete_tier1.egg",
+        "experiments/tier1_effects/tier0_math_example.egg",
+        "experiments/tier1_effects/tier1_rule_comb_example.egg",
     ] {
         let mut eg = egglog::EGraph::default();
         eg.parse_and_run_program(Some(path.into()), &std::fs::read_to_string(path).unwrap())

@@ -1,6 +1,6 @@
 ; Tier-1 ground contracts for the concrete R10 -> R15 example.
-; Run from repository root. concrete_math.egg independently verifies tier-0 behavior.
-(include "experiments/tier1_effects/ir.egg")
+; Run from repository root. tier0_math_example.egg independently verifies tier-0 behavior.
+(include "experiments/tier1_effects/tier1_rule_comb_ir.egg")
 
 ; Symbols are Math value references, not integer equalities.
 ; u=x*2, v=x*3, p=u+v, s=2+3, q=x*s, d=Diff(x,p).

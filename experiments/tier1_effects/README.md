@@ -1,6 +1,8 @@
-# Tier-1：显式 effect、smooth 判定与局部依赖冗余
+# Tier-1 rule-comb 元分析 e-graph
 
-这里的条件满足、效果传播和冗余关系由真实 egglog 程序 `ir.egg` 推导，
+命名约定：tier-0 是运行数学 rewrite 的普通表达式 e-graph；tier-1 是分析 tier-0 所产生 rule comb 的元层 e-graph。`tier1_rule_comb_ir.egg` 定义后者，`tier1_rule_comb_example.egg` 是其手工分析实例；`tier0_math_example.egg` 是普通表达式示例。当前尚未自动从 tier-0 历史构建 tier-1。
+
+这里的条件满足、效果传播和冗余关系由真实 egglog 程序 `tier1_rule_comb_ir.egg` 推导，
 不是 Rust 中模拟一份 e-graph。Rust 适配器负责有类型的 BindingRelation 实例化、
 构建候选以及验证待省去 producer 不在替代上下文的祖先中。
 
@@ -86,7 +88,7 @@ python3 experiments/tier1_effects/run.py
 cargo test --test tier1_effects --test trigger_bridge
 ```
 
-API 位于 `src/tier1_effects.rs`，原生规则位于本目录 `ir.egg`。
+API 位于 `src/tier1_effects.rs`，原生规则位于本目录 `tier1_rule_comb_ir.egg`。
 这是一份小规模语义基础设施，不是 Math 的压缩率或运行时内存收益证明。
 当前 EqAt 使用有限域上的闭包，尚未优化大型上下文的共享与增量支撑索引。
 
@@ -120,9 +122,9 @@ Tier-1 使用针对该实例手工写出的 ground 契约，不是通用 trace �
 
 ### 独立 .egg 文件
 
-- `ir.egg`：通用 tier-1 datatype 与 effect/冗余推导规则。
-- `concrete_tier1.egg`：独立、可阅读的 R10→R15 ground 合约实例，include 通用 IR，内含 pending/ready 及 effect 不泄漏的检查。
-- `concrete_math.egg`：实际 tier-0 的 R10/R15 与输入表达式，内含执行前后的匹配和等价检查。
+- `tier1_rule_comb_ir.egg`：通用 tier-1 datatype 与 effect/冗余推导规则。
+- `tier1_rule_comb_example.egg`：独立、可阅读的 R10→R15 ground 合约实例，include 通用 IR，内含 pending/ready 及 effect 不泄漏的检查。
+- `tier0_math_example.egg`：实际 tier-0 的 R10/R15 与输入表达式，内含执行前后的匹配和等价检查。
 
 后两个文件已通过原生 egglog 执行全部内嵌 check/fail-check；从仓库根目录运行以解析 include。
 这补齐了此前具体实例只由 Rust 测试装配、没有单独 .egg 的缺口。

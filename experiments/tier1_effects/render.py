@@ -28,7 +28,7 @@ for key,(title,data) in cases.items():
     assert data['serialization_complete']
     lines=['digraph G {','graph [rankdir=LR,bgcolor="#fafaf7",pad=0.3,nodesep=0.45,ranksep=0.8];',
            'node [fontname="Arial",fontsize=12,shape=box,style="rounded,filled",color="#62706f"];',
-           'edge [fontname="Arial",fontsize=10,color="#637577"];',f'label={q(title+" · 上下文/effect 视图")};labelloc=t;fontsize=20;']
+           'edge [fontname="Arial",fontsize=10,color="#637577"];',f'label={q(title+" · Rule-comb 上下文 / effect 视图")};labelloc=t;fontsize=20;']
     ids={c['context'] for c in data['contexts']}
     for c in data['contexts']:
         i=c['context'];a=c['application'];kind=a['rule'] if a else 'Join' if c['parents'] else 'Entry'
@@ -64,10 +64,10 @@ for key,(title,data) in cases.items():
     render(key+'.native',native+['}'])
     (OUT/(key+'.native.json')).write_text(json.dumps(graph,ensure_ascii=False,indent=2)+'\n')
 options=''.join(f'<option value="{k}">{html.escape(t)}</option>' for k,(t,_) in cases.items())
-page='''<!doctype html><html lang="zh"><meta charset="utf-8"><title>Tier-1 e-graph</title>
+page='''<!doctype html><html lang="zh"><meta charset="utf-8"><title>Tier-1 · Rule-comb 分析图</title>
 <style>body{margin:24px;background:#fafaf7;color:#263637;font:16px system-ui}select,a{margin-right:16px}iframe{width:100%;height:78vh;border:1px solid #cad6d3;background:white}p{max-width:1000px;line-height:1.6}</style>
-<h1>Tier-1 e-graph</h1><p>来自原生 egglog 小规模语义实验，具体 R10/R15 例子已在原生 Math 规则中验证；其余为小规模语义实验。绿色为 ready，橙色为 pending；虚线说明前提或候选替代，点线说明 effect。原组合保留，冗余证书仅针对当前使用。</p>
-<p><select id="case">OPTIONS</select><select id="mode"><option value="">上下文 / effect 视图</option value=".native">完整原生图</option></select><a id="svg" target="_blank">单独打开 SVG</a><a id="json" target="_blank">完整原生 JSON</a></p>
+<h1>Tier-1 · Rule-comb 分析图</h1><p>这里显示的是分析 rule comb 的 tier-1 元层图，不是 tier-0 数学表达式图。节点 C0/C1 等表示组合上下文，effect 描述其对 tier-0 的事实要求与产出。当前实例由手工契约构建，尚未自动导入 tier-0 历史。绿色为 ready，橙色为 pending；虚线说明前提或候选替代，点线说明 effect。原组合保留，冗余证书仅针对当前使用。</p>
+<p><select id="case">OPTIONS</select><select id="mode"><option value="">Rule-comb 上下文 / effect 视图</option value=".native">完整 tier-1 原生图</option></select><a id="svg" target="_blank">单独打开 SVG</a><a id="json" target="_blank">完整原生 JSON</a></p>
 <p id="explanation"></p><iframe id="view" title="tier1 graph"></iframe><p>完整图保留所有导出节点与边；超长节点标签仅缩短显示，完整内容保存在 tooltip 和 JSON 中。内部关系表的 Unit 输出不代表 Ctx 被 union。</p>
 <script>const c=document.getElementById('case'),m=document.getElementById('mode');function show(){document.getElementById('explanation').textContent=c.value==='concrete'?'输入：Diff(x, x*2+x*3)。u=x*2，v=x*3，p=u+v，s=2+3，q=x*s，d=Diff(x,p)。Mul(a,b,out) 的最后一项是结果引用。R10 产生 q 并证明 p=q，随后 R15 才能沿同一输入匹配。':'';let stem=c.value+m.value;document.getElementById('view').src=stem+'.svg';document.getElementById('svg').href=stem+'.svg';document.getElementById('json').href=c.value+'.native.json'}c.onchange=m.onchange=show;show()</script></html>'''.replace('OPTIONS',options)
 (OUT/'index.html').write_text(page)
