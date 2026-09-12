@@ -94,18 +94,33 @@ pub fn export(eg: &EGraph) -> Result<Value, String> {
             let id = cid("Comb", *row.vals.last().unwrap());
             let rule_text = eg
                 .extract_value_to_string(
-                    eg.get_sort_by_name("String").unwrap(),
+                    eg.get_sort_by_name("RuleId").unwrap(),
                     row.vals[if name == "Basic" { 0 } else { 1 }],
                 )
                 .unwrap()
                 .0;
-            let rule: String = serde_json::from_str(&rule_text).unwrap();
+            let rule: String = serde_json::from_str(
+                rule_text
+                    .strip_prefix("(Rule ")
+                    .unwrap()
+                    .strip_suffix(')')
+                    .unwrap(),
+            )
+            .unwrap();
             let ports = if name == "Basic" {
                 String::new()
             } else {
-                eg.extract_value_to_string(eg.get_sort_by_name("Ports").unwrap(), row.vals[2])
-                    .unwrap()
-                    .0
+                eg.extract_value_to_string(
+                    eg.get_sort_by_name(if name == "SmoothComb" {
+                        "RelativeBinding"
+                    } else {
+                        "PartialRelativeBinding"
+                    })
+                    .unwrap(),
+                    row.vals[2],
+                )
+                .unwrap()
+                .0
             };
             templates.insert(
                 id.clone(),

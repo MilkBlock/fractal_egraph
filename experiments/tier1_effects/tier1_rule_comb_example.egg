@@ -1,13 +1,13 @@
 (include "experiments/tier1_effects/tier1_rule_comb_ir.egg")
 ; A shared R10 -> R15 template. R15 receives x,s from R10, root d externally.
-(let $r10 (Basic "R10"))
+(let $r10 (Basic (Rule "R10")))
 (let $parents (MoreParents $r10 (NoParents)))
-(let $rho (PCons (ParentPort 0 0 "Math")
-            (PCons (ParentPort 0 1 "Math")
+(let $rho (PCons (Local (ParentPort 0 0 "Math"))
+            (PCons (Local (ParentPort 0 1 "Math"))
               (PCons (External 0 "Math") (PNil)))))
-(let $comb (CoarseComb $parents "R15" $rho))
+(let $comb (CoarseComb $parents (Rule "R15") $rho))
 ; Reconstructing the same template hashconses despite different occurrences.
-(let $same (CoarseComb (MoreParents (Basic "R10") (NoParents)) "R15" $rho))
+(let $same (CoarseComb (MoreParents (Basic (Rule "R10")) (NoParents)) (Rule "R15") $rho))
 (check (= $comb $same))
 (let $r10a (Occurrence 10 $r10))
 (let $r10b (Occurrence 20 $r10))

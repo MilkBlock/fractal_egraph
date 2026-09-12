@@ -3,29 +3,45 @@
 `Entry` 已移除。主 IR 现在分成两层：
 
 ```
-Comb = Basic(rule_id)
-     | SmoothComb(parents, rule_id, relative_ports)
-     | CoarseComb(parents, rule_id, partial_relative_ports)
+Comb = Basic(RuleId)
+     | SmoothComb(ParentCombs, RuleId, RelativeBinding)
+     | CoarseComb(ParentCombs, RuleId, PartialRelativeBinding)
 
 Instance = Occurrence(unique_event_id, Comb)
 ```
 
 Comb 的子结构只有规则、父模板及结构化端口；具体值、执行 ID、effect 均在实例层。
 即使两次执行的数据不同，只要连接模板相同，就引用同一个 Comb。
-父模板使用 Parents 列表，保留多 producer DAG，不强制串成单链。
+父模板使用 ParentCombs 列表，保留多 producer DAG，不强制串成单链。
 
 ## Relative binding
 
-- `ParentPort(parent_index, output_index, sort)`：从指定父实例的输出取值。
-- `External(slot, sort)`：coarse 组合中的外部数据接口。
-- `Make(operator, child_ports, sort)`：用已有 materialization 见证解释构造型转移。
+- `RuleId` 是独立类型，以 `(Rule "R15")` 构造，不能直接传裸 String。
+- `ParentPort(parent_index, output_index, sort)` 返回 LocalPort。
+- `Make(operator, RelativeBinding, sort)` 返回 LocalPort；其子项递归限制为局部端口。
+- `RNil / RCons` 构成 RelativeBinding，只能包含 LocalPort，供 SmoothComb 使用。
+- `Local(LocalPort)`、`External(slot, sort)`、`MakePartial(operator, PartialRelativeBinding, sort)` 返回 PartialPort。
+- `PNil / PCons` 构成 PartialRelativeBinding，供 CoarseComb 使用。
 
-外部槽在导入前按首次出现顺序编号。Rust 的 `external_ports` 提供此规范化：
-名字不同可以共享，但同一外部值的重复使用不会与两个不同值混淆；sort 冲突会被拒绝。
-Make 不生成数据，只有 `Materialized(instance,op,args,value)` 已提供时才能解析。
+例如：
+
+```lisp
+(SmoothComb $parents (Rule "R15")
+  (RCons (ParentPort 0 0 "Math") (RNil)))
+
+(CoarseComb $parents (Rule "R15")
+  (PCons (Local (ParentPort 0 0 "Math"))
+    (PCons (External 0 "Math") (PNil))))
+```
+
+External 不能直接或通过嵌套 Make 流入 SmoothComb；这由原生 egglog 类型检查拒绝，
+不依赖运行后标记。局部 Make 和 MakePartial 均需要实例中的 Materialized 见证，不生成数据。
+这是 binding 语法的约束，不替代对外部 effect 来源与支撑完整性的验证。
+PartialRelativeBinding 也允许全部为 Local 的表达式；本次未增加自动 coarse→smooth 重写。
+
+外部槽在导入前按首次出现顺序编号。Rust 的 `external_ports` 返回 PartialRelativeBinding：
+名字不同可以共享，同一外部值重复使用与两个不同值不会混淆，sort 冲突会拒绝。
 `.egg` 示例已规范编号；尚未实现任意 binding 表达式的理论等价归一化。
-SmoothComb 的 binding 应仅使用父端口/已见证构造关系，CoarseComb 可以使用 External；
-当前要求导入方遵守该分类，不会仅凭构造器名字证明外部依赖不存在。
 
 ## 实例与支撑
 
@@ -76,3 +92,5 @@ cargo test --test tier1_effects
 
 从仓库根目录运行，渲染需要 Graphviz。`index.html` 显示模板/实例分层图及完整原生图。
 旧版带 Entry 的生成图已替换；模板图中的虚线 instance-of 不是模板的 child 边。
+
+当前 10 项测试通过，新增直接/嵌套 External 的原生类型拒绝测试、裸 String RuleId 拒绝，以及合法局部 Make 的解析检查。
