@@ -1,0 +1,22 @@
+digraph G {
+graph [rankdir=LR,bgcolor="#fafaf7",pad=0.3,nodesep=0.45,ranksep=0.8];
+node [fontname="Arial",fontsize=12,shape=box,style="rounded,filled",color="#62706f"];
+edge [fontname="Arial",fontsize=10,color="#637577"];
+label="Effect 到达后 · 上下文/effect 视图";labelloc=t;fontsize=20;
+c0 [label="C0 · Entry\nready",fillcolor="#dcefe5"];
+e0_given_0 [label="P(0)",shape=note,fillcolor="#edf0fa"];
+c0 -> e0_given_0 [style=dotted,label="given"];
+e0_given_1 [label="Q(1)",shape=note,fillcolor="#edf0fa"];
+c0 -> e0_given_1 [style=dotted,label="given"];
+c1 [label="C1 · Entry\nready",fillcolor="#dcefe5"];
+e1_given_0 [label="Q(1)",shape=note,fillcolor="#edf0fa"];
+c1 -> e1_given_0 [style=dotted,label="given"];
+c2 [label="C2 · R\nready\nv0=0, v1=1",fillcolor="#dcefe5"];
+c0 -> c2 [label="ctx 0"];
+e2_requires_0 [label="P(0)",shape=note,fillcolor="#edf0fa"];
+e2_requires_0 -> c2 [style=dashed,label="requires"];
+e2_requires_1 [label="Q(1)",shape=note,fillcolor="#edf0fa"];
+e2_requires_1 -> c2 [style=dashed,label="requires"];
+e2_produces_0 [label="T(1)",shape=note,fillcolor="#edf0fa"];
+c2 -> e2_produces_0 [style=dotted,label="produces"];
+}

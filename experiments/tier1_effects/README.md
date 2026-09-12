@@ -89,3 +89,15 @@ cargo test --test tier1_effects --test trigger_bridge
 API 位于 `src/tier1_effects.rs`，原生规则位于本目录 `ir.egg`。
 这是一份小规模语义基础设施，不是 Math 的压缩率或运行时内存收益证明。
 当前 EqAt 使用有限域上的闭包，尚未优化大型上下文的共享与增量支撑索引。
+
+## 打印与浏览
+
+`python3 experiments/tier1_effects/run.py` 现在同时生成图形；仅重新渲染可运行
+`python3 experiments/tier1_effects/render.py`（需要 Graphviz 的 `dot`）。
+打开 `index.html`，可切换 equality 解锁、局部冗余、effect 到达前/后四个案例。
+
+每例有两种视图：`*.svg` 是带输入/输出 effect 的上下文投影；`*.native.svg`
+直接打印 egglog serializer 的全部节点和 child 边，包括内部关系及辅助函数。
+`*.native.json` 保留完整原生节点 ID、e-class ID、operator、children、cost 和 subsumed。
+完整导出未限制函数或行数，且开启 temporary functions；原生图长标签仅显示截短，
+完整内容保留在 tooltip/JSON。内部关系表的 Unit 输出不意味着上下文被 union。

@@ -1,0 +1,33 @@
+digraph G {
+graph [rankdir=LR,bgcolor="#fafaf7",pad=0.3,nodesep=0.45,ranksep=0.8];
+node [fontname="Arial",fontsize=12,shape=box,style="rounded,filled",color="#62706f"];
+edge [fontname="Arial",fontsize=10,color="#637577"];
+label="Equality effect 解锁 · 上下文/effect 视图";labelloc=t;fontsize=20;
+c0 [label="C0 · Entry\nready",fillcolor="#dcefe5"];
+e0_given_0 [label="P(0)",shape=note,fillcolor="#edf0fa"];
+c0 -> e0_given_0 [style=dotted,label="given"];
+e0_given_1 [label="Q(2, 1)",shape=note,fillcolor="#edf0fa"];
+c0 -> e0_given_1 [style=dotted,label="given"];
+c1 [label="C1 · R\npending\nv0=0, v1=1",fillcolor="#ffe2b7"];
+c0 -> c1 [label="ctx 0"];
+e1_requires_0 [label="P(0)",shape=note,fillcolor="#edf0fa"];
+e1_requires_0 -> c1 [style=dashed,label="requires"];
+e1_requires_1 [label="Q(0, 1)",shape=note,fillcolor="#edf0fa"];
+e1_requires_1 -> c1 [style=dashed,label="requires"];
+e1_produces_0 [label="T(1)\nplanned / unavailable",shape=note,fillcolor="#edf0fa"];
+c1 -> e1_produces_0 [style=dotted,label="produces"];
+c2 [label="C2 · Entry\nready",fillcolor="#dcefe5"];
+e2_given_0 [label="0 = 2",shape=note,fillcolor="#edf0fa"];
+c2 -> e2_given_0 [style=dotted,label="given"];
+c3 [label="C3 · Join\nready",fillcolor="#dcefe5"];
+c0 -> c3 [label="ctx 0"];
+c2 -> c3 [label="ctx 1"];
+c4 [label="C4 · R\nready\nv0=0, v1=1",fillcolor="#dcefe5"];
+c3 -> c4 [label="ctx 0"];
+e4_requires_0 [label="P(0)",shape=note,fillcolor="#edf0fa"];
+e4_requires_0 -> c4 [style=dashed,label="requires"];
+e4_requires_1 [label="Q(0, 1)",shape=note,fillcolor="#edf0fa"];
+e4_requires_1 -> c4 [style=dashed,label="requires"];
+e4_produces_0 [label="T(1)",shape=note,fillcolor="#edf0fa"];
+c4 -> e4_produces_0 [style=dotted,label="produces"];
+}

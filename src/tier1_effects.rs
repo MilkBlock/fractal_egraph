@@ -52,6 +52,15 @@ fn fact_subst(f: &Fact, b: &BTreeMap<usize, Term>) -> Fact {
         Fact::Relation(n, a) => Fact::Relation(n.clone(), a.iter().map(|t| subst(t, b)).collect()),
     }
 }
+fn effect_json(e: &Effect) -> Value {
+    match e {
+        Effect::Fact(Fact::Relation(n, a)) => {
+            json!({"kind":"fact","name":n,"args":a.iter().map(Term::json).collect::<Vec<_>>()})
+        }
+        Effect::Fact(Fact::Node(t)) => json!({"kind":"node","term":t.json()}),
+        Effect::Equal(a, b) => json!({"kind":"equal","args":[a.json(),b.json()]}),
+    }
+}
 impl Tier1 {
     pub fn new() -> Result<Self> {
         let mut eg = EGraph::default();
@@ -350,14 +359,21 @@ impl Tier1 {
         for i in 0..self.records.len() {
             let c = Context(i);
             let ready = self.ready(c)?;
-            rows.push(json!({"context":i,"ready":ready,"given_effects":format!("{:?}",self.records[i].given),"application":self.records[i].application.as_ref().map(|a|json!({"rule":a.rule,"grounded":a.grounded,"binding":a.binding,"requirements":format!("{:?}",a.requirements),"produced":format!("{:?}",a.produced)})),"parents":self.records[i].parents.iter().map(|c|c.0).collect::<Vec<_>>() }));
+            rows.push(json!({"context":i,"ready":ready,"given_effects":format!("{:?}",self.records[i].given),"given_data":self.records[i].given.iter().map(effect_json).collect::<Vec<_>>(),"application":self.records[i].application.as_ref().map(|a|json!({"rule":a.rule,"grounded":a.grounded,"binding":a.binding,"requirements":format!("{:?}",a.requirements),"produced":format!("{:?}",a.produced),"requirements_data":a.requirements.iter().map(effect_json).collect::<Vec<_>>(),"produced_data":a.produced.iter().map(effect_json).collect::<Vec<_>>()})),"parents":self.records[i].parents.iter().map(|c|c.0).collect::<Vec<_>>() }));
         }
         let mut certificates = vec![];
         for (old, new, removed) in self.proposals.clone() {
             certificates.push(json!({"old":old.0,"candidate":new.0,"removed":removed.0,"certified_redundant_for_use":self.redundant(old,new,removed)?}));
         }
+        let serialized = self.eg.serialize(egglog::SerializeConfig {
+            max_functions: None,
+            max_calls_per_function: None,
+            include_temporary_functions: true,
+            root_eclasses: vec![],
+        });
+        assert!(serialized.is_complete());
         Ok(
-            json!({"contexts":rows,"proposals":certificates,"scope":"actual native tier-1 egglog rules over supplied positive contracts; not tier-0 provenance extraction; no context union or global dependency deletion"}),
+            json!({"native_egraph":{"nodes":serialized.egraph.nodes.iter().map(|(id,n)|(id.to_string(),json!({"op":n.op,"children":n.children.iter().map(ToString::to_string).collect::<Vec<_>>(),"eclass":n.eclass.to_string(),"cost":n.cost.into_inner(),"subsumed":n.subsumed}))).collect::<BTreeMap<_,_>>(),"root_eclasses":serialized.egraph.root_eclasses.iter().map(ToString::to_string).collect::<Vec<_>>(),"class_data":serialized.egraph.class_data.iter().map(|(id,c)|{let mut data:BTreeMap<String,Value>=c.extra.iter().map(|(k,v)|(k.clone(),json!(v))).collect();data.insert("type".into(),json!(c.typ));(id.to_string(),data)}).collect::<BTreeMap<_,_>>()},"serialization_complete":true,"contexts":rows,"proposals":certificates,"scope":"actual native tier-1 egglog rules over supplied positive contracts; not tier-0 provenance extraction; no context union or global dependency deletion"}),
         )
     }
 }

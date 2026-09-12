@@ -1,0 +1,736 @@
+{
+  "class_data": {
+    "@AllSatisfiedSort-36": {
+      "type": "@AllSatisfiedSort"
+    },
+    "@AllSatisfiedSort-37": {
+      "type": "@AllSatisfiedSort"
+    },
+    "@AllSatisfiedSort-38": {
+      "type": "@AllSatisfiedSort"
+    },
+    "@AllSatisfiedSort-47": {
+      "type": "@AllSatisfiedSort"
+    },
+    "@ArgsEqualSort-33": {
+      "type": "@ArgsEqualSort"
+    },
+    "@ArgsEqualSort-34": {
+      "type": "@ArgsEqualSort"
+    },
+    "@ArgsEqualSort-35": {
+      "type": "@ArgsEqualSort"
+    },
+    "@ArgsEqualSort-39": {
+      "type": "@ArgsEqualSort"
+    },
+    "@ArgsEqualSort-40": {
+      "type": "@ArgsEqualSort"
+    },
+    "@ArgsEqualSort-41": {
+      "type": "@ArgsEqualSort"
+    },
+    "@ArgsEqualSort-42": {
+      "type": "@ArgsEqualSort"
+    },
+    "@ArgsEqualSort-43": {
+      "type": "@ArgsEqualSort"
+    },
+    "@ArgsEqualSort-44": {
+      "type": "@ArgsEqualSort"
+    },
+    "@EqAtSort-27": {
+      "type": "@EqAtSort"
+    },
+    "@EqAtSort-28": {
+      "type": "@EqAtSort"
+    },
+    "@EqAtSort-29": {
+      "type": "@EqAtSort"
+    },
+    "@EqAtSort-30": {
+      "type": "@EqAtSort"
+    },
+    "@EqAtSort-31": {
+      "type": "@EqAtSort"
+    },
+    "@EqAtSort-32": {
+      "type": "@EqAtSort"
+    },
+    "@GivenSort-12": {
+      "type": "@GivenSort"
+    },
+    "@GivenSort-6": {
+      "type": "@GivenSort"
+    },
+    "@GroundedSort-19": {
+      "type": "@GroundedSort"
+    },
+    "@KnownSort-20": {
+      "type": "@KnownSort"
+    },
+    "@KnownSort-21": {
+      "type": "@KnownSort"
+    },
+    "@KnownSort-24": {
+      "type": "@KnownSort"
+    },
+    "@ProvidesSort-25": {
+      "type": "@ProvidesSort"
+    },
+    "@ProvidesSort-26": {
+      "type": "@ProvidesSort"
+    },
+    "@ReadySort-22": {
+      "type": "@ReadySort"
+    },
+    "@ReadySort-23": {
+      "type": "@ReadySort"
+    },
+    "@SatisfiesSort-45": {
+      "type": "@SatisfiesSort"
+    },
+    "@SatisfiesSort-46": {
+      "type": "@SatisfiesSort"
+    },
+    "@ValueKnownSort-2": {
+      "type": "@ValueKnownSort"
+    },
+    "@ValueKnownSort-9": {
+      "type": "@ValueKnownSort"
+    },
+    "Args-10": {
+      "type": "Args"
+    },
+    "Args-3": {
+      "type": "Args"
+    },
+    "Args-4": {
+      "type": "Args"
+    },
+    "Ctx-0": {
+      "let": "$ctx0",
+      "type": "Ctx"
+    },
+    "Ctx-18": {
+      "let": "$ctx2",
+      "type": "Ctx"
+    },
+    "Ctx-7": {
+      "let": "$ctx1",
+      "type": "Ctx"
+    },
+    "Effect-11": {
+      "type": "Effect"
+    },
+    "Effect-16": {
+      "type": "Effect"
+    },
+    "Effect-5": {
+      "type": "Effect"
+    },
+    "Effects-13": {
+      "type": "Effects"
+    },
+    "Effects-14": {
+      "type": "Effects"
+    },
+    "Effects-15": {
+      "type": "Effects"
+    },
+    "Effects-17": {
+      "type": "Effects"
+    },
+    "String-0": {
+      "type": "String"
+    },
+    "String-1": {
+      "type": "String"
+    },
+    "String-2": {
+      "type": "String"
+    },
+    "String-3": {
+      "type": "String"
+    },
+    "String-4": {
+      "type": "String"
+    },
+    "String-5": {
+      "type": "String"
+    },
+    "String-6": {
+      "type": "String"
+    },
+    "String-7": {
+      "type": "String"
+    },
+    "Val-1": {
+      "type": "Val"
+    },
+    "Val-8": {
+      "type": "Val"
+    },
+    "i64-0": {
+      "type": "i64"
+    },
+    "i64-1": {
+      "type": "i64"
+    }
+  },
+  "nodes": {
+    "function-0-ACons": {
+      "children": [
+        "function-0-V",
+        "function-0-ANil"
+      ],
+      "cost": 1.0,
+      "eclass": "Args-4",
+      "op": "ACons",
+      "subsumed": false
+    },
+    "function-0-ANil": {
+      "children": [],
+      "cost": 1.0,
+      "eclass": "Args-3",
+      "op": "ANil",
+      "subsumed": false
+    },
+    "function-0-AllSatisfied": {
+      "children": [
+        "function-0-Apply",
+        "function-0-ENil"
+      ],
+      "cost": 1.0,
+      "eclass": "@AllSatisfiedSort-37",
+      "op": "AllSatisfied",
+      "subsumed": false
+    },
+    "function-0-Apply": {
+      "children": [
+        "function-0-Entry",
+        "primitive-String-6",
+        "primitive-String-7",
+        "function-0-ECons",
+        "function-2-ECons"
+      ],
+      "cost": 1.0,
+      "eclass": "Ctx-18",
+      "op": "Apply",
+      "subsumed": false
+    },
+    "function-0-ArgsEqual": {
+      "children": [
+        "function-0-Entry",
+        "function-0-ANil",
+        "function-0-ANil"
+      ],
+      "cost": 1.0,
+      "eclass": "@ArgsEqualSort-33",
+      "op": "ArgsEqual",
+      "subsumed": false
+    },
+    "function-0-ECons": {
+      "children": [
+        "function-0-HasFact",
+        "function-1-ECons"
+      ],
+      "cost": 1.0,
+      "eclass": "Effects-15",
+      "op": "ECons",
+      "subsumed": false
+    },
+    "function-0-ENil": {
+      "children": [],
+      "cost": 1.0,
+      "eclass": "Effects-13",
+      "op": "ENil",
+      "subsumed": false
+    },
+    "function-0-Entry": {
+      "children": [
+        "primitive-i64-0"
+      ],
+      "cost": 1.0,
+      "eclass": "Ctx-0",
+      "op": "Entry",
+      "subsumed": false
+    },
+    "function-0-EqAt": {
+      "children": [
+        "function-0-Apply",
+        "function-0-V",
+        "function-0-V"
+      ],
+      "cost": 1.0,
+      "eclass": "@EqAtSort-29",
+      "op": "EqAt",
+      "subsumed": false
+    },
+    "function-0-Given": {
+      "children": [
+        "function-0-Entry",
+        "function-0-HasFact"
+      ],
+      "cost": 1.0,
+      "eclass": "@GivenSort-6",
+      "op": "Given",
+      "subsumed": false
+    },
+    "function-0-Grounded": {
+      "children": [
+        "function-0-Apply"
+      ],
+      "cost": 1.0,
+      "eclass": "@GroundedSort-19",
+      "op": "Grounded",
+      "subsumed": false
+    },
+    "function-0-HasFact": {
+      "children": [
+        "primitive-String-2",
+        "function-0-ACons"
+      ],
+      "cost": 1.0,
+      "eclass": "Effect-5",
+      "op": "HasFact",
+      "subsumed": false
+    },
+    "function-0-Known": {
+      "children": [
+        "function-0-Entry"
+      ],
+      "cost": 1.0,
+      "eclass": "@KnownSort-20",
+      "op": "Known",
+      "subsumed": false
+    },
+    "function-0-Provides": {
+      "children": [
+        "function-1-Entry",
+        "function-1-HasFact"
+      ],
+      "cost": 1.0,
+      "eclass": "@ProvidesSort-26",
+      "op": "Provides",
+      "subsumed": false
+    },
+    "function-0-Ready": {
+      "children": [
+        "function-0-Entry"
+      ],
+      "cost": 1.0,
+      "eclass": "@ReadySort-22",
+      "op": "Ready",
+      "subsumed": false
+    },
+    "function-0-Satisfies": {
+      "children": [
+        "function-1-Entry",
+        "function-1-HasFact"
+      ],
+      "cost": 1.0,
+      "eclass": "@SatisfiesSort-45",
+      "op": "Satisfies",
+      "subsumed": false
+    },
+    "function-0-V": {
+      "children": [
+        "primitive-String-0",
+        "primitive-String-1"
+      ],
+      "cost": 1.0,
+      "eclass": "Val-1",
+      "op": "V",
+      "subsumed": false
+    },
+    "function-0-ValueKnown": {
+      "children": [
+        "function-0-V"
+      ],
+      "cost": 1.0,
+      "eclass": "@ValueKnownSort-2",
+      "op": "ValueKnown",
+      "subsumed": false
+    },
+    "function-1-ACons": {
+      "children": [
+        "function-1-V",
+        "function-0-ANil"
+      ],
+      "cost": 1.0,
+      "eclass": "Args-10",
+      "op": "ACons",
+      "subsumed": false
+    },
+    "function-1-AllSatisfied": {
+      "children": [
+        "function-0-Entry",
+        "function-0-ENil"
+      ],
+      "cost": 1.0,
+      "eclass": "@AllSatisfiedSort-36",
+      "op": "AllSatisfied",
+      "subsumed": false
+    },
+    "function-1-ArgsEqual": {
+      "children": [
+        "function-0-Apply",
+        "function-0-ANil",
+        "function-0-ANil"
+      ],
+      "cost": 1.0,
+      "eclass": "@ArgsEqualSort-34",
+      "op": "ArgsEqual",
+      "subsumed": false
+    },
+    "function-1-ECons": {
+      "children": [
+        "function-1-HasFact",
+        "function-0-ENil"
+      ],
+      "cost": 1.0,
+      "eclass": "Effects-14",
+      "op": "ECons",
+      "subsumed": false
+    },
+    "function-1-Entry": {
+      "children": [
+        "primitive-i64-1"
+      ],
+      "cost": 1.0,
+      "eclass": "Ctx-7",
+      "op": "Entry",
+      "subsumed": false
+    },
+    "function-1-EqAt": {
+      "children": [
+        "function-1-Entry",
+        "function-0-V",
+        "function-0-V"
+      ],
+      "cost": 1.0,
+      "eclass": "@EqAtSort-28",
+      "op": "EqAt",
+      "subsumed": false
+    },
+    "function-1-Given": {
+      "children": [
+        "function-1-Entry",
+        "function-1-HasFact"
+      ],
+      "cost": 1.0,
+      "eclass": "@GivenSort-12",
+      "op": "Given",
+      "subsumed": false
+    },
+    "function-1-HasFact": {
+      "children": [
+        "primitive-String-4",
+        "function-1-ACons"
+      ],
+      "cost": 1.0,
+      "eclass": "Effect-11",
+      "op": "HasFact",
+      "subsumed": false
+    },
+    "function-1-Known": {
+      "children": [
+        "function-0-Apply"
+      ],
+      "cost": 1.0,
+      "eclass": "@KnownSort-24",
+      "op": "Known",
+      "subsumed": false
+    },
+    "function-1-Provides": {
+      "children": [
+        "function-0-Entry",
+        "function-0-HasFact"
+      ],
+      "cost": 1.0,
+      "eclass": "@ProvidesSort-25",
+      "op": "Provides",
+      "subsumed": false
+    },
+    "function-1-Ready": {
+      "children": [
+        "function-1-Entry"
+      ],
+      "cost": 1.0,
+      "eclass": "@ReadySort-23",
+      "op": "Ready",
+      "subsumed": false
+    },
+    "function-1-Satisfies": {
+      "children": [
+        "function-0-Entry",
+        "function-0-HasFact"
+      ],
+      "cost": 1.0,
+      "eclass": "@SatisfiesSort-46",
+      "op": "Satisfies",
+      "subsumed": false
+    },
+    "function-1-V": {
+      "children": [
+        "primitive-String-0",
+        "primitive-String-3"
+      ],
+      "cost": 1.0,
+      "eclass": "Val-8",
+      "op": "V",
+      "subsumed": false
+    },
+    "function-1-ValueKnown": {
+      "children": [
+        "function-1-V"
+      ],
+      "cost": 1.0,
+      "eclass": "@ValueKnownSort-9",
+      "op": "ValueKnown",
+      "subsumed": false
+    },
+    "function-2-AllSatisfied": {
+      "children": [
+        "function-1-Entry",
+        "function-0-ENil"
+      ],
+      "cost": 1.0,
+      "eclass": "@AllSatisfiedSort-38",
+      "op": "AllSatisfied",
+      "subsumed": false
+    },
+    "function-2-ArgsEqual": {
+      "children": [
+        "function-1-Entry",
+        "function-0-ANil",
+        "function-0-ANil"
+      ],
+      "cost": 1.0,
+      "eclass": "@ArgsEqualSort-35",
+      "op": "ArgsEqual",
+      "subsumed": false
+    },
+    "function-2-ECons": {
+      "children": [
+        "function-2-HasFact",
+        "function-0-ENil"
+      ],
+      "cost": 1.0,
+      "eclass": "Effects-17",
+      "op": "ECons",
+      "subsumed": false
+    },
+    "function-2-EqAt": {
+      "children": [
+        "function-0-Entry",
+        "function-1-V",
+        "function-1-V"
+      ],
+      "cost": 1.0,
+      "eclass": "@EqAtSort-30",
+      "op": "EqAt",
+      "subsumed": false
+    },
+    "function-2-HasFact": {
+      "children": [
+        "primitive-String-5",
+        "function-1-ACons"
+      ],
+      "cost": 1.0,
+      "eclass": "Effect-16",
+      "op": "HasFact",
+      "subsumed": false
+    },
+    "function-2-Known": {
+      "children": [
+        "function-1-Entry"
+      ],
+      "cost": 1.0,
+      "eclass": "@KnownSort-21",
+      "op": "Known",
+      "subsumed": false
+    },
+    "function-3-AllSatisfied": {
+      "children": [
+        "function-1-Entry",
+        "function-1-ECons"
+      ],
+      "cost": 1.0,
+      "eclass": "@AllSatisfiedSort-47",
+      "op": "AllSatisfied",
+      "subsumed": false
+    },
+    "function-3-ArgsEqual": {
+      "children": [
+        "function-0-Apply",
+        "function-1-ACons",
+        "function-1-ACons"
+      ],
+      "cost": 1.0,
+      "eclass": "@ArgsEqualSort-40",
+      "op": "ArgsEqual",
+      "subsumed": false
+    },
+    "function-3-EqAt": {
+      "children": [
+        "function-0-Apply",
+        "function-1-V",
+        "function-1-V"
+      ],
+      "cost": 1.0,
+      "eclass": "@EqAtSort-32",
+      "op": "EqAt",
+      "subsumed": false
+    },
+    "function-4-ArgsEqual": {
+      "children": [
+        "function-0-Entry",
+        "function-0-ACons",
+        "function-0-ACons"
+      ],
+      "cost": 1.0,
+      "eclass": "@ArgsEqualSort-41",
+      "op": "ArgsEqual",
+      "subsumed": false
+    },
+    "function-4-EqAt": {
+      "children": [
+        "function-0-Entry",
+        "function-0-V",
+        "function-0-V"
+      ],
+      "cost": 1.0,
+      "eclass": "@EqAtSort-27",
+      "op": "EqAt",
+      "subsumed": false
+    },
+    "function-5-ArgsEqual": {
+      "children": [
+        "function-0-Apply",
+        "function-0-ACons",
+        "function-0-ACons"
+      ],
+      "cost": 1.0,
+      "eclass": "@ArgsEqualSort-44",
+      "op": "ArgsEqual",
+      "subsumed": false
+    },
+    "function-5-EqAt": {
+      "children": [
+        "function-1-Entry",
+        "function-1-V",
+        "function-1-V"
+      ],
+      "cost": 1.0,
+      "eclass": "@EqAtSort-31",
+      "op": "EqAt",
+      "subsumed": false
+    },
+    "function-6-ArgsEqual": {
+      "children": [
+        "function-1-Entry",
+        "function-1-ACons",
+        "function-1-ACons"
+      ],
+      "cost": 1.0,
+      "eclass": "@ArgsEqualSort-39",
+      "op": "ArgsEqual",
+      "subsumed": false
+    },
+    "function-7-ArgsEqual": {
+      "children": [
+        "function-1-Entry",
+        "function-0-ACons",
+        "function-0-ACons"
+      ],
+      "cost": 1.0,
+      "eclass": "@ArgsEqualSort-43",
+      "op": "ArgsEqual",
+      "subsumed": false
+    },
+    "function-8-ArgsEqual": {
+      "children": [
+        "function-0-Entry",
+        "function-1-ACons",
+        "function-1-ACons"
+      ],
+      "cost": 1.0,
+      "eclass": "@ArgsEqualSort-42",
+      "op": "ArgsEqual",
+      "subsumed": false
+    },
+    "primitive-String-0": {
+      "children": [],
+      "cost": 1.0,
+      "eclass": "String-0",
+      "op": "\"E\"",
+      "subsumed": false
+    },
+    "primitive-String-1": {
+      "children": [],
+      "cost": 1.0,
+      "eclass": "String-1",
+      "op": "\"{\\\"args\\\":[],\\\"op\\\":\\\"literal:0\\\",\\\"sort\\\":\\\"E\\\"}\"",
+      "subsumed": false
+    },
+    "primitive-String-2": {
+      "children": [],
+      "cost": 1.0,
+      "eclass": "String-2",
+      "op": "\"relation:P\"",
+      "subsumed": false
+    },
+    "primitive-String-3": {
+      "children": [],
+      "cost": 1.0,
+      "eclass": "String-3",
+      "op": "\"{\\\"args\\\":[],\\\"op\\\":\\\"literal:1\\\",\\\"sort\\\":\\\"E\\\"}\"",
+      "subsumed": false
+    },
+    "primitive-String-4": {
+      "children": [],
+      "cost": 1.0,
+      "eclass": "String-4",
+      "op": "\"relation:Q\"",
+      "subsumed": false
+    },
+    "primitive-String-5": {
+      "children": [],
+      "cost": 1.0,
+      "eclass": "String-5",
+      "op": "\"relation:T\"",
+      "subsumed": false
+    },
+    "primitive-String-6": {
+      "children": [],
+      "cost": 1.0,
+      "eclass": "String-6",
+      "op": "\"R\"",
+      "subsumed": false
+    },
+    "primitive-String-7": {
+      "children": [],
+      "cost": 1.0,
+      "eclass": "String-7",
+      "op": "\"{\\\"binding\\\":[[0,{\\\"args\\\":[],\\\"op\\\":\\\"literal:0\\\",\\\"sort\\\":\\\"E\\\"}],[1,{\\\"args\\\":[],\\\"op\\\":\\\"literal:1\\\",\\\"sort\\\":\\\"E\\\"}]],\\\"relation\\\":\\\"{\\\\\\\"equalities\\\\\\\":[],\\\\\\\"facts\\\\\\\":[{\\\\\\\"args\\\\\\\":[{\\\\\\\"args\\\\\\\":[],\\\\\\\"op\\\\\\\":\\\\\\\"in:0\\\\\\\",\\\\\\\"sort\\\\\\\":\\\\\\\"E\\\\\\\"}],\\\\\\\"relation\\\\\\\":\\\\\\\"P\\\\\\\"},{\\\\\\\"args\\\\\\\":[{\\\\\\\"args\\\\\\\":[],\\\\\\\"op\\\\\\\":\\\\\\\"in:1\\\\\\\",\\\\\\\"sort\\\\\\\":\\\\\\\"E\\\\\\\"}],\\\\\\\"relation\\\\\\\":\\\\\\\"Q\\\\\\\"}],\\\\\\\"inputs\\\\\\\":[{\\\\\\\"args\\\\\\\":[],\\\\\\\"op\\\\\\\":\\\\\\\"in:0\\\\\\\",\\\\\\\"sort\\\\\\\":\\\\\\\"E\\\\\\\"},{\\\\\\\"args\\\\\\\":[],\\\\\\\"op\\\\\\\":\\\\\\\"in:1\\\\\\\",\\\\\\\"sort\\\\\\\":\\\\\\\"E\\\\\\\"}],\\\\\\\"outputs\\\\\\\":[{\\\\\\\"args\\\\\\\":[],\\\\\\\"op\\\\\\\":\\\\\\\"in:0\\\\\\\",\\\\\\\"sort\\\\\\\":\\\\\\\"E\\\\\\\"},{\\\\\\\"args\\\\\\\":[],\\\\\\\"op\\\\\\\":\\\\\\\"in:1\\\\\\\",\\\\\\\"sort\\\\\\\":\\\\\\\"E\\\\\\\"}]}\\\"}\"",
+      "subsumed": false
+    },
+    "primitive-i64-0": {
+      "children": [],
+      "cost": 1.0,
+      "eclass": "i64-0",
+      "op": "0",
+      "subsumed": false
+    },
+    "primitive-i64-1": {
+      "children": [],
+      "cost": 1.0,
+      "eclass": "i64-1",
+      "op": "1",
+      "subsumed": false
+    }
+  },
+  "root_eclasses": []
+}
