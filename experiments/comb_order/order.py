@@ -175,16 +175,15 @@ def run(data,out):
     report={'scope':data['scope'],'score':'rhs_num / max(1,lhs_num); Empty scores zero; RHS includes deduplicated existing outputs, not only new Inserted rows','candidate_limit':{'ancestor_depth':4,'template_nodes':32},'candidate_count':len(cs),'template_nodes':len(data['templates']),'instance_events':len(data['records']),'partition':stats,'rankings':ranked}
     out.mkdir(parents=True,exist_ok=True);(out/'ranking.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
     event_names={x['id']:x['rule'] for x in data['records']}
-    exported={}
-    if (out/'egg_export.json').exists():exported={x['rank']:x for x in json.loads((out/'egg_export.json').read_text())['rules']}
     def card(r):
         rules=' / '.join(event_names[i] for i in r['events'])
         title=f"#{r['rank']}　分数 {r['score']:.3f}　LHS {r['lhs_num']} → RHS {r['rhs_num']}　{len(r['members'])} 个模板节点"
-        item=exported.get(r['rank'],{})
-        code=('<h3>Egglog</h3><pre>'+html.escape(item['command'])+'</pre>') if 'command' in item else ('<p>旧 API 未导出：'+html.escape(item.get('reason','尚未尝试'))+'</p>')
+        used=list(dict.fromkeys(event_names[i] for i in r['events']))
+        definitions='\n\n'.join(data['definitions'][name]['definition'].replace('\\n','\n') for name in used)
+        code='<h3>引用的 tier-0 原规则（去重，非融合宏）</h3><pre>'+html.escape(definitions or 'Empty')+'</pre>'
         return '<details><summary>'+html.escape(title)+'</summary><p>'+html.escape(rules or 'Empty')+'</p><div class="pair"><pre>'+html.escape('\n'.join(r.get('lhs',[])) or '∅')+'</pre><b>→</b><pre>'+html.escape('\n'.join(r.get('rhs',[])) or '∅')+'</pre></div><p>见证事件：'+html.escape(str(r['events']))+'；k 为保留类型的原始值引用，不是解码后的数值。</p>'+code+'</details>'
     page='''<!doctype html><meta charset="utf-8"><title>Combined rule 排序</title><style>body{font:16px system-ui;margin:28px;background:#fafaf7;color:#263637}details{padding:12px;border-bottom:1px solid #ccd5d3}summary{cursor:pointer}.pair{display:grid;grid-template-columns:1fr 40px 2fr;gap:12px}pre{white-space:pre-wrap;background:#edf2f5;padding:12px}p{line-height:1.6}</style><h1>Combined rule 排序与分块</h1>'''
-    page+='<p><a href="ranked.egg">下载完整 Egglog 导出</a> · <a href="egg_export.json">导出验证与未支持项</a></p>'
+    page+='<p><a href="ranked.egg">当前 tier-0 原规则 .egg</a> · <a href="../tier1_extract/index.html">tier-1 / tier-0 逐节点对照</a></p>'
     page+=f'<p>真实 Math 前 6 轮：{len(data["templates"])} 个 tier-1 组合模板节点，{len(data["records"])} 个应用实例。元数据节点不参与分块，Empty 单独覆盖。</p>'
     page+=f'<p>分数 = RHS / max(1,LHS)。单节点基线 {stats["singleton_objective"]:.3f} → 贪心分块 {stats["partition_objective"]:.3f}；共 {stats["blocks"]} 块，不重叠覆盖及块间无环已验证。不是全局最优。</p>'
     page+='<p>计数基于历史见证中的去重构造器键；LHS 是块外支撑，RHS 包含中间产出。这不是最终快照覆盖率，也不是已经可执行的通用快捷规则。</p><h2>已选分块</h2>'

@@ -24,3 +24,6 @@ cargo test --test tier1_direct_extract
 
 原生加载提取文件后，Empty=1、SmoothComb=1,270、CoarseComb=118，数量与源图一致；
 未导入任何 Occurrence。原规则字典也通过原生类型检查，全部 1,388 个非 Empty Comb 均有对应项。
+
+当前 tier-0 原规则字典同时覆盖输出到 `../comb_order/ranked.egg`，替代此前的外部 composer 生成版本。
+`render.py` 会保持两份文件字节一致；旧 composer 改为写入 `legacy_composed.egg`，避免再次覆盖。

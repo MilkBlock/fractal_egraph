@@ -23,5 +23,7 @@ rules=json.loads((OUT/'tier0_rule_dictionary.json').read_text())
 used={d['tier0_rule_id'] for d in r['definitions'] if 'tier0_rule_id' in d}
 text=['; Original tier-0 rule definitions referenced by the extracted tier-1 graph.',datatype]
 for name in sorted(used,key=lambda n:int(n[1:])):text.extend(['; '+name,rules[name]['definition'].replace('\\n','\n')])
-(OUT/'tier0_rules.egg').write_text('\n'.join(text)+'\n')
+tier0_text='\n'.join(text)+'\n'
+(OUT/'tier0_rules.egg').write_text(tier0_text)
+(OUT.parent/'comb_order'/'ranked.egg').write_text(tier0_text)
 print('Mapped',sum('tier0_rule_id' in d for d in r['definitions']),'Comb definitions to',len(used),'source rules')

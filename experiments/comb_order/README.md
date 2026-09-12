@@ -104,3 +104,10 @@ rule-apply 根的 equality。因此导出器按见证位置恢复每一步的局
 当前选中的分割中，**1,191 个非 Empty 分块全部导出成功**；另一个块是 Empty 单位。
 未支持的 3,667 项属于其他候选，不影响本次选中分割的语法展示。
 每项代码可在排序页直接展开查看；历史规则名列表不被当作充分连接证据。
+
+## 当前 .egg 输出已替换
+
+`ranked.egg` 现在与 `../tier1_extract/tier0_rules.egg` 完全一致：只含当前 tier-1 引用的 17 条去重 tier-0 原规则。
+上文 2,769 条外部合成定义是历史结果，已不再作为当前文件或页面展示。
+旧命令 `ranked_comb_egg` 只写入 `legacy_composed.egg` / `legacy_egg_export.json`；
+`egg_export.json` 留作旧实验报告，不能与当前 `ranked.egg` 对读。

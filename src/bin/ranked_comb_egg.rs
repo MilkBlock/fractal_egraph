@@ -378,9 +378,9 @@ fn main() -> Result<()> {
     }
     let out = format!("{}\n", out.trim_end());
     EGraph::default().parse_and_run_program(None, &out)?;
-    std::fs::write("experiments/comb_order/ranked.egg", out)?;
+    std::fs::write("experiments/comb_order/legacy_composed.egg", out)?;
     std::fs::write(
-        "experiments/comb_order/egg_export.json",
+        "experiments/comb_order/legacy_egg_export.json",
         serde_json::to_string_pretty(
             &json!({"typechecked":true,"native_ground_multi_step_checks":checked,"rules":report,"scope":"all ranked candidates; native multi-step checks cached by identical action shape; unmatched DAG/position cases explicit; union steps preserved, no speedup claim"}),
         )?,
