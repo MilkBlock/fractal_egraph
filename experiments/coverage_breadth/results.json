@@ -1,13 +1,44 @@
 {
+  "basic_joint_eclasses": {
+    "coverage_ratio": 0.999970709637881,
+    "covered_eclasses": 443819,
+    "full_coverage_ratio": 0.999970709637881,
+    "fully_covered_eclasses": 443819,
+    "partially_covered_eclasses": 0,
+    "total_eclasses": 443832,
+    "uncovered_eclasses": 13
+  },
   "basic_joint_nodes": 1047883,
   "basic_rules": 24,
   "combined_added_joint_nodes": 0,
   "combined_rules": 124,
+  "eclass_statistics": {
+    "mean_enodes_per_eclass": 2.3610194848501234,
+    "total_eclasses": 443832
+  },
+  "expanded_joint_eclasses": {
+    "coverage_ratio": 0.999970709637881,
+    "covered_eclasses": 443819,
+    "full_coverage_ratio": 0.999970709637881,
+    "fully_covered_eclasses": 443819,
+    "partially_covered_eclasses": 0,
+    "total_eclasses": 443832,
+    "uncovered_eclasses": 13
+  },
   "expanded_joint_nodes": 1047883,
   "groups": {
     "basic_lhs": {
       "added_nodes": 1046871,
       "coverage_ratio": 0.999021849496515,
+      "eclasses": {
+        "coverage_ratio": 0.9976905676021558,
+        "covered_eclasses": 442807,
+        "full_coverage_ratio": 0.9976905676021558,
+        "fully_covered_eclasses": 442807,
+        "partially_covered_eclasses": 0,
+        "total_eclasses": 443832,
+        "uncovered_eclasses": 1025
+      },
       "final_nodes": 1046871,
       "initial_nodes": 0,
       "native_existential_checks": 12,
@@ -259,6 +290,15 @@
     "basic_plus_combined_lhs": {
       "added_nodes": 1012,
       "coverage_ratio": 0.9999875941887363,
+      "eclasses": {
+        "coverage_ratio": 0.999970709637881,
+        "covered_eclasses": 443819,
+        "full_coverage_ratio": 0.999970709637881,
+        "fully_covered_eclasses": 443819,
+        "partially_covered_eclasses": 0,
+        "total_eclasses": 443832,
+        "uncovered_eclasses": 13
+      },
       "final_nodes": 1047883,
       "initial_nodes": 1046871,
       "native_existential_checks": 84,
@@ -1510,6 +1550,15 @@
     "basic_plus_combined_rhs": {
       "added_nodes": 0,
       "coverage_ratio": 0.999978051256995,
+      "eclasses": {
+        "coverage_ratio": 0.9999684565331026,
+        "covered_eclasses": 443818,
+        "full_coverage_ratio": 0.9999481785900971,
+        "fully_covered_eclasses": 443809,
+        "partially_covered_eclasses": 9,
+        "total_eclasses": 443832,
+        "uncovered_eclasses": 14
+      },
       "final_nodes": 1047873,
       "initial_nodes": 1047873,
       "native_existential_checks": 0,
@@ -2828,6 +2877,15 @@
     "basic_rhs": {
       "added_nodes": 1047873,
       "coverage_ratio": 0.999978051256995,
+      "eclasses": {
+        "coverage_ratio": 0.9999684565331026,
+        "covered_eclasses": 443818,
+        "full_coverage_ratio": 0.9999481785900971,
+        "fully_covered_eclasses": 443809,
+        "partially_covered_eclasses": 9,
+        "total_eclasses": 443832,
+        "uncovered_eclasses": 14
+      },
       "final_nodes": 1047873,
       "initial_nodes": 0,
       "native_existential_checks": 3,

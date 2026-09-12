@@ -55,3 +55,18 @@ cargo test --bin coverage_breadth
 并继承原有覆盖、外部引用及有限族终止测试。
 
 覆盖对照见 [comparison.md](comparison.md)，逐模式边际贡献及证明见 [results.json](results.json)。
+
+## E-class 口径
+
+`eclasses` 按原始行的 `(输出 sort, canonical output Value)` 去重，跨算子合并同一个 e-class，
+不同 sort 的 Value 不混计。分母是至少含一个原始非 subsumed e-node 的非空 e-class，
+不包含查询辅助 marker、primitive 值或没有这些可见成员的 union-find 类。
+
+- `covered_eclasses`：至少一个成员在覆盖集合中。
+- `fully_covered_eclasses`：全部原始可见成员均在覆盖集合中。
+- `partially_covered_eclasses`：覆盖到但未完整覆盖。
+- 平均大小：原始 e-node 总数 / 原始非空 e-class 总数，按类等权。
+
+分项在各 group 的 `eclasses` 字段；联合统计在 `basic_joint_eclasses` 和
+`expanded_joint_eclasses`；总量及平均值在 `eclass_statistics`。
+新增测试通过真实 union 构造同类的两个不同节点，验证部分覆盖、完整覆盖与未覆盖的区别。

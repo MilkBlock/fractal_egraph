@@ -41,4 +41,17 @@ lines += ['', f"组合规则相对基础规则的联合新增覆盖：{result['c
           '组合导出的 LHS 保留中间连接事实，因此 LHS 的边际增加可能来自基础规则 RHS 已覆盖的节点。',
           '基础 Add/Mul 交换律各自覆盖整个对应算子表；联合覆盖接近完整不代表存在有效的结构替换方案。', '',
           '未覆盖节点按算子计数：`' + json.dumps(result['uncovered_by_operator']) + '`。']
+stats = result['eclass_statistics']
+lines += ['', '## E-class 覆盖', '',
+          f"原图共 {stats['total_eclasses']:,} 个非空 e-class，平均每类 {stats['mean_enodes_per_eclass']:.6f} 个 e-node。", '',
+          '覆盖指至少一个成员 e-node 被覆盖；完整覆盖指所有成员均被覆盖。', '',
+          '| 范围 | LHS 覆盖类 | RHS 覆盖类 | 联合覆盖类 | 联合完整覆盖类 |', '|---|---:|---:|---:|---:|']
+for prefix, label, key in [('basic', '基础规则', 'basic_joint_eclasses'), ('basic_plus_combined', '基础 + 组合规则', 'expanded_joint_eclasses')]:
+    def class_cell(g, full=False):
+        count = g['fully_covered_eclasses' if full else 'covered_eclasses']
+        ratio = g['full_coverage_ratio' if full else 'coverage_ratio']
+        return f'{count:,} ({ratio:.5%})'
+    lhs = result['groups'][prefix + '_lhs']['eclasses']
+    rhs = result['groups'][prefix + '_rhs']['eclasses']
+    lines.append(f"| {label} | {class_cell(lhs)} | {class_cell(rhs)} | {class_cell(result[key])} | {class_cell(result[key], True)} |")
 (OUT / 'comparison.md').write_text('\n'.join(lines) + '\n')

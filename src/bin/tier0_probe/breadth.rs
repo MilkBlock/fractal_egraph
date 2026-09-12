@@ -245,6 +245,31 @@ fn projected(base: &EGraph, snapshot: &Snapshot, spec: &Spec, a: &Atom) -> Resul
     assert!(snapshot.unchanged(&eg));
     Ok(covered)
 }
+// Count only original, non-subsumed rows, keyed by output sort and canonical value.
+fn eclass_coverage(snapshot: &Snapshot, covered: &HashSet<usize>) -> Json {
+    let mut counts = HashMap::new();
+    for &id in covered {
+        let (table, row) = &snapshot.rows[id];
+        *counts
+            .entry((snapshot.tables[*table].output.clone(), *row.last().unwrap()))
+            .or_insert(0usize) += 1;
+    }
+    let total = snapshot.alternatives.len();
+    let full = counts
+        .iter()
+        .filter(|(key, count)| snapshot.alternatives[*key] == **count)
+        .count();
+    let ratio = |n: usize| {
+        if total == 0 {
+            None
+        } else {
+            Some(n as f64 / total as f64)
+        }
+    };
+    json!({"total_eclasses":total,"covered_eclasses":counts.len(),"coverage_ratio":ratio(counts.len()),
+        "fully_covered_eclasses":full,"full_coverage_ratio":ratio(full),
+        "partially_covered_eclasses":counts.len()-full,"uncovered_eclasses":total-counts.len()})
+}
 fn group(
     base: &EGraph,
     snapshot: &Snapshot,
@@ -340,7 +365,7 @@ fn group(
     }
     assert!(snapshot.unchanged(&checker));
     Ok((
-        json!({"patterns":specs.len(),"initial_nodes":initial.len(),"final_nodes":covered.len(),"added_nodes":covered.len()-initial.len(),"coverage_ratio":covered.len() as f64/snapshot.rows.len() as f64,"native_existential_checks":checks,"native_projected_queries":projections,"pattern_results":logs}),
+        json!({"patterns":specs.len(),"initial_nodes":initial.len(),"final_nodes":covered.len(),"added_nodes":covered.len()-initial.len(),"coverage_ratio":covered.len() as f64/snapshot.rows.len() as f64,"native_existential_checks":checks,"native_projected_queries":projections,"pattern_results":logs,"eclasses":eclass_coverage(snapshot,&covered)}),
         covered,
     ))
 }
@@ -436,6 +461,10 @@ pub fn run(source: &str, output: &str) -> Result<()> {
                 .or_default() += 1;
         }
     }
+    report["eclass_statistics"] = json!({"total_eclasses":snapshot.alternatives.len(),
+        "mean_enodes_per_eclass":if snapshot.alternatives.is_empty(){None}else{Some(snapshot.rows.len() as f64/snapshot.alternatives.len() as f64)}});
+    report["basic_joint_eclasses"] = eclass_coverage(&snapshot, &baseline);
+    report["expanded_joint_eclasses"] = eclass_coverage(&snapshot, &total);
     report["status"] = json!("complete");
     report["basic_joint_nodes"] = json!(baseline.len());
     report["expanded_joint_nodes"] = json!(total.len());
@@ -453,6 +482,42 @@ pub fn run(source: &str, output: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn eclass_coverage_distinguishes_partial_full_and_uncovered_after_union() {
+        let mut eg = EGraph::default();
+        eg.parse_and_run_program(
+            None,
+            "(datatype E (Leaf i64)) (union (Leaf 0) (Leaf 1)) (Leaf 2)",
+        )
+        .unwrap();
+        let snapshot = Snapshot::new(&eg);
+        assert_eq!(snapshot.rows.len(), 3);
+        assert_eq!(snapshot.alternatives.len(), 2);
+        let merged: Vec<_> = snapshot
+            .rows
+            .iter()
+            .enumerate()
+            .filter(|(_, (t, row))| {
+                snapshot.alternatives[&(snapshot.tables[*t].output.clone(), *row.last().unwrap())]
+                    == 2
+            })
+            .map(|(id, _)| id)
+            .collect();
+        let partial = eclass_coverage(&snapshot, &HashSet::from([merged[0]]));
+        assert_eq!(partial["covered_eclasses"], 1);
+        assert_eq!(partial["fully_covered_eclasses"], 0);
+        assert_eq!(partial["coverage_ratio"], 0.5);
+        assert_eq!(partial["uncovered_eclasses"], 1);
+        let full = eclass_coverage(&snapshot, &merged.into_iter().collect());
+        assert_eq!(full["covered_eclasses"], 1);
+        assert_eq!(full["fully_covered_eclasses"], 1);
+        assert_eq!(
+            eclass_coverage(&snapshot, &(0..3).collect())["fully_covered_eclasses"],
+            2
+        );
+        let empty = Snapshot::new(&EGraph::default());
+        assert!(eclass_coverage(&empty, &HashSet::new())["coverage_ratio"].is_null());
+    }
     #[test]
     fn projected_and_anchored_coverage_equal_full_instance_probe() {
         let mut eg = EGraph::default();
