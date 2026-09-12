@@ -1,0 +1,3094 @@
+{
+  "basic_joint_nodes": 1047883,
+  "basic_rules": 24,
+  "combined_added_joint_nodes": 0,
+  "combined_rules": 124,
+  "expanded_joint_nodes": 1047883,
+  "groups": {
+    "basic_lhs": {
+      "added_nodes": 1046871,
+      "coverage_ratio": 0.999021849496515,
+      "final_nodes": 1046871,
+      "initial_nodes": 0,
+      "native_existential_checks": 12,
+      "native_projected_queries": 10,
+      "pattern_results": [
+        {
+          "added_nodes": 641743,
+          "candidate_upper_sum": 641743,
+          "exact_single_atom_rows": 641743,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R0",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 345075,
+          "candidate_upper_sum": 345075,
+          "exact_single_atom_rows": 345075,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R1",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 15123,
+          "candidate_upper_sum": 15123,
+          "exact_single_atom_rows": 15123,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R4",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R8",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 3,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 3,
+          "native_projected_queries": 0,
+          "rule": "R12",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 2,
+          "candidate_upper_sum": 3,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 3,
+          "native_projected_queries": 0,
+          "rule": "R13",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 10776,
+          "candidate_upper_sum": 13504,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 1,
+          "rule": "R14",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 1993,
+          "candidate_upper_sum": 2728,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 1,
+          "rule": "R15",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 2,
+          "candidate_upper_sum": 736,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 1,
+          "native_projected_queries": 1,
+          "rule": "R16",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 2,
+          "candidate_upper_sum": 735,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 1,
+          "native_projected_queries": 1,
+          "rule": "R17",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 32435,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 1,
+          "native_projected_queries": 1,
+          "rule": "R18",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 1,
+          "candidate_upper_sum": 32434,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 1,
+          "rule": "R19",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R2",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 1,
+          "candidate_upper_sum": 32433,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 1,
+          "rule": "R20",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 17657,
+          "candidate_upper_sum": 32432,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 1,
+          "rule": "R21",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 2419,
+          "candidate_upper_sum": 14775,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 1,
+          "rule": "R22",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 12077,
+          "candidate_upper_sum": 12356,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 1,
+          "rule": "R23",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R3",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R5",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R6",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 1,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 1,
+          "native_projected_queries": 0,
+          "rule": "R7",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R9",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R10",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 2,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 2,
+          "native_projected_queries": 0,
+          "rule": "R11",
+          "side": "lhs",
+          "status": "exact"
+        }
+      ],
+      "patterns": 24
+    },
+    "basic_plus_combined_lhs": {
+      "added_nodes": 1012,
+      "coverage_ratio": 0.9999875941887363,
+      "final_nodes": 1047883,
+      "initial_nodes": 1046871,
+      "native_existential_checks": 84,
+      "native_projected_queries": 19,
+      "pattern_results": [
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_001",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_002",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_004",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_019",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 1,
+          "candidate_upper_sum": 1,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 1,
+          "native_projected_queries": 0,
+          "rule": "combined_021",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_032",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_036",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_040",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 733,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 1,
+          "rule": "combined_044",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 279,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 1,
+          "rule": "combined_066",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_069",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 1,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 1,
+          "native_projected_queries": 0,
+          "rule": "combined_078",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 279,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 1,
+          "rule": "combined_092",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 733,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 1,
+          "rule": "combined_096",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_097",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_005",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_011",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 241,
+          "candidate_upper_sum": 558,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 2,
+          "rule": "combined_012",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 48,
+          "candidate_upper_sum": 1466,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 2,
+          "rule": "combined_013",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 1370,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 2,
+          "rule": "combined_014",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_020",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_031",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_045",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_071",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 1,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 1,
+          "native_projected_queries": 0,
+          "rule": "combined_077",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 685,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 1,
+          "rule": "combined_109",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_110",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_003",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_008",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 196,
+          "candidate_upper_sum": 761,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 3,
+          "rule": "combined_018",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_035",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 489,
+          "candidate_upper_sum": 1384,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 3,
+          "rule": "combined_037",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_038",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_042",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_046",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_054",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_064",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_072",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_081",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_084",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_085",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 37,
+          "candidate_upper_sum": 106,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 30,
+          "native_projected_queries": 2,
+          "rule": "combined_098",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 2,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 2,
+          "native_projected_queries": 0,
+          "rule": "combined_099",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 1,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 1,
+          "native_projected_queries": 0,
+          "rule": "combined_100",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 1,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 1,
+          "native_projected_queries": 0,
+          "rule": "combined_101",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 2,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 2,
+          "native_projected_queries": 0,
+          "rule": "combined_102",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 2,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 2,
+          "native_projected_queries": 0,
+          "rule": "combined_103",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_112",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_113",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_114",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_117",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_118",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_010",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_015",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_024",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_027",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_028",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 1,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 1,
+          "native_projected_queries": 0,
+          "rule": "combined_049",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_050",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_051",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_052",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_055",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 2,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 2,
+          "native_projected_queries": 0,
+          "rule": "combined_065",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 1,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 1,
+          "native_projected_queries": 0,
+          "rule": "combined_067",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_068",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 1,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 1,
+          "native_projected_queries": 0,
+          "rule": "combined_074",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 2,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 2,
+          "native_projected_queries": 0,
+          "rule": "combined_091",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_093",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_095",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_122",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_006",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_007",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_022",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_033",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_043",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_056",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_060",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_070",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 1,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 1,
+          "native_projected_queries": 0,
+          "rule": "combined_073",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 1,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 1,
+          "native_projected_queries": 0,
+          "rule": "combined_075",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_094",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_105",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 1,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 1,
+          "native_projected_queries": 0,
+          "rule": "combined_106",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_107",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_115",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_116",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_121",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_123",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_025",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 3,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 3,
+          "native_projected_queries": 0,
+          "rule": "combined_029",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_030",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_034",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_041",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_058",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_059",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 1,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 1,
+          "native_projected_queries": 0,
+          "rule": "combined_076",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_079",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_087",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_088",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 2,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 2,
+          "native_projected_queries": 0,
+          "rule": "combined_104",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_108",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_111",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_124",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 4,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 4,
+          "native_projected_queries": 0,
+          "rule": "combined_009",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 3,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 3,
+          "native_projected_queries": 0,
+          "rule": "combined_026",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_039",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_061",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 1,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 1,
+          "native_projected_queries": 0,
+          "rule": "combined_080",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_120",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 4,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 4,
+          "native_projected_queries": 0,
+          "rule": "combined_017",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_048",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_062",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_063",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_090",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 3,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 3,
+          "native_projected_queries": 0,
+          "rule": "combined_057",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 2,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 2,
+          "native_projected_queries": 0,
+          "rule": "combined_082",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 1,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 1,
+          "native_projected_queries": 0,
+          "rule": "combined_083",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_016",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_047",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_089",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 3,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 3,
+          "native_projected_queries": 0,
+          "rule": "combined_119",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_023",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 6,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 6,
+          "native_projected_queries": 0,
+          "rule": "combined_053",
+          "side": "lhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "combined_086",
+          "side": "lhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        }
+      ],
+      "patterns": 124
+    },
+    "basic_plus_combined_rhs": {
+      "added_nodes": 0,
+      "coverage_ratio": 0.999978051256995,
+      "final_nodes": 1047873,
+      "initial_nodes": 1047873,
+      "native_existential_checks": 0,
+      "native_projected_queries": 0,
+      "pattern_results": [
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R0",
+            "R0"
+          ],
+          "rule": "combined_001",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R1",
+            "R1"
+          ],
+          "rule": "combined_002",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R13",
+            "R1"
+          ],
+          "rule": "combined_078",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R2",
+            "R0"
+          ],
+          "rule": "combined_004",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R3",
+            "R1"
+          ],
+          "rule": "combined_019",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R0",
+            "R2"
+          ],
+          "rule": "combined_032",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R10",
+            "R0"
+          ],
+          "rule": "combined_071",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R13",
+            "R3"
+          ],
+          "rule": "combined_077",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R1",
+            "R3"
+          ],
+          "rule": "combined_097",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R2",
+            "R0"
+          ],
+          "rule": "combined_005",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R3",
+            "R1"
+          ],
+          "rule": "combined_011",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R1",
+            "R3"
+          ],
+          "rule": "combined_031",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R9",
+            "R1"
+          ],
+          "rule": "combined_036",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R9",
+            "R1"
+          ],
+          "rule": "combined_040",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R0",
+            "R14"
+          ],
+          "rule": "combined_044",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R0",
+            "R2"
+          ],
+          "rule": "combined_045",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R0",
+            "R21"
+          ],
+          "rule": "combined_066",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R0",
+            "R9"
+          ],
+          "rule": "combined_069",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R10",
+            "R1"
+          ],
+          "rule": "combined_072",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R3",
+            "R3"
+          ],
+          "rule": "combined_110",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R0",
+            "R0",
+            "R2"
+          ],
+          "rule": "combined_003",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R1",
+            "R1",
+            "R3"
+          ],
+          "rule": "combined_008",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R4",
+            "R1"
+          ],
+          "rule": "combined_021",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R2",
+            "R2"
+          ],
+          "rule": "combined_038",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R2",
+            "R2"
+          ],
+          "rule": "combined_054",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R13",
+            "R1",
+            "R3"
+          ],
+          "rule": "combined_074",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R21",
+            "R19"
+          ],
+          "rule": "combined_099",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R2",
+            "R0",
+            "R2"
+          ],
+          "rule": "combined_010",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R0",
+            "R2",
+            "R2"
+          ],
+          "rule": "combined_015",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R4",
+            "R0"
+          ],
+          "rule": "combined_020",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R3",
+            "R1",
+            "R3"
+          ],
+          "rule": "combined_024",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R9",
+            "R0"
+          ],
+          "rule": "combined_035",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R14",
+            "R0"
+          ],
+          "rule": "combined_037",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R0",
+            "R1",
+            "R9"
+          ],
+          "rule": "combined_042",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R1",
+            "R3",
+            "R3"
+          ],
+          "rule": "combined_050",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R2",
+            "R2"
+          ],
+          "rule": "combined_055",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R9",
+            "R3"
+          ],
+          "rule": "combined_064",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R13",
+            "R3",
+            "R3"
+          ],
+          "rule": "combined_075",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R1",
+            "R15"
+          ],
+          "rule": "combined_096",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R21",
+            "R0"
+          ],
+          "rule": "combined_098",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R2",
+            "R0",
+            "R2"
+          ],
+          "rule": "combined_006",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R15",
+            "R1"
+          ],
+          "rule": "combined_013",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R15",
+            "R1"
+          ],
+          "rule": "combined_014",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R2",
+            "R2",
+            "R2"
+          ],
+          "rule": "combined_022",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R3",
+            "R1",
+            "R3"
+          ],
+          "rule": "combined_033",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R0",
+            "R2",
+            "R2"
+          ],
+          "rule": "combined_043",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R1",
+            "R9",
+            "R3"
+          ],
+          "rule": "combined_052",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R10",
+            "R9"
+          ],
+          "rule": "combined_070",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R13",
+            "R3",
+            "R3"
+          ],
+          "rule": "combined_076",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R15",
+            "R16"
+          ],
+          "rule": "combined_084",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R1",
+            "R3",
+            "R3"
+          ],
+          "rule": "combined_094",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R1",
+            "R9",
+            "R3"
+          ],
+          "rule": "combined_095",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R3",
+            "R3",
+            "R3"
+          ],
+          "rule": "combined_107",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R3",
+            "R15"
+          ],
+          "rule": "combined_109",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R4",
+            "R2"
+          ],
+          "rule": "combined_114",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R4",
+            "R3"
+          ],
+          "rule": "combined_118",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R9",
+            "R1",
+            "R3"
+          ],
+          "rule": "combined_122",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R1",
+            "R4",
+            "R3"
+          ],
+          "rule": "combined_051",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R1",
+            "R23"
+          ],
+          "rule": "combined_092",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R3",
+            "R3",
+            "R3"
+          ],
+          "rule": "combined_108",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R3",
+            "R15"
+          ],
+          "rule": "combined_112",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R4",
+            "R14"
+          ],
+          "rule": "combined_113",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R4",
+            "R9"
+          ],
+          "rule": "combined_117",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R9",
+            "R3",
+            "R3"
+          ],
+          "rule": "combined_123",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R9",
+            "R0",
+            "R10"
+          ],
+          "rule": "combined_124",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R23",
+            "R1"
+          ],
+          "rule": "combined_012",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R9",
+            "R0",
+            "R2"
+          ],
+          "rule": "combined_025",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R9",
+            "R10"
+          ],
+          "rule": "combined_039",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R0",
+            "R14",
+            "R2"
+          ],
+          "rule": "combined_041",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R14",
+            "R15"
+          ],
+          "rule": "combined_046",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R3",
+            "R9",
+            "R3"
+          ],
+          "rule": "combined_059",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R4",
+            "R0",
+            "R2"
+          ],
+          "rule": "combined_060",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R0",
+            "R4",
+            "R9"
+          ],
+          "rule": "combined_068",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R14",
+            "R15"
+          ],
+          "rule": "combined_081",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R9",
+            "R10"
+          ],
+          "rule": "combined_120",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R15",
+            "R0"
+          ],
+          "rule": "combined_007",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R23",
+            "R1"
+          ],
+          "rule": "combined_018",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R1",
+            "R14",
+            "R15"
+          ],
+          "rule": "combined_027",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R9",
+            "R2",
+            "R2"
+          ],
+          "rule": "combined_061",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R14",
+            "R1",
+            "R9"
+          ],
+          "rule": "combined_079",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R1",
+            "R10",
+            "R2",
+            "R10"
+          ],
+          "rule": "combined_089",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R1",
+            "R9",
+            "R10"
+          ],
+          "rule": "combined_090",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R3",
+            "R4",
+            "R3"
+          ],
+          "rule": "combined_111",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R4",
+            "R9",
+            "R3"
+          ],
+          "rule": "combined_116",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R9",
+            "R2",
+            "R2"
+          ],
+          "rule": "combined_062",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R15",
+            "R15"
+          ],
+          "rule": "combined_085",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R23",
+            "R17"
+          ],
+          "rule": "combined_101",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R23",
+            "R20"
+          ],
+          "rule": "combined_102",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R1",
+            "R15",
+            "R15"
+          ],
+          "rule": "combined_028",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R3",
+            "R14",
+            "R15"
+          ],
+          "rule": "combined_030",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R0",
+            "R23",
+            "R21"
+          ],
+          "rule": "combined_065",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R0",
+            "R23",
+            "R14"
+          ],
+          "rule": "combined_067",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R13",
+            "R15",
+            "R15"
+          ],
+          "rule": "combined_073",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R15",
+            "R9",
+            "R3"
+          ],
+          "rule": "combined_088",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R1",
+            "R15",
+            "R15"
+          ],
+          "rule": "combined_093",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R4",
+            "R4",
+            "R9"
+          ],
+          "rule": "combined_034",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R3",
+            "R15",
+            "R15"
+          ],
+          "rule": "combined_056",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R9",
+            "R4",
+            "R2"
+          ],
+          "rule": "combined_063",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R23",
+            "R15"
+          ],
+          "rule": "combined_100",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R3",
+            "R15",
+            "R15"
+          ],
+          "rule": "combined_105",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R4",
+            "R14",
+            "R15"
+          ],
+          "rule": "combined_115",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R15",
+            "R1",
+            "R9"
+          ],
+          "rule": "combined_048",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R1",
+            "R23",
+            "R15"
+          ],
+          "rule": "combined_049",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R3",
+            "R15",
+            "R15"
+          ],
+          "rule": "combined_058",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R23",
+            "R9",
+            "R3"
+          ],
+          "rule": "combined_104",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R9",
+            "R15",
+            "R15"
+          ],
+          "rule": "combined_121",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R15",
+            "R10"
+          ],
+          "rule": "combined_086",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R15",
+            "R14",
+            "R15"
+          ],
+          "rule": "combined_087",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R23",
+            "R23"
+          ],
+          "rule": "combined_103",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R3",
+            "R23",
+            "R15"
+          ],
+          "rule": "combined_106",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R23",
+            "R4"
+          ],
+          "rule": "combined_009",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R14",
+            "R23",
+            "R14"
+          ],
+          "rule": "combined_080",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R1",
+            "R23",
+            "R23"
+          ],
+          "rule": "combined_091",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R15",
+            "R14",
+            "R2"
+          ],
+          "rule": "combined_023",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R23",
+            "R23"
+          ],
+          "rule": "combined_029",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R15",
+            "R15",
+            "R9"
+          ],
+          "rule": "combined_016",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R1",
+            "R23",
+            "R23"
+          ],
+          "rule": "combined_026",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R15",
+            "R15",
+            "R9"
+          ],
+          "rule": "combined_047",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R9",
+            "R23",
+            "R21"
+          ],
+          "rule": "combined_119",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R23",
+            "R23"
+          ],
+          "rule": "combined_017",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R15",
+            "R23",
+            "R21"
+          ],
+          "rule": "combined_082",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R15",
+            "R23",
+            "R14"
+          ],
+          "rule": "combined_083",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R3",
+            "R23",
+            "R23"
+          ],
+          "rule": "combined_057",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        },
+        {
+          "added_nodes": 0,
+          "covered_by_basic_rhs_rules": [
+            "R23",
+            "R23",
+            "R22"
+          ],
+          "rule": "combined_053",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_complete_action_containment"
+        }
+      ],
+      "patterns": 124
+    },
+    "basic_rhs": {
+      "added_nodes": 1047873,
+      "coverage_ratio": 0.999978051256995,
+      "final_nodes": 1047873,
+      "initial_nodes": 0,
+      "native_existential_checks": 3,
+      "native_projected_queries": 14,
+      "pattern_results": [
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R12",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R18",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R5",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R7",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 641743,
+          "candidate_upper_sum": 641743,
+          "exact_single_atom_rows": 641743,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R0",
+          "side": "rhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 345075,
+          "candidate_upper_sum": 345075,
+          "exact_single_atom_rows": 345075,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R1",
+          "side": "rhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R13",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 1,
+          "candidate_upper_sum": 1,
+          "exact_single_atom_rows": 1,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R16",
+          "side": "rhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 1,
+          "candidate_upper_sum": 1,
+          "exact_single_atom_rows": 1,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R19",
+          "side": "rhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R6",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R8",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R10",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 2,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 2,
+          "native_projected_queries": 0,
+          "rule": "R11",
+          "side": "rhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R2",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R3",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 11294,
+          "candidate_upper_sum": 17779,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 2,
+          "rule": "R14",
+          "side": "rhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 1,
+          "candidate_upper_sum": 1,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 1,
+          "native_projected_queries": 0,
+          "rule": "R17",
+          "side": "rhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R20",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 18730,
+          "candidate_upper_sum": 49980,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 2,
+          "rule": "R21",
+          "side": "rhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 5830,
+          "candidate_upper_sum": 41384,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 3,
+          "rule": "R22",
+          "side": "rhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R4",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 0,
+          "candidate_upper_sum": 0,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 0,
+          "rule": "R9",
+          "side": "rhs",
+          "status": "no_additional_coverage_by_atom_bound"
+        },
+        {
+          "added_nodes": 561,
+          "candidate_upper_sum": 4031,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 2,
+          "rule": "R15",
+          "side": "rhs",
+          "status": "exact"
+        },
+        {
+          "added_nodes": 24637,
+          "candidate_upper_sum": 43364,
+          "exact_single_atom_rows": 0,
+          "native_existential_checks": 0,
+          "native_projected_queries": 5,
+          "rule": "R23",
+          "side": "rhs",
+          "status": "exact"
+        }
+      ],
+      "patterns": 24
+    }
+  },
+  "original_enodes": 1047896,
+  "original_rows_unchanged": true,
+  "scope": "exact union coverage on the final native graph; zero-marginal patterns proved using atom bounds; no instance count or compression packing measured",
+  "source": "experiments/annotated_export/math_microbenchmark/combined.egg",
+  "status": "complete",
+  "uncovered_by_operator": {
+    "Const": 3,
+    "Div": 3,
+    "Integral": 1,
+    "Ln": 1,
+    "Pow": 1,
+    "Sqrt": 1,
+    "Var": 3
+  }
+}

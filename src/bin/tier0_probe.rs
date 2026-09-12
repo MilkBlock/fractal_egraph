@@ -1,15 +1,19 @@
 //! Native LHS/RHS coverage probes over a frozen final e-graph.
 use egglog::{
-    EGraph, Value,
     ast::{Action, Command, Expr, Fact, Rule},
+    EGraph, Value,
 };
-use serde_json::{Value as Json, json};
+use serde_json::{json, Value as Json};
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap, HashSet},
     error::Error,
     io::Write,
 };
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
+#[allow(dead_code)]
+#[path = "tier0_probe/breadth.rs"]
+mod breadth;
+pub use breadth::run as coverage_breadth;
 #[derive(Clone)]
 struct Table {
     name: String,
@@ -110,6 +114,7 @@ struct Query<'a> {
     atoms: Vec<Atom>,
     roots: Vec<Ref>,
     counter: usize,
+    equalities: Vec<(Ref, Ref)>,
 }
 impl<'a> Query<'a> {
     fn infer(&self, e: &Expr) -> Option<String> {
@@ -184,6 +189,7 @@ impl<'a> Query<'a> {
                 let sort = self.infer(a).or_else(|| self.infer(b));
                 let (a_text, a_ref) = self.expr(a, sort.clone(), covered)?;
                 let (b_text, b_ref) = self.expr(b, sort, covered)?;
+                self.equalities.push((a_ref.clone(), b_ref.clone()));
                 self.clauses.push(format!("(= {a_text} {b_text})"));
                 if covered {
                     if matches!(a, Expr::Call(..)) {
@@ -280,6 +286,7 @@ fn probe_impl(
         atoms: vec![],
         roots: vec![],
         counter: 0,
+        equalities: vec![],
     };
     if side == "lhs" {
         for f in &rule.body {
