@@ -1,0 +1,1415 @@
+{
+  "R0": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "a"
+              },
+              {
+                "var": "b"
+              }
+            ],
+            "op": "Add",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1444:1453"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "b"
+              },
+              {
+                "var": "a"
+              }
+            ],
+            "op": "Add",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1454:1463"
+          }
+        ]
+      }
+    ]
+  },
+  "R1": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "a"
+              },
+              {
+                "var": "b"
+              }
+            ],
+            "op": "Mul",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1474:1483"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "b"
+              },
+              {
+                "var": "a"
+              }
+            ],
+            "op": "Mul",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1484:1493"
+          }
+        ]
+      }
+    ]
+  },
+  "R10": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "var": "a"
+                  },
+                  {
+                    "var": "b"
+                  }
+                ],
+                "op": "Mul",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1908:1917"
+              },
+              {
+                "args": [
+                  {
+                    "var": "a"
+                  },
+                  {
+                    "var": "c"
+                  }
+                ],
+                "op": "Mul",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1918:1927"
+              }
+            ],
+            "op": "Add",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1903:1928"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "a"
+              },
+              {
+                "args": [
+                  {
+                    "var": "b"
+                  },
+                  {
+                    "var": "c"
+                  }
+                ],
+                "op": "Add",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1936:1945"
+              }
+            ],
+            "op": "Mul",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1929:1946"
+          }
+        ]
+      }
+    ]
+  },
+  "R11": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "var": "a"
+                  },
+                  {
+                    "var": "b"
+                  }
+                ],
+                "op": "Pow",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1963:1972"
+              },
+              {
+                "args": [
+                  {
+                    "var": "a"
+                  },
+                  {
+                    "var": "c"
+                  }
+                ],
+                "op": "Pow",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1973:1982"
+              }
+            ],
+            "op": "Mul",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1958:1983"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "a"
+              },
+              {
+                "args": [
+                  {
+                    "var": "b"
+                  },
+                  {
+                    "var": "c"
+                  }
+                ],
+                "op": "Add",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1991:2000"
+              }
+            ],
+            "op": "Pow",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1984:2001"
+          }
+        ]
+      }
+    ]
+  },
+  "R12": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "x"
+              },
+              {
+                "args": [
+                  {
+                    "literal": "1"
+                  }
+                ],
+                "op": "Const",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2019:2028"
+              }
+            ],
+            "op": "Pow",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2012:2029"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "var": "x"
+          }
+        ]
+      }
+    ]
+  },
+  "R13": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "x"
+              },
+              {
+                "args": [
+                  {
+                    "literal": "2"
+                  }
+                ],
+                "op": "Const",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2049:2058"
+              }
+            ],
+            "op": "Pow",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2042:2059"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "x"
+              },
+              {
+                "var": "x"
+              }
+            ],
+            "op": "Mul",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2060:2069"
+          }
+        ]
+      }
+    ]
+  },
+  "R14": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "x"
+              },
+              {
+                "args": [
+                  {
+                    "var": "a"
+                  },
+                  {
+                    "var": "b"
+                  }
+                ],
+                "op": "Add",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2089:2098"
+              }
+            ],
+            "op": "Diff",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2081:2099"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "var": "x"
+                  },
+                  {
+                    "var": "a"
+                  }
+                ],
+                "op": "Diff",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2105:2115"
+              },
+              {
+                "args": [
+                  {
+                    "var": "x"
+                  },
+                  {
+                    "var": "b"
+                  }
+                ],
+                "op": "Diff",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2116:2126"
+              }
+            ],
+            "op": "Add",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2100:2127"
+          }
+        ]
+      }
+    ]
+  },
+  "R15": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "x"
+              },
+              {
+                "args": [
+                  {
+                    "var": "a"
+                  },
+                  {
+                    "var": "b"
+                  }
+                ],
+                "op": "Mul",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2146:2155"
+              }
+            ],
+            "op": "Diff",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2138:2156"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "var": "a"
+                  },
+                  {
+                    "args": [
+                      {
+                        "var": "x"
+                      },
+                      {
+                        "var": "b"
+                      }
+                    ],
+                    "op": "Diff",
+                    "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2169:2179"
+                  }
+                ],
+                "op": "Mul",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2162:2180"
+              },
+              {
+                "args": [
+                  {
+                    "var": "b"
+                  },
+                  {
+                    "args": [
+                      {
+                        "var": "x"
+                      },
+                      {
+                        "var": "a"
+                      }
+                    ],
+                    "op": "Diff",
+                    "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2188:2198"
+                  }
+                ],
+                "op": "Mul",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2181:2199"
+              }
+            ],
+            "op": "Add",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2157:2200"
+          }
+        ]
+      }
+    ]
+  },
+  "R16": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "x"
+              },
+              {
+                "args": [
+                  {
+                    "var": "x"
+                  }
+                ],
+                "op": "Sin",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2220:2227"
+              }
+            ],
+            "op": "Diff",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2212:2228"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "x"
+              }
+            ],
+            "op": "Cos",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2229:2236"
+          }
+        ]
+      }
+    ]
+  },
+  "R17": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "x"
+              },
+              {
+                "args": [
+                  {
+                    "var": "x"
+                  }
+                ],
+                "op": "Cos",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2255:2262"
+              }
+            ],
+            "op": "Diff",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2247:2263"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "literal": "-1"
+                  }
+                ],
+                "op": "Const",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2269:2279"
+              },
+              {
+                "args": [
+                  {
+                    "var": "x"
+                  }
+                ],
+                "op": "Sin",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2280:2287"
+              }
+            ],
+            "op": "Mul",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2264:2288"
+          }
+        ]
+      }
+    ]
+  },
+  "R18": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "literal": "1"
+                  }
+                ],
+                "op": "Const",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2310:2319"
+              },
+              {
+                "var": "x"
+              }
+            ],
+            "op": "Integral",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2300:2322"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "var": "x"
+          }
+        ]
+      }
+    ]
+  },
+  "R19": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "var": "x"
+                  }
+                ],
+                "op": "Cos",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2345:2352"
+              },
+              {
+                "var": "x"
+              }
+            ],
+            "op": "Integral",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2335:2355"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "x"
+              }
+            ],
+            "op": "Sin",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2356:2363"
+          }
+        ]
+      }
+    ]
+  },
+  "R2": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "a"
+              },
+              {
+                "args": [
+                  {
+                    "var": "b"
+                  },
+                  {
+                    "var": "c"
+                  }
+                ],
+                "op": "Add",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1511:1520"
+              }
+            ],
+            "op": "Add",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1504:1521"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "var": "a"
+                  },
+                  {
+                    "var": "b"
+                  }
+                ],
+                "op": "Add",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1527:1536"
+              },
+              {
+                "var": "c"
+              }
+            ],
+            "op": "Add",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1522:1539"
+          }
+        ]
+      }
+    ]
+  },
+  "R20": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "var": "x"
+                  }
+                ],
+                "op": "Sin",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2384:2391"
+              },
+              {
+                "var": "x"
+              }
+            ],
+            "op": "Integral",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2374:2394"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "literal": "-1"
+                  }
+                ],
+                "op": "Const",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2400:2410"
+              },
+              {
+                "args": [
+                  {
+                    "var": "x"
+                  }
+                ],
+                "op": "Cos",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2411:2418"
+              }
+            ],
+            "op": "Mul",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2395:2419"
+          }
+        ]
+      }
+    ]
+  },
+  "R21": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "var": "f"
+                  },
+                  {
+                    "var": "g"
+                  }
+                ],
+                "op": "Add",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2440:2449"
+              },
+              {
+                "var": "x"
+              }
+            ],
+            "op": "Integral",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2430:2452"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "var": "f"
+                  },
+                  {
+                    "var": "x"
+                  }
+                ],
+                "op": "Integral",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2458:2472"
+              },
+              {
+                "args": [
+                  {
+                    "var": "g"
+                  },
+                  {
+                    "var": "x"
+                  }
+                ],
+                "op": "Integral",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2473:2487"
+              }
+            ],
+            "op": "Add",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2453:2488"
+          }
+        ]
+      }
+    ]
+  },
+  "R22": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "var": "f"
+                  },
+                  {
+                    "var": "g"
+                  }
+                ],
+                "op": "Sub",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2509:2518"
+              },
+              {
+                "var": "x"
+              }
+            ],
+            "op": "Integral",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2499:2521"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "var": "f"
+                  },
+                  {
+                    "var": "x"
+                  }
+                ],
+                "op": "Integral",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2527:2541"
+              },
+              {
+                "args": [
+                  {
+                    "var": "g"
+                  },
+                  {
+                    "var": "x"
+                  }
+                ],
+                "op": "Integral",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2542:2556"
+              }
+            ],
+            "op": "Sub",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2522:2557"
+          }
+        ]
+      }
+    ]
+  },
+  "R23": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "var": "a"
+                  },
+                  {
+                    "var": "b"
+                  }
+                ],
+                "op": "Mul",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2578:2587"
+              },
+              {
+                "var": "x"
+              }
+            ],
+            "op": "Integral",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2568:2590"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "var": "a"
+                  },
+                  {
+                    "args": [
+                      {
+                        "var": "b"
+                      },
+                      {
+                        "var": "x"
+                      }
+                    ],
+                    "op": "Integral",
+                    "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2603:2617"
+                  }
+                ],
+                "op": "Mul",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2596:2618"
+              },
+              {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "args": [
+                          {
+                            "var": "x"
+                          },
+                          {
+                            "var": "a"
+                          }
+                        ],
+                        "op": "Diff",
+                        "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2638:2648"
+                      },
+                      {
+                        "args": [
+                          {
+                            "var": "b"
+                          },
+                          {
+                            "var": "x"
+                          }
+                        ],
+                        "op": "Integral",
+                        "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2649:2663"
+                      }
+                    ],
+                    "op": "Mul",
+                    "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2633:2664"
+                  },
+                  {
+                    "var": "x"
+                  }
+                ],
+                "op": "Integral",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2623:2667"
+              }
+            ],
+            "op": "Sub",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):2591:2668"
+          }
+        ]
+      }
+    ]
+  },
+  "R3": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "a"
+              },
+              {
+                "args": [
+                  {
+                    "var": "b"
+                  },
+                  {
+                    "var": "c"
+                  }
+                ],
+                "op": "Mul",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1557:1566"
+              }
+            ],
+            "op": "Mul",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1550:1567"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "var": "a"
+                  },
+                  {
+                    "var": "b"
+                  }
+                ],
+                "op": "Mul",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1573:1582"
+              },
+              {
+                "var": "c"
+              }
+            ],
+            "op": "Mul",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1568:1585"
+          }
+        ]
+      }
+    ]
+  },
+  "R4": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "a"
+              },
+              {
+                "var": "b"
+              }
+            ],
+            "op": "Sub",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1597:1606"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "a"
+              },
+              {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "literal": "-1"
+                      }
+                    ],
+                    "op": "Const",
+                    "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1619:1629"
+                  },
+                  {
+                    "var": "b"
+                  }
+                ],
+                "op": "Mul",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1614:1632"
+              }
+            ],
+            "op": "Add",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1607:1633"
+          }
+        ]
+      }
+    ]
+  },
+  "R5": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "a"
+              },
+              {
+                "args": [
+                  {
+                    "literal": "0"
+                  }
+                ],
+                "op": "Const",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1726:1735"
+              }
+            ],
+            "op": "Add",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1719:1736"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "var": "a"
+          }
+        ]
+      }
+    ]
+  },
+  "R6": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "a"
+              },
+              {
+                "args": [
+                  {
+                    "literal": "0"
+                  }
+                ],
+                "op": "Const",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1756:1765"
+              }
+            ],
+            "op": "Mul",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1749:1766"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "literal": "0"
+              }
+            ],
+            "op": "Const",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1767:1776"
+          }
+        ]
+      }
+    ]
+  },
+  "R7": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "a"
+              },
+              {
+                "args": [
+                  {
+                    "literal": "1"
+                  }
+                ],
+                "op": "Const",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1794:1803"
+              }
+            ],
+            "op": "Mul",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1787:1804"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "var": "a"
+          }
+        ]
+      }
+    ]
+  },
+  "R8": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "a"
+              },
+              {
+                "var": "a"
+              }
+            ],
+            "op": "Sub",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1818:1827"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "literal": "0"
+              }
+            ],
+            "op": "Const",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1828:1837"
+          }
+        ]
+      }
+    ]
+  },
+  "R9": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "var": "a"
+              },
+              {
+                "args": [
+                  {
+                    "var": "b"
+                  },
+                  {
+                    "var": "c"
+                  }
+                ],
+                "op": "Add",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1856:1865"
+              }
+            ],
+            "op": "Mul",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1849:1866"
+          }
+        ]
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "__viz_root"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "var": "a"
+                  },
+                  {
+                    "var": "b"
+                  }
+                ],
+                "op": "Mul",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1872:1881"
+              },
+              {
+                "args": [
+                  {
+                    "var": "a"
+                  },
+                  {
+                    "var": "c"
+                  }
+                ],
+                "op": "Mul",
+                "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1882:1891"
+              }
+            ],
+            "op": "Add",
+            "span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):1867:1892"
+          }
+        ]
+      }
+    ]
+  }
+}

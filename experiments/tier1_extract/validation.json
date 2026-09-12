@@ -1,0 +1,6 @@
+{
+  "cases": 1026,
+  "failures": [],
+  "passed": 1026,
+  "scope": "Native egglog typecheck plus finite per-rule source-sequence replay on symbolic boundary seeds. Every emitted constructor and union is checked without executing the combined rule. This is regression evidence, not a universal equivalence proof or a speedup benchmark."
+}
