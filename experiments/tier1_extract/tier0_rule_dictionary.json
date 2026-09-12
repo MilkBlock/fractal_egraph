@@ -1,0 +1,194 @@
+{
+  "R0": {
+    "committed_unions": 0,
+    "complete_witnesses": 329,
+    "definition": "(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")",
+    "direct_inserted_rows": 165,
+    "matches": 329,
+    "survived": 329
+  },
+  "R1": {
+    "committed_unions": 0,
+    "complete_witnesses": 321,
+    "definition": "(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")",
+    "direct_inserted_rows": 193,
+    "matches": 321,
+    "survived": 321
+  },
+  "R10": {
+    "committed_unions": 0,
+    "complete_witnesses": 34,
+    "definition": "(rule ((= __viz_root (Add (Mul a b) (Mul a c))))\n      ((union __viz_root (Mul a (Add b c))))\n         :name \"R10\")",
+    "direct_inserted_rows": 15,
+    "matches": 34,
+    "survived": 34
+  },
+  "R11": {
+    "committed_unions": 0,
+    "complete_witnesses": 0,
+    "definition": "(rule ((= __viz_root (Mul (Pow a b) (Pow a c))))\n      ((union __viz_root (Pow a (Add b c))))\n         :name \"R11\")",
+    "direct_inserted_rows": 0,
+    "matches": 0,
+    "survived": 0
+  },
+  "R12": {
+    "committed_unions": 0,
+    "complete_witnesses": 0,
+    "definition": "(rule ((= __viz_root (Pow x (Const 1))))\n      ((union __viz_root x))\n         :name \"R12\")",
+    "direct_inserted_rows": 0,
+    "matches": 0,
+    "survived": 0
+  },
+  "R13": {
+    "committed_unions": 0,
+    "complete_witnesses": 1,
+    "definition": "(rule ((= __viz_root (Pow x (Const 2))))\n      ((union __viz_root (Mul x x)))\n         :name \"R13\")",
+    "direct_inserted_rows": 1,
+    "matches": 1,
+    "survived": 1
+  },
+  "R14": {
+    "committed_unions": 0,
+    "complete_witnesses": 17,
+    "definition": "(rule ((= __viz_root (Diff x (Add a b))))\n      ((union __viz_root (Add (Diff x a) (Diff x b))))\n         :name \"R14\")",
+    "direct_inserted_rows": 33,
+    "matches": 17,
+    "survived": 17
+  },
+  "R15": {
+    "committed_unions": 0,
+    "complete_witnesses": 45,
+    "definition": "(rule ((= __viz_root (Diff x (Mul a b))))\n      ((union __viz_root (Add (Mul a (Diff x b)) (Mul b (Diff x a)))))\n         :name \"R15\")",
+    "direct_inserted_rows": 97,
+    "matches": 45,
+    "survived": 45
+  },
+  "R16": {
+    "committed_unions": 0,
+    "complete_witnesses": 2,
+    "definition": "(rule ((= __viz_root (Diff x (Sin x))))\n      ((union __viz_root (Cos x)))\n         :name \"R16\")",
+    "direct_inserted_rows": 0,
+    "matches": 2,
+    "survived": 2
+  },
+  "R17": {
+    "committed_unions": 0,
+    "complete_witnesses": 1,
+    "definition": "(rule ((= __viz_root (Diff x (Cos x))))\n      ((union __viz_root (Mul (Const -1) (Sin x))))\n         :name \"R17\")",
+    "direct_inserted_rows": 2,
+    "matches": 1,
+    "survived": 1
+  },
+  "R18": {
+    "committed_unions": 0,
+    "complete_witnesses": 0,
+    "definition": "(rule ((= __viz_root (Integral (Const 1) x)))\n      ((union __viz_root x))\n         :name \"R18\")",
+    "direct_inserted_rows": 0,
+    "matches": 0,
+    "survived": 0
+  },
+  "R19": {
+    "committed_unions": 0,
+    "complete_witnesses": 1,
+    "definition": "(rule ((= __viz_root (Integral (Cos x) x)))\n      ((union __viz_root (Sin x)))\n         :name \"R19\")",
+    "direct_inserted_rows": 0,
+    "matches": 1,
+    "survived": 1
+  },
+  "R2": {
+    "committed_unions": 0,
+    "complete_witnesses": 400,
+    "definition": "(rule ((= __viz_root (Add a (Add b c))))\n      ((union __viz_root (Add (Add a b) c)))\n         :name \"R2\")",
+    "direct_inserted_rows": 471,
+    "matches": 400,
+    "survived": 400
+  },
+  "R20": {
+    "committed_unions": 0,
+    "complete_witnesses": 2,
+    "definition": "(rule ((= __viz_root (Integral (Sin x) x)))\n      ((union __viz_root (Mul (Const -1) (Cos x))))\n         :name \"R20\")",
+    "direct_inserted_rows": 1,
+    "matches": 2,
+    "survived": 2
+  },
+  "R21": {
+    "committed_unions": 0,
+    "complete_witnesses": 13,
+    "definition": "(rule ((= __viz_root (Integral (Add f g) x)))\n      ((union __viz_root (Add (Integral f x) (Integral g x))))\n         :name \"R21\")",
+    "direct_inserted_rows": 23,
+    "matches": 13,
+    "survived": 13
+  },
+  "R22": {
+    "committed_unions": 0,
+    "complete_witnesses": 8,
+    "definition": "(rule ((= __viz_root (Integral (Sub f g) x)))\n      ((union __viz_root (Sub (Integral f x) (Integral g x))))\n         :name \"R22\")",
+    "direct_inserted_rows": 21,
+    "matches": 8,
+    "survived": 8
+  },
+  "R23": {
+    "committed_unions": 0,
+    "complete_witnesses": 76,
+    "definition": "(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")",
+    "direct_inserted_rows": 356,
+    "matches": 76,
+    "survived": 76
+  },
+  "R3": {
+    "committed_unions": 0,
+    "complete_witnesses": 159,
+    "definition": "(rule ((= __viz_root (Mul a (Mul b c))))\n      ((union __viz_root (Mul (Mul a b) c)))\n         :name \"R3\")",
+    "direct_inserted_rows": 132,
+    "matches": 159,
+    "survived": 159
+  },
+  "R4": {
+    "committed_unions": 0,
+    "complete_witnesses": 35,
+    "definition": "(rule ((= __viz_root (Sub a b)))\n      ((union __viz_root (Add a (Mul (Const -1) b))))\n         :name \"R4\")",
+    "direct_inserted_rows": 71,
+    "matches": 35,
+    "survived": 35
+  },
+  "R5": {
+    "committed_unions": 0,
+    "complete_witnesses": 0,
+    "definition": "(rule ((= __viz_root (Add a (Const 0))))\n      ((union __viz_root a))\n         :name \"R5\")",
+    "direct_inserted_rows": 0,
+    "matches": 0,
+    "survived": 0
+  },
+  "R6": {
+    "committed_unions": 0,
+    "complete_witnesses": 0,
+    "definition": "(rule ((= __viz_root (Mul a (Const 0))))\n      ((union __viz_root (Const 0)))\n         :name \"R6\")",
+    "direct_inserted_rows": 0,
+    "matches": 0,
+    "survived": 0
+  },
+  "R7": {
+    "committed_unions": 0,
+    "complete_witnesses": 0,
+    "definition": "(rule ((= __viz_root (Mul a (Const 1))))\n      ((union __viz_root a))\n         :name \"R7\")",
+    "direct_inserted_rows": 0,
+    "matches": 0,
+    "survived": 0
+  },
+  "R8": {
+    "committed_unions": 0,
+    "complete_witnesses": 0,
+    "definition": "(rule ((= __viz_root (Sub a a)))\n      ((union __viz_root (Const 0)))\n         :name \"R8\")",
+    "direct_inserted_rows": 0,
+    "matches": 0,
+    "survived": 0
+  },
+  "R9": {
+    "committed_unions": 0,
+    "complete_witnesses": 85,
+    "definition": "(rule ((= __viz_root (Mul a (Add b c))))\n      ((union __viz_root (Add (Mul a b) (Mul a c))))\n         :name \"R9\")",
+    "direct_inserted_rows": 172,
+    "matches": 85,
+    "survived": 85
+  }
+}

@@ -1,0 +1,70 @@
+; Original tier-0 rule definitions referenced by the extracted tier-1 graph.
+(datatype Math (Diff Math Math) (Integral Math Math) (Add Math Math) (Sub Math Math) (Mul Math Math) (Div Math Math) (Pow Math Math) (Ln Math) (Sqrt Math) (Sin Math) (Cos Math) (Const i64) (Var String))
+; R0
+(rule ((= __viz_root (Add a b)))
+      ((union __viz_root (Add b a)))
+         :name "R0")
+; R1
+(rule ((= __viz_root (Mul a b)))
+      ((union __viz_root (Mul b a)))
+         :name "R1")
+; R2
+(rule ((= __viz_root (Add a (Add b c))))
+      ((union __viz_root (Add (Add a b) c)))
+         :name "R2")
+; R3
+(rule ((= __viz_root (Mul a (Mul b c))))
+      ((union __viz_root (Mul (Mul a b) c)))
+         :name "R3")
+; R4
+(rule ((= __viz_root (Sub a b)))
+      ((union __viz_root (Add a (Mul (Const -1) b))))
+         :name "R4")
+; R9
+(rule ((= __viz_root (Mul a (Add b c))))
+      ((union __viz_root (Add (Mul a b) (Mul a c))))
+         :name "R9")
+; R10
+(rule ((= __viz_root (Add (Mul a b) (Mul a c))))
+      ((union __viz_root (Mul a (Add b c))))
+         :name "R10")
+; R13
+(rule ((= __viz_root (Pow x (Const 2))))
+      ((union __viz_root (Mul x x)))
+         :name "R13")
+; R14
+(rule ((= __viz_root (Diff x (Add a b))))
+      ((union __viz_root (Add (Diff x a) (Diff x b))))
+         :name "R14")
+; R15
+(rule ((= __viz_root (Diff x (Mul a b))))
+      ((union __viz_root (Add (Mul a (Diff x b)) (Mul b (Diff x a)))))
+         :name "R15")
+; R16
+(rule ((= __viz_root (Diff x (Sin x))))
+      ((union __viz_root (Cos x)))
+         :name "R16")
+; R17
+(rule ((= __viz_root (Diff x (Cos x))))
+      ((union __viz_root (Mul (Const -1) (Sin x))))
+         :name "R17")
+; R19
+(rule ((= __viz_root (Integral (Cos x) x)))
+      ((union __viz_root (Sin x)))
+         :name "R19")
+; R20
+(rule ((= __viz_root (Integral (Sin x) x)))
+      ((union __viz_root (Mul (Const -1) (Cos x))))
+         :name "R20")
+; R21
+(rule ((= __viz_root (Integral (Add f g) x)))
+      ((union __viz_root (Add (Integral f x) (Integral g x))))
+         :name "R21")
+; R22
+(rule ((= __viz_root (Integral (Sub f g) x)))
+      ((union __viz_root (Sub (Integral f x) (Integral g x))))
+         :name "R22")
+; R23
+(rule ((= __viz_root (Integral (Mul a b) x)))
+      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))
+         :name "R23")
