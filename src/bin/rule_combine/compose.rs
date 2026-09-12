@@ -197,6 +197,18 @@ pub struct Candidate {
     pub middle: Pat,
 }
 pub fn candidates(rules: &[Rule]) -> Vec<Candidate> {
+    candidates_with_limit(rules, 32)
+}
+
+/// Same composition algorithm with an explicit finite AST size limit.
+pub fn candidates_with_limit(rules: &[Rule], max_nodes: usize) -> Vec<Candidate> {
+    candidates_impl(rules, max_nodes, false)
+}
+/// Keep compositions whose final term is unchanged but intermediate effects matter.
+pub fn effect_candidates_with_limit(rules: &[Rule], max_nodes: usize) -> Vec<Candidate> {
+    candidates_impl(rules, max_nodes, true)
+}
+fn candidates_impl(rules: &[Rule], max_nodes: usize, preserve_identity: bool) -> Vec<Candidate> {
     let mut out = Vec::new();
     let mut seen = BTreeSet::new();
     for (i, a) in rules.iter().enumerate() {
@@ -232,9 +244,9 @@ pub fn candidates(rules: &[Rule]) -> Vec<Candidate> {
                             .map(|p| middle.replace(&path, &subst(&p.rename("b_"), &s))),
                     )
                     .collect();
-                if lhs == rhs
-                    || lhs.size() > 32
-                    || rhs.size() > 32
+                if (lhs == rhs && !preserve_identity)
+                    || lhs.size() > max_nodes
+                    || rhs.size() > max_nodes
                     || !rhs.vars().is_subset(&lhs.vars())
                     || conditions
                         .iter()

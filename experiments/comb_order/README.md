@@ -67,3 +67,40 @@ python3 experiments/comb_order/order.py --profile PROFILE.json --manifest MANIFE
 ```
 
 排序没有执行组合规则，也没有修改 tier-0 或 tier-1 图，仅给出顺序和候选分割。
+
+## 用旧 API 还原 Egglog
+
+```
+cargo run --release --bin ranked_comb_egg
+python3 experiments/comb_order/order.py
+cargo test --bin ranked_comb_egg --bin rule_combine
+```
+
+`ranked.egg` 包含按优先级排序的可导出定义；只注册 `__ranked_combs` ruleset，不自动执行。
+`egg_export.json` 保存每一项的源码、验证信息或未支持原因。浏览页可展开看代码。
+
+复用的是 `src/bin/rule_combine/compose.rs` 的组合算法和 `Rule::command`，没有另写组合器。
+保留旧默认 32 AST 节点上限；导出明确使用 512 的有限上限，并允许最终项不变但中间有 effect 的组合。
+两步的内部上下文情形另尝试旧 `contextual_candidates`；R10→R15 的该 API 路径有独立原生测试。
+来源连接来自原生 witness 的读写 AST 位置，未找到唯一连接的 DAG 不猜测位置。
+
+还原不能只保留外层最终表达式：旧 command 的外层 context equality 不一定推出每个内部
+rule-apply 根的 equality。因此导出器按见证位置恢复每一步的局部 union。
+每对局部 lhs/rhs 都检查为对应源规则的结构代换；并在原生 egglog 的新符号实例上检查
+最终结果和所有局部 equality。这不是对所有历史实例重新匹配，也不是执行性能证明。
+
+全部 6,437 项的结果：
+
+- 2,769 项成功导出，其中 1,381 项多步、1,388 项单步。
+- 3,667 项未被旧 API 表达，具体原因留在报告中。
+- Empty 作为单位项跳过，不生成 rewrite。
+- 全部导出定义原生类型检查通过；195 种不同多步动作形状经过原生实例检查，同形定义复用检查。
+
+最高分 `ranked_000001` 是五步 R23，保存了五个 union 动作。
+排序里的 RHS=30 是历史去重 enode 数；导出最终 RHS 展开树有 47 个构造器位置。
+这两种计数不混用，注释分别记录 historical_* 与 export_*。文件中的多条定义可能具有相同
+符号形状但来自不同排名/边界实例，因此不要把注册所有定义视为已经优化的执行调度。
+
+当前选中的分割中，**1,191 个非 Empty 分块全部导出成功**；另一个块是 Empty 单位。
+未支持的 3,667 项属于其他候选，不影响本次选中分割的语法展示。
+每项代码可在排序页直接展开查看；历史规则名列表不被当作充分连接证据。
