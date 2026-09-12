@@ -1,0 +1,275 @@
+{
+  "union": {
+    "analysis": {
+      "contexts": [
+        {
+          "application": null,
+          "context": 0,
+          "given_effects": "[Fact(Relation(\"P\", [Term { sort: \"E\", op: \"literal:0\", args: [] }])), Fact(Relation(\"Q\", [Term { sort: \"E\", op: \"literal:2\", args: [] }, Term { sort: \"E\", op: \"literal:1\", args: [] }]))]",
+          "parents": [],
+          "ready": true
+        },
+        {
+          "application": {
+            "binding": "{\"binding\":[[0,{\"args\":[],\"op\":\"literal:0\",\"sort\":\"E\"}],[1,{\"args\":[],\"op\":\"literal:1\",\"sort\":\"E\"}]],\"relation\":\"{\\\"equalities\\\":[],\\\"facts\\\":[{\\\"args\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"}],\\\"relation\\\":\\\"P\\\"},{\\\"args\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}],\\\"relation\\\":\\\"Q\\\"}],\\\"inputs\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}],\\\"outputs\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}]}\"}",
+            "grounded": true,
+            "produced": "[Fact(Relation(\"T\", [Term { sort: \"E\", op: \"literal:1\", args: [] }]))]",
+            "requirements": "[Fact(Relation(\"P\", [Term { sort: \"E\", op: \"literal:0\", args: [] }])), Fact(Relation(\"Q\", [Term { sort: \"E\", op: \"literal:0\", args: [] }, Term { sort: \"E\", op: \"literal:1\", args: [] }]))]",
+            "rule": "R"
+          },
+          "context": 1,
+          "given_effects": "[]",
+          "parents": [
+            0
+          ],
+          "ready": false
+        },
+        {
+          "application": null,
+          "context": 2,
+          "given_effects": "[Equal(Term { sort: \"E\", op: \"literal:0\", args: [] }, Term { sort: \"E\", op: \"literal:2\", args: [] })]",
+          "parents": [],
+          "ready": true
+        },
+        {
+          "application": null,
+          "context": 3,
+          "given_effects": "[]",
+          "parents": [
+            0,
+            2
+          ],
+          "ready": true
+        },
+        {
+          "application": {
+            "binding": "{\"binding\":[[0,{\"args\":[],\"op\":\"literal:0\",\"sort\":\"E\"}],[1,{\"args\":[],\"op\":\"literal:1\",\"sort\":\"E\"}]],\"relation\":\"{\\\"equalities\\\":[],\\\"facts\\\":[{\\\"args\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"}],\\\"relation\\\":\\\"P\\\"},{\\\"args\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}],\\\"relation\\\":\\\"Q\\\"}],\\\"inputs\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}],\\\"outputs\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}]}\"}",
+            "grounded": true,
+            "produced": "[Fact(Relation(\"T\", [Term { sort: \"E\", op: \"literal:1\", args: [] }]))]",
+            "requirements": "[Fact(Relation(\"P\", [Term { sort: \"E\", op: \"literal:0\", args: [] }])), Fact(Relation(\"Q\", [Term { sort: \"E\", op: \"literal:0\", args: [] }, Term { sort: \"E\", op: \"literal:1\", args: [] }]))]",
+            "rule": "R"
+          },
+          "context": 4,
+          "given_effects": "[]",
+          "parents": [
+            3
+          ],
+          "ready": true
+        }
+      ],
+      "proposals": [],
+      "scope": "actual native tier-1 egglog rules over supplied positive contracts; not tier-0 provenance extraction; no context union or global dependency deletion"
+    },
+    "blocked_context": 1,
+    "enabled_context": 4
+  },
+  "redundancy": {
+    "contexts": [
+      {
+        "application": null,
+        "context": 0,
+        "given_effects": "[Fact(Relation(\"P\", [Term { sort: \"E\", op: \"literal:0\", args: [] }]))]",
+        "parents": [],
+        "ready": true
+      },
+      {
+        "application": {
+          "binding": "{\"binding\":[[0,{\"args\":[],\"op\":\"literal:0\",\"sort\":\"E\"}],[1,{\"args\":[],\"op\":\"literal:1\",\"sort\":\"E\"}]],\"relation\":\"{\\\"equalities\\\":[],\\\"facts\\\":[{\\\"args\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"}],\\\"relation\\\":\\\"P\\\"}],\\\"inputs\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}],\\\"outputs\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}]}\"}",
+          "grounded": true,
+          "produced": "[Fact(Relation(\"Q\", [Term { sort: \"E\", op: \"literal:0\", args: [] }]))]",
+          "requirements": "[Fact(Relation(\"P\", [Term { sort: \"E\", op: \"literal:0\", args: [] }]))]",
+          "rule": "produce-Q"
+        },
+        "context": 1,
+        "given_effects": "[]",
+        "parents": [
+          0
+        ],
+        "ready": true
+      },
+      {
+        "application": null,
+        "context": 2,
+        "given_effects": "[]",
+        "parents": [
+          0,
+          1
+        ],
+        "ready": true
+      },
+      {
+        "application": {
+          "binding": "{\"binding\":[[0,{\"args\":[],\"op\":\"literal:0\",\"sort\":\"E\"}],[1,{\"args\":[],\"op\":\"literal:1\",\"sort\":\"E\"}]],\"relation\":\"{\\\"equalities\\\":[],\\\"facts\\\":[{\\\"args\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"}],\\\"relation\\\":\\\"P\\\"}],\\\"inputs\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}],\\\"outputs\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}]}\"}",
+          "grounded": true,
+          "produced": "[]",
+          "requirements": "[Fact(Relation(\"P\", [Term { sort: \"E\", op: \"literal:0\", args: [] }]))]",
+          "rule": "use-P"
+        },
+        "context": 3,
+        "given_effects": "[]",
+        "parents": [
+          2
+        ],
+        "ready": true
+      },
+      {
+        "application": {
+          "binding": "{\"binding\":[[0,{\"args\":[],\"op\":\"literal:0\",\"sort\":\"E\"}],[1,{\"args\":[],\"op\":\"literal:1\",\"sort\":\"E\"}]],\"relation\":\"{\\\"equalities\\\":[],\\\"facts\\\":[{\\\"args\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"}],\\\"relation\\\":\\\"P\\\"}],\\\"inputs\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}],\\\"outputs\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}]}\"}",
+          "grounded": true,
+          "produced": "[]",
+          "requirements": "[Fact(Relation(\"P\", [Term { sort: \"E\", op: \"literal:0\", args: [] }]))]",
+          "rule": "use-P"
+        },
+        "context": 4,
+        "given_effects": "[]",
+        "parents": [
+          0
+        ],
+        "ready": true
+      },
+      {
+        "application": {
+          "binding": "{\"binding\":[[0,{\"args\":[],\"op\":\"literal:0\",\"sort\":\"E\"}],[1,{\"args\":[],\"op\":\"literal:1\",\"sort\":\"E\"}]],\"relation\":\"{\\\"equalities\\\":[],\\\"facts\\\":[{\\\"args\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"}],\\\"relation\\\":\\\"Q\\\"}],\\\"inputs\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}],\\\"outputs\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}]}\"}",
+          "grounded": true,
+          "produced": "[]",
+          "requirements": "[Fact(Relation(\"Q\", [Term { sort: \"E\", op: \"literal:0\", args: [] }]))]",
+          "rule": "forward-Q"
+        },
+        "context": 5,
+        "given_effects": "[]",
+        "parents": [
+          1
+        ],
+        "ready": true
+      },
+      {
+        "application": null,
+        "context": 6,
+        "given_effects": "[]",
+        "parents": [
+          1,
+          5
+        ],
+        "ready": true
+      },
+      {
+        "application": {
+          "binding": "{\"binding\":[[0,{\"args\":[],\"op\":\"literal:0\",\"sort\":\"E\"}],[1,{\"args\":[],\"op\":\"literal:1\",\"sort\":\"E\"}]],\"relation\":\"{\\\"equalities\\\":[],\\\"facts\\\":[{\\\"args\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"}],\\\"relation\\\":\\\"Q\\\"}],\\\"inputs\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}],\\\"outputs\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}]}\"}",
+          "grounded": true,
+          "produced": "[]",
+          "requirements": "[Fact(Relation(\"Q\", [Term { sort: \"E\", op: \"literal:0\", args: [] }]))]",
+          "rule": "use-Q"
+        },
+        "context": 7,
+        "given_effects": "[]",
+        "parents": [
+          6
+        ],
+        "ready": true
+      },
+      {
+        "application": {
+          "binding": "{\"binding\":[[0,{\"args\":[],\"op\":\"literal:0\",\"sort\":\"E\"}],[1,{\"args\":[],\"op\":\"literal:1\",\"sort\":\"E\"}]],\"relation\":\"{\\\"equalities\\\":[],\\\"facts\\\":[{\\\"args\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"}],\\\"relation\\\":\\\"Q\\\"}],\\\"inputs\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}],\\\"outputs\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}]}\"}",
+          "grounded": true,
+          "produced": "[]",
+          "requirements": "[Fact(Relation(\"Q\", [Term { sort: \"E\", op: \"literal:0\", args: [] }]))]",
+          "rule": "use-Q"
+        },
+        "context": 8,
+        "given_effects": "[]",
+        "parents": [
+          5
+        ],
+        "ready": true
+      }
+    ],
+    "proposals": [
+      {
+        "candidate": 4,
+        "certified_redundant_for_use": true,
+        "old": 3,
+        "removed": 1
+      },
+      {
+        "candidate": 8,
+        "certified_redundant_for_use": false,
+        "old": 7,
+        "removed": 1
+      }
+    ],
+    "scope": "actual native tier-1 egglog rules over supplied positive contracts; not tier-0 provenance extraction; no context union or global dependency deletion"
+  },
+  "dynamic": {
+    "after": {
+      "contexts": [
+        {
+          "application": null,
+          "context": 0,
+          "given_effects": "[Fact(Relation(\"P\", [Term { sort: \"E\", op: \"literal:0\", args: [] }])), Fact(Relation(\"Q\", [Term { sort: \"E\", op: \"literal:1\", args: [] }]))]",
+          "parents": [],
+          "ready": true
+        },
+        {
+          "application": null,
+          "context": 1,
+          "given_effects": "[Fact(Relation(\"Q\", [Term { sort: \"E\", op: \"literal:1\", args: [] }]))]",
+          "parents": [],
+          "ready": true
+        },
+        {
+          "application": {
+            "binding": "{\"binding\":[[0,{\"args\":[],\"op\":\"literal:0\",\"sort\":\"E\"}],[1,{\"args\":[],\"op\":\"literal:1\",\"sort\":\"E\"}]],\"relation\":\"{\\\"equalities\\\":[],\\\"facts\\\":[{\\\"args\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"}],\\\"relation\\\":\\\"P\\\"},{\\\"args\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}],\\\"relation\\\":\\\"Q\\\"}],\\\"inputs\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}],\\\"outputs\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}]}\"}",
+            "grounded": true,
+            "produced": "[Fact(Relation(\"T\", [Term { sort: \"E\", op: \"literal:1\", args: [] }]))]",
+            "requirements": "[Fact(Relation(\"P\", [Term { sort: \"E\", op: \"literal:0\", args: [] }])), Fact(Relation(\"Q\", [Term { sort: \"E\", op: \"literal:1\", args: [] }]))]",
+            "rule": "R"
+          },
+          "context": 2,
+          "given_effects": "[]",
+          "parents": [
+            0
+          ],
+          "ready": true
+        }
+      ],
+      "proposals": [],
+      "scope": "actual native tier-1 egglog rules over supplied positive contracts; not tier-0 provenance extraction; no context union or global dependency deletion"
+    },
+    "before": {
+      "contexts": [
+        {
+          "application": null,
+          "context": 0,
+          "given_effects": "[Fact(Relation(\"P\", [Term { sort: \"E\", op: \"literal:0\", args: [] }]))]",
+          "parents": [],
+          "ready": true
+        },
+        {
+          "application": null,
+          "context": 1,
+          "given_effects": "[Fact(Relation(\"Q\", [Term { sort: \"E\", op: \"literal:1\", args: [] }]))]",
+          "parents": [],
+          "ready": true
+        },
+        {
+          "application": {
+            "binding": "{\"binding\":[[0,{\"args\":[],\"op\":\"literal:0\",\"sort\":\"E\"}],[1,{\"args\":[],\"op\":\"literal:1\",\"sort\":\"E\"}]],\"relation\":\"{\\\"equalities\\\":[],\\\"facts\\\":[{\\\"args\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"}],\\\"relation\\\":\\\"P\\\"},{\\\"args\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}],\\\"relation\\\":\\\"Q\\\"}],\\\"inputs\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}],\\\"outputs\\\":[{\\\"args\\\":[],\\\"op\\\":\\\"in:0\\\",\\\"sort\\\":\\\"E\\\"},{\\\"args\\\":[],\\\"op\\\":\\\"in:1\\\",\\\"sort\\\":\\\"E\\\"}]}\"}",
+            "grounded": true,
+            "produced": "[Fact(Relation(\"T\", [Term { sort: \"E\", op: \"literal:1\", args: [] }]))]",
+            "requirements": "[Fact(Relation(\"P\", [Term { sort: \"E\", op: \"literal:0\", args: [] }])), Fact(Relation(\"Q\", [Term { sort: \"E\", op: \"literal:1\", args: [] }]))]",
+            "rule": "R"
+          },
+          "context": 2,
+          "given_effects": "[]",
+          "parents": [
+            0
+          ],
+          "ready": false
+        }
+      ],
+      "proposals": [],
+      "scope": "actual native tier-1 egglog rules over supplied positive contracts; not tier-0 provenance extraction; no context union or global dependency deletion"
+    },
+    "same_application": 2
+  }
+}

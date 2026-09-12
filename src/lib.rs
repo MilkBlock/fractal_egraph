@@ -12,3 +12,5 @@ pub mod trigger_bridge;
 pub mod prefix_policy;
 
 pub mod fractal_frontier;
+
+pub mod tier1_effects;
