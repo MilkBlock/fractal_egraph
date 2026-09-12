@@ -1,0 +1,53 @@
+{
+  "examples": [
+    {
+      "after": "(EAdd (ECall \"f\" (ESub (ESymbol \"a\") (ECount \"k\"))) (EAdd (EMul (ECount \"k\") (ESymbol \"a\")) (EDiv (EMul (EMul (ECount \"k\") (ESub (ECount \"k\") (EInt 1))) (EInt -1)) (EInt 2))))",
+      "after_cost": 29,
+      "before": "(Reduce (AddArithmetic (ESymbol \"a\") (EInt -1)) (ECount \"k\") (ECall \"f\" (ESub (ESymbol \"a\") (ECount \"k\"))))",
+      "before_cost": 114,
+      "closed_form": true,
+      "name": "arithmetic-add"
+    },
+    {
+      "after": "(EAdd (ECall \"f\" (ESub (ESymbol \"a\") (ECount \"k\"))) (EMul (ECount \"k\") (ESymbol \"m\")))",
+      "after_cost": 13,
+      "before": "(Reduce (AddConstant (ESymbol \"m\")) (ECount \"k\") (ECall \"f\" (ESub (ESymbol \"a\") (ECount \"k\"))))",
+      "before_cost": 112,
+      "closed_form": true,
+      "name": "constant-add"
+    },
+    {
+      "after": "(EMul (ECall \"f\" (ESub (ESymbol \"a\") (ECount \"k\"))) (EPow (ESymbol \"c\") (ECount \"k\")))",
+      "after_cost": 14,
+      "before": "(Reduce (MultiplyConstant (ESymbol \"c\")) (ECount \"k\") (ECall \"f\" (ESub (ESymbol \"a\") (ECount \"k\"))))",
+      "before_cost": 112,
+      "closed_form": true,
+      "name": "constant-multiply"
+    },
+    {
+      "after": "(Reduce (AddConstant (ESymbol \"m\")) (EInt -1) (ECall \"f\" (ESub (ESymbol \"a\") (ECount \"k\"))))",
+      "after_cost": 112,
+      "before": "(Reduce (AddConstant (ESymbol \"m\")) (EInt -1) (ECall \"f\" (ESub (ESymbol \"a\") (ECount \"k\"))))",
+      "before_cost": 112,
+      "closed_form": false,
+      "name": "negative-count"
+    },
+    {
+      "after": "(Reduce (OpaqueFold \"unknown\") (ECount \"k\") (ECall \"f\" (ESub (ESymbol \"a\") (ECount \"k\"))))",
+      "after_cost": 111,
+      "before": "(Reduce (OpaqueFold \"unknown\") (ECount \"k\") (ECall \"f\" (ESub (ESymbol \"a\") (ECount \"k\"))))",
+      "before_cost": 111,
+      "closed_form": false,
+      "name": "unknown-fold"
+    },
+    {
+      "after": "(Reduce (AddConstant (ESymbol \"m\")) (ESymbol \"k\") (ECall \"f\" (ESub (ESymbol \"a\") (ECount \"k\"))))",
+      "after_cost": 112,
+      "before": "(Reduce (AddConstant (ESymbol \"m\")) (ESymbol \"k\") (ECall \"f\" (ESub (ESymbol \"a\") (ECount \"k\"))))",
+      "before_cost": 112,
+      "closed_form": false,
+      "name": "unproved-count"
+    }
+  ],
+  "scope": "Native egglog constructor-cost extraction. Exact scalar endpoint identities; neither removal of intermediate runtime nodes nor automatic HigherRule accumulator discovery."
+}

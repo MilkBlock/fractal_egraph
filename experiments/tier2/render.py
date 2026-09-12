@@ -18,6 +18,10 @@ for r in a:
 parts.append('</table><p>warmup 在训练段跳过 2 步启动 effect 后找到稳定增量；这仍是带阶段条件的候选，不能忽略早期规则分支。unit 学到 m+a=n，从而得到 f(n)=f(m)+(n−m)，条件是 m 可由允许的展开到达。changing 的后半段改变增量，native tier-2 找到 8 个反例。</p><p class="note">端点等价不等于全部 effect 相同。Translate / Compose / Power 只表示坐标变换；中间节点与 union 并未被删除。无限阶结论依赖整数算术、加法结合律以及每一步 guard，原生 i64 运行还须避免溢出。</p>')
 for r in a:
     parts.append(f'<details><summary>{esc(r["name"])} 的族、条件和证据</summary><pre>{esc(r["family"])}</pre><pre>{esc(json.dumps(r["certificate"],ensure_ascii=False,indent=2))}</pre></details>')
+reduction=json.loads((OUT/'reduce.json').read_text())
+parts.append('<h2>显式 Reduce 与解析表达式提取</h2><p><a href="reduce_ir.egg">Reduce datatype、归约规则与成本</a> · <a href="reduce.egg">样例</a> · <a href="reduce.json">原生提取结果</a></p><p>Reduce(fold, count, terminal) 成本 100；普通算术节点 1，除法/幂 2。相同 e-class 中优先选择更便宜的解析表达式，原 Reduce 节点仍保留。HigherRule 需要明确的 ReductionInput，尚未自动推导 R23 的累积摘要。</p>')
+for row in reduction['examples']:
+    parts.append(f'<details><summary>{esc(row["name"])} · cost {row["before_cost"]} → {row["after_cost"]} · {"解析表达式" if row["closed_form"] else "保留 Reduce"}</summary><pre>{esc(row["before"])}</pre><pre>{esc(row["after"])}</pre></details>')
 higher=json.loads((OUT/'higher_native.json').read_text())['higher_rules']
 parts.append('<h2>规则级 HigherRule(k, R, ctx, binding)</h2><p>这些是 native tier-2 对已有连续 smooth 路径折叠出来的有限幂，不只是坐标变换的 Power。R 包含稳定的接口更新和源规则 effect。coarse 注入留在起始 ctx 中，不被默默省略。</p><p><a href="higher_ir.egg">幂折叠规则</a> · <a href="higher.egg">输入</a> · <a href="higher_validation.json">展开验证</a></p>')
 for h in higher:

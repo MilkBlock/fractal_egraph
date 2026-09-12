@@ -1,0 +1,11 @@
+(include "experiments/tier2/ir.egg")
+(relation ReduceExample (String EndpointExpr))
+(let $k (ECount "k"))
+(let $terminal (ECall "f" (ESub (ESymbol "a") $k)))
+(ReduceExample "constant-add" (Reduce (AddConstant (ESymbol "m")) $k $terminal))
+(ReduceExample "arithmetic-add" (Reduce (AddArithmetic (ESymbol "a") (EInt -1)) $k $terminal))
+(ReduceExample "constant-multiply" (Reduce (MultiplyConstant (ESymbol "c")) $k $terminal))
+(ReduceExample "unknown-fold" (Reduce (OpaqueFold "unknown") $k $terminal))
+(ReduceExample "unproved-count" (Reduce (AddConstant (ESymbol "m")) (ESymbol "k") $terminal))
+(ReduceExample "negative-count" (Reduce (AddConstant (ESymbol "m")) (EInt -1) $terminal))
+; The runner extracts before and after saturation using native constructor costs.

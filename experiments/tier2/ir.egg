@@ -47,3 +47,5 @@
 (relation InjectionEdge (i64 i64 i64))
 (rule ((Before a b slot) (At b f) (NeedsBoundary f))
       ((InjectionEdge a b slot)) :ruleset tier2 :name "boundary-edge")
+
+(include "experiments/tier2/reduce_ir.egg")

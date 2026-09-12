@@ -81,3 +81,31 @@ python3 experiments/tier2/run.py
 入口 `index.html`；原生规则在 `ir.egg` 和 `higher_ir.egg`；真实 Math 输入在 `math.egg` / `higher.egg`。
 结果是 `math_native.json`、`higher_native.json`、`higher_validation.json`、`affine*.json`。
 固定 tier-1 输入来自 `experiments/tier1_extract`，无需重跑大型 tier-0 profile，也不依赖未提交的 math_tier1 目录。
+
+## 显式 Reduce 与 cost
+
+`reduce_ir.egg` 定义 EndpointExpr / Accumulation 两个互递归 sort。
+`Reduce(fold, count, terminal)` 是 EndpointExpr 的显式构造器，cost=100。
+普通符号、调用、加减乘成本为 1，除法和幂为 2。使用原生 egglog 的树成本提取，
+不是事后字符串替换；该成本只是偏好解析表达式，并不保证任意巨大闭式一定胜出。
+
+支持的先验恒等式：
+
+- AddConstant(c)：terminal + k*c。
+- AddArithmetic(first,step)：terminal + k*first + k*(k-1)*step/2。
+- MultiplyConstant(c)：terminal * c^k。
+- 任意重复更新零次返回 terminal。
+
+前提为精确标量算术、k 是非负整数，常量摘要中的参数相对于重复次数不变。
+`ECount("k")` 明确表示非负整数参数；普通 `ESymbol("k")` 不具有此假设。
+负次数、未知 OpaqueFold 和未证明非负的符号次数保留为 Reduce。
+这里不使用机器整数去常量折叠符号多项式；它不是浮点、矩阵或任意非交换算子的恒等式。
+
+`higher_ir.egg` 的 `ReductionInput(higher, fold, terminal)` 是调用者提供的累积摘要；
+`higher-endpoint-reduce` 用 HigherRule 内的 k 生成 `EndpointView(higher, Reduce(...))`。
+随后运行 `endpoint-reduce`，同一端点 e-class 才出现便宜的解析表示。
+没有为真实 R23 擅自声明加法/等差摘要，也没有删除原 tier-0 或 tier-1 中间结构。
+
+`reduce.json` 保存原生提取前后表达式和成本。常量累加 112→13，等差累加 114→29；
+三个应保留的反例均仍含 Reduce。`tests/tier2_reduce.rs` 另用 81 个有限求和案例检查
+等差闭式、检查原 Reduce 节点仍存在，以及 HigherRule 到 Reduce 的连接。
