@@ -51,7 +51,22 @@ fn profile_rounds(path: &str, max_rounds: Option<usize>) -> Json {
         }
     }
     let trace = TraceSession::with_dependencies();
-    eg.run_program_with_trace(commands, &trace).unwrap();
+    let mut event_round = BTreeMap::new();
+    let mut round = 0usize;
+    for command in commands {
+        if let Command::RunSchedule(egglog::ast::GenericSchedule::Repeat(_, n, inner)) = &command {
+            if matches!(**inner, egglog::ast::GenericSchedule::Run(..)) {
+                for _ in 0..*n {
+                    round += 1;
+                    let before: BTreeSet<_> = trace.matches().iter().map(|m|m.event_id).collect();
+                    eg.run_program_with_trace(vec![Command::RunSchedule((**inner).clone())], &trace).unwrap();
+                    for m in trace.matches() {if !before.contains(&m.event_id){event_round.insert(m.event_id,round);}}
+                }
+                continue;
+            }
+        }
+        eg.run_program_with_trace(vec![command], &trace).unwrap();
+    }
     let matches: BTreeMap<_, _> = trace
         .matches()
         .into_iter()
@@ -216,7 +231,7 @@ fn profile_rounds(path: &str, max_rounds: Option<usize>) -> Json {
         rows.sort_by(|a, b| b.1.occurrences.cmp(&a.1.occurrences).then(a.0.cmp(&b.0)));
         rows.into_iter().enumerate().map(|(i,(shape,c))|json!({"rank":i+1,"shape":shape,"observed_occurrences":c.occurrences,"productive_consumer_occurrences":c.productive,"scopes":c.scopes,"example_matches":c.examples,"continued_instances":c.continued.len(),"next_motif_counts":c.next_motifs,"next_rule_counts":c.next})).collect::<Vec<_>>()
     };
-    json!({"coarse_motif_classes":coarse_shapes.len(),"source_mapping":"compiler source spans mapped to normalized AST positions; motif identity includes endpoint positions","profile_round_limit":max_rounds,"source":path,"scope":"historical committed row-dependency motifs, not generated or executed shortcut rules","native_checks":"original native program completed; normalized profiled program completed with explicit profile_round_limit when supplied","rule_labels":rule_stats,"pair_rankings":ranked(pairs),"motif_rankings":ranked(motifs),"witnesses":evidence,"surviving_reads_without_same_session_producer":unknown_reads,"executed_compiled_macros":0,"selection_policy":"none: ranking is observational, no activation policy","limitations":["one execution per scope, not independent benchmark repetitions","motifs retain producer-instance aliasing and same-table read ordinals; not full typed binding-isomorphism classes","boundary inputs and union support remain explicit; not closed rewrite certificates","historical support remains counted even if row origins are invalidated later","union-only causes are shown as rebuild support, not ranked as Inserted producers"]})
+    json!({"events":matches.values().map(|m|json!({"id":m.event_id,"rule":m.rule,"scope":scope(m.event_id),"round":event_round.get(&m.event_id),"productive":productive.contains(&m.event_id),"bindings":m.bindings.iter().filter_map(|b|b.name.as_ref().map(|n|(n.to_string(),format!("{:?}",b.value)))).collect::<BTreeMap<_,_>>()})).collect::<Vec<_>>(),"round_tracking":"explicit repeat(run) boundaries only; other schedule forms have null rounds","coarse_motif_classes":coarse_shapes.len(),"source_mapping":"compiler source spans mapped to normalized AST positions; motif identity includes endpoint positions","profile_round_limit":max_rounds,"source":path,"scope":"historical committed row-dependency motifs, not generated or executed shortcut rules","native_checks":"original native program completed; normalized profiled program completed with explicit profile_round_limit when supplied","rule_labels":rule_stats,"pair_rankings":ranked(pairs),"motif_rankings":ranked(motifs),"witnesses":evidence,"surviving_reads_without_same_session_producer":unknown_reads,"executed_compiled_macros":0,"selection_policy":"none: ranking is observational, no activation policy","limitations":["one execution per scope, not independent benchmark repetitions","motifs retain producer-instance aliasing and same-table read ordinals; not full typed binding-isomorphism classes","boundary inputs and union support remain explicit; not closed rewrite certificates","historical support remains counted even if row origins are invalidated later","union-only causes are shown as rebuild support, not ranked as Inserted producers"]})
 }
 fn main() {
     let path = std::env::args()

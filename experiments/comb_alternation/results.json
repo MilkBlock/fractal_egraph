@@ -1,0 +1,5021 @@
+{
+  "scope": "observational native row-provenance paths; basic rules are one-step family proxies, not certified fractal macros",
+  "split": "root events in rounds 1-4 train, rounds 5-6 heldout; earlier ancestors allowed and overlap reported. Strict all-heldout-event path counts are reported separately.",
+  "normalization": "rule identity + endpoint AST sites + cross-stage binding value aliasing; external branches remain unmodeled, not closed shortcut rules",
+  "controls": "same path length and same two-rule multiset; top-8 templates per arm learned on training only",
+  "lengths": {
+    "4": {
+      "total_paths": 3553,
+      "strict_all_events_heldout_paths": 0,
+      "groups": {
+        "blocked": {
+          "rule_names_only_ablation": {
+            "selected_templates": 1,
+            "test_hits": {
+              "paths": 14,
+              "distinct_roots": 14,
+              "productive_roots": 0,
+              "distinct_entries": 6,
+              "distinct_concrete_bindings": 14,
+              "distinct_templates": 8,
+              "covered_events": 40,
+              "covered_producer_write_ids": 37
+            },
+            "scope": "ignores binding wiring; optimistic control only"
+          },
+          "train": {
+            "paths": 2,
+            "distinct_roots": 2,
+            "productive_roots": 0,
+            "distinct_entries": 1,
+            "distinct_concrete_bindings": 2,
+            "distinct_templates": 2,
+            "covered_events": 6,
+            "covered_producer_write_ids": 6
+          },
+          "test": {
+            "paths": 74,
+            "distinct_roots": 66,
+            "productive_roots": 18,
+            "distinct_entries": 16,
+            "distinct_concrete_bindings": 74,
+            "distinct_templates": 46,
+            "covered_events": 165,
+            "covered_producer_write_ids": 144
+          },
+          "cross_boundary_paths": 74,
+          "library_budget": 8,
+          "selected_templates": 2,
+          "test_hits": {
+            "paths": 0,
+            "distinct_roots": 0,
+            "productive_roots": 0,
+            "distinct_entries": 0,
+            "distinct_concrete_bindings": 0,
+            "distinct_templates": 0,
+            "covered_events": 0,
+            "covered_producer_write_ids": 0
+          },
+          "test_path_hit_rate": 0.0,
+          "top_train": [
+            {
+              "support": 1,
+              "template": {
+                "bindings": [
+                  {
+                    "a": 0,
+                    "b": 1,
+                    "x": 1
+                  },
+                  {
+                    "a": 2,
+                    "b": 3,
+                    "x": 1
+                  },
+                  {
+                    "a": 2,
+                    "b": 4
+                  },
+                  {
+                    "a": 4,
+                    "b": 2
+                  }
+                ],
+                "connections": [
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1"
+                      ],
+                      "table": "Integral"
+                    },
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1/args/0"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1/args/0"
+                      ],
+                      "table": "Mul"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/0"
+                      ],
+                      "table": "Mul"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Mul"
+                    }
+                  ]
+                ],
+                "rules": [
+                  "R23",
+                  "R23",
+                  "R1",
+                  "R1"
+                ]
+              }
+            },
+            {
+              "support": 1,
+              "template": {
+                "bindings": [
+                  {
+                    "a": 0,
+                    "b": 1,
+                    "x": 1
+                  },
+                  {
+                    "a": 2,
+                    "b": 3,
+                    "x": 1
+                  },
+                  {
+                    "a": 4,
+                    "b": 5
+                  },
+                  {
+                    "a": 5,
+                    "b": 4
+                  }
+                ],
+                "connections": [
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1"
+                      ],
+                      "table": "Integral"
+                    },
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1/args/0"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1/args/0"
+                      ],
+                      "table": "Mul"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1/args/0"
+                      ],
+                      "table": "Mul"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Mul"
+                    }
+                  ]
+                ],
+                "rules": [
+                  "R23",
+                  "R23",
+                  "R1",
+                  "R1"
+                ]
+              }
+            }
+          ],
+          "example_paths": [
+            {
+              "events": [
+                42,
+                203,
+                362,
+                716
+              ],
+              "rules": [
+                "R23",
+                "R23",
+                "R1",
+                "R1"
+              ],
+              "external_producers": 0
+            },
+            {
+              "events": [
+                42,
+                203,
+                378,
+                722
+              ],
+              "rules": [
+                "R23",
+                "R23",
+                "R1",
+                "R1"
+              ],
+              "external_producers": 0
+            },
+            {
+              "events": [
+                152,
+                400,
+                670,
+                1397
+              ],
+              "rules": [
+                "R2",
+                "R2",
+                "R0",
+                "R0"
+              ],
+              "external_producers": 1
+            }
+          ]
+        },
+        "alternating": {
+          "rule_names_only_ablation": {
+            "selected_templates": 4,
+            "test_hits": {
+              "paths": 214,
+              "distinct_roots": 136,
+              "productive_roots": 89,
+              "distinct_entries": 16,
+              "distinct_concrete_bindings": 213,
+              "distinct_templates": 35,
+              "covered_events": 211,
+              "covered_producer_write_ids": 96
+            },
+            "scope": "ignores binding wiring; optimistic control only"
+          },
+          "train": {
+            "paths": 15,
+            "distinct_roots": 13,
+            "productive_roots": 10,
+            "distinct_entries": 4,
+            "distinct_concrete_bindings": 15,
+            "distinct_templates": 11,
+            "covered_events": 27,
+            "covered_producer_write_ids": 17
+          },
+          "test": {
+            "paths": 330,
+            "distinct_roots": 234,
+            "productive_roots": 160,
+            "distinct_entries": 30,
+            "distinct_concrete_bindings": 329,
+            "distinct_templates": 59,
+            "covered_events": 338,
+            "covered_producer_write_ids": 205
+          },
+          "cross_boundary_paths": 330,
+          "library_budget": 8,
+          "selected_templates": 8,
+          "test_hits": {
+            "paths": 41,
+            "distinct_roots": 33,
+            "productive_roots": 15,
+            "distinct_entries": 5,
+            "distinct_concrete_bindings": 41,
+            "distinct_templates": 5,
+            "covered_events": 69,
+            "covered_producer_write_ids": 44
+          },
+          "test_path_hit_rate": 0.12424242424242424,
+          "top_train": [
+            {
+              "support": 5,
+              "template": {
+                "bindings": [
+                  {
+                    "a": 0,
+                    "b": 1
+                  },
+                  {
+                    "a": 1,
+                    "b": 2,
+                    "c": 3
+                  },
+                  {
+                    "a": 1,
+                    "b": 2
+                  },
+                  {
+                    "a": 2,
+                    "b": 4,
+                    "c": 5
+                  }
+                ],
+                "connections": [
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Add"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/0"
+                      ],
+                      "table": "Add"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Add"
+                    }
+                  ]
+                ],
+                "rules": [
+                  "R0",
+                  "R2",
+                  "R0",
+                  "R2"
+                ]
+              }
+            },
+            {
+              "support": 1,
+              "template": {
+                "bindings": [
+                  {
+                    "a": 0,
+                    "b": 1,
+                    "x": 1
+                  },
+                  {
+                    "a": 2,
+                    "b": 3
+                  },
+                  {
+                    "a": 3,
+                    "b": 2,
+                    "x": 1
+                  },
+                  {
+                    "a": 3,
+                    "b": 4
+                  }
+                ],
+                "connections": [
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1/args/0"
+                      ],
+                      "table": "Mul"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1/args/0"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Mul"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/0"
+                      ],
+                      "table": "Mul"
+                    }
+                  ]
+                ],
+                "rules": [
+                  "R23",
+                  "R1",
+                  "R23",
+                  "R1"
+                ]
+              }
+            },
+            {
+              "support": 1,
+              "template": {
+                "bindings": [
+                  {
+                    "a": 0,
+                    "b": 1,
+                    "x": 1
+                  },
+                  {
+                    "a": 2,
+                    "b": 3
+                  },
+                  {
+                    "a": 3,
+                    "b": 2,
+                    "x": 1
+                  },
+                  {
+                    "a": 4,
+                    "b": 5
+                  }
+                ],
+                "connections": [
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1/args/0"
+                      ],
+                      "table": "Mul"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1/args/0"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Mul"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1/args/0"
+                      ],
+                      "table": "Mul"
+                    }
+                  ]
+                ],
+                "rules": [
+                  "R23",
+                  "R1",
+                  "R23",
+                  "R1"
+                ]
+              }
+            },
+            {
+              "support": 1,
+              "template": {
+                "bindings": [
+                  {
+                    "a": 0,
+                    "b": 1
+                  },
+                  {
+                    "a": 1,
+                    "b": 0,
+                    "x": 1
+                  },
+                  {
+                    "a": 2,
+                    "b": 3
+                  },
+                  {
+                    "a": 3,
+                    "b": 2,
+                    "x": 1
+                  }
+                ],
+                "connections": [
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1/args/0"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Mul"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1/args/0"
+                      ],
+                      "table": "Mul"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1/args/0"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Mul"
+                    }
+                  ]
+                ],
+                "rules": [
+                  "R1",
+                  "R23",
+                  "R1",
+                  "R23"
+                ]
+              }
+            },
+            {
+              "support": 1,
+              "template": {
+                "bindings": [
+                  {
+                    "a": 0,
+                    "b": 1
+                  },
+                  {
+                    "a": 1,
+                    "b": 2,
+                    "c": 3
+                  },
+                  {
+                    "a": 1,
+                    "b": 2
+                  },
+                  {
+                    "a": 3,
+                    "b": 2,
+                    "c": 1
+                  }
+                ],
+                "connections": [
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Add"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/0"
+                      ],
+                      "table": "Add"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1/args/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Add"
+                    }
+                  ]
+                ],
+                "rules": [
+                  "R0",
+                  "R2",
+                  "R0",
+                  "R2"
+                ]
+              }
+            },
+            {
+              "support": 1,
+              "template": {
+                "bindings": [
+                  {
+                    "a": 0,
+                    "b": 1
+                  },
+                  {
+                    "a": 1,
+                    "b": 2,
+                    "c": 3
+                  },
+                  {
+                    "a": 4,
+                    "b": 3
+                  },
+                  {
+                    "a": 3,
+                    "b": 1,
+                    "c": 2
+                  }
+                ],
+                "connections": [
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Add"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Add"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Add"
+                    }
+                  ]
+                ],
+                "rules": [
+                  "R0",
+                  "R2",
+                  "R0",
+                  "R2"
+                ]
+              }
+            },
+            {
+              "support": 1,
+              "template": {
+                "bindings": [
+                  {
+                    "a": 0,
+                    "b": 1
+                  },
+                  {
+                    "a": 1,
+                    "b": 2,
+                    "c": 3
+                  },
+                  {
+                    "a": 4,
+                    "b": 3
+                  },
+                  {
+                    "a": 3,
+                    "b": 2,
+                    "c": 1
+                  }
+                ],
+                "connections": [
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Add"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Add"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Add"
+                    }
+                  ]
+                ],
+                "rules": [
+                  "R0",
+                  "R2",
+                  "R0",
+                  "R2"
+                ]
+              }
+            },
+            {
+              "support": 1,
+              "template": {
+                "bindings": [
+                  {
+                    "a": 0,
+                    "b": 1
+                  },
+                  {
+                    "a": 2,
+                    "b": 1,
+                    "c": 0
+                  },
+                  {
+                    "a": 2,
+                    "b": 1
+                  },
+                  {
+                    "a": 0,
+                    "b": 1,
+                    "c": 2
+                  }
+                ],
+                "connections": [
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1/args/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Mul"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/0"
+                      ],
+                      "table": "Mul"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1/args/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Mul"
+                    }
+                  ]
+                ],
+                "rules": [
+                  "R1",
+                  "R3",
+                  "R1",
+                  "R3"
+                ]
+              }
+            }
+          ],
+          "example_paths": [
+            {
+              "events": [
+                42,
+                136,
+                469,
+                772
+              ],
+              "rules": [
+                "R23",
+                "R1",
+                "R23",
+                "R1"
+              ],
+              "external_producers": 0
+            },
+            {
+              "events": [
+                42,
+                136,
+                469,
+                784
+              ],
+              "rules": [
+                "R23",
+                "R1",
+                "R23",
+                "R1"
+              ],
+              "external_producers": 0
+            },
+            {
+              "events": [
+                10,
+                155,
+                324,
+                807
+              ],
+              "rules": [
+                "R0",
+                "R2",
+                "R0",
+                "R2"
+              ],
+              "external_producers": 2
+            }
+          ]
+        },
+        "repeat_only": {
+          "rule_names_only_ablation": {
+            "selected_templates": 1,
+            "test_hits": {
+              "paths": 27,
+              "distinct_roots": 27,
+              "productive_roots": 27,
+              "distinct_entries": 6,
+              "distinct_concrete_bindings": 27,
+              "distinct_templates": 21,
+              "covered_events": 45,
+              "covered_producer_write_ids": 48
+            },
+            "scope": "ignores binding wiring; optimistic control only"
+          },
+          "train": {
+            "paths": 1,
+            "distinct_roots": 1,
+            "productive_roots": 1,
+            "distinct_entries": 1,
+            "distinct_concrete_bindings": 1,
+            "distinct_templates": 1,
+            "covered_events": 4,
+            "covered_producer_write_ids": 6
+          },
+          "test": {
+            "paths": 73,
+            "distinct_roots": 69,
+            "productive_roots": 51,
+            "distinct_entries": 13,
+            "distinct_concrete_bindings": 73,
+            "distinct_templates": 51,
+            "covered_events": 117,
+            "covered_producer_write_ids": 83
+          },
+          "cross_boundary_paths": 73,
+          "library_budget": 8,
+          "selected_templates": 1,
+          "test_hits": {
+            "paths": 0,
+            "distinct_roots": 0,
+            "productive_roots": 0,
+            "distinct_entries": 0,
+            "distinct_concrete_bindings": 0,
+            "distinct_templates": 0,
+            "covered_events": 0,
+            "covered_producer_write_ids": 0
+          },
+          "test_path_hit_rate": 0.0,
+          "top_train": [
+            {
+              "support": 1,
+              "template": {
+                "bindings": [
+                  {
+                    "a": 0,
+                    "b": 1,
+                    "x": 1
+                  },
+                  {
+                    "a": 2,
+                    "b": 3,
+                    "x": 1
+                  },
+                  {
+                    "a": 4,
+                    "b": 5,
+                    "x": 1
+                  },
+                  {
+                    "a": 6,
+                    "b": 7,
+                    "x": 1
+                  }
+                ],
+                "connections": [
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1"
+                      ],
+                      "table": "Integral"
+                    },
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1/args/0"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1/args/0"
+                      ],
+                      "table": "Mul"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1"
+                      ],
+                      "table": "Integral"
+                    },
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1/args/0"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1/args/0"
+                      ],
+                      "table": "Mul"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1"
+                      ],
+                      "table": "Integral"
+                    },
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1/args/0"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1/args/0"
+                      ],
+                      "table": "Mul"
+                    }
+                  ]
+                ],
+                "rules": [
+                  "R23",
+                  "R23",
+                  "R23",
+                  "R23"
+                ]
+              }
+            }
+          ],
+          "example_paths": [
+            {
+              "events": [
+                42,
+                203,
+                466,
+                970
+              ],
+              "rules": [
+                "R23",
+                "R23",
+                "R23",
+                "R23"
+              ],
+              "external_producers": 0
+            },
+            {
+              "events": [
+                152,
+                421,
+                822,
+                1778
+              ],
+              "rules": [
+                "R2",
+                "R2",
+                "R2",
+                "R2"
+              ],
+              "external_producers": 3
+            },
+            {
+              "events": [
+                152,
+                418,
+                825,
+                1826
+              ],
+              "rules": [
+                "R2",
+                "R2",
+                "R2",
+                "R2"
+              ],
+              "external_producers": 2
+            }
+          ]
+        },
+        "other": {
+          "rule_names_only_ablation": {
+            "selected_templates": 8,
+            "test_hits": {
+              "paths": 154,
+              "distinct_roots": 129,
+              "productive_roots": 81,
+              "distinct_entries": 4,
+              "distinct_concrete_bindings": 152,
+              "distinct_templates": 52,
+              "covered_events": 175,
+              "covered_producer_write_ids": 63
+            },
+            "scope": "ignores binding wiring; optimistic control only"
+          },
+          "train": {
+            "paths": 192,
+            "distinct_roots": 130,
+            "productive_roots": 98,
+            "distinct_entries": 10,
+            "distinct_concrete_bindings": 192,
+            "distinct_templates": 153,
+            "covered_events": 200,
+            "covered_producer_write_ids": 129
+          },
+          "test": {
+            "paths": 2866,
+            "distinct_roots": 1061,
+            "productive_roots": 699,
+            "distinct_entries": 59,
+            "distinct_concrete_bindings": 2855,
+            "distinct_templates": 1419,
+            "covered_events": 1233,
+            "covered_producer_write_ids": 601
+          },
+          "cross_boundary_paths": 2866,
+          "library_budget": 8,
+          "selected_templates": 8,
+          "test_hits": {
+            "paths": 6,
+            "distinct_roots": 6,
+            "productive_roots": 6,
+            "distinct_entries": 3,
+            "distinct_concrete_bindings": 6,
+            "distinct_templates": 4,
+            "covered_events": 16,
+            "covered_producer_write_ids": 11
+          },
+          "test_path_hit_rate": 0.00209351011863224,
+          "top_train": [
+            {
+              "support": 4,
+              "template": {
+                "bindings": [
+                  {
+                    "a": 0,
+                    "b": 1,
+                    "c": 0
+                  },
+                  {
+                    "a": 2,
+                    "b": 3,
+                    "c": 4
+                  },
+                  {
+                    "a": 2,
+                    "b": 3
+                  },
+                  {
+                    "a": 3,
+                    "b": 5,
+                    "c": 6
+                  }
+                ],
+                "connections": [
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1/args/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Add"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/0"
+                      ],
+                      "table": "Add"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Add"
+                    }
+                  ]
+                ],
+                "rules": [
+                  "R9",
+                  "R2",
+                  "R0",
+                  "R2"
+                ]
+              }
+            },
+            {
+              "support": 4,
+              "template": {
+                "bindings": [
+                  {
+                    "a": 0,
+                    "b": 1
+                  },
+                  {
+                    "a": 0,
+                    "b": 2,
+                    "x": 3
+                  },
+                  {
+                    "a": 4,
+                    "b": 5,
+                    "x": 3
+                  },
+                  {
+                    "a": 6,
+                    "b": 7,
+                    "x": 3
+                  }
+                ],
+                "connections": [
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1/args/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Add"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1"
+                      ],
+                      "table": "Diff"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1/args/1"
+                      ],
+                      "table": "Diff"
+                    }
+                  ]
+                ],
+                "rules": [
+                  "R4",
+                  "R14",
+                  "R15",
+                  "R15"
+                ]
+              }
+            },
+            {
+              "support": 4,
+              "template": {
+                "bindings": [
+                  {
+                    "a": 0,
+                    "b": 1
+                  },
+                  {
+                    "a": 0,
+                    "b": 2
+                  },
+                  {
+                    "a": 2,
+                    "b": 3,
+                    "c": 4
+                  },
+                  {
+                    "a": 5,
+                    "b": 6,
+                    "c": 4
+                  }
+                ],
+                "connections": [
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Add"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Add"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1/args/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Add"
+                    }
+                  ]
+                ],
+                "rules": [
+                  "R4",
+                  "R0",
+                  "R2",
+                  "R2"
+                ]
+              }
+            },
+            {
+              "support": 2,
+              "template": {
+                "bindings": [
+                  {
+                    "a": 0,
+                    "b": 1,
+                    "x": 1
+                  },
+                  {
+                    "a": 2,
+                    "b": 3,
+                    "x": 1
+                  },
+                  {
+                    "a": 2,
+                    "b": 4
+                  },
+                  {
+                    "a": 4,
+                    "b": 5,
+                    "c": 6
+                  }
+                ],
+                "connections": [
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1"
+                      ],
+                      "table": "Integral"
+                    },
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1/args/0"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1/args/0"
+                      ],
+                      "table": "Mul"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/0"
+                      ],
+                      "table": "Mul"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Mul"
+                    }
+                  ]
+                ],
+                "rules": [
+                  "R23",
+                  "R23",
+                  "R1",
+                  "R3"
+                ]
+              }
+            },
+            {
+              "support": 2,
+              "template": {
+                "bindings": [
+                  {
+                    "a": 0,
+                    "b": 1,
+                    "x": 1
+                  },
+                  {
+                    "a": 2,
+                    "b": 3
+                  },
+                  {
+                    "a": 3,
+                    "b": 2,
+                    "x": 1
+                  },
+                  {
+                    "a": 4,
+                    "b": 5,
+                    "x": 1
+                  }
+                ],
+                "connections": [
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1/args/0"
+                      ],
+                      "table": "Mul"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1/args/0"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Mul"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/0/args/1"
+                      ],
+                      "table": "Integral"
+                    }
+                  ]
+                ],
+                "rules": [
+                  "R23",
+                  "R1",
+                  "R23",
+                  "R23"
+                ]
+              }
+            },
+            {
+              "support": 2,
+              "template": {
+                "bindings": [
+                  {
+                    "a": 0,
+                    "b": 1
+                  },
+                  {
+                    "a": 0,
+                    "b": 2,
+                    "x": 3
+                  },
+                  {
+                    "a": 1,
+                    "b": 4,
+                    "x": 3
+                  },
+                  {
+                    "a": 5,
+                    "b": 6,
+                    "x": 3
+                  }
+                ],
+                "connections": [
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1/args/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Add"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1"
+                      ],
+                      "table": "Diff"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1/args/1"
+                      ],
+                      "table": "Diff"
+                    }
+                  ]
+                ],
+                "rules": [
+                  "R4",
+                  "R14",
+                  "R15",
+                  "R15"
+                ]
+              }
+            },
+            {
+              "support": 2,
+              "template": {
+                "bindings": [
+                  {
+                    "a": 0,
+                    "b": 1
+                  },
+                  {
+                    "a": 0,
+                    "b": 2,
+                    "x": 3
+                  },
+                  {
+                    "a": 4,
+                    "b": 5,
+                    "x": 3
+                  },
+                  {
+                    "a": 4,
+                    "b": 6
+                  }
+                ],
+                "connections": [
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1/args/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Add"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1"
+                      ],
+                      "table": "Diff"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/0"
+                      ],
+                      "table": "Mul"
+                    }
+                  ]
+                ],
+                "rules": [
+                  "R4",
+                  "R14",
+                  "R15",
+                  "R1"
+                ]
+              }
+            },
+            {
+              "support": 2,
+              "template": {
+                "bindings": [
+                  {
+                    "a": 0,
+                    "b": 1
+                  },
+                  {
+                    "a": 0,
+                    "b": 2,
+                    "x": 3
+                  },
+                  {
+                    "a": 4,
+                    "b": 5,
+                    "x": 3
+                  },
+                  {
+                    "a": 5,
+                    "b": 6
+                  }
+                ],
+                "connections": [
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1/args/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1"
+                      ],
+                      "table": "Add"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1"
+                      ],
+                      "table": "Diff"
+                    }
+                  ],
+                  [
+                    {
+                      "consumer_sites": [
+                        "body/0/expr/1"
+                      ],
+                      "kind": "row",
+                      "producer_sites": [
+                        "head/0/expr/1/args/1"
+                      ],
+                      "table": "Mul"
+                    }
+                  ]
+                ],
+                "rules": [
+                  "R4",
+                  "R14",
+                  "R15",
+                  "R1"
+                ]
+              }
+            }
+          ],
+          "example_paths": [
+            {
+              "events": [
+                24,
+                110,
+                412,
+                650
+              ],
+              "rules": [
+                "R4",
+                "R0",
+                "R2",
+                "R0"
+              ],
+              "external_producers": 0
+            },
+            {
+              "events": [
+                24,
+                110,
+                412,
+                652
+              ],
+              "rules": [
+                "R4",
+                "R0",
+                "R2",
+                "R0"
+              ],
+              "external_producers": 0
+            },
+            {
+              "events": [
+                24,
+                152,
+                421,
+                654
+              ],
+              "rules": [
+                "R4",
+                "R2",
+                "R2",
+                "R0"
+              ],
+              "external_producers": 1
+            }
+          ]
+        }
+      },
+      "matched_pairs": {
+        "R0,R15": {
+          "common_library_budget": 0,
+          "blocked": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 1,
+              "distinct_roots": 1,
+              "productive_roots": 0,
+              "distinct_entries": 1,
+              "distinct_concrete_bindings": 1,
+              "distinct_templates": 1,
+              "covered_events": 4,
+              "covered_producer_write_ids": 3
+            },
+            "cross_boundary_paths": 1,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": 0.0,
+            "top_train": [],
+            "example_paths": [
+              {
+                "events": [
+                  457,
+                  940,
+                  1445,
+                  3473
+                ],
+                "rules": [
+                  "R15",
+                  "R15",
+                  "R0",
+                  "R0"
+                ],
+                "external_producers": 1
+              }
+            ]
+          },
+          "alternating": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "cross_boundary_paths": 0,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": null,
+            "top_train": [],
+            "example_paths": []
+          }
+        },
+        "R0,R2": {
+          "common_library_budget": 0,
+          "blocked": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 18,
+              "distinct_roots": 18,
+              "productive_roots": 0,
+              "distinct_entries": 5,
+              "distinct_concrete_bindings": 18,
+              "distinct_templates": 10,
+              "covered_events": 50,
+              "covered_producer_write_ids": 42
+            },
+            "cross_boundary_paths": 18,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": 0.0,
+            "top_train": [],
+            "example_paths": [
+              {
+                "events": [
+                  152,
+                  400,
+                  670,
+                  1397
+                ],
+                "rules": [
+                  "R2",
+                  "R2",
+                  "R0",
+                  "R0"
+                ],
+                "external_producers": 1
+              },
+              {
+                "events": [
+                  152,
+                  421,
+                  654,
+                  1439
+                ],
+                "rules": [
+                  "R2",
+                  "R2",
+                  "R0",
+                  "R0"
+                ],
+                "external_producers": 1
+              },
+              {
+                "events": [
+                  152,
+                  400,
+                  714,
+                  1441
+                ],
+                "rules": [
+                  "R2",
+                  "R2",
+                  "R0",
+                  "R0"
+                ],
+                "external_producers": 1
+              }
+            ]
+          },
+          "alternating": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 8,
+              "distinct_roots": 7,
+              "productive_roots": 6,
+              "distinct_entries": 1,
+              "distinct_concrete_bindings": 8,
+              "distinct_templates": 4,
+              "covered_events": 11,
+              "covered_producer_write_ids": 5
+            },
+            "test": {
+              "paths": 280,
+              "distinct_roots": 195,
+              "productive_roots": 136,
+              "distinct_entries": 16,
+              "distinct_concrete_bindings": 279,
+              "distinct_templates": 31,
+              "covered_events": 250,
+              "covered_producer_write_ids": 138
+            },
+            "cross_boundary_paths": 280,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": 0.0,
+            "top_train": [],
+            "example_paths": [
+              {
+                "events": [
+                  10,
+                  155,
+                  324,
+                  807
+                ],
+                "rules": [
+                  "R0",
+                  "R2",
+                  "R0",
+                  "R2"
+                ],
+                "external_producers": 2
+              },
+              {
+                "events": [
+                  10,
+                  155,
+                  324,
+                  813
+                ],
+                "rules": [
+                  "R0",
+                  "R2",
+                  "R0",
+                  "R2"
+                ],
+                "external_producers": 2
+              },
+              {
+                "events": [
+                  10,
+                  155,
+                  324,
+                  819
+                ],
+                "rules": [
+                  "R0",
+                  "R2",
+                  "R0",
+                  "R2"
+                ],
+                "external_producers": 2
+              }
+            ]
+          }
+        },
+        "R1,R15": {
+          "common_library_budget": 0,
+          "blocked": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 11,
+              "distinct_roots": 11,
+              "productive_roots": 0,
+              "distinct_entries": 3,
+              "distinct_concrete_bindings": 11,
+              "distinct_templates": 7,
+              "covered_events": 31,
+              "covered_producer_write_ids": 26
+            },
+            "cross_boundary_paths": 11,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": 0.0,
+            "top_train": [],
+            "example_paths": [
+              {
+                "events": [
+                  457,
+                  943,
+                  1565,
+                  3817
+                ],
+                "rules": [
+                  "R15",
+                  "R15",
+                  "R1",
+                  "R1"
+                ],
+                "external_producers": 1
+              },
+              {
+                "events": [
+                  454,
+                  937,
+                  1551,
+                  3825
+                ],
+                "rules": [
+                  "R15",
+                  "R15",
+                  "R1",
+                  "R1"
+                ],
+                "external_producers": 1
+              },
+              {
+                "events": [
+                  451,
+                  934,
+                  1583,
+                  3913
+                ],
+                "rules": [
+                  "R15",
+                  "R15",
+                  "R1",
+                  "R1"
+                ],
+                "external_producers": 1
+              }
+            ]
+          },
+          "alternating": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 1,
+              "distinct_roots": 1,
+              "productive_roots": 1,
+              "distinct_entries": 1,
+              "distinct_concrete_bindings": 1,
+              "distinct_templates": 1,
+              "covered_events": 4,
+              "covered_producer_write_ids": 3
+            },
+            "cross_boundary_paths": 1,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": 0.0,
+            "top_train": [],
+            "example_paths": [
+              {
+                "events": [
+                  460,
+                  720,
+                  2236,
+                  3987
+                ],
+                "rules": [
+                  "R15",
+                  "R1",
+                  "R15",
+                  "R1"
+                ],
+                "external_producers": 1
+              }
+            ]
+          }
+        },
+        "R1,R23": {
+          "common_library_budget": 2,
+          "blocked": {
+            "rule_names_only_ablation": {
+              "selected_templates": 1,
+              "test_hits": {
+                "paths": 14,
+                "distinct_roots": 14,
+                "productive_roots": 0,
+                "distinct_entries": 6,
+                "distinct_concrete_bindings": 14,
+                "distinct_templates": 8,
+                "covered_events": 40,
+                "covered_producer_write_ids": 37
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 2,
+              "distinct_roots": 2,
+              "productive_roots": 0,
+              "distinct_entries": 1,
+              "distinct_concrete_bindings": 2,
+              "distinct_templates": 2,
+              "covered_events": 6,
+              "covered_producer_write_ids": 6
+            },
+            "test": {
+              "paths": 14,
+              "distinct_roots": 14,
+              "productive_roots": 0,
+              "distinct_entries": 6,
+              "distinct_concrete_bindings": 14,
+              "distinct_templates": 8,
+              "covered_events": 40,
+              "covered_producer_write_ids": 37
+            },
+            "cross_boundary_paths": 14,
+            "library_budget": 2,
+            "selected_templates": 2,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": 0.0,
+            "top_train": [
+              {
+                "support": 1,
+                "template": {
+                  "bindings": [
+                    {
+                      "a": 0,
+                      "b": 1,
+                      "x": 1
+                    },
+                    {
+                      "a": 2,
+                      "b": 3,
+                      "x": 1
+                    },
+                    {
+                      "a": 2,
+                      "b": 4
+                    },
+                    {
+                      "a": 4,
+                      "b": 2
+                    }
+                  ],
+                  "connections": [
+                    [
+                      {
+                        "consumer_sites": [
+                          "body/0/expr/1"
+                        ],
+                        "kind": "row",
+                        "producer_sites": [
+                          "head/0/expr/1/args/1"
+                        ],
+                        "table": "Integral"
+                      },
+                      {
+                        "consumer_sites": [
+                          "body/0/expr/1/args/0"
+                        ],
+                        "kind": "row",
+                        "producer_sites": [
+                          "head/0/expr/1/args/1/args/0"
+                        ],
+                        "table": "Mul"
+                      }
+                    ],
+                    [
+                      {
+                        "consumer_sites": [
+                          "body/0/expr/1"
+                        ],
+                        "kind": "row",
+                        "producer_sites": [
+                          "head/0/expr/1/args/0"
+                        ],
+                        "table": "Mul"
+                      }
+                    ],
+                    [
+                      {
+                        "consumer_sites": [
+                          "body/0/expr/1"
+                        ],
+                        "kind": "row",
+                        "producer_sites": [
+                          "head/0/expr/1"
+                        ],
+                        "table": "Mul"
+                      }
+                    ]
+                  ],
+                  "rules": [
+                    "R23",
+                    "R23",
+                    "R1",
+                    "R1"
+                  ]
+                }
+              },
+              {
+                "support": 1,
+                "template": {
+                  "bindings": [
+                    {
+                      "a": 0,
+                      "b": 1,
+                      "x": 1
+                    },
+                    {
+                      "a": 2,
+                      "b": 3,
+                      "x": 1
+                    },
+                    {
+                      "a": 4,
+                      "b": 5
+                    },
+                    {
+                      "a": 5,
+                      "b": 4
+                    }
+                  ],
+                  "connections": [
+                    [
+                      {
+                        "consumer_sites": [
+                          "body/0/expr/1"
+                        ],
+                        "kind": "row",
+                        "producer_sites": [
+                          "head/0/expr/1/args/1"
+                        ],
+                        "table": "Integral"
+                      },
+                      {
+                        "consumer_sites": [
+                          "body/0/expr/1/args/0"
+                        ],
+                        "kind": "row",
+                        "producer_sites": [
+                          "head/0/expr/1/args/1/args/0"
+                        ],
+                        "table": "Mul"
+                      }
+                    ],
+                    [
+                      {
+                        "consumer_sites": [
+                          "body/0/expr/1"
+                        ],
+                        "kind": "row",
+                        "producer_sites": [
+                          "head/0/expr/1/args/1/args/0"
+                        ],
+                        "table": "Mul"
+                      }
+                    ],
+                    [
+                      {
+                        "consumer_sites": [
+                          "body/0/expr/1"
+                        ],
+                        "kind": "row",
+                        "producer_sites": [
+                          "head/0/expr/1"
+                        ],
+                        "table": "Mul"
+                      }
+                    ]
+                  ],
+                  "rules": [
+                    "R23",
+                    "R23",
+                    "R1",
+                    "R1"
+                  ]
+                }
+              }
+            ],
+            "example_paths": [
+              {
+                "events": [
+                  42,
+                  203,
+                  362,
+                  716
+                ],
+                "rules": [
+                  "R23",
+                  "R23",
+                  "R1",
+                  "R1"
+                ],
+                "external_producers": 0
+              },
+              {
+                "events": [
+                  42,
+                  203,
+                  378,
+                  722
+                ],
+                "rules": [
+                  "R23",
+                  "R23",
+                  "R1",
+                  "R1"
+                ],
+                "external_producers": 0
+              },
+              {
+                "events": [
+                  203,
+                  466,
+                  770,
+                  1567
+                ],
+                "rules": [
+                  "R23",
+                  "R23",
+                  "R1",
+                  "R1"
+                ],
+                "external_producers": 0
+              }
+            ]
+          },
+          "alternating": {
+            "rule_names_only_ablation": {
+              "selected_templates": 2,
+              "test_hits": {
+                "paths": 10,
+                "distinct_roots": 10,
+                "productive_roots": 10,
+                "distinct_entries": 7,
+                "distinct_concrete_bindings": 10,
+                "distinct_templates": 5,
+                "covered_events": 25,
+                "covered_producer_write_ids": 20
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 3,
+              "distinct_roots": 3,
+              "productive_roots": 3,
+              "distinct_entries": 2,
+              "distinct_concrete_bindings": 3,
+              "distinct_templates": 3,
+              "covered_events": 9,
+              "covered_producer_write_ids": 7
+            },
+            "test": {
+              "paths": 10,
+              "distinct_roots": 10,
+              "productive_roots": 10,
+              "distinct_entries": 7,
+              "distinct_concrete_bindings": 10,
+              "distinct_templates": 5,
+              "covered_events": 25,
+              "covered_producer_write_ids": 20
+            },
+            "cross_boundary_paths": 10,
+            "library_budget": 2,
+            "selected_templates": 2,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": 0.0,
+            "top_train": [
+              {
+                "support": 1,
+                "template": {
+                  "bindings": [
+                    {
+                      "a": 0,
+                      "b": 1,
+                      "x": 1
+                    },
+                    {
+                      "a": 2,
+                      "b": 3
+                    },
+                    {
+                      "a": 3,
+                      "b": 2,
+                      "x": 1
+                    },
+                    {
+                      "a": 3,
+                      "b": 4
+                    }
+                  ],
+                  "connections": [
+                    [
+                      {
+                        "consumer_sites": [
+                          "body/0/expr/1"
+                        ],
+                        "kind": "row",
+                        "producer_sites": [
+                          "head/0/expr/1/args/1/args/0"
+                        ],
+                        "table": "Mul"
+                      }
+                    ],
+                    [
+                      {
+                        "consumer_sites": [
+                          "body/0/expr/1/args/0"
+                        ],
+                        "kind": "row",
+                        "producer_sites": [
+                          "head/0/expr/1"
+                        ],
+                        "table": "Mul"
+                      }
+                    ],
+                    [
+                      {
+                        "consumer_sites": [
+                          "body/0/expr/1"
+                        ],
+                        "kind": "row",
+                        "producer_sites": [
+                          "head/0/expr/1/args/0"
+                        ],
+                        "table": "Mul"
+                      }
+                    ]
+                  ],
+                  "rules": [
+                    "R23",
+                    "R1",
+                    "R23",
+                    "R1"
+                  ]
+                }
+              },
+              {
+                "support": 1,
+                "template": {
+                  "bindings": [
+                    {
+                      "a": 0,
+                      "b": 1,
+                      "x": 1
+                    },
+                    {
+                      "a": 2,
+                      "b": 3
+                    },
+                    {
+                      "a": 3,
+                      "b": 2,
+                      "x": 1
+                    },
+                    {
+                      "a": 4,
+                      "b": 5
+                    }
+                  ],
+                  "connections": [
+                    [
+                      {
+                        "consumer_sites": [
+                          "body/0/expr/1"
+                        ],
+                        "kind": "row",
+                        "producer_sites": [
+                          "head/0/expr/1/args/1/args/0"
+                        ],
+                        "table": "Mul"
+                      }
+                    ],
+                    [
+                      {
+                        "consumer_sites": [
+                          "body/0/expr/1/args/0"
+                        ],
+                        "kind": "row",
+                        "producer_sites": [
+                          "head/0/expr/1"
+                        ],
+                        "table": "Mul"
+                      }
+                    ],
+                    [
+                      {
+                        "consumer_sites": [
+                          "body/0/expr/1"
+                        ],
+                        "kind": "row",
+                        "producer_sites": [
+                          "head/0/expr/1/args/1/args/0"
+                        ],
+                        "table": "Mul"
+                      }
+                    ]
+                  ],
+                  "rules": [
+                    "R23",
+                    "R1",
+                    "R23",
+                    "R1"
+                  ]
+                }
+              }
+            ],
+            "example_paths": [
+              {
+                "events": [
+                  42,
+                  136,
+                  469,
+                  772
+                ],
+                "rules": [
+                  "R23",
+                  "R1",
+                  "R23",
+                  "R1"
+                ],
+                "external_producers": 0
+              },
+              {
+                "events": [
+                  42,
+                  136,
+                  469,
+                  784
+                ],
+                "rules": [
+                  "R23",
+                  "R1",
+                  "R23",
+                  "R1"
+                ],
+                "external_producers": 0
+              },
+              {
+                "events": [
+                  14,
+                  200,
+                  380,
+                  982
+                ],
+                "rules": [
+                  "R1",
+                  "R23",
+                  "R1",
+                  "R23"
+                ],
+                "external_producers": 0
+              }
+            ]
+          }
+        },
+        "R1,R3": {
+          "common_library_budget": 0,
+          "blocked": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 3,
+              "distinct_roots": 3,
+              "productive_roots": 0,
+              "distinct_entries": 2,
+              "distinct_concrete_bindings": 3,
+              "distinct_templates": 3,
+              "covered_events": 10,
+              "covered_producer_write_ids": 8
+            },
+            "cross_boundary_paths": 3,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": 0.0,
+            "top_train": [],
+            "example_paths": [
+              {
+                "events": [
+                  161,
+                  427,
+                  780,
+                  1559
+                ],
+                "rules": [
+                  "R3",
+                  "R3",
+                  "R1",
+                  "R1"
+                ],
+                "external_producers": 1
+              },
+              {
+                "events": [
+                  158,
+                  433,
+                  732,
+                  1587
+                ],
+                "rules": [
+                  "R3",
+                  "R3",
+                  "R1",
+                  "R1"
+                ],
+                "external_producers": 1
+              },
+              {
+                "events": [
+                  161,
+                  427,
+                  736,
+                  1633
+                ],
+                "rules": [
+                  "R3",
+                  "R3",
+                  "R1",
+                  "R1"
+                ],
+                "external_producers": 1
+              }
+            ]
+          },
+          "alternating": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 4,
+              "distinct_roots": 3,
+              "productive_roots": 1,
+              "distinct_entries": 1,
+              "distinct_concrete_bindings": 4,
+              "distinct_templates": 4,
+              "covered_events": 7,
+              "covered_producer_write_ids": 5
+            },
+            "test": {
+              "paths": 35,
+              "distinct_roots": 24,
+              "productive_roots": 9,
+              "distinct_entries": 8,
+              "distinct_concrete_bindings": 35,
+              "distinct_templates": 18,
+              "covered_events": 53,
+              "covered_producer_write_ids": 39
+            },
+            "cross_boundary_paths": 35,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": 0.0,
+            "top_train": [],
+            "example_paths": [
+              {
+                "events": [
+                  18,
+                  158,
+                  388,
+                  879
+                ],
+                "rules": [
+                  "R1",
+                  "R3",
+                  "R1",
+                  "R3"
+                ],
+                "external_producers": 2
+              },
+              {
+                "events": [
+                  18,
+                  158,
+                  386,
+                  882
+                ],
+                "rules": [
+                  "R1",
+                  "R3",
+                  "R1",
+                  "R3"
+                ],
+                "external_producers": 2
+              },
+              {
+                "events": [
+                  18,
+                  158,
+                  388,
+                  882
+                ],
+                "rules": [
+                  "R1",
+                  "R3",
+                  "R1",
+                  "R3"
+                ],
+                "external_producers": 2
+              }
+            ]
+          }
+        },
+        "R14,R15": {
+          "common_library_budget": 0,
+          "blocked": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "cross_boundary_paths": 0,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": null,
+            "top_train": [],
+            "example_paths": []
+          },
+          "alternating": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 4,
+              "distinct_roots": 4,
+              "productive_roots": 4,
+              "distinct_entries": 1,
+              "distinct_concrete_bindings": 4,
+              "distinct_templates": 4,
+              "covered_events": 10,
+              "covered_producer_write_ids": 7
+            },
+            "cross_boundary_paths": 4,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": 0.0,
+            "top_train": [],
+            "example_paths": [
+              {
+                "events": [
+                  460,
+                  916,
+                  2230,
+                  5815
+                ],
+                "rules": [
+                  "R15",
+                  "R14",
+                  "R15",
+                  "R14"
+                ],
+                "external_producers": 2
+              },
+              {
+                "events": [
+                  460,
+                  916,
+                  2233,
+                  5818
+                ],
+                "rules": [
+                  "R15",
+                  "R14",
+                  "R15",
+                  "R14"
+                ],
+                "external_producers": 2
+              },
+              {
+                "events": [
+                  460,
+                  916,
+                  2236,
+                  5833
+                ],
+                "rules": [
+                  "R15",
+                  "R14",
+                  "R15",
+                  "R14"
+                ],
+                "external_producers": 3
+              }
+            ]
+          }
+        },
+        "R14,R23": {
+          "common_library_budget": 0,
+          "blocked": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 6,
+              "distinct_roots": 6,
+              "productive_roots": 6,
+              "distinct_entries": 2,
+              "distinct_concrete_bindings": 6,
+              "distinct_templates": 3,
+              "covered_events": 10,
+              "covered_producer_write_ids": 10
+            },
+            "cross_boundary_paths": 6,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": 0.0,
+            "top_train": [],
+            "example_paths": [
+              {
+                "events": [
+                  203,
+                  466,
+                  916,
+                  2206
+                ],
+                "rules": [
+                  "R23",
+                  "R23",
+                  "R14",
+                  "R14"
+                ],
+                "external_producers": 2
+              },
+              {
+                "events": [
+                  466,
+                  970,
+                  2206,
+                  5815
+                ],
+                "rules": [
+                  "R23",
+                  "R23",
+                  "R14",
+                  "R14"
+                ],
+                "external_producers": 2
+              },
+              {
+                "events": [
+                  466,
+                  970,
+                  2206,
+                  5818
+                ],
+                "rules": [
+                  "R23",
+                  "R23",
+                  "R14",
+                  "R14"
+                ],
+                "external_producers": 2
+              }
+            ]
+          },
+          "alternating": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "cross_boundary_paths": 0,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": null,
+            "top_train": [],
+            "example_paths": []
+          }
+        },
+        "R15,R23": {
+          "common_library_budget": 0,
+          "blocked": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 1,
+              "distinct_roots": 1,
+              "productive_roots": 1,
+              "distinct_entries": 1,
+              "distinct_concrete_bindings": 1,
+              "distinct_templates": 1,
+              "covered_events": 4,
+              "covered_producer_write_ids": 4
+            },
+            "cross_boundary_paths": 1,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": 0.0,
+            "top_train": [],
+            "example_paths": [
+              {
+                "events": [
+                  42,
+                  203,
+                  460,
+                  2260
+                ],
+                "rules": [
+                  "R23",
+                  "R23",
+                  "R15",
+                  "R15"
+                ],
+                "external_producers": 1
+              }
+            ]
+          },
+          "alternating": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "cross_boundary_paths": 0,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": null,
+            "top_train": [],
+            "example_paths": []
+          }
+        },
+        "R15,R3": {
+          "common_library_budget": 0,
+          "blocked": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 2,
+              "distinct_roots": 2,
+              "productive_roots": 2,
+              "distinct_entries": 1,
+              "distinct_concrete_bindings": 2,
+              "distinct_templates": 2,
+              "covered_events": 5,
+              "covered_producer_write_ids": 3
+            },
+            "cross_boundary_paths": 2,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": 0.0,
+            "top_train": [],
+            "example_paths": [
+              {
+                "events": [
+                  158,
+                  433,
+                  940,
+                  2254
+                ],
+                "rules": [
+                  "R3",
+                  "R3",
+                  "R15",
+                  "R15"
+                ],
+                "external_producers": 3
+              },
+              {
+                "events": [
+                  158,
+                  433,
+                  940,
+                  2257
+                ],
+                "rules": [
+                  "R3",
+                  "R3",
+                  "R15",
+                  "R15"
+                ],
+                "external_producers": 3
+              }
+            ]
+          },
+          "alternating": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "cross_boundary_paths": 0,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": null,
+            "top_train": [],
+            "example_paths": []
+          }
+        },
+        "R15,R9": {
+          "common_library_budget": 0,
+          "blocked": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 6,
+              "distinct_roots": 2,
+              "productive_roots": 2,
+              "distinct_entries": 3,
+              "distinct_concrete_bindings": 6,
+              "distinct_templates": 4,
+              "covered_events": 13,
+              "covered_producer_write_ids": 12
+            },
+            "cross_boundary_paths": 6,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": 0.0,
+            "top_train": [],
+            "example_paths": [
+              {
+                "events": [
+                  457,
+                  943,
+                  2133,
+                  5630
+                ],
+                "rules": [
+                  "R15",
+                  "R15",
+                  "R9",
+                  "R9"
+                ],
+                "external_producers": 2
+              },
+              {
+                "events": [
+                  457,
+                  943,
+                  2178,
+                  5630
+                ],
+                "rules": [
+                  "R15",
+                  "R15",
+                  "R9",
+                  "R9"
+                ],
+                "external_producers": 3
+              },
+              {
+                "events": [
+                  454,
+                  958,
+                  2178,
+                  5630
+                ],
+                "rules": [
+                  "R15",
+                  "R15",
+                  "R9",
+                  "R9"
+                ],
+                "external_producers": 3
+              }
+            ]
+          },
+          "alternating": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "cross_boundary_paths": 0,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": null,
+            "top_train": [],
+            "example_paths": []
+          }
+        },
+        "R21,R23": {
+          "common_library_budget": 0,
+          "blocked": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 2,
+              "distinct_roots": 2,
+              "productive_roots": 2,
+              "distinct_entries": 1,
+              "distinct_concrete_bindings": 2,
+              "distinct_templates": 1,
+              "covered_events": 6,
+              "covered_producer_write_ids": 4
+            },
+            "cross_boundary_paths": 2,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": 0.0,
+            "top_train": [],
+            "example_paths": [
+              {
+                "events": [
+                  203,
+                  976,
+                  2272,
+                  5860
+                ],
+                "rules": [
+                  "R23",
+                  "R23",
+                  "R21",
+                  "R21"
+                ],
+                "external_producers": 3
+              },
+              {
+                "events": [
+                  203,
+                  976,
+                  2278,
+                  5863
+                ],
+                "rules": [
+                  "R23",
+                  "R23",
+                  "R21",
+                  "R21"
+                ],
+                "external_producers": 3
+              }
+            ]
+          },
+          "alternating": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "cross_boundary_paths": 0,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": null,
+            "top_train": [],
+            "example_paths": []
+          }
+        },
+        "R22,R23": {
+          "common_library_budget": 0,
+          "blocked": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 8,
+              "distinct_roots": 4,
+              "productive_roots": 4,
+              "distinct_entries": 1,
+              "distinct_concrete_bindings": 8,
+              "distinct_templates": 4,
+              "covered_events": 10,
+              "covered_producer_write_ids": 10
+            },
+            "cross_boundary_paths": 8,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": 0.0,
+            "top_train": [],
+            "example_paths": [
+              {
+                "events": [
+                  469,
+                  988,
+                  2281,
+                  5881
+                ],
+                "rules": [
+                  "R23",
+                  "R23",
+                  "R22",
+                  "R22"
+                ],
+                "external_producers": 2
+              },
+              {
+                "events": [
+                  469,
+                  991,
+                  2281,
+                  5881
+                ],
+                "rules": [
+                  "R23",
+                  "R23",
+                  "R22",
+                  "R22"
+                ],
+                "external_producers": 2
+              },
+              {
+                "events": [
+                  469,
+                  973,
+                  2284,
+                  5884
+                ],
+                "rules": [
+                  "R23",
+                  "R23",
+                  "R22",
+                  "R22"
+                ],
+                "external_producers": 3
+              }
+            ]
+          },
+          "alternating": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "cross_boundary_paths": 0,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": null,
+            "top_train": [],
+            "example_paths": []
+          }
+        },
+        "R23,R3": {
+          "common_library_budget": 0,
+          "blocked": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 2,
+              "distinct_roots": 2,
+              "productive_roots": 1,
+              "distinct_entries": 1,
+              "distinct_concrete_bindings": 2,
+              "distinct_templates": 2,
+              "covered_events": 5,
+              "covered_producer_write_ids": 4
+            },
+            "cross_boundary_paths": 2,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": 0.0,
+            "top_train": [],
+            "example_paths": [
+              {
+                "events": [
+                  42,
+                  203,
+                  2084,
+                  5320
+                ],
+                "rules": [
+                  "R23",
+                  "R23",
+                  "R3",
+                  "R3"
+                ],
+                "external_producers": 1
+              },
+              {
+                "events": [
+                  42,
+                  203,
+                  2084,
+                  5326
+                ],
+                "rules": [
+                  "R23",
+                  "R23",
+                  "R3",
+                  "R3"
+                ],
+                "external_producers": 2
+              }
+            ]
+          },
+          "alternating": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "cross_boundary_paths": 0,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": null,
+            "top_train": [],
+            "example_paths": []
+          }
+        }
+      }
+    },
+    "6": {
+      "total_paths": 1746,
+      "strict_all_events_heldout_paths": 0,
+      "groups": {
+        "blocked": {
+          "rule_names_only_ablation": {
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "scope": "ignores binding wiring; optimistic control only"
+          },
+          "train": {
+            "paths": 0,
+            "distinct_roots": 0,
+            "productive_roots": 0,
+            "distinct_entries": 0,
+            "distinct_concrete_bindings": 0,
+            "distinct_templates": 0,
+            "covered_events": 0,
+            "covered_producer_write_ids": 0
+          },
+          "test": {
+            "paths": 5,
+            "distinct_roots": 5,
+            "productive_roots": 5,
+            "distinct_entries": 1,
+            "distinct_concrete_bindings": 5,
+            "distinct_templates": 3,
+            "covered_events": 10,
+            "covered_producer_write_ids": 9
+          },
+          "cross_boundary_paths": 5,
+          "library_budget": 8,
+          "selected_templates": 0,
+          "test_hits": {
+            "paths": 0,
+            "distinct_roots": 0,
+            "productive_roots": 0,
+            "distinct_entries": 0,
+            "distinct_concrete_bindings": 0,
+            "distinct_templates": 0,
+            "covered_events": 0,
+            "covered_producer_write_ids": 0
+          },
+          "test_path_hit_rate": 0.0,
+          "top_train": [],
+          "example_paths": [
+            {
+              "events": [
+                42,
+                203,
+                466,
+                916,
+                2206,
+                5815
+              ],
+              "rules": [
+                "R23",
+                "R23",
+                "R23",
+                "R14",
+                "R14",
+                "R14"
+              ],
+              "external_producers": 3
+            },
+            {
+              "events": [
+                42,
+                203,
+                466,
+                916,
+                2206,
+                5818
+              ],
+              "rules": [
+                "R23",
+                "R23",
+                "R23",
+                "R14",
+                "R14",
+                "R14"
+              ],
+              "external_producers": 3
+            },
+            {
+              "events": [
+                42,
+                203,
+                466,
+                916,
+                2206,
+                5827
+              ],
+              "rules": [
+                "R23",
+                "R23",
+                "R23",
+                "R14",
+                "R14",
+                "R14"
+              ],
+              "external_producers": 3
+            }
+          ]
+        },
+        "alternating": {
+          "rule_names_only_ablation": {
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "scope": "ignores binding wiring; optimistic control only"
+          },
+          "train": {
+            "paths": 0,
+            "distinct_roots": 0,
+            "productive_roots": 0,
+            "distinct_entries": 0,
+            "distinct_concrete_bindings": 0,
+            "distinct_templates": 0,
+            "covered_events": 0,
+            "covered_producer_write_ids": 0
+          },
+          "test": {
+            "paths": 34,
+            "distinct_roots": 30,
+            "productive_roots": 23,
+            "distinct_entries": 2,
+            "distinct_concrete_bindings": 34,
+            "distinct_templates": 9,
+            "covered_events": 52,
+            "covered_producer_write_ids": 27
+          },
+          "cross_boundary_paths": 34,
+          "library_budget": 8,
+          "selected_templates": 0,
+          "test_hits": {
+            "paths": 0,
+            "distinct_roots": 0,
+            "productive_roots": 0,
+            "distinct_entries": 0,
+            "distinct_concrete_bindings": 0,
+            "distinct_templates": 0,
+            "covered_events": 0,
+            "covered_producer_write_ids": 0
+          },
+          "test_path_hit_rate": 0.0,
+          "top_train": [],
+          "example_paths": [
+            {
+              "events": [
+                42,
+                136,
+                469,
+                784,
+                2329,
+                3879
+              ],
+              "rules": [
+                "R23",
+                "R1",
+                "R23",
+                "R1",
+                "R23",
+                "R1"
+              ],
+              "external_producers": 0
+            },
+            {
+              "events": [
+                42,
+                136,
+                469,
+                784,
+                2329,
+                3901
+              ],
+              "rules": [
+                "R23",
+                "R1",
+                "R23",
+                "R1",
+                "R23",
+                "R1"
+              ],
+              "external_producers": 0
+            },
+            {
+              "events": [
+                10,
+                155,
+                324,
+                837,
+                1483,
+                4322
+              ],
+              "rules": [
+                "R0",
+                "R2",
+                "R0",
+                "R2",
+                "R0",
+                "R2"
+              ],
+              "external_producers": 3
+            }
+          ]
+        },
+        "repeat_only": {
+          "rule_names_only_ablation": {
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "scope": "ignores binding wiring; optimistic control only"
+          },
+          "train": {
+            "paths": 0,
+            "distinct_roots": 0,
+            "productive_roots": 0,
+            "distinct_entries": 0,
+            "distinct_concrete_bindings": 0,
+            "distinct_templates": 0,
+            "covered_events": 0,
+            "covered_producer_write_ids": 0
+          },
+          "test": {
+            "paths": 1,
+            "distinct_roots": 1,
+            "productive_roots": 1,
+            "distinct_entries": 1,
+            "distinct_concrete_bindings": 1,
+            "distinct_templates": 1,
+            "covered_events": 6,
+            "covered_producer_write_ids": 10
+          },
+          "cross_boundary_paths": 1,
+          "library_budget": 8,
+          "selected_templates": 0,
+          "test_hits": {
+            "paths": 0,
+            "distinct_roots": 0,
+            "productive_roots": 0,
+            "distinct_entries": 0,
+            "distinct_concrete_bindings": 0,
+            "distinct_templates": 0,
+            "covered_events": 0,
+            "covered_producer_write_ids": 0
+          },
+          "test_path_hit_rate": 0.0,
+          "top_train": [],
+          "example_paths": [
+            {
+              "events": [
+                42,
+                203,
+                466,
+                970,
+                2293,
+                5923
+              ],
+              "rules": [
+                "R23",
+                "R23",
+                "R23",
+                "R23",
+                "R23",
+                "R23"
+              ],
+              "external_producers": 0
+            }
+          ]
+        },
+        "other": {
+          "rule_names_only_ablation": {
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "scope": "ignores binding wiring; optimistic control only"
+          },
+          "train": {
+            "paths": 0,
+            "distinct_roots": 0,
+            "productive_roots": 0,
+            "distinct_entries": 0,
+            "distinct_concrete_bindings": 0,
+            "distinct_templates": 0,
+            "covered_events": 0,
+            "covered_producer_write_ids": 0
+          },
+          "test": {
+            "paths": 1706,
+            "distinct_roots": 745,
+            "productive_roots": 478,
+            "distinct_entries": 8,
+            "distinct_concrete_bindings": 1706,
+            "distinct_templates": 1198,
+            "covered_events": 1054,
+            "covered_producer_write_ids": 542
+          },
+          "cross_boundary_paths": 1706,
+          "library_budget": 8,
+          "selected_templates": 0,
+          "test_hits": {
+            "paths": 0,
+            "distinct_roots": 0,
+            "productive_roots": 0,
+            "distinct_entries": 0,
+            "distinct_concrete_bindings": 0,
+            "distinct_templates": 0,
+            "covered_events": 0,
+            "covered_producer_write_ids": 0
+          },
+          "test_path_hit_rate": 0.0,
+          "top_train": [],
+          "example_paths": [
+            {
+              "events": [
+                24,
+                110,
+                412,
+                652,
+                1712,
+                3315
+              ],
+              "rules": [
+                "R4",
+                "R0",
+                "R2",
+                "R0",
+                "R2",
+                "R0"
+              ],
+              "external_producers": 1
+            },
+            {
+              "events": [
+                30,
+                104,
+                409,
+                684,
+                1712,
+                3315
+              ],
+              "rules": [
+                "R9",
+                "R0",
+                "R2",
+                "R0",
+                "R2",
+                "R0"
+              ],
+              "external_producers": 2
+            },
+            {
+              "events": [
+                30,
+                104,
+                409,
+                684,
+                1838,
+                3317
+              ],
+              "rules": [
+                "R9",
+                "R0",
+                "R2",
+                "R0",
+                "R2",
+                "R0"
+              ],
+              "external_producers": 2
+            }
+          ]
+        }
+      },
+      "matched_pairs": {
+        "R0,R2": {
+          "common_library_budget": 0,
+          "blocked": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "cross_boundary_paths": 0,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": null,
+            "top_train": [],
+            "example_paths": []
+          },
+          "alternating": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 32,
+              "distinct_roots": 28,
+              "productive_roots": 21,
+              "distinct_entries": 1,
+              "distinct_concrete_bindings": 32,
+              "distinct_templates": 7,
+              "covered_events": 45,
+              "covered_producer_write_ids": 21
+            },
+            "cross_boundary_paths": 32,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": 0.0,
+            "top_train": [],
+            "example_paths": [
+              {
+                "events": [
+                  10,
+                  155,
+                  324,
+                  837,
+                  1483,
+                  4322
+                ],
+                "rules": [
+                  "R0",
+                  "R2",
+                  "R0",
+                  "R2",
+                  "R0",
+                  "R2"
+                ],
+                "external_producers": 3
+              },
+              {
+                "events": [
+                  10,
+                  155,
+                  324,
+                  837,
+                  1505,
+                  4322
+                ],
+                "rules": [
+                  "R0",
+                  "R2",
+                  "R0",
+                  "R2",
+                  "R0",
+                  "R2"
+                ],
+                "external_producers": 3
+              },
+              {
+                "events": [
+                  10,
+                  155,
+                  324,
+                  837,
+                  1505,
+                  4325
+                ],
+                "rules": [
+                  "R0",
+                  "R2",
+                  "R0",
+                  "R2",
+                  "R0",
+                  "R2"
+                ],
+                "external_producers": 3
+              }
+            ]
+          }
+        },
+        "R1,R23": {
+          "common_library_budget": 0,
+          "blocked": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "cross_boundary_paths": 0,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": null,
+            "top_train": [],
+            "example_paths": []
+          },
+          "alternating": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 2,
+              "distinct_roots": 2,
+              "productive_roots": 2,
+              "distinct_entries": 1,
+              "distinct_concrete_bindings": 2,
+              "distinct_templates": 2,
+              "covered_events": 7,
+              "covered_producer_write_ids": 6
+            },
+            "cross_boundary_paths": 2,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": 0.0,
+            "top_train": [],
+            "example_paths": [
+              {
+                "events": [
+                  42,
+                  136,
+                  469,
+                  784,
+                  2329,
+                  3879
+                ],
+                "rules": [
+                  "R23",
+                  "R1",
+                  "R23",
+                  "R1",
+                  "R23",
+                  "R1"
+                ],
+                "external_producers": 0
+              },
+              {
+                "events": [
+                  42,
+                  136,
+                  469,
+                  784,
+                  2329,
+                  3901
+                ],
+                "rules": [
+                  "R23",
+                  "R1",
+                  "R23",
+                  "R1",
+                  "R23",
+                  "R1"
+                ],
+                "external_producers": 0
+              }
+            ]
+          }
+        },
+        "R14,R23": {
+          "common_library_budget": 0,
+          "blocked": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 5,
+              "distinct_roots": 5,
+              "productive_roots": 5,
+              "distinct_entries": 1,
+              "distinct_concrete_bindings": 5,
+              "distinct_templates": 3,
+              "covered_events": 10,
+              "covered_producer_write_ids": 9
+            },
+            "cross_boundary_paths": 5,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": 0.0,
+            "top_train": [],
+            "example_paths": [
+              {
+                "events": [
+                  42,
+                  203,
+                  466,
+                  916,
+                  2206,
+                  5815
+                ],
+                "rules": [
+                  "R23",
+                  "R23",
+                  "R23",
+                  "R14",
+                  "R14",
+                  "R14"
+                ],
+                "external_producers": 3
+              },
+              {
+                "events": [
+                  42,
+                  203,
+                  466,
+                  916,
+                  2206,
+                  5818
+                ],
+                "rules": [
+                  "R23",
+                  "R23",
+                  "R23",
+                  "R14",
+                  "R14",
+                  "R14"
+                ],
+                "external_producers": 3
+              },
+              {
+                "events": [
+                  42,
+                  203,
+                  466,
+                  916,
+                  2206,
+                  5827
+                ],
+                "rules": [
+                  "R23",
+                  "R23",
+                  "R23",
+                  "R14",
+                  "R14",
+                  "R14"
+                ],
+                "external_producers": 3
+              }
+            ]
+          },
+          "alternating": {
+            "rule_names_only_ablation": {
+              "selected_templates": 0,
+              "test_hits": {
+                "paths": 0,
+                "distinct_roots": 0,
+                "productive_roots": 0,
+                "distinct_entries": 0,
+                "distinct_concrete_bindings": 0,
+                "distinct_templates": 0,
+                "covered_events": 0,
+                "covered_producer_write_ids": 0
+              },
+              "scope": "ignores binding wiring; optimistic control only"
+            },
+            "train": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "cross_boundary_paths": 0,
+            "library_budget": 0,
+            "selected_templates": 0,
+            "test_hits": {
+              "paths": 0,
+              "distinct_roots": 0,
+              "productive_roots": 0,
+              "distinct_entries": 0,
+              "distinct_concrete_bindings": 0,
+              "distinct_templates": 0,
+              "covered_events": 0,
+              "covered_producer_write_ids": 0
+            },
+            "test_path_hit_rate": null,
+            "top_train": [],
+            "example_paths": []
+          }
+        }
+      }
+    }
+  },
+  "event_id_adjacency_negative_control": {
+    "repeat_only": 1369,
+    "other": 115,
+    "blocked": 42
+  },
+  "source_sha256": "b93d6ff2fdcf394add6a3fd635da6e86ea2b8df46cdb210cf2baf7ac903471f5",
+  "native_event_count": 1529,
+  "native_dependency_roots": 1441,
+  "source": "experiments/annotated_export/math_microbenchmark/source.egg"
+}
