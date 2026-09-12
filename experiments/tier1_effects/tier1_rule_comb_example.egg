@@ -5,33 +5,19 @@
 ; Symbols are Math value references, not integer equalities.
 ; u=x*2, v=x*3, p=u+v, s=2+3, q=x*s, d=Diff(x,p).
 (let $x (V "Math" "x"))
-(ValueKnown $x)
 (let $two (V "Math" "2"))
-(ValueKnown $two)
 (let $three (V "Math" "3"))
-(ValueKnown $three)
 (let $u (V "Math" "u"))
-(ValueKnown $u)
 (let $v (V "Math" "v"))
-(ValueKnown $v)
 (let $p (V "Math" "p"))
-(ValueKnown $p)
 (let $s (V "Math" "s"))
-(ValueKnown $s)
 (let $q (V "Math" "q"))
-(ValueKnown $q)
 (let $d (V "Math" "d"))
-(ValueKnown $d)
 (let $dxs (V "Math" "dxs"))
-(ValueKnown $dxs)
 (let $dxx (V "Math" "dxx"))
-(ValueKnown $dxx)
 (let $left (V "Math" "left"))
-(ValueKnown $left)
 (let $right (V "Math" "right"))
-(ValueKnown $right)
 (let $z (V "Math" "z"))
-(ValueKnown $z)
 
 ; Constructor row notation: the LAST argument is the output reference.
 (let $mul_x2 (HasFact "relation:Mul" (ACons $x (ACons $two (ACons $u (ANil))))))
@@ -65,23 +51,11 @@
 (Given $c0 $sum)
 (Given $c0 $derivative)
 
-; C1: same target R15 binding, but its context lacks required effects.
-(let $c1 (Apply $c0 "R15" "a=x,b=s,variable=x,root=d" $r15_requires $r15_produces))
-(Grounded $c1)
+; Only observed applications are represented. No pending R15 node.
+(let $c1 (Apply $c0 "R10" "a=x,b=2,c=3,root=p" $r10_requires $r10_produces))
+(let $c2 (Apply $c1 "R15" "a=x,b=s,variable=x,root=d" $r15_requires $r15_produces))
 (run-schedule (saturate (run tier1)))
-(fail (check (Ready $c1)))
-(fail (check (Provides $c1 $result_equality)))
-
-; C2: R10 adds the product representation AND p=q.
-(let $c2 (Apply $c0 "R10" "a=x,b=2,c=3,root=p" $r10_requires $r10_produces))
-(Grounded $c2)
-; C3: R15 now has the same binding, but a stronger context.
-(let $c3 (Apply $c2 "R15" "a=x,b=s,variable=x,root=d" $r15_requires $r15_produces))
-(Grounded $c3)
-(run-schedule (saturate (run tier1)))
-(check (Ready $c2))
-(check (Smooth $c3))
-(check (Provides $c3 $result_equality))
-(check (DominatesForUse $c2 $c1))
-; Equality has not leaked backwards into C0 / C1.
-(fail (check (Ready $c1)))
+(check (Provides $c2 $result_equality))
+(check (SupportsUse $c1 $c2))
+(fail (check (SupportsUse $c0 $c2)))
+; The observed R15 needs effects beyond the original C0 boundary.

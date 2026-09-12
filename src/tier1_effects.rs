@@ -1,4 +1,4 @@
-//! Native egglog tier-1 effect reasoning for supplied, positive ground contracts.
+//! Native tier-1 analysis of supplied witnessed rule combinations.
 //! Certificates are local to a use; they never union or delete context nodes.
 use crate::{binding_program::Term, effect_program::Fact, trigger_bridge::BindingRelation};
 use egglog::EGraph;
@@ -18,7 +18,6 @@ struct Application {
     binding: String,
     requirements: Vec<Effect>,
     produced: Vec<Effect>,
-    grounded: bool,
 }
 struct Record {
     given: Vec<Effect>,
@@ -64,8 +63,11 @@ fn effect_json(e: &Effect) -> Value {
 impl Tier1 {
     pub fn new() -> Result<Self> {
         let mut eg = EGraph::default();
-        eg.parse_and_run_program(None, include_str!("../experiments/tier1_effects/tier1_rule_comb_ir.egg"))
-            .map_err(|e| e.to_string())?;
+        eg.parse_and_run_program(
+            None,
+            include_str!("../experiments/tier1_effects/tier1_rule_comb_ir.egg"),
+        )
+        .map_err(|e| e.to_string())?;
         Ok(Self {
             eg,
             records: vec![],
@@ -85,7 +87,6 @@ impl Tier1 {
     }
     fn val(&mut self, t: &Term) -> Result<String> {
         let v = format!("(V {} {})", quote(&t.sort), quote(&t.json().to_string()));
-        self.run(&format!("(ValueKnown {v})"))?;
         Ok(v)
     }
     fn args(&mut self, ts: &[Term]) -> Result<String> {
@@ -171,9 +172,9 @@ impl Tier1 {
         }
         Ok(())
     }
-    pub fn dominates_for_use(&mut self, c: Context, app: Context) -> Result<bool> {
+    pub fn supports_use(&mut self, c: Context, app: Context) -> Result<bool> {
         self.check(&format!(
-            "(DominatesForUse {} {})",
+            "(SupportsUse {} {})",
             self.name(c)?,
             self.name(app)?
         ))
@@ -201,8 +202,8 @@ impl Tier1 {
             None,
         )
     }
-    /// Partial assignments remain immutable pending applications. Complete them
-    /// by constructing another candidate, not by pretending missing inputs are effects.
+    /// Import a witnessed, fully bound application. Reject inconsistent imports;
+    /// unsolved plans do not belong to this historical IR.
     pub fn apply(
         &mut self,
         parent: Context,
@@ -246,8 +247,11 @@ impl Tier1 {
             binding,
         )?;
         let grounded = gap.unbound.is_empty() && output_gap.unbound.is_empty();
+        if !grounded {
+            return Err("history import requires a complete binding witness".into());
+        }
         for e in &outputs {
-            Self::validate_effect(e, grounded)?;
+            Self::validate_effect(e, true)?;
         }
         let key=json!({"relation":relation.canonical_key()?,"binding":binding.iter().map(|(i,t)|json!([i,t.json()])).collect::<Vec<_>>()}).to_string();
         self.application(
@@ -257,7 +261,6 @@ impl Tier1 {
                 binding: key,
                 requirements,
                 produced: outputs,
-                grounded,
             },
         )
     }
@@ -265,7 +268,13 @@ impl Tier1 {
         let p = self.name(parent)?;
         let req = self.effects(&a.requirements)?;
         let prod = self.effects(&a.produced)?;
-        let grounded = a.grounded;
+        self.run(&req)?;
+        self.saturate()?;
+        if !self.check(&format!("(AllSatisfied {p} {req})"))? {
+            return Err(
+                "history import lacks input support; provide actual external producers".into(),
+            );
+        }
         let c = self.insert(
             format!(
                 "(Apply {p} {} {} {req} {prod})",
@@ -275,9 +284,6 @@ impl Tier1 {
             vec![parent],
             Some(a),
         )?;
-        if grounded {
-            self.run(&format!("(Grounded {})", self.name(c)?))?;
-        }
         Ok(c)
     }
     fn depends_on(&self, c: Context, target: Context) -> bool {
@@ -293,10 +299,10 @@ impl Tier1 {
         }
         false
     }
-    /// Remove one direct Join parent for this application only. No context union.
+    /// Propose another existing parent for this use, without inventing an Apply.
     pub fn without_join_parent(&mut self, app: Context, removed: Context) -> Result<Context> {
         let rec = self.records.get(app.0).ok_or("invalid application")?;
-        let data = rec.application.clone().ok_or("not an application")?;
+        rec.application.as_ref().ok_or("not an application")?;
         let parent = rec.parents[0];
         let ps = &self.records[parent.0].parents;
         if self.records[parent.0].application.is_some() || ps.len() != 2 {
@@ -309,7 +315,7 @@ impl Tier1 {
         } else {
             return Err("not a direct join parent".into());
         };
-        let candidate = self.application(remaining, data)?;
+        let candidate = remaining;
         self.run(&format!(
             "(ProposedRemoval {} {} {})",
             self.name(app)?,
@@ -336,14 +342,15 @@ impl Tier1 {
             Err(e) => Err(e.to_string()),
         }
     }
-    pub fn ready(&mut self, c: Context) -> Result<bool> {
-        self.check(&format!("(Ready {})", self.name(c)?))
-    }
     pub fn satisfies(&mut self, c: Context, e: &Effect) -> Result<bool> {
         Self::validate_effect(e, true)?;
         let e = self.effect(e)?;
+        self.run(&format!("(ECons {e} (ENil))"))?;
         self.saturate()?;
-        self.check(&format!("(Satisfies {} {e})", self.name(c)?))
+        self.check(&format!(
+            "(AllSatisfied {} (ECons {e} (ENil)))",
+            self.name(c)?
+        ))
     }
     pub fn redundant(&mut self, old: Context, new: Context, removed: Context) -> Result<bool> {
         self.check(&format!(
@@ -358,12 +365,16 @@ impl Tier1 {
         let mut rows = vec![];
         for i in 0..self.records.len() {
             let c = Context(i);
-            let ready = self.ready(c)?;
-            rows.push(json!({"context":i,"ready":ready,"given_effects":format!("{:?}",self.records[i].given),"given_data":self.records[i].given.iter().map(effect_json).collect::<Vec<_>>(),"application":self.records[i].application.as_ref().map(|a|json!({"rule":a.rule,"grounded":a.grounded,"binding":a.binding,"requirements":format!("{:?}",a.requirements),"produced":format!("{:?}",a.produced),"requirements_data":a.requirements.iter().map(effect_json).collect::<Vec<_>>(),"produced_data":a.produced.iter().map(effect_json).collect::<Vec<_>>()})),"parents":self.records[i].parents.iter().map(|c|c.0).collect::<Vec<_>>() }));
+            let support = if self.records[i].application.is_some() {
+                Some(self.supports_use(self.records[i].parents[0], c)?)
+            } else {
+                None
+            };
+            rows.push(json!({"context":i,"parent_support_verified":support,"given_effects":format!("{:?}",self.records[i].given),"given_data":self.records[i].given.iter().map(effect_json).collect::<Vec<_>>(),"application":self.records[i].application.as_ref().map(|a|json!({"rule":a.rule,"binding":a.binding,"requirements":format!("{:?}",a.requirements),"produced":format!("{:?}",a.produced),"requirements_data":a.requirements.iter().map(effect_json).collect::<Vec<_>>(),"produced_data":a.produced.iter().map(effect_json).collect::<Vec<_>>()})),"parents":self.records[i].parents.iter().map(|c|c.0).collect::<Vec<_>>() }));
         }
         let mut certificates = vec![];
         for (old, new, removed) in self.proposals.clone() {
-            certificates.push(json!({"old":old.0,"candidate":new.0,"removed":removed.0,"certified_redundant_for_use":self.redundant(old,new,removed)?}));
+            certificates.push(json!({"old":old.0,"replacement_parent":new.0,"removed":removed.0,"certified_redundant_for_use":self.redundant(old,new,removed)?}));
         }
         let serialized = self.eg.serialize(egglog::SerializeConfig {
             max_functions: None,
@@ -373,7 +384,7 @@ impl Tier1 {
         });
         assert!(serialized.is_complete());
         Ok(
-            json!({"native_egraph":{"nodes":serialized.egraph.nodes.iter().map(|(id,n)|(id.to_string(),json!({"op":n.op,"children":n.children.iter().map(ToString::to_string).collect::<Vec<_>>(),"eclass":n.eclass.to_string(),"cost":n.cost.into_inner(),"subsumed":n.subsumed}))).collect::<BTreeMap<_,_>>(),"root_eclasses":serialized.egraph.root_eclasses.iter().map(ToString::to_string).collect::<Vec<_>>(),"class_data":serialized.egraph.class_data.iter().map(|(id,c)|{let mut data:BTreeMap<String,Value>=c.extra.iter().map(|(k,v)|(k.clone(),json!(v))).collect();data.insert("type".into(),json!(c.typ));(id.to_string(),data)}).collect::<BTreeMap<_,_>>()},"serialization_complete":true,"contexts":rows,"proposals":certificates,"scope":"actual native tier-1 egglog rules over supplied positive contracts; not tier-0 provenance extraction; no context union or global dependency deletion"}),
+            json!({"native_egraph":{"nodes":serialized.egraph.nodes.iter().map(|(id,n)|(id.to_string(),json!({"op":n.op,"children":n.children.iter().map(ToString::to_string).collect::<Vec<_>>(),"eclass":n.eclass.to_string(),"cost":n.cost.into_inner(),"subsumed":n.subsumed}))).collect::<BTreeMap<_,_>>(),"root_eclasses":serialized.egraph.root_eclasses.iter().map(ToString::to_string).collect::<Vec<_>>(),"class_data":serialized.egraph.class_data.iter().map(|(id,c)|{let mut data:BTreeMap<String,Value>=c.extra.iter().map(|(k,v)|(k.clone(),json!(v))).collect();data.insert("type".into(),json!(c.typ));(id.to_string(),data)}).collect::<BTreeMap<_,_>>()},"serialization_complete":true,"contexts":rows,"proposals":certificates,"scope":"native tier-1 analysis of supplied witnessed combinations; no pending Apply, no automatic tier-0 importer, no context union or global deletion"}),
         )
     }
 }

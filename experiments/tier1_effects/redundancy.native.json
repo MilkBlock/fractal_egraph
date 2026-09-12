@@ -1,39 +1,24 @@
 {
   "class_data": {
-    "@AllSatisfiedSort-134": {
+    "@AllSatisfiedSort-105": {
       "type": "@AllSatisfiedSort"
     },
-    "@AllSatisfiedSort-135": {
+    "@AllSatisfiedSort-106": {
       "type": "@AllSatisfiedSort"
     },
-    "@AllSatisfiedSort-136": {
+    "@AllSatisfiedSort-13": {
       "type": "@AllSatisfiedSort"
     },
-    "@AllSatisfiedSort-137": {
+    "@AllSatisfiedSort-19": {
       "type": "@AllSatisfiedSort"
     },
-    "@AllSatisfiedSort-152": {
+    "@AllSatisfiedSort-21": {
       "type": "@AllSatisfiedSort"
     },
-    "@AllSatisfiedSort-153": {
+    "@AllSatisfiedSort-35": {
       "type": "@AllSatisfiedSort"
     },
-    "@AllSatisfiedSort-154": {
-      "type": "@AllSatisfiedSort"
-    },
-    "@AllSatisfiedSort-155": {
-      "type": "@AllSatisfiedSort"
-    },
-    "@AllSatisfiedSort-186": {
-      "type": "@AllSatisfiedSort"
-    },
-    "@AllSatisfiedSort-187": {
-      "type": "@AllSatisfiedSort"
-    },
-    "@AllSatisfiedSort-188": {
-      "type": "@AllSatisfiedSort"
-    },
-    "@AllSatisfiedSort-189": {
+    "@AllSatisfiedSort-36": {
       "type": "@AllSatisfiedSort"
     },
     "@AllSatisfiedSort-37": {
@@ -42,574 +27,314 @@
     "@AllSatisfiedSort-38": {
       "type": "@AllSatisfiedSort"
     },
-    "@AllSatisfiedSort-39": {
+    "@AllSatisfiedSort-43": {
       "type": "@AllSatisfiedSort"
     },
-    "@AllSatisfiedSort-40": {
+    "@AllSatisfiedSort-53": {
       "type": "@AllSatisfiedSort"
     },
-    "@AllSatisfiedSort-41": {
+    "@AllSatisfiedSort-54": {
       "type": "@AllSatisfiedSort"
     },
-    "@AllSatisfiedSort-48": {
+    "@AllSatisfiedSort-63": {
       "type": "@AllSatisfiedSort"
     },
-    "@AllSatisfiedSort-73": {
+    "@AllSatisfiedSort-65": {
       "type": "@AllSatisfiedSort"
     },
-    "@AllSatisfiedSort-74": {
+    "@AllSatisfiedSort-80": {
       "type": "@AllSatisfiedSort"
     },
-    "@AllSatisfiedSort-76": {
+    "@AllSatisfiedSort-81": {
       "type": "@AllSatisfiedSort"
     },
-    "@AllSatisfiedSort-77": {
+    "@AllSatisfiedSort-82": {
       "type": "@AllSatisfiedSort"
     },
-    "@AllSatisfiedSort-84": {
+    "@AllSatisfiedSort-83": {
       "type": "@AllSatisfiedSort"
     },
-    "@AllSatisfiedSort-97": {
+    "@AllSatisfiedSort-9": {
       "type": "@AllSatisfiedSort"
     },
-    "@AllSatisfiedSort-98": {
+    "@AllSatisfiedSort-93": {
       "type": "@AllSatisfiedSort"
     },
-    "@AlternativeSupportSort-141": {
-      "type": "@AlternativeSupportSort"
-    },
-    "@AlternativeSupportSort-178": {
-      "type": "@AlternativeSupportSort"
-    },
-    "@AlternativeSupportSort-179": {
-      "type": "@AlternativeSupportSort"
-    },
-    "@AlternativeSupportSort-180": {
-      "type": "@AlternativeSupportSort"
-    },
-    "@AlternativeSupportSort-181": {
-      "type": "@AlternativeSupportSort"
-    },
-    "@AlternativeSupportSort-61": {
-      "type": "@AlternativeSupportSort"
-    },
-    "@AlternativeSupportSort-62": {
-      "type": "@AlternativeSupportSort"
-    },
-    "@AlternativeSupportSort-63": {
-      "type": "@AlternativeSupportSort"
-    },
-    "@AlternativeSupportSort-93": {
-      "type": "@AlternativeSupportSort"
-    },
-    "@AlternativeSupportSort-94": {
-      "type": "@AlternativeSupportSort"
-    },
-    "@ArgsEqualSort-130": {
+    "@ArgsEqualSort-102": {
       "type": "@ArgsEqualSort"
     },
-    "@ArgsEqualSort-131": {
+    "@ArgsEqualSort-11": {
       "type": "@ArgsEqualSort"
     },
-    "@ArgsEqualSort-132": {
+    "@ArgsEqualSort-18": {
       "type": "@ArgsEqualSort"
     },
-    "@ArgsEqualSort-133": {
+    "@ArgsEqualSort-20": {
       "type": "@ArgsEqualSort"
     },
-    "@ArgsEqualSort-144": {
+    "@ArgsEqualSort-28": {
       "type": "@ArgsEqualSort"
     },
-    "@ArgsEqualSort-145": {
-      "type": "@ArgsEqualSort"
-    },
-    "@ArgsEqualSort-146": {
-      "type": "@ArgsEqualSort"
-    },
-    "@ArgsEqualSort-147": {
-      "type": "@ArgsEqualSort"
-    },
-    "@ArgsEqualSort-32": {
-      "type": "@ArgsEqualSort"
-    },
-    "@ArgsEqualSort-33": {
-      "type": "@ArgsEqualSort"
-    },
-    "@ArgsEqualSort-34": {
-      "type": "@ArgsEqualSort"
-    },
-    "@ArgsEqualSort-35": {
-      "type": "@ArgsEqualSort"
-    },
-    "@ArgsEqualSort-36": {
+    "@ArgsEqualSort-29": {
       "type": "@ArgsEqualSort"
     },
     "@ArgsEqualSort-42": {
       "type": "@ArgsEqualSort"
     },
-    "@ArgsEqualSort-43": {
+    "@ArgsEqualSort-50": {
       "type": "@ArgsEqualSort"
     },
-    "@ArgsEqualSort-44": {
+    "@ArgsEqualSort-62": {
       "type": "@ArgsEqualSort"
     },
-    "@ArgsEqualSort-45": {
+    "@ArgsEqualSort-64": {
       "type": "@ArgsEqualSort"
     },
-    "@ArgsEqualSort-46": {
+    "@ArgsEqualSort-74": {
       "type": "@ArgsEqualSort"
     },
-    "@DominatesForUseSort-100": {
-      "type": "@DominatesForUseSort"
+    "@ArgsEqualSort-75": {
+      "type": "@ArgsEqualSort"
     },
-    "@DominatesForUseSort-101": {
-      "type": "@DominatesForUseSort"
+    "@ArgsEqualSort-8": {
+      "type": "@ArgsEqualSort"
     },
-    "@DominatesForUseSort-116": {
-      "type": "@DominatesForUseSort"
+    "@ArgsEqualSort-92": {
+      "type": "@ArgsEqualSort"
     },
-    "@DominatesForUseSort-117": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-118": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-119": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-120": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-121": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-122": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-123": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-124": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-160": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-161": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-162": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-163": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-164": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-165": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-166": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-167": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-168": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-169": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-170": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-171": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-190": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-191": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-192": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-193": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-194": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-195": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-196": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-197": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-198": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-199": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-200": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-201": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-53": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-54": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-55": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-78": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-79": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-80": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-81": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-82": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-83": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-87": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-88": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-89": {
-      "type": "@DominatesForUseSort"
-    },
-    "@DominatesForUseSort-99": {
-      "type": "@DominatesForUseSort"
-    },
-    "@EmitSort-140": {
+    "@EmitSort-22": {
       "type": "@EmitSort"
     },
-    "@EmitSort-176": {
+    "@EmitSort-27": {
       "type": "@EmitSort"
     },
-    "@EmitSort-177": {
+    "@EmitSort-44": {
       "type": "@EmitSort"
     },
-    "@EmitSort-59": {
+    "@EmitSort-66": {
       "type": "@EmitSort"
     },
-    "@EmitSort-60": {
+    "@EmitSort-94": {
       "type": "@EmitSort"
     },
-    "@EmitSort-68": {
-      "type": "@EmitSort"
-    },
-    "@EmitSort-92": {
-      "type": "@EmitSort"
-    },
-    "@EqAtSort-126": {
-      "type": "@EqAtSort"
-    },
-    "@EqAtSort-127": {
-      "type": "@EqAtSort"
-    },
-    "@EqAtSort-128": {
-      "type": "@EqAtSort"
-    },
-    "@EqAtSort-129": {
-      "type": "@EqAtSort"
-    },
-    "@EqAtSort-27": {
-      "type": "@EqAtSort"
-    },
-    "@EqAtSort-28": {
-      "type": "@EqAtSort"
-    },
-    "@EqAtSort-29": {
-      "type": "@EqAtSort"
-    },
-    "@EqAtSort-30": {
-      "type": "@EqAtSort"
-    },
-    "@EqAtSort-31": {
-      "type": "@EqAtSort"
-    },
-    "@GivenSort-6": {
+    "@GivenSort-5": {
       "type": "@GivenSort"
     },
-    "@GroundedSort-103": {
-      "type": "@GroundedSort"
-    },
-    "@GroundedSort-106": {
-      "type": "@GroundedSort"
-    },
-    "@GroundedSort-108": {
-      "type": "@GroundedSort"
-    },
-    "@GroundedSort-12": {
-      "type": "@GroundedSort"
-    },
-    "@GroundedSort-15": {
-      "type": "@GroundedSort"
-    },
-    "@GroundedSort-17": {
-      "type": "@GroundedSort"
-    },
-    "@IndependentSort-19": {
+    "@IndependentSort-58": {
       "type": "@IndependentSort"
     },
-    "@KnownSort-110": {
-      "type": "@KnownSort"
-    },
-    "@KnownSort-111": {
-      "type": "@KnownSort"
-    },
-    "@KnownSort-112": {
-      "type": "@KnownSort"
-    },
-    "@KnownSort-113": {
-      "type": "@KnownSort"
-    },
-    "@KnownSort-20": {
-      "type": "@KnownSort"
-    },
-    "@KnownSort-22": {
-      "type": "@KnownSort"
-    },
-    "@KnownSort-23": {
-      "type": "@KnownSort"
-    },
-    "@KnownSort-24": {
-      "type": "@KnownSort"
-    },
-    "@KnownSort-25": {
-      "type": "@KnownSort"
-    },
-    "@ProposedRemovalSort-109": {
+    "@ProposedRemovalSort-57": {
       "type": "@ProposedRemovalSort"
     },
-    "@ProposedRemovalSort-18": {
+    "@ProposedRemovalSort-91": {
       "type": "@ProposedRemovalSort"
     },
-    "@ProvidesSort-138": {
+    "@ProvidesSort-10": {
       "type": "@ProvidesSort"
     },
-    "@ProvidesSort-139": {
+    "@ProvidesSort-23": {
       "type": "@ProvidesSort"
     },
-    "@ProvidesSort-142": {
-      "type": "@ProvidesSort"
-    },
-    "@ProvidesSort-143": {
-      "type": "@ProvidesSort"
-    },
-    "@ProvidesSort-172": {
-      "type": "@ProvidesSort"
-    },
-    "@ProvidesSort-173": {
-      "type": "@ProvidesSort"
-    },
-    "@ProvidesSort-174": {
-      "type": "@ProvidesSort"
-    },
-    "@ProvidesSort-175": {
+    "@ProvidesSort-24": {
       "type": "@ProvidesSort"
     },
     "@ProvidesSort-26": {
       "type": "@ProvidesSort"
     },
-    "@ProvidesSort-57": {
+    "@ProvidesSort-30": {
       "type": "@ProvidesSort"
     },
-    "@ProvidesSort-58": {
+    "@ProvidesSort-45": {
       "type": "@ProvidesSort"
     },
-    "@ProvidesSort-64": {
+    "@ProvidesSort-46": {
       "type": "@ProvidesSort"
     },
     "@ProvidesSort-67": {
       "type": "@ProvidesSort"
     },
+    "@ProvidesSort-68": {
+      "type": "@ProvidesSort"
+    },
+    "@ProvidesSort-69": {
+      "type": "@ProvidesSort"
+    },
     "@ProvidesSort-70": {
       "type": "@ProvidesSort"
     },
-    "@ProvidesSort-90": {
+    "@ProvidesSort-95": {
       "type": "@ProvidesSort"
     },
-    "@ProvidesSort-91": {
+    "@ProvidesSort-96": {
       "type": "@ProvidesSort"
     },
-    "@ReadySort-114": {
-      "type": "@ReadySort"
-    },
-    "@ReadySort-125": {
-      "type": "@ReadySort"
-    },
-    "@ReadySort-156": {
-      "type": "@ReadySort"
-    },
-    "@ReadySort-157": {
-      "type": "@ReadySort"
-    },
-    "@ReadySort-21": {
-      "type": "@ReadySort"
-    },
-    "@ReadySort-49": {
-      "type": "@ReadySort"
-    },
-    "@ReadySort-50": {
-      "type": "@ReadySort"
-    },
-    "@ReadySort-56": {
-      "type": "@ReadySort"
-    },
-    "@ReadySort-85": {
-      "type": "@ReadySort"
-    },
-    "@RedundantForUseSort-69": {
+    "@RedundantForUseSort-59": {
       "type": "@RedundantForUseSort"
     },
-    "@SatisfiesSort-148": {
+    "@SatisfiesSort-103": {
       "type": "@SatisfiesSort"
     },
-    "@SatisfiesSort-149": {
+    "@SatisfiesSort-104": {
       "type": "@SatisfiesSort"
     },
-    "@SatisfiesSort-150": {
+    "@SatisfiesSort-12": {
       "type": "@SatisfiesSort"
     },
-    "@SatisfiesSort-151": {
+    "@SatisfiesSort-31": {
       "type": "@SatisfiesSort"
     },
-    "@SatisfiesSort-182": {
+    "@SatisfiesSort-32": {
       "type": "@SatisfiesSort"
     },
-    "@SatisfiesSort-183": {
+    "@SatisfiesSort-33": {
       "type": "@SatisfiesSort"
     },
-    "@SatisfiesSort-184": {
+    "@SatisfiesSort-34": {
       "type": "@SatisfiesSort"
     },
-    "@SatisfiesSort-185": {
+    "@SatisfiesSort-51": {
       "type": "@SatisfiesSort"
     },
-    "@SatisfiesSort-47": {
+    "@SatisfiesSort-52": {
       "type": "@SatisfiesSort"
     },
-    "@SatisfiesSort-65": {
+    "@SatisfiesSort-76": {
       "type": "@SatisfiesSort"
     },
-    "@SatisfiesSort-66": {
+    "@SatisfiesSort-77": {
       "type": "@SatisfiesSort"
     },
-    "@SatisfiesSort-71": {
+    "@SatisfiesSort-78": {
       "type": "@SatisfiesSort"
     },
-    "@SatisfiesSort-72": {
+    "@SatisfiesSort-79": {
       "type": "@SatisfiesSort"
     },
-    "@SatisfiesSort-75": {
-      "type": "@SatisfiesSort"
+    "@SupportsUseSort-100": {
+      "type": "@SupportsUseSort"
     },
-    "@SatisfiesSort-95": {
-      "type": "@SatisfiesSort"
+    "@SupportsUseSort-101": {
+      "type": "@SupportsUseSort"
     },
-    "@SatisfiesSort-96": {
-      "type": "@SatisfiesSort"
+    "@SupportsUseSort-107": {
+      "type": "@SupportsUseSort"
     },
-    "@SmoothSort-115": {
-      "type": "@SmoothSort"
+    "@SupportsUseSort-108": {
+      "type": "@SupportsUseSort"
     },
-    "@SmoothSort-158": {
-      "type": "@SmoothSort"
+    "@SupportsUseSort-109": {
+      "type": "@SupportsUseSort"
     },
-    "@SmoothSort-159": {
-      "type": "@SmoothSort"
+    "@SupportsUseSort-110": {
+      "type": "@SupportsUseSort"
     },
-    "@SmoothSort-51": {
-      "type": "@SmoothSort"
+    "@SupportsUseSort-25": {
+      "type": "@SupportsUseSort"
     },
-    "@SmoothSort-52": {
-      "type": "@SmoothSort"
+    "@SupportsUseSort-39": {
+      "type": "@SupportsUseSort"
     },
-    "@SmoothSort-86": {
-      "type": "@SmoothSort"
+    "@SupportsUseSort-40": {
+      "type": "@SupportsUseSort"
     },
-    "@ValueKnownSort-2": {
-      "type": "@ValueKnownSort"
+    "@SupportsUseSort-47": {
+      "type": "@SupportsUseSort"
     },
-    "Args-3": {
+    "@SupportsUseSort-48": {
+      "type": "@SupportsUseSort"
+    },
+    "@SupportsUseSort-49": {
+      "type": "@SupportsUseSort"
+    },
+    "@SupportsUseSort-55": {
+      "type": "@SupportsUseSort"
+    },
+    "@SupportsUseSort-56": {
+      "type": "@SupportsUseSort"
+    },
+    "@SupportsUseSort-71": {
+      "type": "@SupportsUseSort"
+    },
+    "@SupportsUseSort-72": {
+      "type": "@SupportsUseSort"
+    },
+    "@SupportsUseSort-73": {
+      "type": "@SupportsUseSort"
+    },
+    "@SupportsUseSort-84": {
+      "type": "@SupportsUseSort"
+    },
+    "@SupportsUseSort-85": {
+      "type": "@SupportsUseSort"
+    },
+    "@SupportsUseSort-86": {
+      "type": "@SupportsUseSort"
+    },
+    "@SupportsUseSort-87": {
+      "type": "@SupportsUseSort"
+    },
+    "@SupportsUseSort-88": {
+      "type": "@SupportsUseSort"
+    },
+    "@SupportsUseSort-89": {
+      "type": "@SupportsUseSort"
+    },
+    "@SupportsUseSort-97": {
+      "type": "@SupportsUseSort"
+    },
+    "@SupportsUseSort-98": {
+      "type": "@SupportsUseSort"
+    },
+    "@SupportsUseSort-99": {
+      "type": "@SupportsUseSort"
+    },
+    "Args-2": {
       "type": "Args"
     },
-    "Args-4": {
+    "Args-3": {
       "type": "Args"
     },
     "Ctx-0": {
       "let": "$ctx0",
       "type": "Ctx"
     },
-    "Ctx-102": {
-      "let": "$ctx5",
-      "type": "Ctx"
-    },
-    "Ctx-104": {
-      "let": "$ctx6",
-      "type": "Ctx"
-    },
-    "Ctx-105": {
-      "let": "$ctx7",
-      "type": "Ctx"
-    },
-    "Ctx-107": {
-      "let": "$ctx8",
-      "type": "Ctx"
-    },
-    "Ctx-11": {
+    "Ctx-16": {
       "let": "$ctx1",
       "type": "Ctx"
     },
-    "Ctx-13": {
+    "Ctx-17": {
       "let": "$ctx2",
       "type": "Ctx"
     },
-    "Ctx-14": {
+    "Ctx-41": {
       "let": "$ctx3",
       "type": "Ctx"
     },
-    "Ctx-16": {
+    "Ctx-60": {
       "let": "$ctx4",
       "type": "Ctx"
     },
-    "Effect-5": {
+    "Ctx-61": {
+      "let": "$ctx5",
+      "type": "Ctx"
+    },
+    "Ctx-90": {
+      "let": "$ctx6",
+      "type": "Ctx"
+    },
+    "Effect-14": {
       "type": "Effect"
     },
-    "Effect-9": {
+    "Effect-4": {
       "type": "Effect"
     },
-    "Effects-10": {
+    "Effects-15": {
+      "type": "Effects"
+    },
+    "Effects-6": {
       "type": "Effects"
     },
     "Effects-7": {
-      "type": "Effects"
-    },
-    "Effects-8": {
       "type": "Effects"
     },
     "String-0": {
@@ -656,35 +381,25 @@
         "function-0-ANil"
       ],
       "cost": 1.0,
-      "eclass": "Args-4",
+      "eclass": "Args-3",
       "op": "ACons",
       "subsumed": false
     },
     "function-0-ANil": {
       "children": [],
       "cost": 1.0,
-      "eclass": "Args-3",
+      "eclass": "Args-2",
       "op": "ANil",
       "subsumed": false
     },
     "function-0-AllSatisfied": {
       "children": [
-        "function-0-Join",
+        "function-0-Entry",
         "function-0-ENil"
       ],
       "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-39",
+      "eclass": "@AllSatisfiedSort-9",
       "op": "AllSatisfied",
-      "subsumed": false
-    },
-    "function-0-AlternativeSupport": {
-      "children": [
-        "function-0-Apply",
-        "function-0-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@AlternativeSupportSort-61",
-      "op": "AlternativeSupport",
       "subsumed": false
     },
     "function-0-Apply": {
@@ -692,59 +407,49 @@
         "function-0-Entry",
         "primitive-String-4",
         "primitive-String-5",
-        "function-1-ECons",
-        "function-0-ECons"
+        "function-0-ECons",
+        "function-1-ECons"
       ],
       "cost": 1.0,
-      "eclass": "Ctx-11",
+      "eclass": "Ctx-16",
       "op": "Apply",
       "subsumed": false
     },
     "function-0-ArgsEqual": {
       "children": [
-        "function-2-Apply",
+        "function-0-Entry",
         "function-0-ANil",
         "function-0-ANil"
       ],
       "cost": 1.0,
-      "eclass": "@ArgsEqualSort-35",
+      "eclass": "@ArgsEqualSort-8",
       "op": "ArgsEqual",
-      "subsumed": false
-    },
-    "function-0-DominatesForUse": {
-      "children": [
-        "function-0-Entry",
-        "function-1-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-54",
-      "op": "DominatesForUse",
       "subsumed": false
     },
     "function-0-ECons": {
       "children": [
-        "function-1-HasFact",
+        "function-0-HasFact",
         "function-0-ENil"
       ],
       "cost": 1.0,
-      "eclass": "Effects-10",
+      "eclass": "Effects-7",
       "op": "ECons",
       "subsumed": false
     },
     "function-0-ENil": {
       "children": [],
       "cost": 1.0,
-      "eclass": "Effects-7",
+      "eclass": "Effects-6",
       "op": "ENil",
       "subsumed": false
     },
     "function-0-Emit": {
       "children": [
         "function-0-Apply",
-        "function-0-ECons"
+        "function-1-ECons"
       ],
       "cost": 1.0,
-      "eclass": "@EmitSort-59",
+      "eclass": "@EmitSort-22",
       "op": "Emit",
       "subsumed": false
     },
@@ -757,34 +462,14 @@
       "op": "Entry",
       "subsumed": false
     },
-    "function-0-EqAt": {
-      "children": [
-        "function-0-Join",
-        "function-0-V",
-        "function-0-V"
-      ],
-      "cost": 1.0,
-      "eclass": "@EqAtSort-29",
-      "op": "EqAt",
-      "subsumed": false
-    },
     "function-0-Given": {
       "children": [
         "function-0-Entry",
         "function-0-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@GivenSort-6",
+      "eclass": "@GivenSort-5",
       "op": "Given",
-      "subsumed": false
-    },
-    "function-0-Grounded": {
-      "children": [
-        "function-0-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@GroundedSort-12",
-      "op": "Grounded",
       "subsumed": false
     },
     "function-0-HasFact": {
@@ -793,7 +478,7 @@
         "function-0-ACons"
       ],
       "cost": 1.0,
-      "eclass": "Effect-5",
+      "eclass": "Effect-4",
       "op": "HasFact",
       "subsumed": false
     },
@@ -803,7 +488,7 @@
         "function-0-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@IndependentSort-19",
+      "eclass": "@IndependentSort-58",
       "op": "Independent",
       "subsumed": false
     },
@@ -813,27 +498,18 @@
         "function-0-Apply"
       ],
       "cost": 1.0,
-      "eclass": "Ctx-13",
+      "eclass": "Ctx-17",
       "op": "Join",
-      "subsumed": false
-    },
-    "function-0-Known": {
-      "children": [
-        "function-0-Entry"
-      ],
-      "cost": 1.0,
-      "eclass": "@KnownSort-20",
-      "op": "Known",
       "subsumed": false
     },
     "function-0-ProposedRemoval": {
       "children": [
         "function-1-Apply",
-        "function-2-Apply",
+        "function-0-Entry",
         "function-0-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@ProposedRemovalSort-18",
+      "eclass": "@ProposedRemovalSort-57",
       "op": "ProposedRemoval",
       "subsumed": false
     },
@@ -843,27 +519,18 @@
         "function-0-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@ProvidesSort-26",
+      "eclass": "@ProvidesSort-10",
       "op": "Provides",
-      "subsumed": false
-    },
-    "function-0-Ready": {
-      "children": [
-        "function-0-Entry"
-      ],
-      "cost": 1.0,
-      "eclass": "@ReadySort-21",
-      "op": "Ready",
       "subsumed": false
     },
     "function-0-RedundantForUse": {
       "children": [
         "function-1-Apply",
-        "function-2-Apply",
+        "function-0-Entry",
         "function-0-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@RedundantForUseSort-69",
+      "eclass": "@RedundantForUseSort-59",
       "op": "RedundantForUse",
       "subsumed": false
     },
@@ -873,17 +540,18 @@
         "function-0-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@SatisfiesSort-47",
+      "eclass": "@SatisfiesSort-12",
       "op": "Satisfies",
       "subsumed": false
     },
-    "function-0-Smooth": {
+    "function-0-SupportsUse": {
       "children": [
-        "function-2-Apply"
+        "function-0-Entry",
+        "function-0-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@SmoothSort-52",
-      "op": "Smooth",
+      "eclass": "@SupportsUseSort-25",
+      "op": "SupportsUse",
       "subsumed": false
     },
     "function-0-V": {
@@ -896,33 +564,14 @@
       "op": "V",
       "subsumed": false
     },
-    "function-0-ValueKnown": {
-      "children": [
-        "function-0-V"
-      ],
-      "cost": 1.0,
-      "eclass": "@ValueKnownSort-2",
-      "op": "ValueKnown",
-      "subsumed": false
-    },
     "function-1-AllSatisfied": {
       "children": [
-        "function-0-Apply",
-        "function-0-ENil"
+        "function-0-Entry",
+        "function-0-ECons"
       ],
       "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-41",
+      "eclass": "@AllSatisfiedSort-13",
       "op": "AllSatisfied",
-      "subsumed": false
-    },
-    "function-1-AlternativeSupport": {
-      "children": [
-        "function-2-Apply",
-        "function-2-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@AlternativeSupportSort-63",
-      "op": "AlternativeSupport",
       "subsumed": false
     },
     "function-1-Apply": {
@@ -930,73 +579,43 @@
         "function-0-Join",
         "primitive-String-6",
         "primitive-String-5",
-        "function-1-ECons",
+        "function-0-ECons",
         "function-0-ENil"
       ],
       "cost": 1.0,
-      "eclass": "Ctx-14",
+      "eclass": "Ctx-41",
       "op": "Apply",
       "subsumed": false
     },
     "function-1-ArgsEqual": {
       "children": [
-        "function-0-Apply",
-        "function-0-ANil",
-        "function-0-ANil"
-      ],
-      "cost": 1.0,
-      "eclass": "@ArgsEqualSort-36",
-      "op": "ArgsEqual",
-      "subsumed": false
-    },
-    "function-1-DominatesForUse": {
-      "children": [
         "function-0-Entry",
-        "function-2-Apply"
+        "function-0-ACons",
+        "function-0-ACons"
       ],
       "cost": 1.0,
-      "eclass": "@DominatesForUseSort-55",
-      "op": "DominatesForUse",
+      "eclass": "@ArgsEqualSort-11",
+      "op": "ArgsEqual",
       "subsumed": false
     },
     "function-1-ECons": {
       "children": [
-        "function-0-HasFact",
+        "function-1-HasFact",
         "function-0-ENil"
       ],
       "cost": 1.0,
-      "eclass": "Effects-8",
+      "eclass": "Effects-15",
       "op": "ECons",
       "subsumed": false
     },
     "function-1-Emit": {
       "children": [
-        "function-2-Apply",
+        "function-0-Apply",
         "function-0-ENil"
       ],
       "cost": 1.0,
-      "eclass": "@EmitSort-60",
+      "eclass": "@EmitSort-27",
       "op": "Emit",
-      "subsumed": false
-    },
-    "function-1-EqAt": {
-      "children": [
-        "function-2-Apply",
-        "function-0-V",
-        "function-0-V"
-      ],
-      "cost": 1.0,
-      "eclass": "@EqAtSort-31",
-      "op": "EqAt",
-      "subsumed": false
-    },
-    "function-1-Grounded": {
-      "children": [
-        "function-1-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@GroundedSort-15",
-      "op": "Grounded",
       "subsumed": false
     },
     "function-1-HasFact": {
@@ -1005,37 +624,28 @@
         "function-0-ACons"
       ],
       "cost": 1.0,
-      "eclass": "Effect-9",
+      "eclass": "Effect-14",
       "op": "HasFact",
       "subsumed": false
     },
     "function-1-Join": {
       "children": [
         "function-0-Apply",
-        "function-3-Apply"
+        "function-2-Apply"
       ],
       "cost": 1.0,
-      "eclass": "Ctx-104",
+      "eclass": "Ctx-61",
       "op": "Join",
-      "subsumed": false
-    },
-    "function-1-Known": {
-      "children": [
-        "function-1-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@KnownSort-24",
-      "op": "Known",
       "subsumed": false
     },
     "function-1-ProposedRemoval": {
       "children": [
-        "function-4-Apply",
-        "function-5-Apply",
+        "function-3-Apply",
+        "function-2-Apply",
         "function-0-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@ProposedRemovalSort-109",
+      "eclass": "@ProposedRemovalSort-91",
       "op": "ProposedRemoval",
       "subsumed": false
     },
@@ -1045,76 +655,58 @@
         "function-0-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@ProvidesSort-57",
+      "eclass": "@ProvidesSort-24",
       "op": "Provides",
-      "subsumed": false
-    },
-    "function-1-Ready": {
-      "children": [
-        "function-2-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@ReadySort-50",
-      "op": "Ready",
       "subsumed": false
     },
     "function-1-Satisfies": {
       "children": [
         "function-0-Apply",
-        "function-0-HasFact"
+        "function-1-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@SatisfiesSort-65",
+      "eclass": "@SatisfiesSort-31",
       "op": "Satisfies",
       "subsumed": false
     },
-    "function-1-Smooth": {
+    "function-1-SupportsUse": {
       "children": [
+        "function-0-Join",
         "function-0-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@SmoothSort-51",
-      "op": "Smooth",
+      "eclass": "@SupportsUseSort-40",
+      "op": "SupportsUse",
       "subsumed": false
     },
     "function-10-AllSatisfied": {
       "children": [
-        "function-0-Join",
+        "function-1-Apply",
         "function-0-ECons"
       ],
       "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-84",
+      "eclass": "@AllSatisfiedSort-53",
       "op": "AllSatisfied",
       "subsumed": false
     },
     "function-10-ArgsEqual": {
       "children": [
-        "function-4-Apply",
-        "function-0-ANil",
-        "function-0-ANil"
+        "function-1-Join",
+        "function-0-ACons",
+        "function-0-ACons"
       ],
       "cost": 1.0,
-      "eclass": "@ArgsEqualSort-130",
+      "eclass": "@ArgsEqualSort-75",
       "op": "ArgsEqual",
-      "subsumed": false
-    },
-    "function-10-DominatesForUse": {
-      "children": [
-        "function-0-Join",
-        "function-0-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-87",
-      "op": "DominatesForUse",
       "subsumed": false
     },
     "function-10-Provides": {
       "children": [
         "function-1-Join",
-        "function-1-HasFact"
+        "function-0-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@ProvidesSort-143",
+      "eclass": "@ProvidesSort-67",
       "op": "Provides",
       "subsumed": false
     },
@@ -1124,345 +716,251 @@
         "function-0-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@SatisfiesSort-149",
+      "eclass": "@SatisfiesSort-77",
       "op": "Satisfies",
+      "subsumed": false
+    },
+    "function-10-SupportsUse": {
+      "children": [
+        "function-0-Apply",
+        "function-2-Apply"
+      ],
+      "cost": 1.0,
+      "eclass": "@SupportsUseSort-71",
+      "op": "SupportsUse",
       "subsumed": false
     },
     "function-11-AllSatisfied": {
       "children": [
-        "function-1-Apply",
-        "function-0-ECons"
+        "function-2-Apply",
+        "function-0-ENil"
       ],
       "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-98",
+      "eclass": "@AllSatisfiedSort-65",
       "op": "AllSatisfied",
       "subsumed": false
     },
     "function-11-ArgsEqual": {
       "children": [
-        "function-1-Join",
-        "function-0-ANil",
-        "function-0-ANil"
+        "function-2-Apply",
+        "function-0-ACons",
+        "function-0-ACons"
       ],
       "cost": 1.0,
-      "eclass": "@ArgsEqualSort-131",
+      "eclass": "@ArgsEqualSort-74",
       "op": "ArgsEqual",
-      "subsumed": false
-    },
-    "function-11-DominatesForUse": {
-      "children": [
-        "function-0-Join",
-        "function-1-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-88",
-      "op": "DominatesForUse",
       "subsumed": false
     },
     "function-11-Provides": {
       "children": [
-        "function-1-Join",
-        "function-0-HasFact"
+        "function-3-Apply",
+        "function-1-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@ProvidesSort-142",
+      "eclass": "@ProvidesSort-96",
       "op": "Provides",
       "subsumed": false
     },
     "function-11-Satisfies": {
       "children": [
         "function-3-Apply",
-        "function-0-HasFact"
+        "function-1-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@SatisfiesSort-151",
+      "eclass": "@SatisfiesSort-104",
       "op": "Satisfies",
+      "subsumed": false
+    },
+    "function-11-SupportsUse": {
+      "children": [
+        "function-1-Join",
+        "function-2-Apply"
+      ],
+      "cost": 1.0,
+      "eclass": "@SupportsUseSort-89",
+      "op": "SupportsUse",
       "subsumed": false
     },
     "function-12-AllSatisfied": {
-      "children": [
-        "function-1-Apply",
-        "function-1-ECons"
-      ],
-      "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-97",
-      "op": "AllSatisfied",
-      "subsumed": false
-    },
-    "function-12-ArgsEqual": {
-      "children": [
-        "function-5-Apply",
-        "function-0-ANil",
-        "function-0-ANil"
-      ],
-      "cost": 1.0,
-      "eclass": "@ArgsEqualSort-132",
-      "op": "ArgsEqual",
-      "subsumed": false
-    },
-    "function-12-DominatesForUse": {
-      "children": [
-        "function-1-Apply",
-        "function-0-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-99",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-12-Provides": {
-      "children": [
-        "function-5-Apply",
-        "function-0-HasFact"
-      ],
-      "cost": 1.0,
-      "eclass": "@ProvidesSort-174",
-      "op": "Provides",
-      "subsumed": false
-    },
-    "function-12-Satisfies": {
-      "children": [
-        "function-5-Apply",
-        "function-0-HasFact"
-      ],
-      "cost": 1.0,
-      "eclass": "@SatisfiesSort-185",
-      "op": "Satisfies",
-      "subsumed": false
-    },
-    "function-13-AllSatisfied": {
       "children": [
         "function-1-Join",
         "function-0-ENil"
       ],
       "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-135",
+      "eclass": "@AllSatisfiedSort-63",
+      "op": "AllSatisfied",
+      "subsumed": false
+    },
+    "function-12-ArgsEqual": {
+      "children": [
+        "function-3-Apply",
+        "function-0-ANil",
+        "function-0-ANil"
+      ],
+      "cost": 1.0,
+      "eclass": "@ArgsEqualSort-92",
+      "op": "ArgsEqual",
+      "subsumed": false
+    },
+    "function-12-Provides": {
+      "children": [
+        "function-3-Apply",
+        "function-0-HasFact"
+      ],
+      "cost": 1.0,
+      "eclass": "@ProvidesSort-95",
+      "op": "Provides",
+      "subsumed": false
+    },
+    "function-12-Satisfies": {
+      "children": [
+        "function-3-Apply",
+        "function-0-HasFact"
+      ],
+      "cost": 1.0,
+      "eclass": "@SatisfiesSort-103",
+      "op": "Satisfies",
+      "subsumed": false
+    },
+    "function-12-SupportsUse": {
+      "children": [
+        "function-1-Join",
+        "function-0-Apply"
+      ],
+      "cost": 1.0,
+      "eclass": "@SupportsUseSort-85",
+      "op": "SupportsUse",
+      "subsumed": false
+    },
+    "function-13-AllSatisfied": {
+      "children": [
+        "function-2-Apply",
+        "function-1-ECons"
+      ],
+      "cost": 1.0,
+      "eclass": "@AllSatisfiedSort-82",
       "op": "AllSatisfied",
       "subsumed": false
     },
     "function-13-ArgsEqual": {
       "children": [
         "function-3-Apply",
-        "function-0-ANil",
-        "function-0-ANil"
+        "function-0-ACons",
+        "function-0-ACons"
       ],
       "cost": 1.0,
-      "eclass": "@ArgsEqualSort-133",
+      "eclass": "@ArgsEqualSort-102",
       "op": "ArgsEqual",
       "subsumed": false
     },
-    "function-13-DominatesForUse": {
+    "function-13-SupportsUse": {
       "children": [
-        "function-1-Apply",
+        "function-1-Join",
         "function-1-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@DominatesForUseSort-100",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-13-Provides": {
-      "children": [
-        "function-4-Apply",
-        "function-0-HasFact"
-      ],
-      "cost": 1.0,
-      "eclass": "@ProvidesSort-172",
-      "op": "Provides",
-      "subsumed": false
-    },
-    "function-13-Satisfies": {
-      "children": [
-        "function-4-Apply",
-        "function-0-HasFact"
-      ],
-      "cost": 1.0,
-      "eclass": "@SatisfiesSort-184",
-      "op": "Satisfies",
+      "eclass": "@SupportsUseSort-87",
+      "op": "SupportsUse",
       "subsumed": false
     },
     "function-14-AllSatisfied": {
       "children": [
-        "function-3-Apply",
-        "function-0-ENil"
+        "function-2-Apply",
+        "function-0-ECons"
       ],
       "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-137",
+      "eclass": "@AllSatisfiedSort-80",
       "op": "AllSatisfied",
       "subsumed": false
     },
-    "function-14-ArgsEqual": {
+    "function-14-SupportsUse": {
       "children": [
-        "function-4-Apply",
-        "function-0-ACons",
-        "function-0-ACons"
-      ],
-      "cost": 1.0,
-      "eclass": "@ArgsEqualSort-146",
-      "op": "ArgsEqual",
-      "subsumed": false
-    },
-    "function-14-DominatesForUse": {
-      "children": [
-        "function-1-Apply",
+        "function-2-Apply",
         "function-2-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@DominatesForUseSort-101",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-14-Provides": {
-      "children": [
-        "function-5-Apply",
-        "function-1-HasFact"
-      ],
-      "cost": 1.0,
-      "eclass": "@ProvidesSort-175",
-      "op": "Provides",
-      "subsumed": false
-    },
-    "function-14-Satisfies": {
-      "children": [
-        "function-5-Apply",
-        "function-1-HasFact"
-      ],
-      "cost": 1.0,
-      "eclass": "@SatisfiesSort-183",
-      "op": "Satisfies",
+      "eclass": "@SupportsUseSort-88",
+      "op": "SupportsUse",
       "subsumed": false
     },
     "function-15-AllSatisfied": {
       "children": [
-        "function-5-Apply",
-        "function-0-ENil"
-      ],
-      "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-136",
-      "op": "AllSatisfied",
-      "subsumed": false
-    },
-    "function-15-ArgsEqual": {
-      "children": [
         "function-1-Join",
-        "function-0-ACons",
-        "function-0-ACons"
-      ],
-      "cost": 1.0,
-      "eclass": "@ArgsEqualSort-144",
-      "op": "ArgsEqual",
-      "subsumed": false
-    },
-    "function-15-DominatesForUse": {
-      "children": [
-        "function-1-Apply",
-        "function-3-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-118",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-15-Provides": {
-      "children": [
-        "function-4-Apply",
-        "function-1-HasFact"
-      ],
-      "cost": 1.0,
-      "eclass": "@ProvidesSort-173",
-      "op": "Provides",
-      "subsumed": false
-    },
-    "function-15-Satisfies": {
-      "children": [
-        "function-4-Apply",
-        "function-1-HasFact"
-      ],
-      "cost": 1.0,
-      "eclass": "@SatisfiesSort-182",
-      "op": "Satisfies",
-      "subsumed": false
-    },
-    "function-16-AllSatisfied": {
-      "children": [
-        "function-4-Apply",
-        "function-0-ENil"
-      ],
-      "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-134",
-      "op": "AllSatisfied",
-      "subsumed": false
-    },
-    "function-16-ArgsEqual": {
-      "children": [
-        "function-5-Apply",
-        "function-0-ACons",
-        "function-0-ACons"
-      ],
-      "cost": 1.0,
-      "eclass": "@ArgsEqualSort-147",
-      "op": "ArgsEqual",
-      "subsumed": false
-    },
-    "function-16-DominatesForUse": {
-      "children": [
-        "function-1-Apply",
-        "function-4-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-121",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-17-AllSatisfied": {
-      "children": [
-        "function-3-Apply",
         "function-1-ECons"
       ],
       "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-152",
+      "eclass": "@AllSatisfiedSort-83",
       "op": "AllSatisfied",
       "subsumed": false
     },
-    "function-17-ArgsEqual": {
+    "function-15-SupportsUse": {
       "children": [
-        "function-3-Apply",
-        "function-0-ACons",
-        "function-0-ACons"
+        "function-2-Apply",
+        "function-0-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@ArgsEqualSort-145",
-      "op": "ArgsEqual",
+      "eclass": "@SupportsUseSort-84",
+      "op": "SupportsUse",
       "subsumed": false
     },
-    "function-17-DominatesForUse": {
-      "children": [
-        "function-0-Join",
-        "function-5-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-123",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-18-AllSatisfied": {
+    "function-16-AllSatisfied": {
       "children": [
         "function-1-Join",
         "function-0-ECons"
       ],
       "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-155",
+      "eclass": "@AllSatisfiedSort-81",
       "op": "AllSatisfied",
       "subsumed": false
     },
-    "function-18-DominatesForUse": {
+    "function-16-SupportsUse": {
       "children": [
-        "function-0-Apply",
-        "function-5-Apply"
+        "function-2-Apply",
+        "function-1-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@DominatesForUseSort-122",
-      "op": "DominatesForUse",
+      "eclass": "@SupportsUseSort-86",
+      "op": "SupportsUse",
+      "subsumed": false
+    },
+    "function-17-AllSatisfied": {
+      "children": [
+        "function-3-Apply",
+        "function-0-ENil"
+      ],
+      "cost": 1.0,
+      "eclass": "@AllSatisfiedSort-93",
+      "op": "AllSatisfied",
+      "subsumed": false
+    },
+    "function-17-SupportsUse": {
+      "children": [
+        "function-1-Join",
+        "function-3-Apply"
+      ],
+      "cost": 1.0,
+      "eclass": "@SupportsUseSort-101",
+      "op": "SupportsUse",
+      "subsumed": false
+    },
+    "function-18-AllSatisfied": {
+      "children": [
+        "function-3-Apply",
+        "function-1-ECons"
+      ],
+      "cost": 1.0,
+      "eclass": "@AllSatisfiedSort-106",
+      "op": "AllSatisfied",
+      "subsumed": false
+    },
+    "function-18-SupportsUse": {
+      "children": [
+        "function-1-Apply",
+        "function-3-Apply"
+      ],
+      "cost": 1.0,
+      "eclass": "@SupportsUseSort-99",
+      "op": "SupportsUse",
       "subsumed": false
     },
     "function-19-AllSatisfied": {
@@ -1471,392 +969,196 @@
         "function-0-ECons"
       ],
       "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-154",
+      "eclass": "@AllSatisfiedSort-105",
       "op": "AllSatisfied",
       "subsumed": false
     },
-    "function-19-DominatesForUse": {
+    "function-19-SupportsUse": {
       "children": [
-        "function-0-Join",
+        "function-0-Apply",
         "function-3-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@DominatesForUseSort-117",
-      "op": "DominatesForUse",
+      "eclass": "@SupportsUseSort-97",
+      "op": "SupportsUse",
       "subsumed": false
     },
     "function-2-AllSatisfied": {
       "children": [
-        "function-2-Apply",
+        "function-0-Apply",
         "function-0-ENil"
       ],
       "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-40",
+      "eclass": "@AllSatisfiedSort-21",
       "op": "AllSatisfied",
-      "subsumed": false
-    },
-    "function-2-AlternativeSupport": {
-      "children": [
-        "function-1-Apply",
-        "function-2-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@AlternativeSupportSort-62",
-      "op": "AlternativeSupport",
       "subsumed": false
     },
     "function-2-Apply": {
       "children": [
-        "function-0-Entry",
-        "primitive-String-6",
-        "primitive-String-5",
+        "function-0-Apply",
+        "primitive-String-7",
+        "primitive-String-8",
         "function-1-ECons",
         "function-0-ENil"
       ],
       "cost": 1.0,
-      "eclass": "Ctx-16",
+      "eclass": "Ctx-60",
       "op": "Apply",
       "subsumed": false
     },
     "function-2-ArgsEqual": {
       "children": [
-        "function-0-Entry",
+        "function-0-Join",
         "function-0-ANil",
         "function-0-ANil"
       ],
       "cost": 1.0,
-      "eclass": "@ArgsEqualSort-32",
+      "eclass": "@ArgsEqualSort-18",
       "op": "ArgsEqual",
-      "subsumed": false
-    },
-    "function-2-DominatesForUse": {
-      "children": [
-        "function-0-Entry",
-        "function-0-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-53",
-      "op": "DominatesForUse",
       "subsumed": false
     },
     "function-2-Emit": {
       "children": [
-        "function-0-Apply",
+        "function-1-Apply",
         "function-0-ENil"
       ],
       "cost": 1.0,
-      "eclass": "@EmitSort-68",
+      "eclass": "@EmitSort-44",
       "op": "Emit",
-      "subsumed": false
-    },
-    "function-2-EqAt": {
-      "children": [
-        "function-0-Apply",
-        "function-0-V",
-        "function-0-V"
-      ],
-      "cost": 1.0,
-      "eclass": "@EqAtSort-28",
-      "op": "EqAt",
-      "subsumed": false
-    },
-    "function-2-Grounded": {
-      "children": [
-        "function-2-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@GroundedSort-17",
-      "op": "Grounded",
-      "subsumed": false
-    },
-    "function-2-Known": {
-      "children": [
-        "function-0-Join"
-      ],
-      "cost": 1.0,
-      "eclass": "@KnownSort-22",
-      "op": "Known",
       "subsumed": false
     },
     "function-2-Provides": {
       "children": [
-        "function-2-Apply",
+        "function-0-Join",
         "function-0-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@ProvidesSort-58",
+      "eclass": "@ProvidesSort-23",
       "op": "Provides",
-      "subsumed": false
-    },
-    "function-2-Ready": {
-      "children": [
-        "function-0-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@ReadySort-49",
-      "op": "Ready",
       "subsumed": false
     },
     "function-2-Satisfies": {
       "children": [
-        "function-2-Apply",
+        "function-0-Apply",
         "function-0-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@SatisfiesSort-66",
+      "eclass": "@SatisfiesSort-32",
       "op": "Satisfies",
       "subsumed": false
     },
-    "function-2-Smooth": {
+    "function-2-SupportsUse": {
       "children": [
-        "function-1-Apply"
+        "function-0-Apply",
+        "function-0-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@SmoothSort-86",
-      "op": "Smooth",
+      "eclass": "@SupportsUseSort-39",
+      "op": "SupportsUse",
       "subsumed": false
     },
-    "function-20-AllSatisfied": {
+    "function-20-SupportsUse": {
       "children": [
-        "function-1-Join",
-        "function-1-ECons"
+        "function-2-Apply",
+        "function-3-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-153",
-      "op": "AllSatisfied",
+      "eclass": "@SupportsUseSort-100",
+      "op": "SupportsUse",
       "subsumed": false
     },
-    "function-20-DominatesForUse": {
+    "function-21-SupportsUse": {
       "children": [
         "function-0-Join",
-        "function-4-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-120",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-21-AllSatisfied": {
-      "children": [
-        "function-4-Apply",
-        "function-0-ECons"
-      ],
-      "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-188",
-      "op": "AllSatisfied",
-      "subsumed": false
-    },
-    "function-21-DominatesForUse": {
-      "children": [
-        "function-0-Apply",
         "function-3-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@DominatesForUseSort-116",
-      "op": "DominatesForUse",
+      "eclass": "@SupportsUseSort-98",
+      "op": "SupportsUse",
       "subsumed": false
     },
-    "function-22-AllSatisfied": {
+    "function-22-SupportsUse": {
       "children": [
-        "function-5-Apply",
-        "function-1-ECons"
+        "function-3-Apply",
+        "function-3-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-187",
-      "op": "AllSatisfied",
+      "eclass": "@SupportsUseSort-110",
+      "op": "SupportsUse",
       "subsumed": false
     },
-    "function-22-DominatesForUse": {
+    "function-23-SupportsUse": {
       "children": [
-        "function-0-Apply",
-        "function-4-Apply"
+        "function-3-Apply",
+        "function-2-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@DominatesForUseSort-119",
-      "op": "DominatesForUse",
+      "eclass": "@SupportsUseSort-109",
+      "op": "SupportsUse",
       "subsumed": false
     },
-    "function-23-AllSatisfied": {
+    "function-24-SupportsUse": {
       "children": [
-        "function-4-Apply",
-        "function-1-ECons"
-      ],
-      "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-186",
-      "op": "AllSatisfied",
-      "subsumed": false
-    },
-    "function-23-DominatesForUse": {
-      "children": [
-        "function-1-Apply",
-        "function-5-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-124",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-24-AllSatisfied": {
-      "children": [
-        "function-5-Apply",
-        "function-0-ECons"
-      ],
-      "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-189",
-      "op": "AllSatisfied",
-      "subsumed": false
-    },
-    "function-24-DominatesForUse": {
-      "children": [
-        "function-1-Join",
+        "function-3-Apply",
         "function-0-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@DominatesForUseSort-163",
-      "op": "DominatesForUse",
+      "eclass": "@SupportsUseSort-107",
+      "op": "SupportsUse",
       "subsumed": false
     },
-    "function-25-DominatesForUse": {
+    "function-25-SupportsUse": {
       "children": [
-        "function-1-Join",
-        "function-4-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-170",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-26-DominatesForUse": {
-      "children": [
-        "function-1-Join",
+        "function-3-Apply",
         "function-1-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@DominatesForUseSort-164",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-27-DominatesForUse": {
-      "children": [
-        "function-3-Apply",
-        "function-3-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-166",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-28-DominatesForUse": {
-      "children": [
-        "function-3-Apply",
-        "function-0-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-160",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-29-DominatesForUse": {
-      "children": [
-        "function-3-Apply",
-        "function-4-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-167",
-      "op": "DominatesForUse",
+      "eclass": "@SupportsUseSort-108",
+      "op": "SupportsUse",
       "subsumed": false
     },
     "function-3-AllSatisfied": {
       "children": [
-        "function-0-Entry",
+        "function-0-Join",
         "function-0-ENil"
       ],
       "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-37",
+      "eclass": "@AllSatisfiedSort-19",
       "op": "AllSatisfied",
-      "subsumed": false
-    },
-    "function-3-AlternativeSupport": {
-      "children": [
-        "function-2-Apply",
-        "function-1-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@AlternativeSupportSort-94",
-      "op": "AlternativeSupport",
       "subsumed": false
     },
     "function-3-Apply": {
       "children": [
-        "function-0-Apply",
-        "primitive-String-7",
+        "function-1-Join",
+        "primitive-String-9",
         "primitive-String-8",
-        "function-0-ECons",
+        "function-1-ECons",
         "function-0-ENil"
       ],
       "cost": 1.0,
-      "eclass": "Ctx-102",
+      "eclass": "Ctx-90",
       "op": "Apply",
       "subsumed": false
     },
     "function-3-ArgsEqual": {
       "children": [
-        "function-1-Apply",
+        "function-0-Apply",
         "function-0-ANil",
         "function-0-ANil"
       ],
       "cost": 1.0,
-      "eclass": "@ArgsEqualSort-33",
+      "eclass": "@ArgsEqualSort-20",
       "op": "ArgsEqual",
-      "subsumed": false
-    },
-    "function-3-DominatesForUse": {
-      "children": [
-        "function-2-Apply",
-        "function-1-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-82",
-      "op": "DominatesForUse",
       "subsumed": false
     },
     "function-3-Emit": {
       "children": [
-        "function-1-Apply",
+        "function-2-Apply",
         "function-0-ENil"
       ],
       "cost": 1.0,
-      "eclass": "@EmitSort-92",
+      "eclass": "@EmitSort-66",
       "op": "Emit",
-      "subsumed": false
-    },
-    "function-3-EqAt": {
-      "children": [
-        "function-0-Entry",
-        "function-0-V",
-        "function-0-V"
-      ],
-      "cost": 1.0,
-      "eclass": "@EqAtSort-27",
-      "op": "EqAt",
-      "subsumed": false
-    },
-    "function-3-Grounded": {
-      "children": [
-        "function-3-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@GroundedSort-103",
-      "op": "Grounded",
-      "subsumed": false
-    },
-    "function-3-Known": {
-      "children": [
-        "function-2-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@KnownSort-25",
-      "op": "Known",
       "subsumed": false
     },
     "function-3-Provides": {
@@ -1865,190 +1167,49 @@
         "function-1-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@ProvidesSort-67",
+      "eclass": "@ProvidesSort-26",
       "op": "Provides",
-      "subsumed": false
-    },
-    "function-3-Ready": {
-      "children": [
-        "function-0-Join"
-      ],
-      "cost": 1.0,
-      "eclass": "@ReadySort-56",
-      "op": "Ready",
       "subsumed": false
     },
     "function-3-Satisfies": {
       "children": [
-        "function-0-Apply",
-        "function-1-HasFact"
+        "function-0-Join",
+        "function-0-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@SatisfiesSort-71",
+      "eclass": "@SatisfiesSort-33",
       "op": "Satisfies",
       "subsumed": false
     },
-    "function-3-Smooth": {
+    "function-3-SupportsUse": {
       "children": [
-        "function-3-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@SmoothSort-115",
-      "op": "Smooth",
-      "subsumed": false
-    },
-    "function-30-DominatesForUse": {
-      "children": [
-        "function-3-Apply",
+        "function-0-Join",
         "function-1-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@DominatesForUseSort-161",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-31-DominatesForUse": {
-      "children": [
-        "function-1-Join",
-        "function-5-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-171",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-32-DominatesForUse": {
-      "children": [
-        "function-1-Join",
-        "function-2-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-165",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-33-DominatesForUse": {
-      "children": [
-        "function-3-Apply",
-        "function-5-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-168",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-34-DominatesForUse": {
-      "children": [
-        "function-3-Apply",
-        "function-2-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-162",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-35-DominatesForUse": {
-      "children": [
-        "function-1-Join",
-        "function-3-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-169",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-36-DominatesForUse": {
-      "children": [
-        "function-5-Apply",
-        "function-2-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-195",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-37-DominatesForUse": {
-      "children": [
-        "function-5-Apply",
-        "function-5-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-201",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-38-DominatesForUse": {
-      "children": [
-        "function-4-Apply",
-        "function-5-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-198",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-39-DominatesForUse": {
-      "children": [
-        "function-4-Apply",
-        "function-2-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-192",
-      "op": "DominatesForUse",
+      "eclass": "@SupportsUseSort-49",
+      "op": "SupportsUse",
       "subsumed": false
     },
     "function-4-AllSatisfied": {
       "children": [
-        "function-1-Apply",
-        "function-0-ENil"
+        "function-0-Apply",
+        "function-1-ECons"
       ],
       "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-38",
+      "eclass": "@AllSatisfiedSort-37",
       "op": "AllSatisfied",
-      "subsumed": false
-    },
-    "function-4-AlternativeSupport": {
-      "children": [
-        "function-1-Apply",
-        "function-1-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@AlternativeSupportSort-93",
-      "op": "AlternativeSupport",
-      "subsumed": false
-    },
-    "function-4-Apply": {
-      "children": [
-        "function-1-Join",
-        "primitive-String-9",
-        "primitive-String-8",
-        "function-0-ECons",
-        "function-0-ENil"
-      ],
-      "cost": 1.0,
-      "eclass": "Ctx-105",
-      "op": "Apply",
       "subsumed": false
     },
     "function-4-ArgsEqual": {
       "children": [
-        "function-0-Join",
-        "function-0-ANil",
-        "function-0-ANil"
-      ],
-      "cost": 1.0,
-      "eclass": "@ArgsEqualSort-34",
-      "op": "ArgsEqual",
-      "subsumed": false
-    },
-    "function-4-DominatesForUse": {
-      "children": [
         "function-0-Apply",
-        "function-2-Apply"
+        "function-0-ACons",
+        "function-0-ACons"
       ],
       "cost": 1.0,
-      "eclass": "@DominatesForUseSort-80",
-      "op": "DominatesForUse",
+      "eclass": "@ArgsEqualSort-28",
+      "op": "ArgsEqual",
       "subsumed": false
     },
     "function-4-Emit": {
@@ -2057,357 +1218,110 @@
         "function-0-ENil"
       ],
       "cost": 1.0,
-      "eclass": "@EmitSort-140",
+      "eclass": "@EmitSort-94",
       "op": "Emit",
-      "subsumed": false
-    },
-    "function-4-EqAt": {
-      "children": [
-        "function-1-Apply",
-        "function-0-V",
-        "function-0-V"
-      ],
-      "cost": 1.0,
-      "eclass": "@EqAtSort-30",
-      "op": "EqAt",
-      "subsumed": false
-    },
-    "function-4-Grounded": {
-      "children": [
-        "function-4-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@GroundedSort-106",
-      "op": "Grounded",
-      "subsumed": false
-    },
-    "function-4-Known": {
-      "children": [
-        "function-0-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@KnownSort-23",
-      "op": "Known",
       "subsumed": false
     },
     "function-4-Provides": {
       "children": [
         "function-0-Join",
-        "function-0-HasFact"
+        "function-1-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@ProvidesSort-64",
+      "eclass": "@ProvidesSort-30",
       "op": "Provides",
-      "subsumed": false
-    },
-    "function-4-Ready": {
-      "children": [
-        "function-1-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@ReadySort-85",
-      "op": "Ready",
       "subsumed": false
     },
     "function-4-Satisfies": {
       "children": [
         "function-0-Join",
-        "function-0-HasFact"
+        "function-1-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@SatisfiesSort-72",
+      "eclass": "@SatisfiesSort-34",
       "op": "Satisfies",
       "subsumed": false
     },
-    "function-4-Smooth": {
+    "function-4-SupportsUse": {
       "children": [
-        "function-4-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@SmoothSort-159",
-      "op": "Smooth",
-      "subsumed": false
-    },
-    "function-40-DominatesForUse": {
-      "children": [
-        "function-5-Apply",
-        "function-0-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-193",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-41-DominatesForUse": {
-      "children": [
-        "function-5-Apply",
-        "function-3-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-199",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-42-DominatesForUse": {
-      "children": [
-        "function-5-Apply",
-        "function-4-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-200",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-43-DominatesForUse": {
-      "children": [
-        "function-5-Apply",
+        "function-0-Apply",
         "function-1-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@DominatesForUseSort-194",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-44-DominatesForUse": {
-      "children": [
-        "function-4-Apply",
-        "function-3-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-196",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-45-DominatesForUse": {
-      "children": [
-        "function-4-Apply",
-        "function-0-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-190",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-46-DominatesForUse": {
-      "children": [
-        "function-4-Apply",
-        "function-1-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-191",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-47-DominatesForUse": {
-      "children": [
-        "function-4-Apply",
-        "function-4-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-197",
-      "op": "DominatesForUse",
+      "eclass": "@SupportsUseSort-48",
+      "op": "SupportsUse",
       "subsumed": false
     },
     "function-5-AllSatisfied": {
       "children": [
-        "function-0-Entry",
-        "function-1-ECons"
+        "function-0-Apply",
+        "function-0-ECons"
       ],
       "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-48",
+      "eclass": "@AllSatisfiedSort-35",
       "op": "AllSatisfied",
-      "subsumed": false
-    },
-    "function-5-AlternativeSupport": {
-      "children": [
-        "function-3-Apply",
-        "function-3-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@AlternativeSupportSort-141",
-      "op": "AlternativeSupport",
-      "subsumed": false
-    },
-    "function-5-Apply": {
-      "children": [
-        "function-3-Apply",
-        "primitive-String-9",
-        "primitive-String-8",
-        "function-0-ECons",
-        "function-0-ENil"
-      ],
-      "cost": 1.0,
-      "eclass": "Ctx-107",
-      "op": "Apply",
       "subsumed": false
     },
     "function-5-ArgsEqual": {
       "children": [
-        "function-0-Entry",
+        "function-0-Join",
         "function-0-ACons",
         "function-0-ACons"
       ],
       "cost": 1.0,
-      "eclass": "@ArgsEqualSort-43",
+      "eclass": "@ArgsEqualSort-29",
       "op": "ArgsEqual",
-      "subsumed": false
-    },
-    "function-5-DominatesForUse": {
-      "children": [
-        "function-0-Apply",
-        "function-0-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-78",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-5-Emit": {
-      "children": [
-        "function-5-Apply",
-        "function-0-ENil"
-      ],
-      "cost": 1.0,
-      "eclass": "@EmitSort-177",
-      "op": "Emit",
-      "subsumed": false
-    },
-    "function-5-EqAt": {
-      "children": [
-        "function-5-Apply",
-        "function-0-V",
-        "function-0-V"
-      ],
-      "cost": 1.0,
-      "eclass": "@EqAtSort-129",
-      "op": "EqAt",
-      "subsumed": false
-    },
-    "function-5-Grounded": {
-      "children": [
-        "function-5-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@GroundedSort-108",
-      "op": "Grounded",
-      "subsumed": false
-    },
-    "function-5-Known": {
-      "children": [
-        "function-4-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@KnownSort-112",
-      "op": "Known",
       "subsumed": false
     },
     "function-5-Provides": {
       "children": [
-        "function-0-Join",
-        "function-1-HasFact"
+        "function-1-Apply",
+        "function-0-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@ProvidesSort-70",
+      "eclass": "@ProvidesSort-45",
       "op": "Provides",
-      "subsumed": false
-    },
-    "function-5-Ready": {
-      "children": [
-        "function-3-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@ReadySort-114",
-      "op": "Ready",
       "subsumed": false
     },
     "function-5-Satisfies": {
       "children": [
-        "function-0-Join",
-        "function-1-HasFact"
+        "function-1-Apply",
+        "function-0-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@SatisfiesSort-75",
+      "eclass": "@SatisfiesSort-51",
       "op": "Satisfies",
       "subsumed": false
     },
-    "function-5-Smooth": {
+    "function-5-SupportsUse": {
       "children": [
-        "function-5-Apply"
+        "function-0-Entry",
+        "function-1-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@SmoothSort-158",
-      "op": "Smooth",
+      "eclass": "@SupportsUseSort-47",
+      "op": "SupportsUse",
       "subsumed": false
     },
     "function-6-AllSatisfied": {
       "children": [
-        "function-0-Apply",
-        "function-1-ECons"
+        "function-0-Join",
+        "function-0-ECons"
       ],
       "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-73",
+      "eclass": "@AllSatisfiedSort-36",
       "op": "AllSatisfied",
-      "subsumed": false
-    },
-    "function-6-AlternativeSupport": {
-      "children": [
-        "function-5-Apply",
-        "function-5-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@AlternativeSupportSort-181",
-      "op": "AlternativeSupport",
       "subsumed": false
     },
     "function-6-ArgsEqual": {
       "children": [
         "function-1-Apply",
-        "function-0-ACons",
-        "function-0-ACons"
+        "function-0-ANil",
+        "function-0-ANil"
       ],
       "cost": 1.0,
       "eclass": "@ArgsEqualSort-42",
       "op": "ArgsEqual",
-      "subsumed": false
-    },
-    "function-6-DominatesForUse": {
-      "children": [
-        "function-2-Apply",
-        "function-2-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-83",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-6-Emit": {
-      "children": [
-        "function-4-Apply",
-        "function-0-ENil"
-      ],
-      "cost": 1.0,
-      "eclass": "@EmitSort-176",
-      "op": "Emit",
-      "subsumed": false
-    },
-    "function-6-EqAt": {
-      "children": [
-        "function-3-Apply",
-        "function-0-V",
-        "function-0-V"
-      ],
-      "cost": 1.0,
-      "eclass": "@EqAtSort-126",
-      "op": "EqAt",
-      "subsumed": false
-    },
-    "function-6-Known": {
-      "children": [
-        "function-1-Join"
-      ],
-      "cost": 1.0,
-      "eclass": "@KnownSort-110",
-      "op": "Known",
       "subsumed": false
     },
     "function-6-Provides": {
@@ -2416,17 +1330,8 @@
         "function-1-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@ProvidesSort-91",
+      "eclass": "@ProvidesSort-46",
       "op": "Provides",
-      "subsumed": false
-    },
-    "function-6-Ready": {
-      "children": [
-        "function-1-Join"
-      ],
-      "cost": 1.0,
-      "eclass": "@ReadySort-125",
-      "op": "Ready",
       "subsumed": false
     },
     "function-6-Satisfies": {
@@ -2435,249 +1340,171 @@
         "function-1-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@SatisfiesSort-95",
+      "eclass": "@SatisfiesSort-52",
       "op": "Satisfies",
+      "subsumed": false
+    },
+    "function-6-SupportsUse": {
+      "children": [
+        "function-1-Apply",
+        "function-0-Apply"
+      ],
+      "cost": 1.0,
+      "eclass": "@SupportsUseSort-55",
+      "op": "SupportsUse",
       "subsumed": false
     },
     "function-7-AllSatisfied": {
       "children": [
-        "function-2-Apply",
+        "function-0-Join",
         "function-1-ECons"
       ],
       "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-74",
+      "eclass": "@AllSatisfiedSort-38",
       "op": "AllSatisfied",
-      "subsumed": false
-    },
-    "function-7-AlternativeSupport": {
-      "children": [
-        "function-4-Apply",
-        "function-5-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@AlternativeSupportSort-180",
-      "op": "AlternativeSupport",
       "subsumed": false
     },
     "function-7-ArgsEqual": {
       "children": [
-        "function-0-Join",
+        "function-1-Apply",
         "function-0-ACons",
         "function-0-ACons"
       ],
       "cost": 1.0,
-      "eclass": "@ArgsEqualSort-45",
+      "eclass": "@ArgsEqualSort-50",
       "op": "ArgsEqual",
-      "subsumed": false
-    },
-    "function-7-DominatesForUse": {
-      "children": [
-        "function-0-Apply",
-        "function-1-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-79",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-7-EqAt": {
-      "children": [
-        "function-4-Apply",
-        "function-0-V",
-        "function-0-V"
-      ],
-      "cost": 1.0,
-      "eclass": "@EqAtSort-128",
-      "op": "EqAt",
-      "subsumed": false
-    },
-    "function-7-Known": {
-      "children": [
-        "function-5-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@KnownSort-113",
-      "op": "Known",
       "subsumed": false
     },
     "function-7-Provides": {
       "children": [
-        "function-1-Apply",
-        "function-0-HasFact"
+        "function-2-Apply",
+        "function-1-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@ProvidesSort-90",
+      "eclass": "@ProvidesSort-70",
       "op": "Provides",
-      "subsumed": false
-    },
-    "function-7-Ready": {
-      "children": [
-        "function-4-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@ReadySort-157",
-      "op": "Ready",
       "subsumed": false
     },
     "function-7-Satisfies": {
       "children": [
-        "function-1-Apply",
-        "function-0-HasFact"
+        "function-2-Apply",
+        "function-1-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@SatisfiesSort-96",
+      "eclass": "@SatisfiesSort-78",
       "op": "Satisfies",
+      "subsumed": false
+    },
+    "function-7-SupportsUse": {
+      "children": [
+        "function-1-Apply",
+        "function-1-Apply"
+      ],
+      "cost": 1.0,
+      "eclass": "@SupportsUseSort-56",
+      "op": "SupportsUse",
       "subsumed": false
     },
     "function-8-AllSatisfied": {
       "children": [
-        "function-0-Apply",
-        "function-0-ECons"
+        "function-1-Apply",
+        "function-0-ENil"
       ],
       "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-77",
+      "eclass": "@AllSatisfiedSort-43",
       "op": "AllSatisfied",
-      "subsumed": false
-    },
-    "function-8-AlternativeSupport": {
-      "children": [
-        "function-5-Apply",
-        "function-4-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@AlternativeSupportSort-179",
-      "op": "AlternativeSupport",
       "subsumed": false
     },
     "function-8-ArgsEqual": {
       "children": [
         "function-2-Apply",
-        "function-0-ACons",
-        "function-0-ACons"
+        "function-0-ANil",
+        "function-0-ANil"
       ],
       "cost": 1.0,
-      "eclass": "@ArgsEqualSort-46",
+      "eclass": "@ArgsEqualSort-64",
       "op": "ArgsEqual",
-      "subsumed": false
-    },
-    "function-8-DominatesForUse": {
-      "children": [
-        "function-2-Apply",
-        "function-0-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@DominatesForUseSort-81",
-      "op": "DominatesForUse",
-      "subsumed": false
-    },
-    "function-8-EqAt": {
-      "children": [
-        "function-1-Join",
-        "function-0-V",
-        "function-0-V"
-      ],
-      "cost": 1.0,
-      "eclass": "@EqAtSort-127",
-      "op": "EqAt",
-      "subsumed": false
-    },
-    "function-8-Known": {
-      "children": [
-        "function-3-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@KnownSort-111",
-      "op": "Known",
       "subsumed": false
     },
     "function-8-Provides": {
       "children": [
-        "function-3-Apply",
-        "function-1-HasFact"
+        "function-2-Apply",
+        "function-0-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@ProvidesSort-139",
+      "eclass": "@ProvidesSort-69",
       "op": "Provides",
-      "subsumed": false
-    },
-    "function-8-Ready": {
-      "children": [
-        "function-5-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@ReadySort-156",
-      "op": "Ready",
       "subsumed": false
     },
     "function-8-Satisfies": {
       "children": [
-        "function-1-Join",
-        "function-1-HasFact"
+        "function-2-Apply",
+        "function-0-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@SatisfiesSort-148",
+      "eclass": "@SatisfiesSort-76",
       "op": "Satisfies",
       "subsumed": false
     },
-    "function-9-AllSatisfied": {
-      "children": [
-        "function-0-Join",
-        "function-1-ECons"
-      ],
-      "cost": 1.0,
-      "eclass": "@AllSatisfiedSort-76",
-      "op": "AllSatisfied",
-      "subsumed": false
-    },
-    "function-9-AlternativeSupport": {
-      "children": [
-        "function-4-Apply",
-        "function-4-Apply"
-      ],
-      "cost": 1.0,
-      "eclass": "@AlternativeSupportSort-178",
-      "op": "AlternativeSupport",
-      "subsumed": false
-    },
-    "function-9-ArgsEqual": {
-      "children": [
-        "function-0-Apply",
-        "function-0-ACons",
-        "function-0-ACons"
-      ],
-      "cost": 1.0,
-      "eclass": "@ArgsEqualSort-44",
-      "op": "ArgsEqual",
-      "subsumed": false
-    },
-    "function-9-DominatesForUse": {
+    "function-8-SupportsUse": {
       "children": [
         "function-0-Join",
         "function-2-Apply"
       ],
       "cost": 1.0,
-      "eclass": "@DominatesForUseSort-89",
-      "op": "DominatesForUse",
+      "eclass": "@SupportsUseSort-72",
+      "op": "SupportsUse",
+      "subsumed": false
+    },
+    "function-9-AllSatisfied": {
+      "children": [
+        "function-1-Apply",
+        "function-1-ECons"
+      ],
+      "cost": 1.0,
+      "eclass": "@AllSatisfiedSort-54",
+      "op": "AllSatisfied",
+      "subsumed": false
+    },
+    "function-9-ArgsEqual": {
+      "children": [
+        "function-1-Join",
+        "function-0-ANil",
+        "function-0-ANil"
+      ],
+      "cost": 1.0,
+      "eclass": "@ArgsEqualSort-62",
+      "op": "ArgsEqual",
       "subsumed": false
     },
     "function-9-Provides": {
       "children": [
-        "function-3-Apply",
-        "function-0-HasFact"
+        "function-1-Join",
+        "function-1-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@ProvidesSort-138",
+      "eclass": "@ProvidesSort-68",
       "op": "Provides",
       "subsumed": false
     },
     "function-9-Satisfies": {
       "children": [
-        "function-3-Apply",
+        "function-1-Join",
         "function-1-HasFact"
       ],
       "cost": 1.0,
-      "eclass": "@SatisfiesSort-150",
+      "eclass": "@SatisfiesSort-79",
       "op": "Satisfies",
+      "subsumed": false
+    },
+    "function-9-SupportsUse": {
+      "children": [
+        "function-1-Apply",
+        "function-2-Apply"
+      ],
+      "cost": 1.0,
+      "eclass": "@SupportsUseSort-73",
+      "op": "SupportsUse",
       "subsumed": false
     },
     "primitive-String-0": {

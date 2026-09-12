@@ -25,7 +25,7 @@ fn binds() -> BTreeMap<usize, Term> {
     BTreeMap::from([(0, v(0)), (1, v(1))])
 }
 #[test]
-fn contextual_union_enables_a_joint_binding_without_leaking_to_other_contexts() {
+fn scoped_equality_supports_an_observed_combination() {
     let mut t = Tier1::new().unwrap();
     let base = t
         .entry(&[fact("P", vec![v(0)]), fact("Q", vec![v(2), v(1)])])
@@ -34,104 +34,98 @@ fn contextual_union_enables_a_joint_binding_without_leaking_to_other_contexts() 
         Fact::Relation("P".into(), vec![p(0)]),
         Fact::Relation("Q".into(), vec![p(0), p(1)]),
     ]);
-    let old = t
-        .apply(base, "R", &r, &binds(), &[fact("T", vec![p(1)])])
+    assert!(
+        t.apply(base, "R", &r, &binds(), &[fact("T", vec![p(1)])])
+            .is_err()
+    );
+    let external = t.entry(&[Effect::Equal(v(0), v(2))]).unwrap();
+    let joined = t.join(base, external).unwrap();
+    let app = t
+        .apply(joined, "R", &r, &binds(), &[fact("T", vec![p(1)])])
         .unwrap();
     t.saturate().unwrap();
-    assert!(!t.ready(old).unwrap());
-    assert!(!t.satisfies(old, &fact("T", vec![v(1)])).unwrap());
-    let eq = t.entry(&[Effect::Equal(v(0), v(2))]).unwrap();
-    let merged = t.join(base, eq).unwrap();
-    let enabled = t
-        .apply(merged, "R", &r, &binds(), &[fact("T", vec![p(1)])])
-        .unwrap();
-    t.saturate().unwrap();
-    assert!(t.ready(enabled).unwrap());
-    assert!(t.satisfies(enabled, &fact("T", vec![v(1)])).unwrap());
-    assert!(!t.ready(old).unwrap());
+    assert!(!t.supports_use(base, app).unwrap());
+    assert!(t.supports_use(joined, app).unwrap());
+    assert!(t.satisfies(app, &fact("T", vec![v(1)])).unwrap());
     emit(
         "union",
-        json!({"analysis":t.report().unwrap(),"blocked_context":old.0,"enabled_context":enabled.0}),
+        json!({"analysis":t.report().unwrap(),"local_context":base.0,"external_support":external.0,"observed_apply":app.0}),
     );
 }
 #[test]
-fn redundant_support_is_local_and_cannot_use_the_removed_producer_indirectly() {
+fn redundancy_proposes_a_parent_not_an_unobserved_apply() {
     let mut t = Tier1::new().unwrap();
     let a = t.entry(&[fact("P", vec![v(0)])]).unwrap();
     let r = req(vec![Fact::Relation("P".into(), vec![p(0)])]);
     let b = t
         .apply(a, "produce-Q", &r, &binds(), &[fact("Q", vec![v(0)])])
         .unwrap();
-    let joined = t.join(a, b).unwrap();
-    let old = t.apply(joined, "use-P", &r, &binds(), &[]).unwrap();
-    let new = t.without_join_parent(old, b).unwrap();
+    let ab = t.join(a, b).unwrap();
+    let old = t.apply(ab, "use-P", &r, &binds(), &[]).unwrap();
+    let before = t.report().unwrap()["contexts"].as_array().unwrap().len();
+    let replacement = t.without_join_parent(old, b).unwrap();
     t.saturate().unwrap();
-    assert!(t.redundant(old, new, b).unwrap());
+    assert_eq!(replacement, a);
+    assert_eq!(
+        before,
+        t.report().unwrap()["contexts"].as_array().unwrap().len()
+    );
+    assert!(t.redundant(old, replacement, b).unwrap());
     assert!(t.satisfies(old, &fact("Q", vec![v(0)])).unwrap());
-    assert!(!t.satisfies(new, &fact("Q", vec![v(0)])).unwrap());
-    let q = req(vec![Fact::Relation("Q".into(), vec![p(0)])]);
-    let c = t.apply(b, "forward-Q", &q, &binds(), &[]).unwrap();
+    assert!(!t.satisfies(replacement, &fact("Q", vec![v(0)])).unwrap());
+    let qr = req(vec![Fact::Relation("Q".into(), vec![p(0)])]);
+    let c = t.apply(b, "forward-Q", &qr, &binds(), &[]).unwrap();
     let bc = t.join(b, c).unwrap();
-    let use_q = t.apply(bc, "use-Q", &q, &binds(), &[]).unwrap();
-    let shortcut = t.without_join_parent(use_q, b).unwrap();
+    let useq = t.apply(bc, "use-Q", &qr, &binds(), &[]).unwrap();
+    let proposed = t.without_join_parent(useq, b).unwrap();
     t.saturate().unwrap();
-    assert!(t.ready(shortcut).unwrap());
-    assert!(!t.redundant(use_q, shortcut, b).unwrap());
+    assert!(!t.redundant(useq, proposed, b).unwrap());
     emit("redundancy", t.report().unwrap());
 }
 #[test]
-fn unresolved_binding_does_not_manufacture_an_effect() {
+fn partial_bindings_are_rejected_without_recording_an_apply() {
     let mut t = Tier1::new().unwrap();
-    let c = t.entry(&[fact("P", vec![v(0)])]).unwrap();
+    let a = t.entry(&[fact("P", vec![v(0)])]).unwrap();
     let r = req(vec![Fact::Relation("P".into(), vec![p(0)])]);
-    let a = t
-        .apply(
-            c,
+    assert!(
+        t.apply(
+            a,
             "R",
             &r,
             &BTreeMap::from([(0, v(0))]),
-            &[fact("T", vec![p(1)])],
+            &[fact("T", vec![p(1)])]
         )
-        .unwrap();
-    t.saturate().unwrap();
-    assert!(!t.ready(a).unwrap());
-    let b = t
-        .apply(c, "R", &r, &binds(), &[fact("T", vec![p(1)])])
-        .unwrap();
-    t.saturate().unwrap();
-    assert!(t.ready(b).unwrap());
-    assert!(!t.ready(a).unwrap());
+        .is_err()
+    );
+    assert_eq!(t.report().unwrap()["contexts"].as_array().unwrap().len(), 1);
 }
-
 #[test]
-fn arriving_effect_reclassifies_same_application_and_updates_use_dominance() {
+fn added_support_changes_analysis_not_execution_status() {
     let mut t = Tier1::new().unwrap();
     let a = t.entry(&[fact("P", vec![v(0)])]).unwrap();
     let b = t.entry(&[fact("Q", vec![v(1)])]).unwrap();
+    let ab = t.join(a, b).unwrap();
     let r = req(vec![
         Fact::Relation("P".into(), vec![p(0)]),
         Fact::Relation("Q".into(), vec![p(1)]),
     ]);
     let app = t
-        .apply(a, "R", &r, &binds(), &[fact("T", vec![p(1)])])
+        .apply(ab, "R", &r, &binds(), &[fact("T", vec![p(1)])])
         .unwrap();
     t.saturate().unwrap();
-    assert!(!t.ready(app).unwrap());
-    assert!(!t.dominates_for_use(a, app).unwrap());
+    assert!(!t.supports_use(a, app).unwrap());
+    assert!(t.satisfies(app, &fact("T", vec![v(1)])).unwrap());
     let before = t.report().unwrap();
     t.add_entry_effects(a, &[fact("Q", vec![v(1)])]).unwrap();
     t.saturate().unwrap();
-    assert!(t.ready(app).unwrap());
-    assert!(t.dominates_for_use(a, app).unwrap());
-    assert!(!t.dominates_for_use(b, app).unwrap());
-    assert!(t.add_entry_effects(app, &[]).is_err());
+    assert!(t.supports_use(a, app).unwrap());
     emit(
         "dynamic",
-        json!({"before":before,"after":t.report().unwrap(),"same_application":app.0}),
+        json!({"before":before,"after":t.report().unwrap(),"same_application":app.0,"local_support_before":false,"local_support_after":true}),
     );
 }
 #[test]
-fn equal_constructor_values_do_not_unify_children_and_sorts_are_checked() {
+fn equality_and_output_ports_remain_checked() {
     let mut t = Tier1::new().unwrap();
     let f = |x| Term::new("E", "F", vec![x]);
     let c = t
@@ -142,13 +136,11 @@ fn equal_constructor_values_do_not_unify_children_and_sorts_are_checked() {
         t.entry(&[Effect::Equal(v(0), Term::new("Other", "literal:0", vec![]))])
             .is_err()
     );
-    let r = req(vec![]);
     assert!(
-        t.apply(c, "bad-output", &r, &binds(), &[fact("T", vec![p(99)])])
+        t.apply(c, "bad", &req(vec![]), &binds(), &[fact("T", vec![p(99)])])
             .is_err()
     );
 }
-
 fn emit(name: &str, value: serde_json::Value) {
     if let Ok(dir) = std::env::var("TIER1_EFFECT_REPORT_DIR") {
         std::fs::write(
@@ -258,15 +250,6 @@ fn concrete_factor_then_product_derivative_matches_native_math_rules() {
     let c0 = t
         .entry(&initial.into_iter().map(Effect::Fact).collect::<Vec<_>>())
         .unwrap();
-    let blocked = t
-        .apply(
-            c0,
-            "R15: product derivative",
-            &r15,
-            &BTreeMap::new(),
-            &r15_effects,
-        )
-        .unwrap();
     let factor = t
         .apply(c0, "R10: factor", &r10, &BTreeMap::new(), &r10_effects)
         .unwrap();
@@ -280,8 +263,8 @@ fn concrete_factor_then_product_derivative_matches_native_math_rules() {
         )
         .unwrap();
     t.saturate().unwrap();
-    assert!(!t.ready(blocked).unwrap());
-    assert!(t.ready(enabled).unwrap());
+    assert!(!t.supports_use(c0, enabled).unwrap());
+    assert!(t.supports_use(factor, enabled).unwrap());
     emit(
         "concrete",
         json!({"analysis":t.report().unwrap(),"native_tier0_checks":{"R15_before_factor":false,"R15_after_shape_only":false,"R15_after_R10":true,"expected_result_after_R15":true},"labels":{"u":"x*2","v":"x*3","p":"x*2+x*3","s":"2+3","q":"x*(2+3)","d":"Diff(x,p)","dxs":"Diff(x,s)","dxx":"Diff(x,x)","left":"x*dxs","right":"s*dxx","z":"left+right"},"scope":"fixed ground contracts for actual R10/R15; independently checked in native tier-0, not an automatic trace importer"}),
