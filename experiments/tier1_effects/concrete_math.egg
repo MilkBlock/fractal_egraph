@@ -1,0 +1,30 @@
+; Actual tier-0 R10/R15 example. Run from repository root.
+(datatype Math (Var String) (Const i64) (Mul Math Math)
+               (Add Math Math) (Diff Math Math))
+(ruleset factor)
+(ruleset derivative)
+
+; R10: a*b + a*c = a*(b+c).
+(rule ((= root (Add (Mul a b) (Mul a c))))
+      ((union root (Mul a (Add b c))))
+      :ruleset factor :name "R10")
+
+; R15: product differentiation.
+(rule ((= root (Diff x (Mul a b))))
+      ((union root (Add (Mul a (Diff x b))
+                       (Mul b (Diff x a)))))
+      :ruleset derivative :name "R15")
+
+(let $x (Var "x"))
+(let $seed (Diff $x (Add (Mul $x (Const 2)) (Mul $x (Const 3)))))
+
+; The required product representation is not available yet.
+(fail (check (= d (Diff $x (Mul $x (Add (Const 2) (Const 3)))))))
+
+(run factor 1)
+(check (= d (Diff $x (Mul $x (Add (Const 2) (Const 3))))))
+
+(run derivative 1)
+(check (= $seed
+          (Add (Mul $x (Diff $x (Add (Const 2) (Const 3))))
+               (Mul (Add (Const 2) (Const 3)) (Diff $x $x)))))

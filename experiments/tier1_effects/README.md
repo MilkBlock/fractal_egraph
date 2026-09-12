@@ -117,3 +117,12 @@ C1 是直接在原上下文尝试 R15 的待定分支；C2 是完成 R10 后的�
 R15 原先不匹配；只创建乘积而不 union 仍不匹配；执行 R10 后匹配；执行 R15 后得到预期等价式。
 Tier-1 使用针对该实例手工写出的 ground 契约，不是通用 trace 自动导入。
 运行后现在共 6 项 tier-1 测试通过，并生成五组图。
+
+### 独立 .egg 文件
+
+- `ir.egg`：通用 tier-1 datatype 与 effect/冗余推导规则。
+- `concrete_tier1.egg`：独立、可阅读的 R10→R15 ground 合约实例，include 通用 IR，内含 pending/ready 及 effect 不泄漏的检查。
+- `concrete_math.egg`：实际 tier-0 的 R10/R15 与输入表达式，内含执行前后的匹配和等价检查。
+
+后两个文件已通过原生 egglog 执行全部内嵌 check/fail-check；从仓库根目录运行以解析 include。
+这补齐了此前具体实例只由 Rust 测试装配、没有单独 .egg 的缺口。

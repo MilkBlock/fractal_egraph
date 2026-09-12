@@ -287,3 +287,15 @@ fn concrete_factor_then_product_derivative_matches_native_math_rules() {
         json!({"analysis":t.report().unwrap(),"native_tier0_checks":{"R15_before_factor":false,"R15_after_shape_only":false,"R15_after_R10":true,"expected_result_after_R15":true},"labels":{"u":"x*2","v":"x*3","p":"x*2+x*3","s":"2+3","q":"x*(2+3)","d":"Diff(x,p)","dxs":"Diff(x,s)","dxx":"Diff(x,x)","left":"x*dxs","right":"s*dxx","z":"left+right"},"scope":"fixed ground contracts for actual R10/R15; independently checked in native tier-0, not an automatic trace importer"}),
     );
 }
+
+#[test]
+fn standalone_concrete_egg_files_execute_all_embedded_checks() {
+    for path in [
+        "experiments/tier1_effects/concrete_math.egg",
+        "experiments/tier1_effects/concrete_tier1.egg",
+    ] {
+        let mut eg = egglog::EGraph::default();
+        eg.parse_and_run_program(Some(path.into()), &std::fs::read_to_string(path).unwrap())
+            .unwrap();
+    }
+}

@@ -1,0 +1,87 @@
+; Tier-1 ground contracts for the concrete R10 -> R15 example.
+; Run from repository root. concrete_math.egg independently verifies tier-0 behavior.
+(include "experiments/tier1_effects/ir.egg")
+
+; Symbols are Math value references, not integer equalities.
+; u=x*2, v=x*3, p=u+v, s=2+3, q=x*s, d=Diff(x,p).
+(let $x (V "Math" "x"))
+(ValueKnown $x)
+(let $two (V "Math" "2"))
+(ValueKnown $two)
+(let $three (V "Math" "3"))
+(ValueKnown $three)
+(let $u (V "Math" "u"))
+(ValueKnown $u)
+(let $v (V "Math" "v"))
+(ValueKnown $v)
+(let $p (V "Math" "p"))
+(ValueKnown $p)
+(let $s (V "Math" "s"))
+(ValueKnown $s)
+(let $q (V "Math" "q"))
+(ValueKnown $q)
+(let $d (V "Math" "d"))
+(ValueKnown $d)
+(let $dxs (V "Math" "dxs"))
+(ValueKnown $dxs)
+(let $dxx (V "Math" "dxx"))
+(ValueKnown $dxx)
+(let $left (V "Math" "left"))
+(ValueKnown $left)
+(let $right (V "Math" "right"))
+(ValueKnown $right)
+(let $z (V "Math" "z"))
+(ValueKnown $z)
+
+; Constructor row notation: the LAST argument is the output reference.
+(let $mul_x2 (HasFact "relation:Mul" (ACons $x (ACons $two (ACons $u (ANil))))))
+(let $mul_x3 (HasFact "relation:Mul" (ACons $x (ACons $three (ACons $v (ANil))))))
+(let $sum (HasFact "relation:Add" (ACons $u (ACons $v (ACons $p (ANil))))))
+(let $derivative (HasFact "relation:Diff" (ACons $x (ACons $p (ACons $d (ANil))))))
+(let $add_23 (HasFact "relation:Add" (ACons $two (ACons $three (ACons $s (ANil))))))
+(let $product (HasFact "relation:Mul" (ACons $x (ACons $s (ACons $q (ANil))))))
+(let $wanted_derivative (HasFact "relation:Diff" (ACons $x (ACons $q (ACons $d (ANil))))))
+(let $diff_s (HasFact "relation:Diff" (ACons $x (ACons $s (ACons $dxs (ANil))))))
+(let $diff_x (HasFact "relation:Diff" (ACons $x (ACons $x (ACons $dxx (ANil))))))
+(let $left_product (HasFact "relation:Mul" (ACons $x (ACons $dxs (ACons $left (ANil))))))
+(let $right_product (HasFact "relation:Mul" (ACons $s (ACons $dxx (ACons $right (ANil))))))
+(let $answer (HasFact "relation:Add" (ACons $left (ACons $right (ACons $z (ANil))))))
+(let $factor_equality (Equal $p $q))
+(let $result_equality (Equal $d $z))
+
+(let $r10_requires
+  (ECons $mul_x2 (ECons $mul_x3 (ECons $sum (ENil)))))
+(let $r10_produces
+  (ECons $add_23 (ECons $product (ECons $factor_equality (ENil)))))
+(let $r15_requires
+  (ECons $product (ECons $wanted_derivative (ENil))))
+(let $r15_produces
+  (ECons $diff_s (ECons $diff_x (ECons $left_product (ECons $right_product (ECons $answer (ECons $result_equality (ENil))))))))
+
+; C0: original expression, without the factored product/equality.
+(let $c0 (Entry 0))
+(Given $c0 $mul_x2)
+(Given $c0 $mul_x3)
+(Given $c0 $sum)
+(Given $c0 $derivative)
+
+; C1: same target R15 binding, but its context lacks required effects.
+(let $c1 (Apply $c0 "R15" "a=x,b=s,variable=x,root=d" $r15_requires $r15_produces))
+(Grounded $c1)
+(run-schedule (saturate (run tier1)))
+(fail (check (Ready $c1)))
+(fail (check (Provides $c1 $result_equality)))
+
+; C2: R10 adds the product representation AND p=q.
+(let $c2 (Apply $c0 "R10" "a=x,b=2,c=3,root=p" $r10_requires $r10_produces))
+(Grounded $c2)
+; C3: R15 now has the same binding, but a stronger context.
+(let $c3 (Apply $c2 "R15" "a=x,b=s,variable=x,root=d" $r15_requires $r15_produces))
+(Grounded $c3)
+(run-schedule (saturate (run tier1)))
+(check (Ready $c2))
+(check (Smooth $c3))
+(check (Provides $c3 $result_equality))
+(check (DominatesForUse $c2 $c1))
+; Equality has not leaked backwards into C0 / C1.
+(fail (check (Ready $c1)))
