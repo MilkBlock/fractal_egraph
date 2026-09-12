@@ -1,0 +1,68 @@
+{
+  "edges": [
+    [
+      2,
+      0,
+      1
+    ],
+    [
+      4,
+      2,
+      1
+    ],
+    [
+      6,
+      4,
+      1
+    ],
+    [
+      8,
+      6,
+      1
+    ],
+    [
+      10,
+      8,
+      1
+    ],
+    [
+      12,
+      10,
+      1
+    ],
+    [
+      14,
+      12,
+      1
+    ],
+    [
+      16,
+      14,
+      1
+    ],
+    [
+      18,
+      16,
+      1
+    ],
+    [
+      20,
+      18,
+      1
+    ],
+    [
+      22,
+      20,
+      1
+    ],
+    [
+      24,
+      22,
+      1
+    ]
+  ],
+  "endpoint_checks": 12,
+  "multi_step_endpoint_checks": 12,
+  "scope": "Actual native egglog fixture. Edge instrumentation records recurrence steps; endpoint equalities checked. Accumulated path weight is derived later, not a recorded runtime binding.",
+  "source": "experiments/tier2/fixtures/stride.egg"
+}

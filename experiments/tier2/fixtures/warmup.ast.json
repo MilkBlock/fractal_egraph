@@ -1,0 +1,174 @@
+{
+  "unfold-0": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "root"
+          },
+          {
+            "args": [
+              {
+                "var": "n"
+              }
+            ],
+            "op": "F",
+            "span": "Some(\"experiments/tier2/fixtures/warmup.egg\"):105:110"
+          }
+        ]
+      },
+      {
+        "fact": {
+          "args": [
+            {
+              "var": "n"
+            },
+            {
+              "literal": "22"
+            }
+          ],
+          "op": ">",
+          "span": "Some(\"experiments/tier2/fixtures/warmup.egg\"):112:120"
+        }
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "root"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "var": "n"
+                      },
+                      {
+                        "literal": "1"
+                      }
+                    ],
+                    "op": "-",
+                    "span": "Some(\"experiments/tier2/fixtures/warmup.egg\"):143:150"
+                  }
+                ],
+                "op": "F",
+                "span": "Some(\"experiments/tier2/fixtures/warmup.egg\"):140:151"
+              },
+              {
+                "args": [
+                  {
+                    "literal": "7"
+                  }
+                ],
+                "op": "Const",
+                "span": "Some(\"experiments/tier2/fixtures/warmup.egg\"):152:161"
+              }
+            ],
+            "op": "Add",
+            "span": "Some(\"experiments/tier2/fixtures/warmup.egg\"):135:162"
+          }
+        ]
+      },
+      {
+        "unsupported": "(Edge n (- n 1) 7)"
+      }
+    ]
+  },
+  "unfold-1": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "root"
+          },
+          {
+            "args": [
+              {
+                "var": "n"
+              }
+            ],
+            "op": "F",
+            "span": "Some(\"experiments/tier2/fixtures/warmup.egg\"):233:238"
+          }
+        ]
+      },
+      {
+        "fact": {
+          "args": [
+            {
+              "var": "n"
+            },
+            {
+              "literal": "0"
+            }
+          ],
+          "op": ">",
+          "span": "Some(\"experiments/tier2/fixtures/warmup.egg\"):240:247"
+        }
+      },
+      {
+        "fact": {
+          "args": [
+            {
+              "var": "n"
+            },
+            {
+              "literal": "22"
+            }
+          ],
+          "op": "<=",
+          "span": "Some(\"experiments/tier2/fixtures/warmup.egg\"):248:257"
+        }
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "root"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "var": "n"
+                      },
+                      {
+                        "literal": "1"
+                      }
+                    ],
+                    "op": "-",
+                    "span": "Some(\"experiments/tier2/fixtures/warmup.egg\"):280:287"
+                  }
+                ],
+                "op": "F",
+                "span": "Some(\"experiments/tier2/fixtures/warmup.egg\"):277:288"
+              },
+              {
+                "args": [
+                  {
+                    "literal": "1"
+                  }
+                ],
+                "op": "Const",
+                "span": "Some(\"experiments/tier2/fixtures/warmup.egg\"):289:298"
+              }
+            ],
+            "op": "Add",
+            "span": "Some(\"experiments/tier2/fixtures/warmup.egg\"):272:299"
+          }
+        ]
+      },
+      {
+        "unsupported": "(Edge n (- n 1) 1)"
+      }
+    ]
+  }
+}

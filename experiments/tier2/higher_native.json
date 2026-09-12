@@ -1,0 +1,135 @@
+{
+  "higher_rules": [
+    {
+      "binding": "(RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil))))))",
+      "count": 4,
+      "ctx": "$comb_0063",
+      "egg": "(HigherRule 4 $ext_0067 $comb_0063 (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "operator": "ext_0067",
+      "represents": [
+        "$comb_1196"
+      ]
+    },
+    {
+      "binding": "(RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil))))))",
+      "count": 3,
+      "ctx": "$comb_0063",
+      "egg": "(HigherRule 3 $ext_0067 $comb_0063 (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "operator": "ext_0067",
+      "represents": [
+        "$comb_0235"
+      ]
+    },
+    {
+      "binding": "(RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil))))))",
+      "count": 3,
+      "ctx": "$comb_0137",
+      "egg": "(HigherRule 3 $ext_0067 $comb_0137 (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "operator": "ext_0067",
+      "represents": [
+        "$comb_1197"
+      ]
+    },
+    {
+      "binding": "(RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil))))))",
+      "count": 3,
+      "ctx": "$comb_0145",
+      "egg": "(HigherRule 3 $ext_0067 $comb_0145 (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "operator": "ext_0067",
+      "represents": [
+        "$comb_1210"
+      ]
+    },
+    {
+      "binding": "(RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil))))))",
+      "count": 3,
+      "ctx": "$comb_0153",
+      "egg": "(HigherRule 3 $ext_0067 $comb_0153 (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "operator": "ext_0067",
+      "represents": [
+        "$comb_1196"
+      ]
+    },
+    {
+      "binding": "(RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil))))))",
+      "count": 2,
+      "ctx": "$comb_0063",
+      "egg": "(HigherRule 2 $ext_0067 $comb_0063 (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "operator": "ext_0067",
+      "represents": [
+        "$comb_0154"
+      ]
+    },
+    {
+      "binding": "(RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil))))))",
+      "count": 2,
+      "ctx": "$comb_0135",
+      "egg": "(HigherRule 2 $ext_0067 $comb_0135 (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "operator": "ext_0067",
+      "represents": [
+        "$comb_1194"
+      ]
+    },
+    {
+      "binding": "(RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil))))))",
+      "count": 2,
+      "ctx": "$comb_0137",
+      "egg": "(HigherRule 2 $ext_0067 $comb_0137 (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "operator": "ext_0067",
+      "represents": [
+        "$comb_0247"
+      ]
+    },
+    {
+      "binding": "(RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil))))))",
+      "count": 2,
+      "ctx": "$comb_0142",
+      "egg": "(HigherRule 2 $ext_0067 $comb_0142 (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "operator": "ext_0067",
+      "represents": [
+        "$comb_1197"
+      ]
+    },
+    {
+      "binding": "(RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil))))))",
+      "count": 2,
+      "ctx": "$comb_0145",
+      "egg": "(HigherRule 2 $ext_0067 $comb_0145 (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "operator": "ext_0067",
+      "represents": [
+        "$comb_0233"
+      ]
+    },
+    {
+      "binding": "(RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil))))))",
+      "count": 2,
+      "ctx": "$comb_0146",
+      "egg": "(HigherRule 2 $ext_0067 $comb_0146 (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "operator": "ext_0067",
+      "represents": [
+        "$comb_1210"
+      ]
+    },
+    {
+      "binding": "(RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil))))))",
+      "count": 2,
+      "ctx": "$comb_0153",
+      "egg": "(HigherRule 2 $ext_0067 $comb_0153 (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "operator": "ext_0067",
+      "represents": [
+        "$comb_0235"
+      ]
+    },
+    {
+      "binding": "(RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil))))))",
+      "count": 2,
+      "ctx": "$comb_0154",
+      "egg": "(HigherRule 2 $ext_0067 $comb_0154 (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "operator": "ext_0067",
+      "represents": [
+        "$comb_1196"
+      ]
+    }
+  ],
+  "scope": "Native HigherRule(k, extension, ctx, initial binding) views of existing closed unary tier-1 paths. No new arbitrary-k rule applications and no full-effect equality claims beyond witnessed folding."
+}

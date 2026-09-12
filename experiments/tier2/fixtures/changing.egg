@@ -1,0 +1,7 @@
+(datatype E (F i64) (Const i64) (Add E E))
+(relation Edge (i64 i64 i64))
+(ruleset unfold)
+(rule ((= root (F n)) (> n 12)) ((union root (Add (F (- n 1)) (Const 1))) (Edge n (- n 1) 1)) :ruleset unfold :name "unfold-0")
+(rule ((= root (F n)) (> n 0) (<= n 12)) ((union root (Add (F (- n 1)) (Const 2))) (Edge n (- n 1) 2)) :ruleset unfold :name "unfold-1")
+(F 24)
+(run unfold 20)

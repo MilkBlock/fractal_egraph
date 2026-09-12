@@ -1,0 +1,1150 @@
+[
+  {
+    "name": "unit",
+    "train": 5,
+    "trigger_depth": 0,
+    "trigger_state": [
+      24,
+      0
+    ],
+    "heldout": 15,
+    "heldout_pass": 15,
+    "delta": [
+      -1,
+      1
+    ],
+    "invariant_coefficients": [
+      1,
+      1
+    ],
+    "observed_invariant_constant": 24,
+    "certificate": {
+      "status": "translation_identity_checked",
+      "checked_rules": [
+        {
+          "rule": "unfold-0",
+          "delta": [
+            -1,
+            1
+          ],
+          "guards": [
+            {
+              "fact": {
+                "args": [
+                  {
+                    "var": "n"
+                  },
+                  {
+                    "literal": "0"
+                  }
+                ],
+                "op": ">",
+                "span": "Some(\"experiments/tier2/fixtures/unit.egg\"):112:119"
+              }
+            }
+          ]
+        }
+      ],
+      "meaning": "Exact coefficient identity for the additive-recursion adapter, over mathematical integers and associative addition. Does not prove equality of full egraph effects or machine-i64 overflow safety."
+    },
+    "samples": [
+      [
+        [
+          24,
+          0
+        ],
+        [
+          23,
+          1
+        ]
+      ],
+      [
+        [
+          23,
+          1
+        ],
+        [
+          22,
+          2
+        ]
+      ],
+      [
+        [
+          22,
+          2
+        ],
+        [
+          21,
+          3
+        ]
+      ],
+      [
+        [
+          21,
+          3
+        ],
+        [
+          20,
+          4
+        ]
+      ],
+      [
+        [
+          20,
+          4
+        ],
+        [
+          19,
+          5
+        ]
+      ],
+      [
+        [
+          19,
+          5
+        ],
+        [
+          18,
+          6
+        ]
+      ],
+      [
+        [
+          18,
+          6
+        ],
+        [
+          17,
+          7
+        ]
+      ],
+      [
+        [
+          17,
+          7
+        ],
+        [
+          16,
+          8
+        ]
+      ],
+      [
+        [
+          16,
+          8
+        ],
+        [
+          15,
+          9
+        ]
+      ],
+      [
+        [
+          15,
+          9
+        ],
+        [
+          14,
+          10
+        ]
+      ],
+      [
+        [
+          14,
+          10
+        ],
+        [
+          13,
+          11
+        ]
+      ],
+      [
+        [
+          13,
+          11
+        ],
+        [
+          12,
+          12
+        ]
+      ],
+      [
+        [
+          12,
+          12
+        ],
+        [
+          11,
+          13
+        ]
+      ],
+      [
+        [
+          11,
+          13
+        ],
+        [
+          10,
+          14
+        ]
+      ],
+      [
+        [
+          10,
+          14
+        ],
+        [
+          9,
+          15
+        ]
+      ],
+      [
+        [
+          9,
+          15
+        ],
+        [
+          8,
+          16
+        ]
+      ],
+      [
+        [
+          8,
+          16
+        ],
+        [
+          7,
+          17
+        ]
+      ],
+      [
+        [
+          7,
+          17
+        ],
+        [
+          6,
+          18
+        ]
+      ],
+      [
+        [
+          6,
+          18
+        ],
+        [
+          5,
+          19
+        ]
+      ],
+      [
+        [
+          5,
+          19
+        ],
+        [
+          4,
+          20
+        ]
+      ]
+    ],
+    "family": "f(n) = f(n + k*(-1)) + k*(1)",
+    "domain": "k >= 0; every source guard on the k-step path must hold; native i64 calculations must not overflow",
+    "effect": "Endpoint equality only. Intermediate F/Add nodes and unions are not removed or identified with a single jump."
+  },
+  {
+    "name": "triple",
+    "train": 5,
+    "trigger_depth": 0,
+    "trigger_state": [
+      24,
+      0
+    ],
+    "heldout": 15,
+    "heldout_pass": 15,
+    "delta": [
+      -1,
+      3
+    ],
+    "invariant_coefficients": [
+      3,
+      1
+    ],
+    "observed_invariant_constant": 72,
+    "certificate": {
+      "status": "translation_identity_checked",
+      "checked_rules": [
+        {
+          "rule": "unfold-0",
+          "delta": [
+            -1,
+            3
+          ],
+          "guards": [
+            {
+              "fact": {
+                "args": [
+                  {
+                    "var": "n"
+                  },
+                  {
+                    "literal": "0"
+                  }
+                ],
+                "op": ">",
+                "span": "Some(\"experiments/tier2/fixtures/triple.egg\"):112:119"
+              }
+            }
+          ]
+        }
+      ],
+      "meaning": "Exact coefficient identity for the additive-recursion adapter, over mathematical integers and associative addition. Does not prove equality of full egraph effects or machine-i64 overflow safety."
+    },
+    "samples": [
+      [
+        [
+          24,
+          0
+        ],
+        [
+          23,
+          3
+        ]
+      ],
+      [
+        [
+          23,
+          3
+        ],
+        [
+          22,
+          6
+        ]
+      ],
+      [
+        [
+          22,
+          6
+        ],
+        [
+          21,
+          9
+        ]
+      ],
+      [
+        [
+          21,
+          9
+        ],
+        [
+          20,
+          12
+        ]
+      ],
+      [
+        [
+          20,
+          12
+        ],
+        [
+          19,
+          15
+        ]
+      ],
+      [
+        [
+          19,
+          15
+        ],
+        [
+          18,
+          18
+        ]
+      ],
+      [
+        [
+          18,
+          18
+        ],
+        [
+          17,
+          21
+        ]
+      ],
+      [
+        [
+          17,
+          21
+        ],
+        [
+          16,
+          24
+        ]
+      ],
+      [
+        [
+          16,
+          24
+        ],
+        [
+          15,
+          27
+        ]
+      ],
+      [
+        [
+          15,
+          27
+        ],
+        [
+          14,
+          30
+        ]
+      ],
+      [
+        [
+          14,
+          30
+        ],
+        [
+          13,
+          33
+        ]
+      ],
+      [
+        [
+          13,
+          33
+        ],
+        [
+          12,
+          36
+        ]
+      ],
+      [
+        [
+          12,
+          36
+        ],
+        [
+          11,
+          39
+        ]
+      ],
+      [
+        [
+          11,
+          39
+        ],
+        [
+          10,
+          42
+        ]
+      ],
+      [
+        [
+          10,
+          42
+        ],
+        [
+          9,
+          45
+        ]
+      ],
+      [
+        [
+          9,
+          45
+        ],
+        [
+          8,
+          48
+        ]
+      ],
+      [
+        [
+          8,
+          48
+        ],
+        [
+          7,
+          51
+        ]
+      ],
+      [
+        [
+          7,
+          51
+        ],
+        [
+          6,
+          54
+        ]
+      ],
+      [
+        [
+          6,
+          54
+        ],
+        [
+          5,
+          57
+        ]
+      ],
+      [
+        [
+          5,
+          57
+        ],
+        [
+          4,
+          60
+        ]
+      ]
+    ],
+    "family": "f(n) = f(n + k*(-1)) + k*(3)",
+    "domain": "k >= 0; every source guard on the k-step path must hold; native i64 calculations must not overflow",
+    "effect": "Endpoint equality only. Intermediate F/Add nodes and unions are not removed or identified with a single jump."
+  },
+  {
+    "name": "stride",
+    "train": 5,
+    "trigger_depth": 0,
+    "trigger_state": [
+      24,
+      0
+    ],
+    "heldout": 7,
+    "heldout_pass": 7,
+    "delta": [
+      -2,
+      1
+    ],
+    "invariant_coefficients": [
+      1,
+      2
+    ],
+    "observed_invariant_constant": 24,
+    "certificate": {
+      "status": "translation_identity_checked",
+      "checked_rules": [
+        {
+          "rule": "unfold-0",
+          "delta": [
+            -2,
+            1
+          ],
+          "guards": [
+            {
+              "fact": {
+                "args": [
+                  {
+                    "var": "n"
+                  },
+                  {
+                    "literal": "0"
+                  }
+                ],
+                "op": ">",
+                "span": "Some(\"experiments/tier2/fixtures/stride.egg\"):112:119"
+              }
+            }
+          ]
+        }
+      ],
+      "meaning": "Exact coefficient identity for the additive-recursion adapter, over mathematical integers and associative addition. Does not prove equality of full egraph effects or machine-i64 overflow safety."
+    },
+    "samples": [
+      [
+        [
+          24,
+          0
+        ],
+        [
+          22,
+          1
+        ]
+      ],
+      [
+        [
+          22,
+          1
+        ],
+        [
+          20,
+          2
+        ]
+      ],
+      [
+        [
+          20,
+          2
+        ],
+        [
+          18,
+          3
+        ]
+      ],
+      [
+        [
+          18,
+          3
+        ],
+        [
+          16,
+          4
+        ]
+      ],
+      [
+        [
+          16,
+          4
+        ],
+        [
+          14,
+          5
+        ]
+      ],
+      [
+        [
+          14,
+          5
+        ],
+        [
+          12,
+          6
+        ]
+      ],
+      [
+        [
+          12,
+          6
+        ],
+        [
+          10,
+          7
+        ]
+      ],
+      [
+        [
+          10,
+          7
+        ],
+        [
+          8,
+          8
+        ]
+      ],
+      [
+        [
+          8,
+          8
+        ],
+        [
+          6,
+          9
+        ]
+      ],
+      [
+        [
+          6,
+          9
+        ],
+        [
+          4,
+          10
+        ]
+      ],
+      [
+        [
+          4,
+          10
+        ],
+        [
+          2,
+          11
+        ]
+      ],
+      [
+        [
+          2,
+          11
+        ],
+        [
+          0,
+          12
+        ]
+      ]
+    ],
+    "family": "f(n) = f(n + k*(-2)) + k*(1)",
+    "domain": "k >= 0; every source guard on the k-step path must hold; native i64 calculations must not overflow",
+    "effect": "Endpoint equality only. Intermediate F/Add nodes and unions are not removed or identified with a single jump."
+  },
+  {
+    "name": "changing",
+    "train": 5,
+    "trigger_depth": 0,
+    "trigger_state": [
+      24,
+      0
+    ],
+    "heldout": 15,
+    "heldout_pass": 7,
+    "delta": [
+      -1,
+      1
+    ],
+    "invariant_coefficients": [
+      1,
+      1
+    ],
+    "observed_invariant_constant": 24,
+    "certificate": {
+      "status": "source_counterexample",
+      "rule": "unfold-1",
+      "delta": [
+        -1,
+        2
+      ]
+    },
+    "samples": [
+      [
+        [
+          24,
+          0
+        ],
+        [
+          23,
+          1
+        ]
+      ],
+      [
+        [
+          23,
+          1
+        ],
+        [
+          22,
+          2
+        ]
+      ],
+      [
+        [
+          22,
+          2
+        ],
+        [
+          21,
+          3
+        ]
+      ],
+      [
+        [
+          21,
+          3
+        ],
+        [
+          20,
+          4
+        ]
+      ],
+      [
+        [
+          20,
+          4
+        ],
+        [
+          19,
+          5
+        ]
+      ],
+      [
+        [
+          19,
+          5
+        ],
+        [
+          18,
+          6
+        ]
+      ],
+      [
+        [
+          18,
+          6
+        ],
+        [
+          17,
+          7
+        ]
+      ],
+      [
+        [
+          17,
+          7
+        ],
+        [
+          16,
+          8
+        ]
+      ],
+      [
+        [
+          16,
+          8
+        ],
+        [
+          15,
+          9
+        ]
+      ],
+      [
+        [
+          15,
+          9
+        ],
+        [
+          14,
+          10
+        ]
+      ],
+      [
+        [
+          14,
+          10
+        ],
+        [
+          13,
+          11
+        ]
+      ],
+      [
+        [
+          13,
+          11
+        ],
+        [
+          12,
+          12
+        ]
+      ],
+      [
+        [
+          12,
+          12
+        ],
+        [
+          11,
+          14
+        ]
+      ],
+      [
+        [
+          11,
+          14
+        ],
+        [
+          10,
+          16
+        ]
+      ],
+      [
+        [
+          10,
+          16
+        ],
+        [
+          9,
+          18
+        ]
+      ],
+      [
+        [
+          9,
+          18
+        ],
+        [
+          8,
+          20
+        ]
+      ],
+      [
+        [
+          8,
+          20
+        ],
+        [
+          7,
+          22
+        ]
+      ],
+      [
+        [
+          7,
+          22
+        ],
+        [
+          6,
+          24
+        ]
+      ],
+      [
+        [
+          6,
+          24
+        ],
+        [
+          5,
+          26
+        ]
+      ],
+      [
+        [
+          5,
+          26
+        ],
+        [
+          4,
+          28
+        ]
+      ]
+    ],
+    "family": "f(n) = f(n + k*(-1)) + k*(1)",
+    "domain": "k >= 0; every source guard on the k-step path must hold; native i64 calculations must not overflow",
+    "effect": "Endpoint equality only. Intermediate F/Add nodes and unions are not removed or identified with a single jump."
+  },
+  {
+    "name": "warmup",
+    "train": 5,
+    "trigger_depth": 2,
+    "trigger_state": [
+      22,
+      14
+    ],
+    "heldout": 15,
+    "heldout_pass": 15,
+    "delta": [
+      -1,
+      1
+    ],
+    "invariant_coefficients": [
+      1,
+      1
+    ],
+    "observed_invariant_constant": 36,
+    "certificate": {
+      "status": "source_counterexample",
+      "rule": "unfold-0",
+      "delta": [
+        -1,
+        7
+      ]
+    },
+    "samples": [
+      [
+        [
+          24,
+          0
+        ],
+        [
+          23,
+          7
+        ]
+      ],
+      [
+        [
+          23,
+          7
+        ],
+        [
+          22,
+          14
+        ]
+      ],
+      [
+        [
+          22,
+          14
+        ],
+        [
+          21,
+          15
+        ]
+      ],
+      [
+        [
+          21,
+          15
+        ],
+        [
+          20,
+          16
+        ]
+      ],
+      [
+        [
+          20,
+          16
+        ],
+        [
+          19,
+          17
+        ]
+      ],
+      [
+        [
+          19,
+          17
+        ],
+        [
+          18,
+          18
+        ]
+      ],
+      [
+        [
+          18,
+          18
+        ],
+        [
+          17,
+          19
+        ]
+      ],
+      [
+        [
+          17,
+          19
+        ],
+        [
+          16,
+          20
+        ]
+      ],
+      [
+        [
+          16,
+          20
+        ],
+        [
+          15,
+          21
+        ]
+      ],
+      [
+        [
+          15,
+          21
+        ],
+        [
+          14,
+          22
+        ]
+      ],
+      [
+        [
+          14,
+          22
+        ],
+        [
+          13,
+          23
+        ]
+      ],
+      [
+        [
+          13,
+          23
+        ],
+        [
+          12,
+          24
+        ]
+      ],
+      [
+        [
+          12,
+          24
+        ],
+        [
+          11,
+          25
+        ]
+      ],
+      [
+        [
+          11,
+          25
+        ],
+        [
+          10,
+          26
+        ]
+      ],
+      [
+        [
+          10,
+          26
+        ],
+        [
+          9,
+          27
+        ]
+      ],
+      [
+        [
+          9,
+          27
+        ],
+        [
+          8,
+          28
+        ]
+      ],
+      [
+        [
+          8,
+          28
+        ],
+        [
+          7,
+          29
+        ]
+      ],
+      [
+        [
+          7,
+          29
+        ],
+        [
+          6,
+          30
+        ]
+      ],
+      [
+        [
+          6,
+          30
+        ],
+        [
+          5,
+          31
+        ]
+      ],
+      [
+        [
+          5,
+          31
+        ],
+        [
+          4,
+          32
+        ]
+      ]
+    ],
+    "family": "f(n) = f(n + k*(-1)) + k*(1)",
+    "domain": "k >= 0; every source guard on the k-step path must hold; native i64 calculations must not overflow",
+    "effect": "Endpoint equality only. Intermediate F/Add nodes and unions are not removed or identified with a single jump."
+  }
+]

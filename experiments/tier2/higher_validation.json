@@ -1,0 +1,110 @@
+{
+  "passed": 13,
+  "checks": [
+    {
+      "count": 4,
+      "ctx": "$comb_0063",
+      "operator": "ext_0067",
+      "exact_original_targets": [
+        "$comb_1196"
+      ]
+    },
+    {
+      "count": 3,
+      "ctx": "$comb_0063",
+      "operator": "ext_0067",
+      "exact_original_targets": [
+        "$comb_0235"
+      ]
+    },
+    {
+      "count": 3,
+      "ctx": "$comb_0137",
+      "operator": "ext_0067",
+      "exact_original_targets": [
+        "$comb_1197"
+      ]
+    },
+    {
+      "count": 3,
+      "ctx": "$comb_0145",
+      "operator": "ext_0067",
+      "exact_original_targets": [
+        "$comb_1210"
+      ]
+    },
+    {
+      "count": 3,
+      "ctx": "$comb_0153",
+      "operator": "ext_0067",
+      "exact_original_targets": [
+        "$comb_1196"
+      ]
+    },
+    {
+      "count": 2,
+      "ctx": "$comb_0063",
+      "operator": "ext_0067",
+      "exact_original_targets": [
+        "$comb_0154"
+      ]
+    },
+    {
+      "count": 2,
+      "ctx": "$comb_0135",
+      "operator": "ext_0067",
+      "exact_original_targets": [
+        "$comb_1194"
+      ]
+    },
+    {
+      "count": 2,
+      "ctx": "$comb_0137",
+      "operator": "ext_0067",
+      "exact_original_targets": [
+        "$comb_0247"
+      ]
+    },
+    {
+      "count": 2,
+      "ctx": "$comb_0142",
+      "operator": "ext_0067",
+      "exact_original_targets": [
+        "$comb_1197"
+      ]
+    },
+    {
+      "count": 2,
+      "ctx": "$comb_0145",
+      "operator": "ext_0067",
+      "exact_original_targets": [
+        "$comb_0233"
+      ]
+    },
+    {
+      "count": 2,
+      "ctx": "$comb_0146",
+      "operator": "ext_0067",
+      "exact_original_targets": [
+        "$comb_1210"
+      ]
+    },
+    {
+      "count": 2,
+      "ctx": "$comb_0153",
+      "operator": "ext_0067",
+      "exact_original_targets": [
+        "$comb_0235"
+      ]
+    },
+    {
+      "count": 2,
+      "ctx": "$comb_0154",
+      "operator": "ext_0067",
+      "exact_original_targets": [
+        "$comb_1196"
+      ]
+    }
+  ],
+  "scope": "Every native HigherRule expands through existing unary tier-1 edges to its exact original target. Finite representation validation, not arbitrary-k closure proof."
+}

@@ -1,0 +1,81 @@
+{
+  "unfold-0": {
+    "body": [
+      {
+        "eq": [
+          {
+            "var": "root"
+          },
+          {
+            "args": [
+              {
+                "var": "n"
+              }
+            ],
+            "op": "F",
+            "span": "Some(\"experiments/tier2/fixtures/triple.egg\"):105:110"
+          }
+        ]
+      },
+      {
+        "fact": {
+          "args": [
+            {
+              "var": "n"
+            },
+            {
+              "literal": "0"
+            }
+          ],
+          "op": ">",
+          "span": "Some(\"experiments/tier2/fixtures/triple.egg\"):112:119"
+        }
+      }
+    ],
+    "head": [
+      {
+        "union": [
+          {
+            "var": "root"
+          },
+          {
+            "args": [
+              {
+                "args": [
+                  {
+                    "args": [
+                      {
+                        "var": "n"
+                      },
+                      {
+                        "literal": "1"
+                      }
+                    ],
+                    "op": "-",
+                    "span": "Some(\"experiments/tier2/fixtures/triple.egg\"):142:149"
+                  }
+                ],
+                "op": "F",
+                "span": "Some(\"experiments/tier2/fixtures/triple.egg\"):139:150"
+              },
+              {
+                "args": [
+                  {
+                    "literal": "3"
+                  }
+                ],
+                "op": "Const",
+                "span": "Some(\"experiments/tier2/fixtures/triple.egg\"):151:160"
+              }
+            ],
+            "op": "Add",
+            "span": "Some(\"experiments/tier2/fixtures/triple.egg\"):134:161"
+          }
+        ]
+      },
+      {
+        "unsupported": "(Edge n (- n 1) 3)"
+      }
+    ]
+  }
+}

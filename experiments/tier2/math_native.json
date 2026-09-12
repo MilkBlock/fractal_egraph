@@ -1,0 +1,140 @@
+{
+  "counterexamples": [],
+  "counts": {
+    "At": 1529,
+    "Before": 2087,
+    "Compose": 0,
+    "Construct": 0,
+    "Counterexample": 0,
+    "End": 1,
+    "Extend": 288,
+    "Fits": 0,
+    "InjectionEdge": 127,
+    "NeedsBoundary": 65,
+    "Next": 1030,
+    "Outside": 26,
+    "ParentRole": 149,
+    "Power": 0,
+    "PreservesLinear": 0,
+    "Repeat": 19,
+    "Schema": 28,
+    "Translate": 0
+  },
+  "repeats": [
+    {
+      "end": 970,
+      "length": 2,
+      "slot": 0,
+      "start": 466
+    },
+    {
+      "end": 2293,
+      "length": 3,
+      "slot": 0,
+      "start": 466
+    },
+    {
+      "end": 5923,
+      "length": 4,
+      "slot": 0,
+      "start": 466
+    },
+    {
+      "end": 1790,
+      "length": 2,
+      "slot": 1,
+      "start": 807
+    },
+    {
+      "end": 1799,
+      "length": 2,
+      "slot": 1,
+      "start": 813
+    },
+    {
+      "end": 2293,
+      "length": 2,
+      "slot": 0,
+      "start": 970
+    },
+    {
+      "end": 5923,
+      "length": 3,
+      "slot": 0,
+      "start": 970
+    },
+    {
+      "end": 5929,
+      "length": 2,
+      "slot": 0,
+      "start": 976
+    },
+    {
+      "end": 2287,
+      "length": 2,
+      "slot": 0,
+      "start": 985
+    },
+    {
+      "end": 5965,
+      "length": 3,
+      "slot": 0,
+      "start": 985
+    },
+    {
+      "end": 2326,
+      "length": 2,
+      "slot": 0,
+      "start": 988
+    },
+    {
+      "end": 5926,
+      "length": 3,
+      "slot": 0,
+      "start": 988
+    },
+    {
+      "end": 4822,
+      "length": 2,
+      "slot": 1,
+      "start": 1748
+    },
+    {
+      "end": 4834,
+      "length": 2,
+      "slot": 1,
+      "start": 1754
+    },
+    {
+      "end": 5827,
+      "length": 2,
+      "slot": 0,
+      "start": 2206
+    },
+    {
+      "end": 5965,
+      "length": 2,
+      "slot": 0,
+      "start": 2287
+    },
+    {
+      "end": 5923,
+      "length": 2,
+      "slot": 0,
+      "start": 2293
+    },
+    {
+      "end": 5917,
+      "length": 2,
+      "slot": 0,
+      "start": 2305
+    },
+    {
+      "end": 5926,
+      "length": 2,
+      "slot": 0,
+      "start": 2326
+    }
+  ],
+  "scope": "Native tier-2 relation evaluation; witnessed repeats and finite translation checks, no inferred equivalence unions."
+}

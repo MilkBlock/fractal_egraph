@@ -1,0 +1,114 @@
+{
+  "counterexamples": [
+    {
+      "after": [
+        11,
+        14
+      ],
+      "before": [
+        12,
+        12
+      ],
+      "series": "changing"
+    },
+    {
+      "after": [
+        10,
+        16
+      ],
+      "before": [
+        11,
+        14
+      ],
+      "series": "changing"
+    },
+    {
+      "after": [
+        9,
+        18
+      ],
+      "before": [
+        10,
+        16
+      ],
+      "series": "changing"
+    },
+    {
+      "after": [
+        8,
+        20
+      ],
+      "before": [
+        9,
+        18
+      ],
+      "series": "changing"
+    },
+    {
+      "after": [
+        7,
+        22
+      ],
+      "before": [
+        8,
+        20
+      ],
+      "series": "changing"
+    },
+    {
+      "after": [
+        6,
+        24
+      ],
+      "before": [
+        7,
+        22
+      ],
+      "series": "changing"
+    },
+    {
+      "after": [
+        5,
+        26
+      ],
+      "before": [
+        6,
+        24
+      ],
+      "series": "changing"
+    },
+    {
+      "after": [
+        4,
+        28
+      ],
+      "before": [
+        5,
+        26
+      ],
+      "series": "changing"
+    }
+  ],
+  "counts": {
+    "At": 0,
+    "Before": 0,
+    "Compose": 0,
+    "Construct": 0,
+    "Counterexample": 8,
+    "End": 0,
+    "Extend": 0,
+    "Fits": 82,
+    "InjectionEdge": 0,
+    "NeedsBoundary": 0,
+    "Next": 0,
+    "Outside": 0,
+    "ParentRole": 0,
+    "Power": 3,
+    "PreservesLinear": 3,
+    "Repeat": 0,
+    "Schema": 0,
+    "Translate": 6
+  },
+  "repeats": [],
+  "scope": "Native tier-2 relation evaluation; witnessed repeats and finite translation checks, no inferred equivalence unions."
+}
