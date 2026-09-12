@@ -1,18 +1,20 @@
 digraph G {
 graph [rankdir=LR,bgcolor="#fafaf7"];node [shape=box,style="rounded,filled",fontname="Arial"];edge [fontname="Arial"];
 subgraph cluster_templates {label="Tier-1 shared rule-comb templates";color="#7392b3";
-"Comb-1" [label="Basic R10",fillcolor="#ddeafa"];
-"Comb-14" [label="CoarseComb R15\n(parent[0].out[0], parent[0].out[1], external[0])",fillcolor="#ddeafa"];
-"Comb-1" -> "Comb-14" [label="parent 0"];
+"Comb-0" [label="Empty ",fillcolor="#ddeafa"];
+"Comb-11" [label="CoarseComb R10\n(PCons (External 0 \"Math\") (PCons (External 1 \"Math\") (PCons (External\n2 \"Math\") (PNil))))",fillcolor="#ddeafa"];
+"Comb-0" -> "Comb-11" [label="parent 0"];
+"Comb-21" [label="CoarseComb R15\n(PCons (Local (ParentPort 0 0 \"Math\")) (PCons (Local (ParentPort 0 1\n\"Math\")) (PCons (External 0 \"Math\") (PNil))))",fillcolor="#ddeafa"];
+"Comb-11" -> "Comb-21" [label="parent 0"];
 }
 subgraph cluster_instances {label="Concrete occurrences / evidence (not template children)";color="#7aa487";
-"Instance-15" [label="Occurrence 10\n\n2 scoped effects",fillcolor="#e1f0e5"];
-"Instance-16" [label="Occurrence 20\n\n2 scoped effects",fillcolor="#e1f0e5"];
-"Instance-17" [label="Occurrence 11\nx 2+3 dx \n3 scoped effects",fillcolor="#e1f0e5"];
-"Instance-18" [label="Occurrence 21\ny 4+5 dy \n3 scoped effects",fillcolor="#e1f0e5"];
+"Instance-22" [label="Occurrence 10\nx 2 3 \n2 scoped effects",fillcolor="#e1f0e5"];
+"Instance-23" [label="Occurrence 20\ny 4 5 \n2 scoped effects",fillcolor="#e1f0e5"];
+"Instance-24" [label="Occurrence 11\nx 2+3 dx \n3 scoped effects",fillcolor="#e1f0e5"];
+"Instance-25" [label="Occurrence 21\ny 4+5 dy \n3 scoped effects",fillcolor="#e1f0e5"];
 }
-"Instance-15" -> "Comb-1" [style=dashed,label="instance of"];
-"Instance-16" -> "Comb-1" [style=dashed,label="instance of"];
-"Instance-17" -> "Comb-14" [style=dashed,label="instance of"];
-"Instance-18" -> "Comb-14" [style=dashed,label="instance of"];
+"Instance-22" -> "Comb-11" [style=dashed,label="instance of"];
+"Instance-23" -> "Comb-11" [style=dashed,label="instance of"];
+"Instance-24" -> "Comb-21" [style=dashed,label="instance of"];
+"Instance-25" -> "Comb-21" [style=dashed,label="instance of"];
 }

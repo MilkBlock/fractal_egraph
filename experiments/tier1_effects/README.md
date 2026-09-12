@@ -1,9 +1,9 @@
 # Tier-1：共享组合模板与独立实例证据
 
-`Entry` 已移除。主 IR 现在分成两层：
+`Entry` 与 `Basic` 已移除。唯一的 `(Empty)` 是无数据、无效果的组合起点。主 IR 现在分成两层：
 
 ```
-Comb = Basic(RuleId)
+Comb = Empty
      | SmoothComb(ParentCombs, RuleId, RelativeBinding)
      | CoarseComb(ParentCombs, RuleId, PartialRelativeBinding)
 
@@ -67,8 +67,8 @@ Independent 必须由实际依赖证据支持；Rust 导出器检查 ParentAt �
 - 第一组：x、2+3、dx；
 - 第二组：y、4+5、dy。
 
-两组各有一个 R10 与一个 R15 occurrence，共 **4 个实例、2 个 Comb 模板**：
-一个 Basic(R10)、一个共享 CoarseComb(R15)。重新构造同一个 coarse 模板的等式检查通过。
+两组各有一个 R10 与一个 R15 occurrence，共 **4 个实例、3 个 Comb 节点**：
+一个全局 Empty、一个 CoarseComb([Empty],R10,External 0/1/2)、一个共享 CoarseComb(R15)。重新构造同一个 coarse 模板的等式检查通过。
 前提来自各自的乘积表示、外部 Diff 行和父实例的 equality，不会跨实例泄漏。
 
 测试另行验证：不同实例分别只有 P/Q 时不能合并满足 P∧Q；equality 不泄漏；
@@ -93,4 +93,40 @@ cargo test --test tier1_effects
 从仓库根目录运行，渲染需要 Graphviz。`index.html` 显示模板/实例分层图及完整原生图。
 旧版带 Entry 的生成图已替换；模板图中的虚线 instance-of 不是模板的 child 边。
 
-当前 10 项测试通过，新增直接/嵌套 External 的原生类型拒绝测试、裸 String RuleId 拒绝，以及合法局部 Make 的解析检查。
+
+## 等价归一化与 babble 入口
+
+新增独立 `tier1_equivalences` ruleset，分析器在普通支撑闭包后运行它，再更新闭包。
+`ToLocal`/`LocalPart` 识别没有 External 的 binding 子结构。
+
+可证明的表示等价是：
+
+```
+MakePartial(op, fully_local_args, sort)
+  = Local(Make(op, corresponding_local_args, sort))
+```
+
+两侧查找同一实例、同一 op/参数/结果 sort 的 Materialized 见证，所有父端口索引及别名保持。
+该 partial-port union 通过 congruence 合并相应的 CoarseComb 表示，但不删除任何 effect 或支撑。
+`LocalBindingView` 提供局部 binding 视图；**不会将 CoarseComb 直接 union 成 SmoothComb**，
+因为局部端口不能单独证明额外 effect 需求不存在。实例冗余证书也不会直接变成全局模板等价。
+
+`learn.py` 把实际导出的 Comb 图交给现有 babble adapter。所有根共用一张定义表，
+共享祖先只编码一次，实例 ID/具体数据不进入学习程序；binding 内部仍采用结构化 AST。
+遇到无法编码为有限 DAG 的循环会拒绝，不能无限展开。
+
+```
+python3 experiments/tier1_effects/run.py
+python3 experiments/tier1_effects/learn.py
+python3 -m unittest discover -s experiments/tier1_effects -p test_learn.py
+```
+
+这是小语料入口验证：训练和测试来自同两个模板的不同实例，不能宣称独立泛化。
+修正逐根重复定义的计费后，训练/测试均为 **55→55 AST 节点，0 个新增库抽象**，无损展开通过。
+初次逐根编码的 80→69 包含重复序列化收益，不作为超过原有 DAG 共享的证据。
+`babble_corpus.json` 与 `babble_results.json` 保留可复现输入及结果。
+尚未把全部实际 tier-0 组合历史自动接入这套 IR，也尚未生成满足完整 effect/interface 契约的依赖删除等价式。
+
+当前 13 项 Rust 语义测试、2 项 DAG 编码测试通过。
+
+导出器拒绝 `Occurrence(id, Empty)`，防止把 Empty 再用成带数据身份的 Entry。

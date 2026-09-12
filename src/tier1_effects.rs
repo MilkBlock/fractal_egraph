@@ -31,9 +31,25 @@ pub fn execute(source: &str) -> Result<Value, String> {
         .map_err(|e| e.to_string())?;
     eg.parse_and_run_program(None, "(run-schedule (saturate (run tier1)))")
         .map_err(|e| e.to_string())?;
+    eg.parse_and_run_program(
+        None,
+        "(run-schedule (saturate (run tier1_equivalences))) (run-schedule (saturate (run tier1)))",
+    )
+    .map_err(|e| e.to_string())?;
     export(&eg)
 }
 fn validate_independence(eg: &EGraph) -> Result<(), String> {
+    if let Some(empty) = eg.lookup_function("Empty", &[]) {
+        let mut invalid = false;
+        eg.function_for_each("Occurrence", |r| {
+            invalid |= r.vals[1] == empty;
+        })
+        .map_err(|e| e.to_string())?;
+        if invalid {
+            return Err("Empty is a context unit, not an executed rule occurrence".into());
+        }
+    }
+
     for name in ["ParentAt", "OutputAt", "ExternalAt"] {
         let mut values = BTreeMap::new();
         let mut conflict = false;
@@ -89,13 +105,14 @@ pub fn export(eg: &EGraph) -> Result<Value, String> {
             .to_string()
     };
     let mut templates = BTreeMap::<String, Value>::new();
-    for name in ["Basic", "SmoothComb", "CoarseComb"] {
+    for name in ["Empty", "SmoothComb", "CoarseComb"] {
         eg.function_for_each(name, |row| {
             let id = cid("Comb", *row.vals.last().unwrap());
+            if name=="Empty"{templates.insert(id.clone(),json!({"id":id,"kind":"Empty","rule":"","relative_binding":"","parents":[]}));return;}
             let rule_text = eg
                 .extract_value_to_string(
                     eg.get_sort_by_name("RuleId").unwrap(),
-                    row.vals[if name == "Basic" { 0 } else { 1 }],
+                    row.vals[1],
                 )
                 .unwrap()
                 .0;
@@ -107,7 +124,7 @@ pub fn export(eg: &EGraph) -> Result<Value, String> {
                     .unwrap(),
             )
             .unwrap();
-            let ports = if name == "Basic" {
+            let ports = if name == "Empty" {
                 String::new()
             } else {
                 eg.extract_value_to_string(
@@ -122,10 +139,10 @@ pub fn export(eg: &EGraph) -> Result<Value, String> {
                 .unwrap()
                 .0
             };
-            templates.insert(
-                id.clone(),
-                json!({"id":id,"kind":name,"rule":rule,"relative_binding":ports,"parents":[]}),
-            );
+            let form=json!({"kind":name,"rule":rule,"relative_binding":ports});
+            if let Some(existing)=templates.get_mut(&id){existing["equivalent_forms"].as_array_mut().unwrap().push(form);}else{
+                templates.insert(id.clone(),json!({"id":id,"kind":name,"rule":rule,"relative_binding":ports,"parents":[],"equivalent_forms":[form]}));
+            }
         })
         .map_err(|e| e.to_string())?;
     }

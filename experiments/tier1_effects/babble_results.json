@@ -1,0 +1,39 @@
+{
+  "corpus_reference_counts": {
+    "test": {},
+    "train": {}
+  },
+  "domain_equations": 0,
+  "encoding": "typed-ast",
+  "engine": "upstream babble BeamExperiment",
+  "libraries": [],
+  "library_order_normalization": {
+    "scope": "pure lifted closed library definitions topologically ordered before lexical expansion; cycles and missing definitions rejected",
+    "test_changed": false,
+    "train_changed": false
+  },
+  "lossless_expansion": {
+    "test": true,
+    "train": true
+  },
+  "scope": "offline syntax learning; conditional effects preserved as source syntax, not inferred or certified; heldout classes within one trace, not independent runs; AST counts are not runtime memory savings",
+  "selected_train_libraries": 0,
+  "settings": {
+    "beam": 16,
+    "libraries_per_step": 2,
+    "library_iterations": 2,
+    "max_arity": 3
+  },
+  "test": {
+    "babble_corpus_plus_library_nodes": 55,
+    "exact_whole_program_dictionary_nodes": 57,
+    "programs": 1,
+    "raw_ast_nodes": 55
+  },
+  "train": {
+    "babble_corpus_plus_library_nodes": 55,
+    "exact_whole_program_dictionary_nodes": 57,
+    "programs": 1,
+    "raw_ast_nodes": 55
+  }
+}

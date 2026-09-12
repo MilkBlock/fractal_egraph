@@ -15,7 +15,7 @@
 (constructor MakePartial (String PartialRelativeBinding String) PartialPort)
 (constructor PNil () PartialRelativeBinding)
 (constructor PCons (PartialPort PartialRelativeBinding) PartialRelativeBinding)
-(constructor Basic (RuleId) Comb)
+(constructor Empty () Comb)
 (constructor SmoothComb (ParentCombs RuleId RelativeBinding) Comb)
 (constructor CoarseComb (ParentCombs RuleId PartialRelativeBinding) Comb)
 (constructor NoParents () ParentCombs)
@@ -54,7 +54,7 @@
 (relation Independent (Instance Instance))
 (relation RedundantForUse (Instance Instance Instance))
 (ruleset tier1)
-(rule ((= c (Basic r))) ((LocalRoutes c (RNil))) :ruleset tier1)
+(rule ((= c (Empty))) ((LocalRoutes c (RNil))) :ruleset tier1)
 (rule ((= c (SmoothComb ps r ports))) ((LocalRoutes c ports) (ParentList c 0 ps)) :ruleset tier1)
 (rule ((= c (CoarseComb ps r ports))) ((PartialRoutes c ports) (ParentList c 0 ps)) :ruleset tier1)
 (rule ((ParentList c k (MoreParents p tail))) ((ParentTemplate c k p) (ParentList c (+ k 1) tail)) :ruleset tier1)
@@ -83,3 +83,16 @@
 (rule ((= es (ECons e tail)) (Satisfies i e) (AllSatisfied i tail)) ((AllSatisfied i es)) :ruleset tier1)
 (rule ((Requires target es) (AllSatisfied provider es)) ((SupportsUse provider target)) :ruleset tier1)
 (rule ((SupportsUse replacement old) (ProposedRemoval old replacement removed) (Independent replacement removed)) ((RedundantForUse old replacement removed)) :ruleset tier1)
+
+; Representation equivalence INSIDE partial bindings, preserving the Coarse tag.
+; Local ports alone do not certify absence of external effect requirements.
+; Only a partial binding made entirely of local structure can be converted.
+(relation LocalPart (PartialPort LocalPort))
+(relation ToLocal (PartialRelativeBinding RelativeBinding))
+(relation LocalBindingView (Comb RelativeBinding))
+(ruleset tier1_equivalences)
+(rule ((= p (PNil))) ((ToLocal p (RNil))) :ruleset tier1_equivalences)
+(rule ((= p (Local l))) ((LocalPart p l)) :ruleset tier1_equivalences)
+(rule ((= p (MakePartial op args sort)) (ToLocal args local)) ((LocalPart p (Make op local sort)) (union p (Local (Make op local sort)))) :ruleset tier1_equivalences)
+(rule ((= p (PCons h tail)) (LocalPart h local) (ToLocal tail rest)) ((ToLocal p (RCons local rest))) :ruleset tier1_equivalences)
+(rule ((= c (CoarseComb parents rule binding)) (ToLocal binding local)) ((LocalBindingView c local)) :ruleset tier1_equivalences)

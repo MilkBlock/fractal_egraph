@@ -6,7 +6,7 @@ fn shared_templates_do_not_share_concrete_evidence() {
         "../experiments/tier1_effects/tier1_rule_comb_example.egg"
     ))
     .unwrap();
-    assert_eq!(r["templates"].as_array().unwrap().len(), 2);
+    assert_eq!(r["templates"].as_array().unwrap().len(), 3);
     assert_eq!(r["instances"].as_array().unwrap().len(), 4);
     assert!(
         r["native_egraph"]["nodes"]
@@ -52,8 +52,8 @@ fn constructed_routes_need_materialized_witnesses() {
 #[test]
 fn mismatched_parent_templates_do_not_supply_bindings() {
     execute(&format!(r#"{IR}
-(let $c (SmoothComb (MoreParents (Basic (Rule "A")) (NoParents)) (Rule "R") (RCons (ParentPort 0 0 "Math") (RNil))))
-(let $i (Occurrence 1 $c)) (let $wrong (Occurrence 2 (Basic (Rule "B"))))
+(let $c (SmoothComb (MoreParents (CoarseComb (MoreParents (Empty) (NoParents)) (Rule "A") (PNil)) (NoParents)) (Rule "R") (RCons (ParentPort 0 0 "Math") (RNil))))
+(let $i (Occurrence 1 $c)) (let $wrong (Occurrence 2 (CoarseComb (MoreParents (Empty) (NoParents)) (Rule "B") (PNil))))
 (ParentAt $i 0 $wrong) (OutputAt $wrong 0 (V "Math" "x"))
 (run-schedule (saturate (run tier1)))
 (fail (check (Binding $i args)))
@@ -73,7 +73,7 @@ fn tier0_example_still_runs() {
 fn redundant_support_cannot_use_an_indirectly_removed_instance() {
     let program = format!(
         r#"{IR}
-(let $base (Basic (Rule "P")))
+(let $base (CoarseComb (MoreParents (Empty) (NoParents)) (Rule "P") (PNil)))
 (let $child (SmoothComb (MoreParents $base (NoParents)) (Rule "Q") (RNil)))
 (let $p (Occurrence 1 $base)) (let $q (Occurrence 2 $child))
 (ParentAt $q 0 $p)
@@ -86,7 +86,7 @@ fn redundant_support_cannot_use_an_indirectly_removed_instance() {
 fn requirements_cannot_pool_facts_across_shared_template_instances() {
     execute(&format!(
         r#"{IR}
-(let $c (Basic (Rule "opaque-rule")))
+(let $c (CoarseComb (MoreParents (Empty) (NoParents)) (Rule "opaque-rule") (PNil)))
 (let $a (Occurrence 1 $c)) (let $b (Occurrence 2 $c))
 (let $p (HasFact "P" (ANil))) (let $q (HasFact "Q" (ANil)))
 (Produced $a $p) (Produced $b $q)
@@ -103,7 +103,7 @@ fn requirements_cannot_pool_facts_across_shared_template_instances() {
 fn one_occurrence_port_cannot_have_two_different_assignments() {
     let source = format!(
         r#"{IR}
-(let $i (Occurrence 1 (Basic (Rule "R"))))
+(let $i (Occurrence 1 (CoarseComb (MoreParents (Empty) (NoParents)) (Rule "R") (PNil))))
 (ExternalAt $i 0 (V "Math" "x"))
 (ExternalAt $i 0 (V "Math" "y"))
 "#
@@ -140,7 +140,7 @@ fn native_types_reject_external_routes_in_smooth_combinations() {
 fn smooth_nested_make_resolves_only_from_parent_ports_and_materialization() {
     execute(&format!(
         r#"{IR}
-(let $base (Basic (Rule "A")))
+(let $base (CoarseComb (MoreParents (Empty) (NoParents)) (Rule "A") (PNil)))
 (let $parents (MoreParents $base (NoParents)))
 (let $local (RCons (ParentPort 0 0 "Math") (RNil)))
 (let $c (SmoothComb $parents (Rule "B") (RCons (Make "F" $local "Math") (RNil))))
@@ -154,4 +154,68 @@ fn smooth_nested_make_resolves_only_from_parent_ports_and_materialization() {
 "#
     ))
     .unwrap();
+}
+
+#[test]
+fn local_binding_view_preserves_coarse_effect_boundary_and_instances() {
+    execute(&format!(r#"{IR}
+(let $parent (CoarseComb (MoreParents (Empty) (NoParents)) (Rule "P") (PCons (External 0 "Math") (PNil))))
+(let $parents (MoreParents $parent (NoParents)))
+(let $local (RCons (ParentPort 0 0 "Math") (RNil)))
+(let $partial (PCons (Local (ParentPort 0 0 "Math")) (PNil)))
+(let $c (CoarseComb $parents (Rule "R") $partial))
+(let $s (SmoothComb $parents (Rule "R") $local))
+(let $p (Occurrence 1 $parent)) (ExternalAt $p 0 (V "Math" "x")) (OutputAt $p 0 (V "Math" "x"))
+(let $a (Occurrence 2 $c)) (let $b (Occurrence 3 $s))
+(ParentAt $a 0 $p) (ParentAt $b 0 $p)
+(let $effect (HasFact "only-a" (ANil))) (Produced $a $effect)
+(run-schedule (saturate (run tier1)))
+(fail (check (= $c $s)))
+(check (Binding $a (ACons (V "Math" "x") (ANil))))
+(run-schedule (saturate (run tier1_equivalences)))
+(run-schedule (saturate (run tier1)))
+(fail (check (= $c $s)))
+(check (LocalBindingView $c $local))
+(check (Binding $a (ACons (V "Math" "x") (ANil))))
+(check (Binding $b (ACons (V "Math" "x") (ANil))))
+(check (Provides $a $effect))
+(fail (check (Provides $b $effect)))
+(let $external (CoarseComb $parents (Rule "R") (PCons (External 0 "Math") (PNil))))
+(run-schedule (saturate (run tier1_equivalences)))
+(fail (check (= $external $s)))
+"#)).unwrap();
+}
+#[test]
+fn nested_partial_make_can_normalize_without_changing_its_witness() {
+    execute(&format!(
+        r#"{IR}
+(let $ps (MoreParents (Empty) (NoParents)))
+(let $partial (PCons (MakePartial "Const" (PNil) "Math") (PNil)))
+(let $local (RCons (Make "Const" (RNil) "Math") (RNil)))
+(let $c (CoarseComb $ps (Rule "R") $partial))
+(let $s (SmoothComb $ps (Rule "R") $local))
+(let $canonical (CoarseComb $ps (Rule "R") (PCons (Local (Make "Const" (RNil) "Math")) (PNil))))
+(fail (check (= $c $canonical)))
+(let $i (Occurrence 1 $c))
+(Materialized $i "Const" (ANil) (V "Math" "constant"))
+(run-schedule (saturate (run tier1)))
+(check (Binding $i (ACons (V "Math" "constant") (ANil))))
+(run-schedule (saturate (run tier1_equivalences)))
+(run-schedule (saturate (run tier1)))
+(fail (check (= $c $s)))
+(check (LocalBindingView $c $local))
+(check (= $c $canonical))
+(check (Binding $i (ACons (V "Math" "constant") (ANil))))
+"#
+    ))
+    .unwrap();
+}
+
+#[test]
+fn empty_cannot_be_used_as_a_data_entry_occurrence() {
+    assert!(
+        execute(&format!("{IR} (Occurrence 1 (Empty))"))
+            .unwrap_err()
+            .contains("context unit")
+    );
 }

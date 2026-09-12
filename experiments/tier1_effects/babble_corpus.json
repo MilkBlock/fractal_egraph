@@ -1,0 +1,607 @@
+{
+  "entries": [
+    {
+      "class": "train-shared-dag",
+      "split": "train",
+      "occurrences": 2,
+      "program": {
+        "sort": "CombDAG",
+        "op": "root",
+        "args": [
+          {
+            "sort": "CombRoots",
+            "op": "roots",
+            "args": [
+              {
+                "sort": "CombRef",
+                "op": "0",
+                "args": []
+              },
+              {
+                "sort": "CombRef",
+                "op": "2",
+                "args": []
+              }
+            ]
+          },
+          {
+            "sort": "Definitions",
+            "op": "defs",
+            "args": [
+              {
+                "sort": "Definition",
+                "op": "def",
+                "args": [
+                  {
+                    "sort": "CombRef",
+                    "op": "0",
+                    "args": []
+                  },
+                  {
+                    "sort": "Comb",
+                    "op": "CoarseComb",
+                    "args": [
+                      {
+                        "sort": "ParentCombs",
+                        "op": "MoreParents",
+                        "args": [
+                          {
+                            "sort": "CombRef",
+                            "op": "1",
+                            "args": []
+                          },
+                          {
+                            "sort": "ParentCombs",
+                            "op": "NoParents",
+                            "args": []
+                          }
+                        ]
+                      },
+                      {
+                        "sort": "RuleId",
+                        "op": "Rule",
+                        "args": [
+                          {
+                            "sort": "String",
+                            "op": "\"R10\"",
+                            "args": []
+                          }
+                        ]
+                      },
+                      {
+                        "sort": "PartialRelativeBinding",
+                        "op": "PCons",
+                        "args": [
+                          {
+                            "sort": "PartialPort",
+                            "op": "External",
+                            "args": [
+                              {
+                                "sort": "i64",
+                                "op": "0",
+                                "args": []
+                              },
+                              {
+                                "sort": "String",
+                                "op": "\"Math\"",
+                                "args": []
+                              }
+                            ]
+                          },
+                          {
+                            "sort": "PartialRelativeBinding",
+                            "op": "PCons",
+                            "args": [
+                              {
+                                "sort": "PartialPort",
+                                "op": "External",
+                                "args": [
+                                  {
+                                    "sort": "i64",
+                                    "op": "1",
+                                    "args": []
+                                  },
+                                  {
+                                    "sort": "String",
+                                    "op": "\"Math\"",
+                                    "args": []
+                                  }
+                                ]
+                              },
+                              {
+                                "sort": "PartialRelativeBinding",
+                                "op": "PCons",
+                                "args": [
+                                  {
+                                    "sort": "PartialPort",
+                                    "op": "External",
+                                    "args": [
+                                      {
+                                        "sort": "i64",
+                                        "op": "2",
+                                        "args": []
+                                      },
+                                      {
+                                        "sort": "String",
+                                        "op": "\"Math\"",
+                                        "args": []
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "sort": "PartialRelativeBinding",
+                                    "op": "PNil",
+                                    "args": []
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "sort": "Definition",
+                "op": "def",
+                "args": [
+                  {
+                    "sort": "CombRef",
+                    "op": "1",
+                    "args": []
+                  },
+                  {
+                    "sort": "Comb",
+                    "op": "Empty",
+                    "args": []
+                  }
+                ]
+              },
+              {
+                "sort": "Definition",
+                "op": "def",
+                "args": [
+                  {
+                    "sort": "CombRef",
+                    "op": "2",
+                    "args": []
+                  },
+                  {
+                    "sort": "Comb",
+                    "op": "CoarseComb",
+                    "args": [
+                      {
+                        "sort": "ParentCombs",
+                        "op": "MoreParents",
+                        "args": [
+                          {
+                            "sort": "CombRef",
+                            "op": "0",
+                            "args": []
+                          },
+                          {
+                            "sort": "ParentCombs",
+                            "op": "NoParents",
+                            "args": []
+                          }
+                        ]
+                      },
+                      {
+                        "sort": "RuleId",
+                        "op": "Rule",
+                        "args": [
+                          {
+                            "sort": "String",
+                            "op": "\"R15\"",
+                            "args": []
+                          }
+                        ]
+                      },
+                      {
+                        "sort": "PartialRelativeBinding",
+                        "op": "PCons",
+                        "args": [
+                          {
+                            "sort": "PartialPort",
+                            "op": "Local",
+                            "args": [
+                              {
+                                "sort": "LocalPort",
+                                "op": "ParentPort",
+                                "args": [
+                                  {
+                                    "sort": "i64",
+                                    "op": "0",
+                                    "args": []
+                                  },
+                                  {
+                                    "sort": "i64",
+                                    "op": "0",
+                                    "args": []
+                                  },
+                                  {
+                                    "sort": "String",
+                                    "op": "\"Math\"",
+                                    "args": []
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "sort": "PartialRelativeBinding",
+                            "op": "PCons",
+                            "args": [
+                              {
+                                "sort": "PartialPort",
+                                "op": "Local",
+                                "args": [
+                                  {
+                                    "sort": "LocalPort",
+                                    "op": "ParentPort",
+                                    "args": [
+                                      {
+                                        "sort": "i64",
+                                        "op": "0",
+                                        "args": []
+                                      },
+                                      {
+                                        "sort": "i64",
+                                        "op": "1",
+                                        "args": []
+                                      },
+                                      {
+                                        "sort": "String",
+                                        "op": "\"Math\"",
+                                        "args": []
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "sort": "PartialRelativeBinding",
+                                "op": "PCons",
+                                "args": [
+                                  {
+                                    "sort": "PartialPort",
+                                    "op": "External",
+                                    "args": [
+                                      {
+                                        "sort": "i64",
+                                        "op": "0",
+                                        "args": []
+                                      },
+                                      {
+                                        "sort": "String",
+                                        "op": "\"Math\"",
+                                        "args": []
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "sort": "PartialRelativeBinding",
+                                    "op": "PNil",
+                                    "args": []
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "class": "test-shared-dag",
+      "split": "test",
+      "occurrences": 2,
+      "program": {
+        "sort": "CombDAG",
+        "op": "root",
+        "args": [
+          {
+            "sort": "CombRoots",
+            "op": "roots",
+            "args": [
+              {
+                "sort": "CombRef",
+                "op": "0",
+                "args": []
+              },
+              {
+                "sort": "CombRef",
+                "op": "2",
+                "args": []
+              }
+            ]
+          },
+          {
+            "sort": "Definitions",
+            "op": "defs",
+            "args": [
+              {
+                "sort": "Definition",
+                "op": "def",
+                "args": [
+                  {
+                    "sort": "CombRef",
+                    "op": "0",
+                    "args": []
+                  },
+                  {
+                    "sort": "Comb",
+                    "op": "CoarseComb",
+                    "args": [
+                      {
+                        "sort": "ParentCombs",
+                        "op": "MoreParents",
+                        "args": [
+                          {
+                            "sort": "CombRef",
+                            "op": "1",
+                            "args": []
+                          },
+                          {
+                            "sort": "ParentCombs",
+                            "op": "NoParents",
+                            "args": []
+                          }
+                        ]
+                      },
+                      {
+                        "sort": "RuleId",
+                        "op": "Rule",
+                        "args": [
+                          {
+                            "sort": "String",
+                            "op": "\"R10\"",
+                            "args": []
+                          }
+                        ]
+                      },
+                      {
+                        "sort": "PartialRelativeBinding",
+                        "op": "PCons",
+                        "args": [
+                          {
+                            "sort": "PartialPort",
+                            "op": "External",
+                            "args": [
+                              {
+                                "sort": "i64",
+                                "op": "0",
+                                "args": []
+                              },
+                              {
+                                "sort": "String",
+                                "op": "\"Math\"",
+                                "args": []
+                              }
+                            ]
+                          },
+                          {
+                            "sort": "PartialRelativeBinding",
+                            "op": "PCons",
+                            "args": [
+                              {
+                                "sort": "PartialPort",
+                                "op": "External",
+                                "args": [
+                                  {
+                                    "sort": "i64",
+                                    "op": "1",
+                                    "args": []
+                                  },
+                                  {
+                                    "sort": "String",
+                                    "op": "\"Math\"",
+                                    "args": []
+                                  }
+                                ]
+                              },
+                              {
+                                "sort": "PartialRelativeBinding",
+                                "op": "PCons",
+                                "args": [
+                                  {
+                                    "sort": "PartialPort",
+                                    "op": "External",
+                                    "args": [
+                                      {
+                                        "sort": "i64",
+                                        "op": "2",
+                                        "args": []
+                                      },
+                                      {
+                                        "sort": "String",
+                                        "op": "\"Math\"",
+                                        "args": []
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "sort": "PartialRelativeBinding",
+                                    "op": "PNil",
+                                    "args": []
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "sort": "Definition",
+                "op": "def",
+                "args": [
+                  {
+                    "sort": "CombRef",
+                    "op": "1",
+                    "args": []
+                  },
+                  {
+                    "sort": "Comb",
+                    "op": "Empty",
+                    "args": []
+                  }
+                ]
+              },
+              {
+                "sort": "Definition",
+                "op": "def",
+                "args": [
+                  {
+                    "sort": "CombRef",
+                    "op": "2",
+                    "args": []
+                  },
+                  {
+                    "sort": "Comb",
+                    "op": "CoarseComb",
+                    "args": [
+                      {
+                        "sort": "ParentCombs",
+                        "op": "MoreParents",
+                        "args": [
+                          {
+                            "sort": "CombRef",
+                            "op": "0",
+                            "args": []
+                          },
+                          {
+                            "sort": "ParentCombs",
+                            "op": "NoParents",
+                            "args": []
+                          }
+                        ]
+                      },
+                      {
+                        "sort": "RuleId",
+                        "op": "Rule",
+                        "args": [
+                          {
+                            "sort": "String",
+                            "op": "\"R15\"",
+                            "args": []
+                          }
+                        ]
+                      },
+                      {
+                        "sort": "PartialRelativeBinding",
+                        "op": "PCons",
+                        "args": [
+                          {
+                            "sort": "PartialPort",
+                            "op": "Local",
+                            "args": [
+                              {
+                                "sort": "LocalPort",
+                                "op": "ParentPort",
+                                "args": [
+                                  {
+                                    "sort": "i64",
+                                    "op": "0",
+                                    "args": []
+                                  },
+                                  {
+                                    "sort": "i64",
+                                    "op": "0",
+                                    "args": []
+                                  },
+                                  {
+                                    "sort": "String",
+                                    "op": "\"Math\"",
+                                    "args": []
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "sort": "PartialRelativeBinding",
+                            "op": "PCons",
+                            "args": [
+                              {
+                                "sort": "PartialPort",
+                                "op": "Local",
+                                "args": [
+                                  {
+                                    "sort": "LocalPort",
+                                    "op": "ParentPort",
+                                    "args": [
+                                      {
+                                        "sort": "i64",
+                                        "op": "0",
+                                        "args": []
+                                      },
+                                      {
+                                        "sort": "i64",
+                                        "op": "1",
+                                        "args": []
+                                      },
+                                      {
+                                        "sort": "String",
+                                        "op": "\"Math\"",
+                                        "args": []
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "sort": "PartialRelativeBinding",
+                                "op": "PCons",
+                                "args": [
+                                  {
+                                    "sort": "PartialPort",
+                                    "op": "External",
+                                    "args": [
+                                      {
+                                        "sort": "i64",
+                                        "op": "0",
+                                        "args": []
+                                      },
+                                      {
+                                        "sort": "String",
+                                        "op": "\"Math\"",
+                                        "args": []
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "sort": "PartialRelativeBinding",
+                                    "op": "PNil",
+                                    "args": []
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "scope": "same two hand-authored templates on two data instantiations; integration smoke test, not independent generalization or tier-0 compression"
+}
