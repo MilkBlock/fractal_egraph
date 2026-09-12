@@ -15,6 +15,9 @@ type Result<T> = std::result::Result<T, Box<dyn Error>>;
 mod breadth;
 #[path = "tier0_probe/fractal.rs"]
 mod fractal;
+#[path = "tier0_probe/intervention.rs"]
+mod intervention;
+pub use intervention::run as r23_intervention;
 pub use breadth::run as coverage_breadth;
 #[derive(Clone)]
 struct Table {

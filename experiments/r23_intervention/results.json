@@ -1,0 +1,2091 @@
+{
+  "budget": "four R23 opportunities: four original all-rule rounds versus four anchored local steps; coarse arm has one extra legal R1 step. Not equal total work.",
+  "coarse_scope": "R1 at the same concrete factors is an extra-effect control, not an inferred necessary trigger repair",
+  "reference_enodes": 1047896,
+  "reference_unchanged": true,
+  "samples": [
+    {
+      "binding": {
+        "a": "(Cos (Var \"x\"))",
+        "b": "(Var \"x\")",
+        "x": "(Var \"x\")"
+      },
+      "initial_status": "enabled_rhs_missing",
+      "interventions": [
+        {
+          "checkpoints": [
+            {
+              "completed_depth": 1,
+              "net_enode_change": 6,
+              "next_trigger_present": true,
+              "opportunities": 1,
+              "reference": {
+                "reference_coverage_ratio": 7.634345393054273e-6,
+                "reference_covered_enodes": 8,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 2,
+              "net_enode_change": 12,
+              "next_trigger_present": true,
+              "opportunities": 2,
+              "reference": {
+                "reference_coverage_ratio": 0.000013360104437844976,
+                "reference_covered_enodes": 14,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 3,
+              "net_enode_change": 18,
+              "next_trigger_present": true,
+              "opportunities": 3,
+              "reference": {
+                "reference_coverage_ratio": 0.000019085863482635682,
+                "reference_covered_enodes": 20,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 4,
+              "net_enode_change": 24,
+              "next_trigger_present": true,
+              "opportunities": 4,
+              "reference": {
+                "reference_coverage_ratio": 0.000024811622527426384,
+                "reference_covered_enodes": 26,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            }
+          ],
+          "extra_coarse_steps": 0,
+          "native_steps": [
+            {
+              "after_enodes": 41,
+              "before_enodes": 35,
+              "binding": {
+                "a": "(Cos (Var \"x\"))",
+                "b": "(Var \"x\")",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 47,
+              "before_enodes": 41,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Cos (Var \"x\")))",
+                "b": "(Integral (Var \"x\") (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 53,
+              "before_enodes": 47,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\"))))",
+                "b": "(Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 59,
+              "before_enodes": 53,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\")))))",
+                "b": "(Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            }
+          ],
+          "treatment": "focused_R23"
+        },
+        {
+          "checkpoints": [
+            {
+              "completed_depth": 1,
+              "net_enode_change": 7,
+              "next_trigger_present": true,
+              "opportunities": 1,
+              "reference": {
+                "reference_coverage_ratio": 7.634345393054273e-6,
+                "reference_covered_enodes": 8,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 2,
+              "net_enode_change": 13,
+              "next_trigger_present": true,
+              "opportunities": 2,
+              "reference": {
+                "reference_coverage_ratio": 0.000013360104437844976,
+                "reference_covered_enodes": 14,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 3,
+              "net_enode_change": 19,
+              "next_trigger_present": true,
+              "opportunities": 3,
+              "reference": {
+                "reference_coverage_ratio": 0.000019085863482635682,
+                "reference_covered_enodes": 20,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 4,
+              "net_enode_change": 25,
+              "next_trigger_present": true,
+              "opportunities": 4,
+              "reference": {
+                "reference_coverage_ratio": 0.000024811622527426384,
+                "reference_covered_enodes": 26,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            }
+          ],
+          "extra_coarse_steps": 1,
+          "native_steps": [
+            {
+              "after_enodes": 36,
+              "before_enodes": 35,
+              "binding": {
+                "a": "(Cos (Var \"x\"))",
+                "b": "(Var \"x\")",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 1,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R1"
+            },
+            {
+              "after_enodes": 42,
+              "before_enodes": 36,
+              "binding": {
+                "a": "(Cos (Var \"x\"))",
+                "b": "(Var \"x\")",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 48,
+              "before_enodes": 42,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Cos (Var \"x\")))",
+                "b": "(Integral (Var \"x\") (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 54,
+              "before_enodes": 48,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\"))))",
+                "b": "(Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 60,
+              "before_enodes": 54,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\")))))",
+                "b": "(Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            }
+          ],
+          "treatment": "local_R1_then_focused_R23"
+        }
+      ],
+      "orientation": "original",
+      "original_schedule": [
+        {
+          "completed_depth": 1,
+          "net_enode_change": 34,
+          "opportunities": 1,
+          "reference": {
+            "reference_coverage_ratio": 7.634345393054273e-6,
+            "reference_covered_enodes": 8,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        },
+        {
+          "completed_depth": 2,
+          "net_enode_change": 83,
+          "opportunities": 2,
+          "reference": {
+            "reference_coverage_ratio": 0.000013360104437844976,
+            "reference_covered_enodes": 14,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        },
+        {
+          "completed_depth": 3,
+          "net_enode_change": 173,
+          "opportunities": 3,
+          "reference": {
+            "reference_coverage_ratio": 0.000019085863482635682,
+            "reference_covered_enodes": 20,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        },
+        {
+          "completed_depth": 4,
+          "net_enode_change": 354,
+          "opportunities": 4,
+          "reference": {
+            "reference_coverage_ratio": 0.000024811622527426384,
+            "reference_covered_enodes": 26,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        }
+      ],
+      "snapshot_round": 0
+    },
+    {
+      "binding": {
+        "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\"))))",
+        "b": "(Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\"))",
+        "x": "(Var \"x\")"
+      },
+      "initial_status": "enabled_rhs_missing",
+      "interventions": [
+        {
+          "checkpoints": [
+            {
+              "completed_depth": 1,
+              "net_enode_change": 6,
+              "next_trigger_present": true,
+              "opportunities": 1,
+              "reference": {
+                "reference_coverage_ratio": 7.634345393054273e-6,
+                "reference_covered_enodes": 8,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 2,
+              "net_enode_change": 12,
+              "next_trigger_present": true,
+              "opportunities": 2,
+              "reference": {
+                "reference_coverage_ratio": 0.000013360104437844976,
+                "reference_covered_enodes": 14,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 3,
+              "net_enode_change": 18,
+              "next_trigger_present": true,
+              "opportunities": 3,
+              "reference": {
+                "reference_coverage_ratio": 0.000019085863482635682,
+                "reference_covered_enodes": 20,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 4,
+              "net_enode_change": 24,
+              "next_trigger_present": true,
+              "opportunities": 4,
+              "reference": {
+                "reference_coverage_ratio": 0.000024811622527426384,
+                "reference_covered_enodes": 26,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            }
+          ],
+          "extra_coarse_steps": 0,
+          "native_steps": [
+            {
+              "after_enodes": 124,
+              "before_enodes": 118,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\"))))",
+                "b": "(Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 130,
+              "before_enodes": 124,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\")))))",
+                "b": "(Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 136,
+              "before_enodes": 130,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\"))))))",
+                "b": "(Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 142,
+              "before_enodes": 136,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\")))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            }
+          ],
+          "treatment": "focused_R23"
+        },
+        {
+          "checkpoints": [
+            {
+              "completed_depth": 1,
+              "net_enode_change": 7,
+              "next_trigger_present": true,
+              "opportunities": 1,
+              "reference": {
+                "reference_coverage_ratio": 7.634345393054273e-6,
+                "reference_covered_enodes": 8,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 2,
+              "net_enode_change": 13,
+              "next_trigger_present": true,
+              "opportunities": 2,
+              "reference": {
+                "reference_coverage_ratio": 0.000013360104437844976,
+                "reference_covered_enodes": 14,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 3,
+              "net_enode_change": 19,
+              "next_trigger_present": true,
+              "opportunities": 3,
+              "reference": {
+                "reference_coverage_ratio": 0.000019085863482635682,
+                "reference_covered_enodes": 20,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 4,
+              "net_enode_change": 25,
+              "next_trigger_present": true,
+              "opportunities": 4,
+              "reference": {
+                "reference_coverage_ratio": 0.000024811622527426384,
+                "reference_covered_enodes": 26,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            }
+          ],
+          "extra_coarse_steps": 1,
+          "native_steps": [
+            {
+              "after_enodes": 119,
+              "before_enodes": 118,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\"))))",
+                "b": "(Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 1,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R1"
+            },
+            {
+              "after_enodes": 125,
+              "before_enodes": 119,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\"))))",
+                "b": "(Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 131,
+              "before_enodes": 125,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\")))))",
+                "b": "(Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 137,
+              "before_enodes": 131,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\"))))))",
+                "b": "(Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 143,
+              "before_enodes": 137,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\")))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            }
+          ],
+          "treatment": "local_R1_then_focused_R23"
+        }
+      ],
+      "orientation": "original",
+      "original_schedule": [
+        {
+          "completed_depth": 1,
+          "net_enode_change": 90,
+          "opportunities": 1,
+          "reference": {
+            "reference_coverage_ratio": 7.634345393054273e-6,
+            "reference_covered_enodes": 8,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        },
+        {
+          "completed_depth": 2,
+          "net_enode_change": 271,
+          "opportunities": 2,
+          "reference": {
+            "reference_coverage_ratio": 0.000013360104437844976,
+            "reference_covered_enodes": 14,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        },
+        {
+          "completed_depth": 3,
+          "net_enode_change": 666,
+          "opportunities": 3,
+          "reference": {
+            "reference_coverage_ratio": 0.000019085863482635682,
+            "reference_covered_enodes": 20,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        },
+        {
+          "completed_depth": 4,
+          "net_enode_change": 1458,
+          "opportunities": 4,
+          "reference": {
+            "reference_coverage_ratio": 0.000024811622527426384,
+            "reference_covered_enodes": 26,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        }
+      ],
+      "snapshot_round": 2
+    },
+    {
+      "binding": {
+        "a": "(Diff (Var \"x\") (Var \"x\"))",
+        "b": "(Integral (Cos (Var \"x\")) (Var \"x\"))",
+        "x": "(Var \"x\")"
+      },
+      "initial_status": "enabled_rhs_missing",
+      "interventions": [
+        {
+          "checkpoints": [
+            {
+              "completed_depth": 1,
+              "net_enode_change": 6,
+              "next_trigger_present": true,
+              "opportunities": 1,
+              "reference": {
+                "reference_coverage_ratio": 7.634345393054273e-6,
+                "reference_covered_enodes": 8,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 2,
+              "net_enode_change": 12,
+              "next_trigger_present": true,
+              "opportunities": 2,
+              "reference": {
+                "reference_coverage_ratio": 0.000013360104437844976,
+                "reference_covered_enodes": 14,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 3,
+              "net_enode_change": 18,
+              "next_trigger_present": true,
+              "opportunities": 3,
+              "reference": {
+                "reference_coverage_ratio": 0.000019085863482635682,
+                "reference_covered_enodes": 20,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 4,
+              "net_enode_change": 24,
+              "next_trigger_present": true,
+              "opportunities": 4,
+              "reference": {
+                "reference_coverage_ratio": 0.000024811622527426384,
+                "reference_covered_enodes": 26,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            }
+          ],
+          "extra_coarse_steps": 0,
+          "native_steps": [
+            {
+              "after_enodes": 124,
+              "before_enodes": 118,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Var \"x\"))",
+                "b": "(Integral (Cos (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 130,
+              "before_enodes": 124,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\")))",
+                "b": "(Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 136,
+              "before_enodes": 130,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\"))))",
+                "b": "(Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 142,
+              "before_enodes": 136,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\")))))",
+                "b": "(Integral (Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            }
+          ],
+          "treatment": "focused_R23"
+        },
+        {
+          "checkpoints": [
+            {
+              "completed_depth": 1,
+              "net_enode_change": 7,
+              "next_trigger_present": true,
+              "opportunities": 1,
+              "reference": {
+                "reference_coverage_ratio": 7.634345393054273e-6,
+                "reference_covered_enodes": 8,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 2,
+              "net_enode_change": 13,
+              "next_trigger_present": true,
+              "opportunities": 2,
+              "reference": {
+                "reference_coverage_ratio": 0.000013360104437844976,
+                "reference_covered_enodes": 14,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 3,
+              "net_enode_change": 19,
+              "next_trigger_present": true,
+              "opportunities": 3,
+              "reference": {
+                "reference_coverage_ratio": 0.000019085863482635682,
+                "reference_covered_enodes": 20,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 4,
+              "net_enode_change": 25,
+              "next_trigger_present": true,
+              "opportunities": 4,
+              "reference": {
+                "reference_coverage_ratio": 0.000024811622527426384,
+                "reference_covered_enodes": 26,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            }
+          ],
+          "extra_coarse_steps": 1,
+          "native_steps": [
+            {
+              "after_enodes": 119,
+              "before_enodes": 118,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Var \"x\"))",
+                "b": "(Integral (Cos (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 1,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R1"
+            },
+            {
+              "after_enodes": 125,
+              "before_enodes": 119,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Var \"x\"))",
+                "b": "(Integral (Cos (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 131,
+              "before_enodes": 125,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\")))",
+                "b": "(Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 137,
+              "before_enodes": 131,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\"))))",
+                "b": "(Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 143,
+              "before_enodes": 137,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\")))))",
+                "b": "(Integral (Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            }
+          ],
+          "treatment": "local_R1_then_focused_R23"
+        }
+      ],
+      "orientation": "commuted",
+      "original_schedule": [
+        {
+          "completed_depth": 1,
+          "net_enode_change": 90,
+          "opportunities": 1,
+          "reference": {
+            "reference_coverage_ratio": 7.634345393054273e-6,
+            "reference_covered_enodes": 8,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        },
+        {
+          "completed_depth": 2,
+          "net_enode_change": 271,
+          "opportunities": 2,
+          "reference": {
+            "reference_coverage_ratio": 0.000013360104437844976,
+            "reference_covered_enodes": 14,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        },
+        {
+          "completed_depth": 3,
+          "net_enode_change": 666,
+          "opportunities": 3,
+          "reference": {
+            "reference_coverage_ratio": 0.000019085863482635682,
+            "reference_covered_enodes": 20,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        },
+        {
+          "completed_depth": 4,
+          "net_enode_change": 1458,
+          "opportunities": 4,
+          "reference": {
+            "reference_coverage_ratio": 0.000024811622527426384,
+            "reference_covered_enodes": 26,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        }
+      ],
+      "snapshot_round": 2
+    },
+    {
+      "binding": {
+        "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\"))))))",
+        "b": "(Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+        "x": "(Var \"x\")"
+      },
+      "initial_status": "enabled_rhs_missing",
+      "interventions": [
+        {
+          "checkpoints": [
+            {
+              "completed_depth": 1,
+              "net_enode_change": 6,
+              "next_trigger_present": true,
+              "opportunities": 1,
+              "reference": {
+                "reference_coverage_ratio": 7.634345393054273e-6,
+                "reference_covered_enodes": 8,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 2,
+              "net_enode_change": 12,
+              "next_trigger_present": true,
+              "opportunities": 2,
+              "reference": {
+                "reference_coverage_ratio": 0.000013360104437844976,
+                "reference_covered_enodes": 14,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 3,
+              "net_enode_change": 18,
+              "next_trigger_present": true,
+              "opportunities": 3,
+              "reference": {
+                "reference_coverage_ratio": 0.000019085863482635682,
+                "reference_covered_enodes": 20,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 4,
+              "net_enode_change": 24,
+              "next_trigger_present": true,
+              "opportunities": 4,
+              "reference": {
+                "reference_coverage_ratio": 0.000024811622527426384,
+                "reference_covered_enodes": 26,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            }
+          ],
+          "extra_coarse_steps": 0,
+          "native_steps": [
+            {
+              "after_enodes": 395,
+              "before_enodes": 389,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\"))))))",
+                "b": "(Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 401,
+              "before_enodes": 395,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\")))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 407,
+              "before_enodes": 401,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\"))))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 413,
+              "before_enodes": 407,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\")))))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            }
+          ],
+          "treatment": "focused_R23"
+        },
+        {
+          "checkpoints": [
+            {
+              "completed_depth": 1,
+              "net_enode_change": 7,
+              "next_trigger_present": true,
+              "opportunities": 1,
+              "reference": {
+                "reference_coverage_ratio": 7.634345393054273e-6,
+                "reference_covered_enodes": 8,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 2,
+              "net_enode_change": 13,
+              "next_trigger_present": true,
+              "opportunities": 2,
+              "reference": {
+                "reference_coverage_ratio": 0.000013360104437844976,
+                "reference_covered_enodes": 14,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 3,
+              "net_enode_change": 19,
+              "next_trigger_present": true,
+              "opportunities": 3,
+              "reference": {
+                "reference_coverage_ratio": 0.000019085863482635682,
+                "reference_covered_enodes": 20,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 4,
+              "net_enode_change": 25,
+              "next_trigger_present": true,
+              "opportunities": 4,
+              "reference": {
+                "reference_coverage_ratio": 0.000024811622527426384,
+                "reference_covered_enodes": 26,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            }
+          ],
+          "extra_coarse_steps": 1,
+          "native_steps": [
+            {
+              "after_enodes": 390,
+              "before_enodes": 389,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\"))))))",
+                "b": "(Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 1,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R1"
+            },
+            {
+              "after_enodes": 396,
+              "before_enodes": 390,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\"))))))",
+                "b": "(Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 402,
+              "before_enodes": 396,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\")))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 408,
+              "before_enodes": 402,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\"))))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 414,
+              "before_enodes": 408,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\")))))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            }
+          ],
+          "treatment": "local_R1_then_focused_R23"
+        }
+      ],
+      "orientation": "original",
+      "original_schedule": [
+        {
+          "completed_depth": 1,
+          "net_enode_change": 395,
+          "opportunities": 1,
+          "reference": {
+            "reference_coverage_ratio": 7.634345393054273e-6,
+            "reference_covered_enodes": 8,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        },
+        {
+          "completed_depth": 2,
+          "net_enode_change": 1187,
+          "opportunities": 2,
+          "reference": {
+            "reference_coverage_ratio": 0.000013360104437844976,
+            "reference_covered_enodes": 14,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        },
+        {
+          "completed_depth": 3,
+          "net_enode_change": 2771,
+          "opportunities": 3,
+          "reference": {
+            "reference_coverage_ratio": 0.000019085863482635682,
+            "reference_covered_enodes": 20,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        },
+        {
+          "completed_depth": 4,
+          "net_enode_change": 7724,
+          "opportunities": 4,
+          "reference": {
+            "reference_coverage_ratio": 0.000024811622527426384,
+            "reference_covered_enodes": 26,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        }
+      ],
+      "snapshot_round": 4
+    },
+    {
+      "binding": {
+        "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\"))))",
+        "b": "(Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+        "x": "(Var \"x\")"
+      },
+      "initial_status": "enabled_rhs_missing",
+      "interventions": [
+        {
+          "checkpoints": [
+            {
+              "completed_depth": 1,
+              "net_enode_change": 6,
+              "next_trigger_present": true,
+              "opportunities": 1,
+              "reference": {
+                "reference_coverage_ratio": 7.634345393054273e-6,
+                "reference_covered_enodes": 8,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 2,
+              "net_enode_change": 12,
+              "next_trigger_present": true,
+              "opportunities": 2,
+              "reference": {
+                "reference_coverage_ratio": 0.000013360104437844976,
+                "reference_covered_enodes": 14,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 3,
+              "net_enode_change": 18,
+              "next_trigger_present": true,
+              "opportunities": 3,
+              "reference": {
+                "reference_coverage_ratio": 0.000019085863482635682,
+                "reference_covered_enodes": 20,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 4,
+              "net_enode_change": 24,
+              "next_trigger_present": true,
+              "opportunities": 4,
+              "reference": {
+                "reference_coverage_ratio": 0.000024811622527426384,
+                "reference_covered_enodes": 26,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            }
+          ],
+          "extra_coarse_steps": 0,
+          "native_steps": [
+            {
+              "after_enodes": 395,
+              "before_enodes": 389,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\"))))",
+                "b": "(Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 401,
+              "before_enodes": 395,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\")))))",
+                "b": "(Integral (Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 407,
+              "before_enodes": 401,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\"))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 413,
+              "before_enodes": 407,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\")))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            }
+          ],
+          "treatment": "focused_R23"
+        },
+        {
+          "checkpoints": [
+            {
+              "completed_depth": 1,
+              "net_enode_change": 7,
+              "next_trigger_present": true,
+              "opportunities": 1,
+              "reference": {
+                "reference_coverage_ratio": 7.634345393054273e-6,
+                "reference_covered_enodes": 8,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 2,
+              "net_enode_change": 13,
+              "next_trigger_present": true,
+              "opportunities": 2,
+              "reference": {
+                "reference_coverage_ratio": 0.000013360104437844976,
+                "reference_covered_enodes": 14,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 3,
+              "net_enode_change": 19,
+              "next_trigger_present": true,
+              "opportunities": 3,
+              "reference": {
+                "reference_coverage_ratio": 0.000019085863482635682,
+                "reference_covered_enodes": 20,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 4,
+              "net_enode_change": 25,
+              "next_trigger_present": true,
+              "opportunities": 4,
+              "reference": {
+                "reference_coverage_ratio": 0.000024811622527426384,
+                "reference_covered_enodes": 26,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            }
+          ],
+          "extra_coarse_steps": 1,
+          "native_steps": [
+            {
+              "after_enodes": 390,
+              "before_enodes": 389,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\"))))",
+                "b": "(Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 1,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R1"
+            },
+            {
+              "after_enodes": 396,
+              "before_enodes": 390,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\"))))",
+                "b": "(Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 402,
+              "before_enodes": 396,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\")))))",
+                "b": "(Integral (Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 408,
+              "before_enodes": 402,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\"))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 414,
+              "before_enodes": 408,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\")))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            }
+          ],
+          "treatment": "local_R1_then_focused_R23"
+        }
+      ],
+      "orientation": "commuted",
+      "original_schedule": [
+        {
+          "completed_depth": 1,
+          "net_enode_change": 395,
+          "opportunities": 1,
+          "reference": {
+            "reference_coverage_ratio": 7.634345393054273e-6,
+            "reference_covered_enodes": 8,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        },
+        {
+          "completed_depth": 2,
+          "net_enode_change": 1187,
+          "opportunities": 2,
+          "reference": {
+            "reference_coverage_ratio": 0.000013360104437844976,
+            "reference_covered_enodes": 14,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        },
+        {
+          "completed_depth": 3,
+          "net_enode_change": 2771,
+          "opportunities": 3,
+          "reference": {
+            "reference_coverage_ratio": 0.000019085863482635682,
+            "reference_covered_enodes": 20,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        },
+        {
+          "completed_depth": 4,
+          "net_enode_change": 7724,
+          "opportunities": 4,
+          "reference": {
+            "reference_coverage_ratio": 0.000024811622527426384,
+            "reference_covered_enodes": 26,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        }
+      ],
+      "snapshot_round": 4
+    },
+    {
+      "binding": {
+        "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\"))))))))",
+        "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+        "x": "(Var \"x\")"
+      },
+      "initial_status": "enabled_rhs_missing",
+      "interventions": [
+        {
+          "checkpoints": [
+            {
+              "completed_depth": 1,
+              "net_enode_change": 6,
+              "next_trigger_present": true,
+              "opportunities": 1,
+              "reference": {
+                "reference_coverage_ratio": 7.634345393054273e-6,
+                "reference_covered_enodes": 8,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 2,
+              "net_enode_change": 12,
+              "next_trigger_present": true,
+              "opportunities": 2,
+              "reference": {
+                "reference_coverage_ratio": 0.000013360104437844976,
+                "reference_covered_enodes": 14,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 3,
+              "net_enode_change": 18,
+              "next_trigger_present": true,
+              "opportunities": 3,
+              "reference": {
+                "reference_coverage_ratio": 0.000019085863482635682,
+                "reference_covered_enodes": 20,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 4,
+              "net_enode_change": 24,
+              "next_trigger_present": true,
+              "opportunities": 4,
+              "reference": {
+                "reference_coverage_ratio": 0.000024811622527426384,
+                "reference_covered_enodes": 26,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            }
+          ],
+          "extra_coarse_steps": 0,
+          "native_steps": [
+            {
+              "after_enodes": 1582,
+              "before_enodes": 1576,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\"))))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 1588,
+              "before_enodes": 1582,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\")))))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 1594,
+              "before_enodes": 1588,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\"))))))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 1600,
+              "before_enodes": 1594,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\")))))))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            }
+          ],
+          "treatment": "focused_R23"
+        },
+        {
+          "checkpoints": [
+            {
+              "completed_depth": 1,
+              "net_enode_change": 7,
+              "next_trigger_present": true,
+              "opportunities": 1,
+              "reference": {
+                "reference_coverage_ratio": 7.634345393054273e-6,
+                "reference_covered_enodes": 8,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 2,
+              "net_enode_change": 13,
+              "next_trigger_present": true,
+              "opportunities": 2,
+              "reference": {
+                "reference_coverage_ratio": 0.000013360104437844976,
+                "reference_covered_enodes": 14,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 3,
+              "net_enode_change": 19,
+              "next_trigger_present": true,
+              "opportunities": 3,
+              "reference": {
+                "reference_coverage_ratio": 0.000019085863482635682,
+                "reference_covered_enodes": 20,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 4,
+              "net_enode_change": 25,
+              "next_trigger_present": true,
+              "opportunities": 4,
+              "reference": {
+                "reference_coverage_ratio": 0.000024811622527426384,
+                "reference_covered_enodes": 26,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            }
+          ],
+          "extra_coarse_steps": 1,
+          "native_steps": [
+            {
+              "after_enodes": 1577,
+              "before_enodes": 1576,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\"))))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 1,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R1"
+            },
+            {
+              "after_enodes": 1583,
+              "before_enodes": 1577,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\"))))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 1589,
+              "before_enodes": 1583,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\")))))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 1595,
+              "before_enodes": 1589,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\"))))))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 1601,
+              "before_enodes": 1595,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Cos (Var \"x\")))))))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Integral (Integral (Integral (Var \"x\") (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            }
+          ],
+          "treatment": "local_R1_then_focused_R23"
+        }
+      ],
+      "orientation": "original",
+      "original_schedule": [
+        {
+          "completed_depth": 1,
+          "net_enode_change": 1584,
+          "opportunities": 1,
+          "reference": {
+            "reference_coverage_ratio": 7.634345393054273e-6,
+            "reference_covered_enodes": 8,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        },
+        {
+          "completed_depth": 2,
+          "net_enode_change": 6537,
+          "opportunities": 2,
+          "reference": {
+            "reference_coverage_ratio": 0.000013360104437844976,
+            "reference_covered_enodes": 14,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        },
+        {
+          "completed_depth": 3,
+          "net_enode_change": 26727,
+          "opportunities": 3,
+          "reference": {
+            "reference_coverage_ratio": 0.000019085863482635682,
+            "reference_covered_enodes": 20,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        },
+        {
+          "completed_depth": 4,
+          "net_enode_change": 134870,
+          "opportunities": 4,
+          "reference": {
+            "reference_coverage_ratio": 0.000024811622527426384,
+            "reference_covered_enodes": 26,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        }
+      ],
+      "snapshot_round": 6
+    },
+    {
+      "binding": {
+        "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\"))))))",
+        "b": "(Integral (Integral (Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+        "x": "(Var \"x\")"
+      },
+      "initial_status": "enabled_rhs_missing",
+      "interventions": [
+        {
+          "checkpoints": [
+            {
+              "completed_depth": 1,
+              "net_enode_change": 6,
+              "next_trigger_present": true,
+              "opportunities": 1,
+              "reference": {
+                "reference_coverage_ratio": 7.634345393054273e-6,
+                "reference_covered_enodes": 8,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 2,
+              "net_enode_change": 12,
+              "next_trigger_present": true,
+              "opportunities": 2,
+              "reference": {
+                "reference_coverage_ratio": 0.000013360104437844976,
+                "reference_covered_enodes": 14,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 3,
+              "net_enode_change": 18,
+              "next_trigger_present": true,
+              "opportunities": 3,
+              "reference": {
+                "reference_coverage_ratio": 0.000019085863482635682,
+                "reference_covered_enodes": 20,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 4,
+              "net_enode_change": 24,
+              "next_trigger_present": true,
+              "opportunities": 4,
+              "reference": {
+                "reference_coverage_ratio": 0.000024811622527426384,
+                "reference_covered_enodes": 26,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            }
+          ],
+          "extra_coarse_steps": 0,
+          "native_steps": [
+            {
+              "after_enodes": 1582,
+              "before_enodes": 1576,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\"))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 1588,
+              "before_enodes": 1582,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\")))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 1594,
+              "before_enodes": 1588,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\"))))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 1600,
+              "before_enodes": 1594,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\")))))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            }
+          ],
+          "treatment": "focused_R23"
+        },
+        {
+          "checkpoints": [
+            {
+              "completed_depth": 1,
+              "net_enode_change": 7,
+              "next_trigger_present": true,
+              "opportunities": 1,
+              "reference": {
+                "reference_coverage_ratio": 7.634345393054273e-6,
+                "reference_covered_enodes": 8,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 2,
+              "net_enode_change": 13,
+              "next_trigger_present": true,
+              "opportunities": 2,
+              "reference": {
+                "reference_coverage_ratio": 0.000013360104437844976,
+                "reference_covered_enodes": 14,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 3,
+              "net_enode_change": 19,
+              "next_trigger_present": true,
+              "opportunities": 3,
+              "reference": {
+                "reference_coverage_ratio": 0.000019085863482635682,
+                "reference_covered_enodes": 20,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            },
+            {
+              "completed_depth": 4,
+              "net_enode_change": 25,
+              "next_trigger_present": true,
+              "opportunities": 4,
+              "reference": {
+                "reference_coverage_ratio": 0.000024811622527426384,
+                "reference_covered_enodes": 26,
+                "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+                "unresolved_reference_constructor_occurrences": 0
+              },
+              "stop": "enabled_rhs_missing"
+            }
+          ],
+          "extra_coarse_steps": 1,
+          "native_steps": [
+            {
+              "after_enodes": 1577,
+              "before_enodes": 1576,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\"))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 1,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R1"
+            },
+            {
+              "after_enodes": 1583,
+              "before_enodes": 1577,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\"))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 1589,
+              "before_enodes": 1583,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\")))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 1595,
+              "before_enodes": 1589,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\"))))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            },
+            {
+              "after_enodes": 1601,
+              "before_enodes": 1595,
+              "binding": {
+                "a": "(Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Diff (Var \"x\") (Var \"x\")))))))))",
+                "b": "(Integral (Integral (Integral (Integral (Integral (Integral (Integral (Integral (Cos (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\")) (Var \"x\"))",
+                "x": "(Var \"x\")"
+              },
+              "net_enode_change": 6,
+              "scope": "completed native anchored rule step; net row count, not inserted-event count",
+              "source_rule": "R23"
+            }
+          ],
+          "treatment": "local_R1_then_focused_R23"
+        }
+      ],
+      "orientation": "commuted",
+      "original_schedule": [
+        {
+          "completed_depth": 1,
+          "net_enode_change": 1584,
+          "opportunities": 1,
+          "reference": {
+            "reference_coverage_ratio": 7.634345393054273e-6,
+            "reference_covered_enodes": 8,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        },
+        {
+          "completed_depth": 2,
+          "net_enode_change": 6537,
+          "opportunities": 2,
+          "reference": {
+            "reference_coverage_ratio": 0.000013360104437844976,
+            "reference_covered_enodes": 14,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        },
+        {
+          "completed_depth": 3,
+          "net_enode_change": 26727,
+          "opportunities": 3,
+          "reference": {
+            "reference_coverage_ratio": 0.000019085863482635682,
+            "reference_covered_enodes": 20,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        },
+        {
+          "completed_depth": 4,
+          "net_enode_change": 134870,
+          "opportunities": 4,
+          "reference": {
+            "reference_coverage_ratio": 0.000024811622527426384,
+            "reference_covered_enodes": 26,
+            "scope": "explicit LHS/RHS occurrences mapped by lookup in fixed reference; interface interiors excluded; unresolved does not prove semantic novelty",
+            "unresolved_reference_constructor_occurrences": 0
+          },
+          "stop": "enabled_rhs_missing"
+        }
+      ],
+      "snapshot_round": 6
+    }
+  ],
+  "scope": "native finite paired interventions on two orientations of one seed lineage, sampled at rounds 0/2/4/6; not independent random samples; original branch reused from unmodified trajectory",
+  "source": "experiments/annotated_export/math_microbenchmark/combined.egg",
+  "status": "complete",
+  "trajectory": [
+    {
+      "enodes": 35,
+      "round": 0
+    },
+    {
+      "enodes": 69,
+      "round": 1
+    },
+    {
+      "enodes": 118,
+      "round": 2
+    },
+    {
+      "enodes": 208,
+      "round": 3
+    },
+    {
+      "enodes": 389,
+      "round": 4
+    },
+    {
+      "enodes": 784,
+      "round": 5
+    },
+    {
+      "enodes": 1576,
+      "round": 6
+    },
+    {
+      "enodes": 3160,
+      "round": 7
+    },
+    {
+      "enodes": 8113,
+      "round": 8
+    },
+    {
+      "enodes": 28303,
+      "round": 9
+    },
+    {
+      "enodes": 136446,
+      "round": 10
+    },
+    {
+      "enodes": 1047896,
+      "round": 11
+    }
+  ]
+}
