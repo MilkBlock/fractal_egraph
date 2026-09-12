@@ -74,3 +74,11 @@ CARGO_INCREMENTAL=0 cargo test --bin integration_family
 
 `results.json` 含分层 LHS/RHS 数量、新增覆盖、停止原因及 binding 转移样本。
 [comparison.md](comparison.md) 提供简表与递推示意。
+
+## 可恢复前沿适配
+
+`resumable_frontier` 用通用 `fractal_frontier` 框架重新观察同一份原生 R23 binding 索引。
+固定 binding 的状态预算为 8；两个入口的合计状态预算为 16。在当前直接递推候选中，
+分别重现 50 / 99 个节点覆盖，并报告 `budget_exhausted=true` 和待展开状态。
+这不是 turning point，也没有把观察到的有限链升级为无限规律。
+通用框架的交错、事实注入与 union 唤醒对照见 `experiments/fractal_frontier/README.md`。

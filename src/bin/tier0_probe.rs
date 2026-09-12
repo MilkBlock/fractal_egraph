@@ -13,6 +13,8 @@ type Result<T> = std::result::Result<T, Box<dyn Error>>;
 #[allow(dead_code)]
 #[path = "tier0_probe/breadth.rs"]
 mod breadth;
+#[path = "tier0_probe/fractal.rs"]
+mod fractal;
 pub use breadth::run as coverage_breadth;
 #[derive(Clone)]
 struct Table {
@@ -649,7 +651,7 @@ pub fn integration_family(source: &str, seed: &str) -> Result<Json> {
     );
     assert!(snapshot.unchanged(&eg));
     Ok(
-        json!({"source":source,"seed_expression":seed,"original_enodes":snapshot.rows.len(),"lhs_states":states.len(),"complete_states":states.iter().filter(|s|s.next.is_some()).count(),"entry_class_seed_count":entry_seeds.len(),"rhs_instances_without_lhs":rhs_without_lhs,"rhs_instances_without_union":union_missing,"transition":"(a,b,x) -> (Diff(x,a), Integral(b,x), x)","fixed_binding":fixed_result,"fixed_entry_eclass":rooted_result,"all_lhs_starts_control":global_result,"primitive_lhs_probe":lhs_report,"primitive_rhs_probe":rhs_report,"original_rows_unchanged":true,"scope":"read-only finite family coverage in the native final graph; complete states require LHS, RHS and union equality already present; not historical execution counts or an infinite-rule proof","limitations":["only direct residual-integral continuation; no intervening commutation or coarse rules","entry-eclass roots may contain alternatives learned during the original run","missing RHS or union stops expansion; no missing nodes are manufactured","a repeated canonical binding is visited once, even if multiple roots reach it"]}),
+        json!({"source":source,"seed_expression":seed,"original_enodes":snapshot.rows.len(),"lhs_states":states.len(),"complete_states":states.iter().filter(|s|s.next.is_some()).count(),"entry_class_seed_count":entry_seeds.len(),"rhs_instances_without_lhs":rhs_without_lhs,"rhs_instances_without_union":union_missing,"transition":"(a,b,x) -> (Diff(x,a), Integral(b,x), x)","resumable_frontier":{"fixed_binding":fractal::observe(&states,&[fixed],8),"entry_eclass":fractal::observe(&states,&entry_seeds,16)},"fixed_binding":fixed_result,"fixed_entry_eclass":rooted_result,"all_lhs_starts_control":global_result,"primitive_lhs_probe":lhs_report,"primitive_rhs_probe":rhs_report,"original_rows_unchanged":true,"scope":"read-only finite family coverage in the native final graph; complete states require LHS, RHS and union equality already present; not historical execution counts or an infinite-rule proof","limitations":["only direct residual-integral continuation; no intervening commutation or coarse rules","entry-eclass roots may contain alternatives learned during the original run","missing RHS or union stops expansion; no missing nodes are manufactured","a repeated canonical binding is visited once, even if multiple roots reach it"]}),
     )
 }
 

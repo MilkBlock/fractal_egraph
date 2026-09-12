@@ -69,194 +69,194 @@
     "sample_complete_transitions": [
       {
         "binding": [
-          "Value(19319)",
-          "Value(3)",
-          "Value(0)"
-        ],
-        "lhs_nodes": [
-          658013,
-          720744
-        ],
-        "next_binding": [
-          "Value(756766)",
-          "Value(45)",
-          "Value(0)"
-        ],
-        "rhs_nodes": [
-          653795,
-          655260,
-          667790,
-          756864,
-          894173,
-          1047204
-        ]
-      },
-      {
-        "binding": [
-          "Value(44)",
+          "Value(4226)",
           "Value(45)",
           "Value(0)"
         ],
         "lhs_nodes": [
-          655371,
-          687782
+          658715,
+          721702
         ],
         "next_binding": [
-          "Value(109)",
+          "Value(12944)",
           "Value(91)",
           "Value(0)"
         ],
         "rhs_nodes": [
-          641767,
+          642285,
           655284,
-          655566,
-          688390,
-          688938,
-          1032958
+          672654,
+          709551,
+          894731,
+          1040950
         ]
       },
       {
         "binding": [
-          "Value(564)",
-          "Value(1109)",
+          "Value(4696)",
+          "Value(251)",
           "Value(0)"
         ],
         "lhs_nodes": [
-          661167,
-          699203
+          658041,
+          726827
         ],
         "next_binding": [
-          "Value(60609)",
-          "Value(16524)",
+          "Value(717737)",
+          "Value(1615)",
           "Value(0)"
         ],
         "rhs_nodes": [
-          643285,
-          656179,
-          671563,
-          902402,
-          934901,
-          1039730
+          652201,
+          655508,
+          683542,
+          751924,
+          1017032,
+          1046328
         ]
       },
       {
         "binding": [
-          "Value(1689)",
-          "Value(252)",
+          "Value(4529)",
+          "Value(584)",
           "Value(0)"
         ],
         "lhs_nodes": [
-          661167,
-          707684
+          659650,
+          693015
         ],
         "next_binding": [
-          "Value(12797)",
-          "Value(1607)",
+          "Value(15074)",
+          "Value(1549)",
           "Value(0)"
         ],
         "rhs_nodes": [
-          642104,
-          655409,
-          675858,
-          861464,
-          910609,
-          1038117
+          642189,
+          655536,
+          665826,
+          714232,
+          727495,
+          1036974
         ]
       },
       {
         "binding": [
-          "Value(103)",
-          "Value(188)",
+          "Value(25592)",
+          "Value(35)",
           "Value(0)"
         ],
         "lhs_nodes": [
-          659972,
-          695588
+          658893,
+          721028
         ],
         "next_binding": [
-          "Value(365)",
-          "Value(700)",
+          "Value(724706)",
+          "Value(172)",
           "Value(0)"
         ],
         "rhs_nodes": [
-          641782,
-          655345,
-          671549,
-          772014,
-          967695,
-          1038792
+          646353,
+          655272,
+          670420,
+          772285,
+          1021937,
+          1043367
         ]
       },
       {
         "binding": [
-          "Value(1710)",
-          "Value(699)",
+          "Value(362)",
+          "Value(1599)",
           "Value(0)"
         ],
         "lhs_nodes": [
-          660889,
-          717869
+          656343,
+          692263
         ],
         "next_binding": [
-          "Value(3580)",
-          "Value(1596)",
+          "Value(741)",
+          "Value(3380)",
           "Value(0)"
         ],
         "rhs_nodes": [
-          642007,
-          655496,
-          668532,
-          780116,
-          877847,
-          1040824
+          641794,
+          655667,
+          659015,
+          701843,
+          708488,
+          1034899
         ]
       },
       {
         "binding": [
-          "Value(176)",
-          "Value(3579)",
+          "Value(1599)",
+          "Value(362)",
           "Value(0)"
         ],
         "lhs_nodes": [
-          655937,
-          692085
+          656343,
+          708941
         ],
         "next_binding": [
-          "Value(758)",
-          "Value(81242)",
+          "Value(14157)",
+          "Value(1590)",
           "Value(0)"
         ],
         "rhs_nodes": [
-          641814,
-          657551,
-          659017,
-          699011,
-          709461,
-          1034452
+          642289,
+          655515,
+          682778,
+          829299,
+          927310,
+          1041890
         ]
       },
       {
         "binding": [
-          "Value(750)",
-          "Value(658)",
+          "Value(2383)",
+          "Value(12670)",
           "Value(0)"
         ],
         "lhs_nodes": [
-          659468,
-          689196
+          658941,
+          702305
         ],
         "next_binding": [
-          "Value(1695)",
-          "Value(1598)",
+          "Value(15518)",
+          "Value(90576)",
           "Value(0)"
         ],
         "rhs_nodes": [
-          641874,
-          655544,
-          683808,
-          702975,
-          703930,
-          1038330
+          642362,
+          661733,
+          672665,
+          829319,
+          837558,
+          1039728
+        ]
+      },
+      {
+        "binding": [
+          "Value(746)",
+          "Value(2010)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          658570,
+          693380
+        ],
+        "next_binding": [
+          "Value(1697)",
+          "Value(5566)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641844,
+          661773,
+          675173,
+          730798,
+          731939,
+          1041152
         ]
       }
     ],
@@ -631,30 +631,6 @@
       },
       {
         "binding": [
-          "Value(47)",
-          "Value(44)",
-          "Value(0)"
-        ],
-        "lhs_nodes": [
-          655261,
-          687700
-        ],
-        "next_binding": [
-          "Value(67)",
-          "Value(64)",
-          "Value(0)"
-        ],
-        "rhs_nodes": [
-          641756,
-          655262,
-          655264,
-          687715,
-          687721,
-          1032775
-        ]
-      },
-      {
-        "binding": [
           "Value(61)",
           "Value(45)",
           "Value(0)"
@@ -679,26 +655,26 @@
       },
       {
         "binding": [
+          "Value(47)",
+          "Value(44)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          655261,
+          687700
+        ],
+        "next_binding": [
           "Value(67)",
           "Value(64)",
           "Value(0)"
         ],
-        "lhs_nodes": [
-          655264,
-          687715
-        ],
-        "next_binding": [
-          "Value(108)",
-          "Value(102)",
-          "Value(0)"
-        ],
         "rhs_nodes": [
-          641761,
-          655265,
-          655268,
-          687754,
-          687761,
-          1032779
+          641756,
+          655262,
+          655264,
+          687715,
+          687721,
+          1032775
         ]
       },
       {
@@ -723,6 +699,30 @@
           687773,
           687791,
           1032783
+        ]
+      },
+      {
+        "binding": [
+          "Value(67)",
+          "Value(64)",
+          "Value(0)"
+        ],
+        "lhs_nodes": [
+          655264,
+          687715
+        ],
+        "next_binding": [
+          "Value(108)",
+          "Value(102)",
+          "Value(0)"
+        ],
+        "rhs_nodes": [
+          641761,
+          655265,
+          655268,
+          687754,
+          687761,
+          1032779
         ]
       },
       {
@@ -868,16 +868,1750 @@
     "unique_coverage_ratio": 0.0519688976768687,
     "unique_covered_nodes": 54458,
     "whole_footprint_disjoint_model": {
-      "best_of_this_packing_or_noop": 2797,
-      "covered_or_interior_nodes": 3366,
-      "net_node_estimate": 2797,
-      "new_instance_nodes": 561,
+      "best_of_this_packing_or_noop": 2792,
+      "covered_or_interior_nodes": 3360,
+      "net_node_estimate": 2792,
+      "new_instance_nodes": 560,
       "packing": "greedy by immediate node gain, conflicts include removals against retained interfaces; not optimal",
-      "ratio_of_original_nodes": 0.0026691580080466,
-      "selected_instances": 561,
+      "ratio_of_original_nodes": 0.0026643865421759412,
+      "selected_instances": 560,
       "template_node_cost": 8
     },
     "within_instance_duplicate_occurrences": 12548
+  },
+  "resumable_frontier": {
+    "entry_eclass": {
+      "adapter_scope": "supplied R23 family over native frozen rows; read-only structural evidence, no committed-event reconstruction or automatic coarse binding search",
+      "budget_exhausted": true,
+      "covered_enodes": 99,
+      "deferred_states": [
+        {
+          "binding": [
+            {
+              "args": [],
+              "op": "native:Value(14634)",
+              "sort": "Math"
+            },
+            {
+              "args": [],
+              "op": "native:Value(14468)",
+              "sort": "Math"
+            },
+            {
+              "args": [],
+              "op": "native:Value(0)",
+              "sort": "Math"
+            }
+          ],
+          "family": "R23-residual-integral"
+        },
+        {
+          "binding": [
+            {
+              "args": [],
+              "op": "native:Value(4517)",
+              "sort": "Math"
+            },
+            {
+              "args": [],
+              "op": "native:Value(4441)",
+              "sort": "Math"
+            },
+            {
+              "args": [],
+              "op": "native:Value(0)",
+              "sort": "Math"
+            }
+          ],
+          "family": "R23-residual-integral"
+        }
+      ],
+      "deferred_transition_count": 0,
+      "edges": [
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(3)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(61)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(45)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(108)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(102)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(185)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(173)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(110)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(91)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(188)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(176)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(1699)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(1596)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(3561)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(3392)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(1703)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(1600)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(4517)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(4441)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(185)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(173)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(361)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(338)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(188)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(176)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(367)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(344)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(3)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(47)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(44)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(3561)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(3392)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(14634)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(14468)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(361)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(338)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(760)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(702)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(367)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(344)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(757)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(699)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(47)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(44)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(67)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(64)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(61)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(45)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(110)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(91)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(67)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(64)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(108)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(102)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(757)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(699)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(1699)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(1596)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(760)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(702)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(1703)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(1600)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        }
+      ],
+      "epoch": 0,
+      "incomplete_observations": 0,
+      "infinite_fractal_certified": false,
+      "pending_states": 0,
+      "scope": "bounded snapshot structural witnesses; not chronological rule runs, committed causality, or a saturation certificate",
+      "snapshot_candidate_closure": false,
+      "states": [
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(3)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(3)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(61)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(45)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(47)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(44)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(110)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(91)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(67)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(64)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(188)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(176)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(108)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(102)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(367)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(344)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(185)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(173)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(757)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(699)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(361)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(338)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(1699)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(1596)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(760)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(702)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(3561)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(3392)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(1703)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(1600)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        }
+      ],
+      "visited_states": 16,
+      "witnessed_edges": 16
+    },
+    "fixed_binding": {
+      "adapter_scope": "supplied R23 family over native frozen rows; read-only structural evidence, no committed-event reconstruction or automatic coarse binding search",
+      "budget_exhausted": true,
+      "covered_enodes": 50,
+      "deferred_states": [
+        {
+          "binding": [
+            {
+              "args": [],
+              "op": "native:Value(4517)",
+              "sort": "Math"
+            },
+            {
+              "args": [],
+              "op": "native:Value(4441)",
+              "sort": "Math"
+            },
+            {
+              "args": [],
+              "op": "native:Value(0)",
+              "sort": "Math"
+            }
+          ],
+          "family": "R23-residual-integral"
+        }
+      ],
+      "deferred_transition_count": 0,
+      "edges": [
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(108)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(102)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(185)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(173)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(1703)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(1600)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(4517)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(4441)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(185)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(173)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(361)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(338)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(3)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(47)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(44)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(361)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(338)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(760)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(702)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(47)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(44)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(67)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(64)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(67)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(64)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(108)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(102)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        },
+        {
+          "kind": "Recurrence",
+          "source": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(760)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(702)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "target": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(1703)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(1600)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          },
+          "witness": "native LHS + RHS rows and union equality, same x, exact residual binding"
+        }
+      ],
+      "epoch": 0,
+      "incomplete_observations": 0,
+      "infinite_fractal_certified": false,
+      "pending_states": 0,
+      "scope": "bounded snapshot structural witnesses; not chronological rule runs, committed causality, or a saturation certificate",
+      "snapshot_candidate_closure": false,
+      "states": [
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(3)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(47)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(44)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(67)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(64)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(108)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(102)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(185)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(173)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(361)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(338)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(760)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(702)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        },
+        {
+          "candidate_enumeration_complete": true,
+          "pending": null,
+          "state": {
+            "binding": [
+              {
+                "args": [],
+                "op": "native:Value(1703)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(1600)",
+                "sort": "Math"
+              },
+              {
+                "args": [],
+                "op": "native:Value(0)",
+                "sort": "Math"
+              }
+            ],
+            "family": "R23-residual-integral"
+          }
+        }
+      ],
+      "visited_states": 8,
+      "witnessed_edges": 8
+    }
   },
   "rhs_instances_without_lhs": 0,
   "rhs_instances_without_union": 0,

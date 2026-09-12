@@ -9,6 +9,11 @@ subprocess.run(["cargo","build","--release","--bin","integration_family"],cwd=RO
 seed='(Integral (Mul (Cos (Var "x")) (Var "x")) (Var "x"))'
 subprocess.run(["target/release/integration_family","experiments/annotated_export/math_microbenchmark/combined.egg",seed,str(OUT/"results.json")],cwd=ROOT,check=True,timeout=180)
 result=json.loads((OUT/"results.json").read_text())
+for key, original in [('fixed_binding', 'fixed_binding'), ('entry_eclass', 'fixed_entry_eclass')]:
+    frontier = result['resumable_frontier'][key]
+    assert frontier['covered_enodes'] == result[original]['checkpoints'][-1]['joint_unique']
+    assert frontier['budget_exhausted'] and not frontier['infinite_fractal_certified']
+
 lines=["# 分部积分自组合的有限覆盖", "", "单位：最终原图中去重后的 LHS∪RHS 节点；每列固定入口。", "",
        f"| 深度 | 固定 binding | 固定入口 e-class（{result['entry_class_seed_count']} 个 binding） | 全部 LHS 入口对照 |", "|---|---:|---:|---:|"]
 for i,depth in enumerate([1,2,4,8]):
