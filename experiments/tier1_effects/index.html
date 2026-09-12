@@ -1,6 +1,6 @@
-<!doctype html><html lang="zh"><meta charset="utf-8"><title>Tier-1 · Rule-comb 分析图</title>
-<style>body{margin:24px;background:#fafaf7;color:#263637;font:16px system-ui}select,a{margin-right:16px}iframe{width:100%;height:78vh;border:1px solid #cad6d3;background:white}p{max-width:1000px;line-height:1.6}</style>
-<h1>Tier-1 · Rule-comb 分析图</h1><p>这里显示的是分析 rule comb 的 tier-1 元层图，不是 tier-0 数学表达式图。节点 C0/C1 等表示组合上下文，effect 描述其对 tier-0 的事实要求与产出。当前实例由手工契约构建，尚未自动导入 tier-0 历史。所有 Apply 都表示已见证的组合步骤，不再绘制 pending/ready 执行状态；虚线说明前提或候选替代，点线说明 effect。原组合保留，冗余证书仅针对当前使用。</p>
-<p><select id="case"><option value="concrete">R10 提公因子 → R15 乘积求导</option><option value="union">组合的外部 equality 支撑</option><option value="redundancy">局部依赖冗余</option><option value="before">局部支撑补充前</option><option value="after">局部支撑补充后</option></select><select id="mode"><option value="">Rule-comb 上下文 / effect 视图</option value=".native">完整 tier-1 原生图</option></select><a id="svg" target="_blank">单独打开 SVG</a><a id="json" target="_blank">完整原生 JSON</a></p>
-<p id="explanation"></p><iframe id="view" title="tier1 graph"></iframe><p>完整图保留所有导出节点与边；超长节点标签仅缩短显示，完整内容保存在 tooltip 和 JSON 中。内部关系表的 Unit 输出不代表 Ctx 被 union。</p>
-<script>const c=document.getElementById('case'),m=document.getElementById('mode');function show(){document.getElementById('explanation').textContent=c.value==='concrete'?'输入：Diff(x, x*2+x*3)。u=x*2，v=x*3，p=u+v，s=2+3，q=x*s，d=Diff(x,p)。Mul(a,b,out) 的最后一项是结果引用。R10 产生 q 并证明 p=q，随后 R15 才能沿同一输入匹配。':'';let stem=c.value+m.value;document.getElementById('view').src=stem+'.svg';document.getElementById('svg').href=stem+'.svg';document.getElementById('json').href=c.value+'.native.json'}c.onchange=m.onchange=show;show()</script></html>
+<!doctype html><meta charset="utf-8"><title>Tier-1 shared rule-comb templates</title>
+<style>body{font:16px system-ui;margin:24px;background:#fafaf7;color:#263637}iframe{width:100%;height:80vh;border:1px solid #bbb}a{margin-right:24px}</style>
+<h1>Tier-1：共享 rule-comb 模板</h1><p>蓝色框只有规则、父组合与相对端口；没有 Entry 或具体数据 ID。绿色框是独立实例记录，虚线指向共享模板，不是模板的子节点。具体事实与 equality 只在实例及其明确父实例间传播。</p>
+<p><a href="shared_templates.svg" target="view">模板 / 实例分层图</a><a href="shared_templates.native.svg" target="view">完整原生图</a><a href="results.json">全部数据</a><a href="tier1_rule_comb_ir.egg">.egg IR</a></p>
+<iframe name="view" src="shared_templates.svg"></iframe>
+<p>这是手工给定 R10/R15 接口的共享与隔离实验，尚未自动从 tier-0 历史导入。全图的 Occurrence ID 不进入 Comb 的 hashcons 键。</p>

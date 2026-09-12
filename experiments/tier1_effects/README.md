@@ -1,63 +1,78 @@
-# Tier-1 rule-comb 分析 IR（简化版）
+# Tier-1：共享组合模板与独立实例证据
 
-- **tier-0**：运行数学 rewrite 的普通表达式 e-graph。
-- **tier-1**：分析 tier-0 已产生的 rule comb；Apply 表示已经见证的步骤，不是等待执行的计划。
-
-当前例子由手工契约构造，并在独立的原生 tier-0 中验证 R10/R15；尚未自动导入完整 trace 或连接 babble。
-
-## 核心表示
+`Entry` 已移除。主 IR 现在分成两层：
 
 ```
-Ctx = Entry(id)
-    | Join(Ctx, Ctx)
-    | Apply(parent, rule_id, binding, requirements, produced_effects)
+Comb = Basic(rule_id)
+     | SmoothComb(parents, rule_id, relative_ports)
+     | CoarseComb(parents, rule_id, partial_relative_ports)
 
-Effect = HasFact(predicate, typed_arguments) | Equal(typed_value, typed_value)
+Instance = Occurrence(unique_event_id, Comb)
 ```
 
-没有 Known、ValueKnown、Grounded、Ready 或 pending Apply。构造器本身就标识上下文，
-Apply 的历史产出直接传播。调用方须提供实际支撑；Rust 导入接口拒绝不完整 binding
-或缺少输入支撑的记录，不在图中保存等待补齐的节点。这是导入一致性检查，不是执行调度。
-coarse 的外部支撑通过 Join 接入，不能因为某个局部边界无法独立支撑它，就把实际发生的步骤判成未执行。
+Comb 的子结构只有规则、父模板及结构化端口；具体值、执行 ID、effect 均在实例层。
+即使两次执行的数据不同，只要连接模板相同，就引用同一个 Comb。
+父模板使用 Parents 列表，保留多 producer DAG，不强制串成单链。
 
-## 留下的分析
+## Relative binding
 
-- `Provides(ctx,effect)`：组合可提供的历史效果。
-- `EqAt`、`ArgsEqual`、`Satisfies`、`AllSatisfied`：同一个上下文内的等价及整组 binding 条件检查。
-- `SupportsUse(ctx,apply)`：这个上下文足以支撑该 Apply；用于分析边界与替代依赖，不是 Ready 的改名。
-- `RedundantForUse(old,replacement_parent,removed)`：省去一个 Join 分支后，另一分支仍独立满足该使用。
+- `ParentPort(parent_index, output_index, sort)`：从指定父实例的输出取值。
+- `External(slot, sort)`：coarse 组合中的外部数据接口。
+- `Make(operator, child_ports, sort)`：用已有 materialization 见证解释构造型转移。
 
-原 Smooth / DominatesForUse / AlternativeSupport 的重复条件归并到 SupportsUse。
-没有 Ctx union、全局 producer 删除或预测执行。冗余提案仅引用已有父上下文，不创建虚构的历史 Apply。
-适配器以不可变上下文 DAG 检查 Independent；替代分支间接依赖 removed 时拒绝证书。
+外部槽在导入前按首次出现顺序编号。Rust 的 `external_ports` 提供此规范化：
+名字不同可以共享，但同一外部值的重复使用不会与两个不同值混淆；sort 冲突会被拒绝。
+Make 不生成数据，只有 `Materialized(instance,op,args,value)` 已提供时才能解析。
+`.egg` 示例已规范编号；尚未实现任意 binding 表达式的理论等价归一化。
+SmoothComb 的 binding 应仅使用父端口/已见证构造关系，CoarseComb 可以使用 External；
+当前要求导入方遵守该分类，不会仅凭构造器名字证明外部依赖不存在。
 
-等价仍按上下文隔离，不以全局 Value union 实现。构造器输出相等不会反向统一子参数。
-Entry 是调用方供应的外部公理根；不得把 removed 的产出伪装成独立 Entry。
-公理新增只改变 SupportsUse 等分析关系，已记录 Apply 的发生状态不变；回滚/撤回需新建分析实例。
+## 实例与支撑
 
-## 文件
+`ParentAt` / `OutputAt` / `ExternalAt` 存实际连接和具体值，不作为 Comb 的构造参数。
+实例 ID 必须在一次分析中全局唯一（跨 trace/scope 时应先重新编号）。
+ParentAt 只有与 ParentTemplate 一致才会获得 LinkedParent，继而传播输出与效果。
+导出时拒绝同一实例端口存在不同赋值的矛盾 witness。
 
-- `tier1_rule_comb_ir.egg`：原生 tier-1 分析规则。
-- `tier1_rule_comb_example.egg`：R10→R15 的已见证组合，只有 C0 输入、C1 R10、C2 R15。
-- `tier0_math_example.egg`：实际数学规则及执行前后的原生检查。
-- `src/tier1_effects.rs`：有类型的契约实例化、导入检查、独立性检查及导出适配器。
+`Produced` 是历史产出；`ExternalFact` 是该实例实际用到的边界支撑。
+`Provides`、`EqAt`、`SupportsUse` 均按 Instance 隔离，只沿明确的父实例连接传播，
+不会因为共享 Comb 而把两个实例的事实混起来。没有 Known/Ready 或待执行状态。
+Requires 是该实例的 ground 前提；SupportsUse 是效果覆盖分析，不是允许执行的门槛。
 
-R10 将 p=x*2+x*3 与 q=x*(2+3) 合并，R15 通过这一支撑执行乘积求导。
-`SupportsUse(C1,C2)` 成立，`SupportsUse(C0,C2)` 不成立；这描述的是依赖边界，
-不是 C2 尚未执行。图中不再放入过去那个 pending R15 分支。
+局部冗余提案仍在实例层：ProposedRemoval + SupportsUse + Independent 给出 RedundantForUse。
+Independent 必须由实际依赖证据支持；Rust 导出器检查 ParentAt 祖先关系并拒绝循环支撑。
+这不是模板等价证明，不能据一组实例证书 union 所有同模板组合。
+新版未提供通用自动冗余候选枚举；不会迁移旧版具体 Ctx 证书冒充模板级结论。
 
-## 复现与图形
+## 结果与验证
+
+`tier1_rule_comb_example.egg` 用 R10→R15 的固定接口展示两组具体数据：
+
+- 第一组：x、2+3、dx；
+- 第二组：y、4+5、dy。
+
+两组各有一个 R10 与一个 R15 occurrence，共 **4 个实例、2 个 Comb 模板**：
+一个 Basic(R10)、一个共享 CoarseComb(R15)。重新构造同一个 coarse 模板的等式检查通过。
+前提来自各自的乘积表示、外部 Diff 行和父实例的 equality，不会跨实例泄漏。
+
+测试另行验证：不同实例分别只有 P/Q 时不能合并满足 P∧Q；equality 不泄漏；
+外部端口别名规范化；Make 需要真实 materialization；错误父模板不提供 binding；
+矛盾端口赋值被拒绝；间接依赖不能伪称 Independent。tier-0 数学例子仍通过原生检查。
+
+这是手工供应的接口/证据实验，尚未自动提取完整 tier-0 历史、学习 fractal 递推或接入 babble。
+模板共享的计数不等于整体内存压缩率，实例证据仍有存储成本。
+
+## 文件与复现
+
+- `tier1_rule_comb_ir.egg`：当前主 IR，直接由 egglog 执行。
+- `tier1_rule_comb_example.egg`：模板共享与实例隔离的可执行检查。
+- `tier0_math_example.egg`：普通表达式 e-graph 的 R10/R15 例子。
+- `src/tier1_effects.rs`：端口规范化、证据检查与导出。
 
 ```
 python3 experiments/tier1_effects/run.py
 cargo test --test tier1_effects
 ```
 
-从仓库根目录运行，以解析 .egg 的 include；图形渲染需要 Graphviz `dot`。
-`index.html` 提供五个分析视图及完整原生图。两幅支撑变化图中的 Apply 都已经发生，
-只比较某个局部上下文后来能否独立支撑该使用。绿色为 Apply，蓝色为输入/Join，不表示 ready 状态。
-`*.native.json` 与 `*.native.svg` 保留全部 serializer 节点与 child 边；上下文/effect 视图是可读投影。
-
-7 个测试覆盖：真实 equality 支撑、不泄漏等价、局部冗余与间接依赖拒绝、
-拒绝不完整历史记录、只更新支撑分析、类型/端口检查、R10/R15 原生对照及独立 .egg 执行。
-当前仍为小规模语义基础设施，不是 Math 压缩率证明。
+从仓库根目录运行，渲染需要 Graphviz。`index.html` 显示模板/实例分层图及完整原生图。
+旧版带 Entry 的生成图已替换；模板图中的虚线 instance-of 不是模板的 child 边。

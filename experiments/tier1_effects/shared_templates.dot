@@ -1,0 +1,18 @@
+digraph G {
+graph [rankdir=LR,bgcolor="#fafaf7"];node [shape=box,style="rounded,filled",fontname="Arial"];edge [fontname="Arial"];
+subgraph cluster_templates {label="Tier-1 shared rule-comb templates";color="#7392b3";
+"Comb-0" [label="Basic R10",fillcolor="#ddeafa"];
+"Comb-10" [label="CoarseComb R15\n(parent[0].out[0], parent[0].out[1], external[0])",fillcolor="#ddeafa"];
+"Comb-0" -> "Comb-10" [label="parent 0"];
+}
+subgraph cluster_instances {label="Concrete occurrences / evidence (not template children)";color="#7aa487";
+"Instance-11" [label="Occurrence 10\n\n2 scoped effects",fillcolor="#e1f0e5"];
+"Instance-12" [label="Occurrence 20\n\n2 scoped effects",fillcolor="#e1f0e5"];
+"Instance-13" [label="Occurrence 11\nx 2+3 dx \n3 scoped effects",fillcolor="#e1f0e5"];
+"Instance-14" [label="Occurrence 21\ny 4+5 dy \n3 scoped effects",fillcolor="#e1f0e5"];
+}
+"Instance-11" -> "Comb-0" [style=dashed,label="instance of"];
+"Instance-12" -> "Comb-0" [style=dashed,label="instance of"];
+"Instance-13" -> "Comb-10" [style=dashed,label="instance of"];
+"Instance-14" -> "Comb-10" [style=dashed,label="instance of"];
+}

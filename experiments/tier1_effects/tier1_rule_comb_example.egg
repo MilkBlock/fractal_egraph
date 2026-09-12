@@ -1,61 +1,51 @@
-; Tier-1 ground contracts for the concrete R10 -> R15 example.
-; Run from repository root. tier0_math_example.egg independently verifies tier-0 behavior.
 (include "experiments/tier1_effects/tier1_rule_comb_ir.egg")
+; A shared R10 -> R15 template. R15 receives x,s from R10, root d externally.
+(let $r10 (Basic "R10"))
+(let $parents (MoreParents $r10 (NoParents)))
+(let $rho (PCons (ParentPort 0 0 "Math")
+            (PCons (ParentPort 0 1 "Math")
+              (PCons (External 0 "Math") (PNil)))))
+(let $comb (CoarseComb $parents "R15" $rho))
+; Reconstructing the same template hashconses despite different occurrences.
+(let $same (CoarseComb (MoreParents (Basic "R10") (NoParents)) "R15" $rho))
+(check (= $comb $same))
+(let $r10a (Occurrence 10 $r10))
+(let $r10b (Occurrence 20 $r10))
+(let $a (Occurrence 11 $comb))
+(let $b (Occurrence 21 $same))
+(ParentAt $a 0 $r10a)
+(ParentAt $b 0 $r10b)
+(OutputAt $r10a 0 (V "Math" "x"))
+(OutputAt $r10a 1 (V "Math" "2+3"))
+(OutputAt $r10b 0 (V "Math" "y"))
+(OutputAt $r10b 1 (V "Math" "4+5"))
+(ExternalAt $a 0 (V "Math" "dx"))
+(ExternalAt $b 0 (V "Math" "dy"))
 
-; Symbols are Math value references, not integer equalities.
-; u=x*2, v=x*3, p=u+v, s=2+3, q=x*s, d=Diff(x,p).
-(let $x (V "Math" "x"))
-(let $two (V "Math" "2"))
-(let $three (V "Math" "3"))
-(let $u (V "Math" "u"))
-(let $v (V "Math" "v"))
-(let $p (V "Math" "p"))
-(let $s (V "Math" "s"))
-(let $q (V "Math" "q"))
-(let $d (V "Math" "d"))
-(let $dxs (V "Math" "dxs"))
-(let $dxx (V "Math" "dxx"))
-(let $left (V "Math" "left"))
-(let $right (V "Math" "right"))
-(let $z (V "Math" "z"))
+; Instance a: actual fact/equality support stays on the occurrence.
+(let $a_mul (HasFact "Mul" (ACons (V "Math" "x") (ACons (V "Math" "2+3") (ACons (V "Math" "product-x") (ANil))))))
+(let $a_diff (HasFact "Diff" (ACons (V "Math" "x") (ACons (V "Math" "sum-x") (ACons (V "Math" "dx") (ANil))))))
+(let $a_wanted (HasFact "Diff" (ACons (V "Math" "x") (ACons (V "Math" "product-x") (ACons (V "Math" "dx") (ANil))))))
+(Produced $r10a $a_mul)
+(Produced $r10a (Equal (V "Math" "sum-x") (V "Math" "product-x")))
+(ExternalFact $a $a_diff)
+(Requires $a (ECons $a_mul (ECons $a_wanted (ENil))))
 
-; Constructor row notation: the LAST argument is the output reference.
-(let $mul_x2 (HasFact "relation:Mul" (ACons $x (ACons $two (ACons $u (ANil))))))
-(let $mul_x3 (HasFact "relation:Mul" (ACons $x (ACons $three (ACons $v (ANil))))))
-(let $sum (HasFact "relation:Add" (ACons $u (ACons $v (ACons $p (ANil))))))
-(let $derivative (HasFact "relation:Diff" (ACons $x (ACons $p (ACons $d (ANil))))))
-(let $add_23 (HasFact "relation:Add" (ACons $two (ACons $three (ACons $s (ANil))))))
-(let $product (HasFact "relation:Mul" (ACons $x (ACons $s (ACons $q (ANil))))))
-(let $wanted_derivative (HasFact "relation:Diff" (ACons $x (ACons $q (ACons $d (ANil))))))
-(let $diff_s (HasFact "relation:Diff" (ACons $x (ACons $s (ACons $dxs (ANil))))))
-(let $diff_x (HasFact "relation:Diff" (ACons $x (ACons $x (ACons $dxx (ANil))))))
-(let $left_product (HasFact "relation:Mul" (ACons $x (ACons $dxs (ACons $left (ANil))))))
-(let $right_product (HasFact "relation:Mul" (ACons $s (ACons $dxx (ACons $right (ANil))))))
-(let $answer (HasFact "relation:Add" (ACons $left (ACons $right (ACons $z (ANil))))))
-(let $factor_equality (Equal $p $q))
-(let $result_equality (Equal $d $z))
+; Instance b: actual fact/equality support stays on the occurrence.
+(let $b_mul (HasFact "Mul" (ACons (V "Math" "y") (ACons (V "Math" "4+5") (ACons (V "Math" "product-y") (ANil))))))
+(let $b_diff (HasFact "Diff" (ACons (V "Math" "y") (ACons (V "Math" "sum-y") (ACons (V "Math" "dy") (ANil))))))
+(let $b_wanted (HasFact "Diff" (ACons (V "Math" "y") (ACons (V "Math" "product-y") (ACons (V "Math" "dy") (ANil))))))
+(Produced $r10b $b_mul)
+(Produced $r10b (Equal (V "Math" "sum-y") (V "Math" "product-y")))
+(ExternalFact $b $b_diff)
+(Requires $b (ECons $b_mul (ECons $b_wanted (ENil))))
 
-(let $r10_requires
-  (ECons $mul_x2 (ECons $mul_x3 (ECons $sum (ENil)))))
-(let $r10_produces
-  (ECons $add_23 (ECons $product (ECons $factor_equality (ENil)))))
-(let $r15_requires
-  (ECons $product (ECons $wanted_derivative (ENil))))
-(let $r15_produces
-  (ECons $diff_s (ECons $diff_x (ECons $left_product (ECons $right_product (ECons $answer (ECons $result_equality (ENil))))))))
-
-; C0: original expression, without the factored product/equality.
-(let $c0 (Entry 0))
-(Given $c0 $mul_x2)
-(Given $c0 $mul_x3)
-(Given $c0 $sum)
-(Given $c0 $derivative)
-
-; Only observed applications are represented. No pending R15 node.
-(let $c1 (Apply $c0 "R10" "a=x,b=2,c=3,root=p" $r10_requires $r10_produces))
-(let $c2 (Apply $c1 "R15" "a=x,b=s,variable=x,root=d" $r15_requires $r15_produces))
 (run-schedule (saturate (run tier1)))
-(check (Provides $c2 $result_equality))
-(check (SupportsUse $c1 $c2))
-(fail (check (SupportsUse $c0 $c2)))
-; The observed R15 needs effects beyond the original C0 boundary.
+(check (Binding $a (ACons (V "Math" "x") (ACons (V "Math" "2+3") (ACons (V "Math" "dx") (ANil))))))
+(check (Binding $b (ACons (V "Math" "y") (ACons (V "Math" "4+5") (ACons (V "Math" "dy") (ANil))))))
+(check (SupportsUse $a $a))
+(check (SupportsUse $b $b))
+; Template sharing cannot pool the evidence from these two occurrences.
+(fail (check (Provides $a $b_diff)))
+(fail (check (Provides $b $a_diff)))
+(fail (check (EqAt $b (V "Math" "sum-x") (V "Math" "product-x"))))
