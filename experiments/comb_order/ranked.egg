@@ -13089,4 +13089,3 @@
 
 ; @egg-viz-json {"events":[5811],"export_final_rhs_ast_enodes":2,"export_lhs_ast_enodes":3,"historical_lhs_enodes":3,"historical_rhs_enodes":1,"historical_score":0.3333333333333333,"id":"ranked_006436","kind":"ranked_combined_rule","local_union_steps":1,"native_ground_instance_checked":false,"rank":6436,"schema":"egg-viz/v1","selected":true,"source_substitutions_verified":true}
 (rewrite (Add (Mul a b) (Mul a c)) (Mul a (Add b c)) :ruleset __ranked_combs :name "ranked_006436")
-

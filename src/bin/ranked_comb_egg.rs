@@ -376,6 +376,7 @@ fn main() -> Result<()> {
             },Err(e)=>report.push(json!({"rank":c["rank"],"events":c["events"],"status":"not_expressible_by_old_api","reason":e.to_string()})),
         }
     }
+    let out = format!("{}\n", out.trim_end());
     EGraph::default().parse_and_run_program(None, &out)?;
     std::fs::write("experiments/comb_order/ranked.egg", out)?;
     std::fs::write(
