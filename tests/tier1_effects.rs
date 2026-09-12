@@ -158,3 +158,132 @@ fn emit(name: &str, value: serde_json::Value) {
         .unwrap();
     }
 }
+
+#[test]
+fn concrete_factor_then_product_derivative_matches_native_math_rules() {
+    use egglog::{EGraph, ast::Command};
+    let source = include_str!("../experiments/annotated_export/math_microbenchmark/combined.egg");
+    let mut eg = EGraph::default();
+    let commands = eg.parse_program(None, source).unwrap();
+    eg.run_program(vec![commands[0].clone()]).unwrap();
+    eg.parse_and_run_program(None, "(ruleset factor) (ruleset derivative)")
+        .unwrap();
+    for (id, rs) in [("R10", "factor"), ("R15", "derivative")] {
+        let mut rule = commands
+            .iter()
+            .find_map(|c| match c {
+                Command::Rule { rule } if rule.name == id => Some(rule.clone()),
+                _ => None,
+            })
+            .unwrap();
+        rule.ruleset = rs.into();
+        eg.run_program(vec![Command::Rule { rule }]).unwrap();
+    }
+    eg.parse_and_run_program(None,"(let $seed (Diff (Var \"x\") (Add (Mul (Var \"x\") (Const 2)) (Mul (Var \"x\") (Const 3)))))").unwrap();
+    fn check(eg: &mut EGraph, q: &str) -> bool {
+        match eg.parse_and_run_program(None, &format!("(check {q})")) {
+            Ok(_) => true,
+            Err(egglog::Error::CheckError(..)) => false,
+            Err(e) => panic!("{e}"),
+        }
+    }
+    let lhs = "(= d (Diff (Var \"x\") (Mul (Var \"x\") (Add (Const 2) (Const 3)))))";
+    assert!(!check(&mut eg, lhs));
+    let mut shape_only = eg.clone();
+    shape_only
+        .parse_and_run_program(None, "(Mul (Var \"x\") (Add (Const 2) (Const 3)))")
+        .unwrap();
+    assert!(!check(&mut shape_only, lhs));
+    eg.parse_and_run_program(None, "(run factor 1)").unwrap();
+    assert!(check(&mut eg, lhs));
+    eg.parse_and_run_program(None, "(run derivative 1)")
+        .unwrap();
+    assert!(check(
+        &mut eg,
+        "(= $seed (Add (Mul (Var \"x\") (Diff (Var \"x\") (Add (Const 2) (Const 3)))) (Mul (Add (Const 2) (Const 3)) (Diff (Var \"x\") (Var \"x\")))))"
+    ));
+
+    let named = |s: &str| Term::new("Math", s, vec![]);
+    let (x, two, three, u, vv, p, s, q, d) = (
+        named("x"),
+        named("2"),
+        named("3"),
+        named("u"),
+        named("v"),
+        named("p"),
+        named("s"),
+        named("q"),
+        named("d"),
+    );
+    let f = |name: &str, args: Vec<Term>| Fact::Relation(name.into(), args);
+    let initial = vec![
+        f("Mul", vec![x.clone(), two.clone(), u.clone()]),
+        f("Mul", vec![x.clone(), three.clone(), vv.clone()]),
+        f("Add", vec![u.clone(), vv.clone(), p.clone()]),
+        f("Diff", vec![x.clone(), p.clone(), d.clone()]),
+    ];
+    let contract = |facts: Vec<Fact>| BindingRelation {
+        sorts: vec![],
+        inputs: vec![],
+        outputs: vec![],
+        facts,
+        equalities: vec![],
+    };
+    let r10 = contract(initial[..3].to_vec());
+    let r15 = contract(vec![
+        f("Mul", vec![x.clone(), s.clone(), q.clone()]),
+        f("Diff", vec![x.clone(), q.clone(), d.clone()]),
+    ]);
+    let r10_effects = vec![
+        Effect::Fact(f("Add", vec![two, three, s.clone()])),
+        Effect::Fact(f("Mul", vec![x.clone(), s.clone(), q.clone()])),
+        Effect::Equal(p, q),
+    ];
+    let (dxs, dxx, l, r, z) = (
+        named("dxs"),
+        named("dxx"),
+        named("left"),
+        named("right"),
+        named("z"),
+    );
+    let r15_effects = vec![
+        Effect::Fact(f("Diff", vec![x.clone(), s.clone(), dxs.clone()])),
+        Effect::Fact(f("Diff", vec![x.clone(), x.clone(), dxx.clone()])),
+        Effect::Fact(f("Mul", vec![x, dxs, l.clone()])),
+        Effect::Fact(f("Mul", vec![s, dxx, r.clone()])),
+        Effect::Fact(f("Add", vec![l, r, z.clone()])),
+        Effect::Equal(d, z),
+    ];
+    let mut t = Tier1::new().unwrap();
+    let c0 = t
+        .entry(&initial.into_iter().map(Effect::Fact).collect::<Vec<_>>())
+        .unwrap();
+    let blocked = t
+        .apply(
+            c0,
+            "R15: product derivative",
+            &r15,
+            &BTreeMap::new(),
+            &r15_effects,
+        )
+        .unwrap();
+    let factor = t
+        .apply(c0, "R10: factor", &r10, &BTreeMap::new(), &r10_effects)
+        .unwrap();
+    let enabled = t
+        .apply(
+            factor,
+            "R15: product derivative",
+            &r15,
+            &BTreeMap::new(),
+            &r15_effects,
+        )
+        .unwrap();
+    t.saturate().unwrap();
+    assert!(!t.ready(blocked).unwrap());
+    assert!(t.ready(enabled).unwrap());
+    emit(
+        "concrete",
+        json!({"analysis":t.report().unwrap(),"native_tier0_checks":{"R15_before_factor":false,"R15_after_shape_only":false,"R15_after_R10":true,"expected_result_after_R15":true},"labels":{"u":"x*2","v":"x*3","p":"x*2+x*3","s":"2+3","q":"x*(2+3)","d":"Diff(x,p)","dxs":"Diff(x,s)","dxx":"Diff(x,x)","left":"x*dxs","right":"s*dxx","z":"left+right"},"scope":"fixed ground contracts for actual R10/R15; independently checked in native tier-0, not an automatic trace importer"}),
+    );
+}

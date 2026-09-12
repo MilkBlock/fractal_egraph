@@ -101,3 +101,19 @@ API 位于 `src/tier1_effects.rs`，原生规则位于本目录 `ir.egg`。
 `*.native.json` 保留完整原生节点 ID、e-class ID、operator、children、cost 和 subsumed。
 完整导出未限制函数或行数，且开启 temporary functions；原生图长标签仅显示截短，
 完整内容保留在 tooltip/JSON。内部关系表的 Unit 输出不意味着上下文被 union。
+
+## 具体规则实例：R10 → R15
+
+浏览页默认展示 `concrete.svg`：输入是 `Diff(x, x*2+x*3)`。
+R10 取 a=x、b=2、c=3，构造 s=2+3、q=x*s，并将原和式 p 与 q union。
+随后 R15 取 a=x、b=s，生成 `x*Diff(x,s)+s*Diff(x,x)`，与原求导结果 d union。
+
+图中的 `Mul(a,b,out)` / `Diff(x,arg,out)` 是包含结果引用的表行，而不是
+把原二元构造器改成三元函数。u=x*2、v=x*3、p=u+v、s=2+3、q=x*s。
+C1 是直接在原上下文尝试 R15 的待定分支；C2 是完成 R10 后的上下文；C3 是其上的 R15。
+没有将 p 的和式节点删除，它的 e-class 增加了乘积表示，使原 Diff 参数能够匹配 R15。
+
+测试直接读取项目导出的 R10/R15 原规则，在另一个真实 tier-0 egglog 实例中确认：
+R15 原先不匹配；只创建乘积而不 union 仍不匹配；执行 R10 后匹配；执行 R15 后得到预期等价式。
+Tier-1 使用针对该实例手工写出的 ground 契约，不是通用 trace 自动导入。
+运行后现在共 6 项 tier-1 测试通过，并生成五组图。

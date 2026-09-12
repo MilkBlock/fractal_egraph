@@ -9,7 +9,7 @@ with tempfile.TemporaryDirectory() as tmp:
     env=os.environ.copy()
     env['TIER1_EFFECT_REPORT_DIR']=tmp
     subprocess.run(['cargo','test','--test','tier1_effects'],cwd=ROOT,env=env,check=True,timeout=180)
-    report={name:json.loads((Path(tmp)/(name+'.json')).read_text()) for name in ['union','redundancy','dynamic']}
+    report={name:json.loads((Path(tmp)/(name+'.json')).read_text()) for name in ['union','redundancy','dynamic','concrete']}
     (ROOT/'experiments/tier1_effects/results.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n')
 
 subprocess.run(['python3',str(ROOT/'experiments/tier1_effects/render.py')],cwd=ROOT,check=True)
