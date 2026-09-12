@@ -9,6 +9,7 @@ def esc(x):return html.escape(str(x))
 parts=['''<!doctype html><meta charset="utf-8"><title>Tier-2 扩展规律</title><style>
 body{font:16px system-ui;background:#fafaf7;color:#20383a;max-width:1200px;margin:32px auto;padding:0 20px}p{line-height:1.7}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#eaf0f2;padding:16px}table{border-collapse:collapse;width:100%}td,th{padding:12px;border-bottom:1px solid #ccd5d3;text-align:left}details{border-bottom:1px solid #ccd5d3;padding:12px}summary{cursor:pointer}input{padding:12px;width:80%}a{color:#09696b}.note{border-left:4px solid #bf8438;padding:12px;background:#fff3dc}</style>
 <h1>Tier-2：从组合到扩展规律</h1>
+<p><a href="fractal.html">打开精简 Fractal 轨道视图：trigger → 1 → 2 → 3 → …</a></p>
 <p>Math 路径读取现有 native tier-1；递推路径通过专门的加法递推接口适配器。这里分别展示有限复用证据、坐标变换和系数检查，不把候选自动当作通用快捷规则。</p>
 <p><a href="ir.egg">Tier-2 IR / 规则</a> · <a href="math.egg">Math 输入图</a> · <a href="affine.egg">学到的坐标算子与观察</a> · <a href="README.md">边界与重现</a></p>
 <h2>递推：从前 5 步预测更深展开</h2>

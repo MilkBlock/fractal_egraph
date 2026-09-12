@@ -1,0 +1,852 @@
+{
+  "lanes": [
+    {
+      "id": "chain_1",
+      "operator": "ext_0067",
+      "rule": "R23",
+      "trigger": 203,
+      "events": [
+        466,
+        970,
+        2293,
+        5923
+      ],
+      "higher": "(HigherRule 4 $ext_0067 $comb_0063 (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "update": [
+        "a ← D(a, x)",
+        "b ← ∫(b) dx",
+        "x ← x"
+      ]
+    },
+    {
+      "id": "chain_2",
+      "operator": "ext_0067",
+      "rule": "R23",
+      "trigger": 472,
+      "events": [
+        985,
+        2287,
+        5965
+      ],
+      "higher": "(HigherRule 3 $ext_0067 $comb_0145 (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "update": [
+        "a ← D(a, x)",
+        "b ← ∫(b) dx",
+        "x ← x"
+      ]
+    },
+    {
+      "id": "chain_3",
+      "operator": "ext_0067",
+      "rule": "R23",
+      "trigger": 469,
+      "events": [
+        988,
+        2326,
+        5926
+      ],
+      "higher": "(HigherRule 3 $ext_0067 $comb_0137 (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "update": [
+        "a ← D(a, x)",
+        "b ← ∫(b) dx",
+        "x ← x"
+      ]
+    },
+    {
+      "id": "chain_4",
+      "operator": "ext_0067",
+      "rule": "R23",
+      "trigger": 976,
+      "events": [
+        2305,
+        5917
+      ],
+      "higher": "(HigherRule 2 $ext_0067 $comb_0135 (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "update": [
+        "a ← D(a, x)",
+        "b ← ∫(b) dx",
+        "x ← x"
+      ]
+    }
+  ],
+  "nodes": {
+    "203": {
+      "event": 203,
+      "comb": "$comb_0063",
+      "rule": "R23",
+      "kind": "SmoothComb",
+      "depth": 2,
+      "source": "(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")",
+      "tier1": "(SmoothComb (MoreParents $comb_0062 (NoParents)) (Rule \"R23\") (RCons (ParentPort 0 12 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 1 \"Math\") (RCons (ParentPort 0 20 \"Fact:Integral\") (RCons (ParentPort 0 21 \"Fact:Mul\") (RNil)))))))",
+      "equation": "∫((a · b)) dx ⇒ ((a · ∫(b) dx) − ∫((D(a, x) · ∫(b) dx)) dx)",
+      "combined": "(rule (\n  (= v2 (Mul v0 v1))\n  (= v3 (Integral v2 v1))\n) (\n  (let v4 (Integral v1 v1))\n  (let v5 (Mul v0 v4))\n  (let v6 (Diff v1 v0))\n  (let v7 (Mul v6 v4))\n  (let v8 (Integral v7 v1))\n  (let v9 (Sub v5 v8))\n  (union v3 v9)\n  (let v10 (Integral v4 v1))\n  (let v11 (Mul v6 v10))\n  (let v12 (Diff v1 v6))\n  (let v13 (Mul v12 v10))\n  (let v14 (Integral v13 v1))\n  (let v15 (Sub v11 v14))\n  (union v8 v15)\n) :ruleset tier1-combined :name \"comb_0063_v0\")",
+      "reason": null,
+      "parent_events": [
+        42
+      ],
+      "external_routes": [],
+      "source_routes": [
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/1/args/0:Mul:0",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/0:Mul:1",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:variable:b",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1",
+          "Fact:Integral"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1/args/0",
+          "Fact:Mul"
+        ]
+      ]
+    },
+    "466": {
+      "event": 466,
+      "comb": "$comb_0153",
+      "rule": "R23",
+      "kind": "SmoothComb",
+      "depth": 3,
+      "source": "(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")",
+      "tier1": "(SmoothComb (MoreParents $comb_0063 (NoParents)) (Rule \"R23\") (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "equation": "∫((a · b)) dx ⇒ ((a · ∫(b) dx) − ∫((D(a, x) · ∫(b) dx)) dx)",
+      "combined": "(rule (\n  (= v2 (Mul v0 v1))\n  (= v3 (Integral v2 v1))\n) (\n  (let v4 (Integral v1 v1))\n  (let v5 (Mul v0 v4))\n  (let v6 (Diff v1 v0))\n  (let v7 (Mul v6 v4))\n  (let v8 (Integral v7 v1))\n  (let v9 (Sub v5 v8))\n  (union v3 v9)\n  (let v10 (Integral v4 v1))\n  (let v11 (Mul v6 v10))\n  (let v12 (Diff v1 v6))\n  (let v13 (Mul v12 v10))\n  (let v14 (Integral v13 v1))\n  (let v15 (Sub v11 v14))\n  (union v8 v15)\n  (let v16 (Integral v10 v1))\n  (let v17 (Mul v12 v16))\n  (let v18 (Diff v1 v12))\n  (let v19 (Mul v18 v16))\n  (let v20 (Integral v19 v1))\n  (let v21 (Sub v17 v20))\n  (union v14 v21)\n) :ruleset tier1-combined :name \"comb_0153_v0\")",
+      "reason": null,
+      "parent_events": [
+        203
+      ],
+      "external_routes": [],
+      "source_routes": [
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/1/args/0:Mul:0",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/0:Mul:1",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:variable:x",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1",
+          "Fact:Integral"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1/args/0",
+          "Fact:Mul"
+        ]
+      ]
+    },
+    "970": {
+      "event": 970,
+      "comb": "$comb_0154",
+      "rule": "R23",
+      "kind": "SmoothComb",
+      "depth": 4,
+      "source": "(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")",
+      "tier1": "(SmoothComb (MoreParents $comb_0153 (NoParents)) (Rule \"R23\") (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "equation": "∫((a · b)) dx ⇒ ((a · ∫(b) dx) − ∫((D(a, x) · ∫(b) dx)) dx)",
+      "combined": "(rule (\n  (= v2 (Mul v0 v1))\n  (= v3 (Integral v2 v1))\n) (\n  (let v4 (Integral v1 v1))\n  (let v5 (Mul v0 v4))\n  (let v6 (Diff v1 v0))\n  (let v7 (Mul v6 v4))\n  (let v8 (Integral v7 v1))\n  (let v9 (Sub v5 v8))\n  (union v3 v9)\n  (let v10 (Integral v4 v1))\n  (let v11 (Mul v6 v10))\n  (let v12 (Diff v1 v6))\n  (let v13 (Mul v12 v10))\n  (let v14 (Integral v13 v1))\n  (let v15 (Sub v11 v14))\n  (union v8 v15)\n  (let v16 (Integral v10 v1))\n  (let v17 (Mul v12 v16))\n  (let v18 (Diff v1 v12))\n  (let v19 (Mul v18 v16))\n  (let v20 (Integral v19 v1))\n  (let v21 (Sub v17 v20))\n  (union v14 v21)\n  (let v22 (Integral v16 v1))\n  (let v23 (Mul v18 v22))\n  (let v24 (Diff v1 v18))\n  (let v25 (Mul v24 v22))\n  (let v26 (Integral v25 v1))\n  (let v27 (Sub v23 v26))\n  (union v20 v27)\n) :ruleset tier1-combined :name \"comb_0154_v0\")",
+      "reason": null,
+      "parent_events": [
+        466
+      ],
+      "external_routes": [],
+      "source_routes": [
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/1/args/0:Mul:0",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/0:Mul:1",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:variable:x",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1",
+          "Fact:Integral"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1/args/0",
+          "Fact:Mul"
+        ]
+      ]
+    },
+    "2293": {
+      "event": 2293,
+      "comb": "$comb_0235",
+      "rule": "R23",
+      "kind": "SmoothComb",
+      "depth": 5,
+      "source": "(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")",
+      "tier1": "(SmoothComb (MoreParents $comb_0154 (NoParents)) (Rule \"R23\") (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "equation": "∫((a · b)) dx ⇒ ((a · ∫(b) dx) − ∫((D(a, x) · ∫(b) dx)) dx)",
+      "combined": "(rule (\n  (= v2 (Mul v0 v1))\n  (= v3 (Integral v2 v1))\n) (\n  (let v4 (Integral v1 v1))\n  (let v5 (Mul v0 v4))\n  (let v6 (Diff v1 v0))\n  (let v7 (Mul v6 v4))\n  (let v8 (Integral v7 v1))\n  (let v9 (Sub v5 v8))\n  (union v3 v9)\n  (let v10 (Integral v4 v1))\n  (let v11 (Mul v6 v10))\n  (let v12 (Diff v1 v6))\n  (let v13 (Mul v12 v10))\n  (let v14 (Integral v13 v1))\n  (let v15 (Sub v11 v14))\n  (union v8 v15)\n  (let v16 (Integral v10 v1))\n  (let v17 (Mul v12 v16))\n  (let v18 (Diff v1 v12))\n  (let v19 (Mul v18 v16))\n  (let v20 (Integral v19 v1))\n  (let v21 (Sub v17 v20))\n  (union v14 v21)\n  (let v22 (Integral v16 v1))\n  (let v23 (Mul v18 v22))\n  (let v24 (Diff v1 v18))\n  (let v25 (Mul v24 v22))\n  (let v26 (Integral v25 v1))\n  (let v27 (Sub v23 v26))\n  (union v20 v27)\n  (let v28 (Integral v22 v1))\n  (let v29 (Mul v24 v28))\n  (let v30 (Diff v1 v24))\n  (let v31 (Mul v30 v28))\n  (let v32 (Integral v31 v1))\n  (let v33 (Sub v29 v32))\n  (union v26 v33)\n) :ruleset tier1-combined :name \"comb_0235_v0\")",
+      "reason": null,
+      "parent_events": [
+        970
+      ],
+      "external_routes": [],
+      "source_routes": [
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/1/args/0:Mul:0",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/0:Mul:1",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:variable:x",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1",
+          "Fact:Integral"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1/args/0",
+          "Fact:Mul"
+        ]
+      ]
+    },
+    "5923": {
+      "event": 5923,
+      "comb": "$comb_1196",
+      "rule": "R23",
+      "kind": "SmoothComb",
+      "depth": 6,
+      "source": "(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")",
+      "tier1": "(SmoothComb (MoreParents $comb_0235 (NoParents)) (Rule \"R23\") (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "equation": "∫((a · b)) dx ⇒ ((a · ∫(b) dx) − ∫((D(a, x) · ∫(b) dx)) dx)",
+      "combined": "(rule (\n  (= v2 (Mul v0 v1))\n  (= v3 (Integral v2 v1))\n) (\n  (let v4 (Integral v1 v1))\n  (let v5 (Mul v0 v4))\n  (let v6 (Diff v1 v0))\n  (let v7 (Mul v6 v4))\n  (let v8 (Integral v7 v1))\n  (let v9 (Sub v5 v8))\n  (union v3 v9)\n  (let v10 (Integral v4 v1))\n  (let v11 (Mul v6 v10))\n  (let v12 (Diff v1 v6))\n  (let v13 (Mul v12 v10))\n  (let v14 (Integral v13 v1))\n  (let v15 (Sub v11 v14))\n  (union v8 v15)\n  (let v16 (Integral v10 v1))\n  (let v17 (Mul v12 v16))\n  (let v18 (Diff v1 v12))\n  (let v19 (Mul v18 v16))\n  (let v20 (Integral v19 v1))\n  (let v21 (Sub v17 v20))\n  (union v14 v21)\n  (let v22 (Integral v16 v1))\n  (let v23 (Mul v18 v22))\n  (let v24 (Diff v1 v18))\n  (let v25 (Mul v24 v22))\n  (let v26 (Integral v25 v1))\n  (let v27 (Sub v23 v26))\n  (union v20 v27)\n  (let v28 (Integral v22 v1))\n  (let v29 (Mul v24 v28))\n  (let v30 (Diff v1 v24))\n  (let v31 (Mul v30 v28))\n  (let v32 (Integral v31 v1))\n  (let v33 (Sub v29 v32))\n  (union v26 v33)\n  (let v34 (Integral v28 v1))\n  (let v35 (Mul v30 v34))\n  (let v36 (Diff v1 v30))\n  (let v37 (Mul v36 v34))\n  (let v38 (Integral v37 v1))\n  (let v39 (Sub v35 v38))\n  (union v32 v39)\n) :ruleset tier1-combined :name \"comb_1196_v0\")",
+      "reason": null,
+      "parent_events": [
+        2293
+      ],
+      "external_routes": [],
+      "source_routes": [
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/1/args/0:Mul:0",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/0:Mul:1",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:variable:x",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1",
+          "Fact:Integral"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1/args/0",
+          "Fact:Mul"
+        ]
+      ]
+    },
+    "472": {
+      "event": 472,
+      "comb": "$comb_0145",
+      "rule": "R23",
+      "kind": "SmoothComb",
+      "depth": 3,
+      "source": "(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")",
+      "tier1": "(SmoothComb (MoreParents $comb_0144 (NoParents)) (Rule \"R23\") (RCons (ParentPort 0 12 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 0 \"Math\") (RCons (ParentPort 0 17 \"Fact:Integral\") (RCons (ParentPort 0 18 \"Fact:Mul\") (RNil)))))))",
+      "equation": "∫((a · b)) dx ⇒ ((a · ∫(b) dx) − ∫((D(a, x) · ∫(b) dx)) dx)",
+      "combined": "(rule (\n  (= v2 (Mul v0 v1))\n  (= v4 (Integral v2 v1))\n) (\n  (let v3 (Mul v1 v0))\n  (union v2 v3)\n  (let v5 (Integral v0 v1))\n  (let v6 (Mul v1 v5))\n  (let v7 (Diff v1 v1))\n  (let v8 (Mul v7 v5))\n  (let v9 (Integral v8 v1))\n  (let v10 (Sub v6 v9))\n  (union v4 v10)\n  (let v11 (Integral v5 v1))\n  (let v12 (Mul v7 v11))\n  (let v13 (Diff v1 v7))\n  (let v14 (Mul v13 v11))\n  (let v15 (Integral v14 v1))\n  (let v16 (Sub v12 v15))\n  (union v9 v16)\n) :ruleset tier1-combined :name \"comb_0145_v0\")",
+      "reason": null,
+      "parent_events": [
+        200
+      ],
+      "external_routes": [],
+      "source_routes": [
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/1/args/0:Mul:0",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/0:Mul:1",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:variable:a",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1",
+          "Fact:Integral"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1/args/0",
+          "Fact:Mul"
+        ]
+      ]
+    },
+    "985": {
+      "event": 985,
+      "comb": "$comb_0146",
+      "rule": "R23",
+      "kind": "SmoothComb",
+      "depth": 4,
+      "source": "(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")",
+      "tier1": "(SmoothComb (MoreParents $comb_0145 (NoParents)) (Rule \"R23\") (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "equation": "∫((a · b)) dx ⇒ ((a · ∫(b) dx) − ∫((D(a, x) · ∫(b) dx)) dx)",
+      "combined": "(rule (\n  (= v2 (Mul v0 v1))\n  (= v4 (Integral v2 v1))\n) (\n  (let v3 (Mul v1 v0))\n  (union v2 v3)\n  (let v5 (Integral v0 v1))\n  (let v6 (Mul v1 v5))\n  (let v7 (Diff v1 v1))\n  (let v8 (Mul v7 v5))\n  (let v9 (Integral v8 v1))\n  (let v10 (Sub v6 v9))\n  (union v4 v10)\n  (let v11 (Integral v5 v1))\n  (let v12 (Mul v7 v11))\n  (let v13 (Diff v1 v7))\n  (let v14 (Mul v13 v11))\n  (let v15 (Integral v14 v1))\n  (let v16 (Sub v12 v15))\n  (union v9 v16)\n  (let v17 (Integral v11 v1))\n  (let v18 (Mul v13 v17))\n  (let v19 (Diff v1 v13))\n  (let v20 (Mul v19 v17))\n  (let v21 (Integral v20 v1))\n  (let v22 (Sub v18 v21))\n  (union v15 v22)\n) :ruleset tier1-combined :name \"comb_0146_v0\")",
+      "reason": null,
+      "parent_events": [
+        472
+      ],
+      "external_routes": [],
+      "source_routes": [
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/1/args/0:Mul:0",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/0:Mul:1",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:variable:x",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1",
+          "Fact:Integral"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1/args/0",
+          "Fact:Mul"
+        ]
+      ]
+    },
+    "2287": {
+      "event": 2287,
+      "comb": "$comb_0233",
+      "rule": "R23",
+      "kind": "SmoothComb",
+      "depth": 5,
+      "source": "(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")",
+      "tier1": "(SmoothComb (MoreParents $comb_0146 (NoParents)) (Rule \"R23\") (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "equation": "∫((a · b)) dx ⇒ ((a · ∫(b) dx) − ∫((D(a, x) · ∫(b) dx)) dx)",
+      "combined": "(rule (\n  (= v2 (Mul v0 v1))\n  (= v4 (Integral v2 v1))\n) (\n  (let v3 (Mul v1 v0))\n  (union v2 v3)\n  (let v5 (Integral v0 v1))\n  (let v6 (Mul v1 v5))\n  (let v7 (Diff v1 v1))\n  (let v8 (Mul v7 v5))\n  (let v9 (Integral v8 v1))\n  (let v10 (Sub v6 v9))\n  (union v4 v10)\n  (let v11 (Integral v5 v1))\n  (let v12 (Mul v7 v11))\n  (let v13 (Diff v1 v7))\n  (let v14 (Mul v13 v11))\n  (let v15 (Integral v14 v1))\n  (let v16 (Sub v12 v15))\n  (union v9 v16)\n  (let v17 (Integral v11 v1))\n  (let v18 (Mul v13 v17))\n  (let v19 (Diff v1 v13))\n  (let v20 (Mul v19 v17))\n  (let v21 (Integral v20 v1))\n  (let v22 (Sub v18 v21))\n  (union v15 v22)\n  (let v23 (Integral v17 v1))\n  (let v24 (Mul v19 v23))\n  (let v25 (Diff v1 v19))\n  (let v26 (Mul v25 v23))\n  (let v27 (Integral v26 v1))\n  (let v28 (Sub v24 v27))\n  (union v21 v28)\n) :ruleset tier1-combined :name \"comb_0233_v0\")",
+      "reason": null,
+      "parent_events": [
+        985
+      ],
+      "external_routes": [],
+      "source_routes": [
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/1/args/0:Mul:0",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/0:Mul:1",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:variable:x",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1",
+          "Fact:Integral"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1/args/0",
+          "Fact:Mul"
+        ]
+      ]
+    },
+    "5965": {
+      "event": 5965,
+      "comb": "$comb_1210",
+      "rule": "R23",
+      "kind": "SmoothComb",
+      "depth": 6,
+      "source": "(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")",
+      "tier1": "(SmoothComb (MoreParents $comb_0233 (NoParents)) (Rule \"R23\") (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "equation": "∫((a · b)) dx ⇒ ((a · ∫(b) dx) − ∫((D(a, x) · ∫(b) dx)) dx)",
+      "combined": "(rule (\n  (= v2 (Mul v0 v1))\n  (= v4 (Integral v2 v1))\n) (\n  (let v3 (Mul v1 v0))\n  (union v2 v3)\n  (let v5 (Integral v0 v1))\n  (let v6 (Mul v1 v5))\n  (let v7 (Diff v1 v1))\n  (let v8 (Mul v7 v5))\n  (let v9 (Integral v8 v1))\n  (let v10 (Sub v6 v9))\n  (union v4 v10)\n  (let v11 (Integral v5 v1))\n  (let v12 (Mul v7 v11))\n  (let v13 (Diff v1 v7))\n  (let v14 (Mul v13 v11))\n  (let v15 (Integral v14 v1))\n  (let v16 (Sub v12 v15))\n  (union v9 v16)\n  (let v17 (Integral v11 v1))\n  (let v18 (Mul v13 v17))\n  (let v19 (Diff v1 v13))\n  (let v20 (Mul v19 v17))\n  (let v21 (Integral v20 v1))\n  (let v22 (Sub v18 v21))\n  (union v15 v22)\n  (let v23 (Integral v17 v1))\n  (let v24 (Mul v19 v23))\n  (let v25 (Diff v1 v19))\n  (let v26 (Mul v25 v23))\n  (let v27 (Integral v26 v1))\n  (let v28 (Sub v24 v27))\n  (union v21 v28)\n  (let v29 (Integral v23 v1))\n  (let v30 (Mul v25 v29))\n  (let v31 (Diff v1 v25))\n  (let v32 (Mul v31 v29))\n  (let v33 (Integral v32 v1))\n  (let v34 (Sub v30 v33))\n  (union v27 v34)\n) :ruleset tier1-combined :name \"comb_1210_v0\")",
+      "reason": null,
+      "parent_events": [
+        2287
+      ],
+      "external_routes": [],
+      "source_routes": [
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/1/args/0:Mul:0",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/0:Mul:1",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:variable:x",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1",
+          "Fact:Integral"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1/args/0",
+          "Fact:Mul"
+        ]
+      ]
+    },
+    "469": {
+      "event": 469,
+      "comb": "$comb_0137",
+      "rule": "R23",
+      "kind": "SmoothComb",
+      "depth": 3,
+      "source": "(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")",
+      "tier1": "(SmoothComb (MoreParents $comb_0062 (MoreParents $comb_0082 (NoParents))) (Rule \"R23\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 12 \"Math\") (RCons (ParentPort 0 1 \"Math\") (RCons (ParentPort 0 20 \"Fact:Integral\") (RCons (ParentPort 1 5 \"Fact:Mul\") (RNil)))))))",
+      "equation": "∫((a · b)) dx ⇒ ((a · ∫(b) dx) − ∫((D(a, x) · ∫(b) dx)) dx)",
+      "combined": "(rule (\n  (= v2 (Mul v0 v1))\n  (= v3 (Integral v2 v1))\n) (\n  (let v4 (Integral v1 v1))\n  (let v5 (Mul v0 v4))\n  (let v6 (Diff v1 v0))\n  (let v7 (Mul v6 v4))\n  (let v8 (Integral v7 v1))\n  (let v9 (Sub v5 v8))\n  (union v3 v9)\n  (let v10 (Mul v4 v6))\n  (union v7 v10)\n  (let v11 (Integral v6 v1))\n  (let v12 (Mul v4 v11))\n  (let v13 (Diff v1 v4))\n  (let v14 (Mul v13 v11))\n  (let v15 (Integral v14 v1))\n  (let v16 (Sub v12 v15))\n  (union v8 v16)\n) :ruleset tier1-combined :name \"comb_0137_v0\")",
+      "reason": null,
+      "parent_events": [
+        42,
+        136
+      ],
+      "external_routes": [],
+      "source_routes": [
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/0:Mul:1",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/1/args/0:Mul:0",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:variable:b",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1",
+          "Fact:Integral"
+        ],
+        [
+          "ParentRole",
+          1,
+          "R1:row:/head/0/union/1",
+          "Fact:Mul"
+        ]
+      ]
+    },
+    "988": {
+      "event": 988,
+      "comb": "$comb_0142",
+      "rule": "R23",
+      "kind": "SmoothComb",
+      "depth": 4,
+      "source": "(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")",
+      "tier1": "(SmoothComb (MoreParents $comb_0137 (NoParents)) (Rule \"R23\") (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "equation": "∫((a · b)) dx ⇒ ((a · ∫(b) dx) − ∫((D(a, x) · ∫(b) dx)) dx)",
+      "combined": "(rule (\n  (= v2 (Mul v0 v1))\n  (= v3 (Integral v2 v1))\n) (\n  (let v4 (Integral v1 v1))\n  (let v5 (Mul v0 v4))\n  (let v6 (Diff v1 v0))\n  (let v7 (Mul v6 v4))\n  (let v8 (Integral v7 v1))\n  (let v9 (Sub v5 v8))\n  (union v3 v9)\n  (let v10 (Mul v4 v6))\n  (union v7 v10)\n  (let v11 (Integral v6 v1))\n  (let v12 (Mul v4 v11))\n  (let v13 (Diff v1 v4))\n  (let v14 (Mul v13 v11))\n  (let v15 (Integral v14 v1))\n  (let v16 (Sub v12 v15))\n  (union v8 v16)\n  (let v17 (Integral v11 v1))\n  (let v18 (Mul v13 v17))\n  (let v19 (Diff v1 v13))\n  (let v20 (Mul v19 v17))\n  (let v21 (Integral v20 v1))\n  (let v22 (Sub v18 v21))\n  (union v15 v22)\n) :ruleset tier1-combined :name \"comb_0142_v0\")",
+      "reason": null,
+      "parent_events": [
+        469
+      ],
+      "external_routes": [],
+      "source_routes": [
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/1/args/0:Mul:0",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/0:Mul:1",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:variable:x",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1",
+          "Fact:Integral"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1/args/0",
+          "Fact:Mul"
+        ]
+      ]
+    },
+    "2326": {
+      "event": 2326,
+      "comb": "$comb_0247",
+      "rule": "R23",
+      "kind": "SmoothComb",
+      "depth": 5,
+      "source": "(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")",
+      "tier1": "(SmoothComb (MoreParents $comb_0142 (NoParents)) (Rule \"R23\") (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "equation": "∫((a · b)) dx ⇒ ((a · ∫(b) dx) − ∫((D(a, x) · ∫(b) dx)) dx)",
+      "combined": "(rule (\n  (= v2 (Mul v0 v1))\n  (= v3 (Integral v2 v1))\n) (\n  (let v4 (Integral v1 v1))\n  (let v5 (Mul v0 v4))\n  (let v6 (Diff v1 v0))\n  (let v7 (Mul v6 v4))\n  (let v8 (Integral v7 v1))\n  (let v9 (Sub v5 v8))\n  (union v3 v9)\n  (let v10 (Mul v4 v6))\n  (union v7 v10)\n  (let v11 (Integral v6 v1))\n  (let v12 (Mul v4 v11))\n  (let v13 (Diff v1 v4))\n  (let v14 (Mul v13 v11))\n  (let v15 (Integral v14 v1))\n  (let v16 (Sub v12 v15))\n  (union v8 v16)\n  (let v17 (Integral v11 v1))\n  (let v18 (Mul v13 v17))\n  (let v19 (Diff v1 v13))\n  (let v20 (Mul v19 v17))\n  (let v21 (Integral v20 v1))\n  (let v22 (Sub v18 v21))\n  (union v15 v22)\n  (let v23 (Integral v17 v1))\n  (let v24 (Mul v19 v23))\n  (let v25 (Diff v1 v19))\n  (let v26 (Mul v25 v23))\n  (let v27 (Integral v26 v1))\n  (let v28 (Sub v24 v27))\n  (union v21 v28)\n) :ruleset tier1-combined :name \"comb_0247_v0\")",
+      "reason": null,
+      "parent_events": [
+        988
+      ],
+      "external_routes": [],
+      "source_routes": [
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/1/args/0:Mul:0",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/0:Mul:1",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:variable:x",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1",
+          "Fact:Integral"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1/args/0",
+          "Fact:Mul"
+        ]
+      ]
+    },
+    "5926": {
+      "event": 5926,
+      "comb": "$comb_1197",
+      "rule": "R23",
+      "kind": "SmoothComb",
+      "depth": 6,
+      "source": "(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")",
+      "tier1": "(SmoothComb (MoreParents $comb_0247 (NoParents)) (Rule \"R23\") (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "equation": "∫((a · b)) dx ⇒ ((a · ∫(b) dx) − ∫((D(a, x) · ∫(b) dx)) dx)",
+      "combined": "(rule (\n  (= v2 (Mul v0 v1))\n  (= v3 (Integral v2 v1))\n) (\n  (let v4 (Integral v1 v1))\n  (let v5 (Mul v0 v4))\n  (let v6 (Diff v1 v0))\n  (let v7 (Mul v6 v4))\n  (let v8 (Integral v7 v1))\n  (let v9 (Sub v5 v8))\n  (union v3 v9)\n  (let v10 (Mul v4 v6))\n  (union v7 v10)\n  (let v11 (Integral v6 v1))\n  (let v12 (Mul v4 v11))\n  (let v13 (Diff v1 v4))\n  (let v14 (Mul v13 v11))\n  (let v15 (Integral v14 v1))\n  (let v16 (Sub v12 v15))\n  (union v8 v16)\n  (let v17 (Integral v11 v1))\n  (let v18 (Mul v13 v17))\n  (let v19 (Diff v1 v13))\n  (let v20 (Mul v19 v17))\n  (let v21 (Integral v20 v1))\n  (let v22 (Sub v18 v21))\n  (union v15 v22)\n  (let v23 (Integral v17 v1))\n  (let v24 (Mul v19 v23))\n  (let v25 (Diff v1 v19))\n  (let v26 (Mul v25 v23))\n  (let v27 (Integral v26 v1))\n  (let v28 (Sub v24 v27))\n  (union v21 v28)\n  (let v29 (Integral v23 v1))\n  (let v30 (Mul v25 v29))\n  (let v31 (Diff v1 v25))\n  (let v32 (Mul v31 v29))\n  (let v33 (Integral v32 v1))\n  (let v34 (Sub v30 v33))\n  (union v27 v34)\n) :ruleset tier1-combined :name \"comb_1197_v0\")",
+      "reason": null,
+      "parent_events": [
+        2326
+      ],
+      "external_routes": [],
+      "source_routes": [
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/1/args/0:Mul:0",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/0:Mul:1",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:variable:x",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1",
+          "Fact:Integral"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1/args/0",
+          "Fact:Mul"
+        ]
+      ]
+    },
+    "976": {
+      "event": 976,
+      "comb": "$comb_0135",
+      "rule": "R23",
+      "kind": "SmoothComb",
+      "depth": 4,
+      "source": "(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")",
+      "tier1": "(SmoothComb (MoreParents $comb_0063 (MoreParents $comb_0064 (NoParents))) (Rule \"R23\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 1 5 \"Fact:Mul\") (RNil)))))))",
+      "equation": "∫((a · b)) dx ⇒ ((a · ∫(b) dx) − ∫((D(a, x) · ∫(b) dx)) dx)",
+      "combined": "(rule (\n  (= v2 (Mul v0 v1))\n  (= v3 (Integral v2 v1))\n) (\n  (let v4 (Integral v1 v1))\n  (let v5 (Mul v0 v4))\n  (let v6 (Diff v1 v0))\n  (let v7 (Mul v6 v4))\n  (let v8 (Integral v7 v1))\n  (let v9 (Sub v5 v8))\n  (union v3 v9)\n  (let v10 (Integral v4 v1))\n  (let v11 (Mul v6 v10))\n  (let v12 (Diff v1 v6))\n  (let v13 (Mul v12 v10))\n  (let v14 (Integral v13 v1))\n  (let v15 (Sub v11 v14))\n  (union v8 v15)\n  (let v16 (Mul v10 v12))\n  (union v13 v16)\n  (let v17 (Integral v12 v1))\n  (let v18 (Mul v10 v17))\n  (let v19 (Diff v1 v10))\n  (let v20 (Mul v19 v17))\n  (let v21 (Integral v20 v1))\n  (let v22 (Sub v18 v21))\n  (union v14 v22)\n) :ruleset tier1-combined :name \"comb_0135_v0\")",
+      "reason": null,
+      "parent_events": [
+        203,
+        362
+      ],
+      "external_routes": [],
+      "source_routes": [
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/0:Mul:1",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/1/args/0:Mul:0",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:variable:x",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1",
+          "Fact:Integral"
+        ],
+        [
+          "ParentRole",
+          1,
+          "R1:row:/head/0/union/1",
+          "Fact:Mul"
+        ]
+      ]
+    },
+    "2305": {
+      "event": 2305,
+      "comb": "$comb_0238",
+      "rule": "R23",
+      "kind": "SmoothComb",
+      "depth": 5,
+      "source": "(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")",
+      "tier1": "(SmoothComb (MoreParents $comb_0135 (NoParents)) (Rule \"R23\") (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "equation": "∫((a · b)) dx ⇒ ((a · ∫(b) dx) − ∫((D(a, x) · ∫(b) dx)) dx)",
+      "combined": "(rule (\n  (= v2 (Mul v0 v1))\n  (= v3 (Integral v2 v1))\n) (\n  (let v4 (Integral v1 v1))\n  (let v5 (Mul v0 v4))\n  (let v6 (Diff v1 v0))\n  (let v7 (Mul v6 v4))\n  (let v8 (Integral v7 v1))\n  (let v9 (Sub v5 v8))\n  (union v3 v9)\n  (let v10 (Integral v4 v1))\n  (let v11 (Mul v6 v10))\n  (let v12 (Diff v1 v6))\n  (let v13 (Mul v12 v10))\n  (let v14 (Integral v13 v1))\n  (let v15 (Sub v11 v14))\n  (union v8 v15)\n  (let v16 (Mul v10 v12))\n  (union v13 v16)\n  (let v17 (Integral v12 v1))\n  (let v18 (Mul v10 v17))\n  (let v19 (Diff v1 v10))\n  (let v20 (Mul v19 v17))\n  (let v21 (Integral v20 v1))\n  (let v22 (Sub v18 v21))\n  (union v14 v22)\n  (let v23 (Integral v17 v1))\n  (let v24 (Mul v19 v23))\n  (let v25 (Diff v1 v19))\n  (let v26 (Mul v25 v23))\n  (let v27 (Integral v26 v1))\n  (let v28 (Sub v24 v27))\n  (union v21 v28)\n) :ruleset tier1-combined :name \"comb_0238_v0\")",
+      "reason": null,
+      "parent_events": [
+        976
+      ],
+      "external_routes": [],
+      "source_routes": [
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/1/args/0:Mul:0",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/0:Mul:1",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:variable:x",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1",
+          "Fact:Integral"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1/args/0",
+          "Fact:Mul"
+        ]
+      ]
+    },
+    "5917": {
+      "event": 5917,
+      "comb": "$comb_1194",
+      "rule": "R23",
+      "kind": "SmoothComb",
+      "depth": 6,
+      "source": "(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")",
+      "tier1": "(SmoothComb (MoreParents $comb_0238 (NoParents)) (Rule \"R23\") (RCons (ParentPort 0 15 \"Math\") (RCons (ParentPort 0 7 \"Math\") (RCons (ParentPort 0 2 \"Math\") (RCons (ParentPort 0 24 \"Fact:Integral\") (RCons (ParentPort 0 25 \"Fact:Mul\") (RNil)))))))",
+      "equation": "∫((a · b)) dx ⇒ ((a · ∫(b) dx) − ∫((D(a, x) · ∫(b) dx)) dx)",
+      "combined": "(rule (\n  (= v2 (Mul v0 v1))\n  (= v3 (Integral v2 v1))\n) (\n  (let v4 (Integral v1 v1))\n  (let v5 (Mul v0 v4))\n  (let v6 (Diff v1 v0))\n  (let v7 (Mul v6 v4))\n  (let v8 (Integral v7 v1))\n  (let v9 (Sub v5 v8))\n  (union v3 v9)\n  (let v10 (Integral v4 v1))\n  (let v11 (Mul v6 v10))\n  (let v12 (Diff v1 v6))\n  (let v13 (Mul v12 v10))\n  (let v14 (Integral v13 v1))\n  (let v15 (Sub v11 v14))\n  (union v8 v15)\n  (let v16 (Mul v10 v12))\n  (union v13 v16)\n  (let v17 (Integral v12 v1))\n  (let v18 (Mul v10 v17))\n  (let v19 (Diff v1 v10))\n  (let v20 (Mul v19 v17))\n  (let v21 (Integral v20 v1))\n  (let v22 (Sub v18 v21))\n  (union v14 v22)\n  (let v23 (Integral v17 v1))\n  (let v24 (Mul v19 v23))\n  (let v25 (Diff v1 v19))\n  (let v26 (Mul v25 v23))\n  (let v27 (Integral v26 v1))\n  (let v28 (Sub v24 v27))\n  (union v21 v28)\n  (let v29 (Integral v23 v1))\n  (let v30 (Mul v25 v29))\n  (let v31 (Diff v1 v25))\n  (let v32 (Mul v31 v29))\n  (let v33 (Integral v32 v1))\n  (let v34 (Sub v30 v33))\n  (union v27 v34)\n) :ruleset tier1-combined :name \"comb_1194_v0\")",
+      "reason": null,
+      "parent_events": [
+        2305
+      ],
+      "external_routes": [],
+      "source_routes": [
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/1/args/0:Mul:0",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:/head/0/union/1/args/0:Mul:1",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:variable:x",
+          "Math"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1",
+          "Fact:Integral"
+        ],
+        [
+          "ParentRole",
+          0,
+          "R23:row:/head/0/union/1/args/1/args/0",
+          "Fact:Mul"
+        ]
+      ]
+    }
+  },
+  "stats": {
+    "higher_rules": 13,
+    "maximal_chains": 4,
+    "applications": 12,
+    "visible_unique_contexts": 16,
+    "total_comb_templates": 1389
+  },
+  "scope": "Focused view of witnessed fractal regions, not a lossless compression of the whole tier-0 egraph. Ellipses are unverified continuation; trigger is the observed preceding context."
+}

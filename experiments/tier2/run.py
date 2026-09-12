@@ -13,6 +13,6 @@ for name in ['unit','triple','stride','changing','warmup']:
     run('target/debug/tier2_fixture',str(p),str(p.with_suffix('.json')))
     run('target/debug/tier1_source_schema',str(p),str(p.with_suffix('.ast.json')))
 py('recurrence_bridge');run('target/debug/tier2_observations')
-py('affine');run('target/debug/tier2_run','experiments/tier2/affine.egg','experiments/tier2/affine_native.json');run('target/debug/tier2_reduce');py('render')
+py('affine');run('target/debug/tier2_run','experiments/tier2/affine.egg','experiments/tier2/affine_native.json');run('target/debug/tier2_reduce');py('render');py('fractal_view')
 run(sys.executable,'-m','unittest','discover','-s','experiments/tier2','-p','test_*.py')
 run('cargo','test','--quiet','--test','tier2_native','--test','tier2_reduce')

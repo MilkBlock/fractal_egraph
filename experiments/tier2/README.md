@@ -109,3 +109,29 @@ python3 experiments/tier2/run.py
 `reduce.json` 保存原生提取前后表达式和成本。常量累加 112→13，等差累加 114→29；
 三个应保留的反例均仍含 Reduce。`tests/tier2_reduce.rs` 另用 81 个有限求和案例检查
 等差闭式、检查原 Reduce 节点仍存在，以及 HigherRule 到 Reduce 的连接。
+
+## Fractal 轨道视图
+
+`fractal.html` 只渲染已观察到的稳定连续应用与其前置 trigger 上下文：
+
+```text
+trigger → 1 → 2 → 3 → 4 → …
+```
+
+`fractal_view.py` 沿实际 occurrence 的父依赖寻找最大链，不能仅因模板相同就把无关实例拼接。
+现有 13 个 HigherRule 的所有有限前缀，都映射到 4 条最大链的连续片段；当前有 12 次应用、
+16 个可见组合模板（包含 trigger）。这是对 fractal 区域的聚焦，**不是对全部 1,389 个模板的无损压缩**。
+
+点击 trigger 查看生产规则、整组合结果及外部接口；点击数字查看该次应用的整组合结果，
+并展示从源 AST 解析的数学公式与稳定 binding 更新。没有单条规则降级结果时明确显示原因。
+trigger 表示已观察到的前置上下文，不是已证明的最小充分触发条件。
+省略号只显示未验证延伸的说明，不生成第 5 次应用或虚构其结果。
+
+仅渲染当前详情，页面无需服务器或外部脚本。URL 如 `fractal.html#chain_1/4` 可定位某一步。
+`test_fractal_browser.cjs` 使用 Playwright 和本机 Chrome 验证所有按钮、深链接、未知延伸、窄屏布局及脚本错误。
+需要 Node 能找到 Playwright（如设置 NODE_PATH 到依赖目录）：
+
+```sh
+python3 experiments/tier2/fractal_view.py
+node experiments/tier2/test_fractal_browser.cjs
+```
