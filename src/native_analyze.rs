@@ -265,12 +265,17 @@ fn capture(
         if let Command::RunSchedule(egglog::ast::GenericSchedule::Repeat(_, n, inner)) = &command {
             if matches!(**inner, egglog::ast::GenericSchedule::Run(..)) {
                 for _ in 0..*n {
+                    let round_start = Instant::now();
                     eg.run_program_with_trace(
                         vec![Command::RunSchedule((**inner).clone())],
                         &trace,
                     )?;
+                    let tier0_seconds = round_start.elapsed().as_secs_f64();
+                    let collect_start = Instant::now();
                     count += 1;
                     collect(&eg, &trace, &mut c, &mut producers)?;
+                    let collect_seconds = collect_start.elapsed().as_secs_f64();
+                    let tier1_start = Instant::now();
                     if let Some((tier1, root, worker)) = online.as_mut() {
                         worker
                             .install(|| {
@@ -283,6 +288,10 @@ fn capture(
                             c.records.len()
                         );
                     }
+                    eprintln!(
+                        "[perf-round] round={count} tier0={tier0_seconds:.6} collect={collect_seconds:.6} tier1={:.6}",
+                        tier1_start.elapsed().as_secs_f64()
+                    );
                     eprintln!("[native] round {count} completed");
                 }
                 continue;
@@ -615,6 +624,7 @@ fn build_tier1(
     root: &Path,
     inserted: &mut (usize, usize),
 ) -> Result {
+    let stage_start = Instant::now();
     if eg.get_function("ImportedComb").is_some()
         && *inserted == (c.pool.values.len(), c.records.len())
     {
@@ -771,7 +781,41 @@ fn build_tier1(
     }
     flush(eg, &mut batch)?;
     *inserted = (c.pool.values.len(), c.records.len());
+    let import_seconds = stage_start.elapsed().as_secs_f64();
+    let saturation_start = Instant::now();
+    eprintln!(
+        "[perf-tier1] import={import_seconds:.6} records={}",
+        c.records.len()
+    );
     eg.parse_and_run_program(None,"(run-schedule (saturate (run tier1))) (run-schedule (saturate (run tier1_equivalences))) (run-schedule (saturate (run tier1)))")?;
+    let saturation_seconds = saturation_start.elapsed().as_secs_f64();
+    if std::env::var_os("EGG_LAYOUT_PROFILE").is_some() {
+        let report = eg.get_overall_run_report();
+        let mut rules: Vec<_> = report.search_and_apply_time_per_rule.iter().collect();
+        rules.sort_by_key(|(_, t)| std::cmp::Reverse(**t));
+        let top: Vec<_> = rules.iter().take(10).map(|(name,t)|json!({"rule":name,"seconds":t.as_secs_f64(),"logical_matches":report.num_matches_per_rule.get(*name).copied().unwrap_or(0)})).collect();
+        let sizes: BTreeMap<_, _> = [
+            "Occurrence",
+            "Provides",
+            "EqAt",
+            "NeedArgs",
+            "ArgsEqual",
+            "Satisfies",
+            "SupportsUse",
+            "Binding",
+            "LocalArgs",
+            "PartialArgs",
+        ]
+        .into_iter()
+        .map(|name| (name, eg.get_size(name)))
+        .collect();
+        eprintln!(
+            "[perf-rules] {}",
+            json!({"records":c.records.len(),"cumulative_top_rules":top,"relation_rows":sizes})
+        );
+    }
+
+    let validation_start = Instant::now();
     // Check materialized native tables directly instead of compiling thousands
     // of textual check queries. This verifies every imported binding and support.
     let mut native = BTreeMap::new();
@@ -838,6 +882,11 @@ fn build_tier1(
             }
         }
     }
+    eprintln!(
+        "[perf-tier1] saturate={saturation_seconds:.6} validate={:.6} records={}",
+        validation_start.elapsed().as_secs_f64(),
+        c.records.len()
+    );
     Ok(())
 }
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]

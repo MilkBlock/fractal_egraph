@@ -1,13 +1,13 @@
 """macOS release capture profiling: phase times, process RSS and native stacks.
 Build release binaries first. No trace JSON is written by this runner.
 """
-import argparse,json,os,signal,subprocess,time
+import argparse,json,os,re,signal,subprocess,time
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--rounds',type=int,default=6);p.add_argument('--timeout',type=float,default=120);p.add_argument('--max-rss-mib',type=int,default=8192);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--rounds',type=int,default=6);p.add_argument('--timeout',type=float,default=120);p.add_argument('--max-rss-mib',type=int,default=8192);p.add_argument('--output',type=Path,required=True);p.add_argument('--sample-delay',type=float,default=0);a=p.parse_args()
     out=a.output.resolve();out.mkdir(parents=True,exist_ok=False)
-    env=dict(os.environ,CARGO_INCREMENTAL='0')
+    env=dict(os.environ,CARGO_INCREMENTAL='0',EGG_LAYOUT_PROFILE='1')
     command=[str(ROOT/'target/release/egg_layout'),'analyze','--recapture-tier0','--source','egglog/tests/math-microbenchmark.egg','--rounds',str(a.rounds),'--output',str(out/'run')]
     start=time.monotonic();peaks={};samplers=[];sampled=set();timed_out=False;stop_reason=None;peak_tree_rss=0
     with (out/'capture.log').open('w') as log:
@@ -28,7 +28,7 @@ def main():
                 _,rss,cpu,name=rows[pid];label=Path(name).name
                 record=peaks.setdefault(pid,{'pid':pid,'process':label,'rss_kib':0,'cpu_percent':0})
                 record['rss_kib']=max(record['rss_kib'],rss);record['cpu_percent']=max(record['cpu_percent'],cpu)
-                if label in ['egg_layout','combine_profile','tier1_export','tier1_interface_snapshot'] and pid not in sampled:
+                if label in ['egg_layout','combine_profile','tier1_export','tier1_interface_snapshot'] and pid not in sampled and time.monotonic()-start>=a.sample_delay:
                     sampled.add(pid)
                     with (out/f'{label}-{pid}.sample.log').open('w') as f:
                         samplers.append(subprocess.Popen(['sample',str(pid),'2','1','-file',str(out/f'{label}-{pid}.sample.txt')],stdout=f,stderr=subprocess.STDOUT))
@@ -43,7 +43,13 @@ def main():
             time.sleep(.15)
         proc.wait()
     for sample in samplers:sample.wait()
-    result={'rounds':a.rounds,'wall_seconds':time.monotonic()-start,'exit_code':proc.returncode,'timed_out':timed_out,'stop_reason':stop_reason,'peak_tree_rss_kib':peak_tree_rss,'process_peaks':list(peaks.values()),'measurement':'release; compiler work excluded by prebuild except cached cargo check; native sampler and ps polling add overhead'}
+    result={'rounds':a.rounds,'wall_seconds':time.monotonic()-start,'exit_code':proc.returncode,'timed_out':timed_out,'stop_reason':stop_reason,'peak_tree_rss_kib':peak_tree_rss,'process_peaks':list(peaks.values()),'measurement':'release prebuilt executable; compiler work excluded; native sampler and ps polling add overhead; supervisor wall includes sampler wait'}
+    logs=(out/'capture.log').read_text()
+    result['round_timings']=[dict(round=int(n),tier0=float(t),collect=float(c),tier1=float(g)) for n,t,c,g in re.findall(r'\[perf-round\] round=(\d+) tier0=([\d.]+) collect=([\d.]+) tier1=([\d.]+)',logs)]
+    result['tier1_imports']=[dict(seconds=float(t),records=int(n)) for t,n in re.findall(r'\[perf-tier1\] import=([\d.]+) records=(\d+)',logs)]
+    result['tier1_saturations']=[dict(saturate=float(s),validate=float(v),records=int(n)) for s,v,n in re.findall(r'\[perf-tier1\] saturate=([\d.]+) validate=([\d.]+) records=(\d+)',logs)]
+    result['rule_profiles']=[json.loads(line[len('[perf-rules] '):]) for line in logs.splitlines() if line.startswith('[perf-rules] ')]
+    result['sample_delay_seconds']=a.sample_delay
     marker=out/'run/run.json'
     if marker.exists():
         result['run']=json.loads(marker.read_text())

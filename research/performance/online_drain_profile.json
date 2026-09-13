@@ -1,0 +1,301 @@
+{
+  "scope": "Actual egglog release runtime, online per-round drain; ps RSS and macOS sample, not allocation profiling. Compilation excluded. Timing is one run, not a statistically controlled benchmark.",
+  "six": {
+    "program_wall_seconds": 5.859987292,
+    "peak_rss_mib": 311.078125,
+    "round_timings": [
+      {
+        "round": 1,
+        "tier0": 0.000401,
+        "collect": 0.000393,
+        "tier1": 0.023929
+      },
+      {
+        "round": 2,
+        "tier0": 0.000447,
+        "collect": 0.000291,
+        "tier1": 0.035348
+      },
+      {
+        "round": 3,
+        "tier0": 0.000699,
+        "collect": 0.000584,
+        "tier1": 0.068844
+      },
+      {
+        "round": 4,
+        "tier0": 0.000858,
+        "collect": 0.000866,
+        "tier1": 0.276455
+      },
+      {
+        "round": 5,
+        "tier0": 0.00201,
+        "collect": 0.002226,
+        "tier1": 0.964951
+      },
+      {
+        "round": 6,
+        "tier0": 0.00314,
+        "collect": 0.005362,
+        "tier1": 4.282428
+      }
+    ],
+    "tier1_imports": [
+      {
+        "seconds": 0.019781,
+        "records": 20
+      },
+      {
+        "seconds": 0.022397,
+        "records": 64
+      },
+      {
+        "seconds": 0.032919,
+        "records": 129
+      },
+      {
+        "seconds": 0.092732,
+        "records": 268
+      },
+      {
+        "seconds": 0.219891,
+        "records": 636
+      },
+      {
+        "seconds": 0.463167,
+        "records": 1529
+      }
+    ],
+    "tier1_saturations": [
+      {
+        "saturate": 0.002767,
+        "validate": 9.4e-05,
+        "records": 20
+      },
+      {
+        "saturate": 0.011865,
+        "validate": 6.8e-05,
+        "records": 64
+      },
+      {
+        "saturate": 0.035029,
+        "validate": 0.00016,
+        "records": 129
+      },
+      {
+        "saturate": 0.182453,
+        "validate": 0.000362,
+        "records": 268
+      },
+      {
+        "saturate": 0.743503,
+        "validate": 0.000763,
+        "records": 636
+      },
+      {
+        "saturate": 3.81668,
+        "validate": 0.001695,
+        "records": 1529
+      }
+    ],
+    "final_rules": {
+      "cumulative_top_rules": [
+        {
+          "logical_matches": 46219,
+          "rule": "(rule ((NeedEffect i (HasFact name wanted))\n       (Provides i (HasFact name actual)))\n      ((NeedArgs i actual wanted))\n        :ruleset tier1 )",
+          "seconds": 3.96072975
+        },
+        {
+          "logical_matches": 2400,
+          "rule": "(rule ((NeedArgs i xs ys)\n       (= xs (ACons x xt))\n       (= ys (ACons x yt))\n       (ArgsEqual i xt yt))\n      ((ArgsEqual i xs ys))\n        :ruleset tier1 )",
+          "seconds": 0.055813915
+        },
+        {
+          "logical_matches": 5574,
+          "rule": "(rule ((NeedLocalPort i port)\n       (= port (ParentPort k j sort))\n       (LinkedParent i k p)\n       (OutputAt p j v)\n       (= v (V sort key)))\n      ((LocalResolved i port v))\n        :ruleset tier1 )",
+          "seconds": 0.055028083
+        },
+        {
+          "logical_matches": 5349,
+          "rule": "(rule ((NeedLocalRoute i ports)\n       (= ports (RCons p tail))\n       (LocalResolved i p v)\n       (LocalArgs i tail args))\n      ((LocalArgs i ports (ACons v args)))\n        :ruleset tier1 )",
+          "seconds": 0.012885582
+        },
+        {
+          "logical_matches": 2400,
+          "rule": "(rule ((NeedArgs i (ACons x xt) (ACons x yt)))\n      ((NeedArgs i xt yt))\n        :ruleset tier1 )",
+          "seconds": 0.009923544
+        },
+        {
+          "logical_matches": 2400,
+          "rule": "(rule ((NeedEffect i e)\n       (= e (HasFact name wanted))\n       (Provides i (HasFact name actual))\n       (ArgsEqual i actual wanted))\n      ((Satisfies i e))\n        :ruleset tier1 )",
+          "seconds": 0.009552289
+        },
+        {
+          "logical_matches": 32973,
+          "rule": "(rule ((LinkedParent i k p)\n       (Provides p e))\n      ((Provides i e))\n        :ruleset tier1 )",
+          "seconds": 0.008335458
+        },
+        {
+          "logical_matches": 2087,
+          "rule": "(rule ((= i (Occurrence id c))\n       (ParentAt i k p)\n       (= p (Occurrence pid pc))\n       (ParentTemplate c k pc))\n      ((LinkedParent i k p))\n        :ruleset tier1 )",
+          "seconds": 0.005618457
+        },
+        {
+          "logical_matches": 2407,
+          "rule": "(rule ((NeedList i es)\n       (= es (ECons e tail))\n       (Satisfies i e)\n       (AllSatisfied i tail))\n      ((AllSatisfied i es))\n        :ruleset tier1 )",
+          "seconds": 0.005232337
+        },
+        {
+          "logical_matches": 5349,
+          "rule": "(rule ((NeedLocalRoute i (RCons p tail)))\n      ((NeedLocalPort i p)\n       (NeedLocalRoute i tail))\n        :ruleset tier1 )",
+          "seconds": 0.003832954
+        }
+      ],
+      "records": 1529,
+      "relation_rows": {
+        "ArgsEqual": 3929,
+        "Binding": 1529,
+        "EqAt": 0,
+        "LocalArgs": 6663,
+        "NeedArgs": 47748,
+        "Occurrence": 1529,
+        "PartialArgs": 1161,
+        "Provides": 28173,
+        "Satisfies": 2400,
+        "SupportsUse": 2366
+      }
+    },
+    "result_unchanged": true
+  },
+  "eleven": {
+    "completed": false,
+    "stop_reason": "timeout",
+    "elapsed_seconds": 40.31535137491301,
+    "peak_rss_mib": 3317.390625,
+    "round_timings": [
+      {
+        "round": 1,
+        "tier0": 0.000335,
+        "collect": 0.000331,
+        "tier1": 0.02271
+      },
+      {
+        "round": 2,
+        "tier0": 0.000365,
+        "collect": 0.000249,
+        "tier1": 0.034435
+      },
+      {
+        "round": 3,
+        "tier0": 0.000579,
+        "collect": 0.0004,
+        "tier1": 0.064994
+      },
+      {
+        "round": 4,
+        "tier0": 0.000933,
+        "collect": 0.000842,
+        "tier1": 0.194691
+      },
+      {
+        "round": 5,
+        "tier0": 0.001735,
+        "collect": 0.001739,
+        "tier1": 0.857505
+      },
+      {
+        "round": 6,
+        "tier0": 0.002959,
+        "collect": 0.005056,
+        "tier1": 4.131543
+      },
+      {
+        "round": 7,
+        "tier0": 0.005429,
+        "collect": 0.012196,
+        "tier1": 23.081358
+      }
+    ],
+    "tier1_imports": [
+      {
+        "seconds": 0.019753,
+        "records": 20
+      },
+      {
+        "seconds": 0.022187,
+        "records": 64
+      },
+      {
+        "seconds": 0.03181,
+        "records": 129
+      },
+      {
+        "seconds": 0.069332,
+        "records": 268
+      },
+      {
+        "seconds": 0.183453,
+        "records": 636
+      },
+      {
+        "seconds": 0.460344,
+        "records": 1529
+      },
+      {
+        "seconds": 1.108365,
+        "records": 3723
+      },
+      {
+        "seconds": 2.714411,
+        "records": 8535
+      }
+    ],
+    "tier1_saturations": [
+      {
+        "saturate": 0.002814,
+        "validate": 4.6e-05,
+        "records": 20
+      },
+      {
+        "saturate": 0.012053,
+        "validate": 6.6e-05,
+        "records": 64
+      },
+      {
+        "saturate": 0.032908,
+        "validate": 0.000116,
+        "records": 129
+      },
+      {
+        "saturate": 0.124792,
+        "validate": 0.000325,
+        "records": 268
+      },
+      {
+        "saturate": 0.673173,
+        "validate": 0.000712,
+        "records": 636
+      },
+      {
+        "saturate": 3.669198,
+        "validate": 0.001727,
+        "records": 1529
+      },
+      {
+        "saturate": 21.966607,
+        "validate": 0.005781,
+        "records": 3723
+      }
+    ],
+    "last_stage": "round 8 tier1 saturation; tier0 marker is stale during online callback"
+  },
+  "sample_evidence": {
+    "six_early": "1006/1618 samples on tier1 worker under saturation; 897 under run_join_stages (inclusive; not total process percentages)",
+    "eleven_after_12s": "1635 samples under build_tier1 -> run_rules_inner_impl -> JoinState::run_join_stages",
+    "files": [
+      "out/perf-drain6/egg_layout-49395.sample.txt",
+      "out/perf-drain11/egg_layout-56758.sample.txt"
+    ]
+  }
+}
