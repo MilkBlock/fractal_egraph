@@ -28,7 +28,7 @@ def main():
                 _,rss,cpu,name=rows[pid];label=Path(name).name
                 record=peaks.setdefault(pid,{'pid':pid,'process':label,'rss_kib':0,'cpu_percent':0})
                 record['rss_kib']=max(record['rss_kib'],rss);record['cpu_percent']=max(record['cpu_percent'],cpu)
-                if label in ['combine_profile','tier1_export','tier1_interface_snapshot'] and pid not in sampled:
+                if label in ['egg_layout','combine_profile','tier1_export','tier1_interface_snapshot'] and pid not in sampled:
                     sampled.add(pid)
                     with (out/f'{label}-{pid}.sample.log').open('w') as f:
                         samplers.append(subprocess.Popen(['sample',str(pid),'2','1','-file',str(out/f'{label}-{pid}.sample.txt')],stdout=f,stderr=subprocess.STDOUT))

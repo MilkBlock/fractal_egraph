@@ -1,0 +1,58 @@
+{
+  "scope": "Native single-process capture; six-round run completed, eleven-round run was stopped at 60 seconds. RSS is sampled process-tree RSS, not an allocation bound.",
+  "runs": {
+    "perf-native6": {
+      "wall_seconds": 6.193380500073545,
+      "stop_reason": null,
+      "peak_tree_rss_kib": 411456,
+      "process_names": [
+        "egg_layout"
+      ],
+      "run": {
+        "mode": "native-single-process",
+        "phase": "complete",
+        "pid": 24873,
+        "requested_rounds": 6,
+        "source": "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg",
+        "status": "complete",
+        "subprocesses": 0,
+        "summary": {
+          "events": 1529,
+          "excluded_events": 0,
+          "executed_rounds": 6,
+          "extensions": 300,
+          "higher_rules": 13,
+          "imported_events": 1529,
+          "intermediate_trace_files": 0,
+          "scope": "Actual native tier-0 and tier-1/tier-2 in one Rust process. Native trace buffers are still retained until typed conversion completes. Reduce rules are loaded; arbitrary accumulator summaries are not inferred.",
+          "subprocesses": 0,
+          "timings_seconds": {
+            "selected_lowering_and_view": 0.016225,
+            "tier0_and_typed_capture": 0.01982925,
+            "tier1": 5.433829792,
+            "tier2": 0.150984208
+          },
+          "wall_seconds": 5.64003225
+        }
+      }
+    },
+    "perf-native11": {
+      "wall_seconds": 60.25959383393638,
+      "stop_reason": "timeout",
+      "peak_tree_rss_kib": 4158608,
+      "process_names": [
+        "egg_layout"
+      ],
+      "run": {
+        "mode": "native-single-process",
+        "phase": "tier1",
+        "pid": 36606,
+        "requested_rounds": 11,
+        "source": "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg",
+        "status": "interrupted",
+        "subprocesses": 0,
+        "stop_reason": "timeout"
+      }
+    }
+  }
+}

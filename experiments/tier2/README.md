@@ -177,3 +177,15 @@ run.json 的 requested_rounds 为 null、schedule_mode 为 source；executed_rou
 不能把取消中间文件称作常数内存或真正在线的采集器。
 导入默认使用一个 Rayon 线程（外部 RAYON_NUM_THREADS 可覆盖），只解析实际引用的 binding，
 并在不可变图上复用提取成本计算。分段耗时写入 run.json，详细诊断见 research/performance/README.md。
+
+## 当前默认入口：单进程 Rust
+
+上述 Python/管道章节保留为历史实现和对照。默认 `analyze` 已改为直接调用
+`src/native_analyze.rs` 与 `src/native_lower.rs`，不启动任何分析子进程，不产生
+profile/manifest/imported/native/interfaces 中间文件，也不每次运行合成递推测试。
+同一个进程内使用原生事件、Rust 结构体和 egglog AST/Value 完成 tier-0 → tier-1 → tier-2。
+Reduce 的原生规则加载在同一元图中，仍需要明确的累积摘要，不会自动宣称 R23 已被归约。
+
+新输出位于所选目录的 `fractal.html`，最终模型/显示数据是 `analysis.json`，状态是 `run.json`。
+`--reuse-tier0` 当前表示重新渲染已完成结果，不重新推理；它也能读取旧目录中已完成的视图缓存。
+普通 `view` 同样不再运行 Python。仍保留原生事件缓冲到转换结束，所以不能称为在线恒定内存。

@@ -2,30 +2,24 @@
 
 从 rule apply 历史分析组合，用 HigherRule 表示稳定重复，用 Reduce 提取终点表达式，并生成 fractal 可视化。
 
-## 使用
+## 使用：单个 Rust 进程
 
 ```sh
-cargo run -- analyze --reuse-tier0   # 使用已有快照
-cargo run -- view      # 从已有结果重新生成 fractal 页面
-cargo run -- --help
+cargo run --release -- analyze --recapture-tier0 \
+  --source egglog/tests/math-microbenchmark.egg --output out/native-math
+# 不传 --rounds 就遵循文件的 run；显式传入才覆盖单个简单 run。
+cargo run --release -- analyze --recapture-tier0 \
+  --source egglog/tests/math-microbenchmark.egg --rounds 6 --output out/native-six
+cargo run --release -- analyze --reuse-tier0 --output out/native-six
 ```
 
-页面位于 `experiments/tier2/fractal.html`。`analyze` 当前针对 Math，**不是任意 .egg 的通用采集入口**；
-默认使用已保存的 Math tier-1 数据，递推测试另有专用适配器。
+新入口不启动 Python、研究程序或管道。采集事件、构建 tier-1/tier-2、检查 binding 和生成页面都在同一进程中完成。
+数据直接使用原生事件、Rust 结构体和 egglog AST/Value；只保存最终 `analysis.json`、`run.json`、`fractal.html`、`index.html`。
+页面为输出目录下的 `fractal.html`；输出目录必须不存在。复用模式只重新渲染已完成结果，不重新执行推理。
+不指定复用目录时，使用仓库已有的固定视图。旧管道缓存的完整视图仍可复用，但不会启动旧流水线。
 
-重新采集 Math 并指定实际轮数：
-
-```sh
-cargo run --release -- analyze --recapture-tier0 --source egglog/tests/math-microbenchmark.egg --rounds 11 --output out/math11
-# 复用同一次新采集，不重新运行 tier-0：
-cargo run --release -- analyze --reuse-tier0 --output out/math11
-```
-
-新结果在 `out/math11/experiments/tier2/fractal.html`。`out/math11/run.json` 记录实际轮数和成功/失败阶段。
-新采集拒绝覆盖已有目录；不传 --output 时自动创建时间命名目录。
---rounds 和 --source 只对重新采集有效。不传 --rounds 时遵循文件原 schedule（例如 `(run 11)`）；
-显式传入时只覆盖一个简单 `(run N)`，多个 run 或复杂 schedule 会拒绝覆盖。输入默认原 Math 样例。
-输入目前须为自包含、兼容现有 Math 适配器的 .egg；不支持任意 datatype 或 include 项目。失败不会回退到旧快照。
+当前输入要求是自包含的单个 Math datatype；不是任意 `.egg` 的通用导入器。
+底层原生 TraceSession 仍保留事件到转换完成，所以**单进程不等于在线或恒定内存**。
 
 ## 精简的实现阅读顺序
 
@@ -36,20 +30,16 @@ cargo run --release -- analyze --reuse-tier0 --output out/math11
 | [HigherRule](rules/higher.egg) | 已有组合链 → 次数参数 k |
 | [Reduce](rules/reduce.egg) | 显式归约及解析表达式成本 |
 | [主入口](src/main.rs) | 命令选择 |
+| [单进程分析](src/native_analyze.rs) | 原生事件 → tier-1 → tier-2 → 结果 |
+| [组合显示](src/native_lower.rs) | 选中 DAG 的 symbolic lowering，保留中间 effect |
 | [原生适配接口](src/pipeline.rs) | 统一原生执行、查询、导出；递推 fixture 明确标注 |
-| [流程](experiments/tier2/run.py) | 单个程序驱动的重现实验 |
-| [Fractal 视图](experiments/tier2/fractal_view.py) | 实际实例依赖 → 最大轨道与点击数据 |
+| [页面模板](experiments/tier2/fractal_view_template.html) | 交互界面；数据由 Rust 生成 |
 
-规则语义仍由原生 egglog 执行。Rust 运行器只保留一份实现；
-旧程序位于独立的 `research` 工程，不参与默认构建。原有兼容入口在那里保留。
+规则语义仍由原生 egglog 执行。当前主线主要阅读 `native_analyze.rs`、`native_lower.rs` 与 `rules/`。
+`pipeline.rs` 保留独立诊断命令，`visual_rule.rs` 提供共享 AST 规范化。历史研究代码位于独立 research 工程。
+Rayon 仅用于给元图分析分配一个工作线程池；tier-0 保留正常执行池，所有线程仍属于同一进程。
+历史 Python 流水线保留供对照，已不在默认 analyze/view 路径中。
 
-默认 Rust 工程只有 `main.rs`、`lib.rs`、`pipeline.rs`、`visual_rule.rs` 四个源文件参与编译，
-只依赖 egglog 和 serde_json。历史研究代码已迁入独立 Cargo 工程。
-有未提交修改的 `src/pattern_store.rs`、`src/tier1_effects.rs` 和三个旧 binary 暂留原处，
-仅由 research 引用；不属于默认工程。
-
-完整实验仍有 Python 数据准备与可视化脚本，这一层尚未改写为 Rust；
-因此这里的“四个文件”指原生外挂层，不宣称整个端到端研究流程已只有四个文件。
 更详细的实验范围、假设与结果见 [tier-2 说明](experiments/tier2/README.md)。
 旧 Zobrist、babble、prefix、slotted 等路线的导航见 [research](research/README.md)。
 
@@ -63,7 +53,8 @@ cargo check --manifest-path research/Cargo.toml --all-targets
 ## 验证和边界
 
 ```sh
-cargo test --test tier2_native --test tier2_reduce --test pipeline_cli
+cargo test --test native_single_process --test tier2_native --test tier2_reduce --test pipeline_cli
+cargo test --release --test native_single_process -- --include-ignored
 ```
 
 回归基准包括 13 个有限 HigherRule、4 条 fractal 轨道、Reduce 结果与反例。

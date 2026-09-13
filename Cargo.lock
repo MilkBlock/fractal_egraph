@@ -254,6 +254,7 @@ name = "egg_layout"
 version = "0.1.0"
 dependencies = [
  "egglog",
+ "rayon",
  "serde_json",
 ]
 

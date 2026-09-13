@@ -53,3 +53,22 @@ python3 research/profile_capture.py --rounds 11 --timeout 60 --max-rss-mib 8192 
 
 The next architectural step is direct in-process construction of tier-1 from
 native events, eliminating whole-trace JSON and textual process hand-offs.
+
+## Native single-process path
+
+`cargo run --release -- analyze --recapture-tier0 ...` now uses
+`src/native_analyze.rs` directly. It does not invoke Python or helper executables.
+Native trace records feed a typed Rust model and egglog AST/Value operations in
+memory. The old pipe-based implementation remains a research comparison only.
+
+A six-round release run completed in approximately 5.6 seconds of program time
+(6.2 seconds including external sampling), with one observed application process,
+1,529 imported instances, 1,389 Comb templates, 13 HigherRules, and four tracks.
+The selected 16 combined-rule displays passed independent source-rule replay
+checks, in addition to native binding/support/parent checks.
+
+The eleven-round bounded run passed capture into tier-1, but did not finish in
+60 seconds. Sampled peak process RSS was approximately 4 GiB. It was stopped by
+the supervisor; do not report it as a successful eleven-round analysis. Full
+native trace buffers are still retained until typed conversion completes.
+Measurements are in `single_process.json`.
