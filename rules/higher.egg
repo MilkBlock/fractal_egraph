@@ -40,3 +40,11 @@
  :ruleset higher :name "higher-endpoint-reduce")
 
 ; RecursivePattern folds need a branch-aware summary; do not treat depth as total applications.
+
+; Branch-aware caller-supplied interface; extent is not an application count.
+(relation LayerReductionInput (Comb BindingDag BindingValues))
+(relation LayerEndpointView (Comb BindingResult))
+(rule ((LayerReductionInput f dag env)
+       (= f (FractalComb extent r ctx binding)))
+ ((LayerEndpointView f (ReduceDag dag env)))
+ :ruleset higher :name "fractal-dag-reduce")

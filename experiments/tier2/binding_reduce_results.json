@@ -1,0 +1,32 @@
+{
+  "source": "experiments/recursive_patterns/binary.egg",
+  "scope": "Actual native egglog capture and one-layer multi-output binding reduction. Source operations remain opaque; no whole-extent closed form or performance claim.",
+  "instances": [
+    {
+      "entry_event": 15,
+      "depth": 4,
+      "observed_apply_events": 45,
+      "one_layer_events": [
+        15,
+        33,
+        35
+      ],
+      "outputs": 21,
+      "binding_definitions": 24,
+      "status": "reduced"
+    },
+    {
+      "entry_event": 17,
+      "depth": 4,
+      "observed_apply_events": 45,
+      "one_layer_events": [
+        17,
+        29,
+        31
+      ],
+      "outputs": 21,
+      "binding_definitions": 24,
+      "status": "reduced"
+    }
+  ]
+}

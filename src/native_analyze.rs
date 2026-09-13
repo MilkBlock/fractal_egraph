@@ -13,6 +13,8 @@ use std::{
     time::Instant,
 };
 
+#[path = "native_binding.rs"]
+mod binding;
 #[path = "native_catalog.rs"]
 mod catalog;
 #[path = "native_fractal.rs"]

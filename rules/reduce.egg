@@ -42,3 +42,5 @@
 (rewrite (EMul (EInt 0) x) (EInt 0) :ruleset endpoint-reduce)
 (rewrite (EPow x (EInt 0)) (EInt 1) :ruleset endpoint-reduce)
 (rewrite (EPow x (EInt 1)) x :ruleset endpoint-reduce)
+
+(include "rules/binding_reduce.egg")

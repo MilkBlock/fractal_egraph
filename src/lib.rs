@@ -9,3 +9,5 @@ mod native_lower;
 pub mod dag_embedding;
 
 mod catalog_embedding;
+
+pub mod binding_reduce;

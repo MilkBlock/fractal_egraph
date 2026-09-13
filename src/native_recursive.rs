@@ -377,7 +377,10 @@ pub(super) fn build(
                 )?;
                 expected_views.push(*start);
                 let facts: Vec<_> = members.iter().map(|i| witness(c, &c.records[*i])).collect();
-                instances.push(json!({"entry_event":r.id,"start_context_event":c.records[r.parents[0]].id,"extent_kind":if depth.is_some(){"Depth"}else{"SparseExtent"},"depth":depth,"extent":extent.to_string(),"fractal_comb":expression.to_string(),"observed_units":nodes.len(),"observed_apply_events":members.len(),"nodes":observed,"fact_witnesses":facts}));
+                flush(eg, &mut batch)?;
+                let layer_members: BTreeSet<_> = std::iter::once(*start).chain(units[start].slots.values().map(|b| b.child)).collect();
+                let binding_reduction = match binding::reduce(c, &layer_members, eg, &expression) { Ok(value) => value, Err(e) => json!({"status":"unsupported", "reason":e.to_string()}) };
+                instances.push(json!({"entry_event":r.id,"start_context_event":c.records[r.parents[0]].id,"extent_kind":if depth.is_some(){"Depth"}else{"SparseExtent"},"depth":depth,"extent":extent.to_string(),"fractal_comb":expression.to_string(),"observed_units":nodes.len(),"observed_apply_events":members.len(),"nodes":observed,"fact_witnesses":facts,"binding_reduction":binding_reduction}));
             }
             patterns.push(json!({"id":id,"kind":"recursive_dag","native_pattern_id":id,"entry_rule":c.rules[c.records[training[0]].rule].rule.name,"branch_rule":c.rules[child_rule].rule.name,"entry_binding":serde_json::from_str::<Json>(&entry_sig)?,"ports":ports.iter().enumerate().map(|(i,p)|json!({"port":i,"binding_transfer":serde_json::from_str::<Json>(p).unwrap(),"return_transfer":"same entry binding interface; F_port = entry_transfer composed with port_transfer"})).collect::<Vec<_>>(),"observed_arity":ports.len(),"learning_witnesses":training.iter().take(2).map(|i|c.records[*i].id).collect::<Vec<_>>(),"additional_returning_witnesses":training.len()-2,"ambiguous_units":units.iter().filter(|(_,u)|u.ambiguous).map(|(i,_)|c.records[*i].id).collect::<Vec<_>>(),"instances":instances}));
         }

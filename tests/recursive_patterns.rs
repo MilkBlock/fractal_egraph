@@ -58,6 +58,24 @@ fn binary_and_ternary_are_the_same_parameterized_constructor() {
             assert_eq!(i["depth"], depth);
             assert_eq!(i["observed_units"], units);
             assert_eq!(i["observed_apply_events"], applies);
+            assert_eq!(
+                i["binding_reduction"]["status"], "reduced",
+                "{}",
+                i["binding_reduction"]
+            );
+            assert_eq!(
+                i["binding_reduction"]["one_layer_events"]
+                    .as_array()
+                    .unwrap()
+                    .len(),
+                1 + m as usize
+            );
+            assert!(
+                !i["binding_reduction"]["output_addresses"]
+                    .as_array()
+                    .unwrap()
+                    .is_empty()
+            );
             assert!(
                 i["fractal_comb"]
                     .as_str()
