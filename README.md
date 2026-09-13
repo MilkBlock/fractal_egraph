@@ -19,7 +19,7 @@ cargo run --release -- analyze --reuse-tier0 --output out/native-six
 不指定复用目录时，使用仓库已有的固定视图。旧管道缓存的完整视图仍可复用，但不会启动旧流水线。
 
 当前输入要求是自包含的单个 Math datatype；不是任意 `.egg` 的通用导入器。
-底层原生 TraceSession 仍保留事件到转换完成，**在线构建不等于恒定内存**。
+原生 TraceSession 在每个简单 run 轮次结束后移交并清空原始事件，随后在线更新 tier-1。跨轮保留精简的 producer 行证书与 union 等价边；**在线构建不等于恒定内存**，单轮事件和分析图仍可能很大。
 
 ### 在线、离线与历史重放
 
@@ -45,7 +45,7 @@ parents、ports、inputs/outputs、binding、读依赖、写事实和 union effe
 不是全量内核 trace：不能用来重新判断被排除的 match 或重新选择原始写入 provenance。
 重放不需要原 `.egg` 文件，使用当前 tier-1/tier-2 分析规则；跨版本 schema 不兼容会拒绝。
 历史在 tier-0 采集完成后、最终分析前写入，缓冲序列化并原子发布；中断残留的 `.partial` 不是有效历史。
-这不是逐轮断点恢复，也不消除采集阶段的 trace 内存；默认不开历史以避免磁盘负担。
+这不是逐轮断点恢复；默认不开历史以避免磁盘负担。在线和离线模式都逐轮释放原始事件，离线模式仅推迟 tier-1 构建。`run.json`/`analysis.json` 记录原始批次峰值事件数、消费批数和剩余事件数。
 
 实际 Math 6 轮对照检查在线/离线历史的 binding 和 effect 完全一致，重放后
 combined rule 文本、source steps、relative routes 与视图统计一致；native eclass 分配编号不要求一致。

@@ -63,6 +63,8 @@ fn check(source: &str, rounds: &str, tag: &str) {
         String::from_utf8_lossy(&result.stderr)
     );
     let a = report(&online);
+    assert_eq!(a["summary"]["raw_trace_remaining_events"], 0);
+    assert!(a["summary"]["raw_trace_batches"].as_u64().unwrap() > 0);
     let b = report(&offline);
     let c = report(&replay);
     for other in [&b, &c] {

@@ -1,0 +1,39 @@
+{
+  "source": "egglog/tests/math-microbenchmark.egg",
+  "rounds": 6,
+  "scope": "actual egglog runtime; round-boundary drain, not per-match streaming",
+  "pre_drain_history_exactly_equal": true,
+  "raw_events_per_batch": [
+    100,
+    218,
+    332,
+    739,
+    1926,
+    4963
+  ],
+  "summary": {
+    "build_mode": "online",
+    "events": 1529,
+    "excluded_events": 0,
+    "executed_rounds": 6,
+    "extensions": 300,
+    "higher_rules": 13,
+    "history_replayed": false,
+    "history_saved": true,
+    "imported_events": 1529,
+    "intermediate_trace_files": 0,
+    "raw_trace_batches": 6,
+    "raw_trace_peak_batch_events": 4963,
+    "raw_trace_remaining_events": 0,
+    "scope": "Native tier-1/tier-2 in one Rust process; tier-0 executes only during recapture. Online mode imports at simple run-round boundaries; complex schedules are imported at completion. Raw trace events are drained at completed execution boundaries; compact producer/equality indexes and analysis graphs remain resident. History contains resolved eligible applications, not rejected/raw trace events. Reduce rules are loaded; arbitrary accumulator summaries are not inferred.",
+    "subprocesses": 0,
+    "timings_seconds": {
+      "selected_lowering_and_view": 0.0153775,
+      "tier0_capture_and_online_tier1": 5.269168166,
+      "tier1": 4.2e-08,
+      "tier2": 0.147629125
+    },
+    "wall_seconds": 5.467879708
+  },
+  "limits": "Native graph, resolved records, producer row certificates and compact equality edges remain resident; no constant-memory claim."
+}

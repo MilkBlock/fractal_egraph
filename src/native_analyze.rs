@@ -171,6 +171,8 @@ struct Captured {
     events: usize,
     rounds: Option<usize>,
     trace_seconds: f64,
+    trace_peak: usize,
+    trace_batches: usize,
     rejected: usize,
 }
 fn capture(
@@ -251,9 +253,12 @@ fn capture(
         events: 0,
         rounds: Some(0),
         trace_seconds: 0.0,
+        trace_peak: 0,
+        trace_batches: 0,
         rejected: 0,
     };
     let mut inserted = (0, 0);
+    let mut producers = BTreeMap::new();
     let mut count = 0;
     let mut known = true;
     for command in commands {
@@ -265,8 +270,8 @@ fn capture(
                         &trace,
                     )?;
                     count += 1;
+                    collect(&eg, &trace, &mut c, &mut producers)?;
                     if let Some((tier1, root, worker)) = online.as_mut() {
-                        collect(&eg, &trace, &mut c)?;
                         worker
                             .install(|| {
                                 build_tier1(&mut c, tier1, root, &mut inserted)
@@ -288,7 +293,7 @@ fn capture(
         }
         eg.run_program_with_trace(vec![command], &trace)?;
     }
-    collect(&eg, &trace, &mut c)?;
+    collect(&eg, &trace, &mut c, &mut producers)?;
     if let Some((tier1, root, worker)) = online.as_mut() {
         worker
             .install(|| build_tier1(&mut c, tier1, root, &mut inserted).map_err(|e| e.to_string()))
@@ -299,33 +304,60 @@ fn capture(
     Ok(c)
 }
 
-fn collect(eg: &EGraph, trace: &TraceSession, c: &mut Captured) -> Result {
+// Only direct committed producer certificates survive a batch, not WriteEvents.
+struct Producer {
+    match_id: u64,
+    table: String,
+    row: Vec<Value>,
+}
+fn collect(
+    eg: &EGraph,
+    trace: &TraceSession,
+    c: &mut Captured,
+    producers: &mut BTreeMap<u64, Producer>,
+) -> Result {
     let rules = &c.rules;
     let names: BTreeMap<_, _> = rules
         .iter()
         .enumerate()
         .map(|(i, r)| (r.rule.name.clone(), i))
         .collect();
-    // Typed event snapshots, not a materialized JSON profile. The capture session
-    // still retains its native events until this conversion finishes.
-    let matches = trace.matches();
-    let events = matches.len();
+    let batch = trace.drain_completed();
+    let batch_len = batch.len();
+    c.trace_peak = c.trace_peak.max(batch_len);
+    c.trace_batches += usize::from(batch_len > 0);
+    if trace.buffered_event_count() != 0 {
+        return Err("raw trace buffers were not drained at execution boundary".into());
+    }
+    let matches = batch.matches;
+    let events = c.events + matches.len();
     let resets = trace.scope_resets();
     let scope = |id| resets.partition_point(|r| *r < id);
-    let survived: BTreeSet<_> = trace
-        .action_outcomes()
+    let survived: BTreeSet<_> = batch
+        .actions
         .into_iter()
         .filter(|x| x.outcome == RuleActionOutcome::Survived)
         .map(|x| x.match_event_id)
         .collect();
-    let writes = trace.write_events();
-    let by_write: BTreeMap<_, _> = writes.iter().map(|w| (w.event_id, w)).collect();
+    let writes = batch.writes;
+    for w in &writes {
+        if w.outcome == WriteOutcome::Inserted && w.rebuild_of.is_none() {
+            producers.insert(
+                w.event_id,
+                Producer {
+                    match_id: w.match_event_id,
+                    table: format!("{:?}", w.table),
+                    row: w.actual.clone(),
+                },
+            );
+        }
+    }
     let mut actions: BTreeMap<u64, Vec<_>> = BTreeMap::new();
     for w in &writes {
         actions.entry(w.match_event_id).or_default().push(w);
     }
     let mut unions: BTreeMap<u64, Vec<_>> = BTreeMap::new();
-    for u in trace.union_events() {
+    for u in batch.unions {
         if u.displaced.is_some() {
             unions
                 .entry(u.match_event_id)
@@ -353,7 +385,7 @@ fn collect(eg: &EGraph, trace: &TraceSession, c: &mut Captured) -> Result {
             );
         }
     }
-    for r in trace.row_reads() {
+    for r in batch.reads {
         reads.entry(r.match_event_id).or_default().push(r);
     }
     let variable_sorts: Vec<BTreeMap<String, Arc<str>>> = rules
@@ -384,7 +416,7 @@ fn collect(eg: &EGraph, trace: &TraceSession, c: &mut Captured) -> Result {
     let pool = &mut c.pool;
     let records = &mut c.records;
     let mut imported: BTreeMap<_, _> = records.iter().enumerate().map(|(i, r)| (r.id, i)).collect();
-    let mut ordered = matches.iter().skip(c.events).collect::<Vec<_>>();
+    let mut ordered = matches.iter().collect::<Vec<_>>();
     ordered.sort_by_key(|m| m.event_id);
     for m in ordered {
         let Some(&rule) = names.get(m.rule.as_ref()) else {
@@ -475,13 +507,11 @@ fn collect(eg: &EGraph, trace: &TraceSession, c: &mut Captured) -> Result {
                 .producer_match_event_id
                 .zip(r.producer_write_event_id)
                 .and_then(|(p, w)| {
-                    let row = by_write.get(&w)?;
+                    let row = producers.get(&w)?;
                     let &parent = imported.get(&p)?;
-                    (row.match_event_id == p
-                        && row.table == r.table
-                        && row.actual == r.row
-                        && row.outcome == WriteOutcome::Inserted
-                        && row.rebuild_of.is_none()
+                    (row.match_id == p
+                        && row.table == format!("{:?}", r.table)
+                        && row.row == r.row
                         && w < r.event_id
                         && p < m.event_id
                         && scope(p) == s)
@@ -565,6 +595,15 @@ fn collect(eg: &EGraph, trace: &TraceSession, c: &mut Captured) -> Result {
             extension: 0,
         });
     }
+    // Certificates in rolled-back scopes cannot serve future reads. A read's
+    // live origin still must explicitly reference this exact committed row.
+    let current_scope = resets.len();
+    producers
+        .retain(|_, p| scope(p.match_id) == current_scope && imported.contains_key(&p.match_id));
+    eprintln!(
+        "[trace] consumed {batch_len} raw events; raw buffers drained; {} producer certificates",
+        producers.len()
+    );
     c.rejected = events - records.len();
     c.events = events;
     Ok(())
@@ -1148,7 +1187,7 @@ fn view(c: &Captured, eg: &EGraph, extensions: &Extensions, higher: &[Json]) -> 
         .collect();
     let total = eg.get_size("Empty") + eg.get_size("SmoothComb") + eg.get_size("CoarseComb");
     Ok(
-        json!({"capture":{"rounds":c.rounds},"stats":{"higher_rules":higher.len(),"maximal_chains":lanes.len(),"applications":paths.iter().map(Vec::len).sum::<usize>(),"visible_unique_contexts":visible.len(),"total_comb_templates":total},"lanes":lanes,"nodes":nodes,"scope":"Single-process native analysis; only witnessed finite paths are displayed. Native trace buffers are retained; round-wise online construction does not imply bounded memory."}),
+        json!({"capture":{"rounds":c.rounds},"stats":{"higher_rules":higher.len(),"maximal_chains":lanes.len(),"applications":paths.iter().map(Vec::len).sum::<usize>(),"visible_unique_contexts":visible.len(),"total_comb_templates":total},"lanes":lanes,"nodes":nodes,"scope":"Single-process native analysis; only witnessed finite paths are displayed. Raw events are drained after completed rounds; producer/equality indexes and analysis graphs remain resident."}),
     )
 }
 fn escape(s: &str) -> String {
@@ -1258,7 +1297,7 @@ pub fn run_with_options(
         let stage=Instant::now();let(ext,higher)=build_tier2(&mut c,&mut eg,root)?;times.insert("tier2",stage.elapsed().as_secs_f64());
         phase("view")?;
         let stage=Instant::now();let data=view(&c,&eg,&ext,&higher)?;times.insert("selected_lowering_and_view",stage.elapsed().as_secs_f64());
-        let summary=json!({"events":c.events,"imported_events":c.records.len(),"excluded_events":c.rejected,"extensions":ext.keys.len(),"higher_rules":higher.len(),"executed_rounds":c.rounds,"timings_seconds":times,"wall_seconds":started.elapsed().as_secs_f64(),"subprocesses":0,"intermediate_trace_files":0,"build_mode":if online {"online"} else {"offline"},"history_saved":save_history,"history_replayed":replay.is_some(),"scope":"Native tier-1/tier-2 in one Rust process; tier-0 executes only during recapture. Online mode imports at simple run-round boundaries; complex schedules are imported at completion. Native trace buffers remain retained. History contains resolved eligible applications, not rejected/raw trace events. Reduce rules are loaded; arbitrary accumulator summaries are not inferred."});
+        let summary=json!({"events":c.events,"imported_events":c.records.len(),"excluded_events":c.rejected,"extensions":ext.keys.len(),"higher_rules":higher.len(),"executed_rounds":c.rounds,"timings_seconds":times,"wall_seconds":started.elapsed().as_secs_f64(),"subprocesses":0,"intermediate_trace_files":0,"raw_trace_peak_batch_events":c.trace_peak,"raw_trace_batches":c.trace_batches,"raw_trace_remaining_events":0,"build_mode":if online {"online"} else {"offline"},"history_saved":save_history,"history_replayed":replay.is_some(),"scope":"Native tier-1/tier-2 in one Rust process; tier-0 executes only during recapture. Online mode imports at simple run-round boundaries; complex schedules are imported at completion. Raw trace events are drained at completed execution boundaries; compact producer/equality indexes and analysis graphs remain resident. History contains resolved eligible applications, not rejected/raw trace events. Reduce rules are loaded; arbitrary accumulator summaries are not inferred."});
         let report=json!({"status":"complete","summary":summary,"higher_rules":higher,"view":data});
         render(root,out,&report["view"],true)?;
         Ok(report)

@@ -205,5 +205,7 @@ pub(super) fn read(path: &Path) -> Result<Captured> {
         rounds: h.rounds,
         rejected,
         trace_seconds: 0.0,
+        trace_peak: 0,
+        trace_batches: 0,
     })
 }
