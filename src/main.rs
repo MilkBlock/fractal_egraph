@@ -8,6 +8,13 @@ const HELP: &str = "egg_layout — native rule-combination analysis
   cargo run -- analyze --recapture-tier0 --source PATH.egg --rounds 11 --output out/math11
   cargo run -- view                   Regenerate the fractal viewer from saved results
 
+  analyze --recapture-tier0 --build online --save-history --source PATH.egg --output out/online
+  analyze --recapture-tier0 --build offline --save-history --source PATH.egg --output out/offline
+  analyze --replay-history out/online/history.json --output out/replayed
+
+Capture defaults to online imports at round boundaries. --save-history is optional.
+Replay rebuilds tier-1/tier-2 from resolved application history without executing tier-0.
+
 Native operations (run from the repository root):
   cargo run -- relations INPUT OUTPUT
   cargo run -- schema INPUT OUTPUT
@@ -36,6 +43,10 @@ fn main() -> Result {
         Some("observations") if args.len() == 1 => pipeline::observations(),
         Some("analyze") => {
             let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+            let mut online = true;
+            let mut build_selected = false;
+            let mut history = false;
+            let mut replay = None;
             let mut fresh = false;
             let mut reuse = false;
             let mut source = None;
@@ -45,6 +56,22 @@ fn main() -> Result {
             while i < args.len() {
                 match args[i].as_str() {
                     "--recapture-tier0" => fresh = true,
+                    "--save-history" => history = true,
+                    "--build" | "--replay-history" => {
+                        let key = &args[i];
+                        i += 1;
+                        let value = args.get(i).ok_or("missing option value")?;
+                        if key == "--build" {
+                            build_selected = true;
+                            online = match value.as_str() {
+                                "online" => true,
+                                "offline" => false,
+                                _ => return Err("build must be online or offline".into()),
+                            };
+                        } else {
+                            replay = Some(PathBuf::from(value));
+                        }
+                    }
                     "--reuse-tier0" => reuse = true,
                     "--source" | "--rounds" | "--output" => {
                         let key = &args[i];
@@ -70,12 +97,23 @@ fn main() -> Result {
                 }
                 i += 1;
             }
+            if build_selected && (!fresh && replay.is_none() || replay.is_some() && online) {
+                return Err("build mode requires recapture, or offline history replay".into());
+            }
+            if replay.is_some() && (fresh || reuse || source.is_some() || rounds.is_some()) {
+                return Err(
+                    "history replay cannot be combined with capture/reuse/source/rounds".into(),
+                );
+            }
+            if history && !fresh && replay.is_none() {
+                return Err("save-history requires capture or replay".into());
+            }
             if fresh && reuse || !fresh && (source.is_some() || rounds.is_some()) {
                 return Err(
                     "source/rounds require recapture; recapture and reuse are exclusive".into(),
                 );
             }
-            if fresh {
+            if fresh || replay.is_some() {
                 let source = root.join(source.unwrap_or_else(|| {
                     PathBuf::from("experiments/annotated_export/math_microbenchmark/source.egg")
                 }));
@@ -88,7 +126,15 @@ fn main() -> Result {
                             .as_millis()
                     ))
                 }));
-                let report = egg_layout::native_analyze::run(&root, &source, rounds, &out)?;
+                let report = egg_layout::native_analyze::run_with_options(
+                    &root,
+                    &source,
+                    rounds,
+                    &out,
+                    online && replay.is_none(),
+                    history,
+                    replay.as_ref().map(|p| root.join(p)).as_deref(),
+                )?;
                 println!("{}", serde_json::to_string_pretty(&report["summary"])?);
                 println!("{}", out.join("fractal.html").display());
                 Ok(())

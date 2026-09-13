@@ -13,6 +13,9 @@ use std::{
     time::Instant,
 };
 
+#[path = "native_history.rs"]
+mod history;
+
 fn sp() -> Span {
     Span::Rust(Arc::new(egglog::ast::RustSpan {
         file: file!(),
@@ -82,6 +85,7 @@ enum Key {
     Value(usize, Value),
     Write(usize, u64),
     External(usize, String, Vec<Value>),
+    Replay(String, bool),
 }
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 struct Token {
@@ -91,6 +95,7 @@ struct Token {
 impl Token {
     fn label(&self) -> String {
         match &self.key {
+            Key::Replay(label, _) => label.clone(),
             Key::Value(s, v) => format!("{s}:{v:?}"),
             Key::Write(s, w) => format!("{s}:write:{w}"),
             Key::External(s, t, row) => format!(
@@ -116,17 +121,17 @@ impl Pool {
         i
     }
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub enum Port {
     Parent(usize, usize),
     External(usize),
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub enum Input {
     Var(String),
     Read(Arc<str>),
 }
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub enum Output {
     Var(String),
     Column(Arc<str>, usize),
@@ -137,7 +142,7 @@ pub struct RuleInfo {
     pub rule: Rule,
     pub calls: BTreeMap<Arc<str>, (String, Expr)>,
 }
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub struct Record {
     pub id: u64,
     pub rule: usize,
@@ -152,7 +157,9 @@ pub struct Record {
     produced: Vec<usize>,
     unions: Vec<(usize, usize)>,
     pub coarse: bool,
+    #[serde(skip)]
     pub comb: Option<Value>,
+    #[serde(skip)]
     pub instance: Option<Value>,
     pub extension: usize,
 }
@@ -166,7 +173,11 @@ struct Captured {
     trace_seconds: f64,
     rejected: usize,
 }
-fn capture(source: &Path, rounds: Option<usize>) -> Result<Captured> {
+fn capture(
+    source: &Path,
+    rounds: Option<usize>,
+    mut online: Option<(&mut EGraph, &Path, &rayon::ThreadPool)>,
+) -> Result<Captured> {
     let started = Instant::now();
     let mut eg = EGraph::default();
     let mut commands = eg.parse_program(
@@ -232,10 +243,21 @@ fn capture(source: &Path, rounds: Option<usize>) -> Result<Captured> {
         }
     }
     let trace = TraceSession::with_dependencies();
+    let mut c = Captured {
+        datatype,
+        rules,
+        records: vec![],
+        pool: Pool::default(),
+        events: 0,
+        rounds: Some(0),
+        trace_seconds: 0.0,
+        rejected: 0,
+    };
+    let mut inserted = (0, 0);
     let mut count = 0;
     let mut known = true;
-    for c in commands {
-        if let Command::RunSchedule(egglog::ast::GenericSchedule::Repeat(_, n, inner)) = &c {
+    for command in commands {
+        if let Command::RunSchedule(egglog::ast::GenericSchedule::Repeat(_, n, inner)) = &command {
             if matches!(**inner, egglog::ast::GenericSchedule::Run(..)) {
                 for _ in 0..*n {
                     eg.run_program_with_trace(
@@ -243,16 +265,47 @@ fn capture(source: &Path, rounds: Option<usize>) -> Result<Captured> {
                         &trace,
                     )?;
                     count += 1;
+                    if let Some((tier1, root, worker)) = online.as_mut() {
+                        collect(&eg, &trace, &mut c)?;
+                        worker
+                            .install(|| {
+                                build_tier1(&mut c, tier1, root, &mut inserted)
+                                    .map_err(|e| e.to_string())
+                            })
+                            .map_err(|e| -> Box<dyn std::error::Error> { e.into() })?;
+                        eprintln!(
+                            "[online] tier1 contains {} applications before next round",
+                            c.records.len()
+                        );
+                    }
                     eprintln!("[native] round {count} completed");
                 }
                 continue;
             }
         }
-        if matches!(c, Command::RunSchedule(_)) {
+        if matches!(command, Command::RunSchedule(_)) {
             known = false;
         }
-        eg.run_program_with_trace(vec![c], &trace)?;
+        eg.run_program_with_trace(vec![command], &trace)?;
     }
+    collect(&eg, &trace, &mut c)?;
+    if let Some((tier1, root, worker)) = online.as_mut() {
+        worker
+            .install(|| build_tier1(&mut c, tier1, root, &mut inserted).map_err(|e| e.to_string()))
+            .map_err(|e| -> Box<dyn std::error::Error> { e.into() })?;
+    }
+    c.rounds = known.then_some(count);
+    c.trace_seconds = started.elapsed().as_secs_f64();
+    Ok(c)
+}
+
+fn collect(eg: &EGraph, trace: &TraceSession, c: &mut Captured) -> Result {
+    let rules = &c.rules;
+    let names: BTreeMap<_, _> = rules
+        .iter()
+        .enumerate()
+        .map(|(i, r)| (r.rule.name.clone(), i))
+        .collect();
     // Typed event snapshots, not a materialized JSON profile. The capture session
     // still retains its native events until this conversion finishes.
     let matches = trace.matches();
@@ -282,17 +335,14 @@ fn capture(source: &Path, rounds: Option<usize>) -> Result<Captured> {
     }
     let mut reads: BTreeMap<u64, Vec<_>> = BTreeMap::new();
     let mut schemas = BTreeMap::new();
-    for r in trace.row_reads() {
-        if let Some(name) = &r.table_name {
-            let schema = eg
-                .get_function(name)
-                .ok_or("missing table schema")?
-                .schema();
+    for (table, name) in trace.table_names() {
+        if let Some(f) = eg.get_function(&name) {
+            let schema = f.schema();
             schemas.insert(
-                format!("{:?}", r.table),
+                format!("{table:?}"),
                 (
-                    name.clone(),
-                    r.key.len(),
+                    name,
+                    schema.input.len(),
                     schema
                         .input
                         .iter()
@@ -302,6 +352,8 @@ fn capture(source: &Path, rounds: Option<usize>) -> Result<Captured> {
                 ),
             );
         }
+    }
+    for r in trace.row_reads() {
         reads.entry(r.match_event_id).or_default().push(r);
     }
     let variable_sorts: Vec<BTreeMap<String, Arc<str>>> = rules
@@ -329,10 +381,10 @@ fn capture(source: &Path, rounds: Option<usize>) -> Result<Captured> {
             sorts
         })
         .collect();
-    let mut pool = Pool::default();
-    let mut records: Vec<Record> = vec![];
-    let mut imported = BTreeMap::new();
-    let mut ordered = matches.iter().collect::<Vec<_>>();
+    let pool = &mut c.pool;
+    let records = &mut c.records;
+    let mut imported: BTreeMap<_, _> = records.iter().enumerate().map(|(i, r)| (r.id, i)).collect();
+    let mut ordered = matches.iter().skip(c.events).collect::<Vec<_>>();
     ordered.sort_by_key(|m| m.event_id);
     for m in ordered {
         let Some(&rule) = names.get(m.rule.as_ref()) else {
@@ -513,29 +565,33 @@ fn capture(source: &Path, rounds: Option<usize>) -> Result<Captured> {
             extension: 0,
         });
     }
-    let rejected = events - records.len();
-    Ok(Captured {
-        datatype,
-        rules,
-        records,
-        pool,
-        events,
-        rounds: known.then_some(count),
-        trace_seconds: started.elapsed().as_secs_f64(),
-        rejected,
-    })
+    c.rejected = events - records.len();
+    c.events = events;
+    Ok(())
 }
 
-fn build_tier1(c: &mut Captured, eg: &mut EGraph, root: &Path) -> Result {
-    load(
-        eg,
-        &root.join("experiments/tier1_effects/tier1_rule_comb_ir.egg"),
-        root,
-    )?;
-    eg.parse_and_run_program(None,"(function ImportedComb (i64) Comb :no-merge) (function ImportedInstance (i64) Instance :no-merge) (function ImportedValue (i64) Val :no-merge)")?;
+fn build_tier1(
+    c: &mut Captured,
+    eg: &mut EGraph,
+    root: &Path,
+    inserted: &mut (usize, usize),
+) -> Result {
+    if eg.get_function("ImportedComb").is_some()
+        && *inserted == (c.pool.values.len(), c.records.len())
+    {
+        return Ok(());
+    }
+    if eg.get_function("ImportedComb").is_none() {
+        load(
+            eg,
+            &root.join("experiments/tier1_effects/tier1_rule_comb_ir.egg"),
+            root,
+        )?;
+        eg.parse_and_run_program(None,"(function ImportedComb (i64) Comb :no-merge) (function ImportedInstance (i64) Instance :no-merge) (function ImportedValue (i64) Val :no-merge)")?;
+    }
     let mut batch = vec![];
     emit(eg, &mut batch, fact("Empty", vec![]))?;
-    for (id, t) in c.pool.values.iter().enumerate() {
+    for (id, t) in c.pool.values.iter().enumerate().skip(inserted.0) {
         emit(
             eg,
             &mut batch,
@@ -546,7 +602,7 @@ fn build_tier1(c: &mut Captured, eg: &mut EGraph, root: &Path) -> Result {
             ),
         )?;
     }
-    for r in &c.records {
+    for r in c.records.iter().skip(inserted.1) {
         let parent_expr = list(
             if r.parents.is_empty() {
                 vec![call("Empty", vec![])]
@@ -637,7 +693,10 @@ fn build_tier1(c: &mut Captured, eg: &mut EGraph, root: &Path) -> Result {
             )?;
         }
         for v in &r.required {
-            if matches!(c.pool.values[*v].key, Key::External(..)) {
+            if matches!(
+                c.pool.values[*v].key,
+                Key::External(..) | Key::Replay(_, true)
+            ) {
                 emit(
                     eg,
                     &mut batch,
@@ -672,6 +731,7 @@ fn build_tier1(c: &mut Captured, eg: &mut EGraph, root: &Path) -> Result {
         )?;
     }
     flush(eg, &mut batch)?;
+    *inserted = (c.pool.values.len(), c.records.len());
     eg.parse_and_run_program(None,"(run-schedule (saturate (run tier1))) (run-schedule (saturate (run tier1_equivalences))) (run-schedule (saturate (run tier1)))")?;
     // Check materialized native tables directly instead of compiling thousands
     // of textual check queries. This verifies every imported binding and support.
@@ -1088,7 +1148,7 @@ fn view(c: &Captured, eg: &EGraph, extensions: &Extensions, higher: &[Json]) -> 
         .collect();
     let total = eg.get_size("Empty") + eg.get_size("SmoothComb") + eg.get_size("CoarseComb");
     Ok(
-        json!({"capture":{"rounds":c.rounds},"stats":{"higher_rules":higher.len(),"maximal_chains":lanes.len(),"applications":paths.iter().map(Vec::len).sum::<usize>(),"visible_unique_contexts":visible.len(),"total_comb_templates":total},"lanes":lanes,"nodes":nodes,"scope":"Single-process native analysis; only witnessed finite paths are displayed. Full native event retention is still used, not an online bounded-memory observer."}),
+        json!({"capture":{"rounds":c.rounds},"stats":{"higher_rules":higher.len(),"maximal_chains":lanes.len(),"applications":paths.iter().map(Vec::len).sum::<usize>(),"visible_unique_contexts":visible.len(),"total_comb_templates":total},"lanes":lanes,"nodes":nodes,"scope":"Single-process native analysis; only witnessed finite paths are displayed. Native trace buffers are retained; round-wise online construction does not imply bounded memory."}),
     )
 }
 fn escape(s: &str) -> String {
@@ -1134,19 +1194,52 @@ fn render(root: &Path, out: &Path, data: &Json, native: bool) -> Result {
 }
 /// All three egraphs/analyses execute in this process. Only final results are serialized.
 pub fn run(root: &Path, source: &Path, rounds: Option<usize>, out: &Path) -> Result<Json> {
-    let source = source.canonicalize()?;
+    run_with_options(root, source, rounds, out, false, false, None)
+}
+pub fn run_with_options(
+    root: &Path,
+    source: &Path,
+    rounds: Option<usize>,
+    out: &Path,
+    online: bool,
+    save_history: bool,
+    replay: Option<&Path>,
+) -> Result<Json> {
+    let source = if replay.is_some() {
+        source.to_path_buf()
+    } else {
+        source.canonicalize()?
+    };
     if out.exists() {
         return Err(format!("output already exists: {}", out.display()).into());
     }
     std::fs::create_dir_all(out)?;
     let started = Instant::now();
-    let mut status = json!({"status":"running","phase":"tier0","mode":"native-single-process","pid":std::process::id(),"source":source,"requested_rounds":rounds,"subprocesses":0});
+    let mut status = json!({"status":"running","phase":if replay.is_some() {"history"} else {"tier0"},"build_mode":if online {"online"} else {"offline"},"history_input":replay,"save_history":save_history,"mode":"native-single-process","pid":std::process::id(),"source":source,"requested_rounds":rounds,"subprocesses":0});
     let marker = out.join("run.json");
     std::fs::write(&marker, serde_json::to_string_pretty(&status)?)?;
     let mut result = (|| -> Result<Json> {
-        let mut c = capture(&source, rounds)?;
+        let worker = rayon::ThreadPoolBuilder::new().num_threads(1).build()?;
+        let mut tier1 = EGraph::default();
+        let mut c = if let Some(path) = replay {
+            history::read(path)?
+        } else if online {
+            capture(&source, rounds, Some((&mut tier1, root, &worker)))?
+        } else {
+            capture(&source, rounds, None)?
+        };
+        if save_history {
+            history::save(&out.join("history.json"), &source, &c)?;
+        }
         let mut times = BTreeMap::new();
-        times.insert("tier0_and_typed_capture", c.trace_seconds);
+        times.insert(
+            if online {
+                "tier0_capture_and_online_tier1"
+            } else {
+                "tier0_and_typed_capture"
+            },
+            c.trace_seconds,
+        );
         eprintln!(
             "[native] {} events, {} eligible applications",
             c.events,
@@ -1160,12 +1253,12 @@ pub fn run(root: &Path, source: &Path, rounds: Option<usize>, out: &Path) -> Res
             (|| -> Result<Json> {
         let phase=|name:&str|->Result {let mut s=base_status.clone();s["phase"]=json!(name);std::fs::write(&phase_marker,serde_json::to_vec(&s)?)?;eprintln!("[native] {name}");Ok(())};
         phase("tier1")?;
-        let mut eg=EGraph::default();let stage=Instant::now();build_tier1(&mut c,&mut eg,root)?;times.insert("tier1",stage.elapsed().as_secs_f64());
+        let mut eg=tier1;let stage=Instant::now();if !online || replay.is_some() { build_tier1(&mut c,&mut eg,root,&mut (0,0))?; }times.insert("tier1",stage.elapsed().as_secs_f64());
         phase("tier2")?;
         let stage=Instant::now();let(ext,higher)=build_tier2(&mut c,&mut eg,root)?;times.insert("tier2",stage.elapsed().as_secs_f64());
         phase("view")?;
         let stage=Instant::now();let data=view(&c,&eg,&ext,&higher)?;times.insert("selected_lowering_and_view",stage.elapsed().as_secs_f64());
-        let summary=json!({"events":c.events,"imported_events":c.records.len(),"excluded_events":c.rejected,"extensions":ext.keys.len(),"higher_rules":higher.len(),"executed_rounds":c.rounds,"timings_seconds":times,"wall_seconds":started.elapsed().as_secs_f64(),"subprocesses":0,"intermediate_trace_files":0,"scope":"Actual native tier-0 and tier-1/tier-2 in one Rust process. Native trace buffers are still retained until typed conversion completes. Reduce rules are loaded; arbitrary accumulator summaries are not inferred."});
+        let summary=json!({"events":c.events,"imported_events":c.records.len(),"excluded_events":c.rejected,"extensions":ext.keys.len(),"higher_rules":higher.len(),"executed_rounds":c.rounds,"timings_seconds":times,"wall_seconds":started.elapsed().as_secs_f64(),"subprocesses":0,"intermediate_trace_files":0,"build_mode":if online {"online"} else {"offline"},"history_saved":save_history,"history_replayed":replay.is_some(),"scope":"Native tier-1/tier-2 in one Rust process; tier-0 executes only during recapture. Online mode imports at simple run-round boundaries; complex schedules are imported at completion. Native trace buffers remain retained. History contains resolved eligible applications, not rejected/raw trace events. Reduce rules are loaded; arbitrary accumulator summaries are not inferred."});
         let report=json!({"status":"complete","summary":summary,"higher_rules":higher,"view":data});
         render(root,out,&report["view"],true)?;
         Ok(report)

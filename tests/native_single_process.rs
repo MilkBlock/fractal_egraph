@@ -33,6 +33,7 @@ fn native_capture_works_without_python_or_helper_executables() {
     assert_eq!(report["view"]["stats"]["total_comb_templates"], 3);
     for forbidden in [
         "profile.json",
+        "history.json",
         "manifest.json",
         "imported.egg",
         "native.json",
