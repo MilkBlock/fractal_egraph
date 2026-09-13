@@ -1,0 +1,243 @@
+{
+  "scope": "A only: exact RowFact; Provides propagation and support query scope unchanged. Actual release egglog runtime; single sampled runs, not repeated benchmark estimates.",
+  "baseline_commit": "72d9c81",
+  "six": {
+    "before": {
+      "wall_seconds": 5.859987292,
+      "peak_rss_mib": 311.078125,
+      "import_seconds": 0.850887,
+      "saturate_seconds": 4.792297,
+      "relation_rows": {
+        "ArgsEqual": 3929,
+        "Binding": 1529,
+        "EqAt": 0,
+        "LocalArgs": 6663,
+        "NeedArgs": 47748,
+        "Occurrence": 1529,
+        "PartialArgs": 1161,
+        "Provides": 28173,
+        "Satisfies": 2400,
+        "SupportsUse": 2366
+      },
+      "summary": {
+        "build_mode": "online",
+        "events": 1529,
+        "excluded_events": 0,
+        "executed_rounds": 6,
+        "extensions": 300,
+        "higher_rules": 13,
+        "history_replayed": false,
+        "history_saved": false,
+        "imported_events": 1529,
+        "intermediate_trace_files": 0,
+        "raw_trace_batches": 6,
+        "raw_trace_peak_batch_events": 4963,
+        "raw_trace_remaining_events": 0,
+        "scope": "Native tier-1/tier-2 in one Rust process; tier-0 executes only during recapture. Online mode imports at simple run-round boundaries; complex schedules are imported at completion. Raw trace events are drained at completed execution boundaries; compact producer/equality indexes and analysis graphs remain resident. History contains resolved eligible applications, not rejected/raw trace events. Reduce rules are loaded; arbitrary accumulator summaries are not inferred.",
+        "subprocesses": 0,
+        "timings_seconds": {
+          "selected_lowering_and_view": 0.014468875,
+          "tier0_capture_and_online_tier1": 5.673745,
+          "tier1": 0.0,
+          "tier2": 0.14919
+        },
+        "wall_seconds": 5.859987292
+      }
+    },
+    "A": {
+      "wall_seconds": 1.149454084,
+      "peak_rss_mib": 52.265625,
+      "import_seconds": 0.777558,
+      "saturate_seconds": 0.127841,
+      "relation_rows": {
+        "ArgsEqual": 0,
+        "Binding": 1529,
+        "EqAt": 0,
+        "LocalArgs": 6663,
+        "NeedArgs": 0,
+        "Occurrence": 1529,
+        "PartialArgs": 1161,
+        "Provides": 28173,
+        "Satisfies": 2400,
+        "SupportsUse": 2366
+      },
+      "summary": {
+        "build_mode": "online",
+        "events": 1529,
+        "excluded_events": 0,
+        "executed_rounds": 6,
+        "extensions": 300,
+        "higher_rules": 13,
+        "history_replayed": false,
+        "history_saved": false,
+        "imported_events": 1529,
+        "intermediate_trace_files": 0,
+        "raw_trace_batches": 6,
+        "raw_trace_peak_batch_events": 4963,
+        "raw_trace_remaining_events": 0,
+        "scope": "Native tier-1/tier-2 in one Rust process; tier-0 executes only during recapture. Online mode imports at simple run-round boundaries; complex schedules are imported at completion. Raw trace events are drained at completed execution boundaries; compact producer/equality indexes and analysis graphs remain resident. History contains resolved eligible applications, not rejected/raw trace events. Reduce rules are loaded; arbitrary accumulator summaries are not inferred.",
+        "subprocesses": 0,
+        "timings_seconds": {
+          "selected_lowering_and_view": 0.027002958,
+          "tier0_capture_and_online_tier1": 0.933992875,
+          "tier1": 0.0,
+          "tier2": 0.164069625
+        },
+        "wall_seconds": 1.149454084
+      }
+    }
+  },
+  "correctness": {
+    "all_support_pairs_equal": true,
+    "support_pairs": 2366,
+    "normalized_view_equal": true,
+    "independent_source_rule_replay_passed": true
+  },
+  "eleven": {
+    "complete": false,
+    "wall_seconds": 40.13777862500865,
+    "stop_reason": "timeout",
+    "peak_rss_mib": 1391.234375,
+    "completed_rounds": [
+      {
+        "round": 1,
+        "tier0": 0.000344,
+        "collect": 0.04206,
+        "tier1": 0.022639
+      },
+      {
+        "round": 2,
+        "tier0": 0.000449,
+        "collect": 0.000291,
+        "tier1": 0.024797
+      },
+      {
+        "round": 3,
+        "tier0": 0.000539,
+        "collect": 0.000466,
+        "tier1": 0.037431
+      },
+      {
+        "round": 4,
+        "tier0": 0.000695,
+        "collect": 0.000728,
+        "tier1": 0.07319
+      },
+      {
+        "round": 5,
+        "tier0": 0.001849,
+        "collect": 0.002002,
+        "tier1": 0.197625
+      },
+      {
+        "round": 6,
+        "tier0": 0.002992,
+        "collect": 0.005076,
+        "tier1": 0.488549
+      },
+      {
+        "round": 7,
+        "tier0": 0.007202,
+        "collect": 0.011942,
+        "tier1": 1.300294
+      },
+      {
+        "round": 8,
+        "tier0": 0.012007,
+        "collect": 0.030586,
+        "tier1": 3.361113
+      },
+      {
+        "round": 9,
+        "tier0": 0.048,
+        "collect": 0.115259,
+        "tier1": 16.83401
+      }
+    ],
+    "completed_imports": [
+      {
+        "seconds": 0.019887,
+        "records": 20
+      },
+      {
+        "seconds": 0.019965,
+        "records": 64
+      },
+      {
+        "seconds": 0.031695,
+        "records": 129
+      },
+      {
+        "seconds": 0.062541,
+        "records": 268
+      },
+      {
+        "seconds": 0.170897,
+        "records": 636
+      },
+      {
+        "seconds": 0.393926,
+        "records": 1529
+      },
+      {
+        "seconds": 1.049889,
+        "records": 3723
+      },
+      {
+        "seconds": 2.416556,
+        "records": 8535
+      },
+      {
+        "seconds": 9.110879,
+        "records": 25175
+      }
+    ],
+    "completed_saturations": [
+      {
+        "saturate": 0.001775,
+        "validate": 3.2e-05,
+        "records": 20
+      },
+      {
+        "saturate": 0.003895,
+        "validate": 8e-05,
+        "records": 64
+      },
+      {
+        "saturate": 0.005069,
+        "validate": 0.000124,
+        "records": 129
+      },
+      {
+        "saturate": 0.009844,
+        "validate": 0.000227,
+        "records": 268
+      },
+      {
+        "saturate": 0.025383,
+        "validate": 0.000682,
+        "records": 636
+      },
+      {
+        "saturate": 0.092016,
+        "validate": 0.001769,
+        "records": 1529
+      },
+      {
+        "saturate": 0.244539,
+        "validate": 0.004544,
+        "records": 3723
+      },
+      {
+        "saturate": 0.930368,
+        "validate": 0.011745,
+        "records": 8535
+      },
+      {
+        "saturate": 7.678344,
+        "validate": 0.039017,
+        "records": 25175
+      }
+    ]
+  }
+}

@@ -728,12 +728,7 @@ fn build_tier1(
                 )?;
             }
         }
-        let effect = |id| {
-            call(
-                "HasFact",
-                vec![string("read-row"), list(vec![vref(id)], "ACons", "ANil")],
-            )
-        };
+        let effect = |id| call("RowFact", vec![vref(id)]);
         for v in &r.produced {
             emit(
                 eg,
@@ -874,6 +869,23 @@ fn build_tier1(
                 format!("native binding/support validation failed at event {}", r.id).into(),
             );
         }
+    }
+    if let Some(path) = std::env::var_os("EGG_LAYOUT_SUPPORT_SNAPSHOT") {
+        let events: BTreeMap<_, _> = c
+            .records
+            .iter()
+            .map(|r| (r.instance.unwrap(), r.id))
+            .collect();
+        let mut pairs = BTreeSet::new();
+        eg.function_for_each("SupportsUse", |row| {
+            if let (Some(a), Some(b)) = (events.get(&row.vals[0]), events.get(&row.vals[1])) {
+                pairs.insert((*a, *b));
+            }
+        })?;
+        serde_json::to_writer(
+            std::io::BufWriter::new(std::fs::File::create(path)?),
+            &pairs,
+        )?;
     }
     for r in &c.records {
         for (slot, p) in r.parents.iter().enumerate() {
