@@ -1,0 +1,7 @@
+(datatype Math (A i64) (B i64))
+(A 1)
+(ruleset a) (ruleset b)
+(rule ((= node (A n)) (> n 0))
+      ((B (+ (* n 2) 0)) (B (+ (* n 2) 1))) :ruleset a :name "fork-int")
+(rule ((= node (B n))) ((A n)) :ruleset b :name "return-int")
+(run-schedule (repeat 4 (seq (run a) (run b))))

@@ -42,6 +42,8 @@
 ; RecursivePattern folds need a branch-aware summary; do not treat depth as total applications.
 
 ; Branch-aware caller-supplied interface; extent is not an application count.
+; A callee may have multiple witnessed contracts; no universal unfolding is asserted.
+(relation ObservedCalleeLayer (String Comb BindingDag))
 (relation LayerReductionInput (Comb BindingDag BindingValues))
 (relation LayerEndpointView (Comb BindingResult))
 (rule ((LayerReductionInput f dag env)

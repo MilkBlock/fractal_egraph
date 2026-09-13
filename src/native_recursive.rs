@@ -50,7 +50,7 @@ pub(super) fn build(
     load(eg, &root.join("rules/recursive_patterns.egg"), root)?;
     eg.parse_and_run_program(
         None,
-        "(function ImportedRecursivePattern (i64) Extension :no-merge)",
+        "(function ImportedRecursivePattern (i64) Extension :no-merge) (function NativeBindingCallee (String) i64 :no-merge)",
     )?;
     let eligible = |r: &Record| !r.coarse && r.parents.len() == 1 && x.known[r.extension];
     let signatures: Vec<_> = c.records.iter().map(|r| signature(c, x, r)).collect();
@@ -378,8 +378,79 @@ pub(super) fn build(
                 expected_views.push(*start);
                 let facts: Vec<_> = members.iter().map(|i| witness(c, &c.records[*i])).collect();
                 flush(eg, &mut batch)?;
-                let layer_members: BTreeSet<_> = std::iter::once(*start).chain(units[start].slots.values().map(|b| b.child)).collect();
-                let binding_reduction = match binding::reduce(c, &layer_members, eg, &expression) { Ok(value) => value, Err(e) => json!({"status":"unsupported", "reason":e.to_string()}) };
+                let layer_members: Vec<_> = std::iter::once(*start)
+                    .chain(
+                        ports
+                            .iter()
+                            .filter_map(|p| units[start].slots.get(p).map(|b| b.child)),
+                    )
+                    .collect();
+                let returns: Vec<_> = ports
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(site, p)| {
+                        units[start]
+                            .slots
+                            .get(p)
+                            .filter(|b| !b.boundary)
+                            .and_then(|b| b.target.map(|target| (site, target)))
+                    })
+                    .collect();
+                let entry_record = &c.records[*start];
+                let source_rule = &c.rules[entry_record.rule];
+                let result_ports: Vec<_> = entry_record
+                    .outputs
+                    .iter()
+                    .zip(&entry_record.values)
+                    .map(|(p, v)| {
+                        let role = match p {
+                            Output::Var(n) => json!(["var", n]),
+                            Output::Row(s) => json!(["row", source_rule.calls[s].0]),
+                            Output::Column(s, col) => {
+                                json!(["column", source_rule.calls[s].0, col])
+                            }
+                        };
+                        json!([role, c.pool.values[*v].sort])
+                    })
+                    .collect();
+                let input_ports: Vec<_> = entry_record
+                    .inputs
+                    .iter()
+                    .zip(&entry_record.wanted)
+                    .map(|(p, v)| {
+                        let role = match p {
+                            Input::Var(n) => json!(["var", n]),
+                            Input::Read(s) => json!(["read", source_rule.calls[s].0]),
+                        };
+                        json!([role, c.pool.values[*v].sort])
+                    })
+                    .collect();
+                let callee_definition = serde_json::to_string(
+                    &json!({"binding_algebra":std::env::var("EGG_LAYOUT_BINDING_ALGEBRA").unwrap_or_else(|_|"integer-safe".into()),"result_ports":result_ports,"input_ports":input_ports,"datatype":c.datatype,"entry":entry_sig,"ports":ports,"rules":c.rules.iter().map(|r|r.rule.to_string()).collect::<Vec<_>>()}),
+                )?;
+                let key = eg.base_to_value::<egglog::sort::S>(callee_definition.clone().into());
+                let identity =
+                    if let Some(value) = eg.lookup_function("NativeBindingCallee", &[key]) {
+                        eg.value_to_base::<i64>(value)
+                    } else {
+                        let id = eg.get_size("NativeBindingCallee") as i64;
+                        eg.parse_and_run_program(
+                            None,
+                            &format!(
+                                "(set (NativeBindingCallee {}) {id})",
+                                serde_json::to_string(&callee_definition)?
+                            ),
+                        )?;
+                        id
+                    };
+                let callee = format!("native-binding-callee:{identity}");
+                let mut binding_reduction =
+                    match binding::reduce(c, &layer_members, &returns, &callee, eg, &expression) {
+                        Ok(value) => value,
+                        Err(e) => json!({"status":"unsupported", "reason":e.to_string()}),
+                    };
+                binding_reduction["callee_definition"] = json!(callee_definition);
+                binding_reduction["callee_identity"] = json!(callee);
                 instances.push(json!({"entry_event":r.id,"start_context_event":c.records[r.parents[0]].id,"extent_kind":if depth.is_some(){"Depth"}else{"SparseExtent"},"depth":depth,"extent":extent.to_string(),"fractal_comb":expression.to_string(),"observed_units":nodes.len(),"observed_apply_events":members.len(),"nodes":observed,"fact_witnesses":facts,"binding_reduction":binding_reduction}));
             }
             patterns.push(json!({"id":id,"kind":"recursive_dag","native_pattern_id":id,"entry_rule":c.rules[c.records[training[0]].rule].rule.name,"branch_rule":c.rules[child_rule].rule.name,"entry_binding":serde_json::from_str::<Json>(&entry_sig)?,"ports":ports.iter().enumerate().map(|(i,p)|json!({"port":i,"binding_transfer":serde_json::from_str::<Json>(p).unwrap(),"return_transfer":"same entry binding interface; F_port = entry_transfer composed with port_transfer"})).collect::<Vec<_>>(),"observed_arity":ports.len(),"learning_witnesses":training.iter().take(2).map(|i|c.records[*i].id).collect::<Vec<_>>(),"additional_returning_witnesses":training.len()-2,"ambiguous_units":units.iter().filter(|(_,u)|u.ambiguous).map(|(i,_)|c.records[*i].id).collect::<Vec<_>>(),"instances":instances}));

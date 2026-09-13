@@ -1,0 +1,10 @@
+; Run with EGG_LAYOUT_BINDING_ALGEBRA=math: explicit scalar Math interpretation.
+(datatype Math (A Math) (B Math) (Left Math) (Right Math)
+               (Add Math Math) (Const i64))
+(A (Const 1))
+(ruleset a) (ruleset b)
+(rule ((= node (A x)))
+      ((B (Left (Add x (Const 0)))) (B (Right (Add x (Const 0)))))
+      :ruleset a :name "fork-math")
+(rule ((= node (B x))) ((A x)) :ruleset b :name "return-math")
+(run-schedule (repeat 4 (seq (run a) (run b))))

@@ -1,63 +1,104 @@
-# Multi-apply-point binding reduction
+# Multi-apply-point binding contracts
 
-`rules/reduce.egg` now includes `rules/binding_reduce.egg`.
-`LayerReductionInput(fractal, dag, environment)` produces
-`LayerEndpointView(fractal, ReduceDag(dag, environment))` in `higher`.
-Then run `endpoint-reduce` to obtain `BResult(outputs, effects)`.
-This is **one layer**, not reduction of the entire observed extent or a proof for
-arbitrary depth. Depth is never used as the number of applies.
-
-`src/binding_reduce.rs::compile` uses egglog's expression parser. Inputs and
-preceding definitions are available by name; names become local parameter slots.
-`BLet` extends a persistent environment. Repeated references do not duplicate
-definitions in the encoded program. Forward references, redefinitions and reused
-recursive site IDs are rejected. Reuse a definition to express a shared call.
-
-Example interface:
+`rules/reduce.egg` includes `rules/binding_reduce.egg`. The entry is:
 
 ```text
-inputs: x, extra
-shift = EAdd(x, 0)
-left  = recur(site=0, args=[shift])
-right = recur(site=1, args=[EMul(extra, 0)])
-twice = EAdd(left, left)
-outputs = [twice, right]
-effects = [union(left, right)]
+LayerReductionInput(fractal, dag, environment)
+  → LayerEndpointView(fractal, ReduceDag(dag, environment))
+  → BResult(outputs, requirements, effects)
 ```
 
-With inputs `[7, 9]`, the result is `[EAdd(left,left), right]`, where
-`left = ERecur(0,[7])` and `right = ERecur(1,[0])`. The union remains an opaque
-effect expression; it does not merge the two endpoints. An ERecur is a symbolic
-boundary, not an instruction to create future tier-0 facts.
+Run `higher` followed by `endpoint-reduce`. `CompleteBinding(result)` certifies
+that a representative with fully substituted output, requirement and effect
+vectors exists. It does not assert that guards hold, recursion terminates, or an
+analytic closed form exists. Residual Substitute/ParameterAt nodes cannot alone
+establish completion. The JSON status is `substituted`, not `reduced`.
+
+## Recursive interfaces
+
+`Definition::Recur { name, callee, output, arguments }` becomes
+`ERecur(callee, output, arguments)`. The callee and output port are part of
+identity; occurrence position is separate evidence. Equal pure calls can share
+one node while multiple uses remain multiple references. Different callees or
+outputs cannot accidentally share merely because both use local position zero.
+
+The native adapter follows actual `UnitReturn` candidates into the next entry's
+input ports. Each return argument must resolve to this layer's outputs through
+an actual parent binding. Missing external inputs produce `needs_boundary`, not
+a fabricated recursive call. Only witnessed returns are emitted. It exposes the
+next entry's output ports of the callee's ordered local output interface.
+
+Callees are registered by exact definition equality in `NativeBindingCallee`,
+including source rules, datatype, input/output roles and algebra interpretation.
+Short graph-local identities reference this registry; no hash collision is used
+as evidence of equality. Source roles use AST paths, not physical source offsets,
+so history replay preserves the definition. `ObservedCalleeLayer` connects each
+callee to its observed layer contract, not an unconditional unfolding rule.
+
+## Binding DAG and contracts
+
+`compile_contract` uses egglog's expression parser. Variables resolve only to
+inputs or preceding definitions. Names disappear from the expression DAG.
+Independent definition schedules serialize identically when their ordered
+output/requirement/effect interfaces are identical. A rooted iterative postorder
+assigns definition positions; slot offsets are computed on demand without
+shifting all existing bindings. Pure identical expressions are interned and dead
+pure definitions are omitted. Ordered ports, repeated uses and alias distinctions
+are preserved. This is structural normalization, not arbitrary graph isomorphism
+or condition implication. Runtime environment lookup still has its own cost.
 
 Immutable `BindingExpr` syntax and reducible `EndpointExpr` results are separate
-sorts in the same native egglog. Otherwise algebraic identities can feed expanded
-terms back into substitution and cause unbounded work. Existing endpoint algebra
-is reused only for explicitly named EAdd/ESub/EMul/EDiv/EPow expressions. Other
-calls remain opaque, and integer literals do not imply machine-overflow semantics.
+sorts in the same egglog. Algebra cannot feed expanded result terms back into
+syntax substitution. Physical rows use explicit `ERow` fields; `EColumn` projects
+those fields without assuming constructor injectivity or undoing unions.
 
-## Actual capture integration
+Read witnesses and source equality/predicate conditions enter the requirement
+vector. Only captured committed writes/unions enter the effect vector, carrying
+original identities alongside symbolic payloads. These are descriptions, never
+executed actions. Equality conditions are not global egraph unions. Conditions
+and effects keep ordered roots; the compiler does not merge condition sets.
 
-With recursive template discovery enabled, each recursive instance now contains
-`binding_reduction` in `recursive_patterns.json`. The native adapter lowers the
-entry apply and its observed branch applies, including physical row projections,
-into one ordered binding DAG. Parent output ports connect actual dependencies.
-All output addresses are retained; multiple outputs need not be combined by Add.
-Successful lowering runs both native rulesets and checks a BResult exists.
-Unsupported lowering reports its reason instead of supplying a made-up summary.
+## Mathematical interpretation
+
+The default `integer-safe` mode recognizes typed i64 `+`, `-`, `*` as EIAdd,
+EISub, EIMul. It applies neutral/absorbing identities valid for integer operands;
+it does not turn bounded machine arithmetic into unbounded polynomial arithmetic.
+Each source primitive also keeps a structured definedness obligation, so removing
+an outer expression cannot silently discard an inner overflow precondition.
+
+`EGG_LAYOUT_BINDING_ALGEBRA=math` explicitly interprets source Add/Sub/Mul/Const
+as the existing exact scalar endpoint algebra. Other source operators remain
+opaque. This is a declared interpretation of the source DSL, not inferred just
+from constructor names. Use the same setting for history replay. Division,
+floating-point identities and overflow invariants are not inferred.
+
+## Actual runtime reproduction
 
 ```sh
 EGG_LAYOUT_DISCOVER_RECURSION=1 cargo run --release -- analyze \
-  --recapture-tier0 --source experiments/recursive_patterns/binary.egg \
-  --output out/binding-reduce-binary
+  --recapture-tier0 --source experiments/recursive_patterns/integer_binding.egg \
+  --output out/binding-contract-integer
+
+EGG_LAYOUT_DISCOVER_RECURSION=1 EGG_LAYOUT_BINDING_ALGEBRA=math \
+  cargo run --release -- analyze --recapture-tier0 \
+  --source experiments/recursive_patterns/math_binding.egg \
+  --output out/binding-contract-math
+
 cargo test --test binding_reduce --test tier2_reduce --test recursive_patterns
 ```
 
-The adapter preserves source calls as opaque `source::operator` expressions.
-It does **not** infer their mathematical meaning from names, infer a closed form,
-or establish recursion invariants. Row/union mutation evidence and keyed-read
-requirements remain in the original instance certificates. The pure value
-interface is not a replacement for these certificates. The scalar Reduce tests
-and explicit multi-site algebra tests exercise mathematical reduction; the real
-binary/ternary capture tests exercise automatic dependency wiring and native
-evaluation, not a new compression-rate or runtime-speedup claim.
+Each recursive instance in `recursive_patterns.json` has `binding_reduction`:
+callee identity/definition, recursive return bindings, local output addresses,
+extracted endpoint expressions, requirements/effects and the replayable tier2
+input fragment (requires that run's imported FractalComb context). That fragment
+is not a standalone tier0 program.
+
+The integer fixture actually generates two branches, `2*n+0` and `2*n+1`.
+Tests check extracted native outputs `2*n` and `2*n+1`. The Math fixture checks
+that actual `Add(x,Const(0))` outputs simplify after capture. Binary/ternary
+fixtures check recursive return linkage, contracts and exact history replay.
+
+These are finite witnessed recurrence interfaces. General multi-parent/coarse
+family discovery, proving an arbitrary-depth recurrence, solving its closed
+form, and proving dissipation are still distinct tasks. No original tier0 facts
+are removed, and these tests make no compression-rate or speedup claim.

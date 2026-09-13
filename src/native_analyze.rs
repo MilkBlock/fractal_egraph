@@ -136,7 +136,7 @@ pub enum Port {
     Parent(usize, usize),
     External(usize),
 }
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum Input {
     Var(String),
     Read(Arc<str>),
