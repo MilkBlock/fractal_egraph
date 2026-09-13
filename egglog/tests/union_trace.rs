@@ -107,3 +107,29 @@ fn untraced_union_does_not_invent_a_rebuild_proof() {
     assert!(t.union_events().is_empty());
     assert!(t.write_events().iter().all(|w| w.rebuild_of.is_none()));
 }
+
+#[test]
+fn draining_unions_keeps_equality_paths_until_scope_reset() {
+    let mut eg = EGraph::default();
+    eg.parse_and_run_program(
+        None,
+        r#"
+      (datatype E (Atom i64)) (Atom 1) (Atom 2)
+      (rule ((= x (Atom 1)) (= y (Atom 2))) ((union x y)) :name "merge")
+    "#,
+    )
+    .unwrap();
+    let trace = TraceSession::with_dependencies();
+    eg.step_rules_with_trace("", &trace).unwrap();
+    let batch = trace.drain_completed();
+    let e = batch.unions.iter().find(|e| e.displaced.is_some()).unwrap();
+    let (lhs, rhs, id) = (e.lhs, e.rhs, e.event_id);
+    drop(batch);
+    assert!(trace.union_events().is_empty());
+    assert_eq!(trace.equality_path(lhs, rhs), Some(vec![id]));
+    assert!(trace.drain_completed().is_empty());
+    assert_eq!(trace.equality_path(lhs, rhs), Some(vec![id]));
+    trace.record_scope_reset();
+    trace.drain_completed();
+    assert_eq!(trace.equality_path(lhs, rhs), None);
+}

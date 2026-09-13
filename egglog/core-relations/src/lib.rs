@@ -45,7 +45,7 @@ pub use table_spec::{
 };
 pub use trace::{
     OriginInvalidation, OriginInvalidationReason, RowReadEvent, RuleActionOutcome,
-    RuleActionOutcomeEvent, RuleMatchBinding, RuleMatchEvent, TraceCause, TraceSession, WriteEvent,
+    RuleActionOutcomeEvent, RuleMatchBinding, RuleMatchEvent, TraceCause, TraceSession, TraceBatch, WriteEvent,
     WriteOutcome,
 };
 pub use uf::DisplacedTable;

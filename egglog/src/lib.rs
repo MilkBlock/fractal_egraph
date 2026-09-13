@@ -43,7 +43,7 @@ pub use core::{ResolvedCall, SpecializedPrimitive};
 pub use core_relations::{
     BaseValue, ContainerValue, ExecutionState, OriginInvalidation, OriginInvalidationReason,
     RowReadEvent, RuleActionOutcome, RuleActionOutcomeEvent, RuleMatchBinding, RuleMatchEvent,
-    TraceSession, Value, WriteEvent, WriteOutcome,
+    TraceSession, TraceBatch, Value, WriteEvent, WriteOutcome,
 };
 use core_relations::{ExternalFunctionId, make_external_func};
 use csv::Writer;

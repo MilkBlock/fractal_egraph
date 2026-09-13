@@ -75,6 +75,7 @@ struct TraceState {
     table_names: Mutex<std::collections::HashMap<crate::TableId, Arc<str>>>,
     writes: Mutex<Vec<WriteEvent>>,
     unions: Mutex<Vec<UnionEvent>>,
+    equality_edges: Mutex<Vec<(u64, Value, Value)>>,
     invalidations: Mutex<Vec<OriginInvalidation>>,
     reads: Mutex<Vec<RowReadEvent>>,
     matches: Mutex<Vec<RuleMatchEvent>>,
@@ -92,7 +93,65 @@ pub struct TraceSession {
     state: Arc<TraceState>,
 }
 
+/// Owned events from a completed execution boundary. Dropping this releases
+/// raw bindings, rows and action records. Session identity and row origins survive.
+#[derive(Default)]
+pub struct TraceBatch {
+    pub matches: Vec<RuleMatchEvent>,
+    pub actions: Vec<RuleActionOutcomeEvent>,
+    pub writes: Vec<WriteEvent>,
+    pub reads: Vec<RowReadEvent>,
+    pub unions: Vec<UnionEvent>,
+    pub invalidations: Vec<OriginInvalidation>,
+}
+impl TraceBatch {
+    pub fn len(&self) -> usize {
+        self.matches.len()
+            + self.actions.len()
+            + self.writes.len()
+            + self.reads.len()
+            + self.unions.len()
+            + self.invalidations.len()
+    }
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+}
 impl TraceSession {
+    /// Number of raw records buffered, excluding compact equality/scope metadata.
+    pub fn buffered_event_count(&self) -> usize {
+        self.state.matches.lock().unwrap().len()
+            + self.state.action_outcomes.lock().unwrap().len()
+            + self.state.writes.lock().unwrap().len()
+            + self.state.reads.lock().unwrap().len()
+            + self.state.unions.lock().unwrap().len()
+            + self.state.invalidations.lock().unwrap().len()
+    }
+    /// Drain only after run/commit/rebuild finishes and all workers have joined.
+    /// Not an atomic snapshot of concurrently executing rules. Compact committed
+    /// equality edges remain available for future rebuild explanations; raw union
+    /// events are returned only once. IDs and session identity are never reset.
+    pub fn drain_completed(&self) -> TraceBatch {
+        let unions = std::mem::take(&mut *self.state.unions.lock().unwrap());
+        let reset = self.scope_resets().into_iter().max();
+        let mut edges = self.state.equality_edges.lock().unwrap();
+        edges.extend(
+            unions
+                .iter()
+                .filter(|e| e.displaced.is_some())
+                .map(|e| (e.event_id, e.lhs, e.rhs)),
+        );
+        edges.retain(|(id, _, _)| reset.is_none_or(|r| *id > r));
+        TraceBatch {
+            matches: self.drain_matches(),
+            actions: self.drain_action_outcomes(),
+            unions,
+            writes: std::mem::take(&mut *self.state.writes.lock().unwrap()),
+            reads: std::mem::take(&mut *self.state.reads.lock().unwrap()),
+            invalidations: std::mem::take(&mut *self.state.invalidations.lock().unwrap()),
+        }
+    }
+
     /// Create an empty trace session.
     pub fn new() -> Self {
         Self::default()
@@ -127,18 +186,19 @@ impl TraceSession {
         }
         let reset = self.scope_resets().into_iter().max();
         let mut adjacency: HashMap<Value, Vec<(Value, u64)>> = HashMap::new();
-        for e in self.union_events() {
-            if e.displaced.is_none() || reset.is_some_and(|r| e.event_id < r) {
+        let mut edges = self.state.equality_edges.lock().unwrap().clone();
+        edges.extend(
+            self.union_events()
+                .into_iter()
+                .filter(|e| e.displaced.is_some())
+                .map(|e| (e.event_id, e.lhs, e.rhs)),
+        );
+        for (id, lhs, rhs) in edges {
+            if reset.is_some_and(|r| id < r) {
                 continue;
             }
-            adjacency
-                .entry(e.lhs)
-                .or_default()
-                .push((e.rhs, e.event_id));
-            adjacency
-                .entry(e.rhs)
-                .or_default()
-                .push((e.lhs, e.event_id));
+            adjacency.entry(lhs).or_default().push((rhs, id));
+            adjacency.entry(rhs).or_default().push((lhs, id));
         }
         let mut queue = VecDeque::from([lhs]);
         let mut parents = HashMap::from([(lhs, (lhs, 0))]);

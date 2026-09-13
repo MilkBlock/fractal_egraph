@@ -381,3 +381,36 @@ fn deleting_one_key_preserves_other_row_origins() {
     eg.parse_and_run_program(None, "(check (Out 7)) (check (Out 8))")
         .unwrap();
 }
+
+#[test]
+fn draining_completed_events_preserves_live_row_origins() {
+    let mut eg = graph(false);
+    let trace = TraceSession::with_dependencies();
+    eg.step_rules_with_trace("a", &trace).unwrap();
+    let batch = trace.drain_completed();
+    let producer = batch
+        .writes
+        .iter()
+        .find(|w| w.outcome == WriteOutcome::Inserted)
+        .unwrap();
+    let (mid, wid) = (producer.match_event_id, producer.event_id);
+    drop(batch);
+    assert!(trace.drain_completed().is_empty());
+    eg.step_rules_with_trace("b", &trace).unwrap();
+    let batch = trace.drain_completed();
+    assert!(
+        batch
+            .matches
+            .iter()
+            .all(|m| m.event_id > wid && m.physical_witness_complete)
+    );
+    assert!(
+        batch
+            .reads
+            .iter()
+            .any(|r| r.producer_match_event_id == Some(mid)
+                && r.producer_write_event_id == Some(wid))
+    );
+    assert!(trace.drain_completed().is_empty());
+    eg.parse_and_run_program(None, "(check (Out 7))").unwrap();
+}
