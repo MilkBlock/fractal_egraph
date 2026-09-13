@@ -23,7 +23,7 @@ impl Names {
         }
     }
 
-    fn check_pattern_name(&mut self, name: &str, span: &Span) -> Result<(), Error> {
+    fn check_pattern_name_available(&self, name: &str, span: &Span) -> Result<(), Error> {
         let canonical = name
             .strip_prefix(GLOBAL_NAME_PREFIX)
             .unwrap_or(name)
@@ -35,7 +35,16 @@ impl Names {
                 span.clone(),
             ));
         }
-        self.check(name.to_owned(), span.clone())
+        if let Some(old) = self.seen.get(name) {
+            return Err(Error::Shadowing(name.to_owned(), old.clone(), span.clone()));
+        }
+        Ok(())
+    }
+
+    fn check_pattern_name(&mut self, name: &str, span: &Span) -> Result<(), Error> {
+        self.check_pattern_name_available(name, span)?;
+        self.seen.insert(name.to_owned(), span.clone());
+        Ok(())
     }
 
     /// WARNING: this function does not handle `push` and `pop`.
@@ -67,8 +76,12 @@ impl Names {
             }
             ResolvedNCommand::CoreAction(action) => self.check_shadowing_action(action),
             ResolvedNCommand::Check(_span, query) => {
-                let mut inner = self.clone();
-                inner.check_shadowing_query(query)
+                // Query variables have no subsequent actions and do not escape.
+                // Validate against globals without cloning all global names.
+                for (name, span) in Self::query_names(query) {
+                    self.check_pattern_name_available(&name, &span)?;
+                }
+                Ok(())
             }
             ResolvedNCommand::Fail(_span, command) => {
                 let mut inner = self.clone();
@@ -88,7 +101,7 @@ impl Names {
         }
     }
 
-    fn check_shadowing_query(&mut self, query: &[ResolvedFact]) -> Result<(), Error> {
+    fn query_names(query: &[ResolvedFact]) -> HashMap<String, Span> {
         // we want to allow names in queries to shadow each other, so we first collect
         // all of the variable names, and then we check each of those names once
         fn collect_expr_names(expr: &ResolvedExpr, out: &mut HashMap<String, Span>) {
@@ -115,10 +128,13 @@ impl Names {
             }
         }
 
-        for (name, span) in collected {
+        collected
+    }
+
+    fn check_shadowing_query(&mut self, query: &[ResolvedFact]) -> Result<(), Error> {
+        for (name, span) in Self::query_names(query) {
             self.check_pattern_name(&name, &span)?;
         }
-
         Ok(())
     }
 
