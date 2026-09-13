@@ -8,10 +8,12 @@ fn string(eg: &EGraph, v: Value) -> String {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let dir = "experiments/tier1_extract/";
     let mut eg = EGraph::default();
-    eg.parse_and_run_program(
-        None,
-        &std::fs::read_to_string(format!("{dir}interfaces.egg"))?,
-    )?;
+    let args: Vec<_> = std::env::args().skip(1).collect();
+    if args.first().is_some_and(|s|s=="-") {
+        egg_layout::tier1_effects::run_command_stream(&mut eg,std::io::stdin().lock()).map_err(std::io::Error::other)?;
+    } else {
+        eg.parse_and_run_program(None,&std::fs::read_to_string(format!("{dir}interfaces.egg"))?)?;
+    }
     let mut classes = BTreeMap::new();
     eg.function_for_each("OriginalClass", |r| {
         assert!(classes.insert(r.vals[0], string(&eg, r.vals[1])).is_none());
@@ -65,9 +67,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     })?;
     assert_eq!(fingerprint.len(), 1);
     let result = json!({"native_sha256":fingerprint[0],"scope":"Read from native InterfaceLayout, ParentAt, Occurrence and SourceRuleAST tables; every parent link passes native LinkedParent checks. OriginalClass maps reloaded classes to the saved extraction.","occurrences":instances.into_values().collect::<Vec<_>>(),"rules":rules,"parent_edges":parents.values().map(|p|p.len()).sum::<usize>()});
-    std::fs::write(
-        format!("{dir}native_interfaces.json"),
-        serde_json::to_string_pretty(&result)? + "\n",
-    )?;
+    if args.get(1).is_some_and(|s|s=="-") { serde_json::to_writer(std::io::stdout().lock(),&result)?; }
+    else { std::fs::write(format!("{dir}native_interfaces.json"),serde_json::to_string_pretty(&result)?+"\n")?; }
     Ok(())
 }

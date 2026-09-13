@@ -167,3 +167,13 @@ cargo run --release -- analyze --recapture-tier0 --source egglog/tests/math-micr
 ```
 
 run.json 的 requested_rounds 为 null、schedule_mode 为 source；executed_rounds 记录采集器实际观察的简单 run 轮数。
+
+## 管道采集与性能诊断
+
+当前 capture 不再落盘 profile.json / manifest.json / imported.egg / native.json / interfaces.egg。
+流式模式省略导入不用的 motif 排名与重复见证描述，经过原生 Binding/SupportsUse 检查后，
+只对 fractal 可视化需要的组合生成 tier-0 规则。固定快照流程仍支持完整导出。
+必要的 native_templates、native_interfaces 等模型结果仍保存；内存中仍保留完整 trace，
+不能把取消中间文件称作常数内存或真正在线的采集器。
+导入默认使用一个 Rayon 线程（外部 RAYON_NUM_THREADS 可覆盖），只解析实际引用的 binding，
+并在不可变图上复用提取成本计算。分段耗时写入 run.json，详细诊断见 research/performance/README.md。

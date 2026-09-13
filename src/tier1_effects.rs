@@ -39,6 +39,33 @@ pub fn execute_mode(source: &str,compact:bool) -> Result<Value, String> {
     .map_err(|e| e.to_string())?;
     export_mode(&eg,compact)
 }
+/// Generated input contains one complete command per line. Batch parser calls
+/// without retaining the entire textual import program.
+pub fn run_command_stream(eg: &mut EGraph, reader: impl std::io::BufRead) -> Result<(), String> {
+    let mut batch=String::new();
+    for line in reader.lines() {
+        batch.push_str(&line.map_err(|e|e.to_string())?);batch.push('\n');
+        if batch.len()>=65536 {
+            eg.parse_and_run_program(None,&batch).map_err(|e|e.to_string())?;batch.clear();
+        }
+    }
+    if !batch.is_empty(){eg.parse_and_run_program(None,&batch).map_err(|e|e.to_string())?;}
+    Ok(())
+}
+/// Consume a generated command stream without an intermediate .egg file.
+pub fn execute_stream(reader: impl std::io::BufRead, compact: bool) -> Result<Value, String> {
+    let mut eg = EGraph::default();
+    let start=std::time::Instant::now();
+    run_command_stream(&mut eg,reader)?;
+    eprintln!("[native-import] input-and-checks {:.6}s",start.elapsed().as_secs_f64());
+    let start=std::time::Instant::now();
+    eg.parse_and_run_program(None,"(run-schedule (saturate (run tier1))) (run-schedule (saturate (run tier1_equivalences))) (run-schedule (saturate (run tier1)))").map_err(|e|e.to_string())?;
+    eprintln!("[native-import] final-saturation {:.6}s",start.elapsed().as_secs_f64());
+    let start=std::time::Instant::now();
+    let result=export_mode(&eg,compact);
+    eprintln!("[native-import] export {:.6}s",start.elapsed().as_secs_f64());
+    result
+}
 fn validate_independence(eg: &EGraph) -> Result<(), String> {
     if let Some(empty) = eg.lookup_function("Empty", &[]) {
         let mut invalid = false;
@@ -106,18 +133,24 @@ fn export_mode(eg: &EGraph,compact:bool) -> Result<Value, String> {
         eg.value_to_class_id(eg.get_sort_by_name(sort).unwrap(), v)
             .to_string()
     };
+    // The graph is immutable throughout export. Share one cost computation
+    // instead of rebuilding an extractor for every occurrence and template.
+    let mut roots=vec!["RuleId","RelativeBinding","PartialRelativeBinding","Args"];
+    if !compact {roots.push("Effect");}
+    let extractor=egglog::extract::Extractor::compute_costs_from_rootsorts(
+        Some(roots.into_iter().map(|s|eg.get_sort_by_name(s).unwrap().clone()).collect()),
+        eg,egglog::extract::TreeAdditiveCostModel::default());
+    let mut dag=egglog::TermDag::default();
+    let mut render=|sort:&str,value| {
+        let (_,term)=extractor.extract_best_with_sort(eg,&mut dag,value,eg.get_sort_by_name(sort).unwrap().clone()).unwrap();
+        dag.to_string(term)
+    };
     let mut templates = BTreeMap::<String, Value>::new();
     for name in ["Empty", "SmoothComb", "CoarseComb"] {
         eg.function_for_each(name, |row| {
             let id = cid("Comb", *row.vals.last().unwrap());
             if name=="Empty"{templates.insert(id.clone(),json!({"id":id,"kind":"Empty","rule":"","relative_binding":"","parents":[]}));return;}
-            let rule_text = eg
-                .extract_value_to_string(
-                    eg.get_sort_by_name("RuleId").unwrap(),
-                    row.vals[1],
-                )
-                .unwrap()
-                .0;
+            let rule_text = render("RuleId",row.vals[1]);
             let rule: String = serde_json::from_str(
                 rule_text
                     .strip_prefix("(Rule ")
@@ -126,21 +159,7 @@ fn export_mode(eg: &EGraph,compact:bool) -> Result<Value, String> {
                     .unwrap(),
             )
             .unwrap();
-            let ports = if name == "Empty" {
-                String::new()
-            } else {
-                eg.extract_value_to_string(
-                    eg.get_sort_by_name(if name == "SmoothComb" {
-                        "RelativeBinding"
-                    } else {
-                        "PartialRelativeBinding"
-                    })
-                    .unwrap(),
-                    row.vals[2],
-                )
-                .unwrap()
-                .0
-            };
+            let ports=render(if name=="SmoothComb" {"RelativeBinding"} else {"PartialRelativeBinding"},row.vals[2]);
             let form=json!({"kind":name,"rule":rule,"relative_binding":ports});
             if let Some(existing)=templates.get_mut(&id){existing["equivalent_forms"].as_array_mut().unwrap().push(form);}else{
                 templates.insert(id.clone(),json!({"id":id,"kind":name,"rule":rule,"relative_binding":ports,"parents":[],"equivalent_forms":[form]}));
@@ -162,16 +181,14 @@ fn export_mode(eg: &EGraph,compact:bool) -> Result<Value, String> {
             .as_array_mut()
             .unwrap()
             .push(json!(
-                eg.extract_value_to_string(eg.get_sort_by_name("Args").unwrap(), r.vals[1])
-                    .unwrap()
-                    .0
+                render("Args",r.vals[1])
             ));
     })
     .map_err(|e| e.to_string())?;
     eg.function_for_each("Provides",|r|{
         let instance=instances.get_mut(&cid("Instance",r.vals[0])).unwrap();
         instance["effect_count"]=json!(instance["effect_count"].as_u64().unwrap()+1);
-        if !compact{instance["effects"].as_array_mut().unwrap().push(json!(eg.extract_value_to_string(eg.get_sort_by_name("Effect").unwrap(),r.vals[1]).unwrap().0));}
+        if !compact{instance["effects"].as_array_mut().unwrap().push(json!(render("Effect",r.vals[1])));}
     }).map_err(|e|e.to_string())?;
     let nodes=if compact { template_nodes(eg)? } else {
     let serialized = eg.serialize(egglog::SerializeConfig {
@@ -185,7 +202,7 @@ fn export_mode(eg: &EGraph,compact:bool) -> Result<Value, String> {
     nodes
     };
     Ok(
-        json!({"templates":templates.into_values().collect::<Vec<_>>(),"instances":instances.into_values().collect::<Vec<_>>(),"native_egraph":{"nodes":nodes},"serialization_complete":!compact,"graph_scope":if compact{"template constructors only; instance effects counted"}else{"full native graph"},"scope":"native tier-1 templates plus occurrence-scoped evidence; supplied witnesses, not an automatic tier-0 importer or compression result"}),
+        json!({"relation_sizes":(["LocalResolved","PartialResolved","LocalArgs","PartialArgs","Binding","Provides","ArgsEqual"].into_iter().map(|name|(name,eg.get_size(name))).collect::<BTreeMap<_,_>>()),"templates":templates.into_values().collect::<Vec<_>>(),"instances":instances.into_values().collect::<Vec<_>>(),"native_egraph":{"nodes":nodes},"serialization_complete":!compact,"graph_scope":if compact{"template constructors only; instance effects counted"}else{"full native graph"},"scope":"native tier-1 templates plus occurrence-scoped evidence; supplied witnesses, not an automatic tier-0 importer or compression result"}),
     )
 }
 

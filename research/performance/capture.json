@@ -1,0 +1,186 @@
+{
+  "platform": "Apple M3 Max",
+  "build": "release",
+  "native_baselines": [
+    {
+      "rounds": 11,
+      "seconds": [
+        0.302194458,
+        0.296753084,
+        0.281164833
+      ],
+      "median_seconds": 0.296753084
+    },
+    {
+      "rounds": 6,
+      "seconds": [
+        0.006088375,
+        0.005983041,
+        0.005987875
+      ],
+      "median_seconds": 0.005987875
+    }
+  ],
+  "six_round_pipeline": [
+    {
+      "variant": "pipe, default threads",
+      "wall_seconds": 35.62245200003963,
+      "phase_seconds": {
+        "prepare": 0.010724,
+        "build-capture-tools": 0.36505,
+        "trace-tier0": 0.672139,
+        "import-tier1": 28.932348,
+        "extract-tier1": 2.658658,
+        "analyze-tier2": 2.413081
+      },
+      "relation_sizes": null,
+      "native_process_peaks": [
+        {
+          "pid": 40441,
+          "process": "combine_profile",
+          "rss_kib": 468304,
+          "cpu_percent": 524.0
+        },
+        {
+          "pid": 40682,
+          "process": "tier1_export",
+          "rss_kib": 1404160,
+          "cpu_percent": 1300.3
+        },
+        {
+          "pid": 43788,
+          "process": "tier1_interface_snapshot",
+          "rss_kib": 228032,
+          "cpu_percent": 141.1
+        }
+      ]
+    },
+    {
+      "variant": "single-thread import",
+      "wall_seconds": 26.592148249968886,
+      "phase_seconds": {
+        "prepare": 0.015371,
+        "build-capture-tools": 0.341559,
+        "trace-tier0": 0.633129,
+        "import-tier1": 20.884475,
+        "extract-tier1": 2.066943,
+        "analyze-tier2": 2.37844
+      },
+      "relation_sizes": null,
+      "native_process_peaks": [
+        {
+          "pid": 54374,
+          "process": "combine_profile",
+          "rss_kib": 344144,
+          "cpu_percent": 588.6
+        },
+        {
+          "pid": 54610,
+          "process": "tier1_export",
+          "rss_kib": 462128,
+          "cpu_percent": 100.0
+        },
+        {
+          "pid": 57017,
+          "process": "tier1_interface_snapshot",
+          "rss_kib": 77776,
+          "cpu_percent": 94.9
+        }
+      ]
+    },
+    {
+      "variant": "demanded binding routes",
+      "wall_seconds": 19.63899462495465,
+      "phase_seconds": {
+        "prepare": 0.011483,
+        "build-capture-tools": 0.139355,
+        "trace-tier0": 0.555285,
+        "import-tier1": 14.133344,
+        "extract-tier1": 2.22362,
+        "analyze-tier2": 2.444623
+      },
+      "relation_sizes": {
+        "ArgsEqual": 3929,
+        "Binding": 1529,
+        "LocalArgs": 6663,
+        "LocalResolved": 5574,
+        "PartialArgs": 1161,
+        "PartialResolved": 923,
+        "Provides": 28173
+      },
+      "native_process_peaks": [
+        {
+          "pid": 98820,
+          "process": "combine_profile",
+          "rss_kib": 385472,
+          "cpu_percent": 459.4
+        },
+        {
+          "pid": 98826,
+          "process": "tier1_export",
+          "rss_kib": 450464,
+          "cpu_percent": 100.0
+        },
+        {
+          "pid": 747,
+          "process": "tier1_interface_snapshot",
+          "rss_kib": 79440,
+          "cpu_percent": 93.6
+        }
+      ]
+    },
+    {
+      "variant": "shared cost extractor, indexed import",
+      "wall_seconds": 10.703069083043374,
+      "phase_seconds": {
+        "prepare": 0.007815,
+        "build-capture-tools": 0.086216,
+        "trace-tier0": 0.368482,
+        "import-tier1": 6.487637,
+        "extract-tier1": 1.121028,
+        "analyze-tier2": 2.422948
+      },
+      "relation_sizes": {
+        "ArgsEqual": 3929,
+        "Binding": 1529,
+        "LocalArgs": 6663,
+        "LocalResolved": 5574,
+        "PartialArgs": 1161,
+        "PartialResolved": 923,
+        "Provides": 28173
+      },
+      "native_process_peaks": [
+        {
+          "pid": 52536,
+          "process": "combine_profile",
+          "rss_kib": 32,
+          "cpu_percent": 0
+        },
+        {
+          "pid": 52540,
+          "process": "tier1_export",
+          "rss_kib": 396960,
+          "cpu_percent": 100.0
+        },
+        {
+          "pid": 53267,
+          "process": "tier1_interface_snapshot",
+          "rss_kib": 81280,
+          "cpu_percent": 80.2
+        }
+      ]
+    }
+  ],
+  "eleven_round_probe": {
+    "wall_seconds": 19.49163179192692,
+    "stop_reason": "process-tree RSS limit",
+    "peak_tree_rss_kib": 8403792,
+    "phase": "trace-tier0",
+    "completed": false
+  },
+  "measurement_notes": [
+    "Native baselines: median of three runs, program-internal time.",
+    "Pipeline variants: one run each with macOS sample and ps monitoring overhead. Do not equate six-round analysis with eleven-round execution.",
+    "Old file pipeline occupied 31.07 MiB at six rounds; pipe/focused output occupied 7.98 MiB. No bounded-memory streaming claim."
+  ]
+}

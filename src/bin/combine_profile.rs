@@ -28,15 +28,17 @@ fn override_rounds(commands: &mut [Command], rounds: Option<usize>) -> Result<()
     Err("--rounds does not support complex schedules; omit it to preserve the source schedule".into())
 }
 fn profile_rounds(path: &str, max_rounds: Option<usize>) -> Json {
+    profile_mode(path, max_rounds, false)
+}
+fn profile_mode(path: &str, max_rounds: Option<usize>, bridge_only: bool) -> Json {
     let source = std::fs::read_to_string(path).unwrap();
     let mut eg = EGraph::default();
     let mut commands = eg.parse_program(Some(path.into()), &source).unwrap();
     override_rounds(&mut commands, max_rounds).expect("invalid --rounds override");
-    let mut reference = EGraph::default();
-    reference
-        .parse_and_run_program(Some(path.into()), &source)
-        .unwrap();
-    drop(reference);
+    if !bridge_only {
+        let mut reference = EGraph::default();
+        reference.parse_and_run_program(Some(path.into()), &source).unwrap();
+    }
     let datatypes: Vec<_> = commands.iter().filter_map(|c| {
         if let Command::Datatype { name, .. } = c { Some(json!({"name":name,"definition":c.to_string()})) } else { None }
     }).collect();
@@ -170,6 +172,7 @@ fn profile_rounds(path: &str, max_rounds: Option<usize>) -> Json {
             if !survived.contains(&producer) {
                 continue;
             }
+            if bridge_only { support.push(json!({"read":r.event_id})); continue; }
             let parent_index = parents.len();
             let parent = *parents.entry(producer).or_insert(parent_index);
             let kind = if w.rebuild_of.is_some() {
@@ -205,6 +208,10 @@ fn profile_rounds(path: &str, max_rounds: Option<usize>) -> Json {
             if c.examples.len() < 3 {
                 c.examples.push(consumer);
             }
+        }
+        if bridge_only {
+            if !support.is_empty() { evidence.push(json!({"support":support})); }
+            continue;
         }
         if signature.is_empty() {
             continue;
@@ -242,21 +249,29 @@ fn profile_rounds(path: &str, max_rounds: Option<usize>) -> Json {
         rows.sort_by(|a, b| b.1.occurrences.cmp(&a.1.occurrences).then(a.0.cmp(&b.0)));
         rows.into_iter().enumerate().map(|(i,(shape,c))|json!({"rank":i+1,"shape":shape,"observed_occurrences":c.occurrences,"productive_consumer_occurrences":c.productive,"scopes":c.scopes,"example_matches":c.examples,"continued_instances":c.continued.len(),"next_motif_counts":c.next_motifs,"next_rule_counts":c.next})).collect::<Vec<_>>()
     };
-    json!({"action_writes":writes.values().map(|w|json!({"id":w.event_id,"match":w.match_event_id,"outcome":format!("{:?}",w.outcome),"actual":w.actual.iter().map(|v|format!("{v:?}")).collect::<Vec<_>>(),"table":format!("{:?}",w.table),"source_span":w.source_span,"rebuild_of":w.rebuild_of})).collect::<Vec<_>>(),"committed_writes":writes.values().filter(|w| w.outcome==WriteOutcome::Inserted).map(|w|json!({"id":w.event_id,"match":w.match_event_id,"table":format!("{:?}",w.table),"actual":w.actual.iter().map(|v|format!("{v:?}")).collect::<Vec<_>>(),"source_span":w.source_span,"rebuild_of":w.rebuild_of,"union_dependencies":w.union_dependencies})).collect::<Vec<_>>(),"unions":trace.union_events().iter().map(|u|json!({"id":u.event_id,"match":u.match_event_id,"lhs":format!("{:?}",u.lhs),"rhs":format!("{:?}",u.rhs),"changed":u.displaced.is_some()})).collect::<Vec<_>>(),"reads":trace.row_reads().iter().map(|r|json!({"id":r.event_id,"match":r.match_event_id,"table":format!("{:?}",r.table),"name":r.table_name,"column_sorts":r.table_name.as_deref().and_then(|name|eg.get_function(name)).map(|f|{let s=f.schema();s.input.iter().chain(std::iter::once(&s.output)).map(|s|s.name().to_string()).collect::<Vec<_>>()}),"key":r.key.iter().map(|v|format!("{v:?}")).collect::<Vec<_>>(),"source_span":r.source_span,"row":r.row.iter().map(|v|format!("{v:?}")).collect::<Vec<_>>(),"producer":r.producer_match_event_id,"write":r.producer_write_event_id})).collect::<Vec<_>>(),"events":matches.values().map(|m|json!({"id":m.event_id,"rule":m.rule,"scope":scope(m.event_id),"round":event_round.get(&m.event_id),"productive":productive.contains(&m.event_id),"survived":survived.contains(&m.event_id),"complete_witness":m.physical_witness_complete,"bindings":m.bindings.iter().filter_map(|b|b.name.as_ref().map(|n|(n.to_string(),format!("{:?}",b.value)))).collect::<BTreeMap<_,_>>()})).collect::<Vec<_>>(),"round_tracking":"explicit repeat(run) boundaries only; other schedule forms have null rounds","coarse_motif_classes":coarse_shapes.len(),"source_mapping":"compiler source spans mapped to normalized AST positions; motif identity includes endpoint positions","profile_round_limit":max_rounds,"executed_rounds":if rounds_fully_tracked {Some(round)} else {None},"datatypes":datatypes,"source":path,"scope":"historical committed row-dependency motifs, not generated or executed shortcut rules","native_checks":"original native program completed; normalized profiled program completed with explicit profile_round_limit when supplied","rule_labels":rule_stats,"pair_rankings":ranked(pairs),"motif_rankings":ranked(motifs),"witnesses":evidence,"surviving_reads_without_same_session_producer":unknown_reads,"executed_compiled_macros":0,"selection_policy":"none: ranking is observational, no activation policy","limitations":["one execution per scope, not independent benchmark repetitions","motifs retain producer-instance aliasing and same-table read ordinals; not full typed binding-isomorphism classes","boundary inputs and union support remain explicit; not closed rewrite certificates","historical support remains counted even if row origins are invalidated later","union-only causes are shown as rebuild support, not ranked as Inserted producers"]})
+    json!({"action_writes":writes.values().map(|w|json!({"id":w.event_id,"match":w.match_event_id,"outcome":format!("{:?}",w.outcome),"actual":w.actual.iter().map(|v|format!("{v:?}")).collect::<Vec<_>>(),"table":format!("{:?}",w.table),"source_span":w.source_span,"rebuild_of":w.rebuild_of})).collect::<Vec<_>>(),"committed_writes":writes.values().filter(|w| w.outcome==WriteOutcome::Inserted).map(|w|json!({"id":w.event_id,"match":w.match_event_id,"table":format!("{:?}",w.table),"actual":w.actual.iter().map(|v|format!("{v:?}")).collect::<Vec<_>>(),"source_span":w.source_span,"rebuild_of":w.rebuild_of,"union_dependencies":w.union_dependencies})).collect::<Vec<_>>(),"unions":trace.union_events().iter().map(|u|json!({"id":u.event_id,"match":u.match_event_id,"lhs":format!("{:?}",u.lhs),"rhs":format!("{:?}",u.rhs),"changed":u.displaced.is_some()})).collect::<Vec<_>>(),"reads":trace.row_reads().iter().map(|r|json!({"id":r.event_id,"match":r.match_event_id,"table":format!("{:?}",r.table),"name":r.table_name,"column_sorts":r.table_name.as_deref().and_then(|name|eg.get_function(name)).map(|f|{let s=f.schema();s.input.iter().chain(std::iter::once(&s.output)).map(|s|s.name().to_string()).collect::<Vec<_>>()}),"key":r.key.iter().map(|v|format!("{v:?}")).collect::<Vec<_>>(),"source_span":r.source_span,"row":r.row.iter().map(|v|format!("{v:?}")).collect::<Vec<_>>(),"producer":r.producer_match_event_id,"write":r.producer_write_event_id})).collect::<Vec<_>>(),"events":matches.values().map(|m|json!({"id":m.event_id,"rule":m.rule,"scope":scope(m.event_id),"round":event_round.get(&m.event_id),"productive":productive.contains(&m.event_id),"survived":survived.contains(&m.event_id),"complete_witness":m.physical_witness_complete,"bindings":m.bindings.iter().filter_map(|b|b.name.as_ref().map(|n|(n.to_string(),format!("{:?}",b.value)))).collect::<BTreeMap<_,_>>()})).collect::<Vec<_>>(),"round_tracking":"explicit repeat(run) boundaries only; other schedule forms have null rounds","coarse_motif_classes":coarse_shapes.len(),"source_mapping":"compiler source spans mapped to normalized AST positions; motif identity includes endpoint positions","profile_round_limit":max_rounds,"executed_rounds":if rounds_fully_tracked {Some(round)} else {None},"datatypes":datatypes,"source":path,"scope":"historical committed row-dependency motifs, not generated or executed shortcut rules","native_checks":if bridge_only {"normalized source executed with dependency tracing; no redundant reference run"} else {"original native program completed; normalized profiled program completed with explicit profile_round_limit when supplied"},"rule_labels":rule_stats,"pair_rankings":ranked(pairs),"motif_rankings":ranked(motifs),"witnesses":evidence,"surviving_reads_without_same_session_producer":unknown_reads,"executed_compiled_macros":0,"selection_policy":"none: ranking is observational, no activation policy","limitations":["one execution per scope, not independent benchmark repetitions","motifs retain producer-instance aliasing and same-table read ordinals; not full typed binding-isomorphism classes","boundary inputs and union support remain explicit; not closed rewrite certificates","historical support remains counted even if row origins are invalidated later","union-only causes are shown as rebuild support, not ranked as Inserted producers"]})
 }
 fn main() {
-    let path = std::env::args()
-        .nth(1)
-        .unwrap_or("egglog/tests/web-demo/cyk.egg".into());
-    let limit = std::env::args()
-        .nth(3)
-        .map(|s| s.parse().expect("round limit"));
-    let result = profile_rounds(&path, limit);
-    let text = serde_json::to_string_pretty(&result).unwrap();
-    if let Some(out) = std::env::args().nth(2) {
-        std::fs::write(out, text).unwrap();
+    use std::io::Write;
+    let mut args: Vec<_> = std::env::args().skip(1).collect();
+    let stream = args.iter().any(|a| a == "--bridge-stream");
+    args.retain(|a| a != "--bridge-stream");
+    let path = args.first().map(String::as_str).unwrap_or("egglog/tests/web-demo/cyk.egg");
+    let rounds = args.get(2).map(|s| s.parse().expect("round override"));
+    let result = profile_mode(path, rounds, stream);
+    if stream {
+        // No pretty JSON string, ranking expansion, or trace file. One record per line.
+        let mut out = std::io::BufWriter::new(std::io::stdout().lock());
+        for (key, value) in result.as_object().unwrap() {
+            if let Json::Array(items) = value {
+                serde_json::to_writer(&mut out, &("array",key)).unwrap();writeln!(out).unwrap();
+                for item in items { serde_json::to_writer(&mut out, &("item",key,item)).unwrap();writeln!(out).unwrap(); }
+            } else { serde_json::to_writer(&mut out, &("value",key,value)).unwrap();writeln!(out).unwrap(); }
+        }
+        serde_json::to_writer(&mut out, &("end",)).unwrap();writeln!(out).unwrap();out.flush().unwrap();
     } else {
-        println!("{text}");
+        let text = serde_json::to_string_pretty(&result).unwrap();
+        if let Some(out) = args.get(1) {std::fs::write(out,text).unwrap();} else {println!("{text}");}
     }
 }
 #[cfg(test)]

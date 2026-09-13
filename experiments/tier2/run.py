@@ -3,6 +3,7 @@ import argparse
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -16,6 +17,7 @@ def options(argv=None):
     parser.add_argument('--source', type=Path, help='self-contained Math .egg input; requires --recapture-tier0')
     parser.add_argument('--rounds', type=int, help='override one simple (run N); omitted: preserve the source schedule')
     parser.add_argument('--output', type=Path, help='new capture directory, or an existing completed run to reuse')
+    parser.add_argument('--focused',action='store_true',help=argparse.SUPPRESS)
     parser.add_argument('--skip-checks', action='store_true', help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
     if args.rounds is not None and (not args.recapture_tier0 or args.rounds < 1):
@@ -30,7 +32,9 @@ def main():
     os.chdir(ROOT)
 
     def run(*command):
+        started=time.perf_counter()
         subprocess.run(command, check=True)
+        print(f'[step] {time.perf_counter()-started:.3f}s {command}',flush=True)
 
     def py(script):
         run(sys.executable, f'experiments/tier2/{script}.py')
@@ -51,6 +55,16 @@ def main():
     py('higher')
     native('higher')
     py('check_higher')
+    if args.focused:
+        import json
+        from fractal_view import build
+        visible=build(include_results=False)
+        selected=sorted({n['comb'] for n in visible['nodes'].values()})
+        target=ROOT/'experiments/tier1_extract/selected_combs.json'
+        target.write_text(json.dumps(selected)+'\n')
+        run(sys.executable,'experiments/tier1_extract/lower.py','--selected',str(target))
+        run(sys.executable,'experiments/tier1_extract/render.py','--selected-only')
+
 
     # The recurrence fixtures are a separate adapter, not the generic Math learner.
     py('fixtures')

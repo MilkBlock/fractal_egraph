@@ -1,6 +1,6 @@
 """Browse whole-combination lowering from the selected native tier-1 graph."""
 from pathlib import Path
-import json,html
+import json,html,sys
 OUT=Path(__file__).parent
 r=json.loads((OUT/'extraction.json').read_text())
 combined=json.loads((OUT/'combined.json').read_text())
@@ -15,6 +15,7 @@ parts=['''<!doctype html><meta charset="utf-8"><title>Tier-1 → combined tier-0
 stats=combined['summary']
 parts.append(f'<p>{stats["comb_classes"]} 个已有 Comb · {stats["classes_with_lowering"]} 个可降级 · {stats["rules"]} 条整组合规则 · {stats["lowered_occurrences"]} 个已降级实例。其余保留边界说明，不生成猜测规则。</p>')
 for d in r['definitions']:
+    if '--selected-only' in sys.argv and d['name'] not in whole:continue
     name=d['name'];rid=d.get('tier0_rule_id','Empty');anchor=name.lstrip('$')
     c=whole[name]; fused=[]
     for k,v in enumerate(c['variants']):

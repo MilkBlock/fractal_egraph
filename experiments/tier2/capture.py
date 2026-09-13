@@ -3,9 +3,11 @@ import datetime
 import hashlib
 import importlib.util
 import json
+import os
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 SOURCE = Path('experiments/annotated_export/math_microbenchmark/source.egg')
@@ -14,6 +16,44 @@ def destination(root, output):
     if output is None:
         output = Path('out') / ('math-' + datetime.datetime.now().strftime('%Y%m%d-%H%M%S-%f'))
     return output.resolve() if output.is_absolute() else (root / output).resolve()
+
+def write_json(path, value):
+    with path.open('w') as out:
+        json.dump(value,out,separators=(',',':'))
+        out.write('\n')
+
+def profile_pipe(command, cwd):
+    """Record-framed transport: no whole serialized trace string or trace file."""
+    with subprocess.Popen([str(x) for x in command],cwd=cwd,stdout=subprocess.PIPE,text=True) as proc:
+        result={};ended=False
+        try:
+            for line in proc.stdout:
+                record=json.loads(line);kind=record[0]
+                if ended:raise ValueError('records after end marker')
+                if kind=='array':result[record[1]]=[]
+                elif kind=='item':result[record[1]].append(record[2])
+                elif kind=='value':result[record[1]]=record[2]
+                elif kind=='end':ended=True
+                else:raise ValueError('unknown capture record')
+            if proc.wait()!=0:raise subprocess.CalledProcessError(proc.returncode,command)
+            if not ended:raise ValueError('incomplete capture stream')
+            return result
+        except BaseException:
+            if proc.poll() is None:proc.kill()
+            proc.wait();raise
+
+def command_pipe(command, lines, cwd, env=None):
+    """Stream complete .egg commands into the native importer; decode its result."""
+    with subprocess.Popen([str(x) for x in command],cwd=cwd,stdin=subprocess.PIPE,stdout=subprocess.PIPE,text=True,env=env) as proc:
+        try:
+            for line in lines:proc.stdin.write(line+'\n')
+            proc.stdin.close()
+            result=json.load(proc.stdout)
+            if proc.wait()!=0:raise subprocess.CalledProcessError(proc.returncode,command)
+            return result
+        except BaseException:
+            if proc.poll() is None:proc.kill()
+            proc.wait();raise
 
 def capture_or_reuse(root, driver, output, rounds, fresh, source=None):
     dest = destination(root, output)
@@ -24,7 +64,7 @@ def capture_or_reuse(root, driver, output, rounds, fresh, source=None):
         state=json.loads(marker.read_text());state.update(status='running',phase='reuse-tier2')
         marker.write_text(json.dumps(state,indent=2)+'\n')
         try:
-            subprocess.run([sys.executable, str(dest/'experiments/tier2/run.py'), '--driver', str(driver), '--skip-checks'], check=True, cwd=dest)
+            subprocess.run([sys.executable, str(dest/'experiments/tier2/run.py'), '--driver', str(driver), '--skip-checks'] + (['--focused'] if state.get('materialization')=='fractal-only' else []), check=True, cwd=dest)
         except BaseException as error:
             state.update(status='failed',error=str(error));marker.write_text(json.dumps(state,indent=2)+'\n');raise
         state.update(status='complete',phase='complete');marker.write_text(json.dumps(state,indent=2)+'\n')
@@ -36,9 +76,13 @@ def capture_or_reuse(root, driver, output, rounds, fresh, source=None):
     dest.mkdir(parents=True, exist_ok=False)  # Never replace an earlier run.
     state = {'status':'running', 'requested_rounds':rounds, 'schedule_mode':'source' if rounds is None else 'override', 'source':str(source_path), 'staged_source':str(SOURCE),
              'source_sha256':hashlib.sha256(source_bytes).hexdigest(),
-             'phase':'prepare', 'fallback_used':False}
+             'phase':'prepare', 'fallback_used':False, 'transport':'pipe', 'materialization':'fractal-only'}
     marker = dest/'run.json'
+    phase_started=time.perf_counter()
+    state['phase_seconds']={}
     def phase(name):
+        nonlocal phase_started
+        now=time.perf_counter();state['phase_seconds'][state['phase']]=round(now-phase_started,6);phase_started=now
         state['phase']=name;marker.write_text(json.dumps(state,indent=2)+'\n')
         print(f'[capture] {name}: {dest}',flush=True)
     def run(*cmd):
@@ -69,10 +113,9 @@ def capture_or_reuse(root, driver, output, rounds, fresh, source=None):
         subprocess.run(command,cwd=root,check=True)
         binary=target/profile
         phase('trace-tier0')
-        command=[binary/'combine_profile',SOURCE,'profile.json']
+        command=[binary/'combine_profile',SOURCE,'-','--bridge-stream']
         if rounds is not None:command.append(rounds)
-        run(*command)
-        raw=json.loads((dest/'profile.json').read_text())
+        raw=profile_pipe(command,dest)
         if rounds is not None and raw.get('executed_rounds')!=rounds:
             raise ValueError(f"requested {rounds} rounds, trace executed {raw.get('executed_rounds')}")
         state['executed_rounds']=raw.get('executed_rounds');state['match_events']=len(raw['events'])
@@ -84,36 +127,52 @@ def capture_or_reuse(root, driver, output, rounds, fresh, source=None):
         phase('import-tier1')
         spec=importlib.util.spec_from_file_location('math_bridge',root/'research/math_bridge.py')
         bridge=importlib.util.module_from_spec(spec);spec.loader.exec_module(bridge)
-        program,manifest=bridge.build(raw)
+        program,manifest=bridge.build(raw,streaming=True)
         state['import_audit']=manifest['audit']
-        (dest/'imported.egg').write_text(program)
-        (dest/'manifest.json').write_text(json.dumps(manifest)+'\n')
-        run(binary/'tier1_export','imported.egg','native.json','--compact')
-        native=json.loads((dest/'native.json').read_text());t1=dest/'experiments/tier1_extract'
+        rule_labels=raw['rule_labels']
+        layouts=[{'event':r['id'],'parents':r['parents'],'inputs':r['input_layout'],'outputs':r['output_layout']} for r in manifest['records']]
+        del raw,manifest
+        import_env=dict(os.environ)
+        import_env.setdefault('RAYON_NUM_THREADS','1')
+        state['import_threads']=import_env['RAYON_NUM_THREADS']
+        native=command_pipe([binary/'tier1_export','-','-','--compact'],program,dest,env=import_env)
+        del program
+        state['tier1_relation_sizes']=native.get('relation_sizes')
+        t1=dest/'experiments/tier1_extract'
+        instances={i['event']:i['template'] for i in native['instances']}
+        for record in layouts:record['template']=instances[record['event']]
+        del instances
         saved={'native_egraph':native['native_egraph'],'templates':native['templates'],
                'instances':[{'template':i['template']} for i in native['instances']],
                'source_scope':native['graph_scope'],'capture':{'rounds':state['executed_rounds'],'source':str(source_path),'source_sha256':state['source_sha256']}}
-        (t1/'native_templates.json').write_text(json.dumps(saved)+'\n')
-        (t1/'tier0_rule_dictionary.json').write_text(json.dumps(raw['rule_labels'])+'\n')
+        write_json(t1/'native_templates.json',saved)
+        write_json(t1/'tier0_rule_dictionary.json',rule_labels)
         del saved,native
         phase('extract-tier1')
         run(driver,'schema',SOURCE,'experiments/tier1_extract/source_schema.json')
         py('extract.py')
-        run(sys.executable,t1/'prepare_interfaces.py','manifest.json','native.json','profile.json')
-        py('interface_program.py')
-        run(binary/'tier1_interface_snapshot')
+        interfaces={'native_sha256':hashlib.sha256((t1/'native_templates.json').read_bytes()).hexdigest(),'occurrences':layouts}
+        spec=importlib.util.spec_from_file_location('interface_program',t1/'interface_program.py')
+        module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+        definitions=json.loads((t1/'extraction.json').read_text())
+        schema=json.loads((t1/'source_schema.json').read_text())
+        interface_lines=module.commands(definitions,interfaces,schema)
+        native_interfaces=command_pipe([binary/'tier1_interface_snapshot','-','-'],interface_lines,dest,env=import_env)
+        write_json(t1/'native_interfaces.json',native_interfaces)
+        del native_interfaces,interfaces,layouts,definitions,schema,interface_lines
         # Bootstrap the source dictionary for lowering; no previous results are copied.
         used={d['tier0_rule_id'] for d in json.loads((t1/'extraction.json').read_text())['definitions'] if 'tier0_rule_id' in d}
-        (t1/'tier0_rules.egg').write_text(datatype+'\n'+'\n'.join(raw['rule_labels'][r]['definition'].replace('\\n','\n') for r in sorted(used))+'\n')
-        del raw,manifest,program
-        py('lower.py');py('render.py')
+        (t1/'tier0_rules.egg').write_text(datatype+'\n'+'\n'.join(rule_labels[r]['definition'].replace('\\n','\n') for r in sorted(used))+'\n')
+        del rule_labels
         phase('analyze-tier2')
-        run(sys.executable,dest/'experiments/tier2/run.py','--driver',driver,'--skip-checks')
+        run(sys.executable,dest/'experiments/tier2/run.py','--driver',driver,'--skip-checks','--focused')
+        phase('complete')
         state['status']='complete';state['phase']='complete'
         state['viewer']='experiments/tier2/fractal.html'
         marker.write_text(json.dumps(state,indent=2)+'\n')
         print('Fresh viewer:',dest/state['viewer'],flush=True)
     except BaseException as error:
         state['status']='failed';state['error']=str(error)
-        marker.write_text(json.dumps(state,indent=2)+'\n')
+        try:marker.write_text(json.dumps(state,indent=2)+'\n')
+        except OSError as status_error:print(f'Could not save failure status: {status_error}',file=sys.stderr)
         raise

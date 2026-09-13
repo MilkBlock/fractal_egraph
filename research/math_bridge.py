@@ -10,7 +10,7 @@ def cons(items, ctor, nil):
     for x in reversed(items):out=f'({ctor} {x} {out})'
     return out
 
-def build(profile):
+def build(profile, streaming=False):
     all_events={e['id']:e for e in profile['events']}
     actions=defaultdict(list)
     for w in profile['action_writes']:actions[w['match']].append(w)
@@ -72,10 +72,23 @@ def build(profile):
             else:
                 if v not in external:external.append(v)
                 ports.append(('external',external.index(v),v[0]))
-        records[i]={'id':i,'rule':e['rule'],'round':e['round'],'scope':e['scope'],'parents':parents,'ports':ports,'external':external,'expected_binding':wanted,'outputs':output,'output_layout':layout,'required':required,'external_facts':external_facts,'produced':[token(w) for w in direct], 'unions':unions[i]}
-    lines=['(include "experiments/tier1_effects/tier1_rule_comb_ir.egg")','(let $empty (Empty))']
+        records[i]={'id':i,'rule':e['rule'],'round':e['round'],'scope':e['scope'],'parents':parents,'ports':ports,'external':external,'expected_binding':wanted,'outputs':output,'output_layout':layout,'required':required,'external_facts':external_facts,'produced':[token(w) for w in direct], 'unions':unions[i], 'input_layout':[{'variable':k} for k,_ in named]+[{'read_span':r['source_span'],'op':r['name']} for r in sorted(reads[i],key=lambda r:(r.get('source_span') or '',r['name'] or '',r['id']))]}
+    for r in records.values():r['kind']='CoarseComb' if any(p[0]=='external' for p in r['ports']) or not r['parents'] else 'SmoothComb'
+    audit={'trace_events':len(all_events),'imported_events':len(records),'excluded_events':len(all_events)-len(records),'direct_dependency_edges':sum(len(r['parents']) for r in records.values()),'external_read_reasons':dict(reasons),'changed_union_events':sum(len(x) for x in unions.values()),'kinds':dict(Counter(r['kind'] for r in records.values())),'scope':'Math-specific named-variable typing; direct row provenance verified; unsupported/rebuild origins kept as external boundaries, not invented causal edges'}
+    return (commands(records,indexed=True) if streaming else '\n'.join(commands(records))+'\n'),{'audit':audit,'records':list(records.values()),'rule_dictionary':profile['rule_labels']}
+
+def commands(records,indexed=False):
+    def cref(i):return f'(ImportedComb {i})' if indexed else f'$c{i}'
+    def iref(i):return f'(ImportedInstance {i})' if indexed else f'$i{i}'
+
+    def math(e,v):return ('Math',f"{e['scope']}:{v}")
+    yield '(include "experiments/tier1_effects/tier1_rule_comb_ir.egg")'
+    yield '(let $empty (Empty))'
+    if indexed:
+        yield '(function ImportedComb (i64) Comb :no-merge)'
+        yield '(function ImportedInstance (i64) Instance :no-merge)'
     for i,r in records.items():
-        parent_expr=cons([f'$c{p}' for p in r['parents']] or ['$empty'],'MoreParents','NoParents')
+        parent_expr=cons([cref(p) for p in r['parents']] or ['$empty'],'MoreParents','NoParents')
         coarse=any(p[0]=='external' for p in r['ports']) or not r['parents']
         slots=[]
         for p in r['ports']:
@@ -84,22 +97,25 @@ def build(profile):
             else:slots.append(f'(External {p[1]} {q(p[2])})')
         binding=cons(slots,'PCons' if coarse else 'RCons','PNil' if coarse else 'RNil')
         r['kind']='CoarseComb' if coarse else 'SmoothComb'
-        lines.append(f'(let $c{i} ({r["kind"]} {parent_expr} (Rule {q(r["rule"])}) {binding}))')
-        lines.append(f'(let $i{i} (Occurrence {i} $c{i}))')
-        for slot,p in enumerate(r['parents']):lines.append(f'(ParentAt $i{i} {slot} $i{p})')
+        value=f'({r["kind"]} {parent_expr} (Rule {q(r["rule"])}) {binding})'
+        if indexed:
+            yield f'(set {cref(i)} {value})'
+            yield f'(set {iref(i)} (Occurrence {i} {cref(i)}))'
+        else:
+            yield f'(let $c{i} {value})'
+            yield f'(let $i{i} (Occurrence {i} $c{i}))'
+        for slot,p in enumerate(r['parents']):yield (f'(ParentAt {iref(i)} {slot} {iref(p)})')
         for relation,values in [('OutputAt',r['outputs']),('ExternalAt',r['external'])]:
-            for slot,v in enumerate(values):lines.append(f'({relation} $i{i} {slot} {val(v)})')
+            for slot,v in enumerate(values):yield (f'({relation} {iref(i)} {slot} {val(v)})')
         def effect(v):return f'(HasFact "read-row" (ACons {val(v)} (ANil)))'
         for relation,values in [('Produced',r['produced']),('ExternalFact',r['external_facts'])]:
-            for v in sorted(set(map(tuple,values))):lines.append(f'({relation} $i{i} {effect(v)})')
-        for u in r['unions']:lines.append(f'(Produced $i{i} (Equal {val(math(events[i],u["lhs"]))} {val(math(events[i],u["rhs"]))}))')
-        lines.append(f'(Requires $i{i} {cons([effect(v) for v in r["required"]],"ECons","ENil")})')
-    lines+=['(run-schedule (saturate (run tier1)))']
+            for v in sorted(set(map(tuple,values))):yield (f'({relation} {iref(i)} {effect(v)})')
+        for u in r['unions']:yield (f'(Produced {iref(i)} (Equal {val(math(r,u["lhs"]))} {val(math(r,u["rhs"]))}))')
+        yield (f'(Requires {iref(i)} {cons([effect(v) for v in r["required"]],"ECons","ENil")})')
+    yield '(run-schedule (saturate (run tier1)))'
     for i,r in records.items():
-        lines.append(f'(check (Binding $i{i} {cons([val(v) for v in r["expected_binding"]],"ACons","ANil")}))')
-        lines.append(f'(check (SupportsUse $i{i} $i{i}))')
-    audit={'trace_events':len(all_events),'imported_events':len(records),'excluded_events':len(all_events)-len(records),'direct_dependency_edges':sum(len(r['parents']) for r in records.values()),'external_read_reasons':dict(reasons),'changed_union_events':sum(len(x) for x in unions.values()),'kinds':dict(Counter(r['kind'] for r in records.values())),'scope':'Math-specific named-variable typing; direct row provenance verified; unsupported/rebuild origins kept as external boundaries, not invented causal edges'}
-    return '\n'.join(lines)+'\n',{'audit':audit,'records':list(records.values()),'rule_dictionary':profile['rule_labels']}
+        yield (f'(check (Binding {iref(i)} {cons([val(v) for v in r["expected_binding"]],"ACons","ANil")}))')
+        yield (f'(check (SupportsUse {iref(i)} {iref(i)}))')
 
 if __name__=='__main__':
     import sys

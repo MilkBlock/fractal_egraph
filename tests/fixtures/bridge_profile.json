@@ -1,0 +1,196 @@
+{
+  "events": [
+    {
+      "bindings": {
+        "@Add2": "Value(2)",
+        "a": "Value(0)",
+        "b": "Value(1)"
+      },
+      "complete_witness": true,
+      "id": 0,
+      "productive": true,
+      "round": 1,
+      "rule": "R0",
+      "scope": 0,
+      "survived": true
+    },
+    {
+      "bindings": {
+        "@Add2": "Value(2)",
+        "a": "Value(1)",
+        "b": "Value(0)"
+      },
+      "complete_witness": true,
+      "id": 4,
+      "productive": false,
+      "round": 2,
+      "rule": "R0",
+      "scope": 0,
+      "survived": true
+    }
+  ],
+  "action_writes": [
+    {
+      "actual": [
+        "Value(1)",
+        "Value(0)",
+        "Value(2)",
+        "Value(2)",
+        "Value(0)"
+      ],
+      "id": 3,
+      "match": 0,
+      "outcome": "Inserted",
+      "rebuild_of": null,
+      "source_span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):64:73",
+      "table": "TableId(2)"
+    },
+    {
+      "actual": [
+        "Value(0)",
+        "Value(1)",
+        "Value(2)",
+        "Value(1)",
+        "Value(0)"
+      ],
+      "id": 7,
+      "match": 4,
+      "outcome": "Deduplicated",
+      "rebuild_of": null,
+      "source_span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):64:73",
+      "table": "TableId(2)"
+    }
+  ],
+  "committed_writes": [
+    {
+      "actual": [
+        "Value(1)",
+        "Value(0)",
+        "Value(2)",
+        "Value(2)",
+        "Value(0)"
+      ],
+      "id": 3,
+      "match": 0,
+      "rebuild_of": null,
+      "source_span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):64:73",
+      "table": "TableId(2)",
+      "union_dependencies": []
+    }
+  ],
+  "reads": [
+    {
+      "column_sorts": [
+        "Math",
+        "Math",
+        "Math"
+      ],
+      "id": 1,
+      "key": [
+        "Value(0)",
+        "Value(1)"
+      ],
+      "match": 0,
+      "name": "Add",
+      "producer": null,
+      "row": [
+        "Value(0)",
+        "Value(1)",
+        "Value(2)",
+        "Value(1)",
+        "Value(0)"
+      ],
+      "source_span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):54:63",
+      "table": "TableId(2)",
+      "write": null
+    },
+    {
+      "column_sorts": [
+        "Math",
+        "Math",
+        "Math"
+      ],
+      "id": 5,
+      "key": [
+        "Value(1)",
+        "Value(0)"
+      ],
+      "match": 4,
+      "name": "Add",
+      "producer": 0,
+      "row": [
+        "Value(1)",
+        "Value(0)",
+        "Value(2)",
+        "Value(2)",
+        "Value(0)"
+      ],
+      "source_span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):54:63",
+      "table": "TableId(2)",
+      "write": 3
+    }
+  ],
+  "unions": [],
+  "witnesses": [
+    {
+      "boundary_read_count": 0,
+      "complete_witness": true,
+      "consumer": 4,
+      "consumer_bindings": {
+        "@Add2": "Value(2)",
+        "a": "Value(1)",
+        "b": "Value(0)"
+      },
+      "motif": "[R0@p0:Add#0{head/0/expr/1=>body/0/expr/1}] -> R0",
+      "productive": false,
+      "scope": 0,
+      "support": [
+        {
+          "consumer": 4,
+          "consumer_sites": [
+            "body/0/expr/1"
+          ],
+          "consumer_source_span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):54:63",
+          "key_values": [
+            "Value(1)",
+            "Value(0)"
+          ],
+          "kind": "row",
+          "producer": 0,
+          "producer_bindings": {
+            "@Add2": "Value(2)",
+            "a": "Value(0)",
+            "b": "Value(1)"
+          },
+          "producer_sites": [
+            "head/0/expr/1"
+          ],
+          "producer_source_span": "Some(\"experiments/annotated_export/math_microbenchmark/source.egg\"):64:73",
+          "read": 5,
+          "rebuild_of": null,
+          "row_values": [
+            "Value(1)",
+            "Value(0)",
+            "Value(2)",
+            "Value(2)",
+            "Value(0)"
+          ],
+          "slot": 0,
+          "table": "Add",
+          "union_dependencies": [],
+          "write": 3
+        }
+      ]
+    }
+  ],
+  "rule_labels": {
+    "R0": {
+      "committed_unions": 0,
+      "complete_witnesses": 2,
+      "definition": "(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")",
+      "direct_inserted_rows": 1,
+      "matches": 2,
+      "survived": 2
+    }
+  }
+}

@@ -28,13 +28,13 @@ def readable_update(extension,rules):
         else:out.append(slot['variable']+' ← 外部接口')
     return out
 
-def build():
+def build(include_results=True):
     math=json.loads((OUT/'math.json').read_text());occ={x['event']:x for x in math['occurrences']};ext={x['name']:x for x in math['extensions']}
     steps={x['event']:x for x in json.loads((OUT/'higher_steps.json').read_text())}
     higher=json.loads((OUT/'higher_native.json').read_text())['higher_rules']
     t1=OUT.parent/'tier1_extract';extracted=json.loads((t1/'extraction.json').read_text());defs=extracted['definitions'];byclass={x['eclass']:x for x in defs}
     rules=json.loads((t1/'native_interfaces.json').read_text())['rules']
-    results={x['name']:x for x in json.loads((t1/'combined.json').read_text())['combinations']}
+    results={x['name']:x for x in json.loads((t1/'combined.json').read_text())['combinations']} if include_results else {}
     children=defaultdict(list)
     for event,s in steps.items():
         parents=occ[event]['parents'];assert len(parents)==1
@@ -52,7 +52,7 @@ def build():
     lanes=[];nodes={}
     def node(event):
         if event in nodes:return
-        o=occ[event];d=byclass[o['template']];r=results[d['name']]
+        o=occ[event];d=byclass[o['template']];r=results[d['name']] if include_results else {'variants':[],'other_occurrences':[]}
         variant=next((v for v in r['variants'] if event in v['occurrences']),None)
         failure=next((v for v in r['other_occurrences'] if v['event']==event),None)
         e=ext[o['extension']]

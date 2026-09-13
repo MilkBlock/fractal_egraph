@@ -143,7 +143,7 @@ class Lower:
                 'lhs_facts':len(set(self.body)),'rhs_actions':len(self.head),'body':self.body,'head':self.head}
         except (Unsupported,KeyError,IndexError) as e:return {'status':'needs_staged_matching','event':event,'reason':str(e),'steps':self.steps}
 
-def main():
+def main(selected=None):
     n=json.loads((OUT/'native_templates.json').read_text());interfaces=json.loads((OUT/'native_interfaces.json').read_text());rules=interfaces['rules']
     assert interfaces['native_sha256']==hashlib.sha256((OUT/'native_templates.json').read_bytes()).hexdigest()
     engine=Lower(n,interfaces,rules);report=json.loads((OUT/'extraction.json').read_text())
@@ -157,6 +157,7 @@ def main():
     datatype=next(x for x in (OUT/'tier0_rules.egg').read_text().splitlines() if x.startswith('(datatype Math '))
     text.insert(3,datatype)
     for d in report['definitions']:
+        if selected is not None and d['name'] not in selected:continue
         variants={};failures=[]
         for event in sorted(by_class[d['eclass']]):
             result=engine.lower(event,d['name'].lstrip('$'))
@@ -173,6 +174,9 @@ def main():
     summary={'comb_classes':len(results),'classes_with_lowering':sum(bool(x['variants']) for x in results),
         'rules':sum(len(x['variants']) for x in results),'lowered_occurrences':sum(len(v['occurrences']) for x in results for v in x['variants']),
         'other_statuses':dict(Counter(v['status'] for x in results for v in x['other_occurrences']))}
-    (OUT/'combined.json').write_text(json.dumps({'scope':'Symbolic interpretation of the existing native tier-1 graph, with witnessed interface schemas. Guarded specializations; not a runtime speedup measurement.','summary':summary,'combinations':results},indent=2)+'\n')
+    (OUT/'combined.json').write_text(json.dumps({'scope':'Symbolic interpretation of the existing native tier-1 graph, with witnessed interface schemas. Guarded specializations; not a runtime speedup measurement.','selected_only':selected is not None,'summary':summary,'combinations':results},indent=2)+'\n')
     (OUT/'combined.egg').write_text('\n\n'.join(text)+'\n');print(summary)
-if __name__=='__main__':main()
+if __name__=='__main__':
+    import argparse
+    p=argparse.ArgumentParser();p.add_argument('--selected',type=Path);a=p.parse_args()
+    main(set(json.loads(a.selected.read_text())) if a.selected else None)

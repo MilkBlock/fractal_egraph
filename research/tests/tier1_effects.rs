@@ -223,3 +223,31 @@ fn empty_cannot_be_used_as_a_data_entry_occurrence() {
             .contains("context unit")
     );
 }
+
+#[test]
+fn streaming_import_preserves_native_templates_and_bindings() {
+    let program=include_str!("../../tests/fixtures/bridge_program.egg");
+    let include=format!("(include \"{}/../experiments/tier1_effects/tier1_rule_comb_ir.egg\")",env!("CARGO_MANIFEST_DIR"));
+    let program=program.replace("(include \"experiments/tier1_effects/tier1_rule_comb_ir.egg\")",&include);
+    let full=egg_layout::tier1_effects::execute_mode(&program,true).unwrap();
+    let stream=egg_layout::tier1_effects::execute_stream(std::io::Cursor::new(program),true).unwrap();
+    assert_eq!(full,stream);
+}
+
+#[test]
+fn unrelated_binding_templates_do_not_expand_an_instances_route_space() {
+    let mut program = format!(r#"{IR}
+(let $root (CoarseComb (NoParents) (Rule "root") (PNil)))
+(let $parent (Occurrence 0 $root))
+(let $used (RCons (ParentPort 0 0 "Math") (RNil)))
+(let $child (Occurrence 1 (SmoothComb (MoreParents $root (NoParents)) (Rule "child") $used)))
+(ParentAt $child 0 $parent)
+"#);
+    for slot in 0..32 {
+        program += &format!("(OutputAt $parent {slot} (V \"Math\" \"{slot}\"))\n(RCons (ParentPort 0 {slot} \"Math\") (RNil))\n");
+    }
+    program += "(run-schedule (saturate (run tier1)))\n(check (Binding $child (ACons (V \"Math\" \"0\") (ANil))))";
+    let result = execute(&program).unwrap();
+    assert_eq!(result["relation_sizes"]["LocalArgs"],2);
+    assert_eq!(result["relation_sizes"]["LocalResolved"],1);
+}
