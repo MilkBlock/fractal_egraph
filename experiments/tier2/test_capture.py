@@ -12,6 +12,7 @@ class CaptureTests(unittest.TestCase):
     def test_eleven_rounds_and_explicit_reuse(self):
         a=options(['--recapture-tier0','--rounds','11','--output','out/math11'])
         self.assertTrue(a.recapture_tier0);self.assertEqual(a.rounds,11)
+        self.assertIsNone(options(['--recapture-tier0']).rounds)
         self.assertFalse(options(['--reuse-tier0']).recapture_tier0)
     def test_source_is_preserved_and_missing_input_does_not_create_output(self):
         a=options(['--recapture-tier0','--source','a directory/custom.egg','--rounds','11'])

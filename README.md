@@ -23,7 +23,8 @@ cargo run --release -- analyze --reuse-tier0 --output out/math11
 
 新结果在 `out/math11/experiments/tier2/fractal.html`。`out/math11/run.json` 记录实际轮数和成功/失败阶段。
 新采集拒绝覆盖已有目录；不传 --output 时自动创建时间命名目录。
---rounds 和 --source 只对重新采集有效。轮数默认 6，输入默认原 Math 样例。
+--rounds 和 --source 只对重新采集有效。不传 --rounds 时遵循文件原 schedule（例如 `(run 11)`）；
+显式传入时只覆盖一个简单 `(run N)`，多个 run 或复杂 schedule 会拒绝覆盖。输入默认原 Math 样例。
 输入目前须为自包含、兼容现有 Math 适配器的 .egg；不支持任意 datatype 或 include 项目。失败不会回退到旧快照。
 
 ## 精简的实现阅读顺序

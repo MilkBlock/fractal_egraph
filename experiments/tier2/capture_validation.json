@@ -40,5 +40,21 @@
       "comb_templates": 3,
       "completed": true
     }
+  ],
+  "optional_rounds_checks": [
+    {
+      "fixture": "tests/fixtures/cli_math_run11.egg",
+      "requested_rounds": null,
+      "executed_rounds": 11,
+      "schedule_mode": "source",
+      "complete": true
+    },
+    {
+      "fixture": "tests/fixtures/cli_math_run11.egg",
+      "requested_rounds": 3,
+      "executed_rounds": 3,
+      "schedule_mode": "override",
+      "complete": true
+    }
   ]
 }

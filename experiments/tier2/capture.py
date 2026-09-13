@@ -34,7 +34,7 @@ def capture_or_reuse(root, driver, output, rounds, fresh, source=None):
     source_path = (root / (source or SOURCE)).resolve()
     source_bytes = source_path.read_bytes()  # Reject missing input before creating output.
     dest.mkdir(parents=True, exist_ok=False)  # Never replace an earlier run.
-    state = {'status':'running', 'requested_rounds':rounds, 'source':str(source_path), 'staged_source':str(SOURCE),
+    state = {'status':'running', 'requested_rounds':rounds, 'schedule_mode':'source' if rounds is None else 'override', 'source':str(source_path), 'staged_source':str(SOURCE),
              'source_sha256':hashlib.sha256(source_bytes).hexdigest(),
              'phase':'prepare', 'fallback_used':False}
     marker = dest/'run.json'
@@ -69,11 +69,13 @@ def capture_or_reuse(root, driver, output, rounds, fresh, source=None):
         subprocess.run(command,cwd=root,check=True)
         binary=target/profile
         phase('trace-tier0')
-        run(binary/'combine_profile',SOURCE,'profile.json',rounds)
+        command=[binary/'combine_profile',SOURCE,'profile.json']
+        if rounds is not None:command.append(rounds)
+        run(*command)
         raw=json.loads((dest/'profile.json').read_text())
-        if raw.get('executed_rounds')!=rounds:
+        if rounds is not None and raw.get('executed_rounds')!=rounds:
             raise ValueError(f"requested {rounds} rounds, trace executed {raw.get('executed_rounds')}")
-        state['executed_rounds']=rounds;state['match_events']=len(raw['events'])
+        state['executed_rounds']=raw.get('executed_rounds');state['match_events']=len(raw['events'])
         declarations = [d for d in raw.get('datatypes',[]) if d['name']=='Math']
         if len(declarations)!=1:
             raise ValueError('current importer requires one explicit Math datatype; arbitrary .egg schemas/includes are not supported')
@@ -90,7 +92,7 @@ def capture_or_reuse(root, driver, output, rounds, fresh, source=None):
         native=json.loads((dest/'native.json').read_text());t1=dest/'experiments/tier1_extract'
         saved={'native_egraph':native['native_egraph'],'templates':native['templates'],
                'instances':[{'template':i['template']} for i in native['instances']],
-               'source_scope':native['graph_scope'],'capture':{'rounds':rounds,'source':str(source_path),'source_sha256':state['source_sha256']}}
+               'source_scope':native['graph_scope'],'capture':{'rounds':state['executed_rounds'],'source':str(source_path),'source_sha256':state['source_sha256']}}
         (t1/'native_templates.json').write_text(json.dumps(saved)+'\n')
         (t1/'tier0_rule_dictionary.json').write_text(json.dumps(raw['rule_labels'])+'\n')
         del saved,native

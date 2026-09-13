@@ -143,8 +143,8 @@ cargo run --release -- analyze --recapture-tier0 --source egglog/tests/math-micr
 cargo run --release -- analyze --reuse-tier0 --output out/math11
 ```
 
-不指定输出目录的复用模式仍使用仓库内的固定 6 轮快照。重采集默认 6 轮，显式 --rounds 按实际次数执行，
-不会静默截断为旧快照的轮数。新目录必须不存在；输出保存独立的脚本、源程序、trace、tier-1 和 tier-2 结果。
+不指定输出目录的复用模式仍使用仓库内的固定 6 轮快照。重采集不再默认覆盖次数：不传 --rounds 时原样执行源文件 schedule；显式 --rounds 才覆盖一个简单 `(run N)`，
+不会静默截断为旧快照的轮数。多个 run 或复杂 schedule 不允许覆盖；复杂 schedule 的实际轮数无法统一计数时记录为 null。新目录必须不存在；输出保存独立的脚本、源程序、trace、tier-1 和 tier-2 结果。
 因此原有浏览页面和固定快照不会被重采集覆盖。所有阶段成功后才写 `run.json: status=complete`，
 失败写 failed；复用拒绝未完成的目录。
 
@@ -159,3 +159,11 @@ cargo run --release -- analyze --reuse-tier0 --output out/math11
 输入内容原样复制到独立运行目录，`run.json` 分别记录原路径、暂存路径和源文件 SHA-256。
 生成规则的 Math datatype 从所选输入的原生 AST 提取，不再复用固定快照的声明。
 `--source` 不可与复用模式搭配；当前仍是自包含 Math 程序适配器，不是任意 .egg 的通用导入器。
+
+省略覆盖参数、直接遵循输入文件：
+
+```sh
+cargo run --release -- analyze --recapture-tier0 --source egglog/tests/math-microbenchmark.egg --output out/math-file-schedule
+```
+
+run.json 的 requested_rounds 为 null、schedule_mode 为 source；executed_rounds 记录采集器实际观察的简单 run 轮数。

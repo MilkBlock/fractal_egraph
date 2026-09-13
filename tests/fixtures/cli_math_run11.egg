@@ -1,0 +1,4 @@
+(datatype Math (Var String) (Add Math Math))
+(rewrite (Add a b) (Add b a))
+(Add (Var "source-flag-left") (Var "source-flag-right"))
+(run 11)
