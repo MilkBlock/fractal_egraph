@@ -4,7 +4,8 @@ use std::process::Command;
 
 const HELP: &str = "egg_layout — native rule-combination analysis
 
-  cargo run -- analyze                Reproduce tier-2 from the saved tier-1 graph and test
+  cargo run -- analyze --reuse-tier0
+  cargo run -- analyze --recapture-tier0 --rounds 11 --output out/math11
   cargo run -- view                   Regenerate the fractal viewer from saved results
 
 Native operations (run from the repository root):
@@ -15,7 +16,7 @@ Native operations (run from the repository root):
   cargo run -- reduce
   cargo run -- observations            Additive-recurrence test adapter
 
-analyze uses the committed tier-1 snapshot; it does not rerun a live tier-0 trace.
+analyze defaults to the saved tier-1 snapshot. --recapture-tier0 runs Math afresh.
 Legacy experiments: cargo run --manifest-path research/Cargo.toml --bin NAME.
 ";
 fn python(script: &str, args: &[String]) -> Result {
@@ -45,13 +46,14 @@ fn main() -> Result {
         Some("higher") if args.len() == 1 => pipeline::higher(),
         Some("reduce") if args.len() == 1 => pipeline::reduce(),
         Some("observations") if args.len() == 1 => pipeline::observations(),
-        Some("analyze") if args.len() == 1 => python(
-            "experiments/tier2/run.py",
-            &[
+        Some("analyze") => {
+            let mut forwarded = vec![
                 "--driver".into(),
                 std::env::current_exe()?.to_string_lossy().into_owned(),
-            ],
-        ),
+            ];
+            forwarded.extend_from_slice(&args[1..]);
+            python("experiments/tier2/run.py", &forwarded)
+        }
         Some("view") if args.len() == 1 => {
             python("experiments/tier2/fractal_view.py", &[])?;
             println!(

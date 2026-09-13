@@ -1,0 +1,28 @@
+{
+  "scope": "Actual fresh native tier-0 capture through tier-1 and tier-2. 11-round option is supported but not resource-validated end-to-end here.",
+  "fresh_runs": [
+    {
+      "rounds": 2,
+      "match_events": 64,
+      "comb_templates": 42,
+      "higher_rules": 0,
+      "complete": true
+    },
+    {
+      "rounds": 6,
+      "match_events": 1529,
+      "comb_templates": 1389,
+      "higher_rules": 13,
+      "complete": true
+    },
+    {
+      "rounds": 2,
+      "match_events": 64,
+      "comb_templates": 42,
+      "higher_rules": 0,
+      "complete": true
+    }
+  ],
+  "reuse_2_round_run": "complete",
+  "parameter_and_failure_tests": 5
+}

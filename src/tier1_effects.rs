@@ -25,7 +25,8 @@ pub fn external_ports(ports: &[(String, String)]) -> Result<String, String> {
         .rev()
         .fold("(PNil)".into(), |tail, p| format!("(PCons {p} {tail})")))
 }
-pub fn execute(source: &str) -> Result<Value, String> {
+pub fn execute(source: &str) -> Result<Value, String> {execute_mode(source,false)}
+pub fn execute_mode(source: &str,compact:bool) -> Result<Value, String> {
     let mut eg = EGraph::default();
     eg.parse_and_run_program(None, source)
         .map_err(|e| e.to_string())?;
@@ -36,7 +37,7 @@ pub fn execute(source: &str) -> Result<Value, String> {
         "(run-schedule (saturate (run tier1_equivalences))) (run-schedule (saturate (run tier1)))",
     )
     .map_err(|e| e.to_string())?;
-    export(&eg)
+    export_mode(&eg,compact)
 }
 fn validate_independence(eg: &EGraph) -> Result<(), String> {
     if let Some(empty) = eg.lookup_function("Empty", &[]) {
@@ -98,7 +99,8 @@ fn validate_independence(eg: &EGraph) -> Result<(), String> {
     }
     Ok(())
 }
-pub fn export(eg: &EGraph) -> Result<Value, String> {
+pub fn export(eg: &EGraph) -> Result<Value, String> {export_mode(eg,false)}
+fn export_mode(eg: &EGraph,compact:bool) -> Result<Value, String> {
     validate_independence(eg)?;
     let cid = |sort: &str, v| {
         eg.value_to_class_id(eg.get_sort_by_name(sort).unwrap(), v)
@@ -154,7 +156,7 @@ pub fn export(eg: &EGraph) -> Result<Value, String> {
             .sort_by_key(|p| p["slot"].as_i64().unwrap());
     }
     let mut instances = BTreeMap::<String, Value>::new();
-    eg.function_for_each("Occurrence",|r|{let id=cid("Instance",r.vals[2]);instances.insert(id.clone(),json!({"id":id,"event":eg.value_to_base::<i64>(r.vals[0]),"template":cid("Comb",r.vals[1]),"bindings":[],"effects":[]}));}).map_err(|e|e.to_string())?;
+    eg.function_for_each("Occurrence",|r|{let id=cid("Instance",r.vals[2]);instances.insert(id.clone(),json!({"id":id,"event":eg.value_to_base::<i64>(r.vals[0]),"template":cid("Comb",r.vals[1]),"bindings":[],"effects":[],"effect_count":0}));}).map_err(|e|e.to_string())?;
     eg.function_for_each("Binding", |r| {
         instances.get_mut(&cid("Instance", r.vals[0])).unwrap()["bindings"]
             .as_array_mut()
@@ -166,17 +168,12 @@ pub fn export(eg: &EGraph) -> Result<Value, String> {
             ));
     })
     .map_err(|e| e.to_string())?;
-    eg.function_for_each("Provides", |r| {
-        instances.get_mut(&cid("Instance", r.vals[0])).unwrap()["effects"]
-            .as_array_mut()
-            .unwrap()
-            .push(json!(
-                eg.extract_value_to_string(eg.get_sort_by_name("Effect").unwrap(), r.vals[1])
-                    .unwrap()
-                    .0
-            ));
-    })
-    .map_err(|e| e.to_string())?;
+    eg.function_for_each("Provides",|r|{
+        let instance=instances.get_mut(&cid("Instance",r.vals[0])).unwrap();
+        instance["effect_count"]=json!(instance["effect_count"].as_u64().unwrap()+1);
+        if !compact{instance["effects"].as_array_mut().unwrap().push(json!(eg.extract_value_to_string(eg.get_sort_by_name("Effect").unwrap(),r.vals[1]).unwrap().0));}
+    }).map_err(|e|e.to_string())?;
+    let nodes=if compact { template_nodes(eg)? } else {
     let serialized = eg.serialize(egglog::SerializeConfig {
         max_functions: None,
         max_calls_per_function: None,
@@ -185,7 +182,32 @@ pub fn export(eg: &EGraph) -> Result<Value, String> {
     });
     assert!(serialized.is_complete());
     let nodes=serialized.egraph.nodes.iter().map(|(id,n)|(id.to_string(),json!({"op":n.op,"children":n.children.iter().map(ToString::to_string).collect::<Vec<_>>(),"eclass":n.eclass.to_string(),"subsumed":n.subsumed}))).collect::<BTreeMap<_,_>>();
+    nodes
+    };
     Ok(
-        json!({"templates":templates.into_values().collect::<Vec<_>>(),"instances":instances.into_values().collect::<Vec<_>>(),"native_egraph":{"nodes":nodes},"serialization_complete":true,"scope":"native tier-1 templates plus occurrence-scoped evidence; supplied witnesses, not an automatic tier-0 importer or compression result"}),
+        json!({"templates":templates.into_values().collect::<Vec<_>>(),"instances":instances.into_values().collect::<Vec<_>>(),"native_egraph":{"nodes":nodes},"serialization_complete":!compact,"graph_scope":if compact{"template constructors only; instance effects counted"}else{"full native graph"},"scope":"native tier-1 templates plus occurrence-scoped evidence; supplied witnesses, not an automatic tier-0 importer or compression result"}),
     )
+}
+
+fn template_nodes(eg:&EGraph)->Result<BTreeMap<String,Value>,String>{
+    let mut nodes=BTreeMap::<String,Value>::new();let mut reps=BTreeMap::new();
+    for name in ["Empty","SmoothComb","CoarseComb","Rule","NoParents","MoreParents","ParentPort","Make","RNil","RCons","Local","External","MakePartial","PNil","PCons"]{
+        let schema=eg.get_function(name).unwrap().schema();
+        eg.function_for_each(name,|r|{
+            let class=eg.value_to_class_id(&schema.output,*r.vals.last().unwrap()).to_string();
+            let id=format!("{name}:{:?}",r.vals);let mut children=vec![];
+            for (sort,v) in schema.input.iter().zip(r.vals.iter()){
+                let child=eg.value_to_class_id(sort,*v).to_string();
+                if !sort.is_eq_sort(){
+                    let op=eg.extract_value_to_string(sort,*v).unwrap().0;
+                    nodes.entry(child.clone()).or_insert(json!({"op":op,"eclass":child,"children":[],"subsumed":false}));reps.entry(child.clone()).or_insert(child.clone());
+                }
+                children.push(child);
+            }
+            reps.entry(class.clone()).or_insert(id.clone());
+            nodes.insert(id,json!({"op":name,"eclass":class,"children":children,"subsumed":r.subsumed}));
+        }).map_err(|e|e.to_string())?;
+    }
+    for n in nodes.values_mut(){for c in n["children"].as_array_mut().unwrap(){*c=json!(reps.get(c.as_str().unwrap()).ok_or("missing template child")?);}}
+    Ok(nodes)
 }

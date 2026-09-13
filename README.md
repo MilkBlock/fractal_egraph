@@ -5,13 +5,25 @@
 ## 使用
 
 ```sh
-cargo run -- analyze   # 从固定 tier-1 快照重现当前 tier-2 流程，并运行检查
+cargo run -- analyze --reuse-tier0   # 使用已有快照
 cargo run -- view      # 从已有结果重新生成 fractal 页面
 cargo run -- --help
 ```
 
-页面位于 `experiments/tier2/fractal.html`。`analyze` **不是重新采集任意 .egg 的 tier-0 trace**；
-当前仍使用已保存的 Math tier-1 数据，递推测试另有专用适配器。
+页面位于 `experiments/tier2/fractal.html`。`analyze` 当前针对 Math，**不是任意 .egg 的通用采集入口**；
+默认使用已保存的 Math tier-1 数据，递推测试另有专用适配器。
+
+重新采集 Math 并指定实际轮数：
+
+```sh
+cargo run --release -- analyze --recapture-tier0 --rounds 11 --output out/math11
+# 复用同一次新采集，不重新运行 tier-0：
+cargo run --release -- analyze --reuse-tier0 --output out/math11
+```
+
+新结果在 `out/math11/experiments/tier2/fractal.html`。`out/math11/run.json` 记录实际轮数和成功/失败阶段。
+新采集拒绝覆盖已有目录；不传 --output 时自动创建时间命名目录。
+--rounds 只对重新采集有效；不传时为 6。失败不会回退到旧快照。
 
 ## 精简的实现阅读顺序
 

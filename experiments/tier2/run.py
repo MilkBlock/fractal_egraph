@@ -7,10 +7,22 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
-def main():
+def options(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--driver', type=Path, help='already built egg_layout executable')
-    args = parser.parse_args()
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument('--recapture-tier0', action='store_true', help='capture Math tier-0 again before analysis')
+    mode.add_argument('--reuse-tier0', action='store_true', help='reuse the committed snapshot or --output directory')
+    parser.add_argument('--rounds', type=int, help='exact native trace rounds; requires --recapture-tier0 (default: 6)')
+    parser.add_argument('--output', type=Path, help='new capture directory, or an existing completed run to reuse')
+    parser.add_argument('--skip-checks', action='store_true', help=argparse.SUPPRESS)
+    args = parser.parse_args(argv)
+    if args.rounds is not None and (not args.recapture_tier0 or args.rounds < 1):
+        parser.error('--rounds must be positive and requires --recapture-tier0')
+    return args
+
+def main():
+    args = options()
     driver = args.driver.resolve() if args.driver else ROOT / 'target/debug/egg_layout'
     os.chdir(ROOT)
 
@@ -25,6 +37,11 @@ def main():
 
     if args.driver is None:
         run('cargo', 'build', '--quiet', '--bin', 'egg_layout')
+
+    if args.recapture_tier0 or args.output:
+        from capture import capture_or_reuse
+        capture_or_reuse(ROOT, driver, args.output, args.rounds or 6, args.recapture_tier0)
+        return
 
     py('mine')
     native('relations', 'experiments/tier2/math.egg', 'experiments/tier2/math_native.json')
@@ -46,6 +63,8 @@ def main():
     py('render')
     py('fractal_view')
 
+    if args.skip_checks:
+        return
     run(sys.executable, '-m', 'unittest', 'discover', '-s', 'experiments/tier2', '-p', 'test_*.py')
     run('cargo', 'test', '--quiet', '--test', 'tier2_native', '--test', 'tier2_reduce')
 

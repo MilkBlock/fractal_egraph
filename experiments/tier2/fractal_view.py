@@ -32,7 +32,7 @@ def build():
     math=json.loads((OUT/'math.json').read_text());occ={x['event']:x for x in math['occurrences']};ext={x['name']:x for x in math['extensions']}
     steps={x['event']:x for x in json.loads((OUT/'higher_steps.json').read_text())}
     higher=json.loads((OUT/'higher_native.json').read_text())['higher_rules']
-    t1=OUT.parent/'tier1_extract';defs=json.loads((t1/'extraction.json').read_text())['definitions'];byclass={x['eclass']:x for x in defs}
+    t1=OUT.parent/'tier1_extract';extracted=json.loads((t1/'extraction.json').read_text());defs=extracted['definitions'];byclass={x['eclass']:x for x in defs}
     rules=json.loads((t1/'native_interfaces.json').read_text())['rules']
     results={x['name']:x for x in json.loads((t1/'combined.json').read_text())['combinations']}
     children=defaultdict(list)
@@ -75,7 +75,7 @@ def build():
             nodes[([l['trigger']]+l['events'])[i]]['comb']==h['ctx'] and
             nodes[l['events'][i+h['count']-1]]['comb'] in h['represents']
             for i in range(len(l['events'])-h['count']+1)) for l in lanes),'unrepresented HigherRule'
-    return {'lanes':lanes,'nodes':nodes,'stats':{'higher_rules':len(higher),'maximal_chains':len(lanes),
+    return {'capture':extracted.get('capture'),'lanes':lanes,'nodes':nodes,'stats':{'higher_rules':len(higher),'maximal_chains':len(lanes),
         'applications':sum(len(l['events']) for l in lanes),'visible_unique_contexts':len({x['comb'] for x in nodes.values()}),'total_comb_templates':len(defs)},
         'scope':'Focused view of witnessed fractal regions, not a lossless compression of the whole tier-0 egraph. Ellipses are unverified continuation; trigger is the observed preceding context.'}
 if __name__=='__main__':

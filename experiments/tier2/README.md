@@ -135,3 +135,22 @@ trigger 表示已观察到的前置上下文，不是已证明的最小充分触
 python3 experiments/tier2/fractal_view.py
 node experiments/tier2/test_fractal_browser.cjs
 ```
+
+## 选择重采集或复用
+
+```sh
+cargo run --release -- analyze --recapture-tier0 --rounds 11 --output out/math11
+cargo run --release -- analyze --reuse-tier0 --output out/math11
+```
+
+不指定输出目录的复用模式仍使用仓库内的固定 6 轮快照。重采集默认 6 轮，显式 --rounds 按实际次数执行，
+不会静默截断为旧快照的轮数。新目录必须不存在；输出保存独立的脚本、源程序、trace、tier-1 和 tier-2 结果。
+因此原有浏览页面和固定快照不会被重采集覆盖。所有阶段成功后才写 `run.json: status=complete`，
+失败写 failed；复用拒绝未完成的目录。
+
+实测新采集 2 轮（64 个应用、42 个组合、0 个 HigherRule）和 6 轮（1,529 个应用、1,389 个组合、13 个 HigherRule）
+均完成整条链路；复用 2 轮目录也完成。11 轮参数已支持，尚未完成 11 轮带 trace 的整链路资源验证。
+轮数增大带来的 trace/导入成本没有被本次参数接口消除。
+
+采集器及 compact tier-1 导出由 research 工程按需构建。`research/math_bridge.py` 是已有 Math 专用导入适配器，
+不是新的组合器。其保守边界仍见输出的 import_audit；match 事件数不当作 committed mutation 数。

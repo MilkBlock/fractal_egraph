@@ -21,6 +21,7 @@ fn profile_rounds(path: &str, max_rounds: Option<usize>) -> Json {
     reference
         .parse_and_run_program(Some(path.into()), &source)
         .unwrap();
+    drop(reference);
     let mut eg = EGraph::default();
     let mut commands = eg.parse_program(Some(path.into()), &source).unwrap();
     let mut catalogue = BTreeMap::new();
@@ -46,7 +47,7 @@ fn profile_rounds(path: &str, max_rounds: Option<usize>) -> Json {
                     matches!(**inner, egglog::ast::GenericSchedule::Run(..)),
                     "sampling supports simple repeat(run) only"
                 );
-                *n = (*n).min(limit);
+                *n = limit;
             }
         }
     }
@@ -61,6 +62,7 @@ fn profile_rounds(path: &str, max_rounds: Option<usize>) -> Json {
                     let before: BTreeSet<_> = trace.matches().iter().map(|m|m.event_id).collect();
                     eg.run_program_with_trace(vec![Command::RunSchedule((**inner).clone())], &trace).unwrap();
                     for m in trace.matches() {if !before.contains(&m.event_id){event_round.insert(m.event_id,round);}}
+                    eprintln!("profile round {round}: {} match events",trace.matches().len());
                 }
                 continue;
             }
@@ -231,7 +233,7 @@ fn profile_rounds(path: &str, max_rounds: Option<usize>) -> Json {
         rows.sort_by(|a, b| b.1.occurrences.cmp(&a.1.occurrences).then(a.0.cmp(&b.0)));
         rows.into_iter().enumerate().map(|(i,(shape,c))|json!({"rank":i+1,"shape":shape,"observed_occurrences":c.occurrences,"productive_consumer_occurrences":c.productive,"scopes":c.scopes,"example_matches":c.examples,"continued_instances":c.continued.len(),"next_motif_counts":c.next_motifs,"next_rule_counts":c.next})).collect::<Vec<_>>()
     };
-    json!({"events":matches.values().map(|m|json!({"id":m.event_id,"rule":m.rule,"scope":scope(m.event_id),"round":event_round.get(&m.event_id),"productive":productive.contains(&m.event_id),"bindings":m.bindings.iter().filter_map(|b|b.name.as_ref().map(|n|(n.to_string(),format!("{:?}",b.value)))).collect::<BTreeMap<_,_>>()})).collect::<Vec<_>>(),"round_tracking":"explicit repeat(run) boundaries only; other schedule forms have null rounds","coarse_motif_classes":coarse_shapes.len(),"source_mapping":"compiler source spans mapped to normalized AST positions; motif identity includes endpoint positions","profile_round_limit":max_rounds,"source":path,"scope":"historical committed row-dependency motifs, not generated or executed shortcut rules","native_checks":"original native program completed; normalized profiled program completed with explicit profile_round_limit when supplied","rule_labels":rule_stats,"pair_rankings":ranked(pairs),"motif_rankings":ranked(motifs),"witnesses":evidence,"surviving_reads_without_same_session_producer":unknown_reads,"executed_compiled_macros":0,"selection_policy":"none: ranking is observational, no activation policy","limitations":["one execution per scope, not independent benchmark repetitions","motifs retain producer-instance aliasing and same-table read ordinals; not full typed binding-isomorphism classes","boundary inputs and union support remain explicit; not closed rewrite certificates","historical support remains counted even if row origins are invalidated later","union-only causes are shown as rebuild support, not ranked as Inserted producers"]})
+    json!({"action_writes":writes.values().map(|w|json!({"id":w.event_id,"match":w.match_event_id,"outcome":format!("{:?}",w.outcome),"actual":w.actual.iter().map(|v|format!("{v:?}")).collect::<Vec<_>>(),"table":format!("{:?}",w.table),"source_span":w.source_span,"rebuild_of":w.rebuild_of})).collect::<Vec<_>>(),"committed_writes":writes.values().filter(|w| w.outcome==WriteOutcome::Inserted).map(|w|json!({"id":w.event_id,"match":w.match_event_id,"table":format!("{:?}",w.table),"actual":w.actual.iter().map(|v|format!("{v:?}")).collect::<Vec<_>>(),"source_span":w.source_span,"rebuild_of":w.rebuild_of,"union_dependencies":w.union_dependencies})).collect::<Vec<_>>(),"unions":trace.union_events().iter().map(|u|json!({"id":u.event_id,"match":u.match_event_id,"lhs":format!("{:?}",u.lhs),"rhs":format!("{:?}",u.rhs),"changed":u.displaced.is_some()})).collect::<Vec<_>>(),"reads":trace.row_reads().iter().map(|r|json!({"id":r.event_id,"match":r.match_event_id,"table":format!("{:?}",r.table),"name":r.table_name,"column_sorts":r.table_name.as_deref().and_then(|name|eg.get_function(name)).map(|f|{let s=f.schema();s.input.iter().chain(std::iter::once(&s.output)).map(|s|s.name().to_string()).collect::<Vec<_>>()}),"key":r.key.iter().map(|v|format!("{v:?}")).collect::<Vec<_>>(),"source_span":r.source_span,"row":r.row.iter().map(|v|format!("{v:?}")).collect::<Vec<_>>(),"producer":r.producer_match_event_id,"write":r.producer_write_event_id})).collect::<Vec<_>>(),"events":matches.values().map(|m|json!({"id":m.event_id,"rule":m.rule,"scope":scope(m.event_id),"round":event_round.get(&m.event_id),"productive":productive.contains(&m.event_id),"survived":survived.contains(&m.event_id),"complete_witness":m.physical_witness_complete,"bindings":m.bindings.iter().filter_map(|b|b.name.as_ref().map(|n|(n.to_string(),format!("{:?}",b.value)))).collect::<BTreeMap<_,_>>()})).collect::<Vec<_>>(),"round_tracking":"explicit repeat(run) boundaries only; other schedule forms have null rounds","coarse_motif_classes":coarse_shapes.len(),"source_mapping":"compiler source spans mapped to normalized AST positions; motif identity includes endpoint positions","profile_round_limit":max_rounds,"executed_rounds":round,"source":path,"scope":"historical committed row-dependency motifs, not generated or executed shortcut rules","native_checks":"original native program completed; normalized profiled program completed with explicit profile_round_limit when supplied","rule_labels":rule_stats,"pair_rankings":ranked(pairs),"motif_rankings":ranked(motifs),"witnesses":evidence,"surviving_reads_without_same_session_producer":unknown_reads,"executed_compiled_macros":0,"selection_policy":"none: ranking is observational, no activation policy","limitations":["one execution per scope, not independent benchmark repetitions","motifs retain producer-instance aliasing and same-table read ordinals; not full typed binding-isomorphism classes","boundary inputs and union support remain explicit; not closed rewrite certificates","historical support remains counted even if row origins are invalidated later","union-only causes are shown as rebuild support, not ranked as Inserted producers"]})
 }
 fn main() {
     let path = std::env::args()

@@ -29,7 +29,7 @@ for h in higher:
     links=' '.join('<a href="../tier1_extract/index.html#'+t.lstrip('$')+'">'+t+'</a>' for t in h['represents'])
     parts.append(f'<details><summary>HigherRule({h["count"]}, {h["operator"]}, {h["ctx"]}, binding)</summary><pre>{esc(h["egg"])}</pre><p>展开回原组合：{links}</p></details>')
 s=m['summary'];parts.append(f'<h2>真实 Math tier-1</h2><p>{s["occurrences"]} 次应用 → {s["extensions"]} 种扩展描述。深度 &gt;3 的 {s["heldout_occurrences"]} 次应用中，{s["heldout_seen_schema"]} 次复用浅层已有描述。不是内存压缩率或独立工作负载泛化率。</p>')
-parts.append(f'<p>native tier-2 找到 {len(n["repeats"])} 条同接口、同父端口的连续重复子路径；最长 {max(x["length"] for x in n["repeats"])} 次。{n["counts"]["InjectionEdge"]} 条依赖边的消费端需要 coarse 边界；这只是候选注入位置，不是已证明的 trigger。</p><h3>长度至少 3 的重复路径</h3>')
+parts.append(f'<p>native tier-2 找到 {len(n["repeats"])} 条同接口、同父端口的连续重复子路径；最长 {max((x["length"] for x in n["repeats"]), default=0)} 次。{n["counts"]["InjectionEdge"]} 条依赖边的消费端需要 coarse 边界；这只是候选注入位置，不是已证明的 trigger。</p><h3>长度至少 3 的重复路径</h3>')
 for p in sorted(n['repeats'],key=lambda x:-x['length']):
     if p['length']<3:continue
     e=ext[occ[p['end']]['extension']];anchor=names[occ[p['end']]['template']]

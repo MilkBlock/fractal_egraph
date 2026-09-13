@@ -1,5 +1,9 @@
-use egg_layout::tier1_effects::{execute, external_ports};
-const IR: &str = "(include \"experiments/tier1_effects/tier1_rule_comb_ir.egg\")";
+use egg_layout::tier1_effects::{execute as native_execute, external_ports};
+const IR: &str = include_str!("../../experiments/tier1_effects/tier1_rule_comb_ir.egg");
+// Inline the fixture include: Cargo runs research tests from a different directory.
+fn execute(source: &str) -> Result<serde_json::Value, String> {
+    native_execute(&source.replace("(include \"experiments/tier1_effects/tier1_rule_comb_ir.egg\")", IR))
+}
 #[test]
 fn shared_templates_do_not_share_concrete_evidence() {
     let r = execute(include_str!(

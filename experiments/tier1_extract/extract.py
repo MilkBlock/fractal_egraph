@@ -80,7 +80,7 @@ def extract(data,rule_dictionary=None):
         text.append(f'(let {names[c]} {body})')
         records.append({**meta,'expression':body})
     assert len(records)==len(roots)==len(set(order))
-    return '\n'.join(text)+'\n',{'scope':'direct extraction of stored native Math tier-1 templates, trace rounds 1-6; no composer or subgraph enumeration',
+    return '\n'.join(text)+'\n',{'scope':'direct extraction of native Math tier-1 templates; no composer or subgraph enumeration', 'capture':data.get('capture'),
         'selection':'minimum unit tree cost per e-class, deterministic tie-break; shared Comb definitions across roots, not a globally optimal DAG cost solver',
         'comb_eclasses':len(roots),'kind_counts':dict(Counter(r['kind'] for r in records)),
         'instance_count':len(data['instances']),'existing_enode_selection_verified':all(r['selected_native_node'] in nodes and nodes[r['selected_native_node']]['eclass']==r['eclass'] for r in records),
