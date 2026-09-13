@@ -1,0 +1,1635 @@
+{
+  "growing_fixture": {
+    "candidate_families": 1,
+    "held_out_fits": 1,
+    "maximal_spines": 1,
+    "scope": "Offline bounded analysis of actual direct consumers of maximal witnessed spines. Coordinates use predecessor edges; no new tier-0 facts or reordering rules are created.",
+    "unclassified_events": 0,
+    "families": [
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:B\"}",
+        "layers": [
+          {
+            "boundary_only": true,
+            "d": 0,
+            "growing_domain_matches": true,
+            "mapped": 1,
+            "observed": 2,
+            "positions": [
+              0
+            ],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 1,
+            "growing_domain_matches": true,
+            "mapped": 2,
+            "observed": 3,
+            "positions": [
+              0,
+              1
+            ],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 2,
+            "growing_domain_matches": true,
+            "mapped": 3,
+            "observed": 4,
+            "positions": [
+              0,
+              1,
+              2
+            ],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 3,
+            "growing_domain_matches": true,
+            "mapped": 4,
+            "observed": 5,
+            "positions": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 4,
+            "growing_domain_matches": true,
+            "mapped": 5,
+            "observed": 6,
+            "positions": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 5,
+            "growing_domain_matches": true,
+            "mapped": 6,
+            "observed": 7,
+            "positions": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 6,
+            "growing_domain_matches": true,
+            "mapped": 7,
+            "observed": 8,
+            "positions": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 28,
+        "observed_events": 35,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          0,
+          4,
+          8,
+          12,
+          16,
+          20,
+          24
+        ],
+        "status": "held_out_fit_with_boundary",
+        "templates": 3,
+        "boundary_or_ambiguous_events": 7
+      }
+    ]
+  },
+  "math_six": {
+    "candidate_families": 23,
+    "held_out_fits": 0,
+    "maximal_spines": 4,
+    "scope": "Offline bounded analysis of actual direct consumers of maximal witnessed spines. Coordinates use predecessor edges; no new tier-0 facts or reordering rules are created.",
+    "unclassified_events": 5,
+    "families": [
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Add\", \"Fact:Diff\", \"Fact:Mul\"}",
+        "layers": [
+          {
+            "boundary_only": false,
+            "d": 0,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 1,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 3,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 4,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 0,
+        "observed_events": 1,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          203,
+          466,
+          970,
+          2293,
+          5917
+        ],
+        "status": "observed_domain_mismatch",
+        "templates": 0,
+        "boundary_or_ambiguous_events": 1
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Add\", \"Fact:Diff\"}",
+        "layers": [
+          {
+            "boundary_only": false,
+            "d": 0,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 1,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 1,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 3,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 1,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 4,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 0,
+        "observed_events": 3,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          203,
+          466,
+          970,
+          2293,
+          5917
+        ],
+        "status": "observed_domain_mismatch",
+        "templates": 0,
+        "boundary_or_ambiguous_events": 3
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Add\", \"Fact:Integral\"}",
+        "layers": [
+          {
+            "boundary_only": false,
+            "d": 0,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 1,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 1,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 3,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 4,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 0,
+        "observed_events": 2,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          203,
+          466,
+          970,
+          2293,
+          5917
+        ],
+        "status": "observed_domain_mismatch",
+        "templates": 0,
+        "boundary_or_ambiguous_events": 2
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Add\", \"Fact:Mul\"}",
+        "layers": [
+          {
+            "boundary_only": true,
+            "d": 0,
+            "growing_domain_matches": true,
+            "mapped": 1,
+            "observed": 1,
+            "positions": [
+              0
+            ],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": true,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 1,
+            "observed": 1,
+            "positions": [
+              1
+            ],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": true,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 1,
+            "observed": 1,
+            "positions": [
+              2
+            ],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": true,
+            "d": 3,
+            "growing_domain_matches": false,
+            "mapped": 1,
+            "observed": 1,
+            "positions": [
+              3
+            ],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 4,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 4,
+        "observed_events": 4,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          203,
+          466,
+          970,
+          2293,
+          5917
+        ],
+        "status": "observed_domain_mismatch",
+        "templates": 1,
+        "boundary_or_ambiguous_events": 0
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Diff\", \"Fact:Integral\", \"Fact:Mul\", \"Fact:Sub\"}",
+        "layers": [
+          {
+            "boundary_only": false,
+            "d": 0,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 1,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 1,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 1,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 3,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 4,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 0,
+        "observed_events": 3,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          203,
+          466,
+          970,
+          2293,
+          5917
+        ],
+        "status": "observed_domain_mismatch",
+        "templates": 0,
+        "boundary_or_ambiguous_events": 3
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Mul\"}",
+        "layers": [
+          {
+            "boundary_only": false,
+            "d": 0,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 3,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 3,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 2,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 3,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 2,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 4,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 0,
+        "observed_events": 10,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          203,
+          466,
+          970,
+          2293,
+          5917
+        ],
+        "status": "observed_domain_mismatch",
+        "templates": 0,
+        "boundary_or_ambiguous_events": 10
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Add\", \"Fact:Integral\"}",
+        "layers": [
+          {
+            "boundary_only": false,
+            "d": 0,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 1,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 1,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 0,
+        "observed_events": 2,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          976,
+          2299,
+          5938
+        ],
+        "status": "insufficient_held_out_levels",
+        "templates": 0,
+        "boundary_or_ambiguous_events": 2
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Add\", \"Fact:Mul\"}",
+        "layers": [
+          {
+            "boundary_only": true,
+            "d": 0,
+            "growing_domain_matches": true,
+            "mapped": 1,
+            "observed": 3,
+            "positions": [
+              0
+            ],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": true,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 1,
+            "observed": 1,
+            "positions": [
+              1
+            ],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 2,
+        "observed_events": 4,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          976,
+          2299,
+          5938
+        ],
+        "status": "insufficient_held_out_levels",
+        "templates": 1,
+        "boundary_or_ambiguous_events": 2
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Add\"}",
+        "layers": [
+          {
+            "boundary_only": false,
+            "d": 0,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 3,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 1,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 0,
+        "observed_events": 4,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          976,
+          2299,
+          5938
+        ],
+        "status": "insufficient_held_out_levels",
+        "templates": 0,
+        "boundary_or_ambiguous_events": 4
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Diff\", \"Fact:Integral\", \"Fact:Mul\", \"Fact:Sub\"}",
+        "layers": [
+          {
+            "boundary_only": false,
+            "d": 0,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 1,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 0,
+        "observed_events": 1,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          976,
+          2299,
+          5938
+        ],
+        "status": "insufficient_held_out_levels",
+        "templates": 0,
+        "boundary_or_ambiguous_events": 1
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Mul\"}",
+        "layers": [
+          {
+            "boundary_only": false,
+            "d": 0,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 2,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 2,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 0,
+        "observed_events": 4,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          976,
+          2299,
+          5938
+        ],
+        "status": "insufficient_held_out_levels",
+        "templates": 0,
+        "boundary_or_ambiguous_events": 4
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Add\", \"Fact:Integral\"}",
+        "layers": [
+          {
+            "boundary_only": false,
+            "d": 0,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 2,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 3,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 0,
+        "observed_events": 2,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          469,
+          988,
+          2320,
+          5941
+        ],
+        "status": "observed_domain_mismatch",
+        "templates": 0,
+        "boundary_or_ambiguous_events": 2
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Add\", \"Fact:Mul\"}",
+        "layers": [
+          {
+            "boundary_only": true,
+            "d": 0,
+            "growing_domain_matches": true,
+            "mapped": 1,
+            "observed": 5,
+            "positions": [
+              0
+            ],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": true,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 1,
+            "observed": 1,
+            "positions": [
+              1
+            ],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": true,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 1,
+            "observed": 1,
+            "positions": [
+              2
+            ],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 3,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 3,
+        "observed_events": 7,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          469,
+          988,
+          2320,
+          5941
+        ],
+        "status": "observed_domain_mismatch",
+        "templates": 1,
+        "boundary_or_ambiguous_events": 4
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Diff\", \"Fact:Integral\", \"Fact:Mul\", \"Fact:Sub\"}",
+        "layers": [
+          {
+            "boundary_only": false,
+            "d": 0,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 1,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 1,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 3,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 0,
+        "observed_events": 2,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          469,
+          988,
+          2320,
+          5941
+        ],
+        "status": "observed_domain_mismatch",
+        "templates": 0,
+        "boundary_or_ambiguous_events": 2
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Integral\", \"Fact:Mul\", \"Fact:Sub\"}",
+        "layers": [
+          {
+            "boundary_only": false,
+            "d": 0,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 2,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 3,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 0,
+        "observed_events": 2,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          469,
+          988,
+          2320,
+          5941
+        ],
+        "status": "observed_domain_mismatch",
+        "templates": 0,
+        "boundary_or_ambiguous_events": 2
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Integral\", \"Fact:Sub\"}",
+        "layers": [
+          {
+            "boundary_only": false,
+            "d": 0,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 2,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 2,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 3,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 0,
+        "observed_events": 4,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          469,
+          988,
+          2320,
+          5941
+        ],
+        "status": "observed_domain_mismatch",
+        "templates": 0,
+        "boundary_or_ambiguous_events": 4
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Mul\"}",
+        "layers": [
+          {
+            "boundary_only": false,
+            "d": 0,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 3,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 2,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 2,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 3,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 0,
+        "observed_events": 7,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          469,
+          988,
+          2320,
+          5941
+        ],
+        "status": "observed_domain_mismatch",
+        "templates": 0,
+        "boundary_or_ambiguous_events": 7
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Add\", \"Fact:Mul\"}",
+        "layers": [
+          {
+            "boundary_only": true,
+            "d": 0,
+            "growing_domain_matches": true,
+            "mapped": 1,
+            "observed": 1,
+            "positions": [
+              0
+            ],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": true,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 1,
+            "observed": 1,
+            "positions": [
+              1
+            ],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": true,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 1,
+            "observed": 1,
+            "positions": [
+              2
+            ],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 3,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 3,
+        "observed_events": 3,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          472,
+          985,
+          2287,
+          5962
+        ],
+        "status": "observed_domain_mismatch",
+        "templates": 1,
+        "boundary_or_ambiguous_events": 0
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Diff\", \"Fact:Integral\", \"Fact:Mul\", \"Fact:Sub\"}",
+        "layers": [
+          {
+            "boundary_only": false,
+            "d": 0,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 2,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 1,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 3,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 0,
+        "observed_events": 3,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          472,
+          985,
+          2287,
+          5962
+        ],
+        "status": "observed_domain_mismatch",
+        "templates": 0,
+        "boundary_or_ambiguous_events": 3
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Integral\", \"Fact:Mul\", \"Fact:Sub\"}",
+        "layers": [
+          {
+            "boundary_only": false,
+            "d": 0,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 1,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 3,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 0,
+        "observed_events": 1,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          472,
+          985,
+          2287,
+          5962
+        ],
+        "status": "observed_domain_mismatch",
+        "templates": 0,
+        "boundary_or_ambiguous_events": 1
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Integral\", \"Fact:Sub\"}",
+        "layers": [
+          {
+            "boundary_only": false,
+            "d": 0,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 1,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 3,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 0,
+        "observed_events": 1,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          472,
+          985,
+          2287,
+          5962
+        ],
+        "status": "observed_domain_mismatch",
+        "templates": 0,
+        "boundary_or_ambiguous_events": 1
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Mul\"}",
+        "layers": [
+          {
+            "boundary_only": false,
+            "d": 0,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 3,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 2,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 2,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 3,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 0,
+        "observed_events": 7,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          472,
+          985,
+          2287,
+          5962
+        ],
+        "status": "observed_domain_mismatch",
+        "templates": 0,
+        "boundary_or_ambiguous_events": 7
+      },
+      {
+        "candidate": {
+          "birth": "j = d",
+          "domain": "0 <= j <= d",
+          "inherit": "(d-1,j) -> (d,j)",
+          "training_levels": 3
+        },
+        "family": "{\"Fact:Sub\"}",
+        "layers": [
+          {
+            "boundary_only": false,
+            "d": 0,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 1,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 2,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 1,
+            "positions": [],
+            "split": "training",
+            "unseen_recipe_events": []
+          },
+          {
+            "boundary_only": false,
+            "d": 3,
+            "growing_domain_matches": false,
+            "mapped": 0,
+            "observed": 0,
+            "positions": [],
+            "split": "held_out",
+            "unseen_recipe_events": []
+          }
+        ],
+        "mapped_events": 0,
+        "observed_events": 1,
+        "proof_status": "finite observation only; neither completeness of the frontier nor an inductive invariant is proved",
+        "spine": [
+          472,
+          985,
+          2287,
+          5962
+        ],
+        "status": "observed_domain_mismatch",
+        "templates": 0,
+        "boundary_or_ambiguous_events": 1
+      }
+    ]
+  }
+}

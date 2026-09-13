@@ -112,3 +112,10 @@ FractalComb 后可以接普通规则，再启动另一段。实例 fact 按“�
 
 Math 6 轮验证了全部 1529 个实例的规范化视图，其中有 8 个选中的 FractalComb 段视图、24 条段末继续组合关系、116 个父依赖的段内地址。
 2366 对原始 SupportsUse 不变。原始 Comb 模板 1389 个，保留原图并加入视图后共 1435 个；这些数字不代表已实现存储压缩。
+
+## 参数化依赖候选实验
+
+用 `EGG_LAYOUT_DISCOVER_GROWTH=1` 开启主干/旁支分析，默认关闭。它尝试按真实父依赖识别
+`(d-1,j) → (d,j)` 与每层新增位置 `j=d`，并用后续层检查 binding/effect 模板。
+结果和可点击的位置图分别写入 `dependency_growth.json`、`dependency_growth.html`。
+详见 [增长旁支实验](experiments/dependency_growth/README.md)。这是有限候选分析，不是无限递归证明或可执行规则反馈。

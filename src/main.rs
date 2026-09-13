@@ -137,6 +137,9 @@ fn main() -> Result {
                 )?;
                 println!("{}", serde_json::to_string_pretty(&report["summary"])?);
                 println!("{}", out.join("fractal.html").display());
+                if !report["dependency_growth"].is_null() {
+                    println!("{}", out.join("dependency_growth.html").display());
+                }
                 Ok(())
             } else {
                 egg_layout::native_analyze::reuse(

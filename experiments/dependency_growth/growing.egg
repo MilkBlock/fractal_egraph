@@ -1,0 +1,10 @@
+; A spine with one fresh B position per level, and inherited B positions.
+; No union: each B key denotes its actual (current A, birth A) coordinate.
+(datatype Math (Seed) (A Math) (B Math Math))
+(A (Seed))
+(ruleset spine) (ruleset rows)
+(rule ((= p (A x))) ((A p)) :ruleset spine :name "grow-a")
+(rule ((= p (A x))) ((B p p)) :ruleset rows :name "birth-b")
+(rule ((= next (A p)) (= old (B p origin))) ((B next origin)) :ruleset rows :name "carry-b")
+(run spine 7)
+(run-schedule (saturate (run rows)))

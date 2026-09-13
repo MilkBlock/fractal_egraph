@@ -15,6 +15,8 @@ use std::{
 
 #[path = "native_fractal.rs"]
 mod fractal;
+#[path = "native_growth.rs"]
+mod growth;
 #[path = "native_history.rs"]
 mod history;
 
@@ -1366,12 +1368,13 @@ pub fn run_with_options(
         let stage=Instant::now();let(ext,higher)=build_tier2(&mut c,&mut eg,root)?;times.insert("tier2",stage.elapsed().as_secs_f64());
         phase("fractal-views")?;
         let stage=Instant::now();let fractal_views=fractal::build(&c,&mut eg,&ext,root)?;times.insert("fractal_views",stage.elapsed().as_secs_f64());
+        let growth_start=Instant::now();let growth=if std::env::var_os("EGG_LAYOUT_DISCOVER_GROWTH").is_some(){growth::analyze(&c,&fractal_views)}else{Json::Null};times.insert("dependency_growth",growth_start.elapsed().as_secs_f64());
         phase("view")?;
         let stage=Instant::now();let mut data=view(&c,&eg,&ext,&higher)?;
         for row in fractal_views["views"].as_array().unwrap() { let key=row["event"].to_string(); if let Some(node)=data["nodes"].get_mut(&key) { node["fractal_view"]=row.clone(); } }
         for row in fractal_views["fact_history"].as_array().unwrap() { let key=row["endpoint_event"].to_string(); if let Some(node)=data["nodes"].get_mut(&key) { node["fractal_facts"]=row.clone(); } }times.insert("selected_lowering_and_view",stage.elapsed().as_secs_f64());
         let summary=json!({"events":c.events,"imported_events":c.records.len(),"excluded_events":c.rejected,"extensions":ext.keys.len(),"higher_rules":higher.len(),"executed_rounds":c.rounds,"timings_seconds":times,"wall_seconds":started.elapsed().as_secs_f64(),"subprocesses":0,"intermediate_trace_files":0,"raw_trace_peak_batch_events":c.trace_peak,"raw_trace_batches":c.trace_batches,"raw_trace_remaining_events":0,"build_mode":if online {"online"} else {"offline"},"history_saved":save_history,"history_replayed":replay.is_some(),"scope":"Native tier-1/tier-2 in one Rust process; tier-0 executes only during recapture. Online mode imports at simple run-round boundaries; complex schedules are imported at completion. Raw trace events are drained at completed execution boundaries; compact producer/equality indexes and analysis graphs remain resident. History contains resolved eligible applications, not rejected/raw trace events. Reduce rules are loaded; arbitrary accumulator summaries are not inferred."});
-        let report=json!({"status":"complete","summary":summary,"higher_rules":higher,"fractal_views":fractal_views,"view":data});
+        let report=json!({"status":"complete","summary":summary,"higher_rules":higher,"fractal_views":fractal_views,"dependency_growth":growth,"view":data});
         render(root,out,&report["view"],true)?;
         Ok(report)
             })().map_err(|e|e.to_string())
@@ -1380,6 +1383,19 @@ pub fn run_with_options(
     if let Ok(r) = &mut result {
         r["summary"]["wall_seconds"] = json!(started.elapsed().as_secs_f64());
         std::fs::write(out.join("analysis.json"), serde_json::to_vec(r)?)?;
+        if !r["dependency_growth"].is_null() {
+            std::fs::write(
+                out.join("dependency_growth.json"),
+                serde_json::to_vec_pretty(&r["dependency_growth"])?,
+            )?;
+            let template =
+                std::fs::read_to_string(root.join("experiments/dependency_growth/viewer.html"))?;
+            let data = serde_json::to_string(&r["dependency_growth"])?.replace('<', "\\u003c");
+            std::fs::write(
+                out.join("dependency_growth.html"),
+                template.replace("__GROWTH_DATA__", &data),
+            )?;
+        }
     }
     if let Ok(bytes) = std::fs::read(&marker) {
         if let Ok(s) = serde_json::from_slice::<Json>(&bytes) {
