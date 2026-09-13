@@ -1,0 +1,320 @@
+{
+  "scope": "Actual egglog runtime, release, single sampled runs; ground import + selective binding indexes. Not a memory comparison at equal progress for interrupted runs.",
+  "baseline": "a2d53f3",
+  "six": {
+    "before": {
+      "wall_seconds": 1.149454084,
+      "sampled_peak_rss_mib": 52.265625,
+      "import_seconds": 0.777558,
+      "saturation_seconds": 0.127841,
+      "rule_profile": {
+        "cumulative_top_rules": [
+          {
+            "logical_matches": 5574,
+            "rule": "(rule ((NeedLocalPort i port)\n       (= port (ParentPort k j sort))\n       (LinkedParent i k p)\n       (OutputAt p j v)\n       (= v (V sort key)))\n      ((LocalResolved i port v))\n        :ruleset tier1 )",
+            "seconds": 0.04617879
+          },
+          {
+            "logical_matches": 5349,
+            "rule": "(rule ((NeedLocalRoute i ports)\n       (= ports (RCons p tail))\n       (LocalResolved i p v)\n       (LocalArgs i tail args))\n      ((LocalArgs i ports (ACons v args)))\n        :ruleset tier1 )",
+            "seconds": 0.013870831
+          },
+          {
+            "logical_matches": 32973,
+            "rule": "(rule ((LinkedParent i k p)\n       (Provides p e))\n      ((Provides i e))\n        :ruleset tier1 )",
+            "seconds": 0.008701914
+          },
+          {
+            "logical_matches": 2407,
+            "rule": "(rule ((NeedList i es)\n       (= es (ECons e tail))\n       (Satisfies i e)\n       (AllSatisfied i tail))\n      ((AllSatisfied i es))\n        :ruleset tier1 )",
+            "seconds": 0.005701542
+          },
+          {
+            "logical_matches": 2087,
+            "rule": "(rule ((= i (Occurrence id c))\n       (ParentAt i k p)\n       (= p (Occurrence pid pc))\n       (ParentTemplate c k pc))\n      ((LinkedParent i k p))\n        :ruleset tier1 )",
+            "seconds": 0.005555919
+          },
+          {
+            "logical_matches": 2400,
+            "rule": "(rule ((NeedEffect i e)\n       (= e (RowFact row))\n       (Provides i e))\n      ((Satisfies i e))\n        :ruleset tier1 )",
+            "seconds": 0.004668251
+          },
+          {
+            "logical_matches": 5349,
+            "rule": "(rule ((NeedLocalRoute i (RCons p tail)))\n      ((NeedLocalPort i p)\n       (NeedLocalRoute i tail))\n        :ruleset tier1 )",
+            "seconds": 0.003967207
+          },
+          {
+            "logical_matches": 1314,
+            "rule": "(rule ((= i (Occurrence id c))\n       (LocalRoutes c ports)\n       (LocalArgs i ports args))\n      ((Binding i args))\n        :ruleset tier1 )",
+            "seconds": 0.003194042
+          },
+          {
+            "logical_matches": 946,
+            "rule": "(rule ((NeedPartialRoute i ports)\n       (= ports (PCons p tail))\n       (PartialResolved i p v)\n       (PartialArgs i tail args))\n      ((PartialArgs i ports (ACons v args)))\n        :ruleset tier1 )",
+            "seconds": 0.002734787
+          },
+          {
+            "logical_matches": 2407,
+            "rule": "(rule ((NeedList i (ECons e tail)))\n      ((NeedEffect i e)\n       (NeedList i tail))\n        :ruleset tier1 )",
+            "seconds": 0.001789584
+          }
+        ],
+        "records": 1529,
+        "relation_rows": {
+          "ArgsEqual": 0,
+          "Binding": 1529,
+          "EqAt": 0,
+          "LocalArgs": 6663,
+          "NeedArgs": 0,
+          "Occurrence": 1529,
+          "PartialArgs": 1161,
+          "Provides": 28173,
+          "Satisfies": 2400,
+          "SupportsUse": 2366
+        }
+      }
+    },
+    "after": {
+      "wall_seconds": 0.279245958,
+      "sampled_peak_rss_mib": 42.5,
+      "import_seconds": 0.079219,
+      "saturation_seconds": 0.09550499999999999,
+      "rule_profile": {
+        "cumulative_top_rules": [
+          {
+            "logical_matches": 5574,
+            "rule": "(rule ((NeededParentPort i k j sort port)\n       (LinkedParent i k p)\n       (TypedOutputAt p j sort v))\n      ((LocalResolved i port v))\n        :ruleset tier1 )",
+            "seconds": 0.013803003
+          },
+          {
+            "logical_matches": 5349,
+            "rule": "(rule ((NeedLocalRoute i ports)\n       (= ports (RCons p tail))\n       (LocalResolved i p v)\n       (LocalArgs i tail args))\n      ((LocalArgs i ports (ACons v args)))\n        :ruleset tier1 )",
+            "seconds": 0.013475085
+          },
+          {
+            "logical_matches": 32973,
+            "rule": "(rule ((LinkedParent i k p)\n       (Provides p e))\n      ((Provides i e))\n        :ruleset tier1 )",
+            "seconds": 0.007654249
+          },
+          {
+            "logical_matches": 12689,
+            "rule": "(rule ((OutputAt p j v)\n       (= v (V sort key)))\n      ((TypedOutputAt p j sort v))\n        :ruleset tier1 )",
+            "seconds": 0.005719998
+          },
+          {
+            "logical_matches": 2407,
+            "rule": "(rule ((NeedList i es)\n       (= es (ECons e tail))\n       (Satisfies i e)\n       (AllSatisfied i tail))\n      ((AllSatisfied i es))\n        :ruleset tier1 )",
+            "seconds": 0.005304667
+          },
+          {
+            "logical_matches": 2087,
+            "rule": "(rule ((= i (Occurrence id c))\n       (ParentAt i k p)\n       (= p (Occurrence pid pc))\n       (ParentTemplate c k pc))\n      ((LinkedParent i k p))\n        :ruleset tier1 )",
+            "seconds": 0.004802875
+          },
+          {
+            "logical_matches": 2400,
+            "rule": "(rule ((NeedEffect i e)\n       (= e (RowFact row))\n       (Provides i e))\n      ((Satisfies i e))\n        :ruleset tier1 )",
+            "seconds": 0.003683999
+          },
+          {
+            "logical_matches": 5349,
+            "rule": "(rule ((NeedLocalRoute i (RCons p tail)))\n      ((NeedLocalPort i p)\n       (NeedLocalRoute i tail))\n        :ruleset tier1 )",
+            "seconds": 0.00325975
+          },
+          {
+            "logical_matches": 1314,
+            "rule": "(rule ((= i (Occurrence id c))\n       (LocalRoutes c ports)\n       (LocalArgs i ports args))\n      ((Binding i args))\n        :ruleset tier1 )",
+            "seconds": 0.003199251
+          },
+          {
+            "logical_matches": 946,
+            "rule": "(rule ((NeedPartialRoute i ports)\n       (= ports (PCons p tail))\n       (PartialResolved i p v)\n       (PartialArgs i tail args))\n      ((PartialArgs i ports (ACons v args)))\n        :ruleset tier1 )",
+            "seconds": 0.002545584
+          }
+        ],
+        "records": 1529,
+        "relation_rows": {
+          "ArgsEqual": 0,
+          "Binding": 1529,
+          "EqAt": 0,
+          "LocalArgs": 6663,
+          "NeedArgs": 0,
+          "Occurrence": 1529,
+          "PartialArgs": 1161,
+          "Provides": 28173,
+          "Satisfies": 2400,
+          "SupportsUse": 2366
+        }
+      }
+    }
+  },
+  "correctness": {
+    "support_pairs_equal": 2366,
+    "normalized_view_equal": true,
+    "source_rule_replay_passed": true,
+    "online_offline_history_agree": true
+  },
+  "eleven": {
+    "completed": false,
+    "stop_reason": "timeout",
+    "wall_seconds": 40.28667637496255,
+    "sampled_peak_rss_mib": 4404.5625,
+    "round_timings": [
+      {
+        "round": 1,
+        "tier0": 0.000849,
+        "collect": 0.000451,
+        "tier1": 0.010998
+      },
+      {
+        "round": 2,
+        "tier0": 0.000358,
+        "collect": 0.00025,
+        "tier1": 0.01486
+      },
+      {
+        "round": 3,
+        "tier0": 0.000549,
+        "collect": 0.000497,
+        "tier1": 0.009518
+      },
+      {
+        "round": 4,
+        "tier0": 0.000833,
+        "collect": 0.00083,
+        "tier1": 0.01717
+      },
+      {
+        "round": 5,
+        "tier0": 0.001686,
+        "collect": 0.001878,
+        "tier1": 0.042446
+      },
+      {
+        "round": 6,
+        "tier0": 0.00318,
+        "collect": 0.005266,
+        "tier1": 0.110659
+      },
+      {
+        "round": 7,
+        "tier0": 0.00631,
+        "collect": 0.011648,
+        "tier1": 0.251819
+      },
+      {
+        "round": 8,
+        "tier0": 0.012393,
+        "collect": 0.027793,
+        "tier1": 0.608172
+      },
+      {
+        "round": 9,
+        "tier0": 0.04398,
+        "collect": 0.111417,
+        "tier1": 2.20898
+      },
+      {
+        "round": 10,
+        "tier0": 0.31475,
+        "collect": 0.839371,
+        "tier1": 15.257278
+      }
+    ],
+    "imports": [
+      {
+        "seconds": 0.00851,
+        "records": 20
+      },
+      {
+        "seconds": 0.002096,
+        "records": 64
+      },
+      {
+        "seconds": 0.003466,
+        "records": 129
+      },
+      {
+        "seconds": 0.006764,
+        "records": 268
+      },
+      {
+        "seconds": 0.015936,
+        "records": 636
+      },
+      {
+        "seconds": 0.050941,
+        "records": 1529
+      },
+      {
+        "seconds": 0.115209,
+        "records": 3723
+      },
+      {
+        "seconds": 0.27184,
+        "records": 8535
+      },
+      {
+        "seconds": 0.978381,
+        "records": 25175
+      },
+      {
+        "seconds": 6.649811,
+        "records": 121120
+      }
+    ],
+    "saturation": [
+      {
+        "saturate": 0.001547,
+        "validate": 4.2e-05,
+        "records": 20
+      },
+      {
+        "saturate": 0.004017,
+        "validate": 8.1e-05,
+        "records": 64
+      },
+      {
+        "saturate": 0.005207,
+        "validate": 0.000107,
+        "records": 129
+      },
+      {
+        "saturate": 0.009512,
+        "validate": 0.000231,
+        "records": 268
+      },
+      {
+        "saturate": 0.025117,
+        "validate": 0.000639,
+        "records": 636
+      },
+      {
+        "saturate": 0.057356,
+        "validate": 0.00153,
+        "records": 1529
+      },
+      {
+        "saturate": 0.131502,
+        "validate": 0.00409,
+        "records": 3723
+      },
+      {
+        "saturate": 0.322786,
+        "validate": 0.011013,
+        "records": 8535
+      },
+      {
+        "saturate": 1.183485,
+        "validate": 0.038477,
+        "records": 25175
+      },
+      {
+        "saturate": 8.34403,
+        "validate": 0.241607,
+        "records": 121120
+      }
+    ]
+  }
+}

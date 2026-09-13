@@ -55,7 +55,7 @@ fn vref(id: usize) -> Expr {
 }
 fn flush(eg: &mut EGraph, batch: &mut Vec<Command>) -> Result {
     if !batch.is_empty() {
-        eg.run_program(std::mem::take(batch))?;
+        eg.run_ground_import(&std::mem::take(batch))?;
     }
     Ok(())
 }

@@ -14,7 +14,7 @@ cargo run --release -- analyze --reuse-tier0 --output out/native-six
 ```
 
 新入口不启动 Python、研究程序或管道。采集事件、构建 tier-1/tier-2、检查 binding 和生成页面都在同一进程中完成。
-数据直接使用原生事件、Rust 结构体和 egglog AST/Value；默认只保存最终 `analysis.json`、`run.json`、`fractal.html`、`index.html`。
+数据直接使用原生事件、Rust 结构体和 egglog AST/Value；tier-1/tier-2 的 ground 数据通过带 schema 检查的原生导入接口写入，规则仍由 egglog 执行。默认只保存最终 `analysis.json`、`run.json`、`fractal.html`、`index.html`。
 页面为输出目录下的 `fractal.html`；输出目录必须不存在。复用模式只重新渲染已完成结果，不重新执行推理。
 不指定复用目录时，使用仓库已有的固定视图。旧管道缓存的完整视图仍可复用，但不会启动旧流水线。
 

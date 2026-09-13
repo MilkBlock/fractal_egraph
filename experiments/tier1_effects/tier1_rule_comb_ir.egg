@@ -77,7 +77,12 @@
 (rule ((NeedLocalPort i (Make op ports sort))) ((NeedLocalRoute i ports)) :ruleset tier1)
 (rule ((NeedPartialPort i (Local p))) ((NeedLocalPort i p)) :ruleset tier1)
 (rule ((NeedPartialPort i (MakePartial op ports sort))) ((NeedPartialRoute i ports)) :ruleset tier1)
-(rule ((NeedLocalPort i port) (= port (ParentPort k j sort)) (LinkedParent i k p) (OutputAt p j v) (= v (V sort key))) ((LocalResolved i port v)) :ruleset tier1)
+; Materialize selective keys once, rather than repeatedly joining V by sort.
+(relation NeededParentPort (Instance i64 i64 String LocalPort))
+(relation TypedOutputAt (Instance i64 String Val))
+(rule ((NeedLocalPort i port) (= port (ParentPort k j sort))) ((NeededParentPort i k j sort port)) :ruleset tier1)
+(rule ((OutputAt p j v) (= v (V sort key))) ((TypedOutputAt p j sort v)) :ruleset tier1)
+(rule ((NeededParentPort i k j sort port) (LinkedParent i k p) (TypedOutputAt p j sort v)) ((LocalResolved i port v)) :ruleset tier1)
 (rule ((NeedLocalPort i port) (= port (Make op ports sort)) (LocalArgs i ports args) (Materialized i op args v) (= v (V sort key))) ((LocalResolved i port v)) :ruleset tier1)
 (rule ((NeedPartialPort i port) (= port (Local local)) (LocalResolved i local v)) ((PartialResolved i port v)) :ruleset tier1)
 (rule ((NeedPartialPort i port) (= port (External k sort)) (ExternalAt i k v) (= v (V sort key))) ((PartialResolved i port v)) :ruleset tier1)
