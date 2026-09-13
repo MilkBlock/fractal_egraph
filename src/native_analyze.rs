@@ -13,6 +13,8 @@ use std::{
     time::Instant,
 };
 
+#[path = "native_fractal.rs"]
+mod fractal;
 #[path = "native_history.rs"]
 mod history;
 
@@ -1095,7 +1097,7 @@ fn build_tier2(c: &mut Captured, eg: &mut EGraph, root: &Path) -> Result<(Extens
             .to_string()
     };
     let mut h = BTreeMap::new();
-    eg.function_for_each("HigherRule",|r|{h.insert(r.vals[4],json!({"count":eg.value_to_base::<i64>(r.vals[0]),"operator":format!("ext_{:04}",ext_ids[&r.vals[1]]),"ctx":cid(r.vals[2]),"represents":[]}));})?;
+    eg.function_for_each("FractalComb",|r|{h.insert(r.vals[4],json!({"count":eg.value_to_base::<i64>(r.vals[0]),"operator":format!("ext_{:04}",ext_ids[&r.vals[1]]),"ctx":cid(r.vals[2]),"represents":[]}));})?;
     eg.function_for_each("Represents", |r| {
         h.get_mut(&r.vals[0]).unwrap()["represents"]
             .as_array_mut()
@@ -1217,11 +1219,11 @@ fn view(c: &Captured, eg: &EGraph, extensions: &Extensions, higher: &[Json]) -> 
                     .iter()
                     .any(|x| x == &target)
         }) {
-            return Err("view path is not a native HigherRule".into());
+            return Err("view path is not a native FractalComb".into());
         }
         needed.insert(trigger);
         needed.extend(path);
-        lanes.push(json!({"id":format!("chain_{}",n+1),"rule":c.rules[first.rule].rule.name,"operator":op,"trigger":c.records[trigger].id,"events":path.iter().map(|i|c.records[*i].id).collect::<Vec<_>>(),"higher":format!("HigherRule({}, {}, {}, initial_binding)",path.len(),op,context),"update":update_text(c,path[0])}));
+        lanes.push(json!({"id":format!("chain_{}",n+1),"rule":c.rules[first.rule].rule.name,"operator":op,"trigger":c.records[trigger].id,"events":path.iter().map(|i|c.records[*i].id).collect::<Vec<_>>(),"higher":format!("FractalComb({}, {}, {}, initial_binding)",path.len(),op,context),"update":update_text(c,path[0])}));
     }
     let mut nodes = serde_json::Map::new();
     for index in needed {
@@ -1246,9 +1248,15 @@ fn view(c: &Captured, eg: &EGraph, extensions: &Extensions, higher: &[Json]) -> 
         .values()
         .map(|n| n["comb"].as_str().unwrap().to_owned())
         .collect();
-    let total = eg.get_size("Empty") + eg.get_size("SmoothComb") + eg.get_size("CoarseComb");
+    let mut original: BTreeSet<_> = c.records.iter().filter_map(|r| r.comb).collect();
+    original.extend(eg.lookup_function("Empty", &[]));
+    let total = original.len();
+    let with_views = eg.get_size("Empty")
+        + eg.get_size("SmoothComb")
+        + eg.get_size("CoarseComb")
+        + eg.get_size("FractalComb");
     Ok(
-        json!({"capture":{"rounds":c.rounds},"stats":{"higher_rules":higher.len(),"maximal_chains":lanes.len(),"applications":paths.iter().map(Vec::len).sum::<usize>(),"visible_unique_contexts":visible.len(),"total_comb_templates":total},"lanes":lanes,"nodes":nodes,"scope":"Single-process native analysis; only witnessed finite paths are displayed. Raw events are drained after completed rounds; producer/equality indexes and analysis graphs remain resident."}),
+        json!({"capture":{"rounds":c.rounds},"stats":{"higher_rules":higher.len(),"maximal_chains":lanes.len(),"applications":paths.iter().map(Vec::len).sum::<usize>(),"visible_unique_contexts":visible.len(),"total_comb_templates":total,"comb_templates_with_views":with_views},"lanes":lanes,"nodes":nodes,"scope":"Single-process native analysis; only witnessed finite paths are displayed. Raw events are drained after completed rounds; producer/equality indexes and analysis graphs remain resident."}),
     )
 }
 fn escape(s: &str) -> String {
@@ -1356,10 +1364,14 @@ pub fn run_with_options(
         let mut eg=tier1;let stage=Instant::now();if !online || replay.is_some() { build_tier1(&mut c,&mut eg,root,&mut (0,0))?; }times.insert("tier1",stage.elapsed().as_secs_f64());
         phase("tier2")?;
         let stage=Instant::now();let(ext,higher)=build_tier2(&mut c,&mut eg,root)?;times.insert("tier2",stage.elapsed().as_secs_f64());
+        phase("fractal-views")?;
+        let stage=Instant::now();let fractal_views=fractal::build(&c,&mut eg,&ext,root)?;times.insert("fractal_views",stage.elapsed().as_secs_f64());
         phase("view")?;
-        let stage=Instant::now();let data=view(&c,&eg,&ext,&higher)?;times.insert("selected_lowering_and_view",stage.elapsed().as_secs_f64());
+        let stage=Instant::now();let mut data=view(&c,&eg,&ext,&higher)?;
+        for row in fractal_views["views"].as_array().unwrap() { let key=row["event"].to_string(); if let Some(node)=data["nodes"].get_mut(&key) { node["fractal_view"]=row.clone(); } }
+        for row in fractal_views["fact_history"].as_array().unwrap() { let key=row["endpoint_event"].to_string(); if let Some(node)=data["nodes"].get_mut(&key) { node["fractal_facts"]=row.clone(); } }times.insert("selected_lowering_and_view",stage.elapsed().as_secs_f64());
         let summary=json!({"events":c.events,"imported_events":c.records.len(),"excluded_events":c.rejected,"extensions":ext.keys.len(),"higher_rules":higher.len(),"executed_rounds":c.rounds,"timings_seconds":times,"wall_seconds":started.elapsed().as_secs_f64(),"subprocesses":0,"intermediate_trace_files":0,"raw_trace_peak_batch_events":c.trace_peak,"raw_trace_batches":c.trace_batches,"raw_trace_remaining_events":0,"build_mode":if online {"online"} else {"offline"},"history_saved":save_history,"history_replayed":replay.is_some(),"scope":"Native tier-1/tier-2 in one Rust process; tier-0 executes only during recapture. Online mode imports at simple run-round boundaries; complex schedules are imported at completion. Raw trace events are drained at completed execution boundaries; compact producer/equality indexes and analysis graphs remain resident. History contains resolved eligible applications, not rejected/raw trace events. Reduce rules are loaded; arbitrary accumulator summaries are not inferred."});
-        let report=json!({"status":"complete","summary":summary,"higher_rules":higher,"view":data});
+        let report=json!({"status":"complete","summary":summary,"higher_rules":higher,"fractal_views":fractal_views,"view":data});
         render(root,out,&report["view"],true)?;
         Ok(report)
             })().map_err(|e|e.to_string())

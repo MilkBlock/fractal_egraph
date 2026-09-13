@@ -58,7 +58,7 @@ fn higher_rule_counts_actual_steps_and_preserves_initial_context() {
         .unwrap();
     eg.parse_and_run_program(
         None,
-        "(datatype Comb (Base) (Step Comb)) (datatype RelativeBinding (Bind))",
+        include_str!("../experiments/tier1_effects/tier1_rule_comb_ir.egg"),
     )
     .unwrap();
     eg.parse_and_run_program(None, include_str!("../experiments/tier2/higher_ir.egg"))
@@ -68,16 +68,16 @@ fn higher_rule_counts_actual_steps_and_preserves_initial_context() {
         r#"
       (let r (Extend "r" (End) (Schema "effect-r")))
       (let s (Extend "r" (End) (Schema "different-effect")))
-      (let start (Base)) (let mid (Step start)) (let out (Step mid))
-      (UnaryStep start mid r (Bind)) (UnaryStep mid out r (Bind))
-      (UnaryStep out (Step out) s (Bind))
+      (let start (Empty)) (let mid (SmoothComb (MoreParents start (NoParents)) (Rule "r") (RNil))) (let out (SmoothComb (MoreParents mid (NoParents)) (Rule "r") (RNil)))
+      (UnaryStep start mid r (RNil)) (UnaryStep mid out r (RNil))
+      (UnaryStep out (SmoothComb (MoreParents out (NoParents)) (Rule "s") (RNil)) s (RNil))
       (run-schedule (saturate (run higher)))
-      (check (Represents (HigherRule 2 r start (Bind)) out))
+      (check (Represents (FractalComb 2 r start (RNil)) out))
     "#,
     )
     .unwrap();
     let mut count = 0;
-    eg.function_for_each("HigherRule", |r| {
+    eg.function_for_each("FractalComb", |r| {
         assert_eq!(eg.value_to_base::<i64>(r.vals[0]), 2);
         count += 1;
     })

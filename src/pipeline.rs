@@ -52,7 +52,7 @@ pub fn relations(input: &str, output: &str) -> Result {
     Ok(())
 }
 
-/// Extract HigherRule views derived by native power folding of tier-1 edges.
+/// Extract FractalComb views derived by native power folding of tier-1 edges.
 pub fn higher() -> Result {
     let mut eg = egglog::EGraph::default();
     eg.parse_and_run_program(
@@ -78,9 +78,9 @@ pub fn higher() -> Result {
         );
     })?;
     let mut hs = BTreeMap::new();
-    eg.function_for_each("HigherRule",|r|{
+    eg.function_for_each("FractalComb",|r|{
   let k=eg.value_to_base::<i64>(r.vals[0]);let binding=eg.extract_value_to_string(eg.get_sort_by_name("RelativeBinding").unwrap(),r.vals[3]).unwrap().0;
-  hs.insert(r.vals[4],json!({"count":k,"operator":en[&r.vals[1]],"ctx":cn[&r.vals[2]],"binding":binding,"egg":format!("(HigherRule {k} ${} {} {binding})",en[&r.vals[1]],cn[&r.vals[2]]),"represents":[]}));
+  hs.insert(r.vals[4],json!({"count":k,"operator":en[&r.vals[1]],"ctx":cn[&r.vals[2]],"binding":binding,"egg":format!("(FractalComb {k} ${} {} {binding})",en[&r.vals[1]],cn[&r.vals[2]]),"represents":[]}));
  })?;
     eg.function_for_each("Represents", |r| {
         hs.get_mut(&r.vals[0]).unwrap()["represents"]
@@ -99,7 +99,7 @@ pub fn higher() -> Result {
     std::fs::write(
         "experiments/tier2/higher_native.json",
         serde_json::to_string_pretty(
-            &json!({"scope":"Native HigherRule(k, extension, ctx, initial binding) views of existing closed unary tier-1 paths. No new arbitrary-k rule applications and no full-effect equality claims beyond witnessed folding.","higher_rules":values}),
+            &json!({"scope":"Native FractalComb(k, extension, ctx, initial binding) views of existing closed unary tier-1 paths. No new arbitrary-k rule applications and no full-effect equality claims beyond witnessed folding.","higher_rules":values}),
         )? + "\n",
     )?;
     Ok(())
@@ -146,7 +146,7 @@ pub fn reduce() -> Result {
     std::fs::write(
         "experiments/tier2/reduce.json",
         serde_json::to_string_pretty(
-            &json!({"scope":"Native egglog constructor-cost extraction. Exact scalar endpoint identities; neither removal of intermediate runtime nodes nor automatic HigherRule accumulator discovery.","examples":rows}),
+            &json!({"scope":"Native egglog constructor-cost extraction. Exact scalar endpoint identities; neither removal of intermediate runtime nodes nor automatic FractalComb accumulator discovery.","examples":rows}),
         )? + "\n",
     )?;
     Ok(())

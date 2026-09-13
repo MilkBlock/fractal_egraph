@@ -74,7 +74,7 @@ fn higher_rule_receives_explicit_reduce_endpoint() {
         .unwrap();
     e.parse_and_run_program(
         None,
-        "(datatype Comb (Base)) (datatype RelativeBinding (Bind))",
+        include_str!("../experiments/tier1_effects/tier1_rule_comb_ir.egg"),
     )
     .unwrap();
     e.parse_and_run_program(None, include_str!("../experiments/tier2/higher_ir.egg"))
@@ -82,7 +82,7 @@ fn higher_rule_receives_explicit_reduce_endpoint() {
     e.parse_and_run_program(
         None,
         r#"
- (let h (HigherRule 3 (Extend "r" (End) (Schema "supplied-additive-summary")) (Base) (Bind)))
+ (let h (FractalComb 3 (Extend "r" (End) (Schema "supplied-additive-summary")) (Empty) (RNil)))
  (let t (ECall "f" (ESymbol "terminal")))
  (ReductionInput h (AddConstant (ESymbol "m")) t)
  (run-schedule (saturate (run higher)))

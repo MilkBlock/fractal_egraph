@@ -1,6 +1,6 @@
 # egg_layout
 
-从 rule apply 历史分析组合，用 HigherRule 表示稳定重复，用 Reduce 提取终点表达式，并生成 fractal 可视化。
+从 rule apply 历史分析组合，用 FractalComb 表示稳定重复，用 Reduce 提取终点表达式，并生成 fractal 可视化。
 
 ## 使用：单个 Rust 进程
 
@@ -56,7 +56,7 @@ combined rule 文本、source steps、relative routes 与视图统计一致；na
 |---|---|
 | [tier-1 IR](experiments/tier1_effects/tier1_rule_comb_ir.egg) | Comb、relative binding、实例及 effect |
 | [tier-2 IR](rules/tier2.egg) | 稳定扩展、重复观察、坐标变换 |
-| [HigherRule](rules/higher.egg) | 已有组合链 → 次数参数 k |
+| [FractalComb](rules/higher.egg) | 已有组合链 → 次数参数 k |
 | [Reduce](rules/reduce.egg) | 显式归约及解析表达式成本 |
 | [主入口](src/main.rs) | 命令选择 |
 | [单进程分析](src/native_analyze.rs) | 原生事件 → tier-1 → tier-2 → 结果 |
@@ -87,7 +87,7 @@ cargo test --test native_single_process --test tier2_native --test tier2_reduce 
 cargo test --release --test native_single_process --test native_history -- --include-ignored
 ```
 
-回归基准包括 13 个有限 HigherRule、4 条 fractal 轨道、Reduce 结果与反例。
+回归基准包括 13 个有限 FractalComb、4 条 fractal 轨道、Reduce 结果与反例。
 有限重复不等于任意 k 的闭合证明；视图隐藏非 fractal 区域，不声称全图无损压缩。
 
 保留 `egglog-baseline` 和完整 Git 历史：
@@ -96,3 +96,19 @@ cargo test --release --test native_single_process --test native_history -- --inc
 git diff egglog-baseline..HEAD -- egglog/
 git log --oneline --reverse egglog-baseline..HEAD
 ```
+
+## FractalComb 规范化视图
+
+`FractalComb(k, extension, start_ctx, initial_binding)` 与 SmoothComb、CoarseComb 同属 Comb。
+其计数从有 witness 的 SmoothComb 开始；coarse 注入及启动历史留在 start_ctx。
+`analysis.json` 的 `fractal_views` 保存选中的组合、段内 fact/effect 历史和中间输出引用。
+页面的接口证据可查看这些数据，tier-1 表示显示选中的 PackedComb 表达式。
+
+FractalComb 后可以接普通规则，再启动另一段。实例 fact 按“段末 occurrence、段内位置、端口”寻址，
+不会因模板共享而混淆来源。当前是保留原始实例的经过校验的规范化视图，**尚未用它替换在线导入、删除中间节点或证明任意次数的稳定性**。
+启动位置是观测到的有限稳定接口边界，不是自动证明的最小 trigger state。
+
+相关规则见 [fractal_views.egg](rules/fractal_views.egg)，反例与跨段测试见 [fractal_comb.rs](tests/fractal_comb.rs)。
+
+Math 6 轮验证了全部 1529 个实例的规范化视图，其中有 8 个选中的 FractalComb 段视图、24 条段末继续组合关系、116 个父依赖的段内地址。
+2366 对原始 SupportsUse 不变。原始 Comb 模板 1389 个，保留原图并加入视图后共 1435 个；这些数字不代表已实现存储压缩。

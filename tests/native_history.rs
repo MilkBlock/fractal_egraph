@@ -93,6 +93,8 @@ fn check(source: &str, rounds: &str, tag: &str) {
             assert_eq!(a["summary"][key], other["summary"][key], "{key}");
         }
     }
+    assert_eq!(a["fractal_views"], b["fractal_views"]);
+    assert_eq!(a["fractal_views"], c["fractal_views"]);
     assert_eq!(c["summary"]["history_replayed"], true);
     assert!(!replay.join("history.json").exists());
     let mut history: serde_json::Value =
