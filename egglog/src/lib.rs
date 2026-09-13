@@ -11,6 +11,7 @@
 //! We also have a slightly outdated [video tutorial](https://www.youtube.com/watch?v=N2RDQGRBrSY).
 //!
 pub mod ast;
+mod ground_import;
 #[cfg(feature = "bin")]
 mod cli;
 mod command_macro;
