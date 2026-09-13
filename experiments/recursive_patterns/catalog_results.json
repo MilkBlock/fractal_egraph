@@ -1,0 +1,353 @@
+{
+  "dominance": {
+    "pattern_count": 3,
+    "sharing": {
+      "raw_catalog_json_bytes": 53889,
+      "repeated_witness_records_removed": 35,
+      "scope": "JSON representation only; includes sharing/ranking metadata overhead, not runtime egraph memory or tier0 enode compression",
+      "shared_catalog_json_bytes": 34407,
+      "unique_event_witnesses": 34,
+      "unique_extents": 5,
+      "unique_step_templates": 3
+    },
+    "observed_dominance": [
+      {
+        "certificate": "Every dominated instance has the same observed entry, all its apply events preserved, and no extra external parent dependencies.",
+        "dominant": 1,
+        "dominated": 0,
+        "kind": "observed_instance_dominance",
+        "matched_entries": [
+          12
+        ],
+        "semantic_dominance": "unproved"
+      }
+    ],
+    "overlaps": [
+      {
+        "a": 0,
+        "b": 2,
+        "relation": "overlap_without_observed_dominance",
+        "shared_apply_events": 12
+      },
+      {
+        "a": 1,
+        "b": 2,
+        "relation": "overlap_without_observed_dominance",
+        "shared_apply_events": 23
+      }
+    ],
+    "patterns": [
+      {
+        "id": 2,
+        "kind": "recursive_dag",
+        "entry_rule": "return-conditional",
+        "branch_rule": "fork-conditional",
+        "observed_arity": 1,
+        "ranking": {
+          "definition_bytes": 1012,
+          "new_apply_events": 24,
+          "new_events_per_kib": 24.284584980237153,
+          "observed_instances": 4,
+          "rank": 1,
+          "semantic_dominance": "unproved",
+          "unique_apply_events": 24
+        },
+        "instances": [
+          {
+            "entry_event": 5,
+            "extent_kind": "SparseExtent",
+            "depth": null,
+            "observed_apply_events": 19
+          },
+          {
+            "entry_event": 109,
+            "extent_kind": "SparseExtent",
+            "depth": null,
+            "observed_apply_events": 3
+          },
+          {
+            "entry_event": 145,
+            "extent_kind": "SparseExtent",
+            "depth": null,
+            "observed_apply_events": 1
+          },
+          {
+            "entry_event": 157,
+            "extent_kind": "SparseExtent",
+            "depth": null,
+            "observed_apply_events": 1
+          }
+        ]
+      },
+      {
+        "id": 1,
+        "kind": "recursive_dag",
+        "entry_rule": "fork-conditional",
+        "branch_rule": "return-conditional",
+        "observed_arity": 2,
+        "ranking": {
+          "definition_bytes": 1608,
+          "new_apply_events": 10,
+          "new_events_per_kib": 6.3681592039801,
+          "observed_instances": 1,
+          "rank": 2,
+          "semantic_dominance": "unproved",
+          "unique_apply_events": 33
+        },
+        "instances": [
+          {
+            "entry_event": 12,
+            "extent_kind": "SparseExtent",
+            "depth": null,
+            "observed_apply_events": 33
+          }
+        ]
+      },
+      {
+        "id": 0,
+        "kind": "recursive_dag",
+        "entry_rule": "fork-conditional",
+        "branch_rule": "return-conditional",
+        "observed_arity": 1,
+        "ranking": {
+          "definition_bytes": 1012,
+          "new_apply_events": 0,
+          "new_events_per_kib": 0.0,
+          "observed_instances": 1,
+          "rank": 3,
+          "semantic_dominance": "unproved",
+          "unique_apply_events": 12
+        },
+        "instances": [
+          {
+            "entry_event": 12,
+            "extent_kind": "SparseExtent",
+            "depth": null,
+            "observed_apply_events": 12
+          }
+        ]
+      }
+    ]
+  },
+  "overlap": {
+    "pattern_count": 2,
+    "sharing": {
+      "raw_catalog_json_bytes": 12509,
+      "repeated_witness_records_removed": 8,
+      "scope": "JSON representation only; includes sharing/ranking metadata overhead, not runtime egraph memory or tier0 enode compression",
+      "shared_catalog_json_bytes": 8970,
+      "unique_event_witnesses": 9,
+      "unique_extents": 2,
+      "unique_step_templates": 2
+    },
+    "observed_dominance": [],
+    "overlaps": [
+      {
+        "a": 0,
+        "b": 1,
+        "relation": "overlap_without_observed_dominance",
+        "shared_apply_events": 8
+      }
+    ],
+    "patterns": [
+      {
+        "id": 1,
+        "kind": "recursive_dag",
+        "entry_rule": "return",
+        "branch_rule": "fork",
+        "observed_arity": 1,
+        "ranking": {
+          "definition_bytes": 855,
+          "new_apply_events": 9,
+          "new_events_per_kib": 10.778947368421052,
+          "observed_instances": 1,
+          "rank": 1,
+          "semantic_dominance": "unproved",
+          "unique_apply_events": 9
+        },
+        "instances": [
+          {
+            "entry_event": 5,
+            "extent_kind": "SparseExtent",
+            "depth": null,
+            "observed_apply_events": 9
+          }
+        ]
+      },
+      {
+        "id": 0,
+        "kind": "recursive_dag",
+        "entry_rule": "fork",
+        "branch_rule": "return",
+        "observed_arity": 1,
+        "ranking": {
+          "definition_bytes": 855,
+          "new_apply_events": 0,
+          "new_events_per_kib": 0.0,
+          "observed_instances": 1,
+          "rank": 2,
+          "semantic_dominance": "unproved",
+          "unique_apply_events": 8
+        },
+        "instances": [
+          {
+            "entry_event": 9,
+            "extent_kind": "Depth",
+            "depth": 4,
+            "observed_apply_events": 8
+          }
+        ]
+      }
+    ]
+  },
+  "math6": {
+    "pattern_count": 1,
+    "sharing": {
+      "raw_catalog_json_bytes": 24515,
+      "repeated_witness_records_removed": 0,
+      "scope": "JSON representation only; includes sharing/ranking metadata overhead, not runtime egraph memory or tier0 enode compression",
+      "shared_catalog_json_bytes": 25201,
+      "unique_event_witnesses": 12,
+      "unique_extents": 3,
+      "unique_step_templates": 1
+    },
+    "observed_dominance": [],
+    "overlaps": [],
+    "patterns": [
+      {
+        "id": 0,
+        "kind": "linear_extension",
+        "entry_rule": "R23",
+        "branch_rule": null,
+        "observed_arity": 1,
+        "ranking": {
+          "definition_bytes": 627,
+          "new_apply_events": 12,
+          "new_events_per_kib": 19.598086124401913,
+          "observed_instances": 4,
+          "rank": 1,
+          "semantic_dominance": "unproved",
+          "unique_apply_events": 12
+        },
+        "instances": [
+          {
+            "entry_event": 466,
+            "extent_kind": "Depth",
+            "depth": 4,
+            "observed_apply_events": 4
+          },
+          {
+            "entry_event": 2299,
+            "extent_kind": "Depth",
+            "depth": 2,
+            "observed_apply_events": 2
+          },
+          {
+            "entry_event": 988,
+            "extent_kind": "Depth",
+            "depth": 3,
+            "observed_apply_events": 3
+          },
+          {
+            "entry_event": 985,
+            "extent_kind": "Depth",
+            "depth": 3,
+            "observed_apply_events": 3
+          }
+        ]
+      }
+    ]
+  },
+  "binary": {
+    "pattern_count": 1,
+    "sharing": {
+      "raw_catalog_json_bytes": 59492,
+      "repeated_witness_records_removed": 0,
+      "scope": "JSON representation only; includes sharing/ranking metadata overhead, not runtime egraph memory or tier0 enode compression",
+      "shared_catalog_json_bytes": 60931,
+      "unique_event_witnesses": 90,
+      "unique_extents": 1,
+      "unique_step_templates": 3
+    },
+    "observed_dominance": [],
+    "overlaps": [],
+    "patterns": [
+      {
+        "id": 0,
+        "kind": "recursive_dag",
+        "entry_rule": "fork",
+        "branch_rule": "return",
+        "observed_arity": 2,
+        "ranking": {
+          "definition_bytes": 1336,
+          "new_apply_events": 90,
+          "new_events_per_kib": 68.98203592814372,
+          "observed_instances": 2,
+          "rank": 1,
+          "semantic_dominance": "unproved",
+          "unique_apply_events": 90
+        },
+        "instances": [
+          {
+            "entry_event": 15,
+            "extent_kind": "Depth",
+            "depth": 4,
+            "observed_apply_events": 45
+          },
+          {
+            "entry_event": 17,
+            "extent_kind": "Depth",
+            "depth": 4,
+            "observed_apply_events": 45
+          }
+        ]
+      }
+    ]
+  },
+  "partial": {
+    "pattern_count": 1,
+    "sharing": {
+      "raw_catalog_json_bytes": 24285,
+      "repeated_witness_records_removed": 0,
+      "scope": "JSON representation only; includes sharing/ranking metadata overhead, not runtime egraph memory or tier0 enode compression",
+      "shared_catalog_json_bytes": 24596,
+      "unique_event_witnesses": 26,
+      "unique_extents": 1,
+      "unique_step_templates": 3
+    },
+    "observed_dominance": [],
+    "overlaps": [],
+    "patterns": [
+      {
+        "id": 0,
+        "kind": "recursive_dag",
+        "entry_rule": "fork",
+        "branch_rule": "return",
+        "observed_arity": 2,
+        "ranking": {
+          "definition_bytes": 1336,
+          "new_apply_events": 26,
+          "new_events_per_kib": 19.92814371257485,
+          "observed_instances": 2,
+          "rank": 1,
+          "semantic_dominance": "unproved",
+          "unique_apply_events": 26
+        },
+        "instances": [
+          {
+            "entry_event": 15,
+            "extent_kind": "SparseExtent",
+            "depth": null,
+            "observed_apply_events": 13
+          },
+          {
+            "entry_event": 17,
+            "extent_kind": "SparseExtent",
+            "depth": null,
+            "observed_apply_events": 13
+          }
+        ]
+      }
+    ]
+  }
+}

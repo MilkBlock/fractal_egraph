@@ -1,0 +1,9 @@
+; Early units execute only port 0; later units execute both ports.
+; The larger sparse view may cover the smaller observed view at the same entry.
+; This is not a proof that both ports are enabled for every input n.
+(datatype Math (A i64) (B i64 i64))
+(A 1)
+(ruleset a) (ruleset b)
+(rule ((= node (A n))) ((B n 0) (B n 1)) :ruleset a :name "fork-conditional")
+(rule ((= node (B n tag)) (<= (* tag 100) n)) ((A (+ (* n 2) tag))) :ruleset b :name "return-conditional")
+(run-schedule (repeat 10 (seq (run a) (run b))))

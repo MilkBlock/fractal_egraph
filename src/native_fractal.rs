@@ -43,7 +43,7 @@ pub(super) fn build(
             call(
                 "FractalComb",
                 vec![
-                    num(lengths[i] as u64),
+                    call("Depth", vec![num(lengths[i] as u64)]),
                     call("ImportedExtension", vec![num(r.extension as u64)]),
                     packed(first.parents[0]),
                     binding(c, first),
@@ -161,7 +161,7 @@ pub(super) fn build(
         json!({"scope":"Verified selected views over retained original instances; no deletion or bounded-memory feedback yet.","verified_instances":c.records.len(),"segments":expected,"outputs":eg.get_size("FractalOutput"),"effects":eg.get_size("FractalEffect"),"continuations":eg.get_size("FractalParent"),"views":display,"fact_history":fact_history,"input_addresses":addresses}),
     )
 }
-fn binding(c: &Captured, r: &Record) -> Expr {
+pub(super) fn binding(c: &Captured, r: &Record) -> Expr {
     let ports = r
         .ports
         .iter()

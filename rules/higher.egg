@@ -3,7 +3,20 @@
 ; ctx retains coarse injection and warmup; neither is counted in the repetition.
 ; The first step and each extension must be a witnessed unary SmoothComb.
 ; Finite repetition is evidence, not proof of an arbitrary-count invariant.
-(constructor FractalComb (i64 Extension Comb RelativeBinding) Comb)
+; Depth is exact uniform observed expansion; sparse extents keep partial ports.
+(sort ExpansionExtent)
+(sort ExpansionNodes)
+(sort ExpansionEdges)
+(constructor Depth (i64) ExpansionExtent)
+(constructor SparseExtent (ExpansionNodes) ExpansionExtent)
+(constructor NoExpansionNodes () ExpansionNodes)
+(constructor ExpansionNode (i64 ExpansionEdges ExpansionNodes) ExpansionNodes)
+(constructor NoExpansionEdges () ExpansionEdges)
+(constructor ExpandTo (i64 i64 ExpansionEdges) ExpansionEdges)
+(constructor OpenPort (i64 ExpansionEdges) ExpansionEdges)
+(constructor ReturnFrontier (i64 ExpansionEdges) ExpansionEdges)
+(constructor BoundaryPort (i64 ExpansionEdges) ExpansionEdges)
+(constructor FractalComb (ExpansionExtent Extension Comb RelativeBinding) Comb)
 (relation UnaryStep (Comb Comb Extension RelativeBinding))
 (relation PowerPrefix (Comb Comb Extension RelativeBinding i64))
 (relation Represents (Comb Comb))
@@ -15,13 +28,15 @@
 (rule ((PowerPrefix ctx mid r binding k) (UnaryStep mid out r next_binding) (= out (SmoothComb (MoreParents mid (NoParents)) rule next_binding)))
       ((PowerPrefix ctx out r binding (+ k 1))) :ruleset higher :name "power-extend")
 (rule ((PowerPrefix ctx out r binding k) (>= k 2))
-      ((Represents (FractalComb k r ctx binding) out)) :ruleset higher :name "power-view")
+      ((Represents (FractalComb (Depth k) r ctx binding) out)) :ruleset higher :name "power-view")
 ; No unrestricted unfolding or effect-equivalence unions: all prefixes must exist.
 
 ; A caller must supply a valid accumulator summary and final terminal.
 ; This relation does not infer a polynomial summary for arbitrary R23 effects.
 (relation ReductionInput (Comb Accumulation EndpointExpr))
 (relation EndpointView (Comb EndpointExpr))
-(rule ((ReductionInput (FractalComb k r ctx binding) fold terminal) (>= k 0))
- ((EndpointView (FractalComb k r ctx binding) (Reduce fold (EInt k) terminal)))
+(rule ((ReductionInput (FractalComb (Depth k) r ctx binding) fold terminal) (= r (Extend name routes schema)) (>= k 0))
+ ((EndpointView (FractalComb (Depth k) r ctx binding) (Reduce fold (EInt k) terminal)))
  :ruleset higher :name "higher-endpoint-reduce")
+
+; RecursivePattern folds need a branch-aware summary; do not treat depth as total applications.

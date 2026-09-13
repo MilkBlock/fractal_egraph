@@ -99,7 +99,7 @@ git log --oneline --reverse egglog-baseline..HEAD
 
 ## FractalComb 规范化视图
 
-`FractalComb(k, extension, start_ctx, initial_binding)` 与 SmoothComb、CoarseComb 同属 Comb。
+`FractalComb(Depth(k), extension, start_ctx, initial_binding)` 与 SmoothComb、CoarseComb 同属 Comb。
 其计数从有 witness 的 SmoothComb 开始；coarse 注入及启动历史留在 start_ctx。
 `analysis.json` 的 `fractal_views` 保存选中的组合、段内 fact/effect 历史和中间输出引用。
 页面的接口证据可查看这些数据，tier-1 表示显示选中的 PackedComb 表达式。
@@ -119,3 +119,10 @@ Math 6 轮验证了全部 1529 个实例的规范化视图，其中有 8 个选�
 `(d-1,j) → (d,j)` 与每层新增位置 `j=d`，并用后续层检查 binding/effect 模板。
 结果和可点击的位置图分别写入 `dependency_growth.json`、`dependency_growth.html`。
 详见 [增长旁支实验](experiments/dependency_growth/README.md)。这是有限候选分析，不是无限递归证明或可执行规则反馈。
+
+## 共享模板与排序
+
+`EGG_LAYOUT_TEMPLATE_CATALOG=1` 开启共享模板目录（兼容 `EGG_LAYOUT_DISCOVER_RECURSION=1`）。
+目录统一列出线性及多出口 FractalComb，共享步骤定义、展开范围与事件证据；优先遵守有证书的观测 dominance，再按去重后的新增覆盖排序。
+它不把覆盖率当作语义等价，也不对不同模板做未经证明的 union。
+使用说明、正反例与结果见 [模板目录实验](experiments/recursive_patterns/README.md)。

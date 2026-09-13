@@ -72,13 +72,16 @@ fn higher_rule_counts_actual_steps_and_preserves_initial_context() {
       (UnaryStep start mid r (RNil)) (UnaryStep mid out r (RNil))
       (UnaryStep out (SmoothComb (MoreParents out (NoParents)) (Rule "s") (RNil)) s (RNil))
       (run-schedule (saturate (run higher)))
-      (check (Represents (FractalComb 2 r start (RNil)) out))
+      (check (Represents (FractalComb (Depth 2) r start (RNil)) out))
     "#,
     )
     .unwrap();
     let mut count = 0;
     eg.function_for_each("FractalComb", |r| {
-        assert_eq!(eg.value_to_base::<i64>(r.vals[0]), 2);
+        assert_eq!(
+            eg.lookup_function("Depth", &[eg.base_to_value(2i64)]),
+            Some(r.vals[0])
+        );
         count += 1;
     })
     .unwrap();

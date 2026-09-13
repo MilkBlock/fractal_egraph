@@ -82,7 +82,7 @@ fn higher_rule_receives_explicit_reduce_endpoint() {
     e.parse_and_run_program(
         None,
         r#"
- (let h (FractalComb 3 (Extend "r" (End) (Schema "supplied-additive-summary")) (Empty) (RNil)))
+ (let h (FractalComb (Depth 3) (Extend "r" (End) (Schema "supplied-additive-summary")) (Empty) (RNil)))
  (let t (ECall "f" (ESymbol "terminal")))
  (ReductionInput h (AddConstant (ESymbol "m")) t)
  (run-schedule (saturate (run higher)))
@@ -90,6 +90,34 @@ fn higher_rule_receives_explicit_reduce_endpoint() {
  (run-schedule (saturate (run endpoint-reduce)))
  (check (EndpointView h (EAdd t (EMul (EInt 3) (ESymbol "m")))))
  "#,
+    )
+    .unwrap();
+}
+
+#[test]
+fn recursive_depth_is_not_silently_used_as_scalar_application_count() {
+    let mut e = EGraph::default();
+    e.parse_and_run_program(
+        None,
+        include_str!("../experiments/tier1_effects/tier1_rule_comb_ir.egg"),
+    )
+    .unwrap();
+    e.parse_and_run_program(None, include_str!("../rules/tier2.egg"))
+        .unwrap();
+    e.parse_and_run_program(None, include_str!("../rules/higher.egg"))
+        .unwrap();
+    e.parse_and_run_program(None, include_str!("../rules/recursive_patterns.egg"))
+        .unwrap();
+    e.parse_and_run_program(
+        None,
+        r#"
+      (let r (RefinedExtension (Extend "r" (End) (Schema "s")) "aliases"))
+      (let p (RecursivePattern r (RecursivePort 0 r (RecursivePort 1 r (NoRecursivePorts)))))
+      (let f (FractalComb (Depth 3) p (Empty) (RNil)))
+      (ReductionInput f (AddConstant (EInt 1)) (EInt 0))
+      (run-schedule (saturate (run higher)))
+      (fail (check (EndpointView f (Reduce (AddConstant (EInt 1)) (EInt 3) (EInt 0)))))
+    "#,
     )
     .unwrap();
 }

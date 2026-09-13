@@ -1,0 +1,9 @@
+(datatype Math (Seed) (Left Math) (Right Math) (A Math) (B Math))
+(A (Seed))
+(ruleset a) (ruleset b)
+(rule ((= node (A x))) ((B (Left node)) (B (Right node))) :ruleset a :name "fork")
+(rule ((= node (B x))) ((A node)) :ruleset b :name "return")
+(run-schedule (repeat 3 (seq (run a) (run b))))
+
+; Observe A effects at the next level, without pretending its B applies ran.
+(run a 1)

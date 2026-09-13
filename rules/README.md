@@ -1,7 +1,7 @@
 # 原生规则实现
 
 - `tier2.egg`：扩展描述、连续重复、坐标变换。
-- `higher.egg`：已有组合链折叠为 `FractalComb(k, R, ctx, binding)`。
+- `higher.egg`：已有组合链折叠为 `FractalComb(Depth(k), R, ctx, binding)`。
 - `fractal_views.egg`：规范化组合视图、实例级段内输出和 effect 地址。
 - `reduce.egg`：显式 `Reduce`、解析归约与成本。
 
@@ -19,3 +19,7 @@ FractalComb 返回 Comb，可以继续作为 SmoothComb/CoarseComb 的父节点�
 
 `fractal_views.input_addresses` 的每项为 `[consumer_event, parent_slot, segment_endpoint_event, iteration]`。
 `fact_history` 按 occurrence 和段内位置保存输出端口、行写入标识、union effect；启动注入留在 trigger 对应的原始 occurrence。
+
+`recursive_patterns.egg` 定义共享 RecursivePattern 的步骤/出口、实例证据及输出地址。
+所有 FractalComb 共用 ExpansionExtent；线性视图使用 Depth，多出口不均匀展开使用 SparseExtent。
+目录排序在 `src/native_catalog.rs` 的观测偏序索引中完成，不将 dominance 当作 egraph 等价关系。

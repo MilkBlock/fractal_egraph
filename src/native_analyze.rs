@@ -13,12 +13,16 @@ use std::{
     time::Instant,
 };
 
+#[path = "native_catalog.rs"]
+mod catalog;
 #[path = "native_fractal.rs"]
 mod fractal;
 #[path = "native_growth.rs"]
 mod growth;
 #[path = "native_history.rs"]
 mod history;
+#[path = "native_recursive.rs"]
+mod recursive;
 
 fn sp() -> Span {
     Span::Rust(Arc::new(egglog::ast::RustSpan {
@@ -1098,8 +1102,12 @@ fn build_tier2(c: &mut Captured, eg: &mut EGraph, root: &Path) -> Result<(Extens
         eg.value_to_class_id(eg.get_sort_by_name("Comb").unwrap(), v)
             .to_string()
     };
+    let mut depths = BTreeMap::new();
+    eg.function_for_each("Depth", |r| {
+        depths.insert(r.vals[1], eg.value_to_base::<i64>(r.vals[0]));
+    })?;
     let mut h = BTreeMap::new();
-    eg.function_for_each("FractalComb",|r|{h.insert(r.vals[4],json!({"count":eg.value_to_base::<i64>(r.vals[0]),"operator":format!("ext_{:04}",ext_ids[&r.vals[1]]),"ctx":cid(r.vals[2]),"represents":[]}));})?;
+    eg.function_for_each("FractalComb",|r|{h.insert(r.vals[4],json!({"count":depths[&r.vals[0]],"operator":format!("ext_{:04}",ext_ids[&r.vals[1]]),"ctx":cid(r.vals[2]),"represents":[]}));})?;
     eg.function_for_each("Represents", |r| {
         h.get_mut(&r.vals[0]).unwrap()["represents"]
             .as_array_mut()
@@ -1225,7 +1233,7 @@ fn view(c: &Captured, eg: &EGraph, extensions: &Extensions, higher: &[Json]) -> 
         }
         needed.insert(trigger);
         needed.extend(path);
-        lanes.push(json!({"id":format!("chain_{}",n+1),"rule":c.rules[first.rule].rule.name,"operator":op,"trigger":c.records[trigger].id,"events":path.iter().map(|i|c.records[*i].id).collect::<Vec<_>>(),"higher":format!("FractalComb({}, {}, {}, initial_binding)",path.len(),op,context),"update":update_text(c,path[0])}));
+        lanes.push(json!({"id":format!("chain_{}",n+1),"rule":c.rules[first.rule].rule.name,"operator":op,"trigger":c.records[trigger].id,"events":path.iter().map(|i|c.records[*i].id).collect::<Vec<_>>(),"higher":format!("FractalComb(Depth({}), {}, {}, initial_binding)",path.len(),op,context),"update":update_text(c,path[0])}));
     }
     let mut nodes = serde_json::Map::new();
     for index in needed {
@@ -1368,13 +1376,14 @@ pub fn run_with_options(
         let stage=Instant::now();let(ext,higher)=build_tier2(&mut c,&mut eg,root)?;times.insert("tier2",stage.elapsed().as_secs_f64());
         phase("fractal-views")?;
         let stage=Instant::now();let fractal_views=fractal::build(&c,&mut eg,&ext,root)?;times.insert("fractal_views",stage.elapsed().as_secs_f64());
+        let recursive_start=Instant::now();let recursive=if std::env::var_os("EGG_LAYOUT_DISCOVER_RECURSION").is_some() || std::env::var_os("EGG_LAYOUT_TEMPLATE_CATALOG").is_some(){recursive::build(&c,&ext,&mut eg,root,&fractal_views)?}else{Json::Null};times.insert("recursive_patterns",recursive_start.elapsed().as_secs_f64());
         let growth_start=Instant::now();let growth=if std::env::var_os("EGG_LAYOUT_DISCOVER_GROWTH").is_some(){growth::analyze(&c,&fractal_views)}else{Json::Null};times.insert("dependency_growth",growth_start.elapsed().as_secs_f64());
         phase("view")?;
         let stage=Instant::now();let mut data=view(&c,&eg,&ext,&higher)?;
         for row in fractal_views["views"].as_array().unwrap() { let key=row["event"].to_string(); if let Some(node)=data["nodes"].get_mut(&key) { node["fractal_view"]=row.clone(); } }
         for row in fractal_views["fact_history"].as_array().unwrap() { let key=row["endpoint_event"].to_string(); if let Some(node)=data["nodes"].get_mut(&key) { node["fractal_facts"]=row.clone(); } }times.insert("selected_lowering_and_view",stage.elapsed().as_secs_f64());
         let summary=json!({"events":c.events,"imported_events":c.records.len(),"excluded_events":c.rejected,"extensions":ext.keys.len(),"higher_rules":higher.len(),"executed_rounds":c.rounds,"timings_seconds":times,"wall_seconds":started.elapsed().as_secs_f64(),"subprocesses":0,"intermediate_trace_files":0,"raw_trace_peak_batch_events":c.trace_peak,"raw_trace_batches":c.trace_batches,"raw_trace_remaining_events":0,"build_mode":if online {"online"} else {"offline"},"history_saved":save_history,"history_replayed":replay.is_some(),"scope":"Native tier-1/tier-2 in one Rust process; tier-0 executes only during recapture. Online mode imports at simple run-round boundaries; complex schedules are imported at completion. Raw trace events are drained at completed execution boundaries; compact producer/equality indexes and analysis graphs remain resident. History contains resolved eligible applications, not rejected/raw trace events. Reduce rules are loaded; arbitrary accumulator summaries are not inferred."});
-        let report=json!({"status":"complete","summary":summary,"higher_rules":higher,"fractal_views":fractal_views,"dependency_growth":growth,"view":data});
+        let report=json!({"status":"complete","summary":summary,"higher_rules":higher,"fractal_views":fractal_views,"dependency_growth":growth,"recursive_patterns":recursive,"view":data});
         render(root,out,&report["view"],true)?;
         Ok(report)
             })().map_err(|e|e.to_string())
@@ -1383,6 +1392,19 @@ pub fn run_with_options(
     if let Ok(r) = &mut result {
         r["summary"]["wall_seconds"] = json!(started.elapsed().as_secs_f64());
         std::fs::write(out.join("analysis.json"), serde_json::to_vec(r)?)?;
+        if !r["recursive_patterns"].is_null() {
+            std::fs::write(
+                out.join("recursive_patterns.json"),
+                serde_json::to_vec_pretty(&r["recursive_patterns"])?,
+            )?;
+            let template =
+                std::fs::read_to_string(root.join("experiments/recursive_patterns/viewer.html"))?;
+            let data = serde_json::to_string(&r["recursive_patterns"])?.replace('<', r"\u003c");
+            std::fs::write(
+                out.join("recursive_patterns.html"),
+                template.replace("__RECURSIVE_DATA__", &data),
+            )?;
+        }
         if !r["dependency_growth"].is_null() {
             std::fs::write(
                 out.join("dependency_growth.json"),

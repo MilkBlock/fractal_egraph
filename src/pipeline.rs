@@ -77,10 +77,14 @@ pub fn higher() -> Result {
                 .to_owned(),
         );
     })?;
+    let mut depths = BTreeMap::new();
+    eg.function_for_each("Depth", |r| {
+        depths.insert(r.vals[1], eg.value_to_base::<i64>(r.vals[0]));
+    })?;
     let mut hs = BTreeMap::new();
     eg.function_for_each("FractalComb",|r|{
-  let k=eg.value_to_base::<i64>(r.vals[0]);let binding=eg.extract_value_to_string(eg.get_sort_by_name("RelativeBinding").unwrap(),r.vals[3]).unwrap().0;
-  hs.insert(r.vals[4],json!({"count":k,"operator":en[&r.vals[1]],"ctx":cn[&r.vals[2]],"binding":binding,"egg":format!("(FractalComb {k} ${} {} {binding})",en[&r.vals[1]],cn[&r.vals[2]]),"represents":[]}));
+  let k=depths[&r.vals[0]];let binding=eg.extract_value_to_string(eg.get_sort_by_name("RelativeBinding").unwrap(),r.vals[3]).unwrap().0;
+  hs.insert(r.vals[4],json!({"count":k,"operator":en[&r.vals[1]],"ctx":cn[&r.vals[2]],"binding":binding,"egg":format!("(FractalComb (Depth {k}) ${} {} {binding})",en[&r.vals[1]],cn[&r.vals[2]]),"represents":[]}));
  })?;
     eg.function_for_each("Represents", |r| {
         hs.get_mut(&r.vals[0]).unwrap()["represents"]
