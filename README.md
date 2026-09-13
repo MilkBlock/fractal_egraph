@@ -126,3 +126,6 @@ Math 6 轮验证了全部 1529 个实例的规范化视图，其中有 8 个选�
 目录统一列出线性及多出口 FractalComb，共享步骤定义、展开范围与事件证据；优先遵守有证书的观测 dominance，再按去重后的新增覆盖排序。
 它不把覆盖率当作语义等价，也不对不同模板做未经证明的 union。
 使用说明、正反例与结果见 [模板目录实验](experiments/recursive_patterns/README.md)。
+
+结构 dominance 使用允许额外节点/边的有限 DAG 嵌入，不要求入口或事件 ID 相同。
+检查器返回节点/接口映射；超预算明确返回 unknown。使用方式和完整性边界见 [DAG 嵌入实验](experiments/dag_embedding/README.md)。

@@ -75,7 +75,13 @@ pub(super) fn organize(raw: Vec<Json>) -> Result<Json> {
                 .ok_or("missing port definition")?;
             port["step_template"] = json!(intern(definition, &mut step_keys, &mut steps));
         }
-        let key = json!([p["kind"], p["entry_template"], p["ports"]]).to_string();
+        let key = json!([
+            p["kind"],
+            p["entry_template"],
+            p["ports"],
+            p["dependency_dag"]
+        ])
+        .to_string();
         let definition_bytes = {
             let mut referenced = BTreeSet::from([p["entry_template"].as_u64().unwrap() as usize]);
             for port in p["ports"].as_array().unwrap() {
@@ -233,13 +239,38 @@ pub(super) fn organize(raw: Vec<Json>) -> Result<Json> {
                 continue;
             }
             if dominates(large, small) {
-                incoming[b].insert(a);
                 edges.push(json!({"dominant":large.id,"dominated":small.id,"kind":"observed_instance_dominance","certificate":"Every dominated instance has the same observed entry, all its apply events preserved, and no extra external parent dependencies.","matched_entries":small.instances.iter().map(|i|i.entry).collect::<Vec<_>>(),"semantic_dominance":"unproved"}));
             } else if a < b && !dominates(small, large) && !large.events.is_disjoint(&small.events)
             {
                 overlaps.push(json!({"a":large.id,"b":small.id,"shared_apply_events":large.events.intersection(&small.events).count(),"relation":"overlap_without_observed_dominance"}));
             }
         }
+    }
+    let graphs: Vec<_> = patterns
+        .iter()
+        .map(|p| crate::catalog_embedding::graph(p, &steps))
+        .collect::<std::result::Result<_, _>>()
+        .map_err(|e| -> Box<dyn std::error::Error> { e.into() })?;
+    let budget = std::env::var("EGG_LAYOUT_EMBED_BUDGET")
+        .ok()
+        .map(|s| s.parse::<usize>())
+        .transpose()?
+        .unwrap_or(100_000);
+    let structural = crate::catalog_embedding::compare(
+        &graphs,
+        &infos.iter().map(|i| i.id).collect::<Vec<_>>(),
+        budget,
+    )
+    .map_err(|e| -> Box<dyn std::error::Error> { e.into() })?;
+    let by_id: BTreeMap<_, _> = infos.iter().enumerate().map(|(i, p)| (p.id, i)).collect();
+    for relation in structural["embeddings"].as_array().unwrap() {
+        if relation["strict"] == true {
+            incoming[by_id[&relation["contained"].as_u64().unwrap()]]
+                .insert(by_id[&relation["dominant"].as_u64().unwrap()]);
+        }
+    }
+    for (p, g) in patterns.iter_mut().zip(&graphs) {
+        p["dependency_dag"] = serde_json::to_value(g)?;
     }
     let mut remaining: BTreeSet<_> = (0..infos.len()).collect();
     let mut covered = BTreeSet::new();
@@ -273,10 +304,11 @@ pub(super) fn organize(raw: Vec<Json>) -> Result<Json> {
     let mut result = core;
     result["pattern_count"] = json!(infos.len());
     result["observed_dominance"] = json!(edges);
+    result["structural_dominance"] = structural;
     result["overlaps"] = json!(overlaps);
     result["sharing"] = json!({"unique_step_templates":result["step_templates"].as_array().unwrap().len(),"unique_extents":result["extent_templates"].as_array().unwrap().len(),"unique_event_witnesses":result["event_witnesses"].as_object().unwrap().len(),"repeated_witness_records_removed":repeated_witness_records,"raw_catalog_json_bytes":before,"shared_catalog_json_bytes":after,"scope":"Catalog core JSON only (definitions, instances, witness registry and ranking fields); excludes outer diagnostics/dominance summaries. Not runtime memory or tier0 enode compression"});
     result["ranking_scope"] = json!(
-        "Observed dominance first; then greedy marginal unique apply coverage per definition byte. Incomparable patterns retained. Exact definitions shared; no non-identical templates unioned."
+        "Strict structural DAG embedding first; then greedy marginal unique apply coverage per definition byte. Incomparable patterns retained. Exact definitions shared; no non-identical templates unioned."
     );
     Ok(result)
 }
@@ -368,5 +400,56 @@ mod tests {
         bad["id"] = json!(1);
         bad["instances"][0]["fact_witnesses"][0]["outputs"] = json!([999]);
         assert!(organize(vec![raw, bad]).is_err());
+    }
+    #[test]
+    fn catalog_finds_extra_root_with_disjoint_events() {
+        use crate::dag_embedding::{Dag, Edge, Node};
+        let node = |name: &str| Node {
+            label: json!(name),
+            constraints: Json::Null,
+            ports: vec![],
+        };
+        let small = Dag {
+            root: 0,
+            nodes: vec![node("A"), node("B")],
+            edges: vec![Edge {
+                from: 0,
+                to: 1,
+                label: json!("binding-x"),
+            }],
+            interface: vec![],
+        };
+        let big = Dag {
+            root: 0,
+            nodes: vec![node("X"), node("A"), node("B")],
+            edges: vec![
+                Edge {
+                    from: 0,
+                    to: 1,
+                    label: json!("extra"),
+                },
+                Edge {
+                    from: 1,
+                    to: 2,
+                    label: json!("binding-x"),
+                },
+            ],
+            interface: vec![],
+        };
+        let mut a = pattern(0, "small", &[(1, 0), (2, 1)], 1);
+        a["dependency_dag"] = serde_json::to_value(small).unwrap();
+        let mut b = pattern(1, "large", &[(10, 9), (11, 10), (12, 11)], 10);
+        b["dependency_dag"] = serde_json::to_value(big).unwrap();
+        let r = organize(vec![a, b]).unwrap();
+        assert!(r["observed_dominance"].as_array().unwrap().is_empty());
+        let edge = r["structural_dominance"]["embeddings"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|e| e["dominant"] == 1 && e["contained"] == 0)
+            .unwrap();
+        assert_eq!(edge["root_image"], 1);
+        assert_eq!(edge["strict"], true);
+        assert_eq!(r["patterns"][0]["id"], 1);
     }
 }

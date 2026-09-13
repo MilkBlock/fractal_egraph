@@ -6,6 +6,7 @@ const HELP: &str = "egg_layout — native rule-combination analysis
 
   cargo run -- analyze --reuse-tier0
   cargo run -- analyze --recapture-tier0 --source PATH.egg --rounds 11 --output out/math11
+  cargo run -- embed-dag SMALL.json LARGE.json OUT.json [BUDGET]
   cargo run -- view                   Regenerate the fractal viewer from saved results
 
   analyze --recapture-tier0 --build online --save-history --source PATH.egg --output out/online
@@ -31,6 +32,34 @@ fn main() -> Result {
     match args.first().map(String::as_str) {
         None | Some("--help" | "-h" | "help") => {
             print!("{HELP}");
+            Ok(())
+        }
+        Some("embed-dag") if args.len() == 4 || args.len() == 5 => {
+            let small: egg_layout::dag_embedding::Dag =
+                serde_json::from_slice(&std::fs::read(&args[1])?)?;
+            let large: egg_layout::dag_embedding::Dag =
+                serde_json::from_slice(&std::fs::read(&args[2])?)?;
+            let budget = args
+                .get(4)
+                .map(|v| v.parse::<usize>())
+                .transpose()?
+                .unwrap_or(100_000);
+            let outcome = egg_layout::dag_embedding::embed(&small, &large, budget)
+                .map_err(std::io::Error::other)?;
+            let projection = if let egg_layout::dag_embedding::Outcome::Found { node_map, .. } =
+                &outcome
+            {
+                small.interface.iter().map(|p|serde_json::json!({"name":p.name,"node":node_map[p.node],"port":p.port})).collect::<Vec<_>>()
+            } else {
+                vec![]
+            };
+            let report = serde_json::json!({"embedding":outcome,"interface_projection":projection,"scope":"finite labelled DAG embedding, not executable equivalence"});
+            let file = std::fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .open(&args[3])?;
+            serde_json::to_writer_pretty(file, &report)?;
+            println!("{}", serde_json::to_string_pretty(&report)?);
             Ok(())
         }
         Some("relations" | "schema" | "fixture") if args.len() == 3 => match args[0].as_str() {

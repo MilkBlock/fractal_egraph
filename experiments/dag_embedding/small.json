@@ -1,0 +1,1 @@
+{"root":0,"nodes":[{"label":"A","constraints":{"aliases":[0,1]},"ports":["x","y"]},{"label":"B","ports":["result"]}],"edges":[{"from":0,"to":1,"label":{"out":"value","in":"x","sort":"Math"}}],"interface":[{"name":"input_x","node":0,"port":"x"},{"name":"result","node":1,"port":"result"}]}

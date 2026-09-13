@@ -31,6 +31,8 @@ EGG_LAYOUT_TEMPLATE_CATALOG=1 cargo run --release -- analyze \
 
 ## dominance 与排序
 
+结构排序现已使用有限 DAG 嵌入，允许根映射到内部并允许额外节点/边。详见 [DAG 嵌入](../dag_embedding/README.md)。以下观测证书保留作辅助指标，不再作为结构排序约束。
+
 实现的是**观测实例支配证书**：对被支配模板的每个实例，另一个模板必须有同一实际 entry event 的实例，保留其全部 apply，并且外部父依赖不更多；覆盖还必须严格增加。
 
 这保证在本次历史中存在可核对的覆盖关系，不证明另一个模板在任意输入、资源状态或未来范围上都更强。因此：
@@ -38,7 +40,7 @@ EGG_LAYOUT_TEMPLATE_CATALOG=1 cargo run --release -- analyze \
 - 不对非相同模板执行 union；`semantic_dominance` 明确为 `unproved`。
 - 覆盖重叠但入口不同的模板保留，记录 `overlap_without_observed_dominance`。
 - 不再仅因为一个出口集合包含另一个，就提前丢弃较小候选。
-- 保留所有模板，先遵守 dominance 偏序，再贪心选择“尚未覆盖的唯一 apply 数 / 独立模板定义字节数”最高者。
+- 保留所有模板，先遵守严格结构嵌入偏序，再贪心选择“尚未覆盖的唯一 apply 数 / 独立模板定义字节数”最高者。
 - `new_apply_events` 去除排名靠前模板已覆盖的事件，累加不会重复计数。此排序是启发式，不是全局最优分割，也不是 enode 压缩率。
 
 ## 多出口范围及事实边界

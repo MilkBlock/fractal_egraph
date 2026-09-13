@@ -1,0 +1,1 @@
+{"root":0,"nodes":[{"label":"NewRoot"},{"label":"A","constraints":{"aliases":[0,1]},"ports":["x","y"]},{"label":"B","ports":["result"]},{"label":"ExtraNode"}],"edges":[{"from":0,"to":1,"label":{"out":"supply","in":"x","sort":"Math"}},{"from":1,"to":2,"label":{"out":"value","in":"x","sort":"Math"}},{"from":1,"to":3,"label":"additional branch"}],"interface":[]}
