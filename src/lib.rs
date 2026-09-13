@@ -14,3 +14,5 @@ pub mod prefix_policy;
 pub mod fractal_frontier;
 
 pub mod tier1_effects;
+
+pub mod pipeline;

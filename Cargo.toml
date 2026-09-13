@@ -2,6 +2,7 @@
 name = "egg_layout"
 version = "0.1.0"
 edition = "2024"
+default-run = "egg_layout"
 
 [dependencies]
 egglog = { path = "egglog", default-features = false }
