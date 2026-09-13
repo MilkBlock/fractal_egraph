@@ -3,7 +3,7 @@ const IR: &str = "(include \"experiments/tier1_effects/tier1_rule_comb_ir.egg\")
 #[test]
 fn shared_templates_do_not_share_concrete_evidence() {
     let r = execute(include_str!(
-        "../experiments/tier1_effects/tier1_rule_comb_example.egg"
+        "../../experiments/tier1_effects/tier1_rule_comb_example.egg"
     ))
     .unwrap();
     assert_eq!(r["templates"].as_array().unwrap().len(), 3);
@@ -64,7 +64,7 @@ fn tier0_example_still_runs() {
     egglog::EGraph::default()
         .parse_and_run_program(
             None,
-            include_str!("../experiments/tier1_effects/tier0_math_example.egg"),
+            include_str!("../../experiments/tier1_effects/tier0_math_example.egg"),
         )
         .unwrap();
 }

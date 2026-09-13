@@ -46,11 +46,11 @@
 固定输入足以重现 native 接口读取和降级，不需重新运行 tier-0：
 
 ```sh
-cargo run --bin tier1_interface_snapshot
+cargo run --manifest-path research/Cargo.toml --bin tier1_interface_snapshot
 python3 experiments/tier1_extract/lower.py
 python3 experiments/tier1_extract/render.py
 python3 experiments/tier1_extract/validation_cases.py
-cargo run --bin tier1_check_combined
+cargo run --manifest-path research/Cargo.toml --bin tier1_check_combined
 python3 -m unittest discover -s experiments/tier1_extract -p 'test_*.py'
 cargo test --test tier1_direct_extract
 ```
@@ -58,7 +58,7 @@ cargo test --test tier1_direct_extract
 若从同次原始导入重新制作接口：
 
 ```sh
-cargo run --bin tier1_source_schema -- experiments/annotated_export/math_microbenchmark/source.egg experiments/tier1_extract/source_schema.json
+cargo run -- schema experiments/annotated_export/math_microbenchmark/source.egg experiments/tier1_extract/source_schema.json
 python3 experiments/tier1_extract/prepare_interfaces.py MANIFEST.json NATIVE_TIER1.json PROFILE.json
 python3 experiments/tier1_extract/interface_program.py
 ```

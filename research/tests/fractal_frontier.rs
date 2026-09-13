@@ -183,7 +183,7 @@ fn run(interleaved: bool) -> Value {
     let mut eg = EGraph::default();
     eg.parse_and_run_program(
         None,
-        include_str!("../experiments/fractal_frontier/interleaved.egg"),
+        include_str!("../../experiments/fractal_frontier/interleaved.egg"),
     )
     .unwrap();
     let mut tracker = Frontier::new([family()]).unwrap();

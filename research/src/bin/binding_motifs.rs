@@ -417,7 +417,7 @@ mod tests {
     #[test]
     fn corrupted_binding_is_rejected() {
         let mut p: Value = serde_json::from_str(include_str!(
-            "../../experiments/annotated_export/math_microbenchmark/profile.json"
+            "../../../experiments/annotated_export/math_microbenchmark/profile.json"
         ))
         .unwrap();
         p["witnesses"][0]["consumer_bindings"]["a"] = json!("Value(999999999)");

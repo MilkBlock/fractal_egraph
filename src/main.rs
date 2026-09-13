@@ -16,7 +16,7 @@ Native operations (run from the repository root):
   cargo run -- observations            Additive-recurrence test adapter
 
 analyze uses the committed tier-1 snapshot; it does not rerun a live tier-0 trace.
-Legacy experimental commands remain available with --bin NAME.
+Legacy experiments: cargo run --manifest-path research/Cargo.toml --bin NAME.
 ";
 fn python(script: &str, args: &[String]) -> Result {
     let python = std::env::var_os("PYTHON").unwrap_or_else(|| "python3".into());

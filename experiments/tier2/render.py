@@ -11,7 +11,7 @@ body{font:16px system-ui;background:#fafaf7;color:#20383a;max-width:1200px;margi
 <h1>Tier-2：从组合到扩展规律</h1>
 <p><a href="fractal.html">打开精简 Fractal 轨道视图：trigger → 1 → 2 → 3 → …</a></p>
 <p>Math 路径读取现有 native tier-1；递推路径通过专门的加法递推接口适配器。这里分别展示有限复用证据、坐标变换和系数检查，不把候选自动当作通用快捷规则。</p>
-<p><a href="ir.egg">Tier-2 IR / 规则</a> · <a href="math.egg">Math 输入图</a> · <a href="affine.egg">学到的坐标算子与观察</a> · <a href="README.md">边界与重现</a></p>
+<p><a href="../../rules/tier2.egg">Tier-2 IR / 规则</a> · <a href="math.egg">Math 输入图</a> · <a href="affine.egg">学到的坐标算子与观察</a> · <a href="README.md">边界与重现</a></p>
 <h2>递推：从前 5 步预测更深展开</h2>
 <table><tr><th>样例</th><th>学到的 Δ(m,a)</th><th>触发深度</th><th>留出步预测</th><th>原规则系数检查</th></tr>''']
 for r in a:
@@ -20,11 +20,11 @@ parts.append('</table><p>warmup 在训练段跳过 2 步启动 effect 后找到�
 for r in a:
     parts.append(f'<details><summary>{esc(r["name"])} 的族、条件和证据</summary><pre>{esc(r["family"])}</pre><pre>{esc(json.dumps(r["certificate"],ensure_ascii=False,indent=2))}</pre></details>')
 reduction=json.loads((OUT/'reduce.json').read_text())
-parts.append('<h2>显式 Reduce 与解析表达式提取</h2><p><a href="reduce_ir.egg">Reduce datatype、归约规则与成本</a> · <a href="reduce.egg">样例</a> · <a href="reduce.json">原生提取结果</a></p><p>Reduce(fold, count, terminal) 成本 100；普通算术节点 1，除法/幂 2。相同 e-class 中优先选择更便宜的解析表达式，原 Reduce 节点仍保留。HigherRule 需要明确的 ReductionInput，尚未自动推导 R23 的累积摘要。</p>')
+parts.append('<h2>显式 Reduce 与解析表达式提取</h2><p><a href="../../rules/reduce.egg">Reduce datatype、归约规则与成本</a> · <a href="reduce.egg">样例</a> · <a href="reduce.json">原生提取结果</a></p><p>Reduce(fold, count, terminal) 成本 100；普通算术节点 1，除法/幂 2。相同 e-class 中优先选择更便宜的解析表达式，原 Reduce 节点仍保留。HigherRule 需要明确的 ReductionInput，尚未自动推导 R23 的累积摘要。</p>')
 for row in reduction['examples']:
     parts.append(f'<details><summary>{esc(row["name"])} · cost {row["before_cost"]} → {row["after_cost"]} · {"解析表达式" if row["closed_form"] else "保留 Reduce"}</summary><pre>{esc(row["before"])}</pre><pre>{esc(row["after"])}</pre></details>')
 higher=json.loads((OUT/'higher_native.json').read_text())['higher_rules']
-parts.append('<h2>规则级 HigherRule(k, R, ctx, binding)</h2><p>这些是 native tier-2 对已有连续 smooth 路径折叠出来的有限幂，不只是坐标变换的 Power。R 包含稳定的接口更新和源规则 effect。coarse 注入留在起始 ctx 中，不被默默省略。</p><p><a href="higher_ir.egg">幂折叠规则</a> · <a href="higher.egg">输入</a> · <a href="higher_validation.json">展开验证</a></p>')
+parts.append('<h2>规则级 HigherRule(k, R, ctx, binding)</h2><p>这些是 native tier-2 对已有连续 smooth 路径折叠出来的有限幂，不只是坐标变换的 Power。R 包含稳定的接口更新和源规则 effect。coarse 注入留在起始 ctx 中，不被默默省略。</p><p><a href="../../rules/higher.egg">幂折叠规则</a> · <a href="higher.egg">输入</a> · <a href="higher_validation.json">展开验证</a></p>')
 for h in higher:
     links=' '.join('<a href="../tier1_extract/index.html#'+t.lstrip('$')+'">'+t+'</a>' for t in h['represents'])
     parts.append(f'<details><summary>HigherRule({h["count"]}, {h["operator"]}, {h["ctx"]}, binding)</summary><pre>{esc(h["egg"])}</pre><p>展开回原组合：{links}</p></details>')

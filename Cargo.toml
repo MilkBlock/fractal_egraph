@@ -3,11 +3,12 @@ name = "egg_layout"
 version = "0.1.0"
 edition = "2024"
 default-run = "egg_layout"
+autobins = false
 
 [dependencies]
 egglog = { path = "egglog", default-features = false }
 serde_json = "1.0"
-slotted-egraphs = { version = "=0.0.36", default-features = false }
 
-[features]
-slotted-checks = ["slotted-egraphs/checks"]
+[[bin]]
+name = "egg_layout"
+path = "src/main.rs"

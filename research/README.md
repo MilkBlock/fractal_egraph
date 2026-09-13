@@ -1,7 +1,17 @@
 # 历史实验导航
 
 以下保留原研究路线与历史说明。当前主流程见[根目录 README](../README.md)。
-旧实验源码暂时仍在原路径，未作为本次重构的一部分删除或搬迁。
+旧模块和程序位于 `research/src/`，旧测试位于 `research/tests/`。
+这是独立 Cargo 工程，根工程不会默认编译它。为保留未提交修改，两个旧模块和三个旧程序仍引用根目录原路径。
+
+所有旧示例中的 `cargo run --bin NAME` 应改为从仓库根目录运行：
+
+```sh
+cargo run --manifest-path research/Cargo.toml --bin NAME
+cargo test --manifest-path research/Cargo.toml --test rule_prepare
+```
+
+以下为历史记录，源码链接与提交说明应结合 Git 历史阅读。
 
 # egg_layout
 

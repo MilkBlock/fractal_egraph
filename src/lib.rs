@@ -1,18 +1,3 @@
-pub mod block_visualization;
-pub mod coverage;
-pub mod dependency_blocks;
-pub mod pattern_store;
-pub mod visual_rule;
-
-pub mod binding_program;
-
-pub mod effect_program;
-pub mod effect_orbit;
-pub mod trigger_bridge;
-pub mod prefix_policy;
-
-pub mod fractal_frontier;
-
-pub mod tier1_effects;
-
+//! Minimal egglog adapters. Historical prototypes live in the research crate.
 pub mod pipeline;
+pub mod visual_rule;

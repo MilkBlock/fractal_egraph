@@ -71,7 +71,7 @@ fn run(f: &Json) -> Json {
     let mut eg = EGraph::default();
     eg.parse_and_run_program(
         None,
-        include_str!("../../experiments/egglog_babble/anti_unify.egg"),
+        include_str!("../../../experiments/egglog_babble/anti_unify.egg"),
     )
     .unwrap();
     let mut source = format!("(Limit {})\n", f["max_arity"]);
@@ -177,7 +177,7 @@ fn run(f: &Json) -> Json {
 fn co_occurrence(eg: &mut EGraph, f: &Json) -> (Vec<Json>, Json) {
     eg.parse_and_run_program(
         None,
-        include_str!("../../experiments/egglog_babble/co_occurrence.egg"),
+        include_str!("../../../experiments/egglog_babble/co_occurrence.egg"),
     )
     .unwrap();
     let nodes: BTreeMap<_, _> = f["nodes"]
@@ -488,7 +488,7 @@ mod tests {
         let mut eg = EGraph::default();
         eg.parse_and_run_program(
             None,
-            include_str!("../../experiments/egglog_babble/anti_unify.egg"),
+            include_str!("../../../experiments/egglog_babble/anti_unify.egg"),
         )
         .unwrap();
         eg.parse_and_run_program(

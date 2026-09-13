@@ -5,7 +5,7 @@ use std::collections::BTreeSet;
 fn cyk_keeps_valid_outputs_and_retires_blocks_on_pop() {
     let mut eg = EGraph::default();
     let commands = eg
-        .parse_program(None, include_str!("../egglog/tests/web-demo/cyk.egg"))
+        .parse_program(None, include_str!("../../egglog/tests/web-demo/cyk.egg"))
         .unwrap();
     let t = TraceSession::with_dependencies();
     let mut store = DependencyBlockStore::default();
@@ -41,7 +41,7 @@ fn union_to_rebuild_to_read_creates_an_equality_interaction() {
     let commands = eg
         .parse_program(
             None,
-            include_str!("../experiments/native_programs/union.egg"),
+            include_str!("../../experiments/native_programs/union.egg"),
         )
         .unwrap();
     let trace = TraceSession::with_dependencies();

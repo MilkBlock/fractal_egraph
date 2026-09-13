@@ -406,7 +406,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let dir = Path::new(&args[3]);
     std::fs::create_dir_all(dir)?;
     std::fs::write(dir.join("combined.egg"), &output)?;
-    let prompt = include_str!("../../experiments/annotated_export/deepseek-template.md")
+    let prompt = include_str!("../../../experiments/annotated_export/deepseek-template.md")
         .replace(
             "{{ARTIFACT}}",
             &dir.canonicalize()?

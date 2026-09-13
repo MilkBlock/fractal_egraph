@@ -18,21 +18,33 @@ cargo run -- --help
 | 文件 | 职责 |
 |---|---|
 | [tier-1 IR](experiments/tier1_effects/tier1_rule_comb_ir.egg) | Comb、relative binding、实例及 effect |
-| [tier-2 IR](experiments/tier2/ir.egg) | 稳定扩展、重复观察、坐标变换 |
-| [HigherRule](experiments/tier2/higher_ir.egg) | 已有组合链 → 次数参数 k |
-| [Reduce](experiments/tier2/reduce_ir.egg) | 显式归约及解析表达式成本 |
+| [tier-2 IR](rules/tier2.egg) | 稳定扩展、重复观察、坐标变换 |
+| [HigherRule](rules/higher.egg) | 已有组合链 → 次数参数 k |
+| [Reduce](rules/reduce.egg) | 显式归约及解析表达式成本 |
 | [主入口](src/main.rs) | 命令选择 |
 | [原生适配接口](src/pipeline.rs) | 统一原生执行、查询、导出；递推 fixture 明确标注 |
 | [流程](experiments/tier2/run.py) | 单个程序驱动的重现实验 |
 | [Fractal 视图](experiments/tier2/fractal_view.py) | 实际实例依赖 → 最大轨道与点击数据 |
 
 规则语义仍由原生 egglog 执行。Rust 运行器只保留一份实现；
-旧的 `tier2_run`、`tier2_higher`、`tier2_reduce`、`tier2_observations`、`tier2_fixture`、
-`tier1_source_schema` 程序名是兼容入口，不再各自维护逻辑。
+旧程序位于独立的 `research` 工程，不参与默认构建。原有兼容入口在那里保留。
 
-本轮是主流程收拢：Python 转换脚本、固定快照及历史实验尚未全面迁移。
+默认 Rust 工程只有 `main.rs`、`lib.rs`、`pipeline.rs`、`visual_rule.rs` 四个源文件参与编译，
+只依赖 egglog 和 serde_json。历史研究代码已迁入独立 Cargo 工程。
+有未提交修改的 `src/pattern_store.rs`、`src/tier1_effects.rs` 和三个旧 binary 暂留原处，
+仅由 research 引用；不属于默认工程。
+
+完整实验仍有 Python 数据准备与可视化脚本，这一层尚未改写为 Rust；
+因此这里的“四个文件”指原生外挂层，不宣称整个端到端研究流程已只有四个文件。
 更详细的实验范围、假设与结果见 [tier-2 说明](experiments/tier2/README.md)。
 旧 Zobrist、babble、prefix、slotted 等路线的导航见 [research](research/README.md)。
+
+旧命令改为从仓库根目录执行：
+
+```sh
+cargo run --manifest-path research/Cargo.toml --bin rule_combine
+cargo check --manifest-path research/Cargo.toml --all-targets
+```
 
 ## 验证和边界
 

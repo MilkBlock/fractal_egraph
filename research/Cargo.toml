@@ -1,0 +1,27 @@
+[package]
+name = "egg_layout_research"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "egg_layout"
+
+[dependencies]
+core = { package = "egg_layout", path = ".." }
+egglog = { path = "../egglog", default-features = false }
+serde_json = "1.0"
+slotted-egraphs = { version = "=0.0.36", default-features = false }
+
+[features]
+slotted-checks = ["slotted-egraphs/checks"]
+
+# These work-in-progress files remain in place, preserving local uncommitted edits.
+[[bin]]
+name = "combine_profile"
+path = "../src/bin/combine_profile.rs"
+[[bin]]
+name = "rule_history_data"
+path = "../src/bin/rule_history_data.rs"
+[[bin]]
+name = "tier1_export"
+path = "../src/bin/tier1_export.rs"

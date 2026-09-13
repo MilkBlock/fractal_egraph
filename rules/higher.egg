@@ -1,0 +1,25 @@
+; Finite macro views of existing tier-1 combinations. Effects remain in Extension.
+; R is an Extension: source rule + stable relative-binding update + source effects.
+; ctx includes trigger history; binding is the first application's interface.
+(datatype HigherComb (HigherRule i64 Extension Comb RelativeBinding))
+(relation UnaryStep (Comb Comb Extension RelativeBinding))
+(relation PowerPrefix (Comb Comb Extension RelativeBinding i64))
+(relation Represents (HigherComb Comb))
+(relation CombName (Comb String))
+(relation ExtensionName (Extension String))
+(ruleset higher)
+(rule ((UnaryStep ctx out r binding))
+      ((PowerPrefix ctx out r binding 1)) :ruleset higher :name "power-start")
+(rule ((PowerPrefix ctx mid r binding k) (UnaryStep mid out r next_binding))
+      ((PowerPrefix ctx out r binding (+ k 1))) :ruleset higher :name "power-extend")
+(rule ((PowerPrefix ctx out r binding k) (>= k 2))
+      ((Represents (HigherRule k r ctx binding) out)) :ruleset higher :name "power-view")
+; No unrestricted unfolding or effect-equivalence unions: all prefixes must exist.
+
+; A caller must supply a valid accumulator summary and final terminal.
+; This relation does not infer a polynomial summary for arbitrary R23 effects.
+(relation ReductionInput (HigherComb Accumulation EndpointExpr))
+(relation EndpointView (HigherComb EndpointExpr))
+(rule ((ReductionInput (HigherRule k r ctx binding) fold terminal) (>= k 0))
+ ((EndpointView (HigherRule k r ctx binding) (Reduce fold (EInt k) terminal)))
+ :ruleset higher :name "higher-endpoint-reduce")
