@@ -16,14 +16,15 @@ cargo run -- --help
 重新采集 Math 并指定实际轮数：
 
 ```sh
-cargo run --release -- analyze --recapture-tier0 --rounds 11 --output out/math11
+cargo run --release -- analyze --recapture-tier0 --source egglog/tests/math-microbenchmark.egg --rounds 11 --output out/math11
 # 复用同一次新采集，不重新运行 tier-0：
 cargo run --release -- analyze --reuse-tier0 --output out/math11
 ```
 
 新结果在 `out/math11/experiments/tier2/fractal.html`。`out/math11/run.json` 记录实际轮数和成功/失败阶段。
 新采集拒绝覆盖已有目录；不传 --output 时自动创建时间命名目录。
---rounds 只对重新采集有效；不传时为 6。失败不会回退到旧快照。
+--rounds 和 --source 只对重新采集有效。轮数默认 6，输入默认原 Math 样例。
+输入目前须为自包含、兼容现有 Math 适配器的 .egg；不支持任意 datatype 或 include 项目。失败不会回退到旧快照。
 
 ## 精简的实现阅读顺序
 

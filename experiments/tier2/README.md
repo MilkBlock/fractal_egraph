@@ -139,7 +139,7 @@ node experiments/tier2/test_fractal_browser.cjs
 ## 选择重采集或复用
 
 ```sh
-cargo run --release -- analyze --recapture-tier0 --rounds 11 --output out/math11
+cargo run --release -- analyze --recapture-tier0 --source egglog/tests/math-microbenchmark.egg --rounds 11 --output out/math11
 cargo run --release -- analyze --reuse-tier0 --output out/math11
 ```
 
@@ -154,3 +154,8 @@ cargo run --release -- analyze --reuse-tier0 --output out/math11
 
 采集器及 compact tier-1 导出由 research 工程按需构建。`research/math_bridge.py` 是已有 Math 专用导入适配器，
 不是新的组合器。其保守边界仍见输出的 import_audit；match 事件数不当作 committed mutation 数。
+
+`--source PATH.egg` 指定实际输入；相对路径以仓库根目录为基准，绝对路径也可使用。
+输入内容原样复制到独立运行目录，`run.json` 分别记录原路径、暂存路径和源文件 SHA-256。
+生成规则的 Math datatype 从所选输入的原生 AST 提取，不再复用固定快照的声明。
+`--source` 不可与复用模式搭配；当前仍是自包含 Math 程序适配器，不是任意 .egg 的通用导入器。

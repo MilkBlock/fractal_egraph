@@ -15,7 +15,7 @@ def destination(root, output):
         output = Path('out') / ('math-' + datetime.datetime.now().strftime('%Y%m%d-%H%M%S-%f'))
     return output.resolve() if output.is_absolute() else (root / output).resolve()
 
-def capture_or_reuse(root, driver, output, rounds, fresh):
+def capture_or_reuse(root, driver, output, rounds, fresh, source=None):
     dest = destination(root, output)
     if not fresh:
         marker = dest / 'run.json'
@@ -30,9 +30,12 @@ def capture_or_reuse(root, driver, output, rounds, fresh):
         state.update(status='complete',phase='complete');marker.write_text(json.dumps(state,indent=2)+'\n')
         print('Reused viewer:', dest/'experiments/tier2/fractal.html', flush=True)
         return
+    if dest.exists():raise FileExistsError(dest)
+    source_path = (root / (source or SOURCE)).resolve()
+    source_bytes = source_path.read_bytes()  # Reject missing input before creating output.
     dest.mkdir(parents=True, exist_ok=False)  # Never replace an earlier run.
-    state = {'status':'running', 'requested_rounds':rounds, 'source':str(SOURCE),
-             'source_sha256':hashlib.sha256((root/SOURCE).read_bytes()).hexdigest(),
+    state = {'status':'running', 'requested_rounds':rounds, 'source':str(source_path), 'staged_source':str(SOURCE),
+             'source_sha256':hashlib.sha256(source_bytes).hexdigest(),
              'phase':'prepare', 'fallback_used':False}
     marker = dest/'run.json'
     def phase(name):
@@ -55,11 +58,7 @@ def capture_or_reuse(root, driver, output, rounds, fresh):
         for name in ['ir.egg','higher_ir.egg','reduce_ir.egg','reduce.egg']:
             shutil.copy2(root/'experiments/tier2'/name,dest/'experiments/tier2'/name)
         (dest/SOURCE).parent.mkdir(parents=True,exist_ok=True)
-        shutil.copy2(root/SOURCE,dest/SOURCE)
-        # Existing renderer needs only the single-line Math datatype from this file.
-        original=root/'experiments/annotated_export/math_microbenchmark/combined.egg'
-        datatype=next(l for l in original.read_text().splitlines() if l.startswith('(datatype Math '))
-        (dest/SOURCE.parent/'combined.egg').write_text(datatype+'\n')
+        (dest/SOURCE).write_bytes(source_bytes)
         (dest/'experiments/comb_order').mkdir(parents=True)
         phase('build-capture-tools')
         profile='release' if driver.parent.name=='release' else 'debug'
@@ -75,6 +74,11 @@ def capture_or_reuse(root, driver, output, rounds, fresh):
         if raw.get('executed_rounds')!=rounds:
             raise ValueError(f"requested {rounds} rounds, trace executed {raw.get('executed_rounds')}")
         state['executed_rounds']=rounds;state['match_events']=len(raw['events'])
+        declarations = [d for d in raw.get('datatypes',[]) if d['name']=='Math']
+        if len(declarations)!=1:
+            raise ValueError('current importer requires one explicit Math datatype; arbitrary .egg schemas/includes are not supported')
+        datatype = declarations[0]['definition']
+        (dest/SOURCE.parent/'combined.egg').write_text(datatype+'\n')
         phase('import-tier1')
         spec=importlib.util.spec_from_file_location('math_bridge',root/'research/math_bridge.py')
         bridge=importlib.util.module_from_spec(spec);spec.loader.exec_module(bridge)
@@ -86,7 +90,7 @@ def capture_or_reuse(root, driver, output, rounds, fresh):
         native=json.loads((dest/'native.json').read_text());t1=dest/'experiments/tier1_extract'
         saved={'native_egraph':native['native_egraph'],'templates':native['templates'],
                'instances':[{'template':i['template']} for i in native['instances']],
-               'source_scope':native['graph_scope'],'capture':{'rounds':rounds,'source':str(SOURCE)}}
+               'source_scope':native['graph_scope'],'capture':{'rounds':rounds,'source':str(source_path),'source_sha256':state['source_sha256']}}
         (t1/'native_templates.json').write_text(json.dumps(saved)+'\n')
         (t1/'tier0_rule_dictionary.json').write_text(json.dumps(raw['rule_labels'])+'\n')
         del saved,native

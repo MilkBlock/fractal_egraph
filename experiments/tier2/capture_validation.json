@@ -24,5 +24,21 @@
     }
   ],
   "reuse_2_round_run": "complete",
-  "parameter_and_failure_tests": 5
+  "parameter_and_failure_tests": 5,
+  "explicit_source_checks": [
+    {
+      "source": "egglog/tests/math-microbenchmark.egg",
+      "rounds": 2,
+      "events": 64,
+      "comb_templates": 42,
+      "completed": true
+    },
+    {
+      "source": "tests/fixtures/cli_math.egg",
+      "rounds": 2,
+      "events": 2,
+      "comb_templates": 3,
+      "completed": true
+    }
+  ]
 }

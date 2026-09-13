@@ -13,12 +13,15 @@ def options(argv=None):
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--recapture-tier0', action='store_true', help='capture Math tier-0 again before analysis')
     mode.add_argument('--reuse-tier0', action='store_true', help='reuse the committed snapshot or --output directory')
+    parser.add_argument('--source', type=Path, help='self-contained Math .egg input; requires --recapture-tier0')
     parser.add_argument('--rounds', type=int, help='exact native trace rounds; requires --recapture-tier0 (default: 6)')
     parser.add_argument('--output', type=Path, help='new capture directory, or an existing completed run to reuse')
     parser.add_argument('--skip-checks', action='store_true', help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
     if args.rounds is not None and (not args.recapture_tier0 or args.rounds < 1):
         parser.error('--rounds must be positive and requires --recapture-tier0')
+    if args.source is not None and not args.recapture_tier0:
+        parser.error('--source requires --recapture-tier0')
     return args
 
 def main():
@@ -40,7 +43,7 @@ def main():
 
     if args.recapture_tier0 or args.output:
         from capture import capture_or_reuse
-        capture_or_reuse(ROOT, driver, args.output, args.rounds or 6, args.recapture_tier0)
+        capture_or_reuse(ROOT, driver, args.output, args.rounds or 6, args.recapture_tier0, args.source)
         return
 
     py('mine')

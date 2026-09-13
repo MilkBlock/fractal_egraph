@@ -5,7 +5,7 @@ use std::process::Command;
 const HELP: &str = "egg_layout — native rule-combination analysis
 
   cargo run -- analyze --reuse-tier0
-  cargo run -- analyze --recapture-tier0 --rounds 11 --output out/math11
+  cargo run -- analyze --recapture-tier0 --source PATH.egg --rounds 11 --output out/math11
   cargo run -- view                   Regenerate the fractal viewer from saved results
 
 Native operations (run from the repository root):
