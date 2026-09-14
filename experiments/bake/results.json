@@ -1,0 +1,78 @@
+{
+  "scope": "Release native egglog. Fixed-library recognition versus full metadata analysis on identical captured events. The full path also builds analysis graphs and richer diagnostics; this is not a tier0 execution speedup.",
+  "bake": {
+    "array_summaries": 2,
+    "multi_sample_templates": 2,
+    "samples": 4,
+    "seconds": 0.489363292,
+    "step_definitions": 4,
+    "templates": 2
+  },
+  "runs": [
+    {
+      "fixed_matching_seconds": 0.00813096,
+      "full_analysis_seconds": 0.11975583399999999,
+      "eligible_events": 93,
+      "covered_events": 90,
+      "contract_instances": 30,
+      "early_pending_seen": true
+    },
+    {
+      "fixed_matching_seconds": 0.007761667,
+      "full_analysis_seconds": 0.134558125,
+      "eligible_events": 93,
+      "covered_events": 90,
+      "contract_instances": 30,
+      "early_pending_seen": true
+    },
+    {
+      "fixed_matching_seconds": 0.00877425,
+      "full_analysis_seconds": 0.120248833,
+      "eligible_events": 93,
+      "covered_events": 90,
+      "contract_instances": 30,
+      "early_pending_seen": true
+    }
+  ],
+  "median_fixed_matching_seconds": 0.00813096,
+  "median_full_analysis_seconds": 0.120248833,
+  "analysis_stage_ratio": 14.78900806300855,
+  "counter_query": {
+    "discovery_calls": 0,
+    "limit": 200,
+    "result": {
+      "array": "(RampArray (FiniteDomain (EInt 169)) (EAdd (EInt 31) (EInt 1)) (EInt 1))",
+      "cost": 2,
+      "element_queries": 0,
+      "expanded_prefixes": 0,
+      "sum": "(EInt 19604)"
+    },
+    "scope": "Certified successor-payload sum for this isolated bounded unit-stride recurrence. Not whole-program execution and not preservation/materialization of tier0 effects.",
+    "seconds": 0.02609825,
+    "start": 31,
+    "steps": 169,
+    "template": "fractal_0000",
+    "tier0_rule_applications": 0
+  },
+  "frontier_query": {
+    "depth": 20,
+    "discovery_calls": 0,
+    "elements": 1048576,
+    "first": 11534336,
+    "last": 12582911,
+    "radix": 2,
+    "result": {
+      "array": "(RampArray (FiniteDomain (EInt 1048576)) (EInt 11534336) (EInt 1))",
+      "cost": 2,
+      "element_queries": 0,
+      "expanded_prefixes": 0,
+      "sum": "(EInt 12644383195136)"
+    },
+    "scope": "Certified last-frontier payload query only; no tier0 intermediate facts or effects are materialized.",
+    "start": 11,
+    "template": "fractal_0001",
+    "theoretical_basic_applies_for_full_unfolding": 3145725,
+    "tier0_rule_applications": 0
+  },
+  "uncovered_without_learning": 3
+}

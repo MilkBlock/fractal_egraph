@@ -365,6 +365,11 @@ pub(super) fn reduce(
                 .sum::<usize>()
         })
         .sum::<usize>();
+    let local_roots: Vec<_> = output_keys
+        .iter()
+        .map(|key| outputs[key].as_str())
+        .collect();
+    let local_dag = compile_contract(&inputs, &defs, &local_roots, &reqs, &[])?;
     let dag = compile_contract(&inputs, &defs, &roots, &reqs, &effs)?;
     // Stable local parameter values keep this reduction symbolic, not data-specialized.
     let mut args = "(BNil)".to_owned();
@@ -419,6 +424,6 @@ pub(super) fn reduce(
         cursor = *tail;
     }
     Ok(
-        json!({"status":"substituted", "endpoint_outputs":endpoint_outputs, "recursive_ports":recursive_ports,"recursive_output_count":recursive_defs.len(),"requirement_count":requirements.len(),"definedness_obligations":definedness_obligations,"effect_count":effects.len(),"math_calls":math_calls,"algebra":if math{"math"}else{"integer-safe"}, "native_result_class":eg.value_to_class_id(&sort, result).to_string(), "scope":"One-layer value/requirement/effect contract with witnessed recursive return bindings. CompleteBinding certifies a substituted representative, not satisfied guards or an arbitrary-depth invariant. Effects are descriptions, never executed.", "dag":dag,"environment":args,"source":source,"output_addresses":addresses,"boundary":boundary,"definitions":definitions.len(),"one_layer_events":members.iter().map(|i|c.records[*i].id).collect::<Vec<_>>()}),
+        json!({"status":"substituted", "endpoint_outputs":endpoint_outputs, "recursive_ports":recursive_ports,"recursive_output_count":recursive_defs.len(),"requirement_count":requirements.len(),"definedness_obligations":definedness_obligations,"effect_count":effects.len(),"math_calls":math_calls,"algebra":if math{"math"}else{"integer-safe"}, "native_result_class":eg.value_to_class_id(&sort, result).to_string(), "scope":"One-layer value/requirement/effect contract with witnessed recursive return bindings. CompleteBinding certifies a substituted representative, not satisfied guards or an arbitrary-depth invariant. Effects are descriptions, never executed.", "dag":dag,"local_dag":local_dag,"parameter_count":inputs.len(),"environment":args,"source":source,"output_addresses":addresses,"boundary":boundary,"definitions":definitions.len(),"one_layer_events":members.iter().map(|i|c.records[*i].id).collect::<Vec<_>>()}),
     )
 }

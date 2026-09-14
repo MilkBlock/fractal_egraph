@@ -1,0 +1,5 @@
+(datatype Math (A i64 i64))
+(A 3 9)
+(rule ((= node (A n limit)) (< n limit)) ((A (+ n 1) limit)) :name "advance")
+(run 8)
+(check (A 9 9))

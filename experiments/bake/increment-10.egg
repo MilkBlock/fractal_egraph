@@ -1,0 +1,5 @@
+(datatype Math (A i64 i64))
+(A 10 20)
+(rule ((= node (A position end)) (< position end)) ((A (+ position 1) end)) :name "next")
+(run 12)
+(check (A 20 20))

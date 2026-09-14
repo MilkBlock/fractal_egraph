@@ -69,7 +69,7 @@
 (rule ((= out (ConcatArray a b)) (ArrayDomain a (FiniteDomain n)) (ArrayDomain b (FiniteDomain m)))
  ((ArrayDomain out (FiniteDomain (EAdd n m)))) :ruleset array-shape)
 ; Concrete count arithmetic uses egglog's checked i64 primitives.
-(rewrite (EAdd (EInt n) (EInt m)) (EInt (+ n m)) :ruleset array-shape)
+(rewrite (EAdd (EInt n) (EInt m)) (EInt sum) :when ((= sum (+ n m))) :ruleset array-shape)
 (rule ((= bs (Blocks a size)) (ArrayLength a n) (> size 0) (= (% n size) 0))
  ((BlockCount bs (/ n size))) :ruleset array-shape)
 (rule ((= bs (Blocks a size)) (ArrayLength a n) (> size 0) (> (% n size) 0))
@@ -101,8 +101,8 @@
 (rule ((= lhs (ReduceArray r (MapArray f a))) (ArrayDomain a (FiniteDomain n)))
  ((union lhs (FoldMap r f a))) :ruleset array-laws)
 (rule ((= lhs (SliceArray (SliceArray a start len) offset count))
-       (ArrayDomain lhs d))
- ((union lhs (SliceArray a (+ start offset) count))) :ruleset array-laws)
+       (ArrayDomain lhs d) (= shifted (+ start offset)))
+ ((union lhs (SliceArray a shifted count))) :ruleset array-laws)
 (rule ((= lhs (FlattenBlocks (Blocks a size))) (> size 0) (ArrayDomain a (FiniteDomain n)))
  ((union lhs a)) :ruleset array-laws)
 ; Sum and max have associative merge laws in this exact scalar theory. Arbitrary
@@ -135,8 +135,8 @@
  ((union x (ApplyScalar f (ArrayAt a i)))) :ruleset array-eval)
 (rule ((= x (ArrayAt (ZipArray f a b) i)) (ArrayIndex (ZipArray f a b) i))
  ((union x (ApplyBinary f (ArrayAt a i) (ArrayAt b i)))) :ruleset array-eval)
-(rule ((= x (ArrayAt (SliceArray a start len) i)) (ArrayIndex (SliceArray a start len) i))
- ((union x (ArrayAt a (+ start i)))) :ruleset array-eval)
+(rule ((= x (ArrayAt (SliceArray a start len) i)) (ArrayIndex (SliceArray a start len) i) (= shifted (+ start i)))
+ ((union x (ArrayAt a shifted))) :ruleset array-eval)
 (rule ((= x (ArrayAt (ConcatArray a b) i)) (ArrayIndex (ConcatArray a b) i) (ArrayLength a n) (< i n))
  ((union x (ArrayAt a i))) :ruleset array-eval)
 (rule ((= x (ArrayAt (ConcatArray a b) i)) (ArrayIndex (ConcatArray a b) i) (ArrayLength a n) (>= i n))
@@ -156,10 +156,10 @@
 (rewrite (ReducePrefix (MaxReduction) a n) (EMax (ReducePrefix (MaxReduction) a (- n 1)) (ArrayAt a (- n 1)))
  :when ((> n 0)) :ruleset array-eval)
 ; Small exact examples only; checked arithmetic leaves unsupported results symbolic.
-(rewrite (EMul (EInt a) (EInt b)) (EInt (* a b)) :ruleset array-eval)
-(rewrite (ESub (EInt a) (EInt b)) (EInt (- a b)) :ruleset array-eval)
+(rewrite (EMul (EInt a) (EInt b)) (EInt product) :when ((= product (* a b))) :ruleset array-eval)
+(rewrite (ESub (EInt a) (EInt b)) (EInt difference) :when ((= difference (- a b))) :ruleset array-eval)
 (rewrite (EMax (EInt a) (EInt b)) (EInt (max a b)) :ruleset array-eval)
-(rewrite (EDiv (EInt a) (EInt b)) (EInt (/ a b)) :when ((!= b 0) (= (% a b) 0)) :ruleset array-eval)
+(rewrite (EDiv (EInt a) (EInt b)) (EInt quotient) :when ((!= b 0) (= (% a b) 0) (= quotient (/ a b))) :ruleset array-eval)
 ; Parametric block domains stay compact even when the number of blocks is unknown.
 (constructor ECeilDiv (EndpointExpr i64) EndpointExpr)
 (relation BlockDomain (BlockArray IndexDomain))
@@ -210,8 +210,8 @@
 (rule ((= x (SymbolicInputElement name i)) (CompleteExpr i)) ((CompleteExpr x)) :ruleset endpoint-reduce)
 (rule ((= bs (Blocks a size)) (ArrayDomain a (StreamDomain)) (> size 0))
  ((BlockDomain bs (StreamDomain))) :ruleset array-shape)
-(rule ((= x (BlockAt (Blocks a size) i)) (ArrayDomain a (StreamDomain)) (> size 0) (>= i 0))
- ((union x (SliceArray a (* i size) size))) :ruleset array-shape)
+(rule ((= x (BlockAt (Blocks a size) i)) (ArrayDomain a (StreamDomain)) (> size 0) (>= i 0) (= start (* i size)))
+ ((union x (SliceArray a start size))) :ruleset array-shape)
 (rule ((= x (FlattenBlocks (Blocks a size))) (ArrayDomain a (StreamDomain)) (> size 0))
  ((union x a)) :ruleset array-laws)
 ; Arrays can also travel through the existing uniform binding argument carrier.
@@ -221,3 +221,7 @@
 (rewrite (Substitute (BArrayGetValue a i) env)
  (ReadArrayValue (Substitute a env) (Substitute i env)) :ruleset endpoint-reduce)
 (rewrite (ReadArrayValue (EArrayValue a) i) (ArrayGet a i) :ruleset array-laws)
+
+; Integer powers of natural counts remain valid finite shape expressions.
+(rule ((= n (EPow base exponent)) (NaturalCount base) (NaturalCount exponent))
+ ((NaturalCount n)) :ruleset array-shape)

@@ -1,0 +1,5 @@
+(datatype Math (A i64) (B i64))
+(A 1)
+(rule ((= node (A n)) (> n 0)) ((B (+ (* n 2) 0)) (B (+ (* n 2) 1))) :name "fork")
+(rule ((= node (B n))) ((A n)) :name "return")
+(run 8)

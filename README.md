@@ -80,6 +80,18 @@ cargo run --manifest-path research/Cargo.toml --bin rule_combine
 cargo check --manifest-path research/Cargo.toml --all-targets
 ```
 
+## FractalRule Bake 与固定库复用
+
+```sh
+cargo run --release -- bake experiments/bake/manifest.json out/my-bake
+cargo run --release -- bake-use out/my-bake/library.json experiments/bake/heldout-binary.egg out/my-use
+cargo run --release -- bake-eval out/my-bake/library.json fractal_0001 11 --depth 20 out/frontier.json
+```
+
+Bake 离线合并多个小样例；固定库模式不发现新模板、不重建 tier1/tier2，但仍执行原 tier0。
+通过结构检查的计数/完整 radix 前沿，可以单独使用数组 DSL 做无 tier0 展开的值查询。
+这不等于跳过任意程序的中间 effect。输入、证明边界与对照实验见 [Bake 说明](experiments/bake/README.md)。
+
 ## Tier2 first-class 数组
 
 逻辑数组 DSL 在 `rules/arrays.egg`，支持参数化长度、Tabulate、Map/Zip、Slice、
@@ -91,7 +103,7 @@ cargo run --release -- arrays experiments/arrays/basic.egg out/arrays.json
 cargo test --test arrays
 ```
 
-这是原生 tier2 DSL 的执行和提取，还不是自动 Bake、GPU 内存调度或 FlashAttention 搜索。
+这是原生 tier2 DSL 的执行和提取；上面的 Bake 可生成部分已检查的数组摘要，GPU 内存调度与 FlashAttention 搜索尚未实现。
 设计与 eggcc DSL 的对应关系、测试边界见 [数组说明](experiments/arrays/README.md)。
 
 ## 验证和边界

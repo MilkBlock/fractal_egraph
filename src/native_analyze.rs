@@ -15,6 +15,8 @@ use std::{
 
 #[path = "native_binding.rs"]
 mod binding;
+#[path = "native_bake.rs"]
+pub mod bake;
 #[path = "native_catalog.rs"]
 mod catalog;
 #[path = "native_fractal.rs"]
@@ -188,7 +190,15 @@ struct Captured {
 fn capture(
     source: &Path,
     rounds: Option<usize>,
+    online: Option<(&mut EGraph, &Path, &rayon::ThreadPool)>,
+) -> Result<Captured> {
+    capture_with_sink(source, rounds, online, None)
+}
+fn capture_with_sink(
+    source: &Path,
+    rounds: Option<usize>,
     mut online: Option<(&mut EGraph, &Path, &rayon::ThreadPool)>,
+    mut sink: Option<&mut dyn FnMut(&Captured) -> Result>,
 ) -> Result<Captured> {
     let started = Instant::now();
     let mut eg = EGraph::default();
@@ -284,6 +294,7 @@ fn capture(
                     let collect_start = Instant::now();
                     count += 1;
                     collect(&eg, &trace, &mut c, &mut producers)?;
+                    if let Some(sink) = sink.as_mut() { sink(&c)?; }
                     let collect_seconds = collect_start.elapsed().as_secs_f64();
                     let tier1_start = Instant::now();
                     if let Some((tier1, root, worker)) = online.as_mut() {
@@ -313,6 +324,7 @@ fn capture(
         eg.run_program_with_trace(vec![command], &trace)?;
     }
     collect(&eg, &trace, &mut c, &mut producers)?;
+    if let Some(sink) = sink.as_mut() { sink(&c)?; }
     if let Some((tier1, root, worker)) = online.as_mut() {
         worker
             .install(|| build_tier1(&mut c, tier1, root, &mut inserted).map_err(|e| e.to_string()))

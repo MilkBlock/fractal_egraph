@@ -1,0 +1,5 @@
+(datatype Math (A i64) (B i64))
+(A 5)
+(rule ((= node (A value)) (> value 0)) ((B (+ (* value 2) 0)) (B (+ (* value 2) 1))) :name "split")
+(rule ((= node (B value))) ((A value)) :name "resume")
+(run 8)

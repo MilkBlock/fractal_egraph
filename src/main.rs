@@ -6,6 +6,10 @@ const HELP: &str = "egg_layout — native rule-combination analysis
 
   cargo run -- analyze --reuse-tier0
   cargo run -- analyze --recapture-tier0 --source PATH.egg --rounds 11 --output out/math11
+  cargo run -- bake MANIFEST.json OUTPUT_DIR
+  cargo run -- bake-use LIBRARY.json SOURCE.egg OUTPUT_DIR [--save-history]
+  cargo run -- bake-eval LIBRARY.json TEMPLATE START LIMIT OUTPUT.json
+  cargo run -- bake-eval LIBRARY.json TEMPLATE START --depth N OUTPUT.json
   cargo run -- arrays INPUT.egg OUTPUT.json
   cargo run -- embed-dag SMALL.json LARGE.json OUT.json [BUDGET]
   cargo run -- view                   Regenerate the fractal viewer from saved results
@@ -33,6 +37,50 @@ fn main() -> Result {
     match args.first().map(String::as_str) {
         None | Some("--help" | "-h" | "help") => {
             print!("{HELP}");
+            Ok(())
+        }
+        Some("bake") if args.len() == 3 => {
+            let result = egg_layout::native_analyze::bake::train(
+                std::path::Path::new(env!("CARGO_MANIFEST_DIR")),
+                std::path::Path::new(&args[1]),
+                std::path::Path::new(&args[2]),
+            )?;
+            println!("{}", serde_json::to_string_pretty(&result)?);
+            Ok(())
+        }
+        Some("bake-use") if args.len() == 4 || (args.len() == 5 && args[4] == "--save-history") => {
+            let result = egg_layout::native_analyze::bake::apply(
+                std::path::Path::new(env!("CARGO_MANIFEST_DIR")),
+                std::path::Path::new(&args[1]),
+                std::path::Path::new(&args[2]),
+                std::path::Path::new(&args[3]),
+                args.len() == 5,
+            )?;
+            println!("{}", serde_json::to_string_pretty(&result)?);
+            Ok(())
+        }
+        Some("bake-eval") if args.len() == 7 && args[4] == "--depth" => {
+            let result = egg_layout::native_analyze::bake::query_frontier(
+                std::path::Path::new(env!("CARGO_MANIFEST_DIR")),
+                std::path::Path::new(&args[1]),
+                &args[2],
+                args[3].parse()?,
+                args[5].parse()?,
+                std::path::Path::new(&args[6]),
+            )?;
+            println!("{}", serde_json::to_string_pretty(&result)?);
+            Ok(())
+        }
+        Some("bake-eval") if args.len() == 6 => {
+            let result = egg_layout::native_analyze::bake::query(
+                std::path::Path::new(env!("CARGO_MANIFEST_DIR")),
+                std::path::Path::new(&args[1]),
+                &args[2],
+                args[3].parse()?,
+                args[4].parse()?,
+                std::path::Path::new(&args[5]),
+            )?;
+            println!("{}", serde_json::to_string_pretty(&result)?);
             Ok(())
         }
         Some("arrays") if args.len() == 3 => pipeline::arrays(&args[1], &args[2]),

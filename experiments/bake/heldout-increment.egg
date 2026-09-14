@@ -1,0 +1,5 @@
+(datatype Math (A i64 i64))
+(A 31 200)
+(rule ((= node (A counter stop)) (< counter stop)) ((A (+ counter 1) stop)) :name "step")
+(run 171)
+(check (A 200 200))

@@ -1,0 +1,5 @@
+(datatype Math (A i64) (B i64) (Unused Math))
+(A 11)
+(rule ((= node (A key)) (> key 0)) ((B (+ (* key 2) 0)) (B (+ (* key 2) 1))) :name "branch")
+(rule ((= node (B key))) ((A key)) :name "again")
+(run 10)

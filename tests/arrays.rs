@@ -325,3 +325,29 @@ fn arrays_can_be_passed_as_binding_arguments() {
     );
     e.parse_and_run_program(None,"(check (= result (BResult (BCons (EInt 14) (BNil)) (BNil) (BNil))))\n(check (CompleteBinding result))").unwrap();
 }
+
+#[test]
+fn unrepresentable_constant_folds_and_stream_offsets_stay_symbolic() {
+    let mut e = engine();
+    run(
+        &mut e,
+        r#"
+      (let sum (EAdd (EInt 9223372036854775807) (EInt 1)))
+      (let product (EMul (EInt 9223372036854775807) (EInt 2)))
+      (let difference (ESub (EInt -9223372036854775808) (EInt 1)))
+      (let stream (FillArray (StreamDomain) (EInt 7)))
+      (let block (BlockAt (Blocks stream 9223372036854775807) 2))
+      (let value (ArrayAt block 0))
+    "#,
+    );
+    e.parse_and_run_program(
+        None,
+        r#"
+      (fail (check (= sum (EInt -9223372036854775808))))
+      (fail (check (= product (EInt -2))))
+      (fail (check (= difference (EInt 9223372036854775807))))
+      (fail (check (= value (EInt 7))))
+    "#,
+    )
+    .unwrap();
+}

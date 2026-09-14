@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "samples": [
+    {
+      "name": "increment-3",
+      "source": "increment-3.egg",
+      "rounds": null
+    },
+    {
+      "name": "increment-10",
+      "source": "increment-10.egg",
+      "rounds": null
+    },
+    {
+      "name": "binary-1",
+      "source": "binary-1.egg",
+      "rounds": null
+    },
+    {
+      "name": "binary-5",
+      "source": "binary-5.egg",
+      "rounds": null
+    }
+  ]
+}
