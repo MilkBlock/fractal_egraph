@@ -31,7 +31,7 @@ def read(path):
 
 library_dir = out / 'library'
 run('bake', 'bake', root / 'experiments/bake/manifest.json', library_dir)
-library = library_dir / 'library.json'
+library = library_dir / 'library.egg'
 original = library.read_bytes()
 rows = []
 for i in range(a.repeats):
@@ -52,9 +52,9 @@ for i in range(a.repeats):
                  'contract_instances': f['contract_instances'],
                  'early_pending_seen': any(b['pending_units'] > 0 for b in f['capture_batches'])})
 assert original == library.read_bytes()
-lib = read(library)
-linear = next(t for t in lib['templates'] if t['kind'] == 'linear_extension')
-branch = next(t for t in lib['templates'] if t['kind'] == 'recursive_dag')
+families = read(library_dir / 'bake.json')['families']
+linear = next(t for t in families if t['kind'] == 'linear_extension')
+branch = next(t for t in families if t['kind'] == 'recursive_dag')
 run('counter-query', 'bake-eval', library, linear['id'], 31, 200, out / 'counter-query.json')
 run('frontier-query', 'bake-eval', library, branch['id'], 11, '--depth', 20, out / 'frontier-query.json')
 run('uncovered', 'bake-use', library, root / 'experiments/bake/uncovered.egg', out / 'uncovered')

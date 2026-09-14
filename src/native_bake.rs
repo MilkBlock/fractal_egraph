@@ -3,6 +3,9 @@
 use super::*;
 use serde::{Deserialize, Serialize};
 
+#[path = "bake_format.rs"]
+mod format;
+
 const VERSION: u32 = 1;
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -719,13 +722,18 @@ pub fn train(root: &Path, manifest: &Path, out: &Path) -> Result<Json> {
             .open(out.join("baked.egg"))?;
         file.write_all(dsl.as_bytes())?;
     }
-    write_new(&out.join("library.json"), &library)?;
+    write_library(&out.join("library.egg"), &library)?;
     write_new(&out.join("bake.json"), &summary)?;
     Ok(summary)
 }
 
 fn load_library(path: &Path) -> Result<Library> {
-    let lib: Library = serde_json::from_slice(&std::fs::read(path)?)?;
+    let text = std::fs::read_to_string(path)?;
+    let lib: Library = if text.trim_start().starts_with('{') {
+        serde_json::from_str(&text)?
+    } else {
+        format::parse(&text)?
+    };
     if lib.version != VERSION {
         return Err("unsupported Bake library version".into());
     }
@@ -775,6 +783,34 @@ fn load_library(path: &Path) -> Result<Library> {
                     .any(|key| c[*key] != summary[*key])
             }) {
                 return Err("invalid array certificate".into());
+            }
+            // Array/sum declarations are cached consequences of the checked law.
+            // Reject stale visible recipes instead of silently ignoring edits.
+            let (count, first) = if summary["kind"] == "bounded_unit_stride" {
+                (
+                    "(ECount \"steps\")".to_owned(),
+                    "(EAdd (ESymbol \"start\") (EInt 1))".to_owned(),
+                )
+            } else {
+                let count = format!("(EPow (EInt {}) (ECount \"depth\"))", summary["radix"]);
+                (count.clone(), format!("(EMul (ESymbol \"start\") {count})"))
+            };
+            let expected_array = format!("(RampArray (FiniteDomain {count}) {first} (EInt 1))");
+            let expected_sum = format!(
+                "(EAdd (EMul {count} {first}) (EDiv (EMul {count} (ESub {count} (EInt 1))) (EInt 2)))"
+            );
+            for (field, expected) in [("array", expected_array), ("sum", expected_sum)] {
+                let actual = summary["dsl"][field]
+                    .as_str()
+                    .ok_or("missing array recipe")?;
+                let mut parser = egglog::ast::Parser::default();
+                if parser.get_expr_from_string(None, actual)?.to_string()
+                    != parser.get_expr_from_string(None, &expected)?.to_string()
+                {
+                    return Err(
+                        "array recipe disagrees with its checked law; rebake the library".into(),
+                    );
+                }
             }
         }
         if let Some(contract) = &t.contract {
@@ -1201,4 +1237,35 @@ mod proof_tests {
             .is_none()
         );
     }
+}
+
+fn write_library(path: &Path, lib: &Library) -> Result {
+    use std::io::Write;
+    let text = format::render(lib)?;
+    if let Some(parent) = path.parent().filter(|p| !p.as_os_str().is_empty()) {
+        std::fs::create_dir_all(parent)?;
+    }
+    let mut name = path.as_os_str().to_os_string();
+    name.push(".partial");
+    let partial = std::path::PathBuf::from(name);
+    let mut file = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&partial)?;
+    let result = (|| -> Result {
+        file.write_all(text.as_bytes())?;
+        file.flush()?;
+        std::fs::hard_link(&partial, path)?;
+        Ok(())
+    })();
+    let _ = std::fs::remove_file(partial);
+    result
+}
+/// Convert old JSON libraries without rerunning tier0 or discovery.
+pub fn convert_library(input: &Path, output: &Path) -> Result {
+    write_library(output, &load_library(input)?)
+}
+/// Read either library representation into its validated inspection model.
+pub fn inspect_library(input: &Path) -> Result<Json> {
+    Ok(serde_json::to_value(load_library(input)?)?)
 }

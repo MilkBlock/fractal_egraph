@@ -36,9 +36,39 @@ fn multisample_bake_frozen_holdouts_and_certified_queries() {
         .unwrap();
     assert_eq!(baked_dsl.get_size("BakedSequence"), 2);
     assert_eq!(baked_dsl.get_size("ArrayAt"), 0);
-    let libpath = baked.join("library.json");
+    let libpath = baked.join("library.egg");
     let original = std::fs::read(&libpath).unwrap();
-    let lib = json(&libpath);
+    let lib = egg_layout::native_analyze::bake::inspect_library(&libpath).unwrap();
+    assert!(!baked.join("library.json").exists());
+    let text = std::fs::read_to_string(&libpath).unwrap();
+    assert!(text.contains("(bake-library 1"));
+    assert!(text.contains("(fractal-rule"));
+    assert!(text.contains("; @egg-viz-json"));
+    let legacy = dir.join("legacy.json");
+    std::fs::write(&legacy, serde_json::to_vec(&lib).unwrap()).unwrap();
+    let converted = dir.join("converted.egg");
+    ok(&["bake-format", path(&legacy), path(&converted)]);
+    assert_eq!(
+        egg_layout::native_analyze::bake::inspect_library(&converted).unwrap(),
+        lib
+    );
+    let corrupt_bindings = dir.join("bad-bindings.egg");
+    std::fs::write(
+        &corrupt_bindings,
+        text.replacen("(parent 0", "(parent 1", 1),
+    )
+    .unwrap();
+    assert!(egg_layout::native_analyze::bake::inspect_library(&corrupt_bindings).is_err());
+    let harmless = dir.join("commented.egg");
+    std::fs::write(
+        &harmless,
+        format!("; ordinary user note\n{text}\n; (panic \"must never execute\")\n"),
+    )
+    .unwrap();
+    assert_eq!(
+        egg_layout::native_analyze::bake::inspect_library(&harmless).unwrap(),
+        lib
+    );
     assert_eq!(lib["templates"].as_array().unwrap().len(), 2);
     for t in lib["templates"].as_array().unwrap() {
         assert_eq!(t["support"].as_array().unwrap().len(), 2);

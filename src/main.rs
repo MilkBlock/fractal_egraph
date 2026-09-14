@@ -6,10 +6,11 @@ const HELP: &str = "egg_layout — native rule-combination analysis
 
   cargo run -- analyze --reuse-tier0
   cargo run -- analyze --recapture-tier0 --source PATH.egg --rounds 11 --output out/math11
+  cargo run -- bake-format OLD_LIBRARY NEW_LIBRARY.egg
   cargo run -- bake MANIFEST.json OUTPUT_DIR
-  cargo run -- bake-use LIBRARY.json SOURCE.egg OUTPUT_DIR [--save-history]
-  cargo run -- bake-eval LIBRARY.json TEMPLATE START LIMIT OUTPUT.json
-  cargo run -- bake-eval LIBRARY.json TEMPLATE START --depth N OUTPUT.json
+  cargo run -- bake-use LIBRARY.egg SOURCE.egg OUTPUT_DIR [--save-history]
+  cargo run -- bake-eval LIBRARY.egg TEMPLATE START LIMIT OUTPUT.json
+  cargo run -- bake-eval LIBRARY.egg TEMPLATE START --depth N OUTPUT.json
   cargo run -- arrays INPUT.egg OUTPUT.json
   cargo run -- embed-dag SMALL.json LARGE.json OUT.json [BUDGET]
   cargo run -- view                   Regenerate the fractal viewer from saved results
@@ -38,6 +39,12 @@ fn main() -> Result {
         None | Some("--help" | "-h" | "help") => {
             print!("{HELP}");
             Ok(())
+        }
+        Some("bake-format") if args.len() == 3 => {
+            egg_layout::native_analyze::bake::convert_library(
+                std::path::Path::new(&args[1]),
+                std::path::Path::new(&args[2]),
+            )
         }
         Some("bake") if args.len() == 3 => {
             let result = egg_layout::native_analyze::bake::train(

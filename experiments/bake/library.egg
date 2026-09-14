@@ -1,0 +1,220 @@
+; Frozen FractalRule library — declarations, not a tier0 program.
+; Basic rules and recursive structure are visible; evidence/statistics use comments.
+; @egg-viz-json {"format":"bake-egg/v1","kind":"bake_library","schema":"egg-viz/v1","scope":"Frozen observed FractalRule families. Exact portable source/binding/effect fingerprints; no general induction proof and no automatic tier0 mutation replacement. Only separately checked array laws permit no-tier0 value queries."}
+(bake-library 1 "integer-safe")
+
+; @egg-viz-json {"data":{"discovered_families":1,"eligible":6,"events":7,"excluded":1,"exported_families":1,"name":"increment-3","seconds":0.057083166,"source":"/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/bake/increment-3.egg","source_program":"(datatype Math (A i64 i64))\n(A 3 9)\n(rule ((= node (A n limit)) (< n limit)) ((A (+ n 1) limit)) :name \"advance\")\n(run 8)\n(check (A 9 9))\n"},"id":"sample_0000","kind":"bake_sample","schema":"egg-viz/v1"}
+; @egg-viz-json {"data":{"discovered_families":1,"eligible":10,"events":11,"excluded":1,"exported_families":1,"name":"increment-10","seconds":0.054991916,"source":"/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/bake/increment-10.egg","source_program":"(datatype Math (A i64 i64))\n(A 10 20)\n(rule ((= node (A position end)) (< position end)) ((A (+ position 1) end)) :name \"next\")\n(run 12)\n(check (A 20 20))\n"},"id":"sample_0001","kind":"bake_sample","schema":"egg-viz/v1"}
+; @egg-viz-json {"data":{"discovered_families":1,"eligible":45,"events":45,"excluded":0,"exported_families":1,"name":"binary-1","seconds":0.151509209,"source":"/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/bake/binary-1.egg","source_program":"(datatype Math (A i64) (B i64))\n(A 1)\n(rule ((= node (A n)) (> n 0)) ((B (+ (* n 2) 0)) (B (+ (* n 2) 1))) :name \"fork\")\n(rule ((= node (B n))) ((A n)) :name \"return\")\n(run 8)\n"},"id":"sample_0002","kind":"bake_sample","schema":"egg-viz/v1"}
+; @egg-viz-json {"data":{"discovered_families":1,"eligible":45,"events":45,"excluded":0,"exported_families":1,"name":"binary-5","seconds":0.14843925,"source":"/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/bake/binary-5.egg","source_program":"(datatype Math (A i64) (B i64))\n(A 5)\n(rule ((= node (A value)) (> value 0)) ((B (+ (* value 2) 0)) (B (+ (* value 2) 1))) :name \"split\")\n(rule ((= node (B value))) ((A value)) :name \"resume\")\n(run 8)\n"},"id":"sample_0003","kind":"bake_sample","schema":"egg-viz/v1"}
+
+; ── Basic steps and their relative bindings ──
+
+; step_0000 — advance
+; @egg-viz-json {"bake":{"label":"advance","signature":{"aliases":null,"inputs":[[["read","body/0/expr/1"],["parent",0,{"body":[["eq",["var",0],["call","A",[["var",1],["var",2]]]],["fact",["call","<",[["var",1],["var",2]]]]],"head":[["expr",["call","A",[["call","+",[["var",1],["literal","1"]]],["var",2]]]]],"schema":{"A":["i64","i64","Math"]}},["row","head/0/expr/0"]],"Fact:A"],[["var",1],["parent",0,{"body":[["eq",["var",0],["call","A",[["var",1],["var",2]]]],["fact",["call","<",[["var",1],["var",2]]]]],"head":[["expr",["call","A",[["call","+",[["var",1],["literal","1"]]],["var",2]]]]],"schema":{"A":["i64","i64","Math"]}},["column","head/0/expr/0",0]],"i64"],[["var",2],["parent",0,{"body":[["eq",["var",0],["call","A",[["var",1],["var",2]]]],["fact",["call","<",[["var",1],["var",2]]]]],"head":[["expr",["call","A",[["call","+",[["var",1],["literal","1"]]],["var",2]]]]],"schema":{"A":["i64","i64","Math"]}},["var",2]],"i64"]],"outputs":[[["column","head/0/expr/0",0],"i64"],[["column","head/0/expr/0",1],"i64"],[["column","head/0/expr/0",2],"Math"],[["row","head/0/expr/0"],"Fact:A"],[["var",1],"i64"],[["var",2],"i64"]],"rule":{"body":[["eq",["var",0],["call","A",[["var",1],["var",2]]]],["fact",["call","<",[["var",1],["var",2]]]]],"head":[["expr",["call","A",[["call","+",[["var",1],["literal","1"]]],["var",2]]]]],"schema":{"A":["i64","i64","Math"]}}}},"id":"step_0000","kind":"original_rule","schema":"egg-viz/v1"}
+(bake-step step_0000
+  (binding (read "body/0/expr/1") (parent 0 (row "head/0/expr/0")) "Fact:A")
+  (binding (var 1) (parent 0 (column "head/0/expr/0" 0)) "i64")
+  (binding (var 2) (parent 0 (var 2)) "i64"))
+(rule ((= node (A n limit))
+       (< n limit))
+      ((A (+ n 1) limit))
+         :name "advance")
+
+; step_0001 — fork
+; @egg-viz-json {"bake":{"label":"fork","signature":{"aliases":{"unions":[],"values":[0,1,2,3,4,5,6,7,1],"writes":[["Fact:B",6],["Fact:B",7]]},"inputs":[[["read","body/0/expr/1"],["parent",0,{"body":[["eq",["var",0],["call","B",[["var",1]]]]],"head":[["expr",["call","A",[["var",1]]]]],"schema":{"A":["i64","Math"],"B":["i64","Math"]}},["row","head/0/expr/0"]],"Fact:A"],[["var",1],["parent",0,{"body":[["eq",["var",0],["call","B",[["var",1]]]]],"head":[["expr",["call","A",[["var",1]]]]],"schema":{"A":["i64","Math"],"B":["i64","Math"]}},["var",1]],"i64"]],"outputs":[[["column","head/0/expr/0",0],"i64"],[["column","head/0/expr/0",1],"Math"],[["column","head/1/expr/0",0],"i64"],[["column","head/1/expr/0",1],"Math"],[["row","head/0/expr/0"],"Fact:B"],[["row","head/1/expr/0"],"Fact:B"],[["var",1],"i64"]],"rule":{"body":[["eq",["var",0],["call","A",[["var",1]]]],["fact",["call",">",[["var",1],["literal","0"]]]]],"head":[["expr",["call","B",[["call","+",[["call","*",[["var",1],["literal","2"]]],["literal","0"]]]]]],["expr",["call","B",[["call","+",[["call","*",[["var",1],["literal","2"]]],["literal","1"]]]]]]],"schema":{"A":["i64","Math"],"B":["i64","Math"]}}}},"id":"step_0001","kind":"original_rule","schema":"egg-viz/v1"}
+(bake-step step_0001
+  (binding (read "body/0/expr/1") (parent 0 (row "head/0/expr/0")) "Fact:A")
+  (binding (var 1) (parent 0 (var 1)) "i64"))
+(rule ((= node (A n))
+       (> n 0))
+      ((B (+ (* n 2) 0))
+       (B (+ (* n 2) 1)))
+         :name "fork")
+
+; step_0002 — return
+; @egg-viz-json {"bake":{"label":"return","signature":{"aliases":{"unions":[],"values":[0,1,1,2,3,1],"writes":[["Fact:A",3]]},"inputs":[[["read","body/0/expr/1"],["parent",0,{"body":[["eq",["var",0],["call","A",[["var",1]]]],["fact",["call",">",[["var",1],["literal","0"]]]]],"head":[["expr",["call","B",[["call","+",[["call","*",[["var",1],["literal","2"]]],["literal","0"]]]]]],["expr",["call","B",[["call","+",[["call","*",[["var",1],["literal","2"]]],["literal","1"]]]]]]],"schema":{"A":["i64","Math"],"B":["i64","Math"]}},["row","head/0/expr/0"]],"Fact:B"],[["var",1],["parent",0,{"body":[["eq",["var",0],["call","A",[["var",1]]]],["fact",["call",">",[["var",1],["literal","0"]]]]],"head":[["expr",["call","B",[["call","+",[["call","*",[["var",1],["literal","2"]]],["literal","0"]]]]]],["expr",["call","B",[["call","+",[["call","*",[["var",1],["literal","2"]]],["literal","1"]]]]]]],"schema":{"A":["i64","Math"],"B":["i64","Math"]}},["column","head/0/expr/0",0]],"i64"]],"outputs":[[["column","head/0/expr/0",0],"i64"],[["column","head/0/expr/0",1],"Math"],[["row","head/0/expr/0"],"Fact:A"],[["var",1],"i64"]],"rule":{"body":[["eq",["var",0],["call","B",[["var",1]]]]],"head":[["expr",["call","A",[["var",1]]]]],"schema":{"A":["i64","Math"],"B":["i64","Math"]}}}},"id":"step_0002","kind":"original_rule","schema":"egg-viz/v1"}
+(bake-step step_0002
+  (binding (read "body/0/expr/1") (parent 0 (row "head/0/expr/0")) "Fact:B")
+  (binding (var 1) (parent 0 (column "head/0/expr/0" 0)) "i64"))
+(rule ((= node (B n)))
+      ((A n))
+         :name "return")
+
+; step_0003 — return
+; @egg-viz-json {"bake":{"label":"return","signature":{"aliases":{"unions":[],"values":[0,1,1,2,3,1],"writes":[["Fact:A",3]]},"inputs":[[["read","body/0/expr/1"],["parent",0,{"body":[["eq",["var",0],["call","A",[["var",1]]]],["fact",["call",">",[["var",1],["literal","0"]]]]],"head":[["expr",["call","B",[["call","+",[["call","*",[["var",1],["literal","2"]]],["literal","0"]]]]]],["expr",["call","B",[["call","+",[["call","*",[["var",1],["literal","2"]]],["literal","1"]]]]]]],"schema":{"A":["i64","Math"],"B":["i64","Math"]}},["row","head/1/expr/0"]],"Fact:B"],[["var",1],["parent",0,{"body":[["eq",["var",0],["call","A",[["var",1]]]],["fact",["call",">",[["var",1],["literal","0"]]]]],"head":[["expr",["call","B",[["call","+",[["call","*",[["var",1],["literal","2"]]],["literal","0"]]]]]],["expr",["call","B",[["call","+",[["call","*",[["var",1],["literal","2"]]],["literal","1"]]]]]]],"schema":{"A":["i64","Math"],"B":["i64","Math"]}},["column","head/1/expr/0",0]],"i64"]],"outputs":[[["column","head/0/expr/0",0],"i64"],[["column","head/0/expr/0",1],"Math"],[["row","head/0/expr/0"],"Fact:A"],[["var",1],"i64"]],"rule":{"body":[["eq",["var",0],["call","B",[["var",1]]]]],"head":[["expr",["call","A",[["var",1]]]]],"schema":{"A":["i64","Math"],"B":["i64","Math"]}}}},"id":"step_0003","kind":"original_rule","schema":"egg-viz/v1"}
+(bake-step step_0003
+  (binding (read "body/0/expr/1") (parent 0 (row "head/1/expr/0")) "Fact:B")
+  (binding (var 1) (parent 0 (column "head/1/expr/0" 0)) "i64"))
+(rule ((= node (B n)))
+      ((A n))
+         :name "return")
+
+; ── Fractal families ──
+
+; fractal_0000 — linear_extension; 2 sample reports
+; @egg-viz-json {"bake":{"array_law":{"dissipation":"remaining=max(0,limit-start); decreases by one per successful update","dsl":{"cost":21,"element_queries":0,"expanded_prefixes":0},"index_field":0,"kind":"bounded_unit_stride","limit_field":1,"proof":"strict integer guard, unit positive update, unchanged limit and other fields; successful update is <= limit so cannot overflow","scope":"successor scalar payloads, not equivalence to all tier0 mutations","sequence":"start+1, ..., limit when start < limit; otherwise empty"},"contract":{"expressions":["(EParam 0)","(EParam 1)","(EIAdd (EParam 1) (EInt 1))","(EParam 0)","(EApply \"source::A\" (BCons (EIAdd (EParam 1) (EInt 1)) (BCons (EParam 0) (BNil))))","(ERow \"A\" (BCons (EIAdd (EParam 1) (EInt 1)) (BCons (EParam 0) (BCons (EApply \"source::A\" (BCons (EIAdd (EParam 1) (EInt 1)) (BCons (EParam 0) (BNil)))) (BNil)))))"],"outputs":[[0,["var",2]],[0,["var",1]],[0,["column","head/0/expr/0",0]],[0,["column","head/0/expr/0",1]],[0,["column","head/0/expr/0",2]],[0,["row","head/0/expr/0"]]],"parameters":[{"input":["var",2],"member":0},{"input":["var",1],"member":0},{"input":["read","body/0/expr/1"],"member":0}]},"support":[{"instances":1,"max_depth":5,"sample":"increment-3","witnesses":[{"event":4,"inputs":[["i64","0:Value(9)"],["i64","0:Value(4)"],["Fact:A","0:write:3"]],"outputs":[["i64","0:Value(9)"],["i64","0:Value(4)"],["i64","0:Value(5)"],["i64","0:Value(9)"],["Math","0:Value(2)"],["Fact:A","0:write:7"]],"parents":[0],"sample":"increment-3"}]},{"instances":1,"max_depth":9,"sample":"increment-10","witnesses":[{"event":4,"inputs":[["i64","0:Value(20)"],["i64","0:Value(11)"],["Fact:A","0:write:3"]],"outputs":[["i64","0:Value(20)"],["i64","0:Value(11)"],["i64","0:Value(12)"],["i64","0:Value(20)"],["Math","0:Value(2)"],["Fact:A","0:write:7"]],"parents":[0],"sample":"increment-10"}]}]},"id":"fractal_0000","kind":"bake_fractal_rule","schema":"egg-viz/v1","statistics":{"instances":2,"max_observed_depth":9,"samples":["increment-3","increment-10"]}}
+(fractal-rule "fractal_0000"
+  (kind linear_extension)
+  (entry step_0000)
+  (ports)
+  (array
+    (RampArray (FiniteDomain (ECount "steps")) (EAdd (ESymbol "start") (EInt 1)) (EInt 1)))
+  (sum
+    (EAdd
+      (EMul (ECount "steps") (EAdd (ESymbol "start") (EInt 1)))
+      (EDiv (EMul (ECount "steps") (ESub (ECount "steps") (EInt 1))) (EInt 2))))
+  (local-contract
+    (BLet (BInt 1)
+    (BLet (BIAdd (BParam 2) (BParam 0))
+    (BLet (BApply "source::A" (BXCons (BParam 0) (BXCons (BParam 2) (BXNil ))))
+    (BLet (BText "A")
+    (BLet (BRow "A" (BXCons (BParam 2) (BXCons (BParam 4) (BXCons (BParam 1) (BXNil )))))
+    (BLet (BApply "read-fact" (BXCons (BParam 7) (BXNil )))
+    (BLet (BInt 0)
+    (BLet (BColumn 0 (BParam 9))
+    (BLet (BApply "require-eq" (BXCons (BParam 0) (BXCons (BParam 9) (BXNil ))))
+    (BLet (BColumn 1 (BParam 11))
+    (BLet (BApply "require-eq" (BXCons (BParam 0) (BXCons (BParam 10) (BXNil ))))
+    (BLet (BInt 2)
+    (BLet (BColumn 2 (BParam 14))
+    (BLet (BApply "source::A" (BXCons (BParam 14) (BXCons (BParam 13) (BXNil ))))
+    (BLet (BApply "require-eq" (BXCons (BParam 1) (BXCons (BParam 0) (BXNil ))))
+    (BLet (BApply "source::<" (BXCons (BParam 16) (BXCons (BParam 15) (BXNil ))))
+    (BLet (BApply "require-predicate" (BXCons (BParam 0) (BXNil )))
+    (BLet (BText "+")
+    (BLet (BApply
+        "i64-operation-defined"
+        (BXCons (BParam 0) (BXCons (BParam 19) (BXCons (BParam 17) (BXNil )))))
+    (BDag
+      (BXCons
+        (BParam 19)
+        (BXCons
+          (BParam 20)
+          (BXCons
+            (BParam 17)
+            (BXCons (BParam 19) (BXCons (BParam 16) (BXCons (BParam 14) (BXNil )))))))
+      (BXCons
+        (BParam 13)
+        (BXCons
+          (BParam 10)
+          (BXCons (BParam 8) (BXCons (BParam 4) (BXCons (BParam 2) (BXCons (BParam 0) (BXNil )))))))
+      (BXNil )))))))))))))))))))))))
+
+; fractal_0001 — recursive_dag; 2 sample reports
+; @egg-viz-json {"bake":{"array_law":{"dsl":{"cost":37,"element_queries":0,"expanded_prefixes":0},"kind":"radix_frontier","proof":"all residues 0..radix-1 appear exactly once; return rule copies payload; induction partitions the next contiguous frontier","radix":2,"requires":"start > 0 and (start+1)*radix^depth-1 <= i64::MAX","scope":"last-frontier scalar payloads, not intermediate rows or effects; no extension through overflow","sequence":"at depth d: start*radix^d + j, 0 <= j < radix^d"},"contract":{"expressions":["(EParam 0)","(EIMul (EParam 0) (EInt 2))","(EApply \"source::B\" (BCons (EIMul (EParam 0) (EInt 2)) (BNil)))","(EIAdd (EIMul (EParam 0) (EInt 2)) (EInt 1))","(EApply \"source::B\" (BCons (EIAdd (EIMul (EParam 0) (EInt 2)) (EInt 1)) (BNil)))","(ERow \"B\" (BCons (EIMul (EParam 0) (EInt 2)) (BCons (EApply \"source::B\" (BCons (EIMul (EParam 0) (EInt 2)) (BNil))) (BNil))))","(ERow \"B\" (BCons (EIAdd (EIMul (EParam 0) (EInt 2)) (EInt 1)) (BCons (EApply \"source::B\" (BCons (EIAdd (EIMul (EParam 0) (EInt 2)) (EInt 1)) (BNil))) (BNil))))","(EIMul (EParam 0) (EInt 2))","(EIMul (EParam 0) (EInt 2))","(EApply \"source::A\" (BCons (EIMul (EParam 0) (EInt 2)) (BNil)))","(ERow \"A\" (BCons (EIMul (EParam 0) (EInt 2)) (BCons (EApply \"source::A\" (BCons (EIMul (EParam 0) (EInt 2)) (BNil))) (BNil))))","(EIAdd (EIMul (EParam 0) (EInt 2)) (EInt 1))","(EIAdd (EIMul (EParam 0) (EInt 2)) (EInt 1))","(EApply \"source::A\" (BCons (EIAdd (EIMul (EParam 0) (EInt 2)) (EInt 1)) (BNil)))","(ERow \"A\" (BCons (EIAdd (EIMul (EParam 0) (EInt 2)) (EInt 1)) (BCons (EApply \"source::A\" (BCons (EIAdd (EIMul (EParam 0) (EInt 2)) (EInt 1)) (BNil))) (BNil))))"],"outputs":[[0,["var",1]],[0,["column","head/0/expr/0",0]],[0,["column","head/0/expr/0",1]],[0,["column","head/1/expr/0",0]],[0,["column","head/1/expr/0",1]],[0,["row","head/0/expr/0"]],[0,["row","head/1/expr/0"]],[1,["var",1]],[1,["column","head/0/expr/0",0]],[1,["column","head/0/expr/0",1]],[1,["row","head/0/expr/0"]],[2,["var",1]],[2,["column","head/0/expr/0",0]],[2,["column","head/0/expr/0",1]],[2,["row","head/0/expr/0"]]],"parameters":[{"input":["var",1],"member":0},{"input":["read","body/0/expr/1"],"member":0}]},"support":[{"instances":2,"max_depth":3,"sample":"binary-1","witnesses":[{"event":13,"inputs":[["i64","0:Value(3)"],["Fact:A","0:write:11"]],"outputs":[["i64","0:Value(3)"],["i64","0:Value(6)"],["Math","0:Value(5)"],["i64","0:Value(7)"],["Math","0:Value(6)"],["Fact:B","0:write:19"],["Fact:B","0:write:21"]],"parents":[5],"sample":"binary-1"},{"event":23,"inputs":[["i64","0:Value(6)"],["Fact:B","0:write:19"]],"outputs":[["i64","0:Value(6)"],["i64","0:Value(6)"],["Math","0:Value(9)"],["Fact:A","0:write:35"]],"parents":[13],"sample":"binary-1"},{"event":27,"inputs":[["i64","0:Value(7)"],["Fact:B","0:write:21"]],"outputs":[["i64","0:Value(7)"],["i64","0:Value(7)"],["Math","0:Value(11)"],["Fact:A","0:write:37"]],"parents":[13],"sample":"binary-1"}]},{"instances":2,"max_depth":3,"sample":"binary-5","witnesses":[{"event":13,"inputs":[["i64","0:Value(10)"],["Fact:A","0:write:11"]],"outputs":[["i64","0:Value(10)"],["i64","0:Value(21)"],["Math","0:Value(6)"],["i64","0:Value(20)"],["Math","0:Value(5)"],["Fact:B","0:write:21"],["Fact:B","0:write:19"]],"parents":[5],"sample":"binary-5"},{"event":23,"inputs":[["i64","0:Value(20)"],["Fact:B","0:write:19"]],"outputs":[["i64","0:Value(20)"],["i64","0:Value(20)"],["Math","0:Value(9)"],["Fact:A","0:write:35"]],"parents":[13],"sample":"binary-5"},{"event":27,"inputs":[["i64","0:Value(21)"],["Fact:B","0:write:21"]],"outputs":[["i64","0:Value(21)"],["i64","0:Value(21)"],["Math","0:Value(11)"],["Fact:A","0:write:37"]],"parents":[13],"sample":"binary-5"}]}]},"id":"fractal_0001","kind":"bake_fractal_rule","schema":"egg-viz/v1","statistics":{"instances":4,"max_observed_depth":3,"samples":["binary-1","binary-5"]}}
+(fractal-rule "fractal_0001"
+  (kind recursive_dag)
+  (entry step_0001)
+  (ports step_0002 step_0003)
+  (array
+    (RampArray
+      (FiniteDomain (EPow (EInt 2) (ECount "depth")))
+      (EMul (ESymbol "start") (EPow (EInt 2) (ECount "depth")))
+      (EInt 1)))
+  (sum
+    (EAdd
+      (EMul
+        (EPow (EInt 2) (ECount "depth"))
+        (EMul (ESymbol "start") (EPow (EInt 2) (ECount "depth"))))
+      (EDiv
+        (EMul (EPow (EInt 2) (ECount "depth")) (ESub (EPow (EInt 2) (ECount "depth")) (EInt 1)))
+        (EInt 2))))
+  (local-contract
+    (BLet (BInt 2)
+    (BLet (BIMul (BParam 1) (BParam 0))
+    (BLet (BInt 0)
+    (BLet (BIAdd (BParam 1) (BParam 0))
+    (BLet (BApply "source::B" (BXCons (BParam 0) (BXNil )))
+    (BLet (BInt 1)
+    (BLet (BIAdd (BParam 4) (BParam 0))
+    (BLet (BApply "source::B" (BXCons (BParam 0) (BXNil )))
+    (BLet (BText "B")
+    (BLet (BRow "B" (BXCons (BParam 5) (BXCons (BParam 4) (BXNil ))))
+    (BLet (BRow "B" (BXCons (BParam 3) (BXCons (BParam 2) (BXNil ))))
+    (BLet (BApply "source::A" (BXCons (BParam 7) (BXNil )))
+    (BLet (BText "A")
+    (BLet (BRow "A" (BXCons (BParam 9) (BXCons (BParam 1) (BXNil ))))
+    (BLet (BApply "source::A" (BXCons (BParam 7) (BXNil )))
+    (BLet (BRow "A" (BXCons (BParam 8) (BXCons (BParam 0) (BXNil ))))
+    (BLet (BApply "read-fact" (BXCons (BParam 17) (BXNil )))
+    (BLet (BColumn 0 (BParam 18))
+    (BLet (BApply "require-eq" (BXCons (BParam 0) (BXCons (BParam 18) (BXNil ))))
+    (BLet (BColumn 1 (BParam 20))
+    (BLet (BApply "source::A" (BXCons (BParam 20) (BXNil )))
+    (BLet (BApply "require-eq" (BXCons (BParam 1) (BXCons (BParam 0) (BXNil ))))
+    (BLet (BApply "source::>" (BXCons (BParam 22) (BXCons (BParam 19) (BXNil ))))
+    (BLet (BApply "require-predicate" (BXCons (BParam 0) (BXNil )))
+    (BLet (BText "+")
+    (BLet (BApply
+        "i64-operation-defined"
+        (BXCons (BParam 0) (BXCons (BParam 23) (BXCons (BParam 22) (BXNil )))))
+    (BLet (BText "*")
+    (BLet (BApply
+        "i64-operation-defined"
+        (BXCons (BParam 0) (BXCons (BParam 27) (BXCons (BParam 26) (BXNil )))))
+    (BLet (BApply
+        "i64-operation-defined"
+        (BXCons (BParam 3) (BXCons (BParam 26) (BXCons (BParam 22) (BXNil )))))
+    (BLet (BApply "read-fact" (BXCons (BParam 19) (BXNil )))
+    (BLet (BColumn 0 (BParam 20))
+    (BLet (BApply "require-eq" (BXCons (BParam 0) (BXCons (BParam 27) (BXNil ))))
+    (BLet (BColumn 1 (BParam 22))
+    (BLet (BApply "require-eq" (BXCons (BParam 0) (BXCons (BParam 28) (BXNil ))))
+    (BLet (BApply "read-fact" (BXCons (BParam 23) (BXNil )))
+    (BLet (BColumn 0 (BParam 24))
+    (BLet (BApply "require-eq" (BXCons (BParam 0) (BXCons (BParam 29) (BXNil ))))
+    (BLet (BColumn 1 (BParam 26))
+    (BLet (BApply "require-eq" (BXCons (BParam 0) (BXCons (BParam 30) (BXNil ))))
+    (BDag
+      (BXCons
+        (BParam 39)
+        (BXCons
+          (BParam 35)
+          (BXCons
+            (BParam 34)
+            (BXCons
+              (BParam 32)
+              (BXCons
+                (BParam 31)
+                (BXCons
+                  (BParam 29)
+                  (BXCons
+                    (BParam 28)
+                    (BXCons
+                      (BParam 35)
+                      (BXCons
+                        (BParam 35)
+                        (BXCons
+                          (BParam 27)
+                          (BXCons
+                            (BParam 25)
+                            (BXCons
+                              (BParam 32)
+                              (BXCons
+                                (BParam 32)
+                                (BXCons (BParam 24) (BXCons (BParam 23) (BXNil ))))))))))))))))
+      (BXCons
+        (BParam 22)
+        (BXCons
+          (BParam 20)
+          (BXCons
+            (BParam 17)
+            (BXCons
+              (BParam 15)
+              (BXCons
+                (BParam 13)
+                (BXCons
+                  (BParam 11)
+                  (BXCons
+                    (BParam 10)
+                    (BXCons
+                      (BParam 11)
+                      (BXCons
+                        (BParam 9)
+                        (BXCons
+                          (BParam 7)
+                          (BXCons
+                            (BParam 5)
+                            (BXCons (BParam 4) (BXCons (BParam 2) (BXCons (BParam 0) (BXNil )))))))))))))))
+      (BXNil )))))))))))))))))))))))))))))))))))))))))))

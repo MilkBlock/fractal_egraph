@@ -5,15 +5,15 @@ the discovery pipeline on a new sample. Each command runs in one Rust process.
 
 ```sh
 cargo run --release -- bake experiments/bake/manifest.json out/my-bake
-cargo run --release -- bake-use out/my-bake/library.json \
+cargo run --release -- bake-use out/my-bake/library.egg \
   experiments/bake/heldout-binary.egg out/my-use --save-history
 
 # Counter successor values, start=31, limit=200:
-cargo run --release -- bake-eval out/my-bake/library.json \
+cargo run --release -- bake-eval out/my-bake/library.egg \
   fractal_0000 31 200 out/counter-query.json
 
 # Complete binary frontier at depth 20, starting at 11:
-cargo run --release -- bake-eval out/my-bake/library.json \
+cargo run --release -- bake-eval out/my-bake/library.egg \
   fractal_0001 11 --depth 20 out/frontier-query.json
 ```
 
@@ -48,7 +48,7 @@ rather than pretending every family was confirmed by every sample.
 
 Outputs:
 
-- `library.json`: fixed library, versioned and checked when loaded.
+- `library.egg`: readable fixed library; declarations carry rules/bindings/arrays, and `; @egg-viz-json` comments carry statistics and verification metadata.
 - `bake.json`: family list, sample support and available scalar-array summaries.
 - `baked.egg`: native DSL data recipes for inspection/reduction. These are local
   contracts and arrays, **not** unconditional tier0 replacement rules. Symbolic
@@ -145,3 +145,50 @@ query used zero tier0 applications and zero element/prefix expansion. The
 count, not a measured run of that large graph. Small depth results were checked
 against actual tier0 enumeration. These results do not establish a general
 program speedup or a FlashAttention implementation.
+
+## Readable library format
+
+Bake now writes `library.egg` as the authoritative library. It is an egglog-like
+**library declaration format**, parsed with egglog's existing parser, not a
+standalone tier0 program. Different samples can have different source schemas;
+the source rules are quoted by their surrounding step declaration, not executed.
+`baked.egg` remains the separately executable native tier2 recipe export.
+
+The visible body contains:
+
+```lisp
+(bake-library 1 "integer-safe")
+
+(bake-step step_0000
+  (binding (var 1) (parent 0 (column "head/0/expr/0" 0)) "i64"))
+(rule ((= node (A n limit)) (< n limit))
+      ((A (+ n 1) limit)) :name "advance")
+
+(fractal-rule "fractal_0000"
+  (kind linear_extension)
+  (entry step_0000)
+  (ports)
+  (array ...)
+  (sum ...)
+  (local-contract ...))
+```
+
+This excerpt omits additional bindings and expressions. The real file contains
+complete definitions. Source snapshots, sample-qualified witnesses, statistics,
+interface metadata and validation fingerprints use `; @egg-viz-json {...}`
+comments, following the earlier annotated rule export convention. Metadata is
+attached by stable step/family IDs, not by whichever rule happens to be nearest.
+Ordinary comments and unrelated visualization annotations do not execute code.
+
+`bake-use` and `bake-eval` consume this file directly. Visible source rules and
+bindings are checked against saved signatures, and array recipes against their
+checked laws. Inconsistent edits are rejected; rebake when changing definitions.
+
+Existing JSON libraries remain readable. Convert without rerunning any samples:
+
+```sh
+cargo run --release -- bake-format old/library.json new/library.egg
+```
+
+The converter requires a new output path. It preserves the validated library
+model, including support evidence and contracts; it does not rediscover rules.

@@ -84,8 +84,8 @@ cargo check --manifest-path research/Cargo.toml --all-targets
 
 ```sh
 cargo run --release -- bake experiments/bake/manifest.json out/my-bake
-cargo run --release -- bake-use out/my-bake/library.json experiments/bake/heldout-binary.egg out/my-use
-cargo run --release -- bake-eval out/my-bake/library.json fractal_0001 11 --depth 20 out/frontier.json
+cargo run --release -- bake-use out/my-bake/library.egg experiments/bake/heldout-binary.egg out/my-use
+cargo run --release -- bake-eval out/my-bake/library.egg fractal_0001 11 --depth 20 out/frontier.json
 ```
 
 Bake 离线合并多个小样例；固定库模式不发现新模板、不重建 tier1/tier2，但仍执行原 tier0。
