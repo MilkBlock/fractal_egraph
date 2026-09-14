@@ -6,6 +6,7 @@ const HELP: &str = "egg_layout — native rule-combination analysis
 
   cargo run -- analyze --reuse-tier0
   cargo run -- analyze --recapture-tier0 --source PATH.egg --rounds 11 --output out/math11
+  cargo run -- arrays INPUT.egg OUTPUT.json
   cargo run -- embed-dag SMALL.json LARGE.json OUT.json [BUDGET]
   cargo run -- view                   Regenerate the fractal viewer from saved results
 
@@ -34,6 +35,7 @@ fn main() -> Result {
             print!("{HELP}");
             Ok(())
         }
+        Some("arrays") if args.len() == 3 => pipeline::arrays(&args[1], &args[2]),
         Some("embed-dag") if args.len() == 4 || args.len() == 5 => {
             let small: egg_layout::dag_embedding::Dag =
                 serde_json::from_slice(&std::fs::read(&args[1])?)?;

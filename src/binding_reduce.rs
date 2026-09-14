@@ -67,12 +67,18 @@ impl Graph {
             Expr::Lit(..) => return Err("unsupported literal".into()),
             Expr::Call(_, op, args) => {
                 if [
-                    "EAdd", "ESub", "EMul", "EDiv", "EPow", "EIAdd", "EISub", "EIMul",
+                    "EAdd", "ESub", "EMul", "EDiv", "EPow", "EIAdd", "EISub", "EIMul", "EMax",
                 ]
                 .contains(&op.as_str())
                     && args.len() != 2
                 {
                     return Err(format!("{op} requires two arguments"));
+                }
+                if op == "EArrayGet" && args.len() != 2 {
+                    return Err("EArrayGet requires array and index arguments".into());
+                }
+                if op == "EExp" && args.len() != 1 {
+                    return Err("EExp requires one argument".into());
                 }
                 Node::Call(
                     op.clone(),
@@ -203,7 +209,7 @@ pub fn compile_contract(
             ),
             Node::Call(op, xs) => {
                 if [
-                    "EAdd", "ESub", "EMul", "EDiv", "EPow", "EIAdd", "EISub", "EIMul",
+                    "EAdd", "ESub", "EMul", "EDiv", "EPow", "EIAdd", "EISub", "EIMul", "EMax",
                 ]
                 .contains(&op.as_str())
                 {
@@ -213,6 +219,14 @@ pub fn compile_contract(
                         reference(xs[0], depth),
                         reference(xs[1], depth)
                     )
+                } else if op == "EArrayGet" {
+                    format!(
+                        "(BArrayGetValue {} {})",
+                        reference(xs[0], depth),
+                        reference(xs[1], depth)
+                    )
+                } else if op == "EExp" {
+                    format!("(BExp {})", reference(xs[0], depth))
                 } else if op == "@row" {
                     let Some((&first, rest)) = xs.split_first() else {
                         return Err("row requires a table identity".into());

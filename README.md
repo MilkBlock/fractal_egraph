@@ -80,6 +80,20 @@ cargo run --manifest-path research/Cargo.toml --bin rule_combine
 cargo check --manifest-path research/Cargo.toml --all-targets
 ```
 
+## Tier2 first-class 数组
+
+逻辑数组 DSL 在 `rules/arrays.egg`，支持参数化长度、Tabulate、Map/Zip、Slice、
+有序 Fold、Sum/Max、分块和符号索引。默认不展开元素；有限具体求值需要显式预算。
+数组可作为 binding 参数传递。现有 FractalComb 通过显式数组归约契约连接到 EndpointView。
+
+```sh
+cargo run --release -- arrays experiments/arrays/basic.egg out/arrays.json
+cargo test --test arrays
+```
+
+这是原生 tier2 DSL 的执行和提取，还不是自动 Bake、GPU 内存调度或 FlashAttention 搜索。
+设计与 eggcc DSL 的对应关系、测试边界见 [数组说明](experiments/arrays/README.md)。
+
 ## 验证和边界
 
 ```sh

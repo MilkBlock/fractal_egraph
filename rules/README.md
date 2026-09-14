@@ -4,6 +4,7 @@
 - `higher.egg`：已有组合链折叠为 `FractalComb(Depth(k), R, ctx, binding)`。
 - `fractal_views.egg`：规范化组合视图、实例级段内输出和 effect 地址。
 - `reduce.egg`：显式 `Reduce`、解析归约与成本。
+- `arrays.egg`：纯逻辑数组、索引域、Map/Zip/Fold、分块和按需求值；由 `tier2.egg` 包含。
 - `binding_reduce.egg`：一层多出口 binding DAG 的代入、共享与归约；由 `reduce.egg` 包含。详见 `experiments/tier2/BINDING_REDUCE.md`。
 
 这里是唯一实现位置；`experiments/tier2/*_ir.egg` 和 `ir.egg` 只保留兼容 include。

@@ -1,0 +1,24 @@
+{
+  "block_views": 1,
+  "element_queries": 0,
+  "examples": {
+    "block-max": {
+      "cost": 26,
+      "expression": "(ReduceArray (MaxReduction) (InputArray \"x\" (FiniteDomain (ECount \"N\"))))"
+    },
+    "fused-exp-sum": {
+      "cost": 16,
+      "expression": "(FoldMap (SumReduction) (ScalarLambda (BExp (BParam 0)) (BNil)) (InputArray \"x\" (FiniteDomain (ECount \"N\"))))"
+    },
+    "sum-1-to-N": {
+      "cost": 15,
+      "expression": "(EAdd (ECount \"N\") (EDiv (EMul (ECount \"N\") (ESub (ECount \"N\") (EInt 1))) (EInt 2)))"
+    },
+    "sum-exp-zero": {
+      "cost": 2,
+      "expression": "(ECount \"N\")"
+    }
+  },
+  "fold_prefixes": 0,
+  "scope": "Native egglog tier2 logical scalar arrays. Symbolic rewrites and extraction; no tier0 trace capture, automatic Bake, GPU memory scheduling or FlashAttention search."
+}

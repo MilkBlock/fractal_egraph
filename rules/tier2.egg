@@ -49,3 +49,5 @@
       ((InjectionEdge a b slot)) :ruleset tier2 :name "boundary-edge")
 
 (include "rules/reduce.egg")
+
+(include "rules/arrays.egg")

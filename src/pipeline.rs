@@ -273,3 +273,44 @@ pub fn schema(input: &str, output: &str) -> Result {
     std::fs::write(output, serde_json::to_string_pretty(&rules)? + "\n")?;
     Ok(())
 }
+
+/// Execute the native logical-array DSL and extract its named results. This is
+/// a tier2 experiment, not tier0 capture or a GPU lowering path.
+pub fn arrays(input: &str, output: &str) -> Result {
+    let mut eg = egglog::EGraph::default();
+    eg.parse_and_run_program(Some(input.to_owned()), &std::fs::read_to_string(input)?)?;
+    let sort = eg
+        .get_sort_by_name("EndpointExpr")
+        .ok_or("input must load rules/tier2.egg")?;
+    let extractor = egglog::extract::Extractor::compute_costs_from_rootsorts(
+        Some(vec![sort.clone()]),
+        &eg,
+        egglog::extract::TreeAdditiveCostModel::default(),
+    );
+    let mut dag = egglog::TermDag::default();
+    let mut examples = BTreeMap::new();
+    eg.function_for_each("ArrayExample", |row| {
+        let name = eg
+            .value_to_base::<egglog::sort::S>(row.vals[0])
+            .as_str()
+            .to_owned();
+        let value = extractor
+            .extract_best(&eg, &mut dag, row.vals[1])
+            .map(|(cost, term)| json!({"expression":dag.to_string(term),"cost":cost}));
+        examples.insert(name, value);
+    })?;
+    let report = json!({"scope":"Native egglog tier2 logical scalar arrays. Symbolic rewrites and extraction; no tier0 trace capture, automatic Bake, GPU memory scheduling or FlashAttention search.","examples":examples,"element_queries":eg.get_size("ArrayAt"),"fold_prefixes":eg.get_size("FoldPrefix")+eg.get_size("ReducePrefix"),"block_views":eg.get_size("ReduceBlocks")});
+    if let Some(parent) = std::path::Path::new(output)
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+    {
+        std::fs::create_dir_all(parent)?;
+    }
+    let file = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(output)?;
+    serde_json::to_writer_pretty(file, &report)?;
+    println!("{}", serde_json::to_string_pretty(&report)?);
+    Ok(())
+}

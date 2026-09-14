@@ -50,3 +50,14 @@
        (= f (FractalComb extent r ctx binding)))
  ((LayerEndpointView f (ReduceDag dag env)))
  :ruleset higher :name "fractal-dag-reduce")
+
+; Explicit endpoint contracts supplied by Bake/user proofs. No array is inferred
+; merely from an observed apply count, and no original effects are removed.
+(relation ArrayReductionSummary (Comb Reduction Array))
+(relation ArrayFoldSummary (Comb FoldFunction EndpointExpr Array))
+(rule ((ArrayReductionSummary f r a) (= f (FractalComb extent op ctx binding))
+       (ArrayDomain a (FiniteDomain n)))
+ ((EndpointView f (ReduceArray r a))) :ruleset higher)
+(rule ((ArrayFoldSummary f step initial a) (= f (FractalComb extent op ctx binding))
+       (ArrayDomain a (FiniteDomain n)))
+ ((EndpointView f (FoldArray step initial a))) :ruleset higher)
