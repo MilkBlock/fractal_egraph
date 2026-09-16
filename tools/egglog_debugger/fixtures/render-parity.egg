@@ -1,0 +1,8 @@
+; 中文注释：模板、显示名称和共享子图应与插件一致。
+; @egg-viz-json {"schema":"egg-viz/v1","kind":"dsl_type","id":"Math","variants":{"Add":{"fields":["left","right"],"precedence":50,"typst":"{left} + {right}"},"Mul":{"fields":["left","right"],"precedence":60,"typst":"{left} * {right}"},"Const":{"fields":["value"],"precedence":100,"typst":"{value}"}}}
+(datatype Math (Const i64) (Add Math Math) (Mul Math Math))
+; @egg-viz-json {"schema":"egg-viz/v1","kind":"original_rule","id":"commute","labels":{"bindings":{"x":"left_value","y":"right_value"},"positions":{}}}
+(rule ((= root (Add x (Mul y y))))
+      ((union root (Add (Mul y y) x)))
+      :name "commute")
+(rewrite (Add x (Const 0)) x :name "zero")

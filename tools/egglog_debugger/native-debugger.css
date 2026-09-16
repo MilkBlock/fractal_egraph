@@ -8,3 +8,8 @@
 #native-preview {width:auto; max-width:none; max-height:none; background:white;}
 #native-source, #native-details {white-space:pre-wrap; max-height:150px; overflow:auto;}
 .native-source-selection {background:#dae8ff;}
+
+#native-preview {--vscode-editor-foreground:#333;--vscode-editor-background:#fff;}
+#native-preview > svg {display:block;max-width:none;}
+#native-renderer {font-size:11px;color:#596675;overflow-wrap:anywhere;}
+#native-evidence {white-space:pre-wrap;overflow-wrap:anywhere;color:#6b523b;}

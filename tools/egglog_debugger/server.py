@@ -12,10 +12,16 @@ import time
 import subprocess
 import tempfile
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from plugin_renderer import PluginRenderer, default_plugin_root
 
 ROOT = Path(__file__).resolve().parents[2]
 
 class Handler(SimpleHTTPRequestHandler):
+    def do_GET(self):
+        if self.path.split('?')[0] == '/plugin-overlay.js':
+            return self.reply(200, self.server.renderer.overlay, 'text/javascript')
+        return super().do_GET()
+
     def translate_path(self, path):
         if path.split('?')[0] in ('/native-debugger.js', '/native-debugger.css'):
             return str(ROOT / 'tools/egglog_debugger' / path.split('?')[0][1:])
@@ -47,6 +53,8 @@ class Handler(SimpleHTTPRequestHandler):
             if not 0 < length <= 2_000_000:
                 return self.reply(413, {'error': 'Source must be at most 2 MB'})
             data = json.loads(self.rfile.read(length))
+            if self.path == '/api/preview':
+                return self.reply(200, self.server.renderer.render(data))
             with tempfile.TemporaryDirectory(prefix='egglog-debug-') as folder:
                 folder = Path(folder)
                 if self.path == '/api/render':
@@ -122,6 +130,8 @@ def main():
     parser.add_argument('--demo', type=Path, default=ROOT.parent / 'egglog-demo')
     parser.add_argument('--port', type=int, default=8080)
     parser.add_argument('--binary', type=Path)
+    parser.add_argument('--plugin', type=Path, default=default_plugin_root(ROOT))
+    parser.add_argument('--extractor', type=Path, help='Use the same extractor override as VS Code')
     parser.add_argument('--run-timeout', type=float, default=120, help='Native run limit in seconds')
     args = parser.parse_args()
     if args.binary is None:
@@ -132,6 +142,7 @@ def main():
         if not shutil.which(tool):
             parser.error(f'{tool} must be installed to render previews')
     server = ThreadingHTTPServer(('127.0.0.1', args.port), functools.partial(Handler, directory=str(args.demo.resolve() / 'dist')))
+    server.renderer = PluginRenderer(args.plugin, args.extractor)
     server.demo = args.demo.resolve()
     server.binary = args.binary.resolve()
     server.run_timeout = args.run_timeout

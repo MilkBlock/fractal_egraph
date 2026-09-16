@@ -1,6 +1,6 @@
 # egglog-demo 原生调试桥
 
-在 `egg_layout` 根目录启动（需要 Python 3.10+、Rust、`typst`、Graphviz `dot`）：
+在 `egg_layout` 根目录启动（需要 Python 3.10+、Node.js、Rust、`typst`、Graphviz `dot`，以及已安装的 Eggplant Pattern Preview 插件）：
 
 ```sh
 python3 tools/egglog_debugger/server.py --port 8080
@@ -13,6 +13,9 @@ python3 tools/egglog_debugger/server.py --port 8080
 
 - 点击编辑器中 `rule` / `rewrite` 的任一行，预览整个规则的 Typst 公式或 DOT。
   使用原生 AST 源位置，支持多行、Unicode 和未加 `@pattern` 注释的规则。
+  预览直接复用 VS Code 插件的 `.egg` 转译、注解处理、extractor、MathView、
+  Typst、DOT 和 vendored Graphviz。DOT 节点内的 Typst 替换也使用插件的 webview 函数。
+  `@egg-viz-json` 中的数学模板、precedence、binding/position 显示名称由插件处理。
 - 点击 **运行并识别** 执行本目录 patched egglog 的实际运行时。
   可先粘贴 `experiments/bake/increment-3.egg`：6 个有效应用、5 个组合、4 条 Fractal 证据。
 - 日志窗口按有效应用、Rule Compose、Fractal 过滤；点击每一行读取该事件的公式快照、
@@ -38,11 +41,30 @@ tier-1、tier-2 保留同一 EGraph 和导入游标，只导入新应用和新 e
 
 继承主分析器的输入范围：执行分析要求单个显式、自包含 `Math` datatype，暂不接受
 `include`。源码预览没有该 datatype 限制，但不支持 subsuming rewrite。
-组合能够合法降级时显示单条 combined rule；否则显示包含中间效果的完整分阶段 DAG，
-并显示不能扁平化的原因。不会把它误报成一条可执行的等价 rewrite。
+组合能够合法降级时显示单条 combined rule；否则通过步骤选择器逐步显示原规则的插件公式，
+在证据面板保留完整分阶段依赖 DAG、绑定和中间效果，显示不能扁平化的原因。不会把它误报成一条可执行的等价 rewrite。
 
-回放文件是已解析的调试快照，可重现相应公式，不是重新执行 tier-0 的原始 trace。
-CLI 也可独立使用：
+Fractal 的 `Depth / context / event` 证据单独列出；它不是插件支持的一种源规则，
+不伪造新的 MathView。步骤选择器展示这条实际路径上各规则的插件公式。
+
+日志格式 v2 保存已查看的插件渲染结果（公式源码、SVG、DOT、节点公式、配置和渲染器指纹），
+导入后相同配置直接使用这些快照，不会随编辑器内容或插件版本变化而重画。
+尚未查看的配置按日志保存的源码惰性渲染；旧 v1 日志也可从源码重新生成插件视图。
+回放不是重新执行 tier-0 的原始 trace。
+
+默认选择本机 `~/.vscode/extensions/` 中已安装的 Eggplant 插件；没有安装时才使用
+相邻源码目录的已编译扩展。支持显式指定，与 VS Code 的 extractor override 对齐：
+
+```sh
+python3 tools/egglog_debugger/server.py --plugin /path/to/eggplant-pattern-vscode \
+  --extractor /path/to/eggplant-pattern-extractor
+```
+
+DOT 支持 `pattern / action / combined`、`compact / full / recursive` 和
+`tree-safe / dag-expand`，默认配置与插件的 `.egg` 规则预览一致。
+没有文件路径的内存编辑器不添加插件的 Git/file graph 元数据。
+插件渲染失败时会显示错误，不回退到之前的简化箭头公式或另一套 DOT。
+CLI 保留原生诊断表达式，网页渲染不使用那些表达式。CLI 可独立使用：
 
 ```sh
 cargo run -- debug-patterns tests/fixtures/cli_math.egg
@@ -54,7 +76,13 @@ cargo test --test native_debug --test native_history --test native_single_proces
 
 ```sh
 python3 tools/egglog_debugger/test_browser.py --url http://127.0.0.1:8080
+node tools/egglog_debugger/test_plugin_render.cjs /path/to/installed/eggplant-pattern-vscode
 ```
 
 本地 HTTP 服务只监听 loopback。代码、日志和公式通过同源 API 处理；不依赖外部公式渲染服务。
 原 demo 页面使用的第三方前端 CDN 仍需联网。
+
+一致性回归直接调用插件作为对照：同一带中文注释、数学模板和显示名称的 `.egg`，
+在四组 view/label/recursive 配置下比较 PatternIr、公式源码、Typst 文档及 SVG、
+DOT 及 Graphviz SVG、节点 Typst 输出，要求逐项完全相等。
+插件的提取器另有 `rewrite_alias` 回归，覆盖转译器生成的 `let result = pat.x` 别名。

@@ -26,37 +26,48 @@ def main():
         page.evaluate(set_source, source)
         page.evaluate('document.querySelector(".CodeMirror").CodeMirror.setCursor({line:3,ch:2})')
         def rendered():
-            page.wait_for_function('!document.querySelector("#native-preview").hidden && document.querySelector("#native-preview").naturalWidth > 0')
+            page.wait_for_function('!document.querySelector("#native-preview").hidden && document.querySelector("#native-preview").dataset.ready === "true"')
             assert page.locator('#native-render-error').inner_text() == ''
         page.wait_for_function('window.egglogNative.selected?.rule === "advance"')
         rendered()
-        assert '==>' in page.locator('#native-source').text_content()
+        assert 'frac(' in page.locator('#native-source').text_content()
+        assert 'eggplant-pattern-vscode' in page.locator('#native-renderer').inner_text()
         page.select_option('#native-format', 'dot')
         rendered()
-        assert 'digraph pattern' in page.locator('#native-source').text_content()
+        assert 'digraph EggplantPattern' in page.locator('#native-source').text_content()
+        assert page.locator('#native-preview svg').count() == 1
         page.select_option('#native-format', 'typst')
         page.click('#native-run')
         page.wait_for_function('document.querySelector("#native-status").textContent.startsWith("完成")', timeout=60000)
         rows = page.evaluate('window.egglogNative.rows')
         assert [sum(r['kind'] == kind for r in rows) for kind in ['application', 'compose', 'fractal']] == [6, 5, 4]
         assert len({r['id'] for r in rows}) == len(rows)
-        # Exercise both renderers on every immutable snapshot, not just the final row.
-        for row in rows:
-            for kind in ['typst', 'dot']:
-                response = page.request.post(args.url + '/api/render', data={'kind': kind, 'source': row[kind]})
-                assert response.ok, (row['id'], kind, response.text())
-                assert '<svg' in response.text()
+        # Every kind of event uses the same plugin pipeline. No legacy formula
+        # is compiled by the browser, including staged compositions and fractals.
+        for kind in ['application', 'compose', 'fractal']:
+            page.select_option('#native-filter', kind)
+            page.locator('#native-trace button').last.click()
+            rendered()
+            assert 'frac(' in page.locator('#native-source').text_content()
+            page.select_option('#native-format', 'dot')
+            rendered()
+            assert 'digraph EggplantPattern' in page.locator('#native-source').text_content()
+            assert page.locator('#native-preview image[data-typst-rendering]').count() > 0
+            page.select_option('#native-format', 'typst')
+            rendered()
         page.select_option('#native-filter', 'fractal')
         page.locator('#native-trace button').last.click()
         rendered()
         original = page.locator('#native-source').text_content()
-        assert 'FractalComb' in original
+        assert 'FractalComb' in page.locator('#native-evidence').inner_text()
+        assert page.locator('#native-step option').count() == 6
         page.screenshot(path=str(Path(folder) / 'fractal.png'), full_page=True)
         with page.expect_download() as download:
             page.click('#native-export')
         saved = Path(folder) / 'history.json'
         download.value.save_as(saved)
-        assert json.loads(saved.read_text())['rows'] == rows
+        assert json.loads(saved.read_text())['version'] == 2
+        assert json.loads(saved.read_text())['rows'] == page.evaluate('window.egglogNative.rows')
         # A source edit must not corrupt a historical row or jump to an unrelated line.
         page.evaluate(set_source, '(datatype Math (Const i64))\n')
         page.wait_for_function('document.querySelector("#native-title").textContent.includes("没有 rule")')

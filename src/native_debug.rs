@@ -136,7 +136,8 @@ fn composition(c: &Captured, index: usize) -> Json {
         for binding in &bindings {
             typst += &format!("$ op({}) $\n\n", quote(binding));
         }
-        details.push(json!({"event":r.id,"rule":rule.name,"binding":bindings,"ports":r.ports,"produced":r.produced.iter().map(|v|c.pool.values[*v].label()).collect::<Vec<_>>(),"unions":r.unions}));
+        let (source_line, end_line) = location(rule);
+        details.push(json!({"event":r.id,"rule":rule.name,"source_line":source_line,"end_line":end_line,"binding":bindings,"ports":r.ports,"produced":r.produced.iter().map(|v|c.pool.values[*v].label()).collect::<Vec<_>>(),"unions":r.unions}));
         dot.push(format!(
             "e{} [label={}];",
             r.id,
