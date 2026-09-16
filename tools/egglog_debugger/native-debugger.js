@@ -24,7 +24,7 @@ export function installNativeDebugger(editor) {
         <label id="native-edit-label" for="native-name-input">显示名称</label>
         <input id="native-name-input" maxlength="100" required autocomplete="off">
         <button type="submit" id="native-name-save">保存到 .egg 注释</button><button type="button" id="native-name-cancel">取消</button>
-        <div id="native-edit-scope"></div><div id="native-edit-error" role="alert"></div>
+        <div id="native-edit-scope"></div><div id="native-field-editor"></div><div id="native-edit-error" role="alert"></div>
       </form>
       <pre id="native-render-error"></pre>
       <details><summary>Typst / DOT 源码</summary><pre id="native-source"></pre></details>
@@ -73,6 +73,11 @@ export function installNativeDebugger(editor) {
                 el('edit-label').textContent=`显示名称 · ${region.text}`;
                 el('name-input').value=region.text;el('edit-error').textContent='';
                 el('edit-scope').textContent=target.kind==='constructor'?`更新 ${target.name} 的 dsl_type 显示模板，作用于本文件中的该构造器。`:`更新本条规则中 ${target.name} 的 labels.bindings 显示名称。`;
+                el('field-editor').replaceChildren();
+                if(target.kind==='constructor' && target.field_labels?.length){
+                    const title=document.createElement('div');title.textContent='字段名称（用于模板占位符）';el('field-editor').append(title);
+                    target.field_labels.forEach((field,index)=>{const label=document.createElement('label');label.className='native-field-row';label.textContent=`字段 ${index+1}`;const input=document.createElement('input');input.className='native-field-name';input.value=field;input.maxLength=80;input.required=true;input.dataset.index=index;label.append(input);el('field-editor').append(label);});
+                }
                 el('name-editor').hidden=false;el('name-input').focus();el('name-input').select();
             };
             rect.addEventListener('click',open);rect.addEventListener('keydown',event=>{if(event.key==='Enter' || event.key===' '){event.preventDefault();open();}});
@@ -81,13 +86,15 @@ export function installNativeDebugger(editor) {
         if(rendered.edit_error)el('edit-hint').textContent='当前公式的文字定位失败；原始插件预览仍可查看。';
     }
     el('name-cancel').onclick=closeNameEditor;
+    el('name-editor').addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();closeNameEditor();}});
     el('name-input').onkeydown=event=>{if(event.key==='Escape'){event.preventDefault();closeNameEditor();}};
     el('name-editor').onsubmit=async event=>{
         event.preventDefault();const edit=currentEdit;if(!edit)return;
         if(editor.getValue()!==edit.source){el('edit-error').textContent='源码已变化，请取消并重新点击公式；未覆盖你的修改。';return;}
         el('name-save').disabled=true;el('edit-error').textContent='';
         try{
-            const result=await(await post('edit-display',{...edit,value:el('name-input').value})).json();
+            const fields=[...el('field-editor').querySelectorAll('.native-field-name')].map(input=>input.value);
+            const result=await(await post('edit-display',{...edit,value:el('name-input').value,fields:fields.length?fields:undefined})).json();
             if(currentEdit!==edit)return;
             if(editor.getValue()!==edit.source)throw Error('源码已变化，未写入旧版本的修改。');
             editor.operation(()=>{

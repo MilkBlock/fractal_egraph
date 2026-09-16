@@ -59,7 +59,7 @@ class Handler(SimpleHTTPRequestHandler):
                 data['edit_targets'] = self.server.annotations.catalog(data['source'], data.get('line', 1))
                 return self.reply(200, self.server.renderer.render(data))
             if self.path == '/api/edit-display':
-                result = self.server.annotations.update_display(data['source'], data['line'], data['target_id'], data['value'])
+                result = self.server.annotations.update_display(data['source'], data['line'], data['target_id'], data['value'], data.get('fields'))
                 return self.reply(200, result)
             with tempfile.TemporaryDirectory(prefix='egglog-debug-') as folder:
                 folder = Path(folder)

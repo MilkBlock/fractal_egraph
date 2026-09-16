@@ -31,6 +31,29 @@ def main():
             page.fill('#native-name-input',value);page.click('#native-name-save')
             ready(value)
         ready('Add')
+        # Constructor field aliases are editable and survive a full re-render.
+        page.locator('.native-edit-hit[data-target="constructor:Add"]').first.click()
+        field_inputs=page.locator('.native-field-name')
+        assert field_inputs.count()==2
+        assert field_inputs.nth(0).input_value()=='left'
+        assert field_inputs.nth(1).input_value()=='right'
+        field_inputs.nth(0).fill('lhs')
+        field_inputs.nth(1).fill('rhs')
+        page.click('#native-name-save')
+        page.wait_for_function('text => document.querySelector(".CodeMirror").CodeMirror.getValue().includes(text)', arg='"fields":["lhs","rhs"]')
+        ready('Add')
+        assert '{lhs}' in read_source() and '{rhs}' in read_source()
+        assert 'arg_Math_00' not in read_source()
+        page.locator('.native-edit-hit[data-target="constructor:Add"]').first.click()
+        assert page.locator('.native-field-name').nth(0).input_value()=='lhs'
+        assert page.locator('.native-field-name').nth(1).input_value()=='rhs'
+        page.click('#native-name-cancel')
+        # Return to the untouched source for the existing name/edit history checks.
+        page.evaluate('document.querySelector(".CodeMirror").CodeMirror.undo()')
+        assert read_source()==SOURCE
+        page.evaluate('document.querySelector(".CodeMirror").CodeMirror.setCursor({line:1,ch:0})')
+        page.wait_for_function('window.egglogNative.selected?.preview_source === document.querySelector(".CodeMirror").CodeMirror.getValue()')
+        ready('Add')
         edit('constructor:Add','Sum')
         edited=read_source()
         assert 'upright(\\"Sum\\")' in edited

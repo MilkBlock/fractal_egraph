@@ -107,3 +107,9 @@ python3 -m unittest discover -s . -p 'test_preview_annotations.py'
 bundle 里的 `@egg-viz-json` 注释不记录 matches、effects 或性能统计；它们是
 纯显示元数据。`examples.py` 每次从上游源码重新生成注释，因此不会把当前编辑器
 修改写回上游 clone。
+
+点击构造器名称时，编辑框还会列出模板字段，可将其改成 `left/right`、`lhs/rhs`
+等标识符。保存会同步更新 `fields` 及对应占位符；只改字段时保留原模板形式和
+优先级，拒绝重名、非法标识符或改变字段数量。映射采用插件已有的 `typst_fields`
+协议（插件提交 `55ee943`），按字段声明顺序绑定参数，独立于占位符的出现顺序。
+本机已同步安装该协议的注释模块及兼容当前 extractor 的实现。
