@@ -13,12 +13,14 @@ use std::{
     time::Instant,
 };
 
-#[path = "native_binding.rs"]
-mod binding;
 #[path = "native_bake.rs"]
 pub mod bake;
+#[path = "native_binding.rs"]
+mod binding;
 #[path = "native_catalog.rs"]
 mod catalog;
+#[path = "native_debug.rs"]
+pub mod debug;
 #[path = "native_fractal.rs"]
 mod fractal;
 #[path = "native_growth.rs"]
@@ -198,7 +200,7 @@ fn capture_with_sink(
     source: &Path,
     rounds: Option<usize>,
     mut online: Option<(&mut EGraph, &Path, &rayon::ThreadPool)>,
-    mut sink: Option<&mut dyn FnMut(&Captured) -> Result>,
+    mut sink: Option<&mut dyn FnMut(&mut Captured) -> Result>,
 ) -> Result<Captured> {
     let started = Instant::now();
     let mut eg = EGraph::default();
@@ -294,7 +296,9 @@ fn capture_with_sink(
                     let collect_start = Instant::now();
                     count += 1;
                     collect(&eg, &trace, &mut c, &mut producers)?;
-                    if let Some(sink) = sink.as_mut() { sink(&c)?; }
+                    if let Some(sink) = sink.as_mut() {
+                        sink(&mut c)?;
+                    }
                     let collect_seconds = collect_start.elapsed().as_secs_f64();
                     let tier1_start = Instant::now();
                     if let Some((tier1, root, worker)) = online.as_mut() {
@@ -324,7 +328,9 @@ fn capture_with_sink(
         eg.run_program_with_trace(vec![command], &trace)?;
     }
     collect(&eg, &trace, &mut c, &mut producers)?;
-    if let Some(sink) = sink.as_mut() { sink(&c)?; }
+    if let Some(sink) = sink.as_mut() {
+        sink(&mut c)?;
+    }
     if let Some((tier1, root, worker)) = online.as_mut() {
         worker
             .install(|| build_tier1(&mut c, tier1, root, &mut inserted).map_err(|e| e.to_string()))
@@ -951,17 +957,40 @@ fn role(c: &Captured, parent: usize, slot: usize) -> Option<String> {
     Some(format!("{}:{s}", r.rule.name))
 }
 fn build_tier2(c: &mut Captured, eg: &mut EGraph, root: &Path) -> Result<(Extensions, Vec<Json>)> {
-    load(eg, &root.join("rules/tier2.egg"), root)?;
-    load(eg, &root.join("rules/higher.egg"), root)?;
-    eg.parse_and_run_program(
-        None,
-        "(function ImportedExtension (i64) Extension :no-merge)",
-    )?;
-    let mut keys = vec![];
-    let mut seen = BTreeMap::new();
-    let mut known = vec![];
+    update_tier2(c, eg, root, &mut Tier2State::default())
+}
+#[derive(Default)]
+struct Tier2State {
+    keys: Vec<ExtensionKey>,
+    seen: BTreeMap<ExtensionKey, usize>,
+    known: Vec<bool>,
+    inserted: usize,
+    loaded: bool,
+}
+fn update_tier2(
+    c: &mut Captured,
+    eg: &mut EGraph,
+    root: &Path,
+    state: &mut Tier2State,
+) -> Result<(Extensions, Vec<Json>)> {
+    if !state.loaded {
+        load(eg, &root.join("rules/tier2.egg"), root)?;
+        load(eg, &root.join("rules/higher.egg"), root)?;
+        eg.parse_and_run_program(
+            None,
+            "(function ImportedExtension (i64) Extension :no-merge)",
+        )?;
+        state.loaded = true;
+    }
+    let Tier2State {
+        keys,
+        seen,
+        known,
+        inserted,
+        ..
+    } = state;
     let mut batch = vec![];
-    for index in 0..c.records.len() {
+    for index in *inserted..c.records.len() {
         let r = &c.records[index];
         let mut valid = true;
         let mut routes = vec![];
@@ -1067,7 +1096,7 @@ fn build_tier2(c: &mut Captured, eg: &mut EGraph, root: &Path) -> Result<(Extens
         c.records[index].extension = ext;
     }
     flush(eg, &mut batch)?;
-    for r in &c.records {
+    for r in c.records.iter().skip(*inserted) {
         if r.coarse || r.parents.len() != 1 || !known[r.extension] {
             continue;
         }
@@ -1128,7 +1157,14 @@ fn build_tier2(c: &mut Captured, eg: &mut EGraph, root: &Path) -> Result<(Extens
             .unwrap()
             .push(json!(cid(r.vals[1])))
     })?;
-    Ok((Extensions { keys, known }, h.into_values().collect()))
+    *inserted = c.records.len();
+    Ok((
+        Extensions {
+            keys: keys.clone(),
+            known: known.clone(),
+        },
+        h.into_values().collect(),
+    ))
 }
 
 fn pretty(e: &Expr) -> String {

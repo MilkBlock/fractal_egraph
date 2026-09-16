@@ -2,6 +2,12 @@
 
 从 rule apply 历史分析组合，用 FractalComb 表示稳定重复，用 Reduce 提取终点表达式，并生成 fractal 可视化。
 
+## egglog-demo 交互调试
+
+`python3 tools/egglog_debugger/server.py` 启动本地调试页面：点击 `.egg` 规则行查看 Typst / DOT，
+使用“运行并识别”逐轮接收真实 runtime 的 Compose / Fractal 日志，点击日志重现公式。
+支持日志导出、导入和源码恢复。参见 [调试桥说明](tools/egglog_debugger/README.md)。
+
 ## 使用：单个 Rust 进程
 
 ```sh

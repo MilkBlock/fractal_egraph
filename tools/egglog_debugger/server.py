@@ -1,0 +1,142 @@
+#!/usr/bin/env python3
+"""Same-origin local bridge from egglog-demo to the actual egg_layout runtime."""
+import argparse
+import functools
+import json
+from pathlib import Path
+import shutil
+import select
+import socket
+import threading
+import time
+import subprocess
+import tempfile
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+
+ROOT = Path(__file__).resolve().parents[2]
+
+class Handler(SimpleHTTPRequestHandler):
+    def translate_path(self, path):
+        if path.split('?')[0] in ('/native-debugger.js', '/native-debugger.css'):
+            return str(ROOT / 'tools/egglog_debugger' / path.split('?')[0][1:])
+        # Source static files take precedence over an old dist build.
+        clean = path.split('?')[0].lstrip('/') or 'index.html'
+        candidate = (self.server.demo / 'static' / clean).resolve()
+        if candidate.is_relative_to(self.server.demo / 'static') and candidate.is_file():
+            return str(candidate)
+        return super().translate_path(path)
+
+    def reply(self, code, data, content_type='application/json'):
+        body = data if isinstance(data, bytes) else json.dumps(data).encode()
+        self.send_response(code)
+        self.send_header('Content-Type', content_type)
+        self.send_header('Content-Length', str(len(body)))
+        self.send_header('Cache-Control', 'no-store')
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_POST(self):
+        # Only accept same-origin JSON requests; this is a loopback development server.
+        origin = self.headers.get('Origin')
+        if origin and origin != 'http://' + self.headers.get('Host', ''):
+            return self.reply(403, {'error': 'Cross-origin request refused'})
+        if self.headers.get('Content-Type', '').split(';')[0] != 'application/json':
+            return self.reply(415, {'error': 'Expected application/json'})
+        try:
+            length = int(self.headers.get('Content-Length', '0'))
+            if not 0 < length <= 2_000_000:
+                return self.reply(413, {'error': 'Source must be at most 2 MB'})
+            data = json.loads(self.rfile.read(length))
+            with tempfile.TemporaryDirectory(prefix='egglog-debug-') as folder:
+                folder = Path(folder)
+                if self.path == '/api/render':
+                    kind = data['kind']
+                    if kind not in ('typst', 'dot'):
+                        return self.reply(400, {'error': 'Unknown renderer'})
+                    src = folder / ('formula.typ' if kind == 'typst' else 'graph.dot')
+                    src.write_text(data['source'])
+                    dest = folder / 'preview.svg'
+                    command = (['typst', 'compile', '--root', str(folder), str(src), str(dest)]
+                               if kind == 'typst' else ['dot', '-Tsvg', str(src), '-o', str(dest)])
+                    result = subprocess.run(command, capture_output=True, timeout=20)
+                    if result.returncode:
+                        return self.reply(422, {'error': result.stderr.decode(errors='replace')})
+                    return self.reply(200, dest.read_bytes(), 'image/svg+xml')
+                if self.path not in ('/api/patterns', '/api/trace'):
+                    return self.reply(404, {'error': 'Unknown endpoint'})
+                src = folder / 'input.egg'
+                src.write_text(data['source'])
+                command = [str(self.server.binary), 'debug-patterns' if self.path == '/api/patterns' else 'debug-stream', str(src)]
+                if self.path == '/api/patterns':
+                    result = subprocess.run(command, capture_output=True, timeout=30, cwd=ROOT)
+                    if result.returncode:
+                        return self.reply(422, {'error': result.stderr.decode(errors='replace')})
+                    return self.reply(200, result.stdout)
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/x-ndjson')
+                self.send_header('Cache-Control', 'no-store')
+                self.end_headers()
+                with (folder / 'stderr').open('w+') as errors:
+                    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=errors, cwd=ROOT)
+                    finished = threading.Event()
+                    timed_out = threading.Event()
+                    def watch():
+                        deadline = time.monotonic() + self.server.run_timeout
+                        while not finished.wait(0.2):
+                            if time.monotonic() >= deadline:
+                                timed_out.set()
+                                process.kill()
+                                return
+                            try:
+                                readable, _, _ = select.select([self.connection], [], [], 0)
+                                if readable and not self.connection.recv(1, socket.MSG_PEEK):
+                                    process.kill()
+                                    return
+                            except OSError:
+                                if process.poll() is None:
+                                    process.kill()
+                                return
+                    watcher = threading.Thread(target=watch, daemon=True)
+                    watcher.start()
+                    try:
+                        for line in process.stdout:
+                            self.wfile.write(line)
+                            self.wfile.flush()
+                        if process.wait():
+                            errors.seek(0)
+                            self.wfile.write((json.dumps({'kind': 'error', 'error': 'Run time limit exceeded' if timed_out.is_set() else errors.read()[-12000:]})+'\n').encode())
+                    except (BrokenPipeError, ConnectionResetError):
+                        process.terminate()
+                    finally:
+                        finished.set()
+                        if process.poll() is None:
+                            process.terminate()
+                        process.wait()
+                self.close_connection = True
+        except (KeyError, ValueError, subprocess.TimeoutExpired, FileNotFoundError) as error:
+            self.reply(400, {'error': str(error)})
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--demo', type=Path, default=ROOT.parent / 'egglog-demo')
+    parser.add_argument('--port', type=int, default=8080)
+    parser.add_argument('--binary', type=Path)
+    parser.add_argument('--run-timeout', type=float, default=120, help='Native run limit in seconds')
+    args = parser.parse_args()
+    if args.binary is None:
+        subprocess.run(['cargo', 'build', '--release', '--bin', 'egg_layout'], cwd=ROOT, check=True)
+        metadata = json.loads(subprocess.check_output(['cargo', 'metadata', '--no-deps', '--format-version=1'], cwd=ROOT))
+        args.binary = Path(metadata['target_directory']) / 'release/egg_layout'
+    for tool in ('typst', 'dot'):
+        if not shutil.which(tool):
+            parser.error(f'{tool} must be installed to render previews')
+    server = ThreadingHTTPServer(('127.0.0.1', args.port), functools.partial(Handler, directory=str(args.demo.resolve() / 'dist')))
+    server.demo = args.demo.resolve()
+    server.binary = args.binary.resolve()
+    server.run_timeout = args.run_timeout
+    print(f'Native egglog debugger: http://127.0.0.1:{args.port}', flush=True)
+    server.serve_forever()
+
+if __name__ == '__main__':
+    main()

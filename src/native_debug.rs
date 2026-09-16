@@ -1,0 +1,333 @@
+//! Streaming debugger for the actual patched egglog runtime, not a match simulator.
+use super::*;
+
+fn quote(s: &str) -> String {
+    serde_json::to_string(s).unwrap()
+}
+fn math(e: &Expr) -> String {
+    match e {
+        Expr::Var(_, n) => format!("op({})", quote(n)),
+        Expr::Lit(_, Literal::Int(n)) => n.to_string(),
+        Expr::Lit(_, l) => format!("op({})", quote(&l.to_string())),
+        Expr::Call(_, op, args) => {
+            let a: Vec<_> = args.iter().map(math).collect();
+            match (op.as_str(), a.as_slice()) {
+                ("Add" | "+", [a, b]) => format!("({a} + {b})"),
+                ("Mul" | "*", [a, b]) => format!("({a} dot {b})"),
+                ("Sub" | "-", [a, b]) => format!("({a} - {b})"),
+                ("Div" | "/", [a, b]) => format!("frac({a}, {b})"),
+                ("Pow", [a, b]) => format!("({a})^({b})"),
+                _ => format!("op({})({})", quote(op), a.join(", ")),
+            }
+        }
+    }
+}
+fn render(rule: &Rule) -> Json {
+    fn node(e: &Expr, lines: &mut Vec<String>, next: &mut usize) -> usize {
+        let id = *next;
+        *next += 1;
+        let label = match e {
+            Expr::Call(_, op, _) => op.clone(),
+            _ => e.to_string(),
+        };
+        lines.push(format!("n{id} [label={}];", quote(&label)));
+        if let Expr::Call(_, _, args) = e {
+            for (slot, a) in args.iter().enumerate() {
+                let child = node(a, lines, next);
+                lines.push(format!("n{id} -> n{child} [label=\"{slot}\"] ;"));
+            }
+        }
+        id
+    }
+    let mut lines = vec!["digraph pattern { rankdir=LR;".into()];
+    let mut next = 0;
+    lines.push("subgraph cluster_match { label=\"match / pattern\";".into());
+    let mut body = vec![];
+    for f in &rule.body {
+        match f {
+            Fact::Eq(_, a, b) => {
+                body.push(format!("{} = {}", math(a), math(b)));
+                let x = node(a, &mut lines, &mut next);
+                let y = node(b, &mut lines, &mut next);
+                lines.push(format!("n{x} -> n{y} [label=\"=\",dir=none,style=dashed];"));
+            }
+            Fact::Fact(e) => {
+                body.push(math(e));
+                node(e, &mut lines, &mut next);
+            }
+        }
+    }
+    lines.push("} subgraph cluster_effects { label=\"effects\";".into());
+    let mut head = vec![];
+    for a in &rule.head.0 {
+        match a {
+            Action::Union(_, a, b) => {
+                head.push(format!("{} equiv {}", math(a), math(b)));
+                let x = node(a, &mut lines, &mut next);
+                let y = node(b, &mut lines, &mut next);
+                lines.push(format!("n{x} -> n{y} [label=\"union\",color=blue];"));
+            }
+            Action::Let(_, n, e) => {
+                head.push(format!("op({}) := {}", quote(n), math(e)));
+                node(e, &mut lines, &mut next);
+            }
+            Action::Expr(_, e) => {
+                head.push(math(e));
+                node(e, &mut lines, &mut next);
+            }
+            _ => {
+                head.push(format!("op({})", quote(&a.to_string())));
+                lines.push(format!(
+                    "n{next} [shape=box,label={}];",
+                    quote(&a.to_string())
+                ));
+                next += 1;
+            }
+        }
+    }
+    lines.push("} }".into());
+    json!({"typst":format!("#set page(width: auto, height: auto, margin: 12pt)\n$ {} ==> {} $",body.join(" and "),head.join(" quad ")),"dot":lines.join("\n"),"source":rule.to_string()})
+}
+fn location(rule: &Rule) -> (usize, usize) {
+    if let Span::Egglog(s) = &rule.span {
+        (
+            s.file.get_location(s.i).0,
+            s.file.get_location(s.j.saturating_sub(1)).0,
+        )
+    } else {
+        (1, 1)
+    }
+}
+// A staged composition preserves every dependency and intermediate effect even when
+// native_lower cannot legally flatten it into a single endpoint rewrite.
+fn composition(c: &Captured, index: usize) -> Json {
+    let mut steps = BTreeSet::new();
+    let mut todo = vec![index];
+    while let Some(i) = todo.pop() {
+        if steps.insert(i) {
+            todo.extend(&c.records[i].parents);
+        }
+    }
+    let mut dot = vec!["digraph compose { rankdir=LR;".to_owned()];
+    let mut typst = "#set page(width: auto, height: auto, margin: 12pt)\n".to_owned();
+    let mut source = vec![];
+    let mut details = vec![];
+    for i in &steps {
+        let r = &c.records[*i];
+        let rule = &c.rules[r.rule].rule;
+        let formula = render(rule)["typst"]
+            .as_str()
+            .unwrap()
+            .split_once('\n')
+            .unwrap()
+            .1
+            .to_owned();
+        typst += &format!(
+            "$ op({}) $\n\n{}\n\n",
+            quote(&format!("event {} · {}", r.id, rule.name)),
+            formula
+        );
+        let bindings: Vec<_> = r
+            .inputs
+            .iter()
+            .zip(&r.wanted)
+            .map(|(input, v)| format!("{input:?} = {}", c.pool.values[*v].label()))
+            .collect();
+        for binding in &bindings {
+            typst += &format!("$ op({}) $\n\n", quote(binding));
+        }
+        details.push(json!({"event":r.id,"rule":rule.name,"binding":bindings,"ports":r.ports,"produced":r.produced.iter().map(|v|c.pool.values[*v].label()).collect::<Vec<_>>(),"unions":r.unions}));
+        dot.push(format!(
+            "e{} [label={}];",
+            r.id,
+            quote(&format!("{} · {}\n{}", r.id, rule.name, rule))
+        ));
+        for (slot, p) in r.parents.iter().enumerate() {
+            dot.push(format!(
+                "e{} -> e{} [label={}];",
+                c.records[*p].id,
+                r.id,
+                quote(&format!("parent {slot}: {:?}", r.ports))
+            ));
+        }
+        source.push(format!("; event {}\n{}", r.id, rule));
+    }
+    dot.push("}".into());
+    json!({"typst":typst,"dot":dot.join("\n"),"source":source.join("\n"),"steps":steps.iter().map(|i|c.records[*i].id).collect::<Vec<_>>(),"step_details":details})
+}
+/// Source ranges come from egglog's parser (including multi-line rules and Unicode).
+pub fn patterns(source: &str) -> Result<Json> {
+    let mut eg = EGraph::default();
+    let mut rows = vec![];
+    for command in eg.parse_program(None, source)? {
+        // Keep subsume explicit instead of normalizing it into a union.
+        let command = match command {
+            Command::Rewrite(_, ref r, true) => {
+                return Err(format!("subsuming rewrite preview is unsupported: {}", r.lhs).into());
+            }
+            c => crate::visual_rule::normalize(c, rows.len()),
+        };
+        if let Command::Rule { rule } = command {
+            let (start, end) = location(&rule);
+            let mut row = render(&rule);
+            row["source_line"] = json!(start);
+            row["end_line"] = json!(end);
+            row["rule"] = json!(rule.name);
+            rows.push(row);
+        }
+    }
+    Ok(json!({"patterns":rows}))
+}
+/// Retain tier-1/tier-2 state across completed execution boundaries and emit only new evidence.
+pub fn stream(root: &Path, source: &Path, emit: &mut dyn FnMut(Json) -> Result) -> Result {
+    let mut eg = EGraph::default();
+    let mut inserted = (0, 0);
+    let mut tier2 = Tier2State::default();
+    let mut seen = BTreeSet::new();
+    let mut boundary = 0;
+    let worker = rayon::ThreadPoolBuilder::new().num_threads(1).build()?;
+    capture_with_sink(
+        source,
+        None,
+        None,
+        Some(&mut |c| {
+            boundary += 1;
+            let start = inserted.1;
+            let (ext, higher) = worker
+                .install(|| -> std::result::Result<_, String> {
+                    build_tier1(c, &mut eg, root, &mut inserted).map_err(|e| e.to_string())?;
+                    update_tier2(c, &mut eg, root, &mut tier2).map_err(|e| e.to_string())
+                })
+                .map_err(|e| -> Box<dyn std::error::Error> { e.into() })?;
+            for index in start..c.records.len() {
+                let r = &c.records[index];
+                let rule = &c.rules[r.rule].rule;
+                let (line, end) = location(rule);
+                let mut row = render(rule);
+                row["kind"] = json!("application");
+                row["id"] = json!(format!("apply:{}", r.id));
+                row["event"] = json!(r.id);
+                row["boundary"] = json!(boundary);
+                row["rule"] = json!(rule.name);
+                row["source_line"] = json!(line);
+                row["end_line"] = json!(end);
+                row["binding"] = json!(
+                    r.inputs
+                        .iter()
+                        .zip(&r.wanted)
+                        .map(|(i, v)| format!("{i:?} = {}", c.pool.values[*v].label()))
+                        .collect::<Vec<_>>()
+                );
+                row["parents"] = json!(
+                    r.parents
+                        .iter()
+                        .map(|p| c.records[*p].id)
+                        .collect::<Vec<_>>()
+                );
+                row["effects"] = json!({"produced":r.produced.iter().map(|v|c.pool.values[*v].label()).collect::<Vec<_>>(),"unions":r.unions});
+                let bindings = row["binding"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|v| format!("$ op({}) $", quote(v.as_str().unwrap())))
+                    .collect::<Vec<_>>()
+                    .join("\n\n");
+                row["typst"] = json!(format!(
+                    "{}\n\n$ op({}) $\n\n{}",
+                    row["typst"].as_str().unwrap(),
+                    quote(&format!("event {}", r.id)),
+                    bindings
+                ));
+                emit(row.clone())?;
+                if !r.parents.is_empty() {
+                    row["kind"] = json!("compose");
+                    row["id"] = json!(format!("compose:{}", r.id));
+                    let staged = composition(c, index);
+                    for key in ["typst", "dot", "source", "steps", "step_details"] {
+                        row[key] = staged[key].clone();
+                    }
+                    row["composition_mode"] = json!("staged dependency DAG");
+                    match crate::native_lower::lower(&c.records, &c.rules, index).and_then(
+                        |lowered| {
+                            let mut check = EGraph::default();
+                            check
+                                .parse_and_run_program(
+                                    None,
+                                    &format!("{}\n{}", c.datatype, lowered.code),
+                                )
+                                .map_err(|e| e.to_string())?;
+                            Ok(lowered)
+                        },
+                    ) {
+                        Ok(lowered) => {
+                            let parsed = patterns(&lowered.code)?;
+                            if let Some(p) = parsed["patterns"].as_array().and_then(|a| a.first()) {
+                                for key in ["typst", "dot", "source"] {
+                                    row[key] = p[key].clone();
+                                }
+                                row["composition_mode"] = json!("flattened rule");
+                            }
+                            row["steps"] = json!(
+                                lowered
+                                    .steps
+                                    .iter()
+                                    .map(|i| c.records[*i].id)
+                                    .collect::<Vec<_>>()
+                            );
+                        }
+                        Err(reason) => {
+                            row["reason"] = json!(format!("保留分阶段组合：{reason}"));
+                        }
+                    }
+                    emit(row)?;
+                }
+            }
+            let v = view(c, &eg, &ext, &higher)?;
+            for lane in v["lanes"].as_array().unwrap() {
+                let key = format!("{}:{}", lane["trigger"], lane["events"]);
+                if !seen.insert(key.clone()) {
+                    continue;
+                }
+                let endpoint = lane["events"]
+                    .as_array()
+                    .unwrap()
+                    .last()
+                    .unwrap()
+                    .as_u64()
+                    .unwrap();
+                let r = c.records.iter().find(|r| r.id == endpoint).unwrap();
+                let rule = &c.rules[r.rule].rule;
+                let (line, end) = location(rule);
+                let mut row =
+                    composition(c, c.records.iter().position(|r| r.id == endpoint).unwrap());
+                row["kind"] = json!("fractal");
+                row["id"] = json!(format!("fractal:{key}"));
+                row["boundary"] = json!(boundary);
+                row["rule"] = json!(rule.name);
+                row["source_line"] = json!(line);
+                row["end_line"] = json!(end);
+                row["evidence"] = lane.clone();
+                let depth = lane["events"].as_array().unwrap().len();
+                let summary = format!(
+                    "$ op(\"FractalComb\")(op(\"Depth\")({depth}), op({}), op({}), op(\"initial_binding\")) $",
+                    quote(lane["operator"].as_str().unwrap()),
+                    quote(&format!("context {}", lane["trigger"]))
+                );
+                let source_formula = row["typst"].as_str().unwrap();
+                let (setup, steps) = source_formula.split_once('\n').unwrap();
+                row["typst"] = json!(format!("{setup}\n{summary}\n\n{steps}"));
+                let graph = row["dot"].as_str().unwrap().trim_end_matches('}');
+                row["dot"] = json!(format!(
+                    "{graph}\nf [shape=box,color=blue,label={}]; f -> e{endpoint} [style=dashed,label=\"Represents\"];\n}}",
+                    quote(lane["higher"].as_str().unwrap())
+                ));
+                emit(row)?;
+            }
+            emit(
+                json!({"kind":"boundary","boundary":boundary,"applications":c.records.len(),"logical_matches":c.events,"excluded":c.rejected}),
+            )?;
+            Ok(())
+        }),
+    )?;
+    emit(json!({"kind":"complete"}))
+}

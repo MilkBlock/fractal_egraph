@@ -6,6 +6,8 @@ const HELP: &str = "egg_layout — native rule-combination analysis
 
   cargo run -- analyze --reuse-tier0
   cargo run -- analyze --recapture-tier0 --source PATH.egg --rounds 11 --output out/math11
+  cargo run -- debug-patterns SOURCE.egg    Parse source ranges, Typst, and DOT
+  cargo run -- debug-stream SOURCE.egg      Stream native Compose / Fractal events
   cargo run -- bake-format OLD_LIBRARY NEW_LIBRARY.egg
   cargo run -- bake MANIFEST.json OUTPUT_DIR
   cargo run -- bake-use LIBRARY.egg SOURCE.egg OUTPUT_DIR [--save-history]
@@ -39,6 +41,25 @@ fn main() -> Result {
         None | Some("--help" | "-h" | "help") => {
             print!("{HELP}");
             Ok(())
+        }
+        Some("debug-patterns") if args.len() == 2 => {
+            println!(
+                "{}",
+                egg_layout::native_analyze::debug::patterns(&std::fs::read_to_string(&args[1])?)?
+            );
+            Ok(())
+        }
+        Some("debug-stream") if args.len() == 2 => {
+            use std::io::Write;
+            egg_layout::native_analyze::debug::stream(
+                std::path::Path::new(env!("CARGO_MANIFEST_DIR")),
+                std::path::Path::new(&args[1]),
+                &mut |row| {
+                    println!("{row}");
+                    std::io::stdout().flush()?;
+                    Ok(())
+                },
+            )
         }
         Some("bake-format") if args.len() == 3 => {
             egg_layout::native_analyze::bake::convert_library(

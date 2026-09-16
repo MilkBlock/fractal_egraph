@@ -1,0 +1,10 @@
+#native-debugger {border-top:1px solid #bbb; padding:8px; background:#f7f9fc; max-height:55vh; overflow:auto; font:13px system-ui;}
+#native-debugger button, #native-debugger select {margin:3px; cursor:pointer;}
+#native-status {white-space:pre-wrap; max-height:80px; overflow:auto;}
+#native-trace {max-height:150px; overflow:auto; border:1px solid #c9d0db;}
+#native-trace button {display:block; text-align:left; width:calc(100% - 6px); border:0; background:white; padding:6px;}
+#native-trace button[aria-pressed=true] {background:#dae8ff;}
+#native-viewport {max-height:280px; overflow:auto; background:white;}
+#native-preview {width:auto; max-width:none; max-height:none; background:white;}
+#native-source, #native-details {white-space:pre-wrap; max-height:150px; overflow:auto;}
+.native-source-selection {background:#dae8ff;}
