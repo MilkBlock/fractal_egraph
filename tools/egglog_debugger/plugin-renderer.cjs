@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { editableRegions } = require('./typst-edit.cjs');
 
 function loadPlugin(root, extractorOverride) {
     root = path.resolve(root);
@@ -83,7 +84,13 @@ async function renderPreview(plugin, request) {
     const graphSvg = await plugin.load('svg').dotToSvg(dot);
     const core = plugin.load('shared/typstCore');
     const formula = typstRenderings[formulaTarget];
+    let editRegions = [], editError = null;
+    if(formula.mode === 'math'){
+        try { editRegions = editableRegions(formulaSource, request.edit_targets || [], core.buildTypstMathDocument); }
+        catch(error){editError=String(error.message || error);}
+    }
     return {
+        edit_targets: request.edit_targets || [], edit_regions: editRegions, edit_error: editError,
         renderer: 'eggplant-pattern-vscode', renderer_revision: plugin.revision,
         config: { mode, label_style, recursive_strategy, pattern_renderer: patternRenderer },
         ir, math_view: mathView, typst: formulaSource,

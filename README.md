@@ -161,3 +161,14 @@ Math 6 轮验证了全部 1529 个实例的规范化视图，其中有 8 个选�
 
 结构 dominance 使用允许额外节点/边的有限 DAG 嵌入，不要求入口或事件 ID 相同。
 检查器返回节点/接口映射；超预算明确返回 unknown。使用方式和完整性边界见 [DAG 嵌入实验](experiments/dag_embedding/README.md)。
+
+## Demo 注释与公式文字编辑
+
+`egglog-demo` 的 `examples.py` 在生成示例 bundle 时会加入插件支持的
+`egg-viz/v1` 注释：datatype/constructor 的 Typst 模板、优先级，以及显式
+`rule` 的 binding/position 显示名称。注释只存在于生成的文本 bundle，不改变
+egglog 程序的可执行 token。
+
+调试页面中，Typst 公式里的高亮文字可以点击编辑。保存会更新对应的
+`dsl_type` 或规则 `labels` 注释，立即重渲染；编辑器支持撤销/重做，并可下载
+当前 `.egg` 源码。历史日志的公式保持只读，避免修改回放快照。

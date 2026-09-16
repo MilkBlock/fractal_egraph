@@ -86,3 +86,24 @@ node tools/egglog_debugger/test_plugin_render.cjs /path/to/installed/eggplant-pa
 在四组 view/label/recursive 配置下比较 PatternIr、公式源码、Typst 文档及 SVG、
 DOT 及 Graphviz SVG、节点 Typst 输出，要求逐项完全相等。
 插件的提取器另有 `rewrite_alias` 回归，覆盖转译器生成的 `let result = pat.x` 别名。
+
+## Typst 名称编辑
+
+预览使用 Typst 自己的 `metadata` 测量词语区域，所以点击坐标与公式 SVG
+保持一致。构造器名称（例如 `Add` 或其模板中的 `+`）以及显式 `rule` 的
+binding/position 显示名称会出现透明高亮区域。点击后输入新名称并保存，服务
+只更新对应的 `dsl_type` / `labels` 注释；代码 token、规则语义和运行日志不变。
+源码发生并发修改时补丁会拒绝写入，避免覆盖编辑器内容。历史日志只读；下载的
+`egglog-preview.egg` 可作为新的 demo 输入。
+
+生成并验证 demo bundle：
+
+```sh
+cd ../egglog-demo
+python3 examples.py --input static/examples.json > /tmp/examples.annotated.json
+python3 -m unittest discover -s . -p 'test_preview_annotations.py'
+```
+
+bundle 里的 `@egg-viz-json` 注释不记录 matches、effects 或性能统计；它们是
+纯显示元数据。`examples.py` 每次从上游源码重新生成注释，因此不会把当前编辑器
+修改写回上游 clone。

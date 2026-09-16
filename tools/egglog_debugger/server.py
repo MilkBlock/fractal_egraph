@@ -2,6 +2,8 @@
 """Same-origin local bridge from egglog-demo to the actual egg_layout runtime."""
 import argparse
 import functools
+import importlib.util
+import sys
 import json
 from pathlib import Path
 import shutil
@@ -54,7 +56,11 @@ class Handler(SimpleHTTPRequestHandler):
                 return self.reply(413, {'error': 'Source must be at most 2 MB'})
             data = json.loads(self.rfile.read(length))
             if self.path == '/api/preview':
+                data['edit_targets'] = self.server.annotations.catalog(data['source'], data.get('line', 1))
                 return self.reply(200, self.server.renderer.render(data))
+            if self.path == '/api/edit-display':
+                result = self.server.annotations.update_display(data['source'], data['line'], data['target_id'], data['value'])
+                return self.reply(200, result)
             with tempfile.TemporaryDirectory(prefix='egglog-debug-') as folder:
                 folder = Path(folder)
                 if self.path == '/api/render':
@@ -144,6 +150,11 @@ def main():
     server = ThreadingHTTPServer(('127.0.0.1', args.port), functools.partial(Handler, directory=str(args.demo.resolve() / 'dist')))
     server.renderer = PluginRenderer(args.plugin, args.extractor)
     server.demo = args.demo.resolve()
+    spec = importlib.util.spec_from_file_location('demo_preview_annotations', server.demo / 'preview_annotations.py')
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    server.annotations = module
     server.binary = args.binary.resolve()
     server.run_timeout = args.run_timeout
     print(f'Native egglog debugger: http://127.0.0.1:{args.port}', flush=True)

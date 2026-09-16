@@ -6,7 +6,7 @@ export function installNativeDebugger(editor) {
     const panel = document.createElement('section'); panel.id='native-debugger';
     panel.innerHTML = `<strong>Native Rule Compose / Fractal</strong>
       <button id="native-run">运行并识别</button><button id="native-stop" disabled>停止</button>
-      <button id="native-export">导出日志</button><button id="native-restore">载入日志源码</button><label>回放日志 <input id="native-import" type="file" accept=".json"></label>
+      <button id="native-download">下载 .egg</button><button id="native-export">导出日志</button><button id="native-restore">载入日志源码</button><label>回放日志 <input id="native-import" type="file" accept=".json"></label>
       <div id="native-status">点击 .egg 规则任意一行查看 Pattern。原生识别使用本地 egg_layout（自包含 Math datatype）。</div>
       <select id="native-filter"><option value="all">所有日志</option><option value="application">有效应用</option><option value="compose">Rule Compose</option><option value="fractal">Fractal</option></select>
       <div id="native-trace" role="log" aria-label="增量识别日志"></div>
@@ -19,13 +19,20 @@ export function installNativeDebugger(editor) {
       </div>
       <div id="native-evidence"></div><div id="native-renderer"></div>
       <div id="native-viewport"><div id="native-preview" role="img" aria-label="所选规则的插件预览" hidden></div></div>
+      <div id="native-edit-hint"></div>
+      <form id="native-name-editor" hidden>
+        <label id="native-edit-label" for="native-name-input">显示名称</label>
+        <input id="native-name-input" maxlength="100" required autocomplete="off">
+        <button type="submit" id="native-name-save">保存到 .egg 注释</button><button type="button" id="native-name-cancel">取消</button>
+        <div id="native-edit-scope"></div><div id="native-edit-error" role="alert"></div>
+      </form>
       <pre id="native-render-error"></pre>
       <details><summary>Typst / DOT 源码</summary><pre id="native-source"></pre></details>
       <details><summary>绑定、effect 与路径证据</summary><pre id="native-details"></pre></details>`;
     document.getElementById('panel').insertBefore(panel, document.getElementById('graph'));
     const el = id => document.getElementById('native-'+id);
     let rows=[], snapshotSource='', runStatus='idle', selected=null, patterns=[], parsedSource=null, revision=0, renderRevision=0, selectionIntent=0;
-    let controller=null, timer=null, marker=null, previewAbort=null, parseAbort=null;
+    let controller=null, timer=null, marker=null, previewAbort=null, parseAbort=null, currentEdit=null;
     const status = text => {el('status').textContent=text;};
     async function post(path, body, signal) {
         const response=await fetch('/api/'+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal});
@@ -47,6 +54,55 @@ export function installNativeDebugger(editor) {
         el('preview').replaceChildren(svg);el('preview').hidden=false;
         return svg;
     }
+    function closeNameEditor(){currentEdit=null;el('name-editor').hidden=true;}
+    function installEditTargets(svg, rendered, request, row){
+        el('edit-hint').textContent=row.kind?'日志是只读快照；请载入源码并点击编辑器中的规则进行编辑。':'点击公式中带高亮的名称修改显示文本；修改会写回 .egg 注释。';
+        if(row.kind || el('format').value!=='typst')return;
+        const targets=new Map((rendered.edit_targets || []).map(target=>[target.id,target]));
+        for(const region of rendered.edit_regions || []){
+            const target=targets.get(region.target_id);if(!target)continue;
+            const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+            rect.classList.add('native-edit-hit');rect.dataset.target=target.id;
+            rect.setAttribute('x',Math.max(0,region.x-1));rect.setAttribute('y',Math.max(0,region.y-1));
+            rect.setAttribute('width',region.width+2);rect.setAttribute('height',region.height+2);
+            rect.setAttribute('rx','1');rect.setAttribute('tabindex','0');rect.setAttribute('role','button');
+            rect.setAttribute('aria-label',`编辑 ${region.text}`);
+            const open=()=>{
+                if(editor.getValue()!==request.source){status('源码已变化，请等待新公式渲染后再编辑。');return;}
+                currentEdit={source:request.source,line:request.line,target_id:target.id};
+                el('edit-label').textContent=`显示名称 · ${region.text}`;
+                el('name-input').value=region.text;el('edit-error').textContent='';
+                el('edit-scope').textContent=target.kind==='constructor'?`更新 ${target.name} 的 dsl_type 显示模板，作用于本文件中的该构造器。`:`更新本条规则中 ${target.name} 的 labels.bindings 显示名称。`;
+                el('name-editor').hidden=false;el('name-input').focus();el('name-input').select();
+            };
+            rect.addEventListener('click',open);rect.addEventListener('keydown',event=>{if(event.key==='Enter' || event.key===' '){event.preventDefault();open();}});
+            svg.append(rect);
+        }
+        if(rendered.edit_error)el('edit-hint').textContent='当前公式的文字定位失败；原始插件预览仍可查看。';
+    }
+    el('name-cancel').onclick=closeNameEditor;
+    el('name-input').onkeydown=event=>{if(event.key==='Escape'){event.preventDefault();closeNameEditor();}};
+    el('name-editor').onsubmit=async event=>{
+        event.preventDefault();const edit=currentEdit;if(!edit)return;
+        if(editor.getValue()!==edit.source){el('edit-error').textContent='源码已变化，请取消并重新点击公式；未覆盖你的修改。';return;}
+        el('name-save').disabled=true;el('edit-error').textContent='';
+        try{
+            const result=await(await post('edit-display',{...edit,value:el('name-input').value})).json();
+            if(currentEdit!==edit)return;
+            if(editor.getValue()!==edit.source)throw Error('源码已变化，未写入旧版本的修改。');
+            editor.operation(()=>{
+                editor.replaceRange(result.source,{line:0,ch:0},editor.posFromIndex(edit.source.length),'+display-annotation');
+                editor.setCursor({line:result.line-1,ch:0});
+            });
+            closeNameEditor();clearTimeout(timer);status('显示注释已写回 .egg；可用编辑器撤销，也可下载源码。');
+            await previewLine();
+        }catch(error){el('edit-error').textContent=error.message;}
+        finally{el('name-save').disabled=false;}
+    };
+    el('download').onclick=()=>{
+        const url=URL.createObjectURL(new Blob([editor.getValue()],{type:'text/plain;charset=utf-8'}));
+        const link=document.createElement('a');link.href=url;link.download='egglog-preview.egg';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    };
     function selectSteps(row) {
         const steps=el('step');steps.replaceChildren();
         if(row.composition_mode==='flattened rule')steps.add(new Option('组合后的规则','combined'));
@@ -65,6 +121,7 @@ export function installNativeDebugger(editor) {
         return {source,line,mode:el('dot-mode').value,label_style:el('label-style').value,recursive_strategy:el('recursive').value};
     }
     async function show(row, fromTrace=false) {
+        closeNameEditor();
         const changed=selected!==row;selected=row; const version=++renderRevision;
         if(changed || fromTrace)selectSteps(row);
         previewAbort?.abort(); previewAbort=new AbortController();
@@ -91,6 +148,7 @@ export function installNativeDebugger(editor) {
             el('source').textContent=rendered[kind];
             const svg=mountSvg(kind==='typst'?rendered.typst_svg:rendered.dot_svg);
             if(kind==='dot')applyTypstRenderings(svg,rendered.typst_renderings);
+            installEditTargets(svg,rendered,request,row);
             el('renderer').textContent=`${rendered.renderer} · ${rendered.renderer_revision.slice(0,12)} · ${rendered.config.mode} / ${rendered.config.label_style} / ${rendered.config.recursive_strategy}`;
             if(kind==='typst' && rendered.typst_mode!=='math')el('render-error').textContent='插件使用了文本 fallback；请检查 Typst 模板。';
             el('preview').dataset.ready='true';
