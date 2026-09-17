@@ -105,14 +105,31 @@ DOT 里的节点尺寸和 Graphviz 坐标与 bridge 不完全相同；公式源�
 ## Fractal 规则的公式
 
 一条 Fractal lane 是**同一条规则沿稳定相对绑定路径重复 d 次**。运行时不展开它，而是把 lane 作为
-数据发出（`evidence`：`events`（= 深度）、`operator`、`trigger`、`update`、`higher`），由
-`plugin-renderer.cjs`（bridge 与浏览器共用）在插件公式后面追加一行重复说明：
+数据发出（`evidence`：`events`（= 深度）、`trigger`、`operator`、`update`、`higher`），由
+`plugin-renderer.cjs`（bridge 与浏览器共用）在插件公式后面追加两行：**递归结构本身**，以及
+lane 的元数据。
 
-```
+递归结构按 `trigger → apply once → apply twice → … → apply d times` 渲染，每个状态是该次应用
+匹配到的实例（用 lane 自己的链：`trigger` 加上 `events`，不是 `composition` 那条会带上无关分支
+的依赖链）：
+
+```typst
 frac(upright("node"), A(upright("node.arg_i64_00") + 1, upright("node.arg_i64_01"))) quad upright("if") quad …
-\ upright("Depth 5") quad upright("operator ext_0001") quad upright("context 0") quad upright("FractalComb(Depth(5), ext_0001, Comb-17, initial_binding)")
+\ underbrace(A(3, 9), upright("trigger")) arrow.r underbrace(A(4, 9), upright("apply once")) arrow.r
+   underbrace(A(5, 9), upright("apply twice")) arrow.r dots.c underbrace(A(8, 9), upright("apply 5 times"))
+\ upright("Depth 5") quad upright("operator ext_0001") quad upright("context 0") quad upright("FractalComb(Depth(5), …)")
 \ upright("limit") arrow.l upright("limit") comma quad upright("n") arrow.l upright("+(n, 1)")
 ```
+
+- 状态项由插件的数据拼出，不是另写一套渲染：构造器名取自 `ir.nodes[].dsl_type`（pattern 根），
+  字段顺序取自插件的 binding accessor（`node.arg_i64_00`、`node.arg_i64_01`），具体值取自
+  runtime 每步的 `binding`（`Var("n") = 0:Value(3)`）。若该构造器在源码里有 `dsl_type` 模板
+  （`{left} + {right}` 之类），就按模板渲染，和规则公式保持一致。
+- pattern 根不是构造器调用时（例如 pattern 里是多个嵌套项），退化成匹配值的元组：
+  `underbrace((10, 6), upright("trigger")) arrow.r …`，仍然能看出递归结构。`eqsolve` 的 13 条 lane
+  就是这种。
+- 深度大时只展开前 3 个状态 + 最后一个，中间用 `dots.c`（`heldout-increment` 深度到 168）。
+- 数值原样输出，字符串/不可打印的值包成 `upright("…")`，保证 Typst 一定编译得过。
 
 - 徽标只用 ASCII 与 Typst 宏（`arrow.l`、`quad`、`comma`）：bridge 用系统字体的 `typst` CLI，
   浏览器用内置字体的 wasm 编译器，写 `←`/`×` 这类字面字符会让两边渲染不一致。

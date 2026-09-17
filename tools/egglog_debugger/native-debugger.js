@@ -345,7 +345,13 @@ export function installNativeDebugger(editor) {
     function fractalRequest(row) {
         const evidence=row.evidence;if(!evidence)return null;
         const depth=fractalDepth(row);if(!depth)return null;
-        return {depth,operator:evidence.operator ?? null,context:evidence.trigger ?? null,update:evidence.update || [],witness:evidence.higher ?? null};
+        // The lane's own chain is its trigger plus the applications it reports. The
+        // composition behind `step_details` also walks unrelated branches, so pick
+        // the records by event id instead of using it as the sequence.
+        const byEvent=new Map((row.step_details || []).map(step => [step.event, step.binding || []]));
+        const chain=[evidence.trigger, ...(evidence.events || [])];
+        const bindings=chain.map(event => byEvent.get(event)).filter(step => step && step.length);
+        return {depth,operator:evidence.operator ?? null,context:evidence.trigger ?? null,update:evidence.update || [],witness:evidence.higher ?? null,bindings};
     }
     function selectSteps(row) {
         const steps=el('step');steps.replaceChildren();

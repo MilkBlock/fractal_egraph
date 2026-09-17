@@ -101,6 +101,8 @@ async function main() {
         assert.match(formula, /arrow\.l/);
         assert.match(formula, /Depth 5/);
         assert.match(formula, /FractalComb\(Depth\(5\)/);
+        assert.match(formula, /underbrace\(A\(3, 9\), upright\("trigger"\)\)/);
+        assert.match(formula, /apply 5 times/);
         await page.selectOption("#native-format", "dot");
         await page.waitForFunction(() => document.querySelectorAll("#native-preview svg g.node").length > 0, null, { timeout: 180000 });
         await page.selectOption("#native-filter", "all");

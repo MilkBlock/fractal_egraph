@@ -136,11 +136,34 @@ async function main() {
         update: ["limit ← limit", "n ← +(n, 1)"],
         witness: "FractalComb(Depth(5), ext_0001, Comb-17, initial_binding)"
     };
-    const lane = await compare("fractal lane",
-        { source, line: 5, mode: "combined", label_style: "recursive", recursive_strategy: "dag-expand", fractal });
+    const lane = await compare("fractal lane (state tuple)",
+        { source, line: 5, mode: "combined", label_style: "recursive", recursive_strategy: "dag-expand",
+            fractal: { ...fractal, bindings: [
+                ['Var("x") = 0:Value(1)', 'Var("y") = 0:Value(2)'],
+                ['Var("x") = 0:Value(3)', 'Var("y") = 0:Value(2)'],
+                ['Var("x") = 0:Value(5)', 'Var("y") = 0:Value(2)'],
+            ] } });
     assert.match(lane.typst, /arrow\.l/, "the repetition badge is missing from the formula");
-    assert.deepEqual(lane.iteration, fractal);
     assert.equal(lane.typst_mode, "math", "the wasm Typst compiler rejected the badge");
+
+    // A rule whose pattern is a constructor call renders each state as that
+    // constructor applied to the matched values, labelled by application count.
+    const laneSource = fs.readFileSync(path.join(path.dirname(HERE), "fixtures/fractal-lane.egg"), "utf8");
+    const advance = await compare("fractal lane (state terms)",
+        { source: laneSource, line: 3, mode: "combined", label_style: "recursive", recursive_strategy: "dag-expand",
+            fractal: { ...fractal,
+                bindings: [
+                    ['Var("n") = 0:Value(3)', 'Var("limit") = 0:Value(9)'],
+                    ['Var("n") = 0:Value(4)', 'Var("limit") = 0:Value(9)'],
+                    ['Var("n") = 0:Value(5)', 'Var("limit") = 0:Value(9)'],
+                    ['Var("n") = 0:Value(6)', 'Var("limit") = 0:Value(9)'],
+                    ['Var("n") = 0:Value(7)', 'Var("limit") = 0:Value(9)'],
+                    ['Var("n") = 0:Value(8)', 'Var("limit") = 0:Value(9)'],
+                ] } });
+    assert.match(advance.typst, /underbrace\(A\(3, 9\), upright\("trigger"\)\)/, advance.typst);
+    assert.match(advance.typst, /underbrace\(A\(4, 9\), upright\("apply once"\)\)/, advance.typst);
+    assert.match(advance.typst, /arrow\.r dots\.c underbrace\(A\(8, 9\), upright\("apply 5 times"\)\)/, advance.typst);
+    assert.equal(advance.typst_mode, "math", "the wasm Typst compiler rejected the state chain");
 
     const rewrite = { source, line: 8 };
     await compare("rewrite alias and second-rule selection", rewrite);
