@@ -187,25 +187,44 @@ pub fn patterns(source: &str) -> Result<Json> {
 }
 /// Retain tier-1/tier-2 state across completed execution boundaries and emit only new evidence.
 pub fn stream(root: &Path, source: &Path, emit: &mut dyn FnMut(Json) -> Result) -> Result {
+    let text = std::fs::read_to_string(source)?;
+    stream_source(root, &source.to_string_lossy(), &text, emit)
+}
+
+/// Same as `stream`, but for source text already in memory; the wasm build has no
+/// filesystem and calls this directly.
+pub fn stream_source(
+    root: &Path,
+    name: &str,
+    text: &str,
+    emit: &mut dyn FnMut(Json) -> Result,
+) -> Result {
     let mut eg = EGraph::default();
     let mut inserted = (0, 0);
     let mut tier2 = Tier2State::default();
     let mut seen = BTreeSet::new();
     let mut boundary = 0;
+    // rayon has no threads on wasm32-unknown-unknown; the pool only sizes the stack
+    // natively, so the browser build runs the analysis inline.
+    #[cfg(not(target_arch = "wasm32"))]
     let worker = rayon::ThreadPoolBuilder::new().num_threads(1).build()?;
-    capture_with_sink(
-        source,
+    capture_text_with_sink(
+        name,
+        text,
         None,
         None,
         Some(&mut |c| {
             boundary += 1;
             let start = inserted.1;
-            let (ext, higher) = worker
-                .install(|| -> std::result::Result<_, String> {
-                    build_tier1(c, &mut eg, root, &mut inserted).map_err(|e| e.to_string())?;
-                    update_tier2(c, &mut eg, root, &mut tier2).map_err(|e| e.to_string())
-                })
-                .map_err(|e| -> Box<dyn std::error::Error> { e.into() })?;
+            let mut analyse = || -> std::result::Result<_, String> {
+                build_tier1(c, &mut eg, root, &mut inserted).map_err(|e| e.to_string())?;
+                update_tier2(c, &mut eg, root, &mut tier2).map_err(|e| e.to_string())
+            };
+            #[cfg(not(target_arch = "wasm32"))]
+            let outcome = worker.install(analyse);
+            #[cfg(target_arch = "wasm32")]
+            let outcome = analyse();
+            let (ext, higher) = outcome.map_err(|e| -> Box<dyn std::error::Error> { e.into() })?;
             for index in start..c.records.len() {
                 let r = &c.records[index];
                 let rule = &c.rules[r.rule].rule;

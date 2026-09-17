@@ -2,6 +2,7 @@
 pub mod pipeline;
 pub mod visual_rule;
 
+pub mod embedded_rules;
 pub mod native_analyze;
 
 mod native_lower;

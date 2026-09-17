@@ -10,8 +10,12 @@ use std::{
     collections::{BTreeMap, BTreeSet},
     path::Path,
     sync::Arc,
-    time::Instant,
 };
+// `std::time::Instant` is not implemented on wasm32-unknown-unknown.
+#[cfg(target_arch = "wasm32")]
+use web_time::Instant;
+#[cfg(not(target_arch = "wasm32"))]
+use std::time::Instant;
 
 #[path = "native_bake.rs"]
 pub mod bake;
@@ -83,7 +87,7 @@ fn emit(eg: &mut EGraph, batch: &mut Vec<Command>, c: Command) -> Result {
 fn load(eg: &mut EGraph, file: &Path, root: &Path) -> Result {
     let commands = eg.parse_program(
         Some(file.to_string_lossy().into_owned()),
-        &std::fs::read_to_string(file)?,
+        &crate::embedded_rules::rule_text(file)?,
     )?;
     for c in commands {
         if let Command::Include(_, p) = c {
@@ -194,20 +198,30 @@ fn capture(
     rounds: Option<usize>,
     online: Option<(&mut EGraph, &Path, &rayon::ThreadPool)>,
 ) -> Result<Captured> {
-    capture_with_sink(source, rounds, online, None)
+    let text = std::fs::read_to_string(source)?;
+    capture_text_with_sink(&source.to_string_lossy(), &text, rounds, online, None)
 }
 fn capture_with_sink(
     source: &Path,
+    rounds: Option<usize>,
+    online: Option<(&mut EGraph, &Path, &rayon::ThreadPool)>,
+    sink: Option<&mut dyn FnMut(&mut Captured) -> Result>,
+) -> Result<Captured> {
+    let text = std::fs::read_to_string(source)?;
+    capture_text_with_sink(&source.to_string_lossy(), &text, rounds, online, sink)
+}
+/// Same as `capture_with_sink`, but for source text already in memory (the wasm
+/// build has no filesystem).
+fn capture_text_with_sink(
+    name: &str,
+    text: &str,
     rounds: Option<usize>,
     mut online: Option<(&mut EGraph, &Path, &rayon::ThreadPool)>,
     mut sink: Option<&mut dyn FnMut(&mut Captured) -> Result>,
 ) -> Result<Captured> {
     let started = Instant::now();
     let mut eg = EGraph::default();
-    let mut commands = eg.parse_program(
-        Some(source.to_string_lossy().into_owned()),
-        &std::fs::read_to_string(source)?,
-    )?;
+    let mut commands = eg.parse_program(Some(name.to_owned()), text)?;
     let datatypes: Vec<_> = commands
         .iter()
         .filter(|c| matches!(c, Command::Datatype { .. }))

@@ -33,28 +33,38 @@ python3 tools/egglog_debugger/server.py --port 8080
 ## 静态发布（GitHub Pages）
 
 <https://milkblock.github.io/fractal_egraph/> 是本 UI 的静态版本，产物由
-`tools/egglog_debugger/build_site.py` 从 `egglog-demo` 的 `dist/` + `static/` 加本目录的
-`native-debugger.js` / `native-debugger.css` 和插件 overlay 组装（`target/pages`，8 MB 左右），
-推到 `MilkBlock/fractal_egraph` 的 `gh-pages` 分支：
+`tools/egglog_debugger/build_site.py` 组装（`target/pages`，13 MB 左右）：`egglog-demo` 的
+`dist/` + `static/`、本目录的 `native-debugger.js` / `native-debugger.css`、烘焙好的插件
+overlay，以及 `tools/egglog_debugger/wasm` 编译出的**插桩 runtime wasm**。推到
+`MilkBlock/fractal_egraph` 的 `gh-pages` 分支：
 
 ```sh
-python3 tools/egglog_debugger/build_site.py                 # --demo/--output 可覆盖
+rustup target add wasm32-unknown-unknown
+cargo install wasm-bindgen-cli --version 0.2.128     # 必须与 wasm-bindgen crate 版本一致
+python3 tools/egglog_debugger/build_site.py          # --demo/--output 可覆盖
 # 把 target/pages 推到 gh-pages 分支，Pages source 选该分支的 / 即可
 ```
 
-GitHub Pages 只能提供静态文件，**不能运行 bridge**，所以页面在非本机域名下会连接
-`http://127.0.0.1:8080`（可用 `window.__EGGLOG_BRIDGE__` 覆盖）：访客在本机跑
-`python3 tools/egglog_debugger/server.py` 时，“运行并识别”、公式预览和编辑都照常工作；
-没有 bridge 时上游 WASM **Run** 仍然可用，面板会给出提示。bridge 默认允许
-`https://milkblock.github.io` 跨域，其它来源用 `--allow-origin ORIGIN` 追加，并只监听 loopback。
+`tools/egglog_debugger/wasm` 把本仓库 patched、带 `debug-stream` 插桩的 egglog 编到
+wasm32（`getrandom_backend="wasm_js"` + `web-time`；分析规则用
+`egg_layout::embedded_rules` 内嵌，rayon 在 wasm 下走单线程）。浏览器里
+`debug_stream(source, emit)` 流式回吐与 CLI **完全相同**的 JSONL：
+`experiments/bake/increment-3.egg` 两边都是 6 个有效应用、5 个组合、4 条 Fractal 证据。
+
+因此页面在没有 bridge 时仍然具备：上游 WASM **Run**、点行定位规则、
+**运行并识别**（Compose / Fractal 增量日志，纯 wasm）。只有公式预览与模板/变量编辑还需要
+本机 bridge（在非本机域名下页面会连 `http://127.0.0.1:8080`，可用
+`window.__EGGLOG_BRIDGE__` 覆盖）；bridge 默认允许 `https://milkblock.github.io` 跨域，
+其它来源用 `--allow-origin ORIGIN` 追加，并只监听 loopback。两条路都会自动探测：
+有 bridge 就用 bridge（功能最全），没有就用 wasm。
 
 各组件的运行位置：
 
-| 功能 | 现在 | 纯浏览器需要 |
+| 功能 | 现在 | 备注 |
 |---|---|---|
-| 上游 WASM **Run** | 浏览器 WASM（上游 egglog） | 已有 |
-| 点行预览、Typst/DOT、模板/变量编辑 | 本机 bridge（插件 extractor + `typst` CLI + vendored Graphviz） | 仓库里已有整套浏览器实现（`dpsk_workspace/viz-web-editor`：transpiler-wasm、extractor-wasm、`typst.ts`、`viz-js`），还没接到这个 UI |
-| **运行并识别**（Compose / Fractal 增量日志） | 本机 bridge（本仓库 patched、带插桩的 egglog） | 需要把 patched egglog + `debug-stream` 编到 wasm32 |
+| 上游 WASM **Run** | 浏览器 WASM（上游 egglog） | 无后端 |
+| 点行定位规则 / **运行并识别** | 浏览器 wasm（本仓库 patched `debug-stream`） | 无后端，见 `tools/egglog_debugger/wasm` |
+| 公式预览、Typst/DOT、模板/变量编辑 | 本机 bridge（插件 extractor + `typst` CLI + vendored Graphviz） | 待搬到浏览器：仓库里已有整套实现（`dpsk_workspace/viz-web-editor`：transpiler-wasm、extractor-wasm、`typst.ts`、`viz-js`），`typst.ts` 也支持 `query()`，可承载命中区域测量 |
 
 ## 语义与边界
 
@@ -126,6 +136,7 @@ cargo test --test native_debug --test native_history --test native_single_proces
 python3 tools/egglog_debugger/test_browser.py --url http://127.0.0.1:8080
 python3 tools/egglog_debugger/test_word_edit.py --url http://127.0.0.1:8080
 python3 tools/egglog_debugger/test_template_edit.py --url http://127.0.0.1:8080
+python3 tools/egglog_debugger/test_wasm.py           # 需要先 build_site.py；验证无 bridge 的 wasm 识别
 node tools/egglog_debugger/test_plugin_render.cjs /path/to/installed/eggplant-pattern-vscode
 ```
 

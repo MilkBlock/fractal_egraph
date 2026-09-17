@@ -24,3 +24,7 @@ __pycache__/
 /research/target/
 
 /out/
+
+# wasm debugger build artifacts
+/tools/egglog_debugger/wasm/target/
+/tools/egglog_debugger/wasm/pkg/

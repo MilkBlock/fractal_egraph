@@ -59,7 +59,34 @@ export function installNativeDebugger(editor) {
     let rows=[], snapshotSource='', runStatus='idle', selected=null, patterns=[], parsedSource=null, revision=0, renderRevision=0, selectionIntent=0, renderedCount=0;
     let controller=null, timer=null, marker=null, previewAbort=null, parseAbort=null, currentEdit=null, activeRequest=null, templateDirty=false;
     const status = text => {el('status').textContent=text;};
-    if(STATIC_PAGE)status(`静态部署：上游 WASM Run 可用；“运行并识别”与公式预览/编辑需要在本机运行 python3 tools/egglog_debugger/server.py（bridge ${BRIDGE_BASE}）。`);
+    let wasmDebuggerPromise=null, bridgeReady=null;
+    // The same patched instrumented runtime, compiled to wasm32. The static build
+    // uses it when no bridge is running on this machine.
+    function loadWasmDebugger(){
+        if(!wasmDebuggerPromise)wasmDebuggerPromise=(async()=>{
+            const module=await import('./wasm/egglog_debug_wasm.js');
+            await module.default();
+            return module;
+        })();
+        return wasmDebuggerPromise;
+    }
+    async function bridgeAvailable(){
+        if(!STATIC_PAGE)return true;
+        if(bridgeReady===null){
+            try{bridgeReady=(await fetch(BRIDGE_BASE+'/plugin-overlay.js',{method:'GET'})).ok;}catch{bridgeReady=false;}
+        }
+        return bridgeReady;
+    }
+    async function listPatterns(source,signal){
+        if(await bridgeAvailable())return (await (await post('patterns',{source},signal)).json());
+        return JSON.parse((await loadWasmDebugger()).debug_patterns(source));
+    }
+    if(STATIC_PAGE)(async()=>{
+        const local=await bridgeAvailable();
+        status(local
+            ? `静态部署：已连接本机 bridge（${BRIDGE_BASE}），预览/编辑与识别都可用。`
+            : '静态部署：上游 WASM Run 与原生 Compose/Fractal 识别都在浏览器内运行；公式预览/编辑需要本机 bridge（python3 tools/egglog_debugger/server.py）。');
+    })();
     // Common Typst math spellings; {field} placeholders are bound to the constructor's
     // fields in declaration order. Escaped braces {{ }} stay literal.
     const MATH_SYMBOLS = [
@@ -348,7 +375,7 @@ export function installNativeDebugger(editor) {
         try {
             if(parsedSource!==source){
                 parseAbort?.abort();parseAbort=new AbortController();
-                const data=await (await post('patterns',{source},parseAbort.signal)).json();
+                const data=await listPatterns(source,parseAbort.signal);
                 if(version!==revision || intent!==selectionIntent)return;
                 patterns=data.patterns;parsedSource=source;
             }
@@ -374,16 +401,26 @@ export function installNativeDebugger(editor) {
         controller?.abort();controller=new AbortController();const current=controller;
         snapshotSource=editor.getValue();runStatus='running';rows=[];selected=null;el('preview').hidden=true;el('trace').replaceChildren();status('运行实际 egglog runtime，等待增量事件…');el('run').disabled=true;el('stop').disabled=false;el('import').disabled=true;
         try {
-            const response=await post('trace',{source:snapshotSource},current.signal);
-            const reader=response.body.getReader(),decoder=new TextDecoder();let buffer='',complete=false;
+            let complete=false;
             const consume=line=>{if(!line.trim())return;const row=JSON.parse(line);
                 if(row.kind==='error')throw Error(row.error);
                 if(row.kind==='complete'){complete=true;runStatus='complete';status(`完成：${rows.filter(r=>r.kind==='application').length} 个有效应用，${rows.filter(r=>r.kind==='compose').length} 个组合，${rows.filter(r=>r.kind==='fractal').length} 个 Fractal 证据。`);}
                 else if(row.kind==='boundary')status(`执行边界 ${row.boundary}：${row.applications} 个有效应用；${row.logical_matches} 个逻辑匹配，排除 ${row.excluded} 个。`);
                 else {rows.push(row);addRow(row);}
             };
-            while(true){const {value,done}=await reader.read();buffer+=decoder.decode(value || new Uint8Array(),{stream:!done});let newline;while((newline=buffer.indexOf('\n'))>=0){const line=buffer.slice(0,newline);buffer=buffer.slice(newline+1);consume(line);}if(done)break;}
-            if(buffer.trim())consume(buffer);if(!complete)throw Error('事件流提前结束，当前日志为部分结果');
+            if(await bridgeAvailable()){
+                const response=await post('trace',{source:snapshotSource},current.signal);
+                const reader=response.body.getReader(),decoder=new TextDecoder();let buffer='';
+                while(true){const {value,done}=await reader.read();buffer+=decoder.decode(value || new Uint8Array(),{stream:!done});let newline;while((newline=buffer.indexOf('\n'))>=0){const line=buffer.slice(0,newline);buffer=buffer.slice(newline+1);consume(line);}if(done)break;}
+                if(buffer.trim())consume(buffer);
+                if(!complete)throw Error('事件流提前结束，当前日志为部分结果');
+            }else{
+                // Same patched runtime, compiled to wasm: no local process involved.
+                const wasm=await loadWasmDebugger();
+                status('运行浏览器内的 wasm 插桩 runtime…');
+                wasm.debug_stream(snapshotSource,line=>consume(line));
+                if(!complete)throw Error('wasm 事件流没有给出完成事件');
+            }
         }catch(error){runStatus=error.name==='AbortError'?'cancelled':'failed';status(error.name==='AbortError'?'已停止，保留已收到的日志。':`运行失败：${error.message}`);}
         finally{if(controller===current){el('run').disabled=false;el('stop').disabled=true;el('import').disabled=false;controller=null;}}
     };

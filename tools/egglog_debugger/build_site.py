@@ -6,7 +6,9 @@ extractor, the Typst CLI), so the published page is static and connects to a bri
 the visitor's machine for native analysis. The upstream WASM Run needs no server.
 """
 import argparse
+import os
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -15,6 +17,18 @@ from plugin_renderer import PluginRenderer, default_plugin_root
 
 ROOT = Path(__file__).resolve().parents[2]
 DEBUGGER = ROOT / 'tools/egglog_debugger'
+WASM = DEBUGGER / 'wasm'
+
+
+def build_wasm(out):
+    """Compile the patched instrumented runtime to wasm and bind it for the browser."""
+    if not shutil.which('wasm-bindgen'):
+        raise SystemExit('wasm-bindgen CLI is required: cargo install wasm-bindgen-cli --version 0.2.128')
+    env = {**os.environ, 'RUSTFLAGS': '--cfg getrandom_backend="wasm_js"'}
+    subprocess.run(['cargo', 'build', '--release', '--target', 'wasm32-unknown-unknown'], cwd=WASM, env=env, check=True)
+    artifact = WASM / 'target/wasm32-unknown-unknown/release/egglog_debug_wasm.wasm'
+    subprocess.run(['wasm-bindgen', str(artifact), '--target', 'web', '--no-typescript',
+                    '--out-dir', str(out / 'wasm')], check=True)
 
 
 def main():
@@ -45,6 +59,7 @@ def main():
                 shutil.copy2(path, out / path.name)
     for name in ('native-debugger.js', 'native-debugger.css'):
         shutil.copy2(DEBUGGER / name, out / name)
+    build_wasm(out)
     # The bridge serves this overlay from the installed plugin; bake it for the static page.
     (out / 'plugin-overlay.js').write_bytes(PluginRenderer(args.plugin, args.extractor).overlay)
     (out / '.nojekyll').write_text('')
