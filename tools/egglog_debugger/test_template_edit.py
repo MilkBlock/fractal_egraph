@@ -47,6 +47,19 @@ LEQ_SOURCE = '''(datatype Expr (Num i64) (Var String) (Add Expr Expr))
 ))
 '''
 
+# Names with digits inside (`e1a`) are one Typst identifier, not `e_1 a`.
+DIGIT_VAR_SOURCE = '''(datatype Expr (Num i64) (Add Expr Expr))
+(relation leq (Expr Expr))
+(rule (
+    (= e1 (Add e1a e1b))
+    (= e2 (Add e2a e2b))
+    (leq e1a e2a)
+    (leq e1b e2b)
+) (
+    (leq e1 e2)
+))
+'''
+
 EXAMPLES = Path(__file__).resolve().parents[3] / 'egglog-demo/static/examples.json'
 HERBIE = json.loads(EXAMPLES.read_text())['herbie'] if EXAMPLES.is_file() else None
 
@@ -229,6 +242,14 @@ def main():
         assert page.locator('summary', has_text='Rust 源码').count() == 1
         rust = page.locator('#native-rust').text_content()
         assert 'add_rule' in rust and 'insert_leq' in rust, rust
+
+        # --- digit-containing pattern variables are not emitted bare ----------
+        set_source(DIGIT_VAR_SOURCE, 2)
+        ready('e1a')
+        assert not page.locator('#native-render-error').inner_text(), page.locator('#native-render-error').inner_text()
+        rendered = page.locator('#native-source').text_content()
+        assert 'upright("e1a")' in rendered and 'upright("e1b")' in rendered, rendered
+        assert 'Leq' in rendered and 'no conclusion' not in rendered, rendered
 
         # --- an annotation already wrapped by the old bug is recoverable -------
         set_source(WRAPPED_SOURCE, 2)

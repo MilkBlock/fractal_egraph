@@ -53,6 +53,16 @@ tier-1、tier-2 保留同一 EGraph 和导入游标，只导入新应用和新 e
 semantic text 路径。关系名按插件默认渲染成大写变体（`leq` → `Leq`），加 `dsl_type`
 模板即可控制显示。
 
+变量名按 Typst 规则渲染：`e1` 这类“字母 + 数字”写成下标 `e_1`，其余标识符（如
+`e1a`、`e1b`）写成 `upright("e1a")`。此前 `e1a` 会裸输出，Typst 报
+`unknown variable: e1a`，整个公式降级为文本（extractor 提交 `16861bf`）。
+
+已知仍会降级的边界：约束（side condition）的 `semantic_text` 为空时会回退到
+提取器的 Rust 表达式，若其中包含 `prim_call::<…>`、`bigrat(…)` 这类片段，
+Typst 仍可能编译失败（例如 `03-analysis.egg` 里带 `upper-bound` / `lower-bound`
+约束的规则）。这类规则显示文本 fallback 与原始 Rust，但仍可从 Rust 源码面板
+核对实际表达式。
+
 Fractal 的 `Depth / context / event` 证据单独列出；它不是插件支持的一种源规则，不伪造新的 MathView。步骤选择器展示这条实际路径上各规则的插件公式。
 
 日志格式 v2 保存已查看的插件渲染结果（公式源码、SVG、DOT、节点公式、配置和渲染器指纹），
