@@ -99,6 +99,10 @@ def main():
         page.click('#native-template-help')
         assert page.locator('#native-symbol-help').is_visible()
         assert page.locator('.native-symbol-row').count() >= 20
+        # The panel must explain that bare multi-letter names are not Typst math.
+        help_text = page.locator('#native-symbol-help').inner_text()
+        assert 'upright("Mul")' in help_text and '{{' in help_text, help_text
+        assert page.locator('.native-symbol-row[data-template*=\'upright("Mul")\']').count() >= 1
         page.locator('.native-symbol-row', has_text='平方根').first.click()
         assert 'sqrt(' in page.input_value('#native-template-input')
         page.click('#native-template-help')
@@ -116,6 +120,22 @@ def main():
         save_editor()
         page.wait_for_function('()=>document.querySelector("#native-edit-error").textContent.includes("未声明的模板字段")')
         assert read() == saved
+        # A bare multi-letter name is not valid Typst math; the error must point at
+        # the upright("...")/op("...") form and at {{ }} grouping.
+        page.fill('#native-template-input', 'Mul {{ {left} dot {right} }}')
+        save_editor()
+        page.wait_for_function('()=>document.querySelector("#native-edit-error").textContent.includes("upright")')
+        hint = page.locator('#native-edit-error').inner_text()
+        assert 'upright("Mul")' in hint and '{{' in hint, hint
+        assert read() == saved
+        # The legal spelling saves and renders the literal name.
+        page.fill('#native-template-input', 'upright("Mul") {{ {left} dot {right} }}')
+        save_editor()
+        page.wait_for_function('()=>document.querySelector(".CodeMirror").CodeMirror.getValue().includes("Mul")')
+        ready('Mul')
+        saved = read()
+        # A successful save closes the editor; reopen it for the name checks.
+        open_target_expect('constructor:Add', '#native-template-input', 'upright("Mul") {{ {left} dot {right} }}')
         page.fill('#native-name-input', 'Var')
         save_editor()
         page.wait_for_function('()=>document.querySelector("#native-edit-error").textContent.includes("重名")')

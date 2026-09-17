@@ -55,6 +55,10 @@ export function installNativeDebugger(editor) {
     // Common Typst math spellings; {field} placeholders are bound to the constructor's
     // fields in declaration order. Escaped braces {{ }} stay literal.
     const MATH_SYMBOLS = [
+        ['字面名称（推荐）', 'upright("Mul")({left}, {right})'],
+        ['字面名称 + 分组', 'upright("Mul") {{ {left} dot {right} }}'],
+        ['字面名称（op）', 'op("Mul")({left}, {right})'],
+        ['花括号分组', '{{ {left} + {right} }}'],
         ['加法', '{left} + {right}'], ['减法', '{left} - {right}'],
         ['乘法（点乘）', '{left} dot {right}'], ['叉乘', '{left} times {right}'],
         ['分式', 'frac({left}, {right})'], ['幂', '{base}^({exp})'],
@@ -78,8 +82,11 @@ export function installNativeDebugger(editor) {
         const name=document.createElement('span');name.textContent=label;
         row.append(code,name);row.onclick=()=>insertTemplate(example);el('symbol-help').append(row);
     }
-    const helpNote=document.createElement('p');helpNote.textContent='模板里的 {字段} 会替换为对应参数；{{ 和 }} 表示字面花括号。保存前会检查重名、未声明字段和 Typst 编译结果。';
-    el('symbol-help').prepend(helpNote);
+    for(const line of [
+        '模板里的 {字段} 会替换为对应参数；{{ 和 }} 表示字面花括号（分组用）。',
+        '多字母名称必须写成 upright("Mul") 或 op("Mul")。直接写 Mul，Typst 数学模式会读成 M·u·l 三个变量并报 unknown variable。',
+        '保存前会检查重名、未声明字段和真实 Typst 编译结果。',
+    ]){const note=document.createElement('p');note.textContent=line;el('symbol-help').prepend(note);}
     function fingerprint(text){let hash=2166136261;for(let i=0;i<text.length;i++){hash^=text.charCodeAt(i);hash=Math.imul(hash,16777619);}return (hash>>>0).toString(16)+':'+text.length;}
     async function post(path, body, signal) {
         const response=await fetch('/api/'+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal});

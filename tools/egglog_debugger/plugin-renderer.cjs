@@ -141,6 +141,21 @@ function runTypst(document, timeout = 20000) {
     });
 }
 
+// Typst math reads a bare multi-letter word as separate single-letter variables,
+// so `Mul { … }` fails with `unknown variable: Mul` while `upright("Mul") { … }`
+// works. Turn that into an actionable hint instead of a bare Typst dump.
+function literalNameHint(template, message) {
+    const unknown = /unknown variable: ([A-Za-z_][A-Za-z0-9_]*)/.exec(message);
+    if (!unknown) return '';
+    const token = unknown[1];
+    const words = template.match(/[A-Za-z_][A-Za-z0-9_]*/g) || [];
+    const candidate = token.length > 1 ? token : words.find(word => word.length > 1 && word.startsWith(token));
+    if (!candidate) return '';
+    return `\n提示：Typst 数学模式把 ${candidate} 当作多个单字母变量，而不是一个名称。`
+        + `要显示这个字面名称请写 upright("${candidate}") 或 op("${candidate}")；`
+        + `要调用函数请检查拼写。需要花括号分组时用 {{ 和 }}。`;
+}
+
 async function validateTemplate(plugin, template, fields) {
     if (typeof template !== 'string' || !template.trim()) return { ok: false, error: 'Typst 模板不能为空' };
     let document;
@@ -149,7 +164,10 @@ async function validateTemplate(plugin, template, fields) {
         document = plugin.load('shared/typstCore').buildTypstMathDocument(expanded);
     } catch (error) { return { ok: false, error: String(error.message || error) }; }
     try { await runTypst(document); return { ok: true }; }
-    catch (error) { return { ok: false, error: String(error.message || error) }; }
+    catch (error) {
+        const message = String(error.message || error);
+        return { ok: false, error: message + literalNameHint(template, message) };
+    }
 }
 
 module.exports = { loadPlugin, renderPreview, validateTemplate };
