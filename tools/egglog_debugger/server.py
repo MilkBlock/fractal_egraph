@@ -74,7 +74,12 @@ class Handler(SimpleHTTPRequestHandler):
                 if result.get('template'):
                     check = self.server.renderer.validate_template(result['template'], result.get('template_fields') or [])
                     if not check.get('ok'):
-                        return self.reply(422, {'error': 'Typst 模板无法编译：' + check.get('error', '未知错误')})
+                        error = 'Typst 模板无法编译：' + check.get('error', '未知错误')
+                        # A repairable template stays unwritten until the user confirms
+                        # the suggestion on a second submit.
+                        if check.get('suggestion') and check['suggestion'] != result['template']:
+                            return self.reply(409, {'error': error, 'suggestion': check['suggestion'], 'notes': check.get('notes') or []})
+                        return self.reply(422, {'error': error})
                 return self.reply(200, result)
             with tempfile.TemporaryDirectory(prefix='egglog-debug-') as folder:
                 folder = Path(folder)

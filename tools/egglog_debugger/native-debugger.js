@@ -86,11 +86,15 @@ export function installNativeDebugger(editor) {
         '模板里的 {字段} 会替换为对应参数；{{ 和 }} 表示字面花括号（分组用）。',
         '多字母名称必须写成 upright("Mul") 或 op("Mul")。直接写 Mul，Typst 数学模式会读成 M·u·l 三个变量并报 unknown variable。',
         '保存前会检查重名、未声明字段和真实 Typst 编译结果。',
+        '如果只是裸名称这类可确定的问题，保存时会先把修正结果填回模板框，再按一次“确认修正并保存”才会写入 .egg。',
     ]){const note=document.createElement('p');note.textContent=line;el('symbol-help').prepend(note);}
     function fingerprint(text){let hash=2166136261;for(let i=0;i<text.length;i++){hash^=text.charCodeAt(i);hash=Math.imul(hash,16777619);}return (hash>>>0).toString(16)+':'+text.length;}
     async function post(path, body, signal) {
         const response=await fetch('/api/'+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal});
-        if (!response.ok) {let error;try {error=(await response.json()).error;}catch {error='请通过 tools/egglog_debugger/server.py 启动本地调试服务';}throw Error(error);}
+        if (!response.ok) {
+            let payload;try {payload=await response.json();}catch {payload={error:'请通过 tools/egglog_debugger/server.py 启动本地调试服务'};}
+            const error=Error(payload.error || '请求失败');error.payload=payload;throw error;
+        }
         return response;
     }
     function mountSvg(markup) {
@@ -110,7 +114,8 @@ export function installNativeDebugger(editor) {
     }
     function closeNameEditor(){currentEdit=null;el('name-editor').hidden=true;el('condition-editor').hidden=true;hideSymbolHelp();}
     function hideSymbolHelp(){el('symbol-help').hidden=true;el('template-help').setAttribute('aria-expanded','false');}
-    function insertTemplate(example){const area=el('template-input');if(!example)return;const start=area.selectionStart ?? area.value.length,end=area.selectionEnd ?? start;area.value=area.value.slice(0,start)+example+area.value.slice(end);templateDirty=true;area.focus();area.selectionStart=area.selectionEnd=start+example.length;}
+    function clearPendingFix(){el('name-save').textContent='保存到 .egg 注释';el('template-note').classList.remove('native-note-pending');}
+    function insertTemplate(example){const area=el('template-input');if(!example)return;const start=area.selectionStart ?? area.value.length,end=area.selectionEnd ?? start;area.value=area.value.slice(0,start)+example+area.value.slice(end);templateDirty=true;clearPendingFix();area.focus();area.selectionStart=area.selectionEnd=start+example.length;}
     function renamePlaceholder(template,from,to){if(!from||!to||from===to)return template;const escaped=from.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return template.replace(new RegExp('\\{'+escaped+'\\}','g'),'{'+to+'}');}
     function currentFields(){return [...el('field-editor').querySelectorAll('.native-field-name')].map(input=>input.value.trim());}
     // A value with {field} placeholders is a formula, not a label: typing the whole
@@ -150,10 +155,12 @@ export function installNativeDebugger(editor) {
         if(target.kind==='constructor' && target.field_labels?.length){
             const title=document.createElement('div');title.textContent='字段名称（用于模板占位符）';el('field-editor').append(title);
             const placeholders=(target.template||'').match(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g)?.map(token=>token.slice(1,-1)) || [];
-            target.field_labels.forEach((field,index)=>{const label=document.createElement('label');label.className='native-field-row';label.textContent=`字段 ${index+1}`;const input=document.createElement('input');input.className='native-field-name';input.value=field;input.maxLength=80;input.required=true;input.dataset.index=index;input.dataset.placeholder=placeholders[index] || field;input.addEventListener('input',()=>{const next=input.value.trim();if(next && next!==input.dataset.placeholder && /^[A-Za-z_][A-Za-z0-9_]*$/.test(next)){el('template-input').value=renamePlaceholder(el('template-input').value,input.dataset.placeholder,next);input.dataset.placeholder=next;templateDirty=true;}});label.append(input);el('field-editor').append(label);});
+            target.field_labels.forEach((field,index)=>{const label=document.createElement('label');label.className='native-field-row';label.textContent=`字段 ${index+1}`;const input=document.createElement('input');input.className='native-field-name';input.value=field;input.maxLength=80;input.required=true;input.dataset.index=index;input.dataset.placeholder=placeholders[index] || field;input.addEventListener('input',()=>{const next=input.value.trim();if(next && next!==input.dataset.placeholder && /^[A-Za-z_][A-Za-z0-9_]*$/.test(next)){el('template-input').value=renamePlaceholder(el('template-input').value,input.dataset.placeholder,next);input.dataset.placeholder=next;templateDirty=true;clearPendingFix();}});label.append(input);el('field-editor').append(label);});
         }
         const constructor=target.kind==='constructor';
         el('template-editor').hidden=!constructor;
+        el('name-save').textContent='保存到 .egg 注释';
+        el('template-note').classList.remove('native-note-pending');
         if(constructor){
             // Recover annotations written before template-like names were routed:
             // a label of "{left} + {right}" wrapped by upright("...") was meant as
@@ -192,7 +199,8 @@ export function installNativeDebugger(editor) {
         }
         if(rendered.edit_error)el('edit-hint').textContent='当前公式的文字定位失败；原始插件预览仍可查看，可用下方按钮编辑。';
     }
-    el('name-input').addEventListener('input',()=>{if(currentEdit && !el('template-editor').hidden){const name=el('name-input').value.trim();el('template-input').value=templateFromName();templateDirty=true;el('template-note').textContent=looksLikeTemplate(name)?'检测到 {字段}，已按 Typst 模板处理；显示名称只是标签文字。':'';}});
+    el('name-input').addEventListener('input',()=>{if(currentEdit && !el('template-editor').hidden){const name=el('name-input').value.trim();el('template-input').value=templateFromName();templateDirty=true;clearPendingFix();el('template-note').textContent=looksLikeTemplate(name)?'检测到 {字段}，已按 Typst 模板处理；显示名称只是标签文字。':'';}});
+    el('template-input').addEventListener('input',()=>{templateDirty=true;clearPendingFix();});
     el('template-help').onclick=event=>{event.stopPropagation();const open=el('symbol-help').hidden;el('symbol-help').hidden=!open;el('template-help').setAttribute('aria-expanded',String(open));};
     el('symbol-help').addEventListener('click',event=>event.stopPropagation());
     document.addEventListener('click',()=>{if(!el('symbol-help').hidden)hideSymbolHelp();});
@@ -220,9 +228,21 @@ export function installNativeDebugger(editor) {
                 editor.replaceRange(result.source,{line:0,ch:0},editor.posFromIndex(edit.source.length),'+display-annotation');
                 editor.setCursor({line:result.line-1,ch:0});
             });
-            closeNameEditor();clearTimeout(timer);status('显示注释已写回 .egg；可用编辑器撤销，也可下载源码。');
+            clearPendingFix();closeNameEditor();clearTimeout(timer);status('显示注释已写回 .egg；可用编辑器撤销，也可下载源码。');
             await previewLine();
-        }catch(error){el('edit-error').textContent=error.message;}
+        }catch(error){
+            const payload=error.payload;
+            if(payload?.suggestion && payload.suggestion!==el('template-input').value){
+                // Never write on the first failure: show the corrected template and
+                // wait for the user to confirm it with a second submit.
+                el('template-input').value=payload.suggestion;
+                el('edit-error').textContent='';
+                el('template-note').textContent=`已自动修正${payload.notes?.length?'：'+payload.notes.join('、'):''}。尚未写入 .egg，请再按一次“确认修正并保存”。`;
+                el('template-note').classList.add('native-note-pending');
+                el('name-save').textContent='确认修正并保存';
+                status('模板已自动修正，等待你确认后写入。');
+            }else el('edit-error').textContent=error.message;
+        }
         finally{el('name-save').disabled=false;}
     };
     el('condition-cancel').onclick=closeNameEditor;

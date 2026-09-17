@@ -111,36 +111,33 @@ def main():
 
         # --- invalid edits are rejected and never touch the source ------------
         open_target('constructor:Add')
-        page.fill('#native-template-input', 'nosuchfn({left}, {right})')
+        page.fill('#native-template-input', 'frac({left}, {right}')
         save_editor()
-        page.wait_for_function('()=>document.querySelector("#native-edit-error").textContent.length>0')
-        assert 'Typst' in page.locator('#native-edit-error').inner_text()
+        page.wait_for_function('()=>document.querySelector("#native-edit-error").textContent.includes("Typst")')
         assert read() == saved
         page.fill('#native-template-input', 'frac({nope}, {right})')
         save_editor()
         page.wait_for_function('()=>document.querySelector("#native-edit-error").textContent.includes("未声明的模板字段")')
         assert read() == saved
-        # A bare multi-letter name is not valid Typst math; the error must point at
-        # the upright("...")/op("...") form and at {{ }} grouping.
-        page.fill('#native-template-input', 'Mul {{ {left} dot {right} }}')
-        save_editor()
-        page.wait_for_function('()=>document.querySelector("#native-edit-error").textContent.includes("upright")')
-        hint = page.locator('#native-edit-error').inner_text()
-        assert 'upright("Mul")' in hint and '{{' in hint, hint
-        assert read() == saved
-        # The legal spelling saves and renders the literal name.
-        page.fill('#native-template-input', 'upright("Mul") {{ {left} dot {right} }}')
-        save_editor()
-        page.wait_for_function('()=>document.querySelector(".CodeMirror").CodeMirror.getValue().includes("Mul")')
-        ready('Mul')
-        saved = read()
-        # A successful save closes the editor; reopen it for the name checks.
-        open_target_expect('constructor:Add', '#native-template-input', 'upright("Mul") {{ {left} dot {right} }}')
         page.fill('#native-name-input', 'Var')
         save_editor()
         page.wait_for_function('()=>document.querySelector("#native-edit-error").textContent.includes("重名")')
         assert read() == saved
-        # A rejected edit keeps the editor open, so the next attempt still works.
+        # A bare multi-letter name is auto-corrected into the template box, but the
+        # source stays untouched until the user confirms with a second submit.
+        page.fill('#native-template-input', 'Mul {{ {left} dot {right} }}')
+        save_editor()
+        page.wait_for_function('()=>document.querySelector("#native-template-input").value.includes(\'upright("Mul")\')')
+        assert read() == saved
+        assert 'Mul → upright("Mul")' in page.locator('#native-template-note').inner_text()
+        assert page.locator('#native-name-save').inner_text() == '确认修正并保存'
+        save_editor()
+        page.wait_for_function('()=>document.querySelector(".CodeMirror").CodeMirror.getValue().includes("upright")')
+        ready('Mul')
+        saved = read()
+        assert 'upright(\\"Mul\\")' in saved, saved
+        # The confirmed save closes the editor; reopen it for the remaining checks.
+        open_target_expect('constructor:Add', '#native-template-input', 'upright("Mul") {{ {left} dot {right} }}')
         page.fill('#native-name-input', 'Plus')
         save_editor()
         ready('Plus')

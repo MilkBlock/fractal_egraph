@@ -141,8 +141,8 @@ function runTypst(document, timeout = 20000) {
     });
 }
 
-// Typst math reads a bare multi-letter word as separate single-letter variables,
-// so `Mul { … }` fails with `unknown variable: Mul` while `upright("Mul") { … }`
+// Typst math reads a bare multi-letter word as one unknown identifier, so
+// `Mul { … }` fails with `unknown variable: Mul` while `upright("Mul") { … }`
 // works. Turn that into an actionable hint instead of a bare Typst dump.
 function literalNameHint(template, message) {
     const unknown = /unknown variable: ([A-Za-z_][A-Za-z0-9_]*)/.exec(message);
@@ -156,18 +156,80 @@ function literalNameHint(template, message) {
         + `要调用函数请检查拼写。需要花括号分组时用 {{ 和 }}。`;
 }
 
+// Blank out placeholders, escaped braces and quoted strings so only bare Typst
+// words remain; masking keeps indices aligned with the original template.
+function maskTemplate(template) {
+    const chars = [...template];
+    const out = chars.slice();
+    for (let index = 0; index < chars.length;) {
+        if (chars[index] === '{' && chars[index + 1] === '{') { out[index] = ' '; out[index + 1] = ' '; index += 2; continue; }
+        if (chars[index] === '}' && chars[index + 1] === '}') { out[index] = ' '; out[index + 1] = ' '; index += 2; continue; }
+        if (chars[index] === '{') {
+            const end = chars.indexOf('}', index + 1);
+            if (end < 0) break;
+            for (let at = index; at <= end; at++) out[at] = ' ';
+            index = end + 1; continue;
+        }
+        if (chars[index] === '"') {
+            out[index] = ' ';
+            let at = index + 1;
+            while (at < chars.length && chars[at] !== '"') {
+                if (chars[at] === '\\' && at + 1 < chars.length) { out[at] = ' '; out[at + 1] = ' '; at += 2; }
+                else { out[at] = ' '; at += 1; }
+            }
+            if (at < chars.length) { out[at] = ' '; index = at + 1; } else index = at;
+            continue;
+        }
+        index += 1;
+    }
+    return out.join('');
+}
+
+// `unknown variable: Mul` means a bare word Typst does not know; showing it as
+// text needs upright("Mul"). Returns the rewritten template, or null when the
+// failing identifier is not a bare word the user actually wrote.
+function wrapBareName(template, message) {
+    const unknown = /unknown variable: ([A-Za-z_][A-Za-z0-9_]*)/.exec(message);
+    if (!unknown) return null;
+    const hit = [...maskTemplate(template).matchAll(/[A-Za-z_][A-Za-z0-9_]*/g)].find(match => match[0] === unknown[1]);
+    if (!hit) return null;
+    const word = hit[0];
+    return { template: template.slice(0, hit.index) + `upright(${JSON.stringify(word)})` + template.slice(hit.index + word.length), word };
+}
+
+function buildTemplateDocument(plugin, template, fields) {
+    return plugin.load('shared/typstCore').buildTypstMathDocument(expandTemplate(template, fields || [], 'upright("x")'));
+}
+
 async function validateTemplate(plugin, template, fields) {
     if (typeof template !== 'string' || !template.trim()) return { ok: false, error: 'Typst 模板不能为空' };
     let document;
-    try {
-        const expanded = expandTemplate(template, fields || [], 'upright("x")');
-        document = plugin.load('shared/typstCore').buildTypstMathDocument(expanded);
-    } catch (error) { return { ok: false, error: String(error.message || error) }; }
+    try { document = buildTemplateDocument(plugin, template, fields); }
+    catch (error) { return { ok: false, error: String(error.message || error) }; }
     try { await runTypst(document); return { ok: true }; }
-    catch (error) {
-        const message = String(error.message || error);
-        return { ok: false, error: message + literalNameHint(template, message) };
+    catch (error) { return repairTemplate(plugin, template, fields, String(error.message || error)); }
+}
+
+// Best-effort automatic fix: wrap each unknown bare name and recompile. The caller
+// only writes the suggestion after the user confirms it, never on the first submit.
+async function repairTemplate(plugin, template, fields, message) {
+    let current = template;
+    const notes = [];
+    let failure = message;
+    for (let round = 0; round < 8; round++) {
+        const fixed = wrapBareName(current, failure);
+        if (!fixed) break;
+        current = fixed.template;
+        notes.push(`${fixed.word} → upright("${fixed.word}")`);
+        let document;
+        try { document = buildTemplateDocument(plugin, current, fields); }
+        catch (error) { return { ok: false, error: String(error.message || error), notes }; }
+        try {
+            await runTypst(document);
+            return { ok: false, error: failure + literalNameHint(template, failure), suggestion: current, notes };
+        } catch (error) { failure = String(error.message || error); }
     }
+    return { ok: false, error: message + literalNameHint(template, message), notes };
 }
 
 module.exports = { loadPlugin, renderPreview, validateTemplate };
