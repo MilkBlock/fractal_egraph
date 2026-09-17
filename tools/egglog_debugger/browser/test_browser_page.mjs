@@ -82,10 +82,56 @@ async function main() {
         await page.selectOption("#native-format", "dot");
         await page.waitForFunction(() => document.querySelectorAll("#native-preview svg g.node").length > 0, null, { timeout: 180000 });
         assert.equal(await page.locator("#native-render-error").innerText(), "");
+
+        // Editing belongs to source previews: put the cursor on a rule line, like
+        // a user clicking it. (Trace rows are event snapshots and stay read only.)
+        await page.selectOption("#native-format", "typst");
+        await page.evaluate(() => {
+            document.querySelector(".CodeMirror").CodeMirror.setCursor({ line: 2, ch: 0 });
+        });
+        await page.waitForFunction(
+            () => document.querySelectorAll('#native-preview .native-edit-hit[data-target^="constructor:"]').length > 0,
+            null, { timeout: 180000 });
+        // Parse the annotation lines the edits wrote, instead of pattern matching
+        // escaped JSON inside the source.
+        const annotations = () => page.evaluate(() => document.querySelector(".CodeMirror").CodeMirror.getValue()
+            .split("\n").filter(line => line.includes("@egg-viz-json"))
+            .map(line => JSON.parse(line.slice(line.indexOf("@egg-viz-json") + "@egg-viz-json ".length))));
+
+        // A constructor rename writes a `dsl_type` template, which the browser
+        // Typst compiler has to accept before anything is written.
+        await page.locator('#native-preview .native-edit-hit[data-target^="constructor:"]').first().click();
+        await page.waitForSelector("#native-name-editor:not([hidden])");
+        await page.fill("#native-name-input", "RenamedCtor");
+        await page.click("#native-name-save");
+        await page.waitForFunction(() => document.querySelector(".CodeMirror").CodeMirror.getValue().includes("RenamedCtor"),
+            null, { timeout: 180000 });
+        assert.equal(await page.locator("#native-edit-error").innerText(), "");
+        const afterConstructor = await annotations();
+        const dslType = afterConstructor.find(entry => entry.kind === "dsl_type");
+        assert.equal(dslType.variants.A.typst, 'upright("RenamedCtor")({arg0}, {arg1})', JSON.stringify(dslType));
+
+        // A binding rename writes the rule's `labels.bindings` instead.
+        await page.waitForFunction(
+            () => document.querySelectorAll('#native-preview .native-edit-hit[data-target^="binding:"]').length > 0,
+            null, { timeout: 180000 });
+        await page.locator('#native-preview .native-edit-hit[data-target^="binding:"]').first().click();
+        await page.waitForSelector("#native-name-editor:not([hidden])");
+        await page.fill("#native-name-input", "renamed_node");
+        await page.click("#native-name-save");
+        await page.waitForFunction(() => document.querySelector(".CodeMirror").CodeMirror.getValue().includes("renamed_node"),
+            null, { timeout: 180000 });
+        const afterBinding = await annotations();
+        const rule = afterBinding.find(entry => entry.kind === "original_rule");
+        assert.ok(rule, JSON.stringify(afterBinding));
+        assert.ok(Object.values(rule.labels.bindings).includes("renamed_node"), JSON.stringify(rule));
+
         assert.ok(await page.evaluate(() => window.egglogNative.rendered) >= 2);
         assert.deepEqual(errors, []);
         const line = await page.evaluate(() => window.egglogNative.selected.source_line);
-        process.stdout.write(`PASS wasm preview page: Typst formula and DOT rendered without a bridge (L${line}, ${renderer.split(" · ")[1]})\n`);
+        assert.equal(await page.evaluate(() => window.egglogNative.selected.kind), undefined);
+        process.stdout.write(`PASS wasm preview page: Typst formula, DOT and a .egg edit written back`
+            + ` entirely from wasm (L${line}, ${renderer.split(" · ")[1]})\n`);
     } finally {
         await browser.close();
         server.close();

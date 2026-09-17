@@ -54,8 +54,9 @@ python3 tools/egglog_debugger/build_site.py          # --demo/--output/--webdeps
 `tools/egglog_debugger/wasm` 把本仓库 patched、带 `debug-stream` 插桩的 egglog 编到
 wasm32（`getrandom_backend="wasm_js"` + `web-time`；分析规则用
 `egg_layout::embedded_rules` 内嵌，rayon 在 wasm 下走单线程）。浏览器里
-`debug_stream(source, emit)` 流式回吐与 CLI **完全相同**的 JSONL：
-`experiments/bake/increment-3.egg` 两边都是 6 个有效应用、5 个组合、4 条 Fractal 证据。
+`debug_stream(source, emit)` 与 CLI 走同一份插桩代码，命中集合与轮次一致
+（`experiments/bake/increment-3.egg` 两边都是 6 个有效应用、5 个组合、4 条 Fractal 证据）；
+两者的差异只在枚举顺序，见下面的“match 历史与顺序”。
 
 `tools/egglog_debugger/browser/` 是同一套预览管线的浏览器 host，见下一节。它把 bridge 里
 的四个外部依赖换成 wasm：插件的 transpiler bundle、插件的 extractor crate
@@ -65,11 +66,12 @@ wasm 下直接 trap）、`@myriaddreamin/typst.ts`，以及插件 vendored 的�
 任何 CDN，公式尺寸也可复现。
 
 因此页面在没有 bridge 时具备：上游 WASM **Run**、点行定位规则、**运行并识别**
-（Compose / Fractal 增量日志）、以及**公式/DOT 预览**，全部在浏览器 wasm 内完成。
-只有把名字写回 `.egg` 的编辑动作仍走本机 bridge（在非本机域名下页面会连
-`http://127.0.0.1:8080`，可用 `window.__EGGLOG_BRIDGE__` 覆盖）；bridge 默认允许
-`https://milkblock.github.io` 跨域，其它来源用 `--allow-origin ORIGIN` 追加，并只监听
-loopback。两条路都会自动探测：有 bridge 就用 bridge（功能最全），没有就用 wasm。
+（Compose / Fractal 增量日志）、**公式/DOT 预览**，以及把构造器/变量/条件改动**写回 `.egg`**，
+全部在浏览器 wasm 内完成。bridge 仍然值得跑：它是本机 native runtime，event id 与顺序是权威的
+（见“match 历史与顺序”），并且功能最全（在非本机域名下页面会连 `http://127.0.0.1:8080`，可用
+`window.__EGGLOG_BRIDGE__` 覆盖）；bridge 默认允许 `https://milkblock.github.io` 跨域，
+其它来源用 `--allow-origin ORIGIN` 追加，并只监听 loopback。两条路都会自动探测：
+有 bridge 就用 bridge，没有就用 wasm。
 
 各组件的运行位置：
 
@@ -78,7 +80,7 @@ loopback。两条路都会自动探测：有 bridge 就用 bridge（功能最全
 | 上游 WASM **Run** | 浏览器 WASM（上游 egglog） | 无后端 |
 | 点行定位规则 / **运行并识别** | 浏览器 wasm（本仓库 patched `debug-stream`） | 无后端，见 `tools/egglog_debugger/wasm` |
 | 公式预览、Typst/DOT | 浏览器 wasm（`browser/preview.js`）或 bridge | 同一份 `renderPreview`，host 不同；见 `tools/egglog_debugger/browser` |
-| 模板/变量编辑（写回 `.egg`） | 本机 bridge | 待搬到浏览器：`preview_annotations.py` 的 `catalog`/`update_*` 尚无 JS 版本 |
+| 模板/变量/条件编辑（写回 `.egg`） | 浏览器 wasm 或 bridge | 与 bridge 同一套契约；模板仍必须通过 Typst 编译，编辑后的程序仍必须能被插桩 runtime 识别 |
 
 ## 浏览器预览包（无 bridge）
 
@@ -98,6 +100,32 @@ host：`server.py` 那边是子进程 + 插件 vendor 的 CJS Graphviz，这边�
 字体差异会带来约 1–5% 的排版尺寸偏差（同一份 Typst 源码、不同字体后端），因此
 DOT 里的节点尺寸和 Graphviz 坐标与 bridge 不完全相同；公式源码、PatternIr、DOT 结构、
 标签和可点击目标要求完全一致，由 `browser/test_browser_render.mjs` 逐项断言。
+
+## match 历史与顺序
+
+浏览器里的 egglog（wasm32）和本机 CLI 是同一份插桩代码，但**不保证逐字节相同的 JSONL**。
+`browser/test_stream_parity.mjs` 在 `experiments/bake/*.egg` 加 `egglog-demo` 的 54 个示例上
+（62 个程序、1194 行事件、51 个“两边同样拒绝”）断言三者相等：
+
+- 行数（每个 kind 的事件数）
+- 命中的 match 多重集：同一规则、同一 boundary、同样的具体绑定值
+- boundary 直方图（每个 round 里各规则命中几次）
+- 分析拒绝的程序两边给出同一条拒绝信息（panic 只比较“都 panic”）
+
+实测：9 个能出事件的程序里 5 个连顺序都逐字节一致；另外 4 个（`binary-1`、`binary-5`、
+`heldout-binary`、`examples/eqsat-basic`）**命中完全相同但枚举顺序不同**，于是 `id`、`event`、
+`effects.produced` 里的 `0:write:N` 顺序也跟着不同。原因是平台相关的表遍历顺序
+（wasm32 与 64 位下 `usize` 哈希不同；native 那侧还有并行匹配），不是随机性：
+两端各自重复运行都稳定。
+
+结论与用法：
+
+- 需要**可引用、可跨端比对的 event id / 顺序**（拿本机工具对账、diff 两次运行、引用某个
+  事件编号）时，以本机 bridge（native）为权威，浏览器那份只能保证“命中了什么”。
+- 只关心“这一轮命中了什么、公式长什么样”时，wasm 是忠实的。
+- 想让两边逐字节一致，需要在发射前做**规范化重编号**（按 rule + 绑定值排序并重映射
+  `parents`/`event` 引用），不只是排序——目前没做，因为那会改变 UI 与导出日志里的
+  事件 id 语义。
 
 ## 语义与边界
 
@@ -180,13 +208,16 @@ node tools/egglog_debugger/browser/test_browser_render.mjs \
   target/pages/browser/preview.js /path/to/installed/eggplant-pattern-vscode
 node tools/egglog_debugger/browser/test_annotations_parity.mjs ../egglog-demo
 node tools/egglog_debugger/browser/test_browser_page.mjs --dir target/pages [--chromium PATH]
+node tools/egglog_debugger/browser/test_stream_parity.mjs --wasm target/pages/wasm
 ```
 
 第一条在 Node 里加载打包结果（`file://` fetch shim），对四组 view/label/recursive 配置逐项比较
 浏览器 host 与 bridge 的 PatternIr、公式源码、Typst 文档、DOT 结构、Graphviz 图和可点击区域，
 并比较 5 个模板的校验结论；第二条把 `browser/src/annotations.js` 与 egglog-demo 的
-`preview_annotations.py` 在 54 个示例程序上逐行对比；第三条真的起一个静态服务器，把页面指向
-一个死掉的 bridge，点一条日志，要求公式和 DOT 都由 wasm 渲染出来。
+`preview_annotations.py` 在 54 个示例程序上逐行对比（含 `catalog` 与 `update_display` /
+`update_conditions` 的接受与拒绝）；第三条真的起一个静态服务器，把页面指向一个死掉的
+bridge，点一条日志要求公式和 DOT 都由 wasm 渲染，再分别改一个 constructor 和一个 binding
+并要求注释写回编辑器；第四条比较 native 与 wasm 的 match 历史（见上一节）。
 
 本地 HTTP 服务只监听 loopback。代码、日志和公式通过同源 API 处理；不依赖外部公式渲染服务。
 原 demo 页面使用的第三方前端 CDN 仍需联网。

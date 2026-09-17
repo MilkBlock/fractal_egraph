@@ -59,10 +59,18 @@ export function createBrowserHost({ assetBase, modules, revision }) {
         });
     }
 
+    // `$typst.query` snapshots the world without compiling it, so it answers
+    // "document is not compiled". Compile the hitbox document explicitly, from a
+    // fresh shadow file, and then run the query on that world.
     async function queryTypst(document, selector, field) {
         await initialize();
-        await $typst.addSource(HITBOX_PATH, document);
-        return $typst.query({ mainFilePath: HITBOX_PATH, selector, field });
+        const compiler = await $typst.getCompiler();
+        await compiler.reset();
+        compiler.addSource(HITBOX_PATH, document);
+        return compiler.runWithWorld({ mainFilePath: HITBOX_PATH }, async world => {
+            await world.compile();
+            return world.query({ selector, field });
+        });
     }
 
     let vizPromise = null;

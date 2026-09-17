@@ -23,6 +23,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
+import { catalog } from "./src/annotations.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -77,7 +78,10 @@ async function main() {
         ["pattern", "full", "dag-expand"],
         ["action", "compact", "dag-expand"],
     ]) {
-        const request = { source, line: 5, mode, label_style: style, recursive_strategy: strategy };
+        // The same editable targets go to both hosts; the annotation module that
+        // produces them has its own parity test against preview_annotations.py.
+        const request = { source, line: 5, mode, label_style: style, recursive_strategy: strategy,
+            edit_targets: catalog(source, 5) };
         const expected = await renderPreview(plugin, request);
         const actual = await browser.renderPreviewInBrowser(request);
         const where = `${mode}/${style}/${strategy}`;

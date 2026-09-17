@@ -26,6 +26,8 @@ def answer(module, request):
         return module.preview_source(request['source'], request['line'])
     if op == 'catalog':
         return module.catalog(request['source'], request['line'])
+    if op == 'default_template':
+        return module.default_template(request['name'], request['arity'])
     if op == 'update_conditions':
         return module.update_conditions(request['source'], request['line'], request['conditions'])
     if op == 'update_display':

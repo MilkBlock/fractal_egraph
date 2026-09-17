@@ -92,6 +92,16 @@ export function installNativeDebugger(editor) {
         if(await bridgeAvailable())return (await (await post('preview',request,signal)).json());
         return (await loadBrowserRenderer()).renderPreviewInBrowser(request);
     }
+    // Writes back to .egg. The browser path keeps the bridge's guarantee that a
+    // template must compile and that an edited program must still be recognized
+    // by the patched runtime, it just runs both from wasm.
+    async function editRequest(path,body){
+        if(await bridgeAvailable())return (await (await post(path,body)).json());
+        const browser=await loadBrowserRenderer();
+        const result=path==='edit-display'?await browser.editDisplayInBrowser(body):await browser.editConditionsInBrowser(body);
+        if(path==='edit-conditions')(await loadWasmDebugger()).debug_patterns(result.source);
+        return result;
+    }
     if(STATIC_PAGE)(async()=>{
         const local=await bridgeAvailable();
         status(local
@@ -278,7 +288,7 @@ export function installNativeDebugger(editor) {
                 const precedence=raw===''?NaN:Number(raw);
                 if(Number.isInteger(precedence))body.precedence=precedence;
             }
-            const result=await(await post('edit-display',body)).json();
+            const result=await editRequest('edit-display',body);
             if(currentEdit!==edit)return;
             if(editor.getValue()!==edit.source)throw Error('源码已变化，未写入旧版本的修改。');
             editor.operation(()=>{
@@ -309,7 +319,7 @@ export function installNativeDebugger(editor) {
         if(editor.getValue()!==edit.source){el('condition-error').textContent='源码已变化，请重新点击条件区；未覆盖你的修改。';return;}
         el('condition-save').disabled=true;el('condition-error').textContent='';
         try{
-            const result=await(await post('edit-conditions',{source:edit.source,line:edit.line,conditions:el('condition-input').value})).json();
+            const result=await editRequest('edit-conditions',{source:edit.source,line:edit.line,conditions:el('condition-input').value});
             if(currentEdit!==edit)return;
             if(editor.getValue()!==edit.source)throw Error('源码已变化，未覆盖你的修改。');
             editor.operation(()=>{
