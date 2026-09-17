@@ -1,11 +1,12 @@
 // Use the VS Code extension's modules, binaries, defaults and Graphviz runtime.
 // No second AST-to-formula or AST-to-DOT implementation lives in this bridge.
-const fs = require('node:fs');
-const path = require('node:path');
-const crypto = require('node:crypto');
-const { editableRegions } = require('./typst-edit.cjs');
-
+//
+// Node-only requires stay inside the functions that need them so the browser
+// bundle can import `renderPreview` from this module and supply its own host.
 function loadPlugin(root, extractorOverride) {
+    const fs = require('node:fs');
+    const path = require('node:path');
+    const crypto = require('node:crypto');
     root = path.resolve(root);
     const load = name => require(path.join(root, 'out', name + '.js'));
     const transpiler = load('eggTranspiler');
@@ -62,7 +63,8 @@ async function renderPreview(plugin, request) {
     // The caller supplies the native parser's start line, which can precede the
     // opening parenthesis by indentation. The plugin mapper expects the form itself.
     offset += previewSource.slice(offset).search(/\S|$/);
-    const extract = (rustSource, rustOffset) => new Promise((resolve, reject) => {
+    const extract = plugin.extract || ((rustSource, rustOffset) => new Promise((resolve, reject) => {
+        const path = require('node:path');
         const child = require('node:child_process').spawn(plugin.extractor,
             ['--offset', String(Buffer.byteLength(rustSource.slice(0, rustOffset), 'utf8'))],
             { cwd: path.dirname(plugin.root), stdio: ['pipe', 'pipe', 'pipe'] });
@@ -75,9 +77,11 @@ async function renderPreview(plugin, request) {
             try { resolve(JSON.parse(stdout)); } catch (error) { reject(error); }
         });
         child.stdin.end(rustSource);
-    });
+    }));
     let ir, variableMap = {}, variableLabels = {}, rustSource = '', rustStartLine = 0;
-    if (fs.existsSync(path.join(plugin.root, 'out/eggPreviewSource.js'))) {
+    const hasPreviewSource = plugin.hasEggPreviewSource
+        ?? require('node:fs').existsSync(require('node:path').join(plugin.root, 'out/eggPreviewSource.js'));
+    if (hasPreviewSource) {
         const { prepareEggPreviewPlan, buildEggPreview } = plugin.load('eggPreviewSource');
         const plan = prepareEggPreviewPlan(previewSource, rust);
         // The plugin drops `rewrite` forms from program.rules, which both ignores their
@@ -143,7 +147,11 @@ async function renderPreview(plugin, request) {
     }
     let editRegions = [], editError = null;
     if(formula.mode === 'math'){
-        try { editRegions = editableRegions(formulaSource, targets, core.buildTypstMathDocument); }
+        const regions = plugin.editableRegions
+            || ((text, list, buildDocument) => require('./typst-edit.cjs').editableRegions(text, list, buildDocument));
+        // Awaited because the browser measures the boxes with the Typst wasm
+        // query API, while the bridge runs `typst query` synchronously.
+        try { editRegions = await regions(formulaSource, targets, core.buildTypstMathDocument); }
         catch(error){editError=String(error.message || error);}
     }
     return {
@@ -260,12 +268,18 @@ function buildTemplateDocument(plugin, template, fields) {
     return plugin.load('shared/typstCore').buildTypstMathDocument(expandTemplate(template, fields || [], 'upright("x")'));
 }
 
+// Typst is a subprocess in Node and a wasm compiler in the browser; the host
+// decides. Everything else about template validation is shared.
+function compileTypst(plugin, document) {
+    return plugin.compileTypst ? plugin.compileTypst(document) : runTypst(document);
+}
+
 async function validateTemplate(plugin, template, fields) {
     if (typeof template !== 'string' || !template.trim()) return { ok: false, error: 'Typst 模板不能为空' };
     let document;
     try { document = buildTemplateDocument(plugin, template, fields); }
     catch (error) { return { ok: false, error: String(error.message || error) }; }
-    try { await runTypst(document); return { ok: true }; }
+    try { await compileTypst(plugin, document); return { ok: true }; }
     catch (error) { return repairTemplate(plugin, template, fields, String(error.message || error)); }
 }
 
@@ -284,7 +298,7 @@ async function repairTemplate(plugin, template, fields, message) {
         try { document = buildTemplateDocument(plugin, current, fields); }
         catch (error) { return { ok: false, error: String(error.message || error), notes }; }
         try {
-            await runTypst(document);
+            await compileTypst(plugin, document);
             return { ok: false, error: failure + literalNameHint(template, failure), suggestion: current, notes };
         } catch (error) { failure = String(error.message || error); }
     }
@@ -292,7 +306,8 @@ async function repairTemplate(plugin, template, fields, message) {
 }
 
 module.exports = { loadPlugin, renderPreview, validateTemplate };
-if (require.main === module) {
+// The node CLI entry point; the browser bundle only imports the functions above.
+if (typeof process !== 'undefined' && require.main === module) {
     (async () => {
         let input = ''; for await (const chunk of process.stdin) input += chunk;
         const request = JSON.parse(input);

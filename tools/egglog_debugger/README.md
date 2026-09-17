@@ -33,15 +33,21 @@ python3 tools/egglog_debugger/server.py --port 8080
 ## 静态发布（GitHub Pages）
 
 <https://milkblock.github.io/fractal_egraph/> 是本 UI 的静态版本，产物由
-`tools/egglog_debugger/build_site.py` 组装（`target/pages`，13 MB 左右）：`egglog-demo` 的
+`tools/egglog_debugger/build_site.py` 组装（`target/pages`，55 MB 左右）：`egglog-demo` 的
 `dist/` + `static/`、本目录的 `native-debugger.js` / `native-debugger.css`、烘焙好的插件
-overlay，以及 `tools/egglog_debugger/wasm` 编译出的**插桩 runtime wasm**。推到
-`MilkBlock/fractal_egraph` 的 `gh-pages` 分支：
+overlay、`tools/egglog_debugger/wasm` 编译出的**插桩 runtime wasm**，以及
+`browser/build.mjs` 打出的**浏览器预览包**（`browser/preview.js` + wasm/字体资源）。
+推到 `MilkBlock/fractal_egraph` 的 `gh-pages` 分支：
 
 ```sh
 rustup target add wasm32-unknown-unknown
 cargo install wasm-bindgen-cli --version 0.2.128     # 必须与 wasm-bindgen crate 版本一致
-python3 tools/egglog_debugger/build_site.py          # --demo/--output 可覆盖
+# 只做一次：把插件的 extractor crate 编成 wasm（见下方 RUSTFLAGS）
+cd ../eggplant_pattern_view_plugin/eggplant-pattern-extractor
+RUSTFLAGS='--cfg no_salsa_async_drops' wasm-pack build --release --target web \
+  --out-dir ../../egg_layout/target/extractor-wasm --out-name eggplant_pattern_extractor
+cd ../../egg_layout
+python3 tools/egglog_debugger/build_site.py          # --demo/--output/--webdeps 可覆盖
 # 把 target/pages 推到 gh-pages 分支，Pages source 选该分支的 / 即可
 ```
 
@@ -51,12 +57,19 @@ wasm32（`getrandom_backend="wasm_js"` + `web-time`；分析规则用
 `debug_stream(source, emit)` 流式回吐与 CLI **完全相同**的 JSONL：
 `experiments/bake/increment-3.egg` 两边都是 6 个有效应用、5 个组合、4 条 Fractal 证据。
 
-因此页面在没有 bridge 时仍然具备：上游 WASM **Run**、点行定位规则、
-**运行并识别**（Compose / Fractal 增量日志，纯 wasm）。只有公式预览与模板/变量编辑还需要
-本机 bridge（在非本机域名下页面会连 `http://127.0.0.1:8080`，可用
-`window.__EGGLOG_BRIDGE__` 覆盖）；bridge 默认允许 `https://milkblock.github.io` 跨域，
-其它来源用 `--allow-origin ORIGIN` 追加，并只监听 loopback。两条路都会自动探测：
-有 bridge 就用 bridge（功能最全），没有就用 wasm。
+`tools/egglog_debugger/browser/` 是同一套预览管线的浏览器 host，见下一节。它把 bridge 里
+的四个外部依赖换成 wasm：插件的 transpiler bundle、插件的 extractor crate
+（`RUSTFLAGS='--cfg no_salsa_async_drops'`，否则 rust-analyzer 的语法树析构会 spawn 线程，
+wasm 下直接 trap）、`@myriaddreamin/typst.ts`，以及插件 vendored 的同版本 `@viz-js/viz`。
+`build.mjs` 还会把 typst.ts 默认从 jsDelivr 拉的 17 个文字字体固定下来，页面因此不依赖
+任何 CDN，公式尺寸也可复现。
+
+因此页面在没有 bridge 时具备：上游 WASM **Run**、点行定位规则、**运行并识别**
+（Compose / Fractal 增量日志）、以及**公式/DOT 预览**，全部在浏览器 wasm 内完成。
+只有把名字写回 `.egg` 的编辑动作仍走本机 bridge（在非本机域名下页面会连
+`http://127.0.0.1:8080`，可用 `window.__EGGLOG_BRIDGE__` 覆盖）；bridge 默认允许
+`https://milkblock.github.io` 跨域，其它来源用 `--allow-origin ORIGIN` 追加，并只监听
+loopback。两条路都会自动探测：有 bridge 就用 bridge（功能最全），没有就用 wasm。
 
 各组件的运行位置：
 
@@ -64,7 +77,27 @@ wasm32（`getrandom_backend="wasm_js"` + `web-time`；分析规则用
 |---|---|---|
 | 上游 WASM **Run** | 浏览器 WASM（上游 egglog） | 无后端 |
 | 点行定位规则 / **运行并识别** | 浏览器 wasm（本仓库 patched `debug-stream`） | 无后端，见 `tools/egglog_debugger/wasm` |
-| 公式预览、Typst/DOT、模板/变量编辑 | 本机 bridge（插件 extractor + `typst` CLI + vendored Graphviz） | 待搬到浏览器：仓库里已有整套实现（`dpsk_workspace/viz-web-editor`：transpiler-wasm、extractor-wasm、`typst.ts`、`viz-js`），`typst.ts` 也支持 `query()`，可承载命中区域测量 |
+| 公式预览、Typst/DOT | 浏览器 wasm（`browser/preview.js`）或 bridge | 同一份 `renderPreview`，host 不同；见 `tools/egglog_debugger/browser` |
+| 模板/变量编辑（写回 `.egg`） | 本机 bridge | 待搬到浏览器：`preview_annotations.py` 的 `catalog`/`update_*` 尚无 JS 版本 |
+
+## 浏览器预览包（无 bridge）
+
+`tools/egglog_debugger/browser/` 不在浏览器里重写渲染，而是让页面加载**插件自己编译出的
+`out/*.js`**，并调用与 bridge 完全相同的 `renderPreview`（`plugin-renderer.cjs`）。差异只有
+host：`server.py` 那边是子进程 + 插件 vendor 的 CJS Graphviz，这边是 wasm。
+
+| 组件 | bridge | 浏览器 |
+|---|---|---|
+| `.egg` → Rust | 插件 `eggTranspiler` + transpiler wasm（Node 读文件） | 同一个 wasm bundle，`fetch` 加载 |
+| Rust → PatternIr | extractor 原生二进制（`spawn`） | extractor crate 的 wasm32 构建（`extract_pattern_json`） |
+| Typst → SVG | `typst` CLI（系统字体） | `typst.ts` 的 compiler/renderer wasm + 固定字体集 |
+| DOT → SVG | 插件 `vendor/viz.cjs` | 同版本 `@viz-js/viz`（wasm 内联在 JS 里） |
+| 命中区域 | `typst query` CLI | `$typst.query()` |
+| `rewrite`/`birewrite` 规则归属 | `preview_annotations.py` | `browser/src/annotations.js`（逐字节对齐，有闸门测试） |
+
+字体差异会带来约 1–5% 的排版尺寸偏差（同一份 Typst 源码、不同字体后端），因此
+DOT 里的节点尺寸和 Graphviz 坐标与 bridge 不完全相同；公式源码、PatternIr、DOT 结构、
+标签和可点击目标要求完全一致，由 `browser/test_browser_render.mjs` 逐项断言。
 
 ## 语义与边界
 
@@ -139,6 +172,21 @@ python3 tools/egglog_debugger/test_template_edit.py --url http://127.0.0.1:8080
 python3 tools/egglog_debugger/test_wasm.py           # 需要先 build_site.py；验证无 bridge 的 wasm 识别
 node tools/egglog_debugger/test_plugin_render.cjs /path/to/installed/eggplant-pattern-vscode
 ```
+
+浏览器预览包回归（Node + 任意 Chromium，无需 Python playwright）：
+
+```sh
+node tools/egglog_debugger/browser/test_browser_render.mjs \
+  target/pages/browser/preview.js /path/to/installed/eggplant-pattern-vscode
+node tools/egglog_debugger/browser/test_annotations_parity.mjs ../egglog-demo
+node tools/egglog_debugger/browser/test_browser_page.mjs --dir target/pages [--chromium PATH]
+```
+
+第一条在 Node 里加载打包结果（`file://` fetch shim），对四组 view/label/recursive 配置逐项比较
+浏览器 host 与 bridge 的 PatternIr、公式源码、Typst 文档、DOT 结构、Graphviz 图和可点击区域，
+并比较 5 个模板的校验结论；第二条把 `browser/src/annotations.js` 与 egglog-demo 的
+`preview_annotations.py` 在 54 个示例程序上逐行对比；第三条真的起一个静态服务器，把页面指向
+一个死掉的 bridge，点一条日志，要求公式和 DOT 都由 wasm 渲染出来。
 
 本地 HTTP 服务只监听 loopback。代码、日志和公式通过同源 API 处理；不依赖外部公式渲染服务。
 原 demo 页面使用的第三方前端 CDN 仍需联网。

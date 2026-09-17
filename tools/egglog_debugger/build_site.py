@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Assemble the static build of the native debugger UI for GitHub Pages.
 
-GitHub Pages cannot run the bridge (patched egglog runtime, the VS Code extension's
-extractor, the Typst CLI), so the published page is static and connects to a bridge on
-the visitor's machine for native analysis. The upstream WASM Run needs no server.
+GitHub Pages cannot run the bridge (a local process), so the published page runs the
+patched runtime and the whole preview pipeline from wasm: the instrumented egglog
+runtime, the Eggplant transpiler and extractor, Typst and Graphviz. Editing that writes
+back to .egg still uses a bridge on the visitor's machine when one is running.
 """
 import argparse
 import os
@@ -18,6 +19,24 @@ from plugin_renderer import PluginRenderer, default_plugin_root
 ROOT = Path(__file__).resolve().parents[2]
 DEBUGGER = ROOT / 'tools/egglog_debugger'
 WASM = DEBUGGER / 'wasm'
+BROWSER = DEBUGGER / 'browser'
+EXTRACTOR_WASM = ROOT / 'target/extractor-wasm'
+
+
+def build_browser(out, plugin, webdeps=None, extractor_wasm=None):
+    """Bundle the wasm preview pipeline the page loads when no bridge is running."""
+    if not shutil.which('node'):
+        raise SystemExit('node is required to bundle the browser preview pipeline')
+    command = ['node', str(BROWSER / 'build.mjs'), '--plugin', str(plugin), '--out', str(out)]
+    if webdeps:
+        command += ['--webdeps', str(webdeps)]
+    else:
+        # Default to the sibling web editor checkout, the only place the typst.ts
+        # and @viz-js/viz dependencies are installed for this build.
+        command += ['--webdeps', str(ROOT / 'dpsk_workspace/viz-web-editor/node_modules')]
+    if extractor_wasm:
+        command += ['--extractor-wasm', str(extractor_wasm)]
+    subprocess.run(command, check=True)
 
 
 def build_wasm(out):
@@ -36,6 +55,10 @@ def main():
     parser.add_argument('--demo', type=Path, default=ROOT.parent / 'egglog-demo')
     parser.add_argument('--plugin', type=Path, default=default_plugin_root(ROOT))
     parser.add_argument('--extractor', type=Path, help='Same extractor override as VS Code')
+    parser.add_argument('--webdeps', type=Path, help='node_modules holding typst.ts and @viz-js/viz')
+    parser.add_argument('--extractor-wasm', type=Path, default=EXTRACTOR_WASM,
+                        help='Prebuilt wasm-pack output for the extractor crate')
+    parser.add_argument('--skip-browser', action='store_true', help='Only build the runtime wasm')
     parser.add_argument('--output', type=Path, default=ROOT / 'target/pages')
     args = parser.parse_args()
     demo = args.demo.resolve()
@@ -60,6 +83,9 @@ def main():
     for name in ('native-debugger.js', 'native-debugger.css'):
         shutil.copy2(DEBUGGER / name, out / name)
     build_wasm(out)
+    if not args.skip_browser:
+        extractor_wasm = args.extractor_wasm if Path(args.extractor_wasm).is_dir() else None
+        build_browser(out, args.plugin, args.webdeps, extractor_wasm)
     # The bridge serves this overlay from the installed plugin; bake it for the static page.
     (out / 'plugin-overlay.js').write_bytes(PluginRenderer(args.plugin, args.extractor).overlay)
     (out / '.nojekyll').write_text('')

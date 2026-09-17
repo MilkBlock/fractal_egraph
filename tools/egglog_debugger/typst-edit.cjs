@@ -1,12 +1,15 @@
 // Measure editable glyph spans with Typst itself. Display remains the canonical
 // plugin SVG; transparent hit rectangles are a separate interaction layer.
-const fs = require('node:fs');
-const os = require('node:os');
-const path = require('node:path');
-const { execFileSync } = require('node:child_process');
+//
+// Only the measuring step is host specific (`typst query` under Node, the wasm
+// compiler in the browser), so the marking step is shared with the browser
+// bundle instead of being reimplemented there.
 
-function editableRegions(source, targets, buildDocument) {
-    if (!targets.length) return [];
+// Rewrite the Typst formula so every editable word is wrapped in `#eggedit`,
+// which the prelude turns into metadata carrying its box. Returns null when no
+// word in the source is editable.
+function planEditableRegions(source, targets, buildDocument) {
+    if (!targets.length) return null;
     const byWord = new Map();
     for (const target of targets) for (const word of target.words) {
         if (!byWord.has(word)) byWord.set(word, []);
@@ -37,21 +40,38 @@ function editableRegions(source, targets, buildDocument) {
         marked+=` quad #eggedit(${JSON.stringify(condition.id)}, "规则条件")[$ ${suffix} $] `;
         count++;
     }
-    if (!count) return [];
+    if (!count) return null;
     const prelude = `#let eggedit(id, word, body) = context {
   let size = measure(body)
   metadata((egg_edit: true, id: id, text: word, x: here().position().x.pt(), y: here().position().y.pt(), width: size.width.pt(), height: size.height.pt()))
   body
 }\n`;
+    return { document: prelude + buildDocument(marked) };
+}
+
+// `typst query --field value` output, mapped to the hit rectangles the editor
+// overlays. Shared by both hosts.
+function collectEditableRegions(rows, targets) {
+    return rows.filter(r => r.egg_edit && targets.some(t => t.id === r.id))
+        .map(r => ({ target_id: r.id, text: r.text, x: r.x, y: r.y-r.height, width: r.width, height: r.height }));
+}
+
+function editableRegions(source, targets, buildDocument) {
+    const plan = planEditableRegions(source, targets, buildDocument);
+    if (!plan) return [];
+    const fs = require('node:fs');
+    const os = require('node:os');
+    const path = require('node:path');
+    const { execFileSync } = require('node:child_process');
     const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'egg-typst-edit-'));
     try {
         const file = path.join(folder, 'hitboxes.typ');
-        fs.writeFileSync(file, prelude + buildDocument(marked));
+        fs.writeFileSync(file, plan.document);
         const output = execFileSync(process.env.EGGPLANT_PATTERN_TYPST_PATH || 'typst',
             ['query', '--root', folder, file, 'metadata', '--field', 'value'],
             { encoding: 'utf8', timeout: 20000, maxBuffer: 4 * 1024 * 1024 });
-        return JSON.parse(output).filter(r => r.egg_edit && targets.some(t => t.id === r.id))
-            .map(r => ({ target_id: r.id, text: r.text, x: r.x, y: r.y-r.height, width: r.width, height: r.height }));
+        return collectEditableRegions(JSON.parse(output), targets);
     } finally { fs.rmSync(folder, { recursive: true, force: true }); }
 }
-module.exports = { editableRegions };
+
+module.exports = { planEditableRegions, collectEditableRegions, editableRegions };

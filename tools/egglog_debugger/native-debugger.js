@@ -59,7 +59,7 @@ export function installNativeDebugger(editor) {
     let rows=[], snapshotSource='', runStatus='idle', selected=null, patterns=[], parsedSource=null, revision=0, renderRevision=0, selectionIntent=0, renderedCount=0;
     let controller=null, timer=null, marker=null, previewAbort=null, parseAbort=null, currentEdit=null, activeRequest=null, templateDirty=false;
     const status = text => {el('status').textContent=text;};
-    let wasmDebuggerPromise=null, bridgeReady=null;
+    let wasmDebuggerPromise=null, bridgeReady=null, browserRendererPromise=null;
     // The same patched instrumented runtime, compiled to wasm32. The static build
     // uses it when no bridge is running on this machine.
     function loadWasmDebugger(){
@@ -81,11 +81,22 @@ export function installNativeDebugger(editor) {
         if(await bridgeAvailable())return (await (await post('patterns',{source},signal)).json());
         return JSON.parse((await loadWasmDebugger()).debug_patterns(source));
     }
+    // The preview pipeline itself: the same plugin modules and the same
+    // `renderPreview`, with the transpiler, extractor, Typst and Graphviz wasm
+    // instead of the extension's subprocesses. See browser/README.md.
+    function loadBrowserRenderer(){
+        if(!browserRendererPromise)browserRendererPromise=import('./browser/preview.js');
+        return browserRendererPromise;
+    }
+    async function previewRow(request,signal){
+        if(await bridgeAvailable())return (await (await post('preview',request,signal)).json());
+        return (await loadBrowserRenderer()).renderPreviewInBrowser(request);
+    }
     if(STATIC_PAGE)(async()=>{
         const local=await bridgeAvailable();
         status(local
             ? `静态部署：已连接本机 bridge（${BRIDGE_BASE}），预览/编辑与识别都可用。`
-            : '静态部署：上游 WASM Run 与原生 Compose/Fractal 识别都在浏览器内运行；公式预览/编辑需要本机 bridge（python3 tools/egglog_debugger/server.py）。');
+            : '静态部署：运行、识别与公式/DOT 预览都在浏览器内的 wasm 中运行；写回 .egg 的编辑仍需要本机 bridge（python3 tools/egglog_debugger/server.py）。');
     })();
     // Common Typst math spellings; {field} placeholders are bound to the constructor's
     // fields in declaration order. Escaped braces {{ }} stay literal.
@@ -357,7 +368,7 @@ export function installNativeDebugger(editor) {
             // fingerprint keeps a cached preview from being shown for another rule.
             const key=JSON.stringify([el('step').value,request.line,request.mode,request.label_style,request.recursive_strategy,fingerprint(request.source)]);
             row.plugin_previews ||= {};
-            const rendered=row.plugin_previews[key] || await (await post('preview',request,previewAbort.signal)).json();
+            const rendered=row.plugin_previews[key] || await previewRow(request,previewAbort.signal);
             if(version!==renderRevision)return;
             row.plugin_previews[key]=rendered;
             el('source').textContent=rendered[kind];
