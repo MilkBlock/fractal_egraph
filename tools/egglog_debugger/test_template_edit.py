@@ -23,6 +23,12 @@ REWRITE_SOURCE = '''(datatype Expr (Num i64) (Add Expr Expr))
 (rewrite (Add (Num a) (Num b)) (Num (+ a b)))
 '''
 
+# Two primitive fields on one node must keep two distinct accessors.
+COORD_SOURCE = '''; @egg-viz-json {"schema":"egg-viz/v1","kind":"dsl_type","id":"Expr","variants":{"Num":{"fields":["value"],"typst":"{value}","precedence":100},"Coord":{"fields":["x","y"],"typst":"upright(\\"Coord\\")({x}, {y})","precedence":90}}}
+(datatype Expr (Num i64) (Coord i64 i64))
+(rewrite (Coord p q) (Num (+ p q)))
+'''
+
 # The exact wrong annotation shape reported after typing a template into the name field.
 WRAPPED_SOURCE = '''; @egg-viz-json {"schema":"egg-viz/v1","kind":"dsl_type","id":"Expr","variants":{"Add":{"fields":["left","right"],"typst":"upright(\\"{left} + {right}\\")({left}, {right})","precedence":90}}}
 (datatype Expr (Num i64) (Add Expr Expr))
@@ -164,7 +170,7 @@ def main():
         ready('num_node2')
         assert page.locator('.native-edit-hit[data-target="binding:a"]').count() >= 1
         page.locator('.native-edit-hit[data-target="binding:a"]').first.click()
-        assert page.input_value('#native-name-input') == 'num_node2'
+        assert page.input_value('#native-name-input') == 'a'
         page.fill('#native-name-input', 'lhs')
         save_editor()
         page.wait_for_function('()=>document.querySelector(".CodeMirror").CodeMirror.getValue().includes(\'"a":"lhs"\')')
@@ -172,8 +178,8 @@ def main():
         rendered = page.locator('#native-source').text_content()
         assert 'lhs' in rendered and 'num_node2' not in rendered, rendered
         assert 'num_node3' in rendered
-        # A renamed field variable must not leak its Rust accessor suffix.
-        assert 'lhs.arg_i64_00' not in rendered, rendered
+        # A renamed field keeps its node-qualified accessor, named after the variable.
+        assert 'lhs.a' in rendered, rendered
         # The other variable is still editable after the first rename.
         page.locator('.native-edit-hit[data-target="binding:b"]').first.click()
         page.fill('#native-name-input', 'rhs')
@@ -181,8 +187,26 @@ def main():
         page.wait_for_function('()=>document.querySelector(".CodeMirror").CodeMirror.getValue().includes(\'"b":"rhs"\')')
         ready('rhs')
         rendered = page.locator('#native-source').text_content()
-        assert 'lhs' in rendered and 'rhs' in rendered, rendered
+        assert 'lhs.a' in rendered and 'rhs.b' in rendered, rendered
         assert 'arg_i64_00' not in rendered, rendered
+
+        # --- two fields of one node keep two distinct accessors and targets ----
+        set_source(COORD_SOURCE, 2)
+        ready('coord_node1')
+        assert page.locator('.native-edit-hit[data-target="binding:p"]').count() >= 1
+        assert page.locator('.native-edit-hit[data-target="binding:q"]').count() == 1
+        # Clicking the second field's accessor opens that field, not its sibling.
+        page.locator('.native-edit-hit[data-target="binding:q"]').first.click()
+        assert page.input_value('#native-name-input') == 'q'
+        page.click('#native-name-cancel')
+        page.locator('.native-edit-hit[data-target="binding:p"]').first.click()
+        page.fill('#native-name-input', 'm')
+        save_editor()
+        page.wait_for_function('()=>document.querySelector(".CodeMirror").CodeMirror.getValue().includes(\'"p":"m"\')')
+        ready('m.q')
+        rendered = page.locator('#native-source').text_content()
+        assert 'm.p' in rendered and 'm.q' in rendered, rendered
+        assert 'arg_i64_0' not in rendered, rendered
 
         # --- an annotation already wrapped by the old bug is recoverable -------
         set_source(WRAPPED_SOURCE, 2)

@@ -147,8 +147,11 @@ export function installNativeDebugger(editor) {
             el('condition-error').textContent='';el('condition-editor').hidden=false;
             el('condition-input').focus();return;
         }
-        el('edit-label').textContent=`显示名称 · ${regionText}`;
-        el('name-input').value=regionText;el('edit-error').textContent='';
+        // A field binding renders as `<node>.<field>`; editing it names the node, so seed
+        // the input with the variable's own name instead of the whole accessor text.
+        const seed=target.kind==='binding'?(target.display||target.name):regionText;
+        el('edit-label').textContent=`显示名称 · ${seed}`;
+        el('name-input').value=seed;el('edit-error').textContent='';
         el('edit-scope').textContent=target.kind==='constructor'?`更新 ${target.name} 的 dsl_type 显示模板，作用于本文件中的该构造器。`:`更新本条规则中 ${target.name} 的 labels.bindings 显示名称。`;
         el('field-editor').replaceChildren();
         templateDirty=false;

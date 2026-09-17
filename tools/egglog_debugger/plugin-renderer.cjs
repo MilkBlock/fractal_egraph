@@ -25,21 +25,27 @@ function loadPlugin(root, extractorOverride) {
     return { root, extractor, transpiler, load, revision: hash.digest('hex') };
 }
 
-// Map each rule binding to the node name the formula currently renders. The editor
-// needs that rendered name as a click target before the user has renamed anything.
-function bindingNodes(plugin, prepared, ir) {
+// Names a rule binding renders under: the query node, and the whole field accessor
+// for primitive fields. The editor needs both as click targets before any rename.
+function bindingInfo(plugin, prepared, ir) {
     const structure = prepared.ruleStructure;
     const bindings = structure?.bindings || [];
     const nodes = (ir.nodes || []).map(node => node.id);
-    if (!bindings.length || !nodes.length) return {};
+    const info = { nodes: {}, labels: {} };
+    if (!bindings.length || !nodes.length) return info;
     const probe = { labels: { bindings: Object.fromEntries(bindings.map((name, index) => [name, `probe${index}`])) } };
     try {
-        const { overrides } = plugin.load('eggVizAnnotation').buildDisplayNames(probe, structure, ir, prepared.rust);
+        const { overrides, bindingAccessors } = plugin.load('eggVizAnnotation').buildDisplayNames(probe, structure, ir, prepared.rust);
         const byLabel = new Map(plugin.load('rustBindingRename').planBindingRenames(nodes, overrides).map(entry => [entry.to, entry.from]));
-        const map = {};
-        bindings.forEach((name, index) => { const node = byLabel.get(`probe${index}`); if (node) map[name] = node; });
-        return map;
-    } catch { return {}; }
+        bindings.forEach((name, index) => { const node = byLabel.get(`probe${index}`); if (node) info.nodes[name] = node; });
+        // A field binding renders as `<node>.<field>`. Exposing the accessor keeps the
+        // fields of one node distinct (`m.x` vs `m.y`) instead of collapsing to `m`.
+        for (const [name, accessor] of bindingAccessors || []) {
+            if (typeof accessor !== 'string' || !accessor.includes('.')) continue;
+            info.labels[name] = (ir.display_names && ir.display_names[accessor]) || accessor;
+        }
+    } catch { /* variables stay read-only if the probe cannot run */ }
+    return info;
 }
 
 async function renderPreview(plugin, request) {
@@ -67,7 +73,7 @@ async function renderPreview(plugin, request) {
         });
         child.stdin.end(rustSource);
     });
-    let ir, variableMap = {};
+    let ir, variableMap = {}, variableLabels = {};
     if (fs.existsSync(path.join(plugin.root, 'out/eggPreviewSource.js'))) {
         const { prepareEggPreviewPlan, buildEggPreview } = plugin.load('eggPreviewSource');
         const plan = prepareEggPreviewPlan(source, rust);
@@ -80,7 +86,9 @@ async function renderPreview(plugin, request) {
         plan.program.rules = [...entries.keys()].reduce((list, key) => { list[key] = entries.get(key); return list; }, []);
         const prepared = await buildEggPreview(plan, offset, extract);
         ir = prepared.decorate(await extract(prepared.rust, prepared.extractorOffset), prepared.rust);
-        variableMap = bindingNodes(plugin, prepared, ir);
+        const info = bindingInfo(plugin, prepared, ir);
+        variableMap = info.nodes;
+        variableLabels = info.labels;
     } else {
         const rustOffset = plugin.load('eggRuleMapping').resolveEggPreviewOffset(source, offset, rust);
         ir = await extract(rust, rustOffset);
@@ -109,14 +117,18 @@ async function renderPreview(plugin, request) {
     const graphSvg = await plugin.load('svg').dotToSvg(dot);
     const core = plugin.load('shared/typstCore');
     const formula = typstRenderings[formulaTarget];
-    // The formula renders a pattern variable under its node name until a rename
-    // exists; add that rendered name as a click word so it is editable either way.
+    // A binding renders as its node name and, for a primitive field, as the whole
+    // accessor (`m.a`, `m.b`); offer both so each field stays separately clickable.
     const targets = (request.edit_targets || []).map(target => ({ ...target }));
     for (const target of targets) {
-        const node = target.kind === 'binding' ? variableMap[target.name] : null;
-        if (!node) continue;
-        target.rendered = node;
-        if (!target.words.includes(node)) target.words.push(node);
+        if (target.kind !== 'binding') continue;
+        const node = variableMap[target.name];
+        const label = variableLabels[target.name];
+        if (node) {
+            target.rendered = node;
+            if (!target.words.includes(node)) target.words.push(node);
+        }
+        if (label && !target.words.includes(label)) target.words.push(label);
     }
     let editRegions = [], editError = null;
     if(formula.mode === 'math'){
@@ -131,7 +143,7 @@ async function renderPreview(plugin, request) {
         typst_document: formula.mode === 'math' ? core.buildTypstMathDocument(formulaSource) : core.buildTypstTextDocument(formulaSource),
         typst_svg: formula.svg, typst_mode: formula.mode,
         dot, dot_svg: graphSvg, typst_sources: typstSources, typst_renderings: typstRenderings,
-        variable_map: variableMap,
+        variable_map: variableMap, variable_labels: variableLabels,
     };
 }
 
