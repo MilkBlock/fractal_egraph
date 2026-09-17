@@ -172,12 +172,17 @@ def main():
         rendered = page.locator('#native-source').text_content()
         assert 'lhs' in rendered and 'num_node2' not in rendered, rendered
         assert 'num_node3' in rendered
+        # A renamed field variable must not leak its Rust accessor suffix.
+        assert 'lhs.arg_i64_00' not in rendered, rendered
         # The other variable is still editable after the first rename.
         page.locator('.native-edit-hit[data-target="binding:b"]').first.click()
         page.fill('#native-name-input', 'rhs')
         save_editor()
         page.wait_for_function('()=>document.querySelector(".CodeMirror").CodeMirror.getValue().includes(\'"b":"rhs"\')')
         ready('rhs')
+        rendered = page.locator('#native-source').text_content()
+        assert 'lhs' in rendered and 'rhs' in rendered, rendered
+        assert 'arg_i64_00' not in rendered, rendered
 
         # --- an annotation already wrapped by the old bug is recoverable -------
         set_source(WRAPPED_SOURCE, 2)
