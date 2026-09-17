@@ -53,6 +53,10 @@ tier-1、tier-2 保留同一 EGraph 和导入游标，只导入新应用和新 e
 semantic text 路径。关系名按插件默认渲染成大写变体（`leq` → `Leq`），加 `dsl_type`
 模板即可控制显示。
 
+relation / function 匹配本身也是 premise：`(leq e1a e2a)` 这类查询没有 `Pat::new`
+根，以前不会进入公式，递归 `leq` 规则会丢掉一半前提；现在“没有任何节点消费”的
+非叶子查询节点都会作为独立 premise 列出（extractor 提交 `bb82f91`）。
+
 变量名按 Typst 规则渲染：`e1` 这类“字母 + 数字”写成下标 `e_1`，其余标识符（如
 `e1a`、`e1b`）写成 `upright("e1a")`。此前 `e1a` 会裸输出，Typst 报
 `unknown variable: e1a`，整个公式降级为文本（extractor 提交 `16861bf`）。

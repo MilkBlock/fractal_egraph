@@ -250,6 +250,8 @@ def main():
         rendered = page.locator('#native-source').text_content()
         assert 'upright("e1a")' in rendered and 'upright("e1b")' in rendered, rendered
         assert 'Leq' in rendered and 'no conclusion' not in rendered, rendered
+        # Both (leq e1a e2a) and (leq e1b e2b) are premises, not just the two Add matches.
+        assert rendered.count('upright("leq")') == 2, rendered
 
         # --- an annotation already wrapped by the old bug is recoverable -------
         set_source(WRAPPED_SOURCE, 2)
