@@ -3,6 +3,7 @@
 // trace row previews its formula and DOT from wasm alone.
 //
 //   node browser/test_browser_page.mjs --dir <static build> --webdeps <node_modules> [--chromium <path>]
+//   node browser/test_browser_page.mjs --url https://milkblock.github.io/fractal_egraph/   # post-deploy check
 //
 // `--webdeps` is only used to resolve playwright; the same node_modules the
 // browser build takes its typst.ts and viz.js from.
@@ -29,7 +30,7 @@ function parseArgs(argv) {
         const key = argv[index].replace(/^--/, "").replace(/-([a-z])/g, (_, c) => c.toUpperCase());
         options[key] = argv[index + 1];
     }
-    if (!options.dir) throw new Error("--dir is required");
+    if (!options.dir && !options.url) throw new Error("--dir or --url is required");
     return options;
 }
 
@@ -56,7 +57,8 @@ async function main() {
     const require = createRequire(path.join(options.webdeps || path.join(ROOT, "dpsk_workspace/viz-web-editor/node_modules"), "noop.cjs"));
     const { chromium } = require("playwright");
     const source = (await readFile(options.source || path.join(ROOT, "experiments/bake/increment-3.egg"), "utf8"));
-    const { server, url } = await serve(path.resolve(options.dir));
+    const local = options.url ? null : await serve(path.resolve(options.dir));
+    const url = options.url || local.url;
     const browser = await chromium.launch({ headless: true, ...(options.chromium ? { executablePath: options.chromium } : {}) });
     try {
         const page = await browser.newPage();
@@ -134,7 +136,7 @@ async function main() {
             + ` entirely from wasm (L${line}, ${renderer.split(" · ")[1]})\n`);
     } finally {
         await browser.close();
-        server.close();
+        local?.server.close();
     }
 }
 

@@ -208,6 +208,7 @@ node tools/egglog_debugger/browser/test_browser_render.mjs \
   target/pages/browser/preview.js /path/to/installed/eggplant-pattern-vscode
 node tools/egglog_debugger/browser/test_annotations_parity.mjs ../egglog-demo
 node tools/egglog_debugger/browser/test_browser_page.mjs --dir target/pages [--chromium PATH]
+node tools/egglog_debugger/browser/test_browser_page.mjs --url https://milkblock.github.io/fractal_egraph/  # 发布后验证
 node tools/egglog_debugger/browser/test_stream_parity.mjs --wasm target/pages/wasm
 ```
 
@@ -217,7 +218,8 @@ node tools/egglog_debugger/browser/test_stream_parity.mjs --wasm target/pages/wa
 `preview_annotations.py` 在 54 个示例程序上逐行对比（含 `catalog` 与 `update_display` /
 `update_conditions` 的接受与拒绝）；第三条真的起一个静态服务器，把页面指向一个死掉的
 bridge，点一条日志要求公式和 DOT 都由 wasm 渲染，再分别改一个 constructor 和一个 binding
-并要求注释写回编辑器；第四条比较 native 与 wasm 的 match 历史（见上一节）。
+并要求注释写回编辑器（`--url` 可把同一套检查跑在已发布的站点上）；第四条比较 native 与 wasm 的
+match 历史（见上一节）。
 
 本地 HTTP 服务只监听 loopback。代码、日志和公式通过同源 API 处理；不依赖外部公式渲染服务。
 原 demo 页面使用的第三方前端 CDN 仍需联网。
