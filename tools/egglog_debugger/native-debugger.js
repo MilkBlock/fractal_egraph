@@ -131,7 +131,7 @@ export function installNativeDebugger(editor) {
         } catch (error) {
             if(error.name==='AbortError')throw error;
             throw Error(STATIC_PAGE
-                ? `未连接到本机 bridge：请运行 python3 tools/egglog_debugger/server.py（默认 ${BRIDGE_BASE}）后刷新。`
+                ? `未能访问本机 bridge（${BRIDGE_BASE}）：请用本仓库的 python3 tools/egglog_debugger/server.py 启动，它默认允许 https://milkblock.github.io 跨域。`
                 : '无法连接本地调试服务。');
         }
         if (!response.ok) {
