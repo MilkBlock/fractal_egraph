@@ -20,11 +20,28 @@ export function installNativeDebugger(editor) {
       <div id="native-evidence"></div><div id="native-renderer"></div>
       <div id="native-viewport"><div id="native-preview" role="img" aria-label="所选规则的插件预览" hidden></div></div>
       <div id="native-edit-hint"></div>
+      <div id="native-targets" role="group" aria-label="当前规则的可编辑目标"></div>
       <form id="native-name-editor" hidden>
         <label id="native-edit-label" for="native-name-input">显示名称</label>
         <input id="native-name-input" maxlength="100" required autocomplete="off">
+        <div id="native-edit-scope"></div><div id="native-field-editor"></div>
+        <div id="native-template-editor" hidden>
+          <label for="native-template-input">Typst 模板（用 {字段} 引用参数）</label>
+          <button type="button" id="native-template-help" aria-expanded="false" aria-controls="native-symbol-help" aria-label="常见数学符号与模板">i</button>
+          <textarea id="native-template-input" rows="2" spellcheck="false" autocomplete="off"></textarea>
+          <label for="native-precedence-input">优先级</label>
+          <input id="native-precedence-input" type="number" min="0" max="65535" step="1">
+        </div>
         <button type="submit" id="native-name-save">保存到 .egg 注释</button><button type="button" id="native-name-cancel">取消</button>
-        <div id="native-edit-scope"></div><div id="native-field-editor"></div><div id="native-edit-error" role="alert"></div>
+        <div id="native-symbol-help" role="dialog" aria-label="常见数学符号与模板" hidden></div>
+        <div id="native-edit-error" role="alert"></div>
+      </form>
+      <form id="native-condition-editor" hidden>
+        <label for="native-condition-input">规则附加条件（.egg）</label>
+        <textarea id="native-condition-input" rows="4" placeholder="例如 (> a 0)；留空表示没有显式附加条件"></textarea>
+        <div>这里编辑真实匹配条件，保存会改变规则的匹配行为。由模式本身产生的约束仍保留在源码中。</div>
+        <button id="native-condition-save" type="submit">保存条件到 .egg</button><button id="native-condition-cancel" type="button">取消</button>
+        <div id="native-condition-error" role="alert"></div>
       </form>
       <pre id="native-render-error"></pre>
       <details><summary>Typst / DOT 源码</summary><pre id="native-source"></pre></details>
@@ -32,8 +49,37 @@ export function installNativeDebugger(editor) {
     document.getElementById('panel').insertBefore(panel, document.getElementById('graph'));
     const el = id => document.getElementById('native-'+id);
     let rows=[], snapshotSource='', runStatus='idle', selected=null, patterns=[], parsedSource=null, revision=0, renderRevision=0, selectionIntent=0;
-    let controller=null, timer=null, marker=null, previewAbort=null, parseAbort=null, currentEdit=null;
+    let controller=null, timer=null, marker=null, previewAbort=null, parseAbort=null, currentEdit=null, activeRequest=null, templateDirty=false;
     const status = text => {el('status').textContent=text;};
+    // Common Typst math spellings; {field} placeholders are bound to the constructor's
+    // fields in declaration order. Escaped braces {{ }} stay literal.
+    const MATH_SYMBOLS = [
+        ['加法', '{left} + {right}'], ['减法', '{left} - {right}'],
+        ['乘法（点乘）', '{left} dot {right}'], ['叉乘', '{left} times {right}'],
+        ['分式', 'frac({left}, {right})'], ['幂', '{base}^({exp})'],
+        ['下标', '{value}_({index})'], ['平方根', 'sqrt({value})'],
+        ['n 次根', 'root({n}, {value})'], ['绝对值', 'abs({value})'],
+        ['向下取整', 'floor({value})'], ['向上取整', 'ceil({value})'],
+        ['四舍五入', 'round({value})'],
+        ['小于等于', '{left} <= {right}'], ['不等于', '{left} != {right}'],
+        ['属于', '{left} in {right}'], ['等价', '{left} equiv {right}'],
+        ['推导箭头', '{left} arrow.r.double {right}'],
+        ['求和', 'sum_({i} = 0)^({n}) {f}'], ['求积', 'product_({i} = 0)^({n}) {f}'],
+        ['积分', 'integral_({a})^({b}) {f} dif {x}'], ['极限', 'lim_({x} -> oo) {f}'],
+        ['向量', 'arrow({v})'], ['矩阵', 'mat(1, 2; 3, 4)'],
+        ['分段函数', 'cases({a} & "x > 0", {b} & "x <= 0")'],
+        ['普通函数', 'upright("Name")({arg0})'],
+        ['希腊字母', 'alpha beta gamma delta theta lambda mu pi sigma phi omega'],
+    ];
+    for(const [label,example] of MATH_SYMBOLS){
+        const row=document.createElement('button');row.type='button';row.className='native-symbol-row';row.dataset.template=example;
+        const code=document.createElement('code');code.textContent=example;
+        const name=document.createElement('span');name.textContent=label;
+        row.append(code,name);row.onclick=()=>insertTemplate(example);el('symbol-help').append(row);
+    }
+    const helpNote=document.createElement('p');helpNote.textContent='模板里的 {字段} 会替换为对应参数；{{ 和 }} 表示字面花括号。保存前会检查重名、未声明字段和 Typst 编译结果。';
+    el('symbol-help').prepend(helpNote);
+    function fingerprint(text){let hash=2166136261;for(let i=0;i<text.length;i++){hash^=text.charCodeAt(i);hash=Math.imul(hash,16777619);}return (hash>>>0).toString(16)+':'+text.length;}
     async function post(path, body, signal) {
         const response=await fetch('/api/'+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal});
         if (!response.ok) {let error;try {error=(await response.json()).error;}catch {error='请通过 tools/egglog_debugger/server.py 启动本地调试服务';}throw Error(error);}
@@ -54,10 +100,62 @@ export function installNativeDebugger(editor) {
         el('preview').replaceChildren(svg);el('preview').hidden=false;
         return svg;
     }
-    function closeNameEditor(){currentEdit=null;el('name-editor').hidden=true;}
+    function closeNameEditor(){currentEdit=null;el('name-editor').hidden=true;el('condition-editor').hidden=true;hideSymbolHelp();}
+    function hideSymbolHelp(){el('symbol-help').hidden=true;el('template-help').setAttribute('aria-expanded','false');}
+    function insertTemplate(example){const area=el('template-input');if(!example)return;const start=area.selectionStart ?? area.value.length,end=area.selectionEnd ?? start;area.value=area.value.slice(0,start)+example+area.value.slice(end);templateDirty=true;area.focus();area.selectionStart=area.selectionEnd=start+example.length;}
+    function renamePlaceholder(template,from,to){if(!from||!to||from===to)return template;const escaped=from.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return template.replace(new RegExp('\\{'+escaped+'\\}','g'),'{'+to+'}');}
+    function currentFields(){return [...el('field-editor').querySelectorAll('.native-field-name')].map(input=>input.value.trim());}
+    function templateFromName(){const name=el('name-input').value.trim();const fields=currentFields().length?currentFields():[];const valid=fields.map((field,index)=>field||`arg${index}`);return 'upright('+JSON.stringify(name)+')'+'('+valid.map(field=>'{'+field+'}').join(', ')+')';}
+    // A clickable target list makes editing independent of glyph hit testing: a
+    // template without a literal name, or a plugin text fallback, must not lock
+    // the user out of a second edit.
+    function renderTargets(targets, editable, note){
+        const bar=el('targets');bar.replaceChildren();
+        if(!editable || !targets.length)return;
+        const caption=document.createElement('span');caption.id='native-targets-caption';caption.textContent='可编辑目标：';bar.append(caption);
+        for(const target of targets){
+            const button=document.createElement('button');button.type='button';button.dataset.target=target.id;
+            button.textContent=target.kind==='constructor'?`构造器 ${target.name}`:target.kind==='conditions'?'规则条件':`变量 ${target.name}`;
+            button.onclick=()=>openEditor(target,target.display || target.name);
+            bar.append(button);
+        }
+        if(note){const hint=document.createElement('span');hint.id='native-targets-note';hint.textContent=note;bar.append(hint);}
+    }
+    function openEditor(target, regionText){
+        const request=activeRequest;
+        if(!request || editor.getValue()!==request.source){status('源码已变化，请等待新公式渲染后再编辑。');return;}
+        closeNameEditor();
+        currentEdit={source:request.source,line:request.line,target_id:target.id};
+        if(target.kind==='conditions'){
+            el('condition-input').value=target.condition_source || '';
+            el('condition-error').textContent='';el('condition-editor').hidden=false;
+            el('condition-input').focus();return;
+        }
+        el('edit-label').textContent=`显示名称 · ${regionText}`;
+        el('name-input').value=regionText;el('edit-error').textContent='';
+        el('edit-scope').textContent=target.kind==='constructor'?`更新 ${target.name} 的 dsl_type 显示模板，作用于本文件中的该构造器。`:`更新本条规则中 ${target.name} 的 labels.bindings 显示名称。`;
+        el('field-editor').replaceChildren();
+        templateDirty=false;
+        if(target.kind==='constructor' && target.field_labels?.length){
+            const title=document.createElement('div');title.textContent='字段名称（用于模板占位符）';el('field-editor').append(title);
+            const placeholders=(target.template||'').match(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g)?.map(token=>token.slice(1,-1)) || [];
+            target.field_labels.forEach((field,index)=>{const label=document.createElement('label');label.className='native-field-row';label.textContent=`字段 ${index+1}`;const input=document.createElement('input');input.className='native-field-name';input.value=field;input.maxLength=80;input.required=true;input.dataset.index=index;input.dataset.placeholder=placeholders[index] || field;input.addEventListener('input',()=>{const next=input.value.trim();if(next && next!==input.dataset.placeholder && /^[A-Za-z_][A-Za-z0-9_]*$/.test(next)){el('template-input').value=renamePlaceholder(el('template-input').value,input.dataset.placeholder,next);input.dataset.placeholder=next;templateDirty=true;}});label.append(input);el('field-editor').append(label);});
+        }
+        const constructor=target.kind==='constructor';
+        el('template-editor').hidden=!constructor;
+        if(constructor){
+            el('template-input').value=target.template || '';
+            el('precedence-input').value=target.precedence ?? 90;
+            hideSymbolHelp();
+        }
+        el('name-editor').hidden=false;el('name-input').focus();el('name-input').select();
+    }
     function installEditTargets(svg, rendered, request, row){
-        el('edit-hint').textContent=row.kind?'日志是只读快照；请载入源码并点击编辑器中的规则进行编辑。':'点击公式中带高亮的名称修改显示文本；修改会写回 .egg 注释。';
-        if(row.kind || el('format').value!=='typst')return;
+        el('edit-hint').textContent=row.kind?'日志是只读快照；请载入源码并点击编辑器中的规则进行编辑。':'点击公式中带高亮的名称修改显示文本；点击 if 条件区编辑真实匹配条件。';
+        if(row.kind){renderTargets([], false);return;}
+        renderTargets(rendered.edit_targets || [], true,
+            el('format').value==='typst' && rendered.typst_mode!=='math' ? '当前公式由插件渲染为文本，仍可用上面的按钮打开编辑器。' : '');
+        if(el('format').value!=='typst')return;
         const targets=new Map((rendered.edit_targets || []).map(target=>[target.id,target]));
         for(const region of rendered.edit_regions || []){
             const target=targets.get(region.target_id);if(!target)continue;
@@ -67,24 +165,16 @@ export function installNativeDebugger(editor) {
             rect.setAttribute('width',region.width+2);rect.setAttribute('height',region.height+2);
             rect.setAttribute('rx','1');rect.setAttribute('tabindex','0');rect.setAttribute('role','button');
             rect.setAttribute('aria-label',`编辑 ${region.text}`);
-            const open=()=>{
-                if(editor.getValue()!==request.source){status('源码已变化，请等待新公式渲染后再编辑。');return;}
-                currentEdit={source:request.source,line:request.line,target_id:target.id};
-                el('edit-label').textContent=`显示名称 · ${region.text}`;
-                el('name-input').value=region.text;el('edit-error').textContent='';
-                el('edit-scope').textContent=target.kind==='constructor'?`更新 ${target.name} 的 dsl_type 显示模板，作用于本文件中的该构造器。`:`更新本条规则中 ${target.name} 的 labels.bindings 显示名称。`;
-                el('field-editor').replaceChildren();
-                if(target.kind==='constructor' && target.field_labels?.length){
-                    const title=document.createElement('div');title.textContent='字段名称（用于模板占位符）';el('field-editor').append(title);
-                    target.field_labels.forEach((field,index)=>{const label=document.createElement('label');label.className='native-field-row';label.textContent=`字段 ${index+1}`;const input=document.createElement('input');input.className='native-field-name';input.value=field;input.maxLength=80;input.required=true;input.dataset.index=index;label.append(input);el('field-editor').append(label);});
-                }
-                el('name-editor').hidden=false;el('name-input').focus();el('name-input').select();
-            };
+            const open=()=>openEditor(target,region.text);
             rect.addEventListener('click',open);rect.addEventListener('keydown',event=>{if(event.key==='Enter' || event.key===' '){event.preventDefault();open();}});
             svg.append(rect);
         }
-        if(rendered.edit_error)el('edit-hint').textContent='当前公式的文字定位失败；原始插件预览仍可查看。';
+        if(rendered.edit_error)el('edit-hint').textContent='当前公式的文字定位失败；原始插件预览仍可查看，可用下方按钮编辑。';
     }
+    el('name-input').addEventListener('input',()=>{if(currentEdit && !el('template-editor').hidden){el('template-input').value=templateFromName();templateDirty=true;}});
+    el('template-help').onclick=event=>{event.stopPropagation();const open=el('symbol-help').hidden;el('symbol-help').hidden=!open;el('template-help').setAttribute('aria-expanded',String(open));};
+    el('symbol-help').addEventListener('click',event=>event.stopPropagation());
+    document.addEventListener('click',()=>{if(!el('symbol-help').hidden)hideSymbolHelp();});
     el('name-cancel').onclick=closeNameEditor;
     el('name-editor').addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();closeNameEditor();}});
     el('name-input').onkeydown=event=>{if(event.key==='Escape'){event.preventDefault();closeNameEditor();}};
@@ -93,8 +183,16 @@ export function installNativeDebugger(editor) {
         if(editor.getValue()!==edit.source){el('edit-error').textContent='源码已变化，请取消并重新点击公式；未覆盖你的修改。';return;}
         el('name-save').disabled=true;el('edit-error').textContent='';
         try{
-            const fields=[...el('field-editor').querySelectorAll('.native-field-name')].map(input=>input.value);
-            const result=await(await post('edit-display',{...edit,value:el('name-input').value,fields:fields.length?fields:undefined})).json();
+            const fields=currentFields();
+            const body={...edit,value:el('name-input').value};
+            if(fields.length)body.fields=fields;
+            if(!el('template-editor').hidden){
+                body.template=el('template-input').value;
+                const raw=el('precedence-input').value.trim();
+                const precedence=raw===''?NaN:Number(raw);
+                if(Number.isInteger(precedence))body.precedence=precedence;
+            }
+            const result=await(await post('edit-display',body)).json();
             if(currentEdit!==edit)return;
             if(editor.getValue()!==edit.source)throw Error('源码已变化，未写入旧版本的修改。');
             editor.operation(()=>{
@@ -105,6 +203,25 @@ export function installNativeDebugger(editor) {
             await previewLine();
         }catch(error){el('edit-error').textContent=error.message;}
         finally{el('name-save').disabled=false;}
+    };
+    el('condition-cancel').onclick=closeNameEditor;
+    el('condition-editor').addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();closeNameEditor();}});
+    el('condition-editor').onsubmit=async event=>{
+        event.preventDefault();const edit=currentEdit;if(!edit)return;
+        if(editor.getValue()!==edit.source){el('condition-error').textContent='源码已变化，请重新点击条件区；未覆盖你的修改。';return;}
+        el('condition-save').disabled=true;el('condition-error').textContent='';
+        try{
+            const result=await(await post('edit-conditions',{source:edit.source,line:edit.line,conditions:el('condition-input').value})).json();
+            if(currentEdit!==edit)return;
+            if(editor.getValue()!==edit.source)throw Error('源码已变化，未覆盖你的修改。');
+            editor.operation(()=>{
+                editor.replaceRange(result.source,{line:0,ch:0},editor.posFromIndex(edit.source.length),'+condition-edit');
+                editor.setCursor({line:result.line-1,ch:0});
+            });
+            closeNameEditor();clearTimeout(timer);status('规则附加条件已写回 .egg（匹配行为已更新），可撤销。');
+            await previewLine();
+        }catch(error){el('condition-error').textContent=error.message;}
+        finally{el('condition-save').disabled=false;}
     };
     el('download').onclick=()=>{
         const url=URL.createObjectURL(new Blob([editor.getValue()],{type:'text/plain;charset=utf-8'}));
@@ -145,9 +262,11 @@ export function installNativeDebugger(editor) {
             editor.scrollIntoView({line:row.source_line-1,ch:0},80);
         }
         try{
-            const request=previewRequest(row);
+            const request=previewRequest(row);activeRequest=request;
             if(!request.source || !request.line)throw Error('此旧日志缺少源位置，不能可靠地交给插件渲染；请重新运行生成日志。');
-            const key=JSON.stringify([el('step').value,request.line,request.mode,request.label_style,request.recursive_strategy]);
+            // The same line number means different formulas after a source edit, so the
+            // fingerprint keeps a cached preview from being shown for another rule.
+            const key=JSON.stringify([el('step').value,request.line,request.mode,request.label_style,request.recursive_strategy,fingerprint(request.source)]);
             row.plugin_previews ||= {};
             const rendered=row.plugin_previews[key] || await (await post('preview',request,previewAbort.signal)).json();
             if(version!==renderRevision)return;
@@ -159,7 +278,7 @@ export function installNativeDebugger(editor) {
             el('renderer').textContent=`${rendered.renderer} · ${rendered.renderer_revision.slice(0,12)} · ${rendered.config.mode} / ${rendered.config.label_style} / ${rendered.config.recursive_strategy}`;
             if(kind==='typst' && rendered.typst_mode!=='math')el('render-error').textContent='插件使用了文本 fallback；请检查 Typst 模板。';
             el('preview').dataset.ready='true';
-        }catch(error){if(version===renderRevision && error.name!=='AbortError'){el('render-error').textContent=error.message;el('renderer').textContent='插件渲染失败';}}
+        }catch(error){if(version===renderRevision && error.name!=='AbortError'){el('render-error').textContent=error.message;el('renderer').textContent='插件渲染失败';renderTargets([],false);}}
     }
     async function previewLine() {
         const source=editor.getValue(), version=revision, intent=++selectionIntent;
@@ -173,8 +292,8 @@ export function installNativeDebugger(editor) {
             const line=editor.getCursor().line+1;
             const row=patterns.find(p=>p.source_line<=line && line<=p.end_line);
             if(row){row.preview_source=source;await show(row);}
-            else {selected=null;++renderRevision;previewAbort?.abort();marker?.clear();el('title').textContent=`L${line} 没有 rule/rewrite`;el('preview').hidden=true;el('source').textContent='';el('details').textContent='';el('render-error').textContent='';}
-        }catch(error){if(version===revision && intent===selectionIntent && error.name!=='AbortError'){selected=null;el('render-error').textContent=error.message;el('preview').hidden=true;}}
+            else {selected=null;++renderRevision;previewAbort?.abort();marker?.clear();el('title').textContent=`L${line} 没有 rule/rewrite`;el('preview').hidden=true;el('source').textContent='';el('details').textContent='';el('render-error').textContent='';renderTargets([],false);}
+        }catch(error){if(version===revision && intent===selectionIntent && error.name!=='AbortError'){selected=null;el('render-error').textContent=error.message;el('preview').hidden=true;renderTargets([],false);}}
     }
     editor.on('cursorActivity',()=>{clearTimeout(timer);timer=setTimeout(previewLine,120);});
     editor.on('mousedown',()=>{clearTimeout(timer);timer=setTimeout(previewLine,120);});

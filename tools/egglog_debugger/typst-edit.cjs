@@ -12,14 +12,23 @@ function editableRegions(source, targets, buildDocument) {
         if (!byWord.has(word)) byWord.set(word, []);
         if (!byWord.get(word).some(t => t.id === target.id)) byWord.get(word).push(target);
     }
+    const condition=targets.find(target=>target.kind==='conditions');
+    const marker=' quad upright("if") quad ';
+    const boundary=condition?source.lastIndexOf(marker):-1;
+    const prefix=boundary>=0?source.slice(0,boundary):source;
     let count = 0;
-    const marked = source.replace(/\b(?:upright|op)\(("(?:\\.|[^"\\])*")\)|"(?:\\.|[^"\\])*"|[A-Za-z_][A-Za-z_0-9]*|[+*−-]/g, (token, quoted) => {
+    let marked = prefix.replace(/\b(?:upright|op)\(("(?:\\.|[^"\\])*")\)|"(?:\\.|[^"\\])*"|[A-Za-z_][A-Za-z_0-9]*|[+*−-]/g, (token, quoted) => {
         const word = quoted ? JSON.parse(quoted) : token;
         const candidates = byWord.get(word) || [];
         if (candidates.length !== 1) return token;
         count++;
         return ` #eggedit(${JSON.stringify(candidates[0].id)}, ${JSON.stringify(word)})[$ ${token} $] `;
     });
+    if(boundary>=0){
+        const suffix=source.slice(boundary+' quad '.length);
+        marked+=` quad #eggedit(${JSON.stringify(condition.id)}, "规则条件")[$ ${suffix} $] `;
+        count++;
+    }
     if (!count) return [];
     const prelude = `#let eggedit(id, word, body) = context {
   let size = measure(body)

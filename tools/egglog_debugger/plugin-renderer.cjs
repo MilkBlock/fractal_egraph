@@ -100,11 +100,70 @@ async function renderPreview(plugin, request) {
     };
 }
 
-module.exports = { loadPlugin, renderPreview };
+// Expand the plugin's documented `{field}` / `{{` / `}}` template protocol with a
+// neutral atomic math atom, then compile it with the same Typst binary and the
+// same math document wrapper the plugin uses. This rejects template syntax
+// errors before they are written to .egg.
+function expandTemplate(template, fields, atom) {
+    const chars = [...template];
+    let rendered = '';
+    for (let index = 0; index < chars.length;) {
+        if (chars[index] === '{' && chars[index + 1] === '{') { rendered += '{'; index += 2; continue; }
+        if (chars[index] === '}' && chars[index + 1] === '}') { rendered += '}'; index += 2; continue; }
+        if (chars[index] === '{') {
+            const end = chars.indexOf('}', index + 1);
+            if (end < 0) throw Error('模板占位符缺少右花括号 }');
+            const name = chars.slice(index + 1, end).join('');
+            if (!fields.includes(name)) throw Error(`未声明的模板字段：{${name}}`);
+            rendered += atom; index = end + 1; continue;
+        }
+        rendered += chars[index]; index += 1;
+    }
+    return rendered;
+}
+
+function runTypst(document, timeout = 20000) {
+    return new Promise((resolve, reject) => {
+        const child = require('node:child_process').spawn(
+            process.env.EGGPLANT_PATTERN_TYPST_PATH || 'typst',
+            ['compile', '-', '-', '--format', 'svg'], { stdio: ['pipe', 'pipe', 'pipe'] });
+        let stdout = '', stderr = '', timer = null;
+        child.stdout.on('data', chunk => { stdout += chunk; });
+        child.stderr.on('data', chunk => { stderr += chunk; });
+        child.on('error', reject);
+        child.on('close', code => {
+            if (timer) clearTimeout(timer);
+            if (code === 0) return resolve(stdout);
+            reject(Error((stderr || `typst exited with code ${code}`).trim()));
+        });
+        timer = setTimeout(() => { child.kill(); reject(Error('Typst 模板编译超时')); }, timeout);
+        child.stdin.end(document);
+    });
+}
+
+async function validateTemplate(plugin, template, fields) {
+    if (typeof template !== 'string' || !template.trim()) return { ok: false, error: 'Typst 模板不能为空' };
+    let document;
+    try {
+        const expanded = expandTemplate(template, fields || [], 'upright("x")');
+        document = plugin.load('shared/typstCore').buildTypstMathDocument(expanded);
+    } catch (error) { return { ok: false, error: String(error.message || error) }; }
+    try { await runTypst(document); return { ok: true }; }
+    catch (error) { return { ok: false, error: String(error.message || error) }; }
+}
+
+module.exports = { loadPlugin, renderPreview, validateTemplate };
 if (require.main === module) {
     (async () => {
         let input = ''; for await (const chunk of process.stdin) input += chunk;
         const request = JSON.parse(input);
+        if (process.argv[2] === '--validate-template') {
+            const plugin = loadPlugin(process.argv[3], process.argv[4]);
+            const result = await validateTemplate(plugin, request.template, request.fields || []);
+            process.stdout.write(JSON.stringify(result));
+            if (!result.ok) process.exitCode = 1;
+            return;
+        }
         const plugin = loadPlugin(process.argv[2], process.argv[3]);
         const response = await renderPreview(plugin, request);
         process.stdout.write(JSON.stringify(response));

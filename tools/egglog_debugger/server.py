@@ -58,8 +58,23 @@ class Handler(SimpleHTTPRequestHandler):
             if self.path == '/api/preview':
                 data['edit_targets'] = self.server.annotations.catalog(data['source'], data.get('line', 1))
                 return self.reply(200, self.server.renderer.render(data))
+            if self.path == '/api/edit-conditions':
+                result = self.server.annotations.update_conditions(data['source'], data['line'], data['conditions'])
+                with tempfile.TemporaryDirectory(prefix='egg-condition-check-') as folder:
+                    source = Path(folder) / 'input.egg'
+                    source.write_text(result['source'])
+                    check = subprocess.run([str(self.server.binary), 'debug-patterns', str(source)], capture_output=True, timeout=30, cwd=ROOT)
+                    if check.returncode:
+                        return self.reply(422, {'error': check.stderr.decode(errors='replace')})
+                return self.reply(200, result)
             if self.path == '/api/edit-display':
-                result = self.server.annotations.update_display(data['source'], data['line'], data['target_id'], data['value'], data.get('fields'))
+                result = self.server.annotations.update_display(
+                    data['source'], data['line'], data['target_id'], data['value'],
+                    data.get('fields'), data.get('template'), data.get('precedence'))
+                if result.get('template'):
+                    check = self.server.renderer.validate_template(result['template'], result.get('template_fields') or [])
+                    if not check.get('ok'):
+                        return self.reply(422, {'error': 'Typst 模板无法编译：' + check.get('error', '未知错误')})
                 return self.reply(200, result)
             with tempfile.TemporaryDirectory(prefix='egglog-debug-') as folder:
                 folder = Path(folder)

@@ -76,6 +76,8 @@ cargo test --test native_debug --test native_history --test native_single_proces
 
 ```sh
 python3 tools/egglog_debugger/test_browser.py --url http://127.0.0.1:8080
+python3 tools/egglog_debugger/test_word_edit.py --url http://127.0.0.1:8080
+python3 tools/egglog_debugger/test_template_edit.py --url http://127.0.0.1:8080
 node tools/egglog_debugger/test_plugin_render.cjs /path/to/installed/eggplant-pattern-vscode
 ```
 
@@ -113,3 +115,24 @@ bundle 里的 `@egg-viz-json` 注释不记录 matches、effects 或性能统计�
 优先级，拒绝重名、非法标识符或改变字段数量。映射采用插件已有的 `typst_fields`
 协议（插件提交 `55ee943`），按字段声明顺序绑定参数，独立于占位符的出现顺序。
 本机已同步安装该协议的注释模块及兼容当前 extractor 的实现。
+
+同一个编辑框可以直接编辑完整的 Typst 模板正文（例如把
+`upright("Add")({left}, {right})` 改成 `frac({left}, {right})` 或
+`{left} + {right}`），并调整优先级。保存前的校验会拒绝：显示名称重名、
+未声明的 `{字段}` 占位符、花括号不配对，以及 **用插件自己的 Typst 指令和数学文档
+包装实际编译失败** 的模板（`plugin-renderer.cjs --validate-template`）。失败时
+原 `.egg` 和原公式都不变，编辑框保持打开，可直接改到通过为止。
+
+编辑框旁的圆形 `i` 按钮会打开一个悬浮面板，列出常用数学写法
+（分式、根式、幂、求和、积分、比较、`arrow.r.double`、希腊字母等）及其模板；
+点击某一项会插入到模板正文的光标处。
+
+公式下方始终列出当前规则的可编辑目标（构造器 / 变量 / 规则条件）。命中区域
+依赖插件把公式渲染成数学模式；当模板不再包含名称、或插件的公式降级为文本
+（例如当前插件对带附加条件的规则）时，文字高亮区域会消失。目标列表让这些
+情况仍然可以再次编辑，修复了“改过一次后面就没法改了”。
+
+点击公式末尾 `if` 之后的区域会打开规则条件编辑框，保存的是真实匹配条件
+（`rule` 的 body 附加事实或 `rewrite` 的 `:when`），写回前先用本目录原生
+`debug-patterns` 解析整份源码，语法错误会被拒绝。日志回放只读。
+
