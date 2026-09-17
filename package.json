@@ -1,0 +1,15 @@
+{
+  "name": "egglog-demo",
+  "description": "Web demo for egglog, an e-graph library for equality saturation and term rewriting.",
+  "version": "0.5.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/egraphs-good/egglog-demo"
+  },
+  "files": [
+    "egglog_demo_bg.wasm",
+    "egglog_demo.js"
+  ],
+  "browser": "egglog_demo.js"
+}
