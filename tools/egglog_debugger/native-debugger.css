@@ -1,3 +1,4 @@
+#panel {min-width:0;}
 #native-debugger {border-top:1px solid #bbb; padding:8px; background:#f7f9fc; max-height:55vh; overflow:auto; font:13px system-ui;}
 #native-debugger button, #native-debugger select {margin:3px; cursor:pointer;}
 #native-status {white-space:pre-wrap; max-height:80px; overflow:auto;}
@@ -6,13 +7,13 @@
 #native-trace button[aria-pressed=true] {background:#dae8ff;}
 #native-viewport {max-height:280px; overflow:auto; background:white;}
 #native-preview {width:auto; max-width:none; max-height:none; background:white;}
-#native-source, #native-details {white-space:pre-wrap; max-height:150px; overflow:auto;}
+#native-source, #native-details, #native-generated {white-space:pre-wrap; max-height:150px; overflow:auto; overflow-wrap:anywhere;}
 #native-rust {white-space:pre; max-height:220px; overflow:auto; font:12px monospace; background:#fff;}
 .native-source-selection {background:#dae8ff;}
 
 /* Editor tabs: the ran program, and the `.egg` a fractal preview was generated from. */
-#native-editor-column {display:flex;flex-direction:column;flex:0 0 50%;min-width:0;height:100vh;border-right:1px solid #c9d0db;}
-#native-editor-column #editor {width:100%;flex:1;resize:none;}
+#native-editor-column {display:flex;flex-direction:column;flex:0 1 50%;width:50%;min-width:0;height:100vh;overflow:hidden;resize:horizontal;}
+#native-editor-column #editor {width:100%;flex:1;min-height:0;resize:none;}
 #native-editor-tabs {flex:0 0 auto;display:flex;gap:2px;padding:4px 4px 0;background:#eef2f7;border-bottom:1px solid #c9d0db;}
 #native-editor-tabs button {border:1px solid #c9d0db;border-bottom:none;background:#e2e8f0;padding:3px 10px;font:12px system-ui;cursor:pointer;border-radius:4px 4px 0 0;}
 #native-editor-tabs button[aria-pressed=true] {background:#fff;font-weight:600;}
