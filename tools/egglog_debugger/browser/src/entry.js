@@ -19,7 +19,7 @@ import * as rustBindingRename from "@plugin/rustBindingRename.js";
 import * as sharedTypstCore from "@plugin/shared/typstCore.js";
 import { renderPreview, validateTemplate } from "../../plugin-renderer.cjs";
 import { createBrowserHost } from "./host.js";
-import { catalog, previewRequest, updateConditions, updateDisplay } from "./annotations.js";
+import { catalog, fractalRuleSource, previewRequest, updateConditions, updateDisplay } from "./annotations.js";
 
 const REVISION = typeof __EGGLOG_BROWSER_REVISION__ === "string" ? __EGGLOG_BROWSER_REVISION__ : "browser-wasm";
 
@@ -88,3 +88,6 @@ export const renderPreviewInBrowser = request => renderer().renderPreview(reques
 export const validateTemplateInBrowser = (template, fields) => renderer().validateTemplate(template, fields);
 export const editDisplayInBrowser = body => renderer().editDisplay(body);
 export const editConditionsInBrowser = body => renderer().editConditions(body);
+// The `.egg` a fractal lane is previewed from; the page appends it to the source
+// and lets the plugin render the states the same way it renders a rule.
+export const fractalRuleSourceInBrowser = (source, line, depth) => fractalRuleSource(source, line, depth);

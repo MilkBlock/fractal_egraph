@@ -54,16 +54,10 @@ function bindingInfo(plugin, prepared, ir) {
 // ASCII and Typst macros are used: the bridge renders with the `typst` CLI and
 // the bundled fonts of the wasm compiler differ, so a literal `←` or `×` would
 // make the two hosts disagree.
-function iterationSource(iteration, context = {}) {
+function iterationSource(iteration) {
     if (!iteration) return '';
     const text = value => `upright(${JSON.stringify(String(value))})`;
     const lines = [];
-
-    // The repetition itself: the matched instance at every application, so the
-    // recursive structure is visible as `trigger -> apply once -> apply twice`.
-    const states = fractalStates(context.ir, context.variableLabels, iteration.bindings || []);
-    if (states.length) lines.push(fractalChain(states));
-
     const parts = [];
     if (iteration.depth) parts.push(text(`Depth ${iteration.depth}`));
     if (iteration.operator) parts.push(text(`operator ${iteration.operator}`));
@@ -78,67 +72,40 @@ function iterationSource(iteration, context = {}) {
     return ' \\ ' + lines.join(' \\ ');
 }
 
-// One Typst atom per matched value: numbers stay numbers, anything else (a
-// string or an opaque value) is shown as upright text so the formula compiles.
-function fractalValue(raw) {
-    const value = /^Value\((.*)\)$/.exec(raw)?.[1] ?? raw;
-    return /^-?\d+$/.test(value) ? value : `upright(${JSON.stringify(value)})`;
-}
-
-// The state at each application: the pattern instance with the values the
-// runtime matched, e.g. `A(3, 9)`. Fields come from the plugin's binding
-// accessors (`node.arg_i64_00`) and their constructor from the pattern IR, and
-// the constructor's own Typst template is applied when the source declares one.
-// Without that structure the state degrades to the tuple of bound values.
-function fractalStates(ir, variableLabels, steps) {
-    if (!steps.length) return [];
-    const entries = Object.entries(variableLabels || {});
-    const accessors = entries.filter(([, label]) => String(label).includes('.'));
-    const root = accessors.length
-        ? ((ir || {}).nodes || []).find(node => node.id === String(accessors[0][1]).split('.')[0] && node.dsl_type)
-        : null;
-    const ordered = root && accessors.length === entries.length
-        ? accessors.map(([name, label]) => ({ name, index: Number(/(\d+)$/.exec(label)?.[1] ?? -1) }))
-            .sort((a, b) => a.index - b.index)
-        : null;
-    const template = ordered
-        ? ((ir || {}).typst_templates || []).find(entry => entry.variant_name === root.dsl_type)
-        : null;
-    return steps.map(step => {
-        const values = new Map();
-        for (const entry of step) {
-            const match = /^Var\("((?:\\.|[^"\\])*)"\) = \d+:(.*)$/.exec(entry);
-            if (match) values.set(JSON.parse(`"${match[1]}"`), match[2]);
-        }
-        const list = ordered || entries.map(([name]) => ({ name, index: 0 }));
-        const args = list.map(entry => (values.has(entry.name) ? fractalValue(values.get(entry.name)) : 'dot.c'));
-        // A declared template renders the constructor the way the rule formula does.
-        if (ordered && template && Array.isArray(template.fields) && template.fields.length === args.length) {
-            const mapping = new Map(template.fields.map((field, index) => [field, args[index]]));
-            return String(template.template).replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g,
-                (_, field) => mapping.get(field) ?? `{${field}}`);
-        }
-        return ordered ? `${root.dsl_type}(${args.join(', ')})` : `(${args.join(', ')})`;
-    });
-}
-
-// `trigger -> apply once -> apply twice -> ... -> apply d times`, with the first
-// few states spelled out and the depth collapsed into one ellipsis.
-function fractalChain(states, shown = 3) {
-    const label = index => index === 0 ? 'trigger'
-        : index === 1 ? 'apply once'
-        : index === 2 ? 'apply twice'
+// A fractal lane is previewed from a rule the debugger generates with the
+// action applied 1..d times (see `fractalRuleSource`), so the extractor renders
+// every intermediate state. This only arranges those rendered states into
+// `trigger -> apply once -> apply twice -> ...`; it never builds a term itself.
+function fractalChainSource(mathView, iteration) {
+    if (!iteration || !iteration.depth || !iteration.chain) return null;
+    const states = (mathView.conclusions || [])
+        .map(conclusion => conclusion.entry?.plain_source)
+        .filter(source => typeof source === "string" && source.trim());
+    if (states.length < 2) return null;
+    const label = index => index === 0 ? "trigger"
+        : index === 1 ? "apply once"
+        : index === 2 ? "apply twice"
         : `apply ${index} times`;
-    const picked = states.length <= shown + 1
-        ? states.map((state, index) => [index, state])
-        : [...states.slice(0, shown).map((state, index) => [index, state]),
-           [states.length - 1, states[states.length - 1]]];
-    const parts = [];
-    picked.forEach(([index, state], position) => {
-        if (position) parts.push(picked[position - 1][0] + 1 < index ? 'arrow.r dots.c' : 'arrow.r');
-        parts.push(`underbrace(${state}, upright(${JSON.stringify(label(index))}))`);
-    });
-    return parts.join(' ');
+    const chain = states
+        .map((state, index) => `underbrace(${state}, upright(${JSON.stringify(label(index))}))`)
+        .join(" arrow.r ");
+    // Deep lanes stop after the shown states; the count names what is collapsed.
+    return iteration.truncated
+        ? `${chain} arrow.r underbrace(dots.c, upright(${JSON.stringify(`apply ${iteration.depth} times`)}))`
+        : chain;
+}
+
+// Joining is the extractor's own (`build_math_view_formula_source` in the
+// extractor crate); only the conclusion slot is replaced by the chain.
+function joinMathLines(entries, fallback) {
+    const kept = entries.map(entry => String(entry).trim()).filter(Boolean);
+    return kept.length ? kept.join(" \\ ") : fallback;
+}
+
+function fractalFormula(mathView, chain) {
+    const premises = joinMathLines((mathView.premises || []).map(entry => entry.plain_source), 'upright("no matched premise")');
+    const conditions = joinMathLines(mathView.side_conditions || [], 'upright("None")');
+    return `frac(${premises}, ${chain}) quad upright("if") quad ${conditions}`;
 }
 
 async function renderPreview(plugin, request) {
@@ -203,11 +170,13 @@ async function renderPreview(plugin, request) {
     const { buildMathViewModel, buildMathViewTypstSource } = plugin.load('mathView');
     const { collectTypstReplacementSources, patternIrToDotWithMode } = plugin.load('dot');
     const mathView = buildMathViewModel(ir, source);
-    // A fractal lane is one rule repeated along a stable relative binding, so the
-    // formula keeps the rule as the plugin rendered it and appends the repetition
-    // instead of unrolling it (lanes reach depth 168).
-    const formulaSource = buildMathViewTypstSource(mathView)
-        + iterationSource(request.fractal, { ir, variableLabels });
+    // A fractal lane is one rule repeated along a stable relative binding. Its
+    // states come from the generated rule the extractor rendered; anything else
+    // (a rewrite, a ground rule, a shape the generator refuses) keeps the rule.
+    const chain = fractalChainSource(mathView, request.fractal);
+    const formulaSource = (chain
+        ? fractalFormula(mathView, chain)
+        : buildMathViewTypstSource(mathView)) + iterationSource(request.fractal);
     const formulaTarget = `math-view:${mathView.rule_name}`;
     const typstSources = Object.fromEntries(collectTypstReplacementSources(ir, mode, label_style, recursive_strategy)
         .map(({ targetId, source }) => [targetId, source]));

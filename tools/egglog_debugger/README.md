@@ -104,44 +104,45 @@ DOT 里的节点尺寸和 Graphviz 坐标与 bridge 不完全相同；公式源�
 
 ## Fractal 规则的公式
 
-一条 Fractal lane 是**同一条规则沿稳定相对绑定路径重复 d 次**。运行时不展开它，而是把 lane 作为
-数据发出（`evidence`：`events`（= 深度）、`trigger`、`operator`、`update`、`higher`），由
-`plugin-renderer.cjs`（bridge 与浏览器共用）在插件公式后面追加两行：**递归结构本身**，以及
-lane 的元数据。
+一条 Fractal lane 是**同一条规则沿稳定相对绑定路径重复 d 次**。运行时不展开它，只把 lane 作为
+数据发出（`evidence`：`events`（= 深度）、`trigger`、`operator`、`update`、`higher`）。
 
-递归结构按 `trigger → apply once → apply twice → … → apply d times` 渲染，每个状态是该次应用
-匹配到的实例（用 lane 自己的链：`trigger` 加上 `events`，不是 `composition` 那条会带上无关分支
-的依赖链）：
+**渲染方式是生成 `.egg` 再交给现有管线**，不在 debugger 里重画：页面按 lane 的规则生成一条
+“把 action 依次应用 1..d 次”的规则，追加到预览源里，让 transpiler → extractor → MathView 去
+渲染每个状态；共享核心只负责把它们排成链：
 
-```typst
-frac(upright("node"), A(upright("node.arg_i64_00") + 1, upright("node.arg_i64_01"))) quad upright("if") quad …
-\ underbrace(A(3, 9), upright("trigger")) arrow.r underbrace(A(4, 9), upright("apply once")) arrow.r
-   underbrace(A(5, 9), upright("apply twice")) arrow.r dots.c underbrace(A(8, 9), upright("apply 5 times"))
-\ upright("Depth 5") quad upright("operator ext_0001") quad upright("context 0") quad upright("FractalComb(Depth(5), …)")
-\ upright("limit") arrow.l upright("limit") comma quad upright("n") arrow.l upright("+(n, 1)")
+```egg
+; fractal lane advance ×5
+(rule ((= node (A n limit)) (< n limit))
+  ((A n limit)
+   (A (+ n 1) limit)
+   (A (+ (+ n 1) 1) limit)
+   (A (+ (+ (+ n 1) 1) 1) limit))
+  :name "fractal:advance")
 ```
 
-- 状态项由插件的数据拼出，不是另写一套渲染：构造器名取自 `ir.nodes[].dsl_type`（pattern 根），
-  字段顺序取自插件的 binding accessor（`node.arg_i64_00`、`node.arg_i64_01`），具体值取自
-  runtime 每步的 `binding`（`Var("n") = 0:Value(3)`）。若该构造器在源码里有 `dsl_type` 模板
-  （`{left} + {right}` 之类），就按模板渲染，和规则公式保持一致。
-- pattern 根不是构造器调用时（例如 pattern 里是多个嵌套项），退化成匹配值的元组：
-  `underbrace((10, 6), upright("trigger")) arrow.r …`，仍然能看出递归结构。`eqsolve` 的 13 条 lane
-  就是这种。
-- 深度大时只展开前 3 个状态 + 最后一个，中间用 `dots.c`（`heldout-increment` 深度到 168）。
-- 数值原样输出，字符串/不可打印的值包成 `upright("…")`，保证 Typst 一定编译得过。
+于是每个状态（含构造器命名、`dsl_type` 模板、precedence）都是 extractor 产出的；debugger 只把
+`math_view.conclusions[].plain_source` 排成 `trigger → apply once → apply twice → …`：
 
-- 徽标只用 ASCII 与 Typst 宏（`arrow.l`、`quad`、`comma`）：bridge 用系统字体的 `typst` CLI，
-  浏览器用内置字体的 wasm 编译器，写 `←`/`×` 这类字面字符会让两边渲染不一致。
-- 不展开是硬约束：`heldout-increment.egg` 有 167 条 lane，深度 2–168。规则本身仍由插件渲染
-  （`math_view`），徽标只是附加说明，所以 pattern 图、DOT、命中区域都不受影响。
-- 步骤选择器对 fractal 行只给一个 `紧凑（×d）` 选项；逐步绑定仍在“绑定、effect 与路径证据”里。
-  此前它按 `step_details` 给每个事件建一个选项（深度 168 就是 168 个同一条规则的预览）。
-- `row.typst` / `row.dot` 仍是运行时的分阶段组合输出（DOT 里带 `FractalComb` 节点），
-  保留给旧日志；运行时不自己拼公式（`src/native_debug.rs` 里那段 `FractalComb(Depth(d), …)`
-  的 Rust 公式已删除）。页面显示的一律是插件渲染 + 徽标。
-- 命中区域可能包含徽标里的变量（`upright("limit")` 会成为可点击目标，改名仍写回 `labels.bindings`）；
-  条件区被限制在公式最后一行，不会把徽标吞进“规则条件”。
+```typst
+frac(upright("node"),
+     underbrace(A(upright("node.arg_i64_00"), upright("node.arg_i64_01")), upright("trigger"))
+     arrow.r underbrace(A(upright("node.arg_i64_00") + 1, …), upright("apply once"))
+     arrow.r underbrace(…, upright("apply twice"))
+     arrow.r underbrace(dots.c, upright("apply 5 times")))
+  quad upright("if") quad upright("node.arg_i64_00") < upright("node.arg_i64_01")
+```
+
+- 生成器（`browser/src/annotations.js` 的 `fractalRuleSource`）用与注解协议同一套 `.egg` parser：
+  pattern 是被改写的那个 term，update map 由 pattern 与 action 的结构差得出，深度超过 4 时就只
+  展开 3 步 + `dots.c`（lane 可到 168 深）。`frac` 的外形与 `join` 规则沿用 extractor 的
+  `build_math_view_formula_source`，只有结论槽换成链。
+- **不能展开的形状**（action 不是构造器调用，例如 head 里是 `union` 的交换律规则、rewrite、
+  ground 规则）：不生成，预览退回“规则公式 + 重复徽标”，不猜也不重画。目前这是
+  `egglog-demo` 里那些示例 lane 的情况；`experiments/bake/*` 的 lane 都能展开。
+- 徽标那两行仍然保留：`Depth d / operator / context / FractalComb(…)` 与 `limit ↦ limit, n ↦ n+1`。
+- 深度只影响“显示几步”，不影响正确性：状态表达式是符号化的（`A(n+1+1, limit)`），不会因为
+  lane 深 168 而爆炸。
 
 ## match 历史与顺序
 

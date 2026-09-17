@@ -578,3 +578,102 @@ export function updateConditions(source, line, conditions) {
     }
     return { source: updated, line: updated.slice(0, rule.start).split("\n").length, target: "condition:when" };
 }
+
+// ---------------------------------------------------------------------------
+// Fractal lanes: the `.egg` a lane's preview is rendered from.
+//
+// A lane is one rule applied d times. Rather than assemble Typst for the
+// intermediate states, generate the rule with its action applied 1..d times in
+// the head and let the extractor render every state: it is the same pipeline
+// that renders the rule itself, so constructor templates, `upright` names and
+// precedence all come from the plugin.
+// ---------------------------------------------------------------------------
+
+const PATTERN_LITERALS = new Set(["true", "false", "nil", "_"]);
+
+function isPatternVariable(form) {
+    return form.items === null && !form.quoted && /^[A-Za-z_][\w-]*$/.test(form.atom || "")
+        && !PATTERN_LITERALS.has(form.atom);
+}
+
+// The term the rule's action rewrites: the call on either side of the pattern's
+// defining equality (or a bare call fact when there is no equality).
+function patternTerm(body) {
+    for (const item of walk([body])) {
+        if (item === body || !item.items || !item.items.length) continue;
+        if (item.op === "=" && item.items.length >= 3) {
+            const [, lhs, rhs] = item.items;
+            if (rhs.items && rhs.items.length) return rhs;
+            if (lhs.items && lhs.items.length) return lhs;
+        } else if (item.op !== "=" && item.op !== "<" && item.op !== ">") {
+            return item;
+        }
+    }
+    return null;
+}
+
+// How one application changes each pattern variable: `(A n limit)` rewritten to
+// `(A (+ n 1) limit)` makes `n` stand for `(+ n 1)` and leaves `limit` alone.
+function collectUpdate(pattern, action, update) {
+    if (isPatternVariable(pattern)) {
+        update.set(pattern.atom, action);
+        return true;
+    }
+    if (pattern.items === null || !action || !action.items
+        || pattern.op !== action.op || pattern.items.length !== action.items.length) return false;
+    return pattern.items.slice(1).every((item, index) => collectUpdate(item, action.items[index + 1], update));
+}
+
+function renderExpr(form, environment, source) {
+    if (form.items === null) {
+        if (isPatternVariable(form) && environment.has(form.atom)) return environment.get(form.atom);
+        return source.slice(form.start, form.end);
+    }
+    return `(${form.items.map(item => renderExpr(item, environment, source)).join(" ")})`;
+}
+
+function ruleNameOf(rule, source) {
+    const items = rule.items || [];
+    for (const [index, item] of items.entries()) {
+        if (item.atom === ":name" && items[index + 1]) return items[index + 1].atom?.replace(/^"|"$/g, "") ?? null;
+    }
+    return null;
+}
+
+/// The source to preview a fractal lane with, plus the line of the generated
+/// rule. `null` when the rule's shape cannot be unrolled (a ground rule, a
+/// pattern that is not a call, a rewrite); the caller then previews the rule.
+export function fractalRuleSource(source, line, depth, shown = 3) {
+    if (!Number.isInteger(depth) || depth < 1) return null;
+    const rule = ruleAtOffset(parse(source), ruleOffset(source, line));
+    if (!rule || rule.op !== "rule" || !rule.items || rule.items.length < 3) return null;
+    const body = rule.items[1];
+    const head = rule.items[2];
+    const action = head.items?.[0];
+    if (!action || !action.items) return null;
+    const pattern = patternTerm(body);
+    if (!pattern) return null;
+    const update = new Map();
+    if (!collectUpdate(pattern, action, update) || !update.size) return null;
+
+    // The first state is the pattern the lane triggers on; each later one is the
+    // action with the update applied once more. Deep lanes collapse into one
+    // ellipsis instead of unrolling 168 times.
+    const spelled = Math.min(depth, shown);
+    const states = [renderExpr(pattern, new Map(), source)];
+    let environment = new Map();
+    for (let step = 0; step < spelled; step++) {
+        states.push(renderExpr(action, environment, source));
+        environment = new Map([...update].map(([name, expr]) => [name, renderExpr(expr, environment, source)]));
+    }
+    const name = ruleNameOf(rule, source) ?? "rule";
+    const ruleText = `; fractal lane ${name} ×${depth}\n(rule ${source.slice(body.start, body.end)}\n  (${states.join("\n   ")})\n  :name "fractal:${name}")`;
+    const prefix = source.endsWith("\n") ? source : `${source}\n`;
+    return {
+        source: prefix + ruleText,
+        line: prefix.split("\n").length,
+        depth,
+        states: spelled,
+        truncated: spelled < depth
+    };
+}

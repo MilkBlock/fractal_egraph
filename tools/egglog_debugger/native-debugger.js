@@ -342,16 +342,10 @@ export function installNativeDebugger(editor) {
         const events=row.evidence?.events;
         return Array.isArray(events)&&events.length?events.length:(row.steps || []).length;
     }
-    function fractalRequest(row) {
+    function fractalEvidence(row) {
         const evidence=row.evidence;if(!evidence)return null;
         const depth=fractalDepth(row);if(!depth)return null;
-        // The lane's own chain is its trigger plus the applications it reports. The
-        // composition behind `step_details` also walks unrelated branches, so pick
-        // the records by event id instead of using it as the sequence.
-        const byEvent=new Map((row.step_details || []).map(step => [step.event, step.binding || []]));
-        const chain=[evidence.trigger, ...(evidence.events || [])];
-        const bindings=chain.map(event => byEvent.get(event)).filter(step => step && step.length);
-        return {depth,operator:evidence.operator ?? null,context:evidence.trigger ?? null,update:evidence.update || [],witness:evidence.higher ?? null,bindings};
+        return {depth,operator:evidence.operator ?? null,context:evidence.trigger ?? null,update:evidence.update || [],witness:evidence.higher ?? null};
     }
     function selectSteps(row) {
         const steps=el('step');steps.replaceChildren();
@@ -361,7 +355,7 @@ export function installNativeDebugger(editor) {
         steps.hidden=!steps.options.length;
         if(steps.options.length)steps.value=steps.options[0].value;
     }
-    function previewRequest(row) {
+    async function previewRequest(row) {
         let source=row.kind?snapshotSource:row.preview_source;
         let line=row.source_line;
         const step=(row.step_details || []).find(step=>String(step.event)===el('step').value);
@@ -369,7 +363,13 @@ export function installNativeDebugger(editor) {
             line=source.split('\n').length+1;
             source+='\n'+row.source;
         }else if(step){line=step.source_line;}
-        const fractal=row.kind==='fractal'?fractalRequest(row):null;
+        let fractal=row.kind==='fractal'?fractalEvidence(row):null;
+        if(fractal){
+            // Preview the lane as an unrolled rule so the plugin renders every state.
+            const generator=await loadBrowserRenderer();
+            const plan=generator.fractalRuleSourceInBrowser(source,line,fractal.depth);
+            if(plan){source=plan.source;line=plan.line;fractal={...fractal,chain:true,truncated:plan.truncated};}
+        }
         return {source,line,mode:el('dot-mode').value,label_style:el('label-style').value,recursive_strategy:el('recursive').value,...(fractal?{fractal}:{})};
     }
     async function show(row, fromTrace=false) {
@@ -393,7 +393,7 @@ export function installNativeDebugger(editor) {
             editor.scrollIntoView({line:row.source_line-1,ch:0},80);
         }
         try{
-            const request=previewRequest(row);activeRequest=request;
+            const request=await previewRequest(row);activeRequest=request;
             if(!request.source || !request.line)throw Error('此旧日志缺少源位置，不能可靠地交给插件渲染；请重新运行生成日志。');
             // The same line number means different formulas after a source edit, so the
             // fingerprint keeps a cached preview from being shown for another rule.
