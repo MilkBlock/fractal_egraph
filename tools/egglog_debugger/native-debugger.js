@@ -1,4 +1,10 @@
 import { applyTypstRenderings } from "./plugin-overlay.js";
+// A static deployment (for example GitHub Pages) cannot run the Python/Rust bridge,
+// so the page talks to a bridge on this machine instead. Override with
+// `window.__EGGLOG_BRIDGE__` before loading this module.
+const LOCAL_HOSTS = new Set(['127.0.0.1', 'localhost', '::1', '[::1]']);
+const BRIDGE_BASE = window.__EGGLOG_BRIDGE__ ?? (LOCAL_HOSTS.has(location.hostname) ? '' : 'http://127.0.0.1:8080');
+const STATIC_PAGE = BRIDGE_BASE !== '';
 // Native debugging is independent of the upstream WASM run and its egraph view.
 export function installNativeDebugger(editor) {
     window.nativeDebugger = true;
@@ -53,6 +59,7 @@ export function installNativeDebugger(editor) {
     let rows=[], snapshotSource='', runStatus='idle', selected=null, patterns=[], parsedSource=null, revision=0, renderRevision=0, selectionIntent=0, renderedCount=0;
     let controller=null, timer=null, marker=null, previewAbort=null, parseAbort=null, currentEdit=null, activeRequest=null, templateDirty=false;
     const status = text => {el('status').textContent=text;};
+    if(STATIC_PAGE)status(`静态部署：上游 WASM Run 可用；“运行并识别”与公式预览/编辑需要在本机运行 python3 tools/egglog_debugger/server.py（bridge ${BRIDGE_BASE}）。`);
     // Common Typst math spellings; {field} placeholders are bound to the constructor's
     // fields in declaration order. Escaped braces {{ }} stay literal.
     const MATH_SYMBOLS = [
@@ -91,7 +98,15 @@ export function installNativeDebugger(editor) {
     ]){const note=document.createElement('p');note.textContent=line;el('symbol-help').prepend(note);}
     function fingerprint(text){let hash=2166136261;for(let i=0;i<text.length;i++){hash^=text.charCodeAt(i);hash=Math.imul(hash,16777619);}return (hash>>>0).toString(16)+':'+text.length;}
     async function post(path, body, signal) {
-        const response=await fetch('/api/'+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal});
+        let response;
+        try {
+            response=await fetch(BRIDGE_BASE+'/api/'+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal});
+        } catch (error) {
+            if(error.name==='AbortError')throw error;
+            throw Error(STATIC_PAGE
+                ? `未连接到本机 bridge：请运行 python3 tools/egglog_debugger/server.py（默认 ${BRIDGE_BASE}）后刷新。`
+                : '无法连接本地调试服务。');
+        }
         if (!response.ok) {
             let payload;try {payload=await response.json();}catch {payload={error:'请通过 tools/egglog_debugger/server.py 启动本地调试服务'};}
             const error=Error(payload.error || '请求失败');error.payload=payload;throw error;

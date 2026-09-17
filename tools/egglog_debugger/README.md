@@ -30,6 +30,32 @@ python3 tools/egglog_debugger/server.py --port 8080
 - 原 demo 的 **Run** 仍运行上游 WASM；**运行并识别** 才使用本地 instrumented runtime。
   不把 WASM 的输出当成本地 trace 的结果。
 
+## 静态发布（GitHub Pages）
+
+<https://milkblock.github.io/fractal_egraph/> 是本 UI 的静态版本，产物由
+`tools/egglog_debugger/build_site.py` 从 `egglog-demo` 的 `dist/` + `static/` 加本目录的
+`native-debugger.js` / `native-debugger.css` 和插件 overlay 组装（`target/pages`，8 MB 左右），
+推到 `MilkBlock/fractal_egraph` 的 `gh-pages` 分支：
+
+```sh
+python3 tools/egglog_debugger/build_site.py                 # --demo/--output 可覆盖
+# 把 target/pages 推到 gh-pages 分支，Pages source 选该分支的 / 即可
+```
+
+GitHub Pages 只能提供静态文件，**不能运行 bridge**，所以页面在非本机域名下会连接
+`http://127.0.0.1:8080`（可用 `window.__EGGLOG_BRIDGE__` 覆盖）：访客在本机跑
+`python3 tools/egglog_debugger/server.py` 时，“运行并识别”、公式预览和编辑都照常工作；
+没有 bridge 时上游 WASM **Run** 仍然可用，面板会给出提示。bridge 默认允许
+`https://milkblock.github.io` 跨域，其它来源用 `--allow-origin ORIGIN` 追加，并只监听 loopback。
+
+各组件的运行位置：
+
+| 功能 | 现在 | 纯浏览器需要 |
+|---|---|---|
+| 上游 WASM **Run** | 浏览器 WASM（上游 egglog） | 已有 |
+| 点行预览、Typst/DOT、模板/变量编辑 | 本机 bridge（插件 extractor + `typst` CLI + vendored Graphviz） | 仓库里已有整套浏览器实现（`dpsk_workspace/viz-web-editor`：transpiler-wasm、extractor-wasm、`typst.ts`、`viz-js`），还没接到这个 UI |
+| **运行并识别**（Compose / Fractal 增量日志） | 本机 bridge（本仓库 patched、带插桩的 egglog） | 需要把 patched egglog + `debug-stream` 编到 wasm32 |
+
 ## 语义与边界
 
 这测量的是 **实际 egglog runtime**，不是独立匹配模拟器。collector 只向分析层导入有

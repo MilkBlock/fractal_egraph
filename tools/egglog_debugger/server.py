@@ -24,6 +24,9 @@ class Handler(SimpleHTTPRequestHandler):
             return self.reply(200, self.server.renderer.overlay, 'text/javascript')
         return super().do_GET()
 
+    def do_OPTIONS(self):
+        return self.reply(204, b'')
+
     def translate_path(self, path):
         if path.split('?')[0] in ('/native-debugger.js', '/native-debugger.css'):
             return str(ROOT / 'tools/egglog_debugger' / path.split('?')[0][1:])
@@ -34,19 +37,35 @@ class Handler(SimpleHTTPRequestHandler):
             return str(candidate)
         return super().translate_path(path)
 
+    def allowed_origin(self):
+        """Same-origin plus the configured static-deployment origins."""
+        origin = self.headers.get('Origin')
+        if not origin:
+            return None
+        if origin == 'http://' + self.headers.get('Host', ''):
+            return origin
+        return origin if origin in self.server.allowed_origins else False
+
     def reply(self, code, data, content_type='application/json'):
         body = data if isinstance(data, bytes) else json.dumps(data).encode()
+        origin = self.allowed_origin() if hasattr(self.server, 'allowed_origins') else None
         self.send_response(code)
         self.send_header('Content-Type', content_type)
         self.send_header('Content-Length', str(len(body)))
         self.send_header('Cache-Control', 'no-store')
+        if origin:
+            self.send_header('Access-Control-Allow-Origin', origin)
+            self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+            self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+            self.send_header('Vary', 'Origin')
         self.end_headers()
         self.wfile.write(body)
 
     def do_POST(self):
-        # Only accept same-origin JSON requests; this is a loopback development server.
-        origin = self.headers.get('Origin')
-        if origin and origin != 'http://' + self.headers.get('Host', ''):
+        # Same-origin, or an origin explicitly listed with --allow-origin (a static
+        # deployment of the UI may connect to a bridge running on this machine).
+        origin = self.allowed_origin()
+        if origin is False:
             return self.reply(403, {'error': 'Cross-origin request refused'})
         if self.headers.get('Content-Type', '').split(';')[0] != 'application/json':
             return self.reply(415, {'error': 'Expected application/json'})
@@ -163,6 +182,9 @@ def main():
     parser.add_argument('--plugin', type=Path, default=default_plugin_root(ROOT))
     parser.add_argument('--extractor', type=Path, help='Use the same extractor override as VS Code')
     parser.add_argument('--run-timeout', type=float, default=120, help='Native run limit in seconds')
+    parser.add_argument('--allow-origin', action='append', default=None,
+                        help='Extra Origin allowed to call this bridge (repeatable); the static UI '
+                             'deployment uses it to reach a bridge running on your machine')
     args = parser.parse_args()
     if args.binary is None:
         subprocess.run(['cargo', 'build', '--release', '--bin', 'egg_layout'], cwd=ROOT, check=True)
@@ -181,6 +203,7 @@ def main():
     server.annotations = module
     server.binary = args.binary.resolve()
     server.run_timeout = args.run_timeout
+    server.allowed_origins = set(args.allow_origin or []) | {'https://milkblock.github.io'}
     print(f'Native egglog debugger: http://127.0.0.1:{args.port}', flush=True)
     server.serve_forever()
 
