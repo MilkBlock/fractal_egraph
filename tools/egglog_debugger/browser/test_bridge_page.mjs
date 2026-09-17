@@ -76,6 +76,22 @@ async function main() {
         await page.waitForFunction(() => document.querySelector('#native-preview[data-ready="true"]')
             && document.querySelector("#native-generated-panel").hidden, null, { timeout: 180000 });
         assert.equal(await page.locator("#native-generated-panel").isVisible(), false);
+        // The runtime has to stream: rows must appear while the run is still going.
+        // A synchronous wasm call froze the page, so the whole log appeared at once
+        // when the program finished.
+        const longSource = await readFile(path.join(ROOT, "experiments/bake/heldout-increment.egg"), "utf8");
+        await page.evaluate(text => { document.querySelector(".CodeMirror").CodeMirror.setValue(text); }, longSource);
+        await page.click("#native-run");
+        await page.waitForFunction(
+            () => document.querySelectorAll("#native-trace button").length > 0
+                && !document.querySelector("#native-status").textContent.includes("完成"),
+            null, { timeout: 180000 });
+        const midRun = await page.locator("#native-trace button").count();
+        await page.waitForFunction(() => document.querySelector("#native-status").textContent.includes("完成"), null, { timeout: 180000 });
+        const finished = await page.locator("#native-trace button").count();
+        assert.ok(midRun < finished, `only ${midRun} of ${finished} rows streamed before the run finished`);
+        await page.evaluate(text => { document.querySelector(".CodeMirror").CodeMirror.setValue(text); }, source);
+
         assert.deepEqual(errors, []);
         process.stdout.write("PASS local bridge page: run, identify and preview a fractal lane served by server.py\n");
     } finally {

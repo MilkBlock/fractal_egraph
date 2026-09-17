@@ -152,11 +152,27 @@ async function main() {
         const rule = afterBinding.find(entry => entry.kind === "original_rule");
         assert.ok(rule, JSON.stringify(afterBinding));
         assert.ok(Object.values(rule.labels.bindings).includes("renamed_node"), JSON.stringify(rule));
-
-        assert.ok(await page.evaluate(() => window.egglogNative.rendered) >= 2);
-        assert.deepEqual(errors, []);
+        // Captured here: the streaming check below reselects nothing.
         const line = await page.evaluate(() => window.egglogNative.selected.source_line);
         assert.equal(await page.evaluate(() => window.egglogNative.selected.kind), undefined);
+
+        // The runtime has to stream: rows must appear while the run is still going.
+        // A synchronous wasm call froze the page, so the whole log appeared at once
+        // when the program finished.
+        const longSource = await readFile(path.join(ROOT, "experiments/bake/heldout-increment.egg"), "utf8");
+        await page.evaluate(text => { document.querySelector(".CodeMirror").CodeMirror.setValue(text); }, longSource);
+        await page.click("#native-run");
+        await page.waitForFunction(
+            () => document.querySelectorAll("#native-trace button").length > 0
+                && !document.querySelector("#native-status").textContent.includes("完成"),
+            null, { timeout: 180000 });
+        const midRun = await page.locator("#native-trace button").count();
+        await page.waitForFunction(() => document.querySelector("#native-status").textContent.includes("完成"), null, { timeout: 180000 });
+        const finished = await page.locator("#native-trace button").count();
+        assert.ok(midRun < finished, `only ${midRun} of ${finished} rows streamed before the run finished`);
+        await page.evaluate(text => { document.querySelector(".CodeMirror").CodeMirror.setValue(text); }, source);
+
+        assert.deepEqual(errors, []);
         process.stdout.write(`PASS wasm preview page: Typst formula, DOT and a .egg edit written back`
             + ` entirely from wasm (L${line}, ${renderer.split(" · ")[1]})\n`);
     } finally {

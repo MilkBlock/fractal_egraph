@@ -473,6 +473,26 @@ export function installNativeDebugger(editor) {
     }
     el('filter').onchange=()=>{el('trace').replaceChildren();rows.forEach(addRow);};
     for(const control of ['format','dot-mode','label-style','recursive','step'])el(control).onchange=()=>{if(selected)show(selected);};
+    // One worker per run; `stop` terminates it, which the in-page call could not do.
+    let streamWorker=null;
+    function runWasmStream(source,onRows,signal){
+        return new Promise((resolve,reject)=>{
+            const worker=new Worker('./wasm-worker.js',{type:'module'});streamWorker=worker;
+            const finish=()=>{if(streamWorker===worker){streamWorker=null;worker.terminate();}};
+            const abort=()=>{finish();reject(Object.assign(Error('aborted'),{name:'AbortError'}));};
+            signal?.addEventListener('abort',abort,{once:true});
+            worker.onmessage=event=>{
+                const {rows,done,error}=event.data||{};
+                try{
+                    if(error)throw Error(error);
+                    if(rows)for(const line of rows)onRows(line);
+                    if(done){signal?.removeEventListener('abort',abort);finish();resolve();}
+                }catch(failure){signal?.removeEventListener('abort',abort);finish();reject(failure);}
+            };
+            worker.onerror=event=>{signal?.removeEventListener('abort',abort);finish();reject(Error(event.message||'wasm worker failed'));};
+            worker.postMessage({source});
+        });
+    }
     el('run').onclick=async()=>{
         controller?.abort();controller=new AbortController();const current=controller;
         snapshotSource=editor.getValue();runStatus='running';rows=[];selected=null;el('preview').hidden=true;el('trace').replaceChildren();status('运行实际 egglog runtime，等待增量事件…');el('run').disabled=true;el('stop').disabled=false;el('import').disabled=true;
@@ -491,17 +511,18 @@ export function installNativeDebugger(editor) {
                 if(buffer.trim())consume(buffer);
                 if(!complete)throw Error('事件流提前结束，当前日志为部分结果');
             }else{
-                // Same patched runtime, compiled to wasm: no local process involved.
-                const wasm=await loadWasmDebugger();
+                // Same patched runtime, compiled to wasm, but in a worker: a
+                // synchronous call here would freeze the page, so the log would only
+                // appear once the whole program finished.
                 status('运行浏览器内的 wasm 插桩 runtime…');
-                wasm.debug_stream(snapshotSource,line=>consume(line));
+                await runWasmStream(snapshotSource,x=>consume(x),current.signal);
                 if(!complete)throw Error('wasm 事件流没有给出完成事件');
             }
         }catch(error){runStatus=error.name==='AbortError'?'cancelled':'failed';status(error.name==='AbortError'?'已停止，保留已收到的日志。':`运行失败：${error.message}`);}
         finally{if(controller===current){el('run').disabled=false;el('stop').disabled=true;el('import').disabled=false;controller=null;}}
     };
     el('restore').onclick=()=>{if(snapshotSource){editor.setValue(snapshotSource);status('已载入日志对应源码；点击日志重现公式。');}};
-    el('stop').onclick=()=>controller?.abort();
+    el('stop').onclick=()=>{streamWorker?.terminate();streamWorker=null;controller?.abort();};
     el('export').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify({version:2,status:runStatus,source:snapshotSource,rows},null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='egglog-debug-history.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
     el('import').onchange=async event=>{try{const file=event.target.files[0];if(!file)return;const data=JSON.parse(await file.text());if(![1,2].includes(data.version) || typeof data.source!=='string' || !Array.isArray(data.rows) || data.rows.some(r=>!['application','compose','fractal'].includes(r.kind) || typeof r.id!=='string'))throw Error('无效的日志格式');controller?.abort();snapshotSource=data.source;runStatus=data.status || 'unknown';rows=data.rows;selected=null;el('preview').hidden=true;el('filter').onchange();status(`已载入 ${rows.length} 条公式快照（${runStatus}）；点击日志回放。`);}catch(error){status(error.message);}event.target.value='';};
     // Expose read-only state for debugging and browser regression tests.

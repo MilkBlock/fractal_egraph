@@ -80,7 +80,7 @@ def main():
                 shutil.copytree(path, out / path.name, dirs_exist_ok=True)
             else:
                 shutil.copy2(path, out / path.name)
-    for name in ('native-debugger.js', 'native-debugger.css'):
+    for name in ('native-debugger.js', 'native-debugger.css', 'wasm-worker.js'):
         shutil.copy2(DEBUGGER / name, out / name)
     build_wasm(out)
     if not args.skip_browser:

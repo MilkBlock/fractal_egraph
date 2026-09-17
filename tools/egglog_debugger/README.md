@@ -43,6 +43,11 @@ node tools/egglog_debugger/browser/test_bridge_page.mjs --chromium PATH
   可先粘贴 `experiments/bake/increment-3.egg`：6 个有效应用、5 个组合、4 条 Fractal 证据。
 - 日志窗口按有效应用、Rule Compose、Fractal 过滤；点击每一行读取该事件的公式快照、
   binding、effects、父应用和路径证据。事件 ID 是实际 trace ID，不是连续的数组下标。
+- **日志是流式的**：bridge 每写一行就 flush，页面逐行追加（实测 `heldout-increment`：
+  200ms 时已有 139 行、2.6s 时 489 行）。没有 bridge 时 wasm 跑在 `wasm-worker.js`
+  这个 module worker 里——原来是主线程上的同步调用，整轮跑完才一次性冒出来（实测
+  `0ms:0 → 200ms:504`，修好后 `200ms:96 → 400ms:192 → …`），而且 `停止` 现在是真的
+  `terminate()`。
 - **导出日志 / 回放日志** 保存和载入源码及公式；更改编辑器不会改写旧快照。
   **载入日志源码** 恢复运行时的编辑器内容。预览窗口可滚动，公式保持原始大小。
 - **停止** 会取消请求并终止对应本地进程；默认每次运行限时 120 秒，
