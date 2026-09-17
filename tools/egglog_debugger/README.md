@@ -139,9 +139,12 @@ frac(upright("node"), A(upright("node.arg_i64_00") + 1, upright("node.arg_i64_01
 
 实测：9 个能出事件的程序里 5 个连顺序都逐字节一致；另外 4 个（`binary-1`、`binary-5`、
 `heldout-binary`、`examples/eqsat-basic`）**命中完全相同但枚举顺序不同**，于是 `id`、`event`、
-`effects.produced` 里的 `0:write:N` 顺序也跟着不同。原因是平台相关的表遍历顺序
-（wasm32 与 64 位下 `usize` 哈希不同；native 那侧还有并行匹配），不是随机性：
-两端各自重复运行都稳定。
+`effects.produced` 里的 `0:write:N` 顺序也跟着不同。原因是平台相关的表遍历顺序：
+e-graph 用 `hashbrown::HashMap` + `rustc_hash::FxHasher`（`egglog/src/util.rs`），
+`FxHasher` 哈希的是 `usize`，wasm32 是 4 字节、native 是 8 字节，桶布局因此不同，
+同一个 boundary 内多个匹配的枚举顺序就不同。不是随机性：两端各自重复运行都稳定。
+也不是线程：native 的 rayon 池是 `num_threads(1)`，只用来要一个更大的栈
+（`src/native_debug.rs:209`），wasm 没有线程所以直接内联执行。
 
 结论与用法：
 
