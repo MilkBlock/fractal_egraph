@@ -54,11 +54,14 @@ async function renderPreview(plugin, request) {
     if (!['pattern', 'action', 'combined'].includes(mode)) throw Error('Invalid DOT view mode');
     if (!['compact', 'full', 'recursive'].includes(label_style)) throw Error('Invalid label style');
     if (!['tree-safe', 'dag-expand'].includes(recursive_strategy)) throw Error('Invalid recursive strategy');
-    const rust = await plugin.transpiler.transpileEggSource(source);
-    let offset = source.split('\n').slice(0, line - 1).join('\n').length + (line > 1 ? 1 : 0);
+    // A `birewrite` line is previewed through its equivalent `rewrite`: the transpiler
+    // emits no add_rule scope for birewrite, so there is nothing else to extract.
+    const previewSource = typeof request.preview_source === 'string' ? request.preview_source : source;
+    const rust = await plugin.transpiler.transpileEggSource(previewSource);
+    let offset = previewSource.split('\n').slice(0, line - 1).join('\n').length + (line > 1 ? 1 : 0);
     // The caller supplies the native parser's start line, which can precede the
     // opening parenthesis by indentation. The plugin mapper expects the form itself.
-    offset += source.slice(offset).search(/\S|$/);
+    offset += previewSource.slice(offset).search(/\S|$/);
     const extract = (rustSource, rustOffset) => new Promise((resolve, reject) => {
         const child = require('node:child_process').spawn(plugin.extractor,
             ['--offset', String(Buffer.byteLength(rustSource.slice(0, rustOffset), 'utf8'))],
@@ -76,11 +79,11 @@ async function renderPreview(plugin, request) {
     let ir, variableMap = {}, variableLabels = {}, rustSource = '', rustStartLine = 0;
     if (fs.existsSync(path.join(plugin.root, 'out/eggPreviewSource.js'))) {
         const { prepareEggPreviewPlan, buildEggPreview } = plugin.load('eggPreviewSource');
-        const plan = prepareEggPreviewPlan(source, rust);
+        const plan = prepareEggPreviewPlan(previewSource, rust);
         // The plugin drops `rewrite` forms from program.rules, which both ignores their
         // annotations and shifts every later rule onto the wrong annotation. Index the
         // entries by ordinal and fill the selected rewrite from the .egg source.
-        const ordinal = plugin.load('eggRuleMapping').eggRuleOrdinalAtOffset(source, offset);
+        const ordinal = plugin.load('eggRuleMapping').eggRuleOrdinalAtOffset(previewSource, offset);
         const entries = new Map((plan.program.rules || []).map(entry => [entry.ordinal, entry]));
         if (request.rule_entry?.structure) entries.set(ordinal, { ordinal, structure: request.rule_entry.structure, annotation: request.rule_entry.annotation || {}, ruleStart: offset });
         plan.program.rules = [...entries.keys()].reduce((list, key) => { list[key] = entries.get(key); return list; }, []);
@@ -96,7 +99,7 @@ async function renderPreview(plugin, request) {
             rustStartLine = prepared.rust.slice(0, span.start).split('\n').length;
         }
     } else {
-        const rustOffset = plugin.load('eggRuleMapping').resolveEggPreviewOffset(source, offset, rust);
+        const rustOffset = plugin.load('eggRuleMapping').resolveEggPreviewOffset(previewSource, offset, rust);
         ir = await extract(rust, rustOffset);
         rustSource = rust;
         rustStartLine = 1;

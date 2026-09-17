@@ -259,7 +259,12 @@ def main():
         # Both (leq e1a e2a) and (leq e1b e2b) are premises, not just the two Add matches.
         assert rendered.count('upright("leq")') == 2, rendered
 
-        # --- a birewrite must not shift the next rule's mapping ---------------
+        # --- a birewrite previews its forward rewrite, like a rewrite ---------
+        set_source(BIREWRITE_SOURCE, 1)
+        ready('Add')
+        assert '"rule_2_' in page.locator('#native-rust').text_content()
+        assert page.locator('#native-targets button[data-target^="binding:"]').count() >= 2
+        # --- and it must not shift the next rule's mapping --------------------
         set_source(BIREWRITE_SOURCE, 2)
         ready('Num')
         assert 'arrow.r.double' in page.locator('#native-source').text_content()

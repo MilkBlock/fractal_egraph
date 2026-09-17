@@ -28,6 +28,20 @@ fn parser_maps_unicode_multiline_rules_without_annotations() {
 }
 
 #[test]
+fn birewrite_previews_its_forward_rewrite_at_its_own_line() {
+    let source = "(datatype Math (Const i64) (Add Math Math))\n(birewrite (Add x (Const 0)) x)\n(rewrite (Add x (Const 1)) x)\n";
+    let data = debug::patterns(source).unwrap();
+    let rows = data["patterns"].as_array().unwrap();
+    // The birewrite has no transpiled `add_rule` scope, but it still gets a row and
+    // must not shift the rewrite that follows it.
+    assert_eq!(rows.len(), 2);
+    assert_eq!(rows[0]["source_line"].as_u64(), Some(2));
+    assert_eq!(rows[1]["source_line"].as_u64(), Some(3));
+    assert!(rows[0]["source"].as_str().unwrap().contains("__viz_root"));
+    assert!(rows[0]["typst"].as_str().unwrap().contains("==>"));
+}
+
+#[test]
 fn stream_uses_committed_evidence_and_matches_offline_fractal_paths() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let source = root.join("experiments/bake/increment-3.egg");

@@ -59,6 +59,8 @@ class Handler(SimpleHTTPRequestHandler):
                 line = data.get('line', 1)
                 data['edit_targets'] = self.server.annotations.catalog(data['source'], line)
                 data['rule_entry'] = self.server.annotations.rewrite_preview_entry(data['source'], line)
+                # `birewrite` has no add_rule scope; preview its forward rewrite instead.
+                data['preview_source'] = self.server.annotations.preview_source(data['source'], line)
                 return self.reply(200, self.server.renderer.render(data))
             if self.path == '/api/edit-conditions':
                 result = self.server.annotations.update_conditions(data['source'], data['line'], data['conditions'])

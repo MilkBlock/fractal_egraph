@@ -161,6 +161,12 @@ pub fn patterns(source: &str) -> Result<Json> {
     let mut eg = EGraph::default();
     let mut rows = vec![];
     for command in eg.parse_program(None, source)? {
+        // `birewrite` desugars to both directions and the transpiler emits no
+        // `add_rule` scope for it; preview its forward rewrite like a plain rewrite.
+        let command = match command {
+            Command::BiRewrite(ruleset, rewrite) => Command::Rewrite(ruleset, rewrite, false),
+            c => c,
+        };
         // Keep subsume explicit instead of normalizing it into a union.
         let command = match command {
             Command::Rewrite(_, ref r, true) => {

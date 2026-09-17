@@ -169,9 +169,10 @@ bundle 里的 `@egg-viz-json` 注释不记录 matches、effects 或性能统计�
 同时用目标列表里的 `变量 a · num_node2` 打开编辑框；保存写入该规则的
 `labels.bindings`，公式立即改用新名字。显式 `rule` 和 `rewrite` 都支持；
 `birewrite` 由转译器直接交给 `parse_and_run_program`，不产生 `add_rule` 作用域，
-所以既不提供变量改名，也不占用 ordinal。ordinal 只统计会生成 `add_rule` 的
-`rule` / `rewrite`：以前把 `birewrite` 也算进去，导致它后面每一条规则都错位到
-前一条的 Rust 作用域（插件提交 `b7739b5`）。渲染时按 ordinal 索引
+插件因此无法直接渲染它；debugger 在预览时把该行的关键字换成 `rewrite`（行号不变）
+渲染其**正向** rewrite，变量改名和 `:when` 条件编辑与 `rewrite` 相同。ordinal 只统计会
+生成 `add_rule` 的 `rule` / `rewrite`：以前把 `birewrite` 也算进去，导致它后面
+每一条规则都错位到前一条的 Rust 作用域（插件提交 `b7739b5`）。渲染时按 ordinal 索引
 规则，并为 `rewrite` 补出与 `rule` 等价的结构交给插件自己的绑定重命名器，
 因此带 `rewrite` 的文件不再把注解错配到后面的规则上。
 
