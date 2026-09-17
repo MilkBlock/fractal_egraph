@@ -63,6 +63,20 @@ async function main() {
         assert.match(generated, /:name "fractal:advance"/, generated);
         assert.match(await page.locator("#native-generated-title").textContent(), /只展开前几步/);
 
+        // The generated rule gets its own tab above the editor, and selecting a
+        // fractal lane jumps to it instead of leaving the ran program in view.
+        assert.equal(await page.locator("#native-tab-generated").getAttribute("aria-pressed"), "true");
+        assert.equal(await page.locator("#native-generated-editor").isVisible(), true);
+        assert.equal(await page.evaluate(() => document.querySelector("#editor").style.display), "none");
+        assert.match(await page.evaluate(() => document.querySelector("#native-generated-editor .CodeMirror").CodeMirror.getValue()),
+            /:name "fractal:advance"/);
+        await page.click("#native-tab-original");
+        assert.equal(await page.locator("#native-generated-editor").isVisible(), false);
+        assert.equal(await page.evaluate(() => document.querySelector("#editor .CodeMirror").CodeMirror.getValue()), source,
+            "switching tabs must not touch the program being edited");
+        await page.click("#native-tab-generated");
+        assert.equal(await page.locator("#native-generated-editor").isVisible(), true);
+
         const formula = await page.locator("#native-source").textContent();
         assert.match(formula, /underbrace\(/, formula);
         assert.match(formula, /upright\("trigger"\)/, formula);

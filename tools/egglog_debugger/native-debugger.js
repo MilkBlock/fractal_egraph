@@ -357,17 +357,65 @@ export function installNativeDebugger(editor) {
         const depth=fractalDepth(row);if(!depth)return null;
         return {depth,operator:evidence.operator ?? null,context:evidence.trigger ?? null,update:evidence.update || [],witness:evidence.higher ?? null};
     }
+    // Two tabs above the editor: the program being run, and the `.egg` a fractal
+    // preview was generated from. The generated side is a second, read-only
+    // CodeMirror so the editor's own content and cursor are never touched.
+    const generatedTabs = (() => {
+        const host = document.getElementById('editor');
+        if (!host) return null;
+        // The demo puts the editor straight into the flex row, so wrap it to get a
+        // tab strip directly above the text box.
+        const column = document.createElement('div'); column.id = 'native-editor-column';
+        host.parentElement.insertBefore(column, host);
+        column.append(host);
+        const tabs = document.createElement('div'); tabs.id = 'native-editor-tabs';
+        tabs.innerHTML = '<button type="button" id="native-tab-original" aria-pressed="true">原始 .egg</button>'
+            + '<button type="button" id="native-tab-generated" aria-pressed="false" hidden>生成的 Fractal .egg</button>';
+        column.insertBefore(tabs, host);
+        const view = document.createElement('div'); view.id = 'native-generated-editor'; view.hidden = true;
+        column.append(view);
+        const mirror = CodeMirror(view, {value:'', mode:'scheme', lineNumbers:true, lineWrapping:true, readOnly:true});
+        const original = tabs.querySelector('#native-tab-original');
+        const generatedTab = tabs.querySelector('#native-tab-generated');
+        let active = 'original';
+        const select = which => {
+            active = which;
+            const generated = which === 'generated';
+            host.style.display = generated ? 'none' : '';
+            view.hidden = !generated;
+            original.setAttribute('aria-pressed', String(!generated));
+            generatedTab.setAttribute('aria-pressed', String(generated));
+            (generated ? mirror : editor).refresh();
+        };
+        original.onclick = () => select('original');
+        generatedTab.onclick = () => select('generated');
+        return {select, get active(){return active;}, mirror, tab:generatedTab, host, view};
+    })();
+    function selectEditorTab(which) { generatedTabs?.select(which); }
     // A fractal lane is previewed from a generated rule; show it, because that text
     // is what produces the states below.
     function showGenerated(generated) {
         const panel=el('generated-panel');
-        if(!generated){panel.hidden=true;el('generated').textContent='';el('generated-note').textContent='';return;}
+        if(!generated){
+            panel.hidden=true;el('generated').textContent='';el('generated-note').textContent='';
+            if(generatedTabs){generatedTabs.tab.hidden=true;generatedTabs.mirror.setValue('');selectEditorTab('original');}
+            return;
+        }
         panel.hidden=false;
         el('generated-title').textContent=`生成的 .egg（Fractal 展开，追加后预览第 ${generated.line} 行${generated.truncated?'，只展开前几步':''}）`;
         el('generated').textContent=generated.text;
         el('generated-note').textContent=generated.truncated
             ? '更深的步骤折叠成 dots.c；这条规则只用于预览，不会写回编辑器。'
             : '这条规则只用于预览，不会写回编辑器。';
+        if(generatedTabs){
+            generatedTabs.tab.hidden=false;
+            generatedTabs.tab.textContent=`生成的 Fractal .egg${generated.depth?`（×${generated.depth}）`:''}`;
+            generatedTabs.mirror.setValue(generated.text);
+            // Point the generated tab at the rule itself, below its comment line.
+            const ruleLine=generated.text.split('\n').findIndex(line=>line.trimStart().startsWith('(rule'));
+            generatedTabs.mirror.setCursor({line:Math.max(0,ruleLine),ch:0});
+            generatedTabs.mirror.scrollIntoView({line:Math.max(0,ruleLine),ch:0},80);
+        }
     }
     el('generated-copy').onclick=async ()=>{
         const text=el('generated').textContent;if(!text)return;
@@ -399,7 +447,7 @@ export function installNativeDebugger(editor) {
             const generator=await loadBrowserGenerator();
             const plan=generator?.fractalRuleSourceInBrowser(source,line,fractal.depth,fractal.update);
             if(plan){
-                generatedRule={text:plan.source.slice(source.length).replace(/^\n/,''),line:plan.line,truncated:plan.truncated};
+                generatedRule={text:plan.source.slice(source.length).replace(/^\n/,''),line:plan.line,truncated:plan.truncated,depth:fractal.depth};
                 source=plan.source;line=plan.line;fractal={...fractal,chain:true,truncated:plan.truncated};
             }
         }
@@ -428,6 +476,7 @@ export function installNativeDebugger(editor) {
         }
         try{
             const request=await previewRequest(row);activeRequest=request;showGenerated(generatedRule);
+            if(generatedRule && fromTrace)selectEditorTab('generated');
             if(!request.source || !request.line)throw Error('此旧日志缺少源位置，不能可靠地交给插件渲染；请重新运行生成日志。');
             // The same line number means different formulas after a source edit, so the
             // fingerprint keeps a cached preview from being shown for another rule.

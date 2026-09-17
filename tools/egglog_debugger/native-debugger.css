@@ -10,6 +10,15 @@
 #native-rust {white-space:pre; max-height:220px; overflow:auto; font:12px monospace; background:#fff;}
 .native-source-selection {background:#dae8ff;}
 
+/* Editor tabs: the ran program, and the `.egg` a fractal preview was generated from. */
+#native-editor-column {display:flex;flex-direction:column;flex:0 0 50%;min-width:0;height:100vh;border-right:1px solid #c9d0db;}
+#native-editor-column #editor {width:100%;flex:1;resize:none;}
+#native-editor-tabs {flex:0 0 auto;display:flex;gap:2px;padding:4px 4px 0;background:#eef2f7;border-bottom:1px solid #c9d0db;}
+#native-editor-tabs button {border:1px solid #c9d0db;border-bottom:none;background:#e2e8f0;padding:3px 10px;font:12px system-ui;cursor:pointer;border-radius:4px 4px 0 0;}
+#native-editor-tabs button[aria-pressed=true] {background:#fff;font-weight:600;}
+#native-generated-editor {flex:1;overflow:auto;}
+#native-generated-editor .CodeMirror {height:100%;font:13px monospace;}
+
 #native-preview {--vscode-editor-foreground:#333;--vscode-editor-background:#fff;}
 #native-preview > svg {display:block;max-width:none;}
 #native-renderer {font-size:11px;color:#596675;overflow-wrap:anywhere;}
