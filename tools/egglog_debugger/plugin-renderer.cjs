@@ -62,8 +62,8 @@ function iterationSource(iteration) {
     if (iteration.depth) parts.push(text(`Depth ${iteration.depth}`));
     if (iteration.operator) parts.push(text(`operator ${iteration.operator}`));
     if (iteration.context !== undefined && iteration.context !== null) parts.push(text(`context ${iteration.context}`));
-    if (iteration.witness) parts.push(text(iteration.witness));
     if (parts.length) lines.push(parts.join(' quad '));
+    if (iteration.witness) lines.push(text(iteration.witness));
     const updates = (iteration.update || []).map(entry => String(entry).split('←').map(part => part.trim()));
     if (updates.length) {
         lines.push(updates.map(([from, to]) => `${text(from)} arrow.l ${text(to ?? '')}`).join(' comma quad '));
@@ -102,10 +102,12 @@ function joinMathLines(entries, fallback) {
     return kept.length ? kept.join(" \\ ") : fallback;
 }
 
+// The chain's first state is the trigger, so the `frac` wrapper the extractor uses
+// for a rule would repeat it above the chain and drag in every premise of the
+// generated rule. Keep the side conditions, which the chain does not show.
 function fractalFormula(mathView, chain) {
-    const premises = joinMathLines((mathView.premises || []).map(entry => entry.plain_source), 'upright("no matched premise")');
-    const conditions = joinMathLines(mathView.side_conditions || [], 'upright("None")');
-    return `frac(${premises}, ${chain}) quad upright("if") quad ${conditions}`;
+    const conditions = (mathView.side_conditions || []).map(entry => String(entry).trim()).filter(Boolean);
+    return conditions.length ? `${chain} quad upright("if") quad ${joinMathLines(conditions, 'upright("None")')}` : chain;
 }
 
 async function renderPreview(plugin, request) {

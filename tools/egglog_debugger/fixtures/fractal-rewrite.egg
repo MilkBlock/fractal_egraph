@@ -1,0 +1,7 @@
+; Integration by parts, the shape the math example's deep lane uses: a `rewrite`
+; whose states grow as the rule is applied again.
+(datatype Math (Mul Math Math) (Integral Math Math) (Sub Math Math) (Diff Math Math))
+(rewrite (Integral (Mul a b) x)
+         (Sub (Mul a (Integral b x))
+              (Integral (Mul (Diff x a) (Integral b x)) x))
+         :name "parts")

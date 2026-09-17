@@ -682,11 +682,25 @@ function ruleNameOf(rule, source) {
 export function fractalRuleSource(source, line, depth, updateEntries = [], shown = 3) {
     if (!Number.isInteger(depth) || depth < 1) return null;
     const rule = ruleAtOffset(parse(source), ruleOffset(source, line));
-    if (!rule || rule.op !== "rule" || !rule.items || rule.items.length < 3) return null;
-    const body = rule.items[1];
-    const state = newStateExpression(rule.items[2]);
-    const pattern = patternTerm(body);
-    if (!pattern || !state) return null;
+    if (!rule || !rule.items || rule.items.length < 3) return null;
+    // A `rewrite` (or a birewrite's forward direction) has no separate pattern and
+    // action: its left side is the state the lane triggers on and its right side is
+    // the state one application produces. Its body is synthesized, because a rule's
+    // premises are what the extractor renders.
+    let bodyText, pattern, state;
+    if (rule.op === "rule") {
+        const body = rule.items[1];
+        bodyText = source.slice(body.start, body.end);
+        pattern = patternTerm(body);
+        state = newStateExpression(rule.items[2]);
+    } else if (rule.op === "rewrite" || rule.op === "birewrite") {
+        pattern = rule.items[1];
+        state = rule.items[2];
+        bodyText = `((= __viz_root ${source.slice(pattern.start, pattern.end)}))`;
+    } else {
+        return null;
+    }
+    if (!pattern || !state || !pattern.items || !state.items) return null;
     const update = runtimeUpdate(updateEntries) || structuralUpdate(pattern, state, source);
     if (!update) return null;
 
@@ -701,7 +715,7 @@ export function fractalRuleSource(source, line, depth, updateEntries = [], shown
         environment = new Map([...update].map(([name, expr]) => [name, renderExpr(expr.form, environment, expr.text)]));
     }
     const name = ruleNameOf(rule, source) ?? "rule";
-    const ruleText = `; fractal lane ${name} ×${depth}\n(rule ${source.slice(body.start, body.end)}\n  (${states.join("\n   ")})\n  :name "fractal:${name}")`;
+    const ruleText = `; fractal lane ${name} ×${depth}\n(rule ${bodyText}\n  (${states.join("\n   ")})\n  :name "fractal:${name}")`;
     const prefix = source.endsWith("\n") ? source : `${source}\n`;
     return {
         source: prefix + ruleText,

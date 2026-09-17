@@ -168,8 +168,26 @@ async function main() {
     assert.match(commute.typst, /upright\("apply twice"\)/, commute.typst);
     assert.equal(commute.typst_mode, "math", "the wasm Typst compiler rejected the union chain");
 
-    // A rewrite has no rule to unroll: the preview keeps the rule formula and the
-    // badge instead of inventing states.
+    // A `rewrite` is unrolled the same way: its left side is the trigger state and
+    // its right side the state one application produces, driven by the recorded
+    // update map (this is the `math` example's integration-by-parts lane).
+    const rewriteSource = fs.readFileSync(path.join(path.dirname(HERE), "fixtures/fractal-rewrite.egg"), "utf8");
+    const parts = fractalRuleSource(rewriteSource, 4, 2,
+        ["a ← (Diff x a)", "b ← (Integral b x)", "x ← x"]);
+    assert.ok(parts, "an integration-by-parts rewrite should unroll");
+    const applied = await compare("fractal lane (rewrite)",
+        { source: parts.source, line: parts.line, mode: "combined", label_style: "recursive", recursive_strategy: "dag-expand",
+            fractal: { ...fractal, depth: 2, chain: true, truncated: false,
+                update: ["a ← (Diff x a)", "b ← (Integral b x)", "x ← x"] } });
+    assert.match(applied.typst, /^underbrace\(/, applied.typst);
+    assert.match(applied.typst, /upright\("trigger"\)/, applied.typst);
+    assert.match(applied.typst, /upright\("apply once"\)/, applied.typst);
+    assert.match(applied.typst, /upright\("apply twice"\)/, applied.typst);
+    assert.doesNotMatch(applied.typst, /frac\(/, "the chain replaces the frac wrapper");
+    assert.equal(applied.typst_mode, "math");
+
+    // A rewrite without a recorded update map has nothing to unroll, and the
+    // preview keeps the rule formula plus the badge instead of inventing states.
     const refused = await compare("fractal lane (no unrolling)",
         { source, line: 8, mode: "combined", label_style: "recursive", recursive_strategy: "dag-expand", fractal });
     assert.doesNotMatch(refused.typst, /underbrace/, refused.typst);

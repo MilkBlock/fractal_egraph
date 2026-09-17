@@ -173,6 +173,13 @@ frac(upright("node"),
   与 `(union (Add …) x)` 两种写法都存在）。实测 `eqsolve` 的第 14 行规则
   `(rule ((= (Add x y) z)) ((union (Add z (Neg y)) x)))` 展开为
   `x + y → (x + y) + Neg(y) → x + Neg(Neg(y))`，全部由 extractor 渲染。
+- **`rewrite` / `birewrite` 也展开**：左侧就是 trigger 状态，右侧是一次应用后的状态，body 用
+  `(= __viz_root <lhs>)` 合成（`math` 示例里深度 4 的分部积分 lane 就是这种形状，之前它会退回
+  成 `frac(前提, 重写对)` 那种没什么可读性的公式）。
+- 有链时公式**不再套 `frac`**：链的第一个状态就是 trigger，套上去只会把前提再抄一遍（生成规则的
+  前提还是 `upright("__viz_root")` 这种噪音），只在有 side condition 时接
+  `quad upright("if") quad …`。徽标也拆成最多三行（参数 / `FractalComb(…)` 见证 / update 不变式），
+  一行太宽时会横向溢出。
 - 运行时的 `update` 现在用 egglog 语法打印（`src/native_analyze.rs` 新增 `egglog()`；
   原来的 `pretty()` 是展示写法：`n · y`、`+(n, 1)`，无法再解析）。徽标那行显示的也是这个语法。
 - **仍然拒绝的形状**：`rewrite`、ground 规则、以及 update 里出现不可解析条目（例如从 lane 外
