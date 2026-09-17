@@ -2,6 +2,8 @@
 
 在 `egg_layout` 根目录启动（需要 Python 3.10+、Node.js、Rust、`typst`、Graphviz `dot`，以及已安装的 Eggplant Pattern Preview 插件）：
 
+**日常就用这一条命令**（不需要静态构建，也不需要联网）：
+
 ```sh
 python3 tools/egglog_debugger/server.py --port 8080
 ```
@@ -10,6 +12,24 @@ python3 tools/egglog_debugger/server.py --port 8080
 `--demo PATH` 指定。服务会构建本地 release 二进制，优先提供 demo 的
 `static/` 源文件，WASM 等构建产物从该项目现有的 `dist/` 提供。
 如果还没有 demo 构建产物，先在 demo 目录执行 `make`。
+
+Fractal lane 的展开需要页面导入浏览器 bundle（它负责把 lane 生成成 `.egg`），
+`server.py` 会从 `target/pages/browser/` 直接提供它；**bundle 没构建时 fractal 预览
+只是退回“规则 + 徽标”，不会报错**。要构建它（一次即可，不需要 wasm 运行时）：
+
+```sh
+node tools/egglog_debugger/browser/build.mjs \
+  --plugin ~/.vscode/extensions/milkblock.eggplant-pattern-vscode-* \
+  --webdeps dpsk_workspace/viz-web-editor/node_modules \
+  --extractor-wasm target/extractor-wasm \
+  --out target/pages
+```
+
+本地路径的回归（不需要 Python playwright）：
+
+```sh
+node tools/egglog_debugger/browser/test_bridge_page.mjs --chromium PATH
+```
 
 - 点击编辑器中 `rule` / `rewrite` 的任一行，预览整个规则的 Typst 公式或 DOT。
   使用原生 AST 源位置，支持多行、Unicode 和未加 `@pattern` 注释的规则。
@@ -29,6 +49,11 @@ python3 tools/egglog_debugger/server.py --port 8080
   可用 `--run-timeout SECONDS` 修改。失败和取消后保留已收到的部分日志。
 - 原 demo 的 **Run** 仍运行上游 WASM；**运行并识别** 才使用本地 instrumented runtime。
   不把 WASM 的输出当成本地 trace 的结果。
+
+## 静态发布（GitHub Pages，按需）
+
+> 默认**不发布**：线上产物只在明确要求时才重新推送（Pages 一次推送 + 首次访问要传几十 MB
+> wasm/字体）。上一次发布是 `gh-pages c5100e3`（对应 master `c60e6cd`），之后的本机改动没有推送。
 
 ## 静态发布（GitHub Pages）
 

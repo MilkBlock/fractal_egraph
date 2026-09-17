@@ -30,6 +30,11 @@ class Handler(SimpleHTTPRequestHandler):
     def translate_path(self, path):
         if path.split('?')[0] in ('/native-debugger.js', '/native-debugger.css'):
             return str(ROOT / 'tools/egglog_debugger' / path.split('?')[0][1:])
+        # The browser bundle is a build artifact (see browser/build.mjs); the local
+        # page imports it to generate a fractal lane's `.egg`, so serve it when it
+        # was built rather than 404ing every fractal preview.
+        if path.split('?')[0].startswith('/browser/'):
+            return str(ROOT / 'target/pages' / path.split('?')[0][1:])
         # Source static files take precedence over an old dist build.
         clean = path.split('?')[0].lstrip('/') or 'index.html'
         candidate = (self.server.demo / 'static' / clean).resolve()

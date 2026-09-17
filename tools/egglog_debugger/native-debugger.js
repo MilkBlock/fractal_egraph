@@ -88,6 +88,12 @@ export function installNativeDebugger(editor) {
         if(!browserRendererPromise)browserRendererPromise=import('./browser/preview.js');
         return browserRendererPromise;
     }
+    // The bundle is optional when a bridge is running: it is only needed to
+    // generate a fractal lane's `.egg`. Without it the lane still previews, just
+    // without the unrolled state chain.
+    async function loadBrowserGenerator(){
+        try{return await loadBrowserRenderer();}catch{return null;}
+    }
     async function previewRow(request,signal){
         if(await bridgeAvailable())return (await (await post('preview',request,signal)).json());
         return (await loadBrowserRenderer()).renderPreviewInBrowser(request);
@@ -366,8 +372,8 @@ export function installNativeDebugger(editor) {
         let fractal=row.kind==='fractal'?fractalEvidence(row):null;
         if(fractal){
             // Preview the lane as an unrolled rule so the plugin renders every state.
-            const generator=await loadBrowserRenderer();
-            const plan=generator.fractalRuleSourceInBrowser(source,line,fractal.depth,fractal.update);
+            const generator=await loadBrowserGenerator();
+            const plan=generator?.fractalRuleSourceInBrowser(source,line,fractal.depth,fractal.update);
             if(plan){source=plan.source;line=plan.line;fractal={...fractal,chain:true,truncated:plan.truncated};}
         }
         return {source,line,mode:el('dot-mode').value,label_style:el('label-style').value,recursive_strategy:el('recursive').value,...(fractal?{fractal}:{})};
