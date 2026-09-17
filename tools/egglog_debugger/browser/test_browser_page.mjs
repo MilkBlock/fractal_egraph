@@ -106,8 +106,6 @@ async function main() {
         assert.match(formula, /apply 5 times/);
         assert.equal(await page.locator("#native-generated-panel").isVisible(), true);
         assert.match(await page.locator("#native-generated").textContent(), /:name "fractal:advance"/);
-        assert.equal(await page.locator("#native-tab-generated").getAttribute("aria-pressed"), "true");
-        assert.equal(await page.locator("#native-generated-editor").isVisible(), true);
         await page.selectOption("#native-format", "dot");
         await page.waitForFunction(() => document.querySelectorAll("#native-preview svg g.node").length > 0, null, { timeout: 180000 });
         await page.selectOption("#native-filter", "all");

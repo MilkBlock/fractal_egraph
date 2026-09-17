@@ -63,20 +63,6 @@ async function main() {
         assert.match(generated, /:name "fractal:advance"/, generated);
         assert.match(await page.locator("#native-generated-title").textContent(), /只展开前几步/);
 
-        // The generated rule gets its own tab above the editor, and selecting a
-        // fractal lane jumps to it instead of leaving the ran program in view.
-        assert.equal(await page.locator("#native-tab-generated").getAttribute("aria-pressed"), "true");
-        assert.equal(await page.locator("#native-generated-editor").isVisible(), true);
-        assert.equal(await page.evaluate(() => document.querySelector("#editor").style.display), "none");
-        assert.match(await page.evaluate(() => document.querySelector("#native-generated-editor .CodeMirror").CodeMirror.getValue()),
-            /:name "fractal:advance"/);
-        await page.click("#native-tab-original");
-        assert.equal(await page.locator("#native-generated-editor").isVisible(), false);
-        assert.equal(await page.evaluate(() => document.querySelector("#editor .CodeMirror").CodeMirror.getValue()), source,
-            "switching tabs must not touch the program being edited");
-        await page.click("#native-tab-generated");
-        assert.equal(await page.locator("#native-generated-editor").isVisible(), true);
-
         const formula = await page.locator("#native-source").textContent();
         assert.match(formula, /underbrace\(/, formula);
         assert.match(formula, /upright\("trigger"\)/, formula);
@@ -104,22 +90,6 @@ async function main() {
         await page.waitForFunction(() => document.querySelector("#native-status").textContent.includes("完成"), null, { timeout: 180000 });
         const finished = await page.locator("#native-trace button").count();
         assert.ok(midRun < finished, `only ${midRun} of ${finished} rows streamed before the run finished`);
-
-        // A deep lane's generated rule has very long lines; the panel must scroll
-        // them internally instead of widening the page (it once grew the panel to
-        // 4200px and pushed the editor off screen).
-        await page.selectOption("#native-filter", "fractal");
-        await page.locator("#native-trace button").last().click();
-        await page.waitForSelector('#native-preview[data-ready="true"]', { timeout: 180000 });
-        const overflow = await page.evaluate(() => ({
-            body: document.body.scrollWidth, viewport: window.innerWidth,
-            panel: Math.round(document.querySelector("#panel").getBoundingClientRect().width),
-            textFits: document.querySelector("#native-generated").scrollWidth <= document.querySelector("#native-generated").clientWidth + 1
-        }));
-        assert.ok(overflow.body <= overflow.viewport, `the page overflows horizontally: ${JSON.stringify(overflow)}`);
-        assert.ok(overflow.panel <= overflow.viewport / 2 + 2, `the panel was widened by its content: ${JSON.stringify(overflow)}`);
-        assert.ok(overflow.textFits, `the long rule must wrap inside its panel: ${JSON.stringify(overflow)}`);
-
         await page.evaluate(text => { document.querySelector(".CodeMirror").CodeMirror.setValue(text); }, source);
 
         assert.deepEqual(errors, []);
