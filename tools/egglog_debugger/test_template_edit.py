@@ -19,6 +19,12 @@ CONDITION_SOURCE = '''(datatype Math (Num i64) (Fabs Math))
 (rewrite (Fabs (Num a)) (Num (abs a)))
 '''
 
+# The exact wrong annotation shape reported after typing a template into the name field.
+WRAPPED_SOURCE = '''; @egg-viz-json {"schema":"egg-viz/v1","kind":"dsl_type","id":"Expr","variants":{"Add":{"fields":["left","right"],"typst":"upright(\\"{left} + {right}\\")({left}, {right})","precedence":90}}}
+(datatype Expr (Num i64) (Add Expr Expr))
+(rewrite (Add (Num a) (Num b)) (Num (+ a b)))
+'''
+
 EXAMPLES = Path(__file__).resolve().parents[3] / 'egglog-demo/static/examples.json'
 HERBIE = json.loads(EXAMPLES.read_text())['herbie'] if EXAMPLES.is_file() else None
 
@@ -37,7 +43,13 @@ def main():
         page.wait_for_selector('#native-run')
 
         def set_source(source, line=1):
+            before = page.evaluate('window.egglogNative.rendered')
             page.evaluate('(a)=>{const e=document.querySelector(".CodeMirror").CodeMirror;e.setValue(a.source);e.setCursor({line:a.line,ch:0});}', {'source': source, 'line': line})
+            # Wait for a completed render of this exact source, so an opened editor
+            # and the toolbar cannot belong to the previous source.
+            page.wait_for_function('(a)=>window.egglogNative.rendered>a.before && window.egglogNative.selected && window.egglogNative.selected.preview_source===a.source',
+                                   arg={'before': before, 'source': source}, timeout=30000)
+            page.wait_for_timeout(150)
 
         def read():
             return page.evaluate('document.querySelector(".CodeMirror").CodeMirror.getValue()')
@@ -113,6 +125,31 @@ def main():
         save_editor()
         ready('Plus')
         assert 'Plus' in read()
+
+        # --- a template typed into the name field stays a template ------------
+        set_source(SOURCE, 1)
+        ready('Add')
+        page.locator('.native-edit-hit[data-target="constructor:Add"]').first.click()
+        page.fill('#native-name-input', '{left} + {right}')
+        assert page.input_value('#native-template-input') == '{left} + {right}'
+        save_editor()
+        ready('+')
+        annotation = read()
+        assert '"typst":"{left} + {right}"' in annotation
+        assert 'upright' not in annotation
+
+        # --- an annotation already wrapped by the old bug is recoverable -------
+        set_source(WRAPPED_SOURCE, 2)
+        ready('+')
+        open_target('constructor:Add')
+        assert page.input_value('#native-template-input') == '{left} + {right}'
+        save_editor()
+        # Wait for the save continuation to rewrite the editor, not for a render that
+        # already matched the old source.
+        page.wait_for_function('()=>document.querySelector(".CodeMirror").CodeMirror.getValue().includes(\'"typst":"{left} + {right}"\')')
+        repaired = read()
+        assert '"typst":"{left} + {right}"' in repaired, repaired
+        assert 'upright("{left}' not in repaired, repaired
 
         # --- a condition can be edited more than once -------------------------
         set_source(CONDITION_SOURCE, 1)

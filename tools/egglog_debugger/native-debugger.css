@@ -36,6 +36,7 @@
 
 #native-template-editor {padding:5px 0;}
 #native-template-input {display:block;box-sizing:border-box;width:100%;font:12px monospace;margin:4px 0;}
+#native-template-note {font-size:12px;color:#53637a;}
 #native-precedence-input {width:90px;padding:3px;}
 #native-template-help {border-radius:50%;width:22px;height:22px;line-height:1;padding:0;border:1px solid #3979e5;background:#fff;color:#24518f;font:italic bold 14px Georgia,serif;cursor:pointer;vertical-align:middle;}
 #native-template-help[aria-expanded=true] {background:#dae8ff;}

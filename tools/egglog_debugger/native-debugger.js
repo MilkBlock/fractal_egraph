@@ -29,6 +29,7 @@ export function installNativeDebugger(editor) {
           <label for="native-template-input">Typst 模板（用 {字段} 引用参数）</label>
           <button type="button" id="native-template-help" aria-expanded="false" aria-controls="native-symbol-help" aria-label="常见数学符号与模板">i</button>
           <textarea id="native-template-input" rows="2" spellcheck="false" autocomplete="off"></textarea>
+          <div id="native-template-note" role="status"></div>
           <label for="native-precedence-input">优先级</label>
           <input id="native-precedence-input" type="number" min="0" max="65535" step="1">
         </div>
@@ -48,7 +49,7 @@ export function installNativeDebugger(editor) {
       <details><summary>绑定、effect 与路径证据</summary><pre id="native-details"></pre></details>`;
     document.getElementById('panel').insertBefore(panel, document.getElementById('graph'));
     const el = id => document.getElementById('native-'+id);
-    let rows=[], snapshotSource='', runStatus='idle', selected=null, patterns=[], parsedSource=null, revision=0, renderRevision=0, selectionIntent=0;
+    let rows=[], snapshotSource='', runStatus='idle', selected=null, patterns=[], parsedSource=null, revision=0, renderRevision=0, selectionIntent=0, renderedCount=0;
     let controller=null, timer=null, marker=null, previewAbort=null, parseAbort=null, currentEdit=null, activeRequest=null, templateDirty=false;
     const status = text => {el('status').textContent=text;};
     // Common Typst math spellings; {field} placeholders are bound to the constructor's
@@ -105,7 +106,10 @@ export function installNativeDebugger(editor) {
     function insertTemplate(example){const area=el('template-input');if(!example)return;const start=area.selectionStart ?? area.value.length,end=area.selectionEnd ?? start;area.value=area.value.slice(0,start)+example+area.value.slice(end);templateDirty=true;area.focus();area.selectionStart=area.selectionEnd=start+example.length;}
     function renamePlaceholder(template,from,to){if(!from||!to||from===to)return template;const escaped=from.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return template.replace(new RegExp('\\{'+escaped+'\\}','g'),'{'+to+'}');}
     function currentFields(){return [...el('field-editor').querySelectorAll('.native-field-name')].map(input=>input.value.trim());}
-    function templateFromName(){const name=el('name-input').value.trim();const fields=currentFields().length?currentFields():[];const valid=fields.map((field,index)=>field||`arg${index}`);return 'upright('+JSON.stringify(name)+')'+'('+valid.map(field=>'{'+field+'}').join(', ')+')';}
+    // A value with {field} placeholders is a formula, not a label: typing the whole
+    // template into the name field must not produce upright("{left} + {right}").
+    function looksLikeTemplate(value){return /[{}]/.test(value);}
+    function templateFromName(){const name=el('name-input').value.trim();const fields=currentFields();const valid=fields.length?fields.map((field,index)=>field||`arg${index}`):[];if(looksLikeTemplate(name))return name;return 'upright('+JSON.stringify(name)+')'+'('+valid.map(field=>'{'+field+'}').join(', ')+')';}
     // A clickable target list makes editing independent of glyph hit testing: a
     // template without a literal name, or a plugin text fallback, must not lock
     // the user out of a second edit.
@@ -144,7 +148,17 @@ export function installNativeDebugger(editor) {
         const constructor=target.kind==='constructor';
         el('template-editor').hidden=!constructor;
         if(constructor){
-            el('template-input').value=target.template || '';
+            // Recover annotations written before template-like names were routed:
+            // a label of "{left} + {right}" wrapped by upright("...") was meant as
+            // the template itself, so show the intended formula on reopen.
+            let template=target.template || '';
+            const label=target.display || regionText;
+            const wrapped='upright('+JSON.stringify(label)+')';
+            if(looksLikeTemplate(label) && template.startsWith(wrapped)){
+                template=label;
+                el('template-note').textContent='检测到保存时被包成 upright("...") 的模板，已还原为公式；保存即可修正。';
+            }else el('template-note').textContent='';
+            el('template-input').value=template;
             el('precedence-input').value=target.precedence ?? 90;
             hideSymbolHelp();
         }
@@ -171,7 +185,7 @@ export function installNativeDebugger(editor) {
         }
         if(rendered.edit_error)el('edit-hint').textContent='当前公式的文字定位失败；原始插件预览仍可查看，可用下方按钮编辑。';
     }
-    el('name-input').addEventListener('input',()=>{if(currentEdit && !el('template-editor').hidden){el('template-input').value=templateFromName();templateDirty=true;}});
+    el('name-input').addEventListener('input',()=>{if(currentEdit && !el('template-editor').hidden){const name=el('name-input').value.trim();el('template-input').value=templateFromName();templateDirty=true;el('template-note').textContent=looksLikeTemplate(name)?'检测到 {字段}，已按 Typst 模板处理；显示名称只是标签文字。':'';}});
     el('template-help').onclick=event=>{event.stopPropagation();const open=el('symbol-help').hidden;el('symbol-help').hidden=!open;el('template-help').setAttribute('aria-expanded',String(open));};
     el('symbol-help').addEventListener('click',event=>event.stopPropagation());
     document.addEventListener('click',()=>{if(!el('symbol-help').hidden)hideSymbolHelp();});
@@ -245,8 +259,10 @@ export function installNativeDebugger(editor) {
         return {source,line,mode:el('dot-mode').value,label_style:el('label-style').value,recursive_strategy:el('recursive').value};
     }
     async function show(row, fromTrace=false) {
-        closeNameEditor();
         const changed=selected!==row;selected=row; const version=++renderRevision;
+        // A debounced re-render of the same rule must not close an editor the user
+        // has open (it would also discard the in-flight save response).
+        if(changed || fromTrace)closeNameEditor();
         if(changed || fromTrace)selectSteps(row);
         previewAbort?.abort(); previewAbort=new AbortController();
         const kind=el('format').value;
@@ -277,7 +293,7 @@ export function installNativeDebugger(editor) {
             installEditTargets(svg,rendered,request,row);
             el('renderer').textContent=`${rendered.renderer} · ${rendered.renderer_revision.slice(0,12)} · ${rendered.config.mode} / ${rendered.config.label_style} / ${rendered.config.recursive_strategy}`;
             if(kind==='typst' && rendered.typst_mode!=='math')el('render-error').textContent='插件使用了文本 fallback；请检查 Typst 模板。';
-            el('preview').dataset.ready='true';
+            el('preview').dataset.ready='true';renderedCount++;
         }catch(error){if(version===renderRevision && error.name!=='AbortError'){el('render-error').textContent=error.message;el('renderer').textContent='插件渲染失败';renderTargets([],false);}}
     }
     async function previewLine() {
@@ -329,5 +345,5 @@ export function installNativeDebugger(editor) {
     el('export').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify({version:2,status:runStatus,source:snapshotSource,rows},null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='egglog-debug-history.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
     el('import').onchange=async event=>{try{const file=event.target.files[0];if(!file)return;const data=JSON.parse(await file.text());if(![1,2].includes(data.version) || typeof data.source!=='string' || !Array.isArray(data.rows) || data.rows.some(r=>!['application','compose','fractal'].includes(r.kind) || typeof r.id!=='string'))throw Error('无效的日志格式');controller?.abort();snapshotSource=data.source;runStatus=data.status || 'unknown';rows=data.rows;selected=null;el('preview').hidden=true;el('filter').onchange();status(`已载入 ${rows.length} 条公式快照（${runStatus}）；点击日志回放。`);}catch(error){status(error.message);}event.target.value='';};
     // Expose read-only state for debugging and browser regression tests.
-    window.egglogNative={get rows(){return structuredClone(rows);},get selected(){return structuredClone(selected);}};
+    window.egglogNative={get rows(){return structuredClone(rows);},get selected(){return structuredClone(selected);},get rendered(){return renderedCount;}};
 }
