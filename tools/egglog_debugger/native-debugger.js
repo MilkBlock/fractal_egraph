@@ -51,6 +51,10 @@ export function installNativeDebugger(editor) {
         <div id="native-condition-error" role="alert"></div>
       </form>
       <pre id="native-render-error"></pre>
+      <details id="native-generated-panel" hidden open><summary id="native-generated-title">生成的 .egg</summary>
+        <pre id="native-generated"></pre>
+        <button type="button" id="native-generated-copy">复制生成的 .egg</button>
+        <div id="native-generated-note" role="status"></div></details>
       <details><summary>Typst / DOT 源码</summary><pre id="native-source"></pre></details>
       <details><summary>绑定、effect 与路径证据</summary><pre id="native-details"></pre></details>
       <details><summary>Rust 源码</summary><pre id="native-rust"></pre></details>`;
@@ -353,6 +357,23 @@ export function installNativeDebugger(editor) {
         const depth=fractalDepth(row);if(!depth)return null;
         return {depth,operator:evidence.operator ?? null,context:evidence.trigger ?? null,update:evidence.update || [],witness:evidence.higher ?? null};
     }
+    // A fractal lane is previewed from a generated rule; show it, because that text
+    // is what produces the states below.
+    function showGenerated(generated) {
+        const panel=el('generated-panel');
+        if(!generated){panel.hidden=true;el('generated').textContent='';el('generated-note').textContent='';return;}
+        panel.hidden=false;
+        el('generated-title').textContent=`生成的 .egg（Fractal 展开，追加后预览第 ${generated.line} 行${generated.truncated?'，只展开前几步':''}）`;
+        el('generated').textContent=generated.text;
+        el('generated-note').textContent=generated.truncated
+            ? '更深的步骤折叠成 dots.c；这条规则只用于预览，不会写回编辑器。'
+            : '这条规则只用于预览，不会写回编辑器。';
+    }
+    el('generated-copy').onclick=async ()=>{
+        const text=el('generated').textContent;if(!text)return;
+        try{await navigator.clipboard.writeText(text);el('generated-note').textContent='已复制到剪贴板。';}
+        catch{el('generated-note').textContent='复制失败，请手动选择文本。';}
+    };
     function selectSteps(row) {
         const steps=el('step');steps.replaceChildren();
         if(row.kind==='fractal' && row.evidence)steps.add(new Option(`紧凑（×${fractalDepth(row)}）`,'fractal'));
@@ -361,6 +382,9 @@ export function installNativeDebugger(editor) {
         steps.hidden=!steps.options.length;
         if(steps.options.length)steps.value=steps.options[0].value;
     }
+    // The `.egg` the fractal preview is generated from, so the panel can show what
+    // was appended to the source instead of hiding it inside the request.
+    let generatedRule=null;
     async function previewRequest(row) {
         let source=row.kind?snapshotSource:row.preview_source;
         let line=row.source_line;
@@ -374,7 +398,10 @@ export function installNativeDebugger(editor) {
             // Preview the lane as an unrolled rule so the plugin renders every state.
             const generator=await loadBrowserGenerator();
             const plan=generator?.fractalRuleSourceInBrowser(source,line,fractal.depth,fractal.update);
-            if(plan){source=plan.source;line=plan.line;fractal={...fractal,chain:true,truncated:plan.truncated};}
+            if(plan){
+                generatedRule={text:plan.source.slice(source.length).replace(/^\n/,''),line:plan.line,truncated:plan.truncated};
+                source=plan.source;line=plan.line;fractal={...fractal,chain:true,truncated:plan.truncated};
+            }
         }
         return {source,line,mode:el('dot-mode').value,label_style:el('label-style').value,recursive_strategy:el('recursive').value,...(fractal?{fractal}:{})};
     }
@@ -385,6 +412,7 @@ export function installNativeDebugger(editor) {
         if(changed || fromTrace)closeNameEditor();
         if(changed || fromTrace)selectSteps(row);
         previewAbort?.abort(); previewAbort=new AbortController();
+        generatedRule=null;showGenerated(null);
         const kind=el('format').value;
         el('title').textContent=`${row.kind || 'pattern'} · ${row.rule || ''} · L${row.source_line || '?'}`
             +(row.kind==='fractal'&&row.evidence?` · ×${fractalDepth(row)}`:'');
@@ -399,7 +427,7 @@ export function installNativeDebugger(editor) {
             editor.scrollIntoView({line:row.source_line-1,ch:0},80);
         }
         try{
-            const request=await previewRequest(row);activeRequest=request;
+            const request=await previewRequest(row);activeRequest=request;showGenerated(generatedRule);
             if(!request.source || !request.line)throw Error('此旧日志缺少源位置，不能可靠地交给插件渲染；请重新运行生成日志。');
             // The same line number means different formulas after a source edit, so the
             // fingerprint keeps a cached preview from being shown for another rule.

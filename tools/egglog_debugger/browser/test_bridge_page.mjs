@@ -56,6 +56,13 @@ async function main() {
         await page.locator("#native-trace button").last().click();
         await page.waitForSelector('#native-preview[data-ready="true"]', { timeout: 180000 });
         assert.equal(await page.locator("#native-step option").count(), 1);
+        // The generated `.egg` is shown, not hidden inside the request.
+        assert.equal(await page.locator("#native-generated-panel").isVisible(), true);
+        const generated = await page.locator("#native-generated").textContent();
+        assert.match(generated, /\(rule \(\(= node \(A n limit\)\) \(< n limit\)\)/, generated);
+        assert.match(generated, /:name "fractal:advance"/, generated);
+        assert.match(await page.locator("#native-generated-title").textContent(), /只展开前几步/);
+
         const formula = await page.locator("#native-source").textContent();
         assert.match(formula, /underbrace\(/, formula);
         assert.match(formula, /upright\("trigger"\)/, formula);
@@ -63,6 +70,12 @@ async function main() {
         const renderer = await page.locator("#native-renderer").innerText();
         assert.match(renderer, /eggplant-pattern-vscode/);
         assert.doesNotMatch(renderer, /browser-/, `the bridge should render, not the wasm bundle: ${renderer}`);
+        // A row without a generated rule hides the panel again.
+        await page.selectOption("#native-filter", "application");
+        await page.locator("#native-trace button").first().click();
+        await page.waitForFunction(() => document.querySelector('#native-preview[data-ready="true"]')
+            && document.querySelector("#native-generated-panel").hidden, null, { timeout: 180000 });
+        assert.equal(await page.locator("#native-generated-panel").isVisible(), false);
         assert.deepEqual(errors, []);
         process.stdout.write("PASS local bridge page: run, identify and preview a fractal lane served by server.py\n");
     } finally {

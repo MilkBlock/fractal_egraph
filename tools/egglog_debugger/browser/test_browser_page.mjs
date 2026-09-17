@@ -104,6 +104,8 @@ async function main() {
         assert.match(formula, /underbrace\(A\(upright\("node\.arg_i64_00"\), upright\("node\.arg_i64_01"\)\), upright\("trigger"\)\)/);
         assert.match(formula, /upright\("apply once"\)/);
         assert.match(formula, /apply 5 times/);
+        assert.equal(await page.locator("#native-generated-panel").isVisible(), true);
+        assert.match(await page.locator("#native-generated").textContent(), /:name "fractal:advance"/);
         await page.selectOption("#native-format", "dot");
         await page.waitForFunction(() => document.querySelectorAll("#native-preview svg g.node").length > 0, null, { timeout: 180000 });
         await page.selectOption("#native-filter", "all");
