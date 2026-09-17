@@ -1220,6 +1220,23 @@ fn pretty(e: &Expr) -> String {
         }
     }
 }
+/// Egglog syntax for an expression the lane changed, so the fractal preview can
+/// unroll a lane by re-parsing and substituting it (the display form `pretty`
+/// prints is not parseable: infix `·`, prefix `+(n, 1)`).
+fn egglog(e: &Expr) -> String {
+    match e {
+        Expr::Var(_, n) => n.clone(),
+        Expr::Lit(_, v) => v.to_string(),
+        Expr::Call(_, op, args) => {
+            let a: Vec<_> = args.iter().map(egglog).collect();
+            if a.is_empty() {
+                format!("({op})")
+            } else {
+                format!("({op} {})", a.join(" "))
+            }
+        }
+    }
+}
 fn update_text(c: &Captured, index: usize) -> Vec<String> {
     let r = &c.records[index];
     r.inputs
@@ -1238,9 +1255,9 @@ fn update_text(c: &Captured, index: usize) -> Vec<String> {
                         Output::Column(span, col) => match c.rules[parent.rule].calls.get(span) {
                             Some((_, Expr::Call(_, op, args))) => {
                                 if *col < args.len() {
-                                    pretty(&args[*col])
+                                    egglog(&args[*col])
                                 } else {
-                                    format!("{op}(…) ")
+                                    format!("({op} …)")
                                 }
                             }
                             _ => "未映射输出".into(),

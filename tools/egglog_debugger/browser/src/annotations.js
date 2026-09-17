@@ -612,16 +612,52 @@ function patternTerm(body) {
     return null;
 }
 
-// How one application changes each pattern variable: `(A n limit)` rewritten to
-// `(A (+ n 1) limit)` makes `n` stand for `(+ n 1)` and leaves `limit` alone.
-function collectUpdate(pattern, action, update) {
-    if (isPatternVariable(pattern)) {
-        update.set(pattern.atom, action);
-        return true;
+// The state one application produces: the action when it is a constructor call,
+// or, for `(union old new)`, the operand that is not a bare pattern variable
+// (either side is written in practice: `(union root (Add …))` and
+// `(union (Add …) x)` both appear).
+function newStateExpression(head) {
+    const item = head.items?.[0];
+    if (!item || !item.items) return null;
+    if (item.op === "union" && item.items.length >= 3) {
+        const [, first, second] = item.items;
+        if (second.items && second.items.length) return second;
+        if (first.items && first.items.length) return first;
+        return null;
     }
-    if (pattern.items === null || !action || !action.items
-        || pattern.op !== action.op || pattern.items.length !== action.items.length) return false;
-    return pattern.items.slice(1).every((item, index) => collectUpdate(item, action.items[index + 1], update));
+    return item;
+}
+
+// How one application changes each pattern variable, as the runtime recorded it:
+// `n ← (+ n 1)`, `y ← (Neg y)`, `z ← x`. Every right-hand side is read against
+// the previous state, so the substitutions are simultaneous.
+function runtimeUpdate(entries) {
+    const update = new Map();
+    for (const entry of entries || []) {
+        const parts = String(entry).split("←");
+        if (parts.length !== 2) return null;
+        const name = parts[0].trim();
+        const expression = parts[1].trim();
+        if (!name || !expression || expression.includes("…")) return null;
+        let forms;
+        try { forms = parse(expression); } catch { return null; }
+        if (forms.length !== 1) return null;
+        update.set(name, { form: forms[0], text: expression });
+    }
+    return update.size ? update : null;
+}
+
+// Without a recorded map, the difference between the pattern and the new state
+// still describes the update for shapes where nothing is permuted.
+function structuralUpdate(pattern, state, source) {
+    const update = new Map();
+    const collect = (left, right) => {
+        if (isPatternVariable(left)) { update.set(left.atom, { form: right, text: source }); return true; }
+        if (left.items === null || !right || !right.items
+            || left.op !== right.op || left.items.length !== right.items.length) return false;
+        return left.items.slice(1).every((item, index) => collect(item, right.items[index + 1]));
+    };
+    return collect(pattern, state) && update.size ? update : null;
 }
 
 function renderExpr(form, environment, source) {
@@ -643,18 +679,16 @@ function ruleNameOf(rule, source) {
 /// The source to preview a fractal lane with, plus the line of the generated
 /// rule. `null` when the rule's shape cannot be unrolled (a ground rule, a
 /// pattern that is not a call, a rewrite); the caller then previews the rule.
-export function fractalRuleSource(source, line, depth, shown = 3) {
+export function fractalRuleSource(source, line, depth, updateEntries = [], shown = 3) {
     if (!Number.isInteger(depth) || depth < 1) return null;
     const rule = ruleAtOffset(parse(source), ruleOffset(source, line));
     if (!rule || rule.op !== "rule" || !rule.items || rule.items.length < 3) return null;
     const body = rule.items[1];
-    const head = rule.items[2];
-    const action = head.items?.[0];
-    if (!action || !action.items) return null;
+    const state = newStateExpression(rule.items[2]);
     const pattern = patternTerm(body);
-    if (!pattern) return null;
-    const update = new Map();
-    if (!collectUpdate(pattern, action, update) || !update.size) return null;
+    if (!pattern || !state) return null;
+    const update = runtimeUpdate(updateEntries) || structuralUpdate(pattern, state, source);
+    if (!update) return null;
 
     // The first state is the pattern the lane triggers on; each later one is the
     // action with the update applied once more. Deep lanes collapse into one
@@ -663,8 +697,8 @@ export function fractalRuleSource(source, line, depth, shown = 3) {
     const states = [renderExpr(pattern, new Map(), source)];
     let environment = new Map();
     for (let step = 0; step < spelled; step++) {
-        states.push(renderExpr(action, environment, source));
-        environment = new Map([...update].map(([name, expr]) => [name, renderExpr(expr, environment, source)]));
+        states.push(renderExpr(state, environment, source));
+        environment = new Map([...update].map(([name, expr]) => [name, renderExpr(expr.form, environment, expr.text)]));
     }
     const name = ruleNameOf(rule, source) ?? "rule";
     const ruleText = `; fractal lane ${name} ×${depth}\n(rule ${source.slice(body.start, body.end)}\n  (${states.join("\n   ")})\n  :name "fractal:${name}")`;

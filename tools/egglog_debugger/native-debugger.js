@@ -367,7 +367,7 @@ export function installNativeDebugger(editor) {
         if(fractal){
             // Preview the lane as an unrolled rule so the plugin renders every state.
             const generator=await loadBrowserRenderer();
-            const plan=generator.fractalRuleSourceInBrowser(source,line,fractal.depth);
+            const plan=generator.fractalRuleSourceInBrowser(source,line,fractal.depth,fractal.update);
             if(plan){source=plan.source;line=plan.line;fractal={...fractal,chain:true,truncated:plan.truncated};}
         }
         return {source,line,mode:el('dot-mode').value,label_style:el('label-style').value,recursive_strategy:el('recursive').value,...(fractal?{fractal}:{})};

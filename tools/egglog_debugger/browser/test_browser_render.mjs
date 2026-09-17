@@ -152,13 +152,29 @@ async function main() {
     assert.match(advance.typst, /arrow\.r underbrace\(dots\.c, upright\("apply 5 times"\)\)/, advance.typst);
     assert.equal(advance.typst_mode, "math", "the wasm Typst compiler rejected the state chain");
 
-    // A shape the generator refuses (an action that is not a constructor call)
-    // keeps the rule formula plus the repetition badge.
-    const fallback = await compare("fractal lane (no unrolling)",
-        { source, line: 5, mode: "combined", label_style: "recursive", recursive_strategy: "dag-expand", fractal });
-    assert.doesNotMatch(fallback.typst, /underbrace/, fallback.typst);
-    assert.match(fallback.typst, /arrow\.l/, fallback.typst);
-    assert.equal(fallback.typst_mode, "math");
+    // A `(union old new)` action unrolls from the update map the runtime recorded,
+    // which is what carries rearranging rules (`x ← z`, `y ← (Neg y)`, `z ← x`).
+    const commute = await compare("fractal lane (union action)",
+        { source, line: 5, mode: "combined", label_style: "recursive", recursive_strategy: "dag-expand",
+            ...(() => {
+                const plan = fractalRuleSource(source, 5, 2, ["x ← (Mul y y)", "y ← y"]);
+                assert.ok(plan, "the commuting rule should unroll from its update map");
+                return { source: plan.source, line: plan.line };
+            })(),
+            fractal: { ...fractal, depth: 2, chain: true, truncated: false,
+                update: ["x ← (Mul y y)", "y ← y"] } });
+    assert.match(commute.typst, /underbrace\(/, commute.typst);
+    assert.match(commute.typst, /upright\("apply once"\)/, commute.typst);
+    assert.match(commute.typst, /upright\("apply twice"\)/, commute.typst);
+    assert.equal(commute.typst_mode, "math", "the wasm Typst compiler rejected the union chain");
+
+    // A rewrite has no rule to unroll: the preview keeps the rule formula and the
+    // badge instead of inventing states.
+    const refused = await compare("fractal lane (no unrolling)",
+        { source, line: 8, mode: "combined", label_style: "recursive", recursive_strategy: "dag-expand", fractal });
+    assert.doesNotMatch(refused.typst, /underbrace/, refused.typst);
+    assert.match(refused.typst, /arrow\.l/, refused.typst);
+    assert.equal(refused.typst_mode, "math");
 
     const rewrite = { source, line: 8 };
     await compare("rewrite alias and second-rule selection", rewrite);

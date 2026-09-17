@@ -134,12 +134,19 @@ frac(upright("node"),
 ```
 
 - 生成器（`browser/src/annotations.js` 的 `fractalRuleSource`）用与注解协议同一套 `.egg` parser：
-  pattern 是被改写的那个 term，update map 由 pattern 与 action 的结构差得出，深度超过 4 时就只
-  展开 3 步 + `dots.c`（lane 可到 168 深）。`frac` 的外形与 `join` 规则沿用 extractor 的
+  pattern 是被改写的那个 term；每应用一次后的状态优先用**运行时记录的 update map**
+  （`evidence.update`，例如 `x ← z`、`y ← (Neg y)`、`z ← x`）做并行代换，这样重排型的
+  `union` 规则也能展开；没有 map 时退回 pattern 与 action 的结构差。深度只决定展开几步
+  （默认 3 步 + `dots.c`，lane 可到 168 深）。`frac` 的外形与 `join` 规则沿用 extractor 的
   `build_math_view_formula_source`，只有结论槽换成链。
-- **不能展开的形状**（action 不是构造器调用，例如 head 里是 `union` 的交换律规则、rewrite、
-  ground 规则）：不生成，预览退回“规则公式 + 重复徽标”，不猜也不重画。目前这是
-  `egglog-demo` 里那些示例 lane 的情况；`experiments/bake/*` 的 lane 都能展开。
+- head 是 `(union a b)` 时“新状态”取那个**不是裸 pattern 变量的操作数**（`(union root (Add …))`
+  与 `(union (Add …) x)` 两种写法都存在）。实测 `eqsolve` 的第 14 行规则
+  `(rule ((= (Add x y) z)) ((union (Add z (Neg y)) x)))` 展开为
+  `x + y → (x + y) + Neg(y) → x + Neg(Neg(y))`，全部由 extractor 渲染。
+- 运行时的 `update` 现在用 egglog 语法打印（`src/native_analyze.rs` 新增 `egglog()`；
+  原来的 `pretty()` 是展示写法：`n · y`、`+(n, 1)`，无法再解析）。徽标那行显示的也是这个语法。
+- **仍然拒绝的形状**：`rewrite`、ground 规则、以及 update 里出现不可解析条目（例如从 lane 外
+  部接口进来的绑定）。这些预览退回“规则公式 + 重复徽标”，不猜也不重画。
 - 徽标那两行仍然保留：`Depth d / operator / context / FractalComb(…)` 与 `limit ↦ limit, n ↦ n+1`。
 - 深度只影响“显示几步”，不影响正确性：状态表达式是符号化的（`A(n+1+1, limit)`），不会因为
   lane 深 168 而爆炸。

@@ -90,4 +90,4 @@ export const editDisplayInBrowser = body => renderer().editDisplay(body);
 export const editConditionsInBrowser = body => renderer().editConditions(body);
 // The `.egg` a fractal lane is previewed from; the page appends it to the source
 // and lets the plugin render the states the same way it renders a rule.
-export const fractalRuleSourceInBrowser = (source, line, depth) => fractalRuleSource(source, line, depth);
+export const fractalRuleSourceInBrowser = (source, line, depth, update) => fractalRuleSource(source, line, depth, update);
