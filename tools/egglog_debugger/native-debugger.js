@@ -46,7 +46,8 @@ export function installNativeDebugger(editor) {
       </form>
       <pre id="native-render-error"></pre>
       <details><summary>Typst / DOT 源码</summary><pre id="native-source"></pre></details>
-      <details><summary>绑定、effect 与路径证据</summary><pre id="native-details"></pre></details>`;
+      <details><summary>绑定、effect 与路径证据</summary><pre id="native-details"></pre></details>
+      <details><summary>Rust 源码</summary><pre id="native-rust"></pre></details>`;
     document.getElementById('panel').insertBefore(panel, document.getElementById('graph'));
     const el = id => document.getElementById('native-'+id);
     let rows=[], snapshotSource='', runStatus='idle', selected=null, patterns=[], parsedSource=null, revision=0, renderRevision=0, selectionIntent=0, renderedCount=0;
@@ -297,7 +298,7 @@ export function installNativeDebugger(editor) {
         previewAbort?.abort(); previewAbort=new AbortController();
         const kind=el('format').value;
         el('title').textContent=`${row.kind || 'pattern'} · ${row.rule || ''} · L${row.source_line || '?'}`;
-        el('source').textContent='';
+        el('source').textContent='';el('rust').textContent='';
         const {plugin_previews,typst,dot,preview_source,...details}=row;el('details').textContent=JSON.stringify(details,null,2);
         el('preview').hidden=true;el('preview').dataset.ready='false';el('render-error').textContent='';
         el('renderer').textContent='加载 Eggplant VS Code 插件渲染…';
@@ -318,6 +319,7 @@ export function installNativeDebugger(editor) {
             if(version!==renderRevision)return;
             row.plugin_previews[key]=rendered;
             el('source').textContent=rendered[kind];
+            el('rust').textContent=rendered.rust_source?`// 转译后 Rust（第 ${rendered.rust_start_line} 行起，交给 extractor 的规则作用域）\n${rendered.rust_source}`:'没有对应的 Rust 源码。';
             const svg=mountSvg(kind==='typst'?rendered.typst_svg:rendered.dot_svg);
             if(kind==='dot')applyTypstRenderings(svg,rendered.typst_renderings);
             installEditTargets(svg,rendered,request,row);
@@ -338,7 +340,7 @@ export function installNativeDebugger(editor) {
             const line=editor.getCursor().line+1;
             const row=patterns.find(p=>p.source_line<=line && line<=p.end_line);
             if(row){row.preview_source=source;await show(row);}
-            else {selected=null;++renderRevision;previewAbort?.abort();marker?.clear();el('title').textContent=`L${line} 没有 rule/rewrite`;el('preview').hidden=true;el('source').textContent='';el('details').textContent='';el('render-error').textContent='';renderTargets([],false);}
+            else {selected=null;++renderRevision;previewAbort?.abort();marker?.clear();el('title').textContent=`L${line} 没有 rule/rewrite`;el('preview').hidden=true;el('source').textContent='';el('rust').textContent='';el('details').textContent='';el('render-error').textContent='';renderTargets([],false);}
         }catch(error){if(version===revision && intent===selectionIntent && error.name!=='AbortError'){selected=null;el('render-error').textContent=error.message;el('preview').hidden=true;renderTargets([],false);}}
     }
     editor.on('cursorActivity',()=>{clearTimeout(timer);timer=setTimeout(previewLine,120);});

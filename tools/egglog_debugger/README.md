@@ -16,6 +16,9 @@ python3 tools/egglog_debugger/server.py --port 8080
   预览直接复用 VS Code 插件的 `.egg` 转译、注解处理、extractor、MathView、
   Typst、DOT 和 vendored Graphviz。DOT 节点内的 Typst 替换也使用插件的 webview 函数。
   `@egg-viz-json` 中的数学模板、precedence、binding/position 显示名称由插件处理。
+  预览下方有三个可折叠面板：**Typst / DOT 源码**、**绑定、effect 与路径证据**、
+  以及 **Rust 源码** —— 后者显示该规则实际交给 extractor 的 `add_rule(...)` 作用域
+  （含 pattern、约束和 action），可直接核对公式是怎么从 Rust 生成的。
 - 点击 **运行并识别** 执行本目录 patched egglog 的实际运行时。
   可先粘贴 `experiments/bake/increment-3.egg`：6 个有效应用、5 个组合、4 条 Fractal 证据。
 - 日志窗口按有效应用、Rule Compose、Fractal 过滤；点击每一行读取该事件的公式快照、
@@ -44,8 +47,13 @@ tier-1、tier-2 保留同一 EGraph 和导入游标，只导入新应用和新 e
 组合能够合法降级时显示单条 combined rule；否则通过步骤选择器逐步显示原规则的插件公式，
 在证据面板保留完整分阶段依赖 DAG、绑定和中间效果，显示不能扁平化的原因。不会把它误报成一条可执行的等价 rewrite。
 
-Fractal 的 `Depth / context / event` 证据单独列出；它不是插件支持的一种源规则，
-不伪造新的 MathView。步骤选择器展示这条实际路径上各规则的插件公式。
+规则 head 里的 relation / constructor insert 会作为 conclusion 显示（extractor 提交
+`ea8528b`）。此前没有 `semantic_text` 的 unbound effect 会被丢掉，于是
+`(leq e1 e2)`、`(non-zero e)` 这类规则错误地显示 `no conclusion`；`set_*` 仍走
+semantic text 路径。关系名按插件默认渲染成大写变体（`leq` → `Leq`），加 `dsl_type`
+模板即可控制显示。
+
+Fractal 的 `Depth / context / event` 证据单独列出；它不是插件支持的一种源规则，不伪造新的 MathView。步骤选择器展示这条实际路径上各规则的插件公式。
 
 日志格式 v2 保存已查看的插件渲染结果（公式源码、SVG、DOT、节点公式、配置和渲染器指纹），
 导入后相同配置直接使用这些快照，不会随编辑器内容或插件版本变化而重画。

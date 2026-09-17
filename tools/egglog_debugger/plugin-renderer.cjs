@@ -73,7 +73,7 @@ async function renderPreview(plugin, request) {
         });
         child.stdin.end(rustSource);
     });
-    let ir, variableMap = {}, variableLabels = {};
+    let ir, variableMap = {}, variableLabels = {}, rustSource = '', rustStartLine = 0;
     if (fs.existsSync(path.join(plugin.root, 'out/eggPreviewSource.js'))) {
         const { prepareEggPreviewPlan, buildEggPreview } = plugin.load('eggPreviewSource');
         const plan = prepareEggPreviewPlan(source, rust);
@@ -89,9 +89,17 @@ async function renderPreview(plugin, request) {
         const info = bindingInfo(plugin, prepared, ir);
         variableMap = info.nodes;
         variableLabels = info.labels;
+        // The exact Rust handed to the extractor for this rule, for the source panel.
+        const span = plugin.load('rustBindingRename').findMatchingParenRange(prepared.rust, prepared.extractorOffset, 'rust');
+        if (span) {
+            rustSource = prepared.rust.slice(span.start, span.end);
+            rustStartLine = prepared.rust.slice(0, span.start).split('\n').length;
+        }
     } else {
         const rustOffset = plugin.load('eggRuleMapping').resolveEggPreviewOffset(source, offset, rust);
         ir = await extract(rust, rustOffset);
+        rustSource = rust;
+        rustStartLine = 1;
     }
     const { buildMathViewModel, buildMathViewTypstSource } = plugin.load('mathView');
     const { collectTypstReplacementSources, patternIrToDotWithMode } = plugin.load('dot');
@@ -144,6 +152,7 @@ async function renderPreview(plugin, request) {
         typst_svg: formula.svg, typst_mode: formula.mode,
         dot, dot_svg: graphSvg, typst_sources: typstSources, typst_renderings: typstRenderings,
         variable_map: variableMap, variable_labels: variableLabels,
+        rust_source: rustSource, rust_start_line: rustStartLine,
     };
 }
 

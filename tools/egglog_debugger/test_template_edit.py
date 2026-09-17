@@ -35,6 +35,18 @@ WRAPPED_SOURCE = '''; @egg-viz-json {"schema":"egg-viz/v1","kind":"dsl_type","id
 (rewrite (Add (Num a) (Num b)) (Num (+ a b)))
 '''
 
+# A relation action is a conclusion; it used to render as "no conclusion".
+LEQ_SOURCE = '''(datatype Expr (Num i64) (Var String) (Add Expr Expr))
+(relation leq (Expr Expr))
+(rule (
+    (= e1 (Num n1))
+    (= e2 (Num n2))
+    (<= n1 n2)
+) (
+    (leq e1 e2)
+))
+'''
+
 EXAMPLES = Path(__file__).resolve().parents[3] / 'egglog-demo/static/examples.json'
 HERBIE = json.loads(EXAMPLES.read_text())['herbie'] if EXAMPLES.is_file() else None
 
@@ -207,6 +219,16 @@ def main():
         rendered = page.locator('#native-source').text_content()
         assert 'm.p' in rendered and 'm.q' in rendered, rendered
         assert 'arg_i64_0' not in rendered, rendered
+
+        # --- relation actions are conclusions, and the Rust panel shows the scope --
+        set_source(LEQ_SOURCE, 3)
+        ready('Leq')
+        rendered = page.locator('#native-source').text_content()
+        assert 'no conclusion' not in rendered, rendered
+        assert 'Leq' in rendered, rendered
+        assert page.locator('summary', has_text='Rust 源码').count() == 1
+        rust = page.locator('#native-rust').text_content()
+        assert 'add_rule' in rust and 'insert_leq' in rust, rust
 
         # --- an annotation already wrapped by the old bug is recoverable -------
         set_source(WRAPPED_SOURCE, 2)

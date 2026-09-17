@@ -7,6 +7,7 @@
 #native-viewport {max-height:280px; overflow:auto; background:white;}
 #native-preview {width:auto; max-width:none; max-height:none; background:white;}
 #native-source, #native-details {white-space:pre-wrap; max-height:150px; overflow:auto;}
+#native-rust {white-space:pre; max-height:220px; overflow:auto; font:12px monospace; background:#fff;}
 .native-source-selection {background:#dae8ff;}
 
 #native-preview {--vscode-editor-foreground:#333;--vscode-editor-background:#fff;}
