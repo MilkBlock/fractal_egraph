@@ -19,6 +19,10 @@ CONDITION_SOURCE = '''(datatype Math (Num i64) (Fabs Math))
 (rewrite (Fabs (Num a)) (Num (abs a)))
 '''
 
+REWRITE_SOURCE = '''(datatype Expr (Num i64) (Add Expr Expr))
+(rewrite (Add (Num a) (Num b)) (Num (+ a b)))
+'''
+
 # The exact wrong annotation shape reported after typing a template into the name field.
 WRAPPED_SOURCE = '''; @egg-viz-json {"schema":"egg-viz/v1","kind":"dsl_type","id":"Expr","variants":{"Add":{"fields":["left","right"],"typst":"upright(\\"{left} + {right}\\")({left}, {right})","precedence":90}}}
 (datatype Expr (Num i64) (Add Expr Expr))
@@ -154,6 +158,26 @@ def main():
         annotation = read()
         assert '"typst":"{left} + {right}"' in annotation
         assert 'upright' not in annotation
+
+        # --- rewrite pattern variables are editable variables, not just names ---
+        set_source(REWRITE_SOURCE, 1)
+        ready('num_node2')
+        assert page.locator('.native-edit-hit[data-target="binding:a"]').count() >= 1
+        page.locator('.native-edit-hit[data-target="binding:a"]').first.click()
+        assert page.input_value('#native-name-input') == 'num_node2'
+        page.fill('#native-name-input', 'lhs')
+        save_editor()
+        page.wait_for_function('()=>document.querySelector(".CodeMirror").CodeMirror.getValue().includes(\'"a":"lhs"\')')
+        ready('lhs')
+        rendered = page.locator('#native-source').text_content()
+        assert 'lhs' in rendered and 'num_node2' not in rendered, rendered
+        assert 'num_node3' in rendered
+        # The other variable is still editable after the first rename.
+        page.locator('.native-edit-hit[data-target="binding:b"]').first.click()
+        page.fill('#native-name-input', 'rhs')
+        save_editor()
+        page.wait_for_function('()=>document.querySelector(".CodeMirror").CodeMirror.getValue().includes(\'"b":"rhs"\')')
+        ready('rhs')
 
         # --- an annotation already wrapped by the old bug is recoverable -------
         set_source(WRAPPED_SOURCE, 2)

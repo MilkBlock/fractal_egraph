@@ -56,7 +56,9 @@ class Handler(SimpleHTTPRequestHandler):
                 return self.reply(413, {'error': 'Source must be at most 2 MB'})
             data = json.loads(self.rfile.read(length))
             if self.path == '/api/preview':
-                data['edit_targets'] = self.server.annotations.catalog(data['source'], data.get('line', 1))
+                line = data.get('line', 1)
+                data['edit_targets'] = self.server.annotations.catalog(data['source'], line)
+                data['rule_entry'] = self.server.annotations.rewrite_preview_entry(data['source'], line)
                 return self.reply(200, self.server.renderer.render(data))
             if self.path == '/api/edit-conditions':
                 result = self.server.annotations.update_conditions(data['source'], data['line'], data['conditions'])

@@ -142,6 +142,14 @@ bundle 里的 `@egg-viz-json` 注释不记录 matches、effects 或性能统计�
 `unknown variable: Mul`，必须写成 `upright("Mul")` 或 `op("Mul")`，
 例如 `upright("Mul") {{ {left} dot {right} }}`。校验失败时也会给出同样的中文提示。
 
+规则里的**变量名也能改**，不只是构造器和模板。公式默认用转译器的 Rust 名字
+（`num_node2`、`num_node2.arg_i64_00`），debugger 把这些名字作为可点击目标，
+同时用目标列表里的 `变量 a · num_node2` 打开编辑框；保存写入该规则的
+`labels.bindings`，公式立即改用新名字。显式 `rule` 和 `rewrite` 都支持；
+`birewrite` 会展开成两个 rule scope，暂不提供变量改名。渲染时按 ordinal 索引
+规则，并为 `rewrite` 补出与 `rule` 等价的结构交给插件自己的绑定重命名器，
+因此带 `rewrite` 的文件不再把注解错配到后面的规则上。
+
 公式下方始终列出当前规则的可编辑目标（构造器 / 变量 / 规则条件）。命中区域
 依赖插件把公式渲染成数学模式；当模板不再包含名称、或插件的公式降级为文本
 （例如当前插件对带附加条件的规则）时，文字高亮区域会消失。目标列表让这些

@@ -25,6 +25,23 @@ function loadPlugin(root, extractorOverride) {
     return { root, extractor, transpiler, load, revision: hash.digest('hex') };
 }
 
+// Map each rule binding to the node name the formula currently renders. The editor
+// needs that rendered name as a click target before the user has renamed anything.
+function bindingNodes(plugin, prepared, ir) {
+    const structure = prepared.ruleStructure;
+    const bindings = structure?.bindings || [];
+    const nodes = (ir.nodes || []).map(node => node.id);
+    if (!bindings.length || !nodes.length) return {};
+    const probe = { labels: { bindings: Object.fromEntries(bindings.map((name, index) => [name, `probe${index}`])) } };
+    try {
+        const { overrides } = plugin.load('eggVizAnnotation').buildDisplayNames(probe, structure, ir, prepared.rust);
+        const byLabel = new Map(plugin.load('rustBindingRename').planBindingRenames(nodes, overrides).map(entry => [entry.to, entry.from]));
+        const map = {};
+        bindings.forEach((name, index) => { const node = byLabel.get(`probe${index}`); if (node) map[name] = node; });
+        return map;
+    } catch { return {}; }
+}
+
 async function renderPreview(plugin, request) {
     const { source, line = 1, mode = 'combined', label_style = 'recursive', recursive_strategy = 'dag-expand' } = request;
     if (typeof source !== 'string' || !Number.isInteger(line) || line < 1) throw Error('Expected source and a positive source line');
@@ -50,12 +67,20 @@ async function renderPreview(plugin, request) {
         });
         child.stdin.end(rustSource);
     });
-    let ir;
+    let ir, variableMap = {};
     if (fs.existsSync(path.join(plugin.root, 'out/eggPreviewSource.js'))) {
         const { prepareEggPreviewPlan, buildEggPreview } = plugin.load('eggPreviewSource');
         const plan = prepareEggPreviewPlan(source, rust);
+        // The plugin drops `rewrite` forms from program.rules, which both ignores their
+        // annotations and shifts every later rule onto the wrong annotation. Index the
+        // entries by ordinal and fill the selected rewrite from the .egg source.
+        const ordinal = plugin.load('eggRuleMapping').eggRuleOrdinalAtOffset(source, offset);
+        const entries = new Map((plan.program.rules || []).map(entry => [entry.ordinal, entry]));
+        if (request.rule_entry?.structure) entries.set(ordinal, { ordinal, structure: request.rule_entry.structure, annotation: request.rule_entry.annotation || {}, ruleStart: offset });
+        plan.program.rules = [...entries.keys()].reduce((list, key) => { list[key] = entries.get(key); return list; }, []);
         const prepared = await buildEggPreview(plan, offset, extract);
         ir = prepared.decorate(await extract(prepared.rust, prepared.extractorOffset), prepared.rust);
+        variableMap = bindingNodes(plugin, prepared, ir);
     } else {
         const rustOffset = plugin.load('eggRuleMapping').resolveEggPreviewOffset(source, offset, rust);
         ir = await extract(rust, rustOffset);
@@ -84,19 +109,29 @@ async function renderPreview(plugin, request) {
     const graphSvg = await plugin.load('svg').dotToSvg(dot);
     const core = plugin.load('shared/typstCore');
     const formula = typstRenderings[formulaTarget];
+    // The formula renders a pattern variable under its node name until a rename
+    // exists; add that rendered name as a click word so it is editable either way.
+    const targets = (request.edit_targets || []).map(target => ({ ...target }));
+    for (const target of targets) {
+        const node = target.kind === 'binding' ? variableMap[target.name] : null;
+        if (!node) continue;
+        target.rendered = node;
+        if (!target.words.includes(node)) target.words.push(node);
+    }
     let editRegions = [], editError = null;
     if(formula.mode === 'math'){
-        try { editRegions = editableRegions(formulaSource, request.edit_targets || [], core.buildTypstMathDocument); }
+        try { editRegions = editableRegions(formulaSource, targets, core.buildTypstMathDocument); }
         catch(error){editError=String(error.message || error);}
     }
     return {
-        edit_targets: request.edit_targets || [], edit_regions: editRegions, edit_error: editError,
+        edit_targets: targets, edit_regions: editRegions, edit_error: editError,
         renderer: 'eggplant-pattern-vscode', renderer_revision: plugin.revision,
         config: { mode, label_style, recursive_strategy, pattern_renderer: patternRenderer },
         ir, math_view: mathView, typst: formulaSource,
         typst_document: formula.mode === 'math' ? core.buildTypstMathDocument(formulaSource) : core.buildTypstTextDocument(formulaSource),
         typst_svg: formula.svg, typst_mode: formula.mode,
         dot, dot_svg: graphSvg, typst_sources: typstSources, typst_renderings: typstRenderings,
+        variable_map: variableMap,
     };
 }
 

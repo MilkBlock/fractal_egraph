@@ -131,8 +131,8 @@ export function installNativeDebugger(editor) {
         const caption=document.createElement('span');caption.id='native-targets-caption';caption.textContent='可编辑目标：';bar.append(caption);
         for(const target of targets){
             const button=document.createElement('button');button.type='button';button.dataset.target=target.id;
-            button.textContent=target.kind==='constructor'?`构造器 ${target.name}`:target.kind==='conditions'?'规则条件':`变量 ${target.name}`;
-            button.onclick=()=>openEditor(target,target.display || target.name);
+            button.textContent=target.kind==='constructor'?`构造器 ${target.name}`:target.kind==='conditions'?'规则条件':`变量 ${target.name}${target.rendered && target.rendered!==target.name?' · '+target.rendered:''}`;
+            button.onclick=()=>openEditor(target,target.rendered || target.display || target.name);
             bar.append(button);
         }
         if(note){const hint=document.createElement('span');hint.id='native-targets-note';hint.textContent=note;bar.append(hint);}

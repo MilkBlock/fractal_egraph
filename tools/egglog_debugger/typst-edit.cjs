@@ -16,13 +16,21 @@ function editableRegions(source, targets, buildDocument) {
     const marker=' quad upright("if") quad ';
     const boundary=condition?source.lastIndexOf(marker):-1;
     const prefix=boundary>=0?source.slice(0,boundary):source;
+    // A rendered variable can carry a field accessor (`num_node2.arg_i64_00`);
+    // the editable target is the node before the dot, so the editor renames the
+    // variable instead of writing the accessor as its label.
+    const resolve = word => {
+        if (byWord.has(word)) return { id: word, target: byWord.get(word) };
+        const head = word.split('.')[0];
+        return head !== word && byWord.has(head) ? { id: head, target: byWord.get(head) } : null;
+    };
     let count = 0;
     let marked = prefix.replace(/\b(?:upright|op)\(("(?:\\.|[^"\\])*")\)|"(?:\\.|[^"\\])*"|[A-Za-z_][A-Za-z_0-9]*|[+*−-]/g, (token, quoted) => {
         const word = quoted ? JSON.parse(quoted) : token;
-        const candidates = byWord.get(word) || [];
-        if (candidates.length !== 1) return token;
+        const hit = resolve(word);
+        if (!hit || hit.target.length !== 1) return token;
         count++;
-        return ` #eggedit(${JSON.stringify(candidates[0].id)}, ${JSON.stringify(word)})[$ ${token} $] `;
+        return ` #eggedit(${JSON.stringify(hit.target[0].id)}, ${JSON.stringify(hit.id)})[$ ${token} $] `;
     });
     if(boundary>=0){
         const suffix=source.slice(boundary+' quad '.length);

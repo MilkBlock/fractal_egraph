@@ -40,7 +40,7 @@ class PluginRenderer:
         return result.stdout.encode()
 
     def render(self, request):
-        fields = {key: request[key] for key in ['source', 'line', 'mode', 'label_style', 'recursive_strategy', 'edit_targets'] if key in request}
+        fields = {key: request[key] for key in ['source', 'line', 'mode', 'label_style', 'recursive_strategy', 'edit_targets', 'rule_entry'] if key in request}
         return self._render(json.dumps(fields, ensure_ascii=False, sort_keys=True))
 
     @functools.lru_cache(maxsize=256)
