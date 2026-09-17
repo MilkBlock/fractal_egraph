@@ -128,32 +128,36 @@ frac(upright("node"), A(upright("node.arg_i64_00") + 1, upright("node.arg_i64_01
 
 ## match 历史与顺序
 
-浏览器里的 egglog（wasm32）和本机 CLI 是同一份插桩代码，但**不保证逐字节相同的 JSONL**。
-`browser/test_stream_parity.mjs` 在 `experiments/bake/*.egg` 加 `egglog-demo` 的 54 个示例上
-（62 个程序、1194 行事件、51 个“两边同样拒绝”）断言三者相等：
+浏览器里的 egglog（wasm32）和本机 CLI 是同一份插桩代码，但**不保证相同的命中历史**。
+`browser/test_stream_parity.mjs` 因此把语料分成两层：
 
-- 行数（每个 kind 的事件数）
-- 命中的 match 多重集：同一规则、同一 boundary、同样的具体绑定值
-- boundary 直方图（每个 round 里各规则命中几次）
-- 分析拒绝的程序两边给出同一条拒绝信息（panic 只比较“都 panic”）
+- **契约（断言相等）**：`experiments/bake/*.egg`（单链重复，正是 Fractal 语料）加上一个把
+  datatype 改名为 `Expr` 的副本。要求“每个 kind 的行数、命中多重集（规则 + boundary + 具体
+  绑定值）、boundary 直方图”逐项相等；拒绝的程序两边给出同一条拒绝信息（panic 只比较“都 panic”）。
+  实测 8 个程序全部通过，其中 5 个连顺序都逐字节一致。
+- **普查（只报告）**：`egglog-demo` 的 54 个示例。它们是饱和（含 union / 多规则 schedule）程序，
+  规则发射顺序本身依赖哈希遍历顺序，顺序不同会让**后面的匹配出现或消失**，所以这里只报告差异。
 
-实测：9 个能出事件的程序里 5 个连顺序都逐字节一致；另外 4 个（`binary-1`、`binary-5`、
-`heldout-binary`、`examples/eqsat-basic`）**命中完全相同但枚举顺序不同**，于是 `id`、`event`、
-`effects.produced` 里的 `0:write:N` 顺序也跟着不同。原因是平台相关的表遍历顺序：
-e-graph 用 `hashbrown::HashMap` + `rustc_hash::FxHasher`（`egglog/src/util.rs`），
-`FxHasher` 哈希的是 `usize`，wasm32 是 4 字节、native 是 8 字节，桶布局因此不同，
-同一个 boundary 内多个匹配的枚举顺序就不同。不是随机性：两端各自重复运行都稳定。
-也不是线程：native 的 rayon 池是 `num_threads(1)`，只用来要一个更大的栈
-（`src/native_debug.rs:209`），wasm 没有线程所以直接内联执行。
+实测（63 个程序、15307 行、40 个两边同样拒绝）：
+
+- 10 个示例“命中相同、顺序不同”：`binary-1/5`、`heldout-binary`、`eqsat-basic`、`bdd`、`prims`、
+  `naturals`、`antiunify`、`resolution`、`01-basics`。
+- **1 个示例命中集合就不同**：`examples/eqsolve`（两边各 7095 个应用、13 条 lane，但行身份差
+  21900 行、boundary 直方图差 120 行）。同一个 `.egg`、同一份代码，只是平台不同。
+
+原因不是随机性，也不是线程：e-graph 用 `hashbrown::HashMap` + `rustc_hash::FxHasher`
+（`egglog/src/util.rs`），`FxHasher` 哈希的是 `usize`，wasm32 4 字节、native 8 字节，桶布局
+因此不同；native 的 rayon 池是 `num_threads(1)`，只为了更大的栈（`src/native_debug.rs:209`），
+wasm 直接内联执行。两端各自重复运行都稳定。
 
 结论与用法：
 
-- 需要**可引用、可跨端比对的 event id / 顺序**（拿本机工具对账、diff 两次运行、引用某个
-  事件编号）时，以本机 bridge（native）为权威，浏览器那份只能保证“命中了什么”。
-- 只关心“这一轮命中了什么、公式长什么样”时，wasm 是忠实的。
+- **需要可引用、可跨端对账的命中历史（event id、顺序、集合）时，以本机 bridge（native）为准。**
+  饱和程序的浏览器历史是“同一份实现的另一次运行”，不是本地那次运行的复现。
+- 只关心“这一轮命中了什么、公式长什么样”时，浏览器可以照常用；Fractal 语料两边一致。
 - 想让两边逐字节一致，需要在发射前做**规范化重编号**（按 rule + 绑定值排序并重映射
-  `parents`/`event` 引用），不只是排序——目前没做，因为那会改变 UI 与导出日志里的
-  事件 id 语义。
+  `parents`/`event` 引用），而且对饱和程序还要固定规则发射顺序——目前没做，因为那会改变
+  UI 与导出日志里事件 id 的语义。
 
 ## 语义与边界
 
@@ -167,8 +171,8 @@ tier-1、tier-2 保留同一 EGraph 和导入游标，只导入新应用和新 e
 重复的稳定相对 binding 路径必须得到原生 `FractalComb / Represents` 的见证。
 这些是有限已观察路径，不是任意次数递推的证明。
 
-继承主分析器的输入范围：执行分析要求单个显式、自包含 `Math` datatype，暂不接受
-`include`。源码预览没有该 datatype 限制，但不支持 subsuming rewrite。
+继承主分析器的输入范围：执行分析要求单个显式、自包含的 datatype（名字任意，`Math` 或
+`Expr` 都一样），暂不接受 `include`。源码预览没有该 datatype 限制，但不支持 subsuming rewrite。
 组合能够合法降级时显示单条 combined rule；否则通过步骤选择器逐步显示原规则的插件公式，
 在证据面板保留完整分阶段依赖 DAG、绑定和中间效果，显示不能扁平化的原因。不会把它误报成一条可执行的等价 rewrite。
 

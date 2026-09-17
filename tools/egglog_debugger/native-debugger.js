@@ -13,7 +13,7 @@ export function installNativeDebugger(editor) {
     panel.innerHTML = `<strong>Native Rule Compose / Fractal</strong>
       <button id="native-run">运行并识别</button><button id="native-stop" disabled>停止</button>
       <button id="native-download">下载 .egg</button><button id="native-export">导出日志</button><button id="native-restore">载入日志源码</button><label>回放日志 <input id="native-import" type="file" accept=".json"></label>
-      <div id="native-status">点击 .egg 规则任意一行查看 Pattern。原生识别使用本地 egg_layout（自包含 Math datatype）。</div>
+      <div id="native-status">点击 .egg 规则任意一行查看 Pattern。原生识别使用本地 egg_layout（单个自包含 datatype，名字任意）。</div>
       <select id="native-filter"><option value="all">所有日志</option><option value="application">有效应用</option><option value="compose">Rule Compose</option><option value="fractal">Fractal</option></select>
       <div id="native-trace" role="log" aria-label="增量识别日志"></div>
       <div><select id="native-format"><option value="typst">Typst 公式</option><option value="dot">DOT 图</option></select><span id="native-title"></span></div>
@@ -106,7 +106,7 @@ export function installNativeDebugger(editor) {
         const local=await bridgeAvailable();
         status(local
             ? `静态部署：已连接本机 bridge（${BRIDGE_BASE}），预览/编辑与识别都可用。`
-            : '静态部署：运行、识别与公式/DOT 预览都在浏览器内的 wasm 中运行；写回 .egg 的编辑仍需要本机 bridge（python3 tools/egglog_debugger/server.py）。');
+            : '静态部署：运行、识别与公式/DOT 预览都在浏览器内的 wasm 中运行；饱和程序的命中历史可能与本地 native 不同（要权威 event id 请跑 bridge）。写回 .egg 的编辑仍需要本机 bridge（python3 tools/egglog_debugger/server.py）。');
     })();
     // Common Typst math spellings; {field} placeholders are bound to the constructor's
     // fields in declaration order. Escaped braces {{ }} stay literal.

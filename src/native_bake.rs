@@ -61,6 +61,10 @@ struct Library {
     version: u32,
     algebra: String,
     scope: String,
+    /// Name of the single datatype the samples declare. Older libraries predate
+    /// this field and were all named `Math`.
+    #[serde(default = "default_datatype_name")]
+    datatype: String,
     samples: Vec<Json>,
     steps: Vec<Step>,
     templates: Vec<Template>,
@@ -150,7 +154,7 @@ impl Models {
     fn new(c: &Captured) -> Result<Self> {
         let commands = EGraph::default().parse_program(None, &c.datatype)?;
         let Command::Datatype { name, variants, .. } = &commands[0] else {
-            return Err("Bake requires a Math datatype".into());
+            return Err("Bake requires exactly one declared datatype".into());
         };
         let schema = variants
             .iter()
@@ -261,6 +265,10 @@ impl Models {
         })
     }
 }
+pub(super) fn default_datatype_name() -> String {
+    "Math".into()
+}
+
 fn validate_source(source: &Path) -> Result {
     let commands = EGraph::default().parse_program(None, &std::fs::read_to_string(source)?)?;
     if commands.iter().any(|c| {
@@ -275,7 +283,7 @@ fn validate_source(source: &Path) -> Result {
                 | Command::Rewrite(_, _, true)
         )
     }) {
-        return Err("Bake v1 requires a self-contained Math datatype and built-in primitives; custom table/sort definitions are not supported".into());
+        return Err("Bake v1 requires a self-contained datatype and built-in primitives; custom table/sort definitions are not supported".into());
     }
     let globals: BTreeSet<_> = commands
         .iter()
@@ -439,7 +447,7 @@ fn constructor_binding(fact: &Json) -> Option<&Json> {
     }
     Some(call)
 }
-fn counted_law(step: &Step) -> Option<Json> {
+fn counted_law(step: &Step, datatype: &str) -> Option<Json> {
     let r = &step.signature["rule"];
     let body = r["body"].as_array()?;
     let head = r["head"].as_array()?;
@@ -482,7 +490,7 @@ fn counted_law(step: &Step) -> Option<Json> {
     let limit = args.iter().position(|v| v == &g[1])?;
     let schema = r["schema"][lhs[1].as_str()?].as_array()?;
     if schema.len() != args.len() + 1
-        || schema.last()? != "Math"
+        || schema.last()? != datatype
         || schema.get(index)? != "i64"
         || schema.get(limit)? != "i64"
     {
@@ -509,7 +517,7 @@ fn counted_law(step: &Step) -> Option<Json> {
 }
 // Complete radix branches tile a contiguous frontier. This is checked against
 // the source AST/schema, not inferred from a few observed cardinalities.
-fn radix_law(t: &Template, steps: &[Step]) -> Option<Json> {
+fn radix_law(t: &Template, steps: &[Step], datatype: &str) -> Option<Json> {
     if t.kind != "recursive_dag" || t.ports.len() < 2 {
         return None;
     }
@@ -557,8 +565,8 @@ fn radix_law(t: &Template, steps: &[Step]) -> Option<Json> {
         return None;
     }
     let branch = branch?;
-    if r["schema"][lhs[1].as_str()?] != json!(["i64", "Math"])
-        || r["schema"][branch.as_str()?] != json!(["i64", "Math"])
+    if r["schema"][lhs[1].as_str()?] != json!(["i64", datatype])
+        || r["schema"][branch.as_str()?] != json!(["i64", datatype])
     {
         return None;
     }
@@ -578,8 +586,8 @@ fn radix_law(t: &Template, steps: &[Step]) -> Option<Json> {
         {
             return None;
         }
-        if b["schema"][branch.as_str()?] != json!(["i64", "Math"])
-            || b["schema"][lhs[1].as_str()?] != json!(["i64", "Math"])
+        if b["schema"][branch.as_str()?] != json!(["i64", datatype])
+            || b["schema"][lhs[1].as_str()?] != json!(["i64", datatype])
         {
             return None;
         }
@@ -626,6 +634,7 @@ pub fn train(root: &Path, manifest: &Path, out: &Path) -> Result<Json> {
     let mut steps = Vec::<Step>::new();
     let mut step_ids = BTreeMap::<String, usize>::new();
     let mut families = BTreeMap::<String, Template>::new();
+    let mut datatype: Option<String> = None;
     let worker = rayon::ThreadPoolBuilder::new().num_threads(1).build()?;
     for sample in input.samples {
         eprintln!("[bake] {}", sample.name);
@@ -637,6 +646,17 @@ pub fn train(root: &Path, manifest: &Path, out: &Path) -> Result<Json> {
         validate_source(&source)?;
         let begin = Instant::now();
         let mut c = capture(&source, sample.rounds, None)?;
+        match &datatype {
+            None => datatype = Some(c.datatype_name.clone()),
+            Some(name) if *name != c.datatype_name => {
+                return Err(format!(
+                    "Bake samples must declare the same datatype ({} vs {})",
+                    name, c.datatype_name
+                )
+                .into())
+            }
+            Some(_) => {}
+        }
         let report=worker.install(||->std::result::Result<Json,String>{
             (||->Result<Json>{
                 let mut eg=EGraph::default();build_tier1(&mut c,&mut eg,root,&mut(0,0))?;
@@ -676,21 +696,24 @@ pub fn train(root: &Path, manifest: &Path, out: &Path) -> Result<Json> {
         samples.push(report);
     }
     let mut templates: Vec<_> = families.into_values().collect();
+    // Every sample declared the same datatype; the array-law recognizers name it
+    // instead of assuming `Math`.
+    let datatype = datatype.unwrap_or_else(default_datatype_name);
     for (i, t) in templates.iter_mut().enumerate() {
         t.id = format!("fractal_{i:04}");
         if t.kind == "linear_extension" {
-            if let Some(mut law) = counted_law(&steps[t.entry]) {
+            if let Some(mut law) = counted_law(&steps[t.entry], &datatype) {
                 law["dsl"] = summarize_array(root, "(ESymbol \"start\")", "(ECount \"steps\")")?;
                 t.array_summary = Some(law);
             }
-        } else if let Some(mut law) = radix_law(t, &steps) {
+        } else if let Some(mut law) = radix_law(t, &steps, &datatype) {
             let count = format!("(EPow (EInt {}) (ECount \"depth\"))", law["radix"]);
             law["dsl"] =
                 summarize_range(root, &format!("(EMul (ESymbol \"start\") {count})"), &count)?;
             t.array_summary = Some(law);
         }
     }
-    let library=Library{version:VERSION,algebra:std::env::var("EGG_LAYOUT_BINDING_ALGEBRA").unwrap_or_else(|_|"integer-safe".into()),scope:"Frozen observed FractalRule families. Exact portable source/binding/effect fingerprints; no general induction proof and no automatic tier0 mutation replacement. Only separately checked array laws permit no-tier0 value queries.".into(),samples,steps,templates};
+    let library=Library{version:VERSION,algebra:std::env::var("EGG_LAYOUT_BINDING_ALGEBRA").unwrap_or_else(|_|"integer-safe".into()),datatype,scope:"Frozen observed FractalRule families. Exact portable source/binding/effect fingerprints; no general induction proof and no automatic tier0 mutation replacement. Only separately checked array laws permit no-tier0 value queries.".into(),samples,steps,templates};
     let summary = json!({"samples":library.samples.len(),"templates":library.templates.len(),"step_definitions":library.steps.len(),"multi_sample_templates":library.templates.iter().filter(|t|t.support.iter().map(|s|&s.sample).collect::<BTreeSet<_>>().len()>1).count(),"array_summaries":library.templates.iter().filter(|t|t.array_summary.is_some()).count(),"families":library.templates.iter().map(|t|json!({"id":t.id,"kind":t.kind,"entry_rule":library.steps[t.entry].label,"samples":t.support.iter().map(|s|&s.sample).collect::<Vec<_>>(),"array_law":t.array_summary.as_ref().map(|s|&s["kind"]),"symbolic_outputs":t.contract.as_ref().map(|c|&c.expressions)})).collect::<Vec<_>>(),"seconds":started.elapsed().as_secs_f64()});
     // Inspectable native DSL recipes; these do not assert tier0 effect equivalence.
     let mut dsl = "; Baked local contracts and checked scalar-array recipes.
@@ -773,9 +796,9 @@ fn load_library(path: &Path) -> Result<Library> {
         }
         if let Some(summary) = &t.array_summary {
             let checked = if t.kind == "linear_extension" {
-                counted_law(&lib.steps[t.entry])
+                counted_law(&lib.steps[t.entry], &lib.datatype)
             } else {
-                radix_law(t, &lib.steps)
+                radix_law(t, &lib.steps, &lib.datatype)
             };
             if checked.as_ref().is_none_or(|c| {
                 ["kind", "index_field", "limit_field", "radix"]
@@ -1139,7 +1162,7 @@ pub fn query(
         .ok_or("unknown baked template")?;
     if t.kind != "linear_extension"
         || t.array_summary.is_none()
-        || counted_law(&lib.steps[t.entry]).is_none()
+        || counted_law(&lib.steps[t.entry], &lib.datatype).is_none()
     {
         return Err(
             "this template has no certified counted-array law; tier0-free queries are not allowed"
@@ -1170,7 +1193,8 @@ pub fn query_frontier(
         .iter()
         .find(|t| t.id == id)
         .ok_or("unknown baked template")?;
-    let law = radix_law(t, &lib.steps).ok_or("no certified radix frontier for this template")?;
+    let law =
+        radix_law(t, &lib.steps, &lib.datatype).ok_or("no certified radix frontier for this template")?;
     if t.array_summary.is_none() || start <= 0 {
         return Err("radix query requires a baked summary and positive start".into());
     }
@@ -1214,26 +1238,32 @@ mod proof_tests {
     fn counted_schema_does_not_drop_extra_requirements() {
         assert!(
             counted_law(&step(
-                "(rule ((= root (A i end)) (< i end)) ((A (+ i 1) end)))"
-            ))
+                "(rule ((= root (A i end)) (< i end)) ((A (+ i 1) end)))",
+            ), "Math")
             .is_some()
         );
         assert!(
             counted_law(&step(
-                "(rule ((= (A i end) (D i end)) (< i end)) ((A (+ i 1) end)))"
-            ))
+                "(rule ((= (A i end) (D i end)) (< i end)) ((A (+ i 1) end)))",
+            ), "Math")
             .is_none()
         );
         assert!(
-            counted_law(&step(
-                "(rule ((= root (A i end)) (<= i end)) ((A (+ i 1) end)))"
-            ))
+            counted_law(
+                &step(
+                    "(rule ((= root (A i end)) (<= i end)) ((A (+ i 1) end)))"
+                ),
+                "Math",
+            )
             .is_none()
         );
         assert!(
-            counted_law(&step(
-                "(rule ((= root (A i end)) (< i end)) ((A (+ i 2) end)))"
-            ))
+            counted_law(
+                &step(
+                    "(rule ((= root (A i end)) (< i end)) ((A (+ i 2) end)))"
+                ),
+                "Math",
+            )
             .is_none()
         );
     }

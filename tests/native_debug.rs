@@ -114,3 +114,40 @@ fn no_effect_matches_do_not_become_application_logs() {
     );
     std::fs::remove_file(source).unwrap();
 }
+
+#[test]
+fn analysis_takes_the_declared_datatype_name_not_a_fixed_one() {
+    // The analysis only needs the program's datatype name to name its own sort:
+    // a program that calls it `Expr` must analyze exactly like one that calls it
+    // `Math`. `increment-3.egg` is the same program either way.
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let source = root.join("experiments/bake/increment-3.egg");
+    let text = std::fs::read_to_string(&source).unwrap();
+    let renamed = text.replacen("(datatype Math ", "(datatype Expr ", 1);
+    assert!(renamed.contains("(datatype Expr "));
+    let path = std::env::temp_dir().join(format!("native-debug-renamed-{}.egg", std::process::id()));
+    std::fs::write(&path, &renamed).unwrap();
+    let mut rows = vec![];
+    let result = debug::stream(root, &path, &mut |row| {
+        rows.push(row);
+        Ok(())
+    });
+    std::fs::remove_file(&path).unwrap();
+    result.unwrap();
+    let kinds = |kind: &str| rows.iter().filter(|r| r["kind"] == kind).count();
+    assert_eq!(
+        (
+            kinds("application"),
+            kinds("compose"),
+            kinds("fractal"),
+            rows.last().unwrap()["kind"].clone()
+        ),
+        (6, 5, 4, Value::String("complete".into()))
+    );
+    let lanes: Vec<_> = rows
+        .iter()
+        .filter(|r| r["kind"] == "fractal")
+        .map(|r| r["evidence"]["events"].as_array().unwrap().len())
+        .collect();
+    assert_eq!(lanes, vec![2, 3, 4, 5]);
+}

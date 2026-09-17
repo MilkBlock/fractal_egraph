@@ -24,7 +24,7 @@ cargo run --release -- analyze --reuse-tier0 --output out/native-six
 页面为输出目录下的 `fractal.html`；输出目录必须不存在。复用模式只重新渲染已完成结果，不重新执行推理。
 不指定复用目录时，使用仓库已有的固定视图。旧管道缓存的完整视图仍可复用，但不会启动旧流水线。
 
-当前输入要求是自包含的单个 Math datatype；不是任意 `.egg` 的通用导入器。
+当前输入要求是自包含的单个 datatype（名字任意：`Math`、`Expr` 都一样分析）；不是任意 `.egg` 的通用导入器。
 原生 TraceSession 在每个简单 run 轮次结束后移交并清空原始事件，随后在线更新 tier-1。跨轮保留精简的 producer 行证书与 union 等价边；**在线构建不等于恒定内存**，单轮事件和分析图仍可能很大。
 
 ### 在线、离线与历史重放

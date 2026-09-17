@@ -196,8 +196,17 @@ pub(super) fn read(path: &Path) -> Result<Captured> {
         .events
         .checked_sub(h.records.len())
         .ok_or("invalid history event count")?;
+    // Replayed histories carry the datatype text; take its name as the sort name
+    // the analysis uses, the same way a fresh capture does.
+    let datatype_name = h
+        .datatype
+        .split(|c: char| c.is_whitespace() || c == '(' || c == ')')
+        .nth(1)
+        .unwrap_or("Math")
+        .to_string();
     Ok(Captured {
         datatype: h.datatype,
+        datatype_name,
         rules,
         pool,
         records: h.records,

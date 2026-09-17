@@ -183,6 +183,7 @@ pub struct Record {
 }
 struct Captured {
     datatype: String,
+    datatype_name: String,
     rules: Vec<RuleInfo>,
     records: Vec<Record>,
     pool: Pool,
@@ -226,12 +227,20 @@ fn capture_text_with_sink(
         .iter()
         .filter(|c| matches!(c, Command::Datatype { .. }))
         .collect();
-    if datatypes.len() != 1 || !matches!(datatypes[0],Command::Datatype{name,..} if name=="Math") {
-        return Err(
-            "native analysis currently requires exactly one explicit, self-contained Math datatype"
-                .into(),
-        );
+    if datatypes.len() != 1 {
+        return Err(format!(
+            "native analysis currently requires exactly one explicit, self-contained datatype (found {})",
+            datatypes.len()
+        )
+        .into());
     }
+    // The datatype name is the program's own; the analysis only needs it to name
+    // the sort it imports, so a program that calls its datatype `Expr` analyzes
+    // the same way one that calls it `Math` does.
+    let datatype_name = match &datatypes[0] {
+        Command::Datatype { name, .. } => name.to_string(),
+        _ => unreachable!("filtered to Datatype"),
+    };
     let datatype = datatypes[0].to_string();
     if commands.iter().any(|c| matches!(c, Command::Include(..))) {
         return Err("native analysis does not yet accept included source programs".into());
@@ -283,6 +292,7 @@ fn capture_text_with_sink(
     let trace = TraceSession::with_dependencies();
     let mut c = Captured {
         datatype,
+        datatype_name,
         rules,
         records: vec![],
         pool: Pool::default(),
@@ -483,8 +493,9 @@ fn collect(
             continue;
         }
         let s = scope(m.event_id);
+        let datatype_name = c.datatype_name.clone();
         let value_token = |v| Token {
-            sort: Arc::from("Math"),
+            sort: Arc::from(datatype_name.as_str()),
             key: Key::Value(s, v),
         };
         let mut named = m

@@ -105,7 +105,7 @@ fn bindings(step: &Step) -> Result<Vec<Expr>> {
 pub(super) fn render(lib: &Library) -> Result<String> {
     let mut out="; Frozen FractalRule library — declarations, not a tier0 program.\n; Basic rules and recursive structure are visible; evidence/statistics use comments.\n".to_owned();
     out += &note(
-        json!({"schema":"egg-viz/v1","kind":"bake_library","format":"bake-egg/v1","scope":lib.scope}),
+        json!({"schema":"egg-viz/v1","kind":"bake_library","format":"bake-egg/v1","scope":lib.scope,"datatype":lib.datatype}),
     )?;
     out += &format!(
         "(bake-library {} {})\n\n",
@@ -198,6 +198,7 @@ pub(super) fn render(lib: &Library) -> Result<String> {
 
 pub(super) fn parse(text: &str) -> Result<Library> {
     let mut scope = None;
+    let mut datatype = None;
     let mut samples = BTreeMap::new();
     let mut sm = BTreeMap::new();
     let mut tm = BTreeMap::new();
@@ -215,6 +216,13 @@ pub(super) fn parse(text: &str) -> Result<Library> {
                     return Err("invalid/duplicate library annotation".into());
                 }
                 scope = Some(v["scope"].as_str().ok_or("missing scope")?.to_owned());
+                // Absent in libraries written before the datatype name was recorded.
+                datatype = Some(
+                    v["datatype"]
+                        .as_str()
+                        .map(str::to_owned)
+                        .unwrap_or_else(super::default_datatype_name),
+                );
             }
             Some("bake_sample") => {
                 let key: usize = v["id"]
@@ -370,6 +378,7 @@ pub(super) fn parse(text: &str) -> Result<Library> {
         version,
         algebra,
         scope: scope.ok_or("missing library annotation")?,
+        datatype: datatype.unwrap_or_else(super::default_datatype_name),
         samples: samples.into_values().collect(),
         steps: steps.into_values().collect(),
         templates,
