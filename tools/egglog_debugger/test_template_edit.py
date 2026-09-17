@@ -60,6 +60,12 @@ DIGIT_VAR_SOURCE = '''(datatype Expr (Num i64) (Add Expr Expr))
 ))
 '''
 
+# `birewrite` has no add_rule scope, so it must not shift the next rule's line mapping.
+BIREWRITE_SOURCE = '''(datatype Expr (Num i64) (Add Expr Expr) (Mul Expr Expr))
+(birewrite (Add x y) (Add y x))
+(rewrite (Add (Num a) (Num b)) (Num (+ a b)))
+'''
+
 EXAMPLES = Path(__file__).resolve().parents[3] / 'egglog-demo/static/examples.json'
 HERBIE = json.loads(EXAMPLES.read_text())['herbie'] if EXAMPLES.is_file() else None
 
@@ -252,6 +258,13 @@ def main():
         assert 'Leq' in rendered and 'no conclusion' not in rendered, rendered
         # Both (leq e1a e2a) and (leq e1b e2b) are premises, not just the two Add matches.
         assert rendered.count('upright("leq")') == 2, rendered
+
+        # --- a birewrite must not shift the next rule's mapping ---------------
+        set_source(BIREWRITE_SOURCE, 2)
+        ready('Num')
+        assert 'arrow.r.double' in page.locator('#native-source').text_content()
+        rust = page.locator('#native-rust').text_content()
+        assert '"rule_3_' in rust, rust
 
         # --- an annotation already wrapped by the old bug is recoverable -------
         set_source(WRAPPED_SOURCE, 2)
