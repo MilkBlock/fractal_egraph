@@ -17,13 +17,13 @@
 //
 // The bundle is loaded in Node with a file:// fetch shim so the wasm modules
 // load without a server; the published page itself is covered by
-// test_browser_page.py.
+// test_browser_page.mjs.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
-import { catalog } from "./src/annotations.js";
+import { catalog, previewRequest } from "./src/annotations.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
@@ -37,7 +37,6 @@ globalThis.fetch = (input, init) => {
         const type = url.endsWith(".wasm") ? "application/wasm" : "text/plain";
         return Promise.resolve(new Response(body, { headers: { "Content-Type": type } }));
     }
-    if (typeof url === "string" && process.env.EGG_TRACE_FETCH) console.error("FETCH", url.slice(0, 120));
     return realFetch(input, init);
 };
 
@@ -64,13 +63,61 @@ function near(actual, expected, tolerance) {
     return Math.abs(actual - expected) <= tolerance;
 }
 
+let checks = 0;
+let plugin, browser;
+
+async function compare(where, request) {
+    // `/api/preview` augments the request with the rule entry, the birewrite
+    // alias and the editable targets before either host renders it; do the same
+    // here so both sides see one request. The annotation module that produces
+    // them is separately compared against preview_annotations.py.
+    request = {
+        ...previewRequest(request.source, request.line),
+        edit_targets: catalog(request.source, request.line),
+        ...request
+    };
+    const expected = await renderPreview(plugin, request);
+    const actual = await browser.renderPreviewInBrowser(request);
+    // Everything the host does not touch must be byte identical.
+    for (const key of ["ir", "math_view", "typst", "typst_document", "typst_sources",
+        "typst_mode", "variable_map", "variable_labels", "iteration"]) {
+        assert.deepEqual(actual[key], expected[key], `${where}: ${key} differs from the bridge`);
+    }
+    assert.equal(normalizeDot(actual.dot), normalizeDot(expected.dot), `${where}: dot structure differs from the bridge`);
+    const mineSvg = svgStructure(actual.dot_svg), expectedSvg = svgStructure(expected.dot_svg);
+    assert.deepEqual(mineSvg.titles, expectedSvg.titles, `${where}: graph nodes/edges differ from the bridge`);
+    assert.deepEqual(mineSvg.labels, expectedSvg.labels, `${where}: graph labels differ from the bridge`);
+    assert.ok(near(mineSvg.width, expectedSvg.width, expectedSvg.width * 0.03)
+        && near(mineSvg.height, expectedSvg.height, expectedSvg.height * 0.03),
+        `${where}: graph size ${mineSvg.width}x${mineSvg.height} vs ${expectedSvg.width}x${expectedSvg.height}`);
+    assert.equal(Object.keys(actual.typst_renderings).length, Object.keys(expected.typst_renderings).length, `${where}: snippet count`);
+    for (const [target, rendering] of Object.entries(expected.typst_renderings)) {
+        const mine = actual.typst_renderings[target];
+        assert.ok(mine, `${where}: missing rendering ${target}`);
+        assert.equal(mine.mode, rendering.mode, `${where}: ${target} mode`);
+        for (const attr of ["width", "height"]) {
+            assert.ok(near(dim(mine.svg, attr), dim(rendering.svg, attr), Math.max(1, dim(rendering.svg, attr) * 0.05)),
+                `${where}: ${target} ${attr} ${dim(mine.svg, attr)} vs ${dim(rendering.svg, attr)}`);
+        }
+    }
+    // One target can be hit in several places (a binding appears in more than one
+    // premise) and `typst query` does not promise the same order as the wasm
+    // query, so compare the measured regions as a multiset keyed by their boxes.
+    const regionKey = region => [region.target_id, region.text,
+        ...[region.x, region.y, region.width, region.height].map(value => Math.round(value))].join("|");
+    assert.deepEqual(actual.edit_regions.map(regionKey).sort(), expected.edit_regions.map(regionKey).sort(),
+        `${where}: editable regions differ from the bridge`);
+    checks++;
+    process.stdout.write(`PASS browser parity: ${where}\n`);
+    return actual;
+}
+
 async function main() {
     const [bundle, pluginRoot, extractor] = process.argv.slice(2);
     assert.ok(bundle && pluginRoot, "usage: node test_browser_render.mjs <bundle.js> <plugin-root> [extractor]");
-    const browser = await import(pathToFileURL(path.resolve(bundle)).href);
-    const plugin = loadPlugin(pluginRoot, extractor);
+    browser = await import(pathToFileURL(path.resolve(bundle)).href);
+    plugin = loadPlugin(pluginRoot, extractor);
     const source = fs.readFileSync(path.join(path.dirname(HERE), "fixtures/render-parity.egg"), "utf8");
-    let checks = 0;
 
     for (const [mode, style, strategy] of [
         ["combined", "recursive", "dag-expand"],
@@ -78,54 +125,25 @@ async function main() {
         ["pattern", "full", "dag-expand"],
         ["action", "compact", "dag-expand"],
     ]) {
-        // The same editable targets go to both hosts; the annotation module that
-        // produces them has its own parity test against preview_annotations.py.
-        const request = { source, line: 5, mode, label_style: style, recursive_strategy: strategy,
-            edit_targets: catalog(source, 5) };
-        const expected = await renderPreview(plugin, request);
-        const actual = await browser.renderPreviewInBrowser(request);
-        const where = `${mode}/${style}/${strategy}`;
-        // Everything the host does not touch must be byte identical.
-        for (const key of ["ir", "math_view", "typst", "typst_document", "typst_sources",
-            "typst_mode", "variable_map", "variable_labels"]) {
-            assert.deepEqual(actual[key], expected[key], `${where}: ${key} differs from the bridge`);
-        }
-        assert.equal(normalizeDot(actual.dot), normalizeDot(expected.dot), `${where}: dot structure differs from the bridge`);
-        const mineSvg = svgStructure(actual.dot_svg), expectedSvg = svgStructure(expected.dot_svg);
-        assert.deepEqual(mineSvg.titles, expectedSvg.titles, `${where}: graph nodes/edges differ from the bridge`);
-        assert.deepEqual(mineSvg.labels, expectedSvg.labels, `${where}: graph labels differ from the bridge`);
-        assert.ok(near(mineSvg.width, expectedSvg.width, expectedSvg.width * 0.03)
-            && near(mineSvg.height, expectedSvg.height, expectedSvg.height * 0.03),
-            `${where}: graph size ${mineSvg.width}x${mineSvg.height} vs ${expectedSvg.width}x${expectedSvg.height}`);
-        assert.equal(Object.keys(actual.typst_renderings).length, Object.keys(expected.typst_renderings).length, `${where}: snippet count`);
-        for (const [target, rendering] of Object.entries(expected.typst_renderings)) {
-            const mine = actual.typst_renderings[target];
-            assert.ok(mine, `${where}: missing rendering ${target}`);
-            assert.equal(mine.mode, rendering.mode, `${where}: ${target} mode`);
-            for (const attr of ["width", "height"]) {
-                assert.ok(near(dim(mine.svg, attr), dim(rendering.svg, attr), Math.max(1, dim(rendering.svg, attr) * 0.05)),
-                    `${where}: ${target} ${attr} ${dim(mine.svg, attr)} vs ${dim(rendering.svg, attr)}`);
-            }
-        }
-        assert.deepEqual(actual.edit_regions.map(r => r.target_id), expected.edit_regions.map(r => r.target_id),
-            `${where}: editable targets`);
-        for (const region of expected.edit_regions) {
-            const mine = actual.edit_regions.find(r => r.target_id === region.target_id);
-            assert.equal(mine.text, region.text, `${where}: ${region.target_id} label`);
-            assert.ok(near(mine.x, region.x, 1) && near(mine.y, region.y, 1), `${where}: ${region.target_id} position`);
-        }
-        checks++;
-        process.stdout.write(`PASS browser parity: ${mode} / ${style} / ${strategy}\n`);
+        await compare(`${mode} / ${style} / ${strategy}`,
+            { source, line: 5, mode, label_style: style, recursive_strategy: strategy });
     }
 
+    // A fractal lane renders as the rule plus the repetition appended to the
+    // plugin's formula; both hosts must produce that text and the same regions.
+    const fractal = {
+        depth: 5, operator: "ext_0001", context: 0,
+        update: ["limit ← limit", "n ← +(n, 1)"],
+        witness: "FractalComb(Depth(5), ext_0001, Comb-17, initial_binding)"
+    };
+    const lane = await compare("fractal lane",
+        { source, line: 5, mode: "combined", label_style: "recursive", recursive_strategy: "dag-expand", fractal });
+    assert.match(lane.typst, /arrow\.l/, "the repetition badge is missing from the formula");
+    assert.deepEqual(lane.iteration, fractal);
+    assert.equal(lane.typst_mode, "math", "the wasm Typst compiler rejected the badge");
+
     const rewrite = { source, line: 8 };
-    const expectedRewrite = await renderPreview(plugin, rewrite);
-    const actualRewrite = await browser.renderPreviewInBrowser(rewrite);
-    assert.equal(actualRewrite.math_view.rule_name, expectedRewrite.math_view.rule_name);
-    assert.equal(actualRewrite.typst, expectedRewrite.typst);
-    assert.equal(normalizeDot(actualRewrite.dot), normalizeDot(expectedRewrite.dot));
-    checks++;
-    process.stdout.write("PASS browser parity: rewrite alias and second-rule selection\n");
+    await compare("rewrite alias and second-rule selection", rewrite);
 
     // Template validation runs the wasm Typst compiler instead of the CLI: the
     // verdict, and therefore the auto-repair suggestion, must match.

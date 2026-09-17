@@ -333,15 +333,11 @@ pub fn stream_source(
                 row["source_line"] = json!(line);
                 row["end_line"] = json!(end);
                 row["evidence"] = lane.clone();
-                let depth = lane["events"].as_array().unwrap().len();
-                let summary = format!(
-                    "$ op(\"FractalComb\")(op(\"Depth\")({depth}), op({}), op({}), op(\"initial_binding\")) $",
-                    quote(lane["operator"].as_str().unwrap()),
-                    quote(&format!("context {}", lane["trigger"]))
-                );
-                let source_formula = row["typst"].as_str().unwrap();
-                let (setup, steps) = source_formula.split_once('\n').unwrap();
-                row["typst"] = json!(format!("{setup}\n{summary}\n\n{steps}"));
+                // The lane itself is the visualization input: the debugger appends
+                // the repetition (depth, operator, context, update map, witness) to
+                // the plugin's formula. Keep `typst`/`dot` as the staged
+                // composition they already are instead of hand-building a second
+                // formula here.
                 let graph = row["dot"].as_str().unwrap().trim_end_matches('}');
                 row["dot"] = json!(format!(
                     "{graph}\nf [shape=box,color=blue,label={}]; f -> e{endpoint} [style=dashed,label=\"Represents\"];\n}}",

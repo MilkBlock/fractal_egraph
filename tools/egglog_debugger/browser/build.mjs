@@ -157,6 +157,10 @@ async function main() {
         .map(name => path.join(plugin, "out", `${name}.js`));
     const revision = "browser-" + (await revisionOf([
         ...pluginModules,
+        // The shared core is part of the renderer too: it owns the fractal
+        // repetition badge that the plugin's own modules do not know about.
+        path.join(DEBUGGER, "plugin-renderer.cjs"),
+        path.join(DEBUGGER, "typst-edit.cjs"),
         path.join(plugin, "vendor/viz.cjs"),
         path.join(transpilerTarget, "eggplant_transpiler_wasm_wrapper_bg.wasm"),
         path.join(extractorTarget, "eggplant_pattern_extractor_bg.wasm"),

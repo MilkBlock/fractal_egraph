@@ -335,12 +335,25 @@ export function installNativeDebugger(editor) {
         const url=URL.createObjectURL(new Blob([editor.getValue()],{type:'text/plain;charset=utf-8'}));
         const link=document.createElement('a');link.href=url;link.download='egglog-preview.egg';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
     };
+    // The fractal lane is one repetition statement, not a sequence of distinct
+    // rules: listing every event would repeat the same rule preview up to 168
+    // times. The per-step bindings stay in the evidence panel.
+    function fractalDepth(row) {
+        const events=row.evidence?.events;
+        return Array.isArray(events)&&events.length?events.length:(row.steps || []).length;
+    }
+    function fractalRequest(row) {
+        const evidence=row.evidence;if(!evidence)return null;
+        const depth=fractalDepth(row);if(!depth)return null;
+        return {depth,operator:evidence.operator ?? null,context:evidence.trigger ?? null,update:evidence.update || [],witness:evidence.higher ?? null};
+    }
     function selectSteps(row) {
         const steps=el('step');steps.replaceChildren();
-        if(row.composition_mode==='flattened rule')steps.add(new Option('组合后的规则','combined'));
-        for(const step of row.step_details || [])steps.add(new Option(`event ${step.event} · ${step.rule} · L${step.source_line}`,String(step.event)));
+        if(row.kind==='fractal' && row.evidence)steps.add(new Option(`紧凑（×${fractalDepth(row)}）`,'fractal'));
+        else if(row.composition_mode==='flattened rule')steps.add(new Option('组合后的规则','combined'));
+        if(row.kind!=='fractal' || !row.evidence)for(const step of row.step_details || [])steps.add(new Option(`event ${step.event} · ${step.rule} · L${step.source_line}`,String(step.event)));
         steps.hidden=!steps.options.length;
-        if(steps.options.length)steps.value=row.composition_mode==='flattened rule'?'combined':steps.options[steps.options.length-1].value;
+        if(steps.options.length)steps.value=steps.options[0].value;
     }
     function previewRequest(row) {
         let source=row.kind?snapshotSource:row.preview_source;
@@ -350,7 +363,8 @@ export function installNativeDebugger(editor) {
             line=source.split('\n').length+1;
             source+='\n'+row.source;
         }else if(step){line=step.source_line;}
-        return {source,line,mode:el('dot-mode').value,label_style:el('label-style').value,recursive_strategy:el('recursive').value};
+        const fractal=row.kind==='fractal'?fractalRequest(row):null;
+        return {source,line,mode:el('dot-mode').value,label_style:el('label-style').value,recursive_strategy:el('recursive').value,...(fractal?{fractal}:{})};
     }
     async function show(row, fromTrace=false) {
         const changed=selected!==row;selected=row; const version=++renderRevision;
@@ -360,7 +374,8 @@ export function installNativeDebugger(editor) {
         if(changed || fromTrace)selectSteps(row);
         previewAbort?.abort(); previewAbort=new AbortController();
         const kind=el('format').value;
-        el('title').textContent=`${row.kind || 'pattern'} · ${row.rule || ''} · L${row.source_line || '?'}`;
+        el('title').textContent=`${row.kind || 'pattern'} · ${row.rule || ''} · L${row.source_line || '?'}`
+            +(row.kind==='fractal'&&row.evidence?` · ×${fractalDepth(row)}`:'');
         el('source').textContent='';el('rust').textContent='';
         const {plugin_previews,typst,dot,preview_source,...details}=row;el('details').textContent=JSON.stringify(details,null,2);
         el('preview').hidden=true;el('preview').dataset.ready='false';el('render-error').textContent='';

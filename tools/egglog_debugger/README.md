@@ -80,6 +80,7 @@ wasm 下直接 trap）、`@myriaddreamin/typst.ts`，以及插件 vendored 的�
 | 上游 WASM **Run** | 浏览器 WASM（上游 egglog） | 无后端 |
 | 点行定位规则 / **运行并识别** | 浏览器 wasm（本仓库 patched `debug-stream`） | 无后端，见 `tools/egglog_debugger/wasm` |
 | 公式预览、Typst/DOT | 浏览器 wasm（`browser/preview.js`）或 bridge | 同一份 `renderPreview`，host 不同；见 `tools/egglog_debugger/browser` |
+| Fractal 规则可视化 | 同上（插件公式 + 重复徽标） | 不展开：lane 深度可达 168，公式保持常数大小 |
 | 模板/变量/条件编辑（写回 `.egg`） | 浏览器 wasm 或 bridge | 与 bridge 同一套契约；模板仍必须通过 Typst 编译，编辑后的程序仍必须能被插桩 runtime 识别 |
 
 ## 浏览器预览包（无 bridge）
@@ -100,6 +101,30 @@ host：`server.py` 那边是子进程 + 插件 vendor 的 CJS Graphviz，这边�
 字体差异会带来约 1–5% 的排版尺寸偏差（同一份 Typst 源码、不同字体后端），因此
 DOT 里的节点尺寸和 Graphviz 坐标与 bridge 不完全相同；公式源码、PatternIr、DOT 结构、
 标签和可点击目标要求完全一致，由 `browser/test_browser_render.mjs` 逐项断言。
+
+## Fractal 规则的公式
+
+一条 Fractal lane 是**同一条规则沿稳定相对绑定路径重复 d 次**。运行时不展开它，而是把 lane 作为
+数据发出（`evidence`：`events`（= 深度）、`operator`、`trigger`、`update`、`higher`），由
+`plugin-renderer.cjs`（bridge 与浏览器共用）在插件公式后面追加一行重复说明：
+
+```
+frac(upright("node"), A(upright("node.arg_i64_00") + 1, upright("node.arg_i64_01"))) quad upright("if") quad …
+\ upright("Depth 5") quad upright("operator ext_0001") quad upright("context 0") quad upright("FractalComb(Depth(5), ext_0001, Comb-17, initial_binding)")
+\ upright("limit") arrow.l upright("limit") comma quad upright("n") arrow.l upright("+(n, 1)")
+```
+
+- 徽标只用 ASCII 与 Typst 宏（`arrow.l`、`quad`、`comma`）：bridge 用系统字体的 `typst` CLI，
+  浏览器用内置字体的 wasm 编译器，写 `←`/`×` 这类字面字符会让两边渲染不一致。
+- 不展开是硬约束：`heldout-increment.egg` 有 167 条 lane，深度 2–168。规则本身仍由插件渲染
+  （`math_view`），徽标只是附加说明，所以 pattern 图、DOT、命中区域都不受影响。
+- 步骤选择器对 fractal 行只给一个 `紧凑（×d）` 选项；逐步绑定仍在“绑定、effect 与路径证据”里。
+  此前它按 `step_details` 给每个事件建一个选项（深度 168 就是 168 个同一条规则的预览）。
+- `row.typst` / `row.dot` 仍是运行时的分阶段组合输出（DOT 里带 `FractalComb` 节点），
+  保留给旧日志；运行时不自己拼公式（`src/native_debug.rs` 里那段 `FractalComb(Depth(d), …)`
+  的 Rust 公式已删除）。页面显示的一律是插件渲染 + 徽标。
+- 命中区域可能包含徽标里的变量（`upright("limit")` 会成为可点击目标，改名仍写回 `labels.bindings`）；
+  条件区被限制在公式最后一行，不会把徽标吞进“规则条件”。
 
 ## match 历史与顺序
 

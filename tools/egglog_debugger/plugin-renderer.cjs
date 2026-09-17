@@ -49,6 +49,29 @@ function bindingInfo(plugin, prepared, ir) {
     return info;
 }
 
+// The fractal evidence is runtime data, not source the extractor can see, so the
+// repetition is appended to the plugin's formula rather than built into it. Only
+// ASCII and Typst macros are used: the bridge renders with the `typst` CLI and
+// the bundled fonts of the wasm compiler differ, so a literal `←` or `×` would
+// make the two hosts disagree.
+function iterationSource(iteration) {
+    if (!iteration) return '';
+    const text = value => `upright(${JSON.stringify(String(value))})`;
+    const parts = [];
+    if (iteration.depth) parts.push(text(`Depth ${iteration.depth}`));
+    if (iteration.operator) parts.push(text(`operator ${iteration.operator}`));
+    if (iteration.context !== undefined && iteration.context !== null) parts.push(text(`context ${iteration.context}`));
+    if (iteration.witness) parts.push(text(iteration.witness));
+    const lines = [];
+    if (parts.length) lines.push(parts.join(' quad '));
+    const updates = (iteration.update || []).map(entry => String(entry).split('←').map(part => part.trim()));
+    if (updates.length) {
+        lines.push(updates.map(([from, to]) => `${text(from)} arrow.l ${text(to ?? '')}`).join(' comma quad '));
+    }
+    if (!lines.length) return '';
+    return ' \\ ' + lines.join(' \\ ');
+}
+
 async function renderPreview(plugin, request) {
     const { source, line = 1, mode = 'combined', label_style = 'recursive', recursive_strategy = 'dag-expand' } = request;
     if (typeof source !== 'string' || !Number.isInteger(line) || line < 1) throw Error('Expected source and a positive source line');
@@ -111,7 +134,10 @@ async function renderPreview(plugin, request) {
     const { buildMathViewModel, buildMathViewTypstSource } = plugin.load('mathView');
     const { collectTypstReplacementSources, patternIrToDotWithMode } = plugin.load('dot');
     const mathView = buildMathViewModel(ir, source);
-    const formulaSource = buildMathViewTypstSource(mathView);
+    // A fractal lane is one rule repeated along a stable relative binding, so the
+    // formula keeps the rule as the plugin rendered it and appends the repetition
+    // instead of unrolling it (lanes reach depth 168).
+    const formulaSource = buildMathViewTypstSource(mathView) + iterationSource(request.fractal);
     const formulaTarget = `math-view:${mathView.rule_name}`;
     const typstSources = Object.fromEntries(collectTypstReplacementSources(ir, mode, label_style, recursive_strategy)
         .map(({ targetId, source }) => [targetId, source]));
@@ -158,6 +184,7 @@ async function renderPreview(plugin, request) {
         edit_targets: targets, edit_regions: editRegions, edit_error: editError,
         renderer: 'eggplant-pattern-vscode', renderer_revision: plugin.revision,
         config: { mode, label_style, recursive_strategy, pattern_renderer: patternRenderer },
+        iteration: request.fractal || null,
         ir, math_view: mathView, typst: formulaSource,
         typst_document: formula.mode === 'math' ? core.buildTypstMathDocument(formulaSource) : core.buildTypstTextDocument(formulaSource),
         typst_svg: formula.svg, typst_mode: formula.mode,

@@ -60,7 +60,12 @@ def main():
         rendered()
         original = page.locator('#native-source').text_content()
         assert 'FractalComb' in page.locator('#native-evidence').inner_text()
-        assert page.locator('#native-step option').count() == 6
+        # A fractal lane is one repetition statement: the formula keeps the rule
+        # and appends the depth/operator/update badge instead of one step per
+        # event (up to 168 of them).
+        assert 'FractalComb' in original and 'arrow.l' in original
+        assert page.locator('#native-step option').count() == 1
+        assert '×5' in page.locator('#native-step option').first.text_content()
         page.screenshot(path=str(Path(folder) / 'fractal.png'), full_page=True)
         with page.expect_download() as download:
             page.click('#native-export')

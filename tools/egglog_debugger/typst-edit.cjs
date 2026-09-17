@@ -36,7 +36,11 @@ function planEditableRegions(source, targets, buildDocument) {
         return ` #eggedit(${JSON.stringify(hit.target[0].id)}, ${JSON.stringify(hit.id)})[$ ${token} $] `;
     });
     if(boundary>=0){
-        const suffix=source.slice(boundary+' quad '.length);
+        // The condition region ends where the formula's last line ends; anything
+        // appended after it (the fractal repetition badge) is not a condition.
+        let suffix=source.slice(boundary+' quad '.length);
+        const lineBreak=suffix.indexOf(' \\ ');
+        if(lineBreak>=0)suffix=suffix.slice(0,lineBreak);
         marked+=` quad #eggedit(${JSON.stringify(condition.id)}, "规则条件")[$ ${suffix} $] `;
         count++;
     }

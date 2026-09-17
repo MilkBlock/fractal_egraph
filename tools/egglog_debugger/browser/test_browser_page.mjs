@@ -85,9 +85,29 @@ async function main() {
         await page.waitForFunction(() => document.querySelectorAll("#native-preview svg g.node").length > 0, null, { timeout: 180000 });
         assert.equal(await page.locator("#native-render-error").innerText(), "");
 
+        // A fractal lane keeps the rule and appends the repetition badge: one
+        // option, not one per event (the deepest lane here has five).
+        await page.selectOption("#native-format", "typst");
+        await page.selectOption("#native-filter", "fractal");
+        await page.locator("#native-trace button").last().click();
+        await page.waitForFunction(
+            () => document.querySelector('#native-preview[data-ready="true"]')
+                && document.querySelector("#native-source").textContent.includes("FractalComb"),
+            null, { timeout: 180000 });
+        assert.equal(await page.locator("#native-step option").count(), 1);
+        // The source panel lives inside a closed `<details>`, so read textContent.
+        assert.match(await page.locator("#native-step option").first().textContent(), /×5/);
+        const formula = await page.locator("#native-source").textContent();
+        assert.match(formula, /arrow\.l/);
+        assert.match(formula, /Depth 5/);
+        assert.match(formula, /FractalComb\(Depth\(5\)/);
+        await page.selectOption("#native-format", "dot");
+        await page.waitForFunction(() => document.querySelectorAll("#native-preview svg g.node").length > 0, null, { timeout: 180000 });
+        await page.selectOption("#native-filter", "all");
+        await page.selectOption("#native-format", "typst");
+
         // Editing belongs to source previews: put the cursor on a rule line, like
         // a user clicking it. (Trace rows are event snapshots and stay read only.)
-        await page.selectOption("#native-format", "typst");
         await page.evaluate(() => {
             document.querySelector(".CodeMirror").CodeMirror.setCursor({ line: 2, ch: 0 });
         });
