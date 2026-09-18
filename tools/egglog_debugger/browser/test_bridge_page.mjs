@@ -65,8 +65,47 @@ async function main() {
 
         const formula = await page.locator("#native-source").textContent();
         assert.match(formula, /underbrace\(/, formula);
-        assert.match(formula, /upright\("trigger"\)/, formula);
+        assert.match(formula, /upright\("trigger/, formula);
         assert.match(formula, /apply 5 times/, formula);
+        // Each state carries the runtime's verdict for that step, and a coarse step
+        // names the outside input it consumes. This lane's trigger reads the initial
+        // `advance` fact, so the legend has to say so.
+        assert.match(formula, /upright\("trigger · coarse"\)/, formula);
+        assert.match(formula, /upright\("apply once · smooth"\)/, formula);
+        assert.match(formula, /needs external: limit, n, L\d+/, formula);
+        // native_lower refuses this datatype, so the fused rule is reported as the
+        // reason instead of rendered; the panel still opens and explains itself.
+        assert.equal(await page.locator("#native-coarse-panel").isVisible(), true);
+        assert.match(await page.locator("#native-coarse-note").innerText(), /不能融合这条 lane：unsupported endpoint operator/, "coarse refusal");
+        assert.equal(await page.locator("#native-coarse-render svg").count(), 0);
+
+        // The `math` example does fuse: show the lane both as the repetition (smooth
+        // chain) and as the one-step coarse rule the plugin renders. The fixture is
+        // that example's integration-by-parts lane trimmed to what the lane needs;
+        // the full example runs to saturation and streams hundreds of MB.
+        const mathSource = await readFile(path.join(HERE, "../fixtures/fractal-math.egg"), "utf8");
+        await page.evaluate(text => { document.querySelector(".CodeMirror").CodeMirror.setValue(text); }, mathSource);
+        await page.click("#native-run");
+        await page.waitForFunction(() => document.querySelector("#native-status").textContent.includes("完成"), null, { timeout: 180000 });
+        await page.selectOption("#native-filter", "fractal");
+        const laneCount = await page.locator("#native-trace button").count();
+        assert.ok(laneCount > 0, "the math lane fixture should produce a fractal lane");
+        await page.locator("#native-trace button").last().click();
+        await page.waitForSelector('#native-preview[data-ready="true"]', { timeout: 180000 });
+        const fusedCode = await page.locator("#native-coarse").textContent();
+        assert.match(fusedCode, /^\(rule \(/, fusedCode);
+        assert.match(fusedCode, /:name "native_comb_\d+"/, fusedCode);
+        assert.match(fusedCode, /Integral/, fusedCode);
+        assert.equal(await page.locator("#native-coarse-panel").isVisible(), true);
+        assert.ok((await page.locator("#native-coarse-render svg").boundingBox()).width > 0, "the fused rule should render");
+        assert.match(await page.locator("#native-coarse-title").innerText(), /融合 \d+ 步/);
+        // The chain and the fused rule are two views of the same lane, so the smooth
+        // chain keeps its per-step verdicts and the coarse rule is the fused one.
+        const laneFormula = await page.locator("#native-source").textContent();
+        assert.match(laneFormula, /upright\("trigger"\)/, laneFormula);
+        assert.match(laneFormula, /upright\("apply once · smooth"\)/, laneFormula);
+        assert.match(laneFormula, /upright\("apply twice · smooth"\)/, laneFormula);
+        await page.evaluate(text => { document.querySelector(".CodeMirror").CodeMirror.setValue(text); }, source);
         const renderer = await page.locator("#native-renderer").innerText();
         assert.match(renderer, /eggplant-pattern-vscode/);
         assert.doesNotMatch(renderer, /browser-/, `the bridge should render, not the wasm bundle: ${renderer}`);

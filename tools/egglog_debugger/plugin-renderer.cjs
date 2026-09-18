@@ -76,16 +76,35 @@ function iterationSource(iteration) {
 // action applied 1..d times (see `fractalRuleSource`), so the extractor renders
 // every intermediate state. This only arranges those rendered states into
 // `trigger -> apply once -> apply twice -> ...`; it never builds a term itself.
+function fractalStepLabel(index) {
+    return index === 0 ? "trigger"
+        : index === 1 ? "apply once"
+        : index === 2 ? "apply twice"
+        : `apply ${index} times`;
+}
+
+// The runtime already decided, per step, whether the step takes an input from
+// outside the chain (`coarse`) or only from its parent (`smooth`). Only a smooth
+// step can repeat by itself, so the kind is what explains why a lane sustains —
+// and for a dissipative lane, which outside effect keeps it going. The chain is
+// the smooth rule repeated, so it labels each state with its own kind.
 function fractalChainSource(mathView, iteration) {
     if (!iteration || !iteration.depth || !iteration.chain) return null;
     const states = (mathView.conclusions || [])
         .map(conclusion => conclusion.entry?.plain_source)
         .filter(source => typeof source === "string" && source.trim());
     if (states.length < 2) return null;
-    const label = index => index === 0 ? "trigger"
-        : index === 1 ? "apply once"
-        : index === 2 ? "apply twice"
-        : `apply ${index} times`;
+    const kinds = Array.isArray(iteration.kinds) ? iteration.kinds : [];
+    const label = index => {
+        const text = fractalStepLabel(index);
+        const kind = kinds[index] && kinds[index].kind;
+        // The trigger step produced the state the lane starts from, which is outside
+        // the lane by construction, so it is only marked when it is coarse (it read
+        // the program rather than a parent). The applications are marked either way:
+        // a smooth one repeats on its own, a coarse one needs an outside input.
+        if (!kind || (index === 0 && kind !== 'coarse')) return text;
+        return `${text} · ${kind}`;
+    };
     const chain = states
         .map((state, index) => `underbrace(${state}, upright(${JSON.stringify(label(index))}))`)
         .join(" arrow.r ");
@@ -105,9 +124,17 @@ function joinMathLines(entries, fallback) {
 // The chain's first state is the trigger, so the `frac` wrapper the extractor uses
 // for a rule would repeat it above the chain and drag in every premise of the
 // generated rule. Keep the side conditions, which the chain does not show.
-function fractalFormula(mathView, chain) {
+function fractalFormula(mathView, chain, iteration) {
+    const lines = [];
     const conditions = (mathView.side_conditions || []).map(entry => String(entry).trim()).filter(Boolean);
-    return conditions.length ? `${chain} quad upright("if") quad ${joinMathLines(conditions, 'upright("None")')}` : chain;
+    if (conditions.length) lines.push(`upright("if") quad ${joinMathLines(conditions, 'upright("None")')}`);
+    // A coarse step consumes an effect that was never produced inside the lane, so
+    // name it: that is the outside input a dissipative rule needs to keep firing.
+    for (const [index, step] of (iteration?.kinds || []).entries()) {
+        const external = step && step.kind === 'coarse' ? (step.external || []) : [];
+        if (external.length) lines.push(`upright(${JSON.stringify(`${fractalStepLabel(index)} needs external: ${external.join(', ')}`)})`);
+    }
+    return [chain, ...lines].join(" \\ ");
 }
 
 async function renderPreview(plugin, request) {
@@ -177,7 +204,7 @@ async function renderPreview(plugin, request) {
     // (a rewrite, a ground rule, a shape the generator refuses) keeps the rule.
     const chain = fractalChainSource(mathView, request.fractal);
     const formulaSource = (chain
-        ? fractalFormula(mathView, chain)
+        ? fractalFormula(mathView, chain, request.fractal)
         : buildMathViewTypstSource(mathView)) + iterationSource(request.fractal);
     const formulaTarget = `math-view:${mathView.rule_name}`;
     const typstSources = Object.fromEntries(collectTypstReplacementSources(ir, mode, label_style, recursive_strategy)

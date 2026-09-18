@@ -101,9 +101,12 @@ async function main() {
         assert.match(formula, /arrow\.l/);
         assert.match(formula, /Depth 5/);
         assert.match(formula, /FractalComb\(Depth\(5\)/);
-        assert.match(formula, /underbrace\(A\(upright\("node\.arg_i64_00"\), upright\("node\.arg_i64_01"\)\), upright\("trigger"\)\)/);
-        assert.match(formula, /upright\("apply once"\)/);
+        // Each state is labelled with the runtime's verdict for that step: the
+        // trigger reads the initial program (`coarse`), the repetitions do not.
+        assert.match(formula, /underbrace\(A\(upright\("node\.arg_i64_00"\), upright\("node\.arg_i64_01"\)\), upright\("trigger · coarse"\)\)/);
+        assert.match(formula, /upright\("apply once · smooth"\)/);
         assert.match(formula, /apply 5 times/);
+        assert.match(formula, /needs external: limit, n, L\d+/);
         assert.equal(await page.locator("#native-generated-panel").isVisible(), true);
         assert.match(await page.locator("#native-generated").textContent(), /:name "fractal:advance"/);
         await page.selectOption("#native-format", "dot");

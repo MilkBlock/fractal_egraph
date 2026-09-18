@@ -152,6 +152,19 @@ async function main() {
     assert.match(advance.typst, /arrow\.r underbrace\(dots\.c, upright\("apply 5 times"\)\)/, advance.typst);
     assert.equal(advance.typst_mode, "math", "the wasm Typst compiler rejected the state chain");
 
+    // The runtime decides per step whether it read only its parent (`smooth`) or
+    // the outside (`coarse`); the chain carries that verdict and names the external
+    // inputs, which is what a dissipative lane needs to keep firing.
+    const kinded = await compare("fractal lane (per-step smooth/coarse)",
+        { source: plan.source, line: plan.line, mode: "combined", label_style: "recursive", recursive_strategy: "dag-expand",
+            fractal: { ...fractal, chain: true, truncated: plan.truncated,
+                kinds: [{ kind: "coarse", external: ["limit", "n", "L51:62"] },
+                    { kind: "smooth", external: [] }, { kind: "smooth", external: [] }] } });
+    assert.match(kinded.typst, /upright\("trigger · coarse"\)/, kinded.typst);
+    assert.match(kinded.typst, /upright\("apply once · smooth"\)/, kinded.typst);
+    assert.match(kinded.typst, /upright\("trigger needs external: limit, n, L51:62"\)/, kinded.typst);
+    assert.equal(kinded.typst_mode, "math", "the wasm Typst compiler rejected the kind labels");
+
     // A `(union old new)` action unrolls from the update map the runtime recorded,
     // which is what carries rearranging rules (`x ← z`, `y ← (Neg y)`, `z ← x`).
     const commute = await compare("fractal lane (union action)",

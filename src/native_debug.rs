@@ -137,7 +137,36 @@ fn composition(c: &Captured, index: usize) -> Json {
             typst += &format!("$ op({}) $\n\n", quote(binding));
         }
         let (source_line, end_line) = location(rule);
-        details.push(json!({"event":r.id,"rule":rule.name,"source_line":source_line,"end_line":end_line,"binding":bindings,"ports":r.ports,"produced":r.produced.iter().map(|v|c.pool.values[*v].label()).collect::<Vec<_>>(),"unions":r.unions}));
+        // A step is coarse when it takes an input from outside the chain (or has no
+        // parent at all); only smooth steps can repeat on their own. A dissipative
+        // fractal rule is one whose repetitions are coarse: it keeps firing only
+        // because an external effect keeps arriving, so say which routes those are.
+        details.push(json!({
+            "event": r.id,
+            "rule": rule.name,
+            "source_line": source_line,
+            "end_line": end_line,
+            "binding": bindings,
+            "ports": r.ports,
+            "kind": if r.coarse { "coarse" } else { "smooth" },
+            "external_routes": r.ports.iter().filter_map(|p| match p { Port::External(k) => Some(*k), _ => None }).collect::<Vec<_>>(),
+            // The same coarse ports by the input they consume: a `Var` name or the
+            // read's source span, which is what a reader can act on.
+            "external_inputs": r.wanted.iter().enumerate().filter_map(|(slot, _)| match r.ports.get(slot) {
+                Some(Port::External(_)) => r.inputs.get(slot).map(|input| match input {
+                    Input::Var(name) => name.clone(),
+                    // A read is identified by where it was written; the span is the
+                    // part of the trace a reader can find in the source.
+                    Input::Read(text) => match text.rfind("\"):") {
+                        Some(at) => format!("L{}", &text[at + 3..]),
+                        None => text.to_string(),
+                    },
+                }),
+                _ => None,
+            }).collect::<Vec<_>>(),
+            "produced": r.produced.iter().map(|v| c.pool.values[*v].label()).collect::<Vec<_>>(),
+            "unions": r.unions
+        }));
         dot.push(format!(
             "e{} [label={}];",
             r.id,
@@ -321,7 +350,8 @@ pub fn stream_source(
                     .unwrap()
                     .as_u64()
                     .unwrap();
-                let r = c.records.iter().find(|r| r.id == endpoint).unwrap();
+                let ep = c.records.iter().position(|r| r.id == endpoint).unwrap();
+                let r = &c.records[ep];
                 let rule = &c.rules[r.rule].rule;
                 let (line, end) = location(rule);
                 let mut row =
@@ -332,6 +362,27 @@ pub fn stream_source(
                 row["rule"] = json!(rule.name);
                 row["source_line"] = json!(line);
                 row["end_line"] = json!(end);
+                // The coarse lane rule: one step from the trigger state to the last
+                // state, with every intermediate read fused away. `view` builds the
+                // same node; carry it here so a lane can be shown both ways, and
+                // report why it is missing when native_lower refuses the shape.
+                let mut lane = lane.clone();
+                lane["coarse"] = match crate::native_lower::lower(&c.records, &c.rules, ep) {
+                    Ok(lowered) => {
+                        let mut check = EGraph::default();
+                        match check.parse_and_run_program(
+                            None,
+                            &format!("{}\n{}", c.datatype, lowered.code),
+                        ) {
+                            Ok(_) => json!({
+                                "code": lowered.code,
+                                "steps": lowered.steps.iter().map(|i| c.rules[c.records[*i].rule].rule.name.clone()).collect::<Vec<_>>(),
+                            }),
+                            Err(error) => json!({"reason": format!("合法性检查失败：{error}")}),
+                        }
+                    }
+                    Err(reason) => json!({"reason": reason}),
+                };
                 row["evidence"] = lane.clone();
                 // The lane itself is the visualization input: the debugger appends
                 // the repetition (depth, operator, context, update map, witness) to

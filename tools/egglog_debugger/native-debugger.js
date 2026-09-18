@@ -55,6 +55,11 @@ export function installNativeDebugger(editor) {
         <pre id="native-generated"></pre>
         <button type="button" id="native-generated-copy">复制生成的 .egg</button>
         <div id="native-generated-note" role="status"></div></details>
+      <details id="native-coarse-panel" hidden open><summary id="native-coarse-title">融合（coarse）规则</summary>
+        <pre id="native-coarse"></pre>
+        <button type="button" id="native-coarse-copy">复制融合规则</button>
+        <div id="native-coarse-render" role="img" aria-label="融合规则的插件预览"></div>
+        <div id="native-coarse-note" role="status"></div></details>
       <details><summary>Typst / DOT 源码</summary><pre id="native-source"></pre></details>
       <details><summary>绑定、effect 与路径证据</summary><pre id="native-details"></pre></details>
       <details><summary>Rust 源码</summary><pre id="native-rust"></pre></details>`;
@@ -171,7 +176,10 @@ export function installNativeDebugger(editor) {
         }
         return response;
     }
-    function mountSvg(markup) {
+    // `container` lets a second view (the fused rule) render without taking over the
+    // main preview: the same SVG must not be moved out of `#native-preview`, which
+    // would leave the main preview empty and therefore invisible.
+    function mountSvg(markup, container) {
         const doc=new DOMParser().parseFromString(markup,'image/svg+xml');
         if(doc.querySelector('parsererror') || doc.documentElement.localName!=='svg')throw Error('插件返回无效的 SVG');
         // Imported history is data, not executable HTML. Keep local SVG references
@@ -183,7 +191,8 @@ export function installNativeDebugger(editor) {
                 node.removeAttributeNode(attr);
         }
         const svg=document.importNode(doc.documentElement,true);
-        el('preview').replaceChildren(svg);el('preview').hidden=false;
+        (container || el('preview')).replaceChildren(svg);
+        if(!container)el('preview').hidden=false;
         return svg;
     }
     function closeNameEditor(){currentEdit=null;el('name-editor').hidden=true;el('condition-editor').hidden=true;hideSymbolHelp();}
@@ -355,7 +364,16 @@ export function installNativeDebugger(editor) {
     function fractalEvidence(row) {
         const evidence=row.evidence;if(!evidence)return null;
         const depth=fractalDepth(row);if(!depth)return null;
-        return {depth,operator:evidence.operator ?? null,context:evidence.trigger ?? null,update:evidence.update || [],witness:evidence.higher ?? null};
+        // The chain's states are [trigger, one per application]; the runtime records
+        // per step whether it read only its parent (`smooth`) or the outside
+        // (`coarse`), and which external inputs it consumed.
+        const ids=[evidence.trigger,...(evidence.events || [])];
+        const byEvent=new Map((row.step_details || []).map(step=>[String(step.event),step]));
+        const kinds=ids.map(id=>{
+            const step=byEvent.get(String(id));
+            return step?{kind:step.kind || null,external:step.external_inputs || []}:null;
+        });
+        return {depth,operator:evidence.operator ?? null,context:evidence.trigger ?? null,update:evidence.update || [],witness:evidence.higher ?? null,kinds,coarse:evidence.coarse || null};
     }
     // A fractal lane is previewed from a generated rule; show it, because that text
     // is what produces the states below.
@@ -369,6 +387,29 @@ export function installNativeDebugger(editor) {
             ? '更深的步骤折叠成 dots.c；这条规则只用于预览，不会写回编辑器。'
             : '这条规则只用于预览，不会写回编辑器。';
     }
+    // The coarse (fused) lane rule: one step from the trigger state to the last
+    // state. It is the same lane viewed without the repetition, so the panel shows
+    // its source and asks the plugin to render it like any other rule.
+    function showCoarse(coarse) {
+        const panel=el('coarse-panel');
+        if(!coarse){panel.hidden=true;el('coarse').textContent='';el('coarse-render').replaceChildren();el('coarse-note').textContent='';return;}
+        panel.hidden=false;
+        el('coarse').textContent=coarse.code || '';
+        el('coarse').hidden=!coarse.code;
+        el('coarse-copy').hidden=!coarse.code;
+        el('coarse-title').textContent=coarse.code
+            ? `融合（coarse）规则 · 融合 ${coarse.steps?.length ?? '?'} 步`
+            : '融合（coarse）规则';
+        el('coarse-note').textContent=coarse.code
+            ? '把整条 lane 融合成一步：中间步骤的读取由前一步产生，只剩 trigger 需要的外部输入。'
+            : `native_lower 不能融合这条 lane：${coarse.reason}。`;
+        if(!coarse.code)el('coarse-render').replaceChildren();
+    }
+    el('coarse-copy').onclick=async ()=>{
+        const text=el('coarse').textContent;if(!text)return;
+        try{await navigator.clipboard.writeText(text);el('coarse-note').textContent='已复制到剪贴板。';}
+        catch{el('coarse-note').textContent='复制失败，请手动选择文本。';}
+    };
     el('generated-copy').onclick=async ()=>{
         const text=el('generated').textContent;if(!text)return;
         try{await navigator.clipboard.writeText(text);el('generated-note').textContent='已复制到剪贴板。';}
@@ -412,7 +453,7 @@ export function installNativeDebugger(editor) {
         if(changed || fromTrace)closeNameEditor();
         if(changed || fromTrace)selectSteps(row);
         previewAbort?.abort(); previewAbort=new AbortController();
-        generatedRule=null;showGenerated(null);
+        generatedRule=null;showGenerated(null);showCoarse(null);
         const kind=el('format').value;
         el('title').textContent=`${row.kind || 'pattern'} · ${row.rule || ''} · L${row.source_line || '?'}`
             +(row.kind==='fractal'&&row.evidence?` · ×${fractalDepth(row)}`:'');
@@ -444,6 +485,17 @@ export function installNativeDebugger(editor) {
             el('renderer').textContent=`${rendered.renderer} · ${rendered.renderer_revision.slice(0,12)} · ${rendered.config.mode} / ${rendered.config.label_style} / ${rendered.config.recursive_strategy}`;
             if(kind==='typst' && rendered.typst_mode!=='math')el('render-error').textContent='插件使用了文本 fallback；请检查 Typst 模板。';
             el('preview').dataset.ready='true';renderedCount++;
+            // The coarse rule is a second view of the same lane, so it is rendered
+            // through the same pipeline instead of by a separate formula builder.
+            const coarse=row.kind==='fractal'?fractalEvidence(row)?.coarse:null;
+            showCoarse(coarse);
+            if(coarse?.code){
+                const appended=`${request.source}\n${coarse.code}`;
+                const coarseRequest={...request,source:appended,line:appended.split('\n').length,fractal:null};
+                const renderedCoarse=await previewRow(coarseRequest,previewAbort.signal);
+                if(version!==renderRevision)return;
+                mountSvg(renderedCoarse.typst_svg,el('coarse-render'));
+            }
         }catch(error){if(version===renderRevision && error.name!=='AbortError'){el('render-error').textContent=error.message;el('renderer').textContent='插件渲染失败';renderTargets([],false);}}
     }
     async function previewLine() {
@@ -464,14 +516,30 @@ export function installNativeDebugger(editor) {
     editor.on('cursorActivity',()=>{clearTimeout(timer);timer=setTimeout(previewLine,120);});
     editor.on('mousedown',()=>{clearTimeout(timer);timer=setTimeout(previewLine,120);});
     editor.on('change',()=>{revision++;clearTimeout(timer);timer=setTimeout(previewLine,300);if(rows.length)status('源码已修改；日志仍保存上次运行的公式快照，重新运行可更新识别。');});
+    // The `math` example produces over a hundred thousand rows (hundreds of MB);
+    // one button per row makes the page unusable, so it looks like the run never
+    // finishes. List the first slice and keep the real count in the status line,
+    // where the filter can narrow it to the rows the user is looking for.
+    const TRACE_LIMIT=300;
+    let shownRows=0, hiddenRows=0;
+    function traceNote() {
+        let note=el('trace-note');
+        if(!note){note=document.createElement('div');note.id='native-trace-note';note.className='native-trace-note';el('trace').prepend(note);}
+        note.textContent=hiddenRows
+            ? `日志较多：只列出符合筛选的前 ${TRACE_LIMIT} 条，另有 ${hiddenRows} 条未显示；用上方筛选器缩小范围。`
+            : '';
+        note.hidden=!hiddenRows;
+    }
     function addRow(row) {
         const filter=el('filter').value;if(filter!=='all' && filter!==row.kind)return;
+        if(shownRows>=TRACE_LIMIT){hiddenRows++;traceNote();return;}
+        shownRows++;
         const button=document.createElement('button');button.dataset.id=row.id;button.setAttribute('aria-pressed','false');
         button.textContent=`B${row.boundary} · ${row.kind} · L${row.source_line} · ${row.rule} · ${row.id}`;
         button.onclick=()=>{panel.querySelectorAll('#native-trace button').forEach(b=>b.setAttribute('aria-pressed','false'));button.setAttribute('aria-pressed','true');clearTimeout(timer);++selectionIntent;show(row,true);};
         el('trace').append(button);
     }
-    el('filter').onchange=()=>{el('trace').replaceChildren();rows.forEach(addRow);};
+    el('filter').onchange=()=>{el('trace').replaceChildren();shownRows=0;hiddenRows=0;rows.forEach(addRow);traceNote();};
     for(const control of ['format','dot-mode','label-style','recursive','step'])el(control).onchange=()=>{if(selected)show(selected);};
     // One worker per run; `stop` terminates it, which the in-page call could not do.
     let streamWorker=null;
@@ -495,7 +563,7 @@ export function installNativeDebugger(editor) {
     }
     el('run').onclick=async()=>{
         controller?.abort();controller=new AbortController();const current=controller;
-        snapshotSource=editor.getValue();runStatus='running';rows=[];selected=null;el('preview').hidden=true;el('trace').replaceChildren();status('运行实际 egglog runtime，等待增量事件…');el('run').disabled=true;el('stop').disabled=false;el('import').disabled=true;
+        snapshotSource=editor.getValue();runStatus='running';rows=[];selected=null;el('preview').hidden=true;el('trace').replaceChildren();shownRows=0;hiddenRows=0;status('运行实际 egglog runtime，等待增量事件…');el('run').disabled=true;el('stop').disabled=false;el('import').disabled=true;
         try {
             let complete=false;
             const consume=line=>{if(!line.trim())return;const row=JSON.parse(line);

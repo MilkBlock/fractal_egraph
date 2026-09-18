@@ -110,7 +110,7 @@ wasm 下直接 trap）、`@myriaddreamin/typst.ts`，以及插件 vendored 的�
 | 上游 WASM **Run** | 浏览器 WASM（上游 egglog） | 无后端 |
 | 点行定位规则 / **运行并识别** | 浏览器 wasm（本仓库 patched `debug-stream`） | 无后端，见 `tools/egglog_debugger/wasm` |
 | 公式预览、Typst/DOT | 浏览器 wasm（`browser/preview.js`）或 bridge | 同一份 `renderPreview`，host 不同；见 `tools/egglog_debugger/browser` |
-| Fractal 规则可视化 | 同上（插件公式 + 重复徽标） | 不展开：lane 深度可达 168，公式保持常数大小 |
+| Fractal 规则可视化 | 同上（插件公式 + 逐步 smooth/coarse 标注 + 融合规则） | 不展开：lane 深度可达 168，公式保持常数大小 |
 | 模板/变量/条件编辑（写回 `.egg`） | 浏览器 wasm 或 bridge | 与 bridge 同一套契约；模板仍必须通过 Typst 编译，编辑后的程序仍必须能被插桩 runtime 识别 |
 
 ## 浏览器预览包（无 bridge）
@@ -190,6 +190,42 @@ frac(upright("node"),
 - 徽标那两行仍然保留：`Depth d / operator / context / FractalComb(…)` 与 `limit ↦ limit, n ↦ n+1`。
 - 深度只影响“显示几步”，不影响正确性：状态表达式是符号化的（`A(n+1+1, limit)`），不会因为
   lane 深 168 而爆炸。
+
+### coarse / smooth 与外部 effect
+
+运行时对每个事件都判断过它是不是 coarse：**只要有一个输入不来自它的 parent（或根本没有 parent）
+就是 coarse**（`src/native_analyze.rs` 的 `Record.coarse`）。能自己重复下去的只有 smooth 步，所以
+“这条 lane 为什么能一直触发”看的就是这一列。`debug-stream` 现在把它写进每一步：
+
+- `step_details[].kind`：`smooth` / `coarse`；
+- `step_details[].external_inputs`：coarse 端口实际消费的输入，用规则变量名（`limit`、`n`）或
+  写入位置（`L51:62`）表示，比 `Port::External(k)` 的值级下标可读；
+- `evidence.coarse`：整条 lane 融合成一条规则的结果 `{code, steps}`，`native_lower` 拒绝时是
+  `{reason}`（`view()` 里 `nodes[*].combined` 用的是同一份结果）。
+
+画出来的链因此是：
+
+```text
+underbrace(<trigger 状态>, upright("trigger · coarse")) arrow.r
+underbrace(<一次应用后>, upright("apply once · smooth")) arrow.r …
+\ upright("trigger needs external: limit, n, L51:62")
+```
+
+`trigger` 是产出链首状态的那一步；它按定义在 lane 之外，所以**只在 coarse 时**标注（说明 lane
+的起点来自程序里的初始 fact），应用步则一律标注：`· smooth` 表示只吃上一步、能自持，`· coarse`
+表示这一步需要外部输入才能发生（耗散型 lane 就是这样）。coarse 步的外部输入逐个列在
+`needs external:` 一行。
+
+选中 fractal 行时还会同时渲染 **融合（coarse）规则**：把整条 lane 压成 trigger → 末状态的一步，
+中间步骤的 read 由前一步产生，只剩 trigger 需要的外部输入。它是 `.egg` 规则，所以走同一条插件
+渲染路径（不是另写一套公式），面板里给出源码、复制按钮和渲染结果；`native_lower` 拒绝该形状时
+（例如 bake 语料的构造器还不在白名单里）只显示原因，不画。
+
+### 日志行数
+
+`math` 这类饱和程序会产出十几万行、几百 MB 的日志；每行一个按钮会让页面卡死（看起来像“运行
+永远不结束”）。日志窗口因此只列出符合当前筛选的**前 300 行**，并在顶部说明还有多少行没显示；
+用筛选器（例如只看 Fractal）就能把要看的行拉进这一窗口。真实行数仍然统计在状态行里。
 
 ## match 历史与顺序
 
