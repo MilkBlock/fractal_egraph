@@ -92,6 +92,21 @@ export function installNativeDebugger(editor) {
         if(await bridgeAvailable())return (await (await post('patterns',{source},signal)).json());
         return JSON.parse((await loadWasmDebugger()).debug_patterns(source));
     }
+    // A layer snapshot names its rules by their normalized text. Resolving that
+    // against the *current* editor text is what lets an edited `@egg-viz-json`
+    // template show up in the layer panel without re-running recognition: the
+    // renderer gets the live source, and only falls back to the snapshot text when
+    // the rule no longer exists (a loaded directory, or a deleted rule).
+    async function resolveRule(normalizedRule,signal){
+        if(!normalizedRule)return null;
+        const source=editor.getValue();
+        if(parsedSource!==source){
+            const data=await listPatterns(source,signal);
+            patterns=data.patterns;parsedSource=source;
+        }
+        const hit=patterns.find(pattern=>pattern.source===normalizedRule);
+        return hit?{source,line:hit.source_line}:null;
+    }
     // The preview pipeline itself: the same plugin modules and the same
     // `renderPreview`, with the transpiler, extractor, Typst and Graphviz wasm
     // instead of the extension's subprocesses. See browser/README.md.
@@ -109,7 +124,7 @@ export function installNativeDebugger(editor) {
         if(await bridgeAvailable())return (await (await post('preview',request,signal)).json());
         return (await loadBrowserRenderer()).renderPreviewInBrowser(request);
     }
-    const layerPanel=installLayerPanel(el('layer-host'),{post,previewRow,mountSvg,loadBrowserGenerator,editor});
+    const layerPanel=installLayerPanel(el('layer-host'),{post,previewRow,mountSvg,loadBrowserGenerator,editor,resolveRule});
     // Writes back to .egg. The browser path keeps the bridge's guarantee that a
     // template must compile and that an edited program must still be recognized
     // by the patched runtime, it just runs both from wasm.
@@ -518,7 +533,12 @@ export function installNativeDebugger(editor) {
     }
     editor.on('cursorActivity',()=>{clearTimeout(timer);timer=setTimeout(previewLine,120);});
     editor.on('mousedown',()=>{clearTimeout(timer);timer=setTimeout(previewLine,120);});
-    editor.on('change',()=>{revision++;clearTimeout(timer);timer=setTimeout(previewLine,300);if(rows.length)status('源码已修改；日志仍保存上次运行的公式快照，重新运行可更新识别。');});
+    // The layer panel renders from the same source, so an edited annotation template
+    // must refresh it too. It needs its own debounce: `cursorActivity` shares `timer`
+    // with the change handler and would cancel a refresh scheduled on that timer.
+    let layerTimer=null;
+    function refreshLayers(){clearTimeout(layerTimer);layerTimer=setTimeout(()=>{layerPanel.refresh();},400);}
+    editor.on('change',()=>{revision++;clearTimeout(timer);timer=setTimeout(previewLine,300);refreshLayers();if(rows.length)status('源码已修改；日志仍保存上次运行的公式快照，重新运行可更新识别。');});
     // The `math` example produces over a hundred thousand rows (hundreds of MB);
     // one button per row makes the page unusable, so it looks like the run never
     // finishes. List the first slice and keep the real count in the status line,

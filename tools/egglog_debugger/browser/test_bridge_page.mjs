@@ -79,6 +79,44 @@ async function main() {
         assert.match(await page.locator("#native-coarse-note").innerText(), /不能融合这条 lane：unsupported endpoint operator/, "coarse refusal");
         assert.equal(await page.locator("#native-coarse-render svg").count(), 0);
 
+        // The layer panel renders each member from the *current* editor text, so an
+        // edited annotation template refreshes it without re-running recognition.
+        const annotated = await readFile(path.join(HERE, "../fixtures/fractal-math.egg"), "utf8");
+        await page.evaluate(text => { document.querySelector(".CodeMirror").CodeMirror.setValue(text); }, annotated);
+        await page.click("#native-run");
+        await page.waitForFunction(() => document.querySelector("#native-status").textContent.includes("完成"), null, { timeout: 180000 });
+        const traceRows = await page.locator("#native-trace button").count();
+        const logged = await page.evaluate(() => window.egglogNative.rows.length);
+        await page.selectOption("#native-layer-kind", "fractals");
+        await page.selectOption("#native-layer-format", "typst");
+        await page.click("#native-layer-render");
+        await page.waitForFunction(() => document.querySelector("#native-layer-viewport").dataset.ready === "true", null, { timeout: 180000 });
+        assert.equal(await page.locator("#native-layer-error").innerText(), "");
+        const panelCode = () => page.locator("#native-layer-code").textContent();
+        assert.match(await panelCode(), /integral \(a \* b\)/, "the annotated Typst template should be used");
+        assert.doesNotMatch(await panelCode(), /upright\("Integral"\)/, "the un-annotated fallback must not appear");
+        assert.equal(await page.locator("#native-layer-viewport [data-provenance]").first().getAttribute("data-provenance"), "editor");
+        assert.equal(await page.locator("#native-layer-viewport .native-layer-source").count(), 0, "the live source needs no provenance note");
+        // Only the annotation line changes: no rerun, but the panel must re-render.
+        const edited = annotated.replace('"typst": "integral {integrand} quad d {variable}"', '"typst": "upright(\\"INT\\") {integrand} quad d {variable}"');
+        assert.notEqual(edited, annotated, "the fixture should carry the Integral template");
+        await page.evaluate(text => { document.querySelector(".CodeMirror").CodeMirror.setValue(text); }, edited);
+        await page.waitForFunction(() => document.querySelector("#native-layer-code").textContent.includes("INT"), null, { timeout: 180000 });
+        assert.match(await page.locator("#native-status").innerText(), /源码已修改/, "an edit only marks the source as modified");
+        assert.equal(await page.locator("#native-trace button").count(), traceRows, "no rerun, so the trace list must not grow");
+        assert.equal(await page.evaluate(() => window.egglogNative.rows.length), logged, "no rerun, so the log must not be rebuilt");
+        // A rule that is gone from the editor falls back to the run-time snapshot.
+        await page.evaluate(() => {
+            const cm = document.querySelector(".CodeMirror").CodeMirror;
+            cm.setValue(cm.getValue().split("\n").filter(line =>
+                !line.startsWith("(rewrite (Integral (Mul a b) x)") &&
+                !line.startsWith("(Sub (Mul a (Integral b x))") &&
+                !line.startsWith("    (Integral (Mul (Diff x a)")).join("\n"));
+        });
+        await page.click("#native-layer-render");
+        await page.waitForSelector("#native-layer-viewport [data-provenance=snapshot]", { timeout: 180000 });
+        assert.match(await page.locator("#native-layer-viewport .native-layer-source").first().innerText(), /运行快照/);
+
         // The `math` example does fuse: show the lane both as the repetition (smooth
         // chain) and as the one-step coarse rule the plugin renders. The fixture is
         // that example's integration-by-parts lane trimmed to what the lane needs;

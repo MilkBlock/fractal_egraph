@@ -1,6 +1,6 @@
 // Layer snapshots share the debugger's existing Typst plugin and Graphviz host.
 // No second SVG layout engine or independent visualization page.
-export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowserGenerator, editor}) {
+export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowserGenerator, editor, resolveRule}) {
     const panel=document.createElement('details');panel.id='native-layer-panel';panel.open=true;
     panel.innerHTML=`<summary>Layer / FractalComb · 每轮 DOT</summary>
       <div><select id="native-layer-round" aria-label="Layer 轮次"></select>
@@ -15,9 +15,9 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
       <details><summary>当前 Typst / DOT 源码</summary><pre id="native-layer-code"></pre></details>`;
     host.append(panel);
     const $=id=>panel.querySelector('#native-layer-'+id);
-    let frames=[],version=0,abort=null,previewCache=new Map(),pinned=false;
+    let frames=[],version=0,abort=null,previewCache=new Map(),pinned=false,rendered=false;
     const frame=()=>frames[Number($('round').value)];
-    function reset(){abort?.abort();version++;frames=[];pinned=false;previewCache.clear();$('round').replaceChildren();$('scope').replaceChildren(new Option('全部',''));$('viewport').replaceChildren();$('details').textContent='';$('code').textContent='';$('status').textContent='等待实际执行边界…';}
+    function reset(){abort?.abort();version++;frames=[];pinned=false;rendered=false;previewCache.clear();$('round').replaceChildren();$('scope').replaceChildren(new Option('全部',''));$('viewport').replaceChildren();$('details').textContent='';$('code').textContent='';$('status').textContent='等待实际执行边界…';}
     function receive(f){
         if(f.kind!=='layer_snapshot'||!f.graphs||!f.analysis)throw Error('无效的 layer 快照');
         frames.push(f);$('round').add(new Option(f.label,String(frames.length-1)));
@@ -68,8 +68,17 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     }
     async function typesetMember(f,t,member,iteration,container,signal){
         const site=f.sites.find(s=>s.source===member.rule);
-        if(!site)throw Error('快照没有匹配的源位置；请重新生成，不能猜测对应规则。');
-        let request={source:f.preview_source,line:site.source_line,mode:'combined',label_style:'recursive',recursive_strategy:'dag-expand'};
+        // The current editor text wins over the snapshot: editing an annotation
+        // template, a rule name or anything else must show up here without running
+        // recognition again. The snapshot is only the fallback, for a loaded
+        // directory or a rule that was deleted, and the card says which one was used.
+        const live=resolveRule?await resolveRule(member.rule,signal):null;
+        const previewSource=live?live.source:(site?f.preview_source:null);
+        const previewLine=live?live.line:(site?site.source_line:null);
+        if(previewSource===null||previewLine===null)throw Error('快照没有匹配的源位置；请在编辑器里保留该规则，或重新生成快照。');
+        const provenance=live?'editor':'snapshot';
+        container.dataset.provenance=provenance;
+        let request={source:previewSource,line:previewLine,mode:'combined',label_style:'recursive',recursive_strategy:'dag-expand'};
         if(iteration){
             request.fractal=iteration;
             // Only a single-member single-return family is a linear lane. A
@@ -87,6 +96,11 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         mountSvg(rendered.typst_svg,container);
         container.dataset.renderer=rendered.renderer||'';
         container.dataset.iteration=JSON.stringify(rendered.iteration||null);
+        if(provenance==='snapshot'){
+            const note=document.createElement('div');note.className='native-layer-source';
+            note.textContent='源码：运行快照（编辑器里找不到这条规则，注解按运行时的源码）';
+            container.prepend(note);
+        }
         const source=document.createElement('details'),title=document.createElement('summary'),code=document.createElement('pre');title.textContent='现有插件生成的 Typst';code.textContent=rendered.typst;source.append(title,code);container.append(source);
         $('code').textContent+=(rendered.typst||'')+'\n';
     }
@@ -131,7 +145,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
                     await typesetMember(f,t,members[i],i===0?iteration:null,content,signal);
                 }
             }
-            if(v===version)$('viewport').dataset.ready='true';
+            if(v===version){rendered=true;$('viewport').dataset.ready='true';}
         }catch(e){if(v===version&&e.name!=='AbortError')$('error').textContent=e.message;}
     }
     $('round').onchange=options;$('kind').onchange=options;$('render').onclick=render;
@@ -144,5 +158,8 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     $('load').onclick=()=>load($('directory').value).catch(e=>$('error').textContent=e.message);
     $('source').onclick=()=>{if(frame())editor.setValue(frame().preview_source);};
     const initial=new URLSearchParams(location.search).get('layer_run');if(initial){$('directory').value=initial;load(initial).then(()=>render()).catch(e=>$('error').textContent=e.message);}
-    return {receive,reset,load,get snapshots(){return structuredClone(frames);}};
+    // Re-render the current selection against the current source. Called after an
+    // editor change so an edited annotation template is visible without re-running.
+    async function refresh(){if(rendered&&frames.length)await render();}
+    return {receive,reset,load,refresh,get snapshots(){return structuredClone(frames);}};
 }
