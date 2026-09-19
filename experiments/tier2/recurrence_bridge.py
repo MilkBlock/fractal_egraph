@@ -13,7 +13,7 @@ def args(xs):
     out='(ANil)'
     for x in reversed(xs):out=f'(ACons {val(x)} {out})'
     return out
-text=['(include "experiments/tier1_effects/tier1_rule_comb_ir.egg")',
+text=['(include "research/legacy_tier1.egg")',
       '(relation Coordinates (Instance i64 i64))','(relation SeriesStep (Instance String i64))',
       '(relation ObservedStep (String i64 i64 i64 i64 i64))',
       '(rule ((LinkedParent child 0 parent) (Coordinates parent m a) (Coordinates child m2 a2) (SeriesStep child s k)) ((ObservedStep s k m a m2 a2)) :ruleset tier1)',

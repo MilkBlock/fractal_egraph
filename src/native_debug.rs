@@ -148,7 +148,7 @@ fn composition(c: &Captured, index: usize) -> Json {
             "end_line": end_line,
             "binding": bindings,
             "ports": r.ports,
-            "kind": if r.coarse { "coarse" } else { "smooth" },
+            "kind": if c.is_coarse(r) { "coarse" } else { "smooth" },
             "external_routes": r.ports.iter().filter_map(|p| match p { Port::External(k) => Some(*k), _ => None }).collect::<Vec<_>>(),
             // The same coarse ports by the input they consume: a `Var` name or the
             // read's source span, which is what a reader can act on.
@@ -262,6 +262,10 @@ pub fn stream_source(
                 row["kind"] = json!("application");
                 row["id"] = json!(format!("apply:{}", r.id));
                 row["event"] = json!(r.id);
+                if let Some(o) = c.layers.occurrence(r.id) {
+                    row["layer"] = json!({"comb":o.comb,"coarse":o.coarse_layer,
+                        "smooth":o.smooth_layer,"boundary_restart":o.boundary_restart});
+                }
                 row["boundary"] = json!(boundary);
                 row["rule"] = json!(rule.name);
                 row["source_line"] = json!(line);

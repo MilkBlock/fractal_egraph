@@ -1,4 +1,4 @@
-(include "experiments/tier1_effects/tier1_rule_comb_ir.egg")
+(include "research/legacy_tier1.egg")
 (let $empty (Empty))
 (let $c0 (CoarseComb (MoreParents $empty (NoParents)) (Rule "R0") (PCons (External 0 "Math") (PCons (External 1 "Math") (PCons (External 2 "Fact:Add") (PNil))))))
 (let $i0 (Occurrence 0 $c0))

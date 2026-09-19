@@ -34,6 +34,6 @@ render('shared_templates.native',lines+['}'])
 (OUT/'index.html').write_text('''<!doctype html><meta charset="utf-8"><title>Tier-1 shared rule-comb templates</title>
 <style>body{font:16px system-ui;margin:24px;background:#fafaf7;color:#263637}iframe{width:100%;height:80vh;border:1px solid #bbb}a{margin-right:24px}</style>
 <h1>Tier-1：共享 rule-comb 模板</h1><p><a href="../comb_order/index.html">真实 Math：combined rule 排序与分块</a></p><p>蓝色框只有规则、父组合与相对端口；没有 Entry 或具体数据 ID。Empty 是唯一无数据起点，第一次规则执行也表示为 CoarseComb。绿色框是独立实例记录，虚线指向共享模板，不是模板的子节点。具体事实与 equality 只在实例及其明确父实例间传播。</p>
-<p><a href="shared_templates.svg" target="view">模板 / 实例分层图</a><a href="shared_templates.native.svg" target="view">完整原生图</a><a href="results.json">全部数据</a><a href="tier1_rule_comb_ir.egg">.egg IR</a></p>
+<p><a href="shared_templates.svg" target="view">模板 / 实例分层图</a><a href="shared_templates.native.svg" target="view">完整原生图</a><a href="results.json">全部数据</a><a href="../../research/legacy_tier1.egg">.egg IR</a></p>
 <iframe name="view" src="shared_templates.svg"></iframe>
 <p>这是手工给定 R10/R15 接口的共享与隔离实验，尚未自动从 tier-0 历史导入。全图的 Occurrence ID 不进入 Comb 的 hashcons 键。</p>''')

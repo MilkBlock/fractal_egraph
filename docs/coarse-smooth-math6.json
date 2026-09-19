@@ -1,0 +1,29 @@
+{
+  "source": "egglog/tests/math-microbenchmark.egg",
+  "rounds": 6,
+  "scope": "Actual native tier0 captures, Rust layer construction, and legacy Tier2 data projection. Definition counts are not a storage compression ratio. No performance comparison claimed.",
+  "counts": {
+    "events": 1529,
+    "imported_events": 1529,
+    "layer_definitions": 1405,
+    "coarse_layers": 400,
+    "smooth_layers": 185,
+    "higher_rules": 13
+  },
+  "coarse_member_histogram": {
+    "1": 308,
+    "2": 56,
+    "3": 23,
+    "4": 9,
+    "5": 3,
+    "6": 1
+  },
+  "boundary_restarts": 93,
+  "online_offline_replay_layers_identical": true,
+  "online_offline_resolved_history_identical": true,
+  "commands": [
+    "cargo run --release -- analyze --recapture-tier0 --source egglog/tests/math-microbenchmark.egg --rounds 6 --save-history --output out/coarse-smooth-layers-math6",
+    "cargo run --release -- analyze --recapture-tier0 --build offline --source egglog/tests/math-microbenchmark.egg --rounds 6 --save-history --output out/coarse-smooth-layers-math6-offline",
+    "cargo run --release -- analyze --replay-history out/coarse-smooth-layers-math6/history.json --output out/coarse-smooth-layers-math6-replay"
+  ]
+}

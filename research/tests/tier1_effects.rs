@@ -1,8 +1,8 @@
 use egg_layout::tier1_effects::{execute as native_execute, external_ports};
-const IR: &str = include_str!("../../experiments/tier1_effects/tier1_rule_comb_ir.egg");
+const IR: &str = include_str!("../../research/legacy_tier1.egg");
 // Inline the fixture include: Cargo runs research tests from a different directory.
 fn execute(source: &str) -> Result<serde_json::Value, String> {
-    native_execute(&source.replace("(include \"experiments/tier1_effects/tier1_rule_comb_ir.egg\")", IR))
+    native_execute(&source.replace("(include \"research/legacy_tier1.egg\")", IR))
 }
 #[test]
 fn shared_templates_do_not_share_concrete_evidence() {
@@ -227,8 +227,8 @@ fn empty_cannot_be_used_as_a_data_entry_occurrence() {
 #[test]
 fn streaming_import_preserves_native_templates_and_bindings() {
     let program=include_str!("../../tests/fixtures/bridge_program.egg");
-    let include=format!("(include \"{}/../experiments/tier1_effects/tier1_rule_comb_ir.egg\")",env!("CARGO_MANIFEST_DIR"));
-    let program=program.replace("(include \"experiments/tier1_effects/tier1_rule_comb_ir.egg\")",&include);
+    let include=format!("(include \"{}/../research/legacy_tier1.egg\")",env!("CARGO_MANIFEST_DIR"));
+    let program=program.replace("(include \"research/legacy_tier1.egg\")",&include);
     let full=egg_layout::tier1_effects::execute_mode(&program,true).unwrap();
     let stream=egg_layout::tier1_effects::execute_stream(std::io::Cursor::new(program),true).unwrap();
     assert_eq!(full,stream);

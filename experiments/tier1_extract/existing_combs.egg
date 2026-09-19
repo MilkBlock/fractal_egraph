@@ -1,7 +1,7 @@
 ; Direct extraction of the saved native tier-1 Comb e-classes.
 ; One definition per class; parent Comb references are shared.
 ; These are tier-1 combination expressions, NOT tier-0 rewrite rules.
-(include "experiments/tier1_effects/tier1_rule_comb_ir.egg")
+(include "research/legacy_tier1.egg")
 
 ; @tier1-extract {"eclass": "Comb-0", "selected_native_node": "Empty:[Value(0)]", "name": "$comb_0000", "kind": "Empty", "instance_references": 0, "tree_cost": 1, "parent_combs": []}
 (let $comb_0000 (Empty))

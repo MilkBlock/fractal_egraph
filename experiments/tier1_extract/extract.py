@@ -50,7 +50,7 @@ def extract(data,rule_dictionary=None):
     text=['; Direct extraction of the saved native tier-1 Comb e-classes.',
           '; One definition per class; parent Comb references are shared.',
           '; These are tier-1 combination expressions, NOT tier-0 rewrite rules.',
-          '(include "experiments/tier1_effects/tier1_rule_comb_ir.egg")','']
+          '(include "research/legacy_tier1.egg")','']
     rule_dictionary=rule_dictionary or {}
     records=[]
     for c in order:

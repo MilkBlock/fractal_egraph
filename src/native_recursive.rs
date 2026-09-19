@@ -52,7 +52,7 @@ pub(super) fn build(
         None,
         "(function ImportedRecursivePattern (i64) Extension :no-merge) (function NativeBindingCallee (String) i64 :no-merge)",
     )?;
-    let eligible = |r: &Record| !r.coarse && r.parents.len() == 1 && x.known[r.extension];
+    let eligible = |r: &Record| !c.is_coarse(r) && r.parents.len() == 1 && x.known[r.extension];
     let signatures: Vec<_> = c.records.iter().map(|r| signature(c, x, r)).collect();
     let mut children = vec![vec![]; c.records.len()];
     for (i, r) in c.records.iter().enumerate() {

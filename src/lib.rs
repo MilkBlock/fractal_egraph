@@ -12,3 +12,6 @@ pub mod dag_embedding;
 mod catalog_embedding;
 
 pub mod binding_reduce;
+
+pub mod coarse_smooth;
+mod layer_bridge;

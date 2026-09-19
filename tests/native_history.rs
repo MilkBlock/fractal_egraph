@@ -68,6 +68,10 @@ fn check(source: &str, rounds: &str, tag: &str) {
     let b = report(&offline);
     let c = report(&replay);
     for other in [&b, &c] {
+        assert_eq!(
+            a["layers"], other["layers"],
+            "online/offline/replay layer representation"
+        );
         let normalize = |mut view: serde_json::Value| {
             for node in view["nodes"].as_object_mut().unwrap().values_mut() {
                 node.as_object_mut().unwrap().remove("comb");

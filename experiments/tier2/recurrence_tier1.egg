@@ -1,4 +1,4 @@
-(include "experiments/tier1_effects/tier1_rule_comb_ir.egg")
+(include "research/legacy_tier1.egg")
 (relation Coordinates (Instance i64 i64))
 (relation SeriesStep (Instance String i64))
 (relation ObservedStep (String i64 i64 i64 i64 i64))

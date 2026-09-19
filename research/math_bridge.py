@@ -82,7 +82,7 @@ def commands(records,indexed=False):
     def iref(i):return f'(ImportedInstance {i})' if indexed else f'$i{i}'
 
     def math(e,v):return ('Math',f"{e['scope']}:{v}")
-    yield '(include "experiments/tier1_effects/tier1_rule_comb_ir.egg")'
+    yield '(include "research/legacy_tier1.egg")'
     yield '(let $empty (Empty))'
     if indexed:
         yield '(function ImportedComb (i64) Comb :no-merge)'

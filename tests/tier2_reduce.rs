@@ -74,7 +74,7 @@ fn higher_rule_receives_explicit_reduce_endpoint() {
         .unwrap();
     e.parse_and_run_program(
         None,
-        include_str!("../experiments/tier1_effects/tier1_rule_comb_ir.egg"),
+        include_str!("../research/legacy_tier1.egg"),
     )
     .unwrap();
     e.parse_and_run_program(None, include_str!("../experiments/tier2/higher_ir.egg"))
@@ -99,7 +99,7 @@ fn recursive_depth_is_not_silently_used_as_scalar_application_count() {
     let mut e = EGraph::default();
     e.parse_and_run_program(
         None,
-        include_str!("../experiments/tier1_effects/tier1_rule_comb_ir.egg"),
+        include_str!("../research/legacy_tier1.egg"),
     )
     .unwrap();
     e.parse_and_run_program(None, include_str!("../rules/tier2.egg"))

@@ -20,7 +20,7 @@ cargo run --release -- analyze --reuse-tier0 --output out/native-six
 ```
 
 新入口不启动 Python、研究程序或管道。采集事件、构建 tier-1/tier-2、检查 binding 和生成页面都在同一进程中完成。
-数据直接使用原生事件、Rust 结构体和 egglog AST/Value；tier-1/tier-2 的 ground 数据通过带 schema 检查的原生导入接口写入，规则仍由 egglog 执行。默认只保存最终 `analysis.json`、`run.json`、`fractal.html`、`index.html`。
+数据直接使用原生事件、Rust 结构体和 egglog AST/Value；Tier1 的 coarse/smooth layers、binding 与 effect 支持检查由 Rust 构建；现有 Tier2 通过只含声明和已验证数据的接口继续使用 egglog。默认保存最终 `layers.json`、`analysis.json`、`run.json`、`fractal.html`、`index.html`，不生成完整中间 trace。
 页面为输出目录下的 `fractal.html`；输出目录必须不存在。复用模式只重新渲染已完成结果，不重新执行推理。
 不指定复用目录时，使用仓库已有的固定视图。旧管道缓存的完整视图仍可复用，但不会启动旧流水线。
 
@@ -56,11 +56,14 @@ parents、ports、inputs/outputs、binding、读依赖、写事实和 union effe
 实际 Math 6 轮对照检查在线/离线历史的 binding 和 effect 完全一致，重放后
 combined rule 文本、source steps、relative routes 与视图统计一致；native eclass 分配编号不要求一致。
 
+新的结构及旧术语迁移见 [coarse/smooth layers](docs/coarse-smooth-layers.md)。旧链式 Tier1 解释器仅保留在 `research/legacy_tier1.egg`，供历史实验和回归对照，主路径不加载它。
+
 ## 精简的实现阅读顺序
 
 | 文件 | 职责 |
 |---|---|
-| [tier-1 IR](experiments/tier1_effects/tier1_rule_comb_ir.egg) | Comb、relative binding、实例及 effect |
+| [coarse/smooth layers](src/coarse_smooth.rs) | Rust 组合定义去重、实例、binding/effect 验证、见证驱动的层接口 |
+| [Tier2 数据接口](src/layer_bridge.rs) | 仅类型/关系声明，没有 Tier1 推理规则 |
 | [tier-2 IR](rules/tier2.egg) | 稳定扩展、重复观察、坐标变换 |
 | [FractalComb](rules/higher.egg) | 已有组合链 → 次数参数 k |
 | [Reduce](rules/reduce.egg) | 显式归约及解析表达式成本 |
@@ -71,7 +74,7 @@ combined rule 文本、source steps、relative routes 与视图统计一致；na
 | [原生适配接口](src/pipeline.rs) | 统一原生执行、查询、导出；递推 fixture 明确标注 |
 | [页面模板](experiments/tier2/fractal_view_template.html) | 交互界面；数据由 Rust 生成 |
 
-规则语义仍由原生 egglog 执行。当前主线主要阅读 `native_analyze.rs`、`native_lower.rs` 与 `rules/`。
+Tier0 规则和 Tier2 数学规则仍由原生 egglog 执行，Tier1 已由 Rust layers 接替。当前主线主要阅读 `native_analyze.rs`、`native_lower.rs` 与 `rules/`。
 `pipeline.rs` 保留独立诊断命令，`visual_rule.rs` 提供共享 AST 规范化。历史研究代码位于独立 research 工程。
 Rayon 仅用于给元图分析分配一个工作线程池；tier-0 保留正常执行池，所有线程仍属于同一进程。
 历史 Python 流水线保留供对照，已不在默认 analyze/view 路径中。

@@ -159,7 +159,7 @@ fn fractal_endpoint_contract_reaches_arrays_and_reduce() {
     let mut e = EGraph::default();
     e.parse_and_run_program(
         None,
-        include_str!("../experiments/tier1_effects/tier1_rule_comb_ir.egg"),
+        include_str!("../research/legacy_tier1.egg"),
     )
     .unwrap();
     e.parse_and_run_program(None, include_str!("../rules/tier2.egg"))

@@ -205,6 +205,7 @@ pub(super) fn read(path: &Path) -> Result<Captured> {
         .unwrap_or("Math")
         .to_string();
     Ok(Captured {
+        layers: Default::default(),
         datatype: h.datatype,
         datatype_name,
         rules,

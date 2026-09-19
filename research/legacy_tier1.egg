@@ -1,3 +1,4 @@
+; Historical standalone Tier1 interpreter; not loaded by native analysis.
 ; Shared rule-combination templates: no concrete values, event IDs or Entry.
 (datatype RuleId (Rule String))
 (sort LocalPort)

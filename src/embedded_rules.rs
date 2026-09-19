@@ -8,9 +8,6 @@ use std::path::Path;
 fn embedded(path: &str) -> Option<&'static str> {
     let path = path.strip_prefix("./").unwrap_or(path);
     match path {
-        "experiments/tier1_effects/tier1_rule_comb_ir.egg" => {
-            Some(include_str!("../experiments/tier1_effects/tier1_rule_comb_ir.egg"))
-        }
         "rules/tier2.egg" => Some(include_str!("../rules/tier2.egg")),
         "rules/higher.egg" => Some(include_str!("../rules/higher.egg")),
         "rules/reduce.egg" => Some(include_str!("../rules/reduce.egg")),

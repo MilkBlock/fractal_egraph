@@ -4,7 +4,7 @@ fn exact_rows_keep_identity_and_generic_effects_keep_equality() {
     let mut eg = EGraph::default();
     eg.parse_and_run_program(
         None,
-        include_str!("../experiments/tier1_effects/tier1_rule_comb_ir.egg"),
+        include_str!("../research/legacy_tier1.egg"),
     )
     .unwrap();
     eg.parse_and_run_program(

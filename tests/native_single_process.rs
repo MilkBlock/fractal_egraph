@@ -28,6 +28,16 @@ fn native_capture_works_without_python_or_helper_executables() {
     let report: serde_json::Value =
         serde_json::from_slice(&std::fs::read(out.join("analysis.json")).unwrap()).unwrap();
     assert_eq!(report["summary"]["executed_rounds"], 11);
+    assert_eq!(
+        report["summary"]["tier1_backend"],
+        "rust-coarse-smooth-layers"
+    );
+    assert_eq!(
+        report["layers"]["occurrences"].as_array().unwrap().len(),
+        report["summary"]["imported_events"].as_u64().unwrap() as usize
+    );
+    assert!(out.join("layers.json").exists());
+    assert!(!String::from_utf8_lossy(&result.stderr).contains("[perf-tier1]"));
     assert_eq!(report["summary"]["subprocesses"], 0);
     assert_eq!(report["summary"]["events"], 2);
     assert_eq!(report["view"]["stats"]["total_comb_templates"], 3);

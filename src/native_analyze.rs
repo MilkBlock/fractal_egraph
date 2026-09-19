@@ -12,10 +12,10 @@ use std::{
     sync::Arc,
 };
 // `std::time::Instant` is not implemented on wasm32-unknown-unknown.
-#[cfg(target_arch = "wasm32")]
-use web_time::Instant;
 #[cfg(not(target_arch = "wasm32"))]
 use std::time::Instant;
+#[cfg(target_arch = "wasm32")]
+use web_time::Instant;
 
 #[path = "native_bake.rs"]
 pub mod bake;
@@ -182,6 +182,7 @@ pub struct Record {
     pub extension: usize,
 }
 struct Captured {
+    layers: crate::coarse_smooth::LayerStore,
     datatype: String,
     datatype_name: String,
     rules: Vec<RuleInfo>,
@@ -194,6 +195,20 @@ struct Captured {
     trace_batches: usize,
     rejected: usize,
 }
+impl Captured {
+    fn is_coarse(&self, r: &Record) -> bool {
+        self.layers
+            .occurrence(r.id)
+            .map(|o| {
+                matches!(
+                    self.layers.combs[o.comb].kind,
+                    crate::coarse_smooth::CombKind::CoarseComb
+                )
+            })
+            .unwrap_or(r.coarse)
+    }
+}
+
 fn capture(
     source: &Path,
     rounds: Option<usize>,
@@ -291,6 +306,7 @@ fn capture_text_with_sink(
     }
     let trace = TraceSession::with_dependencies();
     let mut c = Captured {
+        layers: Default::default(),
         datatype,
         datatype_name,
         rules,
@@ -671,10 +687,97 @@ fn collect(
     Ok(())
 }
 
+fn update_layers(c: &mut Captured) -> Result {
+    use crate::coarse_smooth::{Apply, Effect, RelativeBinding};
+    for r in c.records.iter().skip(c.layers.occurrences.len()) {
+        let apply = Apply {
+            event: r.id,
+            rule: c.rules[r.rule].rule.to_string(),
+            input_roles: r
+                .inputs
+                .iter()
+                .map(|input| match input {
+                    Input::Var(n) => format!("var:{n}"),
+                    Input::Read(span) => format!(
+                        "read:{}",
+                        c.rules[r.rule]
+                            .calls
+                            .get(span)
+                            .map(|x| x.0.as_str())
+                            .unwrap_or(span)
+                    ),
+                })
+                .collect(),
+            output_roles: r
+                .outputs
+                .iter()
+                .map(|output| match output {
+                    Output::Var(n) => format!("var:{n}"),
+                    Output::Row(span) => format!(
+                        "row:{}",
+                        c.rules[r.rule]
+                            .calls
+                            .get(span)
+                            .map(|x| x.0.as_str())
+                            .unwrap_or(span)
+                    ),
+                    Output::Column(span, col) => format!(
+                        "column:{}:{col}",
+                        c.rules[r.rule]
+                            .calls
+                            .get(span)
+                            .map(|x| x.0.as_str())
+                            .unwrap_or(span)
+                    ),
+                })
+                .collect(),
+            parents: r.parents.clone(),
+            binding: r
+                .ports
+                .iter()
+                .map(|p| match p {
+                    Port::Parent(parent, output) => RelativeBinding::ParentPort {
+                        parent: *parent,
+                        output: *output,
+                    },
+                    Port::External(slot) => RelativeBinding::External { slot: *slot },
+                })
+                .collect(),
+            wanted: r.wanted.clone(),
+            outputs: r.values.clone(),
+            external: r.external.clone(),
+            required: r.required.iter().copied().map(Effect::RowFact).collect(),
+            external_facts: r
+                .required
+                .iter()
+                .filter(|v| {
+                    matches!(
+                        c.pool.values[**v].key,
+                        Key::External(..) | Key::Replay(_, true)
+                    )
+                })
+                .copied()
+                .map(Effect::RowFact)
+                .collect(),
+            produced: r
+                .produced
+                .iter()
+                .copied()
+                .map(Effect::RowFact)
+                .chain(r.unions.iter().map(|(a, b)| Effect::Equal(*a, *b)))
+                .collect(),
+        };
+        c.layers
+            .push(apply)
+            .map_err(|e| -> Box<dyn std::error::Error> { e.into() })?;
+    }
+    Ok(())
+}
+
 fn build_tier1(
     c: &mut Captured,
     eg: &mut EGraph,
-    root: &Path,
+    _root: &Path,
     inserted: &mut (usize, usize),
 ) -> Result {
     let stage_start = Instant::now();
@@ -684,13 +787,10 @@ fn build_tier1(
         return Ok(());
     }
     if eg.get_function("ImportedComb").is_none() {
-        load(
-            eg,
-            &root.join("experiments/tier1_effects/tier1_rule_comb_ir.egg"),
-            root,
-        )?;
+        eg.parse_and_run_program(None, crate::layer_bridge::SCHEMA)?;
         eg.parse_and_run_program(None,"(function ImportedComb (i64) Comb :no-merge) (function ImportedInstance (i64) Instance :no-merge) (function ImportedValue (i64) Val :no-merge)")?;
     }
+    update_layers(c)?;
     let mut batch = vec![];
     emit(eg, &mut batch, fact("Empty", vec![]))?;
     for (id, t) in c.pool.values.iter().enumerate().skip(inserted.0) {
@@ -726,7 +826,11 @@ fn build_tier1(
                             "ParentPort",
                             vec![num(*k as u64), num(*j as u64), string(sort)],
                         );
-                        if r.coarse { call("Local", vec![p]) } else { p }
+                        if c.is_coarse(r) {
+                            call("Local", vec![p])
+                        } else {
+                            p
+                        }
                     }
                     Port::External(k) => call("External", vec![num(*k as u64), string(sort)]),
                 }
@@ -734,8 +838,8 @@ fn build_tier1(
             .collect();
         let binding = list(
             ports,
-            if r.coarse { "PCons" } else { "RCons" },
-            if r.coarse { "PNil" } else { "RNil" },
+            if c.is_coarse(r) { "PCons" } else { "RCons" },
+            if c.is_coarse(r) { "PNil" } else { "RNil" },
         );
         emit(
             eg,
@@ -744,7 +848,11 @@ fn build_tier1(
                 "ImportedComb",
                 r.id,
                 call(
-                    if r.coarse { "CoarseComb" } else { "SmoothComb" },
+                    if c.is_coarse(r) {
+                        "CoarseComb"
+                    } else {
+                        "SmoothComb"
+                    },
                     vec![
                         parent_expr,
                         call("Rule", vec![string(&c.rules[r.rule].rule.name)]),
@@ -827,45 +935,54 @@ fn build_tier1(
             ),
         )?;
     }
+    for (index, r) in c.records.iter().enumerate().skip(inserted.1) {
+        emit(
+            eg,
+            &mut batch,
+            fact(
+                "Binding",
+                vec![
+                    iref(r.id),
+                    list(r.wanted.iter().map(|v| vref(*v)).collect(), "ACons", "ANil"),
+                ],
+            ),
+        )?;
+        emit(
+            eg,
+            &mut batch,
+            fact("SupportsUse", vec![iref(r.id), iref(r.id)]),
+        )?;
+        for (slot, p) in r.parents.iter().enumerate() {
+            emit(
+                eg,
+                &mut batch,
+                fact(
+                    "LinkedParent",
+                    vec![iref(r.id), num(slot as u64), iref(c.records[*p].id)],
+                ),
+            )?;
+            emit(
+                eg,
+                &mut batch,
+                fact(
+                    "ParentTemplate",
+                    vec![cref(r.id), num(slot as u64), cref(c.records[*p].id)],
+                ),
+            )?;
+        }
+        // Legacy reducers inspect inherited effects. The Rust store itself keeps
+        // effects only at their origin and resolves this closure on demand.
+        for effect in c.layers.provides(&[index]) {
+            let e = match effect {
+                crate::coarse_smooth::Effect::RowFact(v) => call("RowFact", vec![vref(v)]),
+                crate::coarse_smooth::Effect::Equal(a, b) => call("Equal", vec![vref(a), vref(b)]),
+            };
+            emit(eg, &mut batch, fact("Provides", vec![iref(r.id), e]))?;
+        }
+    }
     flush(eg, &mut batch)?;
     *inserted = (c.pool.values.len(), c.records.len());
-    let import_seconds = stage_start.elapsed().as_secs_f64();
-    let saturation_start = Instant::now();
-    eprintln!(
-        "[perf-tier1] import={import_seconds:.6} records={}",
-        c.records.len()
-    );
-    eg.parse_and_run_program(None,"(run-schedule (saturate (run tier1))) (run-schedule (saturate (run tier1_equivalences))) (run-schedule (saturate (run tier1)))")?;
-    let saturation_seconds = saturation_start.elapsed().as_secs_f64();
-    if std::env::var_os("EGG_LAYOUT_PROFILE").is_some() {
-        let report = eg.get_overall_run_report();
-        let mut rules: Vec<_> = report.search_and_apply_time_per_rule.iter().collect();
-        rules.sort_by_key(|(_, t)| std::cmp::Reverse(**t));
-        let top: Vec<_> = rules.iter().take(10).map(|(name,t)|json!({"rule":name,"seconds":t.as_secs_f64(),"logical_matches":report.num_matches_per_rule.get(*name).copied().unwrap_or(0)})).collect();
-        let sizes: BTreeMap<_, _> = [
-            "Occurrence",
-            "Provides",
-            "EqAt",
-            "NeedArgs",
-            "ArgsEqual",
-            "Satisfies",
-            "SupportsUse",
-            "Binding",
-            "LocalArgs",
-            "PartialArgs",
-        ]
-        .into_iter()
-        .map(|name| (name, eg.get_size(name)))
-        .collect();
-        eprintln!(
-            "[perf-rules] {}",
-            json!({"records":c.records.len(),"cumulative_top_rules":top,"relation_rows":sizes})
-        );
-    }
-
-    let validation_start = Instant::now();
-    // Check materialized native tables directly instead of compiling thousands
-    // of textual check queries. This verifies every imported binding and support.
+    // Read handles for the data-only Tier2 projection. No Tier1 saturation.
     let mut native = BTreeMap::new();
     eg.function_for_each("Occurrence", |r| {
         native.insert(
@@ -873,84 +990,25 @@ fn build_tier1(
             (r.vals[1], r.vals[2]),
         );
     })?;
-    let mut tokens = BTreeMap::new();
-    eg.function_for_each("ImportedValue", |r| {
-        tokens.insert(r.vals[1], eg.value_to_base::<i64>(r.vals[0]) as usize);
-    })?;
-    let nil = eg.lookup_function("ANil", &[]);
-    let mut cons = BTreeMap::new();
-    eg.function_for_each("ACons", |r| {
-        cons.insert(r.vals[2], (r.vals[0], r.vals[1]));
-    })?;
-    let mut bindings: BTreeMap<Value, Vec<Value>> = BTreeMap::new();
-    eg.function_for_each("Binding", |r| {
-        bindings.entry(r.vals[0]).or_default().push(r.vals[1]);
-    })?;
-    let mut support = BTreeSet::new();
-    eg.function_for_each("SupportsUse", |r| {
-        if r.vals[0] == r.vals[1] {
-            support.insert(r.vals[0]);
-        }
-    })?;
-    let mut linked = BTreeSet::new();
-    eg.function_for_each("LinkedParent", |r| {
-        linked.insert((
-            r.vals[0],
-            eg.value_to_base::<i64>(r.vals[1]) as usize,
-            r.vals[2],
-        ));
-    })?;
     for r in &mut c.records {
-        let &(comb, instance) = native.get(&r.id).ok_or("missing native occurrence")?;
+        let &(comb, instance) = native.get(&r.id).ok_or("missing projected occurrence")?;
         r.comb = Some(comb);
         r.instance = Some(instance);
-        let valid = bindings.get(&instance).into_iter().flatten().any(|args| {
-            let mut cur = *args;
-            for expected in &r.wanted {
-                let Some((v, tail)) = cons.get(&cur) else {
-                    return false;
-                };
-                if tokens.get(v) != Some(expected) {
-                    return false;
-                }
-                cur = *tail;
-            }
-            Some(cur) == nil
-        });
-        if !valid || !support.contains(&instance) {
-            return Err(
-                format!("native binding/support validation failed at event {}", r.id).into(),
-            );
-        }
     }
     if let Some(path) = std::env::var_os("EGG_LAYOUT_SUPPORT_SNAPSHOT") {
-        let events: BTreeMap<_, _> = c
-            .records
-            .iter()
-            .map(|r| (r.instance.unwrap(), r.id))
-            .collect();
-        let mut pairs = BTreeSet::new();
-        eg.function_for_each("SupportsUse", |row| {
-            if let (Some(a), Some(b)) = (events.get(&row.vals[0]), events.get(&row.vals[1])) {
-                pairs.insert((*a, *b));
-            }
-        })?;
+        let pairs: BTreeSet<_> = c.records.iter().map(|r| (r.id, r.id)).collect();
         serde_json::to_writer(
             std::io::BufWriter::new(std::fs::File::create(path)?),
             &pairs,
         )?;
     }
-    for r in &c.records {
-        for (slot, p) in r.parents.iter().enumerate() {
-            if !linked.contains(&(r.instance.unwrap(), slot, c.records[*p].instance.unwrap())) {
-                return Err("native parent validation failed".into());
-            }
-        }
-    }
     eprintln!(
-        "[perf-tier1] saturate={saturation_seconds:.6} validate={:.6} records={}",
-        validation_start.elapsed().as_secs_f64(),
-        c.records.len()
+        "[perf-layers] build_and_project={:.6} records={} definitions={} coarse_layers={} smooth_layers={}",
+        stage_start.elapsed().as_secs_f64(),
+        c.records.len(),
+        c.layers.combs.len(),
+        c.layers.coarse_layers.len(),
+        c.layers.smooth_layers.len()
     );
     Ok(())
 }
@@ -1057,7 +1115,7 @@ fn update_tier2(
             .collect();
         let key = ExtensionKey {
             rule: r.rule,
-            coarse: r.coarse,
+            coarse: c.is_coarse(r),
             inputs,
             routes,
         };
@@ -1067,7 +1125,9 @@ fn update_tier2(
             let id = keys.len();
             let schema = format!(
                 "{}\ncoarse={}\n{:?}",
-                c.rules[r.rule].rule, r.coarse, key.inputs
+                c.rules[r.rule].rule,
+                c.is_coarse(r),
+                key.inputs
             );
             emit(
                 eg,
@@ -1108,7 +1168,7 @@ fn update_tier2(
                 ),
             )?;
         }
-        if r.coarse {
+        if c.is_coarse(r) {
             emit(
                 eg,
                 &mut batch,
@@ -1122,7 +1182,7 @@ fn update_tier2(
     }
     flush(eg, &mut batch)?;
     for r in c.records.iter().skip(*inserted) {
-        if r.coarse || r.parents.len() != 1 || !known[r.extension] {
+        if c.is_coarse(r) || r.parents.len() != 1 || !known[r.extension] {
             continue;
         }
         let ports = r
@@ -1275,7 +1335,8 @@ fn view(c: &Captured, eg: &EGraph, extensions: &Extensions, higher: &[Json]) -> 
         eg.value_to_class_id(eg.get_sort_by_name("Comb").unwrap(), v)
             .to_string()
     };
-    let eligible = |r: &Record| !r.coarse && r.parents.len() == 1 && extensions.known[r.extension];
+    let eligible =
+        |r: &Record| !c.is_coarse(r) && r.parents.len() == 1 && extensions.known[r.extension];
     let mut children: Vec<Vec<usize>> = vec![vec![]; c.records.len()];
     let mut starts = vec![];
     for (i, r) in c.records.iter().enumerate().filter(|(_, r)| eligible(r)) {
@@ -1344,7 +1405,7 @@ fn view(c: &Captured, eg: &EGraph, extensions: &Extensions, higher: &[Json]) -> 
                 .map_err(|e| e.to_string())?;
             Ok(lowered)
         });
-        nodes.insert(r.id.to_string(),json!({"event":r.id,"comb":format!("${}",cid(r.comb.unwrap())),"rule":rule.name,"kind":if r.coarse{"CoarseComb"}else{"SmoothComb"},"source":rule.to_string(),"equation":equation,"combined":lowered.as_ref().ok().map(|x|&x.code),"source_steps":lowered.as_ref().ok().map(|x|x.steps.iter().map(|i|c.rules[c.records[*i].rule].rule.name.clone()).collect::<Vec<_>>()),"reason":lowered.as_ref().err(),"tier1":format!("{}(parents={:?}, rule={}, ports={:?})",if r.coarse{"CoarseComb"}else{"SmoothComb"},r.parents.iter().map(|p|c.records[*p].id).collect::<Vec<_>>(),rule.name,r.ports),"parent_events":r.parents.iter().map(|p|c.records[*p].id).collect::<Vec<_>>(),"external_routes":r.ports.iter().filter_map(|p|if let Port::External(k)=p{Some(*k)}else{None}).collect::<Vec<_>>(),"source_routes":extensions.keys[r.extension].routes}));
+        nodes.insert(r.id.to_string(),json!({"event":r.id,"comb":format!("${}",cid(r.comb.unwrap())),"rule":rule.name,"kind":if c.is_coarse(r){"CoarseComb"}else{"SmoothComb"},"source":rule.to_string(),"equation":equation,"combined":lowered.as_ref().ok().map(|x|&x.code),"source_steps":lowered.as_ref().ok().map(|x|x.steps.iter().map(|i|c.rules[c.records[*i].rule].rule.name.clone()).collect::<Vec<_>>()),"reason":lowered.as_ref().err(),"tier1":format!("{}(parents={:?}, rule={}, ports={:?})",if c.is_coarse(r){"CoarseComb"}else{"SmoothComb"},r.parents.iter().map(|p|c.records[*p].id).collect::<Vec<_>>(),rule.name,r.ports),"parent_events":r.parents.iter().map(|p|c.records[*p].id).collect::<Vec<_>>(),"external_routes":r.ports.iter().filter_map(|p|if let Port::External(k)=p{Some(*k)}else{None}).collect::<Vec<_>>(),"source_routes":extensions.keys[r.extension].routes}));
     }
     let visible: BTreeSet<_> = nodes
         .values()
@@ -1474,14 +1535,18 @@ pub fn run_with_options(
         let stage=Instant::now();let mut data=view(&c,&eg,&ext,&higher)?;
         for row in fractal_views["views"].as_array().unwrap() { let key=row["event"].to_string(); if let Some(node)=data["nodes"].get_mut(&key) { node["fractal_view"]=row.clone(); } }
         for row in fractal_views["fact_history"].as_array().unwrap() { let key=row["endpoint_event"].to_string(); if let Some(node)=data["nodes"].get_mut(&key) { node["fractal_facts"]=row.clone(); } }times.insert("selected_lowering_and_view",stage.elapsed().as_secs_f64());
-        let summary=json!({"events":c.events,"imported_events":c.records.len(),"excluded_events":c.rejected,"extensions":ext.keys.len(),"higher_rules":higher.len(),"executed_rounds":c.rounds,"timings_seconds":times,"wall_seconds":started.elapsed().as_secs_f64(),"subprocesses":0,"intermediate_trace_files":0,"raw_trace_peak_batch_events":c.trace_peak,"raw_trace_batches":c.trace_batches,"raw_trace_remaining_events":0,"build_mode":if online {"online"} else {"offline"},"history_saved":save_history,"history_replayed":replay.is_some(),"scope":"Native tier-1/tier-2 in one Rust process; tier-0 executes only during recapture. Online mode imports at simple run-round boundaries; complex schedules are imported at completion. Raw trace events are drained at completed execution boundaries; compact producer/equality indexes and analysis graphs remain resident. History contains resolved eligible applications, not rejected/raw trace events. Reduce rules are loaded; arbitrary accumulator summaries are not inferred."});
-        let report=json!({"status":"complete","summary":summary,"higher_rules":higher,"fractal_views":fractal_views,"dependency_growth":growth,"recursive_patterns":recursive,"view":data});
+        let summary=json!({"events":c.events,"imported_events":c.records.len(),"excluded_events":c.rejected,"extensions":ext.keys.len(),"higher_rules":higher.len(),"executed_rounds":c.rounds,"timings_seconds":times,"wall_seconds":started.elapsed().as_secs_f64(),"subprocesses":0,"intermediate_trace_files":0,"raw_trace_peak_batch_events":c.trace_peak,"raw_trace_batches":c.trace_batches,"raw_trace_remaining_events":0,"build_mode":if online {"online"} else {"offline"},"history_saved":save_history,"history_replayed":replay.is_some(),"tier1_backend":"rust-coarse-smooth-layers","layer_definitions":c.layers.combs.len(),"coarse_layers":c.layers.coarse_layers.len(),"smooth_layers":c.layers.smooth_layers.len(),"scope":"Rust coarse/smooth layers with a data-only egglog projection for existing Tier2 consumers; tier-0 executes only during recapture. Online mode imports at simple run-round boundaries; complex schedules are imported at completion. Raw trace events are drained at completed execution boundaries; compact producer/equality indexes and analysis graphs remain resident. History contains resolved eligible applications, not rejected/raw trace events. Reduce rules are loaded; arbitrary accumulator summaries are not inferred."});
+        let report=json!({"layers":c.layers.report(),"status":"complete","summary":summary,"higher_rules":higher,"fractal_views":fractal_views,"dependency_growth":growth,"recursive_patterns":recursive,"view":data});
         render(root,out,&report["view"],true)?;
         Ok(report)
             })().map_err(|e|e.to_string())
         }).map_err(|e|e.into())
     })();
     if let Ok(r) = &mut result {
+        std::fs::write(
+            out.join("layers.json"),
+            serde_json::to_vec_pretty(&r["layers"])?,
+        )?;
         r["summary"]["wall_seconds"] = json!(started.elapsed().as_secs_f64());
         std::fs::write(out.join("analysis.json"), serde_json::to_vec(r)?)?;
         if !r["recursive_patterns"].is_null() {

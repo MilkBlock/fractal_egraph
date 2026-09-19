@@ -58,7 +58,7 @@ fn higher_rule_counts_actual_steps_and_preserves_initial_context() {
         .unwrap();
     eg.parse_and_run_program(
         None,
-        include_str!("../experiments/tier1_effects/tier1_rule_comb_ir.egg"),
+        include_str!("../research/legacy_tier1.egg"),
     )
     .unwrap();
     eg.parse_and_run_program(None, include_str!("../experiments/tier2/higher_ir.egg"))

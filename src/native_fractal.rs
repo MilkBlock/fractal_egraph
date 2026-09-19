@@ -14,7 +14,7 @@ pub(super) fn build(
     let mut batch = vec![];
     let mut display = vec![];
     for (i, r) in c.records.iter().enumerate() {
-        let eligible = !r.coarse && r.parents.len() == 1 && extensions.known[r.extension];
+        let eligible = !c.is_coarse(r) && r.parents.len() == 1 && extensions.known[r.extension];
         if eligible {
             let p = r.parents[0];
             lengths[i] = if lengths[p] > 0 && c.records[p].extension == r.extension {
@@ -60,7 +60,11 @@ pub(super) fn build(
                 "NoParents",
             );
             call(
-                if r.coarse { "CoarseComb" } else { "SmoothComb" },
+                if c.is_coarse(r) {
+                    "CoarseComb"
+                } else {
+                    "SmoothComb"
+                },
                 vec![
                     ps,
                     call("Rule", vec![string(&c.rules[r.rule].rule.name)]),
@@ -69,7 +73,7 @@ pub(super) fn build(
             )
         };
         if lengths[i] >= 2 || r.parents.iter().any(|p| lengths[*p] >= 2) {
-            display.push(json!({"event":r.id,"kind":if lengths[i]>=2{"FractalComb"}else if r.coarse{"CoarseComb"}else{"SmoothComb"},"count":lengths[i],"trigger":if lengths[i]>=2 {Some(c.records[c.records[starts[i]].parents[0]].id)}else{None},"original_parents":r.parents.iter().map(|p|c.records[*p].id).collect::<Vec<_>>(),"parents":if lengths[i]>=2 {vec![c.records[c.records[starts[i]].parents[0]].id]}else{r.parents.iter().map(|p|c.records[*p].id).collect::<Vec<_>>()},"egg":expression.to_string(),"evidence":if lengths[i]>=2{"witnessed finite smooth repetition; no arbitrary-count stability proof"}else{"structurally verified continuation over selected parent views"}}));
+            display.push(json!({"event":r.id,"kind":if lengths[i]>=2{"FractalComb"}else if c.is_coarse(r){"CoarseComb"}else{"SmoothComb"},"count":lengths[i],"trigger":if lengths[i]>=2 {Some(c.records[c.records[starts[i]].parents[0]].id)}else{None},"original_parents":r.parents.iter().map(|p|c.records[*p].id).collect::<Vec<_>>(),"parents":if lengths[i]>=2 {vec![c.records[c.records[starts[i]].parents[0]].id]}else{r.parents.iter().map(|p|c.records[*p].id).collect::<Vec<_>>()},"egg":expression.to_string(),"evidence":if lengths[i]>=2{"witnessed finite smooth repetition; no arbitrary-count stability proof"}else{"structurally verified continuation over selected parent views"}}));
         }
         emit(eg, &mut batch, set("PackedComb", r.id, expression))?;
         emit(
@@ -174,7 +178,11 @@ pub(super) fn binding(c: &Captured, r: &Record) -> Expr {
                         "ParentPort",
                         vec![num(*k as u64), num(*j as u64), string(sort)],
                     );
-                    if r.coarse { call("Local", vec![p]) } else { p }
+                    if c.is_coarse(r) {
+                        call("Local", vec![p])
+                    } else {
+                        p
+                    }
                 }
                 Port::External(k) => call("External", vec![num(*k as u64), string(sort)]),
             }
@@ -182,7 +190,7 @@ pub(super) fn binding(c: &Captured, r: &Record) -> Expr {
         .collect();
     list(
         ports,
-        if r.coarse { "PCons" } else { "RCons" },
-        if r.coarse { "PNil" } else { "RNil" },
+        if c.is_coarse(r) { "PCons" } else { "RCons" },
+        if c.is_coarse(r) { "PNil" } else { "RNil" },
     )
 }

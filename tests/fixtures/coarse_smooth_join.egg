@@ -1,0 +1,9 @@
+; Two independent coarse introductions share Seed(7). They are NOT merged yet.
+; The final Pair application reads both exact produced rows and witnesses a join.
+(datatype Expr (Seed i64) (Left i64) (Right i64) (Pair Expr Expr))
+(rule ((Seed x)) ((Left x)) :name "left-intro")
+(rule ((Seed x)) ((Right x)) :name "right-intro")
+(rule ((= l (Left x)) (= r (Right x))) ((Pair l r)) :name "join")
+(Seed 7)
+(run 3)
+(check (Pair (Left 7) (Right 7)))

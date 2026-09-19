@@ -1,4 +1,4 @@
-(include "experiments/tier1_effects/tier1_rule_comb_ir.egg")
+(include "research/legacy_tier1.egg")
 ; A shared R10 -> R15 template. R15 receives x,s from R10, root d externally.
 (let $r10 (CoarseComb (MoreParents (Empty) (NoParents)) (Rule "R10") (PCons (External 0 "Math") (PCons (External 1 "Math") (PCons (External 2 "Math") (PNil))))))
 (let $parents (MoreParents $r10 (NoParents)))
