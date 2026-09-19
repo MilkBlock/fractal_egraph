@@ -449,3 +449,23 @@ bundle 里的 `@egg-viz-json` 注释不记录 matches、effects 或性能统计�
 （`rule` 的 body 附加事实或 `rewrite` 的 `:when`），写回前先用本目录原生
 `debug-patterns` 解析整份源码，语法错误会被拒绝。日志回放只读。
 
+
+
+## Layer / FractalComb 与逐轮 DOT
+
+同一页面的 Layer 面板接收 Rust `layer_snapshot` 事件；“运行并识别”会逐轮保存
+`out/debugger/<run-id>/rounds/round-0001.{layers,fractals,coverage}.dot` 和对应 JSON。
+可选择一个 coarse/smooth layer 或 Fractal，使用已有 Graphviz 服务显示 DOT，
+或者使用 Eggplant 插件和现有 Fractal Typst 模板显示公式。多返回点单元按成员展示，保留返回 binding。
+点击 SVG 节点查看条件、effect、trigger 与覆盖证据；可直接下载本轮 DOT。
+
+CLI `analyze` 的输出在“载入分析目录”中输入 `out/…` 即可，或访问
+`http://127.0.0.1:8080/?layer_run=out/your-run`。这只读取分析目录，不重新执行 tier0。
+每轮 JSON 是自包含渲染快照；旧未包含渲染数据的临时格式需要用当前版本重新 analyze/replay。
+日志 v3 包含 `layer_snapshots`，仍兼容 v1/v2。DOT 图是有限观察，TemplateCoverage 不等于可替代或任意深度证明。
+
+本地浏览器回归（不发布站点）：
+
+```sh
+NODE_PATH=/path/to/node_modules node tools/egglog_debugger/test_layers.cjs   http://127.0.0.1:8080/ /path/to/Chrome
+```

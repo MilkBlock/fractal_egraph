@@ -5,6 +5,9 @@ import functools
 import importlib.util
 import sys
 import json
+import re
+import uuid
+from urllib.parse import urlsplit
 from pathlib import Path
 import shutil
 import select
@@ -20,6 +23,12 @@ ROOT = Path(__file__).resolve().parents[2]
 
 class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
+        match = re.fullmatch(r'/api/runs/([0-9a-f]{32})/rounds/(round-[0-9]+\.(?:layers\.dot|fractals\.dot|coverage\.dot|json)|manifest\.json)', urlsplit(self.path).path)
+        if match:
+            file = ROOT / 'out' / 'debugger' / match[1] / 'rounds' / match[2]
+            if not file.is_file():
+                return self.reply(404, {'error':'Unknown run artifact'})
+            return self.reply(200,file.read_bytes(),'text/vnd.graphviz; charset=utf-8' if file.suffix=='.dot' else 'application/json')
         if self.path.split('?')[0] == '/plugin-overlay.js':
             return self.reply(200, self.server.renderer.overlay, 'text/javascript')
         return super().do_GET()
@@ -28,7 +37,7 @@ class Handler(SimpleHTTPRequestHandler):
         return self.reply(204, b'')
 
     def translate_path(self, path):
-        if path.split('?')[0] in ('/native-debugger.js', '/native-debugger.css', '/wasm-worker.js'):
+        if path.split('?')[0] in ('/native-debugger.js', '/native-debugger.css', '/wasm-worker.js', '/layer-panel.js'):
             return str(ROOT / 'tools/egglog_debugger' / path.split('?')[0][1:])
         # The browser bundle is a build artifact (see browser/build.mjs); the local
         # page imports it to generate a fractal lane's `.egg`, so serve it when it
@@ -79,6 +88,21 @@ class Handler(SimpleHTTPRequestHandler):
             if not 0 < length <= 2_000_000:
                 return self.reply(413, {'error': 'Source must be at most 2 MB'})
             data = json.loads(self.rfile.read(length))
+            if self.path == '/api/layer-run':
+                folder = (ROOT / data['path']).resolve()
+                if not folder.is_relative_to(ROOT / 'out'):
+                    return self.reply(400, {'error':'请选择仓库 out/ 内的分析目录'})
+                manifest = json.loads((folder / 'rounds/manifest.json').read_text())
+                frames = []
+                for item in manifest:
+                    stem = item['stem']
+                    if not re.fullmatch(r'round-[0-9]+',stem):
+                        raise ValueError('Invalid snapshot filename')
+                    frame = json.loads((folder / 'rounds' / (stem+'.json')).read_text())
+                    if frame.get('kind') != 'layer_snapshot':
+                        raise ValueError('旧快照没有渲染数据，请使用当前版本重新 analyze/replay')
+                    frames.append(frame)
+                return self.reply(200, {'frames':frames})
             if self.path == '/api/preview':
                 line = data.get('line', 1)
                 data['edit_targets'] = self.server.annotations.catalog(data['source'], line)
@@ -134,6 +158,11 @@ class Handler(SimpleHTTPRequestHandler):
                     if result.returncode:
                         return self.reply(422, {'error': result.stderr.decode(errors='replace')})
                     return self.reply(200, result.stdout)
+                run_id = uuid.uuid4().hex
+                run_folder = ROOT / 'out' / 'debugger' / run_id
+                (run_folder / 'rounds').mkdir(parents=True)
+                (run_folder / 'source.egg').write_text(data['source'])
+                snapshots = []
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/x-ndjson')
                 self.send_header('Cache-Control', 'no-store')
@@ -168,6 +197,21 @@ class Handler(SimpleHTTPRequestHandler):
                     watcher.start()
                     try:
                         for line in process.stdout:
+                            try:
+                                row = json.loads(line)
+                            except (ValueError, UnicodeDecodeError):
+                                row = {}
+                            if row.get('kind') == 'layer_snapshot':
+                                stem = f"round-{len(snapshots)+1:04}"
+                                row['artifact_base'] = f'/api/runs/{run_id}/rounds/'
+                                row['artifact_directory'] = str(run_folder.relative_to(ROOT))
+                                row['stem'] = stem
+                                for kind in ('layers','fractals','coverage'):
+                                    (run_folder / 'rounds' / f'{stem}.{kind}.dot').write_text(row['dots'][kind])
+                                (run_folder / 'rounds' / f'{stem}.json').write_text(json.dumps(row,ensure_ascii=False))
+                                snapshots.append({key:row[key] for key in ('label','round','end','stem','counts')})
+                                (run_folder / 'rounds/manifest.json').write_text(json.dumps(snapshots,ensure_ascii=False))
+                                line = (json.dumps(row,ensure_ascii=False)+'\n').encode()
                             self.wfile.write(line)
                             self.wfile.flush()
                         if process.wait():

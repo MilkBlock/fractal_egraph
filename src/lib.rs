@@ -15,3 +15,5 @@ pub mod binding_reduce;
 
 pub mod coarse_smooth;
 mod layer_bridge;
+
+pub mod layer_patterns;

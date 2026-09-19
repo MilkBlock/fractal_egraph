@@ -21,12 +21,16 @@ struct History {
     version: u32,
     complete: bool,
     source: String,
+    #[serde(default)]
+    source_text: Option<String>,
     datatype: String,
     rules: Vec<RuleData>,
     tokens: Vec<TokenData>,
     records: Vec<Record>,
     events: usize,
     rounds: Option<usize>,
+    #[serde(default)]
+    boundaries: Vec<CaptureBoundary>,
 }
 
 pub(super) fn save(path: &Path, source: &Path, c: &Captured) -> Result {
@@ -46,17 +50,20 @@ pub(super) fn save(path: &Path, source: &Path, c: &Captured) -> Result {
         version: u32,
         complete: bool,
         source: String,
+        source_text: &'a str,
         datatype: &'a str,
         rules: Vec<RuleData>,
         tokens: Vec<TokenData>,
         records: &'a [Record],
         events: usize,
         rounds: Option<usize>,
+        boundaries: &'a [CaptureBoundary],
     }
     let history = Borrowed {
         version: 1,
         complete: true,
         source: source.display().to_string(),
+        source_text: &c.preview_source,
         datatype: &c.datatype,
         rules: c
             .rules
@@ -86,6 +93,7 @@ pub(super) fn save(path: &Path, source: &Path, c: &Captured) -> Result {
         records: &c.records,
         events: c.events,
         rounds: c.rounds,
+        boundaries: &c.boundaries,
     };
     serde_json::to_writer(&mut out, &history)?;
     out.write_all(b"\n")?;
@@ -99,6 +107,16 @@ pub(super) fn read(path: &Path) -> Result<Captured> {
     let mut h: History = serde_json::from_reader(BufReader::new(std::fs::File::open(path)?))?;
     if h.version != 1 || !h.complete {
         return Err("unsupported or incomplete history".into());
+    }
+    let mut previous = 0;
+    for b in &h.boundaries {
+        if b.end < previous || b.end > h.records.len() {
+            return Err("invalid history round boundary".into());
+        }
+        previous = b.end;
+    }
+    if !h.boundaries.is_empty() && previous != h.records.len() {
+        return Err("incomplete history round boundaries".into());
     }
     let mut eg = EGraph::default();
     let mut rules = vec![];
@@ -204,7 +222,20 @@ pub(super) fn read(path: &Path) -> Result<Captured> {
         .nth(1)
         .unwrap_or("Math")
         .to_string();
+    let preview_source = h.source_text.unwrap_or_else(|| {
+        format!(
+            "{}\n{}",
+            h.datatype,
+            rules
+                .iter()
+                .map(|r| r.rule.to_string())
+                .collect::<Vec<_>>()
+                .join("\n")
+        )
+    });
     Ok(Captured {
+        preview_source,
+        boundaries: h.boundaries,
         layers: Default::default(),
         datatype: h.datatype,
         datatype_name,

@@ -203,7 +203,10 @@ pub fn patterns(source: &str) -> Result<Json> {
             }
             c => crate::visual_rule::normalize(c, rows.len()),
         };
-        if let Command::Rule { rule } = command {
+        if let Command::Rule { mut rule } = command {
+            if rule.name.is_empty() {
+                rule.name = format!("R{}", rows.len());
+            }
             let (start, end) = location(&rule);
             let mut row = render(&rule);
             row["source_line"] = json!(start);
@@ -232,7 +235,8 @@ pub fn stream_source(
     let mut inserted = (0, 0);
     let mut tier2 = Tier2State::default();
     let mut seen = BTreeSet::new();
-    let mut boundary = 0;
+    let mut snapshot_count = 0;
+    let mut layer_analyzer = crate::layer_patterns::Analyzer::default();
     // rayon has no threads on wasm32-unknown-unknown; the pool only sizes the stack
     // natively, so the browser build runs the analysis inline.
     #[cfg(not(target_arch = "wasm32"))]
@@ -243,7 +247,7 @@ pub fn stream_source(
         None,
         None,
         Some(&mut |c| {
-            boundary += 1;
+            let boundary = c.boundaries.len();
             let start = inserted.1;
             let mut analyse = || -> std::result::Result<_, String> {
                 build_tier1(c, &mut eg, root, &mut inserted).map_err(|e| e.to_string())?;
@@ -399,6 +403,16 @@ pub fn stream_source(
                     quote(lane["higher"].as_str().unwrap())
                 ));
                 emit(row)?;
+            }
+            if snapshot_count < c.boundaries.len() {
+                snapshot_count = c.boundaries.len();
+                emit(layer_view::snapshot(
+                    &c.layers,
+                    c.boundaries.last().unwrap(),
+                    snapshot_count,
+                    &c.preview_source,
+                    &mut layer_analyzer,
+                )?)?;
             }
             emit(
                 json!({"kind":"boundary","boundary":boundary,"applications":c.records.len(),"logical_matches":c.events,"excluded":c.rejected}),

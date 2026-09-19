@@ -31,6 +31,8 @@ mod fractal;
 mod growth;
 #[path = "native_history.rs"]
 mod history;
+#[path = "native_layer_view.rs"]
+mod layer_view;
 #[path = "native_recursive.rs"]
 mod recursive;
 
@@ -181,7 +183,15 @@ pub struct Record {
     pub instance: Option<Value>,
     pub extension: usize,
 }
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+struct CaptureBoundary {
+    kind: String,
+    round: Option<usize>,
+    end: usize,
+}
 struct Captured {
+    preview_source: String,
+    boundaries: Vec<CaptureBoundary>,
     layers: crate::coarse_smooth::LayerStore,
     datatype: String,
     datatype_name: String,
@@ -306,6 +316,8 @@ fn capture_text_with_sink(
     }
     let trace = TraceSession::with_dependencies();
     let mut c = Captured {
+        preview_source: text.to_owned(),
+        boundaries: vec![],
         layers: Default::default(),
         datatype,
         datatype_name,
@@ -336,6 +348,11 @@ fn capture_text_with_sink(
                     let collect_start = Instant::now();
                     count += 1;
                     collect(&eg, &trace, &mut c, &mut producers)?;
+                    c.boundaries.push(CaptureBoundary {
+                        kind: if known { "round" } else { "execution-boundary" }.into(),
+                        round: known.then_some(count),
+                        end: c.records.len(),
+                    });
                     if let Some(sink) = sink.as_mut() {
                         sink(&mut c)?;
                     }
@@ -365,9 +382,28 @@ fn capture_text_with_sink(
         if matches!(command, Command::RunSchedule(_)) {
             known = false;
         }
+        let schedule = matches!(command, Command::RunSchedule(_));
         eg.run_program_with_trace(vec![command], &trace)?;
+        if schedule {
+            collect(&eg, &trace, &mut c, &mut producers)?;
+            c.boundaries.push(CaptureBoundary {
+                kind: "execution-boundary".into(),
+                round: None,
+                end: c.records.len(),
+            });
+            if let Some(sink) = sink.as_mut() {
+                sink(&mut c)?;
+            }
+        }
     }
     collect(&eg, &trace, &mut c, &mut producers)?;
+    if c.boundaries.last().is_none_or(|b| b.end != c.records.len()) {
+        c.boundaries.push(CaptureBoundary {
+            kind: "final".into(),
+            round: None,
+            end: c.records.len(),
+        });
+    }
     if let Some(sink) = sink.as_mut() {
         sink(&mut c)?;
     }
@@ -1436,6 +1472,14 @@ fn render(root: &Path, out: &Path, data: &Json, native: bool) -> Result {
             .replace("../tier1_extract/index.html#", "index.html#")
             .replace("../tier1_extract/index.html", "index.html");
     }
+    if out.join("rounds/manifest.json").exists() {
+        let absolute = out.canonicalize()?;
+        let link=absolute.strip_prefix(root).ok().filter(|p|p.starts_with("out")).map(|p| {
+            let query=p.to_string_lossy().bytes().map(|b|if b.is_ascii_alphanumeric()||b"/-_.".contains(&b){(b as char).to_string()}else{format!("%{b:02X}")}).collect::<String>();
+            format!("<p><a href=\"http://127.0.0.1:8080/?layer_run={query}\">在 tools 调试网页打开逐轮 Layer / Fractal / DOT</a></p></header>")
+        }).unwrap_or_else(||"<p>逐轮数据位于 rounds/；请在 tools 调试网页载入分析目录。</p></header>".into());
+        template = template.replace("</header>", &link);
+    }
     let payload = serde_json::to_string(data)?.replace('<', "\\u003c");
     std::fs::write(
         out.join("fractal.html"),
@@ -1492,10 +1536,16 @@ pub fn run_with_options(
     let mut result = (|| -> Result<Json> {
         let worker = rayon::ThreadPoolBuilder::new().num_threads(1).build()?;
         let mut tier1 = EGraph::default();
+        let mut layer_exporter = layer_view::Exporter::default();
         let mut c = if let Some(path) = replay {
             history::read(path)?
         } else if online {
-            capture(&source, rounds, Some((&mut tier1, root, &worker)))?
+            capture_with_sink(
+                &source,
+                rounds,
+                Some((&mut tier1, root, &worker)),
+                Some(&mut |c| layer_exporter.capture(c, out)),
+            )?
         } else {
             capture(&source, rounds, None)?
         };
@@ -1525,6 +1575,7 @@ pub fn run_with_options(
         let phase=|name:&str|->Result {let mut s=base_status.clone();s["phase"]=json!(name);std::fs::write(&phase_marker,serde_json::to_vec(&s)?)?;eprintln!("[native] {name}");Ok(())};
         phase("tier1")?;
         let mut eg=tier1;let stage=Instant::now();if !online || replay.is_some() { build_tier1(&mut c,&mut eg,root,&mut (0,0))?; }times.insert("tier1",stage.elapsed().as_secs_f64());
+        if !online || replay.is_some() {layer_exporter.replay(&c,out)?;}
         phase("tier2")?;
         let stage=Instant::now();let(ext,higher)=build_tier2(&mut c,&mut eg,root)?;times.insert("tier2",stage.elapsed().as_secs_f64());
         phase("fractal-views")?;
@@ -1535,8 +1586,8 @@ pub fn run_with_options(
         let stage=Instant::now();let mut data=view(&c,&eg,&ext,&higher)?;
         for row in fractal_views["views"].as_array().unwrap() { let key=row["event"].to_string(); if let Some(node)=data["nodes"].get_mut(&key) { node["fractal_view"]=row.clone(); } }
         for row in fractal_views["fact_history"].as_array().unwrap() { let key=row["endpoint_event"].to_string(); if let Some(node)=data["nodes"].get_mut(&key) { node["fractal_facts"]=row.clone(); } }times.insert("selected_lowering_and_view",stage.elapsed().as_secs_f64());
-        let summary=json!({"events":c.events,"imported_events":c.records.len(),"excluded_events":c.rejected,"extensions":ext.keys.len(),"higher_rules":higher.len(),"executed_rounds":c.rounds,"timings_seconds":times,"wall_seconds":started.elapsed().as_secs_f64(),"subprocesses":0,"intermediate_trace_files":0,"raw_trace_peak_batch_events":c.trace_peak,"raw_trace_batches":c.trace_batches,"raw_trace_remaining_events":0,"build_mode":if online {"online"} else {"offline"},"history_saved":save_history,"history_replayed":replay.is_some(),"tier1_backend":"rust-coarse-smooth-layers","layer_definitions":c.layers.combs.len(),"coarse_layers":c.layers.coarse_layers.len(),"smooth_layers":c.layers.smooth_layers.len(),"scope":"Rust coarse/smooth layers with a data-only egglog projection for existing Tier2 consumers; tier-0 executes only during recapture. Online mode imports at simple run-round boundaries; complex schedules are imported at completion. Raw trace events are drained at completed execution boundaries; compact producer/equality indexes and analysis graphs remain resident. History contains resolved eligible applications, not rejected/raw trace events. Reduce rules are loaded; arbitrary accumulator summaries are not inferred."});
-        let report=json!({"layers":c.layers.report(),"status":"complete","summary":summary,"higher_rules":higher,"fractal_views":fractal_views,"dependency_growth":growth,"recursive_patterns":recursive,"view":data});
+        let summary=json!({"events":c.events,"imported_events":c.records.len(),"excluded_events":c.rejected,"extensions":ext.keys.len(),"higher_rules":higher.len(),"executed_rounds":c.rounds,"timings_seconds":times,"wall_seconds":started.elapsed().as_secs_f64(),"subprocesses":0,"intermediate_trace_files":0,"raw_trace_peak_batch_events":c.trace_peak,"raw_trace_batches":c.trace_batches,"raw_trace_remaining_events":0,"build_mode":if online {"online"} else {"offline"},"history_saved":save_history,"history_replayed":replay.is_some(),"layer_visualization":"tools/egglog_debugger (load analysis directory)","round_manifest":"rounds/manifest.json","tier1_backend":"rust-coarse-smooth-layers","layer_definitions":c.layers.combs.len(),"coarse_layers":c.layers.coarse_layers.len(),"smooth_layers":c.layers.smooth_layers.len(),"scope":"Rust coarse/smooth layers with a data-only egglog projection for existing Tier2 consumers; tier-0 executes only during recapture. Online mode imports at simple run-round boundaries; complex schedules are imported at completion. Raw trace events are drained at completed execution boundaries; compact producer/equality indexes and analysis graphs remain resident. History contains resolved eligible applications, not rejected/raw trace events. Reduce rules are loaded; arbitrary accumulator summaries are not inferred."});
+        let report=json!({"layer_patterns":layer_exporter.summary(),"layers":c.layers.report(),"status":"complete","summary":summary,"higher_rules":higher,"fractal_views":fractal_views,"dependency_growth":growth,"recursive_patterns":recursive,"view":data});
         render(root,out,&report["view"],true)?;
         Ok(report)
             })().map_err(|e|e.to_string())

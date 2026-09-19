@@ -50,3 +50,13 @@
 .native-symbol-row:hover {background:#edf4ff;}
 .native-symbol-row code {font:12px monospace;color:#24518f;min-width:180px;}
 .native-symbol-row span {color:#53637a;}
+
+#native-layer-panel{border:1px solid #bacbdc;border-radius:6px;padding:8px;margin:8px 0;background:#fff;}
+#native-layer-panel summary{cursor:pointer;font-weight:600;}
+#native-layer-viewport{max-height:360px;overflow:auto;background:white;}
+#native-layer-viewport>svg{max-width:none;}
+#native-layer-viewport section{padding:10px;border-bottom:1px solid #ddd;overflow:auto;}
+#native-layer-error{color:#a72020;white-space:pre-wrap;}
+#native-layer-details,#native-layer-code{max-height:240px;overflow:auto;white-space:pre-wrap;}
+#native-layer-status{font-size:12px;color:#53637a;margin:5px 0;}
+#native-layer-directory{width:260px;}

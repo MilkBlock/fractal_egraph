@@ -57,7 +57,17 @@ fn stream_uses_committed_evidence_and_matches_offline_fractal_paths() {
     assert_eq!(filter("fractal").count(), 4);
     assert_eq!(rows.last().unwrap()["kind"], "complete");
     let mut ids = BTreeSet::new();
-    for row in rows.iter().filter(|r| r.get("id").is_some()) {
+    let snapshots: Vec<_> = filter("layer_snapshot").collect();
+    assert_eq!(snapshots.len(), 8);
+    assert!(
+        snapshots
+            .iter()
+            .all(|r| r["dots"]["layers"].as_str().unwrap().starts_with("digraph"))
+    );
+    for row in rows
+        .iter()
+        .filter(|r| r.get("id").is_some() && r["kind"] != "layer_snapshot")
+    {
         assert!(ids.insert(row["id"].as_str().unwrap()));
         assert!(!row["typst"].as_str().unwrap().is_empty());
         assert!(!row["dot"].as_str().unwrap().is_empty());
@@ -125,7 +135,8 @@ fn analysis_takes_the_declared_datatype_name_not_a_fixed_one() {
     let text = std::fs::read_to_string(&source).unwrap();
     let renamed = text.replacen("(datatype Math ", "(datatype Expr ", 1);
     assert!(renamed.contains("(datatype Expr "));
-    let path = std::env::temp_dir().join(format!("native-debug-renamed-{}.egg", std::process::id()));
+    let path =
+        std::env::temp_dir().join(format!("native-debug-renamed-{}.egg", std::process::id()));
     std::fs::write(&path, &renamed).unwrap();
     let mut rows = vec![];
     let result = debug::stream(root, &path, &mut |row| {

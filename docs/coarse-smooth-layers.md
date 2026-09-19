@@ -92,3 +92,62 @@ CoarseLayer 成员数分布为 1:308、2:56、3:23、4:9、5:3、6:1。
 在线、离线及保存历史重放的 layers 完全相同；在线/离线解析后的 history 完全相同。
 旧 Tier2 仍得到 13 个有限重复结果。定义数不等于字节压缩率，本次不声称存储或速度收益。
 可复现命令和紧凑统计在 [coarse-smooth-math6.json](coarse-smooth-math6.json)。
+
+## Layer 模板、FractalComb 与逐轮图
+
+`src/layer_patterns.rs` 从 Rust LayerStore 提取有接口的有限模板，`src/native_layer_view.rs`
+导出每个真实执行边界；渲染统一在 `tools/egglog_debugger` 现有网页。入口之外的祖先历史不进入模板 key；端口角色、共享/alias、
+原规则 guard/literal、精确 RowFact 和 union effect 保留。变量使用每个成员自己的 Input 槽位。
+源表达式通过 egglog parser 转为 `BindingExpr` / `Condition`；未知输出是 Projection，
+不利用 constructor injectivity 猜测值，也不拟合样本数值。返回 binding 引用成员的输出槽位，
+输出表达式仍是有作用域的符号对象，不等于已求得解析解。
+
+候选来自三处：单步、停在 coarse 入口的有界依赖片段、实际返回同源规则接口的路径。
+因此同一个 SmoothLayer 内的重复不会被漏掉；支持一对多返回，外部输入需求逐单元保留。
+无关消费者保持开放，不强行纳入每一个递归体。layout 的 boundary_restart 本身不当作语义 turning point。
+同类单元之间存在真实返回依赖，才报告 observed finite FractalComb；单纯重复出现不算递归。
+`max_observed_depth` 是观察深度，不能解释成任意 n 的归纳证明。
+多条路径可为同一入口提供不同展开选择；记录的是有限见证 DAG，不声称穷尽所有未来 apply。
+
+覆盖复用原有有预算的非诱导 DAG embedding，检查绑定接线、全片段 alias、effect 标签，
+允许较大图在映射根之上有额外节点。优先比较已发现 FractalComb 对应模板和高频模板。
+`TemplateCoverage` 只证明 body 的结构覆盖；同时给出节点映射和真实实例重叠数。
+边界条件蕴含、返回契约等价和任意深度的 `FractalDominance` 明确为 unknown，不能自动替代或 union。
+第一个结构映射未通过 binding 检查时标记 UnknownBindingMapping，不谎称不存在其他有效映射。
+
+为避免再次枚举所有子图，当前每个片段最多 32 个成员，forward return 单元最多 16 个成员、
+3 跳/64 个访问点，每个入口最多 64 条直接返回候选、每张快照最多 16384 条递归见证连接；每张快照最多 512 次覆盖查询，单次 2000 搜索状态。
+截断及未比较数随结果输出。这些是计算预算，不是规则语义，也不是完整性的保证。
+
+```sh
+cargo run --release -- analyze --recapture-tier0 --save-history \
+  --source egglog/tests/math-microbenchmark.egg --rounds 6 --output out/layer-fractals-math
+cargo run --release -- analyze --recapture-tier0 \
+  --source experiments/bake/binary-1.egg --output out/layer-fractals-binary
+# 离线和 --replay-history 同样生成逐轮图；新 history.json 保存轮次边界。
+```
+
+输出：
+
+- tools 调试网页：`python3 tools/egglog_debugger/server.py --port 8080`。原有页面新增 Layer 面板，支持轮次、coarse/smooth layer、Fractal 模板选择。
+- `rounds/round-0001.layers.dot`：本轮累计的 apply DAG 和 coarse 共享接口。
+- `rounds/round-0001.fractals.dot`：FractalComb、trigger、有限单元及各返回端口。
+- `rounds/round-0001.coverage.dot`：已证实的结构覆盖，箭头从大模板指向小模板。
+- `rounds/round-0001.json`：快照（`analysis` 中含模板、所有有限见证、返回绑定和覆盖查询结果；另含 DOT、图数据和源码位置）。
+- `rounds/manifest.json`：快照实际边界、对应轮次和计数。
+
+即使某一轮无新增 apply，也单独生成该轮 DOT。在线模式在进入下一轮前写出快照；
+离线/重放只用边界之前的前缀重建，不将最终图复制冒充早期状态。
+不可拆开的复杂 schedule 标为 execution-boundary；没有边界字段的旧历史只输出
+final-history-snapshot，不能倒推出当时每轮状态。CLI 结果可在 tools 页面“载入分析目录”中打开；网页运行时逐轮保存到 `out/debugger/<run-id>/rounds/`。
+CLI 数据导出不依赖 Graphviz、网络或 Python 子进程；网页复用现有 `/api/render` 的 Graphviz 服务，以及 Eggplant 插件的 Fractal Typst 模板，不再提供第二个独立 HTML 渲染器。
+如需 Graphviz 排版：`dot -Tsvg rounds/round-0006.fractals.dot -o fractals.svg`。
+逐轮累计可视化会增加本地输出体积，不能把这一轮改动当作运行速度或总存储压缩证明。
+
+网页的单成员单返回 Fractal 继续使用已有展开模板，展示 trigger、apply once/twice 和折叠深度。
+多成员/多返回单元按成员复用同一插件公式渲染，展示成员接线与返回端口，不冒充单规则线性展开。
+运行日志导出升级为 v3，携带 layer_snapshots；旧 v1/v2 日志仍能回放。
+新 history 保存原始源码（包括显示注释），以便重放时继续使用原来的 Typst 配置；旧历史缺源码时使用规范化的声明/规则作为预览源码。
+
+跨轮分析器缓存相同接口模板对的结构匹配结果；实际实例覆盖每轮重新计算，缓存不引入未来见证。
+已有 tools 网页的 171 轮流式回归覆盖了此路径。目录加载与实时快照共用一份数据和插件渲染接口。

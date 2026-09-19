@@ -71,7 +71,7 @@ def main():
             page.click('#native-export')
         saved = Path(folder) / 'history.json'
         download.value.save_as(saved)
-        assert json.loads(saved.read_text())['version'] == 2
+        assert json.loads(saved.read_text())['version'] == 3
         assert json.loads(saved.read_text())['rows'] == page.evaluate('window.egglogNative.rows')
         # A source edit must not corrupt a historical row or jump to an unrelated line.
         page.evaluate(set_source, '(datatype Math (Const i64))\n')

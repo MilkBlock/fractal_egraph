@@ -1,3 +1,4 @@
+import { installLayerPanel } from "./layer-panel.js";
 import { applyTypstRenderings } from "./plugin-overlay.js";
 // A static deployment (for example GitHub Pages) cannot run the Python/Rust bridge,
 // so the page talks to a bridge on this machine instead. Override with
@@ -14,6 +15,7 @@ export function installNativeDebugger(editor) {
       <button id="native-run">运行并识别</button><button id="native-stop" disabled>停止</button>
       <button id="native-download">下载 .egg</button><button id="native-export">导出日志</button><button id="native-restore">载入日志源码</button><label>回放日志 <input id="native-import" type="file" accept=".json"></label>
       <div id="native-status">点击 .egg 规则任意一行查看 Pattern。原生识别使用本地 egg_layout（单个自包含 datatype，名字任意）。</div>
+      <div id="native-layer-host"></div>
       <select id="native-filter"><option value="all">所有日志</option><option value="application">有效应用</option><option value="compose">Rule Compose</option><option value="fractal">Fractal</option></select>
       <div id="native-trace" role="log" aria-label="增量识别日志"></div>
       <div><select id="native-format"><option value="typst">Typst 公式</option><option value="dot">DOT 图</option></select><span id="native-title"></span></div>
@@ -107,6 +109,7 @@ export function installNativeDebugger(editor) {
         if(await bridgeAvailable())return (await (await post('preview',request,signal)).json());
         return (await loadBrowserRenderer()).renderPreviewInBrowser(request);
     }
+    const layerPanel=installLayerPanel(el('layer-host'),{post,previewRow,mountSvg,loadBrowserGenerator,editor});
     // Writes back to .egg. The browser path keeps the bridge's guarantee that a
     // template must compile and that an edited program must still be recognized
     // by the patched runtime, it just runs both from wasm.
@@ -563,12 +566,13 @@ export function installNativeDebugger(editor) {
     }
     el('run').onclick=async()=>{
         controller?.abort();controller=new AbortController();const current=controller;
-        snapshotSource=editor.getValue();runStatus='running';rows=[];selected=null;el('preview').hidden=true;el('trace').replaceChildren();shownRows=0;hiddenRows=0;status('运行实际 egglog runtime，等待增量事件…');el('run').disabled=true;el('stop').disabled=false;el('import').disabled=true;
+        snapshotSource=editor.getValue();runStatus='running';layerPanel.reset();rows=[];selected=null;el('preview').hidden=true;el('trace').replaceChildren();shownRows=0;hiddenRows=0;status('运行实际 egglog runtime，等待增量事件…');el('run').disabled=true;el('stop').disabled=false;el('import').disabled=true;
         try {
             let complete=false;
             const consume=line=>{if(!line.trim())return;const row=JSON.parse(line);
                 if(row.kind==='error')throw Error(row.error);
                 if(row.kind==='complete'){complete=true;runStatus='complete';status(`完成：${rows.filter(r=>r.kind==='application').length} 个有效应用，${rows.filter(r=>r.kind==='compose').length} 个组合，${rows.filter(r=>r.kind==='fractal').length} 个 Fractal 证据。`);}
+                else if(row.kind==='layer_snapshot')layerPanel.receive(row);
                 else if(row.kind==='boundary')status(`执行边界 ${row.boundary}：${row.applications} 个有效应用；${row.logical_matches} 个逻辑匹配，排除 ${row.excluded} 个。`);
                 else {rows.push(row);addRow(row);}
             };
@@ -591,8 +595,8 @@ export function installNativeDebugger(editor) {
     };
     el('restore').onclick=()=>{if(snapshotSource){editor.setValue(snapshotSource);status('已载入日志对应源码；点击日志重现公式。');}};
     el('stop').onclick=()=>{streamWorker?.terminate();streamWorker=null;controller?.abort();};
-    el('export').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify({version:2,status:runStatus,source:snapshotSource,rows},null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='egglog-debug-history.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
-    el('import').onchange=async event=>{try{const file=event.target.files[0];if(!file)return;const data=JSON.parse(await file.text());if(![1,2].includes(data.version) || typeof data.source!=='string' || !Array.isArray(data.rows) || data.rows.some(r=>!['application','compose','fractal'].includes(r.kind) || typeof r.id!=='string'))throw Error('无效的日志格式');controller?.abort();snapshotSource=data.source;runStatus=data.status || 'unknown';rows=data.rows;selected=null;el('preview').hidden=true;el('filter').onchange();status(`已载入 ${rows.length} 条公式快照（${runStatus}）；点击日志回放。`);}catch(error){status(error.message);}event.target.value='';};
+    el('export').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify({version:3,status:runStatus,source:snapshotSource,rows,layer_snapshots:layerPanel.snapshots},null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='egglog-debug-history.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+    el('import').onchange=async event=>{try{const file=event.target.files[0];if(!file)return;const data=JSON.parse(await file.text());if(![1,2,3].includes(data.version) || typeof data.source!=='string' || !Array.isArray(data.rows) || data.rows.some(r=>!['application','compose','fractal'].includes(r.kind) || typeof r.id!=='string'))throw Error('无效的日志格式');controller?.abort();snapshotSource=data.source;runStatus=data.status || 'unknown';rows=data.rows;layerPanel.reset();for(const f of data.layer_snapshots||[])layerPanel.receive(f);selected=null;el('preview').hidden=true;el('filter').onchange();status(`已载入 ${rows.length} 条公式快照（${runStatus}）；点击日志回放。`);}catch(error){status(error.message);}event.target.value='';};
     // Expose read-only state for debugging and browser regression tests.
-    window.egglogNative={get rows(){return structuredClone(rows);},get selected(){return structuredClone(selected);},get rendered(){return renderedCount;}};
+    window.egglogNative={get layerSnapshots(){return layerPanel.snapshots;},get rows(){return structuredClone(rows);},get selected(){return structuredClone(selected);},get rendered(){return renderedCount;}};
 }

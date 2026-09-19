@@ -20,7 +20,7 @@ cargo run --release -- analyze --reuse-tier0 --output out/native-six
 ```
 
 新入口不启动 Python、研究程序或管道。采集事件、构建 tier-1/tier-2、检查 binding 和生成页面都在同一进程中完成。
-数据直接使用原生事件、Rust 结构体和 egglog AST/Value；Tier1 的 coarse/smooth layers、binding 与 effect 支持检查由 Rust 构建；现有 Tier2 通过只含声明和已验证数据的接口继续使用 egglog。默认保存最终 `layers.json`、`analysis.json`、`run.json`、`fractal.html`、`index.html`，不生成完整中间 trace。
+数据直接使用原生事件、Rust 结构体和 egglog AST/Value；Tier1 的 coarse/smooth layers、binding 与 effect 支持检查由 Rust 构建；现有 Tier2 通过只含声明和已验证数据的接口继续使用 egglog。默认保存最终 `layers.json`、`analysis.json`、`run.json`、`fractal.html`、`index.html`，以及 `rounds/` 中每轮的 layer/fractal/coverage DOT、完整渲染快照 JSON（在 tools 调试网页载入）；不生成完整中间 trace。
 页面为输出目录下的 `fractal.html`；输出目录必须不存在。复用模式只重新渲染已完成结果，不重新执行推理。
 不指定复用目录时，使用仓库已有的固定视图。旧管道缓存的完整视图仍可复用，但不会启动旧流水线。
 
@@ -63,6 +63,8 @@ combined rule 文本、source steps、relative routes 与视图统计一致；na
 | 文件 | 职责 |
 |---|---|
 | [coarse/smooth layers](src/coarse_smooth.rs) | Rust 组合定义去重、实例、binding/effect 验证、见证驱动的层接口 |
+| [Layer 模板与有限递归](src/layer_patterns.rs) | 接口切片、返回 binding、结构覆盖与预算状态 |
+| [逐轮图](src/native_layer_view.rs) | 真实轮次快照、DOT 与 tools 网页数据 |
 | [Tier2 数据接口](src/layer_bridge.rs) | 仅类型/关系声明，没有 Tier1 推理规则 |
 | [tier-2 IR](rules/tier2.egg) | 稳定扩展、重复观察、坐标变换 |
 | [FractalComb](rules/higher.egg) | 已有组合链 → 次数参数 k |

@@ -1,0 +1,82 @@
+{
+  "scope": "Actual native tier0 captures and Rust interface analysis; finite witnessed recursion and structural body coverage, not arbitrary-depth dominance or a speedup claim.",
+  "viewer": "tools/egglog_debugger (existing page, Eggplant Fractal Typst template, existing Graphviz service)",
+  "samples": [
+    {
+      "sample": "math",
+      "snapshots": 6,
+      "validated_dot_files": 18,
+      "counts": {
+        "applications": 1529,
+        "coverage_cache_hits": 187,
+        "coverage_queries": 512,
+        "coverage_skipped": 186913,
+        "fractals": 3,
+        "templates": 1418,
+        "truncated_candidates": 94
+      },
+      "confirmed_body_coverages": 416,
+      "families": [
+        {
+          "template": 62,
+          "observed_depth": 4,
+          "return_ports": 1,
+          "units": 10
+        },
+        {
+          "template": 115,
+          "observed_depth": 2,
+          "return_ports": 1,
+          "units": 45
+        },
+        {
+          "template": 287,
+          "observed_depth": 2,
+          "return_ports": 1,
+          "units": 2
+        }
+      ]
+    },
+    {
+      "sample": "binary",
+      "snapshots": 8,
+      "validated_dot_files": 24,
+      "counts": {
+        "applications": 45,
+        "coverage_cache_hits": 320,
+        "coverage_queries": 512,
+        "coverage_skipped": 507,
+        "fractals": 2,
+        "templates": 50,
+        "truncated_candidates": 0
+      },
+      "confirmed_body_coverages": 284,
+      "families": [
+        {
+          "template": 4,
+          "observed_depth": 3,
+          "return_ports": 2,
+          "units": 14
+        },
+        {
+          "template": 8,
+          "observed_depth": 2,
+          "return_ports": 2,
+          "units": 6
+        }
+      ]
+    }
+  ],
+  "browser_checks": [
+    "8-round counter: live snapshots, Typst plugin renderer, DOT, file download, log v3 export/import, directory load",
+    "8-round binary: multi-member/multi-return Typst and DOT in the same page",
+    "existing test_bridge_page.mjs passed including 171-round streaming"
+  ],
+  "long_stream_check": {
+    "command": "target/release/egg_layout debug-stream experiments/bake/heldout-increment.egg > /dev/null",
+    "rounds": 171,
+    "applications": 169,
+    "wall_seconds": 15.56,
+    "scope": "Native execution, analysis and serialization with stdout discarded; not a browser rendering benchmark."
+  }
+}
