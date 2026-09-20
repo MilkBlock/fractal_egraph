@@ -459,6 +459,12 @@ bundle 里的 `@egg-viz-json` 注释不记录 matches、effects 或性能统计�
 或者使用 Eggplant 插件和现有 Fractal Typst 模板显示公式。多返回点单元按成员展示，保留返回 binding。
 点击 SVG 节点查看条件、effect、trigger 与覆盖证据；可直接下载本轮 DOT。
 
+每次“运行并识别”都会新建一个 `out/debugger/<run-id>/`，而单轮 JSON 会嵌入整份分析
+（实测出现过 30 MB 一轮）。以前从不清理，该目录累积到 14 GB 并让一次运行以 ENOSPC 失败。
+现在每次新建运行前只保留最新的 `EGG_LAYOUT_DEBUGGER_RUNS`（默认 3）个 run 目录，且只删除
+形如 32 位十六进制 run id 的目录，绝不碰其他条目。被清掉的 run 若仍在页面上打开，后续取轮次
+会 404；保留最新若干次就是这个取舍。这些是测试/浏览产物，不属于需要提交的结果。
+
 CLI `analyze` 的输出在“载入分析目录”中输入 `out/…` 即可，或访问
 `http://127.0.0.1:8080/?layer_run=out/your-run`。这只读取分析目录，不重新执行 tier0。
 每轮 JSON 是自包含渲染快照；旧未包含渲染数据的临时格式需要用当前版本重新 analyze/replay。
@@ -558,3 +564,6 @@ not the complete original layers. The DOT download follows the selected graph.
 
 `test_closed_diagrams.cjs` covers this selector. `test_closed_catalog.cjs` cannot:
 its fixture has no `comb_groups`, so the diagram branch is never reached there.
+
+`python3 tools/egglog_debugger/test_run_pruning.py` covers the `out/debugger/`
+retention described above.

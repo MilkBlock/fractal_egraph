@@ -21,6 +21,32 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from plugin_renderer import PluginRenderer, default_plugin_root
 
 ROOT = Path(__file__).resolve().parents[2]
+# Every web run writes a fresh out/debugger/<uuid>/ tree, and a single round snapshot can
+# reach tens of MB (round JSON embeds the whole analysis). Nothing ever removed them, so the
+# directory grew to 14 GB and a run failed with ENOSPC. Keep a bounded number of the most
+# recent runs. Only directories that look like our own run ids are ever touched.
+RUN_ROOT = ROOT / 'out' / 'debugger'
+RUN_LIMIT = max(1, int(os.environ.get('EGG_LAYOUT_DEBUGGER_RUNS', '3')))
+
+
+def prune_runs(keep=RUN_LIMIT):
+    """Delete the oldest run directories beyond `keep`. Best effort, never raises.
+
+    Callers must run this before creating a new run folder, so the new (not yet existing)
+    directory is never a candidate. A page still displaying a pruned run will 404 on
+    further round fetches; keeping the newest few is what makes that unlikely.
+    """
+    try:
+        if not RUN_ROOT.is_dir():
+            return
+        runs = sorted((p for p in RUN_ROOT.iterdir()
+                       if p.is_dir() and re.fullmatch(r'[0-9a-f]{32}', p.name)),
+                      key=lambda p: p.stat().st_mtime, reverse=True)
+        for stale in runs[keep:]:
+            shutil.rmtree(stale, ignore_errors=True)
+    except OSError:
+        pass
+
 
 class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -179,7 +205,8 @@ class Handler(SimpleHTTPRequestHandler):
                         return self.reply(422, {'error': result.stderr.decode(errors='replace')})
                     return self.reply(200, result.stdout)
                 run_id = uuid.uuid4().hex
-                run_folder = ROOT / 'out' / 'debugger' / run_id
+                run_folder = RUN_ROOT / run_id
+                prune_runs()
                 (run_folder / 'rounds').mkdir(parents=True)
                 (run_folder / 'source.egg').write_text(data['source'])
                 snapshots = []
