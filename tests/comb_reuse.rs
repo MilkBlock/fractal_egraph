@@ -466,3 +466,39 @@ fn multi_return_use_recurrence_preserves_distinct_output_positions() {
     assert_eq!(outputs, std::collections::BTreeSet::from([0, 1]));
     check_cover(&s);
 }
+
+#[test]
+fn verifier_rejects_same_value_from_a_different_physical_origin() {
+    let mut s = LayerStore::default();
+    let unrelated = add(&mut s, "Unrelated", vec![], Some(9), 100);
+    for k in 0..4 {
+        let a = add(&mut s, "A", vec![], Some(100), 2000 + k * 2);
+        add(&mut s, "B", vec![(a, 0)], None, 2001 + k * 2);
+    }
+    assert_eq!(s.reuse.uses[0].inputs[0], Reference::External(100));
+    let mut bad = s.reuse.clone();
+    bad.uses[0].inputs[0] = Reference::ResidualPort {
+        event: unrelated,
+        output: 0,
+    };
+    assert!(
+        bad.verify(&s).is_err(),
+        "value equality must not replace provenance"
+    );
+    let mut bad = s.reuse.clone();
+    let t = bad.uses[0].template;
+    bad.templates[t].pattern.inputs += 1;
+    assert!(
+        bad.verify(&s).is_err(),
+        "whole interface shape must be checked"
+    );
+    let mut bad = s.reuse.clone();
+    bad.uses[0].contexts.push(Reference::UseContext {
+        instance: 0,
+        member: 0,
+    });
+    assert!(
+        bad.verify(&s).is_err(),
+        "legacy references must still be acyclic"
+    );
+}

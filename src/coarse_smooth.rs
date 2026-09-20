@@ -14,6 +14,18 @@ pub enum Effect {
     Equal(usize, usize),
 }
 
+/// Shared first-occurrence naming for typed values and exact row tokens.
+pub(crate) fn symbol(v: usize, names: &mut BTreeMap<usize, usize>) -> usize {
+    let next = names.len();
+    *names.entry(v).or_insert(next)
+}
+pub(crate) fn canonical_effect(e: &Effect, names: &mut BTreeMap<usize, usize>) -> Effect {
+    match e {
+        Effect::RowFact(v) => Effect::RowFact(symbol(*v, names)),
+        Effect::Equal(a, b) => Effect::Equal(symbol(*a, names), symbol(*b, names)),
+    }
+}
+
 /// IDs in values/effects identify typed values or exact row versions, never just
 /// current e-class representatives. Rules include their literal/guard semantics.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -325,21 +337,14 @@ fn normalize(a: &Apply, occurrences: &[Occurrence], coarse: bool) -> Comb {
         })
         .collect();
     let mut values = BTreeMap::new();
-    let mut slot = |v: usize| {
-        let n = values.len();
-        *values.entry(v).or_insert(n)
-    };
     let aliases = a
         .wanted
         .iter()
         .chain(&a.outputs)
         .chain(&a.external)
-        .map(|v| slot(*v))
+        .map(|v| symbol(*v, &mut values))
         .collect();
-    let mut effect = |e: &Effect| match e {
-        Effect::RowFact(v) => Effect::RowFact(slot(*v)),
-        Effect::Equal(a, b) => Effect::Equal(slot(*a), slot(*b)),
-    };
+    let mut effect = |e: &Effect| canonical_effect(e, &mut values);
     Comb {
         kind: if coarse {
             CombKind::CoarseComb

@@ -1,5 +1,6 @@
 //! Finite recurrence evidence between immutable Use(T) instances.
 //! No unions, induction claims, or endpoint-only equivalence are inferred here.
+use crate::coarse_smooth::{canonical_effect as effect, symbol};
 use crate::{
     coarse_smooth::{Effect, LayerStore},
     comb_reuse::{Reference, ReuseStore},
@@ -67,20 +68,7 @@ pub struct Analysis {
     pub scope: String,
 }
 fn physical(r: &ReuseStore, p: &Reference) -> Reference {
-    match p {
-        Reference::UsePort {
-            instance,
-            member,
-            output,
-        } => Reference::ResidualPort {
-            event: r.uses[*instance].members[*member],
-            output: *output,
-        },
-        Reference::UseContext { instance, member } => {
-            Reference::ResidualContext(r.uses[*instance].members[*member])
-        }
-        p => p.clone(),
-    }
+    r.physical(p).expect("validated Use reference")
 }
 fn event(p: &Reference) -> Option<usize> {
     match p {
@@ -93,16 +81,6 @@ fn value(s: &LayerStore, p: &Reference) -> usize {
         Reference::ResidualPort { event, output } => s.occurrences[*event].apply.outputs[*output],
         Reference::External(v) => *v,
         _ => unreachable!("Use inputs are value references"),
-    }
-}
-fn symbol(v: usize, names: &mut BTreeMap<usize, usize>) -> usize {
-    let n = names.len();
-    *names.entry(v).or_insert(n)
-}
-fn effect(e: &Effect, names: &mut BTreeMap<usize, usize>) -> Effect {
-    match e {
-        Effect::RowFact(v) => Effect::RowFact(symbol(*v, names)),
-        Effect::Equal(a, b) => Effect::Equal(symbol(*a, names), symbol(*b, names)),
     }
 }
 fn transfer(s: &LayerStore, from: usize, to: usize) -> Transfer {

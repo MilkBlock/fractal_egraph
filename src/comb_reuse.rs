@@ -1,6 +1,7 @@
 //! Online, producer-anchored dictionary coding of composition wiring.
 //! This is an alternative metadata representation, not skipped tier0 execution.
 use crate::coarse_smooth::{Effect, LayerStore, RelativeBinding};
+use crate::coarse_smooth::{canonical_effect as rename, symbol};
 use serde::Serialize;
 use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
 use std::hash::{Hash, Hasher};
@@ -181,6 +182,23 @@ impl ReuseStore {
         if self.dirty_templates.insert(t) {
             self.dirty_queue.push_back(t);
         }
+    }
+    /// Resolve legacy/display references without changing physical provenance.
+    pub fn physical(&self, r: &Reference) -> Option<Reference> {
+        Some(match r {
+            Reference::UsePort {
+                instance,
+                member,
+                output,
+            } => Reference::ResidualPort {
+                event: *self.uses.get(*instance)?.members.get(*member)?,
+                output: *output,
+            },
+            Reference::UseContext { instance, member } => {
+                Reference::ResidualContext(*self.uses.get(*instance)?.members.get(*member)?)
+            }
+            r => r.clone(),
+        })
     }
     fn value_ref(&self, event: usize, output: usize) -> Reference {
         // Historical name retained in the JSON protocol. Identity is physical,
@@ -680,166 +698,83 @@ impl ReuseStore {
     /// Replay the compact wiring against immutable occurrence evidence, without
     /// executing rules. This checks ports, sharing, requirements and union effects.
     pub fn verify(&self, store: &LayerStore) -> Result<(), String> {
-        let mut covered = BTreeSet::new();
-        for u in &self.active_uses {
-            for e in &self.uses[*u].members {
-                if !covered.insert(*e) {
+        let mut owners = vec![None; store.occurrences.len()];
+        let mut reverse = vec![BTreeSet::new(); self.templates.len()];
+        let mut selected_cost = 0;
+        for id in &self.active_uses {
+            let u = self.uses.get(*id).ok_or("invalid active Use")?;
+            reverse
+                .get_mut(u.template)
+                .ok_or("invalid template")?
+                .insert(*id);
+            selected_cost += u.wiring_cost;
+            for (m, e) in u.members.iter().enumerate() {
+                if owners
+                    .get_mut(*e)
+                    .ok_or("invalid member")?
+                    .replace((*id, m))
+                    .is_some()
+                {
                     return Err("overlapping preferred Uses".into());
                 }
             }
         }
-        for (e, owner) in self.owner.iter().enumerate() {
-            if owner.is_none() {
-                covered.insert(e);
-            } else if !covered.contains(&e) {
-                return Err("uncovered owned occurrence".into());
-            }
+        if owners != self.owner || reverse != self.active_by_template {
+            return Err("cover/reverse index drift".into());
         }
-        if covered.len() != self.owner.len() {
-            return Err("incomplete preferred cover".into());
-        }
-        let mut selected_cost = 0;
-        for (e, owner) in self.owner.iter().enumerate() {
-            match owner {
-                Some((u, m))
-                    if self.active_uses.contains(u)
-                        && self.uses[*u].members.get(*m) == Some(&e) => {}
-                None => selected_cost += raw_cost(&store.occurrences[e].apply),
-                _ => return Err("owner index does not describe current cover".into()),
-            }
-        }
-        selected_cost += self
-            .active_uses
+        selected_cost += owners
             .iter()
-            .map(|u| self.uses[*u].wiring_cost)
+            .zip(&store.occurrences)
+            .filter(|(o, _)| o.is_none())
+            .map(|(_, o)| raw_cost(&o.apply))
             .sum::<usize>();
         if selected_cost != self.selected_wiring_cost {
             return Err("selected cost drift".into());
-        }
-        let mut expected = vec![BTreeSet::new(); self.templates.len()];
-        for u in &self.active_uses {
-            expected[self.uses[*u].template].insert(*u);
-        }
-        if expected != self.active_by_template {
-            return Err("template reverse index drift".into());
         }
         for (uid, u) in self.uses.iter().enumerate() {
             let t = &self.templates[u.template];
             if t.learned_at >= u.completed_at {
                 return Err("Use learned from its own future".into());
             }
-            let local: BTreeMap<_, _> =
-                u.members.iter().enumerate().map(|(m, e)| (*e, m)).collect();
-            let mut symbols = BTreeMap::new();
-            let resolve = |r: &Reference| -> Option<usize> {
-                match r {
-                    Reference::External(v) => Some(*v),
-                    Reference::ResidualPort { event, output } => store
-                        .occurrences
-                        .get(*event)?
-                        .apply
-                        .outputs
-                        .get(*output)
-                        .copied(),
-                    Reference::UsePort {
-                        instance,
-                        member,
-                        output,
-                    } if *instance < uid => {
-                        let old = self.uses.get(*instance)?;
-                        store
-                            .occurrences
-                            .get(*old.members.get(*member)?)?
-                            .apply
-                            .outputs
-                            .get(*output)
-                            .copied()
-                    }
-                    _ => None,
-                }
-            };
-            for (m, e) in u.members.iter().enumerate() {
+            let members: BTreeSet<_> = u.members.iter().copied().collect();
+            if members.len() != u.members.len()
+                || members.iter().any(|e| *e >= store.occurrences.len())
+            {
+                return Err("invalid Use members".into());
+            }
+            let root = *u.members.get(t.pattern.root).ok_or("invalid Use root")?;
+            // Reconstruct the same canonical interface from immutable applies.
+            // Only pattern/ports/cost matter here, never the current cut's parts.
+            let expected = self.candidate(store, &members, root);
+            for e in &u.members {
                 let a = &store.occurrences[*e].apply;
-                let step = &t.pattern.steps[m];
-                let schema = &self.schemas[step.schema];
+                let schema = &self.schemas[self.event_schema[*e]];
                 if a.rule != schema.rule
                     || a.input_roles != schema.input_roles
                     || a.output_roles != schema.output_roles
                 {
                     return Err("Use source/role mismatch".into());
                 }
-                for (slot, w) in step.wiring.iter().enumerate() {
-                    match w {
-                        Wire::Local { member, output } => {
-                            let Some(RelativeBinding::ParentPort {
-                                parent,
-                                output: actual,
-                            }) = a.binding.get(slot)
-                            else {
-                                return Err("missing internal port".into());
-                            };
-                            if a.parents[*parent] != u.members[*member] || actual != output {
-                                return Err("internal producer changed".into());
-                            }
-                        }
-                        Wire::Input(p) => {
-                            if resolve(&u.inputs[*p]) != a.wanted.get(slot).copied() {
-                                return Err("boundary input changed".into());
-                            }
-                        }
-                    }
-                }
-                let mut ps: Vec<_> = a
-                    .parents
-                    .iter()
-                    .filter_map(|p| local.get(p).copied())
-                    .collect();
-                ps.sort();
-                if ps != step.internal_parents {
-                    return Err("internal dependency changed".into());
-                }
-                let aliases: Vec<_> = a
-                    .wanted
-                    .iter()
-                    .chain(&a.outputs)
-                    .map(|v| symbol(*v, &mut symbols))
-                    .collect();
-                let requires: Vec<_> = a.required.iter().map(|e| rename(e, &mut symbols)).collect();
-                let effects: Vec<_> = a.produced.iter().map(|e| rename(e, &mut symbols)).collect();
-                if aliases != step.aliases || requires != step.requires || effects != step.effects {
-                    return Err("alias/effect mismatch".into());
-                }
             }
-            let expected_contexts: BTreeSet<_> = u
-                .members
-                .iter()
-                .flat_map(|e| store.occurrences[*e].apply.parents.iter())
-                .filter(|e| !local.contains_key(e))
-                .copied()
-                .collect();
-            let expected_external: BTreeSet<_> = u
-                .members
-                .iter()
-                .flat_map(|e| store.occurrences[*e].apply.external_facts.iter().cloned())
-                .collect();
-            let mut actual_contexts = BTreeSet::new();
-            let mut actual_external = BTreeSet::new();
-            for r in &u.contexts {
-                match r {
-                    Reference::ResidualContext(e) => {
-                        actual_contexts.insert(*e);
+            let resolve = |refs: &[Reference]| -> Result<Vec<Reference>, String> {
+                refs.iter().map(|r| {
+                    if matches!(r, Reference::UsePort{instance,..}|Reference::UseContext{instance,..} if *instance >= uid) {
+                        return Err("cyclic Use reference".into());
                     }
-                    Reference::UseContext { instance, member } if *instance < uid => {
-                        actual_contexts.insert(self.uses[*instance].members[*member]);
-                    }
-                    Reference::ExternalEffect(e) => {
-                        actual_external.insert(e.clone());
-                    }
-                    _ => return Err("invalid context reference".into()),
-                }
+                    self.physical(r).ok_or_else(|| "invalid Use reference".into())
+                }).collect()
+            };
+            if expected.pattern != t.pattern || expected.members != u.members {
+                return Err("Use pattern/alias/effect mismatch".into());
             }
-            if expected_contexts != actual_contexts || expected_external != actual_external {
-                return Err("context/effect evidence changed".into());
+            if resolve(&u.inputs)? != expected.inputs
+                || resolve(&u.contexts)?.into_iter().collect::<BTreeSet<_>>()
+                    != expected.contexts.into_iter().collect()
+            {
+                return Err("boundary/context provenance changed".into());
+            }
+            if u.wiring_cost != expected.new_cost {
+                return Err("Use wiring cost drift".into());
             }
             let mut parts = vec![];
             for p in &u.parts {
@@ -916,16 +851,6 @@ fn definition_cost(p: &Pattern) -> usize {
 }
 fn raw_cost(a: &crate::coarse_smooth::Apply) -> usize {
     4 + a.binding.len() * 3 + a.parents.len() + a.required.len() + a.produced.len()
-}
-fn symbol(v: usize, map: &mut BTreeMap<usize, usize>) -> usize {
-    let n = map.len();
-    *map.entry(v).or_insert(n)
-}
-fn rename(e: &Effect, map: &mut BTreeMap<usize, usize>) -> Effect {
-    match e {
-        Effect::RowFact(v) => Effect::RowFact(symbol(*v, map)),
-        Effect::Equal(a, b) => Effect::Equal(symbol(*a, map), symbol(*b, map)),
-    }
 }
 fn convex(s: &LayerStore, set: &BTreeSet<usize>) -> Option<bool> {
     let min = *set.first()?;

@@ -1,6 +1,7 @@
 //! Bounded, observed interface grammars over native coarse/smooth layers.
 //! Finite witnesses are never promoted to arbitrary-depth proofs or semantic unions.
 use crate::coarse_smooth::{Effect, LayerStore, RelativeBinding};
+use crate::coarse_smooth::{canonical_effect as effect, symbol as alias};
 use crate::dag_embedding::{self, Dag, Edge, Node, Outcome};
 use serde::Serialize;
 use serde_json::{Value, json};
@@ -104,16 +105,6 @@ impl Analyzer {
     }
 }
 
-fn alias(id: usize, values: &mut BTreeMap<usize, usize>) -> usize {
-    let n = values.len();
-    *values.entry(id).or_insert(n)
-}
-fn effect(e: &Effect, values: &mut BTreeMap<usize, usize>) -> Effect {
-    match e {
-        Effect::RowFact(v) => Effect::RowFact(alias(*v, values)),
-        Effect::Equal(a, b) => Effect::Equal(alias(*a, values), alias(*b, values)),
-    }
-}
 /// A rooted ordered dependency slice. Parent traversal follows binding roles,
 /// so independent event interleaving does not determine member order.
 fn ordered(store: &LayerStore, selected: &BTreeSet<usize>) -> Vec<usize> {

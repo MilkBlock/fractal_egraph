@@ -236,17 +236,9 @@ fn reuse_graph(s: &LayerStore) -> Json {
         )
         .collect();
     let source = |reference: &Reference| -> Option<(String, String)> {
-        let (event, output) = match reference {
-            Reference::ResidualPort { event, output } => (*event, Some(*output)),
-            Reference::ResidualContext(event) => (*event, None),
-            Reference::UsePort {
-                instance,
-                member,
-                output,
-            } => (r.uses[*instance].members[*member], Some(*output)),
-            Reference::UseContext { instance, member } => {
-                (r.uses[*instance].members[*member], None)
-            }
+        let (event, output) = match r.physical(reference)? {
+            Reference::ResidualPort { event, output } => (event, Some(output)),
+            Reference::ResidualContext(event) => (event, None),
             _ => return None,
         };
         let port = output

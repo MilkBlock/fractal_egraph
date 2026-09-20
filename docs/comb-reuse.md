@@ -348,3 +348,21 @@ repetitions from recursion, preserve external demand, and verify branching throu
 two distinct output roles. Those tests are metadata fixtures; the Math result uses
 native captured egglog evidence. No increase in proven FractalRules or reduction
 in tier0 work is claimed by this change.
+
+## Tier1 implementation cleanup
+
+Value/effect canonicalization now lives once in `coarse_smooth`; the layer,
+composition and recurrence analyzers share it. `ReuseStore::physical` centralizes
+legacy/display reference resolution for validation, recurrence and visualization.
+Use validation reconstructs the canonical interface from immutable applies using
+the same normalizer as construction, then checks the entire pattern, exact physical
+boundary/context references, source roles, cost, decomposition and cover indexes.
+It is shared normalization, not a second independent decoder implementation.
+Negative tests include same-value/different-producer substitution, malformed input
+arity and cyclic legacy references, in addition to the existing alias/effect tests.
+
+The five core modules (`coarse_smooth`, `comb_reuse`, `use_fractals`,
+`layer_patterns`, `layer_bridge`) decrease from 2734 to 2633 lines. Replaying the
+native Math6 history produces byte-identical six JSON snapshots, thirty DOT files
+and the round manifest versus `out/use-fractal-final`. No matching budgets or
+serialized schemas changed. Online/offline/replay checks also pass.
