@@ -1,0 +1,456 @@
+{
+  "scope": "Read-only probe over one recorded analysis. 'closed' means no observed external consumer read a non-root member output. It does NOT prove that no rule could match the interior: history coverage is not a rule-level domination property.",
+  "analysis": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-reuse-final/full/analysis.json",
+  "counters": {
+    "events": 1529,
+    "active_uses": 243,
+    "templates": 168,
+    "used_templates": 45,
+    "probe_external_reads": 2807,
+    "probe_interior_reads": 992,
+    "runtime_continuations_through_use": 3061,
+    "runtime_interior_port_reads": 2759,
+    "cover_conflicts": 0,
+    "unresolved_refs": 1719,
+    "excluded_internal_edges": 1155
+  },
+  "histogram_interior_ports_per_use": {
+    "0": 34,
+    "1": 5,
+    "2": 28,
+    "3": 88,
+    "4": 2,
+    "5": 21,
+    "6": 16,
+    "7": 4,
+    "8": 21,
+    "9": 15,
+    "10": 2,
+    "11": 1,
+    "12": 2,
+    "18": 4
+  },
+  "histogram_interior_ports_per_template": {
+    "0": 1,
+    "2": 1,
+    "3": 17,
+    "4": 1,
+    "5": 3,
+    "6": 4,
+    "8": 4,
+    "9": 10,
+    "11": 2,
+    "12": 1,
+    "21": 1
+  },
+  "closed_uses": 34,
+  "closed_templates": [],
+  "q1_verdict": "no template qualifies",
+  "per_template": {
+    "0": {
+      "active_uses": 16,
+      "closed_uses": 4,
+      "members": {
+        "2": 16
+      },
+      "interior_ports": 3,
+      "interior_reads": 33
+    },
+    "1": {
+      "active_uses": 7,
+      "closed_uses": 0,
+      "members": {
+        "2": 7
+      },
+      "interior_ports": 6,
+      "interior_reads": 42
+    },
+    "2": {
+      "active_uses": 60,
+      "closed_uses": 19,
+      "members": {
+        "2": 60
+      },
+      "interior_ports": 3,
+      "interior_reads": 101
+    },
+    "6": {
+      "active_uses": 4,
+      "closed_uses": 0,
+      "members": {
+        "2": 4
+      },
+      "interior_ports": 5,
+      "interior_reads": 20
+    },
+    "8": {
+      "active_uses": 8,
+      "closed_uses": 2,
+      "members": {
+        "3": 8
+      },
+      "interior_ports": 3,
+      "interior_reads": 15
+    },
+    "12": {
+      "active_uses": 5,
+      "closed_uses": 0,
+      "members": {
+        "2": 5
+      },
+      "interior_ports": 6,
+      "interior_reads": 23
+    },
+    "13": {
+      "active_uses": 4,
+      "closed_uses": 0,
+      "members": {
+        "3": 4
+      },
+      "interior_ports": 9,
+      "interior_reads": 35
+    },
+    "18": {
+      "active_uses": 12,
+      "closed_uses": 4,
+      "members": {
+        "3": 12
+      },
+      "interior_ports": 9,
+      "interior_reads": 46
+    },
+    "32": {
+      "active_uses": 1,
+      "closed_uses": 0,
+      "members": {
+        "3": 1
+      },
+      "interior_ports": 2,
+      "interior_reads": 2
+    },
+    "33": {
+      "active_uses": 2,
+      "closed_uses": 0,
+      "members": {
+        "4": 2
+      },
+      "interior_ports": 9,
+      "interior_reads": 18
+    },
+    "37": {
+      "active_uses": 2,
+      "closed_uses": 0,
+      "members": {
+        "2": 2
+      },
+      "interior_ports": 11,
+      "interior_reads": 20
+    },
+    "41": {
+      "active_uses": 4,
+      "closed_uses": 0,
+      "members": {
+        "2": 4
+      },
+      "interior_ports": 4,
+      "interior_reads": 13
+    },
+    "51": {
+      "active_uses": 9,
+      "closed_uses": 0,
+      "members": {
+        "3": 9
+      },
+      "interior_ports": 9,
+      "interior_reads": 47
+    },
+    "59": {
+      "active_uses": 10,
+      "closed_uses": 0,
+      "members": {
+        "2": 10
+      },
+      "interior_ports": 6,
+      "interior_reads": 45
+    },
+    "62": {
+      "active_uses": 4,
+      "closed_uses": 0,
+      "members": {
+        "2": 4
+      },
+      "interior_ports": 9,
+      "interior_reads": 31
+    },
+    "63": {
+      "active_uses": 7,
+      "closed_uses": 0,
+      "members": {
+        "2": 7
+      },
+      "interior_ports": 5,
+      "interior_reads": 24
+    },
+    "73": {
+      "active_uses": 3,
+      "closed_uses": 0,
+      "members": {
+        "2": 3
+      },
+      "interior_ports": 8,
+      "interior_reads": 24
+    },
+    "76": {
+      "active_uses": 3,
+      "closed_uses": 0,
+      "members": {
+        "4": 3
+      },
+      "interior_ports": 9,
+      "interior_reads": 19
+    },
+    "77": {
+      "active_uses": 6,
+      "closed_uses": 0,
+      "members": {
+        "6": 6
+      },
+      "interior_ports": 12,
+      "interior_reads": 49
+    },
+    "78": {
+      "active_uses": 6,
+      "closed_uses": 0,
+      "members": {
+        "3": 6
+      },
+      "interior_ports": 3,
+      "interior_reads": 18
+    },
+    "80": {
+      "active_uses": 7,
+      "closed_uses": 0,
+      "members": {
+        "3": 7
+      },
+      "interior_ports": 6,
+      "interior_reads": 39
+    },
+    "81": {
+      "active_uses": 1,
+      "closed_uses": 0,
+      "members": {
+        "4": 1
+      },
+      "interior_ports": 9,
+      "interior_reads": 9
+    },
+    "83": {
+      "active_uses": 11,
+      "closed_uses": 3,
+      "members": {
+        "3": 11
+      },
+      "interior_ports": 3,
+      "interior_reads": 21
+    },
+    "89": {
+      "active_uses": 6,
+      "closed_uses": 0,
+      "members": {
+        "2": 6
+      },
+      "interior_ports": 8,
+      "interior_reads": 48
+    },
+    "90": {
+      "active_uses": 4,
+      "closed_uses": 0,
+      "members": {
+        "4": 4
+      },
+      "interior_ports": 21,
+      "interior_reads": 72
+    },
+    "101": {
+      "active_uses": 6,
+      "closed_uses": 0,
+      "members": {
+        "2": 6
+      },
+      "interior_ports": 3,
+      "interior_reads": 18
+    },
+    "109": {
+      "active_uses": 4,
+      "closed_uses": 0,
+      "members": {
+        "3": 4
+      },
+      "interior_ports": 3,
+      "interior_reads": 12
+    },
+    "125": {
+      "active_uses": 4,
+      "closed_uses": 0,
+      "members": {
+        "2": 4
+      },
+      "interior_ports": 3,
+      "interior_reads": 12
+    },
+    "126": {
+      "active_uses": 3,
+      "closed_uses": 0,
+      "members": {
+        "3": 3
+      },
+      "interior_ports": 11,
+      "interior_reads": 21
+    },
+    "128": {
+      "active_uses": 3,
+      "closed_uses": 0,
+      "members": {
+        "2": 3
+      },
+      "interior_ports": 3,
+      "interior_reads": 9
+    },
+    "136": {
+      "active_uses": 1,
+      "closed_uses": 0,
+      "members": {
+        "4": 1
+      },
+      "interior_ports": 3,
+      "interior_reads": 3
+    },
+    "138": {
+      "active_uses": 1,
+      "closed_uses": 0,
+      "members": {
+        "2": 1
+      },
+      "interior_ports": 3,
+      "interior_reads": 3
+    },
+    "139": {
+      "active_uses": 1,
+      "closed_uses": 0,
+      "members": {
+        "2": 1
+      },
+      "interior_ports": 5,
+      "interior_reads": 5
+    },
+    "140": {
+      "active_uses": 1,
+      "closed_uses": 0,
+      "members": {
+        "2": 1
+      },
+      "interior_ports": 3,
+      "interior_reads": 3
+    },
+    "141": {
+      "active_uses": 3,
+      "closed_uses": 1,
+      "members": {
+        "3": 3
+      },
+      "interior_ports": 3,
+      "interior_reads": 5
+    },
+    "142": {
+      "active_uses": 1,
+      "closed_uses": 0,
+      "members": {
+        "3": 1
+      },
+      "interior_ports": 3,
+      "interior_reads": 3
+    },
+    "149": {
+      "active_uses": 1,
+      "closed_uses": 0,
+      "members": {
+        "2": 1
+      },
+      "interior_ports": 9,
+      "interior_reads": 9
+    },
+    "150": {
+      "active_uses": 1,
+      "closed_uses": 0,
+      "members": {
+        "2": 1
+      },
+      "interior_ports": 9,
+      "interior_reads": 9
+    },
+    "151": {
+      "active_uses": 1,
+      "closed_uses": 0,
+      "members": {
+        "2": 1
+      },
+      "interior_ports": 3,
+      "interior_reads": 3
+    },
+    "152": {
+      "active_uses": 1,
+      "closed_uses": 0,
+      "members": {
+        "2": 1
+      },
+      "interior_ports": 3,
+      "interior_reads": 3
+    },
+    "155": {
+      "active_uses": 2,
+      "closed_uses": 0,
+      "members": {
+        "3": 2
+      },
+      "interior_ports": 9,
+      "interior_reads": 17
+    },
+    "159": {
+      "active_uses": 4,
+      "closed_uses": 0,
+      "members": {
+        "3": 4
+      },
+      "interior_ports": 8,
+      "interior_reads": 32
+    },
+    "162": {
+      "active_uses": 1,
+      "closed_uses": 1,
+      "members": {
+        "3": 1
+      },
+      "interior_ports": 0,
+      "interior_reads": 0
+    },
+    "166": {
+      "active_uses": 1,
+      "closed_uses": 0,
+      "members": {
+        "3": 1
+      },
+      "interior_ports": 3,
+      "interior_reads": 3
+    },
+    "167": {
+      "active_uses": 1,
+      "closed_uses": 0,
+      "members": {
+        "3": 1
+      },
+      "interior_ports": 8,
+      "interior_reads": 8
+    }
+  }
+}
