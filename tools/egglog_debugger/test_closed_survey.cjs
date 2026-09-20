@@ -22,6 +22,18 @@ const assert=require('node:assert/strict'),fs=require('node:fs');const{chromium}
  assert((await p.locator('#native-closed-view').textContent()).includes('out'));
  await node('g'+group.id).click();await p.waitForSelector('#native-closed-view[data-ready=true] svg',{timeout:60000});assert.equal(await p.locator('#native-closed-view .node').count(),4);let details=JSON.parse(await p.locator('#native-closed-details').textContent());
  assert(details.instances.length>1);assert(details.instances[0].comb_members[0].source_coarse_layer!==undefined);
+ await p.selectOption('#native-closed-diagram','egraph');
+ await p.waitForSelector('#native-closed-view[data-ready=true] svg',{timeout:60000});
+ assert.equal(await p.locator('#native-closed-view .cluster').count(),10);
+ assert.equal(await p.locator('#native-closed-view .node title').evaluateAll(xs=>xs.filter(x=>/^n\d+$/.test(x.textContent)).length),15);
+ assert((await p.locator('#native-closed-caption').textContent()).includes('7 eclasses / 15'));
+ await p.selectOption('#native-closed-diagram','layers');
+ await p.waitForSelector('#native-closed-view[data-ready=true] svg',{timeout:60000});
+ assert((await p.locator('#native-closed-caption').textContent()).includes('参与'));
+ assert((await p.locator('#native-closed-view').textContent()).includes('来源'));
+ assert.equal(await p.locator('#native-closed-view .node').count(),2);
+ await p.selectOption('#native-closed-diagram','comb');
+ await p.waitForSelector('#native-closed-view[data-ready=true] svg',{timeout:60000});
  await p.locator('#native-closed-table').screenshot({path:'out/closed-survey/table.png'});
  await p.locator('#native-closed-view').screenshot({path:'out/closed-survey/comb-graph.png'});
  await p.selectOption('#native-layer-kind','fractals');

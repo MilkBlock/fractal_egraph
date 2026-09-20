@@ -545,3 +545,10 @@ Replaying explicit ripen history does not recursively enqueue ripen again.
 Regression: `cargo test --release --test closed_pipeline --test ripen --test
 layer_rounds --test closed_state`; browser tests `test_closed_pipeline.cjs` and
 `test_closed_survey.cjs` against the local server.
+
+ClosedState details have a graph selector: **source rule comb**, **closed e-graph**,
+and **source Coarse/Smooth layers**. Choose a state first; select a comb and Use
+instance to inspect its original layer membership. E-graph clusters are actual
+exported equivalence classes, containing their constructor rows; argument edges
+are ordered. Source layer clusters show only members participating in that Use,
+not the complete original layers. The DOT download follows the selected graph.

@@ -13,7 +13,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
       <div id="native-layer-viewport"></div><pre id="native-layer-error"></pre>
       <details><summary>返回 binding、条件与 effect 证据</summary><pre id="native-layer-details"></pre></details>
       <details><summary>当前 Typst / DOT 源码</summary><pre id="native-layer-code"></pre></details>`;
-    const catalogPanel=document.createElement('section');catalogPanel.hidden=true;catalogPanel.innerHTML=`<p>ClosedState / Closed rule comb · 每轮处理进度与共享闭包</p><input hidden id="native-closed-path" placeholder="out/ 中的 closed-catalog 目录"><button hidden id="native-closed-load">载入共享目录</button><select id="native-closed-state" aria-label="共享闭包"><option value="">全部概览</option></select><select id="native-closed-comb" aria-label="对应组合"><option value="">所有对应组合</option></select><div id="native-closed-status"></div><div id="native-closed-table"></div><div id="native-closed-view"></div><pre id="native-closed-rule" style="white-space:pre-wrap"></pre><pre id="native-closed-details"></pre>`;panel.append(catalogPanel);
+    const catalogPanel=document.createElement('section');catalogPanel.hidden=true;catalogPanel.innerHTML=`<p>ClosedState / Closed rule comb · 每轮处理进度与共享闭包</p><input hidden id="native-closed-path" placeholder="out/ 中的 closed-catalog 目录"><button hidden id="native-closed-load">载入共享目录</button><select id="native-closed-state" aria-label="共享闭包"><option value="">全部概览</option></select><select id="native-closed-comb" aria-label="对应组合"><option value="">所有对应组合</option></select><select id="native-closed-instance" aria-label="触发实例"><option value="">示例实例</option></select><select id="native-closed-diagram" aria-label="ClosedState 图类型"><option value="comb">来源 rule comb</option><option value="egraph">闭包 e-graph</option><option value="layers">来源 Coarse / Smooth layer</option></select><div id="native-closed-caption"></div><div id="native-closed-status"></div><div id="native-closed-table"></div><div id="native-closed-view"></div><pre id="native-closed-rule" style="white-space:pre-wrap"></pre><pre id="native-closed-details"></pre>`;panel.append(catalogPanel);
     const cp=id=>catalogPanel.querySelector('#native-closed-'+id);
     let catalogData=null,catalogVersion=0;
     function catalogGraph(){
@@ -23,10 +23,12 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         for(const g of c.comb_groups||[]){
             if(scope!==''&&g.closed_state!==Number(scope))continue;
             if(cp('comb').value!==''&&g.id!==Number(cp('comb').value))continue;
+            if(cp('instance').value!==''&&!g.triggers.includes(Number(cp('instance').value)))continue;
+            const members=cp('instance').value!==''?(selectedTrigger()?.binding_origin?.comb_members||g.members):g.members;
             const label=g.template===null?`入口 ${g.id}`:`T${g.template}`;
             nodes.push({id:'g'+g.id,label:`${label} · ${g.triggers.length} Uses\n`+g.members.map(m=>(m.use_kind==='CoarseComb'?'C:':'S:')+m.rule_name).join(' / '),kind:'template',detail:g});
-            if(scope!==''&&g.members.length){
-                for(const m of g.members){
+            if(scope!==''&&members.length){
+                for(const m of members){
                     const id=`g${g.id}m${m.slot}`;
                     nodes.push({id,label:`${m.use_kind} · ${m.rule_name}`,kind:m.use_kind==='CoarseComb'?'coarse':'smooth',detail:{group:g.id,member:m}});
                     if(!m.parents.length)edges.push({from:'g'+g.id,to:id,label:'entry'});
@@ -56,8 +58,62 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     function combOptions(){
         cp('comb').replaceChildren(new Option('所有对应组合',''));
         for(const g of catalogData?.catalog.comb_groups||[])if(cp('state').value===''||g.closed_state===Number(cp('state').value))cp('comb').add(new Option(`T${g.template??'—'} · ${g.triggers.length} Uses`,String(g.id)));
+        instanceOptions();
     }
-    function focusComb(g){cp('state').value=String(g.closed_state);combOptions();cp('comb').value=String(g.id);renderCatalog();showComb(g);}
+    function instanceOptions(){
+        cp('instance').replaceChildren(new Option('示例实例',''));
+        for(const [i,t] of (catalogData?.catalog.triggers||[]).entries()){
+            if(cp('state').value!==''&&t.closed_state!==Number(cp('state').value))continue;
+            if(cp('comb').value!==''&&!catalogData.catalog.comb_groups[Number(cp('comb').value)].triggers.includes(i))continue;
+            cp('instance').add(new Option(`U${t.origin?.use_id??i} · T${t.origin?.template??'—'}`,String(i)));
+        }
+    }
+    function selectedTrigger(){
+        const i=cp('instance').value||cp('instance').options[1]?.value;
+        return i===undefined?null:catalogData.catalog.triggers[Number(i)];
+    }
+    function closedDiagram(){
+        const kind=cp('diagram').value;
+        if(kind==='comb')return {g:catalogGraph(),caption:'rule comb → ClosedState；选择组合和触发实例可查看实际来源。'};
+        const state=cp('state').value;
+        if(state==='')return {g:{nodes:[],edges:[]},caption:'请先选择一个 ClosedState。'};
+        if(kind==='egraph'){
+            const data=catalogData.states[Number(state)],q=JSON.stringify;
+            const lines=['digraph G {rankdir=LR; node [shape=box];'];
+            const nodes=[];
+            data.values.forEach((v,i)=>{
+                nodes.push({id:'v'+i,detail:{class:i,...v}});
+                lines.push(`subgraph cluster_${i} {label=${q(v.sort+' · class '+i)};color="#97a6ba"; v${i} [label=${q(v.literal??'EClass '+i)},shape=ellipse];`);
+                data.rows.forEach((r,j)=>{if(r.result===i){nodes.push({id:'n'+j,detail:r});lines.push(`n${j} [label=${q(r.op)},style=filled,fillcolor="#dff2ec"];`);}});
+                lines.push('}');
+            });
+            data.rows.forEach((r,j)=>r.args.forEach((a,k)=>lines.push(`n${j} -> v${a} [label=${q('arg '+k)}];`)));
+            for(const [name,v] of Object.entries(data.ports||{}))lines.push(`p${v} [label=${q(name)},shape=plaintext]; p${v} -> v${v};`);
+            lines.push('}');
+            return {g:{nodes,edges:[]},source:lines.join('\n'),caption:`C${state} · ${data.values.filter(v=>v.literal===null).length} eclasses / ${data.rows.length} constructor rows；框内为同一 class 的 enodes。RipenInput 是符号边界参数，不是原始数据。`};
+        }
+        const trigger=selectedTrigger(),members=trigger?.binding_origin?.comb_members||[];
+        const nodes=[],edges=[],groups=new Map();
+        for(const m of members){
+            const layer=m.source_smooth_layer===null||m.source_smooth_layer===undefined?'C'+m.source_coarse_layer:'S'+m.source_smooth_layer;
+            const coarse='C'+m.source_coarse_layer;
+            if(!groups.has(coarse))groups.set(coarse,new Map());
+            const children=groups.get(coarse);if(!children.has(layer))children.set(layer,[]);children.get(layer).push('m'+m.slot);
+            nodes.push({id:'m'+m.slot,label:`${m.rule_name} · ${m.use_kind}\n原始 ${m.source_kind} · C${m.source_coarse_layer} / S${m.source_smooth_layer??'—'}`,kind:m.source_kind==='CoarseComb'?'coarse':'smooth',detail:m});
+            for(const parent of m.parents)edges.push({from:'m'+parent,to:'m'+m.slot,label:'recorded dependency'});
+        }
+        let source=dot({nodes,edges}).slice(0,-1);
+        for(const [coarse,children] of groups){
+            source+=`\nsubgraph cluster_${coarse} {label=${JSON.stringify('来源 Coarse layer '+coarse+' · 参与部分')};`;
+            for(const [layer,ids] of children){
+                const members=ids.map(x=>JSON.stringify(x)).join(';')+';';
+                source+=layer===coarse?members:`subgraph cluster_${coarse}_${layer} {label=${JSON.stringify('来源 Smooth layer '+layer+' · 参与部分')};${members}}`;
+            }source+='}';
+        }
+        source+='}';
+        return {g:{nodes,edges},source,caption:`U${trigger?.origin?.use_id??'—'}：原始 layer 中参与此 rule comb 的成员；不是整个 layer。Use 内的 Coarse/Smooth 分类与原始 layer 分类可能不同。`};
+    }
+    function focusComb(g){cp('state').value=String(g.closed_state);combOptions();cp('comb').value=String(g.id);instanceOptions();renderCatalog();showComb(g);}
     function memberText(m){
         const aliases=(m.input_roles||[]).map((r,i)=>`${r}=v${m.aliases?.[i]??'?'}`).join(', ');
         return `${m.use_kind} · ${m.rule_name}\n观测别名（模板内）: ${aliases}\n示例来源 layer: C${m.source_coarse_layer} / ${m.source_smooth_layer===null?'—':'S'+m.source_smooth_layer}\n${m.rule}`;
@@ -65,18 +121,19 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     function showComb(g){
         const instances=g.triggers.map(i=>{const t=catalogData.catalog.triggers[i];return {origin:t.origin,source:t.source,value_map:t.value_map,comb_members:t.binding_origin?.comb_members};});
         cp('details').textContent=JSON.stringify({template:g.template,instances},null,2);
-        cp('rule').textContent=g.members.map(memberText).join('\n\n');
+        cp('rule').textContent=(selectedTrigger()?.binding_origin?.comb_members||g.members).map(memberText).join('\n\n');
     }
     async function renderCatalog(){
         const v=++catalogVersion,c=catalogData.catalog;cp('view').dataset.ready='false';cp('rule').textContent='';
         try{
             let source=catalogData.dot,g=null;
-            if(c.comb_groups){g=catalogGraph();source=dot(g);catalogTable();}
+            if(c.comb_groups){const diagram=closedDiagram();g=diagram.g;source=diagram.source||dot(g);cp('caption').textContent=diagram.caption;catalogTable();}cp('view').dataset.dot=source;
             const markup=await (await post('render',{kind:'dot',source})).text();if(v!==catalogVersion)return;
             cp('view').replaceChildren();const svg=mountSvg(markup,cp('view'));if(g&&g.nodes.length<=10){svg.style.maxWidth='100%';svg.style.height='auto';}cp('view').dataset.ready='true';
             for(const node of svg.querySelectorAll('.node')){
                 const id=node.querySelector('title')?.textContent||'';node.style.cursor='pointer';
                 node.onclick=()=>{
+                    if(cp('diagram').value!=='comb'){const d=g?.nodes.find(n=>n.id===id)?.detail;cp('details').textContent=JSON.stringify(d,null,2);if(d?.rule)cp('rule').textContent=memberText(d);return;}
                     if(!g){cp('details').textContent=JSON.stringify(id.startsWith('t')?c.triggers[Number(id.slice(1))]:catalogData.states[Number(id.slice(1))],null,2);return;}
                     if(id.startsWith('c')){const state=Number(id.slice(1));cp('details').textContent=JSON.stringify({state:catalogData.states[state],groups:c.comb_groups.filter(g=>g.closed_state===state)},null,2);if(cp('state').value===''){cp('state').value=String(state);combOptions();renderCatalog();}}
                     else if(/^g\d+$/.test(id))focusComb(c.comb_groups[Number(id.slice(1))]);
@@ -85,6 +142,8 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
             }
         }catch(e){cp('status').textContent=String(e);}
     }
+    cp('diagram').onchange=()=>{if(catalogData)renderCatalog();};
+    cp('instance').onchange=()=>{if(catalogData){renderCatalog();const g=catalogData.catalog.comb_groups?.find(g=>g.triggers.includes(Number(cp('instance').value)));if(g)showComb(g);}};
     cp('state').onchange=()=>{if(catalogData){combOptions();renderCatalog();}};
     cp('comb').onchange=()=>{if(!catalogData)return;const id=cp('comb').value;if(id==='')renderCatalog();else focusComb(catalogData.catalog.comb_groups[Number(id)]);};
     cp('load').onclick=async()=>{
@@ -130,7 +189,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
             combOptions();if($('kind').value==='closed')renderCatalog();
         }else{combOptions();cp('status').textContent+=' 暂无可导出的 ClosedState，Pending / Suspended 不代表已闭合。';}
     }
-    function clearCatalog(){catalogVersion++;catalogData=null;cp('path').value='';for(const id of ['view','table','details','rule'])cp(id).replaceChildren();cp('state').replaceChildren(new Option('全部概览',''));combOptions();}
+    function clearCatalog(){catalogVersion++;catalogData=null;cp('path').value='';for(const id of ['view','table','details','rule','caption'])cp(id).replaceChildren();cp('state').replaceChildren(new Option('全部概览',''));combOptions();}
 
     function reset(){clearCatalog();mode();abort?.abort();version++;frames=[];pinned=false;rendered=false;previewCache.clear();$('round').replaceChildren();$('scope').replaceChildren(new Option('全部',''));$('viewport').replaceChildren();$('details').textContent='';$('code').textContent='';$('status').textContent='等待实际执行边界…';}
     function receive(f){
@@ -291,7 +350,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         }catch(e){if(v===version&&e.name!=='AbortError')$('error').textContent=e.message;}
     }
     $('round').onchange=options;$('kind').onchange=options;$('render').onclick=render;
-    $('download').onclick=()=>{if($('kind').value==='closed'){if(!catalogData)return;const a=document.createElement('a'),url=URL.createObjectURL(new Blob([dot(catalogGraph())],{type:'text/vnd.graphviz;charset=utf-8'}));a.href=url;a.download='closed-state.dot';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;}const f=frame();if(!f)return;const kind=$('kind').value,a=document.createElement('a'),url=URL.createObjectURL(new Blob([f.dots[kind]],{type:'text/vnd.graphviz;charset=utf-8'}));a.href=url;a.download=f.stem+'.'+kind+'.dot';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+    $('download').onclick=()=>{if($('kind').value==='closed'){if(!catalogData)return;const a=document.createElement('a'),url=URL.createObjectURL(new Blob([cp('view').dataset.dot||dot(catalogGraph())],{type:'text/vnd.graphviz;charset=utf-8'}));a.href=url;a.download='closed-state.dot';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;}const f=frame();if(!f)return;const kind=$('kind').value,a=document.createElement('a'),url=URL.createObjectURL(new Blob([f.dots[kind]],{type:'text/vnd.graphviz;charset=utf-8'}));a.href=url;a.download=f.stem+'.'+kind+'.dot';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
     async function load(path){
         const controls=['load','render','round','kind','scope','format'];controls.forEach(id=>$(id).disabled=true);
         try {const data=await (await post('layer-run',{path})).json();reset();for(const f of data.frames)receive(f);if(data.closed_catalog&&!data.frames.some(f=>f.closed)){cp('path').value=data.closed_catalog;await cp('load').onclick();}mode();}
