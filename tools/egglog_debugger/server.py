@@ -92,6 +92,10 @@ class Handler(SimpleHTTPRequestHandler):
                 folder = (ROOT / data['path']).resolve()
                 if not folder.is_relative_to(ROOT / 'out'):
                     return self.reply(400, {'error':'请选择仓库 out/ 内的目录'})
+                if not (folder / 'catalog.json').is_file() and (folder / 'catalog/catalog.json').is_file():
+                    folder = (folder / 'catalog').resolve()
+                if not folder.is_relative_to(ROOT / 'out'):
+                    raise ValueError('Catalog must remain inside out/')
                 catalog = json.loads((folder / 'catalog.json').read_text())
                 if catalog.get('schema') != 'closed-state-catalog/v1':
                     raise ValueError('Unsupported closed-state catalog')
@@ -111,7 +115,9 @@ class Handler(SimpleHTTPRequestHandler):
                     if frame.get('kind') != 'layer_snapshot':
                         raise ValueError('旧快照没有渲染数据，请使用当前版本重新 analyze/replay')
                     frames.append(frame)
-                return self.reply(200, {'frames':frames})
+                catalog_folder = (folder / 'catalog').resolve()
+                closed_catalog = str(catalog_folder.relative_to(ROOT)) if catalog_folder.is_relative_to(ROOT / 'out') and (catalog_folder / 'catalog.json').is_file() else None
+                return self.reply(200, {'frames':frames, 'closed_catalog':closed_catalog})
             if self.path == '/api/preview':
                 line = data.get('line', 1)
                 data['edit_targets'] = self.server.annotations.catalog(data['source'], line)

@@ -4,7 +4,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     const panel=document.createElement('details');panel.id='native-layer-panel';panel.open=true;
     panel.innerHTML=`<summary>Layer / FractalComb · 每轮 DOT</summary>
       <div><select id="native-layer-round" aria-label="Layer 轮次"></select>
-      <select id="native-layer-kind"><option value="fractals">FractalComb</option><option value="layers">Coarse / Smooth layers</option><option value="coverage">模板覆盖</option><option value="reuse">Use(T) / residual 复用</option><option value="use_fractals">Use(T) 递归候选</option></select>
+      <select id="native-layer-kind"><option value="fractals">FractalComb</option><option value="closed">ClosedState / Closed rule comb</option><option value="layers">Coarse / Smooth layers</option><option value="coverage">模板覆盖</option><option value="reuse">Use(T) / residual 复用</option><option value="use_fractals">Use(T) 递归候选</option></select>
       <select id="native-layer-scope" aria-label="Layer 或 Fractal"><option value="">全部</option></select>
       <select id="native-layer-format"><option value="dot">DOT / Graphviz</option><option value="typst">Typst / 现有 Fractal 模板</option></select>
       <button id="native-layer-render">显示</button><button id="native-layer-download">下载本轮 DOT</button></div>
@@ -13,7 +13,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
       <div id="native-layer-viewport"></div><pre id="native-layer-error"></pre>
       <details><summary>返回 binding、条件与 effect 证据</summary><pre id="native-layer-details"></pre></details>
       <details><summary>当前 Typst / DOT 源码</summary><pre id="native-layer-code"></pre></details>`;
-    const catalogPanel=document.createElement('details');catalogPanel.innerHTML=`<summary>ClosedState 共享目录</summary><input id="native-closed-path" placeholder="out/ 中的 closed-catalog 目录"><button id="native-closed-load">载入共享目录</button><select id="native-closed-state" aria-label="共享闭包"><option value="">全部概览</option></select><select id="native-closed-comb" aria-label="对应组合"><option value="">所有对应组合</option></select><div id="native-closed-status"></div><div id="native-closed-table"></div><div id="native-closed-view"></div><pre id="native-closed-rule" style="white-space:pre-wrap"></pre><pre id="native-closed-details"></pre>`;panel.append(catalogPanel);
+    const catalogPanel=document.createElement('section');catalogPanel.hidden=true;catalogPanel.innerHTML=`<p>ClosedState / Closed rule comb · 整次调查结果（非逐轮快照）</p><input hidden id="native-closed-path" placeholder="out/ 中的 closed-catalog 目录"><button hidden id="native-closed-load">载入共享目录</button><select id="native-closed-state" aria-label="共享闭包"><option value="">全部概览</option></select><select id="native-closed-comb" aria-label="对应组合"><option value="">所有对应组合</option></select><div id="native-closed-status"></div><div id="native-closed-table"></div><div id="native-closed-view"></div><pre id="native-closed-rule" style="white-space:pre-wrap"></pre><pre id="native-closed-details"></pre>`;panel.append(catalogPanel);
     const cp=id=>catalogPanel.querySelector('#native-closed-'+id);
     let catalogData=null,catalogVersion=0;
     function catalogGraph(){
@@ -103,12 +103,24 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         }catch(e){cp('status').textContent=String(e);}finally{cp('load').disabled=false;cp('state').disabled=false;cp('comb').disabled=false;}
     };
     const initialCatalog=new URLSearchParams(location.search).get('closed_catalog');
-    if(initialCatalog){catalogPanel.open=true;cp('path').value=initialCatalog;cp('load').click();}
+
     host.append(panel);
     const $=id=>panel.querySelector('#native-layer-'+id);
     let frames=[],version=0,abort=null,previewCache=new Map(),pinned=false,rendered=false;
     const frame=()=>frames[Number($('round').value)];
-    function reset(){abort?.abort();version++;frames=[];pinned=false;rendered=false;previewCache.clear();$('round').replaceChildren();$('scope').replaceChildren(new Option('全部',''));$('viewport').replaceChildren();$('details').textContent='';$('code').textContent='';$('status').textContent='等待实际执行边界…';}
+    function mode(){
+        const closed=$('kind').value==='closed';catalogPanel.hidden=!closed;
+        for(const id of ['round','scope','format'])$(id).hidden=closed;
+        for(const id of ['viewport','details','code']){const e=$(id);(e.closest('details')===panel?e:e.closest('details')||e).hidden=closed;}
+        $('status').hidden=closed;$('source').disabled=closed;
+        $('directory').placeholder=closed?'out/ 中的共享目录或含 catalog/ 的运行目录':'out/ 中的分析目录';
+        $('load').textContent=closed?'载入 ClosedState':'载入分析目录';
+        $('download').textContent=closed?'下载当前 ClosedState DOT':'下载本轮 DOT';
+        if(closed&&!catalogData)cp('status').textContent='尚无 ClosedState 结果。请载入已生成的共享目录；普通运行不会自动执行 ripen。';
+    }
+    function clearCatalog(){catalogVersion++;catalogData=null;cp('path').value='';for(const id of ['view','table','details','rule'])cp(id).replaceChildren();cp('state').replaceChildren(new Option('全部概览',''));combOptions();}
+
+    function reset(){clearCatalog();mode();abort?.abort();version++;frames=[];pinned=false;rendered=false;previewCache.clear();$('round').replaceChildren();$('scope').replaceChildren(new Option('全部',''));$('viewport').replaceChildren();$('details').textContent='';$('code').textContent='';$('status').textContent='等待实际执行边界…';}
     function receive(f){
         if(f.kind!=='layer_snapshot'||!f.graphs||!f.analysis)throw Error('无效的 layer 快照');
         frames.push(f);$('round').add(new Option(f.label,String(frames.length-1)));
@@ -116,6 +128,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         if(!pinned){$('round').value=String(frames.length-1);options(false);}
     }
     function options(pin=true){
+        mode();if($('kind').value==='closed')return;
         if(pin!==false)pinned=true;
         const f=frame();if(!f)return;
         $('scope').replaceChildren(new Option('全部',''));
@@ -205,6 +218,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         $('code').textContent+=(rendered.typst||'')+'\n';
     }
     async function render(){
+        if($('kind').value==='closed'){mode();if(catalogData)await renderCatalog();return;}
         const f=frame();if(!f)return;pinned=true;
         abort?.abort();abort=new AbortController();const signal=abort.signal,v=++version;
         $('error').textContent='';$('viewport').replaceChildren();$('viewport').dataset.ready='false';$('code').textContent='';
@@ -263,16 +277,17 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         }catch(e){if(v===version&&e.name!=='AbortError')$('error').textContent=e.message;}
     }
     $('round').onchange=options;$('kind').onchange=options;$('render').onclick=render;
-    $('download').onclick=()=>{const f=frame();if(!f)return;const kind=$('kind').value,a=document.createElement('a'),url=URL.createObjectURL(new Blob([f.dots[kind]],{type:'text/vnd.graphviz;charset=utf-8'}));a.href=url;a.download=f.stem+'.'+kind+'.dot';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+    $('download').onclick=()=>{if($('kind').value==='closed'){if(!catalogData)return;const a=document.createElement('a'),url=URL.createObjectURL(new Blob([dot(catalogGraph())],{type:'text/vnd.graphviz;charset=utf-8'}));a.href=url;a.download='closed-state.dot';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;}const f=frame();if(!f)return;const kind=$('kind').value,a=document.createElement('a'),url=URL.createObjectURL(new Blob([f.dots[kind]],{type:'text/vnd.graphviz;charset=utf-8'}));a.href=url;a.download=f.stem+'.'+kind+'.dot';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
     async function load(path){
         const controls=['load','render','round','kind','scope','format'];controls.forEach(id=>$(id).disabled=true);
-        try {const data=await (await post('layer-run',{path})).json();reset();for(const f of data.frames)receive(f);}
+        try {const data=await (await post('layer-run',{path})).json();reset();for(const f of data.frames)receive(f);if(data.closed_catalog){cp('path').value=data.closed_catalog;await cp('load').onclick();}mode();}
         finally {controls.forEach(id=>$(id).disabled=false);}
     }
-    $('load').onclick=()=>load($('directory').value).catch(e=>$('error').textContent=e.message);
+    $('load').onclick=()=>{if($('kind').value==='closed'){cp('path').value=$('directory').value;return cp('load').onclick();}return load($('directory').value).catch(e=>$('error').textContent=e.message);};
     $('source').onclick=()=>{if(frame())editor.setValue(frame().preview_source);};
-    const initialKind=new URLSearchParams(location.search).get('layer_kind');if(['layers','fractals','coverage','reuse','use_fractals'].includes(initialKind))$('kind').value=initialKind;
-    const initial=new URLSearchParams(location.search).get('layer_run');if(initial){$('directory').value=initial;load(initial).then(()=>render()).catch(e=>$('error').textContent=e.message);}
+    const initialKind=new URLSearchParams(location.search).get('layer_kind');if(['layers','fractals','coverage','reuse','use_fractals','closed'].includes(initialKind))$('kind').value=initialKind;
+    if(initialCatalog&&!new URLSearchParams(location.search).get('layer_run')){$('kind').value='closed';$('directory').value=initialCatalog;cp('path').value=initialCatalog;cp('load').click();}mode();
+    const initial=new URLSearchParams(location.search).get('layer_run');if(initial){$('directory').value=initial;load(initial).then(async()=>{if(initialCatalog){$('kind').value='closed';cp('path').value=initialCatalog;await cp('load').onclick();mode();}return render();}).catch(e=>$('error').textContent=e.message);}
     // Re-render the current selection against the current source. Called after an
     // editor change so an edited annotation template is visible without re-running.
     async function refresh(){if(rendered&&frames.length)await render();}
