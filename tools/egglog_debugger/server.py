@@ -77,6 +77,7 @@ class Handler(SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_POST(self):
+        streaming = False
         # Same-origin, or an origin explicitly listed with --allow-origin (a static
         # deployment of the UI may connect to a bridge running on this machine).
         origin = self.allowed_origin()
@@ -149,6 +150,9 @@ class Handler(SimpleHTTPRequestHandler):
                             return self.reply(409, {'error': error, 'suggestion': check['suggestion'], 'notes': check.get('notes') or []})
                         return self.reply(422, {'error': error})
                 return self.reply(200, result)
+            if self.path in ('/api/patterns', '/api/trace') and not (
+                    self.server.binary.is_file() and os.access(self.server.binary, os.X_OK)):
+                return self.reply(503, {'error': f'egglog 运行程序不存在或不可执行：{self.server.binary}。请重新启动本地服务（不指定 --binary 会自动构建）。'})
             with tempfile.TemporaryDirectory(prefix='egglog-debug-') as folder:
                 folder = Path(folder)
                 if self.path == '/api/render':
@@ -189,6 +193,7 @@ class Handler(SimpleHTTPRequestHandler):
                     self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
                     self.send_header('Vary', 'Origin')
                 self.end_headers()
+                streaming = True
                 with (folder / 'stderr').open('w+') as errors:
                     env = dict(os.environ, EGG_LAYOUT_CLOSED_OUTPUT=str(run_folder))
                     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=errors, cwd=ROOT, env=env)
@@ -243,8 +248,17 @@ class Handler(SimpleHTTPRequestHandler):
                             process.terminate()
                         process.wait()
                 self.close_connection = True
-        except (KeyError, ValueError, subprocess.TimeoutExpired, FileNotFoundError) as error:
-            self.reply(400, {'error': str(error)})
+        except (KeyError, ValueError, subprocess.TimeoutExpired, OSError) as error:
+            if streaming:
+                # Headers are already sent. A second HTTP response corrupts NDJSON.
+                self.close_connection = True
+                try:
+                    self.wfile.write((json.dumps({'kind': 'error', 'error': str(error)})+'\n').encode())
+                    self.wfile.flush()
+                except OSError:
+                    pass  # The client may have cancelled the stream.
+            else:
+                self.reply(400, {'error': str(error)})
 
 
 def main():
@@ -263,6 +277,8 @@ def main():
         subprocess.run(['cargo', 'build', '--release', '--bin', 'egg_layout'], cwd=ROOT, check=True)
         metadata = json.loads(subprocess.check_output(['cargo', 'metadata', '--no-deps', '--format-version=1'], cwd=ROOT))
         args.binary = Path(metadata['target_directory']) / 'release/egg_layout'
+    if not args.binary.is_file() or not os.access(args.binary, os.X_OK):
+        parser.error(f'Runtime binary is missing or not executable: {args.binary}; omit --binary to build automatically')
     for tool in ('typst', 'dot'):
         if not shutil.which(tool):
             parser.error(f'{tool} must be installed to render previews')
