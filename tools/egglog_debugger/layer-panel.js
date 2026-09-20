@@ -13,6 +13,23 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
       <div id="native-layer-viewport"></div><pre id="native-layer-error"></pre>
       <details><summary>返回 binding、条件与 effect 证据</summary><pre id="native-layer-details"></pre></details>
       <details><summary>当前 Typst / DOT 源码</summary><pre id="native-layer-code"></pre></details>`;
+    const catalogPanel=document.createElement('details');catalogPanel.innerHTML=`<summary>ClosedState 共享目录</summary><input id="native-closed-path" placeholder="out/ 中的 closed-catalog 目录"><button id="native-closed-load">载入共享目录</button><div id="native-closed-status"></div><div id="native-closed-view"></div><pre id="native-closed-details"></pre>`;panel.append(catalogPanel);
+    const cp=id=>catalogPanel.querySelector('#native-closed-'+id);
+    cp('load').onclick=async()=>{
+        cp('load').disabled=true;cp('status').textContent='载入…';cp('details').textContent='';
+        try{
+            const data=await (await post('closed-catalog',{path:cp('path').value})).json();
+            const markup=await (await post('render',{kind:'dot',source:data.dot})).text();
+            cp('view').replaceChildren();const svg=mountSvg(markup,cp('view'));
+            cp('status').textContent=`${data.catalog.triggers.length} 个 Trigger → ${data.catalog.closed_states} 个共享 ClosedState。固定端口与完整事实映射；入口条件保留。未决比较 ${data.catalog.unresolved_comparisons||0}。`;
+            for(const node of svg.querySelectorAll('.node')){
+                const id=node.querySelector('title')?.textContent||'';node.style.cursor='pointer';
+                node.onclick=()=>{cp('details').textContent=JSON.stringify(id.startsWith('t')?data.catalog.triggers[Number(id.slice(1))]:data.states[Number(id.slice(1))],null,2);};
+            }
+        }catch(e){cp('status').textContent=String(e);}finally{cp('load').disabled=false;}
+    };
+    const initialCatalog=new URLSearchParams(location.search).get('closed_catalog');
+    if(initialCatalog){catalogPanel.open=true;cp('path').value=initialCatalog;cp('load').click();}
     host.append(panel);
     const $=id=>panel.querySelector('#native-layer-'+id);
     let frames=[],version=0,abort=null,previewCache=new Map(),pinned=false,rendered=false;

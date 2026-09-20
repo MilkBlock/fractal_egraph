@@ -1,0 +1,6 @@
+(datatype Expr (B) (A))
+; Different declaration order, rule names and entry. Same closed state.
+(rewrite (B) (A) :name "backward")
+(rewrite (A) (B) :name "forward")
+(let root (B))
+(check (= root (A)))

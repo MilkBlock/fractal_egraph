@@ -308,6 +308,10 @@ pub fn from_use(history_path: &Path, use_id: usize, out: &Path, max_rounds: usiz
     };
     let mut report = super::run_with_origin(&entry, &out.join("run"), max_rounds, Some(link))?;
     report["origin"] = origin;
+    std::fs::write(
+        out.join("run/ripen.json"),
+        serde_json::to_vec_pretty(&report)?,
+    )?;
     std::fs::write(out.join("result.json"), serde_json::to_vec_pretty(&report)?)?;
     Ok(report)
 }

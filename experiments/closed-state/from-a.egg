@@ -1,0 +1,5 @@
+(datatype Expr (A) (B))
+(rewrite (A) (B) :name "a-to-b")
+(rewrite (B) (A) :name "b-to-a")
+(let root (A))
+(check (= root (B)))

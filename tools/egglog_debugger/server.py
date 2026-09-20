@@ -88,6 +88,15 @@ class Handler(SimpleHTTPRequestHandler):
             if not 0 < length <= 2_000_000:
                 return self.reply(413, {'error': 'Source must be at most 2 MB'})
             data = json.loads(self.rfile.read(length))
+            if self.path == '/api/closed-catalog':
+                folder = (ROOT / data['path']).resolve()
+                if not folder.is_relative_to(ROOT / 'out'):
+                    return self.reply(400, {'error':'请选择仓库 out/ 内的目录'})
+                catalog = json.loads((folder / 'catalog.json').read_text())
+                if catalog.get('schema') != 'closed-state-catalog/v1':
+                    raise ValueError('Unsupported closed-state catalog')
+                states = [json.loads((folder / 'states' / f'state-{i:04}.json').read_text()) for i in range(catalog['closed_states'])]
+                return self.reply(200, {'catalog':catalog, 'dot':(folder / 'catalog.dot').read_text(), 'states':states})
             if self.path == '/api/layer-run':
                 folder = (ROOT / data['path']).resolve()
                 if not folder.is_relative_to(ROOT / 'out'):

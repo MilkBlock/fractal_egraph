@@ -72,6 +72,13 @@ fn run_with_origin(
     let (datatype_name, datatype) = datatype.ok_or("ripen requires a datatype")?;
     let rulesets: Vec<_> = rulesets.into_iter().collect();
     eg.run_program(setup.clone())?;
+    let mut port_values = vec![];
+    for cmd in &setup {
+        if let Command::Action(Action::Let(_, name, _)) = cmd {
+            let (sort, value) = eg.eval_expr(&Expr::Var(sp(), name.clone()))?;
+            port_values.push((name.clone(), sort, value));
+        }
+    }
     let trace = TraceSession::with_dependencies();
     let mut c = Captured {
         preview_source: text.clone(),
@@ -150,11 +157,34 @@ fn run_with_origin(
         }
         std::fs::write(out.join("ripened.egg"), replay)?;
         history::save(&out.join("history.json"), &source, &c)?;
+        let state_export = if closed {
+            match export_state(
+                setup
+                    .iter()
+                    .find(|c| matches!(c, Command::Datatype { .. }))
+                    .unwrap(),
+                &eg,
+                &c,
+                &port_values,
+                origin.as_ref().is_some_and(|o| o.symbolic_boundary),
+            ) {
+                Ok(state) => {
+                    std::fs::write(
+                        out.join("closed-state.json"),
+                        serde_json::to_vec_pretty(&state)?,
+                    )?;
+                    json!({"status":"exported","file":"closed-state.json","values":state.values.len(),"facts":state.rows.len()})
+                }
+                Err(e) => json!({"status":"unavailable","reason":e.to_string()}),
+            }
+        } else {
+            json!({"status":"not_closed"})
+        };
         // Tier1 is the actual importer/Use builder, populated during every sweep.
         let report = json!({"ripen":feedback,"checks":if closed{"passed"}else{"deferred"},
             "checks_count":checks.len(),"rules":c.rules.iter().map(|r|r.rule.to_string()).collect::<Vec<_>>(),
             "source":source,"source_text":text,"events":c.events,"imported_applies":c.records.len(),
-            "tables":table_sizes(&eg, &c.datatype)?,"tier1":c.layers.report(),"round_manifest":"rounds/manifest.json",
+            "closed_state":state_export,"tables":table_sizes(&eg, &c.datatype)?,"tier1":c.layers.report(),"round_manifest":"rounds/manifest.json",
             "history":"history.json","seconds":c.trace_seconds,"fractal_summaries_used":0});
         std::fs::write(out.join("ripen.json"), serde_json::to_vec_pretty(&report)?)?;
         Ok(report)
@@ -181,4 +211,141 @@ fn table_sizes(eg: &EGraph, datatype: &str) -> Result<BTreeMap<String, usize>> {
         sizes.insert(variant.name.clone(), count);
     }
     Ok(sizes)
+}
+
+fn export_state(
+    datatype: &Command,
+    eg: &EGraph,
+    c: &Captured,
+    ports: &[(String, egglog::ArcSort, Value)],
+    symbolic: bool,
+) -> Result<crate::closed_state::ClosedState> {
+    use crate::closed_state::{ClosedState, Row, Vertex};
+    let Command::Datatype { name, variants, .. } = datatype else {
+        return Err("expected datatype".into());
+    };
+    if name.contains('-')
+        || variants
+            .iter()
+            .flat_map(|v| &v.types)
+            .any(|t| t != name && !matches!(t.as_str(), "i64" | "String" | "bool"))
+        || ports.iter().any(|(_, s, _)| s.name() != name)
+    {
+        return Err("closed-state export currently supports one equality datatype, i64/String/bool fields and equality-sort named ports".into());
+    }
+    fn constructor_expr(e: &Expr, ops: &BTreeSet<&str>) -> bool {
+        match e {
+            Expr::Call(_, op, args) => {
+                ops.contains(op.as_str()) && args.iter().all(|e| constructor_expr(e, ops))
+            }
+            _ => true,
+        }
+    }
+    let ops: BTreeSet<_> = variants.iter().map(|v| v.name.as_str()).collect();
+    for r in &c.rules {
+        let body = r.rule.body.iter().all(|f| match f {
+            Fact::Eq(_, a, b) => constructor_expr(a, &ops) && constructor_expr(b, &ops),
+            Fact::Fact(e) => constructor_expr(e, &ops),
+        });
+        let head = r.rule.head.0.iter().all(|a| match a {
+            Action::Union(_, a, b) => constructor_expr(a, &ops) && constructor_expr(b, &ops),
+            Action::Let(_, _, e) | Action::Expr(_, e) => constructor_expr(e, &ops),
+            _ => false,
+        });
+        if !body || !head {
+            return Err("ClosedState sharing currently certifies positive constructor/equality rules only; primitive guards/actions require an explicit semantics contract".into());
+        }
+    }
+    let serialized = eg.serialize(egglog::SerializeConfig::default());
+    if !serialized.discarded_functions.is_empty() || !serialized.truncated_functions.is_empty() {
+        return Err("truncated engine serialization".into());
+    }
+    let literals: BTreeMap<_, _> = serialized
+        .egraph
+        .nodes
+        .iter()
+        .filter_map(|(id, n)| {
+            eg.from_node_id(id)
+                .is_primitive()
+                .then_some((n.eclass.to_string(), n.op.clone()))
+        })
+        .collect();
+    let mut ids = BTreeMap::<String, usize>::new();
+    let mut values = vec![];
+    let mut vertex = |ty: &str, v: Value| -> Result<usize> {
+        let sort = eg.get_arcsort_by(|s| s.name() == ty);
+        let key = eg.value_to_class_id(&sort, v).to_string();
+        if let Some(i) = ids.get(&key) {
+            return Ok(*i);
+        }
+        let literal = if ty == name {
+            None
+        } else {
+            Some(
+                literals
+                    .get(&key)
+                    .cloned()
+                    .ok_or("missing scalar literal")?,
+            )
+        };
+        let i = values.len();
+        ids.insert(key, i);
+        values.push(Vertex {
+            sort: ty.into(),
+            literal,
+        });
+        Ok(i)
+    };
+    let mut rows = BTreeSet::new();
+    let mut sorted = variants.clone();
+    sorted.sort_by(|a, b| a.name.cmp(&b.name));
+    for v in &sorted {
+        let mut raw = vec![];
+        eg.function_for_each(&v.name, |row| raw.push((row.vals.to_vec(), row.subsumed)))?;
+        for (row, subsumed) in raw {
+            if subsumed || row.len() != v.types.len() + 1 {
+                return Err("unexpected subsumed row or arity".into());
+            }
+            let args = v
+                .types
+                .iter()
+                .zip(&row)
+                .map(|(t, x)| vertex(t, *x))
+                .collect::<Result<Vec<_>>>()?;
+            rows.insert(Row {
+                op: v.name.clone(),
+                args,
+                result: vertex(name, *row.last().unwrap())?,
+            });
+        }
+    }
+    let mut named = BTreeMap::new();
+    for (p, sort, value) in ports {
+        named.insert(p.clone(), vertex(sort.name(), *value)?);
+    }
+    let mut rules: Vec<_> = c
+        .rules
+        .iter()
+        .map(|r| {
+            let mut r = r.rule.clone();
+            r.name.clear();
+            r.ruleset.clear();
+            r.naive = false;
+            r.to_string()
+        })
+        .collect();
+    rules.sort();
+    rules.dedup();
+    let mut local_ids = vec![String::new(); values.len()];
+    for (key, i) in ids {
+        local_ids[i] = key;
+    }
+    Ok(ClosedState {
+        version: 1,
+        local_ids,
+        scope: json!({"datatype":name,"constructors":sorted.iter().map(|v|json!({"name":v.name,"types":v.types,"cost":v.cost.map(|x|x.to_string()),"unextractable":v.unextractable})).collect::<Vec<_>>(),"rules":rules,"symbolic_boundary":symbolic,"semantics":"positive-constructor-equality/v1","ports":"fixed named globals; otherwise all facts observable"}),
+        values,
+        rows: rows.into_iter().collect(),
+        ports: named,
+    })
 }

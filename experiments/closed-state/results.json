@@ -1,0 +1,86 @@
+{
+  "closed_states": 1,
+  "comparisons": [
+    {
+      "result": {
+        "states": 10,
+        "status": "equivalent",
+        "value_map": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ]
+      },
+      "state": 0,
+      "trigger": 1
+    }
+  ],
+  "fact_counts": {
+    "Add": 12,
+    "RipenInput": 3
+  },
+  "scope": "Native ripen of symbolic interfaces extracted from Math6; exact complete constructor-state comparison, not tier0 acceleration",
+  "triggers": [
+    {
+      "origin": {
+        "history": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/use-reuse-final/math/history.json",
+        "members": [
+          109,
+          134
+        ],
+        "symbolic_boundary": true,
+        "template": 12,
+        "use_id": 24
+      },
+      "value_map": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    },
+    {
+      "origin": {
+        "history": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/use-reuse-final/math/history.json",
+        "members": [
+          217,
+          295,
+          280
+        ],
+        "symbolic_boundary": true,
+        "template": 18,
+        "use_id": 84
+      },
+      "value_map": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ]
+    }
+  ],
+  "unresolved_comparisons": 0,
+  "value_sorts": {
+    "Math": 7,
+    "i64": 3
+  }
+}
