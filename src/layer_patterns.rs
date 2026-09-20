@@ -80,6 +80,7 @@ pub struct FractalComb {
 }
 #[derive(Default, Serialize)]
 pub struct Analysis {
+    pub use_fractals: crate::use_fractals::Analysis,
     pub templates: Vec<Template>,
     pub units: Vec<Unit>,
     pub fractals: Vec<FractalComb>,
@@ -364,6 +365,7 @@ pub fn analyze(store: &LayerStore) -> Analysis {
 }
 fn analyze_cached(store: &LayerStore, cache: &mut Analyzer) -> Analysis {
     let mut a=Analysis{scope:"Finite interface templates and witnessed return bindings. Coverage is structural with exact alias checks; unbounded FractalDominance and guard implication remain unknown. No tier0 effects are removed.".into(),..Default::default()};
+    a.use_fractals = crate::use_fractals::analyze(store);
     let terms = output_terms(store);
     let mut keys = BTreeMap::new();
     let mut children = vec![vec![]; store.occurrences.len()];

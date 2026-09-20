@@ -340,3 +340,129 @@ fn boundary_rotation_reuses_a_suffix_and_preserves_spilled_prefix() {
     assert!(s.reuse.owner[last.1].is_some());
     check_cover(&s);
 }
+
+#[test]
+fn shared_templates_without_causal_links_are_not_fractals() {
+    let mut s = LayerStore::default();
+    for k in 0..12 {
+        let a = add(&mut s, "A", vec![], Some(100), 1000 + k * 2);
+        add(&mut s, "B", vec![(a, 0)], None, 1001 + k * 2);
+    }
+    let a = egg_layout::use_fractals::analyze(&s);
+    assert!(a.uses_examined > 0);
+    assert!(a.transitions.is_empty());
+    assert!(a.families.is_empty());
+}
+
+#[test]
+fn use_recurrence_has_exact_ports_and_disjoint_witnesses() {
+    for coarse in [false, true] {
+        let mut s = LayerStore::default();
+        let mut prev = add(&mut s, "R", vec![], Some(1000), 1);
+        for v in 2..100 {
+            prev = add(&mut s, "R", vec![(prev, 0)], coarse.then_some(1000 + v), v);
+        }
+        let a = egg_layout::use_fractals::analyze(&s);
+        assert!(!a.families.is_empty(), "coarse={coarse}");
+        for f in &a.families {
+            assert!(f.observed_depth >= 3);
+            let mut used = std::collections::BTreeSet::new();
+            for u in &f.witness_chain {
+                for e in &s.reuse.uses[*u].members {
+                    assert!(used.insert(*e));
+                }
+            }
+            assert_eq!(f.external_demand_observed, coarse);
+            for t in &f.transitions {
+                let t = &a.transitions[*t];
+                assert!(t.witnesses.len() >= 2);
+                for [u, v] in &t.witnesses {
+                    for (slot, link) in t.transfer.inputs.iter().enumerate() {
+                        if let egg_layout::use_fractals::BindingLink::Return { member, output } =
+                            link
+                        {
+                            assert_eq!(
+                                s.reuse.uses[*v].inputs[slot],
+                                Reference::ResidualPort {
+                                    event: s.reuse.uses[*u].members[*member],
+                                    output: *output
+                                }
+                            );
+                        }
+                    }
+                }
+            }
+        }
+        check_cover(&s);
+    }
+}
+
+#[test]
+fn multi_return_use_recurrence_preserves_distinct_output_positions() {
+    let mut s = LayerStore::default();
+    fn fork(s: &mut LayerStore, parent: Option<(usize, usize)>) -> usize {
+        let i = s.occurrences.len();
+        let x = 10000 + i * 2;
+        let wanted = parent
+            .map(|(p, o)| s.occurrences[p].apply.outputs[o])
+            .unwrap_or(42);
+        s.push(Apply {
+            event: i as u64,
+            rule: "Fork".into(),
+            parents: parent.map(|(p, _)| vec![p]).unwrap_or_default(),
+            input_roles: vec!["x".into()],
+            output_roles: vec!["left".into(), "right".into()],
+            binding: vec![
+                parent
+                    .map(|(_, o)| RelativeBinding::ParentPort {
+                        parent: 0,
+                        output: o,
+                    })
+                    .unwrap_or(RelativeBinding::External { slot: 0 }),
+            ],
+            wanted: vec![wanted],
+            outputs: vec![x, x + 1],
+            external: if parent.is_none() {
+                vec![wanted]
+            } else {
+                vec![]
+            },
+            required: if parent.is_some() {
+                vec![Effect::RowFact(wanted)]
+            } else {
+                vec![]
+            },
+            external_facts: vec![],
+            produced: vec![Effect::RowFact(x), Effect::RowFact(x + 1)],
+        })
+        .unwrap()
+    }
+    let root = fork(&mut s, None);
+    let mut frontier = vec![root];
+    for _ in 0..5 {
+        let mut next = vec![];
+        for p in frontier {
+            for o in 0..2 {
+                let a = fork(&mut s, Some((p, o)));
+                next.push(fork(&mut s, Some((a, 0))));
+            }
+        }
+        frontier = next;
+    }
+    let a = egg_layout::use_fractals::analyze(&s);
+    assert!(a.families.iter().any(|f| !f.branching_instances.is_empty()));
+    let outputs: std::collections::BTreeSet<_> = a
+        .transitions
+        .iter()
+        .flat_map(|t| t.transfer.inputs.iter())
+        .filter_map(|p| {
+            if let egg_layout::use_fractals::BindingLink::Return { output, .. } = p {
+                Some(*output)
+            } else {
+                None
+            }
+        })
+        .collect();
+    assert_eq!(outputs, std::collections::BTreeSet::from([0, 1]));
+    check_cover(&s);
+}

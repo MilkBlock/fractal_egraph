@@ -324,6 +324,50 @@ fn reuse_graph(s: &LayerStore) -> Json {
     graph(nodes, edges)
 }
 
+fn use_fractal_graph(s: &LayerStore, a: &Analysis) -> Json {
+    let mut nodes = vec![];
+    let mut edges = vec![];
+    for (i, f) in a.use_fractals.families.iter().enumerate() {
+        let id = format!("rf{i}");
+        nodes.push(node(
+            id.clone(),
+            format!(
+                "Use Fractal candidate F{i} / T{}\nobserved depth {} · {} transfers\n{}",
+                f.template,
+                f.observed_depth,
+                f.transitions.len(),
+                if f.external_demand_observed {
+                    "external demand observed"
+                } else {
+                    "no fresh demand observed"
+                }
+            ),
+            "fractal",
+            json!(f),
+        ));
+        for u in &f.instances {
+            let instance = &s.reuse.uses[*u];
+            nodes.push(node(format!("{id}u{u}"), format!("Use(T{}) U{u}\n{} applies", instance.template, instance.members.len()),
+                if f.triggers.contains(u) {"trigger"} else {"template"}, json!({"use":instance,"template":s.reuse.templates[instance.template],"observed_start":f.triggers.contains(u)})));
+        }
+        for u in &f.triggers {
+            edges.push(edge(
+                id.clone(),
+                format!("{id}u{u}"),
+                "observed start (not minimal trigger proof)".into(),
+            ));
+        }
+        for [u, v, t] in &f.edges {
+            edges.push(edge(
+                format!("{id}u{u}"),
+                format!("{id}u{v}"),
+                format!("transfer {t}"),
+            ));
+        }
+    }
+    graph(nodes, edges)
+}
+
 /// Shared by native streaming, CLI online construction and history replay.
 pub(super) fn snapshot(
     s: &LayerStore,
@@ -338,9 +382,9 @@ pub(super) fn snapshot(
         .round
         .map(|r| format!("Round {r}"))
         .unwrap_or_else(|| format!("{} {index}", b.kind));
-    let graphs = json!({"layers":layer_graph(s),"fractals":fractal_graph(s,&a),"coverage":coverage_graph(&a),"reuse":reuse_graph(s)});
+    let graphs = json!({"layers":layer_graph(s),"fractals":fractal_graph(s,&a),"coverage":coverage_graph(&a),"reuse":reuse_graph(s),"use_fractals":use_fractal_graph(s,&a)});
     let mut dot = serde_json::Map::new();
-    for kind in ["layers", "fractals", "coverage", "reuse"] {
+    for kind in ["layers", "fractals", "coverage", "reuse", "use_fractals"] {
         dot.insert(
             kind.into(),
             json!(dots(&format!("{label} / {kind} (observed)"), &graphs[kind])),
@@ -369,7 +413,7 @@ impl Exporter {
         let stem = frame["stem"].as_str().unwrap();
         let dir = out.join("rounds");
         std::fs::create_dir_all(&dir)?;
-        for kind in ["layers", "fractals", "coverage", "reuse"] {
+        for kind in ["layers", "fractals", "coverage", "reuse", "use_fractals"] {
             std::fs::write(
                 dir.join(format!("{stem}.{kind}.dot")),
                 frame["dots"][kind].as_str().unwrap(),

@@ -267,3 +267,84 @@ They are local diagnostic runs, not a statistical performance guarantee or
 measurement of tier0 rule execution. Browser regression additionally validated
 the real small `.egg` fixture, saved DOT equality, DOT/Typst rendering, download,
 and the final Math6 directory in the existing tools page without page errors.
+
+## Use-template recurrence analysis
+
+`src/use_fractals.rs` is called by the existing `layer_patterns::Analyzer` at
+completed snapshots. It directly reads `ReuseStore` and adds
+`analysis.use_fractals`; it does not rediscover these units from layers. It considers
+all immutable historical Uses, including those removed by a compression re-cut.
+This avoids making the preferred compression cut an admission gate for recurrence.
+It still cannot discover combinations never admitted to the Use dictionary.
+
+For a certified source/target instance pair, the transfer contains:
+
+- target input from a specific source member/output (`Return`);
+- exact preservation of a source boundary input (`Carry`);
+- a new external input slot (`External`), including its proof-context linkage;
+- source-produced, carried, or external context/effect evidence;
+- canonical value aliases and typed external row/equality effects.
+
+Actual physical producer references establish edges. Shared values or a shared
+input alone do not. Context order is normalized because an unordered set of proof
+contexts is not an apply position. Carry references to source contexts remain
+explicit; this is not a general graph-isomorphism canonicalizer. No union-based
+value equivalence or guard implication is invented by the analyzer.
+
+A candidate family requires same-template transitions with at least two witnesses
+and a connected witness path of at least three pairwise-disjoint Use instances.
+An inventory of different repeated transfers may participate in one family; this
+is not a proof that one deterministic F explains every step. Branching counts
+only disjoint successors. Observed starts carry their original input/context
+records and are not asserted to be minimal trigger states. Extra inputs/contexts
+are demand relative to the chosen source Use, not destructively consumed facts.
+Alternating different-template transitions are retained for inspection, but this
+version does not infer parameterized alternating families or feed new proofs to
+Tier2 Reduce / tier0 execution.
+
+Candidate search uses an event-to-Use reverse index, up to 32 historical owners
+per event, 64 source instances per target, and 16,384 total edges. It keeps one
+best disjoint path per endpoint, capped at 64 Uses, and checks at most 64 successors
+per branching point. Counters expose truncation;
+longer or alternative paths can be missed. For U Uses, M members, B interface size
+and retained E candidate edges, indexing is O(UM), transfer comparisons are bounded
+by O(U*64*(MB+B^2)) before dictionary-key costs, and path validation is bounded by
+O(E*64*M^2). Snapshot-time memory is O(UM + E*MB + U*64), in addition to stored history.
+This pass is recomputed per snapshot and is not an incremental induction solver.
+
+The existing tools page adds **Use(T) 递归候选**. Each real round saves
+`round-NNNN.use_fractals.dot`; clicking an instance exposes its original facts and
+ports. Typst renders the actual member rules through the existing Eggplant plugin,
+with the witnessed transfer shown above; it does not fabricate an n-fold expansion
+of the first basic rule as though that were the whole composite.
+
+### Math6 Use-recurrence result
+
+Replay of the same 1529 certified applies examines 449 historical Uses. It yields
+516 exact transfer signatures and one candidate family, T12. The family contains
+Add association R2 and Add commutation R0, with 15 supporting Use instances,
+two repeated transfer variants and a three-Use mutually-disjoint witness:
+`U24 -> U101 -> U206`. Both edges of this witness use the same transfer (48).
+Their original apply-member indices are `[109,134]`, `[207,321]`, `[456,701]`.
+Two branching instances have disjoint successor witnesses. No source, edge, path
+or branch budget is hit in this sample; 45 overlapping pairs are rejected.
+
+The main transfer's value portion can be read from the basic rule source as
+`(a,b,c) -> (external, Add(a,b), c)`: it also requires an external enclosing Add
+row and an external producer context. This interpretation describes the witnessed
+ports; the analyzer itself emits `Return(member,output)` and has not inferred an
+arbitrary symbolic closed form. In particular this is not a pure closed recursive
+operator. Unordered proof-context permutations are normalized, but distinct alias
+or support configurations remain separate transfer variants.
+
+```sh
+cargo run --release -- analyze --replay-history out/use-reuse-final/math/history.json --output out/use-fractal-final
+```
+
+Load `out/use-fractal-final` in the tools page and select **Use(T) 递归候选**.
+`docs/use-fractal-results.json` records the source templates, family transfers,
+witness IDs and history digest. Synthetic tests separately distinguish independent
+repetitions from recursion, preserve external demand, and verify branching through
+two distinct output roles. Those tests are metadata fixtures; the Math result uses
+native captured egglog evidence. No increase in proven FractalRules or reduction
+in tier0 work is claimed by this change.
