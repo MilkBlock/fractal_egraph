@@ -75,8 +75,13 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     function closedDiagram(){
         const kind=cp('diagram').value;
         if(kind==='comb')return {g:catalogGraph(),caption:'rule comb → ClosedState；选择组合和触发实例可查看实际来源。'};
-        const state=cp('state').value;
-        if(state==='')return {g:{nodes:[],edges:[]},caption:'请先选择一个 ClosedState。'};
+        // Both remaining diagrams describe exactly one ClosedState. With the overview
+        // selected they used to render an empty canvas, which reads as "the selector did
+        // nothing". Fall back to the first state and keep the selector in sync.
+        let state=cp('state').value,auto=false;
+        if(state===''&&catalogData.catalog.closed_states>0){state='0';cp('state').value=state;combOptions();auto=true;}
+        if(state==='')return {g:{nodes:[],edges:[]},caption:'本轮没有可显示的 ClosedState：ripen 队列可能全部 Pending / Suspended，Pending 不代表已闭合。'};
+        const autoNote=auto?'（概览下已自动选择 C0；此图按单个 ClosedState 显示。）':'';
         if(kind==='egraph'){
             const data=catalogData.states[Number(state)],q=JSON.stringify;
             const lines=['digraph G {rankdir=LR; node [shape=box];'];
@@ -90,7 +95,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
             data.rows.forEach((r,j)=>r.args.forEach((a,k)=>lines.push(`n${j} -> v${a} [label=${q('arg '+k)}];`)));
             for(const [name,v] of Object.entries(data.ports||{}))lines.push(`p${v} [label=${q(name)},shape=plaintext]; p${v} -> v${v};`);
             lines.push('}');
-            return {g:{nodes,edges:[]},source:lines.join('\n'),caption:`C${state} · ${data.values.filter(v=>v.literal===null).length} eclasses / ${data.rows.length} constructor rows；框内为同一 class 的 enodes。RipenInput 是符号边界参数，不是原始数据。`};
+            return {g:{nodes,edges:[]},source:lines.join('\n'),caption:`C${state} · ${data.values.filter(v=>v.literal===null).length} eclasses / ${data.rows.length} constructor rows；框内为同一 class 的 enodes。RipenInput 是符号边界参数，不是原始数据。${autoNote}`};
         }
         const trigger=selectedTrigger(),members=trigger?.binding_origin?.comb_members||[];
         const nodes=[],edges=[],groups=new Map();
@@ -111,7 +116,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
             }source+='}';
         }
         source+='}';
-        return {g:{nodes,edges},source,caption:`U${trigger?.origin?.use_id??'—'}：原始 layer 中参与此 rule comb 的成员；不是整个 layer。Use 内的 Coarse/Smooth 分类与原始 layer 分类可能不同。`};
+        return {g:{nodes,edges},source,caption:`U${trigger?.origin?.use_id??'—'}：原始 layer 中参与此 rule comb 的成员；不是整个 layer。Use 内的 Coarse/Smooth 分类与原始 layer 分类可能不同。${autoNote}`};
     }
     function focusComb(g){cp('state').value=String(g.closed_state);combOptions();cp('comb').value=String(g.id);instanceOptions();renderCatalog();showComb(g);}
     function memberText(m){

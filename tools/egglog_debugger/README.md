@@ -547,8 +547,14 @@ layer_rounds --test closed_state`; browser tests `test_closed_pipeline.cjs` and
 `test_closed_survey.cjs` against the local server.
 
 ClosedState details have a graph selector: **source rule comb**, **closed e-graph**,
-and **source Coarse/Smooth layers**. Choose a state first; select a comb and Use
-instance to inspect its original layer membership. E-graph clusters are actual
+and **source Coarse/Smooth layers**. Source rule comb shows the whole catalog; the
+other two describe exactly one ClosedState, so selecting them while the state
+selector is still on the overview falls back to the first state and says so in the
+caption. Select a state explicitly, plus a comb and Use instance, to inspect its
+original layer membership. E-graph clusters are actual
 exported equivalence classes, containing their constructor rows; argument edges
 are ordered. Source layer clusters show only members participating in that Use,
 not the complete original layers. The DOT download follows the selected graph.
+
+`test_closed_diagrams.cjs` covers this selector. `test_closed_catalog.cjs` cannot:
+its fixture has no `comb_groups`, so the diagram branch is never reached there.
