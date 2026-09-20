@@ -45,7 +45,7 @@ fn every_round_has_dot_and_replay_preserves_boundaries() {
             let end = row["end"].as_u64().unwrap();
             assert!(end >= prev);
             prev = end;
-            for kind in ["layers", "fractals", "coverage"] {
+            for kind in ["layers", "fractals", "coverage", "reuse"] {
                 let dot = std::fs::read_to_string(
                     out.join(format!("rounds/round-{:04}.{kind}.dot", i + 1)),
                 )

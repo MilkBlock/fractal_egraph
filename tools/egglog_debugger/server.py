@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
-        match = re.fullmatch(r'/api/runs/([0-9a-f]{32})/rounds/(round-[0-9]+\.(?:layers\.dot|fractals\.dot|coverage\.dot|json)|manifest\.json)', urlsplit(self.path).path)
+        match = re.fullmatch(r'/api/runs/([0-9a-f]{32})/rounds/(round-[0-9]+\.(?:layers\.dot|fractals\.dot|coverage\.dot|reuse\.dot|json)|manifest\.json)', urlsplit(self.path).path)
         if match:
             file = ROOT / 'out' / 'debugger' / match[1] / 'rounds' / match[2]
             if not file.is_file():
@@ -206,7 +206,8 @@ class Handler(SimpleHTTPRequestHandler):
                                 row['artifact_base'] = f'/api/runs/{run_id}/rounds/'
                                 row['artifact_directory'] = str(run_folder.relative_to(ROOT))
                                 row['stem'] = stem
-                                for kind in ('layers','fractals','coverage'):
+                                for kind in ('layers','fractals','coverage','reuse'):
+                                    if kind not in row['dots']: continue
                                     (run_folder / 'rounds' / f'{stem}.{kind}.dot').write_text(row['dots'][kind])
                                 (run_folder / 'rounds' / f'{stem}.json').write_text(json.dumps(row,ensure_ascii=False))
                                 snapshots.append({key:row[key] for key in ('label','round','end','stem','counts')})

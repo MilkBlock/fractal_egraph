@@ -62,6 +62,7 @@ combined rule 文本、source steps、relative routes 与视图统计一致；na
 
 | 文件 | 职责 |
 |---|---|
+| [在线组合复用](src/comb_reuse.rs) | producer 端口索引、Use/residual、字典准入和接线验证 |
 | [coarse/smooth layers](src/coarse_smooth.rs) | Rust 组合定义去重、实例、binding/effect 验证、见证驱动的层接口 |
 | [Layer 模板与有限递归](src/layer_patterns.rs) | 接口切片、返回 binding、结构覆盖与预算状态 |
 | [逐轮图](src/native_layer_view.rs) | 真实轮次快照、DOT 与 tools 网页数据 |
@@ -177,3 +178,5 @@ egglog 程序的可执行 token。
 调试页面中，Typst 公式里的高亮文字可以点击编辑。保存会更新对应的
 `dsl_type` 或规则 `labels` 注释，立即重渲染；编辑器支持撤销/重做，并可下载
 当前 `.egg` 源码。历史日志的公式保持只读，避免修改回放快照。
+
+在线 `Use(T)` 构建、成本模型及 layer 准入对照见 [组合复用说明](docs/comb-reuse.md)。

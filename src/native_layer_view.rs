@@ -217,6 +217,127 @@ fn coverage_graph(a: &Analysis) -> Json {
     let nodes=ids.into_iter().map(|i|node(format!("t{i}"),format!("T{i}\n{} apply members",a.templates[i].interface.members.len()),"template",json!({"template":a.templates[i],"relations":a.coverage.iter().filter(|c|c["small"]==i||c["big"]==i).collect::<Vec<_>>()}))).collect();
     graph(nodes, edges)
 }
+fn reuse_graph(s: &LayerStore) -> Json {
+    use crate::comb_reuse::{Part, Reference};
+    let r = &s.reuse;
+    let mut nodes = vec![];
+    let mut edges = vec![];
+    let mut included = BTreeSet::new();
+    let mut todo: Vec<Part> = r
+        .active_uses
+        .iter()
+        .copied()
+        .map(Part::Use)
+        .chain(
+            r.owner
+                .iter()
+                .enumerate()
+                .filter_map(|(i, o)| o.is_none().then_some(Part::Residual(i))),
+        )
+        .collect();
+    fn source(reference: &Reference) -> Option<(String, String)> {
+        match reference {
+            Reference::UsePort {
+                instance,
+                member,
+                output,
+            } => Some((format!("use{instance}"), format!("m{member}.out{output}"))),
+            Reference::ResidualPort { event, output } => {
+                Some((format!("res{event}"), format!("out{output}")))
+            }
+            Reference::UseContext { instance, member } => {
+                Some((format!("use{instance}"), format!("m{member} context")))
+            }
+            Reference::ResidualContext(event) => Some((format!("res{event}"), "context".into())),
+            Reference::External(_) | Reference::ExternalEffect(_) => None,
+        }
+    }
+    while let Some(part) = todo.pop() {
+        let (id, label, kind, detail, refs, parts) = match part {
+            Part::Use(i) => {
+                let u = &r.uses[i];
+                (
+                    format!("use{i}"),
+                    format!(
+                        "Use(T{}) · U{i}\n{} applies · {} wiring units",
+                        u.template,
+                        u.members.len(),
+                        u.wiring_cost
+                    ),
+                    "fractal",
+                    json!({"instance":u,"definition":r.templates[u.template],"active":r.active_uses.contains(&i)}),
+                    u.inputs
+                        .iter()
+                        .chain(&u.contexts)
+                        .cloned()
+                        .collect::<Vec<_>>(),
+                    u.parts.clone(),
+                )
+            }
+            Part::Residual(i) => {
+                let a = &s.occurrences[i].apply;
+                let residual = &r.residuals[i];
+                (
+                    format!("res{i}"),
+                    format!(
+                        "{} · event {}\n{}",
+                        name(&a.rule),
+                        a.event,
+                        if residual.coarse {
+                            "CoarseComb residual"
+                        } else {
+                            "SmoothComb residual"
+                        }
+                    ),
+                    if residual.coarse { "coarse" } else { "smooth" },
+                    json!({"source":a.rule,"residual":residual,"covered":r.owner[i].is_some()}),
+                    residual
+                        .binding
+                        .iter()
+                        .chain(&residual.contexts)
+                        .cloned()
+                        .collect(),
+                    vec![],
+                )
+            }
+        };
+        if !included.insert(id.clone()) {
+            continue;
+        }
+        nodes.push(node(id.clone(), label, kind, detail));
+        for (slot, reference) in refs.iter().enumerate() {
+            if let Some((from, port)) = source(reference) {
+                edges.push(edge(
+                    from,
+                    id.clone(),
+                    format!("{port} → input/context {slot}"),
+                ));
+                match reference {
+                    Reference::UsePort { instance, .. }
+                    | Reference::UseContext { instance, .. } => todo.push(Part::Use(*instance)),
+                    Reference::ResidualPort { event, .. } | Reference::ResidualContext(event) => {
+                        todo.push(Part::Residual(*event))
+                    }
+                    _ => {}
+                }
+            }
+        }
+        // Uses with prior Use parts expose the hierarchy. Raw internal applies
+        // stay in evidence rather than being expanded into the overview graph.
+        for part in parts {
+            if let Part::Use(u) = part {
+                edges.push(edge(
+                    format!("use{u}"),
+                    id.clone(),
+                    "shared sub-combination".into(),
+                ));
+                todo.push(Part::Use(u));
+            }
+        }
+    }
+    graph(nodes, edges)
+}
+
 /// Shared by native streaming, CLI online construction and history replay.
 pub(super) fn snapshot(
     s: &LayerStore,
@@ -225,14 +346,15 @@ pub(super) fn snapshot(
     source: &str,
     analyzer: &mut layer_patterns::Analyzer,
 ) -> Result<Json> {
+    s.reuse.verify(s)?;
     let a = analyzer.analyze(s);
     let label = b
         .round
         .map(|r| format!("Round {r}"))
         .unwrap_or_else(|| format!("{} {index}", b.kind));
-    let graphs = json!({"layers":layer_graph(s),"fractals":fractal_graph(s,&a),"coverage":coverage_graph(&a)});
+    let graphs = json!({"layers":layer_graph(s),"fractals":fractal_graph(s,&a),"coverage":coverage_graph(&a),"reuse":reuse_graph(s)});
     let mut dot = serde_json::Map::new();
-    for kind in ["layers", "fractals", "coverage"] {
+    for kind in ["layers", "fractals", "coverage", "reuse"] {
         dot.insert(
             kind.into(),
             json!(dots(&format!("{label} / {kind} (observed)"), &graphs[kind])),
@@ -249,7 +371,7 @@ pub(super) fn snapshot(
         json!({"kind":"layer_snapshot","id":format!("layer-round:{index}"),"boundary":index,
         "label":label,"boundary_kind":b.kind,"round":b.round,"end":b.end,"stem":format!("round-{index:04}"),
         "counts":{"applications":s.occurrences.len(),"templates":a.templates.len(),"fractals":a.fractals.len(),"coverage_queries":a.coverage_queries,"coverage_cache_hits":a.coverage_cache_hits,"coverage_skipped":a.coverage_skipped,"truncated_candidates":a.truncated_candidates},
-        "graphs":graphs,"dots":dot,"analysis":a,"sites":sites,"preview_source":source}),
+        "reuse":s.reuse.report(),"graphs":graphs,"dots":dot,"analysis":a,"sites":sites,"preview_source":source}),
     )
 }
 impl Exporter {
@@ -261,7 +383,7 @@ impl Exporter {
         let stem = frame["stem"].as_str().unwrap();
         let dir = out.join("rounds");
         std::fs::create_dir_all(&dir)?;
-        for kind in ["layers", "fractals", "coverage"] {
+        for kind in ["layers", "fractals", "coverage", "reuse"] {
             std::fs::write(
                 dir.join(format!("{stem}.{kind}.dot")),
                 frame["dots"][kind].as_str().unwrap(),

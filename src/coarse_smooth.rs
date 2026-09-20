@@ -78,6 +78,7 @@ pub struct Occurrence {
 }
 #[derive(Default, Serialize)]
 pub struct LayerStore {
+    pub reuse: crate::comb_reuse::ReuseStore,
     pub combs: Vec<Comb>,
     pub occurrences: Vec<Occurrence>,
     pub coarse_layers: Vec<CoarseLayer>,
@@ -100,7 +101,7 @@ impl LayerStore {
         serde_json::json!({
             "schema":"coarse-smooth-layers/v1", "backend":"rust",
             "scope":"Observed dependency interfaces; shared definitions, occurrence-specific evidence. No prefix/block admission and no arbitrary subtree enumeration. Layer IDs are run-local, not semantic identifiers.",
-            "combs":self.combs, "coarse_layers":self.coarse_layers, "smooth_layers":self.smooth_layers,
+            "reuse":self.reuse.report(), "combs":self.combs, "coarse_layers":self.coarse_layers, "smooth_layers":self.smooth_layers,
             "occurrences":self.occurrences.iter().map(|o| serde_json::json!({
                 "event":o.apply.event,"comb":o.comb,"parents":o.apply.parents,
                 "coarse_layer":o.coarse_layer,"smooth_layer":o.smooth_layer,
@@ -248,6 +249,9 @@ impl LayerStore {
             smooth_layer,
             boundary_restart,
         });
+        let mut reuse = std::mem::take(&mut self.reuse);
+        reuse.push(self);
+        self.reuse = reuse;
         Ok(id)
     }
     /// Lazy inherited evidence: no transitive effect-set copy in every occurrence.

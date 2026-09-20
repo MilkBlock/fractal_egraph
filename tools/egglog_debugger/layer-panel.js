@@ -4,7 +4,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     const panel=document.createElement('details');panel.id='native-layer-panel';panel.open=true;
     panel.innerHTML=`<summary>Layer / FractalComb · 每轮 DOT</summary>
       <div><select id="native-layer-round" aria-label="Layer 轮次"></select>
-      <select id="native-layer-kind"><option value="fractals">FractalComb</option><option value="layers">Coarse / Smooth layers</option><option value="coverage">模板覆盖</option></select>
+      <select id="native-layer-kind"><option value="fractals">FractalComb</option><option value="layers">Coarse / Smooth layers</option><option value="coverage">模板覆盖</option><option value="reuse">Use(T) / residual 复用</option></select>
       <select id="native-layer-scope" aria-label="Layer 或 Fractal"><option value="">全部</option></select>
       <select id="native-layer-format"><option value="dot">DOT / Graphviz</option><option value="typst">Typst / 现有 Fractal 模板</option></select>
       <button id="native-layer-render">显示</button><button id="native-layer-download">下载本轮 DOT</button></div>
@@ -31,10 +31,13 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         if($('kind').value==='layers')for(const g of f.graphs.layers.groups||[])$('scope').add(new Option(g.label,g.id));
         if($('kind').value==='fractals')f.analysis.fractals.forEach((x,i)=>$('scope').add(new Option(`F${i} · T${x.template} · depth ${x.max_observed_depth}`,'f'+i)));
         if($('kind').value==='coverage')f.analysis.templates.forEach((x,i)=>$('scope').add(new Option(`T${i} · ${x.interface.members.length} apply`,'t'+i)));
+        if($('kind').value==='reuse')for(const i of f.reuse?.roots||[])if(i.Use!==undefined)$('scope').add(new Option(`Use(T${f.reuse.uses[i.Use].template}) · U${i.Use}`,'use'+i.Use));
         const c=f.counts;$('status').textContent=`${f.label} · ${c.applications} apply · ${c.templates} templates · ${c.fractals} FractalComb · ${f.artifact_directory||'CLI / 导入快照'}。有限观察；结构覆盖不等于可替代。候选截断 ${c.truncated_candidates||0}，覆盖未检查 ${c.coverage_skipped||0}。`;
+        if(f.reuse){const r=f.reuse.stats;$('status').textContent+=` Use 覆盖 ${r.covered_events}/${r.events}，residual ${r.residual_events}；后续端口复用 ${r.continuations_through_use}。编码模型 ${r.selected_wiring_units} + 已用字典 ${r.used_dictionary_units} / 原始 ${r.raw_wiring_units}；候选索引 ${r.candidate_index_units}（非字节数）。`; }
     }
     function selectedGraph(){
         const f=frame(),kind=$('kind').value,g=f.graphs[kind],scope=$('scope').value;
+        if(!g)throw Error('此旧快照没有 Use 复用数据，请重新运行。');
         if(!scope)return g;
         let keep=new Set();
         if(kind==='layers'){const group=g.groups.find(g=>g.id===scope);for(const id of group?.members||[])keep.add(id);for(const e of g.edges)if(group?.members.includes(e.to))keep.add(e.from);}
@@ -129,6 +132,10 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
                     const family=f.analysis.fractals[Number(scope.slice(1))];t=f.analysis.templates[family.template].interface;members=t.members;
                     iteration={depth:family.max_observed_depth,operator:`LayerTemplate T${family.template}`,context:f.graphs.fractals.nodes.filter(n=>n.id.startsWith(scope+'t')).flatMap(n=>n.detail.context_events||[]).join(', ')||'external entry', update:updates(t),witness:`Observed finite unit; ${t.returns.length} return ports; unbounded induction unknown`};
                     $('details').textContent=JSON.stringify({family,interface:t},null,2);
+                }else if($('kind').value==='reuse'){
+                    if(!scope)throw Error('请选择一个 Use 实例，或使用 DOT 查看整个复用图。');
+                    const u=f.reuse.uses[Number(scope.slice(3))];members=f.reuse.templates[u.template].pattern.steps.map(step=>({...f.reuse.schemas[step.schema],binding:step.wiring.map(w=>w.Local?{Internal:w.Local}:{Boundary:{port:w.Input}})}));
+                    $('details').textContent=JSON.stringify({use:u,template:f.reuse.templates[u.template]},null,2);
                 }else if($('kind').value==='coverage'){
                     if(!scope)throw Error('请先选择一个模板。');t=f.analysis.templates[Number(scope.slice(1))].interface;members=t.members;$('details').textContent=JSON.stringify(t,null,2);
                 }else{
@@ -157,6 +164,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     }
     $('load').onclick=()=>load($('directory').value).catch(e=>$('error').textContent=e.message);
     $('source').onclick=()=>{if(frame())editor.setValue(frame().preview_source);};
+    const initialKind=new URLSearchParams(location.search).get('layer_kind');if(['layers','fractals','coverage','reuse'].includes(initialKind))$('kind').value=initialKind;
     const initial=new URLSearchParams(location.search).get('layer_run');if(initial){$('directory').value=initial;load(initial).then(()=>render()).catch(e=>$('error').textContent=e.message);}
     // Re-render the current selection against the current source. Called after an
     // editor change so an edited annotation template is visible without re-running.

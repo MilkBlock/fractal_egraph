@@ -17,3 +17,5 @@ pub mod coarse_smooth;
 mod layer_bridge;
 
 pub mod layer_patterns;
+
+pub mod comb_reuse;

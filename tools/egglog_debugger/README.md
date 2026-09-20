@@ -469,3 +469,5 @@ CLI `analyze` 的输出在“载入分析目录”中输入 `out/…` 即可，�
 ```sh
 NODE_PATH=/path/to/node_modules node tools/egglog_debugger/test_layers.cjs   http://127.0.0.1:8080/ /path/to/Chrome
 ```
+
+“Use(T) / residual 复用”显示新的在线组合字典（编号与分析切片模板独立）。每轮新增 `.reuse.dot`，可检查后续 apply 对已有 Use 的内部输出引用。统计分开列出接线模型、已用字典和候选索引，不代表 tier0 内存或执行时间收益。

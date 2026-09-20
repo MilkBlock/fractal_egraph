@@ -1,0 +1,8 @@
+; Repeated data-related two-rule combinations. B needs an external Extra fact.
+(datatype Expr (Seed i64) (Extra i64) (A i64) (B i64))
+(rule ((Seed x)) ((A x)) :name "make-a")
+(rule ((A x) (Extra x)) ((B x)) :name "finish-b")
+(Seed 1) (Seed 2) (Seed 3) (Seed 4) (Seed 5) (Seed 6)
+(Extra 1) (Extra 2) (Extra 3) (Extra 4) (Extra 5) (Extra 6)
+(run 3)
+(check (B 6))
