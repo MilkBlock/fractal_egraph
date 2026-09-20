@@ -565,5 +565,10 @@ not the complete original layers. The DOT download follows the selected graph.
 `test_closed_diagrams.cjs` covers this selector. `test_closed_catalog.cjs` cannot:
 its fixture has no `comb_groups`, so the diagram branch is never reached there.
 
+With no catalog loaded, **显示** and **下载当前 ClosedState DOT** show the
+actionable hint instead of returning silently, and neither clears a load error
+that is already on screen. `test_closed_buttons.cjs` covers the no-catalog, bad
+directory and real-catalog paths.
+
 `python3 tools/egglog_debugger/test_run_pruning.py` covers the `out/debugger/`
 retention described above.

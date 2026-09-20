@@ -15,7 +15,8 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
       <details><summary>当前 Typst / DOT 源码</summary><pre id="native-layer-code"></pre></details>`;
     const catalogPanel=document.createElement('section');catalogPanel.hidden=true;catalogPanel.innerHTML=`<p>ClosedState / Closed rule comb · 每轮处理进度与共享闭包</p><input hidden id="native-closed-path" placeholder="out/ 中的 closed-catalog 目录"><button hidden id="native-closed-load">载入共享目录</button><select id="native-closed-state" aria-label="共享闭包"><option value="">全部概览</option></select><select id="native-closed-comb" aria-label="对应组合"><option value="">所有对应组合</option></select><select id="native-closed-instance" aria-label="触发实例"><option value="">示例实例</option></select><select id="native-closed-diagram" aria-label="ClosedState 图类型"><option value="comb">来源 rule comb</option><option value="egraph">闭包 e-graph</option><option value="layers">来源 Coarse / Smooth layer</option></select><div id="native-closed-caption"></div><div id="native-closed-status"></div><div id="native-closed-table"></div><div id="native-closed-view"></div><pre id="native-closed-rule" style="white-space:pre-wrap"></pre><pre id="native-closed-details"></pre>`;panel.append(catalogPanel);
     const cp=id=>catalogPanel.querySelector('#native-closed-'+id);
-    let catalogData=null,catalogVersion=0;
+    let catalogData=null,catalogVersion=0,catalogError=null;
+    const NO_CATALOG='尚无 ClosedState 快照：请先「运行并识别」（它会自动跑有预算的 ripen 队列），或在目录框载入一次带 ClosedState 的运行目录（含 catalog/）。Pending / Suspended 不代表已闭合。';
     function catalogGraph(){
         const c=catalogData.catalog,scope=cp('state').value,nodes=[],edges=[];
         const states=(c.state_groups||[]).filter(g=>scope===''||g.closed_state===Number(scope));
@@ -152,7 +153,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     cp('state').onchange=()=>{if(catalogData){combOptions();renderCatalog();}};
     cp('comb').onchange=()=>{if(!catalogData)return;const id=cp('comb').value;if(id==='')renderCatalog();else focusComb(catalogData.catalog.comb_groups[Number(id)]);};
     cp('load').onclick=async()=>{
-        cp('load').disabled=true;cp('state').disabled=true;cp('comb').disabled=true;catalogVersion++;catalogData=null;cp('table').replaceChildren();cp('view').replaceChildren();cp('rule').textContent='';cp('status').textContent='载入…';cp('details').textContent='';
+        cp('load').disabled=true;cp('state').disabled=true;cp('comb').disabled=true;catalogVersion++;catalogData=null;catalogError=null;cp('table').replaceChildren();cp('view').replaceChildren();cp('rule').textContent='';cp('status').textContent='载入…';cp('details').textContent='';
         try{
             catalogData=await (await post('closed-catalog',{path:cp('path').value})).json();const c=catalogData.catalog;
             cp('state').replaceChildren(new Option('全部概览',''));
@@ -164,7 +165,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
             cp('status').textContent=`${c.triggers.length} 个 Trigger → ${c.closed_states} 个共享 ClosedState，涉及 ${templates} 种模板。未决比较 ${c.unresolved_comparisons||0}。`;
             if(c.scan)cp('status').textContent+=` 已检查 ${c.scan.attempts.length}/${c.scan.population.historical_uses} 个历史 Use；${JSON.stringify(c.scan.counts)}。预算 ${c.scan.budgets.rounds} 轮 / 每例 ${c.scan.budgets.seconds_per_use} 秒。跨模板共享组 ${c.scan.shared_template_states}。`;
             await renderCatalog();
-        }catch(e){cp('status').textContent=String(e);}finally{cp('load').disabled=false;cp('state').disabled=false;cp('comb').disabled=false;}
+        }catch(e){catalogError=String(e);cp('status').textContent=catalogError;}finally{cp('load').disabled=false;cp('state').disabled=false;cp('comb').disabled=false;}
     };
     const initialCatalog=new URLSearchParams(location.search).get('closed_catalog');
 
@@ -180,7 +181,9 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         $('directory').placeholder=closed?'out/ 中的共享目录或含 catalog/ 的运行目录':'out/ 中的分析目录';
         $('load').textContent=closed?'载入 ClosedState':'载入分析目录';
         $('download').textContent=closed?'下载当前 ClosedState DOT':'下载本轮 DOT';
-        if(closed&&!catalogData&&!frame()?.closed)cp('status').textContent='本轮尚无 ClosedState 快照。通过本地服务的新运行会自动处理 ripen 队列；旧记录可载入共享目录。';
+        // Never overwrite a load failure with the generic hint: that used to erase the one
+        // message telling the user why nothing rendered.
+        if(closed&&!catalogData&&!catalogError&&!frame()?.closed)cp('status').textContent=NO_CATALOG;
     }
     function showClosedFrame(result){
         catalogVersion++;catalogData=result.catalog;
@@ -296,7 +299,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         $('code').textContent+=(rendered.typst||'')+'\n';
     }
     async function render(){
-        if($('kind').value==='closed'){mode();if(catalogData)await renderCatalog();return;}
+        if($('kind').value==='closed'){mode();if(catalogData)await renderCatalog();else if(!catalogError)cp('status').textContent=NO_CATALOG;return;}
         const f=frame();if(!f)return;pinned=true;
         abort?.abort();abort=new AbortController();const signal=abort.signal,v=++version;
         $('error').textContent='';$('viewport').replaceChildren();$('viewport').dataset.ready='false';$('code').textContent='';
@@ -355,7 +358,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         }catch(e){if(v===version&&e.name!=='AbortError')$('error').textContent=e.message;}
     }
     $('round').onchange=options;$('kind').onchange=options;$('render').onclick=render;
-    $('download').onclick=()=>{if($('kind').value==='closed'){if(!catalogData)return;const a=document.createElement('a'),url=URL.createObjectURL(new Blob([cp('view').dataset.dot||dot(catalogGraph())],{type:'text/vnd.graphviz;charset=utf-8'}));a.href=url;a.download='closed-state.dot';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;}const f=frame();if(!f)return;const kind=$('kind').value,a=document.createElement('a'),url=URL.createObjectURL(new Blob([f.dots[kind]],{type:'text/vnd.graphviz;charset=utf-8'}));a.href=url;a.download=f.stem+'.'+kind+'.dot';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+    $('download').onclick=()=>{if($('kind').value==='closed'){if(!catalogData){cp('status').textContent=catalogError||NO_CATALOG;return;}const a=document.createElement('a'),url=URL.createObjectURL(new Blob([cp('view').dataset.dot||dot(catalogGraph())],{type:'text/vnd.graphviz;charset=utf-8'}));a.href=url;a.download='closed-state.dot';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;}const f=frame();if(!f)return;const kind=$('kind').value,a=document.createElement('a'),url=URL.createObjectURL(new Blob([f.dots[kind]],{type:'text/vnd.graphviz;charset=utf-8'}));a.href=url;a.download=f.stem+'.'+kind+'.dot';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
     async function load(path){
         const controls=['load','render','round','kind','scope','format'];controls.forEach(id=>$(id).disabled=true);
         try {const data=await (await post('layer-run',{path})).json();reset();for(const f of data.frames)receive(f);if(data.closed_catalog&&!data.frames.some(f=>f.closed)){cp('path').value=data.closed_catalog;await cp('load').onclick();}mode();}

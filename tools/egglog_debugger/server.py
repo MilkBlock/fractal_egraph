@@ -124,6 +124,8 @@ class Handler(SimpleHTTPRequestHandler):
                     folder = (folder / 'catalog').resolve()
                 if not folder.is_relative_to(ROOT / 'out'):
                     raise ValueError('Catalog must remain inside out/')
+                if not (folder / 'catalog.json').is_file():
+                    return self.reply(404, {'error': f'{data["path"]} 中没有 catalog.json：请选择一次带 ClosedState 的运行目录（含 catalog/），或 out/closed-* 目录'})
                 catalog = json.loads((folder / 'catalog.json').read_text())
                 if catalog.get('schema') != 'closed-state-catalog/v1':
                     raise ValueError('Unsupported closed-state catalog')
