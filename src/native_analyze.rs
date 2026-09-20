@@ -261,7 +261,7 @@ fn capture_text_with_sink(
 ) -> Result<Captured> {
     let started = Instant::now();
     let mut eg = EGraph::default();
-    let mut commands = eg.parse_program(Some(name.to_owned()), text)?;
+    let mut commands = crate::visual_rule::surface_program(eg.parse_program(Some(name.to_owned()), text)?);
     declaration_sort(&commands)?;
     let declarations: Vec<_> = commands.iter().filter(|c| matches!(c,
         Command::Datatype {..} | Command::Relation {..} | Command::Function{..}

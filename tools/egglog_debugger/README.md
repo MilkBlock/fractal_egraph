@@ -607,3 +607,19 @@ source programs, and unrecorded scalar literals remain unsupported by relevant
 analysis stages. These are not errors in egglog's own support for these constructs.
 
 Tests: `cargo test --release --test table_support`; browser `test_tables.cjs`.
+
+### Wildcard AST round trips
+
+Before native capture or ripen serializes parser ASTs, `surface_program` maps
+reserved leaf names (such as `@_`, `@_1`) to fresh `__egg_internal_N` names.
+Freshness is checked against the entire program, including global declarations.
+Repeated references stay equal; distinct wildcards remain distinct. String
+literals and operators are not rewritten, and the parser's reserved-name check
+remains enabled. Source-rule auditing and debugger pattern normalization use the
+same mapping. Recapture old histories whose printed rules already contain
+unparseable reserved names.
+
+This fixes printing/parsing; it does not authorize `subsume` inside isolated
+ripen, or resolve late/coarse external inputs. The actual UI math program with
+`prune` therefore still has independent closure blockers. Regression tests:
+`cargo test --release --test wildcard_roundtrip`.

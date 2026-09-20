@@ -343,7 +343,7 @@ pub(in crate::native_analyze) fn prepare(
 ) -> Result<(String, String, Json)> {
     let mut parser = EGraph::default();
     let mut declared = vec![];
-    for cmd in parser.parse_program(None, &c.preview_source)? {
+    for cmd in crate::visual_rule::surface_program(parser.parse_program(None, &c.preview_source)?) {
         if matches!(
             cmd,
             Command::BiRewrite(..) | Command::Include(..) | Command::Rewrite(_, _, true)

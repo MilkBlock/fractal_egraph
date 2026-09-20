@@ -181,3 +181,40 @@ pub fn owned_expression_at(rule: &Rule, path: &str) -> Option<Expr> {
     }
     Some(e.clone())
 }
+
+/// Turn parser-generated reserved variables into fresh surface names before any
+/// native analysis serializes an AST. Names are chosen against the whole program
+/// (including global declarations); literals and operator symbols are untouched.
+pub fn surface_program(commands: Vec<Command>) -> Vec<Command> {
+    use std::collections::{BTreeMap, BTreeSet};
+    let text = commands
+        .iter()
+        .map(ToString::to_string)
+        .collect::<Vec<_>>()
+        .join("\n");
+    let mut internal = BTreeSet::new();
+    for command in &commands {
+        command.clone().map_symbols(&mut |h| h, &mut |v: String| {
+            if v.starts_with('@') {
+                internal.insert(v.clone());
+            }
+            v
+        });
+    }
+    let mut names = BTreeMap::new();
+    let mut next = 0;
+    for name in internal {
+        let fresh = loop {
+            let candidate = format!("__egg_internal_{next}");
+            next += 1;
+            if !text.contains(&candidate) {
+                break candidate;
+            }
+        };
+        names.insert(name, fresh);
+    }
+    commands
+        .into_iter()
+        .map(|c| c.map_symbols(&mut |h| h, &mut |v| names.get(&v).cloned().unwrap_or(v)))
+        .collect()
+}

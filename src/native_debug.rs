@@ -189,7 +189,7 @@ fn composition(c: &Captured, index: usize) -> Json {
 pub fn patterns(source: &str) -> Result<Json> {
     let mut eg = EGraph::default();
     let mut rows = vec![];
-    for command in eg.parse_program(None, source)? {
+    for command in crate::visual_rule::surface_program(eg.parse_program(None, source)?) {
         // `birewrite` desugars to both directions and the transpiler emits no
         // `add_rule` scope for it; preview its forward rewrite like a plain rewrite.
         let command = match command {

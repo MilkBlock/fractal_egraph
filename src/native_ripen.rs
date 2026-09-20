@@ -34,7 +34,9 @@ pub(super) fn run_with_origin(
     let source = source.canonicalize()?;
     let text = std::fs::read_to_string(&source)?;
     let mut eg = EGraph::default();
-    let commands = eg.parse_program(Some(source.display().to_string()), &text)?;
+    let commands = crate::visual_rule::surface_program(
+        eg.parse_program(Some(source.display().to_string()), &text)?,
+    );
     let mut setup = vec![];
     let mut checks = vec![];
     let mut rules = vec![];

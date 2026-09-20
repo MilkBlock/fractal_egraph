@@ -1,0 +1,26 @@
+{
+  "source": "out/debugger/eece817d1ef84bbcba5d3715287c470d/source.egg",
+  "source_sha256": "84c64a314abda952035de340f6b84599bb982c29569b8a4e91444e332f2eae8d",
+  "scope": "actual UI math source; partial execution stopped at boundary 19 after the 32-job ripen budget was exhausted; not a complete 27-round run",
+  "boundary": 19,
+  "counts": {
+    "Pending": 224,
+    "Rejected": 32
+  },
+  "limits": {
+    "jobs": 32,
+    "milliseconds_between_jobs": 250,
+    "per_boundary": 4,
+    "queue_capacity": 256,
+    "rounds": 4
+  },
+  "rejection_reasons": {
+    "ripen rejects unsupported delete/subsume actions": 12,
+    "unversioned external input first appears after entry": 8,
+    "entry requires a late external producer; staged injection is not supported": 6,
+    "external row depends on an internal result; staged injection is required": 2,
+    "seeding an external row would materialize an internal read; staged injection is required": 3,
+    "Use member 131 cannot replay from extracted entry: At 46:17 of src/native_analyze.rs\nCheck failed: \n(= (Add (RipenInput 0) (Add (RipenInput 3) (RipenInput 4))) (Add (RipenInput 0) (Add (RipenInput 3) (RipenInput 4))))": 1
+  },
+  "reserved_name_parse_errors": 0
+}
