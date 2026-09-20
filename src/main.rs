@@ -9,6 +9,7 @@ const HELP: &str = "egg_layout — native rule-combination analysis
   cargo run -- debug-patterns SOURCE.egg    Parse source ranges, Typst, and DOT
   cargo run -- debug-stream SOURCE.egg      Stream native Compose / Fractal events
   cargo run -- ripen INPUT.egg OUTPUT_DIR [--max-rounds N]
+  cargo run -- ripen-use HISTORY.json USE_ID OUTPUT_DIR [--max-rounds N]
   cargo run -- bake-format OLD_LIBRARY NEW_LIBRARY.egg
   cargo run -- bake MANIFEST.json OUTPUT_DIR
   cargo run -- bake-use LIBRARY.egg SOURCE.egg OUTPUT_DIR [--save-history]
@@ -149,6 +150,29 @@ fn main() -> Result {
         Some("higher") if args.len() == 1 => pipeline::higher(),
         Some("reduce") if args.len() == 1 => pipeline::reduce(),
         Some("observations") if args.len() == 1 => pipeline::observations(),
+        Some("ripen-use") if args.len() == 4 || args.len() == 6 => {
+            let budget = if args.len() == 6 {
+                if args[4] != "--max-rounds" {
+                    return Err("expected --max-rounds".into());
+                }
+                args[5].parse()?
+            } else {
+                32
+            };
+            let report = egg_layout::native_analyze::ripen::from_use(
+                &PathBuf::from(&args[1]),
+                args[2].parse()?,
+                &PathBuf::from(&args[3]),
+                budget,
+            )?;
+            println!(
+                "{}",
+                serde_json::to_string_pretty(
+                    &serde_json::json!({"ripen":report["ripen"],"checks":report["checks"],"source_use":args[2],"symbolic_boundary":true,"output":args[3]})
+                )?
+            );
+            Ok(())
+        }
         Some("ripen") if args.len() == 3 || args.len() == 5 => {
             let budget = if args.len() == 5 {
                 if args[3] != "--max-rounds" {

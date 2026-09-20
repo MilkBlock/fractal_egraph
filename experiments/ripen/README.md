@@ -65,3 +65,65 @@ This is actual patched egglog execution, not a simulated match history. It is a
 baseline, not a speedup result. Automatic extraction of arbitrary Use entrances,
 batched cell tables, proven Fractal-summary execution and cross-instance Bake
 reuse are not implemented here (`fractal_summaries_used` is explicitly zero).
+
+## Automatically extract a symbolic Use entry
+
+```sh
+cargo run --release -- ripen-use out/use-reuse-final/math/history.json 24 out/ripen-use-final --max-rounds 8
+```
+
+The Use ID is resolved by the **current default Tier1 builder** replaying this
+history; it is not a globally stable ID. Non-default admission/cut/rotation flags
+are rejected. `origin.json` records source event/member IDs for inspection.
+
+The extractor imports all recorded source rules, checks that they cover the
+source rule declarations, and recovers the selected Use's LHS skeleton from its
+recorded bindings and producer ports. Unknown e-class boundary values become
+fresh `RipenInput(i64)` constructor terms in the original datatype, with captured
+aliases preserved. These terms explicitly stand for opaque parameters; they are
+not guesses of the original concrete expressions. Primitive boundary values whose
+literals were not recorded are rejected. The history datatype name is now read
+using egglog's AST parser, fixing the former whitespace-split extraction of the
+word `datatype` instead of the actual sort name.
+
+Before ripen, a separate native EGraph checks each original member's ground LHS,
+executes only that member's ground actions, and checks recorded output aliases.
+Failed equalities are not repaired by injecting unions. Internal rows are not
+seeded, and an external row whose nested AST would construct an internal read is
+rejected. External producers after the first member, unversioned later inputs,
+and unsupported actions/rule coverage also fail explicitly. This deliberately
+conservative subset can reject otherwise valid interfaces.
+
+Generated files:
+
+- `entry.egg`: initial symbolic interface + all source rules + postconditions;
+- `validate-use.egg`: executable, staged checks/actions for the original Use;
+- `origin.json`: boundary parameters, source members and validation metadata;
+- `run/`: normal ripen result, Tier1 history and per-round DOT;
+- `result.json`: origin and ripen result, including per-constructor table sizes.
+
+`RipenOrigin` is attached to the resulting Tier1 feedback and persisted in history
+rounds. It links back to the source history/Use/template and explicitly labels the
+symbolic boundary. No original history or previously generated analysis is changed.
+
+**Closed applies to the extracted symbolic interface.** Substituting concrete terms
+for the opaque parameters can enable additional matches inside those terms, so
+this is not proof that the full original tier0 neighborhood or all parameter
+instances are closed. Automatic concrete boundary reconstruction, staged coarse
+injection, importing this as an executable global macro, and Fractal-summary
+acceleration remain outside this implementation.
+
+### Math6 check
+
+U24 (T12, source records 109/134) passes both staged original-rule checks. Its
+initial interface has 2 Add table rows; replaying its two members produces 5;
+ripen with all 24 source rules reaches 12 rows and reports Closed at sweep 4.
+There are 18 imported local apply records and no excluded matches. Row counts are
+net canonical table sizes, not counts of all mutations or speedup measurements.
+U146 is rejected because seeding its outer external read would create an internal
+read early; it requires staged injection. Results refer to the existing Math6
+history and the current builder, not arbitrary history IDs.
+
+Native tests independently capture an A→B→C→D workload, extract an A→B→C Use,
+verify B/C were absent at entry, and show ripen additionally derives D. Tests also
+execute `validate-use.egg` and reject unavailable primitive boundary data.

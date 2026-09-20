@@ -1,13 +1,25 @@
 //! Ripen an explicit local cell with the native engine; feed its witnessed history
 //! and whole-cell fixed-point state back into Tier1. No private matcher/scheduler.
 use super::*;
-use crate::coarse_smooth::RipenFeedback;
+use crate::coarse_smooth::{RipenFeedback, RipenOrigin};
+
+#[path = "native_ripen_entry.rs"]
+mod entry;
+pub use entry::from_use;
 
 fn monotone(a: &Action) -> bool {
     matches!(a, Action::Let(..) | Action::Expr(..) | Action::Union(..))
 }
 
 pub fn run(source: &Path, out: &Path, max_rounds: usize) -> Result<Json> {
+    run_with_origin(source, out, max_rounds, None)
+}
+fn run_with_origin(
+    source: &Path,
+    out: &Path,
+    max_rounds: usize,
+    origin: Option<RipenOrigin>,
+) -> Result<Json> {
     if max_rounds == 0 {
         return Err("ripen max-rounds must be positive".into());
     }
@@ -99,7 +111,7 @@ pub fn run(source: &Path, out: &Path, max_rounds: usize) -> Result<Json> {
             } else {
                 "Growing"
             };
-            let f=RipenFeedback{state:state.into(),round,max_rounds,rulesets:rulesets.clone(),updated,
+            let f=RipenFeedback{origin:origin.clone(),state:state.into(),round,max_rounds,rulesets:rulesets.clone(),updated,
                 excluded_matches:c.rejected,scope:"whole isolated cell under the declared rulesets and fixed entry; not each sub-Use, no cross-instance proof or automatic tier0 substitution".into()};
             c.boundaries.push(CaptureBoundary {
                 kind: "ripen-round".into(),
@@ -142,7 +154,7 @@ pub fn run(source: &Path, out: &Path, max_rounds: usize) -> Result<Json> {
         let report = json!({"ripen":feedback,"checks":if closed{"passed"}else{"deferred"},
             "checks_count":checks.len(),"rules":c.rules.iter().map(|r|r.rule.to_string()).collect::<Vec<_>>(),
             "source":source,"source_text":text,"events":c.events,"imported_applies":c.records.len(),
-            "tier1":c.layers.report(),"round_manifest":"rounds/manifest.json",
+            "tables":table_sizes(&eg, &c.datatype)?,"tier1":c.layers.report(),"round_manifest":"rounds/manifest.json",
             "history":"history.json","seconds":c.trace_seconds,"fractal_summaries_used":0});
         std::fs::write(out.join("ripen.json"), serde_json::to_vec_pretty(&report)?)?;
         Ok(report)
@@ -154,4 +166,19 @@ pub fn run(source: &Path, out: &Path, max_rounds: usize) -> Result<Json> {
         )?;
     }
     outcome
+}
+
+fn table_sizes(eg: &EGraph, datatype: &str) -> Result<BTreeMap<String, usize>> {
+    let mut parser = EGraph::default();
+    let cmds = parser.parse_program(None, datatype)?;
+    let Command::Datatype { variants, .. } = &cmds[0] else {
+        return Err("expected datatype".into());
+    };
+    let mut sizes = BTreeMap::new();
+    for variant in variants {
+        let mut count = 0;
+        eg.function_for_each(&variant.name, |_| count += 1)?;
+        sizes.insert(variant.name.clone(), count);
+    }
+    Ok(sizes)
 }

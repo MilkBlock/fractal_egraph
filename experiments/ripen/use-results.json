@@ -1,0 +1,112 @@
+{
+  "ripen": {
+    "excluded_matches": 0,
+    "max_rounds": 8,
+    "origin": {
+      "history": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/use-reuse-final/math/history.json",
+      "members": [
+        109,
+        134
+      ],
+      "symbolic_boundary": true,
+      "template": 12,
+      "use_id": 24
+    },
+    "round": 4,
+    "rulesets": [
+      ""
+    ],
+    "scope": "whole isolated cell under the declared rulesets and fixed entry; not each sub-Use, no cross-instance proof or automatic tier0 substitution",
+    "state": "Closed",
+    "updated": false
+  },
+  "checks": "passed",
+  "events": 18,
+  "imported_applies": 18,
+  "tables": {
+    "Add": 12,
+    "Const": 0,
+    "Cos": 0,
+    "Diff": 0,
+    "Div": 0,
+    "Integral": 0,
+    "Ln": 0,
+    "Mul": 0,
+    "Pow": 0,
+    "RipenInput": 3,
+    "Sin": 0,
+    "Sqrt": 0,
+    "Sub": 0,
+    "Var": 0
+  },
+  "fractal_summaries_used": 0,
+  "origin": {
+    "kind": "symbolic_use_interface",
+    "use_id": 24,
+    "template": 12,
+    "members": [
+      109,
+      134
+    ],
+    "parameters": [
+      {
+        "name": "ripen_p0",
+        "semantics": "opaque boundary parameter",
+        "sort": "Math",
+        "token": 50
+      },
+      {
+        "name": "ripen_p1",
+        "semantics": "opaque boundary parameter",
+        "sort": "Math",
+        "token": 16
+      },
+      {
+        "name": "ripen_p2",
+        "semantics": "opaque boundary parameter",
+        "sort": "Math",
+        "token": 0
+      }
+    ],
+    "initial_tables": {
+      "Add": 2,
+      "Const": 0,
+      "Cos": 0,
+      "Diff": 0,
+      "Div": 0,
+      "Integral": 0,
+      "Ln": 0,
+      "Mul": 0,
+      "Pow": 0,
+      "RipenInput": 3,
+      "Sin": 0,
+      "Sqrt": 0,
+      "Sub": 0,
+      "Var": 0
+    },
+    "original_use_tables": {
+      "Add": 5,
+      "Const": 0,
+      "Cos": 0,
+      "Diff": 0,
+      "Div": 0,
+      "Integral": 0,
+      "Ln": 0,
+      "Mul": 0,
+      "Pow": 0,
+      "RipenInput": 3,
+      "Sin": 0,
+      "Sqrt": 0,
+      "Sub": 0,
+      "Var": 0
+    },
+    "all_source_rules": 24,
+    "validation": "all original LHS checks and recorded output aliases passed before/after the corresponding ground actions",
+    "closed_scope": "extracted interface only; not the complete original tier0 neighborhood"
+  },
+  "negative_case": {
+    "use_id": 146,
+    "result": "rejected",
+    "reason": "seeding an external row would materialize an internal read; staged injection is required"
+  }
+}

@@ -216,12 +216,17 @@ pub(super) fn read(path: &Path) -> Result<Captured> {
         .ok_or("invalid history event count")?;
     // Replayed histories carry the datatype text; take its name as the sort name
     // the analysis uses, the same way a fresh capture does.
-    let datatype_name = h
-        .datatype
-        .split(|c: char| c.is_whitespace() || c == '(' || c == ')')
-        .nth(1)
-        .unwrap_or("Math")
-        .to_string();
+    let datatype_commands = eg.parse_program(None, &h.datatype)?;
+    let [
+        Command::Datatype {
+            name: datatype_name,
+            ..
+        },
+    ] = datatype_commands.as_slice()
+    else {
+        return Err("history must contain one datatype declaration".into());
+    };
+    let datatype_name = datatype_name.clone();
     let preview_source = h.source_text.unwrap_or_else(|| {
         format!(
             "{}\n{}",

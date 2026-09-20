@@ -26,10 +26,21 @@ pub(crate) fn canonical_effect(e: &Effect, names: &mut BTreeMap<usize, usize>) -
     }
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct RipenOrigin {
+    pub history: String,
+    pub use_id: usize,
+    pub template: usize,
+    pub members: Vec<usize>,
+    pub symbolic_boundary: bool,
+}
+
 /// A runtime fixed-point observation for one explicitly isolated ripen cell.
 /// This is not a proof that any sub-Use or another parameter instance is closed.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RipenFeedback {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub origin: Option<RipenOrigin>,
     pub state: String,
     pub round: usize,
     pub max_rounds: usize,

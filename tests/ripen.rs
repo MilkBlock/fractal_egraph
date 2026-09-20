@@ -75,3 +75,104 @@ fn native_ripen_closes_after_union_and_feeds_replayable_tier1() {
     assert!(!p.status.success());
     fs::remove_dir_all(base).unwrap();
 }
+
+#[test]
+fn extracts_a_real_use_without_seeding_its_outputs() {
+    let base = std::env::temp_dir().join(format!("ripen-use-tests-{}", std::process::id()));
+    let _ = fs::remove_dir_all(&base);
+    fs::create_dir_all(&base).unwrap();
+    let source = base.join("source.egg");
+    let mut text = String::from(
+        "(datatype Expr (V String) (A Expr) (B Expr) (C Expr) (D Expr))\n(rewrite (A x) (B x))\n(rewrite (B x) (C x))\n(rewrite (C x) (D x))\n",
+    );
+    for i in 0..8 {
+        text += &format!("(A (V \"v{i}\"))\n");
+    }
+    text += "(run 5)\n";
+    fs::write(&source, text).unwrap();
+    let captured = base.join("capture");
+    let p = Command::new(env!("CARGO_BIN_EXE_egg_layout"))
+        .args([
+            "analyze",
+            "--recapture-tier0",
+            "--source",
+            source.to_str().unwrap(),
+            "--save-history",
+            "--output",
+            captured.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(p.status.success(), "{}", String::from_utf8_lossy(&p.stderr));
+    let analysis: serde_json::Value =
+        serde_json::from_slice(&fs::read(captured.join("analysis.json")).unwrap()).unwrap();
+    let reuse = &analysis["layers"]["reuse"];
+    let uid = reuse["uses"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .position(|u| {
+            let steps =
+                reuse["templates"][u["template"].as_u64().unwrap() as usize]["pattern"]["steps"]
+                    .as_array()
+                    .unwrap();
+            steps.len() == 2
+                && reuse["schemas"][steps[0]["schema"].as_u64().unwrap() as usize]["rule"]
+                    .as_str()
+                    .unwrap()
+                    .contains("(A x)")
+        })
+        .expect("a real two-apply Use");
+    let out = base.join("from-use");
+    let p = Command::new(env!("CARGO_BIN_EXE_egg_layout"))
+        .args([
+            "ripen-use",
+            captured.join("history.json").to_str().unwrap(),
+            &uid.to_string(),
+            out.to_str().unwrap(),
+            "--max-rounds",
+            "8",
+        ])
+        .output()
+        .unwrap();
+    assert!(p.status.success(), "{}", String::from_utf8_lossy(&p.stderr));
+    let result: serde_json::Value =
+        serde_json::from_slice(&fs::read(out.join("result.json")).unwrap()).unwrap();
+    assert_eq!(result["checks"], "passed");
+    assert_eq!(result["ripen"]["state"], "Closed");
+    assert_eq!(result["ripen"]["origin"]["use_id"], uid);
+    assert_eq!(result["origin"]["parameters"][0]["sort"], "Expr");
+    assert_eq!(result["origin"]["initial_tables"]["B"], 0);
+    assert_eq!(result["origin"]["initial_tables"]["C"], 0);
+    assert_eq!(result["origin"]["original_use_tables"]["D"], 0);
+    assert_eq!(result["tables"]["D"], 1);
+    let mut eg = egglog::EGraph::default();
+    let commands = eg
+        .parse_program(
+            None,
+            &fs::read_to_string(out.join("validate-use.egg")).unwrap(),
+        )
+        .unwrap();
+    eg.run_program(commands).unwrap();
+    let mut bad: serde_json::Value =
+        serde_json::from_slice(&fs::read(captured.join("history.json")).unwrap()).unwrap();
+    for token in bad["tokens"].as_array_mut().unwrap() {
+        if token["sort"] == "Expr" {
+            token["sort"] = serde_json::json!("i64");
+        }
+    }
+    let path = base.join("bad.json");
+    fs::write(&path, serde_json::to_vec(&bad).unwrap()).unwrap();
+    let p = Command::new(env!("CARGO_BIN_EXE_egg_layout"))
+        .args([
+            "ripen-use",
+            path.to_str().unwrap(),
+            &uid.to_string(),
+            base.join("bad").to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(!p.status.success());
+    assert!(!base.join("bad").exists());
+    fs::remove_dir_all(base).unwrap();
+}
