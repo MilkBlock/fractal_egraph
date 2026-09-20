@@ -1,0 +1,74 @@
+{
+  "scope": "standalone Python Add tuple storage over native symbolic closures; no kernel substitution",
+  "closed_after_instantiation": "unverified; congruence maintenance does not run rewrites",
+  "input_instances": 100,
+  "template_rows": 12,
+  "slots_per_instance": 7,
+  "global_handles": 276,
+  "unique_rows": 304,
+  "retained_instances": 39,
+  "memory_measure": "sys.getsizeof recursive retained objects including array capacities, UF and index; not RSS",
+  "flat_bytes": 25740,
+  "shared_bytes": 20540,
+  "flat_payload_bytes": 7296,
+  "shared_payload_bytes": 2472,
+  "timing_unit": "microseconds, median of 9, Python implementation only",
+  "flat_build_us": 4154.792,
+  "shared_build_us": 5519.5,
+  "flat_all_lhs_queries_us": 687.417,
+  "shared_all_lhs_queries_us": 7096.417,
+  "flat_join_us": 592.292,
+  "shared_join_us": 4473.584,
+  "mutation_checks": [
+    {
+      "op": "insert",
+      "args": [
+        0,
+        0,
+        275
+      ],
+      "unique_rows": 305,
+      "flat_us": 562.25,
+      "shared_us": 1218.083,
+      "flat_bytes": 25740,
+      "shared_bytes": 20572
+    },
+    {
+      "op": "union",
+      "args": [
+        0,
+        1
+      ],
+      "unique_rows": 245,
+      "flat_us": 756.083,
+      "shared_us": 2239.5,
+      "flat_bytes": 22040,
+      "shared_bytes": 18116
+    },
+    {
+      "op": "union",
+      "args": [
+        1,
+        2
+      ],
+      "unique_rows": 217,
+      "flat_us": 567.917,
+      "shared_us": 2075.792,
+      "flat_bytes": 19820,
+      "shared_bytes": 16656
+    },
+    {
+      "op": "union",
+      "args": [
+        2,
+        275
+      ],
+      "unique_rows": 164,
+      "flat_us": 551.0,
+      "shared_us": 1808.084,
+      "flat_bytes": 16808,
+      "shared_bytes": 14716
+    }
+  ],
+  "retained_byte_saving": 0.202020202020202
+}

@@ -247,7 +247,9 @@ fn extract(c: &Captured, u: &Use) -> Result<(String, String, Json)> {
     }).collect();
     let provenance = json!({"kind":"symbolic_use_interface","template":u.template,"members":u.members,"root_member":c.layers.reuse.templates[u.template].pattern.root,"comb_members":comb_members,"kind_scope":"use_kind is relative to directly recorded dependencies inside this Use; source_kind is the original layer classification; neither minimizes alternate proof requirements",
         "events":stages.iter().map(|(i,e,n,_)|json!({"record":i,"event":e,"precondition_checks":n})).collect::<Vec<_>>(),
-        "initial_tables":initial_tables,"original_use_tables":super::table_sizes(&eg,&datatypes[0].to_string())?,"parameters":parameters,"all_source_rules":c.rules.len(),"validation":"all original LHS checks and recorded output aliases passed before/after the corresponding ground actions",
+        "initial_tables":initial_tables,"original_use_tables":super::table_sizes(&eg,&datatypes[0].to_string())?,"parameter_marker":hole,
+        "symbolic_values":values.iter().map(|(token,term)|json!({"token":token,"term":term.to_string(),"sort":c.pool.values[*token].sort})).collect::<Vec<_>>(),
+        "parameters":parameters,"all_source_rules":c.rules.len(),"validation":"all original LHS checks and recorded output aliases passed before/after the corresponding ground actions",
         "initial_source":seed_text,"concrete_boundary_structure_recovered":false,
         "closed_scope":"extracted interface only; not the complete original tier0 neighborhood"});
     Ok((text, validation, provenance))

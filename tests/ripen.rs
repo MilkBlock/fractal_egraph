@@ -142,6 +142,22 @@ fn extracts_a_real_use_without_seeding_its_outputs() {
     assert_eq!(result["ripen"]["state"], "Closed");
     assert_eq!(result["ripen"]["origin"]["use_id"], uid);
     assert_eq!(result["origin"]["parameters"][0]["sort"], "Expr");
+    let marker = result["origin"]["parameter_marker"].as_str().unwrap();
+    let symbolic = result["origin"]["symbolic_values"].as_array().unwrap();
+    for parameter in result["origin"]["parameters"].as_array().unwrap() {
+        let value = symbolic
+            .iter()
+            .find(|v| v["token"] == parameter["token"])
+            .unwrap();
+        assert_eq!(value["sort"], parameter["sort"]);
+        assert!(value["term"].as_str().unwrap().contains(marker));
+    }
+    assert!(symbolic.iter().any(|v| {
+        !v["term"]
+            .as_str()
+            .unwrap()
+            .starts_with(&format!("({marker} "))
+    }));
     let members = result["origin"]["comb_members"].as_array().unwrap();
     assert_eq!(members[0]["use_kind"], "CoarseComb");
     assert_eq!(members[1]["use_kind"], "SmoothComb");
