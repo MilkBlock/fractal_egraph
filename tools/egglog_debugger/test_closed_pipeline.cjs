@@ -16,13 +16,17 @@ const {chromium}=require('playwright');
   assert(frames.every(f=>f.closed));
   assert(frames.at(-1).closed.counts.Closed>0);
   assert(frames.at(-1).closed.catalog.catalog.closed_states>0);
+  const run=frames.at(-1).artifact_directory;
   await p.waitForSelector('#native-closed-view[data-ready=true] svg',{timeout:30000});
+  // A finished run fills in its own directory; the user never types a catalog path, and the
+  // ClosedState view is already populated from the data embedded in the round snapshots.
+  assert.equal(await p.locator('#native-layer-directory').inputValue(),run);
+  assert.equal(await p.locator('#native-closed-path').inputValue(),'');
   assert(await p.locator('#native-layer-round').isVisible());
   await p.selectOption('#native-layer-round','0');
   assert((await p.locator('#native-closed-status').textContent()).includes('边界 1'));
   await p.selectOption('#native-layer-round','4');
   await p.waitForSelector('#native-closed-view[data-ready=true] svg',{timeout:30000});
-  const run=frames.at(-1).artifact_directory;
   await p.goto('http://127.0.0.1:8080/?layer_run='+encodeURIComponent(run)+'&layer_kind=closed',{waitUntil:'networkidle'});
   await p.waitForSelector('#native-closed-view[data-ready=true] svg',{timeout:30000});
   assert((await p.locator('#native-closed-status').textContent()).includes('Closed'));

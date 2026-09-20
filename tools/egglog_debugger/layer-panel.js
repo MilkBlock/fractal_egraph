@@ -202,7 +202,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
             combOptions();if($('kind').value==='closed')renderCatalog();
         }else{
             combOptions();
-            cp('status').textContent+=' 暂无可导出的 ClosedState，Pending / Suspended 不代表已闭合。';
+            cp('status').textContent+=' 本轮没有任何 Use 达到 Closed（Pending / Suspended 不代表已闭合）；本次运行的数据已在内存里，无需手动载入目录。';
             // A run that rejects every queued job looks like "nothing happened" unless the
             // queue's own reason is surfaced here.
             const tally=new Map();
@@ -216,6 +216,11 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     function reset(){clearCatalog();mode();abort?.abort();version++;frames=[];pinned=false;rendered=false;previewCache.clear();$('round').replaceChildren();$('scope').replaceChildren(new Option('全部',''));$('viewport').replaceChildren();$('details').textContent='';$('code').textContent='';$('status').textContent='等待实际执行边界…';}
     function receive(f){
         if(f.kind!=='layer_snapshot'||!f.graphs||!f.analysis)throw Error('无效的 layer 快照');
+        // 运行并识别 already knows its own output directory. Showing it keeps a stale path out
+        // of the box: a leftover path there is what made a finished run look like it still
+        // wanted a catalog typed in by hand. cp('path') is deliberately left alone so that
+        // "no manual catalog load happened" stays observable.
+        if(f.artifact_directory)$('directory').value=f.artifact_directory;
         frames.push(f);$('round').add(new Option(f.label,String(frames.length-1)));
         // New data does not start expensive render subprocesses automatically.
         if(!pinned){$('round').value=String(frames.length-1);options(false);}
