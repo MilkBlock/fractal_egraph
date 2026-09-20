@@ -96,6 +96,14 @@ pub fn positions(rule: &Rule) -> Vec<(String, String, String)> {
                 walk(a, format!("head/{i}/expr/0"), &mut out);
                 walk(b, format!("head/{i}/expr/1"), &mut out);
             }
+            Action::Set(span, op, args, value) => {
+                walk(
+                    &Expr::Call(span.clone(), op.clone(), args.clone()),
+                    format!("head/{i}/set/0"),
+                    &mut out,
+                );
+                walk(value, format!("head/{i}/expr/1"), &mut out);
+            }
             _ => {}
         }
     }
@@ -119,6 +127,7 @@ pub fn expression_at<'a>(rule: &'a Rule, path: &str) -> Option<&'a Expr> {
             _ => return None,
         },
         "head" => match rule.head.0.get(i)? {
+            Action::Set(_, _, _, value) if j == 1 => value,
             Action::Expr(_, e) | Action::Let(_, _, e) if j == 0 => e,
             Action::Union(_, a, b) => match j {
                 0 => a,
@@ -142,4 +151,33 @@ pub fn expression_at<'a>(rule: &'a Rule, path: &str) -> Option<&'a Expr> {
         e = args.get(pair[1].parse::<usize>().ok()?)?;
     }
     Some(e)
+}
+
+/// `set` targets are table applications but are not Expr nodes in egglog's AST.
+pub fn owned_expression_at(rule: &Rule, path: &str) -> Option<Expr> {
+    if let Some(e) = expression_at(rule, path) {
+        return Some(e.clone());
+    }
+    let p: Vec<_> = path.split('/').collect();
+    if p.len() < 4 || p[0] != "head" || p[2] != "set" || p[3] != "0" {
+        return None;
+    }
+    let Action::Set(span, op, args, _) = rule.head.0.get(p[1].parse::<usize>().ok()?)? else {
+        return None;
+    };
+    let root = Expr::Call(span.clone(), op.clone(), args.clone());
+    let mut e = &root;
+    if p[4..].len() % 2 != 0 {
+        return None;
+    }
+    for pair in p[4..].chunks_exact(2) {
+        if pair[0] != "args" {
+            return None;
+        }
+        let Expr::Call(_, _, args) = e else {
+            return None;
+        };
+        e = args.get(pair[1].parse::<usize>().ok()?)?;
+    }
+    Some(e.clone())
 }

@@ -46,11 +46,17 @@ fn extract(c: &Captured, u: &Use, root_member: usize) -> Result<(String, String,
     else {
         unreachable!()
     };
-    let Command::Datatype { variants, .. } = &mut datatypes[0] else {
+    let datatype_index=datatypes.iter().position(|c| matches!(c,Command::Datatype{..})).ok_or("symbolic ripen needs an equality datatype; scalar-only bindings are not parameterized yet")?;
+    let Command::Datatype { variants, .. } = &mut datatypes[datatype_index] else {
         return Err("expected datatype".into());
     };
     variants.extend(extra.clone());
-    let mut entry = vec![datatypes[0].clone()];
+    let declarations = datatypes
+        .iter()
+        .map(ToString::to_string)
+        .collect::<Vec<_>>()
+        .join("\n");
+    let mut entry = datatypes.clone();
     let rulesets: BTreeSet<_> = c
         .rules
         .iter()
@@ -82,6 +88,17 @@ fn extract(c: &Captured, u: &Use, root_member: usize) -> Result<(String, String,
             match input {
                 Input::Var(_) => {
                     if values.contains_key(v) {
+                        continue;
+                    }
+                    if let Some(literal) = c.pool.literals.get(v) {
+                        let commands = parser
+                            .parse_program(None, &format!("(let __recorded_literal {literal})"))?;
+                        let [Command::Action(Action::Let(_, _, term @ Expr::Lit(..)))] =
+                            commands.as_slice()
+                        else {
+                            return Err("invalid recorded scalar literal".into());
+                        };
+                        values.insert(*v, term.clone());
                         continue;
                     }
                     if c.pool.values[*v].sort.as_ref() != c.datatype_name {
@@ -169,11 +186,23 @@ fn extract(c: &Captured, u: &Use, root_member: usize) -> Result<(String, String,
                 }
                 Action::Union(_, a, b) => Action::Union(sp(), subst(a, &env)?, subst(b, &env)?),
                 Action::Expr(_, e) => Action::Expr(sp(), subst(e, &env)?),
+                Action::Set(_, op, args, value) => Action::Set(
+                    sp(),
+                    op.clone(),
+                    args.iter()
+                        .map(|e| subst(e, &env))
+                        .collect::<Result<Vec<_>>>()?,
+                    subst(value, &env)?,
+                ),
                 _ => return Err("unsupported non-monotone Use action".into()),
             };
             final_checks.push(match &action {
                 Action::Union(_, a, b) => eq(a.clone(), b.clone()),
                 Action::Expr(_, e) => eq(e.clone(), e.clone()),
+                Action::Set(_, op, args, _) => {
+                    let e = call(op, args.clone());
+                    eq(e.clone(), e)
+                }
                 _ => unreachable!(),
             });
             commands.push(Command::Action(action));
@@ -209,7 +238,7 @@ fn extract(c: &Captured, u: &Use, root_member: usize) -> Result<(String, String,
     entry.extend(seeds.into_values());
     let mut eg = EGraph::default();
     eg.run_program(entry.clone())?;
-    let initial_tables = super::table_sizes(&eg, &datatypes[0].to_string())?;
+    let initial_tables = super::table_sizes(&eg, &declarations)?;
     for (i, _, _, commands) in &stages {
         eg.run_program(commands.clone())
             .map_err(|e| format!("Use member {i} cannot replay from extracted entry: {e}"))?;
@@ -247,7 +276,7 @@ fn extract(c: &Captured, u: &Use, root_member: usize) -> Result<(String, String,
     }).collect();
     let provenance = json!({"kind":"symbolic_use_interface","template":u.template,"members":u.members,"root_member":root_member,"comb_members":comb_members,"kind_scope":"use_kind is relative to directly recorded dependencies inside this Use; source_kind is the original layer classification; neither minimizes alternate proof requirements",
         "events":stages.iter().map(|(i,e,n,_)|json!({"record":i,"event":e,"precondition_checks":n})).collect::<Vec<_>>(),
-        "initial_tables":initial_tables,"original_use_tables":super::table_sizes(&eg,&datatypes[0].to_string())?,"parameter_marker":hole,
+        "initial_tables":initial_tables,"original_use_tables":super::table_sizes(&eg,&declarations)?,"parameter_marker":hole,
         "symbolic_values":values.iter().map(|(token,term)|json!({"token":token,"term":term.to_string(),"sort":c.pool.values[*token].sort})).collect::<Vec<_>>(),
         "parameters":parameters,"all_source_rules":c.rules.len(),"validation":"all original LHS checks and recorded output aliases passed before/after the corresponding ground actions",
         "initial_source":seed_text,"concrete_boundary_structure_recovered":false,

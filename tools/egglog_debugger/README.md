@@ -572,3 +572,28 @@ directory and real-catalog paths.
 
 `python3 tools/egglog_debugger/test_run_pruning.py` covers the `out/debugger/`
 retention described above.
+
+### Relations and functions
+
+Native capture and portable history now retain relation/function declarations
+alongside datatype/sort/constructor declarations. Pure relation/function programs
+no longer require a dummy datatype. Native `set` targets have stable AST paths
+for history replay. Unmapped trace binding sorts exclude that match from analysis
+rather than aborting execution. Committed writes remain distinct from matches.
+
+For an equality-datatype cell, automatic ripen preserves its relation/function
+schema, and explicit ripen supports native `set`/merge execution. Supported
+positive relation rows and `:no-merge` function rows are included in the exact
+ClosedState, including typed arguments and scalar outputs; table declarations
+are part of the comparison scope. i64 boundary bindings now retain true literals
+through capture and history replay. Old histories lacking literal values do not
+magically recover them.
+
+Current limits: custom `:merge` functions execute but do not receive a shared
+ClosedState certificate; primitive guards/actions can also make the state export
+unavailable. Pure scalar-table programs execute/replay, but automatic symbolic
+ripen still requires an equality datatype. Multi-datatype/`datatype*`, included
+source programs, and unrecorded scalar literals remain unsupported by relevant
+analysis stages. These are not errors in egglog's own support for these constructs.
+
+Tests: `cargo test --release --test table_support`; browser `test_tables.cjs`.

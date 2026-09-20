@@ -1,6 +1,7 @@
 use std::{path::PathBuf, process::Command};
 fn invoke(args: &[&str], out: &std::path::Path) {
     let r = Command::new(env!("CARGO_BIN_EXE_egg_layout"))
+        .env("EGG_LAYOUT_RIPEN_MILLISECONDS", "100000")
         .current_dir(env!("CARGO_MANIFEST_DIR"))
         .args(["analyze"])
         .args(args)
@@ -90,8 +91,18 @@ fn every_round_has_dot_and_replay_preserves_boundaries() {
     invoke(&["--replay-history", history.to_str().unwrap()], &replay);
     for i in 1..=8 {
         let file = format!("rounds/round-{i:04}.json");
-        assert_eq!(read(online.join(&file)), read(offline.join(&file)));
-        assert_eq!(read(online.join(&file)), read(replay.join(&file)));
+        // Closed provenance contains the owning run directory; logical snapshots
+        // must still match after normalizing this one run-local path namespace.
+        let normalized = |dir: &std::path::Path| -> serde_json::Value {
+            serde_json::from_str(
+                &serde_json::to_string(&read(dir.join(&file)))
+                    .unwrap()
+                    .replace(dir.to_str().unwrap(), "$RUN"),
+            )
+            .unwrap()
+        };
+        assert_eq!(normalized(&online), normalized(&offline));
+        assert_eq!(normalized(&online), normalized(&replay));
     }
     // Old history cannot recover per-round boundaries. Do not invent five rounds.
     let mut h = read(&history);

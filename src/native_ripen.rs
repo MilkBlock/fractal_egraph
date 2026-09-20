@@ -8,8 +8,11 @@ mod entry;
 pub use entry::from_use;
 pub(super) use entry::prepare;
 
-fn monotone(a: &Action) -> bool {
-    matches!(a, Action::Let(..) | Action::Expr(..) | Action::Union(..))
+fn supported_action(a: &Action) -> bool {
+    matches!(
+        a,
+        Action::Let(..) | Action::Expr(..) | Action::Union(..) | Action::Set(..)
+    )
 }
 
 pub fn run(source: &Path, out: &Path, max_rounds: usize) -> Result<Json> {
@@ -55,23 +58,34 @@ pub(super) fn run_with_origin(
                 }
             }
             Command::Rule { rule } => {
-                if !rule.head.0.iter().all(monotone) { return Err("ripen rejects non-monotone/set actions".into()); }
+                if !rule.head.0.iter().all(supported_action) { return Err("ripen rejects unsupported delete/subsume actions".into()); }
                 if !names.insert(rule.name.clone()) { return Err("ripen rule names must be unique".into()); }
                 rulesets.insert(rule.ruleset.clone());
                 let calls = crate::visual_rule::positions(rule).into_iter().map(|(span,path,_)| {
-                    let expression=crate::visual_rule::expression_at(rule,&path).unwrap().clone();
+                    let expression=crate::visual_rule::owned_expression_at(rule,&path).unwrap().clone();
                     (Arc::from(span),(path,expression))
                 }).collect();
                 rules.push(RuleInfo{rule:rule.clone(),calls});
             }
-            Command::AddRuleset(..) => {}
-            Command::Action(a) if monotone(a) => {}
+            Command::AddRuleset(..) | Command::Relation {..} | Command::Function{..} => {}
+            Command::Action(a) if supported_action(a) => {}
             Command::Check(..) => { checks.push(command); continue; }
             _ => return Err(format!("unsupported ripen command: {command}; use an explicit entry file without run/include/function/deletion commands").into()),
         }
         setup.push(command);
     }
-    let (datatype_name, datatype) = datatype.ok_or("ripen requires a datatype")?;
+    let (datatype_name, _) = datatype.ok_or("ripen requires a datatype")?;
+    let datatype = setup
+        .iter()
+        .filter(|c| {
+            matches!(
+                c,
+                Command::Datatype { .. } | Command::Relation { .. } | Command::Function { .. }
+            )
+        })
+        .map(ToString::to_string)
+        .collect::<Vec<_>>()
+        .join("\n");
     let rulesets: Vec<_> = rulesets.into_iter().collect();
     eg.run_program(setup.clone())?;
     let mut port_values = vec![];
@@ -209,14 +223,19 @@ pub(super) fn run_with_origin(
 fn table_sizes(eg: &EGraph, datatype: &str) -> Result<BTreeMap<String, usize>> {
     let mut parser = EGraph::default();
     let cmds = parser.parse_program(None, datatype)?;
-    let Command::Datatype { variants, .. } = &cmds[0] else {
-        return Err("expected datatype".into());
-    };
     let mut sizes = BTreeMap::new();
-    for variant in variants {
-        let mut count = 0;
-        eg.function_for_each(&variant.name, |_| count += 1)?;
-        sizes.insert(variant.name.clone(), count);
+    for cmd in &cmds {
+        let names: Vec<String> = match cmd {
+            Command::Datatype { variants, .. } => variants.iter().map(|v| v.name.clone()).collect(),
+            Command::Relation { name, .. } => vec![name.clone()],
+            Command::Function { name, .. } => vec![name.clone()],
+            _ => vec![],
+        };
+        for name in names {
+            let mut count = 0;
+            eg.function_for_each(&name, |_| count += 1)?;
+            sizes.insert(name, count);
+        }
     }
     Ok(sizes)
 }
@@ -249,7 +268,40 @@ fn export_state(
             _ => true,
         }
     }
-    let ops: BTreeSet<_> = variants.iter().map(|v| v.name.as_str()).collect();
+    let mut parser = EGraph::default();
+    let declarations = parser.parse_program(None, &c.datatype)?;
+    let mut tables = vec![];
+    for d in &declarations {
+        match d {
+            Command::Relation { name, inputs, .. } => {
+                tables.push((name.clone(), inputs.clone(), "Unit".to_string()))
+            }
+            Command::Function {
+                name: op,
+                schema,
+                merge,
+                ..
+            } => {
+                if merge.is_some() {
+                    return Err("function merge executes natively, but ClosedState sharing does not yet certify merge semantics".into());
+                }
+                tables.push((op.clone(), schema.input.clone(), schema.output.clone()));
+            }
+            _ => {}
+        }
+    }
+    if tables
+        .iter()
+        .flat_map(|(_, inputs, output)| inputs.iter().chain(std::iter::once(output)))
+        .any(|t| t != name && !matches!(t.as_str(), "i64" | "String" | "bool" | "Unit"))
+    {
+        return Err("unsupported table field sort in ClosedState export".into());
+    }
+    let ops: BTreeSet<_> = variants
+        .iter()
+        .map(|v| v.name.as_str())
+        .chain(tables.iter().map(|t| t.0.as_str()))
+        .collect();
     for r in &c.rules {
         let body = r.rule.body.iter().all(|f| match f {
             Fact::Eq(_, a, b) => constructor_expr(a, &ops) && constructor_expr(b, &ops),
@@ -258,6 +310,11 @@ fn export_state(
         let head = r.rule.head.0.iter().all(|a| match a {
             Action::Union(_, a, b) => constructor_expr(a, &ops) && constructor_expr(b, &ops),
             Action::Let(_, _, e) | Action::Expr(_, e) => constructor_expr(e, &ops),
+            Action::Set(_, op, args, value) => {
+                ops.contains(op.as_str())
+                    && args.iter().all(|e| constructor_expr(e, &ops))
+                    && constructor_expr(value, &ops)
+            }
             _ => false,
         });
         if !body || !head {
@@ -288,6 +345,8 @@ fn export_state(
         }
         let literal = if ty == name {
             None
+        } else if ty == "Unit" {
+            Some("()".into())
         } else {
             Some(
                 literals
@@ -327,6 +386,25 @@ fn export_state(
             });
         }
     }
+    for (op, inputs, output) in &tables {
+        let mut raw = vec![];
+        eg.function_for_each(op, |r| raw.push((r.vals.to_vec(), r.subsumed)))?;
+        for (row, subsumed) in raw {
+            if subsumed || row.len() != inputs.len() + 1 {
+                return Err("unexpected table row".into());
+            }
+            let args = inputs
+                .iter()
+                .zip(&row)
+                .map(|(t, v)| vertex(t, *v))
+                .collect::<Result<Vec<_>>>()?;
+            rows.insert(Row {
+                op: op.clone(),
+                args,
+                result: vertex(output, *row.last().unwrap())?,
+            });
+        }
+    }
     let mut named = BTreeMap::new();
     for (p, sort, value) in ports {
         named.insert(p.clone(), vertex(sort.name(), *value)?);
@@ -348,12 +426,23 @@ fn export_state(
     for (key, i) in ids {
         local_ids[i] = key;
     }
-    Ok(ClosedState {
+    let mut state = ClosedState {
         version: 1,
         local_ids,
         scope: json!({"datatype":name,"constructors":sorted.iter().map(|v|json!({"name":v.name,"types":v.types,"cost":v.cost.map(|x|x.to_string()),"unextractable":v.unextractable})).collect::<Vec<_>>(),"rules":rules,"symbolic_boundary":symbolic,"semantics":"positive-constructor-equality/v1","ports":"fixed named globals; otherwise all facts observable"}),
         values,
         rows: rows.into_iter().collect(),
         ports: named,
-    })
+    };
+    if !tables.is_empty() {
+        state.scope["tables"] = json!(
+            declarations
+                .iter()
+                .filter(|d| matches!(d, Command::Relation { .. } | Command::Function { .. }))
+                .map(ToString::to_string)
+                .collect::<Vec<_>>()
+        );
+        state.scope["semantics"] = json!("positive-constructor-table-equality/v1");
+    }
+    Ok(state)
 }

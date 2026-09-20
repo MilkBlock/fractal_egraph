@@ -132,6 +132,7 @@ impl Token {
 #[derive(Default)]
 struct Pool {
     ids: BTreeMap<Token, usize>,
+    literals: BTreeMap<usize, String>,
     values: Vec<Token>,
 }
 impl Pool {
@@ -242,6 +243,13 @@ fn capture_with_sink(
     let text = std::fs::read_to_string(source)?;
     capture_text_with_sink(&source.to_string_lossy(), &text, rounds, online, sink)
 }
+fn declaration_sort(commands: &[Command]) -> Result<String> {
+    let names=commands.iter().filter_map(|c| match c {Command::Datatype{name,..} | Command::Sort{name,presort_and_args:None,..}=>Some(name.clone()), _=>None}).collect::<Vec<_>>();
+    if names.len()>1 || commands.iter().any(|c| matches!(c,Command::Datatypes{..})) {
+        return Err("multi-datatype analysis is not yet supported".into());
+    }
+    Ok(names.first().cloned().unwrap_or_else(|| "Unit".into()))
+}
 /// Same as `capture_with_sink`, but for source text already in memory (the wasm
 /// build has no filesystem).
 fn capture_text_with_sink(
@@ -254,25 +262,12 @@ fn capture_text_with_sink(
     let started = Instant::now();
     let mut eg = EGraph::default();
     let mut commands = eg.parse_program(Some(name.to_owned()), text)?;
-    let datatypes: Vec<_> = commands
-        .iter()
-        .filter(|c| matches!(c, Command::Datatype { .. }))
-        .collect();
-    if datatypes.len() != 1 {
-        return Err(format!(
-            "native analysis currently requires exactly one explicit, self-contained datatype (found {})",
-            datatypes.len()
-        )
-        .into());
-    }
-    // The datatype name is the program's own; the analysis only needs it to name
-    // the sort it imports, so a program that calls its datatype `Expr` analyzes
-    // the same way one that calls it `Math` does.
-    let datatype_name = match &datatypes[0] {
-        Command::Datatype { name, .. } => name.to_string(),
-        _ => unreachable!("filtered to Datatype"),
-    };
-    let datatype = datatypes[0].to_string();
+    declaration_sort(&commands)?;
+    let declarations: Vec<_> = commands.iter().filter(|c| matches!(c,
+        Command::Datatype {..} | Command::Relation {..} | Command::Function{..}
+        | Command::Sort{..} | Command::Constructor {..})).cloned().collect();
+    let datatype_name = declaration_sort(&declarations)?;
+    let datatype = declarations.iter().map(ToString::to_string).collect::<Vec<_>>().join("\n");
     if commands.iter().any(|c| matches!(c, Command::Include(..))) {
         return Err("native analysis does not yet accept included source programs".into());
     }
@@ -308,7 +303,7 @@ fn capture_text_with_sink(
             let calls = crate::visual_rule::positions(rule)
                 .into_iter()
                 .map(|(span, path, _)| {
-                    let expression = crate::visual_rule::expression_at(rule, &path)
+                    let expression = crate::visual_rule::owned_expression_at(rule, &path)
                         .unwrap()
                         .clone();
                     (Arc::from(span), (path, expression))
@@ -569,6 +564,8 @@ fn collect(
                     .map(|n| (n.to_string(), b.value))
             })
             .collect::<Vec<_>>();
+        // A missing sort is an unsupported trace witness, not an execution error.
+        if named.iter().any(|(n,_)| !variable_sorts[rule].contains_key(n)) { continue; }
         named.sort_by(|a, b| a.0.cmp(&b.0));
         let mut values = vec![];
         let mut outputs = vec![];
@@ -578,10 +575,10 @@ fn collect(
                 .get(n)
                 .ok_or_else(|| format!("unmapped binding sort: {n}"))?
                 .clone();
-            values.push(pool.intern(Token {
-                sort,
-                key: Key::Value(s, *v),
-            }));
+            let literal=if sort.as_ref()=="i64" {Some(eg.value_to_base::<i64>(*v).to_string())}else{None};
+            let token=pool.intern(Token {sort,key:Key::Value(s,*v)});
+            if let Some(literal)=literal {pool.literals.insert(token,literal);}
+            values.push(token);
             outputs.push(Output::Var(n.clone()));
             inputs.push(Input::Var(n.clone()));
         }

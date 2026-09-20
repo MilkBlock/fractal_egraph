@@ -12,6 +12,8 @@ struct RuleData {
 }
 #[derive(Serialize, Deserialize)]
 struct TokenData {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    literal: Option<String>,
     sort: String,
     label: String,
     external: bool,
@@ -84,7 +86,9 @@ pub(super) fn save(path: &Path, source: &Path, c: &Captured) -> Result {
             .pool
             .values
             .iter()
-            .map(|t| TokenData {
+            .enumerate()
+            .map(|(i, t)| TokenData {
+                literal: c.pool.literals.get(&i).cloned(),
                 sort: t.sort.to_string(),
                 label: t.label(),
                 external: matches!(t.key, Key::External(..) | Key::Replay(_, true)),
@@ -133,7 +137,7 @@ pub(super) fn read(path: &Path) -> Result<Captured> {
         let mut span_map = BTreeMap::new();
         let mut calls = BTreeMap::new();
         for (span, path) in r.calls {
-            let expr = crate::visual_rule::expression_at(rule, &path)
+            let expr = crate::visual_rule::owned_expression_at(rule, &path)
                 .ok_or("invalid history call path")?
                 .clone();
             let new_span: Arc<str> = Arc::from(
@@ -152,6 +156,12 @@ pub(super) fn read(path: &Path) -> Result<Captured> {
         });
     }
     let pool = Pool {
+        literals: h
+            .tokens
+            .iter()
+            .enumerate()
+            .filter_map(|(i, t)| t.literal.clone().map(|v| (i, v)))
+            .collect(),
         ids: BTreeMap::new(),
         values: h
             .tokens
@@ -217,16 +227,7 @@ pub(super) fn read(path: &Path) -> Result<Captured> {
     // Replayed histories carry the datatype text; take its name as the sort name
     // the analysis uses, the same way a fresh capture does.
     let datatype_commands = eg.parse_program(None, &h.datatype)?;
-    let [
-        Command::Datatype {
-            name: datatype_name,
-            ..
-        },
-    ] = datatype_commands.as_slice()
-    else {
-        return Err("history must contain one datatype declaration".into());
-    };
-    let datatype_name = datatype_name.clone();
+    let datatype_name = declaration_sort(&datatype_commands)?;
     let preview_source = h.source_text.unwrap_or_else(|| {
         format!(
             "{}\n{}",
