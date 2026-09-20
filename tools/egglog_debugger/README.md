@@ -572,8 +572,8 @@ first is fixed by running again:
 
 1. nothing loaded → run 运行并识别, or load a directory containing `catalog/`;
 2. a directory was loaded but none of its round snapshots has a `closed` key
-   (produced before the ClosedState pipeline, e.g. `out/tools-layers-view/math`)
-   → re-analyse with the current build;
+   (produced before the ClosedState pipeline, e.g.
+   `out/tools-layers-view/math-prepipeline`) → re-analyse with the current build;
 3. a round did produce a `closed` snapshot but no `catalog`, because no queued
    Use closed → the dominant rejection reason from that round's queue is appended.
 

@@ -8,7 +8,10 @@ const path = require('node:path');
 const fs = require('node:fs');
 const { chromium } = require('playwright');
 
-const NO_CATALOG = 'out/tools-layers-view/math'; // exists, but has no catalog/
+// A directory that exists but has no catalog/ and no `closed` key in any round snapshot:
+// it was produced before the ClosedState pipeline. out/tools-layers-view/math was regenerated
+// with the current build, so the preserved pre-pipeline copy is used here.
+const NO_CATALOG = 'out/tools-layers-view/math-prepipeline';
 
 (async () => {
   const root = path.resolve(__dirname, '../..');
