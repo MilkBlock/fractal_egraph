@@ -213,7 +213,18 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     }
     function clearCatalog(){catalogVersion++;catalogData=null;cp('path').value='';for(const id of ['view','table','details','rule','caption'])cp(id).replaceChildren();cp('state').replaceChildren(new Option('全部概览',''));combOptions();}
 
-    function reset(){clearCatalog();mode();abort?.abort();version++;frames=[];pinned=false;rendered=false;previewCache.clear();$('round').replaceChildren();$('scope').replaceChildren(new Option('全部',''));$('viewport').replaceChildren();$('details').textContent='';$('code').textContent='';$('status').textContent='等待实际执行边界…';}
+    // A ?layer_run=... from a generated fractal.html link seeds the directory box and reloads
+    // that directory on every refresh, so a stale path looked like a hardcoded default and no
+    // other option could shake it. Once new data arrives it is no longer the current context:
+    // drop it from the URL and clear the box only if it still holds that exact value, so a
+    // path the user typed themselves is left alone.
+    function dropStaleDirectory(){
+        const seeded=new URLSearchParams(location.search).get('layer_run');
+        if(!seeded||$('directory').value!==seeded)return;
+        $('directory').value='';
+        const url=new URL(location.href);url.searchParams.delete('layer_run');history.replaceState(null,'',url);
+    }
+    function reset(){dropStaleDirectory();clearCatalog();mode();abort?.abort();version++;frames=[];pinned=false;rendered=false;previewCache.clear();$('round').replaceChildren();$('scope').replaceChildren(new Option('全部',''));$('viewport').replaceChildren();$('details').textContent='';$('code').textContent='';$('status').textContent='等待实际执行边界…';}
     function receive(f){
         if(f.kind!=='layer_snapshot'||!f.graphs||!f.analysis)throw Error('无效的 layer 快照');
         frames.push(f);$('round').add(new Option(f.label,String(frames.length-1)));
