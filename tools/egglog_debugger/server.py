@@ -206,8 +206,10 @@ class Handler(SimpleHTTPRequestHandler):
                     return self.reply(200, result.stdout)
                 run_id = uuid.uuid4().hex
                 run_folder = RUN_ROOT / run_id
-                prune_runs()
                 (run_folder / 'rounds').mkdir(parents=True)
+                # Prune *after* the new folder exists, so RUN_LIMIT counts it. Pruning first
+                # would keep RUN_LIMIT stale runs and then add one more.
+                prune_runs()
                 (run_folder / 'source.egg').write_text(data['source'])
                 snapshots = []
                 self.send_response(200)

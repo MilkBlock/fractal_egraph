@@ -60,6 +60,18 @@ class PruneRuns(unittest.TestCase):
         with patch.object(server, 'RUN_ROOT', self.root / 'absent'):
             server.prune_runs(keep=1)
 
+    def test_call_site_order_keeps_the_limit(self):
+        """Mirrors the handler: create the new run folder, then prune.
+
+        Pruning before the folder exists leaves `keep` stale runs and then adds one more, so
+        the limit is off by one -- which is exactly what shipped first.
+        """
+        with patch.object(server, 'RUN_ROOT', self.root):
+            for i in range(5):
+                self.make_run(RUN % i, 1000.0 + i)
+                server.prune_runs(keep=3)
+        self.assertEqual(len(self.names()), 3)
+
     def test_limit_is_at_least_one(self):
         self.assertGreaterEqual(server.RUN_LIMIT, 1)
 
