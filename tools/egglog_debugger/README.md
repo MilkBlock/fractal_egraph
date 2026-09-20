@@ -471,3 +471,77 @@ NODE_PATH=/path/to/node_modules node tools/egglog_debugger/test_layers.cjs   htt
 ```
 
 “Use(T) / residual 复用”显示新的在线组合字典（编号与分析切片模板独立）。每轮新增 `.reuse.dot`，可检查后续 apply 对已有 Use 的内部输出引用。统计分开列出接线模型、已用字典和候选索引，不代表 tier0 内存或执行时间收益。
+
+### Automatic ClosedState pipeline
+
+The local native debugger's **Run and recognize** action now performs bounded
+ripen automatically at completed execution boundaries. Select **ClosedState /
+Closed rule comb** beside FractalComb; the round selector shows that boundary's
+queue and catalog. No catalog path and no full history export are required.
+Saved debugger runs and exported/imported layer snapshots retain the same data.
+The browser-only wasm fallback does not run this filesystem-backed pipeline.
+
+Native `analyze --recapture-tier0`, offline builds and `--replay-history` use the
+same queue. Example:
+
+```sh
+cargo run --release -- analyze --recapture-tier0 \
+  --source egglog/tests/math-microbenchmark.egg --rounds 6 \
+  --output out/closed-pipeline-example
+```
+
+Load `out/closed-pipeline-example` in the viewer, or open
+`http://127.0.0.1:8080/?layer_run=out/closed-pipeline-example&layer_kind=closed`.
+`--save-history` remains optional. For CLI `debug-stream`, set
+`EGG_LAYOUT_CLOSED_OUTPUT` to a fresh output directory; the server sets it per run.
+
+Implementation: `native_closed_pipeline.rs` reads existing in-memory Uses and
+reuses `native_ripen_entry.rs` validation and native ripen, without a subprocess
+or writing/re-reading the global trace. Re-cut combinations are new immutable
+Uses. Candidates from not-yet-attempted templates have priority, but **template
+identity alone never authorizes reuse**: the cache key includes the entire
+symbolic entry/source rule environment and staged ground validation program.
+It is run-local. Exact state comparison builds the catalog; unresolved
+isomorphism comparisons remain separate. Original bindings, alias constraints,
+source Use membership and closure scope remain in the per-trigger provenance.
+
+Defaults (environment variables for CLI, or set before starting the server):
+
+| Variable | Default | Meaning |
+| --- | ---: | --- |
+| `EGG_LAYOUT_RIPEN_JOBS` | 32 | Maximum attempted Uses per run, capped at 256; 0 disables work |
+| `EGG_LAYOUT_RIPEN_PER_BOUNDARY` | 4 | Maximum attempts at each completed boundary, capped at 256 |
+| `EGG_LAYOUT_RIPEN_ROUNDS` | 4 | Maximum local native ripen sweeps per attempted Use |
+| `EGG_LAYOUT_RIPEN_MILLISECONDS` | 250 | Per-boundary elapsed budget, checked **between** attempts |
+
+The queue retains at most 256 candidates and counts additional Uses as
+`not_queued`. Unprocessed candidates remain `Pending`; exhausted local sweeps
+are `Suspended`; entry/validation errors are `Rejected` with reasons. A Closed
+cell can still have an unavailable state export; only supported exports enter
+the catalog. Budgets do not preempt one expensive native rule execution and are
+not a hard memory bound. Pending work is not silently declared complete when
+tier0 ends. Increasing budgets and rerunning source/history performs a new
+survey; persistent queue resume is not implemented.
+
+Artifacts under each run:
+
+- `rounds/round-NNNN.json`: layer snapshot plus `closed` queue/catalog payload.
+- `rounds/round-NNNN.closed.dot`: generated when an exported closure exists.
+- `catalog/`: latest exact shared-state catalog, usable by the legacy loader.
+- `closed/queue.json`: latest statuses, budgets, rejection reasons, bindings links.
+- `closed/cells/use-NNNNNN/`: reproducible symbolic entry, native ripen report,
+  and supported ClosedState export. Automatic cells omit history and per-cell
+  round views; explicit `ripen` / `ripen-use` still produce full debug artifacts.
+
+Closed means the **isolated symbolic interface** is closed under its declared
+rules, not that the corresponding whole tier0 neighborhood is closed. This
+pipeline records the relation from source tier1 Uses to ripened cells/shared
+states. It does not replace tier0 storage, merge tier0 eclasses, prove
+arbitrary-binding closure, or apply cross-layer dominance rewrites. `origin.history`
+in these in-memory reports is a run/source identity for compatibility with the
+catalog, not a claim that a history JSON file exists (`capture_kind` says so).
+Replaying explicit ripen history does not recursively enqueue ripen again.
+
+Regression: `cargo test --release --test closed_pipeline --test ripen --test
+layer_rounds --test closed_state`; browser tests `test_closed_pipeline.cjs` and
+`test_closed_survey.cjs` against the local server.

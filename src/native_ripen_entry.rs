@@ -30,7 +30,7 @@ fn outside(r: &Record, p: &Port, members: &BTreeSet<usize>) -> bool {
     }
 }
 
-fn extract(c: &Captured, u: &Use) -> Result<(String, String, Json)> {
+fn extract(c: &Captured, u: &Use, root_member: usize) -> Result<(String, String, Json)> {
     let members: BTreeSet<_> = u.members.iter().copied().collect();
     let first = *members.first().ok_or("empty Use")?;
     let mut hole = "RipenInput".to_string();
@@ -245,7 +245,7 @@ fn extract(c: &Captured, u: &Use) -> Result<(String, String, Json)> {
             "parents":a.parents.iter().filter_map(|p|slots.get(p).copied()).collect::<BTreeSet<_>>(),"external_parents":external_parents,
             "binding":c.layers.reuse.templates[u.template].pattern.steps[slot].wiring,"aliases":c.layers.reuse.templates[u.template].pattern.steps[slot].aliases,"input_roles":a.input_roles,"output_roles":a.output_roles,"source_coarse_layer":o.coarse_layer,"source_smooth_layer":o.smooth_layer})
     }).collect();
-    let provenance = json!({"kind":"symbolic_use_interface","template":u.template,"members":u.members,"root_member":c.layers.reuse.templates[u.template].pattern.root,"comb_members":comb_members,"kind_scope":"use_kind is relative to directly recorded dependencies inside this Use; source_kind is the original layer classification; neither minimizes alternate proof requirements",
+    let provenance = json!({"kind":"symbolic_use_interface","template":u.template,"members":u.members,"root_member":root_member,"comb_members":comb_members,"kind_scope":"use_kind is relative to directly recorded dependencies inside this Use; source_kind is the original layer classification; neither minimizes alternate proof requirements",
         "events":stages.iter().map(|(i,e,n,_)|json!({"record":i,"event":e,"precondition_checks":n})).collect::<Vec<_>>(),
         "initial_tables":initial_tables,"original_use_tables":super::table_sizes(&eg,&datatypes[0].to_string())?,"parameter_marker":hole,
         "symbolic_values":values.iter().map(|(token,term)|json!({"token":token,"term":term.to_string(),"sort":c.pool.values[*token].sort})).collect::<Vec<_>>(),
@@ -272,6 +272,46 @@ pub fn from_use(history_path: &Path, use_id: usize, out: &Path, max_rounds: usiz
         }
     }
     let mut c = history::read(history_path)?;
+    update_layers(&mut c)?;
+    let u = c
+        .layers
+        .reuse
+        .uses
+        .get(use_id)
+        .ok_or("unknown Use ID in default history replay")?;
+    let (source, validation, mut origin) =
+        prepare(&c, u, c.layers.reuse.templates[u.template].pattern.root)?;
+    origin["use_id"] = json!(use_id);
+    origin["history"] = json!(history_path.canonicalize()?);
+    std::fs::create_dir_all(out)?;
+    let entry = out.join("entry.egg");
+    std::fs::write(&entry, source)?;
+    std::fs::write(out.join("validate-use.egg"), validation)?;
+    std::fs::write(out.join("origin.json"), serde_json::to_vec_pretty(&origin)?)?;
+    let link = crate::coarse_smooth::RipenOrigin {
+        history: history_path.canonicalize()?.display().to_string(),
+        use_id,
+        template: u.template,
+        members: u.members.clone(),
+        symbolic_boundary: true,
+    };
+    let mut report =
+        super::run_with_origin(&entry, &out.join("run"), max_rounds, Some(link), true)?;
+    report["origin"] = origin;
+    std::fs::write(
+        out.join("run/ripen.json"),
+        serde_json::to_vec_pretty(&report)?,
+    )?;
+    std::fs::write(out.join("result.json"), serde_json::to_vec_pretty(&report)?)?;
+    Ok(report)
+}
+
+// Shared by online capture and offline replay; never reads a history file.
+pub(in crate::native_analyze) fn prepare(
+    c: &Captured,
+    u: &Use,
+    root_member: usize,
+) -> Result<(String, String, Json)> {
     let mut parser = EGraph::default();
     let mut declared = vec![];
     for cmd in parser.parse_program(None, &c.preview_source)? {
@@ -296,34 +336,5 @@ pub fn from_use(history_path: &Path, use_id: usize, out: &Path, max_rounds: usiz
     {
         return Err("recorded rules do not cover the original source rules".into());
     }
-    update_layers(&mut c)?;
-    let u = c
-        .layers
-        .reuse
-        .uses
-        .get(use_id)
-        .ok_or("unknown Use ID in default history replay")?;
-    let (source, validation, mut origin) = extract(&c, u)?;
-    origin["use_id"] = json!(use_id);
-    origin["history"] = json!(history_path.canonicalize()?);
-    std::fs::create_dir_all(out)?;
-    let entry = out.join("entry.egg");
-    std::fs::write(&entry, source)?;
-    std::fs::write(out.join("validate-use.egg"), validation)?;
-    std::fs::write(out.join("origin.json"), serde_json::to_vec_pretty(&origin)?)?;
-    let link = crate::coarse_smooth::RipenOrigin {
-        history: history_path.canonicalize()?.display().to_string(),
-        use_id,
-        template: u.template,
-        members: u.members.clone(),
-        symbolic_boundary: true,
-    };
-    let mut report = super::run_with_origin(&entry, &out.join("run"), max_rounds, Some(link))?;
-    report["origin"] = origin;
-    std::fs::write(
-        out.join("run/ripen.json"),
-        serde_json::to_vec_pretty(&report)?,
-    )?;
-    std::fs::write(out.join("result.json"), serde_json::to_vec_pretty(&report)?)?;
-    Ok(report)
+    extract(c, u, root_member)
 }

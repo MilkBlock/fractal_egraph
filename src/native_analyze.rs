@@ -35,6 +35,8 @@ mod history;
 mod layer_view;
 #[path = "native_recursive.rs"]
 mod recursive;
+#[path = "native_closed_pipeline.rs"]
+mod closed_pipeline;
 #[path = "native_ripen.rs"]
 pub mod ripen;
 
@@ -1544,7 +1546,7 @@ pub fn run_with_options(
     let mut result = (|| -> Result<Json> {
         let worker = rayon::ThreadPoolBuilder::new().num_threads(1).build()?;
         let mut tier1 = EGraph::default();
-        let mut layer_exporter = layer_view::Exporter::default();
+        let mut layer_exporter = layer_view::Exporter::with_closed(out)?;
         let mut c = if let Some(path) = replay {
             history::read(path)?
         } else if online {

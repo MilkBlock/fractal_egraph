@@ -6,19 +6,21 @@ use crate::coarse_smooth::{RipenFeedback, RipenOrigin};
 #[path = "native_ripen_entry.rs"]
 mod entry;
 pub use entry::from_use;
+pub(super) use entry::prepare;
 
 fn monotone(a: &Action) -> bool {
     matches!(a, Action::Let(..) | Action::Expr(..) | Action::Union(..))
 }
 
 pub fn run(source: &Path, out: &Path, max_rounds: usize) -> Result<Json> {
-    run_with_origin(source, out, max_rounds, None)
+    run_with_origin(source, out, max_rounds, None, true)
 }
-fn run_with_origin(
+pub(super) fn run_with_origin(
     source: &Path,
     out: &Path,
     max_rounds: usize,
     origin: Option<RipenOrigin>,
+    artifacts: bool,
 ) -> Result<Json> {
     if max_rounds == 0 {
         return Err("ripen max-rounds must be positive".into());
@@ -127,7 +129,11 @@ fn run_with_origin(
                 ripen: Some(f.clone()),
             });
             c.rounds = Some(round);
-            exporter.capture(&mut c, out)?;
+            if artifacts {
+                exporter.capture(&mut c, out)?;
+            } else {
+                update_layers(&mut c)?;
+            }
             feedback = Some(f);
             if !updated {
                 break;
@@ -156,7 +162,9 @@ fn run_with_origin(
             );
         }
         std::fs::write(out.join("ripened.egg"), replay)?;
-        history::save(&out.join("history.json"), &source, &c)?;
+        if artifacts {
+            history::save(&out.join("history.json"), &source, &c)?;
+        }
         let state_export = if closed {
             match export_state(
                 setup
@@ -184,8 +192,8 @@ fn run_with_origin(
         let report = json!({"ripen":feedback,"checks":if closed{"passed"}else{"deferred"},
             "checks_count":checks.len(),"rules":c.rules.iter().map(|r|r.rule.to_string()).collect::<Vec<_>>(),
             "source":source,"source_text":text,"events":c.events,"imported_applies":c.records.len(),
-            "closed_state":state_export,"tables":table_sizes(&eg, &c.datatype)?,"tier1":c.layers.report(),"round_manifest":"rounds/manifest.json",
-            "history":"history.json","seconds":c.trace_seconds,"fractal_summaries_used":0});
+            "closed_state":state_export,"tables":table_sizes(&eg, &c.datatype)?,"tier1":c.layers.report(),"round_manifest":if artifacts {Some("rounds/manifest.json")}else{None},
+            "history":if artifacts {Some("history.json")}else{None},"seconds":c.trace_seconds,"fractal_summaries_used":0});
         std::fs::write(out.join("ripen.json"), serde_json::to_vec_pretty(&report)?)?;
         Ok(report)
     })();

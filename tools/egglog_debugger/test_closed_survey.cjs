@@ -29,7 +29,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');const{chromium}
  await p.locator('#native-layer-load').click();
  await p.waitForFunction(()=>document.querySelector('#native-layer-round').options.length>0);
  await p.selectOption('#native-layer-kind','closed');
- assert((await p.locator('#native-closed-status').textContent()).includes('尚无 ClosedState'));
+ assert((await p.locator('#native-closed-status').textContent()).includes('尚无 ClosedState 快照'));
  assert.equal(await p.locator('#native-closed-view svg').count(),0);
  await p.locator('#native-layer-directory').fill('out/shared-store-c3');
  await p.locator('#native-layer-load').click();

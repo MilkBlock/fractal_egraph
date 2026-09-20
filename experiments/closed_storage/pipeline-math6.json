@@ -1,0 +1,145 @@
+{
+  "scope": "actual native math6 capture plus bounded isolated native ripen; no tier0 storage substitution",
+  "command": "target/release/egg_layout analyze --recapture-tier0 --source egglog/tests/math-microbenchmark.egg --rounds 6 --output out/closed-pipeline-math6",
+  "counts": {
+    "Closed": 14,
+    "Pending": 236,
+    "Rejected": 3,
+    "Suspended": 3
+  },
+  "observed_uses": 449,
+  "not_queued": 193,
+  "limits": {
+    "jobs": 32,
+    "milliseconds_between_jobs": 250,
+    "per_boundary": 4,
+    "queue_capacity": 256,
+    "rounds": 4
+  },
+  "shared_states": 5,
+  "cache_hits": 4,
+  "wall_seconds": 1.938060416,
+  "global_history_saved": false,
+  "processed_uses": [
+    {
+      "use_id": 0,
+      "template": 0,
+      "state": "Closed",
+      "processed_boundary": 2
+    },
+    {
+      "use_id": 1,
+      "template": 0,
+      "state": "Closed",
+      "processed_boundary": 2
+    },
+    {
+      "use_id": 2,
+      "template": 1,
+      "state": "Closed",
+      "processed_boundary": 2
+    },
+    {
+      "use_id": 3,
+      "template": 0,
+      "state": "Closed",
+      "processed_boundary": 3
+    },
+    {
+      "use_id": 4,
+      "template": 0,
+      "state": "Closed",
+      "processed_boundary": 3
+    },
+    {
+      "use_id": 5,
+      "template": 2,
+      "state": "Closed",
+      "processed_boundary": 2
+    },
+    {
+      "use_id": 6,
+      "template": 2,
+      "state": "Closed",
+      "processed_boundary": 3
+    },
+    {
+      "use_id": 12,
+      "template": 4,
+      "state": "Closed",
+      "processed_boundary": 3
+    },
+    {
+      "use_id": 22,
+      "template": 12,
+      "state": "Closed",
+      "processed_boundary": 4
+    },
+    {
+      "use_id": 30,
+      "template": 11,
+      "state": "Closed",
+      "processed_boundary": 4
+    },
+    {
+      "use_id": 33,
+      "template": 15,
+      "state": "Closed",
+      "processed_boundary": 4
+    },
+    {
+      "use_id": 52,
+      "template": 5,
+      "state": "Closed",
+      "processed_boundary": 4
+    },
+    {
+      "use_id": 53,
+      "template": 27,
+      "state": "Suspended",
+      "processed_boundary": 5
+    },
+    {
+      "use_id": 54,
+      "template": 26,
+      "state": "Suspended",
+      "processed_boundary": 5
+    },
+    {
+      "use_id": 55,
+      "template": 7,
+      "state": "Rejected",
+      "processed_boundary": 5
+    },
+    {
+      "use_id": 57,
+      "template": 8,
+      "state": "Rejected",
+      "processed_boundary": 5
+    },
+    {
+      "use_id": 59,
+      "template": 6,
+      "state": "Rejected",
+      "processed_boundary": 6
+    },
+    {
+      "use_id": 62,
+      "template": 37,
+      "state": "Suspended",
+      "processed_boundary": 6
+    },
+    {
+      "use_id": 66,
+      "template": 13,
+      "state": "Closed",
+      "processed_boundary": 6
+    },
+    {
+      "use_id": 67,
+      "template": 17,
+      "state": "Closed",
+      "processed_boundary": 6
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Same-origin local bridge from egglog-demo to the actual egg_layout runtime."""
+import os
 import argparse
 import functools
 import importlib.util
@@ -23,7 +24,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
-        match = re.fullmatch(r'/api/runs/([0-9a-f]{32})/rounds/(round-[0-9]+\.(?:layers\.dot|fractals\.dot|coverage\.dot|reuse\.dot|use_fractals\.dot|json)|manifest\.json)', urlsplit(self.path).path)
+        match = re.fullmatch(r'/api/runs/([0-9a-f]{32})/rounds/(round-[0-9]+\.(?:layers\.dot|fractals\.dot|coverage\.dot|reuse\.dot|use_fractals\.dot|closed\.dot|json)|manifest\.json)', urlsplit(self.path).path)
         if match:
             file = ROOT / 'out' / 'debugger' / match[1] / 'rounds' / match[2]
             if not file.is_file():
@@ -189,7 +190,8 @@ class Handler(SimpleHTTPRequestHandler):
                     self.send_header('Vary', 'Origin')
                 self.end_headers()
                 with (folder / 'stderr').open('w+') as errors:
-                    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=errors, cwd=ROOT)
+                    env = dict(os.environ, EGG_LAYOUT_CLOSED_OUTPUT=str(run_folder))
+                    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=errors, cwd=ROOT, env=env)
                     finished = threading.Event()
                     timed_out = threading.Event()
                     def watch():
@@ -221,7 +223,7 @@ class Handler(SimpleHTTPRequestHandler):
                                 row['artifact_base'] = f'/api/runs/{run_id}/rounds/'
                                 row['artifact_directory'] = str(run_folder.relative_to(ROOT))
                                 row['stem'] = stem
-                                for kind in ('layers','fractals','coverage','reuse','use_fractals'):
+                                for kind in ('layers','fractals','coverage','reuse','use_fractals','closed'):
                                     if kind not in row['dots']: continue
                                     (run_folder / 'rounds' / f'{stem}.{kind}.dot').write_text(row['dots'][kind])
                                 (run_folder / 'rounds' / f'{stem}.json').write_text(json.dumps(row,ensure_ascii=False))

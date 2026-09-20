@@ -9,6 +9,7 @@ use std::fmt::Write as _;
 pub(super) struct Exporter {
     frames: Vec<Json>,
     analyzer: layer_patterns::Analyzer,
+    closed: Option<closed_pipeline::Pipeline>,
 }
 fn quoted(s: &str) -> String {
     serde_json::to_string(s).unwrap()
@@ -420,15 +421,49 @@ pub(super) fn snapshot(
     )
 }
 impl Exporter {
+    pub fn with_closed(out: &Path) -> Result<Self> {
+        Ok(Self {
+            closed: Some(closed_pipeline::Pipeline::new(
+                out,
+                out.join("source.egg").display().to_string(),
+            )?),
+            ..Self::default()
+        })
+    }
     pub fn summary(&self) -> Json {
         self.frames.last().map(|f|json!({"latest":format!("rounds/{}.json",f["stem"].as_str().unwrap()),"counts":f["counts"],"snapshots":self.frames.len(),"proof":"observed finite recursion; arbitrary-depth induction unknown"})).unwrap_or(Json::Null)
     }
-    fn save(&mut self, s: &LayerStore, b: &CaptureBoundary, out: &Path, source: &str) -> Result {
-        let frame = snapshot(s, b, self.frames.len() + 1, source, &mut self.analyzer)?;
+    fn save(
+        &mut self,
+        c: &Captured,
+        s: &LayerStore,
+        b: &CaptureBoundary,
+        out: &Path,
+        source: &str,
+    ) -> Result {
+        let mut frame = snapshot(s, b, self.frames.len() + 1, source, &mut self.analyzer)?;
+        if let Some(pipeline) = &mut self.closed
+            && b.ripen.is_none()
+        {
+            frame["closed"] = pipeline.step(c, s, self.frames.len() + 1)?;
+            if let Some(dot) = frame["closed"]["catalog"]["dot"].as_str() {
+                frame["dots"]["closed"] = json!(dot);
+            }
+        }
         let stem = frame["stem"].as_str().unwrap();
         let dir = out.join("rounds");
         std::fs::create_dir_all(&dir)?;
-        for kind in ["layers", "fractals", "coverage", "reuse", "use_fractals"] {
+        for kind in [
+            "layers",
+            "fractals",
+            "coverage",
+            "reuse",
+            "use_fractals",
+            "closed",
+        ] {
+            if frame["dots"][kind].is_null() {
+                continue;
+            }
             std::fs::write(
                 dir.join(format!("{stem}.{kind}.dot")),
                 frame["dots"][kind].as_str().unwrap(),
@@ -449,6 +484,7 @@ impl Exporter {
         update_layers(c)?;
         if self.frames.len() < c.boundaries.len() {
             self.save(
+                c,
                 &c.layers,
                 c.boundaries.last().unwrap(),
                 out,
@@ -481,7 +517,7 @@ impl Exporter {
                 s.push(o.apply.clone())?;
             }
             s.ripen = b.ripen.clone();
-            self.save(&s, b, out, &c.preview_source)?;
+            self.save(c, &s, b, out, &c.preview_source)?;
         }
         Ok(())
     }

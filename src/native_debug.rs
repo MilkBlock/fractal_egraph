@@ -236,6 +236,15 @@ pub fn stream_source(
     let mut tier2 = Tier2State::default();
     let mut seen = BTreeSet::new();
     let mut snapshot_count = 0;
+    #[cfg(not(target_arch = "wasm32"))]
+    let mut closed = std::env::var_os("EGG_LAYOUT_CLOSED_OUTPUT")
+        .map(|p| {
+            closed_pipeline::Pipeline::new(
+                Path::new(&p),
+                Path::new(&p).join("source.egg").display().to_string(),
+            )
+        })
+        .transpose()?;
     let mut layer_analyzer = crate::layer_patterns::Analyzer::default();
     // rayon has no threads on wasm32-unknown-unknown; the pool only sizes the stack
     // natively, so the browser build runs the analysis inline.
@@ -406,13 +415,21 @@ pub fn stream_source(
             }
             if snapshot_count < c.boundaries.len() {
                 snapshot_count = c.boundaries.len();
-                emit(layer_view::snapshot(
+                let mut frame = layer_view::snapshot(
                     &c.layers,
                     c.boundaries.last().unwrap(),
                     snapshot_count,
                     &c.preview_source,
                     &mut layer_analyzer,
-                )?)?;
+                )?;
+                #[cfg(not(target_arch = "wasm32"))]
+                if let Some(pipeline) = &mut closed {
+                    frame["closed"] = pipeline.step(c, &c.layers, snapshot_count)?;
+                    if let Some(dot) = frame["closed"]["catalog"]["dot"].as_str() {
+                        frame["dots"]["closed"] = json!(dot);
+                    }
+                }
+                emit(frame)?;
             }
             emit(
                 json!({"kind":"boundary","boundary":boundary,"applications":c.records.len(),"logical_matches":c.events,"excluded":c.rejected}),

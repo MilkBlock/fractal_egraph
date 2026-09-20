@@ -13,7 +13,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
       <div id="native-layer-viewport"></div><pre id="native-layer-error"></pre>
       <details><summary>返回 binding、条件与 effect 证据</summary><pre id="native-layer-details"></pre></details>
       <details><summary>当前 Typst / DOT 源码</summary><pre id="native-layer-code"></pre></details>`;
-    const catalogPanel=document.createElement('section');catalogPanel.hidden=true;catalogPanel.innerHTML=`<p>ClosedState / Closed rule comb · 整次调查结果（非逐轮快照）</p><input hidden id="native-closed-path" placeholder="out/ 中的 closed-catalog 目录"><button hidden id="native-closed-load">载入共享目录</button><select id="native-closed-state" aria-label="共享闭包"><option value="">全部概览</option></select><select id="native-closed-comb" aria-label="对应组合"><option value="">所有对应组合</option></select><div id="native-closed-status"></div><div id="native-closed-table"></div><div id="native-closed-view"></div><pre id="native-closed-rule" style="white-space:pre-wrap"></pre><pre id="native-closed-details"></pre>`;panel.append(catalogPanel);
+    const catalogPanel=document.createElement('section');catalogPanel.hidden=true;catalogPanel.innerHTML=`<p>ClosedState / Closed rule comb · 每轮处理进度与共享闭包</p><input hidden id="native-closed-path" placeholder="out/ 中的 closed-catalog 目录"><button hidden id="native-closed-load">载入共享目录</button><select id="native-closed-state" aria-label="共享闭包"><option value="">全部概览</option></select><select id="native-closed-comb" aria-label="对应组合"><option value="">所有对应组合</option></select><div id="native-closed-status"></div><div id="native-closed-table"></div><div id="native-closed-view"></div><pre id="native-closed-rule" style="white-space:pre-wrap"></pre><pre id="native-closed-details"></pre>`;panel.append(catalogPanel);
     const cp=id=>catalogPanel.querySelector('#native-closed-'+id);
     let catalogData=null,catalogVersion=0;
     function catalogGraph(){
@@ -110,13 +110,25 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     const frame=()=>frames[Number($('round').value)];
     function mode(){
         const closed=$('kind').value==='closed';catalogPanel.hidden=!closed;
-        for(const id of ['round','scope','format'])$(id).hidden=closed;
+        for(const id of ['scope','format'])$(id).hidden=closed;$('round').hidden=closed&&!frames.length;
         for(const id of ['viewport','details','code']){const e=$(id);(e.closest('details')===panel?e:e.closest('details')||e).hidden=closed;}
         $('status').hidden=closed;$('source').disabled=closed;
         $('directory').placeholder=closed?'out/ 中的共享目录或含 catalog/ 的运行目录':'out/ 中的分析目录';
         $('load').textContent=closed?'载入 ClosedState':'载入分析目录';
         $('download').textContent=closed?'下载当前 ClosedState DOT':'下载本轮 DOT';
-        if(closed&&!catalogData)cp('status').textContent='尚无 ClosedState 结果。请载入已生成的共享目录；普通运行不会自动执行 ripen。';
+        if(closed&&!catalogData&&!frame()?.closed)cp('status').textContent='本轮尚无 ClosedState 快照。通过本地服务的新运行会自动处理 ripen 队列；旧记录可载入共享目录。';
+    }
+    function showClosedFrame(result){
+        catalogVersion++;catalogData=result.catalog;
+        cp('state').replaceChildren(new Option('全部概览',''));
+        cp('table').replaceChildren();cp('view').replaceChildren();cp('rule').textContent='';
+        cp('details').textContent=JSON.stringify(result.jobs,null,2);
+        cp('status').textContent=`边界 ${result.boundary} · ${Object.entries(result.counts).map(([k,v])=>k+' '+v).join(' / ')||'尚无 Use'} · 队列外 ${result.not_queued}。每边界最多 ${result.limits.per_boundary} 个，总计 ${result.limits.jobs} 个；每例 ${result.limits.rounds} 轮。时间预算在任务之间检查。`;
+        if(catalogData){
+            for(let i=0;i<catalogData.catalog.closed_states;i++)cp('state').add(new Option(`ClosedState C${i}`,String(i)));
+            cp('status').textContent+=` ${catalogData.catalog.triggers.length} 个 Trigger → ${catalogData.catalog.closed_states} 个共享 ClosedState。`;
+            combOptions();if($('kind').value==='closed')renderCatalog();
+        }else{combOptions();cp('status').textContent+=' 暂无可导出的 ClosedState，Pending / Suspended 不代表已闭合。';}
     }
     function clearCatalog(){catalogVersion++;catalogData=null;cp('path').value='';for(const id of ['view','table','details','rule'])cp(id).replaceChildren();cp('state').replaceChildren(new Option('全部概览',''));combOptions();}
 
@@ -128,7 +140,9 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         if(!pinned){$('round').value=String(frames.length-1);options(false);}
     }
     function options(pin=true){
-        mode();if($('kind').value==='closed')return;
+        mode();
+        if(frame()?.closed)showClosedFrame(frame().closed);
+        if($('kind').value==='closed')return;
         if(pin!==false)pinned=true;
         const f=frame();if(!f)return;
         $('scope').replaceChildren(new Option('全部',''));
@@ -280,7 +294,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     $('download').onclick=()=>{if($('kind').value==='closed'){if(!catalogData)return;const a=document.createElement('a'),url=URL.createObjectURL(new Blob([dot(catalogGraph())],{type:'text/vnd.graphviz;charset=utf-8'}));a.href=url;a.download='closed-state.dot';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;}const f=frame();if(!f)return;const kind=$('kind').value,a=document.createElement('a'),url=URL.createObjectURL(new Blob([f.dots[kind]],{type:'text/vnd.graphviz;charset=utf-8'}));a.href=url;a.download=f.stem+'.'+kind+'.dot';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
     async function load(path){
         const controls=['load','render','round','kind','scope','format'];controls.forEach(id=>$(id).disabled=true);
-        try {const data=await (await post('layer-run',{path})).json();reset();for(const f of data.frames)receive(f);if(data.closed_catalog){cp('path').value=data.closed_catalog;await cp('load').onclick();}mode();}
+        try {const data=await (await post('layer-run',{path})).json();reset();for(const f of data.frames)receive(f);if(data.closed_catalog&&!data.frames.some(f=>f.closed)){cp('path').value=data.closed_catalog;await cp('load').onclick();}mode();}
         finally {controls.forEach(id=>$(id).disabled=false);}
     }
     $('load').onclick=()=>{if($('kind').value==='closed'){cp('path').value=$('directory').value;return cp('load').onclick();}return load($('directory').value).catch(e=>$('error').textContent=e.message);};
