@@ -13,20 +13,94 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
       <div id="native-layer-viewport"></div><pre id="native-layer-error"></pre>
       <details><summary>返回 binding、条件与 effect 证据</summary><pre id="native-layer-details"></pre></details>
       <details><summary>当前 Typst / DOT 源码</summary><pre id="native-layer-code"></pre></details>`;
-    const catalogPanel=document.createElement('details');catalogPanel.innerHTML=`<summary>ClosedState 共享目录</summary><input id="native-closed-path" placeholder="out/ 中的 closed-catalog 目录"><button id="native-closed-load">载入共享目录</button><div id="native-closed-status"></div><div id="native-closed-view"></div><pre id="native-closed-details"></pre>`;panel.append(catalogPanel);
+    const catalogPanel=document.createElement('details');catalogPanel.innerHTML=`<summary>ClosedState 共享目录</summary><input id="native-closed-path" placeholder="out/ 中的 closed-catalog 目录"><button id="native-closed-load">载入共享目录</button><select id="native-closed-state" aria-label="共享闭包"><option value="">全部概览</option></select><select id="native-closed-comb" aria-label="对应组合"><option value="">所有对应组合</option></select><div id="native-closed-status"></div><div id="native-closed-table"></div><div id="native-closed-view"></div><pre id="native-closed-rule" style="white-space:pre-wrap"></pre><pre id="native-closed-details"></pre>`;panel.append(catalogPanel);
     const cp=id=>catalogPanel.querySelector('#native-closed-'+id);
-    cp('load').onclick=async()=>{
-        cp('load').disabled=true;cp('status').textContent='载入…';cp('details').textContent='';
+    let catalogData=null,catalogVersion=0;
+    function catalogGraph(){
+        const c=catalogData.catalog,scope=cp('state').value,nodes=[],edges=[];
+        const states=(c.state_groups||[]).filter(g=>scope===''||g.closed_state===Number(scope));
+        for(const state of states)nodes.push({id:'c'+state.closed_state,label:`ClosedState C${state.closed_state}\n${state.trigger_count} Uses / ${state.template_count} templates`,kind:'fractal',detail:state});
+        for(const g of c.comb_groups||[]){
+            if(scope!==''&&g.closed_state!==Number(scope))continue;
+            if(cp('comb').value!==''&&g.id!==Number(cp('comb').value))continue;
+            const label=g.template===null?`入口 ${g.id}`:`T${g.template}`;
+            nodes.push({id:'g'+g.id,label:`${label} · ${g.triggers.length} Uses\n`+g.members.map(m=>(m.use_kind==='CoarseComb'?'C:':'S:')+m.rule_name).join(' / '),kind:'template',detail:g});
+            if(scope!==''&&g.members.length){
+                for(const m of g.members){
+                    const id=`g${g.id}m${m.slot}`;
+                    nodes.push({id,label:`${m.use_kind} · ${m.rule_name}`,kind:m.use_kind==='CoarseComb'?'coarse':'smooth',detail:{group:g.id,member:m}});
+                    if(!m.parents.length)edges.push({from:'g'+g.id,to:id,label:'entry'});
+                    const linked=new Set();
+                    for(const [input,w] of (m.binding||[]).entries())if(w.Local){linked.add(w.Local.member);edges.push({from:`g${g.id}m${w.Local.member}`,to:id,label:`out${w.Local.output} → in${input}`});}
+                    for(const parent of m.parents)if(!linked.has(parent))edges.push({from:`g${g.id}m${parent}`,to:id,label:'context dependency'});
+                }
+                edges.push({from:'g'+g.id,to:'c'+g.closed_state,label:'ripen whole comb'});
+            }else edges.push({from:'g'+g.id,to:'c'+g.closed_state,label:'exact state mapping'});
+        }
+        return {nodes,edges,sinks:states.map(s=>'c'+s.closed_state)};
+    }
+    function catalogTable(){
+        const c=catalogData.catalog,scope=cp('state').value;cp('table').replaceChildren();
+        const note=document.createElement('p');note.textContent='C/S 按此 Use 的直接记录依赖分类；原始 Coarse/Smooth layer 编号在详情中。关联不表示完整覆盖，符号入口等价不表示任意具体参数都 closed。';cp('table').append(note);
+        const table=document.createElement('table'),head=document.createElement('tr');
+        for(const title of scope===''?['ClosedState','Use 实例','不同模板','查看']:['组合模板','Coarse / Smooth 成员','Use 数','查看']){const th=document.createElement('th');th.textContent=title;head.append(th);}table.append(head);
+        const rows=scope===''?(c.state_groups||[]):(c.comb_groups||[]).filter(g=>g.closed_state===Number(scope));
+        for(const row of rows){
+            const tr=document.createElement('tr'),values=scope===''?[`C${row.closed_state}`,row.trigger_count,row.template_count]:[`T${row.template??'—'}`,row.members.map(m=>(m.use_kind==='CoarseComb'?'C:':'S:')+m.rule_name).join(' / '),row.triggers.length];
+            for(const value of values){const td=document.createElement('td');td.textContent=value;tr.append(td);}
+            const td=document.createElement('td'),button=document.createElement('button');button.textContent=scope===''?'展开组合':'实例与 layer';
+            button.onclick=()=>{if(scope===''){cp('state').value=String(row.closed_state);combOptions();renderCatalog();}else focusComb(row);};td.append(button);tr.append(td);table.append(tr);
+        }
+        cp('table').append(table);
+    }
+    function combOptions(){
+        cp('comb').replaceChildren(new Option('所有对应组合',''));
+        for(const g of catalogData?.catalog.comb_groups||[])if(cp('state').value===''||g.closed_state===Number(cp('state').value))cp('comb').add(new Option(`T${g.template??'—'} · ${g.triggers.length} Uses`,String(g.id)));
+    }
+    function focusComb(g){cp('state').value=String(g.closed_state);combOptions();cp('comb').value=String(g.id);renderCatalog();showComb(g);}
+    function memberText(m){
+        const aliases=(m.input_roles||[]).map((r,i)=>`${r}=v${m.aliases?.[i]??'?'}`).join(', ');
+        return `${m.use_kind} · ${m.rule_name}\n观测别名（模板内）: ${aliases}\n示例来源 layer: C${m.source_coarse_layer} / ${m.source_smooth_layer===null?'—':'S'+m.source_smooth_layer}\n${m.rule}`;
+    }
+    function showComb(g){
+        const instances=g.triggers.map(i=>{const t=catalogData.catalog.triggers[i];return {origin:t.origin,source:t.source,value_map:t.value_map,comb_members:t.binding_origin?.comb_members};});
+        cp('details').textContent=JSON.stringify({template:g.template,instances},null,2);
+        cp('rule').textContent=g.members.map(memberText).join('\n\n');
+    }
+    async function renderCatalog(){
+        const v=++catalogVersion,c=catalogData.catalog;cp('view').dataset.ready='false';cp('rule').textContent='';
         try{
-            const data=await (await post('closed-catalog',{path:cp('path').value})).json();
-            const markup=await (await post('render',{kind:'dot',source:data.dot})).text();
-            cp('view').replaceChildren();const svg=mountSvg(markup,cp('view'));
-            cp('status').textContent=`${data.catalog.triggers.length} 个 Trigger → ${data.catalog.closed_states} 个共享 ClosedState。固定端口与完整事实映射；入口条件保留。未决比较 ${data.catalog.unresolved_comparisons||0}。`;
+            let source=catalogData.dot,g=null;
+            if(c.comb_groups){g=catalogGraph();source=dot(g);catalogTable();}
+            const markup=await (await post('render',{kind:'dot',source})).text();if(v!==catalogVersion)return;
+            cp('view').replaceChildren();const svg=mountSvg(markup,cp('view'));if(g&&g.nodes.length<=10){svg.style.maxWidth='100%';svg.style.height='auto';}cp('view').dataset.ready='true';
             for(const node of svg.querySelectorAll('.node')){
                 const id=node.querySelector('title')?.textContent||'';node.style.cursor='pointer';
-                node.onclick=()=>{cp('details').textContent=JSON.stringify(id.startsWith('t')?data.catalog.triggers[Number(id.slice(1))]:data.states[Number(id.slice(1))],null,2);};
+                node.onclick=()=>{
+                    if(!g){cp('details').textContent=JSON.stringify(id.startsWith('t')?c.triggers[Number(id.slice(1))]:catalogData.states[Number(id.slice(1))],null,2);return;}
+                    if(id.startsWith('c')){const state=Number(id.slice(1));cp('details').textContent=JSON.stringify({state:catalogData.states[state],groups:c.comb_groups.filter(g=>g.closed_state===state)},null,2);if(cp('state').value===''){cp('state').value=String(state);combOptions();renderCatalog();}}
+                    else if(/^g\d+$/.test(id))focusComb(c.comb_groups[Number(id.slice(1))]);
+                    else {const d=g.nodes.find(n=>n.id===id)?.detail;if(d){cp('details').textContent=JSON.stringify(d,null,2);cp('rule').textContent=memberText(d.member);}}
+                };
             }
-        }catch(e){cp('status').textContent=String(e);}finally{cp('load').disabled=false;}
+        }catch(e){cp('status').textContent=String(e);}
+    }
+    cp('state').onchange=()=>{if(catalogData){combOptions();renderCatalog();}};
+    cp('comb').onchange=()=>{if(!catalogData)return;const id=cp('comb').value;if(id==='')renderCatalog();else focusComb(catalogData.catalog.comb_groups[Number(id)]);};
+    cp('load').onclick=async()=>{
+        cp('load').disabled=true;cp('state').disabled=true;cp('comb').disabled=true;catalogVersion++;catalogData=null;cp('table').replaceChildren();cp('view').replaceChildren();cp('rule').textContent='';cp('status').textContent='载入…';cp('details').textContent='';
+        try{
+            catalogData=await (await post('closed-catalog',{path:cp('path').value})).json();const c=catalogData.catalog;
+            cp('state').replaceChildren(new Option('全部概览',''));
+            for(let i=0;i<c.closed_states;i++)cp('state').add(new Option(`ClosedState C${i}`,String(i)));
+            const requestedState=new URLSearchParams(location.search).get('closed_state');
+            if(cp('path').value===initialCatalog&&requestedState!==null&&/^\d+$/.test(requestedState)&&Number(requestedState)<c.closed_states)cp('state').value=requestedState;
+            combOptions();
+            const templates=new Set(c.triggers.filter(t=>t.origin?.template!==undefined).map(t=>JSON.stringify([t.origin.history,t.origin.template]))).size;
+            cp('status').textContent=`${c.triggers.length} 个 Trigger → ${c.closed_states} 个共享 ClosedState，涉及 ${templates} 种模板。未决比较 ${c.unresolved_comparisons||0}。`;
+            if(c.scan)cp('status').textContent+=` 已检查 ${c.scan.attempts.length}/${c.scan.population.historical_uses} 个历史 Use；${JSON.stringify(c.scan.counts)}。预算 ${c.scan.budgets.rounds} 轮 / 每例 ${c.scan.budgets.seconds_per_use} 秒。跨模板共享组 ${c.scan.shared_template_states}。`;
+            await renderCatalog();
+        }catch(e){cp('status').textContent=String(e);}finally{cp('load').disabled=false;cp('state').disabled=false;cp('comb').disabled=false;}
     };
     const initialCatalog=new URLSearchParams(location.search).get('closed_catalog');
     if(initialCatalog){catalogPanel.open=true;cp('path').value=initialCatalog;cp('load').click();}
@@ -73,6 +147,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     function dot(g){
         const q=JSON.stringify,lines=['digraph G { rankdir=LR; node [shape=box,style=filled];'];
         for(const n of g.nodes)lines.push(`${q(n.id)} [label=${q(n.label)},fillcolor=${q({coarse:'#fce6c9',smooth:'#dff2ec',fractal:'#e9e1fa',trigger:'#fbd5d0'}[n.kind]||'#edf0f5')}];`);
+        if(g.sinks?.length)lines.push('{rank=sink;'+g.sinks.map(q).join(';')+';}');
         for(const e of g.edges)lines.push(`${q(e.from)} -> ${q(e.to)} [label=${q(e.label)}];`);
         return lines.join('\n')+'\n}';
     }

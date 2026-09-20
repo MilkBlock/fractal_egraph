@@ -1,0 +1,1051 @@
+{
+  "scope": "Bounded independent native ripen of symbolic interfaces; sharing is conditional on extracted interfaces. Not all possible rule combs or concrete tier0 closures.",
+  "population": {
+    "historical_uses": 449,
+    "templates": 168,
+    "templates_with_uses": 82,
+    "active_uses": 243
+  },
+  "budgets": {
+    "rounds": 4,
+    "seconds_per_use": 8.0,
+    "sampled_rss_mb": 768,
+    "rss_poll_seconds": 0.2
+  },
+  "counts": {
+    "Closed": 303,
+    "Suspended": 29,
+    "rejected": 117
+  },
+  "exported_closed": 303,
+  "closed_states": 9,
+  "shared_instance_states": 8,
+  "shared_template_states": 6,
+  "unresolved_comparisons": 0,
+  "history_sha256": "e0f9b33c69111dff1a8380d0f5f65f206bf06d09324698dcaf06e81e276e6049",
+  "analysis_sha256": "d926b65c2adea55f6f30cb38cc44230e184d78d1fb1232803b1d633dad7abf7d",
+  "closed_templates": 39,
+  "templates_without_uses": 86,
+  "rejected_reasons": {
+    "late external producer": 55,
+    "cannot replay": 7,
+    "materialize an internal read": 50,
+    "unversioned external input": 5
+  },
+  "groups": [
+    {
+      "state": 0,
+      "uses": 37,
+      "template_count": 1,
+      "templates": [
+        0
+      ],
+      "patterns": [
+        {
+          "template": 0,
+          "uses": 37,
+          "members": [
+            {
+              "rule": "R0",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "state": 1,
+      "uses": 27,
+      "template_count": 4,
+      "templates": [
+        1,
+        4,
+        5,
+        109
+      ],
+      "patterns": [
+        {
+          "template": 1,
+          "uses": 15,
+          "members": [
+            {
+              "rule": "R4",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "template": 4,
+          "uses": 7,
+          "members": [
+            {
+              "rule": "R4",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "template": 5,
+          "uses": 1,
+          "members": [
+            {
+              "rule": "R4",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "template": 109,
+          "uses": 4,
+          "members": [
+            {
+              "rule": "R4",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "state": 2,
+      "uses": 77,
+      "template_count": 1,
+      "templates": [
+        2
+      ],
+      "patterns": [
+        {
+          "template": 2,
+          "uses": 77,
+          "members": [
+            {
+              "rule": "R1",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "state": 3,
+      "uses": 100,
+      "template_count": 12,
+      "templates": [
+        12,
+        11,
+        13,
+        17,
+        18,
+        51,
+        77,
+        53,
+        95,
+        93,
+        101,
+        81
+      ],
+      "patterns": [
+        {
+          "template": 12,
+          "uses": 29,
+          "members": [
+            {
+              "rule": "R2",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "template": 11,
+          "uses": 16,
+          "members": [
+            {
+              "rule": "R2",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "template": 13,
+          "uses": 9,
+          "members": [
+            {
+              "rule": "R2",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "template": 17,
+          "uses": 4,
+          "members": [
+            {
+              "rule": "R2",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "template": 18,
+          "uses": 12,
+          "members": [
+            {
+              "rule": "R2",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "template": 51,
+          "uses": 9,
+          "members": [
+            {
+              "rule": "R2",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "template": 77,
+          "uses": 6,
+          "members": [
+            {
+              "rule": "R2",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            },
+            {
+              "rule": "R2",
+              "kind": "SmoothComb",
+              "parents": [
+                1,
+                2
+              ]
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                2
+              ]
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "template": 53,
+          "uses": 3,
+          "members": [
+            {
+              "rule": "R2",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                1
+              ]
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                3
+              ]
+            }
+          ]
+        },
+        {
+          "template": 95,
+          "uses": 1,
+          "members": [
+            {
+              "rule": "R2",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "template": 93,
+          "uses": 4,
+          "members": [
+            {
+              "rule": "R2",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                1
+              ]
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "template": 101,
+          "uses": 6,
+          "members": [
+            {
+              "rule": "R2",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "template": 81,
+          "uses": 1,
+          "members": [
+            {
+              "rule": "R2",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            },
+            {
+              "rule": "R2",
+              "kind": "SmoothComb",
+              "parents": [
+                0,
+                1
+              ]
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                1
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "state": 4,
+      "uses": 12,
+      "template_count": 6,
+      "templates": [
+        15,
+        46,
+        41,
+        62,
+        105,
+        106
+      ],
+      "patterns": [
+        {
+          "template": 15,
+          "uses": 1,
+          "members": [
+            {
+              "rule": "R15",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "template": 46,
+          "uses": 1,
+          "members": [
+            {
+              "rule": "R15",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "template": 41,
+          "uses": 4,
+          "members": [
+            {
+              "rule": "R15",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "template": 62,
+          "uses": 4,
+          "members": [
+            {
+              "rule": "R15",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "template": 105,
+          "uses": 1,
+          "members": [
+            {
+              "rule": "R15",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "template": 106,
+          "uses": 1,
+          "members": [
+            {
+              "rule": "R15",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                1
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "state": 5,
+      "uses": 3,
+      "template_count": 2,
+      "templates": [
+        19,
+        16
+      ],
+      "patterns": [
+        {
+          "template": 19,
+          "uses": 1,
+          "members": [
+            {
+              "rule": "R2",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "template": 16,
+          "uses": 2,
+          "members": [
+            {
+              "rule": "R2",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "state": 6,
+      "uses": 29,
+      "template_count": 6,
+      "templates": [
+        22,
+        23,
+        59,
+        63,
+        121,
+        33
+      ],
+      "patterns": [
+        {
+          "template": 22,
+          "uses": 3,
+          "members": [
+            {
+              "rule": "R3",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "template": 23,
+          "uses": 2,
+          "members": [
+            {
+              "rule": "R3",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                1
+              ]
+            }
+          ]
+        },
+        {
+          "template": 59,
+          "uses": 11,
+          "members": [
+            {
+              "rule": "R3",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "template": 63,
+          "uses": 8,
+          "members": [
+            {
+              "rule": "R3",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "template": 121,
+          "uses": 3,
+          "members": [
+            {
+              "rule": "R3",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "template": 33,
+          "uses": 2,
+          "members": [
+            {
+              "rule": "R3",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            },
+            {
+              "rule": "R3",
+              "kind": "SmoothComb",
+              "parents": [
+                0,
+                1
+              ]
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                1
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "state": 7,
+      "uses": 17,
+      "template_count": 6,
+      "templates": [
+        50,
+        96,
+        100,
+        72,
+        112,
+        89
+      ],
+      "patterns": [
+        {
+          "template": 50,
+          "uses": 5,
+          "members": [
+            {
+              "rule": "R9",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "template": 96,
+          "uses": 2,
+          "members": [
+            {
+              "rule": "R9",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "template": 100,
+          "uses": 1,
+          "members": [
+            {
+              "rule": "R9",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "template": 72,
+          "uses": 2,
+          "members": [
+            {
+              "rule": "R9",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "template": 112,
+          "uses": 1,
+          "members": [
+            {
+              "rule": "R9",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            },
+            {
+              "rule": "R0",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "template": 89,
+          "uses": 6,
+          "members": [
+            {
+              "rule": "R9",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R10",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "state": 8,
+      "uses": 1,
+      "template_count": 1,
+      "templates": [
+        113
+      ],
+      "patterns": [
+        {
+          "template": 113,
+          "uses": 1,
+          "members": [
+            {
+              "rule": "R15",
+              "kind": "CoarseComb",
+              "parents": []
+            },
+            {
+              "rule": "R1",
+              "kind": "SmoothComb",
+              "parents": [
+                0
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

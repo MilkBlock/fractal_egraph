@@ -142,6 +142,18 @@ fn extracts_a_real_use_without_seeding_its_outputs() {
     assert_eq!(result["ripen"]["state"], "Closed");
     assert_eq!(result["ripen"]["origin"]["use_id"], uid);
     assert_eq!(result["origin"]["parameters"][0]["sort"], "Expr");
+    let members = result["origin"]["comb_members"].as_array().unwrap();
+    assert_eq!(members[0]["use_kind"], "CoarseComb");
+    assert_eq!(members[1]["use_kind"], "SmoothComb");
+    assert_eq!(members[1]["parents"], serde_json::json!([0]));
+    assert!(
+        members[1]["binding"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|p| p.get("Local").is_some())
+    );
+    assert!(members[0]["source_coarse_layer"].is_number());
     assert_eq!(result["origin"]["initial_tables"]["B"], 0);
     assert_eq!(result["origin"]["initial_tables"]["C"], 0);
     assert_eq!(result["origin"]["original_use_tables"]["D"], 0);

@@ -288,6 +288,7 @@ pub fn catalog(inputs: &[std::path::PathBuf], out: &Path, budget: usize) -> Resu
                     format!("ClosedState was not exported: {}", report["closed_state"]).into(),
                 );
             }
+            let report=json!({"ripen":report["ripen"],"source_text":report["source_text"],"origin":report["origin"]});
             Ok((p, report, read(&p.join("closed-state.json"))?))
         })
         .collect::<Result<_>>()?;
@@ -325,7 +326,50 @@ pub fn catalog(inputs: &[std::path::PathBuf], out: &Path, budget: usize) -> Resu
             serde_json::to_vec_pretty(state)?,
         )?;
     }
-    let report = json!({"schema":"closed-state-catalog/v1","scope":"exact complete constructor-state sharing with fixed named ports; triggers remain separate; no tier0 substitution", "unresolved_comparisons":comparisons.iter().filter(|c|c["result"]["status"]=="unknown_budget").count(),"closed_states":states.len(),"triggers":triggers,"comparisons":comparisons});
+    let mut group_keys = BTreeMap::new();
+    let mut comb_groups: Vec<Value> = vec![];
+    for (i, t) in triggers.iter().enumerate() {
+        let members = t["binding_origin"]["comb_members"]
+            .as_array()
+            .cloned()
+            .unwrap_or_default();
+        let signature: Vec<_> = members
+            .iter()
+            .map(|m| {
+                let mut parents = m["parents"].as_array().cloned().unwrap_or_default();
+                parents.sort_by_key(|p| p.as_u64());
+                json!([m["rule"], m["use_kind"], parents])
+            })
+            .collect();
+        let key = serde_json::to_string(&json!([
+            t["closed_state"],
+            t["origin"]["history"],
+            t["origin"]["template"],
+            signature,
+            if members.is_empty() {
+                json!(i)
+            } else {
+                Value::Null
+            }
+        ]))?;
+        let n = comb_groups.len();
+        let g=*group_keys.entry(key).or_insert_with(||{
+            comb_groups.push(json!({"id":n,"closed_state":t["closed_state"],"template":t["origin"]["template"],"history":t["origin"]["history"],
+                "members":members,"root_member":t["binding_origin"]["root_member"],"triggers":[]}));n
+        });
+        comb_groups[g]["triggers"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!(i));
+    }
+    let state_groups:Vec<_>=(0..states.len()).map(|id|{
+        let members:Vec<_>=triggers.iter().enumerate().filter(|(_,t)|t["closed_state"]==id).collect();
+        let templates:BTreeSet<_>=members.iter().filter(|(_,t)|t["origin"]["template"].is_number()).map(|(_,t)|json!([t["origin"]["history"],t["origin"]["template"]]).to_string()).collect();
+        json!({"closed_state":id,"trigger_count":members.len(),"template_count":templates.len(),
+            "triggers":members.iter().map(|(i,_)|*i).collect::<Vec<_>>(),
+            "comb_groups":comb_groups.iter().filter(|g|g["closed_state"]==id).map(|g|g["id"].clone()).collect::<Vec<_>>()})
+    }).collect();
+    let report = json!({"schema":"closed-state-catalog/v1","scope":"exact complete constructor-state sharing with fixed named ports; triggers remain separate; no tier0 substitution", "unresolved_comparisons":comparisons.iter().filter(|c|c["result"]["status"]=="unknown_budget").count(),"closed_states":states.len(),"state_groups":state_groups,"comb_groups":comb_groups,"triggers":triggers,"comparisons":comparisons});
     let mut dot = String::from("digraph ClosedCatalog { rankdir=LR; node [shape=box];\n");
     for (i, state) in states.iter().enumerate() {
         let label = format!(

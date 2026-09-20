@@ -1,0 +1,22 @@
+const assert=require('node:assert/strict'),fs=require('node:fs');const{chromium}=require('playwright');
+(async()=>{const data=JSON.parse(fs.readFileSync('out/closed-survey/catalog/catalog.json','utf8'));const b=await chromium.launch({headless:true,executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});try{
+ const p=await b.newPage({viewport:{width:1500,height:1100}}),errors=[];p.on('pageerror',e=>errors.push(String(e)));
+ await p.goto('http://127.0.0.1:8080/?closed_catalog=out/closed-survey/catalog',{waitUntil:'networkidle'});
+ await p.waitForSelector('#native-closed-view[data-ready=true] svg',{timeout:60000});
+ assert((await p.locator('#native-closed-status').textContent()).includes('303 个 Trigger → 9 个'));
+ assert.equal(await p.locator('#native-closed-table table tr').count(),10);
+ await p.selectOption('#native-closed-state','3');await p.waitForSelector('#native-closed-view[data-ready=true] svg',{timeout:60000});
+ assert.equal(await p.locator('#native-closed-table table tr').count(),13);
+ const group=data.comb_groups.find(g=>g.closed_state===3&&g.template===12);
+ const node=id=>p.locator('#native-closed-view .node').filter({has:p.locator('title',{hasText:new RegExp('^'+id+'$')})});
+ await node(`g${group.id}m0`).click();assert((await p.locator('#native-closed-rule').textContent()).includes('CoarseComb'));
+ assert.equal(await node(`g${group.id}m0`).locator('polygon').getAttribute('fill'),'#fce6c9');
+ await node(`g${group.id}m1`).click();assert((await p.locator('#native-closed-rule').textContent()).includes('SmoothComb'));
+ assert.equal(await node(`g${group.id}m1`).locator('polygon').getAttribute('fill'),'#dff2ec');
+ assert((await p.locator('#native-closed-view').textContent()).includes('out'));
+ await node('g'+group.id).click();await p.waitForSelector('#native-closed-view[data-ready=true] svg',{timeout:60000});assert.equal(await p.locator('#native-closed-view .node').count(),4);let details=JSON.parse(await p.locator('#native-closed-details').textContent());
+ assert(details.instances.length>1);assert(details.instances[0].comb_members[0].source_coarse_layer!==undefined);
+ await p.locator('#native-closed-table').screenshot({path:'out/closed-survey/table.png'});
+ await p.locator('#native-closed-view').screenshot({path:'out/closed-survey/comb-graph.png'});
+ assert.deepEqual(errors,[]);console.log('Survey counts, C3 templates, Coarse/Smooth colors, wiring and layer references passed');
+}finally{await b.close();}})().catch(e=>{console.error(e);process.exit(1)});

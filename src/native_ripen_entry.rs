@@ -235,7 +235,17 @@ fn extract(c: &Captured, u: &Use) -> Result<(String, String, Json)> {
         "; Extracted symbolic interface. Boundary constructors are opaque, not recovered original terms.\n{}\n",
         encode(&entry)
     );
-    let provenance = json!({"kind":"symbolic_use_interface","template":u.template,"members":u.members,
+    let slots: BTreeMap<_, _> = u.members.iter().enumerate().map(|(m, e)| (*e, m)).collect();
+    let comb_members:Vec<_>=u.members.iter().enumerate().map(|(slot,i)|{
+        let o=&c.layers.occurrences[*i];let a=&o.apply;let r=&c.records[*i];
+        let external_parents:Vec<_>=a.parents.iter().filter(|p|!slots.contains_key(p)).copied().collect();
+        let coarse=a.parents.is_empty()||!external_parents.is_empty()||!a.external_facts.is_empty()||a.binding.iter().any(|p|matches!(p,crate::coarse_smooth::RelativeBinding::External{..}));
+        json!({"slot":slot,"record":i,"event":r.id,"rule_name":c.rules[r.rule].rule.name,"rule":c.rules[r.rule].rule.to_string(),
+            "use_kind":if coarse{"CoarseComb"}else{"SmoothComb"},"source_kind":format!("{:?}",c.layers.combs[o.comb].kind),
+            "parents":a.parents.iter().filter_map(|p|slots.get(p).copied()).collect::<BTreeSet<_>>(),"external_parents":external_parents,
+            "binding":c.layers.reuse.templates[u.template].pattern.steps[slot].wiring,"aliases":c.layers.reuse.templates[u.template].pattern.steps[slot].aliases,"input_roles":a.input_roles,"output_roles":a.output_roles,"source_coarse_layer":o.coarse_layer,"source_smooth_layer":o.smooth_layer})
+    }).collect();
+    let provenance = json!({"kind":"symbolic_use_interface","template":u.template,"members":u.members,"root_member":c.layers.reuse.templates[u.template].pattern.root,"comb_members":comb_members,"kind_scope":"use_kind is relative to directly recorded dependencies inside this Use; source_kind is the original layer classification; neither minimizes alternate proof requirements",
         "events":stages.iter().map(|(i,e,n,_)|json!({"record":i,"event":e,"precondition_checks":n})).collect::<Vec<_>>(),
         "initial_tables":initial_tables,"original_use_tables":super::table_sizes(&eg,&datatypes[0].to_string())?,"parameters":parameters,"all_source_rules":c.rules.len(),"validation":"all original LHS checks and recorded output aliases passed before/after the corresponding ground actions",
         "initial_source":seed_text,"concrete_boundary_structure_recovered":false,
