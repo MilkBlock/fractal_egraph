@@ -116,6 +116,9 @@ pub struct ReuseStore {
     pub raw_wiring_cost: usize,
     pub selected_wiring_cost: usize,
     pub layer_restricted: bool,
+    pub cut_passes: usize,
+    pub cut_visits: usize,
+    pub cut_removed_uses: usize,
     #[serde(skip)]
     keys: BTreeMap<Pattern, usize>,
 }
@@ -131,6 +134,15 @@ struct Candidate {
 }
 impl ReuseStore {
     fn value_ref(&self, event: usize, output: usize) -> Reference {
+        // Historical name retained in the JSON protocol. Identity is physical,
+        // independent of whether this occurrence is currently a residual or Use.
+        Reference::ResidualPort { event, output }
+    }
+    fn context_ref(&self, event: usize) -> Reference {
+        Reference::ResidualContext(event)
+    }
+    /// Resolve a stable physical output to its current presentation owner.
+    pub fn locate(&self, event: usize, output: usize) -> Reference {
         match self.owner[event] {
             Some((instance, member)) => Reference::UsePort {
                 instance,
@@ -138,12 +150,6 @@ impl ReuseStore {
                 output,
             },
             None => Reference::ResidualPort { event, output },
-        }
-    }
-    fn context_ref(&self, event: usize) -> Reference {
-        match self.owner[event] {
-            Some((instance, member)) => Reference::UseContext { instance, member },
-            None => Reference::ResidualContext(event),
         }
     }
     fn atom_members(&self, event: usize) -> Vec<usize> {
@@ -181,19 +187,15 @@ impl ReuseStore {
                 RelativeBinding::External { slot } => Reference::External(a.external[*slot]),
             })
             .collect();
-        self.continuations_through_use += binding
-            .iter()
-            .filter(|r| matches!(r, Reference::UsePort { .. }))
-            .count();
-        self.interior_port_reads += binding
-            .iter()
-            .filter(|r| match r {
-                Reference::UsePort {
-                    instance, member, ..
-                } => *member != self.templates[self.uses[*instance].template].pattern.root,
-                _ => false,
-            })
-            .count();
+        for b in &a.binding {
+            if let RelativeBinding::ParentPort { parent, .. } = b {
+                if let Some((u, m)) = self.owner[a.parents[*parent]] {
+                    self.continuations_through_use += 1;
+                    self.interior_port_reads +=
+                        usize::from(m != self.templates[self.uses[u].template].pattern.root);
+                }
+            }
+        }
         let contexts = a.parents.iter().map(|p| self.context_ref(*p)).collect();
         self.owner.push(None);
         self.residuals.push(Residual {
@@ -348,6 +350,102 @@ impl ReuseStore {
                     matches: 0,
                     admission_credit: 0,
                 });
+            }
+        }
+        if (i + 1) % 64 == 0 && std::env::var_os("EGG_LAYOUT_DISABLE_RECUT").is_none() {
+            self.repartition(store);
+        }
+    }
+    /// Exact additive cut within existing Use decomposition trees, followed by
+    /// bounded dictionary-removal trials. Does not enumerate arbitrary DAG cuts.
+    pub fn repartition(&mut self, store: &LayerStore) {
+        let roots: Vec<_> = self.active_uses.iter().copied().collect();
+        let raw: Vec<_> = store
+            .occurrences
+            .iter()
+            .map(|o| raw_cost(&o.apply))
+            .collect();
+        let outside: usize = self
+            .owner
+            .iter()
+            .enumerate()
+            .filter(|(_, o)| o.is_none())
+            .map(|(e, _)| raw[e])
+            .sum();
+        let evaluate = |disabled: &BTreeSet<usize>| {
+            let mut costs = Vec::with_capacity(self.uses.len());
+            let mut take = Vec::with_capacity(self.uses.len());
+            for u in &self.uses {
+                let split: usize = u
+                    .parts
+                    .iter()
+                    .map(|p| match p {
+                        Part::Residual(e) => raw[*e],
+                        Part::Use(v) => costs[*v],
+                    })
+                    .sum();
+                let yes = !disabled.contains(&u.template) && u.wiring_cost < split;
+                take.push(yes);
+                costs.push(if yes { u.wiring_cost } else { split });
+            }
+            let wiring = outside + roots.iter().map(|u| costs[*u]).sum::<usize>();
+            let mut selected = BTreeSet::new();
+            let mut todo = roots.clone();
+            while let Some(u) = todo.pop() {
+                if take[u] {
+                    selected.insert(u);
+                } else {
+                    todo.extend(
+                        self.uses[u]
+                            .parts
+                            .iter()
+                            .filter_map(|p| if let Part::Use(v) = p { Some(*v) } else { None }),
+                    );
+                }
+            }
+            let dict: BTreeSet<_> = selected.iter().map(|u| self.uses[*u].template).collect();
+            let total = wiring
+                + dict
+                    .iter()
+                    .map(|t| definition_cost(&self.templates[*t].pattern))
+                    .sum::<usize>();
+            (total, wiring, selected, dict)
+        };
+        let original_dict: BTreeSet<_> = roots.iter().map(|u| self.uses[*u].template).collect();
+        let original_total = self.selected_wiring_cost
+            + original_dict
+                .iter()
+                .map(|t| definition_cost(&self.templates[*t].pattern))
+                .sum::<usize>();
+        let mut disabled = BTreeSet::new();
+        let mut best = evaluate(&disabled);
+        let mut trials: Vec<_> = best.3.iter().copied().collect();
+        trials.sort_by_key(|t| std::cmp::Reverse(definition_cost(&self.templates[*t].pattern)));
+        let mut visits = self.uses.len();
+        for t in trials.into_iter().take(8) {
+            disabled.insert(t);
+            let next = evaluate(&disabled);
+            visits += self.uses.len();
+            if next.0 < best.0 {
+                best = next;
+            } else {
+                disabled.remove(&t);
+            }
+        }
+        self.cut_passes += 1;
+        self.cut_visits += visits;
+        // Shared dictionary charges are not additive; retain the old cut if
+        // exposing children has increased its total cost.
+        if best.0 > original_total {
+            return;
+        }
+        self.cut_removed_uses += self.active_uses.difference(&best.2).count();
+        self.active_uses = best.2;
+        self.selected_wiring_cost = best.1;
+        self.owner.fill(None);
+        for u in &self.active_uses {
+            for (m, e) in self.uses[*u].members.iter().enumerate() {
+                self.owner[*e] = Some((*u, m));
             }
         }
     }
@@ -612,7 +710,11 @@ impl ReuseStore {
     }
     pub fn report(&self) -> serde_json::Value {
         let covered = self.owner.iter().filter(|o| o.is_some()).count();
-        let used_templates: BTreeSet<_> = self.uses.iter().map(|u| u.template).collect();
+        let used_templates: BTreeSet<_> = self
+            .active_uses
+            .iter()
+            .map(|u| self.uses[*u].template)
+            .collect();
         let dictionary_units: usize = used_templates
             .iter()
             .map(|t| definition_cost(&self.templates[*t].pattern))
@@ -631,7 +733,7 @@ impl ReuseStore {
             .collect();
         serde_json::json!({"scope":"Online exact dictionary coding of witnessed composition wiring. Candidate and convex-cover heuristic, not globally optimal. Native payload/effect history remains retained; units are model costs, not bytes or tier0 speedups.",
             "mode":if self.layer_restricted{"coarse_frontier_restricted"}else{"interface_only"},"schemas":self.schemas,"templates":self.templates,"uses":self.uses,"residuals":self.residuals,"roots":roots,
-            "stats":{"events":self.owner.len(),"covered_events":covered,"residual_events":self.owner.len()-covered,"active_uses":self.active_uses.len(),"confirmed_uses":self.uses.len(),"templates":self.templates.len(),"used_templates":used_templates.len(),"candidate_queries":self.candidate_queries,"matches":self.matches,"rejected_overlap":self.rejected_overlap,"rejected_nonconvex":self.rejected_nonconvex,"budget_stops":self.budget_stops,"continuations_through_use":self.continuations_through_use,"interior_port_reads":self.interior_port_reads,"raw_wiring_units":self.raw_wiring_cost,"selected_wiring_units":self.selected_wiring_cost,"used_dictionary_units":dictionary_units,"candidate_index_units":candidate_index_units,"net_selected_codec_units":self.raw_wiring_cost as i64-self.selected_wiring_cost as i64-dictionary_units as i64,"net_units_including_candidate_index":self.raw_wiring_cost as i64-self.selected_wiring_cost as i64-candidate_index_units as i64}})
+            "stats":{"cut_passes":self.cut_passes,"cut_visits":self.cut_visits,"cut_removed_uses":self.cut_removed_uses,"events":self.owner.len(),"covered_events":covered,"residual_events":self.owner.len()-covered,"active_uses":self.active_uses.len(),"confirmed_uses":self.uses.len(),"templates":self.templates.len(),"used_templates":used_templates.len(),"candidate_queries":self.candidate_queries,"matches":self.matches,"rejected_overlap":self.rejected_overlap,"rejected_nonconvex":self.rejected_nonconvex,"budget_stops":self.budget_stops,"continuations_through_use":self.continuations_through_use,"interior_port_reads":self.interior_port_reads,"raw_wiring_units":self.raw_wiring_cost,"selected_wiring_units":self.selected_wiring_cost,"used_dictionary_units":dictionary_units,"candidate_index_units":candidate_index_units,"net_selected_codec_units":self.raw_wiring_cost as i64-self.selected_wiring_cost as i64-dictionary_units as i64,"net_units_including_candidate_index":self.raw_wiring_cost as i64-self.selected_wiring_cost as i64-candidate_index_units as i64}})
     }
     pub fn replay(store: &LayerStore, layer_restricted: bool) -> Self {
         let mut prefix = LayerStore::default();

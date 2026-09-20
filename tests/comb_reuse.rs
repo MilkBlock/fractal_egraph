@@ -134,7 +134,7 @@ fn no_layer_gate_and_external_residual_inputs_are_explicit() {
         s.reuse.residuals[b]
             .binding
             .iter()
-            .any(|r| matches!(r, Reference::UsePort { .. }))
+            .any(|r| matches!(r, Reference::ResidualPort { .. }))
     );
     assert!(
         s.reuse.residuals[b]
@@ -153,7 +153,14 @@ fn interior_outputs_stay_addressable() {
     assert_ne!(m, s.reuse.templates[s.reuse.uses[u].template].pattern.root);
     let next = add(&mut s, "ReadInterior", vec![(4, 0)], None, 2000);
     assert!(
-        matches!(s.reuse.residuals[next].binding[0],Reference::UsePort{instance,member,..} if instance==u&&member==m)
+        matches!(s.reuse.locate(4, 0),Reference::UsePort{instance,member,..} if instance==u&&member==m)
+    );
+    assert_eq!(
+        s.reuse.residuals[next].binding[0],
+        Reference::ResidualPort {
+            event: 4,
+            output: 0
+        }
     );
     assert!(s.reuse.interior_port_reads > 0);
     check_cover(&s);
@@ -234,4 +241,49 @@ fn decoder_detects_corrupted_boundary_and_effect_evidence() {
     let t = bad.uses[0].template;
     bad.templates[t].pattern.steps[0].effects.clear();
     assert!(bad.verify(&s).is_err());
+}
+
+#[test]
+fn recut_preserves_handles_and_never_increases_selected_codec() {
+    let mut s = LayerStore::default();
+    for k in 0..12 {
+        let a = add(&mut s, "A", vec![], Some(100 + k), 1000 + k * 2);
+        add(&mut s, "B", vec![(a, 0)], None, 1001 + k * 2);
+    }
+    let before = serde_json::to_value(&s.reuse.residuals).unwrap();
+    let cost = |s: &LayerStore| {
+        let r = s.reuse.report();
+        r["stats"]["selected_wiring_units"].as_u64().unwrap()
+            + r["stats"]["used_dictionary_units"].as_u64().unwrap()
+    };
+    let old = cost(&s);
+    let mut reuse = std::mem::take(&mut s.reuse);
+    reuse.repartition(&s);
+    s.reuse = reuse;
+    assert!(cost(&s) <= old);
+    assert_eq!(before, serde_json::to_value(&s.reuse.residuals).unwrap());
+    check_cover(&s);
+    add(&mut s, "Continuation", vec![(4, 0)], None, 99999);
+    check_cover(&s);
+}
+
+#[test]
+fn dictionary_charge_splits_an_unamortized_use() {
+    let mut s = LayerStore::default();
+    for k in 0..3 {
+        let a = add(&mut s, "A", vec![], Some(100 + k), 1000 + k * 2);
+        add(&mut s, "B", vec![(a, 0)], None, 1001 + k * 2);
+    }
+    assert!(!s.reuse.active_uses.is_empty());
+    let saved = serde_json::to_value(&s.reuse.residuals).unwrap();
+    let mut reuse = std::mem::take(&mut s.reuse);
+    reuse.repartition(&s);
+    s.reuse = reuse;
+    assert!(
+        s.reuse.active_uses.is_empty(),
+        "a lone Use cannot pay for this dictionary entry"
+    );
+    assert!(s.reuse.cut_removed_uses > 0);
+    assert_eq!(saved, serde_json::to_value(&s.reuse.residuals).unwrap());
+    check_cover(&s);
 }

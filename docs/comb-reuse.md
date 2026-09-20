@@ -102,3 +102,62 @@ The 12-apply `reuse_coarse.egg` probe demonstrates repeated mixed-input A+B unit
 interface-only covers 6 applies, while the coarse-frontier arm covers none.
 See `comb-reuse-results.json` for all counters. Further work should target the
 candidate pool and template admission, rather than hide that overhead.
+
+## Online re-cut (2026-09-20)
+
+Physical `(event, output)` and context event handles now remain stable when the
+preferred cover changes. For compatibility the JSON variants are still named
+`ResidualPort` and `ResidualContext`; these names no longer imply current ownership.
+`locate` returns the current Use/interior member in O(1). Existing immutable Uses
+remain valid witnesses even after removal from the preferred cover.
+
+Every 64 validated applies, `repartition` computes an additive cut DP over existing
+Use decomposition trees: retain a Use or expose its parts. It then tries removing
+up to eight expensive dictionary entries, recalculating the cut each time. Shared
+definition cost is charged once for each *actively selected* template, using its
+self-contained flat pattern. A change is accepted only if selected wiring plus
+active dictionary cost does not increase. This corrects the prior report which
+charged every historically used template as though still selected. Historical
+Uses, matching patterns, recipes and source evidence all remain resident and are
+not included in that selected-codec metric; the candidate-index metric remains
+separate. The dictionary-removal heuristic is not an exact global dictionary
+optimizer. Discarded ancestor choices are not automatically revived; later apply
+candidates may create new combinations from the current cover.
+
+For n retained events, u retained Uses, p total decomposition-part references and
+s total Use member references, one re-cut performs at most nine DP evaluations.
+With balanced-tree sets its conservative time bound is
+O(9(n + p + (u + g) log(u + g + 1)) + s), including scanning/sorting up to g active
+definitions and rebuilding owners. Temporary storage is O(n + u + g); all retained
+history and the dictionary are additional. This implementation scans the existing
+hierarchy rather than updating a balanced tree's ancestors: periodic re-cuts can
+therefore be quadratic across a growing stream. It does not implement rotations,
+arbitrary overlapping DAG partitions, index eviction, or the earlier proposed
+logarithmic incremental bound.
+
+### Controlled Math6 history replay
+
+Both arms replay exactly `out/use-reuse-final/math/history.json` (1,529 certified
+applies, six rounds); tier0 is not re-executed in this comparison. The new native
+analysis path runs in both arms. Set `EGG_LAYOUT_DISABLE_RECUT=1` for the control:
+
+```sh
+EGG_LAYOUT_DISABLE_RECUT=1 target/release/egg_layout analyze --replay-history out/use-reuse-final/math/history.json --output out/recut-math6/off
+target/release/egg_layout analyze --replay-history out/use-reuse-final/math/history.json --output out/recut-math6/on
+```
+
+| Metric (model units, not bytes) | Control | Re-cut |
+|---|---:|---:|
+| Raw wiring | 31,248 | 31,248 |
+| Selected wiring | 23,886 | 25,385 |
+| Active dictionary | 5,015 | 2,669 |
+| Selected wiring + dictionary | 28,901 | 28,054 |
+| Candidate index | 391,056 | 392,807 |
+| Covered events | 687 | 597 |
+| Re-cut passes | 0 | 23 |
+
+Selected codec improves 2.93%, but total with candidate index gets worse.
+This is evidence for rejecting unamortized selected templates, not overall memory
+compression or tier0 acceleration. Re-cuts also change later candidate discovery;
+this is an end-to-end policy comparison on identical evidence, not a fixed-library
+ablation. Single-run tier1 timings (0.197s vs 0.208s) are recorded only as diagnostics.
