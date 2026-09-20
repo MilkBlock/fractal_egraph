@@ -1,0 +1,949 @@
+{
+  "scope": "Read-only cost/observability audit of saved Use dictionaries. No tier0 execution.\nRecipe scores omit binding/alias substitution tables: they are optimistic scenarios,\nnot an implemented codec, observed savings, or a replay of rejected candidates.\n",
+  "missing_evidence": "Snapshots omit rejected candidate prices, evicted probation entries, and historical cover changes. No admission-flip count or causal attribution can be recovered from these snapshots.",
+  "arms": {
+    "eager": {
+      "input_sha256": "ae7cd44a5975395579ce3f9e03446c332794be80093bff8dd6395fe5604694f1",
+      "observability": {
+        "active_uses": 251,
+        "active_templates": 89,
+        "cross_use_read_slots": 3236,
+        "interior_read_slots": 2932,
+        "interior_read_fraction": 0.9060568603213844,
+        "distinct_use_interior_ports": 1099,
+        "closed_uses": 34,
+        "closed_templates_including_singletons": [
+          148
+        ],
+        "closed_templates_at_least_two_uses": [],
+        "interior_output_role_counts": {
+          "column": 532,
+          "var": 1233,
+          "row": 1167
+        }
+      },
+      "granularity": [
+        {
+          "members": 2,
+          "installed_templates": 298,
+          "active_templates": 35,
+          "with_child_calls": 0,
+          "optimistic_recipe_cheaper": 0,
+          "observed_sum": 681,
+          "templates_with_matches": 98
+        },
+        {
+          "members": 3,
+          "installed_templates": 404,
+          "active_templates": 36,
+          "with_child_calls": 268,
+          "optimistic_recipe_cheaper": 268,
+          "observed_sum": 773,
+          "templates_with_matches": 125
+        },
+        {
+          "members": 4,
+          "installed_templates": 408,
+          "active_templates": 12,
+          "with_child_calls": 335,
+          "optimistic_recipe_cheaper": 335,
+          "observed_sum": 645,
+          "templates_with_matches": 98
+        },
+        {
+          "members": 5,
+          "installed_templates": 373,
+          "active_templates": 3,
+          "with_child_calls": 339,
+          "optimistic_recipe_cheaper": 339,
+          "observed_sum": 475,
+          "templates_with_matches": 55
+        },
+        {
+          "members": 6,
+          "installed_templates": 328,
+          "active_templates": 2,
+          "with_child_calls": 316,
+          "optimistic_recipe_cheaper": 316,
+          "observed_sum": 360,
+          "templates_with_matches": 21
+        },
+        {
+          "members": 7,
+          "installed_templates": 312,
+          "active_templates": 1,
+          "with_child_calls": 304,
+          "optimistic_recipe_cheaper": 304,
+          "observed_sum": 345,
+          "templates_with_matches": 26
+        },
+        {
+          "members": 8,
+          "installed_templates": 212,
+          "active_templates": 0,
+          "with_child_calls": 212,
+          "optimistic_recipe_cheaper": 212,
+          "observed_sum": 220,
+          "templates_with_matches": 8
+        },
+        {
+          "members": 9,
+          "installed_templates": 196,
+          "active_templates": 0,
+          "with_child_calls": 196,
+          "optimistic_recipe_cheaper": 196,
+          "observed_sum": 202,
+          "templates_with_matches": 6
+        },
+        {
+          "members": 10,
+          "installed_templates": 129,
+          "active_templates": 0,
+          "with_child_calls": 129,
+          "optimistic_recipe_cheaper": 129,
+          "observed_sum": 131,
+          "templates_with_matches": 2
+        },
+        {
+          "members": 11,
+          "installed_templates": 114,
+          "active_templates": 0,
+          "with_child_calls": 114,
+          "optimistic_recipe_cheaper": 114,
+          "observed_sum": 114,
+          "templates_with_matches": 0
+        },
+        {
+          "members": 12,
+          "installed_templates": 104,
+          "active_templates": 0,
+          "with_child_calls": 104,
+          "optimistic_recipe_cheaper": 104,
+          "observed_sum": 104,
+          "templates_with_matches": 0
+        },
+        {
+          "members": 13,
+          "installed_templates": 56,
+          "active_templates": 0,
+          "with_child_calls": 56,
+          "optimistic_recipe_cheaper": 56,
+          "observed_sum": 56,
+          "templates_with_matches": 0
+        },
+        {
+          "members": 14,
+          "installed_templates": 70,
+          "active_templates": 0,
+          "with_child_calls": 70,
+          "optimistic_recipe_cheaper": 70,
+          "observed_sum": 70,
+          "templates_with_matches": 0
+        },
+        {
+          "members": 15,
+          "installed_templates": 39,
+          "active_templates": 0,
+          "with_child_calls": 39,
+          "optimistic_recipe_cheaper": 39,
+          "observed_sum": 39,
+          "templates_with_matches": 0
+        },
+        {
+          "members": 16,
+          "installed_templates": 29,
+          "active_templates": 0,
+          "with_child_calls": 29,
+          "optimistic_recipe_cheaper": 29,
+          "observed_sum": 29,
+          "templates_with_matches": 0
+        }
+      ],
+      "fixed_cover_pricing": {
+        "selected_wiring": 23886,
+        "flat_active_dictionary": 5015,
+        "current_selected_total": 28901,
+        "optimistic_recipe_dictionary_with_dependencies": 2951,
+        "additional_dependency_templates": 2,
+        "optimistic_member_to_part_saving": 174,
+        "optimistic_selected_total": 26663,
+        "all_candidate_index_current": 391056
+      },
+      "template_examples": [
+        {
+          "template": 882,
+          "members": 7,
+          "uses": 1,
+          "flat": 133,
+          "recipe_skeleton": 31,
+          "dependencies": [
+            161,
+            173
+          ]
+        },
+        {
+          "template": 375,
+          "members": 6,
+          "uses": 2,
+          "flat": 108,
+          "recipe_skeleton": 30,
+          "dependencies": [
+            7,
+            231
+          ]
+        },
+        {
+          "template": 802,
+          "members": 6,
+          "uses": 2,
+          "flat": 108,
+          "recipe_skeleton": 29,
+          "dependencies": [
+            553
+          ]
+        },
+        {
+          "template": 83,
+          "members": 5,
+          "uses": 1,
+          "flat": 78,
+          "recipe_skeleton": 35,
+          "dependencies": [
+            41
+          ]
+        },
+        {
+          "template": 792,
+          "members": 5,
+          "uses": 2,
+          "flat": 102,
+          "recipe_skeleton": 29,
+          "dependencies": [
+            312
+          ]
+        },
+        {
+          "template": 835,
+          "members": 5,
+          "uses": 1,
+          "flat": 93,
+          "recipe_skeleton": 28,
+          "dependencies": [
+            502
+          ]
+        },
+        {
+          "template": 185,
+          "members": 4,
+          "uses": 2,
+          "flat": 70,
+          "recipe_skeleton": 20,
+          "dependencies": [
+            90
+          ]
+        },
+        {
+          "template": 312,
+          "members": 4,
+          "uses": 3,
+          "flat": 78,
+          "recipe_skeleton": 28,
+          "dependencies": [
+            17
+          ]
+        },
+        {
+          "template": 502,
+          "members": 4,
+          "uses": 4,
+          "flat": 70,
+          "recipe_skeleton": 19,
+          "dependencies": [
+            190
+          ]
+        },
+        {
+          "template": 533,
+          "members": 4,
+          "uses": 2,
+          "flat": 70,
+          "recipe_skeleton": 19,
+          "dependencies": [
+            173
+          ]
+        },
+        {
+          "template": 774,
+          "members": 4,
+          "uses": 2,
+          "flat": 78,
+          "recipe_skeleton": 28,
+          "dependencies": [
+            90
+          ]
+        },
+        {
+          "template": 812,
+          "members": 4,
+          "uses": 2,
+          "flat": 77,
+          "recipe_skeleton": 26,
+          "dependencies": [
+            173
+          ]
+        }
+      ]
+    },
+    "probation": {
+      "input_sha256": "e3112a525c53925b9d4f8d61cdefb171acac8d1b851e3a2c00d50ae4382311da",
+      "observability": {
+        "active_uses": 254,
+        "active_templates": 66,
+        "cross_use_read_slots": 3191,
+        "interior_read_slots": 2862,
+        "interior_read_fraction": 0.8968975242870574,
+        "distinct_use_interior_ports": 1067,
+        "closed_uses": 32,
+        "closed_templates_including_singletons": [],
+        "closed_templates_at_least_two_uses": [],
+        "interior_output_role_counts": {
+          "column": 512,
+          "var": 1220,
+          "row": 1130
+        }
+      },
+      "granularity": [
+        {
+          "members": 2,
+          "installed_templates": 56,
+          "active_templates": 30,
+          "with_child_calls": 0,
+          "optimistic_recipe_cheaper": 0,
+          "observed_sum": 391,
+          "templates_with_matches": 33
+        },
+        {
+          "members": 3,
+          "installed_templates": 49,
+          "active_templates": 29,
+          "with_child_calls": 33,
+          "optimistic_recipe_cheaper": 33,
+          "observed_sum": 268,
+          "templates_with_matches": 30
+        },
+        {
+          "members": 4,
+          "installed_templates": 18,
+          "active_templates": 6,
+          "with_child_calls": 13,
+          "optimistic_recipe_cheaper": 13,
+          "observed_sum": 83,
+          "templates_with_matches": 6
+        },
+        {
+          "members": 5,
+          "installed_templates": 11,
+          "active_templates": 0,
+          "with_child_calls": 6,
+          "optimistic_recipe_cheaper": 6,
+          "observed_sum": 26,
+          "templates_with_matches": 1
+        },
+        {
+          "members": 6,
+          "installed_templates": 4,
+          "active_templates": 1,
+          "with_child_calls": 3,
+          "optimistic_recipe_cheaper": 3,
+          "observed_sum": 15,
+          "templates_with_matches": 1
+        },
+        {
+          "members": 7,
+          "installed_templates": 5,
+          "active_templates": 0,
+          "with_child_calls": 5,
+          "optimistic_recipe_cheaper": 5,
+          "observed_sum": 10,
+          "templates_with_matches": 0
+        },
+        {
+          "members": 8,
+          "installed_templates": 2,
+          "active_templates": 0,
+          "with_child_calls": 2,
+          "optimistic_recipe_cheaper": 2,
+          "observed_sum": 4,
+          "templates_with_matches": 0
+        }
+      ],
+      "fixed_cover_pricing": {
+        "selected_wiring": 24481,
+        "flat_active_dictionary": 3458,
+        "current_selected_total": 27939,
+        "optimistic_recipe_dictionary_with_dependencies": 2394,
+        "additional_dependency_templates": 5,
+        "optimistic_member_to_part_saving": 134,
+        "optimistic_selected_total": 26741,
+        "all_candidate_index_current": 17566
+      },
+      "template_examples": [
+        {
+          "template": 70,
+          "members": 6,
+          "uses": 5,
+          "flat": 108,
+          "recipe_skeleton": 29,
+          "dependencies": [
+            51
+          ]
+        },
+        {
+          "template": 33,
+          "members": 4,
+          "uses": 3,
+          "flat": 77,
+          "recipe_skeleton": 27,
+          "dependencies": [
+            22
+          ]
+        },
+        {
+          "template": 69,
+          "members": 4,
+          "uses": 3,
+          "flat": 78,
+          "recipe_skeleton": 28,
+          "dependencies": [
+            7
+          ]
+        },
+        {
+          "template": 73,
+          "members": 4,
+          "uses": 1,
+          "flat": 77,
+          "recipe_skeleton": 27,
+          "dependencies": [
+            13
+          ]
+        },
+        {
+          "template": 74,
+          "members": 4,
+          "uses": 1,
+          "flat": 78,
+          "recipe_skeleton": 28,
+          "dependencies": [
+            8
+          ]
+        },
+        {
+          "template": 115,
+          "members": 4,
+          "uses": 1,
+          "flat": 86,
+          "recipe_skeleton": 28,
+          "dependencies": [
+            113
+          ]
+        },
+        {
+          "template": 135,
+          "members": 4,
+          "uses": 2,
+          "flat": 72,
+          "recipe_skeleton": 29,
+          "dependencies": [
+            4
+          ]
+        },
+        {
+          "template": 4,
+          "members": 3,
+          "uses": 4,
+          "flat": 47,
+          "recipe_skeleton": 18,
+          "dependencies": [
+            1
+          ]
+        },
+        {
+          "template": 7,
+          "members": 3,
+          "uses": 5,
+          "flat": 54,
+          "recipe_skeleton": 27,
+          "dependencies": [
+            0
+          ]
+        },
+        {
+          "template": 8,
+          "members": 3,
+          "uses": 8,
+          "flat": 54,
+          "recipe_skeleton": 27,
+          "dependencies": [
+            0
+          ]
+        },
+        {
+          "template": 13,
+          "members": 3,
+          "uses": 5,
+          "flat": 54,
+          "recipe_skeleton": 18,
+          "dependencies": [
+            12
+          ]
+        },
+        {
+          "template": 17,
+          "members": 3,
+          "uses": 2,
+          "flat": 54,
+          "recipe_skeleton": 18,
+          "dependencies": [
+            11
+          ]
+        }
+      ]
+    },
+    "incremental": {
+      "input_sha256": "b4e7279496c16771f7cc6a950ae891082836736c705c90c4811620422ee2d9cc",
+      "observability": {
+        "active_uses": 240,
+        "active_templates": 53,
+        "cross_use_read_slots": 2833,
+        "interior_read_slots": 2618,
+        "interior_read_fraction": 0.924108718672785,
+        "distinct_use_interior_ports": 993,
+        "closed_uses": 33,
+        "closed_templates_including_singletons": [],
+        "closed_templates_at_least_two_uses": [],
+        "interior_output_role_counts": {
+          "var": 1111,
+          "row": 1050,
+          "column": 457
+        }
+      },
+      "granularity": [
+        {
+          "members": 2,
+          "installed_templates": 57,
+          "active_templates": 24,
+          "with_child_calls": 0,
+          "optimistic_recipe_cheaper": 0,
+          "observed_sum": 420,
+          "templates_with_matches": 37
+        },
+        {
+          "members": 3,
+          "installed_templates": 58,
+          "active_templates": 21,
+          "with_child_calls": 38,
+          "optimistic_recipe_cheaper": 38,
+          "observed_sum": 323,
+          "templates_with_matches": 40
+        },
+        {
+          "members": 4,
+          "installed_templates": 24,
+          "active_templates": 5,
+          "with_child_calls": 19,
+          "optimistic_recipe_cheaper": 19,
+          "observed_sum": 112,
+          "templates_with_matches": 9
+        },
+        {
+          "members": 5,
+          "installed_templates": 17,
+          "active_templates": 1,
+          "with_child_calls": 12,
+          "optimistic_recipe_cheaper": 12,
+          "observed_sum": 44,
+          "templates_with_matches": 3
+        },
+        {
+          "members": 6,
+          "installed_templates": 5,
+          "active_templates": 1,
+          "with_child_calls": 4,
+          "optimistic_recipe_cheaper": 4,
+          "observed_sum": 18,
+          "templates_with_matches": 1
+        },
+        {
+          "members": 7,
+          "installed_templates": 6,
+          "active_templates": 1,
+          "with_child_calls": 6,
+          "optimistic_recipe_cheaper": 6,
+          "observed_sum": 15,
+          "templates_with_matches": 1
+        },
+        {
+          "members": 8,
+          "installed_templates": 2,
+          "active_templates": 0,
+          "with_child_calls": 2,
+          "optimistic_recipe_cheaper": 2,
+          "observed_sum": 4,
+          "templates_with_matches": 0
+        }
+      ],
+      "fixed_cover_pricing": {
+        "selected_wiring": 24852,
+        "flat_active_dictionary": 3002,
+        "current_selected_total": 27854,
+        "optimistic_recipe_dictionary_with_dependencies": 2076,
+        "additional_dependency_templates": 7,
+        "optimistic_member_to_part_saving": 118,
+        "optimistic_selected_total": 26810,
+        "all_candidate_index_current": 19631
+      },
+      "template_examples": [
+        {
+          "template": 82,
+          "members": 7,
+          "uses": 1,
+          "flat": 133,
+          "recipe_skeleton": 31,
+          "dependencies": [
+            13,
+            51
+          ]
+        },
+        {
+          "template": 77,
+          "members": 6,
+          "uses": 6,
+          "flat": 108,
+          "recipe_skeleton": 29,
+          "dependencies": [
+            53
+          ]
+        },
+        {
+          "template": 163,
+          "members": 5,
+          "uses": 1,
+          "flat": 115,
+          "recipe_skeleton": 60,
+          "dependencies": [
+            69
+          ]
+        },
+        {
+          "template": 33,
+          "members": 4,
+          "uses": 2,
+          "flat": 77,
+          "recipe_skeleton": 27,
+          "dependencies": [
+            22
+          ]
+        },
+        {
+          "template": 76,
+          "members": 4,
+          "uses": 3,
+          "flat": 78,
+          "recipe_skeleton": 28,
+          "dependencies": [
+            7
+          ]
+        },
+        {
+          "template": 81,
+          "members": 4,
+          "uses": 1,
+          "flat": 77,
+          "recipe_skeleton": 27,
+          "dependencies": [
+            13
+          ]
+        },
+        {
+          "template": 92,
+          "members": 4,
+          "uses": 3,
+          "flat": 87,
+          "recipe_skeleton": 33,
+          "dependencies": [
+            69
+          ]
+        },
+        {
+          "template": 134,
+          "members": 4,
+          "uses": 1,
+          "flat": 74,
+          "recipe_skeleton": 26,
+          "dependencies": [
+            78
+          ]
+        },
+        {
+          "template": 8,
+          "members": 3,
+          "uses": 8,
+          "flat": 54,
+          "recipe_skeleton": 27,
+          "dependencies": [
+            0
+          ]
+        },
+        {
+          "template": 13,
+          "members": 3,
+          "uses": 3,
+          "flat": 54,
+          "recipe_skeleton": 18,
+          "dependencies": [
+            12
+          ]
+        },
+        {
+          "template": 18,
+          "members": 3,
+          "uses": 13,
+          "flat": 55,
+          "recipe_skeleton": 19,
+          "dependencies": [
+            11
+          ]
+        },
+        {
+          "template": 32,
+          "members": 3,
+          "uses": 1,
+          "flat": 54,
+          "recipe_skeleton": 27,
+          "dependencies": [
+            2
+          ]
+        }
+      ]
+    },
+    "full": {
+      "input_sha256": "d926b65c2adea55f6f30cb38cc44230e184d78d1fb1232803b1d633dad7abf7d",
+      "observability": {
+        "active_uses": 243,
+        "active_templates": 45,
+        "cross_use_read_slots": 2807,
+        "interior_read_slots": 2595,
+        "interior_read_fraction": 0.9244745279657998,
+        "distinct_use_interior_ports": 992,
+        "closed_uses": 34,
+        "closed_templates_including_singletons": [
+          162
+        ],
+        "closed_templates_at_least_two_uses": [],
+        "interior_output_role_counts": {
+          "var": 1105,
+          "row": 1032,
+          "column": 458
+        }
+      },
+      "granularity": [
+        {
+          "members": 2,
+          "installed_templates": 59,
+          "active_templates": 22,
+          "with_child_calls": 0,
+          "optimistic_recipe_cheaper": 0,
+          "observed_sum": 655,
+          "templates_with_matches": 43
+        },
+        {
+          "members": 3,
+          "installed_templates": 54,
+          "active_templates": 17,
+          "with_child_calls": 34,
+          "optimistic_recipe_cheaper": 34,
+          "observed_sum": 306,
+          "templates_with_matches": 32
+        },
+        {
+          "members": 4,
+          "installed_templates": 24,
+          "active_templates": 5,
+          "with_child_calls": 19,
+          "optimistic_recipe_cheaper": 19,
+          "observed_sum": 107,
+          "templates_with_matches": 9
+        },
+        {
+          "members": 5,
+          "installed_templates": 16,
+          "active_templates": 0,
+          "with_child_calls": 11,
+          "optimistic_recipe_cheaper": 11,
+          "observed_sum": 40,
+          "templates_with_matches": 2
+        },
+        {
+          "members": 6,
+          "installed_templates": 7,
+          "active_templates": 1,
+          "with_child_calls": 6,
+          "optimistic_recipe_cheaper": 6,
+          "observed_sum": 23,
+          "templates_with_matches": 1
+        },
+        {
+          "members": 7,
+          "installed_templates": 6,
+          "active_templates": 0,
+          "with_child_calls": 6,
+          "optimistic_recipe_cheaper": 6,
+          "observed_sum": 15,
+          "templates_with_matches": 1
+        },
+        {
+          "members": 8,
+          "installed_templates": 2,
+          "active_templates": 0,
+          "with_child_calls": 2,
+          "optimistic_recipe_cheaper": 2,
+          "observed_sum": 4,
+          "templates_with_matches": 0
+        }
+      ],
+      "fixed_cover_pricing": {
+        "selected_wiring": 24747,
+        "flat_active_dictionary": 2422,
+        "current_selected_total": 27169,
+        "optimistic_recipe_dictionary_with_dependencies": 1792,
+        "additional_dependency_templates": 7,
+        "optimistic_member_to_part_saving": 120,
+        "optimistic_selected_total": 26419,
+        "all_candidate_index_current": 19625
+      },
+      "template_examples": [
+        {
+          "template": 77,
+          "members": 6,
+          "uses": 6,
+          "flat": 108,
+          "recipe_skeleton": 29,
+          "dependencies": [
+            53
+          ]
+        },
+        {
+          "template": 33,
+          "members": 4,
+          "uses": 2,
+          "flat": 77,
+          "recipe_skeleton": 27,
+          "dependencies": [
+            22
+          ]
+        },
+        {
+          "template": 76,
+          "members": 4,
+          "uses": 3,
+          "flat": 78,
+          "recipe_skeleton": 28,
+          "dependencies": [
+            7
+          ]
+        },
+        {
+          "template": 81,
+          "members": 4,
+          "uses": 1,
+          "flat": 77,
+          "recipe_skeleton": 27,
+          "dependencies": [
+            13
+          ]
+        },
+        {
+          "template": 90,
+          "members": 4,
+          "uses": 4,
+          "flat": 99,
+          "recipe_skeleton": 32,
+          "dependencies": [
+            70
+          ]
+        },
+        {
+          "template": 136,
+          "members": 4,
+          "uses": 1,
+          "flat": 74,
+          "recipe_skeleton": 26,
+          "dependencies": [
+            78
+          ]
+        },
+        {
+          "template": 8,
+          "members": 3,
+          "uses": 8,
+          "flat": 54,
+          "recipe_skeleton": 27,
+          "dependencies": [
+            0
+          ]
+        },
+        {
+          "template": 13,
+          "members": 3,
+          "uses": 4,
+          "flat": 54,
+          "recipe_skeleton": 18,
+          "dependencies": [
+            12
+          ]
+        },
+        {
+          "template": 18,
+          "members": 3,
+          "uses": 12,
+          "flat": 55,
+          "recipe_skeleton": 19,
+          "dependencies": [
+            11
+          ]
+        },
+        {
+          "template": 32,
+          "members": 3,
+          "uses": 1,
+          "flat": 54,
+          "recipe_skeleton": 27,
+          "dependencies": [
+            2
+          ]
+        },
+        {
+          "template": 51,
+          "members": 3,
+          "uses": 9,
+          "flat": 55,
+          "recipe_skeleton": 19,
+          "dependencies": [
+            12
+          ]
+        },
+        {
+          "template": 78,
+          "members": 3,
+          "uses": 6,
+          "flat": 52,
+          "recipe_skeleton": 25,
+          "dependencies": [
+            0
+          ]
+        }
+      ]
+    }
+  }
+}
