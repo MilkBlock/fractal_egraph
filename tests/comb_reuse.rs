@@ -287,3 +287,56 @@ fn dictionary_charge_splits_an_unamortized_use() {
     assert_eq!(saved, serde_json::to_value(&s.reuse.residuals).unwrap());
     check_cover(&s);
 }
+
+#[test]
+fn singleton_candidates_stay_bounded_and_never_pollute_dictionary() {
+    let mut s = LayerStore::default();
+    for k in 0..500 {
+        let a = add(
+            &mut s,
+            &format!("Unique{k}"),
+            vec![],
+            Some(100 + k),
+            10000 + k * 2,
+        );
+        add(&mut s, "B", vec![(a, 0)], None, 10001 + k * 2);
+    }
+    let stats = s.reuse.report()["stats"].clone();
+    assert!(s.reuse.templates.is_empty());
+    assert!(stats["probation_templates"].as_u64().unwrap() <= 128);
+    assert!(stats["probation_units"].as_u64().unwrap() <= 8192);
+    assert!(stats["probation_evictions"].as_u64().unwrap() > 0);
+    check_cover(&s);
+}
+
+#[test]
+fn boundary_rotation_reuses_a_suffix_and_preserves_spilled_prefix() {
+    let mut s = LayerStore::default();
+    // Train B+C without repeatedly training A+B.
+    for k in 0..6 {
+        let a = add(
+            &mut s,
+            &format!("Seed{k}"),
+            vec![],
+            Some(100 + k),
+            1000 + k * 3,
+        );
+        let b = add(&mut s, "B", vec![(a, 0)], None, 1001 + k * 3);
+        add(&mut s, "C", vec![(b, 0); 12], None, 1002 + k * 3);
+    }
+    let mut last = (0, 0);
+    for k in 0..6 {
+        let a = add(&mut s, "A", vec![], Some(200 + k), 2000 + k * 2);
+        let b = add(&mut s, "B", vec![(a, 0)], None, 2001 + k * 2);
+        last = (a, b);
+    }
+    assert!(s.reuse.owner[last.0].is_some());
+    add(&mut s, "C", vec![(last.1, 0); 12], None, 9999);
+    assert!(s.reuse.local_rotations > 0);
+    assert!(
+        s.reuse.owner[last.0].is_none(),
+        "A must remain as a residual"
+    );
+    assert!(s.reuse.owner[last.1].is_some());
+    check_cover(&s);
+}

@@ -8,7 +8,7 @@ pub enum RelativeBinding {
     ParentPort { parent: usize, output: usize },
     External { slot: usize },
 }
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum Effect {
     RowFact(usize),
     Equal(usize, usize),

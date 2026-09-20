@@ -235,25 +235,30 @@ fn reuse_graph(s: &LayerStore) -> Json {
                 .filter_map(|(i, o)| o.is_none().then_some(Part::Residual(i))),
         )
         .collect();
-    fn source(reference: &Reference) -> Option<(String, String)> {
-        match reference {
+    let source = |reference: &Reference| -> Option<(String, String)> {
+        let (event, output) = match reference {
+            Reference::ResidualPort { event, output } => (*event, Some(*output)),
+            Reference::ResidualContext(event) => (*event, None),
             Reference::UsePort {
                 instance,
                 member,
                 output,
-            } => Some((format!("use{instance}"), format!("m{member}.out{output}"))),
-            Reference::ResidualPort { event, output } => {
-                Some((format!("res{event}"), format!("out{output}")))
-            }
+            } => (r.uses[*instance].members[*member], Some(*output)),
             Reference::UseContext { instance, member } => {
-                Some((format!("use{instance}"), format!("m{member} context")))
+                (r.uses[*instance].members[*member], None)
             }
-            Reference::ResidualContext(event) => Some((format!("res{event}"), "context".into())),
-            Reference::External(_) | Reference::ExternalEffect(_) => None,
-        }
-    }
+            _ => return None,
+        };
+        let port = output
+            .map(|o| format!("out{o}"))
+            .unwrap_or_else(|| "context".into());
+        Some(match r.owner[event] {
+            Some((u, m)) => (format!("use{u}"), format!("m{m}.{port}")),
+            None => (format!("res{event}"), port),
+        })
+    };
     while let Some(part) = todo.pop() {
-        let (id, label, kind, detail, refs, parts) = match part {
+        let (id, label, kind, detail, refs) = match part {
             Part::Use(i) => {
                 let u = &r.uses[i];
                 (
@@ -271,7 +276,6 @@ fn reuse_graph(s: &LayerStore) -> Json {
                         .chain(&u.contexts)
                         .cloned()
                         .collect::<Vec<_>>(),
-                    u.parts.clone(),
                 )
             }
             Part::Residual(i) => {
@@ -297,7 +301,6 @@ fn reuse_graph(s: &LayerStore) -> Json {
                         .chain(&residual.contexts)
                         .cloned()
                         .collect(),
-                    vec![],
                 )
             }
         };
@@ -312,29 +315,12 @@ fn reuse_graph(s: &LayerStore) -> Json {
                     id.clone(),
                     format!("{port} → input/context {slot}"),
                 ));
-                match reference {
-                    Reference::UsePort { instance, .. }
-                    | Reference::UseContext { instance, .. } => todo.push(Part::Use(*instance)),
-                    Reference::ResidualPort { event, .. } | Reference::ResidualContext(event) => {
-                        todo.push(Part::Residual(*event))
-                    }
-                    _ => {}
-                }
             }
         }
-        // Uses with prior Use parts expose the hierarchy. Raw internal applies
-        // stay in evidence rather than being expanded into the overview graph.
-        for part in parts {
-            if let Part::Use(u) = part {
-                edges.push(edge(
-                    format!("use{u}"),
-                    id.clone(),
-                    "shared sub-combination".into(),
-                ));
-                todo.push(Part::Use(u));
-            }
-        }
+        // The overview is the current cut. Historical parts remain in instance
+        // details; rendering them here would resurrect removed cover regions.
     }
+
     graph(nodes, edges)
 }
 

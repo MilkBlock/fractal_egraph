@@ -51,6 +51,21 @@ fn every_round_has_dot_and_replay_preserves_boundaries() {
                 )
                 .unwrap();
                 assert!(dot.starts_with("digraph G"));
+                if kind == "reuse" {
+                    let data = read(out.join(format!("rounds/round-{:04}.json", i + 1)));
+                    let g = &data["graphs"]["reuse"];
+                    let nodes = g["nodes"].as_array().unwrap();
+                    assert_eq!(
+                        nodes.len(),
+                        data["reuse"]["roots"].as_array().unwrap().len()
+                    );
+                    let ids: std::collections::BTreeSet<_> =
+                        nodes.iter().map(|n| n["id"].as_str().unwrap()).collect();
+                    for edge in g["edges"].as_array().unwrap() {
+                        assert!(ids.contains(edge["from"].as_str().unwrap()));
+                        assert!(ids.contains(edge["to"].as_str().unwrap()));
+                    }
+                }
                 if kind == "layers" {
                     let data = read(out.join(format!("rounds/round-{:04}.json", i + 1)));
                     for t in data["analysis"]["templates"].as_array().unwrap() {

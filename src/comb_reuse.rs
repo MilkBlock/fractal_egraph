@@ -2,13 +2,25 @@
 //! This is an alternative metadata representation, not skipped tier0 execution.
 use crate::coarse_smooth::{Effect, LayerStore, RelativeBinding};
 use serde::Serialize;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, VecDeque};
 use std::hash::{Hash, Hasher};
 
 const MAX_MEMBERS: usize = 16;
 const MAX_CANDIDATES: usize = 8;
 const MAX_TEMPLATES: usize = 4096;
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+const PROBATION_LIMIT: usize = 128;
+const PROBATION_UNITS: usize = 8192;
+const CUT_ROOT_LIMIT: usize = 256;
+#[derive(Clone)]
+struct Probation {
+    pattern: Pattern,
+    first: usize,
+    last: usize,
+    credit: usize,
+    count: usize,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
 pub enum Wire {
     Local { member: usize, output: usize },
     Input(usize),
@@ -19,7 +31,7 @@ pub struct Schema {
     pub input_roles: Vec<String>,
     pub output_roles: Vec<String>,
 }
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
 pub struct Step {
     pub schema: usize,
     pub wiring: Vec<Wire>,
@@ -28,7 +40,7 @@ pub struct Step {
     pub requires: Vec<Effect>,
     pub effects: Vec<Effect>,
 }
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
 pub struct Pattern {
     pub steps: Vec<Step>,
     pub root: usize,
@@ -120,7 +132,18 @@ pub struct ReuseStore {
     pub cut_visits: usize,
     pub cut_removed_uses: usize,
     #[serde(skip)]
-    keys: BTreeMap<Pattern, usize>,
+    keys: HashMap<u64, Vec<usize>>,
+    #[serde(skip)]
+    probation: Vec<Probation>,
+    #[serde(skip)]
+    active_by_template: Vec<BTreeSet<usize>>,
+    #[serde(skip)]
+    dirty_templates: BTreeSet<usize>,
+    #[serde(skip)]
+    dirty_queue: VecDeque<usize>,
+    pub probation_evictions: usize,
+    pub local_rotations: usize,
+    pub cut_budget_stops: usize,
 }
 struct Candidate {
     pattern: Pattern,
@@ -131,8 +154,34 @@ struct Candidate {
     parts: Vec<Part>,
     old_cost: usize,
     new_cost: usize,
+    displaced: BTreeSet<usize>,
+    spill: Vec<usize>,
+    spill_cost: usize,
 }
 impl ReuseStore {
+    fn lookup(&self, p: &Pattern) -> Option<usize> {
+        self.keys
+            .get(&fingerprint(p))?
+            .iter()
+            .copied()
+            .find(|t| self.templates[*t].pattern == *p)
+    }
+    fn activate(&mut self, u: usize) {
+        let t = self.uses[u].template;
+        self.active_uses.insert(u);
+        self.active_by_template[t].insert(u);
+        if self.dirty_templates.insert(t) {
+            self.dirty_queue.push_back(t);
+        }
+    }
+    fn deactivate(&mut self, u: usize) {
+        let t = self.uses[u].template;
+        self.active_uses.remove(&u);
+        self.active_by_template[t].remove(&u);
+        if self.dirty_templates.insert(t) {
+            self.dirty_queue.push_back(t);
+        }
+    }
     fn value_ref(&self, event: usize, output: usize) -> Reference {
         // Historical name retained in the JSON protocol. Identity is physical,
         // independent of whether this occurrence is currently a residual or Use.
@@ -216,6 +265,10 @@ impl ReuseStore {
             let mut set: BTreeSet<_> = self.atom_members(*p).into_iter().collect();
             set.insert(i);
             regions.insert(set);
+            // Local boundary rotation: permit cutting through a prior macro.
+            if std::env::var_os("EGG_LAYOUT_DISABLE_ROTATIONS").is_none() {
+                regions.insert(BTreeSet::from([*p, i]));
+            }
         }
         // Also try joint continuations and a small dependency neighbourhood,
         // expanding completed Uses atomically, never their entire prior history.
@@ -266,13 +319,6 @@ impl ReuseStore {
             if self.layer_restricted && !set.is_subset(&allowed) {
                 continue;
             }
-            if set.iter().any(|m| {
-                self.owner[*m]
-                    .is_some_and(|(u, _)| self.uses[u].members.iter().any(|e| !set.contains(e)))
-            }) {
-                self.rejected_overlap += 1;
-                continue;
-            }
             match convex(store, &set) {
                 Some(true) => {}
                 Some(false) => {
@@ -289,10 +335,10 @@ impl ReuseStore {
         let mut best = None;
         for (j, c) in candidates.iter().enumerate() {
             self.candidate_queries += 1;
-            if let Some(t) = self.keys.get(&c.pattern).copied() {
+            if let Some(t) = self.lookup(&c.pattern) {
                 self.matches += 1;
                 self.templates[t].matches += 1;
-                let gain = c.old_cost.saturating_sub(c.new_cost);
+                let gain = c.old_cost.saturating_sub(c.new_cost + c.spill_cost);
                 self.templates[t].admission_credit += gain;
                 if self.templates[t].admission_credit < definition_cost(&self.templates[t].pattern)
                 {
@@ -306,11 +352,13 @@ impl ReuseStore {
         if let Some((j, t, gain)) = best {
             let c = &candidates[j];
             let u = self.uses.len();
-            for part in &c.parts {
-                if let Part::Use(old) = part {
-                    self.active_uses.remove(old);
-                }
+            for old in &c.displaced {
+                self.deactivate(*old);
             }
+            for e in &c.spill {
+                self.owner[*e] = None;
+            }
+            self.local_rotations += usize::from(!c.spill.is_empty());
             self.uses.push(Use {
                 template: t,
                 completed_at: i,
@@ -323,32 +371,88 @@ impl ReuseStore {
             for (member, event) in c.members.iter().enumerate() {
                 self.owner[*event] = Some((u, member));
             }
-            self.active_uses.insert(u);
+            self.activate(u);
             self.selected_wiring_cost -= gain;
         }
         // At most the bounded observed candidates enter the dictionary. Existing
         // equivalent definitions may gain a smaller recipe referencing prior T's.
         for c in candidates {
-            if let Some(t) = self.keys.get(&c.pattern).copied() {
+            if let Some(t) = self.lookup(&c.pattern) {
                 let old = &mut self.templates[t];
                 old.observed += 1;
                 if c.atoms.len() < old.atoms.len() {
                     old.atoms = c.atoms;
                 }
             } else {
+                let eager = std::env::var_os("EGG_LAYOUT_EAGER_DICTIONARY").is_some();
+                let credit = c.old_cost.saturating_sub(c.new_cost + c.spill_cost);
+                let cost = definition_cost(&c.pattern);
+                let mut first = i;
+                let mut count = 1;
+                let mut total_credit = credit;
+                if !eager {
+                    if let Some(k) = self.probation.iter().position(|p| p.pattern == c.pattern) {
+                        let p = &mut self.probation[k];
+                        p.last = i;
+                        p.count += 1;
+                        p.credit += credit;
+                        if p.credit < cost {
+                            continue;
+                        }
+                        let p = self.probation.swap_remove(k);
+                        first = p.first;
+                        count = p.count;
+                        total_credit = p.credit;
+                    } else {
+                        if credit == 0 || cost > PROBATION_UNITS {
+                            continue;
+                        }
+                        while self.probation.len() >= PROBATION_LIMIT
+                            || self
+                                .probation
+                                .iter()
+                                .map(|p| definition_cost(&p.pattern))
+                                .sum::<usize>()
+                                + cost
+                                > PROBATION_UNITS
+                        {
+                            let k = self
+                                .probation
+                                .iter()
+                                .enumerate()
+                                .min_by_key(|(_, p)| p.last)
+                                .unwrap()
+                                .0;
+                            self.probation.swap_remove(k);
+                            self.probation_evictions += 1;
+                        }
+                        self.probation.push(Probation {
+                            pattern: c.pattern,
+                            first: i,
+                            last: i,
+                            credit,
+                            count: 1,
+                        });
+                        continue;
+                    }
+                }
                 if self.templates.len() >= MAX_TEMPLATES {
                     self.budget_stops += 1;
                     continue;
                 }
                 let t = self.templates.len();
-                self.keys.insert(c.pattern.clone(), t);
+                self.keys
+                    .entry(fingerprint(&c.pattern))
+                    .or_default()
+                    .push(t);
+                self.active_by_template.push(BTreeSet::new());
                 self.templates.push(Template {
                     pattern: c.pattern,
                     atoms: c.atoms,
-                    learned_at: i,
-                    observed: 1,
+                    learned_at: first,
+                    observed: count,
                     matches: 0,
-                    admission_credit: 0,
+                    admission_credit: if eager { 0 } else { total_credit },
                 });
             }
         }
@@ -356,43 +460,57 @@ impl ReuseStore {
             self.repartition(store);
         }
     }
-    /// Exact additive cut within existing Use decomposition trees, followed by
-    /// bounded dictionary-removal trials. Does not enumerate arbitrary DAG cuts.
+    /// Incremental dictionary-aware cut over affected decomposition roots.
+    /// Exact additive DP inside each root; bounded coordinate search across the
+    /// shared dictionary. A high-fanout update is skipped, never called O(log n).
     pub fn repartition(&mut self, store: &LayerStore) {
-        let roots: Vec<_> = self.active_uses.iter().copied().collect();
-        let raw: Vec<_> = store
-            .occurrences
-            .iter()
-            .map(|o| raw_cost(&o.apply))
-            .collect();
-        let outside: usize = self
-            .owner
-            .iter()
-            .enumerate()
-            .filter(|(_, o)| o.is_none())
-            .map(|(e, _)| raw[e])
-            .sum();
-        let evaluate = |disabled: &BTreeSet<usize>| {
-            let mut costs = Vec::with_capacity(self.uses.len());
-            let mut take = Vec::with_capacity(self.uses.len());
-            for u in &self.uses {
-                let split: usize = u
+        let count = self.dirty_queue.len().min(8);
+        let trials: Vec<_> = self.dirty_queue.drain(..count).collect();
+        self.cut_passes += 1;
+        for t in trials {
+            self.dirty_templates.remove(&t);
+            if self.active_by_template[t].len() > CUT_ROOT_LIMIT {
+                self.cut_budget_stops += 1;
+                continue;
+            }
+            let roots: Vec<_> = self.active_by_template[t].iter().copied().collect();
+            if roots.is_empty() {
+                continue;
+            }
+            fn dp(
+                r: &ReuseStore,
+                s: &LayerStore,
+                u: usize,
+                banned: usize,
+                memo: &mut BTreeMap<usize, (usize, bool)>,
+            ) -> usize {
+                if let Some((cost, _)) = memo.get(&u) {
+                    return *cost;
+                }
+                let split: usize = r.uses[u]
                     .parts
                     .iter()
                     .map(|p| match p {
-                        Part::Residual(e) => raw[*e],
-                        Part::Use(v) => costs[*v],
+                        Part::Residual(e) => raw_cost(&s.occurrences[*e].apply),
+                        Part::Use(v) => dp(r, s, *v, banned, memo),
                     })
                     .sum();
-                let yes = !disabled.contains(&u.template) && u.wiring_cost < split;
-                take.push(yes);
-                costs.push(if yes { u.wiring_cost } else { split });
+                let take = r.uses[u].template != banned && r.uses[u].wiring_cost < split;
+                let cost = if take { r.uses[u].wiring_cost } else { split };
+                memo.insert(u, (cost, take));
+                cost
             }
-            let wiring = outside + roots.iter().map(|u| costs[*u]).sum::<usize>();
+            let old: usize = roots.iter().map(|u| self.uses[*u].wiring_cost).sum();
+            let mut memo = BTreeMap::new();
+            let new: usize = roots
+                .iter()
+                .map(|u| dp(self, store, *u, t, &mut memo))
+                .sum();
+            self.cut_visits += memo.len();
             let mut selected = BTreeSet::new();
             let mut todo = roots.clone();
             while let Some(u) = todo.pop() {
-                if take[u] {
+                if memo[&u].1 {
                     selected.insert(u);
                 } else {
                     todo.extend(
@@ -403,50 +521,33 @@ impl ReuseStore {
                     );
                 }
             }
-            let dict: BTreeSet<_> = selected.iter().map(|u| self.uses[*u].template).collect();
-            let total = wiring
-                + dict
-                    .iter()
-                    .map(|t| definition_cost(&self.templates[*t].pattern))
-                    .sum::<usize>();
-            (total, wiring, selected, dict)
-        };
-        let original_dict: BTreeSet<_> = roots.iter().map(|u| self.uses[*u].template).collect();
-        let original_total = self.selected_wiring_cost
-            + original_dict
-                .iter()
+            let mut counts = BTreeMap::<usize, usize>::new();
+            for u in &selected {
+                *counts.entry(self.uses[*u].template).or_default() += 1;
+            }
+            let added_dict: usize = counts
+                .keys()
+                .filter(|t| self.active_by_template[**t].is_empty())
                 .map(|t| definition_cost(&self.templates[*t].pattern))
-                .sum::<usize>();
-        let mut disabled = BTreeSet::new();
-        let mut best = evaluate(&disabled);
-        let mut trials: Vec<_> = best.3.iter().copied().collect();
-        trials.sort_by_key(|t| std::cmp::Reverse(definition_cost(&self.templates[*t].pattern)));
-        let mut visits = self.uses.len();
-        for t in trials.into_iter().take(8) {
-            disabled.insert(t);
-            let next = evaluate(&disabled);
-            visits += self.uses.len();
-            if next.0 < best.0 {
-                best = next;
-            } else {
-                disabled.remove(&t);
+                .sum();
+            let removed_dict = definition_cost(&self.templates[t].pattern);
+            if new + added_dict >= old + removed_dict {
+                continue;
             }
-        }
-        self.cut_passes += 1;
-        self.cut_visits += visits;
-        // Shared dictionary charges are not additive; retain the old cut if
-        // exposing children has increased its total cost.
-        if best.0 > original_total {
-            return;
-        }
-        self.cut_removed_uses += self.active_uses.difference(&best.2).count();
-        self.active_uses = best.2;
-        self.selected_wiring_cost = best.1;
-        self.owner.fill(None);
-        for u in &self.active_uses {
-            for (m, e) in self.uses[*u].members.iter().enumerate() {
-                self.owner[*e] = Some((*u, m));
+            self.cut_removed_uses += roots.len();
+            for u in roots {
+                self.deactivate(u);
+                for e in &self.uses[u].members {
+                    self.owner[*e] = None;
+                }
             }
+            for u in selected {
+                self.activate(u);
+                for (m, e) in self.uses[u].members.iter().enumerate() {
+                    self.owner[*e] = Some((u, m));
+                }
+            }
+            self.selected_wiring_cost = self.selected_wiring_cost - old + new;
         }
     }
     fn candidate(&self, store: &LayerStore, set: &BTreeSet<usize>, root: usize) -> Candidate {
@@ -519,21 +620,42 @@ impl ReuseStore {
         let mut atoms = vec![];
         let mut parts = vec![];
         let mut used = BTreeSet::new();
-        let mut old_cost = 0;
+        let displaced: BTreeSet<_> = members
+            .iter()
+            .filter_map(|e| self.owner[*e].map(|(u, _)| u))
+            .collect();
+        let spill: Vec<_> = displaced
+            .iter()
+            .flat_map(|u| self.uses[*u].members.iter().copied())
+            .filter(|e| !set.contains(e))
+            .collect();
+        let spill_cost = spill
+            .iter()
+            .map(|e| raw_cost(&store.occurrences[*e].apply))
+            .sum();
+        let old_cost = displaced
+            .iter()
+            .map(|u| self.uses[*u].wiring_cost)
+            .sum::<usize>()
+            + members
+                .iter()
+                .filter(|e| self.owner[**e].is_none())
+                .map(|e| raw_cost(&store.occurrences[*e].apply))
+                .sum::<usize>();
         for (m, event) in members.iter().enumerate() {
-            if let Some((u, _)) = self.owner[*event] {
+            if let Some((u, _)) = self.owner[*event]
+                .filter(|(u, _)| self.uses[*u].members.iter().all(|e| set.contains(e)))
+            {
                 if used.insert(u) {
                     atoms.push(Atom::Use {
                         template: self.uses[u].template,
                         members: self.uses[u].members.iter().map(|e| local[e]).collect(),
                     });
                     parts.push(Part::Use(u));
-                    old_cost += self.uses[u].wiring_cost;
                 }
             } else {
                 atoms.push(Atom::Apply(m));
                 parts.push(Part::Residual(*event));
-                old_cost += raw_cost(&store.occurrences[*event].apply);
             }
         }
         let new_cost = 3 + inputs.len() * 3 + contexts.len() + members.len();
@@ -550,6 +672,9 @@ impl ReuseStore {
             parts,
             old_cost,
             new_cost,
+            displaced,
+            spill,
+            spill_cost,
         }
     }
     /// Replay the compact wiring against immutable occurrence evidence, without
@@ -572,6 +697,31 @@ impl ReuseStore {
         }
         if covered.len() != self.owner.len() {
             return Err("incomplete preferred cover".into());
+        }
+        let mut selected_cost = 0;
+        for (e, owner) in self.owner.iter().enumerate() {
+            match owner {
+                Some((u, m))
+                    if self.active_uses.contains(u)
+                        && self.uses[*u].members.get(*m) == Some(&e) => {}
+                None => selected_cost += raw_cost(&store.occurrences[e].apply),
+                _ => return Err("owner index does not describe current cover".into()),
+            }
+        }
+        selected_cost += self
+            .active_uses
+            .iter()
+            .map(|u| self.uses[*u].wiring_cost)
+            .sum::<usize>();
+        if selected_cost != self.selected_wiring_cost {
+            return Err("selected cost drift".into());
+        }
+        let mut expected = vec![BTreeSet::new(); self.templates.len()];
+        for u in &self.active_uses {
+            expected[self.uses[*u].template].insert(*u);
+        }
+        if expected != self.active_by_template {
+            return Err("template reverse index drift".into());
         }
         for (uid, u) in self.uses.iter().enumerate() {
             let t = &self.templates[u.template];
@@ -719,11 +869,17 @@ impl ReuseStore {
             .iter()
             .map(|t| definition_cost(&self.templates[*t].pattern))
             .sum();
+        let probation_units: usize = self
+            .probation
+            .iter()
+            .map(|p| definition_cost(&p.pattern))
+            .sum();
         let candidate_index_units: usize = self
             .templates
             .iter()
             .map(|t| definition_cost(&t.pattern))
-            .sum();
+            .sum::<usize>()
+            + probation_units;
         let roots: Vec<_> = self
             .owner
             .iter()
@@ -733,7 +889,7 @@ impl ReuseStore {
             .collect();
         serde_json::json!({"scope":"Online exact dictionary coding of witnessed composition wiring. Candidate and convex-cover heuristic, not globally optimal. Native payload/effect history remains retained; units are model costs, not bytes or tier0 speedups.",
             "mode":if self.layer_restricted{"coarse_frontier_restricted"}else{"interface_only"},"schemas":self.schemas,"templates":self.templates,"uses":self.uses,"residuals":self.residuals,"roots":roots,
-            "stats":{"cut_passes":self.cut_passes,"cut_visits":self.cut_visits,"cut_removed_uses":self.cut_removed_uses,"events":self.owner.len(),"covered_events":covered,"residual_events":self.owner.len()-covered,"active_uses":self.active_uses.len(),"confirmed_uses":self.uses.len(),"templates":self.templates.len(),"used_templates":used_templates.len(),"candidate_queries":self.candidate_queries,"matches":self.matches,"rejected_overlap":self.rejected_overlap,"rejected_nonconvex":self.rejected_nonconvex,"budget_stops":self.budget_stops,"continuations_through_use":self.continuations_through_use,"interior_port_reads":self.interior_port_reads,"raw_wiring_units":self.raw_wiring_cost,"selected_wiring_units":self.selected_wiring_cost,"used_dictionary_units":dictionary_units,"candidate_index_units":candidate_index_units,"net_selected_codec_units":self.raw_wiring_cost as i64-self.selected_wiring_cost as i64-dictionary_units as i64,"net_units_including_candidate_index":self.raw_wiring_cost as i64-self.selected_wiring_cost as i64-candidate_index_units as i64}})
+            "stats":{"probation_templates":self.probation.len(),"probation_units":probation_units,"probation_evictions":self.probation_evictions,"local_rotations":self.local_rotations,"cut_budget_stops":self.cut_budget_stops,"cut_passes":self.cut_passes,"cut_visits":self.cut_visits,"cut_removed_uses":self.cut_removed_uses,"events":self.owner.len(),"covered_events":covered,"residual_events":self.owner.len()-covered,"active_uses":self.active_uses.len(),"confirmed_uses":self.uses.len(),"templates":self.templates.len(),"used_templates":used_templates.len(),"candidate_queries":self.candidate_queries,"matches":self.matches,"rejected_overlap":self.rejected_overlap,"rejected_nonconvex":self.rejected_nonconvex,"budget_stops":self.budget_stops,"continuations_through_use":self.continuations_through_use,"interior_port_reads":self.interior_port_reads,"raw_wiring_units":self.raw_wiring_cost,"selected_wiring_units":self.selected_wiring_cost,"used_dictionary_units":dictionary_units,"candidate_index_units":candidate_index_units,"net_selected_codec_units":self.raw_wiring_cost as i64-self.selected_wiring_cost as i64-dictionary_units as i64,"net_units_including_candidate_index":self.raw_wiring_cost as i64-self.selected_wiring_cost as i64-candidate_index_units as i64}})
     }
     pub fn replay(store: &LayerStore, layer_restricted: bool) -> Self {
         let mut prefix = LayerStore::default();
@@ -866,4 +1022,39 @@ fn order(s: &LayerStore, set: &BTreeSet<usize>, root: usize) -> Vec<usize> {
         visit(s, set, i, &mut seen, &mut out);
     }
     out
+}
+
+fn fingerprint(p: &Pattern) -> u64 {
+    let mut h = std::collections::hash_map::DefaultHasher::new();
+    p.hash(&mut h);
+    h.finish()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn fingerprint_collision_never_establishes_template_equality() {
+        let mut r = ReuseStore::default();
+        let p = Pattern {
+            steps: vec![],
+            root: 0,
+            inputs: 1,
+        };
+        let q = Pattern {
+            inputs: 2,
+            ..p.clone()
+        };
+        r.templates.push(Template {
+            pattern: p,
+            atoms: vec![],
+            learned_at: 0,
+            observed: 1,
+            matches: 0,
+            admission_credit: 0,
+        });
+        // Deliberately put a different pattern in q's fingerprint bucket.
+        r.keys.insert(fingerprint(&q), vec![0]);
+        assert_eq!(r.lookup(&q), None);
+    }
 }

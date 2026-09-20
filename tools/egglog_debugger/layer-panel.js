@@ -33,7 +33,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         if($('kind').value==='coverage')f.analysis.templates.forEach((x,i)=>$('scope').add(new Option(`T${i} · ${x.interface.members.length} apply`,'t'+i)));
         if($('kind').value==='reuse')for(const i of f.reuse?.roots||[])if(i.Use!==undefined)$('scope').add(new Option(`Use(T${f.reuse.uses[i.Use].template}) · U${i.Use}`,'use'+i.Use));
         const c=f.counts;$('status').textContent=`${f.label} · ${c.applications} apply · ${c.templates} templates · ${c.fractals} FractalComb · ${f.artifact_directory||'CLI / 导入快照'}。有限观察；结构覆盖不等于可替代。候选截断 ${c.truncated_candidates||0}，覆盖未检查 ${c.coverage_skipped||0}。`;
-        if(f.reuse){const r=f.reuse.stats;$('status').textContent+=` Use 覆盖 ${r.covered_events}/${r.events}，residual ${r.residual_events}；后续端口复用 ${r.continuations_through_use}。编码模型 ${r.selected_wiring_units} + 已用字典 ${r.used_dictionary_units} / 原始 ${r.raw_wiring_units}；候选索引 ${r.candidate_index_units}（非字节数）。`; }
+        if(f.reuse){const r=f.reuse.stats;$('status').textContent+=` Use 覆盖 ${r.covered_events}/${r.events}，residual ${r.residual_events}；后续端口复用 ${r.continuations_through_use}。编码模型 ${r.selected_wiring_units} + 已用字典 ${r.used_dictionary_units} / 原始 ${r.raw_wiring_units}；候选索引 ${r.candidate_index_units}（非字节数）。`; if(r.probation_templates!==undefined)$('status').textContent+=` 试用模板 ${r.probation_templates}，淘汰 ${r.probation_evictions}；边界调整 ${r.local_rotations}，分割访问 ${r.cut_visits}，预算跳过 ${r.cut_budget_stops}。`; }
     }
     function selectedGraph(){
         const f=frame(),kind=$('kind').value,g=f.graphs[kind],scope=$('scope').value;

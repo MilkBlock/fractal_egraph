@@ -1,0 +1,162 @@
+{
+  "scope": "Identical certified native history replay; no tier0 execution. Model units are not bytes. Timings and RSS include other tiers/export.",
+  "history_sha256": "e0f9b33c69111dff1a8380d0f5f65f206bf06d09324698dcaf06e81e276e6049",
+  "arms": {
+    "eager": {
+      "active_uses": 251,
+      "budget_stops": 321,
+      "candidate_index_units": 391056,
+      "candidate_queries": 4244,
+      "confirmed_uses": 424,
+      "continuations_through_use": 3519,
+      "covered_events": 687,
+      "cut_budget_stops": 0,
+      "cut_passes": 0,
+      "cut_removed_uses": 0,
+      "cut_visits": 0,
+      "events": 1529,
+      "interior_port_reads": 3119,
+      "local_rotations": 0,
+      "matches": 1172,
+      "net_selected_codec_units": 2347,
+      "net_units_including_candidate_index": -383694,
+      "probation_evictions": 0,
+      "probation_templates": 0,
+      "probation_units": 0,
+      "raw_wiring_units": 31248,
+      "rejected_nonconvex": 584,
+      "rejected_overlap": 0,
+      "residual_events": 842,
+      "selected_wiring_units": 23886,
+      "templates": 3072,
+      "used_dictionary_units": 5015,
+      "used_templates": 89
+    },
+    "probation": {
+      "active_uses": 254,
+      "budget_stops": 293,
+      "candidate_index_units": 17566,
+      "candidate_queries": 4290,
+      "confirmed_uses": 384,
+      "continuations_through_use": 3333,
+      "covered_events": 650,
+      "cut_budget_stops": 0,
+      "cut_passes": 0,
+      "cut_removed_uses": 0,
+      "cut_visits": 0,
+      "events": 1529,
+      "interior_port_reads": 2938,
+      "local_rotations": 0,
+      "matches": 395,
+      "net_selected_codec_units": 3309,
+      "net_units_including_candidate_index": -10799,
+      "probation_evictions": 3079,
+      "probation_templates": 70,
+      "probation_units": 8120,
+      "raw_wiring_units": 31248,
+      "rejected_nonconvex": 596,
+      "rejected_overlap": 0,
+      "residual_events": 879,
+      "selected_wiring_units": 24481,
+      "templates": 145,
+      "used_dictionary_units": 3458,
+      "used_templates": 66
+    },
+    "incremental": {
+      "active_uses": 240,
+      "budget_stops": 227,
+      "candidate_index_units": 19631,
+      "candidate_queries": 4460,
+      "confirmed_uses": 437,
+      "continuations_through_use": 2999,
+      "covered_events": 605,
+      "cut_budget_stops": 0,
+      "cut_passes": 23,
+      "cut_removed_uses": 84,
+      "cut_visits": 966,
+      "events": 1529,
+      "interior_port_reads": 2739,
+      "local_rotations": 0,
+      "matches": 461,
+      "net_selected_codec_units": 3394,
+      "net_units_including_candidate_index": -13235,
+      "probation_evictions": 3120,
+      "probation_templates": 63,
+      "probation_units": 8149,
+      "raw_wiring_units": 31248,
+      "rejected_nonconvex": 484,
+      "rejected_overlap": 0,
+      "residual_events": 924,
+      "selected_wiring_units": 24852,
+      "templates": 169,
+      "used_dictionary_units": 3002,
+      "used_templates": 53
+    },
+    "full": {
+      "active_uses": 243,
+      "budget_stops": 238,
+      "candidate_index_units": 19625,
+      "candidate_queries": 5547,
+      "confirmed_uses": 449,
+      "continuations_through_use": 3061,
+      "covered_events": 610,
+      "cut_budget_stops": 0,
+      "cut_passes": 23,
+      "cut_removed_uses": 72,
+      "cut_visits": 1035,
+      "events": 1529,
+      "interior_port_reads": 2759,
+      "local_rotations": 19,
+      "matches": 666,
+      "net_selected_codec_units": 4079,
+      "net_units_including_candidate_index": -13124,
+      "probation_evictions": 3236,
+      "probation_templates": 70,
+      "probation_units": 8131,
+      "raw_wiring_units": 31248,
+      "rejected_nonconvex": 566,
+      "rejected_overlap": 0,
+      "residual_events": 919,
+      "selected_wiring_units": 24747,
+      "templates": 168,
+      "used_dictionary_units": 2422,
+      "used_templates": 45
+    }
+  },
+  "performance": {
+    "eager": [
+      {
+        "tier1_seconds": 0.193382916,
+        "whole_replay_seconds": 2.297320583,
+        "process_peak_rss_bytes": 949698560
+      },
+      {
+        "tier1_seconds": 0.207026292,
+        "whole_replay_seconds": 2.215796042,
+        "process_peak_rss_bytes": 1014087680
+      },
+      {
+        "tier1_seconds": 0.18699175,
+        "whole_replay_seconds": 2.161441625,
+        "process_peak_rss_bytes": 1068417024
+      }
+    ],
+    "full": [
+      {
+        "tier1_seconds": 0.2021345,
+        "whole_replay_seconds": 1.8282217090000001,
+        "process_peak_rss_bytes": 764854272
+      },
+      {
+        "tier1_seconds": 0.199708875,
+        "whole_replay_seconds": 1.7787497920000002,
+        "process_peak_rss_bytes": 766885888
+      },
+      {
+        "tier1_seconds": 0.200188292,
+        "whole_replay_seconds": 1.743791834,
+        "process_peak_rss_bytes": 777912320
+      }
+    ]
+  }
+}
