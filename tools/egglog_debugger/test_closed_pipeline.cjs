@@ -26,6 +26,9 @@ const {chromium}=require('playwright');
   await p.goto('http://127.0.0.1:8080/?layer_run='+encodeURIComponent(run)+'&layer_kind=closed',{waitUntil:'networkidle'});
   await p.waitForSelector('#native-closed-view[data-ready=true] svg',{timeout:30000});
   assert((await p.locator('#native-closed-status').textContent()).includes('Closed'));
+  assert(await p.locator('#native-layer-source').isEnabled());
+  await p.locator('#native-layer-source').click();
+  assert((await p.evaluate(()=>document.querySelector('.CodeMirror').CodeMirror.getValue())).includes('(datatype Expr'));
   assert.equal(await p.locator('#native-closed-path').inputValue(),''); // no manual catalog load
   assert.deepEqual(errors,[]);
   console.log('Native run -> bounded ripen -> per-round ClosedState -> saved-run reload passed: '+run);

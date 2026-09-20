@@ -112,7 +112,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         const closed=$('kind').value==='closed';catalogPanel.hidden=!closed;
         for(const id of ['scope','format'])$(id).hidden=closed;$('round').hidden=closed&&!frames.length;
         for(const id of ['viewport','details','code']){const e=$(id);(e.closest('details')===panel?e:e.closest('details')||e).hidden=closed;}
-        $('status').hidden=closed;$('source').disabled=closed;
+        $('status').hidden=closed;$('source').disabled=!frame();
         $('directory').placeholder=closed?'out/ 中的共享目录或含 catalog/ 的运行目录':'out/ 中的分析目录';
         $('load').textContent=closed?'载入 ClosedState':'载入分析目录';
         $('download').textContent=closed?'下载当前 ClosedState DOT':'下载本轮 DOT';
