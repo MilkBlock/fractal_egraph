@@ -1,0 +1,10 @@
+; Explicit entry of ONE isolated ripen cell. No run command: ripen owns the budget.
+(datatype Expr (A) (B) (Pair Expr Expr) (Done))
+(ruleset consume)
+(ruleset merge)
+(let a (A))
+(let b (B))
+(let root (Pair a b))
+(rule ((= p (Pair x x))) ((union p (Done))) :ruleset consume :name "consume-equal")
+(rule ((= x (A)) (= y (B))) ((union x y)) :ruleset merge :name "merge-inputs")
+(check (= root (Done)))

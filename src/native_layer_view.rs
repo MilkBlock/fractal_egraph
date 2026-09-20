@@ -113,6 +113,29 @@ fn layer_graph(s: &LayerStore) -> Json {
             }
         }
     }
+    if let Some(ripen) = &s.ripen {
+        nodes.push(node(
+            "ripen-cell".into(),
+            format!(
+                "Ripen {} · round {}\nwhole local cell",
+                ripen.state, ripen.round
+            ),
+            "template",
+            json!(ripen),
+        ));
+        for (i, _o) in s
+            .occurrences
+            .iter()
+            .enumerate()
+            .filter(|(_, o)| o.apply.parents.is_empty())
+        {
+            edges.push(edge(
+                "ripen-cell".into(),
+                format!("a{i}"),
+                "observed entry".into(),
+            ));
+        }
+    }
     // Joint coarse interfaces are metadata, not extra executed applications.
     for (i, c) in s
         .coarse_layers
@@ -393,7 +416,7 @@ pub(super) fn snapshot(
         json!({"kind":"layer_snapshot","id":format!("layer-round:{index}"),"boundary":index,
         "label":label,"boundary_kind":b.kind,"round":b.round,"end":b.end,"stem":format!("round-{index:04}"),
         "counts":{"applications":s.occurrences.len(),"templates":a.templates.len(),"fractals":a.fractals.len(),"coverage_queries":a.coverage_queries,"coverage_cache_hits":a.coverage_cache_hits,"coverage_skipped":a.coverage_skipped,"truncated_candidates":a.truncated_candidates},
-        "reuse":s.reuse.report(),"graphs":graphs,"dots":dot,"analysis":a,"sites":sites,"preview_source":source}),
+        "ripen":b.ripen,"reuse":s.reuse.report(),"graphs":graphs,"dots":dot,"analysis":a,"sites":sites,"preview_source":source}),
     )
 }
 impl Exporter {
@@ -436,6 +459,7 @@ impl Exporter {
     }
     pub fn replay(&mut self, c: &Captured, out: &Path) -> Result {
         let fallback = vec![CaptureBoundary {
+            ripen: None,
             kind: "final-history-snapshot".into(),
             round: None,
             end: c.records.len(),
@@ -456,6 +480,7 @@ impl Exporter {
             {
                 s.push(o.apply.clone())?;
             }
+            s.ripen = b.ripen.clone();
             self.save(&s, b, out, &c.preview_source)?;
         }
         Ok(())

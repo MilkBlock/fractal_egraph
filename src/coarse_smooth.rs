@@ -26,6 +26,19 @@ pub(crate) fn canonical_effect(e: &Effect, names: &mut BTreeMap<usize, usize>) -
     }
 }
 
+/// A runtime fixed-point observation for one explicitly isolated ripen cell.
+/// This is not a proof that any sub-Use or another parameter instance is closed.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct RipenFeedback {
+    pub state: String,
+    pub round: usize,
+    pub max_rounds: usize,
+    pub rulesets: Vec<String>,
+    pub updated: bool,
+    pub excluded_matches: usize,
+    pub scope: String,
+}
+
 /// IDs in values/effects identify typed values or exact row versions, never just
 /// current e-class representatives. Rules include their literal/guard semantics.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -90,6 +103,8 @@ pub struct Occurrence {
 }
 #[derive(Default, Serialize)]
 pub struct LayerStore {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ripen: Option<RipenFeedback>,
     pub reuse: crate::comb_reuse::ReuseStore,
     pub combs: Vec<Comb>,
     pub occurrences: Vec<Occurrence>,
@@ -113,7 +128,7 @@ impl LayerStore {
         serde_json::json!({
             "schema":"coarse-smooth-layers/v1", "backend":"rust",
             "scope":"Observed dependency interfaces; shared definitions, occurrence-specific evidence. No prefix/block admission and no arbitrary subtree enumeration. Layer IDs are run-local, not semantic identifiers.",
-            "reuse":self.reuse.report(), "combs":self.combs, "coarse_layers":self.coarse_layers, "smooth_layers":self.smooth_layers,
+            "ripen":self.ripen,"reuse":self.reuse.report(), "combs":self.combs, "coarse_layers":self.coarse_layers, "smooth_layers":self.smooth_layers,
             "occurrences":self.occurrences.iter().map(|o| serde_json::json!({
                 "event":o.apply.event,"comb":o.comb,"parents":o.apply.parents,
                 "coarse_layer":o.coarse_layer,"smooth_layer":o.smooth_layer,

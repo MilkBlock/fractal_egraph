@@ -1,0 +1,3 @@
+(datatype Expr (N i64))
+(N 0)
+(rule ((= e (N n))) ((N (+ n 1))) :name "grow")

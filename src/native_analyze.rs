@@ -35,6 +35,8 @@ mod history;
 mod layer_view;
 #[path = "native_recursive.rs"]
 mod recursive;
+#[path = "native_ripen.rs"]
+pub mod ripen;
 
 fn sp() -> Span {
     Span::Rust(Arc::new(egglog::ast::RustSpan {
@@ -185,6 +187,8 @@ pub struct Record {
 }
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 struct CaptureBoundary {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    ripen: Option<crate::coarse_smooth::RipenFeedback>,
     kind: String,
     round: Option<usize>,
     end: usize,
@@ -349,6 +353,7 @@ fn capture_text_with_sink(
                     count += 1;
                     collect(&eg, &trace, &mut c, &mut producers)?;
                     c.boundaries.push(CaptureBoundary {
+                        ripen: None,
                         kind: if known { "round" } else { "execution-boundary" }.into(),
                         round: known.then_some(count),
                         end: c.records.len(),
@@ -387,6 +392,7 @@ fn capture_text_with_sink(
         if schedule {
             collect(&eg, &trace, &mut c, &mut producers)?;
             c.boundaries.push(CaptureBoundary {
+                ripen: None,
                 kind: "execution-boundary".into(),
                 round: None,
                 end: c.records.len(),
@@ -399,6 +405,7 @@ fn capture_text_with_sink(
     collect(&eg, &trace, &mut c, &mut producers)?;
     if c.boundaries.last().is_none_or(|b| b.end != c.records.len()) {
         c.boundaries.push(CaptureBoundary {
+            ripen: None,
             kind: "final".into(),
             round: None,
             end: c.records.len(),
@@ -724,6 +731,7 @@ fn collect(
 }
 
 fn update_layers(c: &mut Captured) -> Result {
+    c.layers.ripen = c.boundaries.last().and_then(|b| b.ripen.clone());
     use crate::coarse_smooth::{Apply, Effect, RelativeBinding};
     for r in c.records.iter().skip(c.layers.occurrences.len()) {
         let apply = Apply {

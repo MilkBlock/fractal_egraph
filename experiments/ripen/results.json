@@ -1,0 +1,37 @@
+{
+  "union": {
+    "ripen": {
+      "excluded_matches": 1,
+      "max_rounds": 8,
+      "round": 3,
+      "rulesets": [
+        "consume",
+        "merge"
+      ],
+      "scope": "whole isolated cell under the declared rulesets and fixed entry; not each sub-Use, no cross-instance proof or automatic tier0 substitution",
+      "state": "Closed",
+      "updated": false
+    },
+    "checks": "passed",
+    "events": 3,
+    "imported_applies": 2,
+    "fractal_summaries_used": 0
+  },
+  "growing": {
+    "ripen": {
+      "excluded_matches": 0,
+      "max_rounds": 4,
+      "round": 4,
+      "rulesets": [
+        ""
+      ],
+      "scope": "whole isolated cell under the declared rulesets and fixed entry; not each sub-Use, no cross-instance proof or automatic tier0 substitution",
+      "state": "Suspended",
+      "updated": true
+    },
+    "checks": "deferred",
+    "events": 4,
+    "imported_applies": 4,
+    "fractal_summaries_used": 0
+  }
+}
