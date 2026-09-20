@@ -62,8 +62,21 @@ const NO_CATALOG = 'out/tools-layers-view/math'; // exists, but has no catalog/
     await page.click('#native-layer-download'); await settle(900);
     assert.deepEqual(downloads, ['closed-state.dot']);
 
+    // 4. An analysis directory whose per-round snapshots predate the ClosedState pipeline
+    //    must say so, not tell the user to run something they already ran. This is the exact
+    //    path: load a layer directory, then switch the kind to ClosedState.
+    await page.selectOption('#native-layer-kind', 'layers');
+    await page.fill('#native-layer-directory', NO_CATALOG);
+    await page.click('#native-layer-load'); await settle(2000);
+    await page.waitForFunction(() => document.querySelector('#native-layer-round').options.length > 0,
+                               null, { timeout: 30000 });
+    await page.selectOption('#native-layer-kind', 'closed'); await settle(600);
+    const stale = await status();
+    assert.match(stale, /每轮快照里没有 ClosedState 数据/, `expected the stale-snapshot hint, got: ${stale}`);
+    assert.doesNotMatch(stale, /请先「运行并识别」/, 'a loaded directory must not be told to run first');
+
     assert.deepEqual(errors, []);
-    console.log(`ClosedState buttons passed (no catalog / bad directory / real catalog) against ${catalog}`);
+    console.log(`ClosedState buttons passed (no catalog / bad directory / stale snapshots / real catalog) against ${catalog}`);
   } finally {
     await browser.close();
   }

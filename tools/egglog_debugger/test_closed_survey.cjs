@@ -41,7 +41,9 @@ const assert=require('node:assert/strict'),fs=require('node:fs');const{chromium}
  await p.locator('#native-layer-load').click();
  await p.waitForFunction(()=>document.querySelector('#native-layer-round').options.length>0);
  await p.selectOption('#native-layer-kind','closed');
- assert((await p.locator('#native-closed-status').textContent()).includes('尚无 ClosedState 快照'));
+ // out/ripen-use-final/run has no `closed` key in its round snapshots, so the panel must
+ // report a pre-pipeline directory rather than telling the user to run something.
+ assert((await p.locator('#native-closed-status').textContent()).includes('每轮快照里没有 ClosedState 数据'));
  assert.equal(await p.locator('#native-closed-view svg').count(),0);
  await p.locator('#native-layer-directory').fill('out/shared-store-c3');
  await p.locator('#native-layer-load').click();

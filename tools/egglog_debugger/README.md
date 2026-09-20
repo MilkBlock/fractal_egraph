@@ -567,8 +567,18 @@ its fixture has no `comb_groups`, so the diagram branch is never reached there.
 
 With no catalog loaded, **显示** and **下载当前 ClosedState DOT** show the
 actionable hint instead of returning silently, and neither clears a load error
-that is already on screen. `test_closed_buttons.cjs` covers the no-catalog, bad
-directory and real-catalog paths.
+that is already on screen. The hint distinguishes three cases, because only the
+first is fixed by running again:
+
+1. nothing loaded → run 运行并识别, or load a directory containing `catalog/`;
+2. a directory was loaded but none of its round snapshots has a `closed` key
+   (produced before the ClosedState pipeline, e.g. `out/tools-layers-view/math`)
+   → re-analyse with the current build;
+3. a round did produce a `closed` snapshot but no `catalog`, because no queued
+   Use closed → the dominant rejection reason from that round's queue is appended.
+
+`test_closed_buttons.cjs` covers the no-catalog, bad-directory, stale-snapshot
+and real-catalog paths.
 
 `python3 tools/egglog_debugger/test_run_pruning.py` covers the `out/debugger/`
 retention described above.

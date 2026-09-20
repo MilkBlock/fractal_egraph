@@ -17,6 +17,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     const cp=id=>catalogPanel.querySelector('#native-closed-'+id);
     let catalogData=null,catalogVersion=0,catalogError=null;
     const NO_CATALOG='尚无 ClosedState 快照：请先「运行并识别」（它会自动跑有预算的 ripen 队列），或在目录框载入一次带 ClosedState 的运行目录（含 catalog/）。Pending / Suspended 不代表已闭合。';
+    const STALE_SNAPSHOTS='该目录的每轮快照里没有 ClosedState 数据（生成于 ClosedState 管线接入之前）。请用当前版本重新 analyze，或用「运行并识别」重跑一次。';
     function catalogGraph(){
         const c=catalogData.catalog,scope=cp('state').value,nodes=[],edges=[];
         const states=(c.state_groups||[]).filter(g=>scope===''||g.closed_state===Number(scope));
@@ -173,6 +174,10 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     const $=id=>panel.querySelector('#native-layer-'+id);
     let frames=[],version=0,abort=null,previewCache=new Map(),pinned=false,rendered=false;
     const frame=()=>frames[Number($('round').value)];
+    // Three different "nothing to show" cases need three different answers: nothing loaded
+    // at all, snapshots taken before the ClosedState pipeline existed, or a run in which no
+    // Use actually closed. Only the first is fixed by running again.
+    const noClosedHint=()=>frames.length&&!frames.some(f=>f.closed)?STALE_SNAPSHOTS:NO_CATALOG;
     function mode(){
         const closed=$('kind').value==='closed';catalogPanel.hidden=!closed;
         for(const id of ['scope','format'])$(id).hidden=closed;$('round').hidden=closed&&!frames.length;
@@ -183,7 +188,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         $('download').textContent=closed?'下载当前 ClosedState DOT':'下载本轮 DOT';
         // Never overwrite a load failure with the generic hint: that used to erase the one
         // message telling the user why nothing rendered.
-        if(closed&&!catalogData&&!catalogError&&!frame()?.closed)cp('status').textContent=NO_CATALOG;
+        if(closed&&!catalogData&&!catalogError&&!frame()?.closed)cp('status').textContent=noClosedHint();
     }
     function showClosedFrame(result){
         catalogVersion++;catalogData=result.catalog;
@@ -195,7 +200,16 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
             for(let i=0;i<catalogData.catalog.closed_states;i++)cp('state').add(new Option(`ClosedState C${i}`,String(i)));
             cp('status').textContent+=` ${catalogData.catalog.triggers.length} 个 Trigger → ${catalogData.catalog.closed_states} 个共享 ClosedState。`;
             combOptions();if($('kind').value==='closed')renderCatalog();
-        }else{combOptions();cp('status').textContent+=' 暂无可导出的 ClosedState，Pending / Suspended 不代表已闭合。';}
+        }else{
+            combOptions();
+            cp('status').textContent+=' 暂无可导出的 ClosedState，Pending / Suspended 不代表已闭合。';
+            // A run that rejects every queued job looks like "nothing happened" unless the
+            // queue's own reason is surfaced here.
+            const tally=new Map();
+            for(const j of result.jobs||[])if(j.reason)tally.set(j.reason,(tally.get(j.reason)||0)+1);
+            const top=[...tally.entries()].sort((a,b)=>b[1]-a[1])[0];
+            if(top)cp('status').textContent+=` 最常见拒绝原因（${top[1]} 个）：${top[0].split('\n')[0].slice(0,200)}`;
+        }
     }
     function clearCatalog(){catalogVersion++;catalogData=null;cp('path').value='';for(const id of ['view','table','details','rule','caption'])cp(id).replaceChildren();cp('state').replaceChildren(new Option('全部概览',''));combOptions();}
 
@@ -299,7 +313,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         $('code').textContent+=(rendered.typst||'')+'\n';
     }
     async function render(){
-        if($('kind').value==='closed'){mode();if(catalogData)await renderCatalog();else if(!catalogError)cp('status').textContent=NO_CATALOG;return;}
+        if($('kind').value==='closed'){mode();if(catalogData)await renderCatalog();else if(!catalogError)cp('status').textContent=noClosedHint();return;}
         const f=frame();if(!f)return;pinned=true;
         abort?.abort();abort=new AbortController();const signal=abort.signal,v=++version;
         $('error').textContent='';$('viewport').replaceChildren();$('viewport').dataset.ready='false';$('code').textContent='';
@@ -358,7 +372,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         }catch(e){if(v===version&&e.name!=='AbortError')$('error').textContent=e.message;}
     }
     $('round').onchange=options;$('kind').onchange=options;$('render').onclick=render;
-    $('download').onclick=()=>{if($('kind').value==='closed'){if(!catalogData){cp('status').textContent=catalogError||NO_CATALOG;return;}const a=document.createElement('a'),url=URL.createObjectURL(new Blob([cp('view').dataset.dot||dot(catalogGraph())],{type:'text/vnd.graphviz;charset=utf-8'}));a.href=url;a.download='closed-state.dot';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;}const f=frame();if(!f)return;const kind=$('kind').value,a=document.createElement('a'),url=URL.createObjectURL(new Blob([f.dots[kind]],{type:'text/vnd.graphviz;charset=utf-8'}));a.href=url;a.download=f.stem+'.'+kind+'.dot';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+    $('download').onclick=()=>{if($('kind').value==='closed'){if(!catalogData){cp('status').textContent=catalogError||noClosedHint();return;}const a=document.createElement('a'),url=URL.createObjectURL(new Blob([cp('view').dataset.dot||dot(catalogGraph())],{type:'text/vnd.graphviz;charset=utf-8'}));a.href=url;a.download='closed-state.dot';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;}const f=frame();if(!f)return;const kind=$('kind').value,a=document.createElement('a'),url=URL.createObjectURL(new Blob([f.dots[kind]],{type:'text/vnd.graphviz;charset=utf-8'}));a.href=url;a.download=f.stem+'.'+kind+'.dot';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
     async function load(path){
         const controls=['load','render','round','kind','scope','format'];controls.forEach(id=>$(id).disabled=true);
         try {const data=await (await post('layer-run',{path})).json();reset();for(const f of data.frames)receive(f);if(data.closed_catalog&&!data.frames.some(f=>f.closed)){cp('path').value=data.closed_catalog;await cp('load').onclick();}mode();}
