@@ -1,7 +1,9 @@
-; Minimal teaching fragment of egglog/tests/web-demo/math.egg.
-; Only symbolic variables and exact algebraic addition; no floating-point folds.
+; Minimal executable teaching fragment of egglog/tests/web-demo/math.egg.
 (datatype Math (Var String) (Add Math Math))
-(rewrite (Add a (Add b c)) (Add (Add a b) c))
-(rewrite (Add a b) (Add b a))
-(let root (Add (Add (Var "a") (Var "b")) (Var "c")))
-(check (= root (Add (Var "c") (Add (Var "a") (Var "b")))))
+(ruleset assoc)
+(ruleset comm)
+(rewrite (Add a (Add b c)) (Add (Add a b) c) :ruleset assoc)
+(rewrite (Add a b) (Add b a) :ruleset comm)
+(let $root (Add (Add (Var "a") (Var "b")) (Var "c")))
+(run-schedule (saturate (run assoc) (run comm)))
+(check (= $root (Add (Var "c") (Add (Var "a") (Var "b")))))

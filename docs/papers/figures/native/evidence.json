@@ -1,0 +1,34 @@
+{
+  "entry": {
+    "math_nodes": 5,
+    "math_classes": 5,
+    "add_nodes": 2,
+    "var_nodes": 3,
+    "math_child_edges": 4,
+    "inlined_string_nodes": 3,
+    "new_math_nodes": 0,
+    "topology_check": "all Math nodes and ordered child edges preserved"
+  },
+  "assoc": {
+    "math_nodes": 7,
+    "math_classes": 6,
+    "add_nodes": 4,
+    "var_nodes": 3,
+    "math_child_edges": 8,
+    "inlined_string_nodes": 3,
+    "new_math_nodes": 2,
+    "topology_check": "all Math nodes and ordered child edges preserved"
+  },
+  "saturated": {
+    "math_nodes": 15,
+    "math_classes": 7,
+    "add_nodes": 12,
+    "var_nodes": 3,
+    "math_child_edges": 24,
+    "inlined_string_nodes": 3,
+    "new_math_nodes": 10,
+    "topology_check": "all Math nodes and ordered child edges preserved"
+  },
+  "source_sha256": "7ed3b5fc9539c9e3b757e9927ee8d460ecdc993eb776b7ae340349b2b828c202",
+  "scope": "native egglog; Var/Add only; colours relative to entry; String payloads inlined"
+}

@@ -1,0 +1,123 @@
+{
+  "nodes": {
+    "primitive-String-0": {
+      "op": "\"a\"",
+      "children": [],
+      "eclass": "String-0",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-0-Var": {
+      "op": "Var",
+      "children": [
+        "primitive-String-0"
+      ],
+      "eclass": "Math-0",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "primitive-String-1": {
+      "op": "\"b\"",
+      "children": [],
+      "eclass": "String-1",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-1-Var": {
+      "op": "Var",
+      "children": [
+        "primitive-String-1"
+      ],
+      "eclass": "Math-1",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "primitive-String-2": {
+      "op": "\"c\"",
+      "children": [],
+      "eclass": "String-2",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-2-Var": {
+      "op": "Var",
+      "children": [
+        "primitive-String-2"
+      ],
+      "eclass": "Math-2",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-0-Add": {
+      "op": "Add",
+      "children": [
+        "function-1-Var",
+        "function-2-Var"
+      ],
+      "eclass": "Math-3",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-1-Add": {
+      "op": "Add",
+      "children": [
+        "function-0-Var",
+        "function-0-Add"
+      ],
+      "eclass": "Math-4",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-2-Add": {
+      "op": "Add",
+      "children": [
+        "function-0-Var",
+        "function-1-Var"
+      ],
+      "eclass": "Math-5",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-3-Add": {
+      "op": "Add",
+      "children": [
+        "function-2-Add",
+        "function-2-Var"
+      ],
+      "eclass": "Math-4",
+      "cost": 1.0,
+      "subsumed": false
+    }
+  },
+  "root_eclasses": [],
+  "class_data": {
+    "Math-0": {
+      "type": "Math"
+    },
+    "String-0": {
+      "type": "String"
+    },
+    "Math-1": {
+      "type": "Math"
+    },
+    "String-1": {
+      "type": "String"
+    },
+    "Math-2": {
+      "type": "Math"
+    },
+    "String-2": {
+      "type": "String"
+    },
+    "Math-3": {
+      "type": "Math"
+    },
+    "Math-4": {
+      "type": "Math",
+      "let": "$root"
+    },
+    "Math-5": {
+      "type": "Math"
+    }
+  }
+}

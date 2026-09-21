@@ -21,42 +21,33 @@
 \node[box,text width=25mm,right=of e,draw=smoothteal,double] {\textbf{Saturated}\\retained body};
 \node[below=9mm of l,draw=coarsepurple,very thick,rounded corners,inner sep=3pt,font=\small] {Coarse layer $C$};
 \node[below=9mm of e,draw=smoothteal,dashed,thick,rounded corners,inner sep=3pt,font=\small] {Smooth layer $S$};
-\node[below=18mm of l,text width=25mm,draw=black!55,rounded corners,inner sep=3pt,font=\scriptsize] {box = e-class\\term = e-node};
-\node[below=18mm of e,text width=25mm,draw=black!55,rounded corners,inner sep=3pt,font=\scriptsize] {arrow = child /\\producer dependency};
 \end{tikzpicture}
-\caption{Visual vocabulary. Fill identifies the role of facts in a rule application;
-outline identifies the containing layer. LHS/RHS labels and solid/dashed outlines
-also distinguish the roles without color. A box with several terms is an e-class;
-the terms inside it are e-nodes, and arrows name the child or producer relation.
-An e-node may be an RHS in one step and an LHS in the next.}
+\caption{The v0.2.1 palette is retained. In rule diagrams blue/orange mark
+matched/constructed facts, and purple/teal outlines mark coarse/smooth layers.
+In native e-graph snapshots blue means present at entry and orange means added
+since entry; purple/teal dashed clusters identify child/root e-classes, not layers.
+Each caption specifies which kind of object and edge is being shown.}
 \label{fig:legend}
 \end{figure}}
 
 \newcommand{\MathEgraph}{%
 \begin{figure}[!htbp]\centering
-\begin{tikzpicture}[node distance=8mm]
-\node[lhs,text width=27mm] (l) {\textbf{LHS}\quad Add\\$(a,q_{bc})$};
-\node[rhs,text width=27mm,right=65mm of l] (r) {\textbf{RHS}\quad Add\\$(q_{ab},c)$};
-\node[lhs,text width=22mm,below right=11mm and 4mm of l] (bc) {Add$(b,c)$\\class $q_{bc}$};
-\node[rhs,text width=22mm,below left=11mm and 4mm of r] (ab) {Add$(a,b)$\\class $q_{ab}$};
-\node[atom,below=40mm of l] (a) {$a=$ Var(``a'')};
-\node[atom,below right=40mm and 22mm of l] (b) {$b=$ Var(``b'')};
-\node[atom,below=40mm of r] (c) {$c=$ Var(``c'')};
-\draw[arr] (l)--node[left,font=\scriptsize]{0}(a);
-\draw[arr] (l)--node[right,font=\scriptsize]{1}(bc);
-\draw[arr] (r)--node[left,font=\scriptsize]{0}(ab);
-\draw[arr] (r)--node[right,font=\scriptsize]{1}(c);
-\draw[arr] (bc)--(b);\draw[arr] (bc)--(c);
-\draw[arr] (ab)--(a);\draw[arr] (ab)--(b);
-\draw[<->,dotted,thick] (l)--node[above,font=\small]{union}(r);
-\begin{scope}[on background layer]
-\node[draw=black!55,rounded corners,fit=(l)(r),inner sep=3mm,label={[font=\small]above:one e-class $r$; both representatives remain}] {};
-\end{scope}
-\end{tikzpicture}
-\caption{One native application of Add associativity from \texttt{math.egg}.
-The matched $a+(b+c)$ is retained and the constructed $(a+b)+c$ joins its
-class. $q_{ab}$ and $q_{bc}$ are separate child e-classes; argument order is explicit in
-the node labels. Primitive String values below Var nodes are omitted.}
+\begin{minipage}[t]{.42\linewidth}\centering
+\textbf{Before: $a+(b+c)$}\\[4pt]
+\includegraphics[width=\linewidth]{figures/native/entry.pdf}\\
+\small 2 Add nodes; 5 Math e-classes
+\end{minipage}\hfill
+\begin{minipage}[t]{.55\linewidth}\centering
+\textbf{After one associativity application}\\[4pt]
+\includegraphics[width=\linewidth]{figures/native/assoc.pdf}\\
+\small 4 Add nodes; 6 Math e-classes
+\end{minipage}
+\caption{Read the change from left to right. Native egglog introduces
+Add$(a,b)$ and Add$(q_{ab},c)$ (orange) and unions the latter with the existing
+root $r$. Blue nodes were already present. Dashed enclosures are native e-classes;
+numbered ports are argument positions, and arrows terminate at child classes.
+Both graphs come from executable prefixes of \texttt{math-mini-trace.egg}, through
+egglog's own DOT exporter. Var's String payloads are inlined into its label.}
 \label{fig:math-egraph}
 \end{figure}}
 
@@ -159,22 +150,14 @@ outlines indicate regrouping, not deletion of the four original compositions.}
 
 \newcommand{\MathSaturated}{%
 \begin{figure}[!htbp]\centering
-\begin{tikzpicture}[node distance=8mm and 5mm]
-\node[box,text width=119mm,draw=smoothteal,double] (r) {\textbf{root e-class $r$: six retained Add e-nodes}\\
-Add$(a,q_{bc})$\quad Add$(q_{bc},a)$\quad Add$(b,q_{ac})$\\
-Add$(q_{ac},b)$\quad Add$(c,q_{ab})$\quad Add$(q_{ab},c)$};
-\node[box,text width=34mm,below=of r,xshift=-42mm] (ab) {class $q_{ab}$\\Add$(a,b)$\\Add$(b,a)$};
-\node[box,text width=34mm,below=of r] (ac) {class $q_{ac}$\\Add$(a,c)$\\Add$(c,a)$};
-\node[box,text width=34mm,below=of r,xshift=42mm] (bc) {class $q_{bc}$\\Add$(b,c)$\\Add$(c,b)$};
-\draw[arr] (r)--(ab);\draw[arr] (r)--(ac);\draw[arr] (r)--(bc);
-\node[ext,text width=105mm,below=of ac] (v) {Three leaf e-classes: $a=$Var(``a''), $b=$Var(``b''), $c=$Var(``c'')};
-\draw[arr] (ab)--(v);\draw[arr] (ac)--(v);\draw[arr] (bc)--(v);
-\end{tikzpicture}
-\caption{The retained body of a saturated rule composition in the native Add
-fragment: 12 Add rows and three Var rows in seven Math e-classes. Grouped arrows
-summarize child-class references; the row labels preserve argument order. This
-is saturation under the selected associativity/commutation theory, not under
-all of \texttt{math.egg}. Trigger and binding data belong to the composition too.}
+\includegraphics[width=\linewidth]{figures/native/saturated.pdf}
+\caption{The Add body exported by the mini \texttt{math.egg} fragment. This
+figure is generated from egglog's own \texttt{--to-dot} serializer: dashed
+clusters are e-classes, solid boxes are e-nodes, and numbered ports preserve
+ordered child positions. The paper-side transformation only inlines Var string
+payloads and annotates the entry-relative colours; it checks that every Math
+node and ordered child edge from the native DOT survives. The graph has 12 Add
+nodes, three Var nodes, and seven Math e-classes.}
 \label{fig:math-saturated}
 \end{figure}}
 
@@ -278,24 +261,20 @@ discovers or executes this alternating-sum summary.}
 % state is grouped by exact comparison; this is cataloguing, not tier0 reuse.
 \newcommand{\MathSharingComparison}{%
 \begin{figure}[!htbp]\centering
-\begin{tikzpicture}[node distance=7mm and 9mm]
-\node[ext,text width=31mm] (ba) {Trigger $T_A$\\entry + staged inputs};
-\node[ext,text width=31mm,below=of ba] (bb) {Trigger $T_B$\\different binding};
-\node[sat,text width=43mm,right=of ba,yshift=-8mm] (bodya) {Exported local state $K_A$\\typed rows + ports + visibility};
-\node[sat,text width=43mm,right=of bodya] (bodyb) {Exported local state $K_B$\\typed rows + ports + visibility};
-\draw[arr] (ba)--(bodya.west);
-\draw[arr] (bb)--(bodya.west);
-\draw[arr] (bb)--(bodyb.west);
-\node[font=\small,above=2mm of bodya] (before) {\textbf{Observed replays:} each trigger has its own exported result};
-\node[box,text width=52mm,below=15mm of bodya,xshift=25mm,draw=smoothteal,double] (catalog) {Exact comparison\\$K_A \cong K_B$ under the same scope\\catalog entry: one state, two trigger records};
-\draw[reuse,<->] (bodya.south)--(catalog.north west);
-\draw[reuse,<->] (bodyb.south)--(catalog.north east);
-\node[font=\scriptsize,below=3mm of catalog] {No live matcher substitution; obligations and trigger identities remain separate.};
+\begin{tikzpicture}[node distance=10mm and 22mm]
+\node[lhs,text width=49mm] (ra) {$T_R$: $a+(b+c)$\\own entry and obligations};
+\node[rhs,text width=49mm,right=of ra] (la) {$T_L$: $(a+b)+c$\\own entry and obligations};
+\node[box,text width=49mm,below=of ra] (rk) {$K_R$ after native ripen\\12 Add + 3 Var; 7 Math classes};
+\node[box,text width=49mm,below=of la] (lk) {$K_L$ after native ripen\\12 Add + 3 Var; 7 Math classes};
+\draw[arr] (ra)--(rk);\draw[arr] (la)--(lk);
+\node[box,draw=smoothteal,double,text width=90mm,below=13mm of rk,xshift=37mm] (k)
+ {Exact typed comparison: $K_R\cong K_L$\\Catalog: one body $K$; two separate trigger records\\$T_R\mapsto K$ and $T_L\mapsto K$, each with its value map};
+\draw[reuse] (rk)--(k.north west);\draw[reuse] (lk)--(k.north east);
 \end{tikzpicture}
-\caption{What the implementation actually shares. The baseline is two separately
-replayed trigger instances with exported local states. The catalog may group the
-states after exact typed graph comparison, while retaining both trigger contracts.
-This is the semantic distinction that a pipeline box alone cannot show: the
-shared object is an exported description, not a new tier0 rule or a deleted history.}
+\caption{Two different entries can produce the same body. These are catalog and
+execution records, not e-class boxes. Native replays and exact comparison are
+checked by the \texttt{math\_parenthesizations} regression. Equal counts alone
+are insufficient: the comparison preserves all rows, ports and visibility.
+The two entries remain distinct, and the live tier0 graph is not replaced.}
 \label{fig:sharing-comparison}
 \end{figure}}

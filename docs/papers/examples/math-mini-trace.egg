@@ -1,9 +1,13 @@
-; Minimal executable teaching fragment of egglog/tests/web-demo/math.egg.
+; Teaching fragment: only Var, Add, associativity and commutation from math.egg.
 (datatype Math (Var String) (Add Math Math))
 (ruleset assoc)
 (ruleset comm)
 (rewrite (Add a (Add b c)) (Add (Add a b) c) :ruleset assoc)
 (rewrite (Add a b) (Add b a) :ruleset comm)
 (let $root (Add (Var "a") (Add (Var "b") (Var "c"))))
-(run-schedule (saturate (run assoc) (run comm)))
+; SNAPSHOT entry
+(run assoc 1)
+; SNAPSHOT assoc
+(run-schedule (saturate (seq (run assoc) (run comm))))
+; SNAPSHOT saturated
 (check (= $root (Add (Var "c") (Add (Var "a") (Var "b")))))
