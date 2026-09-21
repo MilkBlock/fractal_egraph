@@ -1,0 +1,7 @@
+; Finite cursor DSL: the second field is an unchanged upper bound.
+(datatype Math (Cursor i64 i64) (Expand i64) (Emit i64))
+(Cursor 3 11)
+(rule ((= node (Cursor i end)) (< i end))
+      ((Cursor (+ i 1) end)) :name "scan-next")
+(run 12)
+(check (Cursor 11 11))

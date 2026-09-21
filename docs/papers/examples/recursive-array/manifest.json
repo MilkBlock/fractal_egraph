@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "samples": [
+    {
+      "name": "scan-short",
+      "source": "scan-short.egg",
+      "rounds": null
+    },
+    {
+      "name": "scan-long",
+      "source": "scan-long.egg",
+      "rounds": null
+    },
+    {
+      "name": "tree-one",
+      "source": "tree-one.egg",
+      "rounds": null
+    },
+    {
+      "name": "tree-four",
+      "source": "tree-four.egg",
+      "rounds": null
+    }
+  ]
+}

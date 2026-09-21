@@ -619,6 +619,68 @@ on the restricted theory. In full \texttt{math.egg}, derivative simplification,
 other integration rules, and pruning can stop or change the recurrence. With a
 polynomial derivative contract, the same IBP pattern can instead become dissipative.
 
+
+\subsection{A recursive DSL that becomes an array contract}
+The previous examples use rules copied from \texttt{math.egg}. The following
+four small programs are deliberately written as a new recursive DSL. They use
+only a cursor, an upper bound, and a ternary expansion; no array constructor is
+present in the source. Bake observes the native traces, extracts the repeated
+binding/effect transfer, and then applies its two structural array-law checks.
+The generated library is therefore a useful test of the abstraction boundary:
+the array appears after recognition, not as a hand-written replacement rule.
+
+\begin{lstlisting}[caption={The two source families supplied to Bake}]
+; scan-short.egg and scan-long.egg
+(datatype Math (Cursor i64 i64) ...)
+(rule ((= node (Cursor i end)) (< i end))
+      ((Cursor (+ i 1) end)) :name "scan-next")
+
+; tree-one.egg and tree-four.egg
+(datatype Math (Expand i64) (Emit i64))
+(rule ((= node (Expand n)) (> n 0))
+      ((Emit (+ (* n 3) 0))
+       (Emit (+ (* n 3) 1))
+       (Emit (+ (* n 3) 2))) :name "split-three")
+(rule ((= node (Emit n))) ((Expand n)) :name "resume")
+\end{lstlisting}
+
+The manifest contains two samples for each family. Running
+\path{cargo run --offline -- bake docs/papers/examples/recursive-array/manifest.json
+out/paper-recursive-array-v1} produces two portable fractal templates:
+\code{fractal\_0000} is a \code{linear\_extension} with a
+\code{bounded\_unit\_stride} law; \code{fractal\_0001} is a
+\code{recursive\_dag} with a \code{radix\_frontier} law of radix three.
+The identifiers are local to this library; the law kinds and contracts are the
+meaningful results.
+
+\begin{table}[t]
+\centering\small
+\begin{tabularx}{\linewidth}{@{}p{.22\linewidth}p{.22\linewidth}X@{}}
+\toprule
+Observed family & Recognized law & Array query produced by Bake \\
+\midrule
+$\mathrm{Cursor}(i,end)$ & unit stride; measure $end-i$ decreases &
+$\operatorname{RampArray}(end-start)$; start $=3$, limit $=11$ gives values
+$4,\ldots,11$ and sum $60$ \\
+$\mathrm{Expand}(n)$ and $\mathrm{Emit}(n)$ & radix frontier; residues
+$0,1,2$ cover the next level & depth $4$, start $=4$ gives $3^4=81$ values
+$324,\ldots,404$ and sum $29484$ \\
+\bottomrule
+\end{tabularx}
+\caption{A complete path from a recursive rule DSL to a first-class symbolic
+array query. Both Bake queries report zero tier0 rule applications, zero element
+queries, and zero expanded prefixes. The query is over the certified value
+projection, not over all intermediate facts, unions, or effects.}
+\label{tab:recursive-array-bake}
+\end{table}
+
+The first family is dissipative because the remaining distance to the limit
+strictly decreases. The second family has finite prefixes whose frontier grows
+by a factor of three; its finite array query is valid only when the requested
+frontier fits the checked i64 domain. The code checks the guard, constructor
+shape, residue coverage, return rule, and source schema before emitting either
+law. It does not infer an array law from matching counts alone.
+
 \section{Feedback from Fractal Compositions to Ripen}
 \subsection{Finite scheduling and reduction}
 A proved dissipative family supplies a principled local count or budget. Ripen

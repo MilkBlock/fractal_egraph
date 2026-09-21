@@ -12,6 +12,26 @@ digraph  {
   outputorder=edgesfirst
   graph[style="dashed,rounded,filled"]
   fillcolor=2
+  "function-0-Var":0:s -> "primitive-String-0" [lhead="cluster_String-0"]
+  subgraph "outer_cluster_Math-0" {
+    subgraph "cluster_Math-0" {
+      subgraph  {
+        "function-0-Var"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">Var</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="Math-0: function-0-Var"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-1-Var":0:s -> "primitive-String-1" [lhead="cluster_String-1"]
+  subgraph "outer_cluster_Math-1" {
+    subgraph "cluster_Math-1" {
+      subgraph  {
+        "function-1-Var"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">Var</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="Math-1: function-1-Var"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
   "function-1-Add":0:s -> "function-0-Var" [lhead="cluster_Math-0"]
   "function-1-Add":1:s -> "function-0-Add" [lhead="cluster_Math-3"]
   subgraph "outer_cluster_Math-4" {
@@ -20,16 +40,6 @@ digraph  {
         "function-1-Add"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="2">Add</td></tr><TR><TD PORT="0"></TD><TD PORT="1"></TD></TR></TABLE>>,tooltip="Math-4: function-1-Add"]
       }
       label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2"><TR><TD ALIGN="RIGHT">let</TD><TD ALIGN="LEFT">$root</TD></TR></TABLE>>
-    }
-    style="invis"
-    cluster=true
-  }
-  "function-0-Var":0:s -> "primitive-String-0" [lhead="cluster_String-0"]
-  subgraph "outer_cluster_Math-0" {
-    subgraph "cluster_Math-0" {
-      subgraph  {
-        "function-0-Var"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">Var</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="Math-0: function-0-Var"]
-      }
     }
     style="invis"
     cluster=true
@@ -55,16 +65,6 @@ digraph  {
     style="invis"
     cluster=true
   }
-  "function-1-Var":0:s -> "primitive-String-1" [lhead="cluster_String-1"]
-  subgraph "outer_cluster_Math-1" {
-    subgraph "cluster_Math-1" {
-      subgraph  {
-        "function-1-Var"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">Var</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="Math-1: function-1-Var"]
-      }
-    }
-    style="invis"
-    cluster=true
-  }
   fillcolor=3
   subgraph "outer_cluster_String-0" {
     subgraph "cluster_String-0" {
@@ -75,19 +75,19 @@ digraph  {
     style="invis"
     cluster=true
   }
-  subgraph "outer_cluster_String-1" {
-    subgraph "cluster_String-1" {
+  subgraph "outer_cluster_String-2" {
+    subgraph "cluster_String-2" {
       subgraph  {
-        "primitive-String-1"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30">&quot;b&quot;</td></tr></TABLE>>,tooltip="String-1: primitive-String-1"]
+        "primitive-String-2"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30">&quot;c&quot;</td></tr></TABLE>>,tooltip="String-2: primitive-String-2"]
       }
     }
     style="invis"
     cluster=true
   }
-  subgraph "outer_cluster_String-2" {
-    subgraph "cluster_String-2" {
+  subgraph "outer_cluster_String-1" {
+    subgraph "cluster_String-1" {
       subgraph  {
-        "primitive-String-2"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30">&quot;c&quot;</td></tr></TABLE>>,tooltip="String-2: primitive-String-2"]
+        "primitive-String-1"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30">&quot;b&quot;</td></tr></TABLE>>,tooltip="String-1: primitive-String-1"]
       }
     }
     style="invis"

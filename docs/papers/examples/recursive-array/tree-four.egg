@@ -1,0 +1,9 @@
+; A ternary expansion DSL: one recursive level is Expand -> 3 Emit -> 3 Expand.
+(datatype Math (Cursor i64 i64) (Expand i64) (Emit i64))
+(Expand 4)
+(rule ((= node (Expand n)) (> n 0))
+      ((Emit (+ (* n 3) 0)) (Emit (+ (* n 3) 1)) (Emit (+ (* n 3) 2)))
+      :name "split-three")
+(rule ((= node (Emit n))) ((Expand n)) :name "resume")
+; Four observed levels, not a claim that the machine-integer run is infinite.
+(run 8)
