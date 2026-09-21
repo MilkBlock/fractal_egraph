@@ -1,0 +1,52 @@
+{
+  "offline": true,
+  "implementation_baseline": "258eef4",
+  "external_reference": {
+    "title": "Better Together: Unifying Datalog and Equality Saturation",
+    "authors": [
+      "Yihong Zhang",
+      "Yisu Remy Wang",
+      "Oliver Flatt",
+      "David Cao",
+      "Philip Zucker",
+      "Eli Rosenthal",
+      "Zachary Tatlock",
+      "Max Willsey"
+    ],
+    "year": 2023,
+    "doi": "10.1145/3591239",
+    "local_source": "egglog/CITATION.bib",
+    "status": "bibliographic metadata and abstract checked locally; full text not independently reviewed",
+    "citation_count": null
+  },
+  "local_evidence": {
+    "src/native_analyze.rs": "ffafdb814bc94686de9cca01a39a569288cc0d74304e724af67b886401ef6fde",
+    "src/coarse_smooth.rs": "8b0861c84dcdff4d6bfdba4aea2b9c9fa2739be54c1e6cc32b30f243f396e49d",
+    "src/native_cs.rs": "bd5eb9793384944d7088b3c4781620074c98f015ba727b2cc72736b6335a356a",
+    "src/closure_contract.rs": "d379dfe86599b48fd1148fd8d6b2975fcf8d560d93f23aa04e9eeb9be2d712d9",
+    "src/closed_state.rs": "9519a8b3e0d73932f8107671d9e579153805ceb196991a17507a0d63bc42278d",
+    "src/native_bake.rs": "ff8ae4b439bba6f4c3f6d8612100077d6dc7865927a30d62bf28529398f88f13",
+    "src/use_fractals.rs": "1a53b1765f8d3912e1793d1bf63fcc5108c5c95b576e22341855b964e936382d",
+    "rules/reduce.egg": "3786469bfa9682152dfe3aadcb48ca6d240b32b1f6a6cf99e43436192d1e3eca",
+    "experiments/closed_storage/closure-contracts-results.json": "22f8b72919f03b017e1d8662053774e10d499b2d8212d6a2a84d797a662ef9e1",
+    "src/native_fractal.rs": "afeec58141c93a9356361bb34be499a08cc122bf13349111a2ca1d976aae692e",
+    "src/binding_reduce.rs": "427356de8931b32f6e8ac5db7a94c3569be48f2cb0d322625d68d86b10c4c3c1",
+    "rules/tier2.egg": "649b41d5468bd32c02d724f7ec4653501e3e92e50057b09716dcf7c88820726e",
+    "rules/arrays.egg": "9aa3af7b731d07fe551ce30c77100d084242e8ac41c2442809114db917d9ae78",
+    "tests/closure_contracts.rs": "6fa2e92e7e82b746fedfff841499eed1ee6e04143f0d37a16cb89c1befcdc139",
+    "tests/closed_state.rs": "20d1a8cf8d8f1f2d82622dca493994d941c3e2e8f5f52e7bcb34b4de9854aea5",
+    "tests/cs_composition.rs": "6f232a96d713d57b6432735ec824c829369df08f0c8fb76c8ea74b4d6ba88b07",
+    "tests/dependency_candidates.rs": "02ec88739362d514ddb5d65f0e9abf7d40aac473f413aa839c85e11b2b112d3d",
+    "tests/tier2_reduce.rs": "2f2ed3a5ef51e1cf3a97321e67dd3d8ddceecb8d1562cbf54e9597d3c3e0b754",
+    "tests/bake.rs": "3de2dbdd12f1f2b4326868a6c0f683954edaf18787fab517d8cc4d1d02a70d3d",
+    "src/native_closed_pipeline.rs": "a3d9d5055669ce103f220b0497cb1469f90009d061cdb59480fe77736443e61b",
+    "src/native_ripen.rs": "390b8564f34cb91e1bbc950b6832d57cf3d51229850c6a93896901b0c580d699",
+    "src/native_ripen_entry.rs": "627568df84736f4b2390aaabe1cd5758c14e0008813a878aed527e9f4bcadc0a",
+    "src/comb_reuse.rs": "b7cebb2613e9a7e1c7908b0cfe538dcee4bbcd383a7db88bddc9f979b82e7f28"
+  },
+  "limits": [
+    "No exhaustive related-work search or novelty-priority claim.",
+    "Historical measurements are not a same-revision controlled ablation.",
+    "General fractal-summary feedback is a proposal, not an implemented runtime result."
+  ]
+}
