@@ -41,7 +41,7 @@ fn constructed_routes_need_materialized_witnesses() {
     execute(&format!(
         r#"{IR}
 (let $ports (PCons (MakePartial "Diff" (PCons (External 0 "Math") (PNil)) "Math") (PNil)))
-(let $c (CoarseComb (NoParents) (Rule "R") $ports))
+(let $c (CoarseRuleComposition (NoParents) (Rule "R") $ports))
 (let $i (Occurrence 1 $c))
 (ExternalAt $i 0 (V "Math" "x"))
 (run-schedule (saturate (run tier1)))
@@ -56,8 +56,8 @@ fn constructed_routes_need_materialized_witnesses() {
 #[test]
 fn mismatched_parent_templates_do_not_supply_bindings() {
     execute(&format!(r#"{IR}
-(let $c (SmoothComb (MoreParents (CoarseComb (MoreParents (Empty) (NoParents)) (Rule "A") (PNil)) (NoParents)) (Rule "R") (RCons (ParentPort 0 0 "Math") (RNil))))
-(let $i (Occurrence 1 $c)) (let $wrong (Occurrence 2 (CoarseComb (MoreParents (Empty) (NoParents)) (Rule "B") (PNil))))
+(let $c (SmoothRuleComposition (MoreParents (CoarseRuleComposition (MoreParents (Empty) (NoParents)) (Rule "A") (PNil)) (NoParents)) (Rule "R") (RCons (ParentPort 0 0 "Math") (RNil))))
+(let $i (Occurrence 1 $c)) (let $wrong (Occurrence 2 (CoarseRuleComposition (MoreParents (Empty) (NoParents)) (Rule "B") (PNil))))
 (ParentAt $i 0 $wrong) (OutputAt $wrong 0 (V "Math" "x"))
 (run-schedule (saturate (run tier1)))
 (fail (check (Binding $i args)))
@@ -77,8 +77,8 @@ fn tier0_example_still_runs() {
 fn redundant_support_cannot_use_an_indirectly_removed_instance() {
     let program = format!(
         r#"{IR}
-(let $base (CoarseComb (MoreParents (Empty) (NoParents)) (Rule "P") (PNil)))
-(let $child (SmoothComb (MoreParents $base (NoParents)) (Rule "Q") (RNil)))
+(let $base (CoarseRuleComposition (MoreParents (Empty) (NoParents)) (Rule "P") (PNil)))
+(let $child (SmoothRuleComposition (MoreParents $base (NoParents)) (Rule "Q") (RNil)))
 (let $p (Occurrence 1 $base)) (let $q (Occurrence 2 $child))
 (ParentAt $q 0 $p)
 (Independent $q $p)
@@ -90,7 +90,7 @@ fn redundant_support_cannot_use_an_indirectly_removed_instance() {
 fn requirements_cannot_pool_facts_across_shared_template_instances() {
     execute(&format!(
         r#"{IR}
-(let $c (CoarseComb (MoreParents (Empty) (NoParents)) (Rule "opaque-rule") (PNil)))
+(let $c (CoarseRuleComposition (MoreParents (Empty) (NoParents)) (Rule "opaque-rule") (PNil)))
 (let $a (Occurrence 1 $c)) (let $b (Occurrence 2 $c))
 (let $p (HasFact "P" (ANil))) (let $q (HasFact "Q" (ANil)))
 (Produced $a $p) (Produced $b $q)
@@ -107,7 +107,7 @@ fn requirements_cannot_pool_facts_across_shared_template_instances() {
 fn one_occurrence_port_cannot_have_two_different_assignments() {
     let source = format!(
         r#"{IR}
-(let $i (Occurrence 1 (CoarseComb (MoreParents (Empty) (NoParents)) (Rule "R") (PNil))))
+(let $i (Occurrence 1 (CoarseRuleComposition (MoreParents (Empty) (NoParents)) (Rule "R") (PNil))))
 (ExternalAt $i 0 (V "Math" "x"))
 (ExternalAt $i 0 (V "Math" "y"))
 "#
@@ -122,10 +122,10 @@ fn one_occurrence_port_cannot_have_two_different_assignments() {
 #[test]
 fn native_types_reject_external_routes_in_smooth_combinations() {
     let bad = [
-        r#"(SmoothComb (NoParents) (Rule "R") (PCons (External 0 "Math") (PNil)))"#,
-        r#"(SmoothComb (NoParents) (Rule "R") (RCons (External 0 "Math") (RNil)))"#,
-        r#"(SmoothComb (NoParents) (Rule "R") (RCons (Make "F" (PCons (External 0 "Math") (PNil)) "Math") (RNil)))"#,
-        r#"(SmoothComb (NoParents) "R" (RNil))"#,
+        r#"(SmoothRuleComposition (NoParents) (Rule "R") (PCons (External 0 "Math") (PNil)))"#,
+        r#"(SmoothRuleComposition (NoParents) (Rule "R") (RCons (External 0 "Math") (RNil)))"#,
+        r#"(SmoothRuleComposition (NoParents) (Rule "R") (RCons (Make "F" (PCons (External 0 "Math") (PNil)) "Math") (RNil)))"#,
+        r#"(SmoothRuleComposition (NoParents) "R" (RNil))"#,
     ];
     for expr in bad {
         let mut eg = egglog::EGraph::default();
@@ -144,10 +144,10 @@ fn native_types_reject_external_routes_in_smooth_combinations() {
 fn smooth_nested_make_resolves_only_from_parent_ports_and_materialization() {
     execute(&format!(
         r#"{IR}
-(let $base (CoarseComb (MoreParents (Empty) (NoParents)) (Rule "A") (PNil)))
+(let $base (CoarseRuleComposition (MoreParents (Empty) (NoParents)) (Rule "A") (PNil)))
 (let $parents (MoreParents $base (NoParents)))
 (let $local (RCons (ParentPort 0 0 "Math") (RNil)))
-(let $c (SmoothComb $parents (Rule "B") (RCons (Make "F" $local "Math") (RNil))))
+(let $c (SmoothRuleComposition $parents (Rule "B") (RCons (Make "F" $local "Math") (RNil))))
 (let $p (Occurrence 1 $base)) (let $i (Occurrence 2 $c))
 (ParentAt $i 0 $p) (OutputAt $p 0 (V "Math" "x"))
 (run-schedule (saturate (run tier1)))
@@ -163,12 +163,12 @@ fn smooth_nested_make_resolves_only_from_parent_ports_and_materialization() {
 #[test]
 fn local_binding_view_preserves_coarse_effect_boundary_and_instances() {
     execute(&format!(r#"{IR}
-(let $parent (CoarseComb (MoreParents (Empty) (NoParents)) (Rule "P") (PCons (External 0 "Math") (PNil))))
+(let $parent (CoarseRuleComposition (MoreParents (Empty) (NoParents)) (Rule "P") (PCons (External 0 "Math") (PNil))))
 (let $parents (MoreParents $parent (NoParents)))
 (let $local (RCons (ParentPort 0 0 "Math") (RNil)))
 (let $partial (PCons (Local (ParentPort 0 0 "Math")) (PNil)))
-(let $c (CoarseComb $parents (Rule "R") $partial))
-(let $s (SmoothComb $parents (Rule "R") $local))
+(let $c (CoarseRuleComposition $parents (Rule "R") $partial))
+(let $s (SmoothRuleComposition $parents (Rule "R") $local))
 (let $p (Occurrence 1 $parent)) (ExternalAt $p 0 (V "Math" "x")) (OutputAt $p 0 (V "Math" "x"))
 (let $a (Occurrence 2 $c)) (let $b (Occurrence 3 $s))
 (ParentAt $a 0 $p) (ParentAt $b 0 $p)
@@ -184,7 +184,7 @@ fn local_binding_view_preserves_coarse_effect_boundary_and_instances() {
 (check (Binding $b (ACons (V "Math" "x") (ANil))))
 (check (Provides $a $effect))
 (fail (check (Provides $b $effect)))
-(let $external (CoarseComb $parents (Rule "R") (PCons (External 0 "Math") (PNil))))
+(let $external (CoarseRuleComposition $parents (Rule "R") (PCons (External 0 "Math") (PNil))))
 (run-schedule (saturate (run tier1_equivalences)))
 (fail (check (= $external $s)))
 "#)).unwrap();
@@ -196,9 +196,9 @@ fn nested_partial_make_can_normalize_without_changing_its_witness() {
 (let $ps (MoreParents (Empty) (NoParents)))
 (let $partial (PCons (MakePartial "Const" (PNil) "Math") (PNil)))
 (let $local (RCons (Make "Const" (RNil) "Math") (RNil)))
-(let $c (CoarseComb $ps (Rule "R") $partial))
-(let $s (SmoothComb $ps (Rule "R") $local))
-(let $canonical (CoarseComb $ps (Rule "R") (PCons (Local (Make "Const" (RNil) "Math")) (PNil))))
+(let $c (CoarseRuleComposition $ps (Rule "R") $partial))
+(let $s (SmoothRuleComposition $ps (Rule "R") $local))
+(let $canonical (CoarseRuleComposition $ps (Rule "R") (PCons (Local (Make "Const" (RNil) "Math")) (PNil))))
 (fail (check (= $c $canonical)))
 (let $i (Occurrence 1 $c))
 (Materialized $i "Const" (ANil) (V "Math" "constant"))
@@ -237,10 +237,10 @@ fn streaming_import_preserves_native_templates_and_bindings() {
 #[test]
 fn unrelated_binding_templates_do_not_expand_an_instances_route_space() {
     let mut program = format!(r#"{IR}
-(let $root (CoarseComb (NoParents) (Rule "root") (PNil)))
+(let $root (CoarseRuleComposition (NoParents) (Rule "root") (PNil)))
 (let $parent (Occurrence 0 $root))
 (let $used (RCons (ParentPort 0 0 "Math") (RNil)))
-(let $child (Occurrence 1 (SmoothComb (MoreParents $root (NoParents)) (Rule "child") $used)))
+(let $child (Occurrence 1 (SmoothRuleComposition (MoreParents $root (NoParents)) (Rule "child") $used)))
 (ParentAt $child 0 $parent)
 "#);
     for slot in 0..32 {

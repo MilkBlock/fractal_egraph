@@ -478,11 +478,11 @@ NODE_PATH=/path/to/node_modules node tools/egglog_debugger/test_layers.cjs   htt
 
 “Use(T) / residual 复用”显示新的在线组合字典（编号与分析切片模板独立）。每轮新增 `.reuse.dot`，可检查后续 apply 对已有 Use 的内部输出引用。统计分开列出接线模型、已用字典和候选索引，不代表 tier0 内存或执行时间收益。
 
-### Automatic ClosedState pipeline
+### Automatic SaturatedRuleComposition pipeline
 
 The local native debugger's **Run and recognize** action now performs bounded
-ripen automatically at completed execution boundaries. Select **ClosedState /
-Closed rule comb** beside FractalComb; the round selector shows that boundary's
+ripen automatically at completed execution boundaries. Select **SaturatedRuleComposition /
+Saturated rule composition** beside FractalComb; the round selector shows that boundary's
 queue and catalog. No catalog path and no full history export are required.
 Saved debugger runs and exported/imported layer snapshots retain the same data.
 The browser-only wasm fallback does not run this filesystem-backed pipeline.
@@ -493,15 +493,15 @@ same queue. Example:
 ```sh
 cargo run --release -- analyze --recapture-tier0 \
   --source egglog/tests/math-microbenchmark.egg --rounds 6 \
-  --output out/closed-pipeline-example
+  --output out/saturated-rule-composition-pipeline-example
 ```
 
-Load `out/closed-pipeline-example` in the viewer, or open
-`http://127.0.0.1:8080/?layer_run=out/closed-pipeline-example&layer_kind=closed`.
+Load `out/saturated-rule-composition-pipeline-example` in the viewer, or open
+`http://127.0.0.1:8080/?layer_run=out/saturated-rule-composition-pipeline-example&layer_kind=saturated_rule_composition`.
 `--save-history` remains optional. For CLI `debug-stream`, set
-`EGG_LAYOUT_CLOSED_OUTPUT` to a fresh output directory; the server sets it per run.
+`EGG_LAYOUT_SATURATED_RULE_COMPOSITION_OUTPUT` to a fresh output directory; the server sets it per run.
 
-Implementation: `native_closed_pipeline.rs` reads existing in-memory Uses and
+Implementation: `native_saturated_rule_composition_pipeline.rs` reads existing in-memory Uses and
 reuses `native_ripen_entry.rs` validation and native ripen, without a subprocess
 or writing/re-reading the global trace. Re-cut combinations are new immutable
 Uses. Candidates from not-yet-attempted templates have priority, but **template
@@ -522,7 +522,7 @@ Defaults (environment variables for CLI, or set before starting the server):
 
 The queue retains at most 256 candidates and counts additional Uses as
 `not_queued`. Unprocessed candidates remain `Pending`; exhausted local sweeps
-are `Suspended`; entry/validation errors are `Rejected` with reasons. A Closed
+are `Suspended`; entry/validation errors are `Rejected` with reasons. A Saturated
 cell can still have an unavailable state export; only supported exports enter
 the catalog. Budgets do not preempt one expensive native rule execution and are
 not a hard memory bound. Pending work is not silently declared complete when
@@ -532,14 +532,14 @@ survey; persistent queue resume is not implemented.
 Artifacts under each run:
 
 - `rounds/round-NNNN.json`: layer snapshot plus `closed` queue/catalog payload.
-- `rounds/round-NNNN.closed.dot`: generated when an exported closure exists.
+- `rounds/round-NNNN.saturated-rule-composition.dot`: generated when an exported closure exists.
 - `catalog/`: latest exact shared-state catalog, usable by the legacy loader.
-- `closed/queue.json`: latest statuses, budgets, rejection reasons, bindings links.
-- `closed/cells/use-NNNNNN/`: reproducible symbolic entry, native ripen report,
-  and supported ClosedState export. Automatic cells omit history and per-cell
+- `saturated-rule-composition/queue.json`: latest statuses, budgets, rejection reasons, bindings links.
+- `saturated-rule-composition/cells/use-NNNNNN/`: reproducible symbolic entry, native ripen report,
+  and supported SaturatedRuleComposition export. Automatic cells omit history and per-cell
   round views; explicit `ripen` / `ripen-use` still produce full debug artifacts.
 
-Closed means the **isolated symbolic interface** is closed under its declared
+Saturated means the **isolated symbolic interface** is closed under its declared
 rules, not that the corresponding whole tier0 neighborhood is closed. This
 pipeline records the relation from source tier1 Uses to ripened cells/shared
 states. It does not replace tier0 storage, merge tier0 eclasses, prove
@@ -548,13 +548,13 @@ in these in-memory reports is a run/source identity for compatibility with the
 catalog, not a claim that a history JSON file exists (`capture_kind` says so).
 Replaying explicit ripen history does not recursively enqueue ripen again.
 
-Regression: `cargo test --release --test closed_pipeline --test ripen --test
-layer_rounds --test closed_state`; browser tests `test_closed_pipeline.cjs` and
-`test_closed_survey.cjs` against the local server.
+Regression: `cargo test --release --test saturated_rule_composition_pipeline --test ripen --test
+layer_rounds --test saturated_rule_composition`; browser tests `test_saturated_rule_composition_pipeline.cjs` and
+`test_saturated_rule_composition_survey.cjs` against the local server.
 
-ClosedState details have a graph selector: **source rule comb**, **closed e-graph**,
+SaturatedRuleComposition details have a graph selector: **source rule comb**, **closed e-graph**,
 and **source Coarse/Smooth layers**. Source rule comb shows the whole catalog; the
-other two describe exactly one ClosedState, so selecting them while the state
+other two describe exactly one SaturatedRuleComposition, so selecting them while the state
 selector is still on the overview falls back to the first state and says so in the
 caption. Select a state explicitly, plus a comb and Use instance, to inspect its
 original layer membership. E-graph clusters are actual
@@ -562,22 +562,22 @@ exported equivalence classes, containing their constructor rows; argument edges
 are ordered. Source layer clusters show only members participating in that Use,
 not the complete original layers. The DOT download follows the selected graph.
 
-`test_closed_diagrams.cjs` covers this selector. `test_closed_catalog.cjs` cannot:
+`test_saturated_rule_composition_diagrams.cjs` covers this selector. `test_saturated_rule_composition_catalog.cjs` cannot:
 its fixture has no `comb_groups`, so the diagram branch is never reached there.
 
-With no catalog loaded, **显示** and **下载当前 ClosedState DOT** show the
+With no catalog loaded, **显示** and **下载当前 SaturatedRuleComposition DOT** show the
 actionable hint instead of returning silently, and neither clears a load error
 that is already on screen. The hint distinguishes three cases, because only the
 first is fixed by running again:
 
 1. nothing loaded → run 运行并识别, or load a directory containing `catalog/`;
 2. a directory was loaded but none of its round snapshots has a `closed` key
-   (produced before the ClosedState pipeline, e.g.
+   (produced before the SaturatedRuleComposition pipeline, e.g.
    `out/tools-layers-view/math-prepipeline`) → re-analyse with the current build;
 3. a round did produce a `closed` snapshot but no `catalog`, because no queued
    Use closed → the dominant rejection reason from that round's queue is appended.
 
-`test_closed_buttons.cjs` covers the no-catalog, bad-directory, stale-snapshot
+`test_saturated_rule_composition_buttons.cjs` covers the no-catalog, bad-directory, stale-snapshot
 and real-catalog paths.
 
 `python3 tools/egglog_debugger/test_run_pruning.py` covers the `out/debugger/`
@@ -594,13 +594,13 @@ rather than aborting execution. Committed writes remain distinct from matches.
 For an equality-datatype cell, automatic ripen preserves its relation/function
 schema, and explicit ripen supports native `set`/merge execution. Supported
 positive relation rows and `:no-merge` function rows are included in the exact
-ClosedState, including typed arguments and scalar outputs; table declarations
+SaturatedRuleComposition, including typed arguments and scalar outputs; table declarations
 are part of the comparison scope. i64 boundary bindings now retain true literals
 through capture and history replay. Old histories lacking literal values do not
 magically recover them.
 
 Current limits: custom `:merge` functions execute but do not receive a shared
-ClosedState certificate; primitive guards/actions can also make the state export
+SaturatedRuleComposition certificate; primitive guards/actions can also make the state export
 unavailable. Pure scalar-table programs execute/replay, but automatic symbolic
 ripen still requires an equality datatype. Multi-datatype/`datatype*`, included
 source programs, and unrecorded scalar literals remain unsupported by relevant
@@ -681,7 +681,7 @@ execution boundaries; only unseen versions are indexed/paired. This is bounded
 candidate discovery, not complete subgraph enumeration. `cs` in each closed
 snapshot stores the reference graph and skipped-check count.
 
-Select **CSCS / CCSS 引用组合** in ClosedState to see the reference DAG. Selecting
+Select **CSCS / CCSS 引用组合** in SaturatedRuleComposition to see the reference DAG. Selecting
 an instance narrows the graph to its two components; clicking the composition
 reveals its binding anchors and dependency links.
 
@@ -702,7 +702,7 @@ The current implementation adds three separate contracts:
    pass before the result is promoted. Stale evidence can propose a candidate,
    but never bypasses this validation. Injection stages are preserved; the
    certificate does not assert that external inputs can be supplied earlier.
-2. ClosedState format v2 includes `subsumed_rows`. Isomorphism checks row visibility
+2. SaturatedRuleComposition format v2 includes `subsumed_rows`. Isomorphism checks row visibility
    in both refinement and the final exact mapping. Readers accept old v1 states
    as wholly visible; v1 files carrying visibility masks are rejected, and old
    readers reject new v2 files rather than silently dropping the mask. Explicit
@@ -751,7 +751,7 @@ cargo run --release -- analyze --recapture-tier0 \
   --output out/closure-contracts-example
 ```
 
-Tests: `closure_contracts`, `closed_state`, `cs_composition`, and the existing
+Tests: `closure_contracts`, `saturated_rule_composition`, `cs_composition`, and the existing
 native history/debugger regressions. `test_cs_view.cjs RUN_DIR` runs the real
 panel and local Graphviz with non-local requests blocked.
 

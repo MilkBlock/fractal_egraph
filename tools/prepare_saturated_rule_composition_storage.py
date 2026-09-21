@@ -15,7 +15,7 @@ def main():
     a = p.parse_args()
     a.output.mkdir(parents=True, exist_ok=False)
     catalog = json.loads(a.catalog.read_text())
-    triggers = [t for t in catalog['triggers'] if t['closed_state'] == a.state]
+    triggers = [t for t in catalog['triggers'] if t['saturated_rule_composition'] == a.state]
     if not triggers:
         raise ValueError('empty family')
     runs = []
@@ -30,10 +30,10 @@ def main():
         fresh = json.loads((dest/'origin.json').read_text())
         if fresh['members'] != origin['members']:
             raise ValueError('Use membership drifted; regenerate survey before comparing')
-        if not (dest/'run'/'closed-state.json').exists():
-            raise ValueError('re-ripen did not export a Closed state')
+        if not (dest/'run'/'saturated-rule-composition.json').exists():
+            raise ValueError('re-ripen did not export a Saturated state')
         runs.append(str(dest/'run'))
-    subprocess.run([str(a.binary), 'closed-catalog', str(a.output/'catalog'), *runs],
+    subprocess.run([str(a.binary), 'saturated-rule-composition-catalog', str(a.output/'catalog'), *runs],
                    check=True, timeout=30)
     print(f'Rebuilt {len(runs)} triggers. Inspect new catalog state IDs before measuring.')
 

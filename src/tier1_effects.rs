@@ -146,7 +146,7 @@ fn export_mode(eg: &EGraph,compact:bool) -> Result<Value, String> {
         dag.to_string(term)
     };
     let mut templates = BTreeMap::<String, Value>::new();
-    for name in ["Empty", "SmoothComb", "CoarseComb"] {
+    for name in ["Empty", "SmoothRuleComposition", "CoarseRuleComposition"] {
         eg.function_for_each(name, |row| {
             let id = cid("Comb", *row.vals.last().unwrap());
             if name=="Empty"{templates.insert(id.clone(),json!({"id":id,"kind":"Empty","rule":"","relative_binding":"","parents":[]}));return;}
@@ -159,7 +159,7 @@ fn export_mode(eg: &EGraph,compact:bool) -> Result<Value, String> {
                     .unwrap(),
             )
             .unwrap();
-            let ports=render(if name=="SmoothComb" {"RelativeBinding"} else {"PartialRelativeBinding"},row.vals[2]);
+            let ports=render(if name=="SmoothRuleComposition" {"RelativeBinding"} else {"PartialRelativeBinding"},row.vals[2]);
             let form=json!({"kind":name,"rule":rule,"relative_binding":ports});
             if let Some(existing)=templates.get_mut(&id){existing["equivalent_forms"].as_array_mut().unwrap().push(form);}else{
                 templates.insert(id.clone(),json!({"id":id,"kind":name,"rule":rule,"relative_binding":ports,"parents":[],"equivalent_forms":[form]}));
@@ -208,7 +208,7 @@ fn export_mode(eg: &EGraph,compact:bool) -> Result<Value, String> {
 
 fn template_nodes(eg:&EGraph)->Result<BTreeMap<String,Value>,String>{
     let mut nodes=BTreeMap::<String,Value>::new();let mut reps=BTreeMap::new();
-    for name in ["Empty","SmoothComb","CoarseComb","Rule","NoParents","MoreParents","ParentPort","Make","RNil","RCons","Local","External","MakePartial","PNil","PCons"]{
+    for name in ["Empty","SmoothRuleComposition","CoarseRuleComposition","Rule","NoParents","MoreParents","ParentPort","Make","RNil","RCons","Local","External","MakePartial","PNil","PCons"]{
         let schema=eg.get_function(name).unwrap().schema();
         eg.function_for_each(name,|r|{
             let class=eg.value_to_class_id(&schema.output,*r.vals.last().unwrap()).to_string();

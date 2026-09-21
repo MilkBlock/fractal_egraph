@@ -1,6 +1,6 @@
 import random
 import unittest
-from probe_closed_storage import Flat, Shared, resolve, retained_bytes
+from probe_saturated_rule_composition_storage import Flat, Shared, resolve, retained_bytes
 
 
 class StorageTests(unittest.TestCase):

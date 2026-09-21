@@ -114,8 +114,8 @@ def main():
                 for target in [dest / 'result.json', dest / 'run/ripen.json']:
                     target.write_text(json.dumps(result) + '\n')
                 row.update(status=result['ripen']['state'], round=result['ripen']['round'],
-                           exported=result['closed_state']['status'] == 'exported')
-                if row['status'] == 'Closed' and row['exported']:
+                           exported=result['saturated_rule_composition']['status'] == 'exported')
+                if row['status'] == 'Saturated' and row['exported']:
                     closed.append(str(dest / 'run'))
         summary['attempts'].append(row)
         summary['counts'] = dict(Counter(x['status'] for x in summary['attempts']))
@@ -125,18 +125,18 @@ def main():
             print(uid + 1, summary['counts'], flush=True)
     catalog = a.output / 'catalog'
     if closed:
-        subprocess.run([binary, 'closed-catalog', str(catalog), *closed], check=True,
+        subprocess.run([binary, 'saturated-rule-composition-catalog', str(catalog), *closed], check=True,
                        stdout=subprocess.DEVNULL)
         data = json.loads((catalog / 'catalog.json').read_text())
     else:
         (catalog / 'states').mkdir(parents=True)
-        data = dict(schema='closed-state-catalog/v1', closed_states=0, triggers=[],
+        data = dict(schema='saturated-rule-composition-catalog/v1', saturated_rule_compositions=0, triggers=[],
                     comparisons=[], comb_groups=[], state_groups=[], unresolved_comparisons=0)
         (catalog / 'catalog.dot').write_text('digraph Empty {}\n')
     summary['status'] = 'complete' if len(summary['attempts']) == len(uses) else 'partial'
-    summary['exported_closed'] = len(closed)
-    summary['closed_templates'] = len({x['template'] for x in summary['attempts'] if x['status']=='Closed' and x.get('exported')})
-    summary['closed_states'] = data['closed_states']
+    summary['exported_saturated'] = len(closed)
+    summary['saturated_rule_composition_templates'] = len({x['template'] for x in summary['attempts'] if x['status']=='Saturated' and x.get('exported')})
+    summary['saturated_rule_compositions'] = data['saturated_rule_compositions']
     summary['shared_instance_states'] = sum(g['trigger_count'] > 1 for g in data['state_groups'])
     summary['shared_template_states'] = sum(g['template_count'] > 1 for g in data['state_groups'])
     summary['unresolved_comparisons'] = data['unresolved_comparisons']

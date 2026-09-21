@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 import tempfile
 import unittest
-from scan_closed_states import annotate, run_bounded
+from scan_saturated_rule_compositions import annotate, run_bounded
 
 
 class ScanTests(unittest.TestCase):

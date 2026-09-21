@@ -11,7 +11,7 @@ def term(sort,op,args=()):return {'sort':sort,'op':str(op),'args':list(args)}
 def encode(roots,graph):
     nodes=graph['nodes'];classes={}
     for ident,n in nodes.items():classes.setdefault(n['eclass'],[]).append(ident)
-    chosen={c:min(ids,key=lambda i:({'SmoothComb':0,'CoarseComb':1}.get(nodes[i]['op'],0),i)) for c,ids in classes.items()}
+    chosen={c:min(ids,key=lambda i:({'SmoothRuleComposition':0,'CoarseRuleComposition':1}.get(nodes[i]['op'],0),i)) for c,ids in classes.items()}
     indices={};definitions=[];active=set()
     def node(ident):
         n=nodes[ident]

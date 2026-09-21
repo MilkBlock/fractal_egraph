@@ -14,8 +14,8 @@ FractalComb 还依赖 tier-1 的 Comb/RelativeBinding 定义，目前在
 `experiments/tier1_effects/tier1_rule_comb_ir.egg`。
 默认实验入口负责按依赖顺序加载规则；不要重复包含同一个定义文件。
 
-FractalComb 返回 Comb，可以继续作为 SmoothComb/CoarseComb 的父节点。
-启动上下文保留在 ctx，重复次数不包含 coarse 注入；只接受有 witness 的 unary SmoothComb 链。
+FractalComb 返回 Comb，可以继续作为 SmoothRuleComposition/CoarseRuleComposition 的父节点。
+启动上下文保留在 ctx，重复次数不包含 coarse 注入；只接受有 witness 的 unary SmoothRuleComposition 链。
 当前仍保留原图，以 CombMeaning/VerifiedView 校验另选的规范化视图，不做全 effect union 或节点删除。
 `higher` 命令、ruleset 和 JSON 中 `higher_rules` 字段保留兼容名称；新的 constructor 为 FractalComb。
 

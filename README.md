@@ -137,8 +137,8 @@ git log --oneline --reverse egglog-baseline..HEAD
 
 ## FractalComb 规范化视图
 
-`FractalComb(Depth(k), extension, start_ctx, initial_binding)` 与 SmoothComb、CoarseComb 同属 Comb。
-其计数从有 witness 的 SmoothComb 开始；coarse 注入及启动历史留在 start_ctx。
+`FractalComb(Depth(k), extension, start_ctx, initial_binding)` 与 SmoothRuleComposition、CoarseRuleComposition 同属 Comb。
+其计数从有 witness 的 SmoothRuleComposition 开始；coarse 注入及启动历史留在 start_ctx。
 `analysis.json` 的 `fractal_views` 保存选中的组合、段内 fact/effect 历史和中间输出引用。
 页面的接口证据可查看这些数据，tier-1 表示显示选中的 PackedComb 表达式。
 

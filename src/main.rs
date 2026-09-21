@@ -8,8 +8,8 @@ const HELP: &str = "egg_layout — native rule-combination analysis
   cargo run -- analyze --recapture-tier0 --source PATH.egg --rounds 11 --output out/math11
   cargo run -- debug-patterns SOURCE.egg    Parse source ranges, Typst, and DOT
   cargo run -- debug-stream SOURCE.egg      Stream native Compose / Fractal events
-  cargo run -- closed-compare A/closed-state.json B/closed-state.json [--budget N]
-  cargo run -- closed-catalog OUTPUT_DIR RIPEN_DIR... [--budget N]
+  cargo run -- saturated-rule-composition-compare A/saturated-rule-composition.json B/saturated-rule-composition.json [--budget N]
+  cargo run -- saturated-rule-composition-catalog OUTPUT_DIR RIPEN_DIR... [--budget N]
   cargo run -- ripen INPUT.egg OUTPUT_DIR [--max-rounds N]
   cargo run -- ripen-use HISTORY.json USE_ID OUTPUT_DIR [--max-rounds N]
   cargo run -- bake-format OLD_LIBRARY NEW_LIBRARY.egg
@@ -152,7 +152,7 @@ fn main() -> Result {
         Some("higher") if args.len() == 1 => pipeline::higher(),
         Some("reduce") if args.len() == 1 => pipeline::reduce(),
         Some("observations") if args.len() == 1 => pipeline::observations(),
-        Some("closed-compare") if args.len() == 3 || args.len() == 5 => {
+        Some("saturated-rule-composition-compare") if args.len() == 3 || args.len() == 5 => {
             let budget = if args.len() == 5 {
                 if args[3] != "--budget" {
                     return Err("expected --budget".into());
@@ -161,15 +161,15 @@ fn main() -> Result {
             } else {
                 100_000
             };
-            let a = egg_layout::closed_state::read(&PathBuf::from(&args[1]))?;
-            let b = egg_layout::closed_state::read(&PathBuf::from(&args[2]))?;
+            let a = egg_layout::saturated_rule_composition::read(&PathBuf::from(&args[1]))?;
+            let b = egg_layout::saturated_rule_composition::read(&PathBuf::from(&args[2]))?;
             println!(
                 "{}",
-                serde_json::to_string_pretty(&egg_layout::closed_state::compare(&a, &b, budget)?)?
+                serde_json::to_string_pretty(&egg_layout::saturated_rule_composition::compare(&a, &b, budget)?)?
             );
             Ok(())
         }
-        Some("closed-catalog") if args.len() >= 3 => {
+        Some("saturated-rule-composition-catalog") if args.len() >= 3 => {
             let mut end = args.len();
             let budget = if args.len() >= 5 && args[args.len() - 2] == "--budget" {
                 end -= 2;
@@ -178,11 +178,11 @@ fn main() -> Result {
                 100_000
             };
             let inputs = args[2..end].iter().map(PathBuf::from).collect::<Vec<_>>();
-            let r = egg_layout::closed_state::catalog(&inputs, &PathBuf::from(&args[1]), budget)?;
+            let r = egg_layout::saturated_rule_composition::catalog(&inputs, &PathBuf::from(&args[1]), budget)?;
             println!(
                 "{}",
                 serde_json::to_string_pretty(&serde_json::json!({
-                    "closed_states":r["closed_states"],"triggers":r["triggers"].as_array().map(Vec::len),
+                    "saturated_rule_compositions":r["saturated_rule_compositions"],"triggers":r["triggers"].as_array().map(Vec::len),
                     "unresolved_comparisons":r["unresolved_comparisons"],"output":args[1]
                 }))?
             );
@@ -206,7 +206,7 @@ fn main() -> Result {
             println!(
                 "{}",
                 serde_json::to_string_pretty(
-                    &serde_json::json!({"ripen":report["ripen"],"checks":report["checks"],"closed_state":report["closed_state"],"source_use":args[2],"symbolic_boundary":true,"output":args[3]})
+                    &serde_json::json!({"ripen":report["ripen"],"checks":report["checks"],"saturated_rule_composition":report["saturated_rule_composition"],"source_use":args[2],"symbolic_boundary":true,"output":args[3]})
                 )?
             );
             Ok(())
@@ -228,7 +228,7 @@ fn main() -> Result {
             println!(
                 "{}",
                 serde_json::to_string_pretty(&serde_json::json!({
-                    "ripen":report["ripen"],"checks":report["checks"],"closed_state":report["closed_state"],
+                    "ripen":report["ripen"],"checks":report["checks"],"saturated_rule_composition":report["saturated_rule_composition"],
                     "imported_applies":report["imported_applies"],"output":args[2]
                 }))?
             );

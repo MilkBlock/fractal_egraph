@@ -73,7 +73,7 @@ def build(profile, streaming=False):
                 if v not in external:external.append(v)
                 ports.append(('external',external.index(v),v[0]))
         records[i]={'id':i,'rule':e['rule'],'round':e['round'],'scope':e['scope'],'parents':parents,'ports':ports,'external':external,'expected_binding':wanted,'outputs':output,'output_layout':layout,'required':required,'external_facts':external_facts,'produced':[token(w) for w in direct], 'unions':unions[i], 'input_layout':[{'variable':k} for k,_ in named]+[{'read_span':r['source_span'],'op':r['name']} for r in sorted(reads[i],key=lambda r:(r.get('source_span') or '',r['name'] or '',r['id']))]}
-    for r in records.values():r['kind']='CoarseComb' if any(p[0]=='external' for p in r['ports']) or not r['parents'] else 'SmoothComb'
+    for r in records.values():r['kind']='CoarseRuleComposition' if any(p[0]=='external' for p in r['ports']) or not r['parents'] else 'SmoothRuleComposition'
     audit={'trace_events':len(all_events),'imported_events':len(records),'excluded_events':len(all_events)-len(records),'direct_dependency_edges':sum(len(r['parents']) for r in records.values()),'external_read_reasons':dict(reasons),'changed_union_events':sum(len(x) for x in unions.values()),'kinds':dict(Counter(r['kind'] for r in records.values())),'scope':'Math-specific named-variable typing; direct row provenance verified; unsupported/rebuild origins kept as external boundaries, not invented causal edges'}
     return (commands(records,indexed=True) if streaming else '\n'.join(commands(records))+'\n'),{'audit':audit,'records':list(records.values()),'rule_dictionary':profile['rule_labels']}
 
@@ -96,7 +96,7 @@ def commands(records,indexed=False):
                 x=f'(ParentPort {p[1]} {p[2]} {q(p[3])})';slots.append(f'(Local {x})' if coarse else x)
             else:slots.append(f'(External {p[1]} {q(p[2])})')
         binding=cons(slots,'PCons' if coarse else 'RCons','PNil' if coarse else 'RNil')
-        r['kind']='CoarseComb' if coarse else 'SmoothComb'
+        r['kind']='CoarseRuleComposition' if coarse else 'SmoothRuleComposition'
         value=f'({r["kind"]} {parent_expr} (Rule {q(r["rule"])}) {binding})'
         if indexed:
             yield f'(set {cref(i)} {value})'

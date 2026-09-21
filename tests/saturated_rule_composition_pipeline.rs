@@ -37,9 +37,9 @@ fn normal_capture_and_debug_stream_include_closed_without_trace_files() {
         .unwrap();
     assert!(r.status.success(), "{}", String::from_utf8_lossy(&r.stderr));
     assert!(!out.join("history.json").exists());
-    let queue = read(out.join("closed/queue.json"));
+    let queue = read(out.join("saturated-rule-composition/queue.json"));
     assert!(
-        queue["counts"]["Closed"].as_u64().unwrap_or(0) > 0,
+        queue["counts"]["Saturated"].as_u64().unwrap_or(0) > 0,
         "{queue}"
     );
     assert!(
@@ -51,8 +51,8 @@ fn normal_capture_and_debug_stream_include_closed_without_trace_files() {
         "exact interface cache should be reused"
     );
     let catalog = read(out.join("catalog/catalog.json"));
-    assert!(catalog["closed_states"].as_u64().unwrap() > 0);
-    for e in fs::read_dir(out.join("closed/cells")).unwrap() {
+    assert!(catalog["saturated_rule_compositions"].as_u64().unwrap() > 0);
+    for e in fs::read_dir(out.join("saturated-rule-composition/cells")).unwrap() {
         let p = e.unwrap().path();
         assert!(!p.join("history.json").exists());
         assert!(!p.join("work").exists());
@@ -62,10 +62,10 @@ fn normal_capture_and_debug_stream_include_closed_without_trace_files() {
         .as_str()
         .unwrap();
     assert_eq!(
-        read(out.join(format!("rounds/{last}.json")))["closed"],
+        read(out.join(format!("rounds/{last}.json")))["saturated_rule_composition"],
         queue
     );
-    assert!(out.join(format!("rounds/{last}.closed.dot")).exists());
+    assert!(out.join(format!("rounds/{last}.saturated_rule_composition.dot")).exists());
     let offline = base.join("offline");
     let r = command()
         .args([
@@ -81,7 +81,7 @@ fn normal_capture_and_debug_stream_include_closed_without_trace_files() {
         .output()
         .unwrap();
     assert!(r.status.success(), "{}", String::from_utf8_lossy(&r.stderr));
-    let offline_queue = read(offline.join("closed/queue.json"));
+    let offline_queue = read(offline.join("saturated-rule-composition/queue.json"));
     assert_eq!(offline_queue["counts"], queue["counts"]);
     assert_eq!(
         offline_queue["catalog"]["states"],
@@ -104,7 +104,7 @@ fn normal_capture_and_debug_stream_include_closed_without_trace_files() {
     assert_eq!(statuses(&offline_queue), statuses(&queue));
     let stream = base.join("stream");
     let r = command()
-        .env("EGG_LAYOUT_CLOSED_OUTPUT", &stream)
+        .env("EGG_LAYOUT_SATURATED_RULE_COMPOSITION_OUTPUT", &stream)
         .arg("debug-stream")
         .arg(&src)
         .output()
@@ -121,10 +121,10 @@ fn normal_capture_and_debug_stream_include_closed_without_trace_files() {
         .collect();
     assert!(!snapshots.is_empty());
     assert_eq!(
-        snapshots.last().unwrap()["closed"]["counts"],
+        snapshots.last().unwrap()["saturated_rule_composition"]["counts"],
         queue["counts"]
     );
-    assert!(snapshots.last().unwrap()["closed"]["catalog"].is_object());
+    assert!(snapshots.last().unwrap()["saturated_rule_composition"]["catalog"].is_object());
     fs::remove_dir_all(base).unwrap();
 }
 #[test]
@@ -136,13 +136,13 @@ fn budgets_preserve_pending_and_suspended_as_distinct_states() {
     let r = command()
         .env("EGG_LAYOUT_RIPEN_JOBS", "1")
         .env("EGG_LAYOUT_RIPEN_ROUNDS", "1")
-        .env("EGG_LAYOUT_CLOSED_OUTPUT", &out)
+        .env("EGG_LAYOUT_SATURATED_RULE_COMPOSITION_OUTPUT", &out)
         .arg("debug-stream")
         .arg(src)
         .output()
         .unwrap();
     assert!(r.status.success(), "{}", String::from_utf8_lossy(&r.stderr));
-    let q = read(out.join("closed/queue.json"));
+    let q = read(out.join("saturated-rule-composition/queue.json"));
     assert!(q["counts"]["Pending"].as_u64().unwrap_or(0) > 0, "{q}");
     assert_eq!(q["counts"]["Suspended"], 1, "{q}");
     assert!(q["catalog"].is_null());

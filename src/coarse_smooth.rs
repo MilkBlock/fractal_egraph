@@ -69,8 +69,8 @@ pub struct Apply {
 }
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 pub enum CombKind {
-    CoarseComb,
-    SmoothComb,
+    CoarseRuleComposition,
+    SmoothRuleComposition,
 }
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 pub struct Comb {
@@ -373,9 +373,9 @@ fn normalize(a: &Apply, occurrences: &[Occurrence], coarse: bool) -> Comb {
     let mut effect = |e: &Effect| canonical_effect(e, &mut values);
     Comb {
         kind: if coarse {
-            CombKind::CoarseComb
+            CombKind::CoarseRuleComposition
         } else {
-            CombKind::SmoothComb
+            CombKind::SmoothRuleComposition
         },
         rule: a.rule.clone(),
         input_roles: a.input_roles.clone(),

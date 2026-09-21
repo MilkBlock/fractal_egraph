@@ -223,7 +223,7 @@ case: merely having the denominator binding does not provide its nonzero guard.
 
 A nonempty-premise combination normally begins with a coarse injection. A rule
 with no premises is a logical exception. An engineering convention such as
-\code{Empty -> coarse composition} can provide a uniform entry representation, but does
+\code{Empty -> coarse rule composition} can provide a uniform entry representation, but does
 not prove that every rule needs external data.
 
 \MathGuard
@@ -744,11 +744,11 @@ interfaces remain explicit limitations.
 
 \subsection{Implementation audit: what the code actually establishes}
 The implementation boundary is narrower than the terminology used by the diagrams.
-\path{native_closed_pipeline} creates bounded jobs for Uses, dependency candidates, CSCS,
+\path{native_saturated_rule_composition_pipeline} creates bounded jobs for Uses, dependency candidates, CSCS,
 and CCSS, then calls \path{native_ripen} on an isolated entry program. Every job is
 replayed and validated again; stale evidence cannot authorize substitution. A
-successful job exports a \texttt{ClosedState} and may promote a composition descriptor in
-the in-memory candidate store. \path{closed_state::compare} checks a bounded typed graph
+successful job exports a \texttt{SaturatedRuleComposition} and may promote a composition descriptor in
+the in-memory candidate store. \path{saturated_rule_composition::compare} checks a bounded typed graph
 isomorphism including fixed ports and the subsumed-row mask. It does not compare
 matcher state, scheduler state, or the surrounding tier0 e-graph.
 
@@ -889,7 +889,7 @@ Article 125, 2023. DOI: \href{https://doi.org/10.1145/3591239}{10.1145/3591239}.
 \bibitem{code}
 \emph{fractal\_egraph local prototype}, commit \code{258eef4}, 2026.
 \newblock Core mechanisms: \path{src/native_cs.rs},
-\path{src/closure_contract.rs}, \path{src/closed_state.rs};
+\path{src/closure_contract.rs}, \path{src/saturated_rule_composition.rs};
 summary schemas: \path{src/native_bake.rs} and \path{rules/reduce.egg}.
 The accompanying verification manifest identifies additional source evidence.
 Implementation evidence, not an external publication.
@@ -908,9 +908,9 @@ not a uniform benchmark.
 \appendix
 \section{Reproduction and Evidence Levels}
 The paper uses the revised composition terminology. Legacy implementation
-identifiers remain unchanged: \code{CoarseComb} and \code{SmoothComb} label
-context-relative application forms; \code{ClosedState} stores one exported local state;
-it is not a trigger-bearing macro or a replacement for the tier0 e-graph. \code{Closed}
+identifiers remain unchanged: \code{CoarseRuleComposition} and \code{SmoothRuleComposition} label
+context-relative application forms; \code{SaturatedRuleComposition} stores one exported local state;
+it is not a trigger-bearing macro or a replacement for the tier0 e-graph. \code{Saturated}
 is the serialized status corresponding to a bounded isolated ripen result.
 The colored examples are checked by \code{cargo test --release --test paper\_math\_examples}.
 Their complete scoped programs are in \path{docs/papers/examples/}.
@@ -918,7 +918,7 @@ Their complete scoped programs are in \path{docs/papers/examples/}.
 \begin{lstlisting}[language=bash]
 # Native finite-property regressions
 cargo test --release --test closure_contracts --test cs_composition \
-  --test closed_state --test table_support --test closed_pipeline \
+  --test saturated_rule_composition --test table_support --test saturated_rule_composition_pipeline \
   --test layer_rounds --test ripen --test native_history --test native_debug
 
 # Use a fresh output directory

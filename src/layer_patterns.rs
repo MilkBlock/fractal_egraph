@@ -279,7 +279,7 @@ fn interface(
             // A layout restart is not a semantic turning point. This fragment
             // explicitly exposes the supplying contexts as boundary ports.
             kind: if o.boundary_restart {
-                "SmoothComb".into()
+                "SmoothRuleComposition".into()
             } else {
                 format!("{:?}", store.combs[o.comb].kind)
             },
@@ -546,7 +546,7 @@ fn analyze_cached(store: &LayerStore, cache: &mut Analyzer) -> Analysis {
 fn external_demand(t: &Interface) -> bool {
     if t.members
         .iter()
-        .any(|m| !m.external_facts.is_empty() || m.kind == "CoarseComb")
+        .any(|m| !m.external_facts.is_empty() || m.kind == "CoarseRuleComposition")
     {
         return true;
     }

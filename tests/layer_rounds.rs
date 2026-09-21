@@ -91,7 +91,7 @@ fn every_round_has_dot_and_replay_preserves_boundaries() {
     invoke(&["--replay-history", history.to_str().unwrap()], &replay);
     for i in 1..=8 {
         let file = format!("rounds/round-{i:04}.json");
-        // Closed provenance contains the owning run directory; logical snapshots
+        // Saturated-rule-composition provenance contains the owning run directory; logical snapshots
         // must still match after normalizing this one run-local path namespace.
         let normalized = |dir: &std::path::Path| -> serde_json::Value {
             serde_json::from_str(

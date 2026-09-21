@@ -1,7 +1,7 @@
 ; Finite macro views of existing tier-1 combinations. Effects remain in Extension.
 ; R is an Extension: source rule + stable relative-binding update + source effects.
 ; ctx retains coarse injection and warmup; neither is counted in the repetition.
-; The first step and each extension must be a witnessed unary SmoothComb.
+; The first step and each extension must be a witnessed unary SmoothRuleComposition.
 ; Finite repetition is evidence, not proof of an arbitrary-count invariant.
 ; Depth is exact uniform observed expansion; sparse extents keep partial ports.
 (sort ExpansionExtent)
@@ -23,9 +23,9 @@
 (relation CombName (Comb String))
 (relation ExtensionName (Extension String))
 (ruleset higher)
-(rule ((UnaryStep ctx out r binding) (= out (SmoothComb (MoreParents ctx (NoParents)) rule binding)))
+(rule ((UnaryStep ctx out r binding) (= out (SmoothRuleComposition (MoreParents ctx (NoParents)) rule binding)))
       ((PowerPrefix ctx out r binding 1)) :ruleset higher :name "power-start")
-(rule ((PowerPrefix ctx mid r binding k) (UnaryStep mid out r next_binding) (= out (SmoothComb (MoreParents mid (NoParents)) rule next_binding)))
+(rule ((PowerPrefix ctx mid r binding k) (UnaryStep mid out r next_binding) (= out (SmoothRuleComposition (MoreParents mid (NoParents)) rule next_binding)))
       ((PowerPrefix ctx out r binding (+ k 1))) :ruleset higher :name "power-extend")
 (rule ((PowerPrefix ctx out r binding k) (>= k 2))
       ((Represents (FractalComb (Depth k) r ctx binding) out)) :ruleset higher :name "power-view")

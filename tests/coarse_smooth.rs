@@ -170,7 +170,7 @@ fn external_effect_restarts_coarse_and_ancestor_overlap_does_not_hoist() {
     s.push(c).unwrap();
     assert!(matches!(
         s.combs[s.occurrences[2].comb].kind,
-        CombKind::CoarseComb
+        CombKind::CoarseRuleComposition
     ));
     s.push(smooth(&s, 3, "S2", &[0, 2], 4)).unwrap();
     assert!(s.occurrences[3].boundary_restart);

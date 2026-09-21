@@ -61,9 +61,9 @@ pub(super) fn build(
             );
             call(
                 if c.is_coarse(r) {
-                    "CoarseComb"
+                    "CoarseRuleComposition"
                 } else {
-                    "SmoothComb"
+                    "SmoothRuleComposition"
                 },
                 vec![
                     ps,
@@ -73,7 +73,7 @@ pub(super) fn build(
             )
         };
         if lengths[i] >= 2 || r.parents.iter().any(|p| lengths[*p] >= 2) {
-            display.push(json!({"event":r.id,"kind":if lengths[i]>=2{"FractalComb"}else if c.is_coarse(r){"CoarseComb"}else{"SmoothComb"},"count":lengths[i],"trigger":if lengths[i]>=2 {Some(c.records[c.records[starts[i]].parents[0]].id)}else{None},"original_parents":r.parents.iter().map(|p|c.records[*p].id).collect::<Vec<_>>(),"parents":if lengths[i]>=2 {vec![c.records[c.records[starts[i]].parents[0]].id]}else{r.parents.iter().map(|p|c.records[*p].id).collect::<Vec<_>>()},"egg":expression.to_string(),"evidence":if lengths[i]>=2{"witnessed finite smooth repetition; no arbitrary-count stability proof"}else{"structurally verified continuation over selected parent views"}}));
+            display.push(json!({"event":r.id,"kind":if lengths[i]>=2{"FractalComb"}else if c.is_coarse(r){"CoarseRuleComposition"}else{"SmoothRuleComposition"},"count":lengths[i],"trigger":if lengths[i]>=2 {Some(c.records[c.records[starts[i]].parents[0]].id)}else{None},"original_parents":r.parents.iter().map(|p|c.records[*p].id).collect::<Vec<_>>(),"parents":if lengths[i]>=2 {vec![c.records[c.records[starts[i]].parents[0]].id]}else{r.parents.iter().map(|p|c.records[*p].id).collect::<Vec<_>>()},"egg":expression.to_string(),"evidence":if lengths[i]>=2{"witnessed finite smooth repetition; no arbitrary-count stability proof"}else{"structurally verified continuation over selected parent views"}}));
         }
         emit(eg, &mut batch, set("PackedComb", r.id, expression))?;
         emit(

@@ -366,7 +366,7 @@ impl Store {
     }
     pub fn promote(&mut self, id: usize, proof: &Json) -> bool {
         if proof["checks"] != "passed"
-            || proof["closed_state"]["status"] != "exported"
+            || proof["saturated_rule_composition"]["status"] != "exported"
             || self.promoted.contains(&id)
             || self.units.len() >= 256
         {

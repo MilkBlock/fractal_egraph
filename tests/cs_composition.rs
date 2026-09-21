@@ -18,7 +18,7 @@ fn capture(text: &str, name: &str) -> (std::path::PathBuf, Value) {
         .output()
         .unwrap();
     assert!(r.status.success(), "{}", String::from_utf8_lossy(&r.stderr));
-    let q = serde_json::from_slice(&fs::read(out.join("closed/queue.json")).unwrap()).unwrap();
+    let q = serde_json::from_slice(&fs::read(out.join("saturated-rule-composition/queue.json")).unwrap()).unwrap();
     (root, q)
 }
 #[test]
@@ -38,7 +38,7 @@ fn ccss_anchors_independent_cs_pairs() {
             .as_array()
             .unwrap()
             .iter()
-            .any(|j| j["candidate_kind"] == "CCSS" && j["state"] == "Closed"),
+            .any(|j| j["candidate_kind"] == "CCSS" && j["state"] == "Saturated"),
         "{q}"
     );
     assert!(
@@ -67,7 +67,7 @@ fn cscs_keeps_cross_pair_dependency_direction() {
             .as_array()
             .unwrap()
             .iter()
-            .any(|j| j["candidate_kind"] == "CSCS" && j["state"] == "Closed"),
+            .any(|j| j["candidate_kind"] == "CSCS" && j["state"] == "Saturated"),
         "{q}"
     );
     fs::remove_dir_all(root).unwrap();

@@ -68,9 +68,9 @@ fn higher_rule_counts_actual_steps_and_preserves_initial_context() {
         r#"
       (let r (Extend "r" (End) (Schema "effect-r")))
       (let s (Extend "r" (End) (Schema "different-effect")))
-      (let start (Empty)) (let mid (SmoothComb (MoreParents start (NoParents)) (Rule "r") (RNil))) (let out (SmoothComb (MoreParents mid (NoParents)) (Rule "r") (RNil)))
+      (let start (Empty)) (let mid (SmoothRuleComposition (MoreParents start (NoParents)) (Rule "r") (RNil))) (let out (SmoothRuleComposition (MoreParents mid (NoParents)) (Rule "r") (RNil)))
       (UnaryStep start mid r (RNil)) (UnaryStep mid out r (RNil))
-      (UnaryStep out (SmoothComb (MoreParents out (NoParents)) (Rule "s") (RNil)) s (RNil))
+      (UnaryStep out (SmoothRuleComposition (MoreParents out (NoParents)) (Rule "s") (RNil)) s (RNil))
       (run-schedule (saturate (run higher)))
       (check (Represents (FractalComb (Depth 2) r start (RNil)) out))
     "#,

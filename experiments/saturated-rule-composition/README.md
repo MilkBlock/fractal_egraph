@@ -1,6 +1,6 @@
-# ClosedState sharing
+# SaturatedRuleComposition sharing
 
-A successful ripen now exports `closed-state.json` when its semantics are supported.
+A successful ripen now exports `saturated-rule-composition.json` when its semantics are supported.
 The export reads every datatype constructor table directly from the native engine,
 canonicalizes values through union-find, and keeps all constructor rows, ordered
 fields, exact scalar literals, cycles, sharing and named global ports. It does not
@@ -27,7 +27,7 @@ This is a conservative contract, not a proof for every egglog primitive.
 3. Search for a type/color/port-preserving value bijection under a state budget.
    Verify the *entire* mapped fact set, including additional rows. Equal row counts,
    equal extracted endpoints or matching colors alone never establish equality.
-4. Intern a representative ClosedState only after exact confirmation. Preserve each
+4. Intern a representative SaturatedRuleComposition only after exact confirmation. Preserve each
    Trigger's entry, binding origin and value-to-representative mapping separately.
 
 Results distinguish `equivalent`, `different`, `incompatible_scope`, and
@@ -49,10 +49,10 @@ storage can be O(V^2). These are not claimed to be unconditional near-linear bou
 ## CLI
 
 ```sh
-cargo run --release -- ripen experiments/closed-state/from-a.egg out/closed-a
-cargo run --release -- ripen experiments/closed-state/from-b.egg out/closed-b
-cargo run --release -- closed-compare out/closed-a/closed-state.json out/closed-b/closed-state.json --budget 10000
-cargo run --release -- closed-catalog out/closed-ab out/closed-a out/closed-b
+cargo run --release -- ripen experiments/saturated-rule-composition/from-a.egg out/closed-a
+cargo run --release -- ripen experiments/saturated-rule-composition/from-b.egg out/closed-b
+cargo run --release -- saturated-rule-composition-compare out/closed-a/saturated-rule-composition.json out/closed-b/saturated-rule-composition.json --budget 10000
+cargo run --release -- saturated-rule-composition-catalog out/closed-ab out/closed-a out/closed-b
 ```
 
 A and B start from different facts and declare the rules in different orders with
@@ -62,21 +62,21 @@ They produce one state and two distinct triggers.
 For the existing Math6 history:
 
 ```sh
-cargo run --release -- ripen-use out/use-reuse-final/math/history.json 24 out/closed-unify/u24 --max-rounds 8
-cargo run --release -- ripen-use out/use-reuse-final/math/history.json 84 out/closed-unify/u84 --max-rounds 8
-cargo run --release -- closed-catalog out/closed-unify/catalog out/closed-unify/u24/run out/closed-unify/u84/run
+cargo run --release -- ripen-use out/use-reuse-final/math/history.json 24 out/saturated-rule-composition-unify/u24 --max-rounds 8
+cargo run --release -- ripen-use out/use-reuse-final/math/history.json 84 out/saturated-rule-composition-unify/u84 --max-rounds 8
+cargo run --release -- saturated-rule-composition-catalog out/saturated-rule-composition-unify/catalog out/saturated-rule-composition-unify/u24/run out/saturated-rule-composition-unify/u84/run
 ```
 
 Use fresh output paths. Current default-history U24/T12 has two members; U84/T18
-has three members. Both produce one equivalent symbolic closed state: 7 Math
+has three members. Both produce one equivalent symbolic saturated rule composition: 7 Math
 classes + 3 i64 values, with 12 Add rows + 3 opaque RipenInput rows. The exact
 comparison visits 10 assignments. The catalog preserves both triggers and their
 source binding maps, and stores the common state once.
 
 The files are `catalog.json`, `catalog.dot`, and `states/state-NNNN.json`. The
-existing tools debugger includes a **ClosedState 共享目录** panel. Load
-`out/closed-unify/catalog`, or open
-`http://127.0.0.1:8080/?closed_catalog=out/closed-unify/catalog`.
+existing tools debugger includes a **SaturatedRuleComposition 共享目录** panel. Load
+`out/saturated-rule-composition-unify/catalog`, or open
+`http://127.0.0.1:8080/?saturated_rule_composition_catalog=out/saturated-rule-composition-unify/catalog`.
 Click each trigger to inspect its origin/value mapping, or the shared state to
 inspect its complete facts. It uses the existing Graphviz renderer.
 
@@ -91,7 +91,7 @@ rechecked fixed-point proofs across engine revisions.
 ## Checks
 
 ```sh
-cargo test --release --test closed_state --test ripen
+cargo test --release --test saturated_rule_composition --test ripen
 ```
 
 Tests cover renamed cyclic/shared graphs, differing port targets, alias changes,

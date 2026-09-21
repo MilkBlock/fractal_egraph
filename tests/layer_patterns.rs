@@ -269,6 +269,6 @@ fn a_globally_smooth_member_can_require_extra_fragment_inputs() {
                 .interface
                 .members
                 .iter()
-                .all(|m| m.kind == "SmoothComb")
+                .all(|m| m.kind == "SmoothRuleComposition")
     }));
 }

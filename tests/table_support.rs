@@ -15,13 +15,13 @@ fn run(src: &str, out: &Path, args: &[&str]) {
     assert!(p.status.success(), "{}", String::from_utf8_lossy(&p.stderr));
 }
 #[test]
-fn relation_facts_are_part_of_closed_state() {
+fn relation_facts_are_part_of_saturated_rule_composition() {
     let base = std::env::temp_dir().join(format!("table-ripen-{}", std::process::id()));
     let _ = fs::remove_dir_all(&base);
     fs::create_dir_all(&base).unwrap();
     let text = "(datatype E (A) (B))\n(relation Marked (E))\n(rule ((= a (A))) ((Marked a)))\n(A)\n(check (Marked (A)))";
     run(text, &base.join("relation"), &["ripen"]);
-    let s = read(base.join("relation/closed-state.json"));
+    let s = read(base.join("relation/saturated-rule-composition.json"));
     assert!(
         s["rows"]
             .as_array()
@@ -36,12 +36,12 @@ fn relation_facts_are_part_of_closed_state() {
     let function = "(datatype E (A))\n(function score (E) i64 :merge (max old new))\n(rule ((= a (A))) ((set (score a) 7)))\n(A)\n(check (= (score (A)) 7))";
     run(function, &base.join("function"), &["ripen"]);
     let r = read(base.join("function/ripen.json"));
-    assert_eq!(r["ripen"]["state"], "Closed");
+    assert_eq!(r["ripen"]["state"], "Saturated");
     assert_eq!(r["tables"]["score"], 1);
-    assert_eq!(r["closed_state"]["status"], "exported");
+    assert_eq!(r["saturated_rule_composition"]["status"], "exported");
     let no_merge = function.replace(":merge (max old new)", ":no-merge");
     run(&no_merge, &base.join("no-merge"), &["ripen"]);
-    let state = read(base.join("no-merge/closed-state.json"));
+    let state = read(base.join("no-merge/saturated-rule-composition.json"));
     assert!(
         state["rows"]
             .as_array()
@@ -106,9 +106,9 @@ fn automatic_entries_keep_relation_declarations_and_scalar_bindings() {
         .output()
         .unwrap();
     assert!(r.status.success(), "{}", String::from_utf8_lossy(&r.stderr));
-    let q = read(out.join("closed/queue.json"));
+    let q = read(out.join("saturated-rule-composition/queue.json"));
     assert_eq!(q["counts"]["Rejected"], Value::Null);
-    assert!(q["counts"]["Closed"].as_u64().unwrap() > 0);
+    assert!(q["counts"]["Saturated"].as_u64().unwrap() > 0);
     assert!(q["catalog"]["states"].as_array().unwrap().iter().all(|s| {
         s["rows"]
             .as_array()
@@ -126,7 +126,7 @@ fn automatic_entries_keep_relation_declarations_and_scalar_bindings() {
         .unwrap();
     assert!(r.status.success(), "{}", String::from_utf8_lossy(&r.stderr));
     assert_eq!(
-        read(base.join("replay/closed/queue.json"))["counts"],
+        read(base.join("replay/saturated-rule-composition/queue.json"))["counts"],
         q["counts"]
     );
     fs::remove_dir_all(base).unwrap();

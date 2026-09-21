@@ -13,7 +13,7 @@ mod catalog_embedding;
 
 pub mod binding_reduce;
 
-pub mod closed_state;
+pub mod saturated_rule_composition;
 pub mod coarse_smooth;
 mod layer_bridge;
 

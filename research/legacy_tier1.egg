@@ -17,8 +17,8 @@
 (constructor PNil () PartialRelativeBinding)
 (constructor PCons (PartialPort PartialRelativeBinding) PartialRelativeBinding)
 (constructor Empty () Comb)
-(constructor SmoothComb (ParentCombs RuleId RelativeBinding) Comb)
-(constructor CoarseComb (ParentCombs RuleId PartialRelativeBinding) Comb)
+(constructor SmoothRuleComposition (ParentCombs RuleId RelativeBinding) Comb)
+(constructor CoarseRuleComposition (ParentCombs RuleId PartialRelativeBinding) Comb)
 (constructor NoParents () ParentCombs)
 (constructor MoreParents (Comb ParentCombs) ParentCombs)
 ; Occurrences and their evidence are a separate layer, never children of Comb.
@@ -62,8 +62,8 @@
 (relation RedundantForUse (Instance Instance Instance))
 (ruleset tier1)
 (rule ((= c (Empty))) ((LocalRoutes c (RNil))) :ruleset tier1)
-(rule ((= c (SmoothComb ps r ports))) ((LocalRoutes c ports) (ParentList c 0 ps)) :ruleset tier1)
-(rule ((= c (CoarseComb ps r ports))) ((PartialRoutes c ports) (ParentList c 0 ps)) :ruleset tier1)
+(rule ((= c (SmoothRuleComposition ps r ports))) ((LocalRoutes c ports) (ParentList c 0 ps)) :ruleset tier1)
+(rule ((= c (CoarseRuleComposition ps r ports))) ((PartialRoutes c ports) (ParentList c 0 ps)) :ruleset tier1)
 (rule ((ParentList c k (MoreParents p tail))) ((ParentTemplate c k p) (ParentList c (+ k 1) tail)) :ruleset tier1)
 (rule ((= i (Occurrence id c)) (ParentAt i k p) (= p (Occurrence pid pc)) (ParentTemplate c k pc)) ((LinkedParent i k p)) :ruleset tier1)
 ; Resolve only the binding DAG actually referenced by this occurrence.
@@ -120,7 +120,7 @@
 (rule ((= p (Local l))) ((LocalPart p l)) :ruleset tier1_equivalences)
 (rule ((= p (MakePartial op args sort)) (ToLocal args local)) ((LocalPart p (Make op local sort)) (union p (Local (Make op local sort)))) :ruleset tier1_equivalences)
 (rule ((= p (PCons h tail)) (LocalPart h local) (ToLocal tail rest)) ((ToLocal p (RCons local rest))) :ruleset tier1_equivalences)
-(rule ((= c (CoarseComb parents rule binding)) (ToLocal binding local)) ((LocalBindingView c local)) :ruleset tier1_equivalences)
+(rule ((= c (CoarseRuleComposition parents rule binding)) (ToLocal binding local)) ((LocalBindingView c local)) :ruleset tier1_equivalences)
 
 ; Demand-driven support queries avoid Instance x all-Args Cartesian products.
 (rule ((Requires i es)) ((QueryUse i i)) :ruleset tier1)

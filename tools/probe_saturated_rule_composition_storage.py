@@ -1,4 +1,4 @@
-"""Bounded Add-only shared ClosedState store; no egglog kernel replacement.
+"""Bounded Add-only shared SaturatedRuleComposition store; no egglog kernel replacement.
 
 Native symbolic closures supply templates. Global token identity and congruence
 are retained. Closure certificates are NOT transferred to instantiated stores.
@@ -207,7 +207,7 @@ def load(catalog, state_id):
     state = json.loads((catalog.parent / 'states' / f'state-{state_id:04}.json').read_text())
     if state.get('subsumed_rows'):
         raise ValueError('Add storage probe does not implement subsumed-row matching')
-    triggers = [t for t in cat['triggers'] if t['closed_state'] == state_id]
+    triggers = [t for t in cat['triggers'] if t['saturated_rule_composition'] == state_id]
     slots = {i: k for k,(i,v) in enumerate((i,v) for i,v in enumerate(state['values']) if v['sort']=='Math')}
     template = [tuple(slots[x] for x in r['args']+[r['result']]) for r in state['rows'] if r['op']=='Add']
     if not template or any(r['op'] not in ('Add', triggers[0]['binding_origin']['parameter_marker']) for r in state['rows']):
@@ -218,7 +218,7 @@ def load(catalog, state_id):
             ids[key] = len(ids)
         return ids[key]
     for ti,t in enumerate(triggers):
-        source = json.loads((Path(t['source'])/'closed-state.json').read_text())
+        source = json.loads((Path(t['source'])/'saturated-rule-composition.json').read_text())
         origin, b = t['binding_origin'], [None]*len(slots)
         for v in origin['symbolic_values']:
             if v['sort'] != 'Math':

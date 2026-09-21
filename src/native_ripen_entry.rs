@@ -309,7 +309,7 @@ fn extract(
             (json!(wiring),json!(aliases))
         };
         json!({"slot":slot,"record":i,"event":r.id,"rule_name":c.rules[r.rule].rule.name,"rule":c.rules[r.rule].rule.to_string(),
-            "use_kind":if coarse{"CoarseComb"}else{"SmoothComb"},"source_kind":format!("{:?}",c.layers.combs[o.comb].kind),
+            "use_kind":if coarse{"CoarseRuleComposition"}else{"SmoothRuleComposition"},"source_kind":format!("{:?}",c.layers.combs[o.comb].kind),
             "parents":a.parents.iter().filter_map(|p|slots.get(p).copied()).collect::<BTreeSet<_>>(),"external_parents":external_parents,
             "binding":wiring,"aliases":aliases,"input_roles":a.input_roles,"output_roles":a.output_roles,"source_coarse_layer":o.coarse_layer,"source_smooth_layer":o.smooth_layer})
     }).collect();
@@ -319,7 +319,7 @@ fn extract(
         "symbolic_values":values.iter().map(|(token,term)|json!({"token":token,"term":term.to_string(),"sort":c.pool.values[*token].sort})).collect::<Vec<_>>(),
         "parameters":parameters,"all_source_rules":c.rules.len(),"validation":"all original LHS checks and recorded output aliases passed before/after the corresponding ground actions",
         "staged_injections":injections,"initial_source":seed_text,"concrete_boundary_structure_recovered":false,
-        "closed_scope":"extracted interface only; not the complete original tier0 neighborhood"});
+        "saturated_scope":"extracted interface only; not the complete original tier0 neighborhood"});
     Ok((text, validation, provenance))
 }
 

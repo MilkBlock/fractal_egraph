@@ -9,10 +9,10 @@ def fixture():
             import json
             op=json.dumps(t);children=[];sort='i64' if isinstance(t,int) else 'String'
         key=str(len(nodes));nodes[key]={'op':op,'children':children,'eclass':sort+'-'+key};return key
-    root=['CoarseComb',['MoreParents',['Empty'],['NoParents']],['Rule','S'],
+    root=['CoarseRuleComposition',['MoreParents',['Empty'],['NoParents']],['Rule','S'],
           ['PCons',['External',0,'Math'],['PCons',['External',1,'Math'],['PCons',['External',2,'Fact:Add'],['PNil']]]]]
     r=put(root);rc=nodes[r]['eclass']
-    smooth=['SmoothComb',['MoreParents',root,['NoParents']],['Rule','S'],
+    smooth=['SmoothRuleComposition',['MoreParents',root,['NoParents']],['Rule','S'],
             ['RCons',['ParentPort',0,1,'Math'],['RCons',['ParentPort',0,0,'Math'],['RCons',['ParentPort',0,5,'Fact:Add'],['RNil']]]]]
     sr=put(smooth);sc=nodes[sr]['eclass']
     def var(x):return {'var':x}

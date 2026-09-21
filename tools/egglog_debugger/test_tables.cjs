@@ -9,7 +9,7 @@ const assert=require('node:assert/strict'),{chromium}=require('playwright');
   await p.click('#native-run');await p.waitForFunction(()=>!document.querySelector('#native-run').disabled,{}, {timeout:60000});
   const status=await p.locator('#native-status').textContent();assert(!status.includes('失败'),status);
   const frames=await p.evaluate(()=>window.egglogNative.layerSnapshots);assert.equal(frames.length,rounds);
-  if(source===relation){assert(frames.at(-1).closed.counts.Closed>0);assert(frames.at(-1).closed.catalog.states.some(s=>s.rows.some(r=>r.op==='Marked')));}
+  if(source===relation){assert(frames.at(-1).saturated_rule_composition.counts.Saturated>0);assert(frames.at(-1).saturated_rule_composition.catalog.states.some(s=>s.rows.some(r=>r.op==='Marked')));}
  }
  console.log('Relation closures and pure relation/function execution passed in browser');
 }finally{await b.close();}})().catch(e=>{console.error(e);process.exit(1)});

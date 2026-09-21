@@ -1,4 +1,4 @@
-# Math6 ClosedState sharing survey
+# Math6 SaturatedRuleComposition sharing survey
 
 This survey attempts **all 449 historical Use instances** in the saved default
 full-policy Math6 analysis, not just the 243 currently active Uses. The dictionary
@@ -53,11 +53,11 @@ remain different despite similar rule names: their boundary aliases differ.
 
 ## Coarse/Smooth correspondence in the debugger
 
-Open `http://127.0.0.1:8080/?closed_catalog=out/closed-survey/catalog`.
+Open `http://127.0.0.1:8080/?saturated_rule_composition_catalog=out/saturated-rule-composition-survey/catalog`.
 The shared-state table lists instance and distinct-template counts. Choose a
-ClosedState to list its combinations, then choose one combination to inspect:
+SaturatedRuleComposition to list its combinations, then choose one combination to inspect:
 
-- each member's CoarseComb/SmoothComb classification;
+- each member's CoarseRuleComposition/SmoothRuleComposition classification;
 - actual internal output-to-input port edges and context edges;
 - the source rule, observed alias numbers, and instance-specific original
   coarse/smooth layer references.
@@ -78,10 +78,10 @@ change the equivalence result. Unknown equivalence comparisons remain explicit.
 
 ```sh
 cargo build --release
-python3 tools/scan_closed_states.py \
+python3 tools/scan_saturated_rule_compositions.py \
   --history out/use-reuse-final/math/history.json \
   --analysis out/adaptive-reuse-final/full/analysis.json \
-  --output out/closed-survey \
+  --output out/saturated-rule-composition-survey \
   --rounds 4 --timeout 8 --rss-mb 768
 ```
 

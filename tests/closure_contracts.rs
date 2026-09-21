@@ -65,7 +65,7 @@ fn subsume_is_preserved_by_native_export() {
         .unwrap();
     assert!(p.status.success(), "{}", String::from_utf8_lossy(&p.stderr));
     let s: Value =
-        serde_json::from_slice(&fs::read(root.join("run/closed-state.json")).unwrap()).unwrap();
+        serde_json::from_slice(&fs::read(root.join("run/saturated-rule-composition.json")).unwrap()).unwrap();
     assert_eq!(s["rows"].as_array().unwrap().len(), 1);
     assert_eq!(s["subsumed_rows"], serde_json::json!([0]));
     fs::remove_dir_all(root).unwrap();

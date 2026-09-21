@@ -18,9 +18,9 @@ fn native_ripen_closes_after_union_and_feeds_replayable_tier1() {
     let base = std::env::temp_dir().join(format!("ripen-tests-{}", std::process::id()));
     let _ = fs::remove_dir_all(&base);
     fs::create_dir_all(&base).unwrap();
-    let dir = base.join("closed");
+    let dir = base.join("saturated_rule_composition");
     let r = run("experiments/ripen/union-entry.egg", &dir, 8);
-    assert_eq!(r["ripen"]["state"], "Closed");
+    assert_eq!(r["ripen"]["state"], "Saturated");
     assert_eq!(r["checks"], "passed");
     assert_eq!(r["tier1"]["ripen"], r["ripen"]);
     assert!(r["ripen"]["round"].as_u64().unwrap() >= 3);
@@ -139,7 +139,7 @@ fn extracts_a_real_use_without_seeding_its_outputs() {
     let result: serde_json::Value =
         serde_json::from_slice(&fs::read(out.join("result.json")).unwrap()).unwrap();
     assert_eq!(result["checks"], "passed");
-    assert_eq!(result["ripen"]["state"], "Closed");
+    assert_eq!(result["ripen"]["state"], "Saturated");
     assert_eq!(result["ripen"]["origin"]["use_id"], uid);
     assert_eq!(result["origin"]["parameters"][0]["sort"], "Expr");
     let marker = result["origin"]["parameter_marker"].as_str().unwrap();
@@ -159,8 +159,8 @@ fn extracts_a_real_use_without_seeding_its_outputs() {
             .starts_with(&format!("({marker} "))
     }));
     let members = result["origin"]["comb_members"].as_array().unwrap();
-    assert_eq!(members[0]["use_kind"], "CoarseComb");
-    assert_eq!(members[1]["use_kind"], "SmoothComb");
+    assert_eq!(members[0]["use_kind"], "CoarseRuleComposition");
+    assert_eq!(members[1]["use_kind"], "SmoothRuleComposition");
     assert_eq!(members[1]["parents"], serde_json::json!([0]));
     assert!(
         members[1]["binding"]

@@ -20,7 +20,7 @@ pub struct Row {
     pub result: usize,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct ClosedState {
+pub struct SaturatedRuleComposition {
     pub version: usize,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub local_ids: Vec<String>,
@@ -48,13 +48,13 @@ pub enum Comparison {
         states: usize,
     },
 }
-impl ClosedState {
+impl SaturatedRuleComposition {
     fn validate(&self) -> Result<()> {
         if !self.local_ids.is_empty() && self.local_ids.len() != self.values.len() {
             return Err("invalid provenance ID count".into());
         }
         if !matches!(self.version, 1 | 2) || (self.version == 1 && !self.subsumed_rows.is_empty()) {
-            return Err("unsupported closed-state version".into());
+            return Err("unsupported saturated-rule-composition version".into());
         }
         if self.subsumed_rows.iter().any(|i| *i >= self.rows.len())
             || self.subsumed_rows.iter().collect::<BTreeSet<_>>().len() != self.subsumed_rows.len()
@@ -66,7 +66,7 @@ impl ClosedState {
                 r.result >= self.values.len() || r.args.iter().any(|i| *i >= self.values.len())
             })
         {
-            return Err("invalid closed-state reference".into());
+            return Err("invalid saturated-rule-composition reference".into());
         }
         if self.rows.iter().collect::<BTreeSet<_>>().len() != self.rows.len() {
             return Err("duplicate fact rows".into());
@@ -127,7 +127,7 @@ impl ClosedState {
         (labels, edges)
     }
 }
-fn colors(a: &ClosedState, b: &ClosedState) -> (Vec<usize>, Vec<usize>) {
+fn colors(a: &SaturatedRuleComposition, b: &SaturatedRuleComposition) -> (Vec<usize>, Vec<usize>) {
     let (la, ea) = a.graph();
     let (lb, eb) = b.graph();
     let mut labels = la;
@@ -171,7 +171,7 @@ fn colors(a: &ClosedState, b: &ClosedState) -> (Vec<usize>, Vec<usize>) {
     (c[..split].to_vec(), c[split..].to_vec())
 }
 
-pub fn compare(a: &ClosedState, b: &ClosedState, budget: usize) -> Result<Comparison> {
+pub fn compare(a: &SaturatedRuleComposition, b: &SaturatedRuleComposition, budget: usize) -> Result<Comparison> {
     a.validate()?;
     b.validate()?;
     if a.scope != b.scope {
@@ -210,7 +210,7 @@ pub fn compare(a: &ClosedState, b: &ClosedState, budget: usize) -> Result<Compar
     let mut states = 0;
     let mut exhausted = false;
     fn search(
-        a: &ClosedState,
+        a: &SaturatedRuleComposition,
         rows: &BTreeMap<Row, bool>,
         cs: &[Vec<usize>],
         map: &mut [Option<usize>],
@@ -286,8 +286,8 @@ pub fn compare(a: &ClosedState, b: &ClosedState, budget: usize) -> Result<Compar
     }
 }
 
-pub fn read(path: &Path) -> Result<ClosedState> {
-    let s: ClosedState = serde_json::from_slice(&std::fs::read(path)?)?;
+pub fn read(path: &Path) -> Result<SaturatedRuleComposition> {
+    let s: SaturatedRuleComposition = serde_json::from_slice(&std::fs::read(path)?)?;
     s.validate()?;
     Ok(s)
 }
@@ -301,19 +301,19 @@ pub fn catalog(inputs: &[std::path::PathBuf], out: &Path, budget: usize) -> Resu
         .iter()
         .map(|p| -> Result<_> {
             let report: Value = serde_json::from_slice(&std::fs::read(p.join("ripen.json"))?)?;
-            if report["ripen"]["state"] != "Closed" {
-                return Err("catalog input is not Closed".into());
+            if report["ripen"]["state"] != "Saturated" {
+                return Err("catalog input is not Saturated".into());
             }
-            if report["closed_state"]["status"] != "exported" {
+            if report["saturated_rule_composition"]["status"] != "exported" {
                 return Err(
-                    format!("ClosedState was not exported: {}", report["closed_state"]).into(),
+                    format!("SaturatedRuleComposition was not exported: {}", report["saturated_rule_composition"]).into(),
                 );
             }
             let report=json!({"ripen":report["ripen"],"source_text":report["source_text"],"origin":report["origin"]});
-            Ok((p, report, read(&p.join("closed-state.json"))?))
+            Ok((p, report, read(&p.join("saturated-rule-composition.json"))?))
         })
         .collect::<Result<_>>()?;
-    let mut states: Vec<ClosedState> = vec![];
+    let mut states: Vec<SaturatedRuleComposition> = vec![];
     let mut buckets = BTreeMap::<String, Vec<usize>>::new();
     let mut triggers = vec![];
     let mut comparisons = vec![];
@@ -338,7 +338,7 @@ pub fn catalog(inputs: &[std::path::PathBuf], out: &Path, budget: usize) -> Resu
             buckets.entry(key).or_default().push(id);
             (id, identity)
         });
-        triggers.push(json!({"source":path.canonicalize()?,"entry":report["source_text"],"origin":report["ripen"]["origin"],"binding_origin":report["origin"],"closed_state":id,"value_map":mapping,"source_value_ids":source_value_ids}));
+        triggers.push(json!({"source":path.canonicalize()?,"entry":report["source_text"],"origin":report["ripen"]["origin"],"binding_origin":report["origin"],"saturated_rule_composition":id,"value_map":mapping,"source_value_ids":source_value_ids}));
     }
     std::fs::create_dir_all(out.join("states"))?;
     for (i, state) in states.iter().enumerate() {
@@ -363,7 +363,7 @@ pub fn catalog(inputs: &[std::path::PathBuf], out: &Path, budget: usize) -> Resu
             })
             .collect();
         let key = serde_json::to_string(&json!([
-            t["closed_state"],
+            t["saturated_rule_composition"],
             t["origin"]["history"],
             t["origin"]["template"],
             signature,
@@ -375,7 +375,7 @@ pub fn catalog(inputs: &[std::path::PathBuf], out: &Path, budget: usize) -> Resu
         ]))?;
         let n = comb_groups.len();
         let g=*group_keys.entry(key).or_insert_with(||{
-            comb_groups.push(json!({"id":n,"closed_state":t["closed_state"],"template":t["origin"]["template"],"history":t["origin"]["history"],
+            comb_groups.push(json!({"id":n,"saturated_rule_composition":t["saturated_rule_composition"],"template":t["origin"]["template"],"history":t["origin"]["history"],
                 "members":members,"root_member":t["binding_origin"]["root_member"],"triggers":[]}));n
         });
         comb_groups[g]["triggers"]
@@ -384,17 +384,17 @@ pub fn catalog(inputs: &[std::path::PathBuf], out: &Path, budget: usize) -> Resu
             .push(json!(i));
     }
     let state_groups:Vec<_>=(0..states.len()).map(|id|{
-        let members:Vec<_>=triggers.iter().enumerate().filter(|(_,t)|t["closed_state"]==id).collect();
+        let members:Vec<_>=triggers.iter().enumerate().filter(|(_,t)|t["saturated_rule_composition"]==id).collect();
         let templates:BTreeSet<_>=members.iter().filter(|(_,t)|t["origin"]["template"].is_number()).map(|(_,t)|json!([t["origin"]["history"],t["origin"]["template"]]).to_string()).collect();
-        json!({"closed_state":id,"trigger_count":members.len(),"template_count":templates.len(),
+        json!({"saturated_rule_composition":id,"trigger_count":members.len(),"template_count":templates.len(),
             "triggers":members.iter().map(|(i,_)|*i).collect::<Vec<_>>(),
-            "comb_groups":comb_groups.iter().filter(|g|g["closed_state"]==id).map(|g|g["id"].clone()).collect::<Vec<_>>()})
+            "comb_groups":comb_groups.iter().filter(|g|g["saturated_rule_composition"]==id).map(|g|g["id"].clone()).collect::<Vec<_>>()})
     }).collect();
-    let report = json!({"schema":"closed-state-catalog/v1","scope":"exact complete constructor-state sharing with fixed named ports; triggers remain separate; no tier0 substitution", "unresolved_comparisons":comparisons.iter().filter(|c|c["result"]["status"]=="unknown_budget").count(),"closed_states":states.len(),"state_groups":state_groups,"comb_groups":comb_groups,"triggers":triggers,"comparisons":comparisons});
+    let report = json!({"schema":"saturated-rule-composition-catalog/v1","scope":"exact complete constructor-state sharing with fixed named ports; triggers remain separate; no tier0 substitution", "unresolved_comparisons":comparisons.iter().filter(|c|c["result"]["status"]=="unknown_budget").count(),"saturated_rule_compositions":states.len(),"state_groups":state_groups,"comb_groups":comb_groups,"triggers":triggers,"comparisons":comparisons});
     let mut dot = String::from("digraph ClosedCatalog { rankdir=LR; node [shape=box];\n");
     for (i, state) in states.iter().enumerate() {
         let label = format!(
-            "ClosedState C{i}\n{} values / {} facts",
+            "SaturatedRuleComposition C{i}\n{} values / {} facts",
             state.values.len(),
             state.rows.len()
         );
@@ -412,7 +412,7 @@ pub fn catalog(inputs: &[std::path::PathBuf], out: &Path, budget: usize) -> Resu
         dot += &format!(
             "t{i} [label={}];\nt{i} -> c{} [label=\"exact value mapping\"];\n",
             serde_json::to_string(&label)?,
-            t["closed_state"]
+            t["saturated_rule_composition"]
         );
     }
     dot += "}\n";

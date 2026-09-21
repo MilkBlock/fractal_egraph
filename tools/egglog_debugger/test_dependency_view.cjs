@@ -10,9 +10,9 @@ const fs=require('node:fs'),assert=require('node:assert/strict'),{chromium}=requ
  const root='out/dependency-candidates-math6';const manifest=JSON.parse(fs.readFileSync(root+'/rounds/manifest.json'));
  const frame=JSON.parse(fs.readFileSync(root+'/rounds/'+manifest.at(-1).stem+'.json'));
  await p.evaluate(f=>window.panel.receive(f),frame);
- await p.selectOption('#native-layer-kind','closed');
- await p.waitForSelector('#native-closed-view[data-ready=true] svg',{timeout:30000});
- assert((await p.locator('#native-closed-status').textContent()).includes('依赖候选 128'));
- assert((await p.locator('#native-closed-instance').textContent()).includes('DependencyCone #'));
+ await p.selectOption('#native-layer-kind','saturated_rule_composition');
+ await p.waitForSelector('#native-saturated-rule-composition-view[data-ready=true] svg',{timeout:30000});
+ assert((await p.locator('#native-saturated-rule-composition-status').textContent()).includes('依赖候选 128'));
+ assert((await p.locator('#native-saturated-rule-composition-instance').textContent()).includes('DependencyCone #'));
  console.log('Offline dependency candidate panel and DOT rendering passed');
 }finally{await b.close();}})().catch(e=>{console.error(e);process.exit(1)});

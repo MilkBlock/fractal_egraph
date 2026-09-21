@@ -50,7 +50,7 @@ def prune_runs(keep=RUN_LIMIT):
 
 class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
-        match = re.fullmatch(r'/api/runs/([0-9a-f]{32})/rounds/(round-[0-9]+\.(?:layers\.dot|fractals\.dot|coverage\.dot|reuse\.dot|use_fractals\.dot|closed\.dot|json)|manifest\.json)', urlsplit(self.path).path)
+        match = re.fullmatch(r'/api/runs/([0-9a-f]{32})/rounds/(round-[0-9]+\.(?:layers\.dot|fractals\.dot|coverage\.dot|reuse\.dot|use_fractals\.dot|saturated_rule_composition\.dot|json)|manifest\.json)', urlsplit(self.path).path)
         if match:
             file = ROOT / 'out' / 'debugger' / match[1] / 'rounds' / match[2]
             if not file.is_file():
@@ -116,7 +116,7 @@ class Handler(SimpleHTTPRequestHandler):
             if not 0 < length <= 2_000_000:
                 return self.reply(413, {'error': 'Source must be at most 2 MB'})
             data = json.loads(self.rfile.read(length))
-            if self.path == '/api/closed-catalog':
+            if self.path == '/api/saturated-rule-composition-catalog':
                 folder = (ROOT / data['path']).resolve()
                 if not folder.is_relative_to(ROOT / 'out'):
                     return self.reply(400, {'error':'请选择仓库 out/ 内的目录'})
@@ -125,11 +125,11 @@ class Handler(SimpleHTTPRequestHandler):
                 if not folder.is_relative_to(ROOT / 'out'):
                     raise ValueError('Catalog must remain inside out/')
                 if not (folder / 'catalog.json').is_file():
-                    return self.reply(404, {'error': f'{data["path"]} 中没有 catalog.json：请选择一次带 ClosedState 的运行目录（含 catalog/），或 out/closed-* 目录'})
+                    return self.reply(404, {'error': f'{data["path"]} 中没有 catalog.json：请选择一次带 SaturatedRuleComposition 的运行目录（含 catalog/），或 out/saturated-rule-composition-* 目录'})
                 catalog = json.loads((folder / 'catalog.json').read_text())
-                if catalog.get('schema') != 'closed-state-catalog/v1':
-                    raise ValueError('Unsupported closed-state catalog')
-                states = [json.loads((folder / 'states' / f'state-{i:04}.json').read_text()) for i in range(catalog['closed_states'])]
+                if catalog.get('schema') != 'saturated-rule-composition-catalog/v1':
+                    raise ValueError('Unsupported saturated-rule-composition catalog')
+                states = [json.loads((folder / 'states' / f'state-{i:04}.json').read_text()) for i in range(catalog['saturated_rule_compositions'])]
                 return self.reply(200, {'catalog':catalog, 'dot':(folder / 'catalog.dot').read_text(), 'states':states})
             if self.path == '/api/layer-run':
                 folder = (ROOT / data['path']).resolve()
@@ -146,8 +146,8 @@ class Handler(SimpleHTTPRequestHandler):
                         raise ValueError('旧快照没有渲染数据，请使用当前版本重新 analyze/replay')
                     frames.append(frame)
                 catalog_folder = (folder / 'catalog').resolve()
-                closed_catalog = str(catalog_folder.relative_to(ROOT)) if catalog_folder.is_relative_to(ROOT / 'out') and (catalog_folder / 'catalog.json').is_file() else None
-                return self.reply(200, {'frames':frames, 'closed_catalog':closed_catalog})
+                saturated_rule_composition_catalog = str(catalog_folder.relative_to(ROOT)) if catalog_folder.is_relative_to(ROOT / 'out') and (catalog_folder / 'catalog.json').is_file() else None
+                return self.reply(200, {'frames':frames, 'saturated_rule_composition_catalog':saturated_rule_composition_catalog})
             if self.path == '/api/preview':
                 line = data.get('line', 1)
                 data['edit_targets'] = self.server.annotations.catalog(data['source'], line)
@@ -226,7 +226,7 @@ class Handler(SimpleHTTPRequestHandler):
                 self.end_headers()
                 streaming = True
                 with (folder / 'stderr').open('w+') as errors:
-                    env = dict(os.environ, EGG_LAYOUT_CLOSED_OUTPUT=str(run_folder))
+                    env = dict(os.environ, EGG_LAYOUT_SATURATED_RULE_COMPOSITION_OUTPUT=str(run_folder))
                     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=errors, cwd=ROOT, env=env)
                     finished = threading.Event()
                     timed_out = threading.Event()
@@ -259,7 +259,7 @@ class Handler(SimpleHTTPRequestHandler):
                                 row['artifact_base'] = f'/api/runs/{run_id}/rounds/'
                                 row['artifact_directory'] = str(run_folder.relative_to(ROOT))
                                 row['stem'] = stem
-                                for kind in ('layers','fractals','coverage','reuse','use_fractals','closed'):
+                                for kind in ('layers','fractals','coverage','reuse','use_fractals','saturated_rule_composition'):
                                     if kind not in row['dots']: continue
                                     (run_folder / 'rounds' / f'{stem}.{kind}.dot').write_text(row['dots'][kind])
                                 (run_folder / 'rounds' / f'{stem}.json').write_text(json.dumps(row,ensure_ascii=False))

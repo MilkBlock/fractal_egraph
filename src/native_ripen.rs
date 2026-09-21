@@ -137,7 +137,7 @@ pub(super) fn run_with_origin(
                 collect(&eg, &trace, &mut c, &mut producers)?;
             }
             let state = if !updated {
-                "Closed"
+                "Saturated"
             } else if round == max_rounds {
                 "Suspended"
             } else {
@@ -164,8 +164,8 @@ pub(super) fn run_with_origin(
         }
         c.trace_seconds = started.elapsed().as_secs_f64();
         let feedback = feedback.unwrap();
-        let closed = feedback.state == "Closed";
-        if closed {
+        let saturated = feedback.state == "Saturated";
+        if saturated {
             eg.run_program(checks.clone())?;
         }
         let mut replay = setup
@@ -175,7 +175,7 @@ pub(super) fn run_with_origin(
             .join("\n");
         replay.push('\n');
         replay.push_str(&schedule);
-        if closed {
+        if saturated {
             replay.push_str(
                 &checks
                     .iter()
@@ -188,7 +188,7 @@ pub(super) fn run_with_origin(
         if artifacts {
             history::save(&out.join("history.json"), &source, &c)?;
         }
-        let state_export = if closed {
+        let state_export = if saturated {
             match export_state(
                 setup
                     .iter()
@@ -201,21 +201,21 @@ pub(super) fn run_with_origin(
             ) {
                 Ok(state) => {
                     std::fs::write(
-                        out.join("closed-state.json"),
+                        out.join("saturated-rule-composition.json"),
                         serde_json::to_vec_pretty(&state)?,
                     )?;
-                    json!({"status":"exported","file":"closed-state.json","values":state.values.len(),"facts":state.rows.len()})
+                    json!({"status":"exported","file":"saturated-rule-composition.json","values":state.values.len(),"facts":state.rows.len()})
                 }
                 Err(e) => json!({"status":"unavailable","reason":e.to_string()}),
             }
         } else {
-            json!({"status":"not_closed"})
+            json!({"status":"not_saturated"})
         };
         // Tier1 is the actual importer/Use builder, populated during every sweep.
-        let report = json!({"ripen":feedback,"checks":if closed{"passed"}else{"deferred"},
+        let report = json!({"ripen":feedback,"checks":if saturated{"passed"}else{"deferred"},
             "checks_count":checks.len(),"rules":c.rules.iter().map(|r|r.rule.to_string()).collect::<Vec<_>>(),
             "source":source,"source_text":text,"events":c.events,"imported_applies":c.records.len(),
-            "closed_state":state_export,"tables":table_sizes(&eg, &c.datatype)?,"tier1":c.layers.report(),"round_manifest":if artifacts {Some("rounds/manifest.json")}else{None},
+            "saturated_rule_composition":state_export,"tables":table_sizes(&eg, &c.datatype)?,"tier1":c.layers.report(),"round_manifest":if artifacts {Some("rounds/manifest.json")}else{None},
             "history":if artifacts {Some("history.json")}else{None},"seconds":c.trace_seconds,"fractal_summaries_used":0});
         std::fs::write(out.join("ripen.json"), serde_json::to_vec_pretty(&report)?)?;
         Ok(report)
@@ -255,8 +255,8 @@ fn export_state(
     c: &Captured,
     ports: &[(String, egglog::ArcSort, Value)],
     symbolic: bool,
-) -> Result<crate::closed_state::ClosedState> {
-    use crate::closed_state::{ClosedState, Row, Vertex};
+) -> Result<crate::saturated_rule_composition::SaturatedRuleComposition> {
+    use crate::saturated_rule_composition::{SaturatedRuleComposition, Row, Vertex};
     let Command::Datatype { name, variants, .. } = datatype else {
         return Err("expected datatype".into());
     };
@@ -267,7 +267,7 @@ fn export_state(
             .any(|t| t != name && !matches!(t.as_str(), "i64" | "String" | "bool"))
         || ports.iter().any(|(_, s, _)| s.name() != name)
     {
-        return Err("closed-state export currently supports one equality datatype, i64/String/bool fields and equality-sort named ports".into());
+        return Err("saturated-rule-composition export currently supports one equality datatype, i64/String/bool fields and equality-sort named ports".into());
     }
     fn constructor_expr(e: &Expr, ops: &BTreeSet<&str>) -> bool {
         match e {
@@ -292,7 +292,7 @@ fn export_state(
                 ..
             } => {
                 if merge.as_ref().is_some_and(|e| !matches!(e,Expr::Call(_,op,args) if matches!(op.as_str(),"max"|"min") && args.len()==2 && matches!((&args[0],&args[1]),(Expr::Var(_,a),Expr::Var(_,b)) if (a=="old"&&b=="new")||(a=="new"&&b=="old")))) {
-                    return Err("ClosedState sharing supports only min/max lattice merges; other merges remain uncertified".into());
+                    return Err("SaturatedRuleComposition sharing supports only min/max lattice merges; other merges remain uncertified".into());
                 }
                 tables.push((op.clone(), schema.input.clone(), schema.output.clone()));
             }
@@ -304,7 +304,7 @@ fn export_state(
         .flat_map(|(_, inputs, output)| inputs.iter().chain(std::iter::once(output)))
         .any(|t| t != name && !matches!(t.as_str(), "i64" | "String" | "bool" | "Unit"))
     {
-        return Err("unsupported table field sort in ClosedState export".into());
+        return Err("unsupported table field sort in SaturatedRuleComposition export".into());
     }
     let ops: BTreeSet<_> = variants
         .iter()
@@ -330,7 +330,7 @@ fn export_state(
             _ => false,
         });
         if !body || !head {
-            return Err("ClosedState sharing currently certifies positive constructor/equality rules only; primitive guards/actions require an explicit semantics contract".into());
+            return Err("SaturatedRuleComposition sharing currently certifies positive constructor/equality rules only; primitive guards/actions require an explicit semantics contract".into());
         }
     }
     let serialized = eg.serialize(egglog::SerializeConfig::default());
@@ -453,7 +453,7 @@ fn export_state(
     for (key, i) in ids {
         local_ids[i] = key;
     }
-    let mut state = ClosedState {
+    let mut state = SaturatedRuleComposition {
         version: 2,
         local_ids,
         scope: json!({"datatype":name,"constructors":sorted.iter().map(|v|json!({"name":v.name,"types":v.types,"cost":v.cost.map(|x|x.to_string()),"unextractable":v.unextractable})).collect::<Vec<_>>(),"rules":rules,"symbolic_boundary":symbolic,"semantics":"positive-constructor-equality/v1","ports":"fixed named globals; otherwise all facts observable"}),

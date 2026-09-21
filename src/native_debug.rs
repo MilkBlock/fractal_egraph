@@ -237,9 +237,9 @@ pub fn stream_source(
     let mut seen = BTreeSet::new();
     let mut snapshot_count = 0;
     #[cfg(not(target_arch = "wasm32"))]
-    let mut closed = std::env::var_os("EGG_LAYOUT_CLOSED_OUTPUT")
+    let mut saturated_rule_composition = std::env::var_os("EGG_LAYOUT_SATURATED_RULE_COMPOSITION_OUTPUT")
         .map(|p| {
-            closed_pipeline::Pipeline::new(
+            saturated_rule_composition_pipeline::Pipeline::new(
                 Path::new(&p),
                 Path::new(&p).join("source.egg").display().to_string(),
             )
@@ -423,10 +423,10 @@ pub fn stream_source(
                     &mut layer_analyzer,
                 )?;
                 #[cfg(not(target_arch = "wasm32"))]
-                if let Some(pipeline) = &mut closed {
-                    frame["closed"] = pipeline.step(c, &c.layers, snapshot_count)?;
-                    if let Some(dot) = frame["closed"]["catalog"]["dot"].as_str() {
-                        frame["dots"]["closed"] = json!(dot);
+                if let Some(pipeline) = &mut saturated_rule_composition {
+                    frame["saturated_rule_composition"] = pipeline.step(c, &c.layers, snapshot_count)?;
+                    if let Some(dot) = frame["saturated_rule_composition"]["catalog"]["dot"].as_str() {
+                        frame["dots"]["saturated_rule_composition"] = json!(dot);
                     }
                 }
                 emit(frame)?;

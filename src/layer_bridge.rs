@@ -18,8 +18,8 @@ pub const SCHEMA: &str = r#"
 (constructor PNil () PartialRelativeBinding)
 (constructor PCons (PartialPort PartialRelativeBinding) PartialRelativeBinding)
 (constructor Empty () Comb)
-(constructor SmoothComb (ParentCombs RuleId RelativeBinding) Comb)
-(constructor CoarseComb (ParentCombs RuleId PartialRelativeBinding) Comb)
+(constructor SmoothRuleComposition (ParentCombs RuleId RelativeBinding) Comb)
+(constructor CoarseRuleComposition (ParentCombs RuleId PartialRelativeBinding) Comb)
 (constructor NoParents () ParentCombs)
 (constructor MoreParents (Comb ParentCombs) ParentCombs)
 ; Occurrences and their evidence are a separate layer, never children of Comb.

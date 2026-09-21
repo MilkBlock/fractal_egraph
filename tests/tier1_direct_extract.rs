@@ -4,7 +4,7 @@ fn direct_extraction_recreates_exact_constructor_counts_without_instances(){
     let mut eg=egglog::EGraph::default();
     eg.parse_and_run_program(None,include_str!("../experiments/tier1_extract/existing_combs.egg")).unwrap();
     let mut total=0;
-    for name in ["Empty","SmoothComb","CoarseComb"] {
+    for name in ["Empty","SmoothRuleComposition","CoarseRuleComposition"] {
         let mut count=0;eg.function_for_each(name,|r|if !r.subsumed{count+=1}).unwrap();
         assert_eq!(report["kind_counts"][name].as_u64().unwrap(),count);total+=count;
     }

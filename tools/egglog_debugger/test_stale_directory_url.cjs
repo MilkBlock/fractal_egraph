@@ -23,7 +23,7 @@ const STALE = 'out/tools-layers-view/math';
     page.on('pageerror', e => errors.push(String(e)));
 
     // 1. A generated link still loads its directory.
-    await page.goto(`${url}?layer_run=${encodeURIComponent(STALE)}&layer_kind=closed`,
+    await page.goto(`${url}?layer_run=${encodeURIComponent(STALE)}&layer_kind=saturated_rule_composition`,
                     { waitUntil: 'networkidle' });
     await page.waitForFunction(() => document.querySelector('#native-layer-round').options.length > 0,
                                null, { timeout: 60000 });

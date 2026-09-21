@@ -43,14 +43,14 @@
       "op": "Binding",
       "subsumed": false
     },
-    "function-0-CoarseComb": {
+    "function-0-CoarseRuleComposition": {
       "children": [
         "function-0-MoreParents",
         "function-0-Rule",
         "function-2-PCons"
       ],
       "eclass": "Comb-11",
-      "op": "CoarseComb",
+      "op": "CoarseRuleComposition",
       "subsumed": false
     },
     "function-0-ECons": {
@@ -204,7 +204,7 @@
     "function-0-Occurrence": {
       "children": [
         "primitive-i64-10",
-        "function-0-CoarseComb"
+        "function-0-CoarseRuleComposition"
       ],
       "eclass": "Instance-22",
       "op": "Occurrence",
@@ -247,7 +247,7 @@
     },
     "function-0-ParentList": {
       "children": [
-        "function-0-CoarseComb",
+        "function-0-CoarseRuleComposition",
         "primitive-i64-0",
         "function-0-MoreParents"
       ],
@@ -267,9 +267,9 @@
     },
     "function-0-ParentTemplate": {
       "children": [
-        "function-1-CoarseComb",
+        "function-1-CoarseRuleComposition",
         "primitive-i64-0",
-        "function-0-CoarseComb"
+        "function-0-CoarseRuleComposition"
       ],
       "eclass": "@ParentTemplateSort-129",
       "op": "ParentTemplate",
@@ -297,7 +297,7 @@
     },
     "function-0-PartialRoutes": {
       "children": [
-        "function-0-CoarseComb",
+        "function-0-CoarseRuleComposition",
         "function-2-PCons"
       ],
       "eclass": "@PartialRoutesSort-94",
@@ -418,14 +418,14 @@
       "op": "Binding",
       "subsumed": false
     },
-    "function-1-CoarseComb": {
+    "function-1-CoarseRuleComposition": {
       "children": [
         "function-1-MoreParents",
         "function-1-Rule",
         "function-5-PCons"
       ],
       "eclass": "Comb-21",
-      "op": "CoarseComb",
+      "op": "CoarseRuleComposition",
       "subsumed": false
     },
     "function-1-ECons": {
@@ -542,7 +542,7 @@
     },
     "function-1-MoreParents": {
       "children": [
-        "function-0-CoarseComb",
+        "function-0-CoarseRuleComposition",
         "function-0-NoParents"
       ],
       "eclass": "ParentCombs-12",
@@ -552,7 +552,7 @@
     "function-1-Occurrence": {
       "children": [
         "primitive-i64-20",
-        "function-0-CoarseComb"
+        "function-0-CoarseRuleComposition"
       ],
       "eclass": "Instance-23",
       "op": "Occurrence",
@@ -589,7 +589,7 @@
     },
     "function-1-ParentList": {
       "children": [
-        "function-1-CoarseComb",
+        "function-1-CoarseRuleComposition",
         "primitive-i64-0",
         "function-1-MoreParents"
       ],
@@ -609,7 +609,7 @@
     },
     "function-1-ParentTemplate": {
       "children": [
-        "function-0-CoarseComb",
+        "function-0-CoarseRuleComposition",
         "primitive-i64-0",
         "function-0-Empty"
       ],
@@ -639,7 +639,7 @@
     },
     "function-1-PartialRoutes": {
       "children": [
-        "function-1-CoarseComb",
+        "function-1-CoarseRuleComposition",
         "function-5-PCons"
       ],
       "eclass": "@PartialRoutesSort-95",
@@ -1539,7 +1539,7 @@
     "function-2-Occurrence": {
       "children": [
         "primitive-i64-11",
-        "function-1-CoarseComb"
+        "function-1-CoarseRuleComposition"
       ],
       "eclass": "Instance-24",
       "op": "Occurrence",
@@ -1566,7 +1566,7 @@
     },
     "function-2-ParentList": {
       "children": [
-        "function-1-CoarseComb",
+        "function-1-CoarseRuleComposition",
         "primitive-i64-1",
         "function-0-NoParents"
       ],
@@ -1900,7 +1900,7 @@
     "function-3-Occurrence": {
       "children": [
         "primitive-i64-21",
-        "function-1-CoarseComb"
+        "function-1-CoarseRuleComposition"
       ],
       "eclass": "Instance-25",
       "op": "Occurrence",
@@ -1927,7 +1927,7 @@
     },
     "function-3-ParentList": {
       "children": [
-        "function-0-CoarseComb",
+        "function-0-CoarseRuleComposition",
         "primitive-i64-1",
         "function-0-NoParents"
       ],

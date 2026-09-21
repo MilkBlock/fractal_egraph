@@ -1,13 +1,13 @@
 (include "research/legacy_tier1.egg")
 ; A shared R10 -> R15 template. R15 receives x,s from R10, root d externally.
-(let $r10 (CoarseComb (MoreParents (Empty) (NoParents)) (Rule "R10") (PCons (External 0 "Math") (PCons (External 1 "Math") (PCons (External 2 "Math") (PNil))))))
+(let $r10 (CoarseRuleComposition (MoreParents (Empty) (NoParents)) (Rule "R10") (PCons (External 0 "Math") (PCons (External 1 "Math") (PCons (External 2 "Math") (PNil))))))
 (let $parents (MoreParents $r10 (NoParents)))
 (let $rho (PCons (Local (ParentPort 0 0 "Math"))
             (PCons (Local (ParentPort 0 1 "Math"))
               (PCons (External 0 "Math") (PNil)))))
-(let $comb (CoarseComb $parents (Rule "R15") $rho))
+(let $comb (CoarseRuleComposition $parents (Rule "R15") $rho))
 ; Reconstructing the same template hashconses despite different occurrences.
-(let $same (CoarseComb (MoreParents (CoarseComb (MoreParents (Empty) (NoParents)) (Rule "R10") (PCons (External 0 "Math") (PCons (External 1 "Math") (PCons (External 2 "Math") (PNil))))) (NoParents)) (Rule "R15") $rho))
+(let $same (CoarseRuleComposition (MoreParents (CoarseRuleComposition (MoreParents (Empty) (NoParents)) (Rule "R10") (PCons (External 0 "Math") (PCons (External 1 "Math") (PCons (External 2 "Math") (PNil))))) (NoParents)) (Rule "R15") $rho))
 (check (= $comb $same))
 (let $r10a (Occurrence 10 $r10))
 (let $r10b (Occurrence 20 $r10))

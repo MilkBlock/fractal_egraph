@@ -85,9 +85,9 @@ fn wildcard_rule_survives_capture_ripen_and_history_replay() {
         .unwrap();
     assert!(p.status.success(), "{}", String::from_utf8_lossy(&p.stderr));
     let q: Value =
-        serde_json::from_slice(&fs::read(out.join("closed/queue.json")).unwrap()).unwrap();
-    assert!(q["counts"]["Closed"].as_u64().unwrap_or(0) > 0, "{q}");
-    for cell in fs::read_dir(out.join("closed/cells")).unwrap() {
+        serde_json::from_slice(&fs::read(out.join("saturated-rule-composition/queue.json")).unwrap()).unwrap();
+    assert!(q["counts"]["Saturated"].as_u64().unwrap_or(0) > 0, "{q}");
+    for cell in fs::read_dir(out.join("saturated-rule-composition/cells")).unwrap() {
         assert!(
             !fs::read_to_string(cell.unwrap().path().join("entry.egg"))
                 .unwrap()

@@ -85,8 +85,8 @@ witness is recorded in the evidence file.}
 \draw[arr] (l1)--node[above,font=\small]{$R_{\rm comm}$}(r1);
 \draw[reuse] (r0.south)--++(0,-8mm)-|node[pos=.25,above,font=\small]{$v=a+b$; same $c$}(l1.north);
 \begin{scope}[on background layer]
-\node[clayer,fit=(l0)(r0),label={[font=\small,text=coarsepurple]above:coarse rule layer $C_0$: one coarse composition}] {};
-\node[slayer,fit=(l1)(r1),label={[font=\small,text=smoothteal]below:smooth rule layer $S_0$: one smooth composition}] {};
+\node[clayer,fit=(l0)(r0),label={[font=\small,text=coarsepurple]above:coarse rule layer $C_0$: one coarse rule composition}] {};
+\node[slayer,fit=(l1)(r1),label={[font=\small,text=smoothteal]below:smooth rule layer $S_0$: one smooth rule composition}] {};
 \end{scope}
 \end{tikzpicture}
 \caption{A concrete CS unit from \texttt{math.egg}. The first step requires the

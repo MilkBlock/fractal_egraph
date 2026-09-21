@@ -17,7 +17,7 @@ pub(super) struct Pipeline {
     attempted_templates: BTreeSet<usize>,
     omitted: usize,
     cache: BTreeMap<String, PathBuf>,
-    closed: Vec<PathBuf>,
+    saturated_rule_compositions: Vec<PathBuf>,
     total: usize,
     per_boundary: usize,
     rounds: usize,
@@ -47,7 +47,7 @@ impl Pipeline {
             attempted_templates: BTreeSet::new(),
             omitted: 0,
             cache: BTreeMap::new(),
-            closed: vec![],
+            saturated_rule_compositions: vec![],
             total: limit("EGG_LAYOUT_RIPEN_JOBS", 32)?.min(256),
             per_boundary: limit("EGG_LAYOUT_RIPEN_PER_BOUNDARY", 4)?.min(256),
             rounds: limit("EGG_LAYOUT_RIPEN_ROUNDS", 4)?.max(1),
@@ -176,7 +176,7 @@ impl Pipeline {
                 let key = serde_json::to_string(&(&source, &validation))?;
                 let folder = self
                     .out
-                    .join("closed/cells")
+                    .join("saturated-rule-composition/cells")
                     .join(format!("{}-{id:06}", kind.as_str()));
                 std::fs::create_dir_all(&folder)?;
                 let link = if dependency {
@@ -198,10 +198,10 @@ impl Pipeline {
                     if report["tier1"]["ripen"].is_object() {
                         report["tier1"]["ripen"]["origin"] = serde_json::to_value(&link)?;
                     }
-                    if previous.join("closed-state.json").exists() {
+                    if previous.join("saturated-rule-composition.json").exists() {
                         std::fs::copy(
-                            previous.join("closed-state.json"),
-                            folder.join("closed-state.json"),
+                            previous.join("saturated-rule-composition.json"),
+                            folder.join("saturated-rule-composition.json"),
                         )?;
                     }
                     report["source"] = json!(folder.join("entry.egg"));
@@ -209,7 +209,7 @@ impl Pipeline {
                 } else {
                     // Native ripen runs in the same process. Compact mode omits
                     // history and per-cell DOT, but retains tier1 feedback.
-                    let entry = self.out.join("closed").join(format!("entry-{id:06}.egg"));
+                    let entry = self.out.join("saturated-rule-composition").join(format!("entry-{id:06}.egg"));
                     std::fs::write(&entry, &source)?;
                     report = ripen::run_with_origin(
                         &entry,
@@ -219,10 +219,10 @@ impl Pipeline {
                         false,
                         true,
                     )?;
-                    if folder.join("work/closed-state.json").exists() {
+                    if folder.join("work/saturated-rule-composition.json").exists() {
                         std::fs::rename(
-                            folder.join("work/closed-state.json"),
-                            folder.join("closed-state.json"),
+                            folder.join("work/saturated-rule-composition.json"),
+                            folder.join("saturated-rule-composition.json"),
                         )?;
                     }
                     std::fs::write(folder.join("entry.egg"), &source)?;
@@ -249,14 +249,14 @@ impl Pipeline {
                 }
                 report["origin"] = origin;
                 std::fs::write(folder.join("ripen.json"), serde_json::to_vec(&report)?)?;
-                if report["closed_state"]["status"] == "exported" {
-                    self.closed.push(folder);
+                if report["saturated_rule_composition"]["status"] == "exported" {
+                    self.saturated_rule_compositions.push(folder);
                     if matches!(kind.as_str(), "CSCS" | "CCSS") {
                         self.cs.promote(id, &report);
                     }
                 }
                 Ok(
-                    json!({"state":report["ripen"]["state"],"export":report["closed_state"],
+                    json!({"state":report["ripen"]["state"],"export":report["saturated_rule_composition"],
                     "cache_hit":cached.is_some(),"ripen":report["ripen"]}),
                 )
             })();
@@ -289,20 +289,20 @@ impl Pipeline {
                 .entry(j["state"].as_str().unwrap().into())
                 .or_default() += 1;
         }
-        let mut report = json!({"kind":"closed_snapshot","boundary":boundary,"jobs":self.jobs,
+        let mut report = json!({"kind":"saturated_rule_composition_snapshot","boundary":boundary,"jobs":self.jobs,
             "cs":self.cs.report(),"counts":counts,"observed_uses":self.observed,"dependency_candidates":self.dependency_jobs,"not_queued":self.omitted,
             "limits":{"jobs":self.total,"per_boundary":self.per_boundary,"rounds":self.rounds,"milliseconds_between_jobs":self.milliseconds,"queue_capacity":256},
             "selection":"unattempted templates first; exact source plus validation required for cache reuse",
             "scope":"symbolic Use interface only; no tier0 replacement; budgets checked between jobs, not a hard per-rule time/memory limit",
             "catalog":null});
-        if !self.closed.is_empty() {
+        if !self.saturated_rule_compositions.is_empty() {
             let dir = self.out.join("catalog");
             if self.catalog_owned {
                 std::fs::remove_dir_all(&dir)?;
             }
-            let catalog = crate::closed_state::catalog(&self.closed, &dir, 10000)?;
+            let catalog = crate::saturated_rule_composition::catalog(&self.saturated_rule_compositions, &dir, 10000)?;
             self.catalog_owned = true;
-            let n = catalog["closed_states"].as_u64().unwrap();
+            let n = catalog["saturated_rule_compositions"].as_u64().unwrap();
             let states = (0..n)
                 .map(|i| -> Result<Json> {
                     Ok(serde_json::from_slice(&std::fs::read(
@@ -312,9 +312,9 @@ impl Pipeline {
                 .collect::<Result<Vec<_>>>()?;
             report["catalog"] = json!({"catalog":catalog,"states":states,"dot":std::fs::read_to_string(dir.join("catalog.dot"))?});
         }
-        std::fs::create_dir_all(self.out.join("closed"))?;
+        std::fs::create_dir_all(self.out.join("saturated-rule-composition"))?;
         std::fs::write(
-            self.out.join("closed/queue.json"),
+            self.out.join("saturated-rule-composition/queue.json"),
             serde_json::to_vec_pretty(&report)?,
         )?;
         Ok(report)

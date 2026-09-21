@@ -9,7 +9,7 @@ use std::fmt::Write as _;
 pub(super) struct Exporter {
     frames: Vec<Json>,
     analyzer: layer_patterns::Analyzer,
-    closed: Option<closed_pipeline::Pipeline>,
+    saturated_rule_composition: Option<saturated_rule_composition_pipeline::Pipeline>,
 }
 fn quoted(s: &str) -> String {
     serde_json::to_string(s).unwrap()
@@ -86,7 +86,7 @@ fn layer_graph(s: &LayerStore) -> Json {
     let mut nodes = vec![];
     let mut edges = vec![];
     for (i, o) in s.occurrences.iter().enumerate() {
-        let kind = if matches!(s.combs[o.comb].kind, CombKind::CoarseComb) {
+        let kind = if matches!(s.combs[o.comb].kind, CombKind::CoarseRuleComposition) {
             "coarse"
         } else {
             "smooth"
@@ -304,9 +304,9 @@ fn reuse_graph(s: &LayerStore) -> Json {
                         name(&a.rule),
                         a.event,
                         if residual.coarse {
-                            "CoarseComb residual"
+                            "CoarseRuleComposition residual"
                         } else {
-                            "SmoothComb residual"
+                            "SmoothRuleComposition residual"
                         }
                     ),
                     if residual.coarse { "coarse" } else { "smooth" },
@@ -421,9 +421,9 @@ pub(super) fn snapshot(
     )
 }
 impl Exporter {
-    pub fn with_closed(out: &Path) -> Result<Self> {
+    pub fn with_saturated_rule_composition(out: &Path) -> Result<Self> {
         Ok(Self {
-            closed: Some(closed_pipeline::Pipeline::new(
+            saturated_rule_composition: Some(saturated_rule_composition_pipeline::Pipeline::new(
                 out,
                 out.join("source.egg").display().to_string(),
             )?),
@@ -442,12 +442,12 @@ impl Exporter {
         source: &str,
     ) -> Result {
         let mut frame = snapshot(s, b, self.frames.len() + 1, source, &mut self.analyzer)?;
-        if let Some(pipeline) = &mut self.closed
+        if let Some(pipeline) = &mut self.saturated_rule_composition
             && b.ripen.is_none()
         {
-            frame["closed"] = pipeline.step(c, s, self.frames.len() + 1)?;
-            if let Some(dot) = frame["closed"]["catalog"]["dot"].as_str() {
-                frame["dots"]["closed"] = json!(dot);
+            frame["saturated_rule_composition"] = pipeline.step(c, s, self.frames.len() + 1)?;
+            if let Some(dot) = frame["saturated_rule_composition"]["catalog"]["dot"].as_str() {
+                frame["dots"]["saturated_rule_composition"] = json!(dot);
             }
         }
         let stem = frame["stem"].as_str().unwrap();
@@ -459,7 +459,7 @@ impl Exporter {
             "coverage",
             "reuse",
             "use_fractals",
-            "closed",
+            "saturated_rule_composition",
         ] {
             if frame["dots"][kind].is_null() {
                 continue;

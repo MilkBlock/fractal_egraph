@@ -1,5 +1,5 @@
 (datatype Expr (B) (A))
-; Different declaration order, rule names and entry. Same closed state.
+; Different declaration order, rule names and entry. Same saturated rule composition.
 (rewrite (B) (A) :name "backward")
 (rewrite (A) (B) :name "forward")
 (let root (B))

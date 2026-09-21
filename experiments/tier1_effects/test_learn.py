@@ -14,7 +14,7 @@ class DagEncodingTests(unittest.TestCase):
         self.assertEqual(len(p2['args'][1]['args']),2)
         self.assertNotIn('Occurrence',json.dumps(p))
     def test_cycle_is_not_silently_unrolled(self):
-        g={'nodes':{'n':{'op':'CoarseComb','eclass':'Comb-0','children':['n']}}}
+        g={'nodes':{'n':{'op':'CoarseRuleComposition','eclass':'Comb-0','children':['n']}}}
         with self.assertRaisesRegex(ValueError,'cyclic'):
             encode(['Comb-0'],g)
 

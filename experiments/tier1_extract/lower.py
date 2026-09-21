@@ -87,13 +87,13 @@ class Lower:
     def apply(self,event):
         if event in self.memo:return self.memo[event]
         i=self.occ[event];t=self.tree(i['template']);kind=t[0]
-        if kind not in ('SmoothComb','CoarseComb'):raise Unsupported('non-application template')
+        if kind not in ('SmoothRuleComposition','CoarseRuleComposition'):raise Unsupported('non-application template')
         parent_trees=self.sequence(t[1],'MoreParents','NoParents')
         real=[self.occ[p]['template'] for p in i['parents']]
         assert parent_trees==([self.tree(c) for c in real] or [['Empty']]),'parent occurrence/template mismatch'
         parents=[self.apply(p) for p in i['parents']]
         rid=t[2][1];rule=self.rules[rid]
-        ports=self.sequence(t[3],*('RCons','RNil') if kind=='SmoothComb' else ('PCons','PNil'))
+        ports=self.sequence(t[3],*('RCons','RNil') if kind=='SmoothRuleComposition' else ('PCons','PNil'))
         assert len(ports)==len(i['inputs']),'input schema mismatch'
         env={};reads={};external={};calls={}
         for port,slot in zip(ports,i['inputs']):

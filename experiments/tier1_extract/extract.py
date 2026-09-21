@@ -56,7 +56,7 @@ def extract(data,rule_dictionary=None):
     for c in order:
         n=nodes[chosen[c]];body=expression(c,False)
         meta={'eclass':c,'selected_native_node':chosen[c],'name':names[c],'kind':n['op'],'instance_references':usage[c],'tree_cost':costs[c]}
-        if n['op'] in ['SmoothComb','CoarseComb']:
+        if n['op'] in ['SmoothRuleComposition','CoarseRuleComposition']:
             rule_node=nodes[chosen[nodes[n['children'][1]]['eclass']]]
             assert rule_node['op']=='Rule'
             literal=nodes[chosen[nodes[rule_node['children'][0]]['eclass']]]['op']
@@ -70,7 +70,7 @@ def extract(data,rule_dictionary=None):
             child=nodes[node_id]['eclass']
             if child in names:parents.append(names[child]);return
             for child_id in nodes[chosen[child]]['children']:parent_refs(child_id)
-        if n['op'] in ['SmoothComb','CoarseComb']:parent_refs(n['children'][0])
+        if n['op'] in ['SmoothRuleComposition','CoarseRuleComposition']:parent_refs(n['children'][0])
         meta['parent_combs']=parents
 
         text.append('; @tier1-extract '+json.dumps(meta,ensure_ascii=False))

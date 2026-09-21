@@ -10,8 +10,8 @@ Tier1 的权威表示现在是 `src/coarse_smooth.rs::LayerStore`，不是 `.egg
 | 旧术语 | 新位置及语义 |
 |---|---|
 | `Comb` | `Comb` 共享定义，规则源（含 guard/literal）、规范化父连接、binding、alias、effect 形状；不包含实际 event/value ID |
-| `CoarseComb` | `CombKind::CoarseComb`；首次接入外部值/事实，或为跨层依赖显式重开接口 |
-| `SmoothComb` | `CombKind::SmoothComb`；已声明依赖提供所需输入与事实，无额外注入 |
+| `CoarseRuleComposition` | `CombKind::CoarseRuleComposition`；首次接入外部值/事实，或为跨层依赖显式重开接口 |
+| `SmoothRuleComposition` | `CombKind::SmoothRuleComposition`；已声明依赖提供所需输入与事实，无额外注入 |
 | `Empty` | 空父列表；种子 apply 统一作为 coarse 入口，不再建立 Empty 实例 |
 | `ParentCombs` / `ParentAt` | `Apply.parents`；允许多个来源，保留汇合 DAG，不枚举组合子图 |
 | `RelativeBinding` / `ParentPort` | 按输入顺序的稀疏接线，精确指向父 occurrence 的输出槽位 |

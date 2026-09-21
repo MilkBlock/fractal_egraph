@@ -1,8 +1,8 @@
-use egg_layout::closed_state::*;
+use egg_layout::saturated_rule_composition::*;
 use serde_json::json;
 use std::collections::BTreeMap;
-fn state() -> ClosedState {
-    ClosedState {
+fn state() -> SaturatedRuleComposition {
+    SaturatedRuleComposition {
         version: 1,
         local_ids: vec![],
         subsumed_rows: vec![],
@@ -89,12 +89,12 @@ fn equal_counts_do_not_hide_different_literals_or_facts() {
 #[test]
 fn different_native_triggers_share_one_state() {
     use std::{fs, process::Command};
-    let base = std::env::temp_dir().join(format!("closed-state-{}", std::process::id()));
+    let base = std::env::temp_dir().join(format!("saturated-rule-composition-{}", std::process::id()));
     let _ = fs::remove_dir_all(&base);
     fs::create_dir_all(&base).unwrap();
     for (name, source) in [
-        ("a", "experiments/closed-state/from-a.egg"),
-        ("b", "experiments/closed-state/from-b.egg"),
+        ("a", "experiments/saturated-rule-composition/from-a.egg"),
+        ("b", "experiments/saturated-rule-composition/from-b.egg"),
     ] {
         let output = Command::new(env!("CARGO_BIN_EXE_egg_layout"))
             .args(["ripen", source, base.join(name).to_str().unwrap()])
@@ -106,8 +106,8 @@ fn different_native_triggers_share_one_state() {
             String::from_utf8_lossy(&output.stderr)
         );
     }
-    let a = read(&base.join("a/closed-state.json")).unwrap();
-    let b = read(&base.join("b/closed-state.json")).unwrap();
+    let a = read(&base.join("a/saturated-rule-composition.json")).unwrap();
+    let b = read(&base.join("b/saturated-rule-composition.json")).unwrap();
     assert_eq!(a.rows.len(), 2);
     assert_eq!(a.values.len(), 1);
     assert!(matches!(
@@ -120,7 +120,7 @@ fn different_native_triggers_share_one_state() {
         100,
     )
     .unwrap();
-    assert_eq!(r["closed_states"], 1);
+    assert_eq!(r["saturated_rule_compositions"], 1);
     assert_eq!(r["triggers"].as_array().unwrap().len(), 2);
     assert_ne!(r["triggers"][0]["entry"], r["triggers"][1]["entry"]);
     fs::remove_dir_all(base).unwrap();
@@ -181,8 +181,8 @@ fn native_export_keeps_literals_and_global_ports() {
     };
     let a = run("one", "(datatype E (N i64) (S String)) (N 1) (S \"x\")");
     let b = run("two", "(datatype E (N i64) (S String)) (N 2) (S \"x\")");
-    let aa = read(&a.join("closed-state.json")).unwrap();
-    let bb = read(&b.join("closed-state.json")).unwrap();
+    let aa = read(&a.join("saturated-rule-composition.json")).unwrap();
+    let bb = read(&b.join("saturated-rule-composition.json")).unwrap();
     assert!(
         aa.values
             .iter()
@@ -196,8 +196,8 @@ fn native_export_keeps_literals_and_global_ports() {
     let b = run("root-b", "(datatype E (A) (B)) (A) (let root (B))");
     assert!(matches!(
         compare(
-            &read(&a.join("closed-state.json")).unwrap(),
-            &read(&b.join("closed-state.json")).unwrap(),
+            &read(&a.join("saturated-rule-composition.json")).unwrap(),
+            &read(&b.join("saturated-rule-composition.json")).unwrap(),
             100
         )
         .unwrap(),
@@ -209,9 +209,9 @@ fn native_export_keeps_literals_and_global_ports() {
     );
     let report: serde_json::Value =
         serde_json::from_slice(&fs::read(out.join("ripen.json")).unwrap()).unwrap();
-    assert_eq!(report["ripen"]["state"], "Closed");
-    assert_eq!(report["closed_state"]["status"], "unavailable");
-    assert!(!out.join("closed-state.json").exists());
+    assert_eq!(report["ripen"]["state"], "Saturated");
+    assert_eq!(report["saturated_rule_composition"]["status"], "unavailable");
+    assert!(!out.join("saturated-rule-composition.json").exists());
     assert!(catalog(&[out], &base.join("invalid-catalog"), 100).is_err());
     fs::remove_dir_all(base).unwrap();
 }

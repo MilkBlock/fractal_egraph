@@ -4,7 +4,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     const panel=document.createElement('details');panel.id='native-layer-panel';panel.open=true;
     panel.innerHTML=`<summary>Layer / FractalComb · 每轮 DOT</summary>
       <div><select id="native-layer-round" aria-label="Layer 轮次"></select>
-      <select id="native-layer-kind"><option value="fractals">FractalComb</option><option value="closed">ClosedState / Closed rule comb</option><option value="layers">Coarse / Smooth layers</option><option value="coverage">模板覆盖</option><option value="reuse">Use(T) / residual 复用</option><option value="use_fractals">Use(T) 递归候选</option></select>
+      <select id="native-layer-kind"><option value="fractals">FractalComb</option><option value="saturated_rule_composition">Saturated rule composition</option><option value="layers">Coarse / Smooth layers</option><option value="coverage">模板覆盖</option><option value="reuse">Use(T) / residual 复用</option><option value="use_fractals">Use(T) 递归候选</option></select>
       <select id="native-layer-scope" aria-label="Layer 或 Fractal"><option value="">全部</option></select>
       <select id="native-layer-format"><option value="dot">DOT / Graphviz</option><option value="typst">Typst / 现有 Fractal 模板</option></select>
       <button id="native-layer-render">显示</button><button id="native-layer-download">下载本轮 DOT</button></div>
@@ -13,59 +13,59 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
       <div id="native-layer-viewport"></div><pre id="native-layer-error"></pre>
       <details><summary>返回 binding、条件与 effect 证据</summary><pre id="native-layer-details"></pre></details>
       <details><summary>当前 Typst / DOT 源码</summary><pre id="native-layer-code"></pre></details>`;
-    const catalogPanel=document.createElement('section');catalogPanel.hidden=true;catalogPanel.innerHTML=`<p>ClosedState / Closed rule comb · 每轮处理进度与共享闭包</p><input hidden id="native-closed-path" placeholder="out/ 中的 closed-catalog 目录"><button hidden id="native-closed-load">载入共享目录</button><select id="native-closed-state" aria-label="共享闭包"><option value="">全部概览</option></select><select id="native-closed-comb" aria-label="对应组合"><option value="">所有对应组合</option></select><select id="native-closed-instance" aria-label="触发实例"><option value="">示例实例</option></select><select id="native-closed-diagram" aria-label="ClosedState 图类型"><option value="comb">来源 rule comb</option><option value="cs">CSCS / CCSS 引用组合</option><option value="egraph">闭包 e-graph</option><option value="layers">来源 Coarse / Smooth layer</option></select><div id="native-closed-caption"></div><div id="native-closed-status"></div><div id="native-closed-table"></div><div id="native-closed-view"></div><pre id="native-closed-rule" style="white-space:pre-wrap"></pre><pre id="native-closed-details"></pre>`;panel.append(catalogPanel);
-    const cp=id=>catalogPanel.querySelector('#native-closed-'+id);
+    const catalogPanel=document.createElement('section');catalogPanel.hidden=true;catalogPanel.innerHTML=`<p>Saturated rule composition · 每轮处理进度与共享闭包</p><input hidden id="native-saturated-rule-composition-path" placeholder="out/ 中的 saturated-rule-composition-catalog 目录"><button hidden id="native-saturated-rule-composition-load">载入共享目录</button><select id="native-saturated-rule-composition" aria-label="共享闭包"><option value="">全部概览</option></select><select id="native-saturated-rule-composition-comb" aria-label="对应组合"><option value="">所有对应组合</option></select><select id="native-saturated-rule-composition-instance" aria-label="触发实例"><option value="">示例实例</option></select><select id="native-saturated-rule-composition-diagram" aria-label="SaturatedRuleComposition 图类型"><option value="comb">来源 rule comb</option><option value="cs">CSCS / CCSS 引用组合</option><option value="egraph">闭包 e-graph</option><option value="layers">来源 Coarse / Smooth layer</option></select><div id="native-saturated-rule-composition-caption"></div><div id="native-saturated-rule-composition-status"></div><div id="native-saturated-rule-composition-table"></div><div id="native-saturated-rule-composition-view"></div><pre id="native-saturated-rule-composition-rule" style="white-space:pre-wrap"></pre><pre id="native-saturated-rule-composition-details"></pre>`;panel.append(catalogPanel);
+    const cp=id=>catalogPanel.querySelector('#native-saturated-rule-composition'+(id==='state'?'':'-'+id));
     let catalogData=null,catalogVersion=0,catalogError=null;
-    const NO_CATALOG='尚无 ClosedState 快照：请先「运行并识别」（它会自动跑有预算的 ripen 队列），或在目录框载入一次带 ClosedState 的运行目录（含 catalog/）。Pending / Suspended 不代表已闭合。';
-    const STALE_SNAPSHOTS='该目录的每轮快照里没有 ClosedState 数据（生成于 ClosedState 管线接入之前）。请用当前版本重新 analyze，或用「运行并识别」重跑一次。';
+    const NO_CATALOG='尚无 SaturatedRuleComposition 快照：请先「运行并识别」（它会自动跑有预算的 ripen 队列），或在目录框载入一次带 SaturatedRuleComposition 的运行目录（含 catalog/）。Pending / Suspended 不代表已闭合。';
+    const STALE_SNAPSHOTS='该目录的每轮快照里没有 SaturatedRuleComposition 数据（生成于 SaturatedRuleComposition 管线接入之前）。请用当前版本重新 analyze，或用「运行并识别」重跑一次。';
     function catalogGraph(){
         const c=catalogData.catalog,scope=cp('state').value,nodes=[],edges=[];
-        const states=(c.state_groups||[]).filter(g=>scope===''||g.closed_state===Number(scope));
-        for(const state of states)nodes.push({id:'c'+state.closed_state,label:`ClosedState C${state.closed_state}\n${state.trigger_count} Uses / ${state.template_count} templates`,kind:'fractal',detail:state});
+        const states=(c.state_groups||[]).filter(g=>scope===''||g.saturated_rule_composition===Number(scope));
+        for(const state of states)nodes.push({id:'c'+state.saturated_rule_composition,label:`SaturatedRuleComposition C${state.saturated_rule_composition}\n${state.trigger_count} Uses / ${state.template_count} templates`,kind:'fractal',detail:state});
         for(const g of c.comb_groups||[]){
-            if(scope!==''&&g.closed_state!==Number(scope))continue;
+            if(scope!==''&&g.saturated_rule_composition!==Number(scope))continue;
             if(cp('comb').value!==''&&g.id!==Number(cp('comb').value))continue;
             if(cp('instance').value!==''&&!g.triggers.includes(Number(cp('instance').value)))continue;
             const members=cp('instance').value!==''?(selectedTrigger()?.binding_origin?.comb_members||g.members):g.members;
             const label=g.template===null?`入口 ${g.id}`:`T${g.template}`;
-            nodes.push({id:'g'+g.id,label:`${label} · ${g.triggers.length} Uses\n`+g.members.map(m=>(m.use_kind==='CoarseComb'?'C:':'S:')+m.rule_name).join(' / '),kind:'template',detail:g});
+            nodes.push({id:'g'+g.id,label:`${label} · ${g.triggers.length} Uses\n`+g.members.map(m=>(m.use_kind==='CoarseRuleComposition'?'C:':'S:')+m.rule_name).join(' / '),kind:'template',detail:g});
             if(scope!==''&&members.length){
                 for(const m of members){
                     const id=`g${g.id}m${m.slot}`;
-                    nodes.push({id,label:`${m.use_kind} · ${m.rule_name}`,kind:m.use_kind==='CoarseComb'?'coarse':'smooth',detail:{group:g.id,member:m}});
+                    nodes.push({id,label:`${m.use_kind} · ${m.rule_name}`,kind:m.use_kind==='CoarseRuleComposition'?'coarse':'smooth',detail:{group:g.id,member:m}});
                     if(!m.parents.length)edges.push({from:'g'+g.id,to:id,label:'entry'});
                     const linked=new Set();
                     for(const [input,w] of (m.binding||[]).entries())if(w.Local){linked.add(w.Local.member);edges.push({from:`g${g.id}m${w.Local.member}`,to:id,label:`out${w.Local.output} → in${input}`});}
                     for(const parent of m.parents)if(!linked.has(parent))edges.push({from:`g${g.id}m${parent}`,to:id,label:'context dependency'});
                 }
-                edges.push({from:'g'+g.id,to:'c'+g.closed_state,label:'ripen whole comb'});
-            }else edges.push({from:'g'+g.id,to:'c'+g.closed_state,label:'exact state mapping'});
+                edges.push({from:'g'+g.id,to:'c'+g.saturated_rule_composition,label:'ripen whole comb'});
+            }else edges.push({from:'g'+g.id,to:'c'+g.saturated_rule_composition,label:'exact state mapping'});
         }
-        return {nodes,edges,sinks:states.map(s=>'c'+s.closed_state)};
+        return {nodes,edges,sinks:states.map(s=>'c'+s.saturated_rule_composition)};
     }
     function catalogTable(){
         const c=catalogData.catalog,scope=cp('state').value;cp('table').replaceChildren();
         const note=document.createElement('p');note.textContent='C/S 按此 Use 的直接记录依赖分类；原始 Coarse/Smooth layer 编号在详情中。关联不表示完整覆盖，符号入口等价不表示任意具体参数都 closed。';cp('table').append(note);
         const table=document.createElement('table'),head=document.createElement('tr');
-        for(const title of scope===''?['ClosedState','Use 实例','不同模板','查看']:['组合模板','Coarse / Smooth 成员','Use 数','查看']){const th=document.createElement('th');th.textContent=title;head.append(th);}table.append(head);
-        const rows=scope===''?(c.state_groups||[]):(c.comb_groups||[]).filter(g=>g.closed_state===Number(scope));
+        for(const title of scope===''?['SaturatedRuleComposition','Use 实例','不同模板','查看']:['组合模板','Coarse / Smooth 成员','Use 数','查看']){const th=document.createElement('th');th.textContent=title;head.append(th);}table.append(head);
+        const rows=scope===''?(c.state_groups||[]):(c.comb_groups||[]).filter(g=>g.saturated_rule_composition===Number(scope));
         for(const row of rows){
-            const tr=document.createElement('tr'),values=scope===''?[`C${row.closed_state}`,row.trigger_count,row.template_count]:[`T${row.template??'—'}`,row.members.map(m=>(m.use_kind==='CoarseComb'?'C:':'S:')+m.rule_name).join(' / '),row.triggers.length];
+            const tr=document.createElement('tr'),values=scope===''?[`C${row.saturated_rule_composition}`,row.trigger_count,row.template_count]:[`T${row.template??'—'}`,row.members.map(m=>(m.use_kind==='CoarseRuleComposition'?'C:':'S:')+m.rule_name).join(' / '),row.triggers.length];
             for(const value of values){const td=document.createElement('td');td.textContent=value;tr.append(td);}
             const td=document.createElement('td'),button=document.createElement('button');button.textContent=scope===''?'展开组合':'实例与 layer';
-            button.onclick=()=>{if(scope===''){cp('state').value=String(row.closed_state);combOptions();renderCatalog();}else focusComb(row);};td.append(button);tr.append(td);table.append(tr);
+            button.onclick=()=>{if(scope===''){cp('state').value=String(row.saturated_rule_composition);combOptions();renderCatalog();}else focusComb(row);};td.append(button);tr.append(td);table.append(tr);
         }
         cp('table').append(table);
     }
     function combOptions(){
         cp('comb').replaceChildren(new Option('所有对应组合',''));
-        for(const g of catalogData?.catalog.comb_groups||[])if(cp('state').value===''||g.closed_state===Number(cp('state').value))cp('comb').add(new Option(`T${g.template??'—'} · ${g.triggers.length} Uses`,String(g.id)));
+        for(const g of catalogData?.catalog.comb_groups||[])if(cp('state').value===''||g.saturated_rule_composition===Number(cp('state').value))cp('comb').add(new Option(`T${g.template??'—'} · ${g.triggers.length} Uses`,String(g.id)));
         instanceOptions();
     }
     function instanceOptions(){
         cp('instance').replaceChildren(new Option('示例实例',''));
         for(const [i,t] of (catalogData?.catalog.triggers||[]).entries()){
-            if(cp('state').value!==''&&t.closed_state!==Number(cp('state').value))continue;
+            if(cp('state').value!==''&&t.saturated_rule_composition!==Number(cp('state').value))continue;
             if(cp('comb').value!==''&&!catalogData.catalog.comb_groups[Number(cp('comb').value)].triggers.includes(i))continue;
             cp('instance').add(new Option(t.origin?.candidate_id!==undefined?`${t.origin.candidate_kind} #${t.origin.candidate_id}`:`U${t.origin?.use_id??i} · T${t.origin?.template??'—'}`,String(i)));
         }
@@ -74,10 +74,10 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         const i=cp('instance').value||cp('instance').options[1]?.value;
         return i===undefined?null:catalogData.catalog.triggers[Number(i)];
     }
-    function closedDiagram(){
+    function saturatedDiagram(){
         const kind=cp('diagram').value;
         if(kind==='cs'){
-            const cs=frame()?.closed?.cs;
+            const cs=frame()?.saturated_rule_composition?.cs;
             if(!cs)return {g:{nodes:[],edges:[]},caption:'该记录没有 CS 引用组合，请加载新运行快照。'};
             const selected=selectedTrigger()?.binding_origin?.composition;
             const pairs=new Map();
@@ -90,14 +90,14 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
             for(const i of ids){const parent=cs.units[i].source_composition;if(pairs.has(parent))edges.push({from:'pair'+parent,to:'cs'+i,label:'符号闭包提升'});}
             return {g:{nodes,edges},caption:'实线是组件引用；CSCS 保留依赖方向，CCSS 要求正向操作、C 端口相交且 C 不依赖 S。点击组合查看 anchors / links。'};
         }
-        if(kind==='comb')return {g:catalogGraph(),caption:'rule comb → ClosedState；选择组合和触发实例可查看实际来源。'};
-        // Both remaining diagrams describe exactly one ClosedState. With the overview
+        if(kind==='comb')return {g:catalogGraph(),caption:'rule comb → SaturatedRuleComposition；选择组合和触发实例可查看实际来源。'};
+        // Both remaining diagrams describe exactly one SaturatedRuleComposition. With the overview
         // selected they used to render an empty canvas, which reads as "the selector did
         // nothing". Fall back to the first state and keep the selector in sync.
         let state=cp('state').value,auto=false;
-        if(state===''&&catalogData.catalog.closed_states>0){state='0';cp('state').value=state;combOptions();auto=true;}
-        if(state==='')return {g:{nodes:[],edges:[]},caption:'本轮没有可显示的 ClosedState：ripen 队列可能全部 Pending / Suspended，Pending 不代表已闭合。'};
-        const autoNote=auto?'（概览下已自动选择 C0；此图按单个 ClosedState 显示。）':'';
+        if(state===''&&catalogData.catalog.saturated_rule_compositions>0){state='0';cp('state').value=state;combOptions();auto=true;}
+        if(state==='')return {g:{nodes:[],edges:[]},caption:'本轮没有可显示的 SaturatedRuleComposition：ripen 队列可能全部 Pending / Suspended，Pending 不代表已闭合。'};
+        const autoNote=auto?'（概览下已自动选择 C0；此图按单个 SaturatedRuleComposition 显示。）':'';
         if(kind==='egraph'){
             const data=catalogData.states[Number(state)],q=JSON.stringify;
             const lines=['digraph G {rankdir=LR; node [shape=box];'];
@@ -120,7 +120,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
             const coarse='C'+m.source_coarse_layer;
             if(!groups.has(coarse))groups.set(coarse,new Map());
             const children=groups.get(coarse);if(!children.has(layer))children.set(layer,[]);children.get(layer).push('m'+m.slot);
-            nodes.push({id:'m'+m.slot,label:`${m.rule_name} · ${m.use_kind}\n原始 ${m.source_kind} · C${m.source_coarse_layer} / S${m.source_smooth_layer??'—'}`,kind:m.source_kind==='CoarseComb'?'coarse':'smooth',detail:m});
+            nodes.push({id:'m'+m.slot,label:`${m.rule_name} · ${m.use_kind}\n原始 ${m.source_kind} · C${m.source_coarse_layer} / S${m.source_smooth_layer??'—'}`,kind:m.source_kind==='CoarseRuleComposition'?'coarse':'smooth',detail:m});
             for(const parent of m.parents)edges.push({from:'m'+parent,to:'m'+m.slot,label:'recorded dependency'});
         }
         let source=dot({nodes,edges}).slice(0,-1);
@@ -134,7 +134,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         source+='}';
         return {g:{nodes,edges},source,caption:`${trigger?.origin?.candidate_id!==undefined?trigger.origin.candidate_kind+' #'+trigger.origin.candidate_id:'U'+(trigger?.origin?.use_id??'—')}：原始 layer 中参与此 rule comb 的成员；不是整个 layer。Use 内的 Coarse/Smooth 分类与原始 layer 分类可能不同。${autoNote}`};
     }
-    function focusComb(g){cp('state').value=String(g.closed_state);combOptions();cp('comb').value=String(g.id);instanceOptions();renderCatalog();showComb(g);}
+    function focusComb(g){cp('state').value=String(g.saturated_rule_composition);combOptions();cp('comb').value=String(g.id);instanceOptions();renderCatalog();showComb(g);}
     function memberText(m){
         const aliases=(m.input_roles||[]).map((r,i)=>`${r}=v${m.aliases?.[i]??'?'}`).join(', ');
         return `${m.use_kind} · ${m.rule_name}\n观测别名（模板内）: ${aliases}\n示例来源 layer: C${m.source_coarse_layer} / ${m.source_smooth_layer===null?'—':'S'+m.source_smooth_layer}\n${m.rule}`;
@@ -148,7 +148,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         const v=++catalogVersion,c=catalogData.catalog;cp('view').dataset.ready='false';cp('rule').textContent='';
         try{
             let source=catalogData.dot,g=null;
-            if(c.comb_groups){const diagram=closedDiagram();g=diagram.g;source=diagram.source||dot(g);cp('caption').textContent=diagram.caption;catalogTable();}cp('view').dataset.dot=source;
+            if(c.comb_groups){const diagram=saturatedDiagram();g=diagram.g;source=diagram.source||dot(g);cp('caption').textContent=diagram.caption;catalogTable();}cp('view').dataset.dot=source;
             const markup=await (await post('render',{kind:'dot',source})).text();if(v!==catalogVersion)return;
             cp('view').replaceChildren();const svg=mountSvg(markup,cp('view'));if(g&&g.nodes.length<=10){svg.style.maxWidth='100%';svg.style.height='auto';}cp('view').dataset.ready='true';
             for(const node of svg.querySelectorAll('.node')){
@@ -156,7 +156,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
                 node.onclick=()=>{
                     if(cp('diagram').value!=='comb'){const d=g?.nodes.find(n=>n.id===id)?.detail;cp('details').textContent=JSON.stringify(d,null,2);if(d?.rule)cp('rule').textContent=memberText(d);return;}
                     if(!g){cp('details').textContent=JSON.stringify(id.startsWith('t')?c.triggers[Number(id.slice(1))]:catalogData.states[Number(id.slice(1))],null,2);return;}
-                    if(id.startsWith('c')){const state=Number(id.slice(1));cp('details').textContent=JSON.stringify({state:catalogData.states[state],groups:c.comb_groups.filter(g=>g.closed_state===state)},null,2);if(cp('state').value===''){cp('state').value=String(state);combOptions();renderCatalog();}}
+                    if(id.startsWith('c')){const state=Number(id.slice(1));cp('details').textContent=JSON.stringify({state:catalogData.states[state],groups:c.comb_groups.filter(g=>g.saturated_rule_composition===state)},null,2);if(cp('state').value===''){cp('state').value=String(state);combOptions();renderCatalog();}}
                     else if(/^g\d+$/.test(id))focusComb(c.comb_groups[Number(id.slice(1))]);
                     else {const d=g.nodes.find(n=>n.id===id)?.detail;if(d){cp('details').textContent=JSON.stringify(d,null,2);cp('rule').textContent=memberText(d.member);}}
                 };
@@ -170,53 +170,53 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     cp('load').onclick=async()=>{
         cp('load').disabled=true;cp('state').disabled=true;cp('comb').disabled=true;catalogVersion++;catalogData=null;catalogError=null;cp('table').replaceChildren();cp('view').replaceChildren();cp('rule').textContent='';cp('status').textContent='载入…';cp('details').textContent='';
         try{
-            catalogData=await (await post('closed-catalog',{path:cp('path').value})).json();const c=catalogData.catalog;
+            catalogData=await (await post('saturated-rule-composition-catalog',{path:cp('path').value})).json();const c=catalogData.catalog;
             cp('state').replaceChildren(new Option('全部概览',''));
-            for(let i=0;i<c.closed_states;i++)cp('state').add(new Option(`ClosedState C${i}`,String(i)));
-            const requestedState=new URLSearchParams(location.search).get('closed_state');
-            if(cp('path').value===initialCatalog&&requestedState!==null&&/^\d+$/.test(requestedState)&&Number(requestedState)<c.closed_states)cp('state').value=requestedState;
+            for(let i=0;i<c.saturated_rule_compositions;i++)cp('state').add(new Option(`SaturatedRuleComposition C${i}`,String(i)));
+            const requestedState=new URLSearchParams(location.search).get('saturated_rule_composition');
+            if(cp('path').value===initialCatalog&&requestedState!==null&&/^\d+$/.test(requestedState)&&Number(requestedState)<c.saturated_rule_compositions)cp('state').value=requestedState;
             combOptions();
             const templates=new Set(c.triggers.filter(t=>t.origin?.template!==undefined).map(t=>JSON.stringify([t.origin.history,t.origin.template]))).size;
-            cp('status').textContent=`${c.triggers.length} 个 Trigger → ${c.closed_states} 个共享 ClosedState，涉及 ${templates} 种模板。未决比较 ${c.unresolved_comparisons||0}。`;
+            cp('status').textContent=`${c.triggers.length} 个 Trigger → ${c.saturated_rule_compositions} 个共享 SaturatedRuleComposition，涉及 ${templates} 种模板。未决比较 ${c.unresolved_comparisons||0}。`;
             if(c.scan)cp('status').textContent+=` 已检查 ${c.scan.attempts.length}/${c.scan.population.historical_uses} 个历史 Use；${JSON.stringify(c.scan.counts)}。预算 ${c.scan.budgets.rounds} 轮 / 每例 ${c.scan.budgets.seconds_per_use} 秒。跨模板共享组 ${c.scan.shared_template_states}。`;
             await renderCatalog();
         }catch(e){catalogError=String(e);cp('status').textContent=catalogError;}finally{cp('load').disabled=false;cp('state').disabled=false;cp('comb').disabled=false;}
     };
-    const initialCatalog=new URLSearchParams(location.search).get('closed_catalog');
+    const initialCatalog=new URLSearchParams(location.search).get('saturated_rule_composition_catalog');
 
     host.append(panel);
     const $=id=>panel.querySelector('#native-layer-'+id);
     let frames=[],version=0,abort=null,previewCache=new Map(),pinned=false,rendered=false;
     const frame=()=>frames[Number($('round').value)];
     // Three different "nothing to show" cases need three different answers: nothing loaded
-    // at all, snapshots taken before the ClosedState pipeline existed, or a run in which no
+    // at all, snapshots taken before the SaturatedRuleComposition pipeline existed, or a run in which no
     // Use actually closed. Only the first is fixed by running again.
-    const noClosedHint=()=>frames.length&&!frames.some(f=>f.closed)?STALE_SNAPSHOTS:NO_CATALOG;
+    const noSaturatedHint=()=>frames.length&&!frames.some(f=>f.saturated_rule_composition)?STALE_SNAPSHOTS:NO_CATALOG;
     function mode(){
-        const closed=$('kind').value==='closed';catalogPanel.hidden=!closed;
-        for(const id of ['scope','format'])$(id).hidden=closed;$('round').hidden=closed&&!frames.length;
-        for(const id of ['viewport','details','code']){const e=$(id);(e.closest('details')===panel?e:e.closest('details')||e).hidden=closed;}
-        $('status').hidden=closed;$('source').disabled=!frame();
-        $('directory').placeholder=closed?'out/ 中的共享目录或含 catalog/ 的运行目录':'out/ 中的分析目录';
-        $('load').textContent=closed?'载入 ClosedState':'载入分析目录';
-        $('download').textContent=closed?'下载当前 ClosedState DOT':'下载本轮 DOT';
+        const saturated=$('kind').value==='saturated_rule_composition';catalogPanel.hidden=!saturated;
+        for(const id of ['scope','format'])$(id).hidden=saturated;$('round').hidden=saturated&&!frames.length;
+        for(const id of ['viewport','details','code']){const e=$(id);(e.closest('details')===panel?e:e.closest('details')||e).hidden=saturated;}
+        $('status').hidden=saturated;$('source').disabled=!frame();
+        $('directory').placeholder=saturated?'out/ 中的共享目录或含 catalog/ 的运行目录':'out/ 中的分析目录';
+        $('load').textContent=saturated?'载入 SaturatedRuleComposition':'载入分析目录';
+        $('download').textContent=saturated?'下载当前 SaturatedRuleComposition DOT':'下载本轮 DOT';
         // Never overwrite a load failure with the generic hint: that used to erase the one
         // message telling the user why nothing rendered.
-        if(closed&&!catalogData&&!catalogError&&!frame()?.closed)cp('status').textContent=noClosedHint();
+        if(saturated&&!catalogData&&!catalogError&&!frame()?.saturated_rule_composition)cp('status').textContent=noSaturatedHint();
     }
-    function showClosedFrame(result){
+    function showSaturatedFrame(result){
         catalogVersion++;catalogData=result.catalog;
         cp('state').replaceChildren(new Option('全部概览',''));
         cp('table').replaceChildren();cp('view').replaceChildren();cp('rule').textContent='';
         cp('details').textContent=JSON.stringify(result.jobs,null,2);
         cp('status').textContent=`边界 ${result.boundary} · ${Object.entries(result.counts).map(([k,v])=>k+' '+v).join(' / ')||'尚无 Use'} · 依赖候选 ${result.dependency_candidates??0} · 队列外 ${result.not_queued}。每边界最多 ${result.limits.per_boundary} 个，总计 ${result.limits.jobs} 个；每例 ${result.limits.rounds} 轮。时间预算在任务之间检查。`;
         if(catalogData){
-            for(let i=0;i<catalogData.catalog.closed_states;i++)cp('state').add(new Option(`ClosedState C${i}`,String(i)));
-            cp('status').textContent+=` 递归提升 ${result.cs?.promotions??0}，过期证据 ${result.cs?.stale_evidence??0}（保留历史闭包），事件唤醒 ${result.cs?.subscriber_wakes??0}。 CSCS ${(result.cs?.compositions||[]).filter(p=>p.kind==='CSCS').length} / CCSS ${(result.cs?.compositions||[]).filter(p=>p.kind==='CCSS').length}。 ${catalogData.catalog.triggers.length} 个 Trigger → ${catalogData.catalog.closed_states} 个共享 ClosedState。`;
-            combOptions();if($('kind').value==='closed')renderCatalog();
+            for(let i=0;i<catalogData.catalog.saturated_rule_compositions;i++)cp('state').add(new Option(`SaturatedRuleComposition C${i}`,String(i)));
+            cp('status').textContent+=` 递归提升 ${result.cs?.promotions??0}，过期证据 ${result.cs?.stale_evidence??0}（保留历史闭包），事件唤醒 ${result.cs?.subscriber_wakes??0}。 CSCS ${(result.cs?.compositions||[]).filter(p=>p.kind==='CSCS').length} / CCSS ${(result.cs?.compositions||[]).filter(p=>p.kind==='CCSS').length}。 ${catalogData.catalog.triggers.length} 个 Trigger → ${catalogData.catalog.saturated_rule_compositions} 个共享 SaturatedRuleComposition。`;
+            combOptions();if($('kind').value==='saturated_rule_composition')renderCatalog();
         }else{
             combOptions();
-            cp('status').textContent+=' 本轮没有任何 Use 达到 Closed（Pending / Suspended 不代表已闭合）；本次运行的数据已在内存里，无需手动载入目录。';
+            cp('status').textContent+=' 本轮没有任何 Use 达到 Saturated（Pending / Suspended 不代表已闭合）；本次运行的数据已在内存里，无需手动载入目录。';
             // A run that rejects every queued job looks like "nothing happened" unless the
             // queue's own reason is surfaced here.
             const tally=new Map();
@@ -247,8 +247,8 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     }
     function options(pin=true){
         mode();
-        if(frame()?.closed)showClosedFrame(frame().closed);
-        if($('kind').value==='closed')return;
+        if(frame()?.saturated_rule_composition)showSaturatedFrame(frame()?.saturated_rule_composition);
+        if($('kind').value==='saturated_rule_composition')return;
         if(pin!==false)pinned=true;
         const f=frame();if(!f)return;
         $('scope').replaceChildren(new Option('全部',''));
@@ -338,7 +338,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         $('code').textContent+=(rendered.typst||'')+'\n';
     }
     async function render(){
-        if($('kind').value==='closed'){mode();if(catalogData)await renderCatalog();else if(!catalogError)cp('status').textContent=noClosedHint();return;}
+        if($('kind').value==='saturated_rule_composition'){mode();if(catalogData)await renderCatalog();else if(!catalogError)cp('status').textContent=noSaturatedHint();return;}
         const f=frame();if(!f)return;pinned=true;
         abort?.abort();abort=new AbortController();const signal=abort.signal,v=++version;
         $('error').textContent='';$('viewport').replaceChildren();$('viewport').dataset.ready='false';$('code').textContent='';
@@ -397,17 +397,17 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         }catch(e){if(v===version&&e.name!=='AbortError')$('error').textContent=e.message;}
     }
     $('round').onchange=options;$('kind').onchange=options;$('render').onclick=render;
-    $('download').onclick=()=>{if($('kind').value==='closed'){if(!catalogData){cp('status').textContent=catalogError||noClosedHint();return;}const a=document.createElement('a'),url=URL.createObjectURL(new Blob([cp('view').dataset.dot||dot(catalogGraph())],{type:'text/vnd.graphviz;charset=utf-8'}));a.href=url;a.download='closed-state.dot';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;}const f=frame();if(!f)return;const kind=$('kind').value,a=document.createElement('a'),url=URL.createObjectURL(new Blob([f.dots[kind]],{type:'text/vnd.graphviz;charset=utf-8'}));a.href=url;a.download=f.stem+'.'+kind+'.dot';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+    $('download').onclick=()=>{if($('kind').value==='saturated_rule_composition'){if(!catalogData){cp('status').textContent=catalogError||noSaturatedHint();return;}const a=document.createElement('a'),url=URL.createObjectURL(new Blob([cp('view').dataset.dot||dot(catalogGraph())],{type:'text/vnd.graphviz;charset=utf-8'}));a.href=url;a.download='saturated-rule-composition.dot';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return;}const f=frame();if(!f)return;const kind=$('kind').value,a=document.createElement('a'),url=URL.createObjectURL(new Blob([f.dots[kind]],{type:'text/vnd.graphviz;charset=utf-8'}));a.href=url;a.download=f.stem+'.'+kind+'.dot';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
     async function load(path){
         const controls=['load','render','round','kind','scope','format'];controls.forEach(id=>$(id).disabled=true);
-        try {const data=await (await post('layer-run',{path})).json();reset();for(const f of data.frames)receive(f);if(data.closed_catalog&&!data.frames.some(f=>f.closed)){cp('path').value=data.closed_catalog;await cp('load').onclick();}mode();}
+        try {const data=await (await post('layer-run',{path})).json();reset();for(const f of data.frames)receive(f);if(data.saturated_rule_composition_catalog&&!data.frames.some(f=>f.saturated_rule_composition)){cp('path').value=data.saturated_rule_composition_catalog;await cp('load').onclick();}mode();}
         finally {controls.forEach(id=>$(id).disabled=false);}
     }
-    $('load').onclick=()=>{if($('kind').value==='closed'){cp('path').value=$('directory').value;return cp('load').onclick();}return load($('directory').value).catch(e=>$('error').textContent=e.message);};
+    $('load').onclick=()=>{if($('kind').value==='saturated_rule_composition'){cp('path').value=$('directory').value;return cp('load').onclick();}return load($('directory').value).catch(e=>$('error').textContent=e.message);};
     $('source').onclick=()=>{if(frame())editor.setValue(frame().preview_source);};
-    const initialKind=new URLSearchParams(location.search).get('layer_kind');if(['layers','fractals','coverage','reuse','use_fractals','closed'].includes(initialKind))$('kind').value=initialKind;
-    if(initialCatalog&&!new URLSearchParams(location.search).get('layer_run')){$('kind').value='closed';$('directory').value=initialCatalog;cp('path').value=initialCatalog;cp('load').click();}mode();
-    const initial=new URLSearchParams(location.search).get('layer_run');if(initial){$('directory').value=initial;load(initial).then(async()=>{if(initialCatalog){$('kind').value='closed';cp('path').value=initialCatalog;await cp('load').onclick();mode();}return render();}).catch(e=>$('error').textContent=e.message);}
+    const initialKind=new URLSearchParams(location.search).get('layer_kind');if(['layers','fractals','coverage','reuse','use_fractals','saturated_rule_composition'].includes(initialKind))$('kind').value=initialKind;
+    if(initialCatalog&&!new URLSearchParams(location.search).get('layer_run')){$('kind').value='saturated_rule_composition';$('directory').value=initialCatalog;cp('path').value=initialCatalog;cp('load').click();}mode();
+    const initial=new URLSearchParams(location.search).get('layer_run');if(initial){$('directory').value=initial;load(initial).then(async()=>{if(initialCatalog){$('kind').value='saturated_rule_composition';cp('path').value=initialCatalog;await cp('load').onclick();mode();}return render();}).catch(e=>$('error').textContent=e.message);}
     // Re-render the current selection against the current source. Called after an
     // editor change so an edited annotation template is visible without re-running.
     async function refresh(){if(rendered&&frames.length)await render();}

@@ -37,8 +37,8 @@ mod layer_view;
 mod recursive;
 #[path = "native_cs.rs"]
 mod cs;
-#[path = "native_closed_pipeline.rs"]
-mod closed_pipeline;
+#[path = "native_saturated_rule_composition_pipeline.rs"]
+mod saturated_rule_composition_pipeline;
 #[path = "native_ripen.rs"]
 pub mod ripen;
 
@@ -223,7 +223,7 @@ impl Captured {
             .map(|o| {
                 matches!(
                     self.layers.combs[o.comb].kind,
-                    crate::coarse_smooth::CombKind::CoarseComb
+                    crate::coarse_smooth::CombKind::CoarseRuleComposition
                 )
             })
             .unwrap_or(r.coarse)
@@ -437,6 +437,7 @@ fn capture_text_with_sink(
 }
 
 // Only direct committed producer certificates survive a batch, not WriteEvents.
+// 看上去是个节点但实际上又不是，因为他这里只有一个table
 struct Producer {
     match_id: u64,
     table: String,
@@ -931,9 +932,9 @@ fn build_tier1(
                 r.id,
                 call(
                     if c.is_coarse(r) {
-                        "CoarseComb"
+                        "CoarseRuleComposition"
                     } else {
-                        "SmoothComb"
+                        "SmoothRuleComposition"
                     },
                     vec![
                         parent_expr,
@@ -1487,7 +1488,7 @@ fn view(c: &Captured, eg: &EGraph, extensions: &Extensions, higher: &[Json]) -> 
                 .map_err(|e| e.to_string())?;
             Ok(lowered)
         });
-        nodes.insert(r.id.to_string(),json!({"event":r.id,"comb":format!("${}",cid(r.comb.unwrap())),"rule":rule.name,"kind":if c.is_coarse(r){"CoarseComb"}else{"SmoothComb"},"source":rule.to_string(),"equation":equation,"combined":lowered.as_ref().ok().map(|x|&x.code),"source_steps":lowered.as_ref().ok().map(|x|x.steps.iter().map(|i|c.rules[c.records[*i].rule].rule.name.clone()).collect::<Vec<_>>()),"reason":lowered.as_ref().err(),"tier1":format!("{}(parents={:?}, rule={}, ports={:?})",if c.is_coarse(r){"CoarseComb"}else{"SmoothComb"},r.parents.iter().map(|p|c.records[*p].id).collect::<Vec<_>>(),rule.name,r.ports),"parent_events":r.parents.iter().map(|p|c.records[*p].id).collect::<Vec<_>>(),"external_routes":r.ports.iter().filter_map(|p|if let Port::External(k)=p{Some(*k)}else{None}).collect::<Vec<_>>(),"source_routes":extensions.keys[r.extension].routes}));
+        nodes.insert(r.id.to_string(),json!({"event":r.id,"comb":format!("${}",cid(r.comb.unwrap())),"rule":rule.name,"kind":if c.is_coarse(r){"CoarseRuleComposition"}else{"SmoothRuleComposition"},"source":rule.to_string(),"equation":equation,"combined":lowered.as_ref().ok().map(|x|&x.code),"source_steps":lowered.as_ref().ok().map(|x|x.steps.iter().map(|i|c.rules[c.records[*i].rule].rule.name.clone()).collect::<Vec<_>>()),"reason":lowered.as_ref().err(),"tier1":format!("{}(parents={:?}, rule={}, ports={:?})",if c.is_coarse(r){"CoarseRuleComposition"}else{"SmoothRuleComposition"},r.parents.iter().map(|p|c.records[*p].id).collect::<Vec<_>>(),rule.name,r.ports),"parent_events":r.parents.iter().map(|p|c.records[*p].id).collect::<Vec<_>>(),"external_routes":r.ports.iter().filter_map(|p|if let Port::External(k)=p{Some(*k)}else{None}).collect::<Vec<_>>(),"source_routes":extensions.keys[r.extension].routes}));
     }
     let visible: BTreeSet<_> = nodes
         .values()
@@ -1497,8 +1498,8 @@ fn view(c: &Captured, eg: &EGraph, extensions: &Extensions, higher: &[Json]) -> 
     original.extend(eg.lookup_function("Empty", &[]));
     let total = original.len();
     let with_views = eg.get_size("Empty")
-        + eg.get_size("SmoothComb")
-        + eg.get_size("CoarseComb")
+        + eg.get_size("SmoothRuleComposition")
+        + eg.get_size("CoarseRuleComposition")
         + eg.get_size("FractalComb");
     Ok(
         json!({"capture":{"rounds":c.rounds},"stats":{"higher_rules":higher.len(),"maximal_chains":lanes.len(),"applications":paths.iter().map(Vec::len).sum::<usize>(),"visible_unique_contexts":visible.len(),"total_comb_templates":total,"comb_templates_with_views":with_views},"lanes":lanes,"nodes":nodes,"scope":"Single-process native analysis; only witnessed finite paths are displayed. Raw events are drained after completed rounds; producer/equality indexes and analysis graphs remain resident."}),
@@ -1582,7 +1583,7 @@ pub fn run_with_options(
     let mut result = (|| -> Result<Json> {
         let worker = rayon::ThreadPoolBuilder::new().num_threads(1).build()?;
         let mut tier1 = EGraph::default();
-        let mut layer_exporter = layer_view::Exporter::with_closed(out)?;
+        let mut layer_exporter = layer_view::Exporter::with_saturated_rule_composition(out)?;
         let mut c = if let Some(path) = replay {
             history::read(path)?
         } else if online {

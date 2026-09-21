@@ -23,12 +23,12 @@ fn ripens_dependencies_without_any_installed_use() {
             .unwrap();
         assert!(p.status.success(), "{}", String::from_utf8_lossy(&p.stderr));
         let q: Value =
-            serde_json::from_slice(&fs::read(out.join("closed/queue.json")).unwrap()).unwrap();
+            serde_json::from_slice(&fs::read(out.join("saturated-rule-composition/queue.json")).unwrap()).unwrap();
         assert_eq!(q["observed_uses"], 0, "{q}");
         if baseline {
             assert!(q["jobs"].as_array().unwrap().is_empty());
         } else {
-            assert!(q["counts"]["Closed"].as_u64().unwrap_or(0) > 0, "{q}");
+            assert!(q["counts"]["Saturated"].as_u64().unwrap_or(0) > 0, "{q}");
             let trigger = &q["catalog"]["catalog"]["triggers"][0];
             assert!(trigger["origin"].get("use_id").is_none());
             assert_eq!(trigger["origin"]["candidate_kind"], "DependencyCone");
@@ -59,7 +59,7 @@ fn common_consumer_anchors_two_independent_producers() {
         .unwrap();
     assert!(p.status.success(), "{}", String::from_utf8_lossy(&p.stderr));
     let q: Value =
-        serde_json::from_slice(&fs::read(out.join("closed/queue.json")).unwrap()).unwrap();
+        serde_json::from_slice(&fs::read(out.join("saturated-rule-composition/queue.json")).unwrap()).unwrap();
     let job = q["jobs"]
         .as_array()
         .unwrap()
@@ -69,7 +69,7 @@ fn common_consumer_anchors_two_independent_producers() {
                 && j["coarse_layers"].as_array().unwrap().len() > 1
         })
         .expect("cross-layer candidate");
-    assert_eq!(job["state"], "Closed", "{q}");
+    assert_eq!(job["state"], "Saturated", "{q}");
     let trigger = q["catalog"]["catalog"]["triggers"]
         .as_array()
         .unwrap()
