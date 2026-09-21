@@ -99,3 +99,28 @@ fn ccss_rejects_missing_anchor_and_function_updates() {
     );
     fs::remove_dir_all(root).unwrap();
 }
+
+#[test]
+fn closed_compositions_participate_recursively() {
+    let (root, q) = capture(
+        "(datatype E (V) (A E) (A1 E) (A2 E) (B E) (B1 E) (B2 E) (C E) (C1 E) (C2 E))\n(rewrite (A x) (A1 x))\n(rewrite (A1 x) (A2 x))\n(rewrite (B x) (B1 x))\n(rewrite (B1 x) (B2 x))\n(rewrite (C x) (C1 x))\n(rewrite (C1 x) (C2 x))\n(A (V))\n(B (V))\n(C (V))\n(run 5)",
+        "recursive",
+    );
+    assert!(
+        q["cs"]["units"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|u| u["depth"].as_u64().unwrap() >= 2),
+        "{q}"
+    );
+    let units = q["cs"]["units"].as_array().unwrap();
+    for p in q["cs"]["compositions"].as_array().unwrap() {
+        assert!(p["certificate"]["obligations"].is_array());
+        assert_eq!(p["certificate"]["live_substitution"], false);
+        for part in p["parts"].as_array().unwrap() {
+            assert!((part.as_u64().unwrap() as usize) < units.len());
+        }
+    }
+    fs::remove_dir_all(root).unwrap();
+}

@@ -11,7 +11,11 @@ pub(super) use entry::{prepare, prepare_members};
 fn supported_action(a: &Action) -> bool {
     matches!(
         a,
-        Action::Let(..) | Action::Expr(..) | Action::Union(..) | Action::Set(..)
+        Action::Let(..)
+            | Action::Expr(..)
+            | Action::Union(..)
+            | Action::Set(..)
+            | Action::Change(_, egglog::ast::Change::Subsume, _, _)
     )
 }
 
@@ -61,7 +65,7 @@ pub(super) fn run_with_origin(
                 }
             }
             Command::Rule { rule } => {
-                if !rule.head.0.iter().all(supported_action) { return Err("ripen rejects unsupported delete/subsume actions".into()); }
+                if !rule.head.0.iter().all(supported_action) { return Err("ripen rejects delete and other unsupported actions".into()); }
                 if !names.insert(rule.name.clone()) { return Err("ripen rule names must be unique".into()); }
                 rulesets.insert(rule.ruleset.clone());
                 let calls = crate::visual_rule::positions(rule).into_iter().map(|(span,path,_)| {
@@ -100,6 +104,8 @@ pub(super) fn run_with_origin(
     }
     let trace = TraceSession::with_dependencies();
     let mut c = Captured {
+        changes: vec![],
+        last_scope: 0,
         preview_source: text.clone(),
         boundaries: vec![],
         layers: Default::default(),
@@ -285,8 +291,8 @@ fn export_state(
                 merge,
                 ..
             } => {
-                if merge.is_some() {
-                    return Err("function merge executes natively, but ClosedState sharing does not yet certify merge semantics".into());
+                if merge.as_ref().is_some_and(|e| !matches!(e,Expr::Call(_,op,args) if matches!(op.as_str(),"max"|"min") && args.len()==2 && matches!((&args[0],&args[1]),(Expr::Var(_,a),Expr::Var(_,b)) if (a=="old"&&b=="new")||(a=="new"&&b=="old")))) {
+                    return Err("ClosedState sharing supports only min/max lattice merges; other merges remain uncertified".into());
                 }
                 tables.push((op.clone(), schema.input.clone(), schema.output.clone()));
             }
@@ -313,6 +319,9 @@ fn export_state(
         let head = r.rule.head.0.iter().all(|a| match a {
             Action::Union(_, a, b) => constructor_expr(a, &ops) && constructor_expr(b, &ops),
             Action::Let(_, _, e) | Action::Expr(_, e) => constructor_expr(e, &ops),
+            Action::Change(_, egglog::ast::Change::Subsume, op, args) => {
+                ops.contains(op.as_str()) && args.iter().all(|e| constructor_expr(e, &ops))
+            }
             Action::Set(_, op, args, value) => {
                 ops.contains(op.as_str())
                     && args.iter().all(|e| constructor_expr(e, &ops))
@@ -367,13 +376,14 @@ fn export_state(
         Ok(i)
     };
     let mut rows = BTreeSet::new();
+    let mut hidden = BTreeSet::new();
     let mut sorted = variants.clone();
     sorted.sort_by(|a, b| a.name.cmp(&b.name));
     for v in &sorted {
         let mut raw = vec![];
         eg.function_for_each(&v.name, |row| raw.push((row.vals.to_vec(), row.subsumed)))?;
         for (row, subsumed) in raw {
-            if subsumed || row.len() != v.types.len() + 1 {
+            if row.len() != v.types.len() + 1 {
                 return Err("unexpected subsumed row or arity".into());
             }
             let args = v
@@ -382,18 +392,25 @@ fn export_state(
                 .zip(&row)
                 .map(|(t, x)| vertex(t, *x))
                 .collect::<Result<Vec<_>>>()?;
-            rows.insert(Row {
+            let fact = Row {
                 op: v.name.clone(),
                 args,
                 result: vertex(name, *row.last().unwrap())?,
-            });
+            };
+            if rows.contains(&fact) && hidden.contains(&fact) != subsumed {
+                return Err("ambiguous canonical row visibility".into());
+            }
+            if subsumed {
+                hidden.insert(fact.clone());
+            }
+            rows.insert(fact);
         }
     }
     for (op, inputs, output) in &tables {
         let mut raw = vec![];
         eg.function_for_each(op, |r| raw.push((r.vals.to_vec(), r.subsumed)))?;
         for (row, subsumed) in raw {
-            if subsumed || row.len() != inputs.len() + 1 {
+            if row.len() != inputs.len() + 1 {
                 return Err("unexpected table row".into());
             }
             let args = inputs
@@ -401,11 +418,18 @@ fn export_state(
                 .zip(&row)
                 .map(|(t, v)| vertex(t, *v))
                 .collect::<Result<Vec<_>>>()?;
-            rows.insert(Row {
+            let fact = Row {
                 op: op.clone(),
                 args,
                 result: vertex(output, *row.last().unwrap())?,
-            });
+            };
+            if rows.contains(&fact) && hidden.contains(&fact) != subsumed {
+                return Err("ambiguous canonical row visibility".into());
+            }
+            if subsumed {
+                hidden.insert(fact.clone());
+            }
+            rows.insert(fact);
         }
     }
     let mut named = BTreeMap::new();
@@ -430,10 +454,15 @@ fn export_state(
         local_ids[i] = key;
     }
     let mut state = ClosedState {
-        version: 1,
+        version: 2,
         local_ids,
         scope: json!({"datatype":name,"constructors":sorted.iter().map(|v|json!({"name":v.name,"types":v.types,"cost":v.cost.map(|x|x.to_string()),"unextractable":v.unextractable})).collect::<Vec<_>>(),"rules":rules,"symbolic_boundary":symbolic,"semantics":"positive-constructor-equality/v1","ports":"fixed named globals; otherwise all facts observable"}),
         values,
+        subsumed_rows: rows
+            .iter()
+            .enumerate()
+            .filter_map(|(i, r)| hidden.contains(r).then_some(i))
+            .collect(),
         rows: rows.into_iter().collect(),
         ports: named,
     };
@@ -446,6 +475,32 @@ fn export_state(
                 .collect::<Vec<_>>()
         );
         state.scope["semantics"] = json!("positive-constructor-table-equality/v1");
+    }
+    if c.rules.iter().any(|r| {
+        r.rule
+            .head
+            .0
+            .iter()
+            .any(|a| matches!(a, Action::Change(_, egglog::ast::Change::Subsume, _, _)))
+    }) {
+        state.scope["semantics"] = json!("constructor-table-visibility/v2");
+    }
+    if declarations
+        .iter()
+        .any(|d| matches!(d, Command::Function { merge: Some(_), .. }))
+    {
+        state.scope["merge_contract"] = json!("min/max lattice; exact retained table rows");
+    }
+    if c.rules.iter().any(|r| {
+        r.rule
+            .head
+            .0
+            .iter()
+            .any(|a| matches!(a, Action::Change(..) | Action::Set(..)))
+    }) {
+        // Visibility and mutable tables make scheduling observable. Do not use
+        // the order-insensitive theory normalization of the pure fragment.
+        state.scope["operational_schedule"] = json!({"registered_rules":c.rules.iter().map(|r|r.rule.to_string()).collect::<Vec<_>>(),"sweep":"sorted ruleset names, native rule order"});
     }
     Ok(state)
 }

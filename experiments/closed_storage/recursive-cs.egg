@@ -1,0 +1,13 @@
+; Three independent CS pairs sharing a boundary parameter.
+; Closed pair compositions can become operands of a larger composition.
+(datatype E (V) (A E) (A1 E) (A2 E) (B E) (B1 E) (B2 E) (C E) (C1 E) (C2 E))
+(rewrite (A x) (A1 x))
+(rewrite (A1 x) (A2 x))
+(rewrite (B x) (B1 x))
+(rewrite (B1 x) (B2 x))
+(rewrite (C x) (C1 x))
+(rewrite (C1 x) (C2 x))
+(A (V))
+(B (V))
+(C (V))
+(run 5)

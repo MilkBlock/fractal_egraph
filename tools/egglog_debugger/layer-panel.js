@@ -80,10 +80,14 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
             const cs=frame()?.closed?.cs;
             if(!cs)return {g:{nodes:[],edges:[]},caption:'该记录没有 CS 引用组合，请加载新运行快照。'};
             const selected=selectedTrigger()?.binding_origin?.composition;
-            const pairs=cp('instance').value!==''&&selected?[selected]:cs.compositions;
-            const ids=new Set(pairs.flatMap(p=>p.parts));
-            const nodes=[...ids].map(i=>({id:'cs'+i,label:`CS #${i}\nC ${cs.units[i].coarse.length} / S ${cs.units[i].smooth.length}`,kind:'template',detail:cs.units[i]})),edges=[];
-            pairs.forEach((p,i)=>{nodes.push({id:'pair'+i,label:p.kind,kind:'fractal',detail:p});p.parts.forEach((u,k)=>edges.push({from:'cs'+u,to:'pair'+i,label:p.kind==='CSCS'?(k===0?'先行 CS':'后继 CS'):'合并侧 '+k}));});
+            const pairs=new Map();
+            const add=i=>{if(pairs.has(i)||!cs.compositions[i])return;const p=cs.compositions[i];pairs.set(i,p);for(const u of p.parts){const parent=cs.units[u].source_composition;if(parent!==null&&parent!==undefined)add(parent);}};
+            if(cp('instance').value!==''&&selected)add(Number(selectedTrigger().origin.candidate_id));else cs.compositions.forEach((_,i)=>add(i));
+            const ids=new Set([...pairs.values()].flatMap(p=>p.parts));
+            cs.units.forEach((u,i)=>{if(pairs.has(u.source_composition))ids.add(i);});
+            const nodes=[...ids].map(i=>({id:'cs'+i,label:`CS #${i} · depth ${cs.units[i].depth??0}\nC ${cs.units[i].coarse.length} / S ${cs.units[i].smooth.length}`,kind:'template',detail:{...cs.units[i],lease:cs.leases?.[i]}})),edges=[];
+            for(const [i,p] of pairs){nodes.push({id:'pair'+i,label:p.kind,kind:'fractal',detail:p});p.parts.forEach((u,k)=>edges.push({from:'cs'+u,to:'pair'+i,label:p.kind==='CSCS'?(k===0?'先行 CS':'后继 CS'):'合并侧 '+k}));}
+            for(const i of ids){const parent=cs.units[i].source_composition;if(pairs.has(parent))edges.push({from:'pair'+parent,to:'cs'+i,label:'符号闭包提升'});}
             return {g:{nodes,edges},caption:'实线是组件引用；CSCS 保留依赖方向，CCSS 要求正向操作、C 端口相交且 C 不依赖 S。点击组合查看 anchors / links。'};
         }
         if(kind==='comb')return {g:catalogGraph(),caption:'rule comb → ClosedState；选择组合和触发实例可查看实际来源。'};
@@ -101,7 +105,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
             data.values.forEach((v,i)=>{
                 nodes.push({id:'v'+i,detail:{class:i,...v}});
                 lines.push(`subgraph cluster_${i} {label=${q(v.sort+' · class '+i)};color="#97a6ba"; v${i} [label=${q(v.literal??'EClass '+i)},shape=ellipse];`);
-                data.rows.forEach((r,j)=>{if(r.result===i){nodes.push({id:'n'+j,detail:r});lines.push(`n${j} [label=${q(r.op)},style=filled,fillcolor="#dff2ec"];`);}});
+                data.rows.forEach((r,j)=>{if(r.result===i){const hidden=(data.subsumed_rows||[]).includes(j);nodes.push({id:'n'+j,detail:{...r,subsumed:hidden}});lines.push(`n${j} [label=${q(r.op+(hidden?' [subsumed]':''))},style=${q(hidden?'filled,dashed':'filled')},fillcolor=${q(hidden?'#eeeeee':'#dff2ec')}];`);}});
                 lines.push('}');
             });
             data.rows.forEach((r,j)=>r.args.forEach((a,k)=>lines.push(`n${j} -> v${a} [label=${q('arg '+k)}];`)));
@@ -208,7 +212,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         cp('status').textContent=`边界 ${result.boundary} · ${Object.entries(result.counts).map(([k,v])=>k+' '+v).join(' / ')||'尚无 Use'} · 依赖候选 ${result.dependency_candidates??0} · 队列外 ${result.not_queued}。每边界最多 ${result.limits.per_boundary} 个，总计 ${result.limits.jobs} 个；每例 ${result.limits.rounds} 轮。时间预算在任务之间检查。`;
         if(catalogData){
             for(let i=0;i<catalogData.catalog.closed_states;i++)cp('state').add(new Option(`ClosedState C${i}`,String(i)));
-            cp('status').textContent+=` CSCS ${(result.cs?.compositions||[]).filter(p=>p.kind==='CSCS').length} / CCSS ${(result.cs?.compositions||[]).filter(p=>p.kind==='CCSS').length}。 ${catalogData.catalog.triggers.length} 个 Trigger → ${catalogData.catalog.closed_states} 个共享 ClosedState。`;
+            cp('status').textContent+=` 递归提升 ${result.cs?.promotions??0}，过期证据 ${result.cs?.stale_evidence??0}（保留历史闭包），事件唤醒 ${result.cs?.subscriber_wakes??0}。 CSCS ${(result.cs?.compositions||[]).filter(p=>p.kind==='CSCS').length} / CCSS ${(result.cs?.compositions||[]).filter(p=>p.kind==='CCSS').length}。 ${catalogData.catalog.triggers.length} 个 Trigger → ${catalogData.catalog.closed_states} 个共享 ClosedState。`;
             combOptions();if($('kind').value==='closed')renderCatalog();
         }else{
             combOptions();

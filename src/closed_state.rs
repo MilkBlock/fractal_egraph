@@ -1,4 +1,4 @@
-//! Exact, bounded isomorphism of complete exported local constructor states.
+//! Exact, bounded isomorphism of complete exported local states and row visibility.
 //! Cycles and sharing are preserved; matching histories and rule names are absent.
 use crate::pipeline::Result;
 use serde::{Deserialize, Serialize};
@@ -27,6 +27,8 @@ pub struct ClosedState {
     pub scope: Value,
     pub values: Vec<Vertex>,
     pub rows: Vec<Row>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub subsumed_rows: Vec<usize>,
     /// Fixed named global ports; equal ports may point at the same e-class.
     pub ports: BTreeMap<String, usize>,
 }
@@ -51,8 +53,13 @@ impl ClosedState {
         if !self.local_ids.is_empty() && self.local_ids.len() != self.values.len() {
             return Err("invalid provenance ID count".into());
         }
-        if self.version != 1 {
+        if !matches!(self.version, 1 | 2) || (self.version == 1 && !self.subsumed_rows.is_empty()) {
             return Err("unsupported closed-state version".into());
+        }
+        if self.subsumed_rows.iter().any(|i| *i >= self.rows.len())
+            || self.subsumed_rows.iter().collect::<BTreeSet<_>>().len() != self.subsumed_rows.len()
+        {
+            return Err("invalid visibility mask".into());
         }
         if self.ports.values().any(|i| *i >= self.values.len())
             || self.rows.iter().any(|r| {
@@ -85,17 +92,25 @@ impl ClosedState {
     fn key(&self) -> String {
         let mut labels = self.labels();
         labels.sort();
-        let mut ops: Vec<_> = self.rows.iter().map(|r| (&r.op, r.args.len())).collect();
+        let mut ops: Vec<_> = self
+            .rows
+            .iter()
+            .enumerate()
+            .map(|(i, r)| (&r.op, r.args.len(), self.subsumed_rows.contains(&i)))
+            .collect();
         ops.sort();
         serde_json::to_string(&(&self.scope, labels, ops)).unwrap()
     }
     fn graph(&self) -> (Vec<String>, Vec<Vec<(String, usize)>>) {
         let mut labels = self.labels();
-        labels.extend(
-            self.rows
-                .iter()
-                .map(|r| format!("fact:{}:{}", r.op, r.args.len())),
-        );
+        labels.extend(self.rows.iter().enumerate().map(|(i, r)| {
+            format!(
+                "fact:{}:{}:{}",
+                r.op,
+                r.args.len(),
+                self.subsumed_rows.contains(&i)
+            )
+        }));
         let mut edges = vec![vec![]; labels.len()];
         for (i, row) in self.rows.iter().enumerate() {
             let f = self.values.len() + i;
@@ -185,12 +200,18 @@ pub fn compare(a: &ClosedState, b: &ClosedState, budget: usize) -> Result<Compar
         .collect();
     let mut map = vec![None; a.values.len()];
     let mut used = vec![false; b.values.len()];
-    let rows: BTreeSet<_> = b.rows.iter().cloned().collect();
+    let rows: BTreeMap<_, _> = b
+        .rows
+        .iter()
+        .cloned()
+        .enumerate()
+        .map(|(i, r)| (r, b.subsumed_rows.contains(&i)))
+        .collect();
     let mut states = 0;
     let mut exhausted = false;
     fn search(
         a: &ClosedState,
-        rows: &BTreeSet<Row>,
+        rows: &BTreeMap<Row, bool>,
         cs: &[Vec<usize>],
         map: &mut [Option<usize>],
         used: &mut [bool],
@@ -202,12 +223,12 @@ pub fn compare(a: &ClosedState, b: &ClosedState, budget: usize) -> Result<Compar
             .filter(|i| map[*i].is_none())
             .min_by_key(|i| cs[*i].iter().filter(|j| !used[**j]).count());
         let Some(i) = next else {
-            return a.rows.iter().all(|r| {
-                rows.contains(&Row {
+            return a.rows.iter().enumerate().all(|(row_id, r)| {
+                rows.get(&Row {
                     op: r.op.clone(),
                     args: r.args.iter().map(|x| map[*x].unwrap()).collect(),
                     result: map[r.result].unwrap(),
-                })
+                }) == Some(&a.subsumed_rows.contains(&row_id))
             });
         };
         for &j in &cs[i] {
@@ -221,14 +242,14 @@ pub fn compare(a: &ClosedState, b: &ClosedState, budget: usize) -> Result<Compar
             *states += 1;
             map[i] = Some(j);
             used[j] = true;
-            let valid = a.rows.iter().all(|r| {
+            let valid = a.rows.iter().enumerate().all(|(row_id, r)| {
                 if let Some(result) = map[r.result] {
                     if let Some(args) = r.args.iter().map(|x| map[*x]).collect::<Option<Vec<_>>>() {
-                        return rows.contains(&Row {
+                        return rows.get(&Row {
                             op: r.op.clone(),
                             args,
                             result,
-                        });
+                        }) == Some(&a.subsumed_rows.contains(&row_id));
                     }
                 }
                 true

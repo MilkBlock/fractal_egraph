@@ -199,6 +199,8 @@ struct CaptureBoundary {
     end: usize,
 }
 struct Captured {
+    changes: Vec<crate::closure_contract::Change>,
+    last_scope: usize,
     preview_source: String,
     boundaries: Vec<CaptureBoundary>,
     layers: crate::coarse_smooth::LayerStore,
@@ -319,6 +321,7 @@ fn capture_text_with_sink(
     }
     let trace = TraceSession::with_dependencies();
     let mut c = Captured {
+        changes: vec![], last_scope: 0,
         preview_source: text.to_owned(),
         boundaries: vec![],
         layers: Default::default(),
@@ -387,7 +390,17 @@ fn capture_text_with_sink(
             known = false;
         }
         let schedule = matches!(command, Command::RunSchedule(_));
+        let external_change=match &command {
+            Command::Action(Action::Set(_,op,_,_)|Action::Change(_,_,op,_))=>Some((false,vec![op.clone()])),
+            Command::Action(Action::Union(..))=>Some((true,vec![])),
+            Command::Action(Action::Expr(_,e)|Action::Let(_,_,e))=>{
+                fn calls(e:&Expr,out:&mut Vec<String>){if let Expr::Call(_,op,args)=e {out.push(op.clone());for a in args{calls(a,out);}}}
+                let mut tables=vec![];calls(e,&mut tables);if tables.is_empty(){None}else{Some((false,tables))}
+            },
+            _=>None,
+        };
         eg.run_program_with_trace(vec![command], &trace)?;
+        if let Some((reset,tables))=external_change {c.changes.push(crate::closure_contract::Change{boundary:c.boundaries.len()+1,reset,tables,..Default::default()});}
         if schedule {
             collect(&eg, &trace, &mut c, &mut producers)?;
             c.boundaries.push(CaptureBoundary {
@@ -402,7 +415,7 @@ fn capture_text_with_sink(
         }
     }
     collect(&eg, &trace, &mut c, &mut producers)?;
-    if c.boundaries.last().is_none_or(|b| b.end != c.records.len()) {
+    if c.boundaries.last().is_none_or(|b| b.end != c.records.len()) || c.changes.last().is_some_and(|e|e.boundary>c.boundaries.len()) {
         c.boundaries.push(CaptureBoundary {
             ripen: None,
             kind: "final".into(),
@@ -448,6 +461,8 @@ fn collect(
     if trace.buffered_event_count() != 0 {
         return Err("raw trace buffers were not drained at execution boundary".into());
     }
+    let raw_unions=batch.unions.clone();
+    let invalidations=batch.invalidations.clone();
     let matches = batch.matches;
     let events = c.events + matches.len();
     let resets = trace.scope_resets();
@@ -717,6 +732,28 @@ fn collect(
             extension: 0,
         });
     }
+    let mut change=crate::closure_contract::Change{boundary:c.boundaries.len()+1,reset:resets.len()!=c.last_scope,..Default::default()};
+    c.last_scope=resets.len();
+    for w in &writes {
+        if !matches!(w.outcome,WriteOutcome::Inserted|WriteOutcome::Updated){continue;}
+        if let Some((name,_,sorts))=schemas.get(&format!("{:?}",w.table)) {
+            for (v,sort) in w.actual.iter().zip(sorts) {if sort.as_ref()!="Unit"{change.tokens.push(pool.intern(Token{sort:sort.clone(),key:Key::Value(scope(w.match_event_id),*v)}));}}
+            if w.outcome==WriteOutcome::Updated{change.tables.push(name.to_string());}
+        } else {change.reset=true;}
+    }
+    for u in raw_unions.into_iter().filter(|u|u.displaced.is_some()){
+        let tokens=[u.lhs,u.rhs].map(|v|pool.intern(Token{sort:Arc::from(c.datatype_name.as_str()),key:Key::Value(scope(u.match_event_id),v)}));change.unions.push((tokens[0],tokens[1]));
+    }
+    for invalid in invalidations {
+        if let Some(p)=producers.get(&invalid.write_event_id){if let Some((name,_,_))=schemas.get(&p.table){change.tables.push(name.to_string());}else{change.reset=true;}}
+        else {change.reset=true;} // Unknown row ownership: invalidate conservatively.
+    }
+    // Subsume may not have a row producer. Its target table is still known.
+    for m in &matches {if survived.contains(&m.event_id){if let Some(&r)=names.get(m.rule.as_ref()){
+        for a in &rules[r].rule.head.0 {if let Action::Change(_,_,op,_)=a {change.tables.push(op.clone());}}
+    }}}
+    change.tokens.sort();change.tokens.dedup();change.tables.sort();change.tables.dedup();
+    if change.reset||!change.tokens.is_empty()||!change.tables.is_empty()||!change.unions.is_empty(){c.changes.push(change);}
     // Certificates in rolled-back scopes cannot serve future reads. A read's
     // live origin still must explicitly reference this exact committed row.
     let current_scope = resets.len();

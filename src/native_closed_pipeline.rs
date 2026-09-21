@@ -108,7 +108,7 @@ impl Pipeline {
             self.dependency_seen = layers.occurrences.len();
         }
         if self.dependencies && !self.cones {
-            for (kind, id) in self.cs.discover(c, layers)? {
+            for (kind, id) in self.cs.discover(c, layers, boundary)? {
                 if self.dependency_jobs >= 128 || self.jobs.len() >= 256 {
                     self.omitted += 1;
                     continue;
@@ -158,6 +158,8 @@ impl Pipeline {
                 _ => serde_json::from_value(self.jobs[i]["members"].clone())?,
             };
             let result = (|| -> Result<Json> {
+                // Every composition, including stale evidence, is replayed below. No live substitution is authorized.
+
                 let (source, validation, mut origin) = if dependency {
                     ripen::prepare_members(c, &members)?
                 } else {
@@ -233,10 +235,25 @@ impl Pipeline {
                 if dependency {
                     report["ripen"]["origin"] = json!({"history":self.source,"candidate_kind":kind,"candidate_id":id,"members":members,"symbolic_boundary":true});
                 }
+                if matches!(kind.as_str(), "CSCS" | "CCSS") {
+                    origin["composition"]["certificate"]["environment_definition"] =
+                        json!(self.cs.environment());
+                    origin["composition"]["certificate"]["native_validation_program"] =
+                        json!(validation);
+                    origin["composition"]["certificate"]["status"] =
+                        json!("VerifiedSymbolicReplay");
+                    origin["composition"]["certificate"]["staged_validation"] =
+                        json!("native preconditions and aliases passed");
+                    origin["composition"]["certificate"]["injections"] =
+                        origin["staged_injections"].clone();
+                }
                 report["origin"] = origin;
                 std::fs::write(folder.join("ripen.json"), serde_json::to_vec(&report)?)?;
                 if report["closed_state"]["status"] == "exported" {
                     self.closed.push(folder);
+                    if matches!(kind.as_str(), "CSCS" | "CCSS") {
+                        self.cs.promote(id, &report);
+                    }
                 }
                 Ok(
                     json!({"state":report["ripen"]["state"],"export":report["closed_state"],
@@ -255,6 +272,16 @@ impl Pipeline {
                 }
             }
             self.jobs[i]["processed_boundary"] = json!(boundary);
+            if self.dependencies && !self.cones {
+                for (kind, id) in self.cs.discover(c, layers, boundary)? {
+                    if self.dependency_jobs >= 128 || self.jobs.len() >= 256 {
+                        self.omitted += 1;
+                        continue;
+                    }
+                    self.jobs.push(json!({"candidate_kind":kind,"candidate_id":id,"template":null,"discovered_boundary":boundary,"state":"Pending"}));
+                    self.dependency_jobs += 1;
+                }
+            }
         }
         let mut counts = BTreeMap::<String, usize>::new();
         for j in &self.jobs {

@@ -1,0 +1,26 @@
+{
+  "source": "experiments/closed_storage/recursive-cs.egg",
+  "scope": "native execution and conditional symbolic closure; no live tier0 substitution",
+  "output": "out/contracts-complete",
+  "counts": {
+    "Closed": 9
+  },
+  "shared_states": 7,
+  "max_depth": 2,
+  "counters": {
+    "promotions": 6,
+    "stale_evidence": 3,
+    "subscriber_wakes": 3,
+    "resource_notifications": 14,
+    "layer_visits": 6,
+    "pair_checks": 75
+  },
+  "limits": {
+    "jobs": 128,
+    "milliseconds_between_jobs": 100000,
+    "per_boundary": 32,
+    "queue_capacity": 256,
+    "rounds": 4
+  },
+  "validation": "native regressions and offline Graphviz view; 100 independent subscribers tested, union wakes only 2"
+}

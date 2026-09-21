@@ -386,6 +386,27 @@ pub(in crate::native_analyze) fn prepare(
 
 fn audit(c: &Captured) -> Result {
     let mut parser = EGraph::default();
+    let declarations = parser.parse_program(None, &c.datatype)?;
+    let merged: BTreeSet<_> = declarations
+        .iter()
+        .filter_map(|d| match d {
+            Command::Function {
+                name,
+                merge: Some(_),
+                ..
+            } => Some(name.as_str()),
+            _ => None,
+        })
+        .collect();
+    if c.rules.iter().any(|r| {
+        r.rule
+            .head
+            .0
+            .iter()
+            .any(|a| matches!(a,Action::Set(_,op,_,_) if merged.contains(op.as_str())))
+    }) {
+        return Err("automatic merge update needs a pre-update table-state witness; explicit ripen remains supported".into());
+    }
     let mut declared = vec![];
     for cmd in crate::visual_rule::surface_program(parser.parse_program(None, &c.preview_source)?) {
         if matches!(

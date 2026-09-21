@@ -20,6 +20,8 @@ struct TokenData {
 }
 #[derive(Serialize, Deserialize)]
 struct History {
+    #[serde(default)]
+    changes: Vec<crate::closure_contract::Change>,
     version: u32,
     complete: bool,
     source: String,
@@ -49,6 +51,7 @@ pub(super) fn save(path: &Path, source: &Path, c: &Captured) -> Result {
     let mut out = BufWriter::new(file);
     #[derive(Serialize)]
     struct Borrowed<'a> {
+        changes: &'a [crate::closure_contract::Change],
         version: u32,
         complete: bool,
         source: String,
@@ -62,6 +65,7 @@ pub(super) fn save(path: &Path, source: &Path, c: &Captured) -> Result {
         boundaries: &'a [CaptureBoundary],
     }
     let history = Borrowed {
+        changes: &c.changes,
         version: 1,
         complete: true,
         source: source.display().to_string(),
@@ -172,6 +176,27 @@ pub(super) fn read(path: &Path) -> Result<Captured> {
             })
             .collect(),
     };
+    for change in &h.changes {
+        if change.boundary == 0
+            || (!h.boundaries.is_empty() && change.boundary > h.boundaries.len())
+            || change.tokens.iter().any(|i| *i >= pool.values.len())
+            || change.unions.iter().any(|(a, b)| {
+                *a >= pool.values.len()
+                    || *b >= pool.values.len()
+                    || pool.values[*a].sort != pool.values[*b].sort
+            })
+        {
+            return Err("invalid history mutation evidence".into());
+        }
+    }
+    if h.changes.windows(2).any(|p| p[0].boundary > p[1].boundary) {
+        return Err("out-of-order history mutation evidence".into());
+    }
+    if h.boundaries.is_empty() {
+        for change in &mut h.changes {
+            change.boundary = 1;
+        }
+    }
     let mut ids = BTreeSet::new();
     for (i, r) in h.records.iter().enumerate() {
         if !ids.insert(r.id)
@@ -240,6 +265,8 @@ pub(super) fn read(path: &Path) -> Result<Captured> {
         )
     });
     Ok(Captured {
+        changes: h.changes,
+        last_scope: 0,
         preview_source,
         boundaries: h.boundaries,
         layers: Default::default(),

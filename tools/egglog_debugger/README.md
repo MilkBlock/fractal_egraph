@@ -691,3 +691,73 @@ apply. Current compositions are binary references to CS versions: recursively
 using composition results as new CS components and directly reusing the sides'
 already-ripened engine states are not implemented. Thus this change does not yet
 prove lower native join cost, runtime memory use, or higher compression.
+
+### Composition contracts, visibility, and event subscriptions
+
+The current implementation adds three separate contracts:
+
+1. Every composition records the exact rule environment, component leases,
+   ordered external-input obligations, required facts, output effects, and its
+   CSCS/CCSS justification. Native staged preconditions and alias checks must
+   pass before the result is promoted. Stale evidence can propose a candidate,
+   but never bypasses this validation. Injection stages are preserved; the
+   certificate does not assert that external inputs can be supplied earlier.
+2. ClosedState format v2 includes `subsumed_rows`. Isomorphism checks row visibility
+   in both refinement and the final exact mapping. Readers accept old v1 states
+   as wholly visible; v1 files carrying visibility masks are rejected, and old
+   readers reject new v2 files rather than silently dropping the mask. Explicit
+   native ripen supports subsume and min/max lattice merges. Other merges remain
+   uncertified. Automatic merge updates without a pre-update table-state witness
+   are rejected even when explicit ripen would support that merge.
+3. Native committed insert/update/union events and invalidation/subsume information
+   produce compact `changes` in saved history. `closure_contract::Registry` tracks
+   token/table/scope generations and subscriptions. Union joins subscription sets;
+   later notifications follow the aliases. Only subscribers are woken. Unknown
+   ownership and unscoped mutations conservatively invalidate a table or scope.
+   This fallback can wake many units; it is not advertised as precise locality.
+
+Layer version discovery now visits new occurrences, new coarse layers, and the
+coarse layers touched by those occurrences. It no longer enumerates every
+existing layer after every ripen completion. A successfully exported closed
+composition creates a CS descriptor referencing its source composition; the
+promotion event triggers further pairing immediately, under the existing budgets.
+The recursive DOT shows these promotion edges and depths. Subsumed enodes are
+shown dashed/gray. Original history and closed content remain available after an
+instance lease becomes stale.
+
+**Guarantee boundary:** these are conditional symbolic-replay certificates and
+versioned historical evidence, not a live tier0 substitution proof. `live_substitution`
+remains false. Rechecking a historical structure does not establish that its
+boundary still embeds in the current whole tier0 graph. Input obligations and
+trigger identities stay separate when final closed contents are shared. Old
+histories without mutation data cannot recover missing invalidation evidence.
+There is still no direct reuse of a side's native engine storage or join state.
+
+Bounds remain 256 units, 16 observed applications per composite, 64 proposals
+per composition kind, 8 indexed alternatives per token, and 32 partners per
+awakened unit. Subscription bookkeeping visits changed resources and affected
+subscribers; union-by-size bounds alias lookup depth logarithmically. Pairing
+uses the existing bounded dependency checks (256 visited ancestors); exhausted
+checks stay unknown. Environment checking and report serialization still have
+costs, so subscriber counts are not a total-runtime complexity measurement.
+
+Reproduce the recursive example without network or full history export:
+
+```sh
+EGG_LAYOUT_RIPEN_JOBS=128 EGG_LAYOUT_RIPEN_PER_BOUNDARY=32 \
+EGG_LAYOUT_RIPEN_MILLISECONDS=100000 \
+cargo run --release -- analyze --recapture-tier0 \
+  --source experiments/closed_storage/recursive-cs.egg \
+  --output out/closure-contracts-example
+```
+
+Tests: `closure_contracts`, `closed_state`, `cs_composition`, and the existing
+native history/debugger regressions. `test_cs_view.cjs RUN_DIR` runs the real
+panel and local Graphviz with non-local requests blocked.
+
+For state sharing involving visibility or mutable table actions, the exported
+scope also preserves registered rule order and ruleset scheduling information;
+it does not use the order-insensitive normalization of the pure positive fragment.
+Each saved composition proof includes its environment definition and native
+validation program, so a standalone catalog does not depend on a missing numeric
+environment reference from the round snapshot.

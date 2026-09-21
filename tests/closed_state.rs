@@ -5,6 +5,7 @@ fn state() -> ClosedState {
     ClosedState {
         version: 1,
         local_ids: vec![],
+        subsumed_rows: vec![],
         scope: json!({"rules":"fixed"}),
         values: vec![
             Vertex {
@@ -213,4 +214,25 @@ fn native_export_keeps_literals_and_global_ports() {
     assert!(!out.join("closed-state.json").exists());
     assert!(catalog(&[out], &base.join("invalid-catalog"), 100).is_err());
     fs::remove_dir_all(base).unwrap();
+}
+
+#[test]
+fn visibility_is_part_of_exact_equivalence() {
+    let mut a = state();
+    let mut b = state();
+    a.version = 2;
+    b.version = 2;
+    a.subsumed_rows = vec![0];
+    assert!(matches!(
+        compare(&a, &b, 10000).unwrap(),
+        Comparison::Different { .. }
+    ));
+    b.rows.swap(0, 1);
+    b.subsumed_rows = vec![1];
+    assert!(matches!(
+        compare(&a, &b, 10000).unwrap(),
+        Comparison::Equivalent { .. }
+    ));
+    b.subsumed_rows = vec![20];
+    assert!(compare(&a, &b, 10000).is_err());
 }

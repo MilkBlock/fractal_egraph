@@ -205,6 +205,8 @@ def resolve(term, state):
 def load(catalog, state_id):
     cat = json.loads(catalog.read_text())
     state = json.loads((catalog.parent / 'states' / f'state-{state_id:04}.json').read_text())
+    if state.get('subsumed_rows'):
+        raise ValueError('Add storage probe does not implement subsumed-row matching')
     triggers = [t for t in cat['triggers'] if t['closed_state'] == state_id]
     slots = {i: k for k,(i,v) in enumerate((i,v) for i,v in enumerate(state['values']) if v['sort']=='Math')}
     template = [tuple(slots[x] for x in r['args']+[r['result']]) for r in state['rows'] if r['op']=='Add']

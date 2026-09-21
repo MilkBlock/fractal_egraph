@@ -38,7 +38,7 @@ fn relation_facts_are_part_of_closed_state() {
     let r = read(base.join("function/ripen.json"));
     assert_eq!(r["ripen"]["state"], "Closed");
     assert_eq!(r["tables"]["score"], 1);
-    assert_eq!(r["closed_state"]["status"], "unavailable");
+    assert_eq!(r["closed_state"]["status"], "exported");
     let no_merge = function.replace(":merge (max old new)", ":no-merge");
     run(&no_merge, &base.join("no-merge"), &["ripen"]);
     let state = read(base.join("no-merge/closed-state.json"));
