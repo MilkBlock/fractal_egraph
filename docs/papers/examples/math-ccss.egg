@@ -1,0 +1,37 @@
+; Native illustration extracted from egglog/tests/web-demo/math.egg.
+; Rule bodies and datatype are preserved; ruleset/name annotations isolate the example.
+; This is not a run of the complete math optimizer.
+(datatype Math
+    (Diff Math Math :cost 100)
+    (Integral Math Math :cost 100)
+
+    (Add Math Math)
+    (Sub Math Math)
+    (Mul Math Math)
+    (Div Math Math)
+    (Pow Math Math)
+    (Ln Math)
+    (Sqrt Math)
+
+    (Sin Math)
+    (Cos Math)
+
+    (Const f64)
+    (Var String))
+(ruleset ac)
+(rewrite (Add a (Add b c)) (Add (Add a b) c) :ruleset ac :name "sum-assoc")
+(ruleset as)
+(rewrite (Add a b) (Add b a) :ruleset as :name "sum-comm")
+(ruleset mc)
+(rewrite (Mul a (Mul b c)) (Mul (Mul a b) c) :ruleset mc :name "product-assoc")
+(ruleset ms)
+(rewrite (Mul a b) (Mul b a) :ruleset ms :name "product-comm")
+(let sum (Add (Var "a") (Add (Var "b") (Var "c"))))
+(let product (Mul (Var "a") (Mul (Var "b") (Var "c"))))
+(run ac 1)
+(run as 1)
+(run mc 1)
+(run ms 1)
+(run-schedule (saturate (seq (run ac) (run as) (run mc) (run ms))))
+(check (= sum (Add (Var "c") (Add (Var "a") (Var "b")))))
+(check (= product (Mul (Var "c") (Mul (Var "a") (Var "b")))))

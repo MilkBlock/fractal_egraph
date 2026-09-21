@@ -7,9 +7,10 @@
 \usepackage{xcolor,graphicx,tikz}
 \usetikzlibrary{arrows.meta,positioning,fit,backgrounds}
 \usepackage{listings}
+\usepackage[section]{placeins}
 \usepackage[colorlinks=true,allcolors=blue!45!black]{hyperref}
 \usepackage{enumitem}
-\hypersetup{pdftitle={Event-Driven Hierarchical Rule Composition and Closure Sharing},pdfsubject={Conditional closure contracts and fractal-rule feedback},pdfkeywords={egraph, equality saturation, rule composition, closure, fractal rules}}
+\hypersetup{pdftitle={Event-Driven Hierarchical Rule Composition and Saturation},pdfsubject={Saturated rule compositions and fractal-composition feedback},pdfkeywords={egraph, equality saturation, saturated rule composition, dissipative, infi}}
 \setlist{nosep,leftmargin=*}
 \setlength{\parskip}{4pt}
 \setlength{\parindent}{1em}
@@ -27,16 +28,17 @@
 \lstset{basicstyle=\ttfamily\footnotesize,columns=fullflexible,keepspaces=true,
  breaklines=true,frame=single,rulecolor=\color{black!20},backgroundcolor=\color{black!2},
  xleftmargin=3pt,xrightmargin=3pt,aboveskip=7pt,belowskip=7pt}
-\tikzset{box/.style={draw=black!50,rounded corners,align=center,fill=blue!4,
+\tikzset{box/.style={draw=black!50,rounded corners,align=center,fill=black!2,
  minimum height=9mm,text width=37mm,font=\small,inner sep=4pt},
  arr/.style={-{Latex[length=2mm]},draw=black!65},
- proposed/.style={arr,dashed},coarse/.style={box,fill=orange!12},
- smooth/.style={box,fill=green!8}}
-\title{Event-Driven Hierarchical Rule Composition\\and Closure Sharing\\[5pt]
-\large From Execution Histories to Dissipative and Infinite Fractal Rules}
+ proposed/.style={arr,dashed},coarse/.style={box,draw=violet!70!black,very thick,fill=white},
+ smooth/.style={box,draw=teal!75!black,dashed,thick,fill=white}}
+\input{figures/math-illustrations.tex}
+\title{Event-Driven Hierarchical Rule Composition\\and Saturation\\[5pt]
+\large Coarse and Smooth Layers, Dissipative and Infi Rule Compositions}
 \author{}
 \date{Technical report \quad 21 September 2026\\
-\small Implementation baseline: \texttt{258eef4}}
+\small Implementation baseline: \texttt{258eef4} \quad Illustrated revision v0.2}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -50,13 +52,13 @@ preserves dependencies; guarded CCSS regrouping combines the coarse and smooth
 parts without discarding interface obligations. An explicit \emph{ripen} operation
 computes local closure under staged external inputs, while exact state comparison
 preserves types, equality, visibility, and the relevant rule environment.
-We then define parameterized fractal rules through stable binding and effect
+We then define parameterized fractal rule compositions through stable binding and effect
 transfers, distinguishing well-founded dissipative processes from families with
 arbitrarily long finite prefixes. These abstractions suggest finite scheduling,
 endpoint reduction, and demand-driven symbolic feedback to ripen. A native egglog
-prototype implements bounded composition, staged validation, closure sharing,
+prototype implements bounded composition, staged validation, saturated-body sharing,
 event subscriptions, and recursive promotion. A three-unit example yields nine
-closed results, seven shared states, and six promotions, reaching depth two.
+saturation results, seven shared states, and six promotions, reaching depth two.
 This establishes a working finite mechanism, not end-to-end tier0 compression or
 acceleration. General induction and complete fractal-summary feedback remain
 explicitly separated from the implemented capabilities.
@@ -90,7 +92,7 @@ The contribution of this report is a semantic account of this hierarchy, togethe
 with a bounded implementation and explicit evidence limits. We do not claim a
 complete enumeration of useful combinations, a general induction procedure, or
 proven runtime compression. The central design decision is to use observed
-interaction events to construct larger units, and to share their closed contents
+interaction events to construct larger units, and to share their saturated bodies
 without conflating their triggers.
 
 \begin{figure}[t]
@@ -101,11 +103,11 @@ without conflating their triggers.
 \node[box,right=of hist] (cs) {Coarse / smooth\\CS units};
 \node[box,below=of cs] (compose) {CSCS / CCSS\\interface contracts};
 \node[box,left=of compose] (ripen) {Staged validation\\and ripen};
-\node[box,left=of ripen] (closed) {Shared ClosedState\\separate triggers};
-\node[box,below=16mm of ripen,fill=orange!7] (fractal) {tier2 transfers\\FractalRule / Reduce};
+\node[box,left=of ripen,draw=smoothteal,double] (closed) {Shared saturated body\\separate triggers};
+\node[box,below=16mm of ripen,fill=black!3] (fractal) {tier2 transfers\\recurrence / Reduce};
 \draw[arr] (exec)--(hist);\draw[arr] (hist)--(cs);
 \draw[arr] (cs)--(compose);\draw[arr] (compose)--(ripen);\draw[arr] (ripen)--(closed);
-\draw[arr] (closed.south) -- ++(0,-4mm) -| node[pos=.5,below,font=\scriptsize,fill=white,inner sep=1pt]{closed-unit promotion} (compose.south);
+\draw[arr] (closed.south) -- ++(0,-4mm) -| node[pos=.5,below,font=\scriptsize,fill=white,inner sep=1pt]{saturated-unit promotion} (compose.south);
 \draw[arr] (hist.west) -- ++(-7mm,0) |- (fractal.west);
 \draw[proposed] (fractal.east) -- ++(7mm,0) |- (ripen.east);
 \node[font=\scriptsize,anchor=west] at ([xshift=8mm,yshift=5mm]fractal.east) {summary};
@@ -115,6 +117,17 @@ feedback that is not yet automatically integrated into ripen. Finite closure
 promotion is implemented.}
 \label{fig:pipeline}
 \end{figure}
+
+\subsection{Reading the running examples}
+The examples use actual rewrite bodies from
+\path{egglog/tests/web-demo/math.egg}. We isolate small rule sets and explicit
+schedules so that the illustrated dependency is reproducible; this is not a
+claim that the complete optimizer reaches the same saturated body. In the
+running Add example, $a,b,c$ abbreviate the concrete eclasses containing
+\code{Var("a")}, \code{Var("b")}, and \code{Var("c")}.
+For commutation we alpha-rename its pattern variables to $x,y$, keeping these
+formal names distinct from the concrete leaf labels.
+\MathLegend
 
 \section{State and Execution Evidence}
 \subsection{Facts, equality, visibility, and updates}
@@ -133,6 +146,8 @@ For a positive fragment that only adds facts and grows equality, a monotone
 closure model is useful. General programs require a stronger operational
 contract. A subsumed row can remain stored while ceasing to participate in
 matching. Comparing only its contents would lose this distinction.
+
+\MathEgraph
 
 \subsection{Committed applications rather than matches}
 An application record is modeled as
@@ -170,7 +185,9 @@ an earlier binding, but a forward reference or a collision between names from
 different instances is invalid. Numbering variables by first appearance alone
 is not a complete canonicalization of arbitrary branching graphs.
 
-\section{CoarseComb and SmoothComb}
+\MathBinding
+
+\section{Coarse and Smooth Rule Compositions}
 Let $H$ be a selected local unit. Immediately before its $i$th stage, let $A_i(H)$
 be the evidence supplied by already injected inputs and earlier internal actions.
 For the chosen recorded witness, define the new external obligation conceptually
@@ -184,8 +201,8 @@ This is evidence subtraction, not subtraction of bare IDs: equality, versions,
 and visibility must be respected.
 
 \begin{definition}[Context-relative application kind]
-An application is a \emph{CoarseComb} relative to $H$ if it requires a nonempty
-new external obligation $E_i(H)$. It is a \emph{SmoothComb} if all its premises
+A one-step composition is a \emph{coarse rule composition} relative to $H$ if it requires a nonempty
+new external obligation $E_i(H)$. It is a \emph{smooth rule composition} if all its premises
 are explained by the current local interface and prior internal results.
 \end{definition}
 
@@ -195,17 +212,19 @@ included in a larger unit. Classification also depends on the selected witness:
 a different internal proof may exist without having been discovered. Missing
 provenance is not proof that no such internal derivation exists.
 
-For example, take $R_1:A(x)\Rightarrow B(x)$ and
-$R_2:B(x)\Rightarrow C(x)$. Starting from an external $A(v)$, the first
-application is coarse and the second is smooth in the two-step combination.
-Viewed in isolation, the second application is coarse because $B(v)$ is external.
-If it additionally requires $P(v)$, that condition cannot be discarded merely
-because most inputs come from the first rule.
+For the running example, take Add associativity and commutation from
+\texttt{math.egg}. Starting from external $a+(b+c)$, associativity is coarse.
+Commutation of its produced row $(a+b)+c$, with $x=[a+b]$ and $y=c$, is smooth
+relative to that two-step unit. Viewed alone, the same commutation requires an
+external row and is coarse. Figure~\ref{fig:math-guard} gives a second concrete
+case: merely having the denominator binding does not provide its nonzero guard.
 
 A nonempty-premise combination normally begins with a coarse injection. A rule
 with no premises is a logical exception. An engineering convention such as
-\code{Empty -> CoarseComb} can provide a uniform entry representation, but does
+\code{Empty -> coarse composition} can provide a uniform entry representation, but does
 not prove that every rule needs external data.
+
+\MathGuard
 
 \section{Layers and CS Units}
 A \emph{coarse layer} groups coarse applications with explicit binding anchors.
@@ -216,6 +235,12 @@ explained behind that interface. We write a CS unit as
 \end{equation}
 with coarse members $C$, smooth members $S$, external interface $I$, output ports
 $O$, and witness information $\Pi$.
+
+Figure~\ref{fig:math-layers} makes the layer distinction concrete. The native
+trace contains an associativity write that is subsequently read by commutation
+with $x=[a+b]$ and $y=c$. A layer encloses applications; its outline must not be
+confused with the blue/orange roles of facts inside each application.
+\MathLayers
 
 An intersection is a reason to inspect a pair, not automatically a reason to
 merge it. For example, merging transitively on the shared constant zero can
@@ -248,6 +273,13 @@ concatenating two event arrays. If both units contain applications depending on
 intermediate results of the other, the complete units cannot be placed in a
 simple sequential order. A finer decomposition or an unknown result is needed.
 Dependencies through events outside the proposed pair must also be checked.
+
+\MathCSCS
+The multiplication context in Figure~\ref{fig:math-cscs} is a genuinely new
+external obligation. The carried Add$(a,b)$ fact is also explicit: omitting it
+would incorrectly classify the later inner distribution as self-contained.
+The diagram shows an interface-level grouping of a native trace; a runtime
+heuristic may choose a finer layer cut.
 
 \subsection{Guarded CCSS regrouping}
 The second operator regroups the coarse and smooth parts:
@@ -302,6 +334,8 @@ positive-fragment regrouping check.
 its contract. Neither operation removes external-input obligations.}
 \end{figure}
 
+\MathCCSS
+
 \subsection{Anchors need not be an initial intersection}
 Suppose one unit supplies $P(a,b)$, another supplies $Q(c,d)$, and a recorded
 consumer also reads $Link(b,c)$. The consumer and the Link fact anchor a
@@ -309,12 +343,12 @@ combination even if the original C parts shared no node. This is a more general
 interaction witness than a direct coarse intersection. It must not be forced
 into the particular CCSS admission test.
 
-The prototype stores explicit composition references. Closed compositions can
+The prototype stores explicit composition references. Saturated compositions can
 be promoted and become operands of later compositions. Their inherited coarse
 and smooth descriptions are still conservative: promotion does not automatically
 find the best reclassification or all legal regroupings.
 
-\section{Ripen and Closure Sharing}
+\section{Ripen and Saturation}
 \subsection{Local closure under staged inputs}
 Given a rule environment $\mathcal R$, a local entry $I$, and an injection plan
 $J$, ripen replays the observed preconditions, injections, and actions, then runs
@@ -324,10 +358,10 @@ The statuses are deliberately distinct:
 \item \code{Pending}: not yet processed;
 \item \code{Suspended}: insufficient execution budget;
 \item \code{Rejected}: entry or validation obligations were not met;
-\item \code{Closed}: an operational fixed point under the specified local model.
+\item \emph{Saturated}: an operational fixed point under the specified local model.
 \end{itemize}
 
-A local Closed result neither saturates all of tier0 nor certifies every embedding
+A local saturation result neither saturates all of tier0 nor certifies every embedding
 of the interface. \code{RipenInput(k)} is an opaque symbolic boundary node: a
 repeated index preserves identity, while different indices are initially
 unmerged. It is not a wildcard that matches every value. It does not recover the
@@ -342,8 +376,18 @@ Injection declares a caller obligation; it does not derive the fact internally.
 Promoting $I_2$ into the initial entry without justification would change the
 activation conditions.
 
+\begin{definition}[Saturated rule composition]
+A saturated rule composition consists of a validated composition, its trigger
+and input mapping, its staged obligations, a saturated realization $K$, and its
+certificate. In the current implementation $K$ is a finite materialized body.
+Sharing $K$ does not identify two compositions with different triggers or
+obligations. A symbolically saturated infinite body needs the stronger query
+contract discussed later.
+\end{definition}
+\MathSaturated
+
 \subsection{Sharing contents without conflating triggers}
-Different combinations may share identical closed contents while retaining
+Different combinations may share identical saturated bodies while retaining
 different triggers, bindings, and injection plans. The prototype compares
 complete exported typed graphs, equality classes, fixed ports, and row visibility.
 The rule environment must match. When updates or visibility matter, registration
@@ -362,7 +406,7 @@ $\Cl(A\cup B)$. Monotonicity and idempotence give the reverse inclusion.
 \end{proof}
 
 This identity motivates starting from existing closures and processing new
-interaction. Their union need not already be closed. The identity supplies no
+interaction. Their union need not already be saturated. The identity supplies no
 execution budget and is not a theorem about every egglog operation. In
 particular, subsume changes visibility, and a min/max merge alone does not prove
 that every surrounding query is monotone.
@@ -373,7 +417,7 @@ native matcher or join state is not implemented. The current guarantee is sharin
 of declared local contents with separate trigger contracts.
 
 \subsection{Versioned evidence and recursive promotion}
-Historical closed contents are immutable; the applicability of a concrete
+Historical saturated bodies are immutable; the applicability of a concrete
 instance is separately versioned. Token, table, and scope subscriptions are
 notified by committed changes. Union joins subscriptions so later notifications
 follow aliases. Updates and subsumption expire affected evidence. Unknown row
@@ -382,10 +426,12 @@ ownership causes a conservative table- or scope-level invalidation.
 A stale descriptor can propose another symbolic candidate, but cannot bypass
 native staged validation. Certificates retain \code{live\_substitution=false}:
 a lease whose version has not changed is not a proof of a current whole-graph
-embedding. Successful closed compositions are promoted as new descriptors and
+embedding. Successful saturated compositions are promoted as new descriptors and
 registered for further pairing, without replacing tier0 facts.
 
-\section{Parameterized Fractal Rules}
+\MathVisibility
+
+\section{Parameterized Rule Compositions}
 \subsection{Stable binding and effect transfers}
 Repeated rule names are weak evidence. Two ABAB sequences can have different
 bindings; conversely, independently scheduled branches can represent the same
@@ -397,7 +443,7 @@ where $\beta_k$ is the binding, $\mathcal E_k$ accumulated effects, and
 $\mathcal P_k$ the frontier of positions and obligations. In an operational fragment, the effect component must retain
 structured updates and visibility, not merely a set of inserted facts.
 
-A FractalRule is a parameterized family with a trigger, guard, stable transfer,
+A fractal rule composition is a parameterized family with a trigger, guard, stable transfer,
 effect contract, and observable interface. ``Fractal'' denotes recursive
 structural regularity here, not a claimed geometric dimension. A useful abstract
 form is
@@ -408,6 +454,8 @@ Finite histories propose such an object; they do not prove that it remains valid
 for arbitrary counts. The current transfer analysis records Carry, Return, and
 External port origins and finite witnesses. General induction remains a separate
 proof obligation.
+
+\MathFractalBinding
 
 \subsection{Trigger states and nonuniform prefixes}
 A stable phase may begin only after several injections and effect-producing
@@ -429,6 +477,8 @@ scheduling and other work can interrupt a still-enabled family. A turning point
 must be defined by a guard, resource, interface, or effect change. Fractal
 operators need not commute or be orthogonal.
 
+\MathTrigger
+
 \subsection{Multiple application positions}
 For a branching family, use an indexed position domain rather than flattening all
 steps into a sequence. A schematic binary generator can use
@@ -445,9 +495,9 @@ size, event count, and deduplicated e-node count. A compact binding generator ca
 represent a large family even when the resulting graph does not compress by the
 same factor.
 
-\section{Dissipative and Infinite-Prefix Families}
+\section{Dissipative and Infi Rule Compositions}
 \subsection{Dissipation is a property of obligations}
-\begin{definition}[Dissipative FractalRule]
+\begin{definition}[Dissipative Rule Composition]
 Under a fixed external-supply contract, a fractal process is dissipative if a
 well-founded measure strictly decreases on every valid recursive step. A simple
 case is $\mu(z_k)\in\mathbb N$ with
@@ -487,9 +537,11 @@ This needs a polynomial and differentiation contract; finite examples do not
 prove that arbitrary integral rewrites terminate. We do not report such a general
 proof as an implemented capability.
 
-\subsection{InfiFractalRule as an unbounded prefix interface}
+\MathDissipative
+
+\subsection{Infi rule composition as an unbounded prefix interface}
 \begin{definition}[Infinite-prefix family]
-For a fixed admitted trigger instance, an InfiFractalRule admits, under its
+For a fixed admitted trigger instance, an infi rule composition admits, under its
 invariant, a valid prefix of length $k$ for every natural number $k$. Claiming unbounded growth of the physical
 graph further requires a freshness argument for facts or positions.
 \end{definition}
@@ -511,7 +563,39 @@ $A(k,i)\to B(k,2i),B(k,2i+1)$ and $B(k,i)\to A(k+1,i)$.
 Machine i64 arithmetic additionally requires overflow guards or bounded depth;
 it cannot inherit an unbounded mathematical conclusion without qualification.
 
-\section{Feedback from FractalRule to Ripen}
+\subsection{A productive example from math.egg}
+Let $D_x u$ denote \code{Diff(x,u)}, let $A_x v$ denote
+\code{Integral(v,x)}, and define $I_k=\operatorname{Integral}(u_kv_k,x)$.
+The actual integration-by-parts rewrite is:
+\begin{lstlisting}
+(rewrite (Integral (Mul a b) x)
+  (Sub (Mul a (Integral b x))
+       (Integral (Mul (Diff x a) (Integral b x)) x)))
+\end{lstlisting}
+It gives the uniform transfer
+\begin{equation}
+ u_{k+1}=D_xu_k,\qquad v_{k+1}=A_xv_k,\qquad
+ I_k\Rightarrow u_kv_{k+1}-I_{k+1}.
+\end{equation}
+In the IBP-only fragment, with distinct symbolic Var leaves and no additional
+equalities, the derivative and antiderivative arguments grow structurally.
+The residual is again an eligible Integral-of-Mul node. The two constructors
+are never simplified by another rule, so this supplies arbitrarily long finite
+prefixes with fresh nodes. No numeric loop counter is evaluated in the graph.
+\MathInfi
+In this fragment, each step creates one Diff row, one antiderivative Integral,
+one residual Integral, two Mul rows, and one Sub row. Distinct derivative and
+antiderivative arguments prevent their keys from coalescing; IBP unions the
+integral result with its Sub representative, not with either argument. Thus the
+constructor-row count is $N_{\rm Math}(k)=5+6k$, excluding primitive String values
+and implementation-only global bindings.
+A native check of prefixes $k=0,1,2,3,4$ gives $5,11,17,23,29$ Math e-nodes.
+These finite measurements check the illustration; the all-depth argument depends
+on the restricted theory. In full \texttt{math.egg}, derivative simplification,
+other integration rules, and pruning can stop or change the recurrence. With a
+polynomial derivative contract, the same IBP pattern can instead become dissipative.
+
+\section{Feedback from Fractal Compositions to Ripen}
 \subsection{Finite scheduling and reduction}
 A proved dissipative family supplies a principled local count or budget. Ripen
 can execute its trigger, finite repeat, and exit as a unit, rechecking the
@@ -552,6 +636,11 @@ for $0\le j\le k$, together with the corresponding equality/effect information.
 Replacing the entire history with only the last expression can suppress such
 interactions and is not a sound implementation of general ripen.
 
+\MathSummary
+For the IBP example, the actual unrolling is nested Sub nodes. Turning that
+nesting into the alternating-sum endpoint requires additional exact additive
+laws. The IBP-only native trace is not claimed to perform this normalization.
+
 \subsection{Arrays and symbolic coverage}
 A useful summary contract exposes a trigger, iteration domain, binding transfer,
 effects, endpoint queries, and intermediate-position queries. Finite domains
@@ -560,8 +649,8 @@ lazy instantiation. Existing logical ArrayGet, Tabulate, Map, and Fold construct
 provide relevant vocabulary, but do not by themselves implement mutable memory,
 alias analysis, cache placement, or GPU scheduling.
 
-An InfiFractalRule that continually generates fresh facts generally has no finite
-ordinary ClosedState. We propose a distinct \code{SymbolicallyCovered} status:
+An infi rule composition that continually generates fresh facts generally has no finite
+materialized saturated body. We propose a distinct \code{SymbolicallyCovered} status:
 within a specified observation interface, internal matches and effects are
 represented by a summary and required positions can be produced on demand.
 This needs both sound answers and coverage of relevant internal matches. If a
@@ -596,7 +685,7 @@ checks residue coverage and machine-range bounds. Their certified queries do not
 materialize all tier0 effects.
 
 These narrow queries are useful evidence that executable summaries are possible.
-They are not a complete FractalRule-to-ripen integration. The current native
+They are not a complete fractal rule composition-to-ripen integration. The current native
 ripen path still reports zero fractal summaries used. General induction and a
 complete internal-match interface remain open.
 
@@ -614,7 +703,7 @@ for candidate U within budget:
         retain SymbolicallyCovered and a demand-driven frontier
     else:
         run ordinary bounded ripen
-    share closed contents, retaining trigger obligations
+    share saturated bodies, retaining trigger obligations
     promote certified results and notify subscribers
 \end{lstlisting}
 
@@ -632,7 +721,7 @@ Component & Implemented scope \\
 Native history & Committed applications, binding evidence, mutation records, replay.\\
 Layers and Uses & Context-relative coarse/smooth structures and template instances.\\
 CS composition & Bounded references, conditional certificates, staged validation, promotion.\\
-Closed-state sharing & Bounded exact comparison, typed ports, row visibility, rule environment.\\
+Saturated-composition sharing & Bounded exact comparison, typed ports, row visibility, rule environment.\\
 Evidence leases & Token/table/scope subscriptions, union aliases, invalidation.\\
 Recurrence analysis & Finite transfer witnesses and selected symbolic endpoint laws.\\
 Bake queries & Narrow checked scalar summaries; no whole-program mutation replacement.\\
@@ -668,11 +757,11 @@ unsupported end-to-end complexity claim.
 \subsection{Recursive promotion and locality}
 A native example contains three CS pairs, $A\to A_1\to A_2$,
 $B\to B_1\to B_2$, and $C\to C_1\to C_2$, sharing a boundary parameter.
-It produces nine closed results, seven shared states, and six promotions, with
+It produces nine saturation results, seven shared states, and six promotions, with
 maximum depth two. Recorded counters include six layer visits, 75 pair checks,
 14 resource notifications, and three subscriber wakes~\cite{evidence}.
 
-This establishes that closed results can participate in higher-level
+This establishes that saturation results can participate in higher-level
 combinations. It does not establish compression or acceleration. In a separate
 registry test, union of two resources wakes their two subscribers among 100
 independent units. Shared constants, common tables, or unknown mutation ownership
@@ -683,15 +772,17 @@ can legitimately require more notification work.
 \centering\small
 \begin{tabular}{@{}lrr@{}}
 \toprule
-Recorded configuration & Closed results & Shared states\\
+Recorded configuration & Saturation results & Shared states\\
 \midrule
-Math, six rounds, Use only & 14 & 5\\
-Math, six rounds, ancestor cones & 18 & 7\\
-Math, six rounds, explicit CS & 16 & 6\\
+microbench6 / Use only & 14 & 5\\
+microbench6 / ancestor cones & 18 & 7\\
+microbench6 / explicit CS & 16 & 6\\
 Three-CS recursive example & 9 & 7\\
 \bottomrule
 \end{tabular}
-\caption{Historical prototype observations. These are not all rerun at one commit;
+\caption{Historical prototype observations. Here microbench6 is
+\texttt{math-microbenchmark.egg}, not the full 	exttt{math.egg}.
+These are not all rerun at one commit;
 the last row also uses a different input and budget.}
 \label{tab:observations}
 \end{table}
@@ -724,7 +815,7 @@ not replace guard preservation, a ranking argument, or query completeness.
 Likewise, recognizing a dissipative family does not prove that other rules cannot
 restart it.
 
-Closed-content sharing and live instance substitution remain separate. Opaque
+Saturated-body sharing and live instance substitution remain separate. Opaque
 parameters omit external structure; version tracking prevents unchecked reuse but
 does not itself validate a current whole-graph embedding. Subsumption and mutable
 tables require their operational contracts rather than the pure closure identity.
@@ -749,10 +840,10 @@ unreviewed work on graph grammars, library learning, or recursive summaries.
 We describe locality in rule history through explicit interfaces, bindings, and
 effect obligations. Coarse and smooth applications provide a boundary language;
 CSCS and CCSS provide distinct composition contracts; ripen and exact state
-comparison let different processes share closed contents; and event subscriptions
+comparison let different processes share saturated bodies; and event subscriptions
 and promotion connect these mechanisms into a hierarchy.
 
-Dissipative and infinite-prefix fractal rules offer a parameterized next step.
+Dissipative and infinite-prefix fractal rule compositions offer a parameterized next step.
 Finite processes can use rankings and fold contracts, whereas unbounded families
 need lazy positions and a separate symbolic-coverage proof. The implemented
 prototype supports finite closure composition, recursive promotion, and selected
@@ -792,6 +883,14 @@ not a uniform benchmark.
 \clearpage
 \appendix
 \section{Reproduction and Evidence Levels}
+The paper uses the revised composition terminology. Legacy implementation
+identifiers remain unchanged: \code{CoarseComb} and \code{SmoothComb} label
+context-relative application forms; \code{ClosedState} stores a saturated body,
+not the entire trigger-bearing saturated rule composition; \code{Closed} is the
+serialized status corresponding to the paper's finite saturation result.
+The colored examples are checked by \code{cargo test --release --test paper\_math\_examples}.
+Their complete scoped programs are in \path{docs/papers/examples/}.
+
 \begin{lstlisting}[language=bash]
 # Native finite-property regressions
 cargo test --release --test closure_contracts --test cs_composition \
@@ -814,7 +913,7 @@ Evidence & Supported statement & Not implied\\
 \midrule
 Committed event & A recorded effect occurred & Every binding can execute it\\
 Finite witness & A transfer fits observed cases & Arbitrary-count stability\\
-Local Closed & Fixed-entry local execution stabilized & Every embedding is closed\\
+Local saturation & Fixed-entry local execution stabilized & Every embedding is saturated\\
 Exact state match & Declared contents can be shared & Triggers are interchangeable\\
 Ranking proof & Termination under its supply contract & Termination under all injections\\
 Symbolic query contract & Coverage of specified observations & No observer needs intermediates\\

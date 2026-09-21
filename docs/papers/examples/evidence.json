@@ -1,0 +1,501 @@
+{
+  "ac_rows": [
+    {
+      "args": [
+        "Math-0",
+        "Math-3"
+      ],
+      "op": "Add",
+      "result": "Math-4",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-1",
+        "Math-2"
+      ],
+      "op": "Add",
+      "result": "Math-3",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-0",
+        "Math-1"
+      ],
+      "op": "Add",
+      "result": "Math-5",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-5",
+        "Math-2"
+      ],
+      "op": "Add",
+      "result": "Math-4",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-2",
+        "Math-1"
+      ],
+      "op": "Add",
+      "result": "Math-3",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-3",
+        "Math-0"
+      ],
+      "op": "Add",
+      "result": "Math-4",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-1",
+        "Math-0"
+      ],
+      "op": "Add",
+      "result": "Math-5",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-2",
+        "Math-5"
+      ],
+      "op": "Add",
+      "result": "Math-4",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-0",
+        "Math-2"
+      ],
+      "op": "Add",
+      "result": "Math-6",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-6",
+        "Math-1"
+      ],
+      "op": "Add",
+      "result": "Math-4",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-1",
+        "Math-6"
+      ],
+      "op": "Add",
+      "result": "Math-4",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-2",
+        "Math-0"
+      ],
+      "op": "Add",
+      "result": "Math-6",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "String-0"
+      ],
+      "op": "Var",
+      "result": "Math-0",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "String-1"
+      ],
+      "op": "Var",
+      "result": "Math-1",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "String-2"
+      ],
+      "op": "Var",
+      "result": "Math-2",
+      "subsumed": false
+    }
+  ],
+  "assoc_to_comm_witnesses": [
+    {
+      "consumer": 12,
+      "consumer_rule": "paper-comm",
+      "producer": 0,
+      "producer_rule": "paper-assoc",
+      "producer_write": 5,
+      "table": "Add"
+    }
+  ],
+  "ccss_rows": [
+    {
+      "args": [
+        "Math-0",
+        "Math-3"
+      ],
+      "op": "Add",
+      "result": "Math-4",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-1",
+        "Math-2"
+      ],
+      "op": "Add",
+      "result": "Math-3",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-0",
+        "Math-1"
+      ],
+      "op": "Add",
+      "result": "Math-7",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-7",
+        "Math-2"
+      ],
+      "op": "Add",
+      "result": "Math-4",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-2",
+        "Math-1"
+      ],
+      "op": "Add",
+      "result": "Math-3",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-3",
+        "Math-0"
+      ],
+      "op": "Add",
+      "result": "Math-4",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-2",
+        "Math-7"
+      ],
+      "op": "Add",
+      "result": "Math-4",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-1",
+        "Math-0"
+      ],
+      "op": "Add",
+      "result": "Math-7",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-9",
+        "Math-1"
+      ],
+      "op": "Add",
+      "result": "Math-4",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-0",
+        "Math-2"
+      ],
+      "op": "Add",
+      "result": "Math-9",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-1",
+        "Math-9"
+      ],
+      "op": "Add",
+      "result": "Math-4",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-2",
+        "Math-0"
+      ],
+      "op": "Add",
+      "result": "Math-9",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-1",
+        "Math-2"
+      ],
+      "op": "Mul",
+      "result": "Math-5",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-0",
+        "Math-5"
+      ],
+      "op": "Mul",
+      "result": "Math-6",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-8",
+        "Math-2"
+      ],
+      "op": "Mul",
+      "result": "Math-6",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-0",
+        "Math-1"
+      ],
+      "op": "Mul",
+      "result": "Math-8",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-5",
+        "Math-0"
+      ],
+      "op": "Mul",
+      "result": "Math-6",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-2",
+        "Math-1"
+      ],
+      "op": "Mul",
+      "result": "Math-5",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-1",
+        "Math-0"
+      ],
+      "op": "Mul",
+      "result": "Math-8",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-2",
+        "Math-8"
+      ],
+      "op": "Mul",
+      "result": "Math-6",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-11",
+        "Math-1"
+      ],
+      "op": "Mul",
+      "result": "Math-6",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-0",
+        "Math-2"
+      ],
+      "op": "Mul",
+      "result": "Math-11",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-1",
+        "Math-11"
+      ],
+      "op": "Mul",
+      "result": "Math-6",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "Math-2",
+        "Math-0"
+      ],
+      "op": "Mul",
+      "result": "Math-11",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "String-0"
+      ],
+      "op": "Var",
+      "result": "Math-0",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "String-1"
+      ],
+      "op": "Var",
+      "result": "Math-1",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "String-2"
+      ],
+      "op": "Var",
+      "result": "Math-2",
+      "subsumed": false
+    }
+  ],
+  "cscs_checks": "staged outer context and nested distribution checked",
+  "finite_fold": [
+    {
+      "add_rows": 4,
+      "const_rows": 1,
+      "remaining_frontier": 4,
+      "steps": 0
+    },
+    {
+      "add_rows": 4,
+      "const_rows": 2,
+      "remaining_frontier": 3,
+      "steps": 1
+    },
+    {
+      "add_rows": 4,
+      "const_rows": 3,
+      "remaining_frontier": 2,
+      "steps": 2
+    },
+    {
+      "add_rows": 4,
+      "const_rows": 4,
+      "remaining_frontier": 1,
+      "steps": 3
+    },
+    {
+      "add_rows": 4,
+      "const_rows": 5,
+      "remaining_frontier": 0,
+      "steps": 4
+    }
+  ],
+  "guard_checks": "missing guard blocks rule; supplied guard enables it",
+  "ibp_prefixes": [
+    {
+      "diff": 0,
+      "integral": 1,
+      "math_nodes": 5,
+      "mul": 1,
+      "steps": 0,
+      "sub": 0
+    },
+    {
+      "diff": 1,
+      "integral": 3,
+      "math_nodes": 11,
+      "mul": 3,
+      "steps": 1,
+      "sub": 1
+    },
+    {
+      "diff": 2,
+      "integral": 5,
+      "math_nodes": 17,
+      "mul": 5,
+      "steps": 2,
+      "sub": 2
+    },
+    {
+      "diff": 3,
+      "integral": 7,
+      "math_nodes": 23,
+      "mul": 7,
+      "steps": 3,
+      "sub": 3
+    },
+    {
+      "diff": 4,
+      "integral": 9,
+      "math_nodes": 29,
+      "mul": 9,
+      "steps": 4,
+      "sub": 4
+    }
+  ],
+  "scope": "native execution of extracted rule fragments; full optimizer not saturated",
+  "source": "egglog/tests/web-demo/math.egg",
+  "visibility_rows": [
+    {
+      "args": [
+        "Math-0",
+        "Math-1"
+      ],
+      "op": "Add",
+      "result": "Math-2",
+      "subsumed": true
+    },
+    {
+      "args": [
+        "f64-0"
+      ],
+      "op": "Const",
+      "result": "Math-0",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "f64-1"
+      ],
+      "op": "Const",
+      "result": "Math-1",
+      "subsumed": false
+    },
+    {
+      "args": [
+        "f64-2"
+      ],
+      "op": "Const",
+      "result": "Math-2",
+      "subsumed": false
+    }
+  ]
+}

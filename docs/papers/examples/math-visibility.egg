@@ -1,0 +1,28 @@
+; Native illustration extracted from egglog/tests/web-demo/math.egg.
+; Rule bodies and datatype are preserved; ruleset/name annotations isolate the example.
+; This is not a run of the complete math optimizer.
+(datatype Math
+    (Diff Math Math :cost 100)
+    (Integral Math Math :cost 100)
+
+    (Add Math Math)
+    (Sub Math Math)
+    (Mul Math Math)
+    (Div Math Math)
+    (Pow Math Math)
+    (Ln Math)
+    (Sqrt Math)
+
+    (Sin Math)
+    (Cos Math)
+
+    (Const f64)
+    (Var String))
+(ruleset fold)
+(ruleset prune)
+(rewrite (Add (Const a) (Const b)) (Const (+ a b)) :ruleset fold :name "paper-fold")
+(rule ((= (Const _) (Add x y))) ((subsume (Add x y))) :ruleset prune :name "paper-prune")
+(let seed (Add (Const 1.0) (Const 2.0)))
+(run fold 1)
+(run prune 1)
+(check (= seed (Const 3.0)))

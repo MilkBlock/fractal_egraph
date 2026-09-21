@@ -48,5 +48,26 @@
     "No exhaustive related-work search or novelty-priority claim.",
     "Historical measurements are not a same-revision controlled ablation.",
     "General fractal-summary feedback is a proposal, not an implemented runtime result."
-  ]
+  ],
+  "illustrated_revision": {
+    "version": "v0.2",
+    "runtime": "native egglog on scoped math.egg fragments",
+    "validation": "cargo test --release --offline --test paper_math_examples",
+    "sources_sha256": {
+      "egglog/tests/web-demo/math.egg": "fe2a35f8d05c48a162c6613c4784a5dde335ad4bcee17d397fcce97ad6da25f1",
+      "tests/paper_math_examples.rs": "d2f4d5ab7f283386ded8d783f6632576ffd563545cc6d45cca1ecfb96dad02d0",
+      "docs/papers/examples/math-ac.egg": "c229c034c648308342d1283170d62e0798ee8177f2f5e8086ed6ac0164e8a876",
+      "docs/papers/examples/math-ccss.egg": "406d578b0b4db7cd7ab8cbb6c510a9639a4d773c50d4c1e384ca444a7f6fd7ca",
+      "docs/papers/examples/math-cscs.egg": "8e784e32e7f4164635b6e1fa10d07b8671dc3aa5c52e6638cdebfbbbc6ae21a1",
+      "docs/papers/examples/math-fold-chain.egg": "33fd4ea0ca439ca22975b91ada810fb3c463872fac3e4efc427e93ff2c836578",
+      "docs/papers/examples/math-guard.egg": "5844205f8e3658f599a581dc90951b8bdf74c13e7441796e8f3ef0ceea11c481",
+      "docs/papers/examples/math-ibp.egg": "33ce187873d3e9daf35d433e97d1697cc6f885d2130f75d41cab650f2571d17c",
+      "docs/papers/examples/math-visibility.egg": "1ed1615dea759dc03ca33b457d961c515cd3f956d7d2bf157d8b319df48a4ff2"
+    },
+    "limits": [
+      "Illustration layers are selected-interface examples, not captured runtime layer IDs.",
+      "Four IBP prefixes are tested; the unbounded argument is scoped to IBP-only rewriting.",
+      "No claim that the full math optimizer saturates or has the same body counts."
+    ]
+  }
 }

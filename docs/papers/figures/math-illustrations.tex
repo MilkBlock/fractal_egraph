@@ -1,0 +1,271 @@
+\newcommand{\LRmath}[2]{\colorbox{lhsblue}{$#1$}\hspace{1mm}$\to$\hspace{1mm}\colorbox{rhsorange}{$#2$}}
+% All diagrams are authored in LaTeX/TikZ. Native evidence is in examples/.
+\definecolor{lhsblue}{HTML}{DCEBFA}
+\definecolor{rhsorange}{HTML}{FFE5C7}
+\definecolor{coarsepurple}{HTML}{7654A3}
+\definecolor{smoothteal}{HTML}{267A68}
+\tikzset{lhs/.style={box,fill=lhsblue,draw=blue!50!black},
+ rhs/.style={box,fill=rhsorange,draw=orange!60!black},
+ ext/.style={box,fill=black!5,draw=black!45},
+ clayer/.style={draw=coarsepurple,very thick,rounded corners,inner sep=4mm},
+ slayer/.style={draw=smoothteal,thick,dashed,rounded corners,inner sep=4mm},
+ reuse/.style={arr,draw=smoothteal,thick},
+ atom/.style={draw=black!50,rounded corners,fill=black!3,minimum height=7mm,font=\small},
+ sat/.style={draw=smoothteal,double,rounded corners,inner sep=4mm}}
+\newcommand{\MathLegend}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}[node distance=8mm]
+\node[lhs,text width=25mm] (l) {\textbf{LHS}\\matched facts};
+\node[rhs,text width=25mm,right=of l] (r) {\textbf{RHS}\\constructed facts};
+\node[ext,text width=25mm,right=of r] (e) {\textbf{External}\\input obligation};
+\node[box,text width=25mm,right=of e,draw=smoothteal,double] {\textbf{Saturated}\\retained body};
+\node[below=9mm of l,draw=coarsepurple,very thick,rounded corners,inner sep=3pt,font=\small] {Coarse layer $C$};
+\node[below=9mm of e,draw=smoothteal,dashed,thick,rounded corners,inner sep=3pt,font=\small] {Smooth layer $S$};
+\end{tikzpicture}
+\caption{Visual vocabulary. Fill identifies the role of facts in a rule application;
+outline identifies the containing layer. LHS/RHS labels and solid/dashed outlines
+also distinguish the roles without color. An e-node may be an RHS in one step and
+an LHS in the next.}
+\label{fig:legend}
+\end{figure}}
+
+\newcommand{\MathEgraph}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}[node distance=8mm]
+\node[lhs,text width=27mm] (l) {\textbf{LHS}\quad Add\\$(a,q_{bc})$};
+\node[rhs,text width=27mm,right=65mm of l] (r) {\textbf{RHS}\quad Add\\$(q_{ab},c)$};
+\node[lhs,text width=22mm,below right=11mm and 4mm of l] (bc) {Add$(b,c)$\\class $q_{bc}$};
+\node[rhs,text width=22mm,below left=11mm and 4mm of r] (ab) {Add$(a,b)$\\class $q_{ab}$};
+\node[atom,below=40mm of l] (a) {$a=$ Var(``a'')};
+\node[atom,below right=40mm and 22mm of l] (b) {$b=$ Var(``b'')};
+\node[atom,below=40mm of r] (c) {$c=$ Var(``c'')};
+\draw[arr] (l)--node[left,font=\scriptsize]{0}(a);
+\draw[arr] (l)--node[right,font=\scriptsize]{1}(bc);
+\draw[arr] (r)--node[left,font=\scriptsize]{0}(ab);
+\draw[arr] (r)--node[right,font=\scriptsize]{1}(c);
+\draw[arr] (bc)--(b);\draw[arr] (bc)--(c);
+\draw[arr] (ab)--(a);\draw[arr] (ab)--(b);
+\draw[<->,dotted,thick] (l)--node[above,font=\small]{union}(r);
+\begin{scope}[on background layer]
+\node[draw=black!55,rounded corners,fit=(l)(r),inner sep=3mm,label={[font=\small]above:one e-class $r$; both representatives remain}] {};
+\end{scope}
+\end{tikzpicture}
+\caption{One native application of Add associativity from \texttt{math.egg}.
+The matched $a+(b+c)$ is retained and the constructed $(a+b)+c$ joins its
+class. $q_{ab}$ and $q_{bc}$ are separate child e-classes; argument order is explicit in
+the node labels. Primitive String values below Var nodes are omitted.}
+\label{fig:math-egraph}
+\end{figure}}
+
+\newcommand{\MathBinding}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}[node distance=5mm and 20mm]
+\node[rhs,text width=48mm] (v) {Associativity output port\\$v=\mathrm{Add}(a,b)$};
+\node[ext,text width=48mm,below=of v] (c) {Carried port\\$c=\mathrm{Var}(\text{``c''})$};
+\node[lhs,text width=43mm,right=of v] (x) {Commutation input\\$x\mapsto v$};
+\node[lhs,text width=43mm,right=of c] (y) {Commutation input\\$y\mapsto c$};
+\draw[reuse] (v)--node[above,font=\small]{$\rho(x)$}(x);
+\draw[reuse] (c)--node[above,font=\small]{$\rho(y)$}(y);
+\end{tikzpicture}
+\caption{A concrete relative binding from the native Add trace: the next rule
+matches Add$(v,c)$, so its formal variables become $x=v$ and $y=c$. This is a
+port map, not addition of numeric binding offsets. The producer-to-consumer row
+witness is recorded in the evidence file.}
+\label{fig:math-binding}
+\end{figure}}
+
+\newcommand{\MathLayers}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}
+\node[lhs,text width=53mm] (l0) at (0,0) {\textbf{LHS}\quad $a+(b+c)$};
+\node[rhs,text width=53mm] (r0) at (7,0) {\textbf{RHS}\quad $(a+b)+c$};
+\draw[arr] (l0)--node[above,font=\small]{$R_{\rm assoc}$}(r0);
+\node[lhs,text width=53mm] (l1) at (0,-3.1) {\textbf{LHS}\quad $v+c$};
+\node[rhs,text width=53mm] (r1) at (7,-3.1) {\textbf{RHS}\quad $c+v$};
+\draw[arr] (l1)--node[above,font=\small]{$R_{\rm comm}$}(r1);
+\draw[reuse] (r0.south)--++(0,-8mm)-|node[pos=.25,above,font=\small]{$v=a+b$; same $c$}(l1.north);
+\begin{scope}[on background layer]
+\node[clayer,fit=(l0)(r0),label={[font=\small,text=coarsepurple]above:coarse rule layer $C_0$: one coarse composition}] {};
+\node[slayer,fit=(l1)(r1),label={[font=\small,text=smoothteal]below:smooth rule layer $S_0$: one smooth composition}] {};
+\end{scope}
+\end{tikzpicture}
+\caption{A concrete CS unit from \texttt{math.egg}. The first step requires the
+external entry Add$(a,\mathrm{Add}(b,c))$; the second reads the associativity
+output and needs no new external fact. The repeated orange/blue expression is
+one reused node, shown in two occurrence roles, not duplicated storage. Labels
+$C_0,S_0$ describe this selected interface, not globally unique runtime layer IDs.}
+\label{fig:math-layers}
+\end{figure}}
+
+\newcommand{\MathGuard}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}[node distance=8mm and 14mm]
+\node[lhs,text width=35mm] (l) {\textbf{LHS}\quad $a/b$};
+\node[rhs,text width=42mm,right=of l] (r) {\textbf{RHS}\quad $a\,b^{-1}$};
+\node[ext,text width=60mm,below=of l,xshift=27mm] (g) {Required fact: \texttt{is-not-zero}$(b)$};
+\draw[arr] (l)--node[above,font=\small]{$R_{\rm div}$}(r);
+\draw[reuse] (g.north)--++(0,4mm);
+\end{tikzpicture}
+\caption{Why a binding is not enough. The guarded division rule is copied from
+\texttt{math.egg}: a native check confirms that it does not apply without
+\texttt{is-not-zero}$(b)$ and applies after that fact is supplied. This illustrates
+an external obligation; it does not independently establish that the supplied
+mathematical assertion is true.}
+\label{fig:math-guard}
+\end{figure}}
+
+\newcommand{\MathCSCS}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}[node distance=6mm and 8mm]
+\node[coarse,text width=54mm] (c1) {$C_1$: Add associativity\\\LRmath{a+(b+c)}{v+c}};
+\node[smooth,text width=54mm,right=of c1] (s1) {$S_1$: Add commutation\\\LRmath{v+c}{c+v}};
+\node[ext,text width=96mm,below=of c1,xshift=31mm] (i) {New outer context: $p\,r$, with $r=[c+v]$\\carry the fact $v=[a+b]$ from $\CS_1$};
+\node[coarse,text width=54mm,below=of i,xshift=-31mm] (c2) {$C_2$: distribution layer\\\LRmath{p(c+v)}{pc+pv}};
+\node[smooth,text width=54mm,right=of c2] (s2) {$S_2$: distribution inside $pv$\\\LRmath{p(a+b)}{pa+pb}};
+\draw[arr] (c1)--(s1);\draw[reuse] (s1.south)|-(i.east);
+\draw[arr] (i)--(c2);\draw[arr] (c2)--(s2);
+\end{tikzpicture}
+\caption{A native-checked CSCS example using associativity, commutation, and
+distribution from \texttt{math.egg}. Distribution may match several retained
+representatives; one is shown. The declared interface of $\CS_2$ carries the
+Add$(a,b)$ fact, so its inner distribution step does not fetch it for free.
+The fresh outer multiplication context is supplied only after $\CS_1$.}
+\label{fig:math-cscs}
+\end{figure}}
+
+\newcommand{\MathCCSS}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}[node distance=6mm and 10mm]
+\node[coarse,text width=48mm] (ca) {$C_A$\\\LRmath{a+(b+c)}{(a+b)+c}};
+\node[coarse,text width=48mm,right=of ca] (cm) {$C_M$\\\LRmath{a(bc)}{(ab)c}};
+\node[smooth,text width=48mm,below=10mm of ca] (sa) {$S_A$\\\LRmath{(a+b)+c}{c+(a+b)}};
+\node[smooth,text width=48mm,right=of sa] (sm) {$S_M$\\\LRmath{(ab)c}{c(ab)}};
+\draw[arr] (ca)--(sa);\draw[arr] (cm)--(sm);
+\draw[reuse,<->] (ca)--node[above,font=\scriptsize]{shared $a,b,c$}(cm);
+\begin{scope}[on background layer]
+\node[clayer,fit=(ca)(cm),label={[font=\small]above:merged coarse layer $C_A\cup C_M$}] {};
+\node[slayer,fit=(sa)(sm),label={[font=\small]below:merged smooth layer $S_A\cup S_M$}] {};
+\end{scope}
+\end{tikzpicture}
+\caption{CCSS with real Add/Mul rules from \texttt{math.egg}. Both input trees
+are declared initially and share $a,b,c$; there is no S-to-C dependency.
+The restricted native fragment saturates to 12 Add and 12 Mul rows. Layer
+outlines indicate regrouping, not deletion of the four original compositions.}
+\label{fig:math-ccss}
+\end{figure}}
+
+\newcommand{\MathSaturated}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}[node distance=8mm and 5mm]
+\node[box,text width=119mm,draw=smoothteal,double] (r) {\textbf{root e-class $r$: six retained Add e-nodes}\\
+Add$(a,q_{bc})$\quad Add$(q_{bc},a)$\quad Add$(b,q_{ac})$\\
+Add$(q_{ac},b)$\quad Add$(c,q_{ab})$\quad Add$(q_{ab},c)$};
+\node[box,text width=34mm,below=of r,xshift=-42mm] (ab) {class $q_{ab}$\\Add$(a,b)$\\Add$(b,a)$};
+\node[box,text width=34mm,below=of r] (ac) {class $q_{ac}$\\Add$(a,c)$\\Add$(c,a)$};
+\node[box,text width=34mm,below=of r,xshift=42mm] (bc) {class $q_{bc}$\\Add$(b,c)$\\Add$(c,b)$};
+\draw[arr] (r)--(ab);\draw[arr] (r)--(ac);\draw[arr] (r)--(bc);
+\node[ext,text width=105mm,below=of ac] (v) {Three leaf e-classes: $a=$Var(``a''), $b=$Var(``b''), $c=$Var(``c'')};
+\draw[arr] (ab)--(v);\draw[arr] (ac)--(v);\draw[arr] (bc)--(v);
+\end{tikzpicture}
+\caption{The retained body of a saturated rule composition in the native Add
+fragment: 12 Add rows and three Var rows in seven Math e-classes. Grouped arrows
+summarize child-class references; the row labels preserve argument order. This
+is saturation under the selected associativity/commutation theory, not under
+all of \texttt{math.egg}. Trigger and binding data belong to the composition too.}
+\label{fig:math-saturated}
+\end{figure}}
+
+\newcommand{\MathVisibility}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}[node distance=7mm and 9mm]
+\node[lhs,text width=33mm] (add) {\textbf{LHS}\\Add$(1,2)$};
+\node[rhs,text width=33mm,right=of add] (three) {\textbf{RHS}\\Const$(3)$};
+\node[ext,text width=43mm,right=of three] (hidden) {Add$(1,2)$ retained\\\textbf{subsumed / hidden}};
+\draw[arr] (add)--node[above,font=\scriptsize]{fold + union}(three);
+\draw[arr] (three)--node[above,font=\scriptsize]{prune}(hidden);
+\node[below=8mm of three,font=\small] {Same retained equality does not imply the same matching visibility.};
+\end{tikzpicture}
+\caption{The constant-fold and prune rules of \texttt{math.egg}. Native execution
+retains the Add row after subsumption but marks it hidden. A saturated body must
+record this flag; an instance lease depending on its visibility needs rechecking.}
+\label{fig:math-visibility}
+\end{figure}}
+
+\newcommand{\MathFractalBinding}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}[node distance=7mm and 13mm]
+\node[lhs,text width=43mm] (before) {Current binding\\$(u_k,v_k,x)$};
+\node[rhs,text width=68mm,right=of before] (after) {Next residual binding\\$(D_xu_k,\ \int v_k\,dx,\ x)$};
+\draw[reuse] (before)--node[above,font=\small]{$\rho_{\rm IBP}$}(after);
+\node[below=5mm of after,font=\small] {Construct, construct, carry: same transfer at every depth.};
+\end{tikzpicture}
+\caption{The binding transfer of the integration-by-parts rule in \texttt{math.egg}.
+Growing expression depth does not require a new transfer template: the same
+Diff/Integral constructors and carried integration variable define each step.}
+\label{fig:math-fractal-binding}
+\end{figure}}
+
+\newcommand{\MathTrigger}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}[node distance=7mm]
+\node[ext,text width=31mm] (i) {External entry\\$I_0=\int u_0v_0\,dx$};
+\node[coarse,text width=34mm,right=of i] (c) {Coarse IBP\\creates $u_1,v_1,I_1$};
+\node[smooth,text width=42mm,right=of c] (s) {Smooth recursive tail\\$I_1\to I_2\to\cdots$};
+\draw[arr] (i)--(c);\draw[reuse] (c)--(s);
+\end{tikzpicture}
+\caption{A one-step trigger for the selected IBP family. The first application
+acquires an external entry; subsequent residual applications reuse constructed
+facts. Other families can have longer, nonuniform effect-producing prefixes.}
+\label{fig:math-trigger}
+\end{figure}}
+
+\newcommand{\MathDissipative}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}[node distance=7mm]
+\node[lhs,text width=28mm] (a) {$1+1+1+1+1$\\four pending adds};
+\node[rhs,text width=24mm,right=of a] (b) {$2+1+1+1$\\$\mu=3$};
+\node[rhs,text width=24mm,right=of b] (c) {$3+1+1$\\$\mu=2$};
+\node[rhs,text width=24mm,right=of c] (d) {$\cdots\to5$\\$\mu=0$};
+\draw[arr] (a)--(b);\draw[arr] (b)--(c);\draw[arr] (c)--(d);
+\node[ext,text width=110mm,below=8mm of b,xshift=16mm] {One Const$(1)$ e-node can serve all five positions.\\Native run: four Add rows remain; Const rows grow from one to five.};
+\end{tikzpicture}
+\caption{A dissipative composition using the native constant-fold rule from
+\texttt{math.egg}. The initial expression is left-associated; outer Add facts
+are part of the declared entry. The remaining work frontier decreases, not the
+stored fact set. No pruning is enabled in this example.}
+\label{fig:math-dissipative}
+\end{figure}}
+
+\newcommand{\MathInfi}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}[node distance=7mm]
+\node[lhs,text width=115mm] (l) {\textbf{LHS}\quad $I_k=\int u_kv_k\,dx$};
+\node[rhs,text width=115mm,below=of l] (r) {\textbf{RHS}\quad $u_kv_{k+1}-\boxed{I_{k+1}}$\\$u_{k+1}=D_xu_k,\quad v_{k+1}=\int v_k\,dx$};
+\draw[arr] (l)--node[right,font=\small]{$R_{\rm IBP}$}(r);
+\node[box,text width=115mm,below=of r,draw=smoothteal,dashed] (chain) {$I_0\ \to\ I_1\ \to\ I_2\ \to\ I_3\ \to\cdots$\\
+$u_0,v_0$\quad $D_xu_0,\int v_0$\quad $D_x^2u_0,\int^2v_0$\quad $\cdots$};
+\draw[reuse] (r)--(chain);
+\end{tikzpicture}
+\caption{A productive infi rule composition from the actual IBP rule. In the
+\emph{IBP-only} fragment, the boxed residual regenerates the same pattern with
+strictly deeper Diff/Integral arguments. Four native steps yield 11, 17, 23,
+and 29 Math e-nodes. The all-depth argument requires the restricted theory;
+full \texttt{math.egg} may simplify the derivative and terminate this family.}
+\label{fig:math-infi}
+\end{figure}}
+
+\newcommand{\MathSummary}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}[node distance=8mm and 14mm]
+\node[lhs,text width=47mm] (full) {Repeated IBP effects\\$I_0\to I_1\to\cdots\to I_k$};
+\node[rhs,text width=62mm,right=of full] (summary) {Endpoint summary\\$\displaystyle\sum_{j=0}^{k-1}(-1)^j u_jv_{j+1}+(-1)^k I_k$};
+\node[ext,text width=103mm,below=of summary,xshift=-32mm] (query) {Required intermediate query: retrieve $I_j$ for $0\le j\le k$.\\Endpoint-only reduction does not answer every rule match.};
+\draw[proposed] (full)--node[above,font=\scriptsize]{contract + Reduce}(summary);
+\draw[proposed] (summary)--(query);
+\end{tikzpicture}
+\caption{How an infi composition could feed ripen: summarize the alternating
+endpoint, but retain an indexed residual interface. This is a proposed contract
+for the worked IBP family with additional exact additive laws, not a claim that the current Reduce DSL automatically
+discovers or executes this alternating-sum summary.}
+\label{fig:math-summary}
+\end{figure}}

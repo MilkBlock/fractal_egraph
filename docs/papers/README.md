@@ -1,24 +1,39 @@
-# Event-Driven Hierarchical Rule Composition and Closure Sharing
+# Event-Driven Hierarchical Rule Composition and Saturation
 
 The English article is authored directly in
-`event-driven-hierarchical-rule-composition.tex`. Its compiled PDF has the same
-basename. Figures are inline TikZ; there are no downloaded assets or template
-packages. The manuscript uses the standard `article` class, not a conference's
-submission template.
+`event-driven-hierarchical-rule-composition.tex`. The illustrated revision is
+`event-driven-hierarchical-rule-composition_v0.2.pdf`; v0.1 is preserved separately.
+The 17 figures use TikZ, with blue LHS facts, orange RHS facts, purple coarse
+layer outlines, and dashed teal smooth layer outlines. No downloaded assets are used.
 
 Build locally without network access:
 
 ```sh
 make -C docs/papers
+cargo test --release --offline --test paper_math_examples
 ```
 
 Requirements: an installed TeX distribution with latexmk, pdfLaTeX, TikZ,
 newtx, and the other standard packages named in the source. Build intermediates
-are placed in `out/paper-latex`, outside the tracked paper directory.
+are placed in `out/paper-latex`.
 
-Implementation descriptions are pinned to commit `258eef4`. The text distinguishes
-implemented finite mechanisms, narrow Bake query proofs, mathematical definitions,
-and proposed general FractalRule-to-ripen feedback. The existing experimental
-records are not presented as a same-revision controlled ablation or as native
-egglog compression measurements. `references-verified.json` records the offline
-bibliography and source-evidence checks.
+The seven programs in `examples/` isolate rules from
+`egglog/tests/web-demo/math.egg`. The native egglog test checks association-to-
+commutation row provenance, the Add-AC saturated body, staged distribution,
+Add/Mul regrouping, a required division guard, finite constant folding, subsume
+visibility, and four IBP expansion steps. `examples/evidence.json` records the
+illustration evidence; rerunning the test writes `out/paper-math-examples/evidence.json`.
+Runtime IDs may vary. Figures use local labels rather than global layer IDs.
+These are scoped native rule-fragment tests, not an end-to-end layer extraction
+benchmark or saturation of the full optimizer.
+
+Implementation descriptions remain pinned to commit `258eef4`. Terminology now
+uses coarse, smooth, and saturated rule composition. Legacy code identifiers are
+mapped in the appendix. Sharing a saturated body does not equate compositions
+with different triggers or injection obligations.
+
+The IBP-only fragment illustrates an infi rule composition; other math rules may
+change its behavior. General fractal-summary feedback remains a proposal. Historical
+measurements use `math-microbenchmark.egg`, not this running `math.egg` example,
+and are not a same-revision controlled ablation or native compression measurement.
+`references-verified.json` records the offline source checks.
