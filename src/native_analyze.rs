@@ -35,6 +35,8 @@ mod history;
 mod layer_view;
 #[path = "native_recursive.rs"]
 mod recursive;
+#[path = "native_cs.rs"]
+mod cs;
 #[path = "native_closed_pipeline.rs"]
 mod closed_pipeline;
 #[path = "native_ripen.rs"]

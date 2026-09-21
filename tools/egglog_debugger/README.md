@@ -654,3 +654,40 @@ Reproduction: the normal math command needs no new flags. Run it once normally
 and once with `EGG_LAYOUT_USE_ONLY=1`, using separate fresh output directories.
 `tests/dependency_candidates.rs` checks zero-Use admission and a joint consumer
 anchoring two independently produced inputs from different coarse layers.
+
+### Explicit CS composition (current default)
+
+The default structural candidate source is now `native_cs.rs`, rather than
+ancestor cones. Existing coarse-layer members and their associated smooth members
+form immutable CS versions. A growing layer creates a new version; binary
+composition nodes keep two component references, anchors, and directional
+producer/output-to-consumer/input links. They do not copy member history into
+queue entries. Members are expanded transiently for staged native validation.
+
+- `CSCS`: a witnessed cross-component dependency orders the references. Bidirectional
+  interleaving is not mislabeled as a sequential pair.
+- `CCSS`: the C sides share typed value/fact tokens, all relevant grounded actions
+  and predicates are positive constructor/relation/equality operations, and no C
+  depends transitively on either S. Dependencies *within* the merged C or S DAG
+  are retained. Function updates, primitive guards and subsume are excluded from
+  this sufficient reordering check. Unknown bounded dependency checks are skipped.
+- Original witnessed event order and staged external-input obligations remain in
+  executable validation. This does not move external inputs earlier in tier0.
+
+Limits: 256 CS versions, 16 total apply members per candidate, 8 recent versions
+per indexed token, 32 candidate partners per new version, 256 visited ancestors
+per dependency check, and 64 compositions per kind. Layer metadata is scanned at
+execution boundaries; only unseen versions are indexed/paired. This is bounded
+candidate discovery, not complete subgraph enumeration. `cs` in each closed
+snapshot stores the reference graph and skipped-check count.
+
+Select **CSCS / CCSS 引用组合** in ClosedState to see the reference DAG. Selecting
+an instance narrows the graph to its two components; clicking the composition
+reveals its binding anchors and dependency links.
+
+`EGG_LAYOUT_DEPENDENCY_CONES=1` retains the old cone path for ablation;
+`EGG_LAYOUT_USE_ONLY=1` retains the Use-only baseline. Normal queue budgets still
+apply. Current compositions are binary references to CS versions: recursively
+using composition results as new CS components and directly reusing the sides'
+already-ripened engine states are not implemented. Thus this change does not yet
+prove lower native join cost, runtime memory use, or higher compression.

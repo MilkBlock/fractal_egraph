@@ -10,6 +10,8 @@ pub(super) struct Pipeline {
     cursor: usize,
     observed: usize,
     dependency_seen: usize,
+    cs: cs::Store,
+    cones: bool,
     dependency_jobs: usize,
     dependencies: bool,
     attempted_templates: BTreeSet<usize>,
@@ -38,6 +40,8 @@ impl Pipeline {
             cursor: 0,
             observed: 0,
             dependency_seen: 0,
+            cs: cs::Store::default(),
+            cones: std::env::var_os("EGG_LAYOUT_DEPENDENCY_CONES").is_some(),
             dependency_jobs: 0,
             dependencies: std::env::var_os("EGG_LAYOUT_USE_ONLY").is_none(),
             attempted_templates: BTreeSet::new(),
@@ -69,7 +73,7 @@ impl Pipeline {
             }
         }
         self.observed = layers.reuse.uses.len();
-        if self.dependencies {
+        if self.dependencies && self.cones {
             for id in self.dependency_seen..layers.occurrences.len() {
                 let mut members = BTreeSet::from([id]);
                 let mut frontier = vec![id];
@@ -103,6 +107,17 @@ impl Pipeline {
             }
             self.dependency_seen = layers.occurrences.len();
         }
+        if self.dependencies && !self.cones {
+            for (kind, id) in self.cs.discover(c, layers)? {
+                if self.dependency_jobs >= 128 || self.jobs.len() >= 256 {
+                    self.omitted += 1;
+                    continue;
+                }
+                // Store references, not copies of the component histories.
+                self.jobs.push(json!({"candidate_kind":kind,"candidate_id":id,"template":null,"discovered_boundary":boundary,"state":"Pending"}));
+                self.dependency_jobs += 1;
+            }
+        }
         let start = Instant::now();
         let mut processed = 0;
         while self.cursor < self.jobs.len()
@@ -117,7 +132,10 @@ impl Pipeline {
                 .filter(|(_, j)| j["state"] == "Pending")
                 .min_by_key(|(i, j)| {
                     (
-                        (j["candidate_kind"] == "DependencyCone") != (self.cursor % 2 == 0),
+                        (j["candidate_kind"] != "Use") != (self.cursor % 2 == 0),
+                        j["candidate_kind"] != "Use"
+                            && j["candidate_kind"]
+                                != ["CSCS", "CCSS", "CSUnit"][(self.cursor / 2) % 3],
                         self.attempted_templates
                             .contains(&(j["template"].as_u64().unwrap_or(u64::MAX) as usize)),
                         *i,
@@ -129,11 +147,16 @@ impl Pipeline {
                 .insert(self.jobs[i]["template"].as_u64().unwrap_or(u64::MAX) as usize);
             self.cursor += 1;
             processed += 1;
-            let dependency = self.jobs[i]["candidate_kind"] == "DependencyCone";
+            let dependency = self.jobs[i]["candidate_kind"] != "Use";
             let id = self.jobs[i][if dependency { "candidate_id" } else { "use_id" }]
                 .as_u64()
                 .unwrap() as usize;
-            let members: Vec<usize> = serde_json::from_value(self.jobs[i]["members"].clone())?;
+            let kind = self.jobs[i]["candidate_kind"].as_str().unwrap().to_owned();
+            let members: Vec<usize> = match kind.as_str() {
+                "CSUnit" => self.cs.units[id].members(),
+                "CSCS" | "CCSS" => self.cs.members(id),
+                _ => serde_json::from_value(self.jobs[i]["members"].clone())?,
+            };
             let result = (|| -> Result<Json> {
                 let (source, validation, mut origin) = if dependency {
                     ripen::prepare_members(c, &members)?
@@ -142,14 +165,17 @@ impl Pipeline {
                     ripen::prepare(c, u, layers.reuse.templates[u.template].pattern.root)?
                 };
                 origin["candidate_kind"] = self.jobs[i]["candidate_kind"].clone();
+                if matches!(kind.as_str(), "CSCS" | "CCSS") {
+                    origin["composition"] = serde_json::to_value(&self.cs.compositions[id])?;
+                }
                 origin[if dependency { "candidate_id" } else { "use_id" }] = json!(id);
                 origin["history"] = json!(self.source);
                 origin["capture_kind"] = json!("in_memory; history file not required");
                 let key = serde_json::to_string(&(&source, &validation))?;
-                let folder = self.out.join("closed/cells").join(format!(
-                    "{}-{id:06}",
-                    if dependency { "candidate" } else { "use" }
-                ));
+                let folder = self
+                    .out
+                    .join("closed/cells")
+                    .join(format!("{}-{id:06}", kind.as_str()));
                 std::fs::create_dir_all(&folder)?;
                 let link = if dependency {
                     None
@@ -205,7 +231,7 @@ impl Pipeline {
                     self.cache.insert(key, folder.clone());
                 }
                 if dependency {
-                    report["ripen"]["origin"] = json!({"history":self.source,"candidate_kind":"DependencyCone","candidate_id":id,"members":members,"symbolic_boundary":true});
+                    report["ripen"]["origin"] = json!({"history":self.source,"candidate_kind":kind,"candidate_id":id,"members":members,"symbolic_boundary":true});
                 }
                 report["origin"] = origin;
                 std::fs::write(folder.join("ripen.json"), serde_json::to_vec(&report)?)?;
@@ -237,7 +263,7 @@ impl Pipeline {
                 .or_default() += 1;
         }
         let mut report = json!({"kind":"closed_snapshot","boundary":boundary,"jobs":self.jobs,
-            "counts":counts,"observed_uses":self.observed,"dependency_candidates":self.dependency_jobs,"not_queued":self.omitted,
+            "cs":self.cs.report(),"counts":counts,"observed_uses":self.observed,"dependency_candidates":self.dependency_jobs,"not_queued":self.omitted,
             "limits":{"jobs":self.total,"per_boundary":self.per_boundary,"rounds":self.rounds,"milliseconds_between_jobs":self.milliseconds,"queue_capacity":256},
             "selection":"unattempted templates first; exact source plus validation required for cache reuse",
             "scope":"symbolic Use interface only; no tier0 replacement; budgets checked between jobs, not a hard per-rule time/memory limit",

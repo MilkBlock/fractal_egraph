@@ -10,6 +10,7 @@ fn ripens_dependencies_without_any_installed_use() {
     for baseline in [false, true] {
         let out = root.join(if baseline { "use-only" } else { "dependencies" });
         let mut cmd = Command::new(env!("CARGO_BIN_EXE_egg_layout"));
+        cmd.env("EGG_LAYOUT_DEPENDENCY_CONES", "1");
         if baseline {
             cmd.env("EGG_LAYOUT_USE_ONLY", "1");
         }
@@ -49,6 +50,7 @@ fn common_consumer_anchors_two_independent_producers() {
     fs::write(&src,"(datatype E (V i64) (A E) (B E) (Pair E E))\n(relation P (E))\n(relation Q (E))\n(rule ((= a (A x))) ((P x)))\n(rule ((= b (B y))) ((Q y)))\n(rule ((P x) (Q y)) ((Pair x y)))\n(A (V 1))\n(B (V 2))\n(run 4)").unwrap();
     let out = root.join("run");
     let p = Command::new(env!("CARGO_BIN_EXE_egg_layout"))
+        .env("EGG_LAYOUT_DEPENDENCY_CONES", "1")
         .args(["analyze", "--recapture-tier0", "--source"])
         .arg(src)
         .arg("--output")

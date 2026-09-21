@@ -1,0 +1,44 @@
+{
+  "source": "egglog/tests/math-microbenchmark.egg",
+  "rounds": 6,
+  "command": "target/release/egg_layout analyze --recapture-tier0 --source egglog/tests/math-microbenchmark.egg --rounds 6 --output out/cs-composition-final",
+  "scope": "actual native capture and isolated ripen; reference composition discovery, not tier0 compression or acceleration",
+  "counts": {
+    "Closed": 16,
+    "Pending": 236,
+    "Rejected": 2,
+    "Suspended": 2
+  },
+  "cs_versions": 256,
+  "discovered_compositions": {
+    "CCSS": 64,
+    "CSCS": 25
+  },
+  "processed_by_kind": {
+    "Use:Closed": 8,
+    "CSUnit:Closed": 5,
+    "CCSS:Closed": 3,
+    "Use:Suspended": 2,
+    "CSCS:Rejected": 2
+  },
+  "closed_states": 6,
+  "limits": {
+    "jobs": 32,
+    "milliseconds_between_jobs": 250,
+    "per_boundary": 4,
+    "queue_capacity": 256,
+    "rounds": 4
+  },
+  "rejections": [
+    {
+      "kind": "CSCS",
+      "reason": "seeding an external row would materialize an internal read; staged injection is required"
+    },
+    {
+      "kind": "CSCS",
+      "reason": "seeding an external row would materialize an internal read; staged injection is required"
+    }
+  ],
+  "prior_cone_states": 7,
+  "comparison_note": "Same math6 source and nominal attempt budget; fewer final states than prior cones, so no benefit claim."
+}

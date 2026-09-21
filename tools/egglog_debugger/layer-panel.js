@@ -13,7 +13,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
       <div id="native-layer-viewport"></div><pre id="native-layer-error"></pre>
       <details><summary>返回 binding、条件与 effect 证据</summary><pre id="native-layer-details"></pre></details>
       <details><summary>当前 Typst / DOT 源码</summary><pre id="native-layer-code"></pre></details>`;
-    const catalogPanel=document.createElement('section');catalogPanel.hidden=true;catalogPanel.innerHTML=`<p>ClosedState / Closed rule comb · 每轮处理进度与共享闭包</p><input hidden id="native-closed-path" placeholder="out/ 中的 closed-catalog 目录"><button hidden id="native-closed-load">载入共享目录</button><select id="native-closed-state" aria-label="共享闭包"><option value="">全部概览</option></select><select id="native-closed-comb" aria-label="对应组合"><option value="">所有对应组合</option></select><select id="native-closed-instance" aria-label="触发实例"><option value="">示例实例</option></select><select id="native-closed-diagram" aria-label="ClosedState 图类型"><option value="comb">来源 rule comb</option><option value="egraph">闭包 e-graph</option><option value="layers">来源 Coarse / Smooth layer</option></select><div id="native-closed-caption"></div><div id="native-closed-status"></div><div id="native-closed-table"></div><div id="native-closed-view"></div><pre id="native-closed-rule" style="white-space:pre-wrap"></pre><pre id="native-closed-details"></pre>`;panel.append(catalogPanel);
+    const catalogPanel=document.createElement('section');catalogPanel.hidden=true;catalogPanel.innerHTML=`<p>ClosedState / Closed rule comb · 每轮处理进度与共享闭包</p><input hidden id="native-closed-path" placeholder="out/ 中的 closed-catalog 目录"><button hidden id="native-closed-load">载入共享目录</button><select id="native-closed-state" aria-label="共享闭包"><option value="">全部概览</option></select><select id="native-closed-comb" aria-label="对应组合"><option value="">所有对应组合</option></select><select id="native-closed-instance" aria-label="触发实例"><option value="">示例实例</option></select><select id="native-closed-diagram" aria-label="ClosedState 图类型"><option value="comb">来源 rule comb</option><option value="cs">CSCS / CCSS 引用组合</option><option value="egraph">闭包 e-graph</option><option value="layers">来源 Coarse / Smooth layer</option></select><div id="native-closed-caption"></div><div id="native-closed-status"></div><div id="native-closed-table"></div><div id="native-closed-view"></div><pre id="native-closed-rule" style="white-space:pre-wrap"></pre><pre id="native-closed-details"></pre>`;panel.append(catalogPanel);
     const cp=id=>catalogPanel.querySelector('#native-closed-'+id);
     let catalogData=null,catalogVersion=0,catalogError=null;
     const NO_CATALOG='尚无 ClosedState 快照：请先「运行并识别」（它会自动跑有预算的 ripen 队列），或在目录框载入一次带 ClosedState 的运行目录（含 catalog/）。Pending / Suspended 不代表已闭合。';
@@ -67,7 +67,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         for(const [i,t] of (catalogData?.catalog.triggers||[]).entries()){
             if(cp('state').value!==''&&t.closed_state!==Number(cp('state').value))continue;
             if(cp('comb').value!==''&&!catalogData.catalog.comb_groups[Number(cp('comb').value)].triggers.includes(i))continue;
-            cp('instance').add(new Option(t.origin?.candidate_kind==='DependencyCone'?`依赖候选 D${t.origin.candidate_id}`:`U${t.origin?.use_id??i} · T${t.origin?.template??'—'}`,String(i)));
+            cp('instance').add(new Option(t.origin?.candidate_id!==undefined?`${t.origin.candidate_kind} #${t.origin.candidate_id}`:`U${t.origin?.use_id??i} · T${t.origin?.template??'—'}`,String(i)));
         }
     }
     function selectedTrigger(){
@@ -76,6 +76,16 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     }
     function closedDiagram(){
         const kind=cp('diagram').value;
+        if(kind==='cs'){
+            const cs=frame()?.closed?.cs;
+            if(!cs)return {g:{nodes:[],edges:[]},caption:'该记录没有 CS 引用组合，请加载新运行快照。'};
+            const selected=selectedTrigger()?.binding_origin?.composition;
+            const pairs=cp('instance').value!==''&&selected?[selected]:cs.compositions;
+            const ids=new Set(pairs.flatMap(p=>p.parts));
+            const nodes=[...ids].map(i=>({id:'cs'+i,label:`CS #${i}\nC ${cs.units[i].coarse.length} / S ${cs.units[i].smooth.length}`,kind:'template',detail:cs.units[i]})),edges=[];
+            pairs.forEach((p,i)=>{nodes.push({id:'pair'+i,label:p.kind,kind:'fractal',detail:p});p.parts.forEach((u,k)=>edges.push({from:'cs'+u,to:'pair'+i,label:p.kind==='CSCS'?(k===0?'先行 CS':'后继 CS'):'合并侧 '+k}));});
+            return {g:{nodes,edges},caption:'实线是组件引用；CSCS 保留依赖方向，CCSS 要求正向操作、C 端口相交且 C 不依赖 S。点击组合查看 anchors / links。'};
+        }
         if(kind==='comb')return {g:catalogGraph(),caption:'rule comb → ClosedState；选择组合和触发实例可查看实际来源。'};
         // Both remaining diagrams describe exactly one ClosedState. With the overview
         // selected they used to render an empty canvas, which reads as "the selector did
@@ -118,7 +128,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
             }source+='}';
         }
         source+='}';
-        return {g:{nodes,edges},source,caption:`${trigger?.origin?.candidate_kind==='DependencyCone'?'依赖候选 D'+trigger.origin.candidate_id:'U'+(trigger?.origin?.use_id??'—')}：原始 layer 中参与此 rule comb 的成员；不是整个 layer。Use 内的 Coarse/Smooth 分类与原始 layer 分类可能不同。${autoNote}`};
+        return {g:{nodes,edges},source,caption:`${trigger?.origin?.candidate_id!==undefined?trigger.origin.candidate_kind+' #'+trigger.origin.candidate_id:'U'+(trigger?.origin?.use_id??'—')}：原始 layer 中参与此 rule comb 的成员；不是整个 layer。Use 内的 Coarse/Smooth 分类与原始 layer 分类可能不同。${autoNote}`};
     }
     function focusComb(g){cp('state').value=String(g.closed_state);combOptions();cp('comb').value=String(g.id);instanceOptions();renderCatalog();showComb(g);}
     function memberText(m){
@@ -198,7 +208,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         cp('status').textContent=`边界 ${result.boundary} · ${Object.entries(result.counts).map(([k,v])=>k+' '+v).join(' / ')||'尚无 Use'} · 依赖候选 ${result.dependency_candidates??0} · 队列外 ${result.not_queued}。每边界最多 ${result.limits.per_boundary} 个，总计 ${result.limits.jobs} 个；每例 ${result.limits.rounds} 轮。时间预算在任务之间检查。`;
         if(catalogData){
             for(let i=0;i<catalogData.catalog.closed_states;i++)cp('state').add(new Option(`ClosedState C${i}`,String(i)));
-            cp('status').textContent+=` ${catalogData.catalog.triggers.length} 个 Trigger → ${catalogData.catalog.closed_states} 个共享 ClosedState。`;
+            cp('status').textContent+=` CSCS ${(result.cs?.compositions||[]).filter(p=>p.kind==='CSCS').length} / CCSS ${(result.cs?.compositions||[]).filter(p=>p.kind==='CCSS').length}。 ${catalogData.catalog.triggers.length} 个 Trigger → ${catalogData.catalog.closed_states} 个共享 ClosedState。`;
             combOptions();if($('kind').value==='closed')renderCatalog();
         }else{
             combOptions();
