@@ -32,7 +32,7 @@ def paths(ast):
 def describe(engine,i):
     tree=engine.tree(i['template']);kind,parents,rule,binding=tree
     rid=rule[1];source=engine.rules[rid];roles=paths(source)
-    slots=engine.sequence(binding,'PCons' if kind=='CoarseComb' else 'RCons','PNil' if kind=='CoarseComb' else 'RNil')
+    slots=engine.sequence(binding,'PCons' if kind=='CoarseRuleComposition' else 'RCons','PNil' if kind=='CoarseRuleComposition' else 'RNil')
     def route(x):
         if x[0]=='Local':return route(x[1])
         if x[0]=='External':return ['Outside',x[1],x[2]]
@@ -77,7 +77,7 @@ def main():
             name=f'ext_{len(groups):04d}';groups[key]={'name':name,**d,'events':[]}
             text.append(f'(let ${name} (Extend {quote(d["rule"])} {routes_egg(d["routes"])} (Schema {quote(json.dumps(d["schema"],sort_keys=True))})))')
         g=groups[key];g['events'].append(i['event'])
-        if d['schema']['kind']=='CoarseComb':text.append(f'(NeedsBoundary ${g["name"]})')
+        if d['schema']['kind']=='CoarseRuleComposition':text.append(f'(NeedsBoundary ${g["name"]})')
         records.append({'event':i['event'],'template':i['template'],'extension':g['name'],'depth':depth[i['event']],'parents':i['parents']})
         text.append(f'(At {i["event"]} ${g["name"]})')
         for slot,parent in enumerate(i['parents']):text.append(f'(Before {parent} {i["event"]} {slot})')

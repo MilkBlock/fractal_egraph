@@ -13,7 +13,7 @@ for e in exts:text.append(f'(ExtensionName ${e} "{e}")')
 rows=[]
 for o in m['occurrences']:
     e=exts[o['extension']]
-    if e['schema']['kind']!='SmoothComb' or len(o['parents'])!=1:continue
+    if e['schema']['kind']!='SmoothRuleComposition' or len(o['parents'])!=1:continue
     # Every interface route must stay within this one parent (including facts).
     def closed(r):
         if r[0]=='ParentRole':return r[1]==0

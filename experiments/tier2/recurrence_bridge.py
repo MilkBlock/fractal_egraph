@@ -17,7 +17,7 @@ text=['(include "research/legacy_tier1.egg")',
       '(relation Coordinates (Instance i64 i64))','(relation SeriesStep (Instance String i64))',
       '(relation ObservedStep (String i64 i64 i64 i64 i64))',
       '(rule ((LinkedParent child 0 parent) (Coordinates parent m a) (Coordinates child m2 a2) (SeriesStep child s k)) ((ObservedStep s k m a m2 a2)) :ruleset tier1)',
-      '(let $base (CoarseComb (MoreParents (Empty) (NoParents)) (Rule "boundary") (PCons (External 0 "i64") (PCons (External 1 "i64") (PNil)))))']
+      '(let $base (CoarseRuleComposition (MoreParents (Empty) (NoParents)) (Rule "boundary") (PCons (External 0 "i64") (PCons (External 1 "i64") (PNil)))))']
 checks=[];event=0
 for name in ['unit','triple','stride','changing','warmup']:
     data=json.loads((OUT/'fixtures'/f'{name}.json').read_text());samples=path_samples(data['edges'],24)
@@ -31,7 +31,7 @@ for name in ['unit','triple','stride','changing','warmup']:
             ports=[]
             for slot,d in enumerate(delta):
                 ports.append(f'(Make "+" (RCons (ParentPort 0 {slot} "i64") (RCons (Make "literal:{d}" (RNil) "i64") (RNil))) "i64")')
-            text.append(f'(let {comb} (SmoothComb (MoreParents {parent[1]} (NoParents)) (Rule "additive-unfold") (RCons {ports[0]} (RCons {ports[1]} (RNil)))))')
+            text.append(f'(let {comb} (SmoothRuleComposition (MoreParents {parent[1]} (NoParents)) (Rule "additive-unfold") (RCons {ports[0]} (RCons {ports[1]} (RNil)))))')
         text.append(f'(let {ident} (Occurrence {event} {comb}))')
         text.append(f'(Coordinates {ident} {state[0]} {state[1]})')
         text.append(f'(SeriesStep {ident} "{name}" {depth})')
