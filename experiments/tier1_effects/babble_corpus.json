@@ -39,7 +39,7 @@
                   },
                   {
                     "sort": "Comb",
-                    "op": "CoarseRuleComposition",
+                    "op": "CoarseComb",
                     "args": [
                       {
                         "sort": "ParentCombs",
@@ -170,7 +170,7 @@
                   },
                   {
                     "sort": "Comb",
-                    "op": "CoarseRuleComposition",
+                    "op": "CoarseComb",
                     "args": [
                       {
                         "sort": "ParentCombs",
@@ -340,7 +340,7 @@
                   },
                   {
                     "sort": "Comb",
-                    "op": "CoarseRuleComposition",
+                    "op": "CoarseComb",
                     "args": [
                       {
                         "sort": "ParentCombs",
@@ -471,7 +471,7 @@
                   },
                   {
                     "sort": "Comb",
-                    "op": "CoarseRuleComposition",
+                    "op": "CoarseComb",
                     "args": [
                       {
                         "sort": "ParentCombs",

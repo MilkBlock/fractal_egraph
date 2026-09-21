@@ -4,8 +4,8 @@
 
 ```
 Comb = Empty
-     | SmoothRuleComposition(ParentCombs, RuleId, RelativeBinding)
-     | CoarseRuleComposition(ParentCombs, RuleId, PartialRelativeBinding)
+     | SmoothComb(ParentCombs, RuleId, RelativeBinding)
+     | CoarseComb(ParentCombs, RuleId, PartialRelativeBinding)
 
 Instance = Occurrence(unique_event_id, Comb)
 ```
@@ -19,22 +19,22 @@ Comb 的子结构只有规则、父模板及结构化端口；具体值、执行
 - `RuleId` 是独立类型，以 `(Rule "R15")` 构造，不能直接传裸 String。
 - `ParentPort(parent_index, output_index, sort)` 返回 LocalPort。
 - `Make(operator, RelativeBinding, sort)` 返回 LocalPort；其子项递归限制为局部端口。
-- `RNil / RCons` 构成 RelativeBinding，只能包含 LocalPort，供 SmoothRuleComposition 使用。
+- `RNil / RCons` 构成 RelativeBinding，只能包含 LocalPort，供 SmoothComb 使用。
 - `Local(LocalPort)`、`External(slot, sort)`、`MakePartial(operator, PartialRelativeBinding, sort)` 返回 PartialPort。
-- `PNil / PCons` 构成 PartialRelativeBinding，供 CoarseRuleComposition 使用。
+- `PNil / PCons` 构成 PartialRelativeBinding，供 CoarseComb 使用。
 
 例如：
 
 ```lisp
-(SmoothRuleComposition $parents (Rule "R15")
+(SmoothComb $parents (Rule "R15")
   (RCons (ParentPort 0 0 "Math") (RNil)))
 
-(CoarseRuleComposition $parents (Rule "R15")
+(CoarseComb $parents (Rule "R15")
   (PCons (Local (ParentPort 0 0 "Math"))
     (PCons (External 0 "Math") (PNil))))
 ```
 
-External 不能直接或通过嵌套 Make 流入 SmoothRuleComposition；这由原生 egglog 类型检查拒绝，
+External 不能直接或通过嵌套 Make 流入 SmoothComb；这由原生 egglog 类型检查拒绝，
 不依赖运行后标记。局部 Make 和 MakePartial 均需要实例中的 Materialized 见证，不生成数据。
 这是 binding 语法的约束，不替代对外部 effect 来源与支撑完整性的验证。
 PartialRelativeBinding 也允许全部为 Local 的表达式；本次未增加自动 coarse→smooth 重写。
@@ -68,7 +68,7 @@ Independent 必须由实际依赖证据支持；Rust 导出器检查 ParentAt �
 - 第二组：y、4+5、dy。
 
 两组各有一个 R10 与一个 R15 occurrence，共 **4 个实例、3 个 Comb 节点**：
-一个全局 Empty、一个 CoarseRuleComposition([Empty],R10,External 0/1/2)、一个共享 CoarseRuleComposition(R15)。重新构造同一个 coarse 模板的等式检查通过。
+一个全局 Empty、一个 CoarseComb([Empty],R10,External 0/1/2)、一个共享 CoarseComb(R15)。重新构造同一个 coarse 模板的等式检查通过。
 前提来自各自的乘积表示、外部 Diff 行和父实例的 equality，不会跨实例泄漏。
 
 测试另行验证：不同实例分别只有 P/Q 时不能合并满足 P∧Q；equality 不泄漏；
@@ -107,8 +107,8 @@ MakePartial(op, fully_local_args, sort)
 ```
 
 两侧查找同一实例、同一 op/参数/结果 sort 的 Materialized 见证，所有父端口索引及别名保持。
-该 partial-port union 通过 congruence 合并相应的 CoarseRuleComposition 表示，但不删除任何 effect 或支撑。
-`LocalBindingView` 提供局部 binding 视图；**不会将 CoarseRuleComposition 直接 union 成 SmoothRuleComposition**，
+该 partial-port union 通过 congruence 合并相应的 CoarseComb 表示，但不删除任何 effect 或支撑。
+`LocalBindingView` 提供局部 binding 视图；**不会将 CoarseComb 直接 union 成 SmoothComb**，
 因为局部端口不能单独证明额外 effect 需求不存在。实例冗余证书也不会直接变成全局模板等价。
 
 `learn.py` 把实际导出的 Comb 图交给现有 babble adapter。所有根共用一张定义表，
