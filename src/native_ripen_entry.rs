@@ -30,8 +30,13 @@ fn outside(r: &Record, p: &Port, members: &BTreeSet<usize>) -> bool {
     }
 }
 
-fn extract(c: &Captured, u: &Use, root_member: usize) -> Result<(String, String, Json)> {
-    let members: BTreeSet<_> = u.members.iter().copied().collect();
+fn extract(
+    c: &Captured,
+    member_ids: &[usize],
+    u: Option<&Use>,
+    root_member: usize,
+) -> Result<(String, String, Json)> {
+    let members: BTreeSet<_> = member_ids.iter().copied().collect();
     let first = *members.first().ok_or("empty Use")?;
     let mut hole = "RipenInput".to_string();
     while c.preview_source.contains(&hole) {
@@ -79,10 +84,14 @@ fn extract(c: &Captured, u: &Use, root_member: usize) -> Result<(String, String,
                 continue;
             }
             if let Port::Parent(k, _) = p {
-                if r.parents[*k] >= first {
+                if u.is_some() && r.parents[*k] >= first {
                     return Err("entry requires a late external producer; staged injection is not supported".into());
                 }
-            } else if *i != first && !values.contains_key(v) && !initial_reads.contains(v) {
+            } else if u.is_some()
+                && *i != first
+                && !values.contains_key(v)
+                && !initial_reads.contains(v)
+            {
                 return Err("unversioned external input first appears after entry".into());
             }
             match input {
@@ -121,6 +130,7 @@ fn extract(c: &Captured, u: &Use, root_member: usize) -> Result<(String, String,
     let mut seeds = BTreeMap::new();
     let mut stages = vec![];
     let mut final_checks = vec![];
+    let mut injections = vec![];
     for i in &members {
         let r = &c.records[*i];
         let rule = &c.rules[r.rule];
@@ -169,7 +179,14 @@ fn extract(c: &Captured, u: &Use, root_member: usize) -> Result<(String, String,
                 }
             }
         }
-        let mut commands = vec![];
+        let mut commands = if u.is_none() {
+            std::mem::take(&mut seeds).into_values().collect::<Vec<_>>()
+        } else {
+            vec![]
+        };
+        if !commands.is_empty() {
+            injections.push(json!({"before_record":i,"facts":commands.iter().map(ToString::to_string).collect::<Vec<_>>()}));
+        }
         for fact in &rule.rule.body {
             commands.push(check(match fact {
                 Fact::Eq(_, a, b) => Fact::Eq(sp(), subst(a, &env)?, subst(b, &env)?),
@@ -259,27 +276,49 @@ fn extract(c: &Captured, u: &Use, root_member: usize) -> Result<(String, String,
             .join("\n")
     );
     let seed_text = encode(&entry);
+    if u.is_none() {
+        for (_, _, _, commands) in &stages {
+            entry.extend(commands.clone());
+        }
+    }
     entry.extend(final_checks);
     let text = format!(
         "; Extracted symbolic interface. Boundary constructors are opaque, not recovered original terms.\n{}\n",
         encode(&entry)
     );
-    let slots: BTreeMap<_, _> = u.members.iter().enumerate().map(|(m, e)| (*e, m)).collect();
-    let comb_members:Vec<_>=u.members.iter().enumerate().map(|(slot,i)|{
+    let slots: BTreeMap<_, _> = member_ids
+        .iter()
+        .enumerate()
+        .map(|(m, e)| (*e, m))
+        .collect();
+    let mut boundary_ports = BTreeMap::new();
+    let comb_members:Vec<_>=member_ids.iter().enumerate().map(|(slot,i)|{
         let o=&c.layers.occurrences[*i];let a=&o.apply;let r=&c.records[*i];
         let external_parents:Vec<_>=a.parents.iter().filter(|p|!slots.contains_key(p)).copied().collect();
         let coarse=a.parents.is_empty()||!external_parents.is_empty()||!a.external_facts.is_empty()||a.binding.iter().any(|p|matches!(p,crate::coarse_smooth::RelativeBinding::External{..}));
+        let (wiring,aliases)=if let Some(u)=u {
+            let step=&c.layers.reuse.templates[u.template].pattern.steps[slot];
+            (json!(step.wiring),json!(step.aliases))
+        }else{
+            let wiring=a.binding.iter().enumerate().map(|(input,p)|match p {
+                crate::coarse_smooth::RelativeBinding::ParentPort{parent,output} if slots.contains_key(&a.parents[*parent])=>json!({"Local":{"member":slots[&a.parents[*parent]],"output":output}}),
+                _=>{let v=a.wanted[input];let next=boundary_ports.len();let port=*boundary_ports.entry(v).or_insert(next);json!({"Input":port})}
+            }).collect::<Vec<_>>();
+            let mut names=BTreeMap::new();
+            let aliases=a.wanted.iter().chain(&a.outputs).map(|v|crate::coarse_smooth::symbol(*v,&mut names)).collect::<Vec<_>>();
+            (json!(wiring),json!(aliases))
+        };
         json!({"slot":slot,"record":i,"event":r.id,"rule_name":c.rules[r.rule].rule.name,"rule":c.rules[r.rule].rule.to_string(),
             "use_kind":if coarse{"CoarseComb"}else{"SmoothComb"},"source_kind":format!("{:?}",c.layers.combs[o.comb].kind),
             "parents":a.parents.iter().filter_map(|p|slots.get(p).copied()).collect::<BTreeSet<_>>(),"external_parents":external_parents,
-            "binding":c.layers.reuse.templates[u.template].pattern.steps[slot].wiring,"aliases":c.layers.reuse.templates[u.template].pattern.steps[slot].aliases,"input_roles":a.input_roles,"output_roles":a.output_roles,"source_coarse_layer":o.coarse_layer,"source_smooth_layer":o.smooth_layer})
+            "binding":wiring,"aliases":aliases,"input_roles":a.input_roles,"output_roles":a.output_roles,"source_coarse_layer":o.coarse_layer,"source_smooth_layer":o.smooth_layer})
     }).collect();
-    let provenance = json!({"kind":"symbolic_use_interface","template":u.template,"members":u.members,"root_member":root_member,"comb_members":comb_members,"kind_scope":"use_kind is relative to directly recorded dependencies inside this Use; source_kind is the original layer classification; neither minimizes alternate proof requirements",
+    let provenance = json!({"kind":"symbolic_use_interface","template":u.map(|u|u.template),"members":member_ids,"root_member":root_member,"comb_members":comb_members,"kind_scope":"use_kind is relative to directly recorded dependencies inside this Use; source_kind is the original layer classification; neither minimizes alternate proof requirements",
         "events":stages.iter().map(|(i,e,n,_)|json!({"record":i,"event":e,"precondition_checks":n})).collect::<Vec<_>>(),
         "initial_tables":initial_tables,"original_use_tables":super::table_sizes(&eg,&declarations)?,"parameter_marker":hole,
         "symbolic_values":values.iter().map(|(token,term)|json!({"token":token,"term":term.to_string(),"sort":c.pool.values[*token].sort})).collect::<Vec<_>>(),
         "parameters":parameters,"all_source_rules":c.rules.len(),"validation":"all original LHS checks and recorded output aliases passed before/after the corresponding ground actions",
-        "initial_source":seed_text,"concrete_boundary_structure_recovered":false,
+        "staged_injections":injections,"initial_source":seed_text,"concrete_boundary_structure_recovered":false,
         "closed_scope":"extracted interface only; not the complete original tier0 neighborhood"});
     Ok((text, validation, provenance))
 }
@@ -325,7 +364,7 @@ pub fn from_use(history_path: &Path, use_id: usize, out: &Path, max_rounds: usiz
         symbolic_boundary: true,
     };
     let mut report =
-        super::run_with_origin(&entry, &out.join("run"), max_rounds, Some(link), true)?;
+        super::run_with_origin(&entry, &out.join("run"), max_rounds, Some(link), true, true)?;
     report["origin"] = origin;
     std::fs::write(
         out.join("run/ripen.json"),
@@ -341,6 +380,11 @@ pub(in crate::native_analyze) fn prepare(
     u: &Use,
     root_member: usize,
 ) -> Result<(String, String, Json)> {
+    audit(c)?;
+    extract(c, &u.members, Some(u), root_member)
+}
+
+fn audit(c: &Captured) -> Result {
     let mut parser = EGraph::default();
     let mut declared = vec![];
     for cmd in crate::visual_rule::surface_program(parser.parse_program(None, &c.preview_source)?) {
@@ -365,5 +409,19 @@ pub(in crate::native_analyze) fn prepare(
     {
         return Err("recorded rules do not cover the original source rules".into());
     }
-    extract(c, u, root_member)
+    Ok(())
+}
+
+pub(in crate::native_analyze) fn prepare_members(
+    c: &Captured,
+    members: &[usize],
+) -> Result<(String, String, Json)> {
+    audit(c)?;
+    if members.is_empty()
+        || members.windows(2).any(|p| p[0] >= p[1])
+        || members.last().unwrap() >= &c.records.len()
+    {
+        return Err("invalid dependency candidate members".into());
+    }
+    extract(c, members, None, members.len() - 1)
 }

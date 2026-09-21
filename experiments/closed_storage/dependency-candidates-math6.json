@@ -1,0 +1,45 @@
+{
+  "dependencies": {
+    "counts": {
+      "Closed": 18,
+      "Pending": 236,
+      "Suspended": 2
+    },
+    "closed_states": 7,
+    "dependency_candidates": 128,
+    "limits": {
+      "jobs": 32,
+      "milliseconds_between_jobs": 250,
+      "per_boundary": 4,
+      "queue_capacity": 256,
+      "rounds": 4
+    },
+    "processed_by_source": {
+      "Use": 10,
+      "DependencyCone": 10
+    },
+    "output": "out/dependency-candidates-math6"
+  },
+  "use_only": {
+    "counts": {
+      "Closed": 14,
+      "Pending": 236,
+      "Rejected": 3,
+      "Suspended": 3
+    },
+    "closed_states": 5,
+    "dependency_candidates": 0,
+    "limits": {
+      "jobs": 32,
+      "milliseconds_between_jobs": 250,
+      "per_boundary": 4,
+      "queue_capacity": 256,
+      "rounds": 4
+    },
+    "processed_by_source": {
+      "Use": 20
+    },
+    "output": "out/use-only-candidates-math6"
+  },
+  "scope": "Native math-microbenchmark, 6 rounds, identical attempt budgets; measures candidate admission and isolated symbolic closures, not tier0 compression."
+}

@@ -623,3 +623,34 @@ This fixes printing/parsing; it does not authorize `subsume` inside isolated
 ripen, or resolve late/coarse external inputs. The actual UI math program with
 `prune` therefore still has independent closure blockers. Regression tests:
 `cargo test --release --test wildcard_roundtrip`.
+
+### Ripen admission without Use
+
+By default the queue now also receives `DependencyCone` candidates directly from
+committed producer–consumer history. Each new consumer supplies a root; its
+bounded ancestor cone follows recorded producer dependencies, preserving all
+parents of a multi-input consumer. Cones larger than 16 applications are counted
+as omitted, not truncated into a purported complete witness. This admits
+single-occurrence combinations even when the library installs **zero Uses**.
+Each queue source has 128 slots; attempts alternate between dependency candidates
+and Uses when both are available. Set `EGG_LAYOUT_USE_ONLY=1` for the original
+256-slot Use-only baseline. Attempt/round/time budgets otherwise stay identical.
+
+Candidates carry their own IDs, member events, original coarse-layer IDs, and
+relative-binding maps. They are not inserted into the Use table or given fake
+Use/template IDs. Catalog triggers expose `candidate_kind` / `candidate_id`;
+instance selectors label them as dependency candidates.
+
+For this path, external input facts are injected immediately before the recorded
+member that requires them; original ground actions and alias checks then replay
+in order. The resulting observed state is ripened. `staged_injections` records
+these obligations: they are assumptions supplied by the external context, not
+facts derived for free. The old Use path retains its entry-only behavior for
+comparison. Both paths share validation and exact state comparison. Unsupported
+nested external reads which would materialize internal results remain rejected;
+there is no arbitrary CCSS reordering, whole-CS matching, or change to tier0.
+
+Reproduction: the normal math command needs no new flags. Run it once normally
+and once with `EGG_LAYOUT_USE_ONLY=1`, using separate fresh output directories.
+`tests/dependency_candidates.rs` checks zero-Use admission and a joint consumer
+anchoring two independently produced inputs from different coarse layers.

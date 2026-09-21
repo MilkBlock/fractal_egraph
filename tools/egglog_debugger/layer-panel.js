@@ -67,7 +67,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         for(const [i,t] of (catalogData?.catalog.triggers||[]).entries()){
             if(cp('state').value!==''&&t.closed_state!==Number(cp('state').value))continue;
             if(cp('comb').value!==''&&!catalogData.catalog.comb_groups[Number(cp('comb').value)].triggers.includes(i))continue;
-            cp('instance').add(new Option(`U${t.origin?.use_id??i} · T${t.origin?.template??'—'}`,String(i)));
+            cp('instance').add(new Option(t.origin?.candidate_kind==='DependencyCone'?`依赖候选 D${t.origin.candidate_id}`:`U${t.origin?.use_id??i} · T${t.origin?.template??'—'}`,String(i)));
         }
     }
     function selectedTrigger(){
@@ -118,7 +118,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
             }source+='}';
         }
         source+='}';
-        return {g:{nodes,edges},source,caption:`U${trigger?.origin?.use_id??'—'}：原始 layer 中参与此 rule comb 的成员；不是整个 layer。Use 内的 Coarse/Smooth 分类与原始 layer 分类可能不同。${autoNote}`};
+        return {g:{nodes,edges},source,caption:`${trigger?.origin?.candidate_kind==='DependencyCone'?'依赖候选 D'+trigger.origin.candidate_id:'U'+(trigger?.origin?.use_id??'—')}：原始 layer 中参与此 rule comb 的成员；不是整个 layer。Use 内的 Coarse/Smooth 分类与原始 layer 分类可能不同。${autoNote}`};
     }
     function focusComb(g){cp('state').value=String(g.closed_state);combOptions();cp('comb').value=String(g.id);instanceOptions();renderCatalog();showComb(g);}
     function memberText(m){
@@ -195,7 +195,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         cp('state').replaceChildren(new Option('全部概览',''));
         cp('table').replaceChildren();cp('view').replaceChildren();cp('rule').textContent='';
         cp('details').textContent=JSON.stringify(result.jobs,null,2);
-        cp('status').textContent=`边界 ${result.boundary} · ${Object.entries(result.counts).map(([k,v])=>k+' '+v).join(' / ')||'尚无 Use'} · 队列外 ${result.not_queued}。每边界最多 ${result.limits.per_boundary} 个，总计 ${result.limits.jobs} 个；每例 ${result.limits.rounds} 轮。时间预算在任务之间检查。`;
+        cp('status').textContent=`边界 ${result.boundary} · ${Object.entries(result.counts).map(([k,v])=>k+' '+v).join(' / ')||'尚无 Use'} · 依赖候选 ${result.dependency_candidates??0} · 队列外 ${result.not_queued}。每边界最多 ${result.limits.per_boundary} 个，总计 ${result.limits.jobs} 个；每例 ${result.limits.rounds} 轮。时间预算在任务之间检查。`;
         if(catalogData){
             for(let i=0;i<catalogData.catalog.closed_states;i++)cp('state').add(new Option(`ClosedState C${i}`,String(i)));
             cp('status').textContent+=` ${catalogData.catalog.triggers.length} 个 Trigger → ${catalogData.catalog.closed_states} 个共享 ClosedState。`;

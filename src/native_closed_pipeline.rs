@@ -9,6 +9,9 @@ pub(super) struct Pipeline {
     jobs: Vec<Json>,
     cursor: usize,
     observed: usize,
+    dependency_seen: usize,
+    dependency_jobs: usize,
+    dependencies: bool,
     attempted_templates: BTreeSet<usize>,
     omitted: usize,
     cache: BTreeMap<String, PathBuf>,
@@ -34,6 +37,9 @@ impl Pipeline {
             jobs: vec![],
             cursor: 0,
             observed: 0,
+            dependency_seen: 0,
+            dependency_jobs: 0,
+            dependencies: std::env::var_os("EGG_LAYOUT_USE_ONLY").is_none(),
             attempted_templates: BTreeSet::new(),
             omitted: 0,
             cache: BTreeMap::new(),
@@ -51,9 +57,11 @@ impl Pipeline {
             std::fs::write(self.out.join("source.egg"), &c.preview_source)?;
         }
         for (id, u) in layers.reuse.uses.iter().enumerate().skip(self.observed) {
-            if self.jobs.len() < 256 {
+            if self.jobs.len() < 256
+                && (!self.dependencies || self.jobs.len() - self.dependency_jobs < 128)
+            {
                 self.jobs.push(
-                    json!({"use_id":id,"template":u.template,"members":u.members,
+                    json!({"candidate_kind":"Use","use_id":id,"template":u.template,"members":u.members,
                     "discovered_boundary":boundary,"state":"Pending"}),
                 );
             } else {
@@ -61,6 +69,40 @@ impl Pipeline {
             }
         }
         self.observed = layers.reuse.uses.len();
+        if self.dependencies {
+            for id in self.dependency_seen..layers.occurrences.len() {
+                let mut members = BTreeSet::from([id]);
+                let mut frontier = vec![id];
+                // Whole bounded ancestor cone: bring the witnessed producers
+                // inside the candidate instead of inventing an early input.
+                while let Some(member) = frontier.pop() {
+                    for &p in &c.records[member].parents {
+                        if members.insert(p) {
+                            frontier.push(p);
+                        }
+                    }
+                    if members.len() > 16 {
+                        break;
+                    }
+                }
+                if members.len() < 2 {
+                    continue;
+                }
+                if members.len() > 16 || self.dependency_jobs >= 128 || self.jobs.len() >= 256 {
+                    self.omitted += 1;
+                    continue;
+                }
+                let members: Vec<_> = members.into_iter().collect();
+                let coarse: BTreeSet<_> = members
+                    .iter()
+                    .map(|i| layers.occurrences[*i].coarse_layer)
+                    .collect();
+                self.jobs.push(json!({"candidate_kind":"DependencyCone","candidate_id":id,"template":null,"members":members,
+                    "coarse_layers":coarse,"discovered_boundary":boundary,"state":"Pending"}));
+                self.dependency_jobs += 1;
+            }
+            self.dependency_seen = layers.occurrences.len();
+        }
         let start = Instant::now();
         let mut processed = 0;
         while self.cursor < self.jobs.len()
@@ -75,35 +117,50 @@ impl Pipeline {
                 .filter(|(_, j)| j["state"] == "Pending")
                 .min_by_key(|(i, j)| {
                     (
+                        (j["candidate_kind"] == "DependencyCone") != (self.cursor % 2 == 0),
                         self.attempted_templates
-                            .contains(&(j["template"].as_u64().unwrap() as usize)),
+                            .contains(&(j["template"].as_u64().unwrap_or(u64::MAX) as usize)),
                         *i,
                     )
                 })
                 .map(|(i, _)| i)
                 .expect("pending job");
             self.attempted_templates
-                .insert(self.jobs[i]["template"].as_u64().unwrap() as usize);
+                .insert(self.jobs[i]["template"].as_u64().unwrap_or(u64::MAX) as usize);
             self.cursor += 1;
             processed += 1;
-            let id = self.jobs[i]["use_id"].as_u64().unwrap() as usize;
-            let u = &layers.reuse.uses[id];
-            // Each Use is immutable. A changed/re-cut comb is a newly allocated Use.
+            let dependency = self.jobs[i]["candidate_kind"] == "DependencyCone";
+            let id = self.jobs[i][if dependency { "candidate_id" } else { "use_id" }]
+                .as_u64()
+                .unwrap() as usize;
+            let members: Vec<usize> = serde_json::from_value(self.jobs[i]["members"].clone())?;
             let result = (|| -> Result<Json> {
-                let (source, validation, mut origin) =
-                    ripen::prepare(c, u, layers.reuse.templates[u.template].pattern.root)?;
-                origin["use_id"] = json!(id);
+                let (source, validation, mut origin) = if dependency {
+                    ripen::prepare_members(c, &members)?
+                } else {
+                    let u = &layers.reuse.uses[id];
+                    ripen::prepare(c, u, layers.reuse.templates[u.template].pattern.root)?
+                };
+                origin["candidate_kind"] = self.jobs[i]["candidate_kind"].clone();
+                origin[if dependency { "candidate_id" } else { "use_id" }] = json!(id);
                 origin["history"] = json!(self.source);
                 origin["capture_kind"] = json!("in_memory; history file not required");
                 let key = serde_json::to_string(&(&source, &validation))?;
-                let folder = self.out.join("closed/cells").join(format!("use-{id:06}"));
+                let folder = self.out.join("closed/cells").join(format!(
+                    "{}-{id:06}",
+                    if dependency { "candidate" } else { "use" }
+                ));
                 std::fs::create_dir_all(&folder)?;
-                let link = RipenOrigin {
-                    history: self.source.clone(),
-                    use_id: id,
-                    template: u.template,
-                    members: u.members.clone(),
-                    symbolic_boundary: true,
+                let link = if dependency {
+                    None
+                } else {
+                    Some(RipenOrigin {
+                        history: self.source.clone(),
+                        use_id: id,
+                        template: layers.reuse.uses[id].template,
+                        members: members.clone(),
+                        symbolic_boundary: true,
+                    })
                 };
                 let mut report: Json;
                 let cached = self.cache.get(&key).cloned();
@@ -130,8 +187,9 @@ impl Pipeline {
                         &entry,
                         &folder.join("work"),
                         self.rounds,
-                        Some(link),
+                        link,
                         false,
+                        true,
                     )?;
                     if folder.join("work/closed-state.json").exists() {
                         std::fs::rename(
@@ -145,6 +203,9 @@ impl Pipeline {
                     std::fs::remove_file(entry)?;
                     report["source"] = json!(folder.join("entry.egg"));
                     self.cache.insert(key, folder.clone());
+                }
+                if dependency {
+                    report["ripen"]["origin"] = json!({"history":self.source,"candidate_kind":"DependencyCone","candidate_id":id,"members":members,"symbolic_boundary":true});
                 }
                 report["origin"] = origin;
                 std::fs::write(folder.join("ripen.json"), serde_json::to_vec(&report)?)?;
@@ -176,7 +237,7 @@ impl Pipeline {
                 .or_default() += 1;
         }
         let mut report = json!({"kind":"closed_snapshot","boundary":boundary,"jobs":self.jobs,
-            "counts":counts,"observed_uses":self.observed,"not_queued":self.omitted,
+            "counts":counts,"observed_uses":self.observed,"dependency_candidates":self.dependency_jobs,"not_queued":self.omitted,
             "limits":{"jobs":self.total,"per_boundary":self.per_boundary,"rounds":self.rounds,"milliseconds_between_jobs":self.milliseconds,"queue_capacity":256},
             "selection":"unattempted templates first; exact source plus validation required for cache reuse",
             "scope":"symbolic Use interface only; no tier0 replacement; budgets checked between jobs, not a hard per-rule time/memory limit",

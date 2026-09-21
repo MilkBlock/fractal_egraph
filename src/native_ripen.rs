@@ -6,7 +6,7 @@ use crate::coarse_smooth::{RipenFeedback, RipenOrigin};
 #[path = "native_ripen_entry.rs"]
 mod entry;
 pub use entry::from_use;
-pub(super) use entry::prepare;
+pub(super) use entry::{prepare, prepare_members};
 
 fn supported_action(a: &Action) -> bool {
     matches!(
@@ -16,7 +16,7 @@ fn supported_action(a: &Action) -> bool {
 }
 
 pub fn run(source: &Path, out: &Path, max_rounds: usize) -> Result<Json> {
-    run_with_origin(source, out, max_rounds, None, true)
+    run_with_origin(source, out, max_rounds, None, true, false)
 }
 pub(super) fn run_with_origin(
     source: &Path,
@@ -24,6 +24,7 @@ pub(super) fn run_with_origin(
     max_rounds: usize,
     origin: Option<RipenOrigin>,
     artifacts: bool,
+    symbolic_boundary: bool,
 ) -> Result<Json> {
     if max_rounds == 0 {
         return Err("ripen max-rounds must be positive".into());
@@ -190,7 +191,7 @@ pub(super) fn run_with_origin(
                 &eg,
                 &c,
                 &port_values,
-                origin.as_ref().is_some_and(|o| o.symbolic_boundary),
+                symbolic_boundary || origin.as_ref().is_some_and(|o| o.symbolic_boundary),
             ) {
                 Ok(state) => {
                     std::fs::write(
