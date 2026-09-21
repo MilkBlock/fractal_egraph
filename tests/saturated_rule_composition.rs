@@ -236,3 +236,33 @@ fn visibility_is_part_of_exact_equivalence() {
     b.subsumed_rows = vec![20];
     assert!(compare(&a, &b, 10000).is_err());
 }
+
+/// The paper's two parenthesizations must agree on the entire retained graph,
+/// not just on an extracted expression or a node count.
+#[test]
+fn math_parenthesizations_share_body_but_keep_entries() {
+    use std::{fs, process::Command};
+    let base = std::env::temp_dir().join(format!("paper-math-catalog-{}", std::process::id()));
+    fs::create_dir_all(&base).unwrap();
+    let runs = ["right", "left"].map(|side| {
+        let out = base.join(side);
+        let result = Command::new(env!("CARGO_BIN_EXE_egg_layout"))
+            .args(["ripen", &format!("docs/papers/examples/math-mini-{side}.egg")])
+            .arg(&out).args(["--max-rounds", "16"]).output().unwrap();
+        assert!(result.status.success(), "{}", String::from_utf8_lossy(&result.stderr));
+        let body = read(&out.join("saturated-rule-composition.json")).unwrap();
+        assert_eq!(body.rows.iter().filter(|r| r.op == "Add").count(), 12);
+        assert_eq!(body.rows.iter().filter(|r| r.op == "Var").count(), 3);
+        assert_eq!(body.values.iter().filter(|v| v.sort == "Math").count(), 7);
+        let root = body.ports["root"];
+        assert_eq!(body.rows.iter().filter(|r| r.op == "Add" && r.result == root).count(), 6);
+        out
+    });
+    let report = catalog(&runs, &base.join("catalog"), 100_000).unwrap();
+    assert_eq!(report["saturated_rule_compositions"], 1);
+    let triggers = report["triggers"].as_array().unwrap();
+    assert_eq!(triggers.len(), 2);
+    assert_ne!(triggers[0]["entry"], triggers[1]["entry"]);
+    assert_eq!(triggers[0]["saturated_rule_composition"], triggers[1]["saturated_rule_composition"]);
+    fs::remove_dir_all(base).unwrap();
+}

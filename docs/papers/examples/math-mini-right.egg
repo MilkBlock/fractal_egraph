@@ -1,0 +1,7 @@
+; Minimal teaching fragment of egglog/tests/web-demo/math.egg.
+; Only symbolic variables and exact algebraic addition; no floating-point folds.
+(datatype Math (Var String) (Add Math Math))
+(rewrite (Add a (Add b c)) (Add (Add a b) c))
+(rewrite (Add a b) (Add b a))
+(let root (Add (Var "a") (Add (Var "b") (Var "c"))))
+(check (= root (Add (Var "c") (Add (Var "a") (Var "b")))))

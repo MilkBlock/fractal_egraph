@@ -2,7 +2,7 @@
 
 The English article is authored directly in
 `event-driven-hierarchical-rule-composition.tex`. The illustrated revision is
-`event-driven-hierarchical-rule-composition_v0.2.pdf`; v0.1 is preserved separately.
+`event-driven-hierarchical-rule-composition_v0.3.pdf`; v0.1 is preserved separately.
 The 17 figures use TikZ, with blue LHS facts, orange RHS facts, purple coarse
 layer outlines, and dashed teal smooth layer outlines. No downloaded assets are used.
 
@@ -17,7 +17,7 @@ Requirements: an installed TeX distribution with latexmk, pdfLaTeX, TikZ,
 newtx, and the other standard packages named in the source. Build intermediates
 are placed in `out/paper-latex`.
 
-The seven programs in `examples/` isolate rule fragments from
+The examples include a two-rule teaching fragment (`math-mini-right.egg` and `math-mini-left.egg`) and scoped rule fragments from
 `egglog/tests/web-demo/math.egg`. The native Rust test checks association-to-
 commutation row provenance, the Add-AC saturated body, staged distribution,
 Add/Mul regrouping, a required division guard, finite constant folding, subsume
@@ -27,7 +27,7 @@ Runtime IDs may vary. Figures use local labels rather than global layer IDs.
 These are scoped native rule-fragment tests, not an end-to-end layer extraction
 benchmark or saturation of the full optimizer.
 
-Implementation descriptions remain pinned to commit `258eef4`. Terminology now
+The teaching revision is v0.3; implementation descriptions remain pinned to commit `258eef4`. Terminology now
 uses coarse, smooth, and saturated rule composition. Legacy code identifiers are
 mapped in the appendix. Equal exported states do not equate compositions
 with different triggers or injection obligations.

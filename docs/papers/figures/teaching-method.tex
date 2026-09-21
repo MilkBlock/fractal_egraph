@@ -1,0 +1,118 @@
+% Separate notations: dashed enclosures = e-classes; solid small boxes = e-nodes.
+% Diagram arrows are explicitly labelled when they denote execution or catalog
+% references rather than child slots. No colour memorisation is required.
+\tikzset{en/.style={draw,rounded corners=1pt,fill=white,inner sep=3pt,font=\small},
+ ec/.style={draw,dashed,rounded corners,inner sep=5pt},
+ note/.style={align=center,font=\small},
+ rec/.style={draw,align=center,text width=43mm,inner sep=5pt,font=\small}}
+\newcommand{\TeachingReplay}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}
+\node[note] at (0,0.5) {\textbf{(a) Entry $T_R$}};
+\node[note] at (8,0.5) {\textbf{(b) Entry $T_L$}};
+\node[en] (r) at (0,0) {$a+(b+c)$};
+\node[en] (l) at (8,0) {$(a+b)+c$};
+\node[en] (r1) at (0,-1.5) {$a+(b+c)$};
+\node[en] (r2) at (0,-2.15) {$(a+b)+c$};
+\node[en] (l1) at (8,-1.5) {$(a+b)+c$};
+\node[en] (l2) at (8,-2.15) {$c+(a+b)$};
+\node[ec,fit=(r1)(r2)] (rc) {};
+\node[ec,fit=(l1)(l2)] (lc) {};
+\draw[arr] (r)--node[right,font=\scriptsize]{assoc + union}(rc);
+\draw[arr] (l)--node[right,font=\scriptsize]{comm + union}(lc);
+\node[note,text width=125mm] (end) at (4,-3.7)
+ {\textbf{Continue both rules to a fixed point}\\
+ Each root class has six alternatives; each whole Math graph has\\
+ 12 Add nodes + 3 Var nodes in 7 e-classes (Figure~\ref{fig:body}).};
+\draw[arr] (rc.south)--(end.north west);
+\draw[arr] (lc.south)--(end.north east);
+\end{tikzpicture}
+\caption{Two familiar expressions, two local executions. Dashed enclosures show
+one root e-class with retained alternatives. Expressions abbreviate e-node graphs;
+child classes are expanded in Figure~\ref{fig:body}. Labelled arrows denote
+selected rewrite steps, not deletion or replacement of the original expression.
+The intermediate panels explain individual applications; the automated ripen test
+checks the final fixed points rather than prescribing these first applications.}
+\label{fig:replay}
+\end{figure}}
+
+\newcommand{\TeachingCatalog}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}
+\node[rec] (r) at (0,0) {$T_R$: $a+(b+c)$\\own entry and evidence};
+\node[rec] (l) at (8,0) {$T_L$: $(a+b)+c$\\own entry and evidence};
+\node[rec] (kr) at (0,-1.6) {$K_R$: 12 Add + 3 Var\\7 Math e-classes};
+\node[rec] (kl) at (8,-1.6) {$K_L$: 12 Add + 3 Var\\7 Math e-classes};
+\draw[arr] (r)--node[right,font=\scriptsize]{native ripen}(kr);
+\draw[arr] (l)--node[right,font=\scriptsize]{native ripen}(kl);
+\node[note] at (4,-2.65) {\textbf{Exact graph comparison succeeds}};
+\node[rec] (tr) at (0,-4) {Catalog trigger $T_R$\\entry + value map};
+\node[rec] (tl) at (8,-4) {Catalog trigger $T_L$\\entry + value map};
+\node[rec,text width=35mm] (k) at (4,-5.5) {One representative $K$\\same rows and ports};
+\draw[arr] (tr)--node[left,font=\scriptsize]{references}(k);
+\draw[arr] (tl)--node[right,font=\scriptsize]{references}(k);
+\draw[dotted] (-2.5,-3.1)--(10.5,-3.1);
+\end{tikzpicture}
+\caption{Before comparison: two completed replay exports. After comparison:
+two catalog trigger records reference one representative body. Solid rectangles
+are records, not e-classes. Equal counts alone do not justify either reference:
+the checker requires a complete typed bijection preserving roots, rows, and
+visibility. Per-run exports and the live tier0 graph are not deleted.}
+\label{fig:catalog}
+\end{figure}}
+
+\newcommand{\TeachingBody}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}
+\node[en] (r0) at (0,0) {$\mathrm{Add}(a,q_{bc})$};
+\node[en] (r1) at (4,0) {$\mathrm{Add}(q_{bc},a)$};
+\node[en] (r2) at (8,0) {$\mathrm{Add}(b,q_{ac})$};
+\node[en] (r3) at (0,-0.75) {$\mathrm{Add}(q_{ac},b)$};
+\node[en] (r4) at (4,-0.75) {$\mathrm{Add}(c,q_{ab})$};
+\node[en] (r5) at (8,-0.75) {$\mathrm{Add}(q_{ab},c)$};
+\node[ec,fit=(r0)(r1)(r2)(r3)(r4)(r5),label=above:{root e-class $r$}] {};
+\node[en] (ab0) at (0,-2.3) {$\mathrm{Add}(a,b)$};
+\node[en] (ab1) at (0,-2.95) {$\mathrm{Add}(b,a)$};
+\node[ec,fit=(ab0)(ab1),label=above:{$q_{ab}$}] (ab) {};
+\node[en] (ac0) at (4,-2.3) {$\mathrm{Add}(a,c)$};
+\node[en] (ac1) at (4,-2.95) {$\mathrm{Add}(c,a)$};
+\node[ec,fit=(ac0)(ac1),label=above:{$q_{ac}$}] {};
+\node[en] (bc0) at (8,-2.3) {$\mathrm{Add}(b,c)$};
+\node[en] (bc1) at (8,-2.95) {$\mathrm{Add}(c,b)$};
+\node[ec,fit=(bc0)(bc1),label=above:{$q_{bc}$}] {};
+\node[en] (a0) at (0,-4.4) {Var("a")};
+\node[en] (b0) at (4,-4.4) {Var("b")};
+\node[en] (c0) at (8,-4.4) {Var("c")};
+\node[ec,fit=(a0),label=below:{$a$}] (a) {};
+\node[ec,fit=(b0),label=below:{$b$}] (b) {};
+\node[ec,fit=(c0),label=below:{$c$}] {};
+\draw[arr] (ab1.south)--node[left,font=\scriptsize]{slot 1}(a.north);
+\draw[arr] (ab1.south east)--node[above,font=\scriptsize]{slot 0}(b.north west);
+\end{tikzpicture}
+\caption{Count and read the entire saturated Math body. Each solid box is one
+e-node; each dashed enclosure is one e-class. The ordered labels specify all
+child-class references. Two arrows expand the slots of Add$(b,a)$ as a reading
+example; the other references remain explicit in the labels. There are six root
+Add nodes, six pair Add nodes, and three Var nodes. Primitive String values are
+omitted. Only association and commutation are enabled.}
+\label{fig:body}
+\end{figure}}
+
+\newcommand{\TeachingBoundary}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}
+\node[rec] (i) at (0,0) {External input\\$a+(b+c)$};
+\node[rec] (a) at (6,0) {Application 1: assoc\\produces $(a+b)+c$};
+\node[rec] (b) at (6,-1.7) {Application 2: comm\\produces $c+(a+b)$};
+\draw[arr] (i)--node[above,font=\scriptsize]{supplies premise}(a);
+\draw[arr] (a)--node[right,font=\scriptsize]{produced row is read}(b);
+\node[draw,dashed,fit=(a)(b),inner sep=7pt,label=below:{selected two-application boundary $H$}] {};
+\node[note,text width=42mm] at (0,-1.7) {Inside $H$: 1 is coarse,\\2 is smooth.\\Alone: 2 needs an external row.};
+\end{tikzpicture}
+\caption{The boundary changes the role, not the rule. Rectangles represent
+application or input records; the dashed enclosure is the selected history
+fragment, not an e-class. The dependency arrow identifies a producer-to-consumer
+row witness. Moving application 1 outside the boundary makes that dependency
+external for application 2.}
+\label{fig:boundary}
+\end{figure}}
