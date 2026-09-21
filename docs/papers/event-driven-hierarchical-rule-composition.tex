@@ -55,13 +55,13 @@ preserves types, equality, visibility, and the relevant rule environment.
 We then define parameterized fractal rule compositions through stable binding and effect
 transfers, distinguishing well-founded dissipative processes from families with
 arbitrarily long finite prefixes. These abstractions suggest finite scheduling,
-endpoint reduction, and demand-driven symbolic feedback to ripen. A native egglog
-prototype implements bounded composition, staged validation, saturated-body sharing,
-event subscriptions, and recursive promotion. A three-unit example yields nine
-saturation results, seven shared states, and six promotions, reaching depth two.
-This establishes a working finite mechanism, not end-to-end tier0 compression or
-acceleration. General induction and complete fractal-summary feedback remain
-explicitly separated from the implemented capabilities.
+endpoint reduction, and demand-driven symbolic feedback to ripen. A Rust/native prototype implements bounded candidate discovery, staged replay,
+exact comparison of exported local states, resource subscriptions, and promotion of
+validated compositions. In one fixed experiment it produced nine closed local
+results, seven equal exported states, and six promoted composition records at depth
+two. These are isolated symbolic-interface results: no live tier0 replacement,
+whole-program compression, or acceleration is implemented. General induction and
+fractal-summary feedback remain proposals.
 \end{abstract}
 \noindent\textbf{Keywords:} equality saturation; rule composition; local closure;
 relative binding; event-driven analysis; recursive summaries.
@@ -88,12 +88,14 @@ compositions, and \emph{tier2} for binding transfers, recurrence evidence, and
 symbolic reduction. These are logical layers: the current tier1 is primarily a
 Rust data structure rather than a mandatory chain-shaped egglog encoding.
 
-The contribution of this report is a semantic account of this hierarchy, together
-with a bounded implementation and explicit evidence limits. We do not claim a
-complete enumeration of useful combinations, a general induction procedure, or
-proven runtime compression. The central design decision is to use observed
-interaction events to construct larger units, and to share their saturated bodies
-without conflating their triggers.
+This report gives a bounded implementation account of the hierarchy and audits its
+evidence boundaries. The implemented contribution is narrower than the surrounding
+vocabulary: observed applications are grouped into candidate units, candidate
+compositions are replayed in isolated native cells, and exported local states can be
+compared and catalogued. The prototype does not replace tier0 execution, discover all
+useful combinations, prove arbitrary-depth recurrences, or perform runtime storage
+compression. The diagrams therefore distinguish observed history, replayed local
+state, and proposed summaries instead of presenting them as one execution pipeline.
 
 \begin{figure}[t]
 \centering
@@ -103,11 +105,11 @@ without conflating their triggers.
 \node[box,right=of hist] (cs) {Coarse / smooth\\CS units};
 \node[box,below=of cs] (compose) {CSCS / CCSS\\interface contracts};
 \node[box,left=of compose] (ripen) {Staged validation\\and ripen};
-\node[box,left=of ripen,draw=smoothteal,double] (closed) {Shared saturated body\\separate triggers};
+\node[box,left=of ripen,draw=smoothteal,double] (closed) {Equal exported local state\\separate trigger contracts};
 \node[box,below=16mm of ripen,fill=black!3] (fractal) {tier2 transfers\\recurrence / Reduce};
 \draw[arr] (exec)--(hist);\draw[arr] (hist)--(cs);
 \draw[arr] (cs)--(compose);\draw[arr] (compose)--(ripen);\draw[arr] (ripen)--(closed);
-\draw[arr] (closed.south) -- ++(0,-4mm) -| node[pos=.5,below,font=\scriptsize,fill=white,inner sep=1pt]{saturated-unit promotion} (compose.south);
+\draw[arr] (closed.south) -- ++(0,-4mm) -| node[pos=.5,below,font=\scriptsize,fill=white,inner sep=1pt]{descriptor promotion} (compose.south);
 \draw[arr] (hist.west) -- ++(-7mm,0) |- (fractal.west);
 \draw[proposed] (fractal.east) -- ++(7mm,0) |- (ripen.east);
 \node[font=\scriptsize,anchor=west] at ([xshift=8mm,yshift=5mm]fractal.east) {summary};
@@ -380,15 +382,16 @@ activation conditions.
 A saturated rule composition consists of a validated composition, its trigger
 and input mapping, its staged obligations, a saturated realization $K$, and its
 certificate. In the current implementation $K$ is a finite materialized body.
-Sharing $K$ does not identify two compositions with different triggers or
-obligations. A symbolically saturated infinite body needs the stronger query
+Cataloguing equal $K$ states does not identify two compositions with different triggers or
+obligations, and no live matcher reuse is performed. A symbolically saturated infinite body needs the stronger query
 contract discussed later.
 \end{definition}
 \MathSaturated
 
 \subsection{Sharing contents without conflating triggers}
-Different combinations may share identical saturated bodies while retaining
-different triggers, bindings, and injection plans. The prototype compares
+Different combinations may export identical local states while retaining different
+triggers, bindings, and injection plans; the current catalog records this equality but
+does not install shared bodies into tier0. The prototype compares
 complete exported typed graphs, equality classes, fixed ports, and row visibility.
 The rule environment must match. When updates or visibility matter, registration
 order and ruleset scheduling information are also retained.
@@ -703,7 +706,7 @@ for candidate U within budget:
         retain SymbolicallyCovered and a demand-driven frontier
     else:
         run ordinary bounded ripen
-    share saturated bodies, retaining trigger obligations
+    catalogue equal exported states, retaining trigger obligations
     promote certified results and notify subscribers
 \end{lstlisting}
 
@@ -721,7 +724,7 @@ Component & Implemented scope \\
 Native history & Committed applications, binding evidence, mutation records, replay.\\
 Layers and Uses & Context-relative coarse/smooth structures and template instances.\\
 CS composition & Bounded references, conditional certificates, staged validation, promotion.\\
-Saturated-composition sharing & Bounded exact comparison, typed ports, row visibility, rule environment.\\
+Exported-state comparison & Bounded exact comparison of typed rows, ports, equality classes, and row visibility; cataloguing only.\\
 Evidence leases & Token/table/scope subscriptions, union aliases, invalidation.\\
 Recurrence analysis & Finite transfer witnesses and selected symbolic endpoint laws.\\
 Bake queries & Narrow checked scalar summaries; no whole-program mutation replacement.\\
@@ -739,6 +742,25 @@ Unknown ownership can cause broad invalidation. Unsupported nested injections,
 missing pre-update table witnesses, multi-datatype programs, and some scalar
 interfaces remain explicit limitations.
 
+\subsection{Implementation audit: what the code actually establishes}
+The implementation boundary is narrower than the terminology used by the diagrams.
+\path{native_closed_pipeline} creates bounded jobs for Uses, dependency candidates, CSCS,
+and CCSS, then calls \path{native_ripen} on an isolated entry program. Every job is
+replayed and validated again; stale evidence cannot authorize substitution. A
+successful job exports a \texttt{ClosedState} and may promote a composition descriptor in
+the in-memory candidate store. \path{closed_state::compare} checks a bounded typed graph
+isomorphism including fixed ports and the subsumed-row mask. It does not compare
+matcher state, scheduler state, or the surrounding tier0 e-graph.
+
+The storage experiment in \path{experiments/closed_storage} is a separate Python tuple
+store. Its 20.2 percent retained-object reduction is not egglog RSS, is not a live
+kernel replacement, and comes with slower queries and union rebuilds. The native
+pipeline reports \path{fractal_summaries_used=0}; the Bake and tier2 schemas export or
+check narrow symbolic summaries but are not general feedback into ripen. The words
+\emph{shared body}, \emph{saturated composition}, and \emph{fractal rule} therefore refer to
+conditional artifacts or proposals unless a passage names the exact native check
+that supports them.
+
 \subsection{Bookkeeping cost and its limits}
 Let $q$ be changed resources, $s$ subscription hits, and $w$ awakened or newly
 promoted units. After interfaces have been formed, let $L$ bound interface work,
@@ -755,14 +777,17 @@ between jobs. These limits prevent a bookkeeping estimate from becoming an
 unsupported end-to-end complexity claim.
 
 \subsection{Recursive promotion and locality}
-A native example contains three CS pairs, $A\to A_1\to A_2$,
-$B\to B_1\to B_2$, and $C\to C_1\to C_2$, sharing a boundary parameter.
-It produces nine saturation results, seven shared states, and six promotions, with
-maximum depth two. Recorded counters include six layer visits, 75 pair checks,
-14 resource notifications, and three subscriber wakes~\cite{evidence}.
+The fixed recursive-CS experiment contains three source chains and is processed by
+bounded isolated ripen jobs. It reports nine closed jobs, seven equal exported
+states, and six promotion records at maximum composition depth two. Its counters
+include six layer visits, 75 pair checks, 14 resource notifications, and three
+subscriber wakes~\cite{evidence}. A promotion adds a new composition descriptor to
+the bounded candidate store; it does not install a macro into tier0 or substitute a
+shared body during native matching.
 
-This establishes that saturation results can participate in higher-level
-combinations. It does not establish compression or acceleration. In a separate
+This establishes that validated composition records can be fed back into the
+candidate store. It does not establish compression, acceleration, or reuse by the
+live egglog matcher. In a separate
 registry test, union of two resources wakes their two subscribers among 100
 independent units. Shared constants, common tables, or unknown mutation ownership
 can legitimately require more notification work.
@@ -815,7 +840,7 @@ not replace guard preservation, a ranking argument, or query completeness.
 Likewise, recognizing a dissipative family does not prove that other rules cannot
 restart it.
 
-Saturated-body sharing and live instance substitution remain separate. Opaque
+Exported-state equality and live instance substitution remain separate. Opaque
 parameters omit external structure; version tracking prevents unchecked reuse but
 does not itself validate a current whole-graph embedding. Subsumption and mutable
 tables require their operational contracts rather than the pure closure identity.
@@ -837,19 +862,18 @@ not provide an exhaustive related-work survey or establish novelty priority over
 unreviewed work on graph grammars, library learning, or recursive summaries.
 
 \section{Conclusion}
-We describe locality in rule history through explicit interfaces, bindings, and
-effect obligations. Coarse and smooth applications provide a boundary language;
-CSCS and CCSS provide distinct composition contracts; ripen and exact state
-comparison let different processes share saturated bodies; and event subscriptions
-and promotion connect these mechanisms into a hierarchy.
+We describe a bounded analysis pipeline for locality in recorded rule history. Coarse
+and smooth labels, CSCS/CCSS candidates, staged replay, and exact comparison of
+exported local states are implemented under explicit budgets and contracts. The
+result is a catalog of conditional symbolic-interface observations; it is not a
+replacement execution engine and it does not make equal local states interchangeable
+inside tier0.
 
-Dissipative and infinite-prefix fractal rule compositions offer a parameterized next step.
-Finite processes can use rankings and fold contracts, whereas unbounded families
-need lazy positions and a separate symbolic-coverage proof. The implemented
-prototype supports finite closure composition, recursive promotion, and selected
-narrow scalar queries. Integrating certified summaries into ripen's matching
-interface, and demonstrating reduced native search or storage cost, remain the
-central hypotheses to test.
+The recurrence and summary material defines proof obligations for future work. The
+current code records finite transfer evidence and supports two narrow checked query
+schemas, while the native ripen report records zero fractal summaries used. Proving
+arbitrary-depth induction, covering all relevant internal matches, and measuring a
+net runtime or storage benefit remain open.
 
 \begin{thebibliography}{9}
 \raggedright
@@ -885,9 +909,9 @@ not a uniform benchmark.
 \section{Reproduction and Evidence Levels}
 The paper uses the revised composition terminology. Legacy implementation
 identifiers remain unchanged: \code{CoarseComb} and \code{SmoothComb} label
-context-relative application forms; \code{ClosedState} stores a saturated body,
-not the entire trigger-bearing saturated rule composition; \code{Closed} is the
-serialized status corresponding to the paper's finite saturation result.
+context-relative application forms; \code{ClosedState} stores one exported local state;
+it is not a trigger-bearing macro or a replacement for the tier0 e-graph. \code{Closed}
+is the serialized status corresponding to a bounded isolated ripen result.
 The colored examples are checked by \code{cargo test --release --test paper\_math\_examples}.
 Their complete scoped programs are in \path{docs/papers/examples/}.
 

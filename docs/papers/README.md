@@ -17,8 +17,8 @@ Requirements: an installed TeX distribution with latexmk, pdfLaTeX, TikZ,
 newtx, and the other standard packages named in the source. Build intermediates
 are placed in `out/paper-latex`.
 
-The seven programs in `examples/` isolate rules from
-`egglog/tests/web-demo/math.egg`. The native egglog test checks association-to-
+The seven programs in `examples/` isolate rule fragments from
+`egglog/tests/web-demo/math.egg`. The native Rust test checks association-to-
 commutation row provenance, the Add-AC saturated body, staged distribution,
 Add/Mul regrouping, a required division guard, finite constant folding, subsume
 visibility, and four IBP expansion steps. `examples/evidence.json` records the
@@ -29,7 +29,7 @@ benchmark or saturation of the full optimizer.
 
 Implementation descriptions remain pinned to commit `258eef4`. Terminology now
 uses coarse, smooth, and saturated rule composition. Legacy code identifiers are
-mapped in the appendix. Sharing a saturated body does not equate compositions
+mapped in the appendix. Equal exported states do not equate compositions
 with different triggers or injection obligations.
 
 The IBP-only fragment illustrates an infi rule composition; other math rules may

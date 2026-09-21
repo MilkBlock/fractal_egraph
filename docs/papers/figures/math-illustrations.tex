@@ -186,7 +186,7 @@ all of \texttt{math.egg}. Trigger and binding data belong to the composition too
 \node[below=8mm of three,font=\small] {Same retained equality does not imply the same matching visibility.};
 \end{tikzpicture}
 \caption{The constant-fold and prune rules of \texttt{math.egg}. Native execution
-retains the Add row after subsumption but marks it hidden. A saturated body must
+retains the Add row after subsumption but marks it hidden. An exported local state must
 record this flag; an instance lease depending on its visibility needs rechecking.}
 \label{fig:math-visibility}
 \end{figure}}
