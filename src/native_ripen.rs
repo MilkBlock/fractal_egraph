@@ -19,6 +19,11 @@ fn supported_action(a: &Action) -> bool {
     )
 }
 
+/// Replay one explicit local entry with the native engine.
+///
+/// Saturation here means a fixed point for this isolated entry, ruleset, and
+/// round budget. It does not mean that the surrounding tier0 execution or every
+/// concrete embedding has been saturated.
 pub fn run(source: &Path, out: &Path, max_rounds: usize) -> Result<Json> {
     run_with_origin(source, out, max_rounds, None, true, false)
 }
@@ -249,6 +254,11 @@ fn table_sizes(eg: &EGraph, datatype: &str) -> Result<BTreeMap<String, usize>> {
     Ok(sizes)
 }
 
+/// Export the replayed local graph together with visibility and fixed ports.
+///
+/// Opaque boundary values remain opaque. This is why the exported object can be
+/// compared across triggers without pretending that it recovered the complete
+/// original e-graph.
 fn export_state(
     datatype: &Command,
     eg: &EGraph,

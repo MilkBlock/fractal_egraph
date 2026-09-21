@@ -68,6 +68,11 @@ pub struct Apply {
     pub produced: Vec<Effect>,
 }
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+/// Context-relative role of one recorded rule application.
+///
+/// A coarse rule composition consumes a newly supplied obligation; a smooth
+/// rule composition is explained by the selected interface and earlier local
+/// results. The same rule can have either role in different contexts.
 pub enum CombKind {
     CoarseRuleComposition,
     SmoothRuleComposition,

@@ -3,6 +3,13 @@ use super::*;
 use crate::coarse_smooth::{LayerStore, RipenOrigin};
 use std::path::PathBuf;
 
+/// Bounded queue that turns observed candidates into isolated saturated
+/// rule-composition replays.
+///
+/// The queue is a bridge between evidence and validation: it stores references
+/// to source members, runs native replay for each candidate, and only then adds
+/// an exported state to the catalog. A queue entry is never a replacement for
+/// the source e-graph.
 pub(super) struct Pipeline {
     out: PathBuf,
     source: String,
@@ -55,6 +62,11 @@ impl Pipeline {
             catalog_owned: false,
         })
     }
+    /// Process a bounded slice of pending candidates at one capture boundary.
+    ///
+    /// The time and job limits make the result operationally partial. `Pending`
+    /// and `Suspended` are preserved so a caller can distinguish “not tried”
+    /// from “replay ran out of budget.”
     pub fn step(&mut self, c: &Captured, layers: &LayerStore, boundary: usize) -> Result<Json> {
         std::fs::create_dir_all(&self.out)?;
         if !self.out.join("source.egg").exists() {

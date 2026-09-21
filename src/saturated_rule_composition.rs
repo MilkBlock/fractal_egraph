@@ -20,6 +20,13 @@ pub struct Row {
     pub result: usize,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
+/// A finite, exported local replay result.
+///
+/// This is deliberately a *state* record, not a rule macro: it contains the
+/// rows and equality-shaped value graph observed after replaying one trigger
+/// contract. The trigger, staged injections, and original history live beside
+/// this value in the catalog. Keeping those objects separate is what prevents
+/// two equal local states from being treated as interchangeable executions.
 pub struct SaturatedRuleComposition {
     pub version: usize,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -171,6 +178,12 @@ fn colors(a: &SaturatedRuleComposition, b: &SaturatedRuleComposition) -> (Vec<us
     (c[..split].to_vec(), c[split..].to_vec())
 }
 
+/// Compare two exported local states under a finite search budget.
+///
+/// The inexpensive key and colour-refinement passes reject obvious mismatches;
+/// the final backtracking search is still required because refinement is only a
+/// necessary condition for graph isomorphism. `UnknownBudget` is therefore a
+/// real result: exhausting the checker does not mean the states differ.
 pub fn compare(a: &SaturatedRuleComposition, b: &SaturatedRuleComposition, budget: usize) -> Result<Comparison> {
     a.validate()?;
     b.validate()?;
@@ -292,6 +305,11 @@ pub fn read(path: &Path) -> Result<SaturatedRuleComposition> {
     Ok(s)
 }
 
+/// Group successful replays by exact exported-state equivalence.
+///
+/// The catalog shares descriptions of equal states while retaining one trigger
+/// record per input. It measures conditional symbolic interfaces, not memory
+/// saved inside the live egglog matcher.
 pub fn catalog(inputs: &[std::path::PathBuf], out: &Path, budget: usize) -> Result<Value> {
     if inputs.is_empty() || out.exists() {
         return Err("catalog needs input ripen directories and a new output directory".into());

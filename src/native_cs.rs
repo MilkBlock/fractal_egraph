@@ -3,6 +3,11 @@ use super::*;
 use crate::coarse_smooth::LayerStore;
 use serde::Serialize;
 #[derive(Clone, Serialize)]
+/// One candidate interface made from recorded applications.
+///
+/// `coarse` and `smooth` are context-relative member lists. They do not form a
+/// proof that the unit is globally minimal, complete, or safe to execute as a
+/// new rule; those claims would require checking the original obligations.
 pub(super) struct Unit {
     pub coarse_layer: usize,
     pub coarse: Vec<usize>,
@@ -22,6 +27,11 @@ impl Unit {
     }
 }
 #[derive(Clone, Serialize)]
+/// A bounded, witnessed pair of candidate units.
+///
+/// `anchors` and `links` explain why the pair was inspected. `certificate`
+/// records the conditions checked by this implementation; it is not a license
+/// to bypass native replay or to reorder tier0 execution.
 pub(super) struct Composition {
     pub kind: String,
     pub parts: [usize; 2],
@@ -59,6 +69,11 @@ impl Store {
             .into_iter()
             .collect()
     }
+    /// Discover candidates from newly observed layers and resource changes.
+    ///
+    /// Discovery is intentionally conservative and budgeted: omitted pairs are
+    /// reported as omitted, not silently interpreted as nonexistent. Every
+    /// admitted candidate is replayed later in an isolated native cell.
     pub fn discover(
         &mut self,
         c: &Captured,
@@ -364,6 +379,10 @@ impl Store {
             .get(id)
             .is_some_and(|p| p.parts.iter().all(|i| self.registry.valid(*i)))
     }
+    /// Add a validated composition descriptor as a deeper candidate unit.
+    ///
+    /// Promotion extends the analysis graph only. It does not install a macro,
+    /// delete the source history, or alter the live tier0 matcher.
     pub fn promote(&mut self, id: usize, proof: &Json) -> bool {
         if proof["checks"] != "passed"
             || proof["saturated_rule_composition"]["status"] != "exported"

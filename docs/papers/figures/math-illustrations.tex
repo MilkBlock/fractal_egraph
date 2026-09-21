@@ -21,11 +21,14 @@
 \node[box,text width=25mm,right=of e,draw=smoothteal,double] {\textbf{Saturated}\\retained body};
 \node[below=9mm of l,draw=coarsepurple,very thick,rounded corners,inner sep=3pt,font=\small] {Coarse layer $C$};
 \node[below=9mm of e,draw=smoothteal,dashed,thick,rounded corners,inner sep=3pt,font=\small] {Smooth layer $S$};
+\node[below=18mm of l,text width=25mm,draw=black!55,rounded corners,inner sep=3pt,font=\scriptsize] {box = e-class\\term = e-node};
+\node[below=18mm of e,text width=25mm,draw=black!55,rounded corners,inner sep=3pt,font=\scriptsize] {arrow = child /\\producer dependency};
 \end{tikzpicture}
 \caption{Visual vocabulary. Fill identifies the role of facts in a rule application;
 outline identifies the containing layer. LHS/RHS labels and solid/dashed outlines
-also distinguish the roles without color. An e-node may be an RHS in one step and
-an LHS in the next.}
+also distinguish the roles without color. A box with several terms is an e-class;
+the terms inside it are e-nodes, and arrows name the child or producer relation.
+An e-node may be an RHS in one step and an LHS in the next.}
 \label{fig:legend}
 \end{figure}}
 
@@ -268,4 +271,31 @@ endpoint, but retain an indexed residual interface. This is a proposed contract
 for the worked IBP family with additional exact additive laws, not a claim that the current Reduce DSL automatically
 discovers or executes this alternating-sum summary.}
 \label{fig:math-summary}
+\end{figure}}
+
+% The main reader-facing comparison: show the concrete object before naming the
+% abstraction.  Two triggers remain distinct, while only the exported local
+% state is grouped by exact comparison; this is cataloguing, not tier0 reuse.
+\newcommand{\MathSharingComparison}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}[node distance=7mm and 9mm]
+\node[ext,text width=31mm] (ba) {Trigger $T_A$\\entry + staged inputs};
+\node[ext,text width=31mm,below=of ba] (bb) {Trigger $T_B$\\different binding};
+\node[sat,text width=43mm,right=of ba,yshift=-8mm] (bodya) {Exported local state $K_A$\\typed rows + ports + visibility};
+\node[sat,text width=43mm,right=of bodya] (bodyb) {Exported local state $K_B$\\typed rows + ports + visibility};
+\draw[arr] (ba)--(bodya.west);
+\draw[arr] (bb)--(bodya.west);
+\draw[arr] (bb)--(bodyb.west);
+\node[font=\small,above=2mm of bodya] (before) {\textbf{Observed replays:} each trigger has its own exported result};
+\node[box,text width=52mm,below=15mm of bodya,xshift=25mm,draw=smoothteal,double] (catalog) {Exact comparison\\$K_A \cong K_B$ under the same scope\\catalog entry: one state, two trigger records};
+\draw[reuse,<->] (bodya.south)--(catalog.north west);
+\draw[reuse,<->] (bodyb.south)--(catalog.north east);
+\node[font=\scriptsize,below=3mm of catalog] {No live matcher substitution; obligations and trigger identities remain separate.};
+\end{tikzpicture}
+\caption{What the implementation actually shares. The baseline is two separately
+replayed trigger instances with exported local states. The catalog may group the
+states after exact typed graph comparison, while retaining both trigger contracts.
+This is the semantic distinction that a pipeline box alone cannot show: the
+shared object is an exported description, not a new tier0 rule or a deleted history.}
+\label{fig:sharing-comparison}
 \end{figure}}
