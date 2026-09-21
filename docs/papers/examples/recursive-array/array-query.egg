@@ -1,0 +1,6 @@
+; Array query emitted after Bake's radix_frontier certificate.
+(include "rules/tier2.egg")
+(let $array (RampArray (FiniteDomain (EInt 81)) (EInt 324) (EInt 1)))
+(let $sum (ReduceArray (SumReduction) $array))
+(run-schedule (saturate (seq (run endpoint-reduce) (run array-shape) (run array-laws) (run array-eval))))
+(check (= $sum (EInt 29484)))

@@ -21,13 +21,23 @@ digraph  {
     style="invis"
     cluster=true
   }
-  "function-2-Add":0:s -> "function-0-Var" [lhead="cluster_Math-0"]
-  "function-2-Add":1:s -> "function-1-Var" [lhead="cluster_Math-1"]
-  subgraph "outer_cluster_Math-5" {
-    subgraph "cluster_Math-5" {
-      label="q_ab"; color="#7654A3"; fillcolor="white"; penwidth=1.2;
+  subgraph "outer_cluster_Math-2" {
+    subgraph "cluster_Math-2" {
+      label="c"; color="#7654A3"; fillcolor="white"; penwidth=1.2;
       subgraph  {
-        "function-2-Add"[label=<<TABLE BGCOLOR="#FFE5C7" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="2">Add(a, b)</td></tr><TR><TD PORT="0"><FONT POINT-SIZE="9">0</FONT></TD><TD PORT="1"><FONT POINT-SIZE="9">1</FONT></TD></TR></TABLE>>,tooltip="Math-5: function-2-Add"]
+        "function-2-Var"[label=<<TABLE BGCOLOR="#DCEBFA" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">Var(&quot;c&quot;)</td></tr></TABLE>>,tooltip="Math-2: function-2-Var"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-0-Add":0:s -> "function-1-Var" [lhead="cluster_Math-1"]
+  "function-0-Add":1:s -> "function-2-Var" [lhead="cluster_Math-2"]
+  subgraph "outer_cluster_Math-3" {
+    subgraph "cluster_Math-3" {
+      label="q_bc"; color="#7654A3"; fillcolor="white"; penwidth=1.2;
+      subgraph  {
+        "function-0-Add"[label=<<TABLE BGCOLOR="#DCEBFA" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="2">Add(b, c)</td></tr><TR><TD PORT="0"><FONT POINT-SIZE="9">0</FONT></TD><TD PORT="1"><FONT POINT-SIZE="9">1</FONT></TD></TR></TABLE>>,tooltip="Math-3: function-0-Add"]
       }
     }
     style="invis"
@@ -48,23 +58,13 @@ digraph  {
     style="invis"
     cluster=true
   }
-  "function-0-Add":0:s -> "function-1-Var" [lhead="cluster_Math-1"]
-  "function-0-Add":1:s -> "function-2-Var" [lhead="cluster_Math-2"]
-  subgraph "outer_cluster_Math-3" {
-    subgraph "cluster_Math-3" {
-      label="q_bc"; color="#7654A3"; fillcolor="white"; penwidth=1.2;
+  "function-2-Add":0:s -> "function-0-Var" [lhead="cluster_Math-0"]
+  "function-2-Add":1:s -> "function-1-Var" [lhead="cluster_Math-1"]
+  subgraph "outer_cluster_Math-5" {
+    subgraph "cluster_Math-5" {
+      label="q_ab"; color="#7654A3"; fillcolor="white"; penwidth=1.2;
       subgraph  {
-        "function-0-Add"[label=<<TABLE BGCOLOR="#DCEBFA" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="2">Add(b, c)</td></tr><TR><TD PORT="0"><FONT POINT-SIZE="9">0</FONT></TD><TD PORT="1"><FONT POINT-SIZE="9">1</FONT></TD></TR></TABLE>>,tooltip="Math-3: function-0-Add"]
-      }
-    }
-    style="invis"
-    cluster=true
-  }
-  subgraph "outer_cluster_Math-2" {
-    subgraph "cluster_Math-2" {
-      label="c"; color="#7654A3"; fillcolor="white"; penwidth=1.2;
-      subgraph  {
-        "function-2-Var"[label=<<TABLE BGCOLOR="#DCEBFA" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">Var(&quot;c&quot;)</td></tr></TABLE>>,tooltip="Math-2: function-2-Var"]
+        "function-2-Add"[label=<<TABLE BGCOLOR="#FFE5C7" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="2">Add(a, b)</td></tr><TR><TD PORT="0"><FONT POINT-SIZE="9">0</FONT></TD><TD PORT="1"><FONT POINT-SIZE="9">1</FONT></TD></TR></TABLE>>,tooltip="Math-5: function-2-Add"]
       }
     }
     style="invis"

@@ -278,3 +278,25 @@ are insufficient: the comparison preserves all rows, ports and visibility.
 The two entries remain distinct, and the live tier0 graph is not replaced.}
 \label{fig:sharing-comparison}
 \end{figure}}
+
+\newcommand{\MathRecursiveArrays}{%
+\begin{figure}[t]\centering
+\begin{minipage}[t]{.48\linewidth}\centering
+\includegraphics[width=\linewidth]{figures/native/recursive-tree.pdf}\\[-2pt]
+\small Native recursive e-graph: \texttt{Expand(4)} produces
+\texttt{Emit(12)}, \texttt{Emit(13)}, \texttt{Emit(14)}.
+\end{minipage}\hfill
+\begin{minipage}[t]{.48\linewidth}\centering
+\includegraphics[width=\linewidth]{figures/native/recursive-array.pdf}\\[-2pt]
+\small Native array-query graph after Bake: \texttt{RampArray(81,324,1)}
+and \texttt{ReduceArray}.
+\end{minipage}
+\caption{The recursive-array case in two stages. The left graph is an executable
+Math e-graph snapshot; solid edges are native child references and dashed
+\texttt{split-three}/\texttt{resume} edges are explicitly labelled rule-instance
+annotations. The right graph is the native tier2 array query produced from the
+certified Bake law. Its paper annotation removes helper arithmetic alternatives,
+but the remaining nodes and solid child-class edges are checked against the
+native DOT export.}
+\label{fig:recursive-array-graphs}
+\end{figure}}

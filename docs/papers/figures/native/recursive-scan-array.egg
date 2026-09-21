@@ -1,0 +1,6 @@
+; Generated from Bake query output, not a training input.
+(include "rules/tier2.egg")
+(let $array (RampArray (FiniteDomain (EInt 3)) (EAdd (EInt 3) (EInt 1)) (EInt 1)))
+(let $sum (ReduceArray (SumReduction) $array))
+(run-schedule (saturate (seq (run endpoint-reduce) (run array-shape) (run array-laws) (run array-eval))))
+(check (= $sum (EInt 15)))

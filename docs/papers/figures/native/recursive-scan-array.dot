@@ -1,0 +1,92 @@
+digraph  {
+  compound=true
+  rank=same
+  fontname=helvetica
+  fontsize=9
+  margin=0.12
+  nodesep=0.22
+  ranksep=0.6
+  bgcolor="white"
+  edge[arrowsize=0.5]
+  node[shape=none,margin=0,fontname=helvetica]
+  outputorder=edgesfirst
+  graph[style="dashed,rounded,filled"]
+  "function-0-RampArray":0:s -> "function-0-FiniteDomain" [lhead="cluster_IndexDomain-1"]
+  "function-0-RampArray":1:s -> "function-2-EInt" [lhead="cluster_EndpointExpr-3"]
+  "function-0-RampArray":2:s -> "function-1-EInt" [lhead="cluster_EndpointExpr-2"]
+  subgraph "outer_cluster_Array-4" {
+    subgraph "cluster_Array-4" {
+      color="#7654A3"; fillcolor="white"; label=""; penwidth=1.2;
+      subgraph  {
+        "function-0-RampArray"[label=<<TABLE BGCOLOR="#DCEBFA" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="3">RampArray</td></tr><TR><TD PORT="0"><FONT POINT-SIZE="9">0</FONT></TD><TD PORT="1"><FONT POINT-SIZE="9">1</FONT></TD><TD PORT="2"><FONT POINT-SIZE="9">2</FONT></TD></TR></TABLE>>,tooltip="Array-4: function-0-RampArray"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-0-ReduceArray":0:s -> "function-0-SumReduction" [lhead="cluster_Reduction-5"]
+  "function-0-ReduceArray":1:s -> "function-0-RampArray" [lhead="cluster_Array-4"]
+  subgraph "outer_cluster_EndpointExpr-6" {
+    subgraph "cluster_EndpointExpr-6" {
+      color="#267A68"; fillcolor="white"; label="sum: same e-class"; penwidth=1.2;
+      subgraph  {
+        "function-7-EInt"[label=<<TABLE BGCOLOR="#FFE5C7" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">EInt(15)</td></tr></TABLE>>,tooltip="EndpointExpr-6: function-7-EInt"]
+        "function-0-ReduceArray"[label=<<TABLE BGCOLOR="#DCEBFA" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="2">ReduceArray</td></tr><TR><TD PORT="0"><FONT POINT-SIZE="9">0</FONT></TD><TD PORT="1"><FONT POINT-SIZE="9">1</FONT></TD></TR></TABLE>>,tooltip="EndpointExpr-6: function-0-ReduceArray"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  subgraph "outer_cluster_EndpointExpr-3" {
+    subgraph "cluster_EndpointExpr-3" {
+      color="#7654A3"; fillcolor="white"; label=""; penwidth=1.2;
+      subgraph  {
+        "function-2-EInt"[label=<<TABLE BGCOLOR="#DCEBFA" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">EInt(4)</td></tr></TABLE>>,tooltip="EndpointExpr-3: function-2-EInt"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  subgraph "outer_cluster_EndpointExpr-0" {
+    subgraph "cluster_EndpointExpr-0" {
+      color="#7654A3"; fillcolor="white"; label=""; penwidth=1.2;
+      subgraph  {
+        "function-0-EInt"[label=<<TABLE BGCOLOR="#DCEBFA" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">EInt(3)</td></tr></TABLE>>,tooltip="EndpointExpr-0: function-0-EInt"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  subgraph "outer_cluster_EndpointExpr-2" {
+    subgraph "cluster_EndpointExpr-2" {
+      color="#7654A3"; fillcolor="white"; label=""; penwidth=1.2;
+      subgraph  {
+        "function-1-EInt"[label=<<TABLE BGCOLOR="#DCEBFA" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">EInt(1)</td></tr></TABLE>>,tooltip="EndpointExpr-2: function-1-EInt"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-0-FiniteDomain":0:s -> "function-0-EInt" [lhead="cluster_EndpointExpr-0"]
+  subgraph "outer_cluster_IndexDomain-1" {
+    subgraph "cluster_IndexDomain-1" {
+      color="#7654A3"; fillcolor="white"; label=""; penwidth=1.2;
+      subgraph  {
+        "function-0-FiniteDomain"[label=<<TABLE BGCOLOR="#DCEBFA" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">FiniteDomain</td></tr><TR><TD PORT="0"><FONT POINT-SIZE="9">0</FONT></TD></TR></TABLE>>,tooltip="IndexDomain-1: function-0-FiniteDomain"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  subgraph "outer_cluster_Reduction-5" {
+    subgraph "cluster_Reduction-5" {
+      color="#7654A3"; fillcolor="white"; label=""; penwidth=1.2;
+      subgraph  {
+        "function-0-SumReduction"[label=<<TABLE BGCOLOR="#DCEBFA" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30">SumReduction</td></tr></TABLE>>,tooltip="Reduction-5: function-0-SumReduction"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  margin=0
+}

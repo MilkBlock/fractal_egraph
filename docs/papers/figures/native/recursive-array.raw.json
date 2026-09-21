@@ -1,0 +1,863 @@
+{
+  "nodes": {
+    "primitive-i64-81": {
+      "op": "81",
+      "children": [],
+      "eclass": "i64-81",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-0-EInt": {
+      "op": "EInt",
+      "children": [
+        "primitive-i64-81"
+      ],
+      "eclass": "EndpointExpr-0",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "primitive-i64-324": {
+      "op": "324",
+      "children": [],
+      "eclass": "i64-324",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-1-EInt": {
+      "op": "EInt",
+      "children": [
+        "primitive-i64-324"
+      ],
+      "eclass": "EndpointExpr-2",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "primitive-i64-1": {
+      "op": "1",
+      "children": [],
+      "eclass": "i64-1",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-2-EInt": {
+      "op": "EInt",
+      "children": [
+        "primitive-i64-1"
+      ],
+      "eclass": "EndpointExpr-3",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "primitive-i64-0": {
+      "op": "0",
+      "children": [],
+      "eclass": "i64-0",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-3-EInt": {
+      "op": "EInt",
+      "children": [
+        "primitive-i64-0"
+      ],
+      "eclass": "EndpointExpr-19",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "primitive-i64-2": {
+      "op": "2",
+      "children": [],
+      "eclass": "i64-2",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-4-EInt": {
+      "op": "EInt",
+      "children": [
+        "primitive-i64-2"
+      ],
+      "eclass": "EndpointExpr-25",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "primitive-i64-26244": {
+      "op": "26244",
+      "children": [],
+      "eclass": "i64-26244",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-5-EInt": {
+      "op": "EInt",
+      "children": [
+        "primitive-i64-26244"
+      ],
+      "eclass": "EndpointExpr-21",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "primitive-i64-80": {
+      "op": "80",
+      "children": [],
+      "eclass": "i64-80",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-6-EInt": {
+      "op": "EInt",
+      "children": [
+        "primitive-i64-80"
+      ],
+      "eclass": "EndpointExpr-22",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "primitive-i64-6480": {
+      "op": "6480",
+      "children": [],
+      "eclass": "i64-6480",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-7-EInt": {
+      "op": "EInt",
+      "children": [
+        "primitive-i64-6480"
+      ],
+      "eclass": "EndpointExpr-23",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "primitive-i64-3240": {
+      "op": "3240",
+      "children": [],
+      "eclass": "i64-3240",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-8-EInt": {
+      "op": "EInt",
+      "children": [
+        "primitive-i64-3240"
+      ],
+      "eclass": "EndpointExpr-26",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "primitive-i64-29484": {
+      "op": "29484",
+      "children": [],
+      "eclass": "i64-29484",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-9-EInt": {
+      "op": "EInt",
+      "children": [
+        "primitive-i64-29484"
+      ],
+      "eclass": "EndpointExpr-6",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-0-EAdd": {
+      "op": "EAdd",
+      "children": [
+        "function-5-EInt",
+        "function-8-EInt"
+      ],
+      "eclass": "EndpointExpr-6",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-1-EAdd": {
+      "op": "EAdd",
+      "children": [
+        "function-3-EInt",
+        "function-0-ReduceArray"
+      ],
+      "eclass": "EndpointExpr-6",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-0-ESub": {
+      "op": "ESub",
+      "children": [
+        "function-0-EInt",
+        "function-2-EInt"
+      ],
+      "eclass": "EndpointExpr-22",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-0-EMul": {
+      "op": "EMul",
+      "children": [
+        "function-0-EInt",
+        "function-1-EInt"
+      ],
+      "eclass": "EndpointExpr-21",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-1-EMul": {
+      "op": "EMul",
+      "children": [
+        "function-0-EInt",
+        "function-0-ESub"
+      ],
+      "eclass": "EndpointExpr-23",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-2-EMul": {
+      "op": "EMul",
+      "children": [
+        "function-1-EMul",
+        "function-2-EInt"
+      ],
+      "eclass": "EndpointExpr-23",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-0-EDiv": {
+      "op": "EDiv",
+      "children": [
+        "function-2-EMul",
+        "function-4-EInt"
+      ],
+      "eclass": "EndpointExpr-26",
+      "cost": 2.0,
+      "subsumed": false
+    },
+    "function-0-AddArithmetic": {
+      "op": "AddArithmetic",
+      "children": [
+        "function-1-EInt",
+        "function-2-EInt"
+      ],
+      "eclass": "Accumulation-18",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-0-Reduce": {
+      "op": "Reduce",
+      "children": [
+        "function-0-AddArithmetic",
+        "function-0-EInt",
+        "function-3-EInt"
+      ],
+      "eclass": "EndpointExpr-6",
+      "cost": 100.0,
+      "subsumed": false
+    },
+    "function-0-NaturalCount": {
+      "op": "NaturalCount",
+      "children": [
+        "function-0-EInt"
+      ],
+      "eclass": "@NaturalCountSort-7",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-1-NaturalCount": {
+      "op": "NaturalCount",
+      "children": [
+        "function-1-EInt"
+      ],
+      "eclass": "@NaturalCountSort-8",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-2-NaturalCount": {
+      "op": "NaturalCount",
+      "children": [
+        "function-2-EInt"
+      ],
+      "eclass": "@NaturalCountSort-9",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-3-NaturalCount": {
+      "op": "NaturalCount",
+      "children": [
+        "function-3-EInt"
+      ],
+      "eclass": "@NaturalCountSort-20",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-4-NaturalCount": {
+      "op": "NaturalCount",
+      "children": [
+        "function-4-EInt"
+      ],
+      "eclass": "@NaturalCountSort-32",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-5-NaturalCount": {
+      "op": "NaturalCount",
+      "children": [
+        "function-5-EInt"
+      ],
+      "eclass": "@NaturalCountSort-33",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-6-NaturalCount": {
+      "op": "NaturalCount",
+      "children": [
+        "function-6-EInt"
+      ],
+      "eclass": "@NaturalCountSort-34",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-7-NaturalCount": {
+      "op": "NaturalCount",
+      "children": [
+        "function-7-EInt"
+      ],
+      "eclass": "@NaturalCountSort-45",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-8-NaturalCount": {
+      "op": "NaturalCount",
+      "children": [
+        "function-8-EInt"
+      ],
+      "eclass": "@NaturalCountSort-49",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-9-NaturalCount": {
+      "op": "NaturalCount",
+      "children": [
+        "function-0-EAdd"
+      ],
+      "eclass": "@NaturalCountSort-53",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-0-CompleteExpr": {
+      "op": "CompleteExpr",
+      "children": [
+        "function-0-EInt"
+      ],
+      "eclass": "@CompleteExprSort-10",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-1-CompleteExpr": {
+      "op": "CompleteExpr",
+      "children": [
+        "function-1-EInt"
+      ],
+      "eclass": "@CompleteExprSort-11",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-2-CompleteExpr": {
+      "op": "CompleteExpr",
+      "children": [
+        "function-2-EInt"
+      ],
+      "eclass": "@CompleteExprSort-12",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-3-CompleteExpr": {
+      "op": "CompleteExpr",
+      "children": [
+        "function-3-EInt"
+      ],
+      "eclass": "@CompleteExprSort-28",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-4-CompleteExpr": {
+      "op": "CompleteExpr",
+      "children": [
+        "function-4-EInt"
+      ],
+      "eclass": "@CompleteExprSort-35",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-5-CompleteExpr": {
+      "op": "CompleteExpr",
+      "children": [
+        "function-0-EMul"
+      ],
+      "eclass": "@CompleteExprSort-36",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-6-CompleteExpr": {
+      "op": "CompleteExpr",
+      "children": [
+        "function-0-ESub"
+      ],
+      "eclass": "@CompleteExprSort-37",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-7-CompleteExpr": {
+      "op": "CompleteExpr",
+      "children": [
+        "function-1-EMul"
+      ],
+      "eclass": "@CompleteExprSort-46",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-8-CompleteExpr": {
+      "op": "CompleteExpr",
+      "children": [
+        "function-0-EDiv"
+      ],
+      "eclass": "@CompleteExprSort-50",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-9-CompleteExpr": {
+      "op": "CompleteExpr",
+      "children": [
+        "function-1-EAdd"
+      ],
+      "eclass": "@CompleteExprSort-54",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-0-FiniteDomain": {
+      "op": "FiniteDomain",
+      "children": [
+        "function-0-EInt"
+      ],
+      "eclass": "IndexDomain-1",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-1-FiniteDomain": {
+      "op": "FiniteDomain",
+      "children": [
+        "function-1-EInt"
+      ],
+      "eclass": "IndexDomain-13",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-2-FiniteDomain": {
+      "op": "FiniteDomain",
+      "children": [
+        "function-2-EInt"
+      ],
+      "eclass": "IndexDomain-14",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-3-FiniteDomain": {
+      "op": "FiniteDomain",
+      "children": [
+        "function-3-EInt"
+      ],
+      "eclass": "IndexDomain-29",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-4-FiniteDomain": {
+      "op": "FiniteDomain",
+      "children": [
+        "function-4-EInt"
+      ],
+      "eclass": "IndexDomain-38",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-5-FiniteDomain": {
+      "op": "FiniteDomain",
+      "children": [
+        "function-5-EInt"
+      ],
+      "eclass": "IndexDomain-39",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-6-FiniteDomain": {
+      "op": "FiniteDomain",
+      "children": [
+        "function-6-EInt"
+      ],
+      "eclass": "IndexDomain-40",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-7-FiniteDomain": {
+      "op": "FiniteDomain",
+      "children": [
+        "function-2-EMul"
+      ],
+      "eclass": "IndexDomain-47",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-8-FiniteDomain": {
+      "op": "FiniteDomain",
+      "children": [
+        "function-8-EInt"
+      ],
+      "eclass": "IndexDomain-51",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-9-FiniteDomain": {
+      "op": "FiniteDomain",
+      "children": [
+        "function-0-Reduce"
+      ],
+      "eclass": "IndexDomain-55",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-0-SumReduction": {
+      "op": "SumReduction",
+      "children": [],
+      "eclass": "Reduction-5",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-0-RampArray": {
+      "op": "RampArray",
+      "children": [
+        "function-0-FiniteDomain",
+        "function-1-EInt",
+        "function-2-EInt"
+      ],
+      "eclass": "Array-4",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-0-ReduceArray": {
+      "op": "ReduceArray",
+      "children": [
+        "function-0-SumReduction",
+        "function-0-RampArray"
+      ],
+      "eclass": "EndpointExpr-6",
+      "cost": 20.0,
+      "subsumed": false
+    },
+    "function-0-ValidDomain": {
+      "op": "ValidDomain",
+      "children": [
+        "function-0-FiniteDomain"
+      ],
+      "eclass": "@ValidDomainSort-15",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-1-ValidDomain": {
+      "op": "ValidDomain",
+      "children": [
+        "function-1-FiniteDomain"
+      ],
+      "eclass": "@ValidDomainSort-16",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-2-ValidDomain": {
+      "op": "ValidDomain",
+      "children": [
+        "function-2-FiniteDomain"
+      ],
+      "eclass": "@ValidDomainSort-17",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-3-ValidDomain": {
+      "op": "ValidDomain",
+      "children": [
+        "function-3-FiniteDomain"
+      ],
+      "eclass": "@ValidDomainSort-30",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-4-ValidDomain": {
+      "op": "ValidDomain",
+      "children": [
+        "function-4-FiniteDomain"
+      ],
+      "eclass": "@ValidDomainSort-41",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-5-ValidDomain": {
+      "op": "ValidDomain",
+      "children": [
+        "function-5-FiniteDomain"
+      ],
+      "eclass": "@ValidDomainSort-42",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-6-ValidDomain": {
+      "op": "ValidDomain",
+      "children": [
+        "function-6-FiniteDomain"
+      ],
+      "eclass": "@ValidDomainSort-43",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-7-ValidDomain": {
+      "op": "ValidDomain",
+      "children": [
+        "function-7-FiniteDomain"
+      ],
+      "eclass": "@ValidDomainSort-48",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-8-ValidDomain": {
+      "op": "ValidDomain",
+      "children": [
+        "function-8-FiniteDomain"
+      ],
+      "eclass": "@ValidDomainSort-52",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-9-ValidDomain": {
+      "op": "ValidDomain",
+      "children": [
+        "function-9-FiniteDomain"
+      ],
+      "eclass": "@ValidDomainSort-56",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-0-ArrayDomain": {
+      "op": "ArrayDomain",
+      "children": [
+        "function-0-RampArray",
+        "function-0-FiniteDomain"
+      ],
+      "eclass": "@ArrayDomainSort-31",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-0-ArrayLength": {
+      "op": "ArrayLength",
+      "children": [
+        "function-0-RampArray",
+        "primitive-i64-81"
+      ],
+      "eclass": "@ArrayLengthSort-44",
+      "cost": 1.0,
+      "subsumed": false
+    }
+  },
+  "root_eclasses": [],
+  "class_data": {
+    "EndpointExpr-0": {
+      "type": "EndpointExpr"
+    },
+    "i64-81": {
+      "type": "i64"
+    },
+    "EndpointExpr-2": {
+      "type": "EndpointExpr"
+    },
+    "i64-324": {
+      "type": "i64"
+    },
+    "EndpointExpr-3": {
+      "type": "EndpointExpr"
+    },
+    "i64-1": {
+      "type": "i64"
+    },
+    "EndpointExpr-19": {
+      "type": "EndpointExpr"
+    },
+    "i64-0": {
+      "type": "i64"
+    },
+    "EndpointExpr-25": {
+      "type": "EndpointExpr"
+    },
+    "i64-2": {
+      "type": "i64"
+    },
+    "EndpointExpr-21": {
+      "type": "EndpointExpr"
+    },
+    "i64-26244": {
+      "type": "i64"
+    },
+    "EndpointExpr-22": {
+      "type": "EndpointExpr"
+    },
+    "i64-80": {
+      "type": "i64"
+    },
+    "EndpointExpr-23": {
+      "type": "EndpointExpr"
+    },
+    "i64-6480": {
+      "type": "i64"
+    },
+    "EndpointExpr-26": {
+      "type": "EndpointExpr"
+    },
+    "i64-3240": {
+      "type": "i64"
+    },
+    "EndpointExpr-6": {
+      "type": "EndpointExpr",
+      "let": "$sum"
+    },
+    "i64-29484": {
+      "type": "i64"
+    },
+    "Accumulation-18": {
+      "type": "Accumulation"
+    },
+    "@NaturalCountSort-7": {
+      "type": "@NaturalCountSort"
+    },
+    "@NaturalCountSort-8": {
+      "type": "@NaturalCountSort"
+    },
+    "@NaturalCountSort-9": {
+      "type": "@NaturalCountSort"
+    },
+    "@NaturalCountSort-20": {
+      "type": "@NaturalCountSort"
+    },
+    "@NaturalCountSort-32": {
+      "type": "@NaturalCountSort"
+    },
+    "@NaturalCountSort-33": {
+      "type": "@NaturalCountSort"
+    },
+    "@NaturalCountSort-34": {
+      "type": "@NaturalCountSort"
+    },
+    "@NaturalCountSort-45": {
+      "type": "@NaturalCountSort"
+    },
+    "@NaturalCountSort-49": {
+      "type": "@NaturalCountSort"
+    },
+    "@NaturalCountSort-53": {
+      "type": "@NaturalCountSort"
+    },
+    "@CompleteExprSort-10": {
+      "type": "@CompleteExprSort"
+    },
+    "@CompleteExprSort-11": {
+      "type": "@CompleteExprSort"
+    },
+    "@CompleteExprSort-12": {
+      "type": "@CompleteExprSort"
+    },
+    "@CompleteExprSort-28": {
+      "type": "@CompleteExprSort"
+    },
+    "@CompleteExprSort-35": {
+      "type": "@CompleteExprSort"
+    },
+    "@CompleteExprSort-36": {
+      "type": "@CompleteExprSort"
+    },
+    "@CompleteExprSort-37": {
+      "type": "@CompleteExprSort"
+    },
+    "@CompleteExprSort-46": {
+      "type": "@CompleteExprSort"
+    },
+    "@CompleteExprSort-50": {
+      "type": "@CompleteExprSort"
+    },
+    "@CompleteExprSort-54": {
+      "type": "@CompleteExprSort"
+    },
+    "IndexDomain-1": {
+      "type": "IndexDomain"
+    },
+    "IndexDomain-13": {
+      "type": "IndexDomain"
+    },
+    "IndexDomain-14": {
+      "type": "IndexDomain"
+    },
+    "IndexDomain-29": {
+      "type": "IndexDomain"
+    },
+    "IndexDomain-38": {
+      "type": "IndexDomain"
+    },
+    "IndexDomain-39": {
+      "type": "IndexDomain"
+    },
+    "IndexDomain-40": {
+      "type": "IndexDomain"
+    },
+    "IndexDomain-47": {
+      "type": "IndexDomain"
+    },
+    "IndexDomain-51": {
+      "type": "IndexDomain"
+    },
+    "IndexDomain-55": {
+      "type": "IndexDomain"
+    },
+    "Reduction-5": {
+      "type": "Reduction"
+    },
+    "Array-4": {
+      "type": "Array",
+      "let": "$array"
+    },
+    "@ValidDomainSort-15": {
+      "type": "@ValidDomainSort"
+    },
+    "@ValidDomainSort-16": {
+      "type": "@ValidDomainSort"
+    },
+    "@ValidDomainSort-17": {
+      "type": "@ValidDomainSort"
+    },
+    "@ValidDomainSort-30": {
+      "type": "@ValidDomainSort"
+    },
+    "@ValidDomainSort-41": {
+      "type": "@ValidDomainSort"
+    },
+    "@ValidDomainSort-42": {
+      "type": "@ValidDomainSort"
+    },
+    "@ValidDomainSort-43": {
+      "type": "@ValidDomainSort"
+    },
+    "@ValidDomainSort-48": {
+      "type": "@ValidDomainSort"
+    },
+    "@ValidDomainSort-52": {
+      "type": "@ValidDomainSort"
+    },
+    "@ValidDomainSort-56": {
+      "type": "@ValidDomainSort"
+    },
+    "@ArrayDomainSort-31": {
+      "type": "@ArrayDomainSort"
+    },
+    "@ArrayLengthSort-44": {
+      "type": "@ArrayLengthSort"
+    }
+  }
+}

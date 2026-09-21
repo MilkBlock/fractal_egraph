@@ -1,0 +1,99 @@
+{
+  "nodes": {
+    "primitive-i64-3": {
+      "op": "3",
+      "children": [],
+      "eclass": "i64-3",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "primitive-i64-6": {
+      "op": "6",
+      "children": [],
+      "eclass": "i64-6",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-0-Cursor": {
+      "op": "Cursor",
+      "children": [
+        "primitive-i64-3",
+        "primitive-i64-6"
+      ],
+      "eclass": "Math-0",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "primitive-i64-4": {
+      "op": "4",
+      "children": [],
+      "eclass": "i64-4",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-1-Cursor": {
+      "op": "Cursor",
+      "children": [
+        "primitive-i64-4",
+        "primitive-i64-6"
+      ],
+      "eclass": "Math-1",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "primitive-i64-5": {
+      "op": "5",
+      "children": [],
+      "eclass": "i64-5",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-2-Cursor": {
+      "op": "Cursor",
+      "children": [
+        "primitive-i64-5",
+        "primitive-i64-6"
+      ],
+      "eclass": "Math-2",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-3-Cursor": {
+      "op": "Cursor",
+      "children": [
+        "primitive-i64-6",
+        "primitive-i64-6"
+      ],
+      "eclass": "Math-3",
+      "cost": 1.0,
+      "subsumed": false
+    }
+  },
+  "root_eclasses": [],
+  "class_data": {
+    "Math-0": {
+      "type": "Math"
+    },
+    "i64-3": {
+      "type": "i64"
+    },
+    "i64-6": {
+      "type": "i64"
+    },
+    "Math-1": {
+      "type": "Math"
+    },
+    "i64-4": {
+      "type": "i64"
+    },
+    "Math-2": {
+      "type": "Math"
+    },
+    "i64-5": {
+      "type": "i64"
+    },
+    "Math-3": {
+      "type": "Math"
+    }
+  }
+}

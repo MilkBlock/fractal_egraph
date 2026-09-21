@@ -1,0 +1,585 @@
+digraph  {
+  compound=true
+  rank=same
+  fontname=helvetica
+  fontsize=9
+  margin=3
+  nodesep=0.05
+  ranksep=0.6
+  colorscheme=set312
+  edge[arrowsize=0.5]
+  node[shape=none,margin=0,fontname=helvetica]
+  outputorder=edgesfirst
+  graph[style="dashed,rounded,filled"]
+  fillcolor=2
+  "function-0-ArrayDomain":0:s -> "function-0-RampArray" [lhead="cluster_Array-4"]
+  "function-0-ArrayDomain":1:s -> "function-0-FiniteDomain" [lhead="cluster_IndexDomain-1"]
+  subgraph "outer_cluster_@ArrayDomainSort-31" {
+    subgraph "cluster_@ArrayDomainSort-31" {
+      subgraph  {
+        "function-0-ArrayDomain"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="2">ArrayDomain</td></tr><TR><TD PORT="0"></TD><TD PORT="1"></TD></TR></TABLE>>,tooltip="@ArrayDomainSort-31: function-0-ArrayDomain"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  fillcolor=3
+  "function-0-ArrayLength":0:s -> "function-0-RampArray" [lhead="cluster_Array-4"]
+  "function-0-ArrayLength":1:s -> "primitive-i64-3" [lhead="cluster_i64-3"]
+  subgraph "outer_cluster_@ArrayLengthSort-40" {
+    subgraph "cluster_@ArrayLengthSort-40" {
+      subgraph  {
+        "function-0-ArrayLength"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="2">ArrayLength</td></tr><TR><TD PORT="0"></TD><TD PORT="1"></TD></TR></TABLE>>,tooltip="@ArrayLengthSort-40: function-0-ArrayLength"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  fillcolor=4
+  "function-5-CompleteExpr":0:s -> "function-5-EInt" [lhead="cluster_EndpointExpr-19"]
+  subgraph "outer_cluster_@CompleteExprSort-35" {
+    subgraph "cluster_@CompleteExprSort-35" {
+      subgraph  {
+        "function-5-CompleteExpr"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">CompleteExpr</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@CompleteExprSort-35: function-5-CompleteExpr"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-2-CompleteExpr":0:s -> "function-2-EInt" [lhead="cluster_EndpointExpr-3"]
+  subgraph "outer_cluster_@CompleteExprSort-25" {
+    subgraph "cluster_@CompleteExprSort-25" {
+      subgraph  {
+        "function-2-CompleteExpr"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">CompleteExpr</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@CompleteExprSort-25: function-2-CompleteExpr"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-7-CompleteExpr":0:s -> "function-2-EAdd" [lhead="cluster_EndpointExpr-6"]
+  subgraph "outer_cluster_@CompleteExprSort-45" {
+    subgraph "cluster_@CompleteExprSort-45" {
+      subgraph  {
+        "function-7-CompleteExpr"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">CompleteExpr</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@CompleteExprSort-45: function-7-CompleteExpr"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-4-CompleteExpr":0:s -> "function-0-EMul" [lhead="cluster_EndpointExpr-18"]
+  subgraph "outer_cluster_@CompleteExprSort-34" {
+    subgraph "cluster_@CompleteExprSort-34" {
+      subgraph  {
+        "function-4-CompleteExpr"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">CompleteExpr</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@CompleteExprSort-34: function-4-CompleteExpr"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-3-CompleteExpr":0:s -> "function-3-EInt" [lhead="cluster_EndpointExpr-16"]
+  subgraph "outer_cluster_@CompleteExprSort-26" {
+    subgraph "cluster_@CompleteExprSort-26" {
+      subgraph  {
+        "function-3-CompleteExpr"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">CompleteExpr</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@CompleteExprSort-26: function-3-CompleteExpr"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-6-CompleteExpr":0:s -> "function-1-EMul" [lhead="cluster_EndpointExpr-20"]
+  subgraph "outer_cluster_@CompleteExprSort-42" {
+    subgraph "cluster_@CompleteExprSort-42" {
+      subgraph  {
+        "function-6-CompleteExpr"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">CompleteExpr</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@CompleteExprSort-42: function-6-CompleteExpr"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-1-CompleteExpr":0:s -> "function-1-EInt" [lhead="cluster_EndpointExpr-2"]
+  subgraph "outer_cluster_@CompleteExprSort-10" {
+    subgraph "cluster_@CompleteExprSort-10" {
+      subgraph  {
+        "function-1-CompleteExpr"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">CompleteExpr</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@CompleteExprSort-10: function-1-CompleteExpr"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-0-CompleteExpr":0:s -> "function-0-EInt" [lhead="cluster_EndpointExpr-0"]
+  subgraph "outer_cluster_@CompleteExprSort-9" {
+    subgraph "cluster_@CompleteExprSort-9" {
+      subgraph  {
+        "function-0-CompleteExpr"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">CompleteExpr</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@CompleteExprSort-9: function-0-CompleteExpr"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  fillcolor=5
+  "function-2-NaturalCount":0:s -> "function-0-EAdd" [lhead="cluster_EndpointExpr-3"]
+  subgraph "outer_cluster_@NaturalCountSort-14" {
+    subgraph "cluster_@NaturalCountSort-14" {
+      subgraph  {
+        "function-2-NaturalCount"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">NaturalCount</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@NaturalCountSort-14: function-2-NaturalCount"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-7-NaturalCount":0:s -> "function-1-EAdd" [lhead="cluster_EndpointExpr-6"]
+  subgraph "outer_cluster_@NaturalCountSort-46" {
+    subgraph "cluster_@NaturalCountSort-46" {
+      subgraph  {
+        "function-7-NaturalCount"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">NaturalCount</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@NaturalCountSort-46: function-7-NaturalCount"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-4-NaturalCount":0:s -> "function-4-EInt" [lhead="cluster_EndpointExpr-18"]
+  subgraph "outer_cluster_@NaturalCountSort-32" {
+    subgraph "cluster_@NaturalCountSort-32" {
+      subgraph  {
+        "function-4-NaturalCount"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">NaturalCount</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@NaturalCountSort-32: function-4-NaturalCount"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-5-NaturalCount":0:s -> "function-0-ESub" [lhead="cluster_EndpointExpr-19"]
+  subgraph "outer_cluster_@NaturalCountSort-33" {
+    subgraph "cluster_@NaturalCountSort-33" {
+      subgraph  {
+        "function-5-NaturalCount"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">NaturalCount</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@NaturalCountSort-33: function-5-NaturalCount"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-0-NaturalCount":0:s -> "function-0-EDiv" [lhead="cluster_EndpointExpr-0"]
+  subgraph "outer_cluster_@NaturalCountSort-7" {
+    subgraph "cluster_@NaturalCountSort-7" {
+      subgraph  {
+        "function-0-NaturalCount"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">NaturalCount</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@NaturalCountSort-7: function-0-NaturalCount"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-1-NaturalCount":0:s -> "function-1-EInt" [lhead="cluster_EndpointExpr-2"]
+  subgraph "outer_cluster_@NaturalCountSort-8" {
+    subgraph "cluster_@NaturalCountSort-8" {
+      subgraph  {
+        "function-1-NaturalCount"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">NaturalCount</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@NaturalCountSort-8: function-1-NaturalCount"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-3-NaturalCount":0:s -> "function-3-EInt" [lhead="cluster_EndpointExpr-16"]
+  subgraph "outer_cluster_@NaturalCountSort-17" {
+    subgraph "cluster_@NaturalCountSort-17" {
+      subgraph  {
+        "function-3-NaturalCount"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">NaturalCount</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@NaturalCountSort-17: function-3-NaturalCount"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-6-NaturalCount":0:s -> "function-6-EInt" [lhead="cluster_EndpointExpr-20"]
+  subgraph "outer_cluster_@NaturalCountSort-41" {
+    subgraph "cluster_@NaturalCountSort-41" {
+      subgraph  {
+        "function-6-NaturalCount"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">NaturalCount</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@NaturalCountSort-41: function-6-NaturalCount"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  fillcolor=6
+  "function-3-ValidDomain":0:s -> "function-3-FiniteDomain" [lhead="cluster_IndexDomain-28"]
+  subgraph "outer_cluster_@ValidDomainSort-30" {
+    subgraph "cluster_@ValidDomainSort-30" {
+      subgraph  {
+        "function-3-ValidDomain"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">ValidDomain</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@ValidDomainSort-30: function-3-ValidDomain"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-2-ValidDomain":0:s -> "function-2-FiniteDomain" [lhead="cluster_IndexDomain-27"]
+  subgraph "outer_cluster_@ValidDomainSort-29" {
+    subgraph "cluster_@ValidDomainSort-29" {
+      subgraph  {
+        "function-2-ValidDomain"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">ValidDomain</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@ValidDomainSort-29: function-2-ValidDomain"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-5-ValidDomain":0:s -> "function-5-FiniteDomain" [lhead="cluster_IndexDomain-37"]
+  subgraph "outer_cluster_@ValidDomainSort-39" {
+    subgraph "cluster_@ValidDomainSort-39" {
+      subgraph  {
+        "function-5-ValidDomain"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">ValidDomain</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@ValidDomainSort-39: function-5-ValidDomain"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-1-ValidDomain":0:s -> "function-1-FiniteDomain" [lhead="cluster_IndexDomain-11"]
+  subgraph "outer_cluster_@ValidDomainSort-13" {
+    subgraph "cluster_@ValidDomainSort-13" {
+      subgraph  {
+        "function-1-ValidDomain"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">ValidDomain</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@ValidDomainSort-13: function-1-ValidDomain"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-0-ValidDomain":0:s -> "function-0-FiniteDomain" [lhead="cluster_IndexDomain-1"]
+  subgraph "outer_cluster_@ValidDomainSort-12" {
+    subgraph "cluster_@ValidDomainSort-12" {
+      subgraph  {
+        "function-0-ValidDomain"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">ValidDomain</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@ValidDomainSort-12: function-0-ValidDomain"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-4-ValidDomain":0:s -> "function-4-FiniteDomain" [lhead="cluster_IndexDomain-36"]
+  subgraph "outer_cluster_@ValidDomainSort-38" {
+    subgraph "cluster_@ValidDomainSort-38" {
+      subgraph  {
+        "function-4-ValidDomain"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">ValidDomain</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@ValidDomainSort-38: function-4-ValidDomain"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-6-ValidDomain":0:s -> "function-6-FiniteDomain" [lhead="cluster_IndexDomain-43"]
+  subgraph "outer_cluster_@ValidDomainSort-44" {
+    subgraph "cluster_@ValidDomainSort-44" {
+      subgraph  {
+        "function-6-ValidDomain"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">ValidDomain</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@ValidDomainSort-44: function-6-ValidDomain"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-7-ValidDomain":0:s -> "function-7-FiniteDomain" [lhead="cluster_IndexDomain-47"]
+  subgraph "outer_cluster_@ValidDomainSort-48" {
+    subgraph "cluster_@ValidDomainSort-48" {
+      subgraph  {
+        "function-7-ValidDomain"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">ValidDomain</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="@ValidDomainSort-48: function-7-ValidDomain"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  fillcolor=7
+  "function-0-AddArithmetic":0:s -> "function-2-EInt" [lhead="cluster_EndpointExpr-3"]
+  "function-0-AddArithmetic":1:s -> "function-1-EInt" [lhead="cluster_EndpointExpr-2"]
+  subgraph "outer_cluster_Accumulation-15" {
+    subgraph "cluster_Accumulation-15" {
+      subgraph  {
+        "function-0-AddArithmetic"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="2">AddArithmetic</td></tr><TR><TD PORT="0"></TD><TD PORT="1"></TD></TR></TABLE>>,tooltip="Accumulation-15: function-0-AddArithmetic"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  fillcolor=8
+  "function-0-RampArray":0:s -> "function-0-FiniteDomain" [lhead="cluster_IndexDomain-1"]
+  "function-0-RampArray":1:s -> "function-2-EInt" [lhead="cluster_EndpointExpr-3"]
+  "function-0-RampArray":2:s -> "function-1-EInt" [lhead="cluster_EndpointExpr-2"]
+  subgraph "outer_cluster_Array-4" {
+    subgraph "cluster_Array-4" {
+      subgraph  {
+        "function-0-RampArray"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="3">RampArray</td></tr><TR><TD PORT="0"></TD><TD PORT="1"></TD><TD PORT="2"></TD></TR></TABLE>>,tooltip="Array-4: function-0-RampArray"]
+      }
+      label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2"><TR><TD ALIGN="RIGHT">let</TD><TD ALIGN="LEFT">$array</TD></TR></TABLE>>
+    }
+    style="invis"
+    cluster=true
+  }
+  fillcolor=9
+  "function-5-EInt":0:s -> "primitive-i64-2" [lhead="cluster_i64-2"]
+  "function-0-ESub":0:s -> "function-0-EInt" [lhead="cluster_EndpointExpr-0"]
+  "function-0-ESub":1:s -> "function-1-EInt" [lhead="cluster_EndpointExpr-2"]
+  subgraph "outer_cluster_EndpointExpr-19" {
+    subgraph "cluster_EndpointExpr-19" {
+      subgraph  {
+        "function-5-EInt"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">EInt</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="EndpointExpr-19: function-5-EInt"]
+        "function-0-ESub"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="2">ESub</td></tr><TR><TD PORT="0"></TD><TD PORT="1"></TD></TR></TABLE>>,tooltip="EndpointExpr-19: function-0-ESub"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-7-EInt":0:s -> "primitive-i64-15" [lhead="cluster_i64-15"]
+  "function-1-EAdd":0:s -> "function-3-EInt" [lhead="cluster_EndpointExpr-16"]
+  "function-1-EAdd":1:s -> "function-0-Reduce" [lhead="cluster_EndpointExpr-6"]
+  "function-2-EAdd":0:s -> "function-4-EInt" [lhead="cluster_EndpointExpr-18"]
+  "function-2-EAdd":1:s -> "function-0-EDiv" [lhead="cluster_EndpointExpr-0"]
+  "function-0-Reduce":0:s -> "function-0-AddArithmetic" [lhead="cluster_Accumulation-15"]
+  "function-0-Reduce":1:s -> "function-0-EInt" [lhead="cluster_EndpointExpr-0"]
+  "function-0-Reduce":2:s -> "function-3-EInt" [lhead="cluster_EndpointExpr-16"]
+  "function-0-ReduceArray":0:s -> "function-0-SumReduction" [lhead="cluster_Reduction-5"]
+  "function-0-ReduceArray":1:s -> "function-0-RampArray" [lhead="cluster_Array-4"]
+  subgraph "outer_cluster_EndpointExpr-6" {
+    subgraph "cluster_EndpointExpr-6" {
+      subgraph  {
+        "function-7-EInt"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">EInt</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="EndpointExpr-6: function-7-EInt"]
+        "function-1-EAdd"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="2">EAdd</td></tr><TR><TD PORT="0"></TD><TD PORT="1"></TD></TR></TABLE>>,tooltip="EndpointExpr-6: function-1-EAdd"]
+        "function-2-EAdd"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="2">EAdd</td></tr><TR><TD PORT="0"></TD><TD PORT="1"></TD></TR></TABLE>>,tooltip="EndpointExpr-6: function-2-EAdd"]
+        "function-0-Reduce"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="3">Reduce</td></tr><TR><TD PORT="0"></TD><TD PORT="1"></TD><TD PORT="2"></TD></TR></TABLE>>,tooltip="EndpointExpr-6: function-0-Reduce"]
+        "function-0-ReduceArray"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="2">ReduceArray</td></tr><TR><TD PORT="0"></TD><TD PORT="1"></TD></TR></TABLE>>,tooltip="EndpointExpr-6: function-0-ReduceArray"]
+      }
+      label=<<TABLE BORDER="0" CELLBORDER="0" CELLSPACING="0" CELLPADDING="2"><TR><TD ALIGN="RIGHT">let</TD><TD ALIGN="LEFT">$sum</TD></TR></TABLE>>
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-3-EInt":0:s -> "primitive-i64-0" [lhead="cluster_i64-0"]
+  subgraph "outer_cluster_EndpointExpr-16" {
+    subgraph "cluster_EndpointExpr-16" {
+      subgraph  {
+        "function-3-EInt"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">EInt</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="EndpointExpr-16: function-3-EInt"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-2-EInt":0:s -> "primitive-i64-4" [lhead="cluster_i64-4"]
+  "function-0-EAdd":0:s -> "function-0-EInt" [lhead="cluster_EndpointExpr-0"]
+  "function-0-EAdd":1:s -> "function-1-EInt" [lhead="cluster_EndpointExpr-2"]
+  subgraph "outer_cluster_EndpointExpr-3" {
+    subgraph "cluster_EndpointExpr-3" {
+      subgraph  {
+        "function-2-EInt"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">EInt</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="EndpointExpr-3: function-2-EInt"]
+        "function-0-EAdd"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="2">EAdd</td></tr><TR><TD PORT="0"></TD><TD PORT="1"></TD></TR></TABLE>>,tooltip="EndpointExpr-3: function-0-EAdd"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-4-EInt":0:s -> "primitive-i64-12" [lhead="cluster_i64-12"]
+  "function-0-EMul":0:s -> "function-0-EDiv" [lhead="cluster_EndpointExpr-0"]
+  "function-0-EMul":1:s -> "function-0-EAdd" [lhead="cluster_EndpointExpr-3"]
+  subgraph "outer_cluster_EndpointExpr-18" {
+    subgraph "cluster_EndpointExpr-18" {
+      subgraph  {
+        "function-4-EInt"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">EInt</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="EndpointExpr-18: function-4-EInt"]
+        "function-0-EMul"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="2">EMul</td></tr><TR><TD PORT="0"></TD><TD PORT="1"></TD></TR></TABLE>>,tooltip="EndpointExpr-18: function-0-EMul"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-0-EInt":0:s -> "primitive-i64-3" [lhead="cluster_i64-3"]
+  "function-0-EDiv":0:s -> "function-2-EMul" [lhead="cluster_EndpointExpr-20"]
+  "function-0-EDiv":1:s -> "function-5-EInt" [lhead="cluster_EndpointExpr-19"]
+  subgraph "outer_cluster_EndpointExpr-0" {
+    subgraph "cluster_EndpointExpr-0" {
+      subgraph  {
+        "function-0-EInt"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">EInt</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="EndpointExpr-0: function-0-EInt"]
+        "function-0-EDiv"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="2">EDiv</td></tr><TR><TD PORT="0"></TD><TD PORT="1"></TD></TR></TABLE>>,tooltip="EndpointExpr-0: function-0-EDiv"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-6-EInt":0:s -> "primitive-i64-6" [lhead="cluster_i64-6"]
+  "function-1-EMul":0:s -> "function-0-EInt" [lhead="cluster_EndpointExpr-0"]
+  "function-1-EMul":1:s -> "function-0-ESub" [lhead="cluster_EndpointExpr-19"]
+  "function-2-EMul":0:s -> "function-1-EMul" [lhead="cluster_EndpointExpr-20"]
+  "function-2-EMul":1:s -> "function-1-EInt" [lhead="cluster_EndpointExpr-2"]
+  subgraph "outer_cluster_EndpointExpr-20" {
+    subgraph "cluster_EndpointExpr-20" {
+      subgraph  {
+        "function-6-EInt"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">EInt</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="EndpointExpr-20: function-6-EInt"]
+        "function-1-EMul"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="2">EMul</td></tr><TR><TD PORT="0"></TD><TD PORT="1"></TD></TR></TABLE>>,tooltip="EndpointExpr-20: function-1-EMul"]
+        "function-2-EMul"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="2">EMul</td></tr><TR><TD PORT="0"></TD><TD PORT="1"></TD></TR></TABLE>>,tooltip="EndpointExpr-20: function-2-EMul"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-1-EInt":0:s -> "primitive-i64-1" [lhead="cluster_i64-1"]
+  subgraph "outer_cluster_EndpointExpr-2" {
+    subgraph "cluster_EndpointExpr-2" {
+      subgraph  {
+        "function-1-EInt"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">EInt</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="EndpointExpr-2: function-1-EInt"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  fillcolor=10
+  "function-1-FiniteDomain":0:s -> "function-1-EInt" [lhead="cluster_EndpointExpr-2"]
+  subgraph "outer_cluster_IndexDomain-11" {
+    subgraph "cluster_IndexDomain-11" {
+      subgraph  {
+        "function-1-FiniteDomain"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">FiniteDomain</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="IndexDomain-11: function-1-FiniteDomain"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-2-FiniteDomain":0:s -> "function-0-EAdd" [lhead="cluster_EndpointExpr-3"]
+  subgraph "outer_cluster_IndexDomain-27" {
+    subgraph "cluster_IndexDomain-27" {
+      subgraph  {
+        "function-2-FiniteDomain"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">FiniteDomain</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="IndexDomain-27: function-2-FiniteDomain"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-4-FiniteDomain":0:s -> "function-4-EInt" [lhead="cluster_EndpointExpr-18"]
+  subgraph "outer_cluster_IndexDomain-36" {
+    subgraph "cluster_IndexDomain-36" {
+      subgraph  {
+        "function-4-FiniteDomain"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">FiniteDomain</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="IndexDomain-36: function-4-FiniteDomain"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-0-FiniteDomain":0:s -> "function-0-EDiv" [lhead="cluster_EndpointExpr-0"]
+  subgraph "outer_cluster_IndexDomain-1" {
+    subgraph "cluster_IndexDomain-1" {
+      subgraph  {
+        "function-0-FiniteDomain"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">FiniteDomain</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="IndexDomain-1: function-0-FiniteDomain"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-3-FiniteDomain":0:s -> "function-3-EInt" [lhead="cluster_EndpointExpr-16"]
+  subgraph "outer_cluster_IndexDomain-28" {
+    subgraph "cluster_IndexDomain-28" {
+      subgraph  {
+        "function-3-FiniteDomain"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">FiniteDomain</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="IndexDomain-28: function-3-FiniteDomain"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-6-FiniteDomain":0:s -> "function-2-EMul" [lhead="cluster_EndpointExpr-20"]
+  subgraph "outer_cluster_IndexDomain-43" {
+    subgraph "cluster_IndexDomain-43" {
+      subgraph  {
+        "function-6-FiniteDomain"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">FiniteDomain</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="IndexDomain-43: function-6-FiniteDomain"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-7-FiniteDomain":0:s -> "function-0-Reduce" [lhead="cluster_EndpointExpr-6"]
+  subgraph "outer_cluster_IndexDomain-47" {
+    subgraph "cluster_IndexDomain-47" {
+      subgraph  {
+        "function-7-FiniteDomain"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">FiniteDomain</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="IndexDomain-47: function-7-FiniteDomain"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  "function-5-FiniteDomain":0:s -> "function-0-ESub" [lhead="cluster_EndpointExpr-19"]
+  subgraph "outer_cluster_IndexDomain-37" {
+    subgraph "cluster_IndexDomain-37" {
+      subgraph  {
+        "function-5-FiniteDomain"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30" colspan="1">FiniteDomain</td></tr><TR><TD PORT="0"></TD></TR></TABLE>>,tooltip="IndexDomain-37: function-5-FiniteDomain"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  fillcolor=11
+  subgraph "outer_cluster_Reduction-5" {
+    subgraph "cluster_Reduction-5" {
+      subgraph  {
+        "function-0-SumReduction"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30">SumReduction</td></tr></TABLE>>,tooltip="Reduction-5: function-0-SumReduction"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  fillcolor=0
+  subgraph "outer_cluster_i64-15" {
+    subgraph "cluster_i64-15" {
+      subgraph  {
+        "primitive-i64-15"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30">15</td></tr></TABLE>>,tooltip="i64-15: primitive-i64-15"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  subgraph "outer_cluster_i64-2" {
+    subgraph "cluster_i64-2" {
+      subgraph  {
+        "primitive-i64-2"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30">2</td></tr></TABLE>>,tooltip="i64-2: primitive-i64-2"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  subgraph "outer_cluster_i64-0" {
+    subgraph "cluster_i64-0" {
+      subgraph  {
+        "primitive-i64-0"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30">0</td></tr></TABLE>>,tooltip="i64-0: primitive-i64-0"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  subgraph "outer_cluster_i64-4" {
+    subgraph "cluster_i64-4" {
+      subgraph  {
+        "primitive-i64-4"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30">4</td></tr></TABLE>>,tooltip="i64-4: primitive-i64-4"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  subgraph "outer_cluster_i64-3" {
+    subgraph "cluster_i64-3" {
+      subgraph  {
+        "primitive-i64-3"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30">3</td></tr></TABLE>>,tooltip="i64-3: primitive-i64-3"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  subgraph "outer_cluster_i64-1" {
+    subgraph "cluster_i64-1" {
+      subgraph  {
+        "primitive-i64-1"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30">1</td></tr></TABLE>>,tooltip="i64-1: primitive-i64-1"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  subgraph "outer_cluster_i64-6" {
+    subgraph "cluster_i64-6" {
+      subgraph  {
+        "primitive-i64-6"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30">6</td></tr></TABLE>>,tooltip="i64-6: primitive-i64-6"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  subgraph "outer_cluster_i64-12" {
+    subgraph "cluster_i64-12" {
+      subgraph  {
+        "primitive-i64-12"[label=<<TABLE BGCOLOR="white" CELLBORDER="0" CELLSPACING="0" CELLPADDING="0" style="rounded"><tr><td BALIGN="left" CELLPADDING="4" WIDTH="30" HEIGHT="30">12</td></tr></TABLE>>,tooltip="i64-12: primitive-i64-12"]
+      }
+    }
+    style="invis"
+    cluster=true
+  }
+  margin=0
+}

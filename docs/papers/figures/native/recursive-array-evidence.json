@@ -1,0 +1,257 @@
+{
+  "scope": "native DSL snapshots and native array-query projections; no ripen feedback",
+  "figures": {
+    "recursive-tree": {
+      "native_nodes": 11,
+      "visible_nodes": 11,
+      "visible_classes": 11,
+      "solid_edges_checked": 7,
+      "omitted_nodes": [],
+      "rule_instance_overlay": [
+        [
+          "function-0-Emit",
+          "function-1-Expand",
+          "resume"
+        ],
+        [
+          "function-1-Emit",
+          "function-2-Expand",
+          "resume"
+        ],
+        [
+          "function-2-Emit",
+          "function-3-Expand",
+          "resume"
+        ],
+        [
+          "function-0-Expand",
+          "function-0-Emit",
+          "split-three"
+        ],
+        [
+          "function-0-Expand",
+          "function-1-Emit",
+          "split-three"
+        ],
+        [
+          "function-0-Expand",
+          "function-2-Emit",
+          "split-three"
+        ]
+      ],
+      "audit": "all visible nodes and class memberships native; solid edges preserve ordered child classes",
+      "constructor_counts": {
+        "Expand": 4,
+        "Emit": 3,
+        "Cursor": 0
+      }
+    },
+    "recursive-scan": {
+      "native_nodes": 8,
+      "visible_nodes": 8,
+      "visible_classes": 8,
+      "solid_edges_checked": 8,
+      "omitted_nodes": [],
+      "rule_instance_overlay": [
+        [
+          "function-0-Cursor",
+          "function-1-Cursor",
+          "scan-next"
+        ],
+        [
+          "function-1-Cursor",
+          "function-2-Cursor",
+          "scan-next"
+        ],
+        [
+          "function-2-Cursor",
+          "function-3-Cursor",
+          "scan-next"
+        ]
+      ],
+      "audit": "all visible nodes and class memberships native; solid edges preserve ordered child classes",
+      "constructor_counts": {
+        "Expand": 0,
+        "Emit": 0,
+        "Cursor": 4
+      }
+    },
+    "recursive-array": {
+      "native_nodes": 74,
+      "visible_nodes": 8,
+      "visible_classes": 7,
+      "solid_edges_checked": 6,
+      "omitted_nodes": [
+        "function-0-AddArithmetic",
+        "function-0-ArrayDomain",
+        "function-0-ArrayLength",
+        "function-0-CompleteExpr",
+        "function-0-EAdd",
+        "function-0-EDiv",
+        "function-0-EMul",
+        "function-0-ESub",
+        "function-0-NaturalCount",
+        "function-0-Reduce",
+        "function-0-ValidDomain",
+        "function-1-CompleteExpr",
+        "function-1-EAdd",
+        "function-1-EMul",
+        "function-1-FiniteDomain",
+        "function-1-NaturalCount",
+        "function-1-ValidDomain",
+        "function-2-CompleteExpr",
+        "function-2-EMul",
+        "function-2-FiniteDomain",
+        "function-2-NaturalCount",
+        "function-2-ValidDomain",
+        "function-3-CompleteExpr",
+        "function-3-EInt",
+        "function-3-FiniteDomain",
+        "function-3-NaturalCount",
+        "function-3-ValidDomain",
+        "function-4-CompleteExpr",
+        "function-4-EInt",
+        "function-4-FiniteDomain",
+        "function-4-NaturalCount",
+        "function-4-ValidDomain",
+        "function-5-CompleteExpr",
+        "function-5-EInt",
+        "function-5-FiniteDomain",
+        "function-5-NaturalCount",
+        "function-5-ValidDomain",
+        "function-6-CompleteExpr",
+        "function-6-EInt",
+        "function-6-FiniteDomain",
+        "function-6-NaturalCount",
+        "function-6-ValidDomain",
+        "function-7-CompleteExpr",
+        "function-7-EInt",
+        "function-7-FiniteDomain",
+        "function-7-NaturalCount",
+        "function-7-ValidDomain",
+        "function-8-CompleteExpr",
+        "function-8-EInt",
+        "function-8-FiniteDomain",
+        "function-8-NaturalCount",
+        "function-8-ValidDomain",
+        "function-9-CompleteExpr",
+        "function-9-FiniteDomain",
+        "function-9-NaturalCount",
+        "function-9-ValidDomain",
+        "primitive-i64-0",
+        "primitive-i64-1",
+        "primitive-i64-2",
+        "primitive-i64-26244",
+        "primitive-i64-29484",
+        "primitive-i64-324",
+        "primitive-i64-3240",
+        "primitive-i64-6480",
+        "primitive-i64-80",
+        "primitive-i64-81"
+      ],
+      "rule_instance_overlay": [],
+      "audit": "all visible nodes and class memberships native; solid edges preserve ordered child classes",
+      "bake_query": {
+        "depth": 4,
+        "discovery_calls": 0,
+        "elements": 81,
+        "first": 324,
+        "last": 404,
+        "radix": 3,
+        "result": {
+          "array": "(RampArray (FiniteDomain (EInt 81)) (EInt 324) (EInt 1))",
+          "cost": 2,
+          "element_queries": 0,
+          "expanded_prefixes": 0,
+          "sum": "(EInt 29484)"
+        },
+        "scope": "Certified last-frontier payload query only; no tier0 intermediate facts or effects are materialized.",
+        "start": 4,
+        "template": "fractal_0001",
+        "theoretical_basic_applies_for_full_unfolding": 160,
+        "tier0_rule_applications": 0
+      }
+    },
+    "recursive-scan-array": {
+      "native_nodes": 63,
+      "visible_nodes": 8,
+      "visible_classes": 7,
+      "solid_edges_checked": 6,
+      "omitted_nodes": [
+        "function-0-AddArithmetic",
+        "function-0-ArrayDomain",
+        "function-0-ArrayLength",
+        "function-0-CompleteExpr",
+        "function-0-EAdd",
+        "function-0-EDiv",
+        "function-0-EMul",
+        "function-0-ESub",
+        "function-0-NaturalCount",
+        "function-0-Reduce",
+        "function-0-ValidDomain",
+        "function-1-CompleteExpr",
+        "function-1-EAdd",
+        "function-1-EMul",
+        "function-1-FiniteDomain",
+        "function-1-NaturalCount",
+        "function-1-ValidDomain",
+        "function-2-CompleteExpr",
+        "function-2-EAdd",
+        "function-2-EMul",
+        "function-2-FiniteDomain",
+        "function-2-NaturalCount",
+        "function-2-ValidDomain",
+        "function-3-CompleteExpr",
+        "function-3-EInt",
+        "function-3-FiniteDomain",
+        "function-3-NaturalCount",
+        "function-3-ValidDomain",
+        "function-4-CompleteExpr",
+        "function-4-EInt",
+        "function-4-FiniteDomain",
+        "function-4-NaturalCount",
+        "function-4-ValidDomain",
+        "function-5-CompleteExpr",
+        "function-5-EInt",
+        "function-5-FiniteDomain",
+        "function-5-NaturalCount",
+        "function-5-ValidDomain",
+        "function-6-CompleteExpr",
+        "function-6-EInt",
+        "function-6-FiniteDomain",
+        "function-6-NaturalCount",
+        "function-6-ValidDomain",
+        "function-7-CompleteExpr",
+        "function-7-FiniteDomain",
+        "function-7-NaturalCount",
+        "function-7-ValidDomain",
+        "primitive-i64-0",
+        "primitive-i64-1",
+        "primitive-i64-12",
+        "primitive-i64-15",
+        "primitive-i64-2",
+        "primitive-i64-3",
+        "primitive-i64-4",
+        "primitive-i64-6"
+      ],
+      "rule_instance_overlay": [],
+      "audit": "all visible nodes and class memberships native; solid edges preserve ordered child classes",
+      "bake_query": {
+        "discovery_calls": 0,
+        "limit": 6,
+        "result": {
+          "array": "(RampArray (FiniteDomain (EInt 3)) (EAdd (EInt 3) (EInt 1)) (EInt 1))",
+          "cost": 2,
+          "element_queries": 0,
+          "expanded_prefixes": 0,
+          "sum": "(EInt 15)"
+        },
+        "scope": "Certified successor-payload sum for this isolated bounded unit-stride recurrence. Not whole-program execution and not preservation/materialization of tier0 effects.",
+        "start": 3,
+        "steps": 3,
+        "template": "fractal_0000",
+        "tier0_rule_applications": 0
+      }
+    }
+  }
+}

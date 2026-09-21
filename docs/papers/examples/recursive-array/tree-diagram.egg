@@ -1,0 +1,9 @@
+; One observed ternary level, with the same rules as the Bake corpus.
+(datatype Math (Cursor i64 i64) (Expand i64) (Emit i64))
+(Expand 4)
+(rule ((= node (Expand n)) (> n 0))
+      ((Emit (+ (* n 3) 0)) (Emit (+ (* n 3) 1)) (Emit (+ (* n 3) 2)))
+      :name "split-three")
+(rule ((= node (Emit n))) ((Expand n)) :name "resume")
+(run 2)
+(check (Expand 12) (Expand 13) (Expand 14))

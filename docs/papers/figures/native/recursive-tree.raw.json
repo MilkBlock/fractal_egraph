@@ -1,0 +1,131 @@
+{
+  "nodes": {
+    "primitive-i64-4": {
+      "op": "4",
+      "children": [],
+      "eclass": "i64-4",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-0-Expand": {
+      "op": "Expand",
+      "children": [
+        "primitive-i64-4"
+      ],
+      "eclass": "Math-0",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "primitive-i64-12": {
+      "op": "12",
+      "children": [],
+      "eclass": "i64-12",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-1-Expand": {
+      "op": "Expand",
+      "children": [
+        "primitive-i64-12"
+      ],
+      "eclass": "Math-4",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "primitive-i64-13": {
+      "op": "13",
+      "children": [],
+      "eclass": "i64-13",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-2-Expand": {
+      "op": "Expand",
+      "children": [
+        "primitive-i64-13"
+      ],
+      "eclass": "Math-5",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "primitive-i64-14": {
+      "op": "14",
+      "children": [],
+      "eclass": "i64-14",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-3-Expand": {
+      "op": "Expand",
+      "children": [
+        "primitive-i64-14"
+      ],
+      "eclass": "Math-6",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-0-Emit": {
+      "op": "Emit",
+      "children": [
+        "primitive-i64-12"
+      ],
+      "eclass": "Math-1",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-1-Emit": {
+      "op": "Emit",
+      "children": [
+        "primitive-i64-13"
+      ],
+      "eclass": "Math-2",
+      "cost": 1.0,
+      "subsumed": false
+    },
+    "function-2-Emit": {
+      "op": "Emit",
+      "children": [
+        "primitive-i64-14"
+      ],
+      "eclass": "Math-3",
+      "cost": 1.0,
+      "subsumed": false
+    }
+  },
+  "root_eclasses": [],
+  "class_data": {
+    "Math-0": {
+      "type": "Math"
+    },
+    "i64-4": {
+      "type": "i64"
+    },
+    "Math-4": {
+      "type": "Math"
+    },
+    "i64-12": {
+      "type": "i64"
+    },
+    "Math-5": {
+      "type": "Math"
+    },
+    "i64-13": {
+      "type": "i64"
+    },
+    "Math-6": {
+      "type": "Math"
+    },
+    "i64-14": {
+      "type": "i64"
+    },
+    "Math-1": {
+      "type": "Math"
+    },
+    "Math-2": {
+      "type": "Math"
+    },
+    "Math-3": {
+      "type": "Math"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+; Small finite slice of the same cursor DSL.
+(datatype Math (Cursor i64 i64) (Expand i64) (Emit i64))
+(Cursor 3 6)
+(rule ((= node (Cursor i end)) (< i end))
+      ((Cursor (+ i 1) end)) :name "scan-next")
+(run 4)
+(check (Cursor 6 6))
+(fail (check (Cursor 7 6)))
