@@ -56,7 +56,7 @@ pub enum Comparison {
     },
 }
 impl SaturatedRuleComposition {
-    fn validate(&self) -> Result<()> {
+    pub(crate) fn validate(&self) -> Result<()> {
         if !self.local_ids.is_empty() && self.local_ids.len() != self.values.len() {
             return Err("invalid provenance ID count".into());
         }

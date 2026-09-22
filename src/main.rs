@@ -10,7 +10,7 @@ const HELP: &str = "egg_layout — native rule-combination analysis
   cargo run -- debug-stream SOURCE.egg      Stream native Compose / Fractal events
   cargo run -- saturated-rule-composition-compare A/saturated-rule-composition.json B/saturated-rule-composition.json [--budget N]
   cargo run -- saturated-rule-composition-catalog OUTPUT_DIR RIPEN_DIR... [--budget N]
-  cargo run -- compose-rules SOURCE.egg RULE_A RULE_B OUTPUT_DIR [RHS_CHILD_PATH]
+  cargo run -- ripen-diff LEFT.json RIGHT.json REPORT.json [ANCHORS.json]
   cargo run -- ripen-probe OUTPUT_DIR MAX_ROUNDS [--baseline] INPUT.egg...
   cargo run -- ripen INPUT.egg OUTPUT_DIR [--max-rounds N]
   cargo run -- ripen-use HISTORY.json USE_ID OUTPUT_DIR [--max-rounds N]
@@ -190,17 +190,14 @@ fn main() -> Result {
             );
             Ok(())
         }
-        Some("compose-rules") if args.len()==5 || args.len()==6 => {
-            let source=std::fs::read_to_string(&args[1])?;
-            let book=egg_layout::semantic_compose::import(&source)?;
-            let a=book.get(&args[2]).ok_or("first rule unavailable/unsupported")?;
-            let b=book.get(&args[3]).ok_or("second rule unavailable/unsupported")?;
-            let path=if args.len()==6 {args[5].split('.').map(str::parse).collect::<std::result::Result<Vec<usize>,_>>()?}else{vec![]};
-            let c=egg_layout::semantic_compose::compose(a,b,&path)?;
-            let out=PathBuf::from(&args[4]);std::fs::create_dir(&out)?;
-            std::fs::write(out.join("combined.egg"),c.rule.egg())?;
-            std::fs::write(out.join("unification.json"),serde_json::to_vec_pretty(&c)?)?;
-            println!("{}",c.rule.egg());Ok(())
+        Some("ripen-diff") if args.len()==4 || args.len()==5 => {
+            let a=egg_layout::saturated_rule_composition::read(&PathBuf::from(&args[1]))?;
+            let b=egg_layout::saturated_rule_composition::read(&PathBuf::from(&args[2]))?;
+            let anchors:Vec<(usize,usize)>=if args.len()==5{serde_json::from_slice(&std::fs::read(&args[4])?)?}else{vec![]};
+            let report=egg_layout::state_difference::explain(&a,&b,&anchors)?;
+            let file=std::fs::OpenOptions::new().write(true).create_new(true).open(&args[3])?;
+            serde_json::to_writer_pretty(file,&report)?;
+            println!("{}",report["status"]);Ok(())
         }
         Some("ripen-probe") if args.len() >= 4 => {
             let baseline = args[3] == "--baseline";

@@ -75,7 +75,6 @@ pub struct Library {
     pub templates: Vec<Template>,
     pub nodes: Vec<Node>,
     pub evidence: Vec<serde_json::Value>,
-    pub semantic_compositions: Vec<serde_json::Value>,
     #[serde(skip)]
     templates_by_key: HashMap<Template, usize>,
     #[serde(skip)]
@@ -84,11 +83,10 @@ pub struct Library {
 impl Default for Library {
     fn default() -> Self {
         Self {
-            version: 2,
+            version: 1,
             templates: vec![],
             nodes: vec![],
             evidence: vec![],
-            semantic_compositions: vec![],
             templates_by_key: HashMap::new(),
             nodes_by_key: HashMap::new(),
         }
@@ -183,49 +181,6 @@ impl Library {
         let b = self.slice(right, 0, end - n).unwrap();
         Some(self.concat(a, b))
     }
-    /// Derive sound root-position candidates along existing concat nodes, without
-    /// claiming that a recorded application actually used that root position.
-    pub fn learn_semantics(&mut self, root: usize, source: &str) -> Vec<usize> {
-        let Ok(book) = crate::semantic_compose::import(source) else {
-            return vec![];
-        };
-        let mut pending = vec![(root, false)];
-        let mut summaries: HashMap<usize, Option<crate::semantic_compose::Rule>> = HashMap::new();
-        let mut learned = vec![];
-        while let Some((id, visited)) = pending.pop() {
-            if summaries.contains_key(&id) {
-                continue;
-            }
-            match &self.nodes[id].kind {
-                NodeKind::Apply { template, .. } => {
-                    summaries.insert(id, book.get(&self.templates[*template].rule).cloned());
-                }
-                NodeKind::Concat { left, right } => {
-                    if !visited {
-                        pending.push((id, true));
-                        pending.push((*right, false));
-                        pending.push((*left, false));
-                        continue;
-                    }
-                    let result = match (&summaries[left], &summaries[right]) {
-                        (Some(a), Some(b)) if self.nodes[id].len <= 16 => {
-                            crate::semantic_compose::compose(a, b, &[]).ok()
-                        }
-                        _ => None,
-                    };
-                    if let Some(c) = result {
-                        let index = self.semantic_compositions.len();
-                        self.semantic_compositions.push(serde_json::json!({"node":id,"status":"symbolically_valid_root_candidate","observed_position_verified":false,"composition":c,"egg":c.rule.egg()}));
-                        learned.push(index);
-                        summaries.insert(id, Some(c.rule));
-                    } else {
-                        summaries.insert(id, None);
-                    }
-                }
-            }
-        }
-        learned
-    }
     /// Debug expansion only; production slicing and composition keep shared nodes.
     pub fn expand(&self, root: usize) -> Vec<Packet> {
         let mut stack = vec![root];
@@ -245,6 +200,6 @@ impl Library {
         packets
     }
     pub fn summary(&self) -> serde_json::Value {
-        serde_json::json!({"templates":self.templates.len(),"nodes":self.nodes.len(),"evidence_objects":self.evidence.len(),"semantic_compositions":self.semantic_compositions.len()})
+        serde_json::json!({"templates":self.templates.len(),"nodes":self.nodes.len(),"evidence_objects":self.evidence.len()})
     }
 }

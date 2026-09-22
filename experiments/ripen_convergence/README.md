@@ -209,7 +209,7 @@ remaining-budget admission, packet collisions/visibility, and both pipeline test
 
 ## Shared packet library (Ant-inspired)
 
-`continuations.json` (version 2) contains `templates`, immutable `nodes`, and
+`continuations.json` (version 1) contains `templates`, immutable `nodes`, and
 `evidence`. Apply nodes reference a normalized effect template and an explicit
 binding vector; Concat nodes contain only child IDs and cached length/hash/power.
 Repeated fragments are hash-consed with exact key equality. Completed donors build
@@ -232,11 +232,11 @@ See [ant-reference.md](ant-reference.md) for pinned implementation references,
 upstream differences, correctness boundaries, and measured structural examples.
 
 
-## Semantic unification
+## Pair-local difference explanation
 
-Concat nodes now also carry separately indexed, sound root-position semantic
-candidates when their source rewrites are supported. These retain intermediate
-union effects and external guards and can be exported to executable egglog syntax.
-They are not asserted to match the historically observed apply positions.
-See [semantic-unification.md](semantic-unification.md) for the API, CLI, tests and
-explicit supported fragment.
+General rewrite unification and automatic combined-rule generation have been
+removed. `ripen-diff LEFT.json RIGHT.json REPORT.json [ANCHORS.json]` now only aligns
+a supplied pair of local states and reports missing facts, visibility changes and
+unresolved bindings. It neither generates rules nor certifies saturated equivalence.
+See [state-difference.md](state-difference.md). The incremental hash/continuation
+reuse paths are unchanged.
