@@ -995,6 +995,32 @@ not a uniform benchmark.
 \clearpage
 \appendix
 \section{Reproduction and Evidence Levels}
+\subsection{Top-$N$ ripen-body supplementary graphs}
+The reuse curve in Figure~\ref{fig:stats} ranks the bodies by the number of
+base CS layers that their exact catalog state covers. The companion exporter
+\path{tools/export_ripen_body_svgs.py} takes the same queue/catalog directory,
+selects the top $N$ rows, and writes one SVG and DOT file per body.
+
+The exporter reads the canonical state file
+\path{catalog/states/state-NNNN.json}. Because that file is an exported graph,
+not a replayable rule program, the exporter creates a tiny typed carrier program
+whose rows encode the state vertices and operators, then invokes egglog's own
+\code{--to-dot --to-svg} serializer. It preserves the state-to-row topology in
+that carrier and records the mapping in \path{manifest.json}. The carrier is a
+visualization artifact: its SVG is evidence of the catalog body, not a new
+execution, a tier0 substitution, or a proof that the body can be injected into a
+live e-graph.
+
+The checked default math4 supplement contains top bodies C0, C1, and C4. Its
+manifest records body sizes, layer coverage, source state files, generated DOT,
+and generated SVG. Reproduce it with:
+\begin{lstlisting}[language=bash]
+python3 tools/export_ripen_body_svgs.py \\
+  out/default-ripen-math4 out/ripen-body-top3 --top-n 3
+\end{lstlisting}
+The output directory is intentionally separate from the committed paper assets;
+copying it into a release artifact must preserve the manifest and state files.
+
 \subsection{Native DOT figures}
 \path{examples/math-mini-trace.egg} marks three executable prefixes: entry,
 one associativity round, and saturation. The generator runs each prefix through

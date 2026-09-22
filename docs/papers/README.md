@@ -37,3 +37,5 @@ change its behavior. General fractal-summary feedback remains a proposal. Histor
 measurements use `math-microbenchmark.egg`, not this running `math.egg` example,
 and are not a same-revision controlled ablation or native compression measurement.
 `references-verified.json` records the offline source checks.
+
+The top-N ripen-body SVG exporter is `tools/export_ripen_body_svgs.py`; it consumes a saturated-rule-composition catalog and writes native egglog DOT/SVG carrier figures plus a manifest.
