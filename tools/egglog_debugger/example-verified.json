@@ -1,0 +1,38 @@
+{
+  "scope": "Ran end to end on the pinned kernel and counted shared SaturatedRuleComposition states in the final boundary. An entry here is evidence, not a guarantee: it depends on the ripening budget, so a larger budget can only add states.",
+  "probed_at": "2026-09-22T10:01:01Z",
+  "verified": [
+    {
+      "name": "relation-table",
+      "shared_states": 8,
+      "rounds": 3,
+      "counts": "Pending 10, Saturated 12"
+    },
+    {
+      "name": "recursive-cs",
+      "shared_states": 7,
+      "rounds": 5,
+      "counts": "Saturated 12"
+    },
+    {
+      "name": "math-microbenchmark",
+      "shared_states": 7,
+      "rounds": 6,
+      "counts": "Pending 232, Rejected 2, Saturated 20, Suspended 2"
+    },
+    {
+      "name": "math-microbenchmark-annotated",
+      "shared_states": 7,
+      "rounds": 6,
+      "counts": "Pending 232, Rejected 2, Saturated 20, Suspended 2"
+    }
+  ],
+  "not_saturating": {
+    "fibonacci": "Rejected 7",
+    "list": "Pending 13, Rejected 4",
+    "naturals": "Pending 22, Rejected 8",
+    "path": "Rejected 6",
+    "set": "Rejected 4",
+    "unify": "Rejected 1"
+  }
+}

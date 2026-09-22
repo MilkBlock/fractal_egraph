@@ -57,6 +57,8 @@ def prune_runs(keep=RUN_LIMIT):
 LOCAL_EXAMPLES = ROOT / 'tools' / 'egglog_debugger' / 'local-examples.json'
 # Written by classify_examples.py: which examples the pinned kernel can actually parse.
 EXAMPLE_SUPPORT = ROOT / 'tools' / 'egglog_debugger' / 'example-support.json'
+# Written by verify_examples.py: which examples a real run showed to produce shared states.
+EXAMPLE_VERIFIED = ROOT / 'tools' / 'egglog_debugger' / 'example-verified.json'
 
 
 def merged_examples(demo: Path, supported_only: bool = True):
@@ -76,16 +78,25 @@ def merged_examples(demo: Path, supported_only: bool = True):
             examples[name] = source.read_text()
     if not supported_only:
         return examples
-    # Hide what the pinned kernel cannot parse: offering an entry that is guaranteed to fail on
-    # 运行并识别 is worse than not offering it. Parsing is necessary, not sufficient -- it says
-    # nothing about whether a run will saturate.
+    # Preferred filter: only what a real run showed to produce shared SaturatedRuleComposition
+    # states. Parsing alone is not enough -- the upstream egg math demo parses and saturates
+    # nothing, and so do fibonacci/list/path/set/unify/naturals on this kernel. Offering entries
+    # that cannot reach the panel being studied is worse than a short list.
+    try:
+        verified = {e['name'] for e in json.loads(EXAMPLE_VERIFIED.read_text()).get('verified') or []}
+    except (OSError, ValueError, TypeError, KeyError):
+        verified = set()
+    if verified:
+        verified |= set(local)  # the repository's own fixtures are verified by construction
+        return {name: source for name, source in examples.items() if name in verified}
+    # No sweep recorded yet: fall back to what the kernel can at least parse.
     try:
         allowed = set(json.loads(EXAMPLE_SUPPORT.read_text()).get('supported') or [])
     except (OSError, ValueError):
         return examples
     if not allowed:
         return examples
-    allowed |= set(local)  # the repository's own fixtures are verified by construction
+    allowed |= set(local)
     return {name: source for name, source in examples.items() if name in allowed}
 
 
