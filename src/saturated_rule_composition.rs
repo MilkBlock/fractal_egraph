@@ -314,6 +314,7 @@ pub fn catalog(inputs: &[std::path::PathBuf], out: &Path, budget: usize) -> Resu
     if inputs.is_empty() || out.exists() {
         return Err("catalog needs input ripen directories and a new output directory".into());
     }
+    let read_started=std::time::Instant::now();
     // Validate every input before creating output. Suspended runs have no state.
     let entries: Vec<_> = inputs
         .iter()
@@ -331,16 +332,23 @@ pub fn catalog(inputs: &[std::path::PathBuf], out: &Path, budget: usize) -> Resu
             Ok((p, report, read(&p.join("saturated-rule-composition.json"))?))
         })
         .collect::<Result<_>>()?;
+    let read_seconds=read_started.elapsed().as_secs_f64();
+    let mut compare_seconds=0.;
+    let mut key_seconds=0.;
     let mut states: Vec<SaturatedRuleComposition> = vec![];
     let mut buckets = BTreeMap::<String, Vec<usize>>::new();
     let mut triggers = vec![];
     let mut comparisons = vec![];
     for (path, report, state) in entries {
         let source_value_ids = state.local_ids.clone();
+        let stage=std::time::Instant::now();
         let key = state.key();
+        key_seconds+=stage.elapsed().as_secs_f64();
         let mut hit = None;
         for &i in buckets.get(&key).into_iter().flatten() {
+            let stage=std::time::Instant::now();
             let result = compare(&state, &states[i], budget)?;
+            compare_seconds+=stage.elapsed().as_secs_f64();
             if let Comparison::Equivalent { value_map, .. } = &result {
                 hit = Some((i, value_map.clone()));
             }
@@ -408,7 +416,7 @@ pub fn catalog(inputs: &[std::path::PathBuf], out: &Path, budget: usize) -> Resu
             "triggers":members.iter().map(|(i,_)|*i).collect::<Vec<_>>(),
             "comb_groups":comb_groups.iter().filter(|g|g["saturated_rule_composition"]==id).map(|g|g["id"].clone()).collect::<Vec<_>>()})
     }).collect();
-    let report = json!({"schema":"saturated-rule-composition-catalog/v1","scope":"exact complete constructor-state sharing with fixed named ports; triggers remain separate; no tier0 substitution", "unresolved_comparisons":comparisons.iter().filter(|c|c["result"]["status"]=="unknown_budget").count(),"saturated_rule_compositions":states.len(),"state_groups":state_groups,"comb_groups":comb_groups,"triggers":triggers,"comparisons":comparisons});
+    let report = json!({"timings":{"read_seconds":read_seconds,"key_seconds":key_seconds,"compare_seconds":compare_seconds},"schema":"saturated-rule-composition-catalog/v1","scope":"exact complete constructor-state sharing with fixed named ports; triggers remain separate; no tier0 substitution", "unresolved_comparisons":comparisons.iter().filter(|c|c["result"]["status"]=="unknown_budget").count(),"saturated_rule_compositions":states.len(),"state_groups":state_groups,"comb_groups":comb_groups,"triggers":triggers,"comparisons":comparisons});
     let mut dot = String::from("digraph ClosedCatalog { rankdir=LR; node [shape=box];\n");
     for (i, state) in states.iter().enumerate() {
         let label = format!(

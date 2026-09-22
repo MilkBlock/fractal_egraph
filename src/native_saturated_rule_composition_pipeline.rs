@@ -30,6 +30,7 @@ pub(super) struct Pipeline {
     rounds: usize,
     milliseconds: usize,
     catalog_owned: bool,
+    profile: BTreeMap<String,f64>,
     convergence: Option<crate::ripen_convergence::Index>,
 }
 fn limit(name: &str, default: usize) -> Result<usize> {
@@ -61,6 +62,7 @@ impl Pipeline {
             rounds: limit("EGG_LAYOUT_RIPEN_ROUNDS", 4)?.max(1),
             milliseconds: limit("EGG_LAYOUT_RIPEN_MILLISECONDS", 250)?,
             catalog_owned: false,
+            profile: BTreeMap::new(),
             convergence: std::env::var_os("EGG_LAYOUT_RIPEN_CONVERGENCE").map(|_| crate::ripen_convergence::Index::new(4096, 10000).with_library_path(out.join("continuations.json"))),
         })
     }
@@ -70,6 +72,7 @@ impl Pipeline {
     /// and `Suspended` are preserved so a caller can distinguish “not tried”
     /// from “replay ran out of budget.”
     pub fn step(&mut self, c: &Captured, layers: &LayerStore, boundary: usize) -> Result<Json> {
+        let profile_started=Instant::now();
         std::fs::create_dir_all(&self.out)?;
         if !self.out.join("source.egg").exists() {
             std::fs::write(self.out.join("source.egg"), &c.preview_source)?;
@@ -171,6 +174,8 @@ impl Pipeline {
                 "CSCS" | "CCSS" => self.cs.members(id),
                 _ => serde_json::from_value(self.jobs[i]["members"].clone())?,
             };
+            let job_started=Instant::now();
+            let engines_before=ripen::engine_creation_snapshot();
             let result = (|| -> Result<Json> {
                 // Every composition, including stale evidence, is replayed below. No live substitution is authorized.
 
@@ -205,6 +210,7 @@ impl Pipeline {
                     })
                 };
                 let mut report: Json;
+                let mut ripen_seconds=0.;
                 let cached = self.cache.get(&key).cloned();
                 if let Some(previous) = &cached {
                     report = serde_json::from_slice(&std::fs::read(previous.join("ripen.json"))?)?;
@@ -225,6 +231,7 @@ impl Pipeline {
                     // history and per-cell DOT, but retains tier1 feedback.
                     let entry = self.out.join("saturated-rule-composition").join(format!("entry-{id:06}.egg"));
                     std::fs::write(&entry, &source)?;
+                    let ripen_started=Instant::now();
                     report = ripen::run_observed(
                         &entry,
                         &folder.join("work"),
@@ -234,6 +241,7 @@ impl Pipeline {
                         true,
                         self.convergence.as_mut(),
                     )?;
+                    ripen_seconds=ripen_started.elapsed().as_secs_f64();
                     if folder.join("work/saturated-rule-composition.json").exists() {
                         std::fs::rename(
                             folder.join("work/saturated-rule-composition.json"),
@@ -272,11 +280,17 @@ impl Pipeline {
                 }
                 Ok(
                     json!({"state":report["ripen"]["state"],"export":report["saturated_rule_composition"],
-                    "cache_hit":cached.is_some(),"ripen":report["ripen"]}),
+                    "cache_hit":cached.is_some(),"ripen":report["ripen"],"ripen_seconds":ripen_seconds,"ripen_timings":if cached.is_none(){report["timings"].clone()}else{Json::Null}}),
                 )
             })();
+            *self.profile.entry("jobs_seconds".into()).or_default()+=job_started.elapsed().as_secs_f64();
+            let engines_after=ripen::engine_creation_snapshot();
+            *self.profile.entry("all_engine_creation_seconds".into()).or_default()+=engines_after.1-engines_before.1;
+            *self.profile.entry("engine_creations".into()).or_default()+=(engines_after.0-engines_before.0) as f64;
             match result {
                 Ok(r) => {
+                    *self.profile.entry("native_ripen_wall_seconds".into()).or_default()+=r["ripen_seconds"].as_f64().unwrap_or(0.);
+                    if let Some(times)=r["ripen_timings"].as_object(){for (k,v) in times {if k!="all_engine_creation_seconds"&&k!="engine_creations" {*self.profile.entry(k.clone()).or_default()+=v.as_f64().unwrap_or(0.);}}}
                     for (key, value) in r.as_object().unwrap() {
                         self.jobs[i][key] = value.clone();
                     }
@@ -316,7 +330,11 @@ impl Pipeline {
             if self.catalog_owned {
                 std::fs::remove_dir_all(&dir)?;
             }
+            let catalog_started=Instant::now();
             let catalog = crate::saturated_rule_composition::catalog(&self.saturated_rule_compositions, &dir, 10000)?;
+            *self.profile.entry("catalog_wall_seconds".into()).or_default()+=catalog_started.elapsed().as_secs_f64();
+            *self.profile.entry("catalog_compare_seconds".into()).or_default()+=catalog["timings"]["compare_seconds"].as_f64().unwrap_or(0.);
+            *self.profile.entry("catalog_comparisons".into()).or_default()+=catalog["comparisons"].as_array().map_or(0,Vec::len) as f64;
             self.catalog_owned = true;
             let n = catalog["saturated_rule_compositions"].as_u64().unwrap();
             let states = (0..n)
@@ -328,6 +346,8 @@ impl Pipeline {
                 .collect::<Result<Vec<_>>>()?;
             report["catalog"] = json!({"catalog":catalog,"states":states,"dot":std::fs::read_to_string(dir.join("catalog.dot"))?});
         }
+        *self.profile.entry("phase_seconds".into()).or_default()+=profile_started.elapsed().as_secs_f64();
+        report["profile"]=serde_json::to_value(&self.profile)?;
         std::fs::create_dir_all(self.out.join("saturated-rule-composition"))?;
         std::fs::write(
             self.out.join("saturated-rule-composition/queue.json"),

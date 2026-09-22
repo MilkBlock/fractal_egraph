@@ -42,7 +42,7 @@ fn extract(
     while c.preview_source.contains(&hole) {
         hole.push('_');
     }
-    let mut parser = EGraph::default();
+    let mut parser = super::measured_engine();
     let mut datatypes = parser.parse_program(None, &c.datatype)?;
     let extra = parser.parse_program(None, &format!("(datatype Temporary ({hole} i64))"))?;
     let Command::Datatype {
@@ -253,7 +253,7 @@ fn extract(
         stages.push((*i, r.id, preconditions, commands));
     }
     entry.extend(seeds.into_values());
-    let mut eg = EGraph::default();
+    let mut eg = super::measured_engine();
     eg.run_program(entry.clone())?;
     let initial_tables = super::table_sizes(&eg, &declarations)?;
     for (i, _, _, commands) in &stages {
@@ -385,7 +385,7 @@ pub(in crate::native_analyze) fn prepare(
 }
 
 fn audit(c: &Captured) -> Result {
-    let mut parser = EGraph::default();
+    let mut parser = super::measured_engine();
     let declarations = parser.parse_program(None, &c.datatype)?;
     let merged: BTreeSet<_> = declarations
         .iter()

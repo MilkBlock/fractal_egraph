@@ -10,6 +10,14 @@ mod packets;
 pub use entry::from_use;
 pub(super) use entry::{prepare, prepare_members};
 
+thread_local! {static ENGINE_CREATION: std::cell::Cell<(usize,f64)> = const {std::cell::Cell::new((0,0.))};}
+pub(super) fn measured_engine()->EGraph {
+    let start=Instant::now();let eg=EGraph::default();
+    ENGINE_CREATION.with(|c|{let(n,t)=c.get();c.set((n+1,t+start.elapsed().as_secs_f64()));});eg
+}
+
+pub(super) fn engine_creation_snapshot()->(usize,f64){ENGINE_CREATION.with(|c|c.get())}
+
 fn supported_action(a: &Action) -> bool {
     matches!(
         a,
@@ -69,7 +77,13 @@ pub fn probe_mode(sources: &[std::path::PathBuf], out: &Path, rounds: usize, ena
         }
     }
     index.persist_library()?;
-    let report = json!({"enabled":enabled,"index":index.report(),"opportunities":opportunities,"cells":reports});
+    let catalog=if std::env::var_os("EGG_LAYOUT_PROFILE_CATALOG").is_some() {
+        let dirs=(0..reports.len()).filter(|i|reports[*i]["saturated_rule_composition"]["status"]=="exported").map(|i|out.join(format!("cell-{i}"))).collect::<Vec<_>>();
+        let start=Instant::now();
+        let r=crate::saturated_rule_composition::catalog(&dirs,&out.join("catalog"),10000)?;
+        Some(json!({"wall_seconds":start.elapsed().as_secs_f64(),"timings":r["timings"],"states":r["saturated_rule_compositions"],"comparisons":r["comparisons"].as_array().map(Vec::len)}))
+    }else{None};
+    let report = json!({"catalog_profile":catalog,"enabled":enabled,"index":index.report(),"opportunities":opportunities,"cells":reports});
     std::fs::write(out.join("convergence.json"), serde_json::to_vec_pretty(&report)?)?;
     Ok(report)
 }
@@ -85,9 +99,13 @@ pub(super) fn run_observed(
     if out.exists() {
         return Err("ripen output already exists".into());
     }
+    let creation_baseline=engine_creation_snapshot();
     let source = source.canonicalize()?;
     let text = std::fs::read_to_string(&source)?;
-    let mut eg = EGraph::default();
+    let create_started=Instant::now();
+    let mut eg = measured_engine();
+    let create_seconds=create_started.elapsed().as_secs_f64();
+    let parse_started=Instant::now();
     let commands = crate::visual_rule::surface_program(
         eg.parse_program(Some(source.display().to_string()), &text)?,
     );
@@ -143,7 +161,10 @@ pub(super) fn run_observed(
         .collect::<Vec<_>>()
         .join("\n");
     let rulesets: Vec<_> = rulesets.into_iter().collect();
+    let parse_seconds=parse_started.elapsed().as_secs_f64();
+    let setup_started=Instant::now();
     eg.run_program(setup.clone())?;
+    let setup_seconds=setup_started.elapsed().as_secs_f64();
     let mut port_values = vec![];
     for cmd in &setup {
         if let Command::Action(Action::Let(_, name, _)) = cmd {
@@ -176,6 +197,9 @@ pub(super) fn run_observed(
     std::fs::write(out.join("entry.egg"), &text)?;
     let started = Instant::now();
     let outcome = (|| -> Result<Json> {
+        let mut native_seconds=0.;
+        let mut collect_seconds=0.;
+        let mut tier1_seconds=0.;
         let mut schedule = String::new();
         let mut feedback = None;
         let mut convergence_events = vec![];
@@ -225,7 +249,9 @@ pub(super) fn run_observed(
             if reuse.is_some() {break;}
             let mut updated = false;
             for ruleset in &rulesets {
+                let stage=Instant::now();
                 updated |= eg.step_rules_with_trace(ruleset, &trace)?.updated;
+                native_seconds+=stage.elapsed().as_secs_f64();
                 schedule += &format!("(run {} 1)\n", ruleset);
                 if let Some(t)=tracker.as_mut() {
                     let start=Instant::now();
@@ -233,7 +259,9 @@ pub(super) fn run_observed(
                     // Packet processing time is reported separately from snapshot observations.
                     packet_seconds += start.elapsed().as_secs_f64();
                 }
+                let stage=Instant::now();
                 collect(&eg, &trace, &mut c, &mut producers)?;
+                collect_seconds+=stage.elapsed().as_secs_f64();
             }
             if std::env::var_os("EGG_LAYOUT_RIPEN_PACKET_AUDIT").is_some() {
                 if let Some(t)=&tracker {
@@ -263,11 +291,13 @@ pub(super) fn run_observed(
                 ripen: Some(f.clone()),
             });
             c.rounds = Some(round);
+            let stage=Instant::now();
             if artifacts {
                 exporter.capture(&mut c, out)?;
             } else {
                 update_layers(&mut c)?;
             }
+            tier1_seconds+=stage.elapsed().as_secs_f64();
             feedback = Some(f);
             if !updated {
                 break;
@@ -296,9 +326,11 @@ pub(super) fn run_observed(
         c.trace_seconds = started.elapsed().as_secs_f64();
         let feedback = feedback.unwrap();
         let saturated = feedback.state == "Saturated";
+        let checks_started=Instant::now();
         if saturated {
             eg.run_program(checks.clone())?;
         }
+        let checks_seconds=checks_started.elapsed().as_secs_f64();
         let mut replay = setup
             .iter()
             .map(ToString::to_string)
@@ -319,6 +351,7 @@ pub(super) fn run_observed(
         if artifacts {
             history::save(&out.join("history.json"), &source, &c)?;
         }
+        let export_started=Instant::now();
         let mut completed_state=None;
         let state_export = if saturated {
             let exported=if let Some(s)=shared_state {Ok(s)}else{export_state(
@@ -345,13 +378,19 @@ pub(super) fn run_observed(
         } else {
             json!({"status":"not_saturated"})
         };
+        let export_seconds=export_started.elapsed().as_secs_f64();
+        let tables_started=Instant::now();
+        let tables=table_sizes(&eg,&c.datatype)?;
+        let tables_seconds=tables_started.elapsed().as_secs_f64();
+        let current=engine_creation_snapshot();
+        let creations=(current.0-creation_baseline.0,current.1-creation_baseline.1);
         // Tier1 is the actual importer/Use builder, populated during every sweep.
         let mut tier1=c.layers.report();
         tier1["shared_continuation"]=json!(shared_continuation);
-        let report = json!({"packet_boundaries":packet_boundaries,"execution_boundaries":c.boundaries,"native_rounds":native_rounds,"ripen":feedback,"checks":if saturated{"passed"}else{"deferred"},
+        let report = json!({"timings":{"initial_engine_seconds":create_seconds,"parse_normalize_seconds":parse_seconds,"setup_seconds":setup_seconds,"native_saturation_seconds":native_seconds,"trace_import_seconds":collect_seconds,"tier1_seconds":tier1_seconds,"checks_seconds":checks_seconds,"state_export_seconds":export_seconds,"table_stats_seconds":tables_seconds,"engine_creations":creations.0,"all_engine_creation_seconds":creations.1},"packet_boundaries":packet_boundaries,"execution_boundaries":c.boundaries,"native_rounds":native_rounds,"ripen":feedback,"checks":if saturated{"passed"}else{"deferred"},
             "checks_count":checks.len(),"rules":c.rules.iter().map(|r|r.rule.to_string()).collect::<Vec<_>>(),
             "source":source,"source_text":text,"events":c.events,"imported_applies":c.records.len(),
-            "saturated_rule_composition":state_export,"tables":table_sizes(&eg, &c.datatype)?,"tier1":tier1,"round_manifest":if artifacts {Some("rounds/manifest.json")}else{None},
+            "saturated_rule_composition":state_export,"tables":tables,"tier1":tier1,"round_manifest":if artifacts {Some("rounds/manifest.json")}else{None},
             "history":if artifacts {Some("history.json")}else{None},"seconds":c.trace_seconds,"fractal_summaries_used":0,"convergence":{"events":convergence_events,"seconds":convergence_seconds,"actual_rounds_skipped":skipped,"packet_updates":packet_updates,"packet_seconds":packet_seconds,"snapshot_exports":snapshot_exports,"audit_exports":audit_exports,"fallback_reasons":fallback_reasons}});
         std::fs::write(out.join("ripen.json"), serde_json::to_vec_pretty(&report)?)?;
         // Do not cache reused results recursively: donor evidence stays one hop.
@@ -374,7 +413,7 @@ pub(super) fn run_observed(
 }
 
 fn table_sizes(eg: &EGraph, datatype: &str) -> Result<BTreeMap<String, usize>> {
-    let mut parser = EGraph::default();
+    let mut parser = measured_engine();
     let cmds = parser.parse_program(None, datatype)?;
     let mut sizes = BTreeMap::new();
     for cmd in &cmds {
@@ -426,7 +465,7 @@ fn export_state(
             _ => true,
         }
     }
-    let mut parser = EGraph::default();
+    let mut parser = measured_engine();
     let declarations = parser.parse_program(None, &c.datatype)?;
     let mut tables = vec![];
     for d in &declarations {
