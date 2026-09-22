@@ -1,0 +1,26 @@
+{
+  "scope": "native packet evidence representation; no native memory compression claim",
+  "ant_reference_commit": "3f698ae0668870bef6238bbd6e86d957c0e08647",
+  "cases": {
+    "chain": {
+      "library": {
+        "evidence_objects": 1,
+        "nodes": 6,
+        "templates": 3
+      },
+      "packets": 3,
+      "skipped_rounds": 3,
+      "donor_evidence_objects": 1
+    },
+    "math_ac": {
+      "library": {
+        "evidence_objects": 1,
+        "nodes": 35,
+        "templates": 4
+      },
+      "packets": 18,
+      "skipped_rounds": 1,
+      "donor_evidence_objects": 1
+    }
+  }
+}

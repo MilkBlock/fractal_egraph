@@ -61,7 +61,7 @@ impl Pipeline {
             rounds: limit("EGG_LAYOUT_RIPEN_ROUNDS", 4)?.max(1),
             milliseconds: limit("EGG_LAYOUT_RIPEN_MILLISECONDS", 250)?,
             catalog_owned: false,
-            convergence: std::env::var_os("EGG_LAYOUT_RIPEN_CONVERGENCE").map(|_| crate::ripen_convergence::Index::new(4096, 10000)),
+            convergence: std::env::var_os("EGG_LAYOUT_RIPEN_CONVERGENCE").map(|_| crate::ripen_convergence::Index::new(4096, 10000).with_library_path(out.join("continuations.json"))),
         })
     }
     /// Process a bounded slice of pending candidates at one capture boundary.
@@ -304,6 +304,7 @@ impl Pipeline {
                 .entry(j["state"].as_str().unwrap().into())
                 .or_default() += 1;
         }
+        if let Some(index)=&self.convergence {index.persist_library()?;}
         let mut report = json!({"kind":"saturated_rule_composition_snapshot","boundary":boundary,"jobs":self.jobs,
             "cs":self.cs.report(),"counts":counts,"observed_uses":self.observed,"dependency_candidates":self.dependency_jobs,"not_queued":self.omitted,
             "limits":{"jobs":self.total,"per_boundary":self.per_boundary,"rounds":self.rounds,"milliseconds_between_jobs":self.milliseconds,"queue_capacity":256},

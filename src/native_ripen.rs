@@ -48,7 +48,7 @@ pub fn probe(sources: &[std::path::PathBuf], out: &Path, rounds: usize) -> Resul
 pub fn probe_mode(sources: &[std::path::PathBuf], out: &Path, rounds: usize, enabled: bool) -> Result<Json> {
     if out.exists() { return Err("probe output already exists".into()); }
     std::fs::create_dir_all(out)?;
-    let mut index = crate::ripen_convergence::Index::new(4096, 10000);
+    let mut index = crate::ripen_convergence::Index::new(4096, 10000).with_library_path(out.join("continuations.json"));
     let mut reports = vec![];
     for (i, source) in sources.iter().enumerate() {
         let cell_started=Instant::now();
@@ -68,6 +68,7 @@ pub fn probe_mode(sources: &[std::path::PathBuf], out: &Path, rounds: usize, ena
             }
         }
     }
+    index.persist_library()?;
     let report = json!({"enabled":enabled,"index":index.report(),"opportunities":opportunities,"cells":reports});
     std::fs::write(out.join("convergence.json"), serde_json::to_vec_pretty(&report)?)?;
     Ok(report)
@@ -184,6 +185,7 @@ pub(super) fn run_observed(
         let contract = serde_json::to_string(&json!({"rulesets":rulesets,"registered_rules":c.rules.iter().map(|r|r.rule.to_string()).collect::<Vec<_>>(),"pending_injections":[],"boundary":"completed sweep or initial setup"}))?;
         let mut tracker = None;
         let mut packet_updates = 0usize;
+        let mut packet_boundaries=vec![json!({"round":0,"end":0})];
         let mut packet_seconds = 0.;
         let mut snapshot_exports = 0usize;
         let mut audit_exports = 0usize;
@@ -243,6 +245,7 @@ pub(super) fn run_observed(
                     }
                 }
             }
+            packet_boundaries.push(json!({"round":round,"end":tracker.as_ref().map(|t|t.packets.len()).unwrap_or(0)}));
             reuse = observe(round, &eg, &c, &tracker);
             let state = if !updated {
                 "Saturated"
@@ -280,9 +283,9 @@ pub(super) fn run_observed(
             let donor=reuse.completion;
             let prior_round=reuse.hit["prior_round"].as_u64().unwrap() as usize;
             let donor_start=donor.report["execution_boundaries"].as_array().and_then(|bs|bs.iter().filter(|b|b["round"].as_u64().unwrap_or(0)<=prior_round as u64).last()).and_then(|b|b["end"].as_u64()).unwrap_or(0);
-            shared_continuation=Some(json!({"kind":"shared_ripen_continuation","hit":reuse.hit,"donor_interface":reuse.interface,"current_interface":tracker.as_ref().map(|t|t.graph.snapshot()),"donor_excluded_matches":donor.report["ripen"]["excluded_matches"],"donor_record_start":donor_start,"donor_record_end":donor.report["imported_applies"],"donor_boundaries":donor.report["execution_boundaries"],"donor_tier1":donor.report["tier1"],"donor_source":donor.report["source_text"],"semantics":"donor evidence referenced, not executed again; hit value_map relates intermediate interfaces"}));
-            eg=donor.engine;
-            shared_state=Some(donor.state);
+            shared_continuation=Some(json!({"kind":"shared_ripen_continuation","library":convergence.as_ref().and_then(|i|i.library_file()),"hit":reuse.hit,"donor_interface":reuse.interface,"current_interface":tracker.as_ref().map(|t|t.graph.snapshot()),"evidence_id":donor.evidence_id,"packet_suffix":reuse.packet_suffix,"donor_record_start":donor_start,"donor_record_end":donor.report["imported_applies"],"semantics":"shared library evidence; packet variable IDs are scoped by evidence_id; hit.value_map maps current to donor intermediate values"}));
+            eg=donor.engine.clone();
+            shared_state=Some(donor.state.clone());
             for _ in 0..skipped {for rs in &rulesets {schedule+=&format!("(run {} 1)\n",rs);}}
             let f=RipenFeedback{origin:origin.clone(),state:"Saturated".into(),round:native_rounds+skipped,max_rounds,rulesets:rulesets.clone(),updated:false,excluded_matches:c.rejected,scope:"whole isolated positive cell; saturation reused through verified intermediate isomorphism; skipped applications are shared donor evidence".into()};
             c.boundaries.push(CaptureBoundary{kind:"shared-continuation".into(),round:Some(f.round),end:c.records.len(),ripen:Some(f.clone())});
@@ -345,7 +348,7 @@ pub(super) fn run_observed(
         // Tier1 is the actual importer/Use builder, populated during every sweep.
         let mut tier1=c.layers.report();
         tier1["shared_continuation"]=json!(shared_continuation);
-        let report = json!({"execution_boundaries":c.boundaries,"native_rounds":native_rounds,"ripen":feedback,"checks":if saturated{"passed"}else{"deferred"},
+        let report = json!({"packet_boundaries":packet_boundaries,"execution_boundaries":c.boundaries,"native_rounds":native_rounds,"ripen":feedback,"checks":if saturated{"passed"}else{"deferred"},
             "checks_count":checks.len(),"rules":c.rules.iter().map(|r|r.rule.to_string()).collect::<Vec<_>>(),
             "source":source,"source_text":text,"events":c.events,"imported_applies":c.records.len(),
             "saturated_rule_composition":state_export,"tables":table_sizes(&eg, &c.datatype)?,"tier1":tier1,"round_manifest":if artifacts {Some("rounds/manifest.json")}else{None},
@@ -354,7 +357,9 @@ pub(super) fn run_observed(
         // Do not cache reused results recursively: donor evidence stays one hop.
         if reuse_enabled && skipped==0 && saturated && tracker.is_some() {
             if let (Some(index),Some(state))=(convergence.as_deref_mut(),completed_state) {
-                index.finish(&out.display().to_string(),&eg,state,report.clone());
+                let t=tracker.as_mut().unwrap();
+                let space=t.graph.binding_space();
+                index.finish_packets(&out.display().to_string(),&eg,state,report.clone(),std::mem::take(&mut t.packets),space);
             }
         }
         Ok(report)

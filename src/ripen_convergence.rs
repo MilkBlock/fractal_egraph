@@ -129,7 +129,9 @@ pub struct Stats {
 }
 pub struct Index {
     entries: HashMap<(u64, u64), Entry>,
-    completed: HashMap<String, Completion>,
+    completed: HashMap<String, std::sync::Arc<Completion>>,
+    pub library: crate::packet_library::Library,
+    library_path: Option<std::path::PathBuf>,
     pub stats: Stats,
     capacity: usize,
     budget: usize,
@@ -139,9 +141,12 @@ pub struct Completion {
     pub engine: egglog::EGraph,
     pub state: State,
     pub report: Value,
+    pub evidence_id: usize,
+    pub packet_root: Option<usize>,
 }
 pub struct Reuse {
-    pub completion: Completion,
+    pub completion: std::sync::Arc<Completion>,
+    pub packet_suffix: Option<usize>,
     pub interface: State,
     pub hit: Value,
     pub remaining: usize,
@@ -151,6 +156,8 @@ impl Index {
         Self {
             entries: HashMap::new(),
             completed: HashMap::new(),
+            library: Default::default(),
+            library_path: None,
             stats: Stats::default(),
             capacity,
             budget,
@@ -228,24 +235,61 @@ impl Index {
         }
         json!({"status":"miss"})
     }
+    pub fn with_library_path(mut self, path: std::path::PathBuf) -> Self {
+        self.library_path = Some(if path.is_absolute() {
+            path
+        } else {
+            std::env::current_dir().unwrap().join(path)
+        });
+        self
+    }
+    pub fn library_file(&self) -> Option<String> {
+        self.library_path.as_ref().map(|p| p.display().to_string())
+    }
+    pub fn persist_library(&self) -> crate::pipeline::Result<()> {
+        if let Some(path) = &self.library_path {
+            let tmp = path.with_extension("json.partial");
+            let mut writer = std::io::BufWriter::new(std::fs::File::create(&tmp)?);
+            serde_json::to_writer(&mut writer, &self.library)?;
+            std::io::Write::flush(&mut writer)?;
+            drop(writer);
+            std::fs::rename(tmp, path)?;
+        }
+        Ok(())
+    }
     pub fn finish(&mut self, run: &str, engine: &egglog::EGraph, state: State, report: Value) {
-        // Fixed retention cap, no candidate selection or pair enumeration.
+        self.finish_packets(run, engine, state, report, vec![], Value::Null)
+    }
+    pub fn finish_packets(
+        &mut self,
+        run: &str,
+        engine: &egglog::EGraph,
+        state: State,
+        report: Value,
+        packets: Vec<crate::packet_library::Packet>,
+        binding_space: Value,
+    ) {
         if self.completed.len() < 64 {
+            let packet_root = self.library.build(packets);
+            let evidence_id = self.library.evidence.len();
+            self.library.evidence.push(json!({"source":report["source_text"],"tier1":report["tier1"],"boundaries":report["execution_boundaries"],"packet_boundaries":report["packet_boundaries"],"packet_root":packet_root,"binding_space":binding_space,"excluded_matches":report["ripen"]["excluded_matches"],"semantics":"committed-effect evidence; not an executable parameterized macro"}));
             self.completed.insert(
                 run.into(),
-                Completion {
+                std::sync::Arc::new(Completion {
                     engine: engine.clone(),
                     state,
                     report,
-                },
+                    evidence_id,
+                    packet_root,
+                }),
             );
         }
     }
-    pub fn continuation(&self, hit: &Value, available: usize) -> Option<Reuse> {
+    pub fn continuation(&mut self, hit: &Value, available: usize) -> Option<Reuse> {
         if hit["status"] != "verified" {
             return None;
         }
-        let c = self.completed.get(hit["prior_run"].as_str()?)?;
+        let c = self.completed.get(hit["prior_run"].as_str()?)?.clone();
         let end = c.report["ripen"]["round"].as_u64()? as usize;
         let remaining = end.checked_sub(hit["prior_round"].as_u64()? as usize)?;
         if remaining == 0 || remaining > available {
@@ -258,7 +302,23 @@ impl Index {
         {
             return None;
         }
+        let start = c.report["packet_boundaries"]
+            .as_array()
+            .and_then(|bs| {
+                bs.iter()
+                    .filter(|b| {
+                        b["round"].as_u64().unwrap_or(0) <= hit["prior_round"].as_u64().unwrap()
+                    })
+                    .last()
+            })
+            .and_then(|b| b["end"].as_u64())
+            .unwrap_or(0) as usize;
+        let packet_suffix = c.packet_root.and_then(|root| {
+            self.library
+                .slice(root, start, self.library.nodes[root].len)
+        });
         Some(Reuse {
+            packet_suffix,
             interface: entry.state.clone(),
             completion: c.clone(),
             hit: hit.clone(),
@@ -266,7 +326,7 @@ impl Index {
         })
     }
     pub fn report(&self) -> Value {
-        json!({"stats":self.stats,"entries":self.entries.len(),"completed_continuations":self.completed.len(),"capacity":self.capacity,"mode":"verified completed-continuation reuse; native prefixes retained"})
+        json!({"library":self.library.summary(),"library_file":self.library_path,"stats":self.stats,"entries":self.entries.len(),"completed_continuations":self.completed.len(),"capacity":self.capacity,"mode":"verified completed-continuation reuse; native prefixes retained"})
     }
 }
 
@@ -418,6 +478,9 @@ impl Packets {
         for r in affected {
             self.ensure(r);
         }
+    }
+    pub fn binding_space(&self) -> Value {
+        json!({"values":self.values,"union_parents":self.parent,"ports":self.ports,"scope":"packet variable IDs local to this evidence object"})
     }
     pub fn snapshot(&self) -> State {
         let mut ids = vec![0; self.values.len()];

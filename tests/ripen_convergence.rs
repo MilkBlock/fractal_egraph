@@ -98,6 +98,19 @@ fn native_intermediate_states_converge_before_saturation() {
     );
     assert_eq!(report["cells"][1]["imported_applies"], 0);
     assert!(report["cells"][1]["tier1"]["shared_continuation"].is_object());
+    let link = &report["cells"][1]["tier1"]["shared_continuation"];
+    assert!(link.get("donor_tier1").is_none());
+    let library: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(link["library"].as_str().unwrap()).unwrap()).unwrap();
+    let evidence = &library["evidence"][link["evidence_id"].as_u64().unwrap() as usize];
+    assert!(evidence["tier1"].is_object());
+    assert!(
+        library["nodes"][link["packet_suffix"].as_u64().unwrap() as usize]["len"]
+            .as_u64()
+            .unwrap()
+            > 0
+    );
+
     let baseline =
         egg_layout::native_analyze::ripen::probe_mode(&sources, &out.join("baseline"), 8, false)
             .unwrap();

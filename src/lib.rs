@@ -25,3 +25,5 @@ pub mod use_fractals;
 pub mod closure_contract;
 
 pub mod ripen_convergence;
+
+pub mod packet_library;

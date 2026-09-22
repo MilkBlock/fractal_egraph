@@ -177,10 +177,11 @@ meeting. The donor prefix remains available to explain dependencies at the cut.
 This is an explicit shared evidence edge, not a flattened list of newly executed
 applications. Downstream code that wants expanded events must traverse that edge;
 we do not rewrite the existing LayerStore's event IDs or native provenance IDs.
-Donor evidence is embedded so deleting temporary pipeline work folders cannot
-break the link. Reused results are not cached recursively, keeping it one hop.
-The full donor evidence is currently copied into reports, and native engines are
-cloned: this is not yet a minimum-memory representation.
+Donor evidence is stored in the run-level `continuations.json`, outside temporary
+pipeline work folders. Each shared edge names its library, evidence ID, packet
+suffix root and intermediate binding map. Reused results are not cached recursively, keeping it one hop.
+The full donor evidence is stored once per retained donor; native engines are
+still cloned. This is not yet a minimum-memory native execution representation.
 
 `native_rounds` counts real current sweeps; `ripen.round` includes the certified
 suffix. `convergence.actual_rounds_skipped` reports the difference. The boundary
@@ -204,3 +205,28 @@ fixed-point confirmation. The chain skips real generating sweeps as well.
 Validation covers exact final-body equivalence against independent native execution,
 standalone replay, no fabricated prefix applications, current failing checks,
 remaining-budget admission, packet collisions/visibility, and both pipeline tests.
+
+
+## Shared packet library (Ant-inspired)
+
+`continuations.json` (version 1) contains `templates`, immutable `nodes`, and
+`evidence`. Apply nodes reference a normalized effect template and an explicit
+binding vector; Concat nodes contain only child IDs and cached length/hash/power.
+Repeated fragments are hash-consed with exact key equality. Completed donors build
+their packet trees with binary carries, and a meeting creates a shared suffix slice.
+Construction currently happens when a donor finishes; this is not yet online
+semantic shortcut learning before saturation.
+
+`tier1.shared_continuation` no longer embeds `donor_tier1`, donor source, or donor
+boundaries. Resolve its `evidence_id` in the named library, and interpret Apply
+binding IDs in that evidence's `binding_space`. `donor_record_start/end` refer to
+imported application records, while the packet slice uses separately recorded
+`packet_boundaries`; these are intentionally different coordinate systems.
+The library is persisted after a probe batch and after each analysis boundary.
+
+```sh
+cargo test --release --offline --test packet_library --test ripen_convergence
+```
+
+See [ant-reference.md](ant-reference.md) for pinned implementation references,
+upstream differences, correctness boundaries, and measured structural examples.

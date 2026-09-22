@@ -7,6 +7,7 @@ use crate::{
 use std::collections::HashMap;
 pub(super) struct Tracker {
     pub graph: Packets,
+    pub packets: Vec<crate::packet_library::Packet>,
     ids: HashMap<(String, Value), usize>,
     equality: String,
 }
@@ -23,6 +24,7 @@ impl Tracker {
         }
         let mut t = Self {
             graph: Packets::new(s),
+            packets:vec![],
             ids: HashMap::new(),
             equality: c.datatype_name.clone(),
         };
@@ -92,12 +94,16 @@ impl Tracker {
     }
     pub fn apply(&mut self, eg: &EGraph, trace: &TraceSession) -> Result<usize> {
         let before = self.graph.changes;
+        use crate::packet_library::{Effect,Packet};
+        let rules:HashMap<_,_>=trace.matches().into_iter().map(|m|(m.event_id,m.rule.to_string())).collect();
+        let mut packets:BTreeMap<u64,Vec<(u64,Effect)>>=BTreeMap::new();
         let eq = self.equality.clone();
         let unions = trace.union_events();
         for u in &unions {
             if u.displaced.is_some() {
                 let a = self.value(eg, &eq, u.lhs)?;
                 let b = self.value(eg, &eq, u.rhs)?;
+                packets.entry(u.match_event_id).or_default().push((u.event_id,Effect::Equate(a,b)));
                 self.graph.union(a, b);
                 let canonical = self.value(eg, &eq, u.canonical)?;
                 self.graph.union(a, canonical);
@@ -135,11 +141,16 @@ impl Tracker {
                 values.push(self.value(eg, ty, *v)?);
             }
             let result = values.pop().ok_or("empty write")?;
+            packets.entry(w.match_event_id).or_default().push((w.event_id,Effect::Ensure{op:name.to_string(),args:values.clone(),result}));
             self.graph.ensure(Row {
                 op: name.to_string(),
                 args: values,
                 result,
             });
+        }
+        for (id,mut effects) in packets {
+            effects.sort_by_key(|(event,_)|*event);
+            self.packets.push(Packet::normalize(rules.get(&id).cloned().unwrap_or_else(||"native-rebuild".into()),effects.into_iter().map(|(_,e)|e).collect()));
         }
         Ok(self.graph.changes - before)
     }
