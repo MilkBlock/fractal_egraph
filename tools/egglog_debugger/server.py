@@ -48,6 +48,32 @@ def prune_runs(keep=RUN_LIMIT):
         pass
 
 
+# The example list is a build artifact of ../egglog-demo, which tracks upstream egglog main.
+# This repository pins a pristine egg-smol baseline plus local instrumentation, so several
+# upstream examples (scheduler DSL, Rational) do not even parse here. Merge in the
+# repository's own fixtures, which are known to run on this kernel and, importantly, to
+# produce shared SaturatedRuleComposition states.
+LOCAL_EXAMPLES = ROOT / 'tools' / 'egglog_debugger' / 'local-examples.json'
+
+
+def merged_examples(demo: Path):
+    examples = {}
+    for base in (demo / 'static', demo / 'dist'):
+        path = base / 'examples.json'
+        if path.is_file():
+            examples = json.loads(path.read_text())
+            break
+    try:
+        local = json.loads(LOCAL_EXAMPLES.read_text())
+    except (OSError, ValueError):
+        return examples
+    for name, relative in local.items():
+        source = ROOT / relative
+        if source.is_file():
+            examples[name] = source.read_text()
+    return examples
+
+
 class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         match = re.fullmatch(r'/api/runs/([0-9a-f]{32})/rounds/(round-[0-9]+\.(?:layers\.dot|fractals\.dot|coverage\.dot|reuse\.dot|use_fractals\.dot|saturated_rule_composition\.dot|json)|manifest\.json)', urlsplit(self.path).path)
@@ -58,6 +84,8 @@ class Handler(SimpleHTTPRequestHandler):
             return self.reply(200,file.read_bytes(),'text/vnd.graphviz; charset=utf-8' if file.suffix=='.dot' else 'application/json')
         if self.path.split('?')[0] == '/plugin-overlay.js':
             return self.reply(200, self.server.renderer.overlay, 'text/javascript')
+        if self.path.split('?')[0] == '/examples.json':
+            return self.reply(200, merged_examples(self.server.demo))
         return super().do_GET()
 
     def do_OPTIONS(self):

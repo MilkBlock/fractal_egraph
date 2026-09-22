@@ -1,0 +1,21 @@
+; A minimal relation-bearing program that does saturate.
+;
+; Two rules over a small datatype, with a relation declared outside it and used in a rule
+; head. The repeated seeds make the same two-rule combination recur, so the reuse layer forms
+; Uses and the ripen queue has something to saturate: this produced 6 shared states where the
+; larger egg math demo produces none.
+;
+; Kept small so the whole pipeline finishes in seconds.
+(datatype Expr (Num i64) (Add Expr Expr) (Seed i64))
+(relation Marked (Expr))
+(rule ((= s (Seed n))) ((Add (Num n) (Num n))))
+(rule ((= e (Add a b))) ((Marked e)))
+(Seed 1)
+(Seed 2)
+(Seed 3)
+(Seed 4)
+(Seed 5)
+(Seed 6)
+(Seed 7)
+(Seed 8)
+(run 3)

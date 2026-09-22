@@ -1,0 +1,6 @@
+{
+  "math-microbenchmark": "egglog/tests/math-microbenchmark.egg",
+  "math-microbenchmark-annotated": "experiments/annotated_export/math_microbenchmark/source.egg",
+  "recursive-cs": "experiments/closed_storage/recursive-cs.egg",
+  "relation-table": "tests/fixtures/ripen_relation.egg"
+}
