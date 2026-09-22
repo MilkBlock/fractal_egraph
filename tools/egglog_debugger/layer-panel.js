@@ -14,7 +14,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
       <div id="native-layer-viewport"></div><pre id="native-layer-error"></pre>
       <details><summary>返回 binding、条件与 effect 证据</summary><pre id="native-layer-details"></pre></details>
       <details><summary>当前 Typst / DOT 源码</summary><pre id="native-layer-code"></pre></details>`;
-    const catalogPanel=document.createElement('section');catalogPanel.hidden=true;catalogPanel.innerHTML=`<p>Saturated rule composition · 每轮处理进度与共享闭包</p><input hidden id="native-saturated-rule-composition-path" placeholder="out/ 中的 saturated-rule-composition-catalog 目录"><button hidden id="native-saturated-rule-composition-load">载入共享目录</button><select id="native-saturated-rule-composition" aria-label="共享闭包"><option value="">全部概览</option></select><select id="native-saturated-rule-composition-comb" aria-label="对应组合"><option value="">所有对应组合</option></select><select id="native-saturated-rule-composition-instance" aria-label="触发实例"><option value="">示例实例</option></select><select id="native-saturated-rule-composition-diagram" aria-label="SaturatedRuleComposition 图类型"><option value="comb">来源 rule comb</option><option value="cs">CSCS / CCSS 引用组合</option><option value="egraph">闭包 e-graph</option><option value="layers">来源 Coarse / Smooth layer</option></select><div id="native-saturated-rule-composition-caption"></div><div id="native-saturated-rule-composition-status"></div><div id="native-saturated-rule-composition-coverage"></div><div id="native-saturated-rule-composition-table"></div><div id="native-saturated-rule-composition-view"></div><pre id="native-saturated-rule-composition-rule" style="white-space:pre-wrap"></pre><pre id="native-saturated-rule-composition-details"></pre>`;panel.append(catalogPanel);
+    const catalogPanel=document.createElement('section');catalogPanel.hidden=true;catalogPanel.innerHTML=`<p>Saturated rule composition · 每轮处理进度与共享闭包</p><input hidden id="native-saturated-rule-composition-path" placeholder="out/ 中的 saturated-rule-composition-catalog 目录"><button hidden id="native-saturated-rule-composition-load">载入共享目录</button><select id="native-saturated-rule-composition" aria-label="共享闭包"><option value="">全部概览</option></select><select id="native-saturated-rule-composition-comb" aria-label="对应组合"><option value="">所有对应组合</option></select><select id="native-saturated-rule-composition-instance" aria-label="触发实例"><option value="">示例实例</option></select><select id="native-saturated-rule-composition-diagram" aria-label="SaturatedRuleComposition 图类型"><option value="comb">来源 rule comb</option><option value="cs">CSCS / CCSS 引用组合</option><option value="egraph">闭包 e-graph</option><option value="layers">来源 Coarse / Smooth layer</option><option value="body">合并前 / 合并后 body</option></select><div id="native-saturated-rule-composition-caption"></div><div id="native-saturated-rule-composition-status"></div><div id="native-saturated-rule-composition-coverage"></div><div id="native-saturated-rule-composition-table"></div><div id="native-saturated-rule-composition-view"></div><pre id="native-saturated-rule-composition-rule" style="white-space:pre-wrap"></pre><pre id="native-saturated-rule-composition-details"></pre>`;panel.append(catalogPanel);
     const cp=id=>catalogPanel.querySelector('#native-saturated-rule-composition'+(id==='state'?'':'-'+id));
     let catalogData=null,catalogVersion=0,catalogError=null,coverageContext=null;
     const NO_CATALOG='尚无 SaturatedRuleComposition 快照：请先「运行并识别」（它会自动跑有预算的 ripen 队列），或在目录框载入一次带 SaturatedRuleComposition 的运行目录（含 catalog/）。Pending / Suspended 不代表已闭合。';
@@ -114,6 +114,11 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
             lines.push('}');
             return {g:{nodes,edges:[]},source:lines.join('\n'),caption:`C${state} · ${data.values.filter(v=>v.literal===null).length} eclasses / ${data.rows.length} constructor rows；框内为同一 class 的 enodes。RipenInput 是符号边界参数，不是原始数据。${autoNote}`};
         }
+        return memberDiagram(autoNote);
+    }
+    // The members that were merged into one body: this is the "before" of the sharing step.
+    // Rebuilt from the recorded trigger, unlike the native graph the cell wrote.
+    function memberDiagram(autoNote){
         const trigger=selectedTrigger(),members=trigger?.binding_origin?.comb_members||[];
         const nodes=[],edges=[],groups=new Map();
         for(const m of members){
@@ -145,7 +150,37 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         cp('details').textContent=JSON.stringify({template:g.template,instances},null,2);
         cp('rule').textContent=(selectedTrigger()?.binding_origin?.comb_members||g.members).map(memberText).join('\n\n');
     }
+    // 合并前 / 合并后: the member graphs that were shared, beside the single native body the
+    // ripen cell wrote. The two panels come from different sources on purpose -- the left side
+    // is rebuilt from the recorded trigger, the right side is the untouched egglog export.
+    async function renderBody(){
+        // Same fallback as the per-state diagrams: the overview cannot pick one body.
+        let state=cp('state').value;
+        if(state===''&&catalogData.catalog.saturated_rule_compositions>0){state='0';cp('state').value=state;combOptions();}
+        if(state===''){cp('view').dataset.dot='';cp('caption').textContent='请先选择一个 SaturatedRuleComposition，再查看它的合并前后 body。';cp('view').replaceChildren();cp('view').dataset.ready='true';return;}
+        const before=memberDiagram('');
+        let body=null;
+        try{body=await (await post('saturated-rule-composition-body',{path:cp('path').value,state:Number(state)})).json();}
+        catch(error){cp('status').textContent=String(error);}
+        cp('view').dataset.dot=body?.dot||before.source||'';
+        cp('view').replaceChildren();
+        const panels=[['合并前 · 原始成员（按记录的触发实例重建）',before.source],['合并后 · 饱和 body（ripen 写出的原生 egglog e-graph）',body?.dot]];
+        for(const [label,src] of panels){
+            // mountSvg replaces its container's children, so the caption and the graph need
+            // separate hosts, and each panel needs its own.
+            const section=document.createElement('section');
+            const head=document.createElement('p');head.textContent=label;head.style.fontWeight='600';section.append(head);
+            const host=document.createElement('div');section.append(host);
+            cp('view').append(section);
+            if(!src){const note=document.createElement('p');note.textContent='（这个 cell 没有原生图产物：先载入目录，或用当前版本重新运行以生成 native-egraph.dot/svg。）';host.append(note);continue;}
+            try{const markup=await (await post('render',{kind:'dot',source:src})).text();mountSvg(markup,host);}
+            catch(error){const note=document.createElement('p');note.textContent='渲染失败：'+error;host.append(note);}
+        }
+        cp('caption').textContent=`C${state}：合并前 ${before.g.nodes.length} 个原始成员 → 合并后 1 个饱和 body${body?.cell?'（'+body.cell.split('/').slice(-1)[0]+'）':''}。左侧由记录的触发实例重建，右侧是 cell 的原生导出，两者不是同一份数据。`;
+        cp('view').dataset.ready='true';
+    }
     async function renderCatalog(){
+        if(catalogData?.catalog&&cp('diagram').value==='body'){catalogVersion++;await renderBody();return;}
         renderCoverage(cp('coverage'),ripenCoverage(catalogData?.catalog,coverageContext?.cs),id=>{cp('state').value=String(id);combOptions();renderCatalog();});
         const v=++catalogVersion,c=catalogData.catalog;cp('view').dataset.ready='false';cp('rule').textContent='';
         try{

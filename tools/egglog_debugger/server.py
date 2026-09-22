@@ -193,6 +193,33 @@ class Handler(SimpleHTTPRequestHandler):
                     if (queue.get('catalog') or {}).get('catalog', {}).get('triggers') == catalog.get('triggers'):
                         coverage_context = {'cs': queue.get('cs'), 'counts': queue.get('counts')}
                 return self.reply(200, {'catalog':catalog, 'dot':(folder / 'catalog.dot').read_text(), 'states':states, 'coverage_context':coverage_context})
+            if self.path == '/api/saturated-rule-composition-body':
+                # The body of one state: the native egglog graphs written by the ripen cell,
+                # plus its entry program. Never reconstructed -- these are the files ripen wrote.
+                folder = (ROOT / data['path']).resolve()
+                if not folder.is_relative_to(ROOT / 'out'):
+                    return self.reply(400, {'error':'请选择仓库 out/ 内的目录'})
+                if not (folder / 'catalog.json').is_file() and (folder / 'catalog/catalog.json').is_file():
+                    folder = (folder / 'catalog').resolve()
+                if not folder.is_relative_to(ROOT / 'out'):
+                    raise ValueError('Catalog must remain inside out/')
+                catalog = json.loads((folder / 'catalog.json').read_text())
+                state = int(data['state'])
+                trigger = next((t for t in catalog.get('triggers') or []
+                                if t.get('saturated_rule_composition') == state), None)
+                if trigger is None:
+                    return self.reply(404, {'error': f'C{state} 没有触发实例，无法定位 cell'})
+                cell = Path(trigger['source']).resolve()
+                if not cell.is_relative_to(ROOT / 'out'):
+                    raise ValueError('Cell must remain inside out/')
+                body = {'state':state, 'cell':str(cell), 'entry':None}
+                for key, name in (('entry','entry.egg'),('dot','native-egraph.dot'),
+                                  ('initial_dot','native-egraph-initial.dot'),
+                                  ('svg','native-egraph.svg'),
+                                  ('initial_svg','native-egraph-initial.svg')):
+                    path = cell / name
+                    body[key] = path.read_text() if path.is_file() else None
+                return self.reply(200, body)
             if self.path == '/api/layer-run':
                 folder = (ROOT / data['path']).resolve()
                 if not folder.is_relative_to(ROOT / 'out'):
