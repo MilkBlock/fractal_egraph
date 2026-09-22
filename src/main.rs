@@ -7,6 +7,7 @@ const HELP: &str = "egg_layout — native rule-combination analysis
   cargo run -- analyze --reuse-tier0
   cargo run -- analyze --recapture-tier0 --source PATH.egg --rounds 11 --output out/math11
   cargo run -- debug-patterns SOURCE.egg    Parse source ranges, Typst, and DOT
+  cargo run -- parse-check SOURCE.egg       Only parse; distinguishes missing syntax from preview limits
   cargo run -- debug-stream SOURCE.egg      Stream native events + default budgeted ripen
   cargo run -- saturated-rule-composition-compare A/saturated-rule-composition.json B/saturated-rule-composition.json [--budget N]
   cargo run -- saturated-rule-composition-catalog OUTPUT_DIR RIPEN_DIR... [--budget N]
@@ -53,6 +54,13 @@ fn main() -> Result {
                 "{}",
                 egg_layout::native_analyze::debug::patterns(&std::fs::read_to_string(&args[1])?)?
             );
+            Ok(())
+        }
+        Some("parse-check") if args.len() == 2 => {
+            let report = egg_layout::native_analyze::debug::parse_check(
+                &std::fs::read_to_string(&args[1])?,
+            )?;
+            println!("{report}");
             Ok(())
         }
         Some("debug-stream") if args.len() == 2 => {

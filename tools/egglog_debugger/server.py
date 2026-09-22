@@ -21,6 +21,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from plugin_renderer import PluginRenderer, default_plugin_root
 
 ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_DEMO = ROOT.parent / 'egglog-demo'
 # Every web run writes a fresh out/debugger/<uuid>/ tree, and a single round snapshot can
 # reach tens of MB (round JSON embeds the whole analysis). Nothing ever removed them, so the
 # directory grew to 14 GB and a run failed with ENOSPC. Keep a bounded number of the most
@@ -54,9 +55,11 @@ def prune_runs(keep=RUN_LIMIT):
 # repository's own fixtures, which are known to run on this kernel and, importantly, to
 # produce shared SaturatedRuleComposition states.
 LOCAL_EXAMPLES = ROOT / 'tools' / 'egglog_debugger' / 'local-examples.json'
+# Written by classify_examples.py: which examples the pinned kernel can actually parse.
+EXAMPLE_SUPPORT = ROOT / 'tools' / 'egglog_debugger' / 'example-support.json'
 
 
-def merged_examples(demo: Path):
+def merged_examples(demo: Path, supported_only: bool = True):
     examples = {}
     for base in (demo / 'static', demo / 'dist'):
         path = base / 'examples.json'
@@ -66,12 +69,24 @@ def merged_examples(demo: Path):
     try:
         local = json.loads(LOCAL_EXAMPLES.read_text())
     except (OSError, ValueError):
-        return examples
+        local = {}
     for name, relative in local.items():
         source = ROOT / relative
         if source.is_file():
             examples[name] = source.read_text()
-    return examples
+    if not supported_only:
+        return examples
+    # Hide what the pinned kernel cannot parse: offering an entry that is guaranteed to fail on
+    # 运行并识别 is worse than not offering it. Parsing is necessary, not sufficient -- it says
+    # nothing about whether a run will saturate.
+    try:
+        allowed = set(json.loads(EXAMPLE_SUPPORT.read_text()).get('supported') or [])
+    except (OSError, ValueError):
+        return examples
+    if not allowed:
+        return examples
+    allowed |= set(local)  # the repository's own fixtures are verified by construction
+    return {name: source for name, source in examples.items() if name in allowed}
 
 
 class Handler(SimpleHTTPRequestHandler):
@@ -85,7 +100,9 @@ class Handler(SimpleHTTPRequestHandler):
         if self.path.split('?')[0] == '/plugin-overlay.js':
             return self.reply(200, self.server.renderer.overlay, 'text/javascript')
         if self.path.split('?')[0] == '/examples.json':
-            return self.reply(200, merged_examples(self.server.demo))
+            # ?all=1 lists everything the demo ships, including what this kernel cannot parse.
+            every = 'all=1' in self.path
+            return self.reply(200, merged_examples(self.server.demo, not every))
         return super().do_GET()
 
     def do_OPTIONS(self):
@@ -328,7 +345,7 @@ class Handler(SimpleHTTPRequestHandler):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--demo', type=Path, default=ROOT.parent / 'egglog-demo')
+    parser.add_argument('--demo', type=Path, default=DEFAULT_DEMO)
     parser.add_argument('--port', type=int, default=8080)
     parser.add_argument('--binary', type=Path)
     parser.add_argument('--plugin', type=Path, default=default_plugin_root(ROOT))

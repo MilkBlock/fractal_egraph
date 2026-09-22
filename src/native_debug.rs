@@ -185,6 +185,16 @@ fn composition(c: &Captured, index: usize) -> Json {
     dot.push("}".into());
     json!({"typst":typst,"dot":dot.join("\n"),"source":source.join("\n"),"steps":steps.iter().map(|i|c.records[*i].id).collect::<Vec<_>>(),"step_details":details})
 }
+/// Answers only "can the pinned kernel parse this?", with no preview or analysis work.
+///
+/// `patterns` is not a usable substitute: it also builds a preview and therefore rejects
+/// subsuming rewrites, which parse and run fine. Callers that need to tell "this program uses
+/// syntax we do not have" apart from "we cannot preview this" must use this.
+pub fn parse_check(source: &str) -> Result<Json> {
+    let mut eg = EGraph::default();
+    let commands = eg.parse_program(None, source)?;
+    Ok(json!({"commands": commands.len()}))
+}
 /// Source ranges come from egglog's parser (including multi-line rules and Unicode).
 pub fn patterns(source: &str) -> Result<Json> {
     let mut eg = EGraph::default();
