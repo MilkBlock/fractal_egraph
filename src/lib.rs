@@ -27,3 +27,5 @@ pub mod closure_contract;
 pub mod ripen_convergence;
 
 pub mod packet_library;
+
+pub mod semantic_compose;

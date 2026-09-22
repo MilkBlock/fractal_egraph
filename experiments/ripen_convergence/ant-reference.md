@@ -30,8 +30,9 @@ data-structure ideas; no upstream source was copied or vendored.
 - [Dependency.ml](https://github.com/MarisaKirisame/ant/blob/3f698ae0668870bef6238bbd6e86d957c0e08647/lib/Dependency.ml):
   `compose_step` unifies the first destination with the second source, checks the
   program-counter boundary and reconstructs source/destination patterns.
-  Our Concat does NOT yet perform this semantic unification. It shares finite
-  effect evidence; the existing exact-state rendezvous remains the reuse proof.
+  Concat remains an immutable evidence node; the separate semantic-composition
+  pass now unifies supported typed constructor rewrites and preserves guards and
+  intermediate effects. Exact-state rendezvous remains the execution-reuse proof.
 
 ## Adaptation
 

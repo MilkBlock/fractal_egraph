@@ -271,8 +271,14 @@ impl Index {
     ) {
         if self.completed.len() < 64 {
             let packet_root = self.library.build(packets);
+            let semantic_ids = packet_root
+                .map(|root| {
+                    self.library
+                        .learn_semantics(root, report["source_text"].as_str().unwrap_or(""))
+                })
+                .unwrap_or_default();
             let evidence_id = self.library.evidence.len();
-            self.library.evidence.push(json!({"source":report["source_text"],"tier1":report["tier1"],"boundaries":report["execution_boundaries"],"packet_boundaries":report["packet_boundaries"],"packet_root":packet_root,"binding_space":binding_space,"excluded_matches":report["ripen"]["excluded_matches"],"semantics":"committed-effect evidence; not an executable parameterized macro"}));
+            self.library.evidence.push(json!({"source":report["source_text"],"tier1":report["tier1"],"boundaries":report["execution_boundaries"],"packet_boundaries":report["packet_boundaries"],"packet_root":packet_root,"semantic_compositions":semantic_ids,"binding_space":binding_space,"excluded_matches":report["ripen"]["excluded_matches"],"semantics":"committed-effect evidence; not an executable parameterized macro"}));
             self.completed.insert(
                 run.into(),
                 std::sync::Arc::new(Completion {
