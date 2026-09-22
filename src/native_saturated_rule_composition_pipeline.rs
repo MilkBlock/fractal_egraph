@@ -222,11 +222,10 @@ impl Pipeline {
                     if report["tier1"]["ripen"].is_object() {
                         report["tier1"]["ripen"]["origin"] = serde_json::to_value(&link)?;
                     }
-                    if previous.join("saturated-rule-composition.json").exists() {
-                        std::fs::copy(
-                            previous.join("saturated-rule-composition.json"),
-                            folder.join("saturated-rule-composition.json"),
-                        )?;
+                    for name in ["saturated-rule-composition.json", "native-egraph.dot", "native-egraph.svg"] {
+                        if previous.join(name).exists() {
+                            std::fs::copy(previous.join(name), folder.join(name))?;
+                        }
                     }
                     report["source"] = json!(folder.join("entry.egg"));
                     std::fs::write(folder.join("entry.egg"), &source)?;
@@ -246,11 +245,10 @@ impl Pipeline {
                         self.convergence.as_mut(),
                     )?;
                     ripen_seconds=ripen_started.elapsed().as_secs_f64();
-                    if folder.join("work/saturated-rule-composition.json").exists() {
-                        std::fs::rename(
-                            folder.join("work/saturated-rule-composition.json"),
-                            folder.join("saturated-rule-composition.json"),
-                        )?;
+                    for name in ["saturated-rule-composition.json", "native-egraph.dot", "native-egraph.svg"] {
+                        if folder.join(format!("work/{name}")).exists() {
+                            std::fs::rename(folder.join(format!("work/{name}")), folder.join(name))?;
+                        }
                     }
                     std::fs::write(folder.join("entry.egg"), &source)?;
                     // Only our fresh private cell workspace is discarded.

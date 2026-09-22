@@ -6,7 +6,7 @@ default-run = "egg_layout"
 autobins = false
 
 [dependencies]
-egglog = { path = "egglog", default-features = false }
+egglog = { path = "egglog", default-features = false, features = ["graphviz"] }
 serde_json = "1.0"
 serde = { version = "1", features = ["derive", "rc"] }
 rayon = "1"

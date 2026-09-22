@@ -218,7 +218,7 @@ pub(super) fn run_observed(
         let snapshot_mode = std::env::var_os("EGG_LAYOUT_RIPEN_SNAPSHOT_PROBE").is_some();
         if convergence.is_some() && !snapshot_mode {
             snapshot_exports += 1;
-            match export_state(setup.iter().find(|c|matches!(c,Command::Datatype{..})).unwrap(), &eg, &c, &port_values, symbolic_boundary) {
+            match export_state(setup.iter().find(|c|matches!(c,Command::Datatype{..})).unwrap(), &eg, &c, &port_values, symbolic_boundary, out) {
                 Ok(s) => match packets::Tracker::new(&eg,&c,&s,&port_values) {
                     Ok(t) => tracker=Some(t), Err(e)=>fallback_reasons.push(e.to_string())
                 }, Err(e)=>fallback_reasons.push(e.to_string())
@@ -235,7 +235,7 @@ pub(super) fn run_observed(
                     return reuse;
                 } else {
                     snapshot_exports+=1;
-                    match export_state(setup.iter().find(|c|matches!(c,Command::Datatype{..})).unwrap(),eg,c,&port_values,symbolic_boundary){
+                    match export_state(setup.iter().find(|c|matches!(c,Command::Datatype{..})).unwrap(),eg,c,&port_values,symbolic_boundary,&out){
                         Ok(s)=>convergence_events.push(index.observe(&out.display().to_string(),round,s,&contract,&mut fingerprint)),
                         Err(e)=>convergence_events.push(json!({"status":"unsupported","reason":e.to_string()}))
                     }
@@ -266,7 +266,7 @@ pub(super) fn run_observed(
             if std::env::var_os("EGG_LAYOUT_RIPEN_PACKET_AUDIT").is_some() {
                 if let Some(t)=&tracker {
                     audit_exports+=1;
-                    let actual=export_state(setup.iter().find(|c|matches!(c,Command::Datatype{..})).unwrap(),&eg,&c,&port_values,symbolic_boundary)?;
+                    let actual=export_state(setup.iter().find(|c|matches!(c,Command::Datatype{..})).unwrap(),&eg,&c,&port_values,symbolic_boundary,out)?;
                     let comparison=crate::saturated_rule_composition::compare(&t.graph.snapshot(),&actual,10000)?;
                     if !matches!(comparison,crate::saturated_rule_composition::Comparison::Equivalent{..}) {
                         return Err(format!("packet state diverged at round {round}: {comparison:?}").into());
@@ -363,6 +363,7 @@ pub(super) fn run_observed(
                 &c,
                 &port_values,
                 symbolic_boundary || origin.as_ref().is_some_and(|o| o.symbolic_boundary),
+                &out,
             )};
             match exported {
                 Ok(state) => {
@@ -390,7 +391,7 @@ pub(super) fn run_observed(
         let report = json!({"timings":{"initial_engine_seconds":create_seconds,"parse_normalize_seconds":parse_seconds,"setup_seconds":setup_seconds,"native_saturation_seconds":native_seconds,"trace_import_seconds":collect_seconds,"tier1_seconds":tier1_seconds,"checks_seconds":checks_seconds,"state_export_seconds":export_seconds,"table_stats_seconds":tables_seconds,"engine_creations":creations.0,"all_engine_creation_seconds":creations.1},"packet_boundaries":packet_boundaries,"execution_boundaries":c.boundaries,"native_rounds":native_rounds,"ripen":feedback,"checks":if saturated{"passed"}else{"deferred"},
             "checks_count":checks.len(),"rules":c.rules.iter().map(|r|r.rule.to_string()).collect::<Vec<_>>(),
             "source":source,"source_text":text,"events":c.events,"imported_applies":c.records.len(),
-            "saturated_rule_composition":state_export,"tables":tables,"tier1":tier1,"round_manifest":if artifacts {Some("rounds/manifest.json")}else{None},
+            "saturated_rule_composition":state_export,"native_egraph":if saturated {Some("native-egraph.dot")} else {None},"tables":tables,"tier1":tier1,"round_manifest":if artifacts {Some("rounds/manifest.json")}else{None},
             "history":if artifacts {Some("history.json")}else{None},"seconds":c.trace_seconds,"fractal_summaries_used":0,"convergence":{"events":convergence_events,"seconds":convergence_seconds,"actual_rounds_skipped":skipped,"packet_updates":packet_updates,"packet_seconds":packet_seconds,"snapshot_exports":snapshot_exports,"audit_exports":audit_exports,"fallback_reasons":fallback_reasons}});
         std::fs::write(out.join("ripen.json"), serde_json::to_vec_pretty(&report)?)?;
         // Do not cache reused results recursively: donor evidence stays one hop.
@@ -443,6 +444,7 @@ fn export_state(
     c: &Captured,
     ports: &[(String, egglog::ArcSort, Value)],
     symbolic: bool,
+    out: &Path,
 ) -> Result<crate::saturated_rule_composition::SaturatedRuleComposition> {
     use crate::saturated_rule_composition::{SaturatedRuleComposition, Row, Vertex};
     let Command::Datatype { name, variants, .. } = datatype else {
@@ -525,6 +527,13 @@ fn export_state(
     if !serialized.discarded_functions.is_empty() || !serialized.truncated_functions.is_empty() {
         return Err("truncated engine serialization".into());
     }
+    // Keep the graph produced by this exact native ripen EGraph. Downstream
+    // supplementary figures copy these files; they do not reconstruct a generic
+    // Node/Row carrier, so labels and e-class topology stay faithful to egglog.
+    // The root crate enables egglog's graphviz feature, so these calls use
+    // egraph-serialize's native DOT/SVG implementation directly.
+    serialized.egraph.to_dot_file(out.join("native-egraph.dot"))?;
+    serialized.egraph.to_svg_file(out.join("native-egraph.svg"))?;
     let literals: BTreeMap<_, _> = serialized
         .egraph
         .nodes
