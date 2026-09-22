@@ -1,6 +1,6 @@
 NAME = event-driven-hierarchical-rule-composition
 OUT = ../../out/paper-latex
-VERSION ?= v0.2.3
+VERSION ?= v0.2.4
 
 .PHONY: all native-egraph
 all: native-egraph
