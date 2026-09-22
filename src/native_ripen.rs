@@ -195,6 +195,13 @@ pub(super) fn run_observed(
     let mut exporter = layer_view::Exporter::default();
     std::fs::create_dir_all(out)?;
     std::fs::write(out.join("entry.egg"), &text)?;
+    // The cell as it arrives, before the saturation rounds run. Paired with native-egraph.dot,
+    // which is written at export (after the fixpoint), this is the before/after of the local
+    // ripen and both come from the same EGraph. Best effort: a missing figure must not fail a
+    // cell that would otherwise saturate.
+    if let Err(error) = write_native_graph(&eg, out, "native-egraph-initial") {
+        eprintln!("[ripen] initial graph export skipped: {error}");
+    }
     let started = Instant::now();
     let outcome = (|| -> Result<Json> {
         let mut native_seconds=0.;
@@ -438,6 +445,17 @@ fn table_sizes(eg: &EGraph, datatype: &str) -> Result<BTreeMap<String, usize>> {
 /// Opaque boundary values remain opaque. This is why the exported object can be
 /// compared across triggers without pretending that it recovered the complete
 /// original e-graph.
+/// Serialize one native EGraph exactly as the kernel sees it, no reconstruction.
+fn write_native_graph(eg: &EGraph, out: &Path, stem: &str) -> Result<()> {
+    let serialized = eg.serialize(egglog::SerializeConfig::default());
+    if !serialized.discarded_functions.is_empty() || !serialized.truncated_functions.is_empty() {
+        return Err("truncated engine serialization".into());
+    }
+    serialized.egraph.to_dot_file(out.join(format!("{stem}.dot")))?;
+    serialized.egraph.to_svg_file(out.join(format!("{stem}.svg")))?;
+    Ok(())
+}
+
 fn export_state(
     datatype: &Command,
     eg: &EGraph,
