@@ -819,3 +819,53 @@ node tools/egglog_debugger/test_ripen_coverage_browser.cjs
 The browser check covers per-round integration, clicking a bar, CSV download and
 direct catalog loading. Static build configuration includes the new module, but no
 published site is rebuilt or deployed for this change.
+
+### Default ripen workflow
+
+Native `analyze`, history replay, the local web Run action, and standalone
+`debug-stream SOURCE.egg` all schedule budgeted ripen automatically. For standalone
+debug streams, `EGG_LAYOUT_SATURATED_RULE_COMPOSITION_OUTPUT` now overrides the
+output location rather than enabling the feature. When absent, a fresh
+`out/debug-stream/<pid>-<timestamp>/` holds the source, queue, cells and catalog;
+its path is printed to stderr and included as `ripen_output_directory` in frames.
+This native default does not add filesystem ripen support to the wasm build.
+
+A new coarse-only CS version is queued even before tier0 has observed any smooth
+continuation: discovering those consequences is ripen's job. The local ripen's own
+trace still does not recursively spawn another ripen pipeline. CSCS/CCSS pairing
+conditions are unchanged. To prevent base units from starving compositions at
+admission, dependency queue slots are reserved as CSUnit 64 / CSCS 32 / CCSS 32,
+within the existing total dependency cap 128 and total queue cap 256. Discovery
+may retain more descriptors than these admission caps. Use-only and dependency-cone
+ablation modes remain available.
+
+Execution defaults remain 32 jobs total, 4 per boundary, 4 rounds per job, and
+250 ms checked between jobs. They are limits, not a promise that every candidate
+will finish; `Pending`, `Suspended`, `Rejected` and queue omissions remain visible.
+Existing `EGG_LAYOUT_RIPEN_*` settings override these budgets (jobs=0 is a no-execution
+baseline, though candidate discovery still runs). Intermediate convergence remains
+opt-in; the default workflow compares completed saturated bodies.
+
+The web panel defaults to Saturated rule composition / Ripen reuse statistics.
+Explicit `layer_kind` links and user-selected other views are preserved. Loading a
+run directory loads all rounds, not just its final catalog. Catalog-only directories
+still work via fallback. Zero-saturation snapshots show zero verified coverage and
+retain their actual Pending/Suspended progress instead of a generic reload hint.
+
+Current validation on math-microbenchmark at four tier0 rounds, default budgets:
+15 Saturated, 1 Rejected, 151 Pending; all 8 discovered CSCS candidates entered the
+queue (one rejected due to staged-injection requirements, seven pending). The chart
+reports 6 saturated bodies and 8/77 verified historical base CS layers. This changes
+admission relative to earlier timing experiments; do not compare those timings as
+an otherwise-identical ablation.
+
+This schedules and measures isolated ripen; it does NOT replace live tier0 nodes.
+A future cache application must preserve the trigger/interface, external obligations,
+all observable facts and unions. Catalog equality is not itself a tier0 replacement
+implementation.
+
+Default-mode validation also covers coarse-only admission, reserved CSCS slots
+under math candidate pressure, and standalone debug-stream without the output
+variable. Offline browser tests exercise the real panel and local API. The complete
+upstream demo shell still references external CodeMirror/D3 assets; blocking every
+external request prevents that shell from initializing independently of this change.

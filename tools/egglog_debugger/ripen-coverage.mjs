@@ -48,7 +48,7 @@ export function renderCoverage(host,d,onSelect){
  host.replaceChildren();const title=document.createElement('h3');title.textContent='Ripen Top 100 · CS layer 归一化覆盖';host.append(title);
  const note=document.createElement('p');host.append(note);
  if(d.status!=='ok'){note.textContent='缺少同次运行的 CS 描述，不能用 Trigger 数冒充 layer 覆盖率。';return;}
- const last=d.rows.at(-1);note.textContent=`已验证 ${d.verified_layers}/${d.known_layers} 个已记录 CS layer；Top ${d.rows.length} 累计 ${last?.cumulative||0}（${((last?.coverage||0)*100).toFixed(1)}%）。${d.not_verified_layers} 个尚未验证，不表示不等价。`;
+ const last=d.rows.at(-1);note.textContent=`已验证 ${d.verified_layers}/${d.known_layers} 个已记录 CS layer；Top ${d.rows.length} 累计 ${last?.cumulative||0}（${d.known_layers?((last?.coverage||0)*100).toFixed(1)+'%':'暂无分母'}）。${d.not_verified_layers} 个尚未验证，不表示不等价。`;
  const explanation=document.createElement('p');explanation.textContent='只计历史完整入口的精确饱和共享，不代表最新 layer 版本已饱和或 tier0 已压缩；同一 layer 的历史版本和重复 Trigger 去重。组合包含关系不计为判等，未归属基础 CS layer 的 Trigger：'+d.unattributed_triggers+'。柱上可点击查看对应饱和图。';host.append(explanation);
  const plot=document.createElement('div');plot.innerHTML=coverageSvg(d);host.append(plot);
  for(const g of plot.querySelectorAll('[data-state]')){g.style.cursor='pointer';g.onclick=()=>onSelect(Number(g.dataset.state));g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();g.onclick();}};}

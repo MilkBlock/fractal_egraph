@@ -237,14 +237,15 @@ pub fn stream_source(
     let mut seen = BTreeSet::new();
     let mut snapshot_count = 0;
     #[cfg(not(target_arch = "wasm32"))]
-    let mut saturated_rule_composition = std::env::var_os("EGG_LAYOUT_SATURATED_RULE_COMPOSITION_OUTPUT")
-        .map(|p| {
-            saturated_rule_composition_pipeline::Pipeline::new(
-                Path::new(&p),
-                Path::new(&p).join("source.egg").display().to_string(),
-            )
-        })
-        .transpose()?;
+    let ripen_output = std::env::var_os("EGG_LAYOUT_SATURATED_RULE_COMPOSITION_OUTPUT")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|| root.join("out/debug-stream").join(format!("{}-{}",std::process::id(),std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos())));
+    #[cfg(not(target_arch = "wasm32"))]
+    let mut saturated_rule_composition = Some(saturated_rule_composition_pipeline::Pipeline::new(
+        &ripen_output,ripen_output.join("source.egg").display().to_string(),
+    )?);
+    #[cfg(not(target_arch = "wasm32"))]
+    eprintln!("[ripen] default local saturation output: {}",ripen_output.display());
     let mut layer_analyzer = crate::layer_patterns::Analyzer::default();
     // rayon has no threads on wasm32-unknown-unknown; the pool only sizes the stack
     // natively, so the browser build runs the analysis inline.
@@ -424,6 +425,7 @@ pub fn stream_source(
                 )?;
                 #[cfg(not(target_arch = "wasm32"))]
                 if let Some(pipeline) = &mut saturated_rule_composition {
+                    frame["ripen_output_directory"] = json!(ripen_output);
                     frame["saturated_rule_composition"] = pipeline.step(c, &c.layers, snapshot_count)?;
                     if let Some(dot) = frame["saturated_rule_composition"]["catalog"]["dot"].as_str() {
                         frame["dots"]["saturated_rule_composition"] = json!(dot);

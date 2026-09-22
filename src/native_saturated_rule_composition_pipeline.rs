@@ -66,6 +66,10 @@ impl Pipeline {
             convergence: std::env::var_os("EGG_LAYOUT_RIPEN_CONVERGENCE").map(|_| crate::ripen_convergence::Index::new(4096, 10000).with_library_path(out.join("continuations.json"))),
         })
     }
+    fn dependency_queue_full(&self,kind:&str)->bool {
+        let quota=match kind {"CSUnit"=>64,"CSCS"|"CCSS"=>32,_=>128};
+        self.dependency_jobs>=128 || self.jobs.len()>=256 || self.jobs.iter().filter(|j|j["candidate_kind"]==kind).count()>=quota
+    }
     /// Process a bounded slice of pending candidates at one capture boundary.
     ///
     /// The time and job limits make the result operationally partial. `Pending`
@@ -126,7 +130,7 @@ impl Pipeline {
         }
         if self.dependencies && !self.cones {
             for (kind, id) in self.cs.discover(c, layers, boundary)? {
-                if self.dependency_jobs >= 128 || self.jobs.len() >= 256 {
+                if self.dependency_queue_full(&kind) {
                     self.omitted += 1;
                     continue;
                 }
@@ -303,7 +307,7 @@ impl Pipeline {
             self.jobs[i]["processed_boundary"] = json!(boundary);
             if self.dependencies && !self.cones {
                 for (kind, id) in self.cs.discover(c, layers, boundary)? {
-                    if self.dependency_jobs >= 128 || self.jobs.len() >= 256 {
+                    if self.dependency_queue_full(&kind) {
                         self.omitted += 1;
                         continue;
                     }
@@ -321,7 +325,7 @@ impl Pipeline {
         if let Some(index)=&self.convergence {index.persist_library()?;}
         let mut report = json!({"kind":"saturated_rule_composition_snapshot","boundary":boundary,"jobs":self.jobs,
             "cs":self.cs.report(),"counts":counts,"observed_uses":self.observed,"dependency_candidates":self.dependency_jobs,"not_queued":self.omitted,
-            "limits":{"jobs":self.total,"per_boundary":self.per_boundary,"rounds":self.rounds,"milliseconds_between_jobs":self.milliseconds,"queue_capacity":256},
+            "limits":{"jobs":self.total,"per_boundary":self.per_boundary,"rounds":self.rounds,"milliseconds_between_jobs":self.milliseconds,"queue_capacity":256,"dependency_slots":{"CSUnit":64,"CSCS":32,"CCSS":32}},
             "selection":"unattempted templates first; exact source plus validation required for cache reuse",
             "scope":"symbolic Use interface only; no tier0 replacement; budgets checked between jobs, not a hard per-rule time/memory limit",
             "convergence":self.convergence.as_ref().map(|i|i.report()),"catalog":null});

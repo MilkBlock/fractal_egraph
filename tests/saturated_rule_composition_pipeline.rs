@@ -149,3 +149,47 @@ fn budgets_preserve_pending_and_suspended_as_distinct_states() {
     assert!(!out.join("catalog").exists());
     fs::remove_dir_all(base).unwrap();
 }
+
+#[test]
+fn standalone_debug_stream_ripens_without_output_environment() {
+    let base=std::env::temp_dir().join(format!("default-ripen-{}",std::process::id()));
+    fs::create_dir_all(&base).unwrap();let src=source(&base);
+    let r=command().env_remove("EGG_LAYOUT_SATURATED_RULE_COMPOSITION_OUTPUT")
+        .env("EGG_LAYOUT_RIPEN_JOBS","8").arg("debug-stream").arg(src).output().unwrap();
+    assert!(r.status.success(),"{}",String::from_utf8_lossy(&r.stderr));
+    let frames:Vec<Value>=String::from_utf8(r.stdout).unwrap().lines().filter_map(|l|serde_json::from_str::<Value>(l).ok()).filter(|v|v.get("saturated_rule_composition").is_some()).collect();
+    let last=frames.last().expect("default ripen frames");
+    assert!(last["saturated_rule_composition"]["counts"]["Saturated"].as_u64().unwrap_or(0)>0);
+    let out=std::path::PathBuf::from(last["ripen_output_directory"].as_str().unwrap());
+    assert!(out.starts_with(Path::new(env!("CARGO_MANIFEST_DIR")).join("out/debug-stream")));
+    assert!(out.join("catalog/catalog.json").is_file());
+    fs::remove_dir_all(out).unwrap();fs::remove_dir_all(base).unwrap();
+}
+
+#[test]
+fn coarse_without_observed_smooth_is_ripened() {
+    let base=std::env::temp_dir().join(format!("coarse-first-ripen-{}",std::process::id()));fs::create_dir_all(&base).unwrap();
+    let src=base.join("input.egg");fs::write(&src,"(datatype E (V) (A E) (B E))\n(rewrite (A x) (B x))\n(A (V))\n(run 1)\n").unwrap();
+    let out=base.join("run");if out.exists(){fs::remove_dir_all(&out).unwrap();}
+    let r=command().env("EGG_LAYOUT_SATURATED_RULE_COMPOSITION_OUTPUT",&out).arg("debug-stream").arg(src).output().unwrap();assert!(r.status.success(),"{}",String::from_utf8_lossy(&r.stderr));
+    let q=read(out.join("saturated-rule-composition/queue.json"));
+    let job=q["jobs"].as_array().unwrap().iter().find(|j|j["candidate_kind"]=="CSUnit"&&j["state"]=="Saturated").expect("coarse entry should ripen before tier0 records smooth consequences");
+    let id=job["candidate_id"].as_u64().unwrap() as usize;assert!(q["cs"]["units"][id]["smooth"].as_array().unwrap().is_empty());
+    assert_eq!(q["limits"]["dependency_slots"]["CSCS"],32);
+    fs::remove_dir_all(base).unwrap();
+}
+
+#[test]
+fn cscs_has_reserved_admission_under_math_candidate_pressure() {
+    let base=std::env::temp_dir().join(format!("ripen-fair-admission-{}",std::process::id()));
+    if base.exists(){fs::remove_dir_all(&base).unwrap();}
+    let src=Path::new(env!("CARGO_MANIFEST_DIR")).join("egglog/tests/math-microbenchmark.egg");
+    let r=command().env("EGG_LAYOUT_RIPEN_JOBS","16").env("EGG_LAYOUT_RIPEN_PER_BOUNDARY","16")
+        .args(["analyze","--recapture-tier0","--source"]).arg(src).args(["--rounds","4","--output"]).arg(&base).output().unwrap();
+    assert!(r.status.success(),"{}",String::from_utf8_lossy(&r.stderr));
+    let q=read(base.join("saturated-rule-composition/queue.json"));let jobs=q["jobs"].as_array().unwrap();
+    assert_eq!(jobs.iter().filter(|j|j["candidate_kind"]=="CSUnit").count(),64);
+    assert!(jobs.iter().any(|j|j["candidate_kind"]=="CSCS"),"CSCS was starved before entering the queue");
+    assert!(jobs.iter().filter(|j|j["candidate_kind"]=="CCSS").count()<=32);
+    fs::remove_dir_all(base).unwrap();
+}

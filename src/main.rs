@@ -7,7 +7,7 @@ const HELP: &str = "egg_layout — native rule-combination analysis
   cargo run -- analyze --reuse-tier0
   cargo run -- analyze --recapture-tier0 --source PATH.egg --rounds 11 --output out/math11
   cargo run -- debug-patterns SOURCE.egg    Parse source ranges, Typst, and DOT
-  cargo run -- debug-stream SOURCE.egg      Stream native Compose / Fractal events
+  cargo run -- debug-stream SOURCE.egg      Stream native events + default budgeted ripen
   cargo run -- saturated-rule-composition-compare A/saturated-rule-composition.json B/saturated-rule-composition.json [--budget N]
   cargo run -- saturated-rule-composition-catalog OUTPUT_DIR RIPEN_DIR... [--budget N]
   cargo run -- ripen-diff LEFT.json RIGHT.json REPORT.json [ANCHORS.json]

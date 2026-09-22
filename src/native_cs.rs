@@ -189,9 +189,9 @@ impl Store {
             let id = self.units.len();
             self.versions.insert(key, id);
             self.units.push(unit);
-            if !self.units[id].smooth.is_empty() {
-                admitted.push(("CSUnit".into(), id));
-            }
+            // Ripen can discover smooth consequences; do not require that tier0
+            // has already witnessed a smooth continuation before scheduling it.
+            admitted.push(("CSUnit".into(), id));
             ready.push(id);
         }
         for id in ready {

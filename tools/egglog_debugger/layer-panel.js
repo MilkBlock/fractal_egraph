@@ -5,7 +5,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     const panel=document.createElement('details');panel.id='native-layer-panel';panel.open=true;
     panel.innerHTML=`<summary>Layer / FractalComb · 每轮 DOT</summary>
       <div><select id="native-layer-round" aria-label="Layer 轮次"></select>
-      <select id="native-layer-kind"><option value="fractals">FractalComb</option><option value="saturated_rule_composition">Saturated rule composition</option><option value="layers">Coarse / Smooth layers</option><option value="coverage">模板覆盖</option><option value="reuse">Use(T) / residual 复用</option><option value="use_fractals">Use(T) 递归候选</option></select>
+      <select id="native-layer-kind"><option value="saturated_rule_composition">Saturated rule composition · Ripen 复用统计</option><option value="fractals">FractalComb</option><option value="layers">Coarse / Smooth layers</option><option value="coverage">模板覆盖</option><option value="reuse">Use(T) / residual 复用</option><option value="use_fractals">Use(T) 递归候选</option></select>
       <select id="native-layer-scope" aria-label="Layer 或 Fractal"><option value="">全部</option></select>
       <select id="native-layer-format"><option value="dot">DOT / Graphviz</option><option value="typst">Typst / 现有 Fractal 模板</option></select>
       <button id="native-layer-render">显示</button><button id="native-layer-download">下载本轮 DOT</button></div>
@@ -208,7 +208,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     }
     function showSaturatedFrame(result){
         catalogVersion++;catalogData=result.catalog;coverageContext=result;
-        if(!catalogData)cp('coverage').replaceChildren();
+        if(!catalogData)renderCoverage(cp('coverage'),ripenCoverage({state_groups:[],triggers:[]},result.cs),()=>{});
         cp('state').replaceChildren(new Option('全部概览',''));
         cp('table').replaceChildren();cp('view').replaceChildren();cp('rule').textContent='';
         cp('details').textContent=JSON.stringify(result.jobs,null,2);
@@ -341,7 +341,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         $('code').textContent+=(rendered.typst||'')+'\n';
     }
     async function render(){
-        if($('kind').value==='saturated_rule_composition'){mode();if(catalogData)await renderCatalog();else if(!catalogError)cp('status').textContent=noSaturatedHint();return;}
+        if($('kind').value==='saturated_rule_composition'){mode();if(catalogData)await renderCatalog();else if(!catalogError&&!frame()?.saturated_rule_composition)cp('status').textContent=noSaturatedHint();return;}
         const f=frame();if(!f)return;pinned=true;
         abort?.abort();abort=new AbortController();const signal=abort.signal,v=++version;
         $('error').textContent='';$('viewport').replaceChildren();$('viewport').dataset.ready='false';$('code').textContent='';
@@ -406,7 +406,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         try {const data=await (await post('layer-run',{path})).json();reset();for(const f of data.frames)receive(f);if(data.saturated_rule_composition_catalog&&!data.frames.some(f=>f.saturated_rule_composition)){cp('path').value=data.saturated_rule_composition_catalog;await cp('load').onclick();}mode();}
         finally {controls.forEach(id=>$(id).disabled=false);}
     }
-    $('load').onclick=()=>{if($('kind').value==='saturated_rule_composition'){cp('path').value=$('directory').value;return cp('load').onclick();}return load($('directory').value).catch(e=>$('error').textContent=e.message);};
+    $('load').onclick=()=>{const path=$('directory').value;return load(path).catch(e=>{if($('kind').value==='saturated_rule_composition'){reset();$('directory').value=path;cp('path').value=path;mode();return cp('load').onclick();}$('error').textContent=e.message;});};
     $('source').onclick=()=>{if(frame())editor.setValue(frame().preview_source);};
     const initialKind=new URLSearchParams(location.search).get('layer_kind');if(['layers','fractals','coverage','reuse','use_fractals','saturated_rule_composition'].includes(initialKind))$('kind').value=initialKind;
     if(initialCatalog&&!new URLSearchParams(location.search).get('layer_run')){$('kind').value='saturated_rule_composition';$('directory').value=initialCatalog;cp('path').value=initialCatalog;cp('load').click();}mode();
