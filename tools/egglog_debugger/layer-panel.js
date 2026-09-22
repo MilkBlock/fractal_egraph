@@ -1,3 +1,4 @@
+import {ripenCoverage,renderCoverage} from './ripen-coverage.mjs';
 // Layer snapshots share the debugger's existing Typst plugin and Graphviz host.
 // No second SVG layout engine or independent visualization page.
 export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowserGenerator, editor, resolveRule}) {
@@ -13,9 +14,9 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
       <div id="native-layer-viewport"></div><pre id="native-layer-error"></pre>
       <details><summary>返回 binding、条件与 effect 证据</summary><pre id="native-layer-details"></pre></details>
       <details><summary>当前 Typst / DOT 源码</summary><pre id="native-layer-code"></pre></details>`;
-    const catalogPanel=document.createElement('section');catalogPanel.hidden=true;catalogPanel.innerHTML=`<p>Saturated rule composition · 每轮处理进度与共享闭包</p><input hidden id="native-saturated-rule-composition-path" placeholder="out/ 中的 saturated-rule-composition-catalog 目录"><button hidden id="native-saturated-rule-composition-load">载入共享目录</button><select id="native-saturated-rule-composition" aria-label="共享闭包"><option value="">全部概览</option></select><select id="native-saturated-rule-composition-comb" aria-label="对应组合"><option value="">所有对应组合</option></select><select id="native-saturated-rule-composition-instance" aria-label="触发实例"><option value="">示例实例</option></select><select id="native-saturated-rule-composition-diagram" aria-label="SaturatedRuleComposition 图类型"><option value="comb">来源 rule comb</option><option value="cs">CSCS / CCSS 引用组合</option><option value="egraph">闭包 e-graph</option><option value="layers">来源 Coarse / Smooth layer</option></select><div id="native-saturated-rule-composition-caption"></div><div id="native-saturated-rule-composition-status"></div><div id="native-saturated-rule-composition-table"></div><div id="native-saturated-rule-composition-view"></div><pre id="native-saturated-rule-composition-rule" style="white-space:pre-wrap"></pre><pre id="native-saturated-rule-composition-details"></pre>`;panel.append(catalogPanel);
+    const catalogPanel=document.createElement('section');catalogPanel.hidden=true;catalogPanel.innerHTML=`<p>Saturated rule composition · 每轮处理进度与共享闭包</p><input hidden id="native-saturated-rule-composition-path" placeholder="out/ 中的 saturated-rule-composition-catalog 目录"><button hidden id="native-saturated-rule-composition-load">载入共享目录</button><select id="native-saturated-rule-composition" aria-label="共享闭包"><option value="">全部概览</option></select><select id="native-saturated-rule-composition-comb" aria-label="对应组合"><option value="">所有对应组合</option></select><select id="native-saturated-rule-composition-instance" aria-label="触发实例"><option value="">示例实例</option></select><select id="native-saturated-rule-composition-diagram" aria-label="SaturatedRuleComposition 图类型"><option value="comb">来源 rule comb</option><option value="cs">CSCS / CCSS 引用组合</option><option value="egraph">闭包 e-graph</option><option value="layers">来源 Coarse / Smooth layer</option></select><div id="native-saturated-rule-composition-caption"></div><div id="native-saturated-rule-composition-status"></div><div id="native-saturated-rule-composition-coverage"></div><div id="native-saturated-rule-composition-table"></div><div id="native-saturated-rule-composition-view"></div><pre id="native-saturated-rule-composition-rule" style="white-space:pre-wrap"></pre><pre id="native-saturated-rule-composition-details"></pre>`;panel.append(catalogPanel);
     const cp=id=>catalogPanel.querySelector('#native-saturated-rule-composition'+(id==='state'?'':'-'+id));
-    let catalogData=null,catalogVersion=0,catalogError=null;
+    let catalogData=null,catalogVersion=0,catalogError=null,coverageContext=null;
     const NO_CATALOG='尚无 SaturatedRuleComposition 快照：请先「运行并识别」（它会自动跑有预算的 ripen 队列），或在目录框载入一次带 SaturatedRuleComposition 的运行目录（含 catalog/）。Pending / Suspended 不代表已闭合。';
     const STALE_SNAPSHOTS='该目录的每轮快照里没有 SaturatedRuleComposition 数据（生成于 SaturatedRuleComposition 管线接入之前）。请用当前版本重新 analyze，或用「运行并识别」重跑一次。';
     function catalogGraph(){
@@ -145,6 +146,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         cp('rule').textContent=(selectedTrigger()?.binding_origin?.comb_members||g.members).map(memberText).join('\n\n');
     }
     async function renderCatalog(){
+        renderCoverage(cp('coverage'),ripenCoverage(catalogData?.catalog,coverageContext?.cs),id=>{cp('state').value=String(id);combOptions();renderCatalog();});
         const v=++catalogVersion,c=catalogData.catalog;cp('view').dataset.ready='false';cp('rule').textContent='';
         try{
             let source=catalogData.dot,g=null;
@@ -168,9 +170,9 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     cp('state').onchange=()=>{if(catalogData){combOptions();renderCatalog();}};
     cp('comb').onchange=()=>{if(!catalogData)return;const id=cp('comb').value;if(id==='')renderCatalog();else focusComb(catalogData.catalog.comb_groups[Number(id)]);};
     cp('load').onclick=async()=>{
-        cp('load').disabled=true;cp('state').disabled=true;cp('comb').disabled=true;catalogVersion++;catalogData=null;catalogError=null;cp('table').replaceChildren();cp('view').replaceChildren();cp('rule').textContent='';cp('status').textContent='载入…';cp('details').textContent='';
+        cp('load').disabled=true;cp('state').disabled=true;cp('comb').disabled=true;catalogVersion++;catalogData=null;catalogError=null;coverageContext=null;cp('coverage').replaceChildren();cp('table').replaceChildren();cp('view').replaceChildren();cp('rule').textContent='';cp('status').textContent='载入…';cp('details').textContent='';
         try{
-            catalogData=await (await post('saturated-rule-composition-catalog',{path:cp('path').value})).json();const c=catalogData.catalog;
+            catalogData=await (await post('saturated-rule-composition-catalog',{path:cp('path').value})).json();const c=catalogData.catalog;coverageContext=catalogData.coverage_context||null;
             cp('state').replaceChildren(new Option('全部概览',''));
             for(let i=0;i<c.saturated_rule_compositions;i++)cp('state').add(new Option(`SaturatedRuleComposition C${i}`,String(i)));
             const requestedState=new URLSearchParams(location.search).get('saturated_rule_composition');
@@ -205,7 +207,8 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         if(saturated&&!catalogData&&!catalogError&&!frame()?.saturated_rule_composition)cp('status').textContent=noSaturatedHint();
     }
     function showSaturatedFrame(result){
-        catalogVersion++;catalogData=result.catalog;
+        catalogVersion++;catalogData=result.catalog;coverageContext=result;
+        if(!catalogData)cp('coverage').replaceChildren();
         cp('state').replaceChildren(new Option('全部概览',''));
         cp('table').replaceChildren();cp('view').replaceChildren();cp('rule').textContent='';
         cp('details').textContent=JSON.stringify(result.jobs,null,2);
@@ -225,7 +228,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
             if(top)cp('status').textContent+=` 最常见拒绝原因（${top[1]} 个）：${top[0].split('\n')[0].slice(0,200)}`;
         }
     }
-    function clearCatalog(){catalogVersion++;catalogData=null;cp('path').value='';for(const id of ['view','table','details','rule','caption'])cp(id).replaceChildren();cp('state').replaceChildren(new Option('全部概览',''));combOptions();}
+    function clearCatalog(){catalogVersion++;catalogData=null;coverageContext=null;cp('coverage').replaceChildren();cp('path').value='';for(const id of ['view','table','details','rule','caption'])cp(id).replaceChildren();cp('state').replaceChildren(new Option('全部概览',''));combOptions();}
 
     // A ?layer_run=... from a generated fractal.html link seeds the directory box and reloads
     // that directory on every refresh, so a stale path looked like a hardcoded default and no

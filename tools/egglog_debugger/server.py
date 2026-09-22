@@ -64,7 +64,7 @@ class Handler(SimpleHTTPRequestHandler):
         return self.reply(204, b'')
 
     def translate_path(self, path):
-        if path.split('?')[0] in ('/native-debugger.js', '/native-debugger.css', '/wasm-worker.js', '/layer-panel.js'):
+        if path.split('?')[0] in ('/native-debugger.js', '/native-debugger.css', '/wasm-worker.js', '/layer-panel.js', '/ripen-coverage.mjs'):
             return str(ROOT / 'tools/egglog_debugger' / path.split('?')[0][1:])
         # The browser bundle is a build artifact (see browser/build.mjs); the local
         # page imports it to generate a fractal lane's `.egg`, so serve it when it
@@ -130,7 +130,13 @@ class Handler(SimpleHTTPRequestHandler):
                 if catalog.get('schema') != 'saturated-rule-composition-catalog/v1':
                     raise ValueError('Unsupported saturated-rule-composition catalog')
                 states = [json.loads((folder / 'states' / f'state-{i:04}.json').read_text()) for i in range(catalog['saturated_rule_compositions'])]
-                return self.reply(200, {'catalog':catalog, 'dot':(folder / 'catalog.dot').read_text(), 'states':states})
+                queue_file = folder.parent / 'saturated-rule-composition/queue.json'
+                coverage_context = None
+                if queue_file.is_file():
+                    queue = json.loads(queue_file.read_text())
+                    if (queue.get('catalog') or {}).get('catalog', {}).get('triggers') == catalog.get('triggers'):
+                        coverage_context = {'cs': queue.get('cs'), 'counts': queue.get('counts')}
+                return self.reply(200, {'catalog':catalog, 'dot':(folder / 'catalog.dot').read_text(), 'states':states, 'coverage_context':coverage_context})
             if self.path == '/api/layer-run':
                 folder = (ROOT / data['path']).resolve()
                 if not folder.is_relative_to(ROOT / 'out'):

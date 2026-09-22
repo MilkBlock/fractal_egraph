@@ -761,3 +761,61 @@ it does not use the order-insensitive normalization of the pure positive fragmen
 Each saved composition proof includes its environment definition and native
 validation program, so a standalone catalog does not depend on a missing numeric
 environment reference from the round snapshot.
+
+### Ripen Top 100: exact CS-layer normalization coverage
+
+The Saturated rule composition panel now automatically plots the selected round's
+catalog, ranked by the number of distinct CS layer IDs with verified whole-entry
+saturation equality. Blue bars show per-body counts; the orange line shows the
+cumulative set union divided by all recorded base CS layer IDs. The diagram is
+independent of the individual-body selection; clicking a bar selects that body.
+SVG, CSV and evidence JSON downloads use the same metric implementation.
+
+Counting is intentionally conservative:
+
+- A base CS descriptor is a `cs.units` entry with no `source_composition`; historical
+  versions sharing its `coarse_layer` ID count once.
+- A catalog trigger contributes only when its COMPLETE member set equals a known
+  base CS descriptor's complete coarse+smooth member set.
+- CSCS/CCSS components do not inherit the combined body's equivalence merely
+  because they are contained in it. Unattributed triggers are reported separately.
+- Repeated triggers, cache hits and multiple matching versions do not multiply
+  a layer's contribution. Cumulative coverage deduplicates across bodies as well.
+- `distinct_entries` counts different entry source texts, helping distinguish
+  repeated identical entries from more interesting sharing. It is not a count of
+  semantically distinct programs.
+- This is a provenance-backed lower bound over historical verified entries, not
+  a fresh e-matching/containment scan of all layers. Unverified layers remain
+  unknown, and previously verified versions are not asserted current after union.
+- The denominator is the recorded base CS population, subject to existing discovery
+  budgets. It does not enumerate every possible CS composition or measure tier0
+  storage compression. With fewer than 100 saturated graphs, no artificial rows
+  are added; zero-attribution bodies remain visible with zero bars.
+
+Existing runs work without recapture when their queue/catalog contains CS units and
+member provenance. Direct catalog loading only attaches queue context when its
+trigger list agrees, preventing unrelated run-local IDs from being mixed.
+
+Standalone export from an existing run (fresh output directory):
+
+```sh
+node tools/egglog_debugger/export-ripen-coverage.mjs \
+  out/ripen-cost-profile/math4-5 out/ripen-top100
+```
+
+Produces `top100.svg`, `top100.csv`, and `top100.json`. For the measured math4 run,
+4 saturated bodies have counts 5, 2, 0, 0; 7 of 77 recorded base CS layer IDs are
+verified (9.1%). Seventy remain unverified; five triggers cannot be attributed to
+an entire base CS descriptor. This does not establish the absence of further sharing.
+
+Checks:
+
+```sh
+node tools/egglog_debugger/test_ripen_coverage.mjs
+# With the local debugger running and Playwright available:
+node tools/egglog_debugger/test_ripen_coverage_browser.cjs
+```
+
+The browser check covers per-round integration, clicking a bar, CSV download and
+direct catalog loading. Static build configuration includes the new module, but no
+published site is rebuilt or deployed for this change.
