@@ -10,6 +10,7 @@ const HELP: &str = "egg_layout — native rule-combination analysis
   cargo run -- debug-stream SOURCE.egg      Stream native Compose / Fractal events
   cargo run -- saturated-rule-composition-compare A/saturated-rule-composition.json B/saturated-rule-composition.json [--budget N]
   cargo run -- saturated-rule-composition-catalog OUTPUT_DIR RIPEN_DIR... [--budget N]
+  cargo run -- ripen-probe OUTPUT_DIR MAX_ROUNDS [--baseline] INPUT.egg...
   cargo run -- ripen INPUT.egg OUTPUT_DIR [--max-rounds N]
   cargo run -- ripen-use HISTORY.json USE_ID OUTPUT_DIR [--max-rounds N]
   cargo run -- bake-format OLD_LIBRARY NEW_LIBRARY.egg
@@ -186,6 +187,14 @@ fn main() -> Result {
                     "unresolved_comparisons":r["unresolved_comparisons"],"output":args[1]
                 }))?
             );
+            Ok(())
+        }
+        Some("ripen-probe") if args.len() >= 4 => {
+            let baseline = args[3] == "--baseline";
+            let sources = args[if baseline {4} else {3}..].iter().map(PathBuf::from).collect::<Vec<_>>();
+            if sources.is_empty() { return Err("ripen-probe needs an input".into()); }
+            let report = egg_layout::native_analyze::ripen::probe_mode(&sources, &PathBuf::from(&args[1]), args[2].parse()?, !baseline)?;
+            println!("{}", serde_json::to_string_pretty(&report["index"])?);
             Ok(())
         }
         Some("ripen-use") if args.len() == 4 || args.len() == 6 => {

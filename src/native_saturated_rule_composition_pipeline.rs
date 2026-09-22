@@ -30,6 +30,7 @@ pub(super) struct Pipeline {
     rounds: usize,
     milliseconds: usize,
     catalog_owned: bool,
+    convergence: Option<crate::ripen_convergence::Index>,
 }
 fn limit(name: &str, default: usize) -> Result<usize> {
     match std::env::var(name) {
@@ -60,6 +61,7 @@ impl Pipeline {
             rounds: limit("EGG_LAYOUT_RIPEN_ROUNDS", 4)?.max(1),
             milliseconds: limit("EGG_LAYOUT_RIPEN_MILLISECONDS", 250)?,
             catalog_owned: false,
+            convergence: std::env::var_os("EGG_LAYOUT_RIPEN_CONVERGENCE").map(|_| crate::ripen_convergence::Index::new(4096, 10000)),
         })
     }
     /// Process a bounded slice of pending candidates at one capture boundary.
@@ -223,13 +225,14 @@ impl Pipeline {
                     // history and per-cell DOT, but retains tier1 feedback.
                     let entry = self.out.join("saturated-rule-composition").join(format!("entry-{id:06}.egg"));
                     std::fs::write(&entry, &source)?;
-                    report = ripen::run_with_origin(
+                    report = ripen::run_observed(
                         &entry,
                         &folder.join("work"),
                         self.rounds,
                         link,
                         false,
                         true,
+                        self.convergence.as_mut(),
                     )?;
                     if folder.join("work/saturated-rule-composition.json").exists() {
                         std::fs::rename(
@@ -306,7 +309,7 @@ impl Pipeline {
             "limits":{"jobs":self.total,"per_boundary":self.per_boundary,"rounds":self.rounds,"milliseconds_between_jobs":self.milliseconds,"queue_capacity":256},
             "selection":"unattempted templates first; exact source plus validation required for cache reuse",
             "scope":"symbolic Use interface only; no tier0 replacement; budgets checked between jobs, not a hard per-rule time/memory limit",
-            "catalog":null});
+            "convergence":self.convergence.as_ref().map(|i|i.report()),"catalog":null});
         if !self.saturated_rule_compositions.is_empty() {
             let dir = self.out.join("catalog");
             if self.catalog_owned {

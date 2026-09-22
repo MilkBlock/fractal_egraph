@@ -1,0 +1,58 @@
+{
+  "scope": "native isolated ripen observer, no execution skipped",
+  "repeats": 5,
+  "cases": {
+    "chain": {
+      "baseline_ripen_ms_median": 0.33683300000000005,
+      "observed_ripen_ms_median": 2.9917089999999997,
+      "index": {
+        "capacity": 4096,
+        "entries": 4,
+        "mode": "observer; native execution and history retained",
+        "stats": {
+          "capacity_misses": 0,
+          "changed_contributions": 42,
+          "collisions_or_unknown": 0,
+          "comparison_seconds": 9.075e-05,
+          "hash_hits": 4,
+          "signature_seconds": 7.353899999999999e-05,
+          "snapshots": 9,
+          "verified_hits": 4
+        }
+      },
+      "first_hit_rounds": [
+        0
+      ],
+      "remaining_observed_rounds": [
+        3
+      ],
+      "actual_rounds_skipped": 0
+    },
+    "math_ac": {
+      "baseline_ripen_ms_median": 1.073583,
+      "observed_ripen_ms_median": 4.569542,
+      "index": {
+        "capacity": 4096,
+        "entries": 7,
+        "mode": "observer; native execution and history retained",
+        "stats": {
+          "capacity_misses": 0,
+          "changed_contributions": 256,
+          "collisions_or_unknown": 0,
+          "comparison_seconds": 0.000235084,
+          "hash_hits": 2,
+          "signature_seconds": 0.00014420900000000001,
+          "snapshots": 10,
+          "verified_hits": 2
+        }
+      },
+      "first_hit_rounds": [
+        3
+      ],
+      "remaining_observed_rounds": [
+        1
+      ],
+      "actual_rounds_skipped": 0
+    }
+  }
+}

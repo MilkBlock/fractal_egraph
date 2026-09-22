@@ -35,6 +35,42 @@ pub(super) fn run_with_origin(
     artifacts: bool,
     symbolic_boundary: bool,
 ) -> Result<Json> {
+    run_observed(source, out, max_rounds, origin, artifacts, symbolic_boundary, None)
+}
+
+/// Measure cross-cell intermediate convergence without discarding native history.
+pub fn probe(sources: &[std::path::PathBuf], out: &Path, rounds: usize) -> Result<Json> {
+    probe_mode(sources, out, rounds, true)
+}
+
+pub fn probe_mode(sources: &[std::path::PathBuf], out: &Path, rounds: usize, enabled: bool) -> Result<Json> {
+    if out.exists() { return Err("probe output already exists".into()); }
+    std::fs::create_dir_all(out)?;
+    let mut index = crate::ripen_convergence::Index::new(4096, 10000);
+    let mut reports = vec![];
+    for (i, source) in sources.iter().enumerate() {
+        reports.push(run_observed(source, &out.join(format!("cell-{i}")), rounds, None, false, false, if enabled { Some(&mut index) } else { None })?);
+    }
+    let mut opportunities = vec![];
+    for (i,r) in reports.iter().enumerate() {
+        if let Some(events) = r["convergence"]["events"].as_array() {
+            if let Some(hit) = events.iter().find(|e| e["status"] == "verified") {
+                let round = hit["round"].as_u64().unwrap();
+                let total = r["ripen"]["round"].as_u64().unwrap();
+                opportunities.push(json!({"cell":i,"first_hit":hit,"remaining_observed_rounds":total.saturating_sub(round)}));
+            }
+        }
+    }
+    let report = json!({"enabled":enabled,"index":index.report(),"opportunities":opportunities,"cells":reports});
+    std::fs::write(out.join("convergence.json"), serde_json::to_vec_pretty(&report)?)?;
+    Ok(report)
+}
+
+pub(super) fn run_observed(
+    source: &Path, out: &Path, max_rounds: usize, origin: Option<RipenOrigin>,
+    artifacts: bool, symbolic_boundary: bool,
+    mut convergence: Option<&mut crate::ripen_convergence::Index>,
+) -> Result<Json> {
     if max_rounds == 0 {
         return Err("ripen max-rounds must be positive".into());
     }
@@ -134,6 +170,22 @@ pub(super) fn run_with_origin(
     let outcome = (|| -> Result<Json> {
         let mut schedule = String::new();
         let mut feedback = None;
+        let mut convergence_events = vec![];
+        let mut fingerprint = crate::ripen_convergence::Fingerprint::default();
+        let mut convergence_seconds = 0.;
+        // Whole isolated cells have no pending staged injections. Compare at sweep boundaries.
+        let contract = serde_json::to_string(&json!({"rulesets":rulesets,"pending_injections":[],"boundary":"completed sweep or initial setup"}))?;
+        let mut observe = |round: usize, eg: &EGraph, c: &Captured| {
+            if let Some(index) = convergence.as_deref_mut() {
+                let start = Instant::now();
+                match export_state(setup.iter().find(|c| matches!(c,Command::Datatype{..})).unwrap(), eg, c, &port_values, symbolic_boundary) {
+                    Ok(state) => convergence_events.push(index.observe(&out.display().to_string(), round, state, &contract, &mut fingerprint)),
+                    Err(e) => convergence_events.push(json!({"status":"unsupported","reason":e.to_string()})),
+                }
+                convergence_seconds += start.elapsed().as_secs_f64();
+            }
+        };
+        observe(0, &eg, &c);
         for round in 1..=max_rounds {
             let mut updated = false;
             for ruleset in &rulesets {
@@ -141,6 +193,7 @@ pub(super) fn run_with_origin(
                 schedule += &format!("(run {} 1)\n", ruleset);
                 collect(&eg, &trace, &mut c, &mut producers)?;
             }
+            observe(round, &eg, &c);
             let state = if !updated {
                 "Saturated"
             } else if round == max_rounds {
@@ -221,7 +274,7 @@ pub(super) fn run_with_origin(
             "checks_count":checks.len(),"rules":c.rules.iter().map(|r|r.rule.to_string()).collect::<Vec<_>>(),
             "source":source,"source_text":text,"events":c.events,"imported_applies":c.records.len(),
             "saturated_rule_composition":state_export,"tables":table_sizes(&eg, &c.datatype)?,"tier1":c.layers.report(),"round_manifest":if artifacts {Some("rounds/manifest.json")}else{None},
-            "history":if artifacts {Some("history.json")}else{None},"seconds":c.trace_seconds,"fractal_summaries_used":0});
+            "history":if artifacts {Some("history.json")}else{None},"seconds":c.trace_seconds,"fractal_summaries_used":0,"convergence":{"events":convergence_events,"seconds":convergence_seconds,"actual_rounds_skipped":0}});
         std::fs::write(out.join("ripen.json"), serde_json::to_vec_pretty(&report)?)?;
         Ok(report)
     })();

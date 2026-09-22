@@ -1,0 +1,9 @@
+; Add-AC fragment from egglog/tests/web-demo/math.egg; no unrelated constructors.
+(datatype Math (Var String) (Add Math Math))
+(rewrite (Add a (Add b c)) (Add (Add a b) c) :name "assoc")
+(rewrite (Add a b) (Add b a) :name "comm")
+(let a (Var "a"))
+(let b (Var "b"))
+(let c (Var "c"))
+(let root (Add (Add a b) c))
+(check (= root (Add c (Add b a))))

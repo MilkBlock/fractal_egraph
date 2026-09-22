@@ -1,0 +1,7 @@
+(datatype T (A) (B) (C) (D))
+(rewrite (A) (B) :name "ab")
+(rewrite (B) (C) :name "bc")
+(rewrite (C) (D) :name "cd")
+(let root (A))
+(union root (B))
+(check (= root (D)))
