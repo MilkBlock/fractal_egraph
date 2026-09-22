@@ -1004,11 +1004,12 @@ selects the top $N$ rows, and writes one SVG and DOT file per body.
 The exporter reads the canonical state file
 \path{catalog/states/state-NNNN.json} to select the top bodies, then copies
 \path{native-egraph.dot} and \path{native-egraph.svg} written by the actual
-ripen EGraph at its export point. No Node/Row carrier is reconstructed. The
-manifest records the trigger directory, catalog state, coverage rank, and native
-artifact names. These files are visualization evidence of the completed local
-run, not a new execution, a tier0 substitution, or a proof that the body can be
-injected into a live e-graph.
+ripen EGraph at its export point. If an older run predates native artifact
+export, it reruns that cell's recorded \path{entry.egg} in a temporary output
+directory and records \path{regenerated_native_artifact} in the manifest. No
+Node/Row carrier is reconstructed. These files are visualization evidence of
+the completed local run, not a tier0 substitution or a proof that the body can
+be injected into a live e-graph.
 
 The checked default math4 supplement contains top bodies C0, C1, and C4. Its
 manifest records body sizes, layer coverage, source state files, generated DOT,

@@ -13,7 +13,8 @@ Each `.dot` and `.svg` was written from the actual isolated ripen `EGraph`
 through `egraph_serialize`. The `.pdf` is Graphviz's direct rendering of the
 same DOT file for inclusion in LaTeX. These are actual egglog runtime graphs,
 not a standalone visualization prototype and not a `Node`/`Row` encoding of
-the catalog state.
+the catalog state. For older runs, the exporter reruns the recorded `entry.egg`
+in a temporary directory when the native files are absent.
 
 The selected entry programs came from:
 
