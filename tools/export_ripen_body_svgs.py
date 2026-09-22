@@ -75,8 +75,9 @@ def materialize_native(source,max_rounds):
 
 def main():
  a=parse_args(); cat,queue,cov=load(a.run)
- if a.out.exists(): raise SystemExit(f'output already exists: {a.out}')
- a.out.mkdir(parents=True)
+ if a.out.exists() and (a.out/'manifest.json').is_file():
+  raise SystemExit(f'output already exists: {a.out}')
+ a.out.mkdir(parents=True,exist_ok=True)
  entries=[]
  for rank,(sid,meta) in enumerate(choose(cat,cov,a.top_n),1):
   source,t=trigger_source(cat,sid)
