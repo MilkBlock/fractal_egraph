@@ -12,12 +12,13 @@ p.add_argument('--repeats', type=int, default=5)
 a = p.parse_args()
 a.output.mkdir(parents=True, exist_ok=False)
 root = pathlib.Path(__file__).resolve().parents[2]
-summary = {'scope': 'native isolated ripen observer, no execution skipped', 'repeats': a.repeats, 'cases': {}}
+summary = {'scope': 'native isolated ripen; baseline, snapshot, packets-only, completed-continuation reuse', 'repeats': a.repeats, 'cases': {}}
 for case, files in [('chain', ['a', 'b']), ('math_ac', ['math-right', 'math-left'])]:
-    modes = {'baseline': [], 'snapshot': [], 'packets': []}
+    modes = {'baseline': [], 'snapshot': [], 'packets': [], 'reuse': []}
     details = {}
+    cell_times = {mode: [] for mode in modes}
     for repeat in range(a.repeats):
-        for mode in (['baseline','snapshot','packets'] if repeat % 2 == 0 else ['packets','snapshot','baseline']):
+        for mode in (['baseline','snapshot','packets','reuse'] if repeat % 2 == 0 else ['reuse','packets','snapshot','baseline']):
             dest = a.output / f'{case}-{repeat}-{mode}'
             cmd = [str(root/'target/release/egg_layout'), 'ripen-probe', str(dest), '12']
             if mode == 'baseline':
@@ -26,6 +27,9 @@ for case, files in [('chain', ['a', 'b']), ('math_ac', ['math-right', 'math-left
             env = dict(os.environ)
             env.pop('EGG_LAYOUT_RIPEN_PACKET_AUDIT', None)
             env.pop('EGG_LAYOUT_RIPEN_SNAPSHOT_PROBE', None)
+            env.pop('EGG_LAYOUT_RIPEN_OBSERVE_ONLY', None)
+            if mode != 'reuse':
+                env['EGG_LAYOUT_RIPEN_OBSERVE_ONLY'] = '1'
             if mode == 'snapshot':
                 env['EGG_LAYOUT_RIPEN_SNAPSHOT_PROBE'] = '1'
             result = subprocess.run(cmd, cwd=root, capture_output=True, text=True, env=env)
@@ -33,18 +37,21 @@ for case, files in [('chain', ['a', 'b']), ('math_ac', ['math-right', 'math-left
                 raise RuntimeError(result.stderr)
             data = json.loads((dest/'convergence.json').read_text())
             assert all(c['checks'] == 'passed' for c in data['cells'])
+            cell_times[mode].append(sum(c['cell_seconds'] for c in data['cells']))
             modes[mode].append(sum(c['seconds'] for c in data['cells']))
             details[mode] = data
-    detail = details['packets']
+    detail = details['reuse']
     summary['cases'][case] = {
         'ripen_ms_median': {mode: statistics.median(times)*1000 for mode,times in modes.items()},
         'index': detail['index'],
+        'total_cell_ms_median': {mode:statistics.median(ts)*1000 for mode,ts in cell_times.items()},
         'first_hit_rounds': [o['first_hit']['round'] for o in detail['opportunities']],
         'remaining_observed_rounds': [o['remaining_observed_rounds'] for o in detail['opportunities']],
         'snapshot_exports': {mode: sum(c['convergence']['snapshot_exports'] for c in d['cells']) for mode,d in details.items()},
         'packet_updates': sum(c['convergence']['packet_updates'] for c in detail['cells']),
         'fallback_reasons': [c['convergence']['fallback_reasons'] for c in detail['cells']],
-        'actual_rounds_skipped': 0,
+        'actual_rounds_skipped': sum(c['convergence']['actual_rounds_skipped'] for c in detail['cells']),
+        'native_rounds': {mode: sum(c['native_rounds'] for c in d['cells']) for mode,d in details.items()},
     }
 (a.output/'summary.json').write_text(json.dumps(summary, indent=2)+'\n')
 print(json.dumps(summary, indent=2))

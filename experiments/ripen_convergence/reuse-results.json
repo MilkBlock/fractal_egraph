@@ -1,0 +1,114 @@
+{
+  "scope": "native isolated ripen; baseline, snapshot, packets-only, completed-continuation reuse",
+  "repeats": 5,
+  "cases": {
+    "chain": {
+      "ripen_ms_median": {
+        "baseline": 0.302125,
+        "snapshot": 2.835916,
+        "packets": 1.535874,
+        "reuse": 1.68275
+      },
+      "index": {
+        "capacity": 4096,
+        "completed_continuations": 1,
+        "entries": 4,
+        "mode": "verified completed-continuation reuse; native prefixes retained",
+        "stats": {
+          "capacity_misses": 0,
+          "changed_contributions": 0,
+          "collisions_or_unknown": 0,
+          "comparison_seconds": 2.5083e-05,
+          "hash_hits": 1,
+          "signature_seconds": 0.0,
+          "snapshots": 6,
+          "verified_hits": 1
+        }
+      },
+      "total_cell_ms_median": {
+        "baseline": 4.169709,
+        "snapshot": 6.552251,
+        "packets": 5.521667,
+        "reuse": 5.35125
+      },
+      "first_hit_rounds": [
+        0
+      ],
+      "remaining_observed_rounds": [
+        3
+      ],
+      "snapshot_exports": {
+        "baseline": 0,
+        "snapshot": 9,
+        "packets": 2,
+        "reuse": 2
+      },
+      "packet_updates": 3,
+      "fallback_reasons": [
+        [],
+        []
+      ],
+      "actual_rounds_skipped": 3,
+      "native_rounds": {
+        "baseline": 7,
+        "snapshot": 7,
+        "packets": 7,
+        "reuse": 4
+      }
+    },
+    "math_ac": {
+      "ripen_ms_median": {
+        "baseline": 1.124375,
+        "snapshot": 5.064792000000001,
+        "packets": 2.776125,
+        "reuse": 2.9917089999999997
+      },
+      "index": {
+        "capacity": 4096,
+        "completed_continuations": 1,
+        "entries": 7,
+        "mode": "verified completed-continuation reuse; native prefixes retained",
+        "stats": {
+          "capacity_misses": 0,
+          "changed_contributions": 0,
+          "collisions_or_unknown": 0,
+          "comparison_seconds": 0.000137,
+          "hash_hits": 1,
+          "signature_seconds": 0.0,
+          "snapshots": 9,
+          "verified_hits": 1
+        }
+      },
+      "total_cell_ms_median": {
+        "baseline": 6.817042000000001,
+        "snapshot": 10.969834,
+        "packets": 8.773750999999999,
+        "reuse": 8.543707000000001
+      },
+      "first_hit_rounds": [
+        3
+      ],
+      "remaining_observed_rounds": [
+        1
+      ],
+      "snapshot_exports": {
+        "baseline": 0,
+        "snapshot": 10,
+        "packets": 2,
+        "reuse": 2
+      },
+      "packet_updates": 24,
+      "fallback_reasons": [
+        [],
+        []
+      ],
+      "actual_rounds_skipped": 1,
+      "native_rounds": {
+        "baseline": 8,
+        "snapshot": 8,
+        "packets": 8,
+        "reuse": 7
+      }
+    }
+  }
+}

@@ -90,8 +90,39 @@ fn native_intermediate_states_converge_before_saturation() {
     );
     for c in report["cells"].as_array().unwrap() {
         assert_eq!(c["checks"], "passed");
-        assert_eq!(c["convergence"]["actual_rounds_skipped"], 0);
     }
+    assert_eq!(report["cells"][1]["native_rounds"], 0);
+    assert_eq!(
+        report["cells"][1]["convergence"]["actual_rounds_skipped"],
+        3
+    );
+    assert_eq!(report["cells"][1]["imported_applies"], 0);
+    assert!(report["cells"][1]["tier1"]["shared_continuation"].is_object());
+    let baseline =
+        egg_layout::native_analyze::ripen::probe_mode(&sources, &out.join("baseline"), 8, false)
+            .unwrap();
+    for i in 0..2 {
+        assert_eq!(report["cells"][i]["tables"], baseline["cells"][i]["tables"]);
+    }
+    let mut replay = egglog::EGraph::default();
+    replay
+        .parse_and_run_program(
+            None,
+            &std::fs::read_to_string(out.join("cell-1/ripened.egg")).unwrap(),
+        )
+        .unwrap();
+    let shared = egg_layout::saturated_rule_composition::read(
+        &out.join("cell-1/saturated-rule-composition.json"),
+    )
+    .unwrap();
+    let plain = egg_layout::saturated_rule_composition::read(
+        &out.join("baseline/cell-1/saturated-rule-composition.json"),
+    )
+    .unwrap();
+    assert!(matches!(
+        egg_layout::saturated_rule_composition::compare(&shared, &plain, 10000).unwrap(),
+        egg_layout::saturated_rule_composition::Comparison::Equivalent { .. }
+    ));
 }
 
 #[test]
@@ -188,4 +219,59 @@ fn native_packets_match_export_and_subsume_falls_back() {
             .unwrap()
             .is_empty()
     );
+}
+
+#[test]
+fn reused_engine_runs_current_checks() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let out = root.join(format!(
+        "out/reuse-negative-{}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::create_dir_all(&out).unwrap();
+    for (name, bad) in [("a", false), ("b", true)] {
+        let mut s =
+            std::fs::read_to_string(root.join(format!("experiments/ripen_convergence/{name}.egg")))
+                .unwrap()
+                .replace(
+                    "(datatype T (A) (B) (C) (D))",
+                    "(datatype T (A) (B) (C) (D) (Z))",
+                );
+        if bad {
+            s.push_str("(check (= root (Z)))\n");
+        }
+        std::fs::write(out.join(format!("{name}.egg")), s).unwrap();
+    }
+    assert!(
+        egg_layout::native_analyze::ripen::probe(
+            &[out.join("a.egg"), out.join("b.egg")],
+            &out.join("run"),
+            8
+        )
+        .is_err()
+    );
+    let report: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(out.join("run/cell-1/ripen.json")).unwrap()).unwrap();
+    assert_eq!(report["state"], "Failed");
+}
+
+#[test]
+fn continuation_respects_remaining_budget() {
+    use egg_layout::ripen_convergence::Packets;
+    let s = cycle(false);
+    let p = Packets::new(&s);
+    let mut index = Index::new(8, 10000);
+    index.observe_packets("donor", 1, &p, "contract");
+    index.finish(
+        "donor",
+        &egglog::EGraph::default(),
+        s,
+        json!({"ripen":{"state":"Saturated","round":5}}),
+    );
+    let hit = index.observe_packets("current", 0, &p, "contract");
+    assert!(index.continuation(&hit, 3).is_none());
+    assert_eq!(index.continuation(&hit, 4).unwrap().remaining, 4);
 }

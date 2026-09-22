@@ -129,14 +129,28 @@ pub struct Stats {
 }
 pub struct Index {
     entries: HashMap<(u64, u64), Entry>,
+    completed: HashMap<String, Completion>,
     pub stats: Stats,
     capacity: usize,
     budget: usize,
+}
+#[derive(Clone)]
+pub struct Completion {
+    pub engine: egglog::EGraph,
+    pub state: State,
+    pub report: Value,
+}
+pub struct Reuse {
+    pub completion: Completion,
+    pub interface: State,
+    pub hit: Value,
+    pub remaining: usize,
 }
 impl Index {
     pub fn new(capacity: usize, budget: usize) -> Self {
         Self {
             entries: HashMap::new(),
+            completed: HashMap::new(),
             stats: Stats::default(),
             capacity,
             budget,
@@ -193,7 +207,7 @@ impl Index {
             self.stats.comparison_seconds += started.elapsed().as_secs_f64();
             if let Ok(Comparison::Equivalent { value_map, .. }) = comparison {
                 self.stats.verified_hits += 1;
-                return json!({"status":"verified","run":run,"round":round,"prior_run":old.run,"prior_round":old.round,"value_map":value_map});
+                return json!({"key":[key.0,key.1],"status":"verified","run":run,"round":round,"prior_run":old.run,"prior_round":old.round,"value_map":value_map});
             }
             self.stats.collisions_or_unknown += 1;
             // No bucket scan or representative selection. Collisions lose recall.
@@ -214,8 +228,45 @@ impl Index {
         }
         json!({"status":"miss"})
     }
+    pub fn finish(&mut self, run: &str, engine: &egglog::EGraph, state: State, report: Value) {
+        // Fixed retention cap, no candidate selection or pair enumeration.
+        if self.completed.len() < 64 {
+            self.completed.insert(
+                run.into(),
+                Completion {
+                    engine: engine.clone(),
+                    state,
+                    report,
+                },
+            );
+        }
+    }
+    pub fn continuation(&self, hit: &Value, available: usize) -> Option<Reuse> {
+        if hit["status"] != "verified" {
+            return None;
+        }
+        let c = self.completed.get(hit["prior_run"].as_str()?)?;
+        let end = c.report["ripen"]["round"].as_u64()? as usize;
+        let remaining = end.checked_sub(hit["prior_round"].as_u64()? as usize)?;
+        if remaining == 0 || remaining > available {
+            return None;
+        }
+        let key = (hit["key"][0].as_u64()?, hit["key"][1].as_u64()?);
+        let entry = self.entries.get(&key)?;
+        if entry.run != hit["prior_run"].as_str()?
+            || entry.round != hit["prior_round"].as_u64()? as usize
+        {
+            return None;
+        }
+        Some(Reuse {
+            interface: entry.state.clone(),
+            completion: c.clone(),
+            hit: hit.clone(),
+            remaining,
+        })
+    }
     pub fn report(&self) -> Value {
-        json!({"stats":self.stats,"entries":self.entries.len(),"capacity":self.capacity,"mode":"observer; native execution and history retained"})
+        json!({"stats":self.stats,"entries":self.entries.len(),"completed_continuations":self.completed.len(),"capacity":self.capacity,"mode":"verified completed-continuation reuse; native prefixes retained"})
     }
 }
 

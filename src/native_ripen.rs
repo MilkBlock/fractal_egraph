@@ -51,7 +51,12 @@ pub fn probe_mode(sources: &[std::path::PathBuf], out: &Path, rounds: usize, ena
     let mut index = crate::ripen_convergence::Index::new(4096, 10000);
     let mut reports = vec![];
     for (i, source) in sources.iter().enumerate() {
-        reports.push(run_observed(source, &out.join(format!("cell-{i}")), rounds, None, false, false, if enabled { Some(&mut index) } else { None })?);
+        let cell_started=Instant::now();
+        let folder=out.join(format!("cell-{i}"));
+        let mut report=run_observed(source, &folder, rounds, None, false, false, if enabled { Some(&mut index) } else { None })?;
+        report["cell_seconds"]=json!(cell_started.elapsed().as_secs_f64());
+        std::fs::write(folder.join("ripen.json"),serde_json::to_vec_pretty(&report)?)?;
+        reports.push(report);
     }
     let mut opportunities = vec![];
     for (i,r) in reports.iter().enumerate() {
@@ -176,13 +181,14 @@ pub(super) fn run_observed(
         let mut fingerprint = crate::ripen_convergence::Fingerprint::default();
         let mut convergence_seconds = 0.;
         // Whole isolated cells have no pending staged injections. Compare at sweep boundaries.
-        let contract = serde_json::to_string(&json!({"rulesets":rulesets,"pending_injections":[],"boundary":"completed sweep or initial setup"}))?;
+        let contract = serde_json::to_string(&json!({"rulesets":rulesets,"registered_rules":c.rules.iter().map(|r|r.rule.to_string()).collect::<Vec<_>>(),"pending_injections":[],"boundary":"completed sweep or initial setup"}))?;
         let mut tracker = None;
         let mut packet_updates = 0usize;
         let mut packet_seconds = 0.;
         let mut snapshot_exports = 0usize;
         let mut audit_exports = 0usize;
         let mut fallback_reasons = vec![];
+        let reuse_enabled = !artifacts && std::env::var_os("EGG_LAYOUT_RIPEN_OBSERVE_ONLY").is_none();
         let snapshot_mode = std::env::var_os("EGG_LAYOUT_RIPEN_SNAPSHOT_PROBE").is_some();
         if convergence.is_some() && !snapshot_mode {
             snapshot_exports += 1;
@@ -196,7 +202,11 @@ pub(super) fn run_observed(
             if let Some(index)=convergence.as_deref_mut() {
                 let start=Instant::now();
                 if let Some(t)=tracker {
-                    convergence_events.push(index.observe_packets(&out.display().to_string(),round,&t.graph,&contract));
+                    let hit=index.observe_packets(&out.display().to_string(),round,&t.graph,&contract);
+                    let reuse=if reuse_enabled {index.continuation(&hit,max_rounds.saturating_sub(round))}else{None};
+                    convergence_events.push(hit);
+                    convergence_seconds+=start.elapsed().as_secs_f64();
+                    return reuse;
                 } else {
                     snapshot_exports+=1;
                     match export_state(setup.iter().find(|c|matches!(c,Command::Datatype{..})).unwrap(),eg,c,&port_values,symbolic_boundary){
@@ -206,9 +216,11 @@ pub(super) fn run_observed(
                 }
                 convergence_seconds+=start.elapsed().as_secs_f64();
             }
+            None
         };
-        observe(0,&eg,&c,&tracker);
+        let mut reuse = observe(0,&eg,&c,&tracker);
         for round in 1..=max_rounds {
+            if reuse.is_some() {break;}
             let mut updated = false;
             for ruleset in &rulesets {
                 updated |= eg.step_rules_with_trace(ruleset, &trace)?.updated;
@@ -231,7 +243,7 @@ pub(super) fn run_observed(
                     }
                 }
             }
-            observe(round, &eg, &c, &tracker);
+            reuse = observe(round, &eg, &c, &tracker);
             let state = if !updated {
                 "Saturated"
             } else if round == max_rounds {
@@ -257,6 +269,26 @@ pub(super) fn run_observed(
             if !updated {
                 break;
             }
+        }
+        drop(observe);
+        let native_rounds=c.rounds.unwrap_or(0);
+        let mut shared_state=None;
+        let mut shared_continuation=None;
+        let mut skipped=0;
+        if let Some(reuse)=reuse {
+            skipped=reuse.remaining;
+            let donor=reuse.completion;
+            let prior_round=reuse.hit["prior_round"].as_u64().unwrap() as usize;
+            let donor_start=donor.report["execution_boundaries"].as_array().and_then(|bs|bs.iter().filter(|b|b["round"].as_u64().unwrap_or(0)<=prior_round as u64).last()).and_then(|b|b["end"].as_u64()).unwrap_or(0);
+            shared_continuation=Some(json!({"kind":"shared_ripen_continuation","hit":reuse.hit,"donor_interface":reuse.interface,"current_interface":tracker.as_ref().map(|t|t.graph.snapshot()),"donor_excluded_matches":donor.report["ripen"]["excluded_matches"],"donor_record_start":donor_start,"donor_record_end":donor.report["imported_applies"],"donor_boundaries":donor.report["execution_boundaries"],"donor_tier1":donor.report["tier1"],"donor_source":donor.report["source_text"],"semantics":"donor evidence referenced, not executed again; hit value_map relates intermediate interfaces"}));
+            eg=donor.engine;
+            shared_state=Some(donor.state);
+            for _ in 0..skipped {for rs in &rulesets {schedule+=&format!("(run {} 1)\n",rs);}}
+            let f=RipenFeedback{origin:origin.clone(),state:"Saturated".into(),round:native_rounds+skipped,max_rounds,rulesets:rulesets.clone(),updated:false,excluded_matches:c.rejected,scope:"whole isolated positive cell; saturation reused through verified intermediate isomorphism; skipped applications are shared donor evidence".into()};
+            c.boundaries.push(CaptureBoundary{kind:"shared-continuation".into(),round:Some(f.round),end:c.records.len(),ripen:Some(f.clone())});
+            c.rounds=Some(f.round);
+            update_layers(&mut c)?;
+            feedback=Some(f);
         }
         c.trace_seconds = started.elapsed().as_secs_f64();
         let feedback = feedback.unwrap();
@@ -284,8 +316,9 @@ pub(super) fn run_observed(
         if artifacts {
             history::save(&out.join("history.json"), &source, &c)?;
         }
+        let mut completed_state=None;
         let state_export = if saturated {
-            match export_state(
+            let exported=if let Some(s)=shared_state {Ok(s)}else{export_state(
                 setup
                     .iter()
                     .find(|c| matches!(c, Command::Datatype { .. }))
@@ -294,8 +327,10 @@ pub(super) fn run_observed(
                 &c,
                 &port_values,
                 symbolic_boundary || origin.as_ref().is_some_and(|o| o.symbolic_boundary),
-            ) {
+            )};
+            match exported {
                 Ok(state) => {
+                    completed_state=Some(state.clone());
                     std::fs::write(
                         out.join("saturated-rule-composition.json"),
                         serde_json::to_vec_pretty(&state)?,
@@ -308,12 +343,20 @@ pub(super) fn run_observed(
             json!({"status":"not_saturated"})
         };
         // Tier1 is the actual importer/Use builder, populated during every sweep.
-        let report = json!({"ripen":feedback,"checks":if saturated{"passed"}else{"deferred"},
+        let mut tier1=c.layers.report();
+        tier1["shared_continuation"]=json!(shared_continuation);
+        let report = json!({"execution_boundaries":c.boundaries,"native_rounds":native_rounds,"ripen":feedback,"checks":if saturated{"passed"}else{"deferred"},
             "checks_count":checks.len(),"rules":c.rules.iter().map(|r|r.rule.to_string()).collect::<Vec<_>>(),
             "source":source,"source_text":text,"events":c.events,"imported_applies":c.records.len(),
-            "saturated_rule_composition":state_export,"tables":table_sizes(&eg, &c.datatype)?,"tier1":c.layers.report(),"round_manifest":if artifacts {Some("rounds/manifest.json")}else{None},
-            "history":if artifacts {Some("history.json")}else{None},"seconds":c.trace_seconds,"fractal_summaries_used":0,"convergence":{"events":convergence_events,"seconds":convergence_seconds,"actual_rounds_skipped":0,"packet_updates":packet_updates,"packet_seconds":packet_seconds,"snapshot_exports":snapshot_exports,"audit_exports":audit_exports,"fallback_reasons":fallback_reasons}});
+            "saturated_rule_composition":state_export,"tables":table_sizes(&eg, &c.datatype)?,"tier1":tier1,"round_manifest":if artifacts {Some("rounds/manifest.json")}else{None},
+            "history":if artifacts {Some("history.json")}else{None},"seconds":c.trace_seconds,"fractal_summaries_used":0,"convergence":{"events":convergence_events,"seconds":convergence_seconds,"actual_rounds_skipped":skipped,"packet_updates":packet_updates,"packet_seconds":packet_seconds,"snapshot_exports":snapshot_exports,"audit_exports":audit_exports,"fallback_reasons":fallback_reasons}});
         std::fs::write(out.join("ripen.json"), serde_json::to_vec_pretty(&report)?)?;
+        // Do not cache reused results recursively: donor evidence stays one hop.
+        if reuse_enabled && skipped==0 && saturated && tracker.is_some() {
+            if let (Some(index),Some(state))=(convergence.as_deref_mut(),completed_state) {
+                index.finish(&out.display().to_string(),&eg,state,report.clone());
+            }
+        }
         Ok(report)
     })();
     if let Err(e) = &outcome {

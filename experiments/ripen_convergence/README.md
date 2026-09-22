@@ -12,8 +12,9 @@ python3 experiments/ripen_convergence/measure.py out/convergence-ablation
 ```
 
 Use fresh output paths. `ripen-probe` runs actual native egglog with compact
-Tier1 collection; it is an observer, not a replacement matcher. Both modes execute
-all rounds, preserve their application histories in memory, and run final checks.
+Tier1 collection; it uses native matching and can reuse a previously completed continuation.
+Baseline executes all rounds; reuse preserves each actually executed prefix and
+attaches donor suffix evidence. Both execute the current entry's final checks.
 The observer does not save intermediate graph JSON files. The comparison baseline
 uses the same compact path with the observer disabled.
 
@@ -74,7 +75,7 @@ multiset counters, so each affected contribution costs O(log number of signature
 The index keeps one first-interned state per hash key, without bucket scans or
 r-representative selection. Collisions and its 4,096-entry cap can lose recall;
 exact state and contract checks prevent false sharing. Memory includes retained
-state copies, not merely hashes. No execution/history is skipped yet.
+state copies, not merely hashes. The current default can skip a certified completed continuation; see below.
 
 Ablation and debug switches:
 
@@ -93,7 +94,7 @@ measures committed-event decoding/update time. Index `signature_seconds` and
 `changed_contributions` refer to the old snapshot path; packet work is in per-cell
 counters. All scalar/visibility fallback reasons are reported.
 
-The measurement script now alternates baseline, old snapshot, and packet modes.
+The measurement script now alternates baseline, old snapshot, packet-only, and reuse modes.
 `packet-results.json` records five-run medians for the current comparison:
 
 | Case | Baseline | Whole-snapshot observer | Packet observer | Detection exports, old → new |
@@ -149,3 +150,57 @@ Packet regressions additionally compare every round with an independent native
 export, including a child union that collapses two `F` parent rows and rewrites a
 `Pair` key. The visibility example verifies explicit fallback. Both normal pipeline
 tests pass with packet observation and differential audit enabled.
+
+## Completed continuation reuse
+
+Enabled by default in `ripen-probe`, and in compact analysis when
+`EGG_LAYOUT_RIPEN_CONVERGENCE=1` enables the index. For packet observation without
+skipping set `EGG_LAYOUT_RIPEN_OBSERVE_ONLY=1`.
+
+A verified packet-state hit can now stop the current isolated ripen. Reuse requires
+an already completed, checked, positive-constructor donor, the same fixed ports,
+rule declarations/names and sweep schedule, and enough remaining round budget for
+the donor suffix. Visibility/table fallback and artifact/history-export runs do not
+skip. At most 64 completed engines are retained, in addition to the snapshot cap;
+this is an entry cap, not a byte budget. No incomplete donor is reused.
+
+The implementation clones the donor's saturated native engine, then runs the
+CURRENT entry's checks on that independent clone. A different failing check fails
+normally. It reuses the donor's complete exported body; there is no new matching
+or action execution for the skipped suffix. `ripened.egg` still contains a complete
+standalone replay schedule, which the test reparses and executes independently.
+
+Tier1 retains only genuinely executed current-prefix applications. The report adds
+`tier1.shared_continuation` with both intermediate interfaces, the verified value
+map, donor source, donor Tier1 evidence, and the donor record interval after the
+meeting. The donor prefix remains available to explain dependencies at the cut.
+This is an explicit shared evidence edge, not a flattened list of newly executed
+applications. Downstream code that wants expanded events must traverse that edge;
+we do not rewrite the existing LayerStore's event IDs or native provenance IDs.
+Donor evidence is embedded so deleting temporary pipeline work folders cannot
+break the link. Reused results are not cached recursively, keeping it one hop.
+The full donor evidence is currently copied into reports, and native engines are
+cloned: this is not yet a minimum-memory representation.
+
+`native_rounds` counts real current sweeps; `ripen.round` includes the certified
+suffix. `convergence.actual_rounds_skipped` reports the difference. The boundary
+kind `shared-continuation` is distinct from `ripen-round`. Current and donor trigger
+origins remain separate. Current checks are never inferred from the donor checks.
+
+`reuse-results.json` (five-run medians) shows:
+
+| Case | Native sweeps without/with reuse | Actual skipped | Packet-only total cell time | Reuse total cell time |
+|---|---:|---:|---:|---:|
+| Chain | 7 / 4 | 3 | 5.52 ms | 5.35 ms |
+| Add-AC | 8 / 7 | 1 | 8.77 ms | 8.54 ms |
+
+Cell time includes parsing, initial/final exports, report generation, and completed
+engine retention; process startup is excluded. These tiny differences are noisy,
+not a demonstrated throughput improvement. In-loop time actually increases due to
+engine cloning and evidence assembly. Both modes remain slower than no detection
+(4.17 ms and 6.82 ms total cell time respectively). Add-AC only skips the final
+fixed-point confirmation. The chain skips real generating sweeps as well.
+
+Validation covers exact final-body equivalence against independent native execution,
+standalone replay, no fabricated prefix applications, current failing checks,
+remaining-budget admission, packet collisions/visibility, and both pipeline tests.
