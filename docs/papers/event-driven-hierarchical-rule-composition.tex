@@ -38,8 +38,8 @@
 \title{Event-Driven Hierarchical Rule Composition\\and Saturation\\[5pt]
 \large Coarse and Smooth Layers, Dissipative and Infi Rule Compositions}
 \author{}
-\date{Technical report \quad 21 September 2026\\
-\small Implementation baseline: \texttt{258eef4} \quad Native-figure revision v0.2.3}
+\date{Technical report \quad 22 September 2026\\
+\small Implementation baseline: \texttt{487578e} \quad Native-figure revision v0.2.4}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -1019,6 +1019,39 @@ python3 tools/export_ripen_body_svgs.py \\
 \end{lstlisting}
 The output directory is intentionally separate from the committed paper assets;
 copying it into a release artifact must preserve the manifest and state files.
+
+Figure~\ref{fig:ripen-top3-native} embeds the three checked graphs. They are
+serialized directly from the three isolated egglog EGraphs after ripen reaches
+\code{Saturated}; the PDF conversion changes only the file format. In
+particular, these are Math-DSL graphs rather than a second graph whose generic
+\code{Node} and \code{Row} constructors encode the catalog JSON. C0 and C1
+both arise from Add commutation, but C1 has an aliased boundary and therefore
+contains one \code{RipenInput} and one self-Add node. C4 is the analogous Mul
+body. The committed DOT files are the supplementary data from which the panels
+are rendered.
+
+\begin{figure}[!htbp]
+\centering
+\begin{minipage}[t]{0.32\linewidth}\centering
+  \includegraphics[height=43mm,width=\linewidth,keepaspectratio]{figures/ripen-top3/top-01-C0.pdf}\\[-1mm]
+  \small (a) C0: 6 covered layers
+\end{minipage}\hfill
+\begin{minipage}[t]{0.32\linewidth}\centering
+  \includegraphics[height=43mm,width=\linewidth,keepaspectratio]{figures/ripen-top3/top-02-C1.pdf}\\[-1mm]
+  \small (b) C1: 1 covered layer
+\end{minipage}\hfill
+\begin{minipage}[t]{0.32\linewidth}\centering
+  \includegraphics[height=43mm,width=\linewidth,keepaspectratio]{figures/ripen-top3/top-03-C4.pdf}\\[-1mm]
+  \small (c) C4: 1 covered layer
+\end{minipage}
+\caption{Top three exact saturated bodies in the default four-round math
+capture, ranked by distinct covered CS layers. Dashed rounded regions are
+e-classes; constructor boxes and ordered child ports are emitted by egglog's
+native EGraph serializer. C0 and C1 are Add bodies with different boundary
+aliasing; C4 is a Mul body. The corresponding \texttt{.dot} and \texttt{.svg}
+files are retained beside the paper figure.}
+\label{fig:ripen-top3-native}
+\end{figure}
 
 \subsection{Native DOT figures}
 \path{examples/math-mini-trace.egg} marks three executable prefixes: entry,
