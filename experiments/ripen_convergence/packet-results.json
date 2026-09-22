@@ -1,0 +1,84 @@
+{
+  "scope": "native isolated ripen observer, no execution skipped",
+  "repeats": 5,
+  "cases": {
+    "chain": {
+      "ripen_ms_median": {
+        "baseline": 0.30070800000000003,
+        "snapshot": 3.033583,
+        "packets": 1.630332
+      },
+      "index": {
+        "capacity": 4096,
+        "entries": 4,
+        "mode": "observer; native execution and history retained",
+        "stats": {
+          "capacity_misses": 0,
+          "changed_contributions": 0,
+          "collisions_or_unknown": 0,
+          "comparison_seconds": 6.4958e-05,
+          "hash_hits": 4,
+          "signature_seconds": 0.0,
+          "snapshots": 9,
+          "verified_hits": 4
+        }
+      },
+      "first_hit_rounds": [
+        0
+      ],
+      "remaining_observed_rounds": [
+        3
+      ],
+      "snapshot_exports": {
+        "baseline": 0,
+        "snapshot": 9,
+        "packets": 2
+      },
+      "packet_updates": 5,
+      "fallback_reasons": [
+        [],
+        []
+      ],
+      "actual_rounds_skipped": 0
+    },
+    "math_ac": {
+      "ripen_ms_median": {
+        "baseline": 1.064041,
+        "snapshot": 4.545376,
+        "packets": 2.5978749999999997
+      },
+      "index": {
+        "capacity": 4096,
+        "entries": 7,
+        "mode": "observer; native execution and history retained",
+        "stats": {
+          "capacity_misses": 0,
+          "changed_contributions": 0,
+          "collisions_or_unknown": 0,
+          "comparison_seconds": 0.00021837499999999998,
+          "hash_hits": 2,
+          "signature_seconds": 0.0,
+          "snapshots": 10,
+          "verified_hits": 2
+        }
+      },
+      "first_hit_rounds": [
+        3
+      ],
+      "remaining_observed_rounds": [
+        1
+      ],
+      "snapshot_exports": {
+        "baseline": 0,
+        "snapshot": 10,
+        "packets": 2
+      },
+      "packet_updates": 24,
+      "fallback_reasons": [
+        [],
+        []
+      ],
+      "actual_rounds_skipped": 0
+    }
+  }
+}

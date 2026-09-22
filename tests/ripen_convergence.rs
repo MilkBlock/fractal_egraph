@@ -93,3 +93,99 @@ fn native_intermediate_states_converge_before_saturation() {
         assert_eq!(c["convergence"]["actual_rounds_skipped"], 0);
     }
 }
+
+#[test]
+fn union_packet_deduplicates_and_preserves_ports() {
+    use egg_layout::ripen_convergence::Packets;
+    let mut s = cycle(false);
+    s.ports.insert("left".into(), 0);
+    s.ports.insert("right".into(), 1);
+    let mut p = Packets::new(&s);
+    p.union(0, 1);
+    p.union(2, 3);
+    p.union(1, 3);
+    let snapshot = p.snapshot();
+    let mut index = Index::new(16, 10000);
+    index.observe_packets("first", 0, &p, "contract");
+    assert_eq!(
+        index.observe_packets("second", 0, &Packets::new(&snapshot), "contract")["status"],
+        "verified"
+    );
+    let mut collision_index = Index::new(8, 10000);
+    collision_index.observe_packets("cycle", 0, &Packets::new(&cycle(false)), "same");
+    assert_eq!(
+        collision_index.observe_packets("triangles", 0, &Packets::new(&cycle(true)), "same")["status"],
+        "collision_or_unknown"
+    );
+    let before = p.changes;
+    p.union(0, 3);
+    p.ensure(Row {
+        op: "Link".into(),
+        args: vec![0],
+        result: 1,
+    });
+    assert_eq!(before, p.changes);
+    assert_eq!(snapshot.ports["left"], snapshot.ports["right"]);
+}
+
+#[test]
+fn native_packets_match_export_and_subsume_falls_back() {
+    use std::process::Command;
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let out = root.join(format!(
+        "out/packet-audit-{}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    let r = Command::new(env!("CARGO_BIN_EXE_egg_layout"))
+        .env("EGG_LAYOUT_RIPEN_PACKET_AUDIT", "1")
+        .args([
+            "ripen-probe",
+            out.to_str().unwrap(),
+            "12",
+            "experiments/ripen_convergence/math-right.egg",
+            "experiments/ripen_convergence/math-left.egg",
+        ])
+        .output()
+        .unwrap();
+    assert!(r.status.success(), "{}", String::from_utf8_lossy(&r.stderr));
+    let d: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(out.join("convergence.json")).unwrap()).unwrap();
+    for c in d["cells"].as_array().unwrap() {
+        assert_eq!(c["convergence"]["snapshot_exports"], 1);
+        assert_eq!(c["convergence"]["fallback_reasons"], json!([]));
+    }
+    let congruence = out.join("congruence.egg");
+    std::fs::write(
+        &congruence,
+        r#"
+(datatype T (V String) (F T) (Pair T T))
+(rule ((= a (V "a")) (= b (V "b"))) ((union a b)))
+(let root (Pair (F (V "a")) (F (V "b"))))
+(check (= (F (V "a")) (F (V "b"))))
+"#,
+    )
+    .unwrap();
+    let r = Command::new(env!("CARGO_BIN_EXE_egg_layout"))
+        .env("EGG_LAYOUT_RIPEN_PACKET_AUDIT", "1")
+        .args([
+            "ripen-probe",
+            out.join("congruence").to_str().unwrap(),
+            "8",
+            congruence.to_str().unwrap(),
+        ])
+        .output()
+        .unwrap();
+    assert!(r.status.success(), "{}", String::from_utf8_lossy(&r.stderr));
+    let source = out.join("visibility.egg");
+    std::fs::write(&source,"(datatype T (A) (B))\n(rewrite (A) (B))\n(rule ((= x (A))) ((subsume (A))))\n(let root (A))\n").unwrap();
+    let d = egg_layout::native_analyze::ripen::probe(&[source], &out.join("fallback"), 8).unwrap();
+    assert!(
+        !d["cells"][0]["convergence"]["fallback_reasons"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+}

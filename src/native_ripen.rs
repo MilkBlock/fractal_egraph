@@ -5,6 +5,8 @@ use crate::coarse_smooth::{RipenFeedback, RipenOrigin};
 
 #[path = "native_ripen_entry.rs"]
 mod entry;
+#[path = "native_ripen_packets.rs"]
+mod packets;
 pub use entry::from_use;
 pub(super) use entry::{prepare, prepare_members};
 
@@ -175,25 +177,61 @@ pub(super) fn run_observed(
         let mut convergence_seconds = 0.;
         // Whole isolated cells have no pending staged injections. Compare at sweep boundaries.
         let contract = serde_json::to_string(&json!({"rulesets":rulesets,"pending_injections":[],"boundary":"completed sweep or initial setup"}))?;
-        let mut observe = |round: usize, eg: &EGraph, c: &Captured| {
-            if let Some(index) = convergence.as_deref_mut() {
-                let start = Instant::now();
-                match export_state(setup.iter().find(|c| matches!(c,Command::Datatype{..})).unwrap(), eg, c, &port_values, symbolic_boundary) {
-                    Ok(state) => convergence_events.push(index.observe(&out.display().to_string(), round, state, &contract, &mut fingerprint)),
-                    Err(e) => convergence_events.push(json!({"status":"unsupported","reason":e.to_string()})),
+        let mut tracker = None;
+        let mut packet_updates = 0usize;
+        let mut packet_seconds = 0.;
+        let mut snapshot_exports = 0usize;
+        let mut audit_exports = 0usize;
+        let mut fallback_reasons = vec![];
+        let snapshot_mode = std::env::var_os("EGG_LAYOUT_RIPEN_SNAPSHOT_PROBE").is_some();
+        if convergence.is_some() && !snapshot_mode {
+            snapshot_exports += 1;
+            match export_state(setup.iter().find(|c|matches!(c,Command::Datatype{..})).unwrap(), &eg, &c, &port_values, symbolic_boundary) {
+                Ok(s) => match packets::Tracker::new(&eg,&c,&s,&port_values) {
+                    Ok(t) => tracker=Some(t), Err(e)=>fallback_reasons.push(e.to_string())
+                }, Err(e)=>fallback_reasons.push(e.to_string())
+            }
+        }
+        let mut observe = |round:usize,eg:&EGraph,c:&Captured,tracker:&Option<packets::Tracker>| {
+            if let Some(index)=convergence.as_deref_mut() {
+                let start=Instant::now();
+                if let Some(t)=tracker {
+                    convergence_events.push(index.observe_packets(&out.display().to_string(),round,&t.graph,&contract));
+                } else {
+                    snapshot_exports+=1;
+                    match export_state(setup.iter().find(|c|matches!(c,Command::Datatype{..})).unwrap(),eg,c,&port_values,symbolic_boundary){
+                        Ok(s)=>convergence_events.push(index.observe(&out.display().to_string(),round,s,&contract,&mut fingerprint)),
+                        Err(e)=>convergence_events.push(json!({"status":"unsupported","reason":e.to_string()}))
+                    }
                 }
-                convergence_seconds += start.elapsed().as_secs_f64();
+                convergence_seconds+=start.elapsed().as_secs_f64();
             }
         };
-        observe(0, &eg, &c);
+        observe(0,&eg,&c,&tracker);
         for round in 1..=max_rounds {
             let mut updated = false;
             for ruleset in &rulesets {
                 updated |= eg.step_rules_with_trace(ruleset, &trace)?.updated;
                 schedule += &format!("(run {} 1)\n", ruleset);
+                if let Some(t)=tracker.as_mut() {
+                    let start=Instant::now();
+                    match t.apply(&eg,&trace) {Ok(n)=>packet_updates+=n,Err(e)=>{fallback_reasons.push(e.to_string());tracker=None;}}
+                    // Packet processing time is reported separately from snapshot observations.
+                    packet_seconds += start.elapsed().as_secs_f64();
+                }
                 collect(&eg, &trace, &mut c, &mut producers)?;
             }
-            observe(round, &eg, &c);
+            if std::env::var_os("EGG_LAYOUT_RIPEN_PACKET_AUDIT").is_some() {
+                if let Some(t)=&tracker {
+                    audit_exports+=1;
+                    let actual=export_state(setup.iter().find(|c|matches!(c,Command::Datatype{..})).unwrap(),&eg,&c,&port_values,symbolic_boundary)?;
+                    let comparison=crate::saturated_rule_composition::compare(&t.graph.snapshot(),&actual,10000)?;
+                    if !matches!(comparison,crate::saturated_rule_composition::Comparison::Equivalent{..}) {
+                        return Err(format!("packet state diverged at round {round}: {comparison:?}").into());
+                    }
+                }
+            }
+            observe(round, &eg, &c, &tracker);
             let state = if !updated {
                 "Saturated"
             } else if round == max_rounds {
@@ -274,7 +312,7 @@ pub(super) fn run_observed(
             "checks_count":checks.len(),"rules":c.rules.iter().map(|r|r.rule.to_string()).collect::<Vec<_>>(),
             "source":source,"source_text":text,"events":c.events,"imported_applies":c.records.len(),
             "saturated_rule_composition":state_export,"tables":table_sizes(&eg, &c.datatype)?,"tier1":c.layers.report(),"round_manifest":if artifacts {Some("rounds/manifest.json")}else{None},
-            "history":if artifacts {Some("history.json")}else{None},"seconds":c.trace_seconds,"fractal_summaries_used":0,"convergence":{"events":convergence_events,"seconds":convergence_seconds,"actual_rounds_skipped":0}});
+            "history":if artifacts {Some("history.json")}else{None},"seconds":c.trace_seconds,"fractal_summaries_used":0,"convergence":{"events":convergence_events,"seconds":convergence_seconds,"actual_rounds_skipped":0,"packet_updates":packet_updates,"packet_seconds":packet_seconds,"snapshot_exports":snapshot_exports,"audit_exports":audit_exports,"fallback_reasons":fallback_reasons}});
         std::fs::write(out.join("ripen.json"), serde_json::to_vec_pretty(&report)?)?;
         Ok(report)
     })();
