@@ -83,7 +83,7 @@ The final refinement invalidates query results on actual native updates, not on 
 
 ## Near-second native analysis
 
-`near_second.json` records complete native analysis with DOT/SVG disabled, 50 ms / 200K facts, four workers, and ThinLTO. Three process-wall measurements were **1.33, 1.06, 1.07 s** (first launch is kept, not discarded); peak RSS was 582–624 MiB. **The requested sub-second end-to-end target is not yet consistently met.** Compilation and sampling are excluded. Profiling is now opt-in in `bench.py` via `--profile` and `--sample`.
+`near_second.json` records complete native analysis with DOT/SVG disabled, 50 ms / 200K facts, four workers, and ThinLTO. Three process-wall measurements were **1.33, 1.06, 1.07 s** (first launch is kept, not discarded); peak RSS was 585–624 MiB. **The requested sub-second end-to-end target is not yet consistently met.** Compilation and sampling are excluded. Profiling is now opt-in in `bench.py` via `--profile` and `--sample`.
 
 All 79 completed states have the same structure as the pre-change baseline, and all 488 weak-dominate decisions sourced from completed states agree. Six unfinished prefixes remain wall-clock dependent. Kernel tests cover independent clone notifications, parallel clone execution, exact existential/difference queries against complete enumeration, union, subsume, and effect-summary equivalence. DABCABC and branching history-mode regressions remain enabled.
 
