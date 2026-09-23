@@ -1,0 +1,32 @@
+{
+  "scope": "one six-round preparation demo after final change; an intermediate run exposed cloning regression and was corrected",
+  "before_seconds": 5.851868416,
+  "after_seconds": 3.675231416,
+  "same_members_and_outcomes": true,
+  "prepared": 948,
+  "compositions": 979,
+  "cache": {
+    "check_compilations": 1948,
+    "check_runs": 10247,
+    "environment_compilations": 1,
+    "seconds": {
+      "LHS fact": 0.04544231700000002,
+      "clone_validation_egraph": 0.2996551700000004,
+      "compile_check_groups": 1.0461949579999996,
+      "construct_facts_bindings": 0.20118089300000014,
+      "encode_key": 0.11259829700000004,
+      "encode_result_provenance": 0.20971082299999988,
+      "environment_setup": 0.002751875,
+      "external fact injection": 0.12438692800000006,
+      "internal fact before external injection": 0.02049111199999999,
+      "prepare_total": 3.6068452530000004,
+      "recorded output alias": 0.07874232100000006,
+      "rule action": 0.4071096880000004,
+      "seed_parameters": 0.051069901999999924,
+      "table_statistics": 0.38652434099999994
+    },
+    "validated_compositions": 684,
+    "validation_cache_hits": 264,
+    "validation_runs": 715
+  }
+}

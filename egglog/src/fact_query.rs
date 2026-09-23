@@ -135,3 +135,91 @@ impl EGraph {
         self.backend.free_external_func(query.callback);
     }
 }
+
+/// Compiled ground conjunction. Valid on its compiling engine and descendant
+/// clones created after compilation. Execute serially: the callback is shared.
+pub struct CompiledCheck {
+    rule: egglog_bridge::RuleId,
+    callback: ExternalFunctionId,
+    matched: egglog_bridge::SideChannel<()>,
+    facts: Vec<ast::Fact>,
+}
+impl EGraph {
+    pub fn compile_ground_check(&mut self, facts: &[ast::Fact]) -> Result<CompiledCheck, Error> {
+        fn ground(e: &Expr) -> bool {
+            match e {
+                Expr::Var(..) => false,
+                Expr::Call(_, _, args) => args.iter().all(ground),
+                _ => true,
+            }
+        }
+        if self.are_proofs_enabled()
+            || !facts.iter().all(|f| match f {
+                Fact::Eq(_, a, b) => ground(a) && ground(b),
+                Fact::Fact(e) => ground(e),
+            })
+        {
+            return Err(Error::BackendError(
+                "cached checks require ground facts and proof mode disabled".into(),
+            ));
+        }
+        let resolved = self.resolve_command(Command::Check(span!(), facts.to_vec()))?;
+        let [ResolvedNCommand::Check(span, body)] = resolved.desugared.as_slice() else {
+            return Err(Error::BackendError(
+                "unexpected ground-check lowering".into(),
+            ));
+        };
+        let rule = ast::ResolvedRule {
+            span: span.clone(),
+            head: ResolvedActions::default(),
+            body: body.clone(),
+            name: self.parser.symbol_gen.fresh("cached_check"),
+            ruleset: String::new(),
+            naive: false,
+        };
+        let core =
+            rule.to_canonicalized_core_rule(&self.type_info, &mut self.parser.symbol_gen, true)?;
+        let matched = egglog_bridge::SideChannel::default();
+        let sink = matched.clone();
+        let callback = self
+            .backend
+            .register_external_func(Box::new(make_external_func(move |_, _| {
+                *sink.lock().unwrap() = Some(());
+                Some(Value::new_const(0))
+            })));
+        let mut translator = BackendRule::new(
+            self.backend.new_rule("cached ground check", false),
+            &self.functions,
+            &self.type_info,
+            false,
+        );
+        // Match ordinary egglog check semantics, including subsumed rows.
+        translator.query(&core.body, true);
+        translator
+            .rb
+            .call_external_func(callback, &[], ColumnTy::Id, || {
+                "check collector cannot fail".into()
+            });
+        Ok(CompiledCheck {
+            rule: translator.build(),
+            callback,
+            matched,
+            facts: facts.to_vec(),
+        })
+    }
+    pub fn run_ground_check(&mut self, check: &CompiledCheck) -> Result<(), Error> {
+        check.matched.lock().unwrap().take();
+        self.backend
+            .run_rules(&[check.rule])
+            .map_err(|e| Error::BackendError(e.to_string()))?;
+        if check.matched.lock().unwrap().take().is_some() {
+            Ok(())
+        } else {
+            Err(Error::CheckError(check.facts.clone(), span!()))
+        }
+    }
+    pub fn free_ground_check(&mut self, check: CompiledCheck) {
+        self.backend.free_rule(check.rule);
+        self.backend.free_external_func(check.callback);
+    }
+}

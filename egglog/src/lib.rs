@@ -2568,4 +2568,4 @@ mod tests {
 }
 
 mod fact_query;
-pub use fact_query::CompiledFactQuery;
+pub use fact_query::{CompiledFactQuery, CompiledCheck};

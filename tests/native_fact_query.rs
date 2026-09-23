@@ -128,3 +128,57 @@ fn cached_join_sees_function_updates() {
     assert!(eg.run_fact_query(&q).unwrap().is_empty());
     eg.free_fact_query(q);
 }
+
+#[test]
+fn compiled_check_groups_observe_action_order_and_do_not_share_results() {
+    use egglog::ast::Command;
+    let mut base = EGraph::default();
+    base.parse_and_run_program(None, "(datatype E (A) (B))")
+        .unwrap();
+    let commands = base
+        .parse_program(None, "(check (= (A) (B)) (= (A) (A)))")
+        .unwrap();
+    let Command::Check(_, facts) = &commands[0] else {
+        panic!()
+    };
+    let check = base.compile_ground_check(facts).unwrap();
+    let mut first = base.clone();
+    assert!(
+        first.run_ground_check(&check).is_err(),
+        "must fail before union action"
+    );
+    assert_eq!(
+        first.get_size("A"),
+        0,
+        "checking must not materialize facts"
+    );
+    first
+        .parse_and_run_program(None, "(union (A) (B))")
+        .unwrap();
+    first.run_ground_check(&check).unwrap();
+    first.run_ground_check(&check).unwrap();
+    let mut other = base.clone();
+    assert!(
+        other.run_ground_check(&check).is_err(),
+        "successful result must not leak across clones"
+    );
+    first.parse_and_run_program(None, "(subsume (A))").unwrap();
+    first.run_ground_check(&check).unwrap();
+    first.run_program(commands).unwrap(); // same visibility semantics as normal check
+    base.free_ground_check(check);
+    let commands = base.parse_program(None, "(check (> 2 1))").unwrap();
+    let Command::Check(_, facts) = &commands[0] else {
+        panic!()
+    };
+    let check = base.compile_ground_check(facts).unwrap();
+    base.run_ground_check(&check).unwrap();
+    base.free_ground_check(check);
+    let commands = base.parse_program(None, "(check (= x (A)))").unwrap();
+    let Command::Check(_, facts) = &commands[0] else {
+        panic!()
+    };
+    assert!(
+        base.compile_ground_check(facts).is_err(),
+        "free variables cannot be batched as independent checks"
+    );
+}

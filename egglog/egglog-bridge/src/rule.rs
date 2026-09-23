@@ -292,7 +292,7 @@ impl RuleBuilder<'_> {
             .ok();
         let info = RuleInfo {
             last_run_at: Timestamp::new(0),
-            query: self.query,
+            query: Arc::new(self.query),
             // cached_plan: None,
             cached_plan,
             witness_plan: None,

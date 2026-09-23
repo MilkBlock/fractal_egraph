@@ -229,3 +229,13 @@ EGG_LAYOUT_PREPARATION_CACHE=1 cargo test --release --offline --lib math_six_rou
 ```
 
 生产流水线默认启用；上述环境变量仅选择测试对照路径。运行队列中的 `preparation_cache` 提供实际编译、验证和命中计数。摘要见 [preparation_cache.json](results/preparation_cache.json)。回归覆盖具体值重命名可共享、别名/字面量/相对与外部 binding 不误合并、规则环境变化失效，以及 270 个实际实例的缓存命中。
+
+## 后续优化：按执行阶段合并并缓存检查
+
+验证顺序仍严格为：内部依赖检查 → 外部 fact 注入 → LHS 检查 → rule actions → 输出 alias 检查。只合并同一阶段的 ground facts；带自由变量的独立检查不允许直接合并。编译可以预先进行，实际查询必须在所属阶段执行，不提前检查动作后的事实。
+
+编译结果保存在规则环境中，克隆环境后可复用；每次查询重新读取当前图并清空回调结果，不缓存“检查成功”。使用普通 egglog check 的 subsume 可见性语义。为避免复制大量缓存查询抵消收益，内核中已构建完成的不可变 Query 用 Arc 共享，各引擎的运行时间戳仍独立。
+
+单次六轮 demo：5.852 s → 3.675 s，约减少 37%。979 个组合的成员与通过/拒绝结果一致（948 / 31）。编译 1,948 个检查组，实际执行 10,247 次；冷编译约 1.046 s，三个检查阶段执行合计约 0.145 s。不是全 ripen 流程计时。
+
+新增回归证明：union 前失败、动作后成功、不同图之间不共享成功结果、未生成事实不会被检查凭空创建、保留 subsume 语义，并支持 ground primitive 条件。详细计时见 [grouped_checks.json](results/grouped_checks.json)。

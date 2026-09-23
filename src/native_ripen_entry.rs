@@ -110,6 +110,9 @@ impl Environment {
 pub(in crate::native_analyze) struct PreparationCache {
     pub(super) environment: Option<Environment>,
     validated: std::collections::HashMap<String, (Json, Json)>,
+    checks: std::collections::HashMap<String, egglog::CompiledCheck>,
+    check_compilations: usize,
+    check_runs: usize,
     hits: usize,
     validations: usize,
     environments: usize,
@@ -117,7 +120,7 @@ pub(in crate::native_analyze) struct PreparationCache {
 }
 impl PreparationCache {
     pub fn stats(&self) -> Json {
-        json!({"seconds":self.timings,"environment_compilations":self.environments,"validation_runs":self.validations,"validation_cache_hits":self.hits,"validated_compositions":self.validated.len()})
+        json!({"seconds":self.timings,"check_compilations":self.check_compilations,"check_runs":self.check_runs,"environment_compilations":self.environments,"validation_runs":self.validations,"validation_cache_hits":self.hits,"validated_compositions":self.validated.len()})
     }
     pub fn prepare(&mut self, c: &Captured, members: &[usize]) -> Result<(String, String, Json)> {
         if members.is_empty()
@@ -135,6 +138,7 @@ impl PreparationCache {
             self.environment = Some(Environment::new(c)?);
             *self.timings.entry("environment_setup").or_default() += tick.elapsed().as_secs_f64();
             self.validated.clear();
+            self.checks.clear();
             self.environments += 1;
         }
         let tick = std::time::Instant::now();
@@ -160,7 +164,7 @@ fn extract(
     if members.is_empty() {
         return Err("empty coarse entry".into());
     }
-    let environment = cache.environment.as_ref().unwrap();
+    let environment = cache.environment.as_mut().unwrap();
     let hole = environment.hole.clone();
     let declarations = environment.declarations.clone();
     let constructors = &environment.constructors;
@@ -458,6 +462,63 @@ fn extract(
     } else {
         cache.validations += 1;
         let tick = std::time::Instant::now();
+        let mut plans = vec![];
+        for (i, _, preconditions, commands, [injection_start, lhs_start, alias_start]) in &stages {
+            let mut groups = vec![];
+            for (phase, lo, hi, is_check) in [
+                (
+                    "internal fact before external injection",
+                    0,
+                    *injection_start,
+                    true,
+                ),
+                (
+                    "external fact injection",
+                    *injection_start,
+                    *lhs_start,
+                    false,
+                ),
+                ("LHS fact", *lhs_start, *preconditions, true),
+                ("rule action", *preconditions, *alias_start, false),
+                ("recorded output alias", *alias_start, commands.len(), true),
+            ] {
+                if lo == hi {
+                    continue;
+                }
+                let key = if is_check {
+                    let facts = commands[lo..hi]
+                        .iter()
+                        .map(|cmd| match cmd {
+                            Command::Check(_, facts) => Ok(facts.clone()),
+                            _ => Err("action crossed a check-stage boundary".into()),
+                        })
+                        .collect::<Result<Vec<_>>>()?
+                        .into_iter()
+                        .flatten()
+                        .collect::<Vec<_>>();
+                    let key = facts
+                        .iter()
+                        .map(ToString::to_string)
+                        .collect::<Vec<_>>()
+                        .join("\n");
+                    if !cache.checks.contains_key(&key) {
+                        let compiled = environment
+                            .base
+                            .compile_ground_check(&facts)
+                            .map_err(|e| format!("CS member {i}: {phase} compile failed: {e}"))?;
+                        cache.checks.insert(key.clone(), compiled);
+                        cache.check_compilations += 1;
+                    }
+                    Some(key)
+                } else {
+                    None
+                };
+                groups.push((phase, lo, hi, key));
+            }
+            plans.push(groups);
+        }
+        elapsed!("compile_check_groups", tick);
+        let tick = std::time::Instant::now();
         let mut eg = environment.base.clone();
         elapsed!("clone_validation_egraph", tick);
         let tick = std::time::Instant::now();
@@ -466,21 +527,15 @@ fn extract(
         let tick = std::time::Instant::now();
         let initial_tables = super::table_sizes(&eg, &declarations)?;
         elapsed!("table_statistics", tick);
-        for (i, _, preconditions, commands, [injection_start, lhs_start, alias_start]) in &stages {
-            for (n, command) in commands.iter().enumerate() {
-                let phase = if n < *injection_start {
-                    "internal fact before external injection"
-                } else if n < *lhs_start {
-                    "external fact injection"
-                } else if n < *preconditions {
-                    "LHS fact"
-                } else if n < *alias_start {
-                    "rule action"
-                } else {
-                    "recorded output alias"
-                };
+        for ((i, _, _, commands, _), groups) in stages.iter().zip(plans) {
+            for (phase, lo, hi, key) in groups {
                 let tick = std::time::Instant::now();
-                let result = eg.run_program(vec![command.clone()]);
+                let result = if let Some(key) = key {
+                    cache.check_runs += 1;
+                    eg.run_ground_check(&cache.checks[&key])
+                } else {
+                    eg.run_program(commands[lo..hi].to_vec()).map(|_| ())
+                };
                 elapsed!(phase, tick);
                 result.map_err(|e| format!("CS member {i}: {phase} failed: {e}"))?;
             }

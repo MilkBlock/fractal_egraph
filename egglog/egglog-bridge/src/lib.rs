@@ -988,7 +988,9 @@ impl EGraph {
 #[derive(Clone)]
 struct RuleInfo {
     last_run_at: Timestamp,
-    query: rule::Query,
+    // Query builders are frozen after build; clones only need independent
+    // timestamps, not copies of every atom and action-building callback.
+    query: Arc<rule::Query>,
     cached_plan: Option<CachedPlanInfo>,
     witness_plan: Option<CachedPlanInfo>,
     desc: Arc<str>,
