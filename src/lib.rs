@@ -1,31 +1,8 @@
-//! Minimal egglog adapters. Historical prototypes live in the research crate.
-pub mod pipeline;
-pub mod visual_rule;
-
-pub mod embedded_rules;
-pub mod native_analyze;
-
-mod native_lower;
-
-pub mod dag_embedding;
-
-mod catalog_embedding;
-
-pub mod binding_reduce;
-
-pub mod saturated_rule_composition;
-pub mod coarse_smooth;
-mod layer_bridge;
-
-pub mod layer_patterns;
-
-pub mod comb_reuse;
-pub mod use_fractals;
-
+//! Native history -> CS interfaces -> ripen -> exact sharing -> weak dominate.
 pub mod closure_contract;
-
-pub mod ripen_convergence;
-
-pub mod packet_library;
-
+pub mod coarse_smooth;
+pub mod native_analyze;
+pub mod pipeline;
+pub mod saturated_rule_composition;
 pub mod state_difference;
+pub mod visual_rule;

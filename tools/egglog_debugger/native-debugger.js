@@ -16,7 +16,7 @@ export function installNativeDebugger(editor) {
       <button id="native-download">下载 .egg</button><button id="native-export">导出日志</button><button id="native-restore">载入日志源码</button><label>回放日志 <input id="native-import" type="file" accept=".json"></label>
       <div id="native-status">点击 .egg 规则任意一行查看 Pattern。原生识别使用本地 egg_layout（单个自包含 datatype，名字任意）。</div>
       <div id="native-layer-host"></div>
-      <select id="native-filter"><option value="all">所有日志</option><option value="application">有效应用</option><option value="compose">Rule Compose</option><option value="fractal">Fractal</option></select>
+      <select id="native-filter"><option value="all">所有日志</option><option value="application">有效应用</option></select>
       <div id="native-trace" role="log" aria-label="增量识别日志"></div>
       <div><select id="native-format"><option value="typst">Typst 公式</option><option value="dot">DOT 图</option></select><span id="native-title"></span></div>
       <div id="native-render-options">
@@ -591,8 +591,9 @@ export function installNativeDebugger(editor) {
             let complete=false;
             const consume=line=>{if(!line.trim())return;const row=JSON.parse(line);
                 if(row.kind==='error')throw Error(row.error);
-                if(row.kind==='complete'){complete=true;runStatus='complete';status(`完成：${rows.filter(r=>r.kind==='application').length} 个有效应用，${rows.filter(r=>r.kind==='compose').length} 个组合，${rows.filter(r=>r.kind==='fractal').length} 个 Fractal 证据。`);}
+                if(row.kind==='complete'){complete=true;runStatus='complete';status(`完成：${rows.filter(r=>r.kind==='application').length} 个有效应用；CS、ripen 等价桶与 weak dominate 见统计面板。`);}
                 else if(row.kind==='layer_snapshot')layerPanel.receive(row);
+                else if(row.kind==='ripen_progress'){layerPanel.progress(row.saturated_rule_composition);status('Ripen · '+JSON.stringify(row.saturated_rule_composition.counts));}
                 else if(row.kind==='boundary')status(`执行边界 ${row.boundary}：${row.applications} 个有效应用；${row.logical_matches} 个逻辑匹配，排除 ${row.excluded} 个。`);
                 else {rows.push(row);addRow(row);}
             };

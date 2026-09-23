@@ -1,0 +1,5 @@
+(datatype E (Z) (A E) (F E))
+(rewrite (A x) (A (F x)) :name "expand")
+(rewrite (F (F x)) (F x) :name "collapse")
+(A (Z))
+(run 1)

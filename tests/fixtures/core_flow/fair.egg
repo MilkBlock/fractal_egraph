@@ -1,0 +1,7 @@
+(datatype E (Z) (A E) (B E) (F E))
+(relation P (E))
+(rewrite (A x) (B x) :name "finite")
+(rule ((P x)) ((P (F x))) :name "grow")
+(A (Z))
+(P (Z))
+(run 1)

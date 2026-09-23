@@ -17,31 +17,20 @@ use std::time::Instant;
 #[cfg(target_arch = "wasm32")]
 use web_time::Instant;
 
-#[path = "native_bake.rs"]
-pub mod bake;
-#[path = "native_binding.rs"]
-mod binding;
-#[path = "native_catalog.rs"]
-mod catalog;
+#[path = "native_cs.rs"]
+mod cs;
 #[path = "native_debug.rs"]
 pub mod debug;
-#[path = "native_fractal.rs"]
-mod fractal;
-#[path = "native_growth.rs"]
-mod growth;
 #[path = "native_history.rs"]
 mod history;
 #[path = "native_layer_view.rs"]
 mod layer_view;
-#[path = "native_recursive.rs"]
-mod recursive;
-#[path = "native_cs.rs"]
-mod cs;
-#[path = "native_saturated_rule_composition_pipeline.rs"]
-mod saturated_rule_composition_pipeline;
 #[path = "native_ripen.rs"]
 pub mod ripen;
-
+#[path = "native_saturated_rule_composition_pipeline.rs"]
+mod saturated_rule_composition_pipeline;
+#[path = "native_weak_dominate.rs"]
+mod weak_dominate;
 fn sp() -> Span {
     Span::Rust(Arc::new(egglog::ast::RustSpan {
         file: file!(),
@@ -54,57 +43,6 @@ fn call(op: &str, args: Vec<Expr>) -> Expr {
 }
 fn num(n: u64) -> Expr {
     Expr::Lit(sp(), Literal::Int(n.try_into().expect("id exceeds i64")))
-}
-fn string(s: &str) -> Expr {
-    Expr::Lit(sp(), Literal::String(s.into()))
-}
-fn fact(op: &str, args: Vec<Expr>) -> Command {
-    Command::Action(Action::Expr(sp(), call(op, args)))
-}
-fn set(op: &str, id: u64, value: Expr) -> Command {
-    Command::Action(Action::Set(sp(), op.into(), vec![num(id)], value))
-}
-fn list(items: Vec<Expr>, cons: &str, nil: &str) -> Expr {
-    items
-        .into_iter()
-        .rev()
-        .fold(call(nil, vec![]), |tail, x| call(cons, vec![x, tail]))
-}
-fn cref(id: u64) -> Expr {
-    call("ImportedComb", vec![num(id)])
-}
-fn iref(id: u64) -> Expr {
-    call("ImportedInstance", vec![num(id)])
-}
-fn vref(id: usize) -> Expr {
-    call("ImportedValue", vec![num(id as u64)])
-}
-fn flush(eg: &mut EGraph, batch: &mut Vec<Command>) -> Result {
-    if !batch.is_empty() {
-        eg.run_ground_import(&std::mem::take(batch))?;
-    }
-    Ok(())
-}
-fn emit(eg: &mut EGraph, batch: &mut Vec<Command>, c: Command) -> Result {
-    batch.push(c);
-    if batch.len() >= 512 {
-        flush(eg, batch)?;
-    }
-    Ok(())
-}
-fn load(eg: &mut EGraph, file: &Path, root: &Path) -> Result {
-    let commands = eg.parse_program(
-        Some(file.to_string_lossy().into_owned()),
-        &crate::embedded_rules::rule_text(file)?,
-    )?;
-    for c in commands {
-        if let Command::Include(_, p) = c {
-            load(eg, &root.join(p), root)?;
-        } else {
-            eg.run_program(vec![c])?;
-        }
-    }
-    Ok(())
 }
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 enum Key {
@@ -216,40 +154,24 @@ struct Captured {
     trace_batches: usize,
     rejected: usize,
 }
-impl Captured {
-    fn is_coarse(&self, r: &Record) -> bool {
-        self.layers
-            .occurrence(r.id)
-            .map(|o| {
-                matches!(
-                    self.layers.combs[o.comb].kind,
-                    crate::coarse_smooth::CombKind::CoarseRuleComposition
-                )
-            })
-            .unwrap_or(r.coarse)
-    }
-}
-
-fn capture(
-    source: &Path,
-    rounds: Option<usize>,
-    online: Option<(&mut EGraph, &Path, &rayon::ThreadPool)>,
-) -> Result<Captured> {
-    let text = std::fs::read_to_string(source)?;
-    capture_text_with_sink(&source.to_string_lossy(), &text, rounds, online, None)
-}
-fn capture_with_sink(
-    source: &Path,
-    rounds: Option<usize>,
-    online: Option<(&mut EGraph, &Path, &rayon::ThreadPool)>,
-    sink: Option<&mut dyn FnMut(&mut Captured) -> Result>,
-) -> Result<Captured> {
-    let text = std::fs::read_to_string(source)?;
-    capture_text_with_sink(&source.to_string_lossy(), &text, rounds, online, sink)
-}
 fn declaration_sort(commands: &[Command]) -> Result<String> {
-    let names=commands.iter().filter_map(|c| match c {Command::Datatype{name,..} | Command::Sort{name,presort_and_args:None,..}=>Some(name.clone()), _=>None}).collect::<Vec<_>>();
-    if names.len()>1 || commands.iter().any(|c| matches!(c,Command::Datatypes{..})) {
+    let names = commands
+        .iter()
+        .filter_map(|c| match c {
+            Command::Datatype { name, .. }
+            | Command::Sort {
+                name,
+                presort_and_args: None,
+                ..
+            } => Some(name.clone()),
+            _ => None,
+        })
+        .collect::<Vec<_>>();
+    if names.len() > 1
+        || commands
+            .iter()
+            .any(|c| matches!(c, Command::Datatypes { .. }))
+    {
         return Err("multi-datatype analysis is not yet supported".into());
     }
     Ok(names.first().cloned().unwrap_or_else(|| "Unit".into()))
@@ -260,18 +182,33 @@ fn capture_text_with_sink(
     name: &str,
     text: &str,
     rounds: Option<usize>,
-    mut online: Option<(&mut EGraph, &Path, &rayon::ThreadPool)>,
     mut sink: Option<&mut dyn FnMut(&mut Captured) -> Result>,
 ) -> Result<Captured> {
     let started = Instant::now();
     let mut eg = EGraph::default();
-    let mut commands = crate::visual_rule::surface_program(eg.parse_program(Some(name.to_owned()), text)?);
+    let mut commands =
+        crate::visual_rule::surface_program(eg.parse_program(Some(name.to_owned()), text)?);
     declaration_sort(&commands)?;
-    let declarations: Vec<_> = commands.iter().filter(|c| matches!(c,
-        Command::Datatype {..} | Command::Relation {..} | Command::Function{..}
-        | Command::Sort{..} | Command::Constructor {..})).cloned().collect();
+    let declarations: Vec<_> = commands
+        .iter()
+        .filter(|c| {
+            matches!(
+                c,
+                Command::Datatype { .. }
+                    | Command::Relation { .. }
+                    | Command::Function { .. }
+                    | Command::Sort { .. }
+                    | Command::Constructor { .. }
+            )
+        })
+        .cloned()
+        .collect();
     let datatype_name = declaration_sort(&declarations)?;
-    let datatype = declarations.iter().map(ToString::to_string).collect::<Vec<_>>().join("\n");
+    let datatype = declarations
+        .iter()
+        .map(ToString::to_string)
+        .collect::<Vec<_>>()
+        .join("\n");
     if commands.iter().any(|c| matches!(c, Command::Include(..))) {
         return Err("native analysis does not yet accept included source programs".into());
     }
@@ -321,7 +258,8 @@ fn capture_text_with_sink(
     }
     let trace = TraceSession::with_dependencies();
     let mut c = Captured {
-        changes: vec![], last_scope: 0,
+        changes: vec![],
+        last_scope: 0,
         preview_source: text.to_owned(),
         boundaries: vec![],
         layers: Default::default(),
@@ -337,7 +275,6 @@ fn capture_text_with_sink(
         trace_batches: 0,
         rejected: 0,
     };
-    let mut inserted = (0, 0);
     let mut producers = BTreeMap::new();
     let mut count = 0;
     let mut known = true;
@@ -364,22 +301,8 @@ fn capture_text_with_sink(
                         sink(&mut c)?;
                     }
                     let collect_seconds = collect_start.elapsed().as_secs_f64();
-                    let tier1_start = Instant::now();
-                    if let Some((tier1, root, worker)) = online.as_mut() {
-                        worker
-                            .install(|| {
-                                build_tier1(&mut c, tier1, root, &mut inserted)
-                                    .map_err(|e| e.to_string())
-                            })
-                            .map_err(|e| -> Box<dyn std::error::Error> { e.into() })?;
-                        eprintln!(
-                            "[online] tier1 contains {} applications before next round",
-                            c.records.len()
-                        );
-                    }
                     eprintln!(
-                        "[perf-round] round={count} tier0={tier0_seconds:.6} collect={collect_seconds:.6} tier1={:.6}",
-                        tier1_start.elapsed().as_secs_f64()
+                        "[perf-round] round={count} tier0={tier0_seconds:.6} collect={collect_seconds:.6}"
                     );
                     eprintln!("[native] round {count} completed");
                 }
@@ -390,17 +313,39 @@ fn capture_text_with_sink(
             known = false;
         }
         let schedule = matches!(command, Command::RunSchedule(_));
-        let external_change=match &command {
-            Command::Action(Action::Set(_,op,_,_)|Action::Change(_,_,op,_))=>Some((false,vec![op.clone()])),
-            Command::Action(Action::Union(..))=>Some((true,vec![])),
-            Command::Action(Action::Expr(_,e)|Action::Let(_,_,e))=>{
-                fn calls(e:&Expr,out:&mut Vec<String>){if let Expr::Call(_,op,args)=e {out.push(op.clone());for a in args{calls(a,out);}}}
-                let mut tables=vec![];calls(e,&mut tables);if tables.is_empty(){None}else{Some((false,tables))}
-            },
-            _=>None,
+        let external_change = match &command {
+            Command::Action(Action::Set(_, op, _, _) | Action::Change(_, _, op, _)) => {
+                Some((false, vec![op.clone()]))
+            }
+            Command::Action(Action::Union(..)) => Some((true, vec![])),
+            Command::Action(Action::Expr(_, e) | Action::Let(_, _, e)) => {
+                fn calls(e: &Expr, out: &mut Vec<String>) {
+                    if let Expr::Call(_, op, args) = e {
+                        out.push(op.clone());
+                        for a in args {
+                            calls(a, out);
+                        }
+                    }
+                }
+                let mut tables = vec![];
+                calls(e, &mut tables);
+                if tables.is_empty() {
+                    None
+                } else {
+                    Some((false, tables))
+                }
+            }
+            _ => None,
         };
         eg.run_program_with_trace(vec![command], &trace)?;
-        if let Some((reset,tables))=external_change {c.changes.push(crate::closure_contract::Change{boundary:c.boundaries.len()+1,reset,tables,..Default::default()});}
+        if let Some((reset, tables)) = external_change {
+            c.changes.push(crate::closure_contract::Change {
+                boundary: c.boundaries.len() + 1,
+                reset,
+                tables,
+                ..Default::default()
+            });
+        }
         if schedule {
             collect(&eg, &trace, &mut c, &mut producers)?;
             c.boundaries.push(CaptureBoundary {
@@ -415,7 +360,11 @@ fn capture_text_with_sink(
         }
     }
     collect(&eg, &trace, &mut c, &mut producers)?;
-    if c.boundaries.last().is_none_or(|b| b.end != c.records.len()) || c.changes.last().is_some_and(|e|e.boundary>c.boundaries.len()) {
+    if c.boundaries.last().is_none_or(|b| b.end != c.records.len())
+        || c.changes
+            .last()
+            .is_some_and(|e| e.boundary > c.boundaries.len())
+    {
         c.boundaries.push(CaptureBoundary {
             ripen: None,
             kind: "final".into(),
@@ -425,11 +374,6 @@ fn capture_text_with_sink(
     }
     if let Some(sink) = sink.as_mut() {
         sink(&mut c)?;
-    }
-    if let Some((tier1, root, worker)) = online.as_mut() {
-        worker
-            .install(|| build_tier1(&mut c, tier1, root, &mut inserted).map_err(|e| e.to_string()))
-            .map_err(|e| -> Box<dyn std::error::Error> { e.into() })?;
     }
     c.rounds = known.then_some(count);
     c.trace_seconds = started.elapsed().as_secs_f64();
@@ -462,8 +406,8 @@ fn collect(
     if trace.buffered_event_count() != 0 {
         return Err("raw trace buffers were not drained at execution boundary".into());
     }
-    let raw_unions=batch.unions.clone();
-    let invalidations=batch.invalidations.clone();
+    let raw_unions = batch.unions.clone();
+    let invalidations = batch.invalidations.clone();
     let matches = batch.matches;
     let events = c.events + matches.len();
     let resets = trace.scope_resets();
@@ -583,7 +527,12 @@ fn collect(
             })
             .collect::<Vec<_>>();
         // A missing sort is an unsupported trace witness, not an execution error.
-        if named.iter().any(|(n,_)| !variable_sorts[rule].contains_key(n)) { continue; }
+        if named
+            .iter()
+            .any(|(n, _)| !variable_sorts[rule].contains_key(n))
+        {
+            continue;
+        }
         named.sort_by(|a, b| a.0.cmp(&b.0));
         let mut values = vec![];
         let mut outputs = vec![];
@@ -593,9 +542,18 @@ fn collect(
                 .get(n)
                 .ok_or_else(|| format!("unmapped binding sort: {n}"))?
                 .clone();
-            let literal=if sort.as_ref()=="i64" {Some(eg.value_to_base::<i64>(*v).to_string())}else{None};
-            let token=pool.intern(Token {sort,key:Key::Value(s,*v)});
-            if let Some(literal)=literal {pool.literals.insert(token,literal);}
+            let literal = if sort.as_ref() == "i64" {
+                Some(eg.value_to_base::<i64>(*v).to_string())
+            } else {
+                None
+            };
+            let token = pool.intern(Token {
+                sort,
+                key: Key::Value(s, *v),
+            });
+            if let Some(literal) = literal {
+                pool.literals.insert(token, literal);
+            }
             values.push(token);
             outputs.push(Output::Var(n.clone()));
             inputs.push(Input::Var(n.clone()));
@@ -733,28 +691,75 @@ fn collect(
             extension: 0,
         });
     }
-    let mut change=crate::closure_contract::Change{boundary:c.boundaries.len()+1,reset:resets.len()!=c.last_scope,..Default::default()};
-    c.last_scope=resets.len();
+    let mut change = crate::closure_contract::Change {
+        boundary: c.boundaries.len() + 1,
+        reset: resets.len() != c.last_scope,
+        ..Default::default()
+    };
+    c.last_scope = resets.len();
     for w in &writes {
-        if !matches!(w.outcome,WriteOutcome::Inserted|WriteOutcome::Updated){continue;}
-        if let Some((name,_,sorts))=schemas.get(&format!("{:?}",w.table)) {
-            for (v,sort) in w.actual.iter().zip(sorts) {if sort.as_ref()!="Unit"{change.tokens.push(pool.intern(Token{sort:sort.clone(),key:Key::Value(scope(w.match_event_id),*v)}));}}
-            if w.outcome==WriteOutcome::Updated{change.tables.push(name.to_string());}
-        } else {change.reset=true;}
+        if !matches!(w.outcome, WriteOutcome::Inserted | WriteOutcome::Updated) {
+            continue;
+        }
+        if let Some((name, _, sorts)) = schemas.get(&format!("{:?}", w.table)) {
+            for (v, sort) in w.actual.iter().zip(sorts) {
+                if sort.as_ref() != "Unit" {
+                    change.tokens.push(pool.intern(Token {
+                        sort: sort.clone(),
+                        key: Key::Value(scope(w.match_event_id), *v),
+                    }));
+                }
+            }
+            if w.outcome == WriteOutcome::Updated {
+                change.tables.push(name.to_string());
+            }
+        } else {
+            change.reset = true;
+        }
     }
-    for u in raw_unions.into_iter().filter(|u|u.displaced.is_some()){
-        let tokens=[u.lhs,u.rhs].map(|v|pool.intern(Token{sort:Arc::from(c.datatype_name.as_str()),key:Key::Value(scope(u.match_event_id),v)}));change.unions.push((tokens[0],tokens[1]));
+    for u in raw_unions.into_iter().filter(|u| u.displaced.is_some()) {
+        let tokens = [u.lhs, u.rhs].map(|v| {
+            pool.intern(Token {
+                sort: Arc::from(c.datatype_name.as_str()),
+                key: Key::Value(scope(u.match_event_id), v),
+            })
+        });
+        change.unions.push((tokens[0], tokens[1]));
     }
     for invalid in invalidations {
-        if let Some(p)=producers.get(&invalid.write_event_id){if let Some((name,_,_))=schemas.get(&p.table){change.tables.push(name.to_string());}else{change.reset=true;}}
-        else {change.reset=true;} // Unknown row ownership: invalidate conservatively.
+        if let Some(p) = producers.get(&invalid.write_event_id) {
+            if let Some((name, _, _)) = schemas.get(&p.table) {
+                change.tables.push(name.to_string());
+            } else {
+                change.reset = true;
+            }
+        } else {
+            change.reset = true;
+        } // Unknown row ownership: invalidate conservatively.
     }
     // Subsume may not have a row producer. Its target table is still known.
-    for m in &matches {if survived.contains(&m.event_id){if let Some(&r)=names.get(m.rule.as_ref()){
-        for a in &rules[r].rule.head.0 {if let Action::Change(_,_,op,_)=a {change.tables.push(op.clone());}}
-    }}}
-    change.tokens.sort();change.tokens.dedup();change.tables.sort();change.tables.dedup();
-    if change.reset||!change.tokens.is_empty()||!change.tables.is_empty()||!change.unions.is_empty(){c.changes.push(change);}
+    for m in &matches {
+        if survived.contains(&m.event_id) {
+            if let Some(&r) = names.get(m.rule.as_ref()) {
+                for a in &rules[r].rule.head.0 {
+                    if let Action::Change(_, _, op, _) = a {
+                        change.tables.push(op.clone());
+                    }
+                }
+            }
+        }
+    }
+    change.tokens.sort();
+    change.tokens.dedup();
+    change.tables.sort();
+    change.tables.dedup();
+    if change.reset
+        || !change.tokens.is_empty()
+        || !change.tables.is_empty()
+        || !change.unions.is_empty()
+    {
+        c.changes.push(change);
+    }
     // Certificates in rolled-back scopes cannot serve future reads. A read's
     // live origin still must explicitly reference this exact committed row.
     let current_scope = resets.len();
@@ -857,879 +862,121 @@ fn update_layers(c: &mut Captured) -> Result {
     Ok(())
 }
 
-fn build_tier1(
-    c: &mut Captured,
-    eg: &mut EGraph,
-    _root: &Path,
-    inserted: &mut (usize, usize),
-) -> Result {
-    let stage_start = Instant::now();
-    if eg.get_function("ImportedComb").is_some()
-        && *inserted == (c.pool.values.len(), c.records.len())
-    {
-        return Ok(());
-    }
-    if eg.get_function("ImportedComb").is_none() {
-        eg.parse_and_run_program(None, crate::layer_bridge::SCHEMA)?;
-        eg.parse_and_run_program(None,"(function ImportedComb (i64) Comb :no-merge) (function ImportedInstance (i64) Instance :no-merge) (function ImportedValue (i64) Val :no-merge)")?;
-    }
-    update_layers(c)?;
-    let mut batch = vec![];
-    emit(eg, &mut batch, fact("Empty", vec![]))?;
-    for (id, t) in c.pool.values.iter().enumerate().skip(inserted.0) {
-        emit(
-            eg,
-            &mut batch,
-            set(
-                "ImportedValue",
-                id as u64,
-                call("V", vec![string(&t.sort), string(&t.label())]),
-            ),
-        )?;
-    }
-    for r in c.records.iter().skip(inserted.1) {
-        let parent_expr = list(
-            if r.parents.is_empty() {
-                vec![call("Empty", vec![])]
-            } else {
-                r.parents.iter().map(|p| cref(c.records[*p].id)).collect()
-            },
-            "MoreParents",
-            "NoParents",
-        );
-        let ports = r
-            .ports
-            .iter()
-            .enumerate()
-            .map(|(slot, p)| {
-                let sort = &c.pool.values[r.wanted[slot]].sort;
-                match p {
-                    Port::Parent(k, j) => {
-                        let p = call(
-                            "ParentPort",
-                            vec![num(*k as u64), num(*j as u64), string(sort)],
-                        );
-                        if c.is_coarse(r) {
-                            call("Local", vec![p])
-                        } else {
-                            p
-                        }
-                    }
-                    Port::External(k) => call("External", vec![num(*k as u64), string(sort)]),
-                }
-            })
-            .collect();
-        let binding = list(
-            ports,
-            if c.is_coarse(r) { "PCons" } else { "RCons" },
-            if c.is_coarse(r) { "PNil" } else { "RNil" },
-        );
-        emit(
-            eg,
-            &mut batch,
-            set(
-                "ImportedComb",
-                r.id,
-                call(
-                    if c.is_coarse(r) {
-                        "CoarseRuleComposition"
-                    } else {
-                        "SmoothRuleComposition"
-                    },
-                    vec![
-                        parent_expr,
-                        call("Rule", vec![string(&c.rules[r.rule].rule.name)]),
-                        binding,
-                    ],
-                ),
-            ),
-        )?;
-        emit(
-            eg,
-            &mut batch,
-            set(
-                "ImportedInstance",
-                r.id,
-                call("Occurrence", vec![num(r.id), cref(r.id)]),
-            ),
-        )?;
-        for (slot, p) in r.parents.iter().enumerate() {
-            emit(
-                eg,
-                &mut batch,
-                fact(
-                    "ParentAt",
-                    vec![iref(r.id), num(slot as u64), iref(c.records[*p].id)],
-                ),
-            )?;
-        }
-        for (relation, values) in [("OutputAt", &r.values), ("ExternalAt", &r.external)] {
-            for (slot, v) in values.iter().enumerate() {
-                emit(
-                    eg,
-                    &mut batch,
-                    fact(relation, vec![iref(r.id), num(slot as u64), vref(*v)]),
-                )?;
-            }
-        }
-        let effect = |id| call("RowFact", vec![vref(id)]);
-        for v in &r.produced {
-            emit(
-                eg,
-                &mut batch,
-                fact("Produced", vec![iref(r.id), effect(*v)]),
-            )?;
-        }
-        for v in &r.required {
-            if matches!(
-                c.pool.values[*v].key,
-                Key::External(..) | Key::Replay(_, true)
-            ) {
-                emit(
-                    eg,
-                    &mut batch,
-                    fact("ExternalFact", vec![iref(r.id), effect(*v)]),
-                )?;
-            }
-        }
-        for (a, b) in &r.unions {
-            emit(
-                eg,
-                &mut batch,
-                fact(
-                    "Produced",
-                    vec![iref(r.id), call("Equal", vec![vref(*a), vref(*b)])],
-                ),
-            )?;
-        }
-        emit(
-            eg,
-            &mut batch,
-            fact(
-                "Requires",
-                vec![
-                    iref(r.id),
-                    list(
-                        r.required.iter().map(|v| effect(*v)).collect(),
-                        "ECons",
-                        "ENil",
-                    ),
-                ],
-            ),
-        )?;
-    }
-    for (index, r) in c.records.iter().enumerate().skip(inserted.1) {
-        emit(
-            eg,
-            &mut batch,
-            fact(
-                "Binding",
-                vec![
-                    iref(r.id),
-                    list(r.wanted.iter().map(|v| vref(*v)).collect(), "ACons", "ANil"),
-                ],
-            ),
-        )?;
-        emit(
-            eg,
-            &mut batch,
-            fact("SupportsUse", vec![iref(r.id), iref(r.id)]),
-        )?;
-        for (slot, p) in r.parents.iter().enumerate() {
-            emit(
-                eg,
-                &mut batch,
-                fact(
-                    "LinkedParent",
-                    vec![iref(r.id), num(slot as u64), iref(c.records[*p].id)],
-                ),
-            )?;
-            emit(
-                eg,
-                &mut batch,
-                fact(
-                    "ParentTemplate",
-                    vec![cref(r.id), num(slot as u64), cref(c.records[*p].id)],
-                ),
-            )?;
-        }
-        // Legacy reducers inspect inherited effects. The Rust store itself keeps
-        // effects only at their origin and resolves this closure on demand.
-        for effect in c.layers.provides(&[index]) {
-            let e = match effect {
-                crate::coarse_smooth::Effect::RowFact(v) => call("RowFact", vec![vref(v)]),
-                crate::coarse_smooth::Effect::Equal(a, b) => call("Equal", vec![vref(a), vref(b)]),
-            };
-            emit(eg, &mut batch, fact("Provides", vec![iref(r.id), e]))?;
-        }
-    }
-    flush(eg, &mut batch)?;
-    *inserted = (c.pool.values.len(), c.records.len());
-    // Read handles for the data-only Tier2 projection. No Tier1 saturation.
-    let mut native = BTreeMap::new();
-    eg.function_for_each("Occurrence", |r| {
-        native.insert(
-            eg.value_to_base::<i64>(r.vals[0]) as u64,
-            (r.vals[1], r.vals[2]),
-        );
-    })?;
-    for r in &mut c.records {
-        let &(comb, instance) = native.get(&r.id).ok_or("missing projected occurrence")?;
-        r.comb = Some(comb);
-        r.instance = Some(instance);
-    }
-    if let Some(path) = std::env::var_os("EGG_LAYOUT_SUPPORT_SNAPSHOT") {
-        let pairs: BTreeSet<_> = c.records.iter().map(|r| (r.id, r.id)).collect();
-        serde_json::to_writer(
-            std::io::BufWriter::new(std::fs::File::create(path)?),
-            &pairs,
-        )?;
-    }
-    eprintln!(
-        "[perf-layers] build_and_project={:.6} records={} definitions={} coarse_layers={} smooth_layers={}",
-        stage_start.elapsed().as_secs_f64(),
-        c.records.len(),
-        c.layers.combs.len(),
-        c.layers.coarse_layers.len(),
-        c.layers.smooth_layers.len()
-    );
-    Ok(())
-}
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
-struct ExtensionKey {
-    rule: usize,
-    coarse: bool,
-    inputs: Vec<String>,
-    routes: Vec<String>,
-}
-struct Extensions {
-    keys: Vec<ExtensionKey>,
-    known: Vec<bool>,
-}
-fn role(c: &Captured, parent: usize, slot: usize) -> Option<String> {
-    let p = &c.records[parent];
-    let r = &c.rules[p.rule];
-    let s = match &p.outputs[slot] {
-        Output::Var(n) => format!("variable:{n}"),
-        Output::Column(span, col) => {
-            let (path, e) = r.calls.get(span)?;
-            let Expr::Call(_, op, _) = e else {
-                return None;
-            };
-            format!("{path}:{op}:{col}")
-        }
-        Output::Row(span) => format!("row:{}", r.calls.get(span)?.0),
-    };
-    Some(format!("{}:{s}", r.rule.name))
-}
-fn build_tier2(c: &mut Captured, eg: &mut EGraph, root: &Path) -> Result<(Extensions, Vec<Json>)> {
-    update_tier2(c, eg, root, &mut Tier2State::default())
-}
-#[derive(Default)]
-struct Tier2State {
-    keys: Vec<ExtensionKey>,
-    seen: BTreeMap<ExtensionKey, usize>,
-    known: Vec<bool>,
-    inserted: usize,
-    loaded: bool,
-}
-fn update_tier2(
-    c: &mut Captured,
-    eg: &mut EGraph,
-    root: &Path,
-    state: &mut Tier2State,
-) -> Result<(Extensions, Vec<Json>)> {
-    if !state.loaded {
-        load(eg, &root.join("rules/tier2.egg"), root)?;
-        load(eg, &root.join("rules/higher.egg"), root)?;
-        eg.parse_and_run_program(
-            None,
-            "(function ImportedExtension (i64) Extension :no-merge)",
-        )?;
-        state.loaded = true;
-    }
-    let Tier2State {
-        keys,
-        seen,
-        known,
-        inserted,
-        ..
-    } = state;
-    let mut batch = vec![];
-    for index in *inserted..c.records.len() {
-        let r = &c.records[index];
-        let mut valid = true;
-        let mut routes = vec![];
-        let mut exprs = vec![];
-        for (slot, p) in r.ports.iter().enumerate() {
-            let sort = &c.pool.values[r.wanted[slot]].sort;
-            match p {
-                Port::External(k) => {
-                    routes.push(format!("external:{k}:{sort}"));
-                    exprs.push(call("Outside", vec![num(*k as u64), string(sort)]));
-                }
-                Port::Parent(k, j) => {
-                    let role = role(c, r.parents[*k], *j).unwrap_or_else(|| {
-                        valid = false;
-                        format!("unmapped:{j}")
-                    });
-                    routes.push(format!("parent:{k}:{role}:{sort}"));
-                    exprs.push(call(
-                        "ParentRole",
-                        vec![num(*k as u64), string(&role), string(sort)],
-                    ));
-                }
-            }
-        }
-        let inputs = r
-            .inputs
-            .iter()
-            .map(|i| match i {
-                Input::Var(n) => format!("var:{n}"),
-                Input::Read(s) => c.rules[r.rule]
-                    .calls
-                    .get(s)
-                    .map(|x| x.0.clone())
-                    .unwrap_or_else(|| {
-                        valid = false;
-                        "unmapped".into()
-                    }),
-            })
-            .collect();
-        let key = ExtensionKey {
-            rule: r.rule,
-            coarse: c.is_coarse(r),
-            inputs,
-            routes,
-        };
-        let ext = if let Some(&id) = seen.get(&key) {
-            id
-        } else {
-            let id = keys.len();
-            let schema = format!(
-                "{}\ncoarse={}\n{:?}",
-                c.rules[r.rule].rule,
-                c.is_coarse(r),
-                key.inputs
-            );
-            emit(
-                eg,
-                &mut batch,
-                set(
-                    "ImportedExtension",
-                    id as u64,
-                    call(
-                        "Extend",
-                        vec![
-                            string(&c.rules[r.rule].rule.name),
-                            list(exprs, "Next", "End"),
-                            call("Schema", vec![string(&schema)]),
-                        ],
-                    ),
-                ),
-            )?;
-            known.push(valid);
-            keys.push(key.clone());
-            seen.insert(key, id);
-            id
-        };
-        emit(
-            eg,
-            &mut batch,
-            fact(
-                "At",
-                vec![num(r.id), call("ImportedExtension", vec![num(ext as u64)])],
-            ),
-        )?;
-        for (slot, p) in r.parents.iter().enumerate() {
-            emit(
-                eg,
-                &mut batch,
-                fact(
-                    "Before",
-                    vec![num(c.records[*p].id), num(r.id), num(slot as u64)],
-                ),
-            )?;
-        }
-        if c.is_coarse(r) {
-            emit(
-                eg,
-                &mut batch,
-                fact(
-                    "NeedsBoundary",
-                    vec![call("ImportedExtension", vec![num(ext as u64)])],
-                ),
-            )?;
-        }
-        c.records[index].extension = ext;
-    }
-    flush(eg, &mut batch)?;
-    for r in c.records.iter().skip(*inserted) {
-        if c.is_coarse(r) || r.parents.len() != 1 || !known[r.extension] {
-            continue;
-        }
-        let ports = r
-            .ports
-            .iter()
-            .enumerate()
-            .map(|(slot, p)| match p {
-                Port::Parent(k, j) => call(
-                    "ParentPort",
-                    vec![
-                        num(*k as u64),
-                        num(*j as u64),
-                        string(&c.pool.values[r.wanted[slot]].sort),
-                    ],
-                ),
-                _ => unreachable!(),
-            })
-            .collect();
-        emit(
-            eg,
-            &mut batch,
-            fact(
-                "UnaryStep",
-                vec![
-                    cref(c.records[r.parents[0]].id),
-                    cref(r.id),
-                    call("ImportedExtension", vec![num(r.extension as u64)]),
-                    list(ports, "RCons", "RNil"),
-                ],
-            ),
-        )?;
-    }
-    flush(eg, &mut batch)?;
-    eg.parse_and_run_program(
-        None,
-        "(run-schedule (saturate (run tier2))) (run-schedule (saturate (run higher)))",
-    )?;
-    let mut native = vec![None; keys.len()];
-    eg.function_for_each("ImportedExtension", |r| {
-        native[eg.value_to_base::<i64>(r.vals[0]) as usize] = Some(r.vals[1])
-    })?;
-    let native: Vec<_> = native.into_iter().map(Option::unwrap).collect();
-    let ext_ids: BTreeMap<_, _> = native.iter().enumerate().map(|(i, v)| (*v, i)).collect();
-    let cid = |v| {
-        eg.value_to_class_id(eg.get_sort_by_name("Comb").unwrap(), v)
-            .to_string()
-    };
-    let mut depths = BTreeMap::new();
-    eg.function_for_each("Depth", |r| {
-        depths.insert(r.vals[1], eg.value_to_base::<i64>(r.vals[0]));
-    })?;
-    let mut h = BTreeMap::new();
-    eg.function_for_each("FractalComb",|r|{h.insert(r.vals[4],json!({"count":depths[&r.vals[0]],"operator":format!("ext_{:04}",ext_ids[&r.vals[1]]),"ctx":cid(r.vals[2]),"represents":[]}));})?;
-    eg.function_for_each("Represents", |r| {
-        h.get_mut(&r.vals[0]).unwrap()["represents"]
-            .as_array_mut()
-            .unwrap()
-            .push(json!(cid(r.vals[1])))
-    })?;
-    *inserted = c.records.len();
-    Ok((
-        Extensions {
-            keys: keys.clone(),
-            known: known.clone(),
-        },
-        h.into_values().collect(),
-    ))
-}
-
-fn pretty(e: &Expr) -> String {
-    match e {
-        Expr::Var(_, n) => n.clone(),
-        Expr::Lit(_, v) => v.to_string(),
-        Expr::Call(_, op, args) => {
-            let a: Vec<_> = args.iter().map(pretty).collect();
-            if a.len() == 2 {
-                if let Some(symbol) = match op.as_str() {
-                    "Add" => Some("+"),
-                    "Sub" => Some("−"),
-                    "Mul" => Some("·"),
-                    "Div" => Some("/"),
-                    "Pow" => Some("^"),
-                    _ => None,
-                } {
-                    return format!("({} {symbol} {})", a[0], a[1]);
-                }
-            }
-            if op == "Integral" && a.len() == 2 {
-                return format!("∫({}) d{}", a[0], a[1]);
-            }
-            if op == "Diff" && a.len() == 2 {
-                return format!("D({}, {})", a[1], a[0]);
-            }
-            format!("{op}({})", a.join(", "))
-        }
-    }
-}
-/// Egglog syntax for an expression the lane changed, so the fractal preview can
-/// unroll a lane by re-parsing and substituting it (the display form `pretty`
-/// prints is not parseable: infix `·`, prefix `+(n, 1)`).
-fn egglog(e: &Expr) -> String {
-    match e {
-        Expr::Var(_, n) => n.clone(),
-        Expr::Lit(_, v) => v.to_string(),
-        Expr::Call(_, op, args) => {
-            let a: Vec<_> = args.iter().map(egglog).collect();
-            if a.is_empty() {
-                format!("({op})")
-            } else {
-                format!("({op} {})", a.join(" "))
-            }
-        }
-    }
-}
-fn update_text(c: &Captured, index: usize) -> Vec<String> {
-    let r = &c.records[index];
-    r.inputs
-        .iter()
-        .zip(&r.ports)
-        .filter_map(|(input, port)| {
-            let Input::Var(n) = input else {
-                return None;
-            };
-            let value = match port {
-                Port::External(_) => "外部接口".into(),
-                Port::Parent(p, j) => {
-                    let parent = &c.records[r.parents[*p]];
-                    match &parent.outputs[*j] {
-                        Output::Var(n) => n.clone(),
-                        Output::Column(span, col) => match c.rules[parent.rule].calls.get(span) {
-                            Some((_, Expr::Call(_, op, args))) => {
-                                if *col < args.len() {
-                                    egglog(&args[*col])
-                                } else {
-                                    format!("({op} …)")
-                                }
-                            }
-                            _ => "未映射输出".into(),
-                        },
-                        Output::Row(_) => "行见证".into(),
-                    }
-                }
-            };
-            Some(format!("{n} ← {value}"))
-        })
-        .collect()
-}
-fn view(c: &Captured, eg: &EGraph, extensions: &Extensions, higher: &[Json]) -> Result<Json> {
-    let cid = |v| {
-        eg.value_to_class_id(eg.get_sort_by_name("Comb").unwrap(), v)
-            .to_string()
-    };
-    let eligible =
-        |r: &Record| !c.is_coarse(r) && r.parents.len() == 1 && extensions.known[r.extension];
-    let mut children: Vec<Vec<usize>> = vec![vec![]; c.records.len()];
-    let mut starts = vec![];
-    for (i, r) in c.records.iter().enumerate().filter(|(_, r)| eligible(r)) {
-        let p = r.parents[0];
-        if eligible(&c.records[p]) && c.records[p].extension == r.extension {
-            children[p].push(i);
-        } else {
-            starts.push(i);
-        }
-    }
-    let mut paths = vec![];
-    let mut todo: Vec<_> = starts.into_iter().map(|i| vec![i]).collect();
-    while let Some(path) = todo.pop() {
-        let last = *path.last().unwrap();
-        if children[last].is_empty() {
-            if path.len() >= 2 {
-                paths.push(path);
-            }
-            continue;
-        }
-        for child in &children[last] {
-            let mut p = path.clone();
-            p.push(*child);
-            todo.push(p);
-        }
-    }
-    paths.sort_by_key(|p| (std::cmp::Reverse(p.len()), c.records[p[0]].id));
-    let mut needed = BTreeSet::new();
-    let mut lanes = vec![];
-    for (n, path) in paths.iter().enumerate() {
-        let first = &c.records[path[0]];
-        let trigger = first.parents[0];
-        let op = format!("ext_{:04}", first.extension);
-        let context = cid(c.records[trigger].comb.unwrap());
-        let target = cid(c.records[*path.last().unwrap()].comb.unwrap());
-        if !higher.iter().any(|h| {
-            h["count"].as_u64() == Some(path.len() as u64)
-                && h["operator"] == op
-                && h["ctx"] == context
-                && h["represents"]
-                    .as_array()
-                    .unwrap()
-                    .iter()
-                    .any(|x| x == &target)
-        }) {
-            return Err("view path is not a native FractalComb".into());
-        }
-        needed.insert(trigger);
-        needed.extend(path);
-        lanes.push(json!({"id":format!("chain_{}",n+1),"rule":c.rules[first.rule].rule.name,"operator":op,"trigger":c.records[trigger].id,"events":path.iter().map(|i|c.records[*i].id).collect::<Vec<_>>(),"higher":format!("FractalComb(Depth({}), {}, {}, initial_binding)",path.len(),op,context),"update":update_text(c,path[0])}));
-    }
-    let mut nodes = serde_json::Map::new();
-    for index in needed {
-        let r = &c.records[index];
-        let rule = &c.rules[r.rule].rule;
-        let equation = match (rule.body.first(), rule.head.0.first()) {
-            (Some(Fact::Eq(_, _, lhs)), Some(Action::Union(_, _, rhs))) => {
-                format!("{} ⇒ {}", pretty(lhs), pretty(rhs))
-            }
-            _ => rule.to_string(),
-        };
-        let lowered = crate::native_lower::lower(&c.records, &c.rules, index).and_then(|lowered| {
-            let mut check = EGraph::default();
-            check
-                .parse_and_run_program(None, &format!("{}\n{}", c.datatype, lowered.code))
-                .map_err(|e| e.to_string())?;
-            Ok(lowered)
-        });
-        nodes.insert(r.id.to_string(),json!({"event":r.id,"comb":format!("${}",cid(r.comb.unwrap())),"rule":rule.name,"kind":if c.is_coarse(r){"CoarseRuleComposition"}else{"SmoothRuleComposition"},"source":rule.to_string(),"equation":equation,"combined":lowered.as_ref().ok().map(|x|&x.code),"source_steps":lowered.as_ref().ok().map(|x|x.steps.iter().map(|i|c.rules[c.records[*i].rule].rule.name.clone()).collect::<Vec<_>>()),"reason":lowered.as_ref().err(),"tier1":format!("{}(parents={:?}, rule={}, ports={:?})",if c.is_coarse(r){"CoarseRuleComposition"}else{"SmoothRuleComposition"},r.parents.iter().map(|p|c.records[*p].id).collect::<Vec<_>>(),rule.name,r.ports),"parent_events":r.parents.iter().map(|p|c.records[*p].id).collect::<Vec<_>>(),"external_routes":r.ports.iter().filter_map(|p|if let Port::External(k)=p{Some(*k)}else{None}).collect::<Vec<_>>(),"source_routes":extensions.keys[r.extension].routes}));
-    }
-    let visible: BTreeSet<_> = nodes
-        .values()
-        .map(|n| n["comb"].as_str().unwrap().to_owned())
-        .collect();
-    let mut original: BTreeSet<_> = c.records.iter().filter_map(|r| r.comb).collect();
-    original.extend(eg.lookup_function("Empty", &[]));
-    let total = original.len();
-    let with_views = eg.get_size("Empty")
-        + eg.get_size("SmoothRuleComposition")
-        + eg.get_size("CoarseRuleComposition")
-        + eg.get_size("FractalComb");
-    Ok(
-        json!({"capture":{"rounds":c.rounds},"stats":{"higher_rules":higher.len(),"maximal_chains":lanes.len(),"applications":paths.iter().map(Vec::len).sum::<usize>(),"visible_unique_contexts":visible.len(),"total_comb_templates":total,"comb_templates_with_views":with_views},"lanes":lanes,"nodes":nodes,"scope":"Single-process native analysis; only witnessed finite paths are displayed. Raw events are drained after completed rounds; producer/equality indexes and analysis graphs remain resident."}),
-    )
-}
-fn escape(s: &str) -> String {
-    s.replace('&', "&amp;")
-        .replace('<', "&lt;")
-        .replace('>', "&gt;")
-        .replace('"', "&quot;")
-}
-fn render(root: &Path, out: &Path, data: &Json, native: bool) -> Result {
-    let mut template =
-        std::fs::read_to_string(root.join("experiments/tier2/fractal_view_template.html"))?;
-    if native {
-        template = template
-            .replace("../tier1_extract/index.html#", "index.html#")
-            .replace("../tier1_extract/index.html", "index.html");
-    }
-    if out.join("rounds/manifest.json").exists() {
-        let absolute = out.canonicalize()?;
-        let link=absolute.strip_prefix(root).ok().filter(|p|p.starts_with("out")).map(|p| {
-            let query=p.to_string_lossy().bytes().map(|b|if b.is_ascii_alphanumeric()||b"/-_.".contains(&b){(b as char).to_string()}else{format!("%{b:02X}")}).collect::<String>();
-            format!("<p><a href=\"http://127.0.0.1:8080/?layer_run={query}\">在 tools 调试网页打开逐轮 Layer / Fractal / DOT</a></p></header>")
-        }).unwrap_or_else(||"<p>逐轮数据位于 rounds/；请在 tools 调试网页载入分析目录。</p></header>".into());
-        template = template.replace("</header>", &link);
-    }
-    let payload = serde_json::to_string(data)?.replace('<', "\\u003c");
-    std::fs::write(
-        out.join("fractal.html"),
-        template.replace("__DATA__", &payload),
-    )?;
-    if native {
-        let mut html="<!doctype html><meta charset=\"utf-8\"><title>Native combined rules</title><style>body{font:16px system-ui;max-width:1100px;margin:32px auto}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#eef3ed;padding:16px}details{padding:12px}</style><h1>单进程分析 · 已显示组合</h1><p><a href=\"fractal.html\">返回 fractal 视图</a></p>".to_string();
-        for n in data["nodes"].as_object().unwrap().values() {
-            let name = n["comb"].as_str().unwrap();
-            html += &format!(
-                "<details id=\"{}\"><summary>{}</summary><pre>{}</pre><pre>{}</pre></details>",
-                escape(name.trim_start_matches('$')),
-                escape(name),
-                escape(n["source"].as_str().unwrap()),
-                escape(
-                    n["combined"]
-                        .as_str()
-                        .or(n["reason"].as_str())
-                        .unwrap_or("no new effect")
-                )
-            );
-        }
-        html += "<script>function focus(){let x=document.getElementById(location.hash.slice(1));if(x){x.open=true;x.scrollIntoView()}}onhashchange=focus;focus()</script>";
-        std::fs::write(out.join("index.html"), html)?;
-    }
-    Ok(())
-}
-/// All three egraphs/analyses execute in this process. Only final results are serialized.
-pub fn run(root: &Path, source: &Path, rounds: Option<usize>, out: &Path) -> Result<Json> {
-    run_with_options(root, source, rounds, out, false, false, None)
-}
-pub fn run_with_options(
-    root: &Path,
-    source: &Path,
+fn execute(
+    name: &str,
+    text: &str,
     rounds: Option<usize>,
     out: &Path,
-    online: bool,
-    save_history: bool,
     replay: Option<&Path>,
+    save_history: bool,
+    persist_frames: bool,
+    emit: &mut dyn FnMut(Json) -> Result,
 ) -> Result<Json> {
-    let source = if replay.is_some() {
-        source.to_path_buf()
-    } else {
-        source.canonicalize()?
-    };
-    if out.exists() {
-        return Err(format!("output already exists: {}", out.display()).into());
-    }
     std::fs::create_dir_all(out)?;
-    let started = Instant::now();
-    let mut status = json!({"status":"running","phase":if replay.is_some() {"history"} else {"tier0"},"build_mode":if online {"online"} else {"offline"},"history_input":replay,"save_history":save_history,"mode":"native-single-process","pid":std::process::id(),"source":source,"requested_rounds":rounds,"subprocesses":0});
-    let marker = out.join("run.json");
-    std::fs::write(&marker, serde_json::to_string_pretty(&status)?)?;
-    let mut result = (|| -> Result<Json> {
-        let worker = rayon::ThreadPoolBuilder::new().num_threads(1).build()?;
-        let mut tier1 = EGraph::default();
-        let mut layer_exporter = layer_view::Exporter::with_saturated_rule_composition(out)?;
-        let mut c = if let Some(path) = replay {
-            history::read(path)?
-        } else if online {
-            capture_with_sink(
-                &source,
-                rounds,
-                Some((&mut tier1, root, &worker)),
-                Some(&mut |c| layer_exporter.capture(c, out)),
-            )?
-        } else {
-            capture(&source, rounds, None)?
-        };
-        if save_history {
-            history::save(&out.join("history.json"), &source, &c)?;
+    let mut pipeline = saturated_rule_composition_pipeline::Pipeline::new(out, name.into())?;
+    let mut manifest = vec![];
+    let mut emitted = 0;
+    let mut boundary = 0;
+    let mut boundary_emit = |c: &mut Captured| -> Result {
+        update_layers(c)?;
+        boundary += 1;
+        for r in &c.records[emitted..] {
+            let rule = &c.rules[r.rule].rule;
+            let mut row = debug::render(rule);
+            let (line, end) = debug::location(rule);
+            row["kind"] = json!("application");
+            row["id"] = json!(format!("apply:{}", r.id));
+            row["event"] = json!(r.id);
+            row["rule"] = json!(rule.name);
+            row["source_line"] = json!(line);
+            row["end_line"] = json!(end);
+            row["boundary"] = json!(boundary);
+            row["parents"] = json!(r.parents);
+            emit(row)?;
         }
-        let mut times = BTreeMap::new();
-        times.insert(
-            if online {
-                "tier0_capture_and_online_tier1"
-            } else {
-                "tier0_and_typed_capture"
-            },
-            c.trace_seconds,
-        );
-        eprintln!(
-            "[native] {} events, {} eligible applications",
-            c.events,
-            c.records.len()
-        );
-        // Isolate metadata work in one Rayon worker; tier-0 kept its normal pool.
-        let base_status = status.clone();
-        let phase_marker = marker.clone();
-        let pool = rayon::ThreadPoolBuilder::new().num_threads(1).build()?;
-        pool.install(move || -> std::result::Result<Json,String> {
-            (|| -> Result<Json> {
-        let phase=|name:&str|->Result {let mut s=base_status.clone();s["phase"]=json!(name);std::fs::write(&phase_marker,serde_json::to_vec(&s)?)?;eprintln!("[native] {name}");Ok(())};
-        phase("tier1")?;
-        let mut eg=tier1;let stage=Instant::now();if !online || replay.is_some() { build_tier1(&mut c,&mut eg,root,&mut (0,0))?; }times.insert("tier1",stage.elapsed().as_secs_f64());
-        if !online || replay.is_some() {layer_exporter.replay(&c,out)?;}
-        phase("tier2")?;
-        let stage=Instant::now();let(ext,higher)=build_tier2(&mut c,&mut eg,root)?;times.insert("tier2",stage.elapsed().as_secs_f64());
-        phase("fractal-views")?;
-        let stage=Instant::now();let fractal_views=fractal::build(&c,&mut eg,&ext,root)?;times.insert("fractal_views",stage.elapsed().as_secs_f64());
-        let recursive_start=Instant::now();let recursive=if std::env::var_os("EGG_LAYOUT_DISCOVER_RECURSION").is_some() || std::env::var_os("EGG_LAYOUT_TEMPLATE_CATALOG").is_some(){recursive::build(&c,&ext,&mut eg,root,&fractal_views)?}else{Json::Null};times.insert("recursive_patterns",recursive_start.elapsed().as_secs_f64());
-        let growth_start=Instant::now();let growth=if std::env::var_os("EGG_LAYOUT_DISCOVER_GROWTH").is_some(){growth::analyze(&c,&fractal_views)}else{Json::Null};times.insert("dependency_growth",growth_start.elapsed().as_secs_f64());
-        phase("view")?;
-        let stage=Instant::now();let mut data=view(&c,&eg,&ext,&higher)?;
-        for row in fractal_views["views"].as_array().unwrap() { let key=row["event"].to_string(); if let Some(node)=data["nodes"].get_mut(&key) { node["fractal_view"]=row.clone(); } }
-        for row in fractal_views["fact_history"].as_array().unwrap() { let key=row["endpoint_event"].to_string(); if let Some(node)=data["nodes"].get_mut(&key) { node["fractal_facts"]=row.clone(); } }times.insert("selected_lowering_and_view",stage.elapsed().as_secs_f64());
-        let summary=json!({"events":c.events,"imported_events":c.records.len(),"excluded_events":c.rejected,"extensions":ext.keys.len(),"higher_rules":higher.len(),"executed_rounds":c.rounds,"timings_seconds":times,"wall_seconds":started.elapsed().as_secs_f64(),"subprocesses":0,"intermediate_trace_files":0,"raw_trace_peak_batch_events":c.trace_peak,"raw_trace_batches":c.trace_batches,"raw_trace_remaining_events":0,"build_mode":if online {"online"} else {"offline"},"history_saved":save_history,"history_replayed":replay.is_some(),"layer_visualization":"tools/egglog_debugger (load analysis directory)","round_manifest":"rounds/manifest.json","tier1_backend":"rust-coarse-smooth-layers","layer_definitions":c.layers.combs.len(),"coarse_layers":c.layers.coarse_layers.len(),"smooth_layers":c.layers.smooth_layers.len(),"scope":"Rust coarse/smooth layers with a data-only egglog projection for existing Tier2 consumers; tier-0 executes only during recapture. Online mode imports at simple run-round boundaries; complex schedules are imported at completion. Raw trace events are drained at completed execution boundaries; compact producer/equality indexes and analysis graphs remain resident. History contains resolved eligible applications, not rejected/raw trace events. Reduce rules are loaded; arbitrary accumulator summaries are not inferred."});
-        let reuse_ablation=if std::env::var_os("EGG_LAYOUT_REUSE_ABLATION").is_some(){json!({"scope":"End-to-end online admission ablation; the restricted arm admits only the backward layer slice stopping at coarse introductions. Learning and selection both use this gate.","interface_only":c.layers.reuse.report()["stats"],"layer_restricted":crate::comb_reuse::ReuseStore::replay(&c.layers,true).report()["stats"]})}else{Json::Null};
-        let report=json!({"reuse_ablation":reuse_ablation,"layer_patterns":layer_exporter.summary(),"layers":c.layers.report(),"status":"complete","summary":summary,"higher_rules":higher,"fractal_views":fractal_views,"dependency_growth":growth,"recursive_patterns":recursive,"view":data});
-        render(root,out,&report["view"],true)?;
-        Ok(report)
-            })().map_err(|e|e.to_string())
-        }).map_err(|e|e.into())
-    })();
-    if let Ok(r) = &mut result {
-        std::fs::write(
-            out.join("layers.json"),
-            serde_json::to_vec_pretty(&r["layers"])?,
-        )?;
-        r["summary"]["wall_seconds"] = json!(started.elapsed().as_secs_f64());
-        std::fs::write(out.join("analysis.json"), serde_json::to_vec(r)?)?;
-        if !r["recursive_patterns"].is_null() {
-            std::fs::write(
-                out.join("recursive_patterns.json"),
-                serde_json::to_vec_pretty(&r["recursive_patterns"])?,
-            )?;
-            let template =
-                std::fs::read_to_string(root.join("experiments/recursive_patterns/viewer.html"))?;
-            let data = serde_json::to_string(&r["recursive_patterns"])?.replace('<', r"\u003c");
-            std::fs::write(
-                out.join("recursive_patterns.html"),
-                template.replace("__RECURSIVE_DATA__", &data),
-            )?;
+        emitted = c.records.len();
+        let b = c.boundaries.last().cloned().unwrap_or(CaptureBoundary {
+            ripen: None,
+            kind: "capture".into(),
+            round: None,
+            end: c.records.len(),
+        });
+        let mut frame = layer_view::snapshot(&c.layers, &b, boundary, &c.preview_source)?;
+        frame["saturated_rule_composition"] = pipeline.step(c, &c.layers, boundary)?;
+        frame["ripen_output_directory"] = json!(out);
+        if let Some(dot) = frame["saturated_rule_composition"]["catalog"]["dot"].as_str() {
+            frame["dots"]["saturated_rule_composition"] = json!(dot);
         }
-        if !r["dependency_growth"].is_null() {
-            std::fs::write(
-                out.join("dependency_growth.json"),
-                serde_json::to_vec_pretty(&r["dependency_growth"])?,
-            )?;
-            let template =
-                std::fs::read_to_string(root.join("experiments/dependency_growth/viewer.html"))?;
-            let data = serde_json::to_string(&r["dependency_growth"])?.replace('<', "\\u003c");
-            std::fs::write(
-                out.join("dependency_growth.html"),
-                template.replace("__GROWTH_DATA__", &data),
-            )?;
+        if persist_frames {
+            layer_view::persist(out, &frame, &mut manifest)?;
         }
-    }
-    if let Ok(bytes) = std::fs::read(&marker) {
-        if let Ok(s) = serde_json::from_slice::<Json>(&bytes) {
-            status["phase"] = s["phase"].clone();
-        }
-    }
-    match &result {
-        Ok(r) => {
-            status["phase"] = json!("complete");
-            status["status"] = json!("complete");
-            status["summary"] = r["summary"].clone();
-            status["executed_rounds"] = r["summary"]["executed_rounds"].clone();
-            status["match_events"] = r["summary"]["events"].clone();
-            status["viewer"] = json!("fractal.html");
-        }
-        Err(e) => {
-            status["status"] = json!("failed");
-            status["error"] = json!(e.to_string());
-        }
-    }
-    let saved = std::fs::write(marker, serde_json::to_string_pretty(&status)?);
-    if result.is_ok() {
-        saved?;
-    } else if let Err(e) = saved {
-        eprintln!("could not save failure status: {e}");
-    }
-    result
-}
-/// Re-render a completed final result, without secretly rerunning Python stages.
-pub fn reuse(root: &Path, out: Option<&Path>) -> Result {
-    if let Some(out) = out {
-        let native = out.join("analysis.json");
-        if native.exists() {
-            let report: Json = serde_json::from_slice(&std::fs::read(native)?)?;
-            if report["status"] != "complete" {
-                return Err("not a complete native analysis".into());
-            }
-            render(root, out, &report["view"], true)?;
-            println!("{}", out.join("fractal.html").display());
-        } else {
-            let state: Json = serde_json::from_slice(&std::fs::read(out.join("run.json"))?)?;
-            if state["status"] != "complete" {
-                return Err("not a completed legacy result".into());
-            }
-            let dir = out.join("experiments/tier2");
-            let data: Json =
-                serde_json::from_slice(&std::fs::read(dir.join("fractal_view.json"))?)?;
-            render(root, &dir, &data, false)?;
-            println!("{}", dir.join("fractal.html").display());
-        }
+        emit(frame)
+    };
+    let c = if let Some(path) = replay {
+        let mut c = history::read(path)?;
+        boundary_emit(&mut c)?;
+        c
     } else {
-        let dir = root.join("experiments/tier2");
-        let data: Json = serde_json::from_slice(&std::fs::read(dir.join("fractal_view.json"))?)?;
-        render(root, &dir, &data, false)?;
-        println!("{}", dir.join("fractal.html").display());
+        capture_text_with_sink(name, text, rounds, Some(&mut boundary_emit))?
+    };
+    drop(boundary_emit);
+    if save_history {
+        history::save(&out.join("history.json"), Path::new(name), &c)?;
     }
-    println!("Reused completed view; no inference or capture was rerun.");
-    Ok(())
+    // All cells keep their native engines. Drain fairly; an infinite cell stays
+    // Running and can be interrupted by the caller, never marked saturated.
+    while pipeline.has_work() {
+        boundary += 1;
+        let q = pipeline.step(&c, &c.layers, boundary)?;
+        emit(json!({"kind":"ripen_progress","saturated_rule_composition":q}))?;
+    }
+    let b = CaptureBoundary {
+        ripen: None,
+        kind: "ripen-complete".into(),
+        round: None,
+        end: c.records.len(),
+    };
+    boundary += 1;
+    let mut frame = layer_view::snapshot(&c.layers, &b, boundary, &c.preview_source)?;
+    frame["saturated_rule_composition"] = pipeline.report();
+    if let Some(dot) = frame["saturated_rule_composition"]["catalog"]["dot"].as_str() {
+        frame["dots"]["saturated_rule_composition"] = json!(dot);
+    }
+    if persist_frames {
+        layer_view::persist(out, &frame, &mut manifest)?;
+    }
+    emit(frame)?;
+    let report = json!({"status":"complete","summary":{"applications":c.records.len(),"logical_matches":c.events,"excluded":c.rejected,"scope":"native history -> CS -> ripen -> equivalence -> weak dominate"},"layers":c.layers.report(),"saturated_rule_composition":pipeline.report()});
+    std::fs::write(out.join("analysis.json"), serde_json::to_vec(&report)?)?;
+    std::fs::write(
+        out.join("layers.json"),
+        serde_json::to_vec(&c.layers.report())?,
+    )?;
+    Ok(report)
+}
+pub fn run(
+    source: &Path,
+    out: &Path,
+    rounds: Option<usize>,
+    replay: Option<&Path>,
+    save_history: bool,
+) -> Result<Json> {
+    if out.exists() {
+        return Err("analysis output already exists".into());
+    }
+    let text = if replay.is_some() {
+        String::new()
+    } else {
+        std::fs::read_to_string(source)?
+    };
+    execute(
+        &source.to_string_lossy(),
+        &text,
+        rounds,
+        out,
+        replay,
+        save_history,
+        true,
+        &mut |_| Ok(()),
+    )
 }

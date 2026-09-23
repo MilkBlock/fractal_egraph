@@ -1,4 +1,4 @@
-//! Exact, bounded isomorphism of complete exported local states and row visibility.
+//! Exact isomorphism of complete exported local states and row visibility.
 //! Cycles and sharing are preserved; matching histories and rule names are absent.
 use crate::pipeline::Result;
 use serde::{Deserialize, Serialize};
@@ -51,9 +51,6 @@ pub enum Comparison {
         states: usize,
     },
     IncompatibleScope,
-    UnknownBudget {
-        states: usize,
-    },
 }
 impl SaturatedRuleComposition {
     pub(crate) fn validate(&self) -> Result<()> {
@@ -178,13 +175,13 @@ fn colors(a: &SaturatedRuleComposition, b: &SaturatedRuleComposition) -> (Vec<us
     (c[..split].to_vec(), c[split..].to_vec())
 }
 
-/// Compare two exported local states under a finite search budget.
+/// Compare exported local states exactly, with no search cutoff.
 ///
 /// The inexpensive key and colour-refinement passes reject obvious mismatches;
 /// the final backtracking search is still required because refinement is only a
-/// necessary condition for graph isomorphism. `UnknownBudget` is therefore a
-/// real result: exhausting the checker does not mean the states differ.
-pub fn compare(a: &SaturatedRuleComposition, b: &SaturatedRuleComposition, budget: usize) -> Result<Comparison> {
+/// necessary condition for graph isomorphism. The explicit DFS has no cutoff;
+/// this whole-state bijection check is distinct from native weak-dominate joins.
+pub fn compare(a: &SaturatedRuleComposition, b: &SaturatedRuleComposition) -> Result<Comparison> {
     a.validate()?;
     b.validate()?;
     if a.scope != b.scope {
@@ -197,9 +194,6 @@ pub fn compare(a: &SaturatedRuleComposition, b: &SaturatedRuleComposition, budge
     if a.key() != b.key() {
         return Ok(different("typed facts or fixed port inventory differs", 0));
     }
-    if a.values.len() > 512 || a.rows.len() > 4096 {
-        return Ok(Comparison::UnknownBudget { states: 0 });
-    }
     let (ca, cb) = colors(a, b);
     let mut ha = ca.clone();
     ha.sort();
@@ -208,9 +202,12 @@ pub fn compare(a: &SaturatedRuleComposition, b: &SaturatedRuleComposition, budge
     if ha != hb {
         return Ok(different("refined incidence classes differ", 0));
     }
-    let candidates: Vec<Vec<_>> = (0..a.values.len())
-        .map(|i| (0..b.values.len()).filter(|j| ca[i] == cb[*j]).collect())
-        .collect();
+    // One shared domain per refined class, rather than a quadratic copy for
+    // every symmetric value. Explicit DFS state avoids a call-stack limit.
+    let mut domains = BTreeMap::<usize, Vec<usize>>::new();
+    for (i, color) in cb.iter().take(b.values.len()).enumerate() {
+        domains.entry(*color).or_default().push(i);
+    }
     let mut map = vec![None; a.values.len()];
     let mut used = vec![false; b.values.len()];
     let rows: BTreeMap<_, _> = b
@@ -220,82 +217,57 @@ pub fn compare(a: &SaturatedRuleComposition, b: &SaturatedRuleComposition, budge
         .enumerate()
         .map(|(i, r)| (r, b.subsumed_rows.contains(&i)))
         .collect();
+    let mut next = vec![0; a.values.len()];
+    let mut depth = 0;
     let mut states = 0;
-    let mut exhausted = false;
-    fn search(
-        a: &SaturatedRuleComposition,
-        rows: &BTreeMap<Row, bool>,
-        cs: &[Vec<usize>],
-        map: &mut [Option<usize>],
-        used: &mut [bool],
-        states: &mut usize,
-        budget: usize,
-        exhausted: &mut bool,
-    ) -> bool {
-        let next = (0..map.len())
-            .filter(|i| map[*i].is_none())
-            .min_by_key(|i| cs[*i].iter().filter(|j| !used[**j]).count());
-        let Some(i) = next else {
-            return a.rows.iter().enumerate().all(|(row_id, r)| {
-                rows.get(&Row {
-                    op: r.op.clone(),
-                    args: r.args.iter().map(|x| map[*x].unwrap()).collect(),
-                    result: map[r.result].unwrap(),
-                }) == Some(&a.subsumed_rows.contains(&row_id))
+    loop {
+        if depth == map.len() {
+            return Ok(Comparison::Equivalent {
+                value_map: map.into_iter().map(Option::unwrap).collect(),
+                states,
             });
-        };
-        for &j in &cs[i] {
-            if used[j] {
-                continue;
-            }
-            if *states >= budget {
-                *exhausted = true;
-                return false;
-            }
-            *states += 1;
-            map[i] = Some(j);
-            used[j] = true;
-            let valid = a.rows.iter().enumerate().all(|(row_id, r)| {
-                if let Some(result) = map[r.result] {
-                    if let Some(args) = r.args.iter().map(|x| map[*x]).collect::<Option<Vec<_>>>() {
-                        return rows.get(&Row {
-                            op: r.op.clone(),
-                            args,
-                            result,
-                        }) == Some(&a.subsumed_rows.contains(&row_id));
-                    }
-                }
-                true
-            });
-            if valid && search(a, rows, cs, map, used, states, budget, exhausted) {
-                return true;
-            }
-            map[i] = None;
-            used[j] = false;
-            if *exhausted {
-                return false;
+        }
+        let domain = &domains[&ca[depth]];
+        let mut choice = None;
+        while next[depth] < domain.len() {
+            let j = domain[next[depth]];
+            next[depth] += 1;
+            if !used[j] {
+                choice = Some(j);
+                break;
             }
         }
-        false
-    }
-    if search(
-        a,
-        &rows,
-        &candidates,
-        &mut map,
-        &mut used,
-        &mut states,
-        budget,
-        &mut exhausted,
-    ) {
-        Ok(Comparison::Equivalent {
-            value_map: map.into_iter().map(Option::unwrap).collect(),
-            states,
-        })
-    } else if exhausted {
-        Ok(Comparison::UnknownBudget { states })
-    } else {
-        Ok(different("no complete typed fact/port bijection", states))
+        let Some(j) = choice else {
+            next[depth] = 0;
+            if depth == 0 {
+                return Ok(different("no complete typed fact/port bijection", states));
+            }
+            depth -= 1;
+            let previous = map[depth].take().unwrap();
+            used[previous] = false;
+            continue;
+        };
+        map[depth] = Some(j);
+        used[j] = true;
+        states += 1;
+        let valid = a.rows.iter().enumerate().all(|(row_id, r)| {
+            if let Some(result) = map[r.result] {
+                if let Some(args) = r.args.iter().map(|x| map[*x]).collect::<Option<Vec<_>>>() {
+                    return rows.get(&Row {
+                        op: r.op.clone(),
+                        args,
+                        result,
+                    }) == Some(&a.subsumed_rows.contains(&row_id));
+                }
+            }
+            true
+        });
+        if valid {
+            depth += 1;
+        } else {
+            map[depth] = None;
+            used[j] = false;
+        }
     }
 }
 
@@ -310,11 +282,18 @@ pub fn read(path: &Path) -> Result<SaturatedRuleComposition> {
 /// The catalog shares descriptions of equal states while retaining one trigger
 /// record per input. It measures conditional symbolic interfaces, not memory
 /// saved inside the live egglog matcher.
-pub fn catalog(inputs: &[std::path::PathBuf], out: &Path, budget: usize) -> Result<Value> {
+pub fn catalog(inputs: &[std::path::PathBuf], out: &Path) -> Result<Value> {
     if inputs.is_empty() || out.exists() {
         return Err("catalog needs input ripen directories and a new output directory".into());
     }
-    let read_started=std::time::Instant::now();
+    refresh_catalog(inputs, out)
+}
+
+// Pipeline inputs are append-only: existing state ids stay stable. Publish each
+// complete file atomically and publish catalog.json last, retaining the previous
+// catalog if cancellation interrupts construction.
+pub(crate) fn refresh_catalog(inputs: &[std::path::PathBuf], out: &Path) -> Result<Value> {
+    let read_started = std::time::Instant::now();
     // Validate every input before creating output. Suspended runs have no state.
     let entries: Vec<_> = inputs
         .iter()
@@ -332,23 +311,23 @@ pub fn catalog(inputs: &[std::path::PathBuf], out: &Path, budget: usize) -> Resu
             Ok((p, report, read(&p.join("saturated-rule-composition.json"))?))
         })
         .collect::<Result<_>>()?;
-    let read_seconds=read_started.elapsed().as_secs_f64();
-    let mut compare_seconds=0.;
-    let mut key_seconds=0.;
+    let read_seconds = read_started.elapsed().as_secs_f64();
+    let mut compare_seconds = 0.;
+    let mut key_seconds = 0.;
     let mut states: Vec<SaturatedRuleComposition> = vec![];
     let mut buckets = BTreeMap::<String, Vec<usize>>::new();
     let mut triggers = vec![];
     let mut comparisons = vec![];
     for (path, report, state) in entries {
         let source_value_ids = state.local_ids.clone();
-        let stage=std::time::Instant::now();
+        let stage = std::time::Instant::now();
         let key = state.key();
-        key_seconds+=stage.elapsed().as_secs_f64();
+        key_seconds += stage.elapsed().as_secs_f64();
         let mut hit = None;
         for &i in buckets.get(&key).into_iter().flatten() {
-            let stage=std::time::Instant::now();
-            let result = compare(&state, &states[i], budget)?;
-            compare_seconds+=stage.elapsed().as_secs_f64();
+            let stage = std::time::Instant::now();
+            let result = compare(&state, &states[i])?;
+            compare_seconds += stage.elapsed().as_secs_f64();
             if let Comparison::Equivalent { value_map, .. } = &result {
                 hit = Some((i, value_map.clone()));
             }
@@ -368,10 +347,7 @@ pub fn catalog(inputs: &[std::path::PathBuf], out: &Path, budget: usize) -> Resu
     }
     std::fs::create_dir_all(out.join("states"))?;
     for (i, state) in states.iter().enumerate() {
-        std::fs::write(
-            out.join(format!("states/state-{i:04}.json")),
-            serde_json::to_vec_pretty(state)?,
-        )?;
+        crate::pipeline::write_json(&out.join(format!("states/state-{i:04}.json")), state)?;
     }
     let mut group_keys = BTreeMap::new();
     let mut comb_groups: Vec<Value> = vec![];
@@ -416,7 +392,7 @@ pub fn catalog(inputs: &[std::path::PathBuf], out: &Path, budget: usize) -> Resu
             "triggers":members.iter().map(|(i,_)|*i).collect::<Vec<_>>(),
             "comb_groups":comb_groups.iter().filter(|g|g["saturated_rule_composition"]==id).map(|g|g["id"].clone()).collect::<Vec<_>>()})
     }).collect();
-    let report = json!({"timings":{"read_seconds":read_seconds,"key_seconds":key_seconds,"compare_seconds":compare_seconds},"schema":"saturated-rule-composition-catalog/v1","scope":"exact complete constructor-state sharing with fixed named ports; triggers remain separate; no tier0 substitution", "unresolved_comparisons":comparisons.iter().filter(|c|c["result"]["status"]=="unknown_budget").count(),"saturated_rule_compositions":states.len(),"state_groups":state_groups,"comb_groups":comb_groups,"triggers":triggers,"comparisons":comparisons});
+    let report = json!({"timings":{"read_seconds":read_seconds,"key_seconds":key_seconds,"compare_seconds":compare_seconds},"schema":"saturated-rule-composition-catalog/v1","scope":"exact complete constructor-state sharing with fixed named ports; triggers remain separate; no tier0 substitution", "unresolved_comparisons":0,"saturated_rule_compositions":states.len(),"state_groups":state_groups,"comb_groups":comb_groups,"triggers":triggers,"comparisons":comparisons});
     let mut dot = String::from("digraph ClosedCatalog { rankdir=LR; node [shape=box];\n");
     for (i, state) in states.iter().enumerate() {
         let label = format!(
@@ -442,10 +418,8 @@ pub fn catalog(inputs: &[std::path::PathBuf], out: &Path, budget: usize) -> Resu
         );
     }
     dot += "}\n";
-    std::fs::write(out.join("catalog.dot"), dot)?;
-    std::fs::write(
-        out.join("catalog.json"),
-        serde_json::to_vec_pretty(&report)?,
-    )?;
+    std::fs::write(out.join("catalog.dot.partial"), dot)?;
+    std::fs::rename(out.join("catalog.dot.partial"), out.join("catalog.dot"))?;
+    crate::pipeline::write_json(&out.join("catalog.json"), &report)?;
     Ok(report)
 }

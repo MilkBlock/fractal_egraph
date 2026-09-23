@@ -7,6 +7,7 @@ export function ripenCoverage(catalog,cs,limit=100){
   if(u.source_composition!=null||!Number.isInteger(u.coarse_layer))continue;
   known.add(u.coarse_layer);const k=key([...(u.coarse||[]),...(u.smooth||[])]);
   if(!byMembers.has(k))byMembers.set(k,new Set());byMembers.get(k).add(u.coarse_layer);
+  if(Array.isArray(u.entry_members)){const entry=key(u.entry_members);if(!byMembers.has(entry))byMembers.set(entry,new Set());byMembers.get(entry).add(u.coarse_layer);}
  }
  const groups=new Map();for(const g of catalog.state_groups||[])groups.set(g.saturated_rule_composition,{state:g.saturated_rule_composition,layers:new Set(),entries:new Set(),triggers:0,attributed:0});
  let unattributed=0;

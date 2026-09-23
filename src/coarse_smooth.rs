@@ -43,7 +43,6 @@ pub struct RipenFeedback {
     pub origin: Option<RipenOrigin>,
     pub state: String,
     pub round: usize,
-    pub max_rounds: usize,
     pub rulesets: Vec<String>,
     pub updated: bool,
     pub excluded_matches: usize,
@@ -121,7 +120,6 @@ pub struct Occurrence {
 pub struct LayerStore {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub ripen: Option<RipenFeedback>,
-    pub reuse: crate::comb_reuse::ReuseStore,
     pub combs: Vec<Comb>,
     pub occurrences: Vec<Occurrence>,
     pub coarse_layers: Vec<CoarseLayer>,
@@ -144,7 +142,7 @@ impl LayerStore {
         serde_json::json!({
             "schema":"coarse-smooth-layers/v1", "backend":"rust",
             "scope":"Observed dependency interfaces; shared definitions, occurrence-specific evidence. No prefix/block admission and no arbitrary subtree enumeration. Layer IDs are run-local, not semantic identifiers.",
-            "ripen":self.ripen,"reuse":self.reuse.report(), "combs":self.combs, "coarse_layers":self.coarse_layers, "smooth_layers":self.smooth_layers,
+            "ripen":self.ripen, "combs":self.combs, "coarse_layers":self.coarse_layers, "smooth_layers":self.smooth_layers,
             "occurrences":self.occurrences.iter().map(|o| serde_json::json!({
                 "event":o.apply.event,"comb":o.comb,"parents":o.apply.parents,
                 "coarse_layer":o.coarse_layer,"smooth_layer":o.smooth_layer,
@@ -237,7 +235,56 @@ impl LayerStore {
                 }
                 false
             });
-        let coarse = initial_coarse || boundary_restart;
+        // Only this real consumer can connect independent supports. Shared
+        // constants alone never enumerate or merge unrelated layer pairs.
+        let mut by_token = BTreeMap::<usize, BTreeSet<usize>>::new();
+        for &layer in &children {
+            for &m in &self.coarse_layers[layer].members {
+                for &v in self.occurrences[m]
+                    .apply
+                    .wanted
+                    .iter()
+                    .chain(&self.occurrences[m].apply.outputs)
+                {
+                    by_token.entry(v).or_default().insert(layer);
+                }
+            }
+        }
+        let mut connected = BTreeSet::new();
+        let mut todo: Vec<_> = children.iter().next().copied().into_iter().collect();
+        while let Some(layer) = todo.pop() {
+            if connected.insert(layer) {
+                for &m in &self.coarse_layers[layer].members {
+                    for v in self.occurrences[m]
+                        .apply
+                        .wanted
+                        .iter()
+                        .chain(&self.occurrences[m].apply.outputs)
+                    {
+                        todo.extend(
+                            by_token[v]
+                                .iter()
+                                .copied()
+                                .filter(|c| !connected.contains(c)),
+                        );
+                    }
+                }
+            }
+        }
+        let disjoint_join = children.len() > 1 && connected.len() != children.len();
+        let mut joint_members = None;
+        if disjoint_join {
+            let mut members = support.clone();
+            members.insert(id);
+            let mut todo = apply.parents.clone();
+            while let Some(p) = todo.pop() {
+                if !support.contains(&p) && members.insert(p) {
+                    todo.extend(&self.occurrences[p].apply.parents);
+                }
+            }
+            joint_members = Some(members.into_iter().collect::<Vec<_>>());
+        }
+        let coarse = initial_coarse || boundary_restart || disjoint_join;
         let mut key = normalize(&apply, &self.occurrences, coarse);
         // Dependency-only parents (including union witnesses) are part of the key.
         key.parents.shrink_to_fit();
@@ -264,12 +311,23 @@ impl LayerStore {
                 children: if coarse {
                     vec![]
                 } else {
-                    children.into_iter().collect()
+                    children.iter().copied().collect()
                 },
                 witness: if coarse { None } else { Some(id) },
             });
             i
         };
+        if let Some(members) = joint_members {
+            if !self.coarse_index.contains_key(&members) {
+                let i = self.coarse_layers.len();
+                self.coarse_index.insert(members.clone(), i);
+                self.coarse_layers.push(CoarseLayer {
+                    members,
+                    children: children.iter().copied().collect(),
+                    witness: Some(id),
+                });
+            }
+        }
         let smooth_layer = if coarse {
             None
         } else {
@@ -292,9 +350,6 @@ impl LayerStore {
             smooth_layer,
             boundary_restart,
         });
-        let mut reuse = std::mem::take(&mut self.reuse);
-        reuse.push(self);
-        self.reuse = reuse;
         Ok(id)
     }
     /// Lazy inherited evidence: no transitive effect-set copy in every occurrence.

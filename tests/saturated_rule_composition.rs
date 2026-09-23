@@ -40,29 +40,25 @@ fn exact_check_preserves_sharing_cycles_and_ports() {
     }
     b.rows.reverse();
     b.ports.insert("out".into(), p[2]);
-    let Comparison::Equivalent { value_map, .. } = compare(&a, &b, 100).unwrap() else {
+    let Comparison::Equivalent { value_map, .. } = compare(&a, &b).unwrap() else {
         panic!("renamed cyclic graph")
     };
     assert_eq!(value_map, p);
     b.ports.insert("out".into(), 0);
     assert!(!matches!(
-        compare(&a, &b, 100).unwrap(),
+        compare(&a, &b).unwrap(),
         Comparison::Equivalent { .. }
     ));
     let mut b = a.clone();
     b.rows[0].args[1] = 0;
     assert!(!matches!(
-        compare(&a, &b, 100).unwrap(),
+        compare(&a, &b).unwrap(),
         Comparison::Equivalent { .. }
-    ));
-    assert!(matches!(
-        compare(&a, &a, 0).unwrap(),
-        Comparison::UnknownBudget { .. }
     ));
     let mut b = a.clone();
     b.scope = json!({"rules":"other"});
     assert!(matches!(
-        compare(&a, &b, 100).unwrap(),
+        compare(&a, &b).unwrap(),
         Comparison::IncompatibleScope
     ));
 }
@@ -76,20 +72,21 @@ fn equal_counts_do_not_hide_different_literals_or_facts() {
     let mut b = a.clone();
     b.values[1].literal = Some("2".into());
     assert!(matches!(
-        compare(&a, &b, 100).unwrap(),
+        compare(&a, &b).unwrap(),
         Comparison::Different { .. }
     ));
     let mut b = a.clone();
     b.rows[0].op = "Other".into();
     assert!(matches!(
-        compare(&a, &b, 100).unwrap(),
+        compare(&a, &b).unwrap(),
         Comparison::Different { .. }
     ));
 }
 #[test]
 fn different_native_triggers_share_one_state() {
     use std::{fs, process::Command};
-    let base = std::env::temp_dir().join(format!("saturated-rule-composition-{}", std::process::id()));
+    let base =
+        std::env::temp_dir().join(format!("saturated-rule-composition-{}", std::process::id()));
     let _ = fs::remove_dir_all(&base);
     fs::create_dir_all(&base).unwrap();
     for (name, source) in [
@@ -111,15 +108,10 @@ fn different_native_triggers_share_one_state() {
     assert_eq!(a.rows.len(), 2);
     assert_eq!(a.values.len(), 1);
     assert!(matches!(
-        compare(&a, &b, 100).unwrap(),
+        compare(&a, &b).unwrap(),
         Comparison::Equivalent { .. }
     ));
-    let r = catalog(
-        &[base.join("a"), base.join("b")],
-        &base.join("catalog"),
-        100,
-    )
-    .unwrap();
+    let r = catalog(&[base.join("a"), base.join("b")], &base.join("catalog")).unwrap();
     assert_eq!(r["saturated_rule_compositions"], 1);
     assert_eq!(r["triggers"].as_array().unwrap().len(), 2);
     assert_ne!(r["triggers"][0]["entry"], r["triggers"][1]["entry"]);
@@ -153,11 +145,7 @@ fn regular_graphs_need_exact_confirmation_not_just_refinement() {
         })
         .collect();
     assert!(matches!(
-        compare(&a, &b, 1).unwrap(),
-        Comparison::UnknownBudget { .. }
-    ));
-    assert!(matches!(
-        compare(&a, &b, 10000).unwrap(),
+        compare(&a, &b).unwrap(),
         Comparison::Different { .. }
     ));
 }
@@ -189,7 +177,7 @@ fn native_export_keeps_literals_and_global_ports() {
             .any(|v| v.sort == "String" && v.literal.is_some())
     );
     assert!(matches!(
-        compare(&aa, &bb, 100).unwrap(),
+        compare(&aa, &bb).unwrap(),
         Comparison::Different { .. }
     ));
     let a = run("root-a", "(datatype E (A) (B)) (let root (A)) (B)");
@@ -197,8 +185,7 @@ fn native_export_keeps_literals_and_global_ports() {
     assert!(matches!(
         compare(
             &read(&a.join("saturated-rule-composition.json")).unwrap(),
-            &read(&b.join("saturated-rule-composition.json")).unwrap(),
-            100
+            &read(&b.join("saturated-rule-composition.json")).unwrap()
         )
         .unwrap(),
         Comparison::Different { .. }
@@ -210,9 +197,12 @@ fn native_export_keeps_literals_and_global_ports() {
     let report: serde_json::Value =
         serde_json::from_slice(&fs::read(out.join("ripen.json")).unwrap()).unwrap();
     assert_eq!(report["ripen"]["state"], "Saturated");
-    assert_eq!(report["saturated_rule_composition"]["status"], "unavailable");
+    assert_eq!(
+        report["saturated_rule_composition"]["status"],
+        "unavailable"
+    );
     assert!(!out.join("saturated-rule-composition.json").exists());
-    assert!(catalog(&[out], &base.join("invalid-catalog"), 100).is_err());
+    assert!(catalog(&[out], &base.join("invalid-catalog")).is_err());
     fs::remove_dir_all(base).unwrap();
 }
 
@@ -224,45 +214,15 @@ fn visibility_is_part_of_exact_equivalence() {
     b.version = 2;
     a.subsumed_rows = vec![0];
     assert!(matches!(
-        compare(&a, &b, 10000).unwrap(),
+        compare(&a, &b).unwrap(),
         Comparison::Different { .. }
     ));
     b.rows.swap(0, 1);
     b.subsumed_rows = vec![1];
     assert!(matches!(
-        compare(&a, &b, 10000).unwrap(),
+        compare(&a, &b).unwrap(),
         Comparison::Equivalent { .. }
     ));
     b.subsumed_rows = vec![20];
-    assert!(compare(&a, &b, 10000).is_err());
-}
-
-/// The paper's two parenthesizations must agree on the entire retained graph,
-/// not just on an extracted expression or a node count.
-#[test]
-fn math_parenthesizations_share_body_but_keep_entries() {
-    use std::{fs, process::Command};
-    let base = std::env::temp_dir().join(format!("paper-math-catalog-{}", std::process::id()));
-    fs::create_dir_all(&base).unwrap();
-    let runs = ["right", "left"].map(|side| {
-        let out = base.join(side);
-        let result = Command::new(env!("CARGO_BIN_EXE_egg_layout"))
-            .args(["ripen", &format!("docs/papers/examples/math-mini-{side}.egg")])
-            .arg(&out).args(["--max-rounds", "16"]).output().unwrap();
-        assert!(result.status.success(), "{}", String::from_utf8_lossy(&result.stderr));
-        let body = read(&out.join("saturated-rule-composition.json")).unwrap();
-        assert_eq!(body.rows.iter().filter(|r| r.op == "Add").count(), 12);
-        assert_eq!(body.rows.iter().filter(|r| r.op == "Var").count(), 3);
-        assert_eq!(body.values.iter().filter(|v| v.sort == "Math").count(), 7);
-        let root = body.ports["root"];
-        assert_eq!(body.rows.iter().filter(|r| r.op == "Add" && r.result == root).count(), 6);
-        out
-    });
-    let report = catalog(&runs, &base.join("catalog"), 100_000).unwrap();
-    assert_eq!(report["saturated_rule_compositions"], 1);
-    let triggers = report["triggers"].as_array().unwrap();
-    assert_eq!(triggers.len(), 2);
-    assert_ne!(triggers[0]["entry"], triggers[1]["entry"]);
-    assert_eq!(triggers[0]["saturated_rule_composition"], triggers[1]["saturated_rule_composition"]);
-    fs::remove_dir_all(base).unwrap();
+    assert!(compare(&a, &b).is_err());
 }

@@ -5,13 +5,14 @@ fn native_join_builds_a_witnessed_layer_without_tier1_rules() {
     let out = std::env::temp_dir().join(format!("native-coarse-smooth-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&out);
     let r = egg_layout::native_analyze::run(
-        &root,
         &root.join("tests/fixtures/coarse_smooth_join.egg"),
-        None,
         &out,
+        None,
+        None,
+        false,
     )
     .unwrap();
-    assert_eq!(r["summary"]["tier1_backend"], "rust-coarse-smooth-layers");
+    assert_eq!(r["summary"]["applications"], 3);
     let layers = &r["layers"];
     assert_eq!(layers["occurrences"].as_array().unwrap().len(), 3);
     let joined: Vec<_> = layers["coarse_layers"]

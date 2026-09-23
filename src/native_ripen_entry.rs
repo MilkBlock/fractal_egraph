@@ -1,6 +1,5 @@
 //! Extract an executable symbolic interface, not a full concrete tier0 snapshot.
 use super::super::*;
-use crate::comb_reuse::Use;
 
 fn subst(e: &Expr, env: &BTreeMap<String, Expr>) -> Result<Expr> {
     Ok(match e {
@@ -33,11 +32,12 @@ fn outside(r: &Record, p: &Port, members: &BTreeSet<usize>) -> bool {
 fn extract(
     c: &Captured,
     member_ids: &[usize],
-    u: Option<&Use>,
     root_member: usize,
 ) -> Result<(String, String, Json)> {
     let members: BTreeSet<_> = member_ids.iter().copied().collect();
-    let first = *members.first().ok_or("empty Use")?;
+    if members.is_empty() {
+        return Err("empty coarse entry".into());
+    }
     let mut hole = "RipenInput".to_string();
     while c.preview_source.contains(&hole) {
         hole.push('_');
@@ -82,17 +82,6 @@ fn extract(
         for ((input, p), v) in r.inputs.iter().zip(&r.ports).zip(&r.wanted) {
             if !outside(r, p, &members) {
                 continue;
-            }
-            if let Port::Parent(k, _) = p {
-                if u.is_some() && r.parents[*k] >= first {
-                    return Err("entry requires a late external producer; staged injection is not supported".into());
-                }
-            } else if u.is_some()
-                && *i != first
-                && !values.contains_key(v)
-                && !initial_reads.contains(v)
-            {
-                return Err("unversioned external input first appears after entry".into());
             }
             match input {
                 Input::Var(_) => {
@@ -179,11 +168,7 @@ fn extract(
                 }
             }
         }
-        let mut commands = if u.is_none() {
-            std::mem::take(&mut seeds).into_values().collect::<Vec<_>>()
-        } else {
-            vec![]
-        };
+        let mut commands = std::mem::take(&mut seeds).into_values().collect::<Vec<_>>();
         if !commands.is_empty() {
             injections.push(json!({"before_record":i,"facts":commands.iter().map(ToString::to_string).collect::<Vec<_>>()}));
         }
@@ -211,7 +196,7 @@ fn extract(
                         .collect::<Result<Vec<_>>>()?,
                     subst(value, &env)?,
                 ),
-                _ => return Err("unsupported non-monotone Use action".into()),
+                _ => return Err("unsupported non-monotone CS action".into()),
             };
             final_checks.push(match &action {
                 Action::Union(_, a, b) => eq(a.clone(), b.clone()),
@@ -258,7 +243,7 @@ fn extract(
     let initial_tables = super::table_sizes(&eg, &declarations)?;
     for (i, _, _, commands) in &stages {
         eg.run_program(commands.clone())
-            .map_err(|e| format!("Use member {i} cannot replay from extracted entry: {e}"))?;
+            .map_err(|e| format!("CS member {i} cannot replay from extracted entry: {e}"))?;
     }
     let encode = |xs: &[Command]| {
         xs.iter()
@@ -276,10 +261,8 @@ fn extract(
             .join("\n")
     );
     let seed_text = encode(&entry);
-    if u.is_none() {
-        for (_, _, _, commands) in &stages {
-            entry.extend(commands.clone());
-        }
+    for (_, _, _, commands) in &stages {
+        entry.extend(commands.clone());
     }
     entry.extend(final_checks);
     let text = format!(
@@ -296,10 +279,7 @@ fn extract(
         let o=&c.layers.occurrences[*i];let a=&o.apply;let r=&c.records[*i];
         let external_parents:Vec<_>=a.parents.iter().filter(|p|!slots.contains_key(p)).copied().collect();
         let coarse=a.parents.is_empty()||!external_parents.is_empty()||!a.external_facts.is_empty()||a.binding.iter().any(|p|matches!(p,crate::coarse_smooth::RelativeBinding::External{..}));
-        let (wiring,aliases)=if let Some(u)=u {
-            let step=&c.layers.reuse.templates[u.template].pattern.steps[slot];
-            (json!(step.wiring),json!(step.aliases))
-        }else{
+        let (wiring,aliases)={
             let wiring=a.binding.iter().enumerate().map(|(input,p)|match p {
                 crate::coarse_smooth::RelativeBinding::ParentPort{parent,output} if slots.contains_key(&a.parents[*parent])=>json!({"Local":{"member":slots[&a.parents[*parent]],"output":output}}),
                 _=>{let v=a.wanted[input];let next=boundary_ports.len();let port=*boundary_ports.entry(v).or_insert(next);json!({"Input":port})}
@@ -313,7 +293,7 @@ fn extract(
             "parents":a.parents.iter().filter_map(|p|slots.get(p).copied()).collect::<BTreeSet<_>>(),"external_parents":external_parents,
             "binding":wiring,"aliases":aliases,"input_roles":a.input_roles,"output_roles":a.output_roles,"source_coarse_layer":o.coarse_layer,"source_smooth_layer":o.smooth_layer})
     }).collect();
-    let provenance = json!({"kind":"symbolic_use_interface","template":u.map(|u|u.template),"members":member_ids,"root_member":root_member,"comb_members":comb_members,"kind_scope":"use_kind is relative to directly recorded dependencies inside this Use; source_kind is the original layer classification; neither minimizes alternate proof requirements",
+    let provenance = json!({"kind":"symbolic_cs_interface","template":null,"members":member_ids,"root_member":root_member,"comb_members":comb_members,"kind_scope":"use_kind is relative to directly recorded dependencies inside this CS entry; source_kind is the original layer classification; neither minimizes alternate proof requirements",
         "events":stages.iter().map(|(i,e,n,_)|json!({"record":i,"event":e,"precondition_checks":n})).collect::<Vec<_>>(),
         "initial_tables":initial_tables,"original_use_tables":super::table_sizes(&eg,&declarations)?,"parameter_marker":hole,
         "symbolic_values":values.iter().map(|(token,term)|json!({"token":token,"term":term.to_string(),"sort":c.pool.values[*token].sort})).collect::<Vec<_>>(),
@@ -321,67 +301,6 @@ fn extract(
         "staged_injections":injections,"initial_source":seed_text,"concrete_boundary_structure_recovered":false,
         "saturated_scope":"extracted interface only; not the complete original tier0 neighborhood"});
     Ok((text, validation, provenance))
-}
-
-pub fn from_use(history_path: &Path, use_id: usize, out: &Path, max_rounds: usize) -> Result<Json> {
-    if out.exists() {
-        return Err("ripen-use output already exists".into());
-    }
-    if max_rounds == 0 {
-        return Err("max-rounds must be positive".into());
-    }
-    for flag in [
-        "EGG_LAYOUT_EAGER_DICTIONARY",
-        "EGG_LAYOUT_DISABLE_RECUT",
-        "EGG_LAYOUT_DISABLE_ROTATIONS",
-    ] {
-        if std::env::var_os(flag).is_some() {
-            return Err(format!("ripen-use requires default replay policy; unset {flag}").into());
-        }
-    }
-    let mut c = history::read(history_path)?;
-    update_layers(&mut c)?;
-    let u = c
-        .layers
-        .reuse
-        .uses
-        .get(use_id)
-        .ok_or("unknown Use ID in default history replay")?;
-    let (source, validation, mut origin) =
-        prepare(&c, u, c.layers.reuse.templates[u.template].pattern.root)?;
-    origin["use_id"] = json!(use_id);
-    origin["history"] = json!(history_path.canonicalize()?);
-    std::fs::create_dir_all(out)?;
-    let entry = out.join("entry.egg");
-    std::fs::write(&entry, source)?;
-    std::fs::write(out.join("validate-use.egg"), validation)?;
-    std::fs::write(out.join("origin.json"), serde_json::to_vec_pretty(&origin)?)?;
-    let link = crate::coarse_smooth::RipenOrigin {
-        history: history_path.canonicalize()?.display().to_string(),
-        use_id,
-        template: u.template,
-        members: u.members.clone(),
-        symbolic_boundary: true,
-    };
-    let mut report =
-        super::run_with_origin(&entry, &out.join("run"), max_rounds, Some(link), true, true)?;
-    report["origin"] = origin;
-    std::fs::write(
-        out.join("run/ripen.json"),
-        serde_json::to_vec_pretty(&report)?,
-    )?;
-    std::fs::write(out.join("result.json"), serde_json::to_vec_pretty(&report)?)?;
-    Ok(report)
-}
-
-// Shared by online capture and offline replay; never reads a history file.
-pub(in crate::native_analyze) fn prepare(
-    c: &Captured,
-    u: &Use,
-    root_member: usize,
-) -> Result<(String, String, Json)> {
-    audit(c)?;
-    extract(c, &u.members, Some(u), root_member)
 }
 
 fn audit(c: &Captured) -> Result {
@@ -411,7 +330,11 @@ fn audit(c: &Captured) -> Result {
     for cmd in crate::visual_rule::surface_program(parser.parse_program(None, &c.preview_source)?) {
         if matches!(
             cmd,
-            Command::BiRewrite(..) | Command::Include(..) | Command::Rewrite(_, _, true)
+            Command::BiRewrite(..)
+                | Command::Include(..)
+                | Command::Rewrite(_, _, true)
+                | Command::Push(..)
+                | Command::Pop(..)
         ) {
             return Err("source rule coverage is not supported for this entry".into());
         }
@@ -444,5 +367,5 @@ pub(in crate::native_analyze) fn prepare_members(
     {
         return Err("invalid dependency candidate members".into());
     }
-    extract(c, members, None, members.len() - 1)
+    extract(c, members, members.len() - 1)
 }

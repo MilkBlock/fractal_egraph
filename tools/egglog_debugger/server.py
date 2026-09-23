@@ -13,6 +13,7 @@ from pathlib import Path
 import shutil
 import select
 import socket
+import signal
 import threading
 import time
 import subprocess
@@ -316,24 +317,23 @@ class Handler(SimpleHTTPRequestHandler):
                 streaming = True
                 with (folder / 'stderr').open('w+') as errors:
                     env = dict(os.environ, EGG_LAYOUT_SATURATED_RULE_COMPOSITION_OUTPUT=str(run_folder))
-                    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=errors, cwd=ROOT, env=env)
+                    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=errors, cwd=ROOT, env=env, start_new_session=True)
                     finished = threading.Event()
-                    timed_out = threading.Event()
+                    def stop_process():
+                        try:
+                            os.killpg(process.pid, signal.SIGKILL)
+                        except ProcessLookupError:
+                            pass
                     def watch():
-                        deadline = time.monotonic() + self.server.run_timeout
                         while not finished.wait(0.2):
-                            if time.monotonic() >= deadline:
-                                timed_out.set()
-                                process.kill()
-                                return
                             try:
                                 readable, _, _ = select.select([self.connection], [], [], 0)
                                 if readable and not self.connection.recv(1, socket.MSG_PEEK):
-                                    process.kill()
+                                    stop_process()
                                     return
                             except OSError:
                                 if process.poll() is None:
-                                    process.kill()
+                                    stop_process()
                                 return
                     watcher = threading.Thread(target=watch, daemon=True)
                     watcher.start()
@@ -359,13 +359,13 @@ class Handler(SimpleHTTPRequestHandler):
                             self.wfile.flush()
                         if process.wait():
                             errors.seek(0)
-                            self.wfile.write((json.dumps({'kind': 'error', 'error': 'Run time limit exceeded' if timed_out.is_set() else errors.read()[-12000:]})+'\n').encode())
+                            self.wfile.write((json.dumps({'kind': 'error', 'error': errors.read()[-12000:]})+'\n').encode())
                     except (BrokenPipeError, ConnectionResetError):
-                        process.terminate()
+                        stop_process()
                     finally:
                         finished.set()
                         if process.poll() is None:
-                            process.terminate()
+                            stop_process()
                         process.wait()
                 self.close_connection = True
         except (KeyError, ValueError, subprocess.TimeoutExpired, OSError) as error:
@@ -388,7 +388,6 @@ def main():
     parser.add_argument('--binary', type=Path)
     parser.add_argument('--plugin', type=Path, default=default_plugin_root(ROOT))
     parser.add_argument('--extractor', type=Path, help='Use the same extractor override as VS Code')
-    parser.add_argument('--run-timeout', type=float, default=120, help='Native run limit in seconds')
     parser.add_argument('--allow-origin', action='append', default=None,
                         help='Extra Origin allowed to call this bridge (repeatable); the static UI '
                              'deployment uses it to reach a bridge running on your machine')
@@ -411,7 +410,6 @@ def main():
     spec.loader.exec_module(module)
     server.annotations = module
     server.binary = args.binary.resolve()
-    server.run_timeout = args.run_timeout
     server.allowed_origins = set(args.allow_origin or []) | {'https://milkblock.github.io'}
     print(f'Native egglog debugger: http://127.0.0.1:{args.port}', flush=True)
     server.serve_forever()
