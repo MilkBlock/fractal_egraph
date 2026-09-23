@@ -19,7 +19,7 @@ fn supported_action(a: &Action) -> bool {
 pub(super) struct Session {
     pub eg: EGraph,
     pub before: EGraph,
-    pub weak_queries: BTreeMap<(usize, bool), weak_dominate::CachedQuery>,
+    pub weak_queries: BTreeMap<String, weak_dominate::CachedQuery>,
     pub has_effects: bool,
     pub initial_facts: usize,
     pub effect_components: BTreeMap<String, u64>,
@@ -517,31 +517,9 @@ fn export_state(
             return Err("SaturatedRuleComposition sharing currently certifies positive constructor/equality rules only; primitive guards/actions require an explicit semantics contract".into());
         }
     }
-    let serialized = eg.serialize(egglog::SerializeConfig::default());
-    if !serialized.discarded_functions.is_empty() || !serialized.truncated_functions.is_empty() {
-        return Err("truncated engine serialization".into());
-    }
-    // Keep the graph produced by this exact native ripen EGraph. Downstream
-    // supplementary figures copy these files; they do not reconstruct a generic
-    // Node/Row carrier, so labels and e-class topology stay faithful to egglog.
-    // The root crate enables egglog's graphviz feature, so these calls use
-    // egraph-serialize's native DOT/SVG implementation directly.
     if crate::graph_render::graphs_enabled() {
-        serialized
-            .egraph
-            .to_dot_file(out.join("native-egraph.dot"))?;
-        crate::graph_render::enqueue(&out.join("native-egraph.dot"))?;
+        write_native_graph(eg, out, "native-egraph")?;
     }
-    let literals: BTreeMap<_, _> = serialized
-        .egraph
-        .nodes
-        .iter()
-        .filter_map(|(id, n)| {
-            eg.from_node_id(id)
-                .is_primitive()
-                .then_some((n.eclass.to_string(), n.op.clone()))
-        })
-        .collect();
     let mut ids = BTreeMap::<String, usize>::new();
     let mut values = vec![];
     let mut vertex = |ty: &str, v: Value| -> Result<usize> {
@@ -550,17 +528,15 @@ fn export_state(
         if let Some(i) = ids.get(&key) {
             return Ok(*i);
         }
-        let literal = if ty == name {
-            None
-        } else if ty == "Unit" {
-            Some("()".into())
-        } else {
-            Some(
-                literals
-                    .get(&key)
-                    .cloned()
-                    .ok_or("missing scalar literal")?,
-            )
+        let literal = match ty {
+            t if t == name => None,
+            "Unit" => Some("()".into()),
+            "i64" => Some(eg.value_to_base::<i64>(v).to_string()),
+            "String" => Some(serde_json::to_string(
+                &eg.value_to_base::<egglog::sort::S>(v).to_string(),
+            )?),
+            "bool" => Some(eg.value_to_base::<bool>(v).to_string()),
+            _ => return Err("unsupported scalar literal".into()),
         };
         let i = values.len();
         ids.insert(key, i);

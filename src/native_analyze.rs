@@ -958,7 +958,9 @@ fn execute(
     while pipeline.has_work() {
         boundary += 1;
         let q = pipeline.step(&c, &c.layers, boundary)?;
-        emit(json!({"kind":"ripen_progress","saturated_rule_composition":q}))?;
+        let mut progress = json!({"kind":"ripen_progress"});
+        progress["saturated_rule_composition"] = q;
+        emit(progress)?;
     }
     let b = CaptureBoundary {
         ripen: None,
@@ -977,7 +979,7 @@ fn execute(
     };
     boundary += 1;
     let mut frame = layer_view::snapshot(&c.layers, &b, boundary, &c.preview_source)?;
-    frame["saturated_rule_composition"] = pipeline.report();
+    frame["saturated_rule_composition"] = pipeline.report().clone();
     if let Some(dot) = frame["saturated_rule_composition"]["catalog"]["dot"].as_str() {
         frame["dots"]["saturated_rule_composition"] = json!(dot);
     }
@@ -985,7 +987,8 @@ fn execute(
         layer_view::persist(out, &frame, &mut manifest)?;
     }
     emit(frame)?;
-    let report = json!({"status":if pipeline.report()["counts"]["ObservedUnfinished"].as_u64().unwrap_or(0)>0 {"observed_unfinished"}else{"complete"},"summary":{"applications":c.records.len(),"logical_matches":c.events,"excluded":c.rejected,"scope":"native history -> CS -> ripen -> equivalence -> weak dominate"},"layers":c.layers.report(),"saturated_rule_composition":pipeline.report()});
+    let mut report = json!({"status":if pipeline.report()["counts"]["ObservedUnfinished"].as_u64().unwrap_or(0)>0 {"observed_unfinished"}else{"complete"},"summary":{"applications":c.records.len(),"logical_matches":c.events,"excluded":c.rejected,"scope":"native history -> CS -> ripen -> equivalence -> weak dominate"},"layers":c.layers.report(),"saturated_rule_composition":null});
+    report["saturated_rule_composition"] = pipeline.take_report();
     std::fs::write(out.join("analysis.json"), serde_json::to_vec(&report)?)?;
     std::fs::write(
         out.join("layers.json"),

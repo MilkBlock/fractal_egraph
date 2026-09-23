@@ -5,13 +5,14 @@ use crate::saturated_rule_composition::SaturatedRuleComposition as State;
 pub(super) struct CachedQuery {
     query: egglog::CompiledFactQuery,
     initial: Vec<Vec<Value>>,
-    executions: usize,
+    pub executions: usize,
+    sorts: Vec<egglog::ArcSort>,
 }
 pub(super) fn observe(
     task: &mut ripen::Session,
     pattern: &State,
     marker: &str,
-    key: usize,
+    _key: usize,
     erase_payload: bool,
 ) -> Result<Json> {
     let Some(source) = (if erase_payload {
@@ -31,7 +32,6 @@ pub(super) fn observe(
     if rows.is_empty() {
         return Ok(json!({"status":"no_structural_trigger"}));
     }
-    let key = (key, erase_payload);
     let vars: BTreeSet<_> = rows
         .iter()
         .flat_map(|r| r.args.iter().chain(std::iter::once(&r.result)))
@@ -42,6 +42,21 @@ pub(super) fn observe(
         .copied()
         .collect();
     let vars: Vec<_> = vars.into_iter().collect();
+    // Share only identical typed joins and projections, within this same engine.
+    // Target IDs and erased literal payloads do not change query semantics.
+    let signature_values: Vec<_> = pattern
+        .values
+        .iter()
+        .map(|v| {
+            (
+                &v.sort,
+                v.literal
+                    .as_ref()
+                    .filter(|_| !erase_payload || v.sort == "Unit"),
+            )
+        })
+        .collect();
+    let key = serde_json::to_string(&(&signature_values, &rows, &vars))?;
     if !task.weak_queries.contains_key(&key) {
         let mut parser = egglog::ast::Parser::default();
         let values = pattern
@@ -81,11 +96,18 @@ pub(super) fn observe(
         let initial = initial?;
         let query = task.eg.compile_fact_query(&values, &atoms, &vars)?;
         task.weak_queries.insert(
-            key,
+            key.clone(),
             CachedQuery {
                 query,
                 initial,
                 executions: 0,
+                sorts: vars
+                    .iter()
+                    .map(|i| {
+                        task.eg
+                            .get_arcsort_by(|s| s.name() == pattern.values[*i].sort)
+                    })
+                    .collect(),
             },
         );
     }
@@ -95,13 +117,8 @@ pub(super) fn observe(
     let canonical = |values: Vec<Value>| -> Vec<String> {
         values
             .into_iter()
-            .zip(&vars)
-            .map(|(v, i)| {
-                let sort = task
-                    .eg
-                    .get_arcsort_by(|s| s.name() == pattern.values[*i].sort);
-                task.eg.value_to_class_id(&sort, v).to_string()
-            })
+            .zip(&cached.sorts)
+            .map(|(v, sort)| task.eg.value_to_class_id(sort, v).to_string())
             .collect()
     };
     let initial: BTreeSet<_> = cached.initial.iter().cloned().map(&canonical).collect();
@@ -110,4 +127,43 @@ pub(super) fn observe(
     Ok(
         json!({"erased_payload":erase_payload,"query_cache":{"compilations":2,"initial_scans":1,"current_scans":cached.executions,"per_check_engine_clones":0},"status":if now.is_empty(){"not_matched"}else{"matched"},"pattern_variables":vars,"trigger_rows":rows,"typed_values":pattern.values,"initial_bindings":initial,"bindings":now,"new_bindings":reentries,"new_effects":task.has_effects,"scope":if task.done{"saturated local body"}else{"running prefix"},"classification":"observation only; no termination or dissipativity inference"}),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn identical_typed_queries_share_across_target_ids_but_literals_remain_distinct() {
+        let root = std::env::temp_dir().join(format!("weak-query-sharing-{}", std::process::id()));
+        std::fs::create_dir_all(&root).unwrap();
+        let src = root.join("input.egg");
+        std::fs::write(
+            &src,
+            "(datatype E (A i64) (B i64)) (rewrite (A n) (B n)) (A 1)",
+        )
+        .unwrap();
+        let mut task = ripen::Session::new(&src, &root.join("cell")).unwrap();
+        let pattern = task.initial.clone().unwrap();
+        let a = observe(&mut task, &pattern, "", 1, false).unwrap();
+        let b = observe(&mut task, &pattern, "", 2, false).unwrap();
+        assert_eq!(a["bindings"], b["bindings"]);
+        assert_eq!(a["status"], "matched");
+        assert_eq!(task.weak_queries.len(), 1);
+        let mut different = pattern.clone();
+        different
+            .values
+            .iter_mut()
+            .find(|v| v.sort == "i64")
+            .unwrap()
+            .literal = Some("2".into());
+        let c = observe(&mut task, &different, "", 3, false).unwrap();
+        assert_eq!(c["status"], "not_matched");
+        assert_eq!(task.weak_queries.len(), 2);
+        let d = observe(&mut task, &pattern, "", 1, true).unwrap();
+        let n = task.weak_queries.len();
+        let e = observe(&mut task, &different, "", 3, true).unwrap();
+        assert_eq!(d["bindings"], e["bindings"]);
+        assert_eq!(task.weak_queries.len(), n);
+        std::fs::remove_dir_all(root).unwrap();
+    }
 }

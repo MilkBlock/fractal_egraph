@@ -1,0 +1,73 @@
+{
+  "scope": "actual egglog runtime; identical mini3 source; default 50ms/200000-fact ripen limits; DOT and SVG disabled; one run per implementation, no statistical speedup claim",
+  "runs": {
+    "graphless-before": [
+      {
+        "name": "native",
+        "elapsed_seconds": 0.1959694580291398,
+        "exit_code": 0,
+        "stop_reason": null,
+        "sampled_peak_group_rss_bytes": 1081344,
+        "time_peak_process_rss_bytes": 8585216,
+        "native_seconds": 0.005185083,
+        "phase_seconds": {},
+        "time_real_seconds": 0.18
+      },
+      {
+        "name": "analysis-default",
+        "elapsed_seconds": 6.338133291981649,
+        "exit_code": 0,
+        "stop_reason": null,
+        "sampled_peak_group_rss_bytes": 1250623488,
+        "time_peak_process_rss_bytes": 1269071872,
+        "native_seconds": null,
+        "phase_seconds": {
+          "register_entries": 0.42467499999999997,
+          "advance_and_share": 1.882727,
+          "exact_catalog": 0.160367,
+          "weak_queries_and_evidence": 1.69723
+        },
+        "time_real_seconds": 6.33
+      }
+    ],
+    "graphless-after": [
+      {
+        "name": "analysis-default",
+        "elapsed_seconds": 5.306134499958716,
+        "exit_code": 0,
+        "stop_reason": null,
+        "sampled_peak_group_rss_bytes": 1512095744,
+        "time_peak_process_rss_bytes": 1532018688,
+        "native_seconds": null,
+        "phase_seconds": {
+          "register_entries": 0.39048700000000003,
+          "advance_and_share": 1.5310730000000001,
+          "exact_catalog": 0.136615,
+          "weak_queries_and_evidence": 1.746805
+        },
+        "time_real_seconds": 5.29
+      }
+    ],
+    "graphless-final": [
+      {
+        "name": "analysis-default",
+        "elapsed_seconds": 5.154272334009875,
+        "time_real_seconds": 5.12,
+        "exit_code": 0,
+        "stop_reason": null,
+        "sampled_peak_group_rss_bytes": 1382334464,
+        "time_peak_process_rss_bytes": 1400029184,
+        "native_seconds": null,
+        "phase_seconds": {
+          "register_entries": 0.39959199999999995,
+          "advance_and_share": 1.497757,
+          "exact_catalog": 0.13588,
+          "weak_queries_and_evidence": 1.789962
+        }
+      }
+    ]
+  },
+  "identical_completed_states": 79,
+  "unfinished_states": 6,
+  "unfinished_evidence": "Not expected byte-identical under wall-clock observation limits; no equivalence claim for unfinished prefixes."
+}
