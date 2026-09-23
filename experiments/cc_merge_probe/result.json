@@ -1,0 +1,1100 @@
+{
+  "bindings_per_pair": 17,
+  "cold_equivalence_checks": 68,
+  "elapsed_seconds": 0.082733333,
+  "families": 44,
+  "merges": 68,
+  "ordered_pairs": 4,
+  "rows": [
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 3,
+      "before_facts": 3,
+      "binding": [
+        "p0",
+        "p0"
+      ],
+      "classes": 4,
+      "family": 0,
+      "fresh_parameters": 0,
+      "left": "Add",
+      "right": "Add",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 2,
+      "before_facts": 2,
+      "binding": [
+        "p0",
+        "p1"
+      ],
+      "classes": 3,
+      "family": 1,
+      "fresh_parameters": 0,
+      "left": "Add",
+      "right": "Add",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p0",
+        "base_result"
+      ],
+      "classes": 4,
+      "family": 2,
+      "fresh_parameters": 0,
+      "left": "Add",
+      "right": "Add",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p0",
+        "p2"
+      ],
+      "classes": 5,
+      "family": 3,
+      "fresh_parameters": 1,
+      "left": "Add",
+      "right": "Add",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 2,
+      "before_facts": 2,
+      "binding": [
+        "p1",
+        "p0"
+      ],
+      "classes": 3,
+      "family": 1,
+      "fresh_parameters": 0,
+      "left": "Add",
+      "right": "Add",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 3,
+      "before_facts": 3,
+      "binding": [
+        "p1",
+        "p1"
+      ],
+      "classes": 4,
+      "family": 4,
+      "fresh_parameters": 0,
+      "left": "Add",
+      "right": "Add",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p1",
+        "base_result"
+      ],
+      "classes": 4,
+      "family": 5,
+      "fresh_parameters": 0,
+      "left": "Add",
+      "right": "Add",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p1",
+        "p2"
+      ],
+      "classes": 5,
+      "family": 6,
+      "fresh_parameters": 1,
+      "left": "Add",
+      "right": "Add",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "base_result",
+        "p0"
+      ],
+      "classes": 4,
+      "family": 2,
+      "fresh_parameters": 0,
+      "left": "Add",
+      "right": "Add",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "base_result",
+        "p1"
+      ],
+      "classes": 4,
+      "family": 5,
+      "fresh_parameters": 0,
+      "left": "Add",
+      "right": "Add",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 3,
+      "before_facts": 3,
+      "binding": [
+        "base_result",
+        "base_result"
+      ],
+      "classes": 4,
+      "family": 7,
+      "fresh_parameters": 0,
+      "left": "Add",
+      "right": "Add",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "base_result",
+        "p2"
+      ],
+      "classes": 5,
+      "family": 8,
+      "fresh_parameters": 1,
+      "left": "Add",
+      "right": "Add",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p2",
+        "p0"
+      ],
+      "classes": 5,
+      "family": 3,
+      "fresh_parameters": 1,
+      "left": "Add",
+      "right": "Add",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p2",
+        "p1"
+      ],
+      "classes": 5,
+      "family": 6,
+      "fresh_parameters": 1,
+      "left": "Add",
+      "right": "Add",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p2",
+        "base_result"
+      ],
+      "classes": 5,
+      "family": 8,
+      "fresh_parameters": 1,
+      "left": "Add",
+      "right": "Add",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 3,
+      "before_facts": 3,
+      "binding": [
+        "p2",
+        "p2"
+      ],
+      "classes": 5,
+      "family": 9,
+      "fresh_parameters": 1,
+      "left": "Add",
+      "right": "Add",
+      "shared_provider_slots": 0,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p2",
+        "p3"
+      ],
+      "classes": 6,
+      "family": 10,
+      "fresh_parameters": 2,
+      "left": "Add",
+      "right": "Add",
+      "shared_provider_slots": 0,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 3,
+      "before_facts": 3,
+      "binding": [
+        "p0",
+        "p0"
+      ],
+      "classes": 4,
+      "family": 11,
+      "fresh_parameters": 0,
+      "left": "Add",
+      "right": "Mul",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p0",
+        "p1"
+      ],
+      "classes": 4,
+      "family": 12,
+      "fresh_parameters": 0,
+      "left": "Add",
+      "right": "Mul",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": true,
+      "after_facts": 9,
+      "before_facts": 4,
+      "binding": [
+        "p0",
+        "base_result"
+      ],
+      "classes": 6,
+      "family": 13,
+      "fresh_parameters": 0,
+      "left": "Add",
+      "right": "Mul",
+      "shared_provider_slots": 2,
+      "sweeps": 3
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p0",
+        "p2"
+      ],
+      "classes": 5,
+      "family": 14,
+      "fresh_parameters": 1,
+      "left": "Add",
+      "right": "Mul",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p1",
+        "p0"
+      ],
+      "classes": 4,
+      "family": 12,
+      "fresh_parameters": 0,
+      "left": "Add",
+      "right": "Mul",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 3,
+      "before_facts": 3,
+      "binding": [
+        "p1",
+        "p1"
+      ],
+      "classes": 4,
+      "family": 15,
+      "fresh_parameters": 0,
+      "left": "Add",
+      "right": "Mul",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": true,
+      "after_facts": 9,
+      "before_facts": 4,
+      "binding": [
+        "p1",
+        "base_result"
+      ],
+      "classes": 6,
+      "family": 16,
+      "fresh_parameters": 0,
+      "left": "Add",
+      "right": "Mul",
+      "shared_provider_slots": 2,
+      "sweeps": 3
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p1",
+        "p2"
+      ],
+      "classes": 5,
+      "family": 17,
+      "fresh_parameters": 1,
+      "left": "Add",
+      "right": "Mul",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": true,
+      "after_facts": 9,
+      "before_facts": 4,
+      "binding": [
+        "base_result",
+        "p0"
+      ],
+      "classes": 6,
+      "family": 13,
+      "fresh_parameters": 0,
+      "left": "Add",
+      "right": "Mul",
+      "shared_provider_slots": 2,
+      "sweeps": 3
+    },
+    {
+      "additional_saturation_changed_state": true,
+      "after_facts": 9,
+      "before_facts": 4,
+      "binding": [
+        "base_result",
+        "p1"
+      ],
+      "classes": 6,
+      "family": 16,
+      "fresh_parameters": 0,
+      "left": "Add",
+      "right": "Mul",
+      "shared_provider_slots": 2,
+      "sweeps": 3
+    },
+    {
+      "additional_saturation_changed_state": true,
+      "after_facts": 17,
+      "before_facts": 3,
+      "binding": [
+        "base_result",
+        "base_result"
+      ],
+      "classes": 9,
+      "family": 18,
+      "fresh_parameters": 0,
+      "left": "Add",
+      "right": "Mul",
+      "shared_provider_slots": 2,
+      "sweeps": 5
+    },
+    {
+      "additional_saturation_changed_state": true,
+      "after_facts": 10,
+      "before_facts": 4,
+      "binding": [
+        "base_result",
+        "p2"
+      ],
+      "classes": 7,
+      "family": 19,
+      "fresh_parameters": 1,
+      "left": "Add",
+      "right": "Mul",
+      "shared_provider_slots": 1,
+      "sweeps": 3
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p2",
+        "p0"
+      ],
+      "classes": 5,
+      "family": 14,
+      "fresh_parameters": 1,
+      "left": "Add",
+      "right": "Mul",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p2",
+        "p1"
+      ],
+      "classes": 5,
+      "family": 17,
+      "fresh_parameters": 1,
+      "left": "Add",
+      "right": "Mul",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": true,
+      "after_facts": 10,
+      "before_facts": 4,
+      "binding": [
+        "p2",
+        "base_result"
+      ],
+      "classes": 7,
+      "family": 19,
+      "fresh_parameters": 1,
+      "left": "Add",
+      "right": "Mul",
+      "shared_provider_slots": 1,
+      "sweeps": 3
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 3,
+      "before_facts": 3,
+      "binding": [
+        "p2",
+        "p2"
+      ],
+      "classes": 5,
+      "family": 20,
+      "fresh_parameters": 1,
+      "left": "Add",
+      "right": "Mul",
+      "shared_provider_slots": 0,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p2",
+        "p3"
+      ],
+      "classes": 6,
+      "family": 21,
+      "fresh_parameters": 2,
+      "left": "Add",
+      "right": "Mul",
+      "shared_provider_slots": 0,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 3,
+      "before_facts": 3,
+      "binding": [
+        "p0",
+        "p0"
+      ],
+      "classes": 4,
+      "family": 22,
+      "fresh_parameters": 0,
+      "left": "Mul",
+      "right": "Add",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p0",
+        "p1"
+      ],
+      "classes": 4,
+      "family": 23,
+      "fresh_parameters": 0,
+      "left": "Mul",
+      "right": "Add",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p0",
+        "base_result"
+      ],
+      "classes": 4,
+      "family": 24,
+      "fresh_parameters": 0,
+      "left": "Mul",
+      "right": "Add",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p0",
+        "p2"
+      ],
+      "classes": 5,
+      "family": 25,
+      "fresh_parameters": 1,
+      "left": "Mul",
+      "right": "Add",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p1",
+        "p0"
+      ],
+      "classes": 4,
+      "family": 23,
+      "fresh_parameters": 0,
+      "left": "Mul",
+      "right": "Add",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 3,
+      "before_facts": 3,
+      "binding": [
+        "p1",
+        "p1"
+      ],
+      "classes": 4,
+      "family": 26,
+      "fresh_parameters": 0,
+      "left": "Mul",
+      "right": "Add",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p1",
+        "base_result"
+      ],
+      "classes": 4,
+      "family": 27,
+      "fresh_parameters": 0,
+      "left": "Mul",
+      "right": "Add",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p1",
+        "p2"
+      ],
+      "classes": 5,
+      "family": 28,
+      "fresh_parameters": 1,
+      "left": "Mul",
+      "right": "Add",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "base_result",
+        "p0"
+      ],
+      "classes": 4,
+      "family": 24,
+      "fresh_parameters": 0,
+      "left": "Mul",
+      "right": "Add",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "base_result",
+        "p1"
+      ],
+      "classes": 4,
+      "family": 27,
+      "fresh_parameters": 0,
+      "left": "Mul",
+      "right": "Add",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 3,
+      "before_facts": 3,
+      "binding": [
+        "base_result",
+        "base_result"
+      ],
+      "classes": 4,
+      "family": 29,
+      "fresh_parameters": 0,
+      "left": "Mul",
+      "right": "Add",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "base_result",
+        "p2"
+      ],
+      "classes": 5,
+      "family": 30,
+      "fresh_parameters": 1,
+      "left": "Mul",
+      "right": "Add",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p2",
+        "p0"
+      ],
+      "classes": 5,
+      "family": 25,
+      "fresh_parameters": 1,
+      "left": "Mul",
+      "right": "Add",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p2",
+        "p1"
+      ],
+      "classes": 5,
+      "family": 28,
+      "fresh_parameters": 1,
+      "left": "Mul",
+      "right": "Add",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p2",
+        "base_result"
+      ],
+      "classes": 5,
+      "family": 30,
+      "fresh_parameters": 1,
+      "left": "Mul",
+      "right": "Add",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 3,
+      "before_facts": 3,
+      "binding": [
+        "p2",
+        "p2"
+      ],
+      "classes": 5,
+      "family": 31,
+      "fresh_parameters": 1,
+      "left": "Mul",
+      "right": "Add",
+      "shared_provider_slots": 0,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p2",
+        "p3"
+      ],
+      "classes": 6,
+      "family": 32,
+      "fresh_parameters": 2,
+      "left": "Mul",
+      "right": "Add",
+      "shared_provider_slots": 0,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 3,
+      "before_facts": 3,
+      "binding": [
+        "p0",
+        "p0"
+      ],
+      "classes": 4,
+      "family": 33,
+      "fresh_parameters": 0,
+      "left": "Mul",
+      "right": "Mul",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 2,
+      "before_facts": 2,
+      "binding": [
+        "p0",
+        "p1"
+      ],
+      "classes": 3,
+      "family": 34,
+      "fresh_parameters": 0,
+      "left": "Mul",
+      "right": "Mul",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p0",
+        "base_result"
+      ],
+      "classes": 4,
+      "family": 35,
+      "fresh_parameters": 0,
+      "left": "Mul",
+      "right": "Mul",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p0",
+        "p2"
+      ],
+      "classes": 5,
+      "family": 36,
+      "fresh_parameters": 1,
+      "left": "Mul",
+      "right": "Mul",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 2,
+      "before_facts": 2,
+      "binding": [
+        "p1",
+        "p0"
+      ],
+      "classes": 3,
+      "family": 34,
+      "fresh_parameters": 0,
+      "left": "Mul",
+      "right": "Mul",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 3,
+      "before_facts": 3,
+      "binding": [
+        "p1",
+        "p1"
+      ],
+      "classes": 4,
+      "family": 37,
+      "fresh_parameters": 0,
+      "left": "Mul",
+      "right": "Mul",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p1",
+        "base_result"
+      ],
+      "classes": 4,
+      "family": 38,
+      "fresh_parameters": 0,
+      "left": "Mul",
+      "right": "Mul",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p1",
+        "p2"
+      ],
+      "classes": 5,
+      "family": 39,
+      "fresh_parameters": 1,
+      "left": "Mul",
+      "right": "Mul",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "base_result",
+        "p0"
+      ],
+      "classes": 4,
+      "family": 35,
+      "fresh_parameters": 0,
+      "left": "Mul",
+      "right": "Mul",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "base_result",
+        "p1"
+      ],
+      "classes": 4,
+      "family": 38,
+      "fresh_parameters": 0,
+      "left": "Mul",
+      "right": "Mul",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 3,
+      "before_facts": 3,
+      "binding": [
+        "base_result",
+        "base_result"
+      ],
+      "classes": 4,
+      "family": 40,
+      "fresh_parameters": 0,
+      "left": "Mul",
+      "right": "Mul",
+      "shared_provider_slots": 2,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "base_result",
+        "p2"
+      ],
+      "classes": 5,
+      "family": 41,
+      "fresh_parameters": 1,
+      "left": "Mul",
+      "right": "Mul",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p2",
+        "p0"
+      ],
+      "classes": 5,
+      "family": 36,
+      "fresh_parameters": 1,
+      "left": "Mul",
+      "right": "Mul",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p2",
+        "p1"
+      ],
+      "classes": 5,
+      "family": 39,
+      "fresh_parameters": 1,
+      "left": "Mul",
+      "right": "Mul",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p2",
+        "base_result"
+      ],
+      "classes": 5,
+      "family": 41,
+      "fresh_parameters": 1,
+      "left": "Mul",
+      "right": "Mul",
+      "shared_provider_slots": 1,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 3,
+      "before_facts": 3,
+      "binding": [
+        "p2",
+        "p2"
+      ],
+      "classes": 5,
+      "family": 42,
+      "fresh_parameters": 1,
+      "left": "Mul",
+      "right": "Mul",
+      "shared_provider_slots": 0,
+      "sweeps": 1
+    },
+    {
+      "additional_saturation_changed_state": false,
+      "after_facts": 4,
+      "before_facts": 4,
+      "binding": [
+        "p2",
+        "p3"
+      ],
+      "classes": 6,
+      "family": 43,
+      "fresh_parameters": 2,
+      "left": "Mul",
+      "right": "Mul",
+      "shared_provider_slots": 0,
+      "sweeps": 1
+    }
+  ],
+  "scope": "native finite arithmetic demo; all ordered pairs of two saturated prototypes, one generation; all functions from two right parameters to three provider classes or fresh parameters, including aliases; no consumer witness required; not a production tier0 speedup test",
+  "state_changing_merges": 7
+}

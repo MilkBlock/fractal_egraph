@@ -1,0 +1,5 @@
+; Finite arithmetic demo; Input marks opaque external parameters.
+(datatype Math (Input i64) (Add Math Math) (Mul Math Math))
+(rewrite (Add a b) (Add b a) :name "add-comm")
+(rewrite (Mul a b) (Mul b a) :name "mul-comm")
+(rewrite (Mul a (Add b c)) (Add (Mul a b) (Mul a c)) :name "distribute")
