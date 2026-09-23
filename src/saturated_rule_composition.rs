@@ -393,33 +393,35 @@ pub(crate) fn refresh_catalog(inputs: &[std::path::PathBuf], out: &Path) -> Resu
             "comb_groups":comb_groups.iter().filter(|g|g["saturated_rule_composition"]==id).map(|g|g["id"].clone()).collect::<Vec<_>>()})
     }).collect();
     let report = json!({"timings":{"read_seconds":read_seconds,"key_seconds":key_seconds,"compare_seconds":compare_seconds},"schema":"saturated-rule-composition-catalog/v1","scope":"exact complete constructor-state sharing with fixed named ports; triggers remain separate; no tier0 substitution", "unresolved_comparisons":0,"saturated_rule_compositions":states.len(),"state_groups":state_groups,"comb_groups":comb_groups,"triggers":triggers,"comparisons":comparisons});
-    let mut dot = String::from("digraph ClosedCatalog { rankdir=LR; node [shape=box];\n");
-    for (i, state) in states.iter().enumerate() {
-        let label = format!(
-            "SaturatedRuleComposition C{i}\n{} values / {} facts",
-            state.values.len(),
-            state.rows.len()
-        );
-        dot += &format!("c{i} [label={}];\n", serde_json::to_string(&label)?);
+    if crate::graph_render::graphs_enabled() {
+        let mut dot = String::from("digraph ClosedCatalog { rankdir=LR; node [shape=box];\n");
+        for (i, state) in states.iter().enumerate() {
+            let label = format!(
+                "SaturatedRuleComposition C{i}\n{} values / {} facts",
+                state.values.len(),
+                state.rows.len()
+            );
+            dot += &format!("c{i} [label={}];\n", serde_json::to_string(&label)?);
+        }
+        for (i, t) in report["triggers"].as_array().unwrap().iter().enumerate() {
+            let label = if t["origin"]["use_id"].is_number() {
+                format!(
+                    "Trigger {i}\nU{} / T{}",
+                    t["origin"]["use_id"], t["origin"]["template"]
+                )
+            } else {
+                format!("Trigger {i}")
+            };
+            dot += &format!(
+                "t{i} [label={}];\nt{i} -> c{} [label=\"exact value mapping\"];\n",
+                serde_json::to_string(&label)?,
+                t["saturated_rule_composition"]
+            );
+        }
+        dot += "}\n";
+        std::fs::write(out.join("catalog.dot.partial"), dot)?;
+        std::fs::rename(out.join("catalog.dot.partial"), out.join("catalog.dot"))?;
     }
-    for (i, t) in report["triggers"].as_array().unwrap().iter().enumerate() {
-        let label = if t["origin"]["use_id"].is_number() {
-            format!(
-                "Trigger {i}\nU{} / T{}",
-                t["origin"]["use_id"], t["origin"]["template"]
-            )
-        } else {
-            format!("Trigger {i}")
-        };
-        dot += &format!(
-            "t{i} [label={}];\nt{i} -> c{} [label=\"exact value mapping\"];\n",
-            serde_json::to_string(&label)?,
-            t["saturated_rule_composition"]
-        );
-    }
-    dot += "}\n";
-    std::fs::write(out.join("catalog.dot.partial"), dot)?;
-    std::fs::rename(out.join("catalog.dot.partial"), out.join("catalog.dot"))?;
     crate::pipeline::write_json(&out.join("catalog.json"), &report)?;
     Ok(report)
 }

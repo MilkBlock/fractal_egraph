@@ -72,8 +72,11 @@ impl Drop for Batch {
         });
     }
 }
+pub(crate) fn graphs_enabled() -> bool {
+    std::env::var("EGG_LAYOUT_GRAPHS").as_deref() != Ok("0")
+}
 fn enabled() -> bool {
-    std::env::var("EGG_LAYOUT_EAGER_SVG").as_deref() != Ok("0")
+    graphs_enabled() && std::env::var("EGG_LAYOUT_EAGER_SVG").as_deref() != Ok("0")
 }
 pub(crate) fn enqueue(dot: &Path) -> Result<()> {
     if !enabled() {

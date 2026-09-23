@@ -208,6 +208,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         }catch(error){if(version===catalogVersion){cp('caption').textContent='载入图失败：'+error;view.dataset.ready='true';}}
     }
     async function renderCatalog(){
+        if(frame()?.graphs_enabled===false){cp('view').textContent='本次运行未生成 DOT / SVG。';return;}
         renderCoverage(cp('coverage'),ripenCoverage(catalogData?.catalog,coverageContext?.cs),id=>{cp('state').value=String(id);combOptions();cp('diagram').value='ripen';renderCatalog();});
         if(catalogData?.catalog&&cp('diagram').value==='ripen'){await renderRipenPair();return;}
         if(catalogData?.catalog&&cp('diagram').value==='body'){catalogVersion++;await renderBody();return;}
@@ -354,6 +355,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         return lines.join('\n')+'\n}';
     }
     async function render(){
+        if(frame()?.graphs_enabled===false){$('status').textContent='本次运行未生成 DOT / SVG，统计结果仍可查看。';return;}
         if($('kind').value==='saturated_rule_composition'){mode();if(catalogData)await renderCatalog();return;}
         if(!frame())return;const v=++version,g=selectedGraph(),source=dot(g);$('code').textContent=source;
         try{const markup=await(await post('render',{kind:'dot',source})).text();if(v!==version)return;$('viewport').replaceChildren();mountSvg(markup,$('viewport'));$('viewport').dataset.ready='true';rendered=true;}catch(e){$('error').textContent=String(e);}

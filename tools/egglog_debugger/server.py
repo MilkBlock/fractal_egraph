@@ -295,6 +295,8 @@ class Handler(SimpleHTTPRequestHandler):
                     return self.reply(200, dest.read_bytes(), 'image/svg+xml')
                 if self.path not in ('/api/patterns', '/api/trace'):
                     return self.reply(404, {'error': 'Unknown endpoint'})
+                if 'generate_graphs' in data and not isinstance(data['generate_graphs'], bool):
+                    return self.reply(400, {'error': 'generate_graphs must be a boolean'})
                 src = folder / 'input.egg'
                 src.write_text(data['source'])
                 command = [str(self.server.binary), 'debug-patterns' if self.path == '/api/patterns' else 'debug-stream', str(src)]
@@ -323,7 +325,7 @@ class Handler(SimpleHTTPRequestHandler):
                 self.end_headers()
                 streaming = True
                 with (folder / 'stderr').open('w+') as errors:
-                    env = dict(os.environ, EGG_LAYOUT_SATURATED_RULE_COMPOSITION_OUTPUT=str(run_folder))
+                    env = dict(os.environ, EGG_LAYOUT_SATURATED_RULE_COMPOSITION_OUTPUT=str(run_folder), EGG_LAYOUT_GRAPHS="1" if data.get("generate_graphs", True) else "0")
                     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=errors, cwd=ROOT, env=env, start_new_session=True)
                     finished = threading.Event()
                     def stop_process():

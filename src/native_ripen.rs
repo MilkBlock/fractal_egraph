@@ -417,6 +417,9 @@ fn table_sizes(eg: &EGraph, datatype: &str) -> Result<BTreeMap<String, usize>> {
 /// original e-graph.
 /// Serialize one native EGraph exactly as the kernel sees it, no reconstruction.
 fn write_native_graph(eg: &EGraph, out: &Path, stem: &str) -> Result<()> {
+    if !crate::graph_render::graphs_enabled() {
+        return Ok(());
+    }
     let serialized = eg.serialize(egglog::SerializeConfig::default());
     if !serialized.discarded_functions.is_empty() || !serialized.truncated_functions.is_empty() {
         return Err("truncated engine serialization".into());
@@ -523,10 +526,12 @@ fn export_state(
     // Node/Row carrier, so labels and e-class topology stay faithful to egglog.
     // The root crate enables egglog's graphviz feature, so these calls use
     // egraph-serialize's native DOT/SVG implementation directly.
-    serialized
-        .egraph
-        .to_dot_file(out.join("native-egraph.dot"))?;
-    crate::graph_render::enqueue(&out.join("native-egraph.dot"))?;
+    if crate::graph_render::graphs_enabled() {
+        serialized
+            .egraph
+            .to_dot_file(out.join("native-egraph.dot"))?;
+        crate::graph_render::enqueue(&out.join("native-egraph.dot"))?;
+    }
     let literals: BTreeMap<_, _> = serialized
         .egraph
         .nodes

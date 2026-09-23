@@ -255,7 +255,7 @@ impl Pipeline {
                 })
                 .collect::<Result<Vec<_>>>()?;
             self.catalog = Some(
-                json!({"catalog":cat,"states":states,"dot":std::fs::read_to_string(dir.join("catalog.dot"))?}),
+                json!({"catalog":cat,"states":states,"dot":if crate::graph_render::graphs_enabled() {Some(std::fs::read_to_string(dir.join("catalog.dot"))?)} else {None}}),
             );
         }
         mark("exact_catalog");

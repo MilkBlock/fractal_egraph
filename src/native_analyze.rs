@@ -892,7 +892,8 @@ fn execute(
 ) -> Result<Json> {
     std::fs::create_dir_all(out)?;
     let render_batch = crate::graph_render::Batch::start()?;
-    let detailed_trace = std::env::var("EGG_LAYOUT_FULL_TRACE").as_deref() == Ok("1");
+    let detailed_trace = crate::graph_render::graphs_enabled()
+        && std::env::var("EGG_LAYOUT_FULL_TRACE").as_deref() == Ok("1");
     eprintln!(
         "ripen limits: {} ms, {} facts; detailed trace: {}",
         observation

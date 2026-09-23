@@ -179,6 +179,11 @@ pub(super) fn snapshot(
     index: usize,
     source: &str,
 ) -> Result<Json> {
+    if !crate::graph_render::graphs_enabled() {
+        return Ok(
+            json!({"kind":"layer_snapshot","id":format!("layer-{index}"),"stem":format!("round-{index:04}"),"label":format!("{} {}", b.kind,b.round.unwrap_or(index)),"boundary":index,"boundary_kind":b.kind,"round":b.round,"end":b.end,"preview_source":source,"graphs_enabled":false,"counts":{"applications":s.occurrences.len(),"templates":0,"fractals":0},"graphs":{},"dots":{},"analysis":{"scope":"observed CS interfaces only","templates":[],"fractals":[]},"sites":[]}),
+        );
+    }
     let g = layer_graph(s);
     let label = format!("{} {}", b.kind, b.round.unwrap_or(index));
     Ok(

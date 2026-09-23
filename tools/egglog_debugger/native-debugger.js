@@ -12,6 +12,7 @@ export function installNativeDebugger(editor) {
     const link = document.createElement('link'); link.rel='stylesheet'; link.href='native-debugger.css'; document.head.append(link);
     const panel = document.createElement('section'); panel.id='native-debugger';
     panel.innerHTML = `<strong>Native Rule Compose / Fractal</strong>
+      <label><input id="native-generate-graphs" type="checkbox" checked>生成 DOT / SVG（关闭可加快分析）</label>
       <button id="native-run">运行并识别</button><button id="native-stop" disabled>停止</button>
       <button id="native-download">下载 .egg</button><button id="native-export">导出日志</button><button id="native-restore">载入日志源码</button><label>回放日志 <input id="native-import" type="file" accept=".json"></label>
       <div id="native-status">点击 .egg 规则任意一行查看 Pattern。原生识别使用本地 egg_layout（单个自包含 datatype，名字任意）。</div>
@@ -599,7 +600,7 @@ export function installNativeDebugger(editor) {
                 else {rows.push(row);addRow(row);}
             };
             if(await bridgeAvailable()){
-                const response=await post('trace',{source:snapshotSource},current.signal);
+                const response=await post('trace',{source:snapshotSource,generate_graphs:el('generate-graphs').checked},current.signal);
                 const reader=response.body.getReader(),decoder=new TextDecoder();let buffer='';
                 while(true){const {value,done}=await reader.read();buffer+=decoder.decode(value || new Uint8Array(),{stream:!done});let newline;while((newline=buffer.indexOf('\n'))>=0){const line=buffer.slice(0,newline);buffer=buffer.slice(newline+1);consume(line);}if(done)break;}
                 if(buffer.trim())consume(buffer);
@@ -608,6 +609,7 @@ export function installNativeDebugger(editor) {
                 // Same patched runtime, compiled to wasm, but in a worker: a
                 // synchronous call here would freeze the page, so the log would only
                 // appear once the whole program finished.
+                if(!el('generate-graphs').checked)throw Error('关闭图表生成需要本地 Rust 服务，请启动 server.py。');
                 status('运行浏览器内的 wasm 插桩 runtime…');
                 await runWasmStream(snapshotSource,x=>consume(x),current.signal);
                 if(!complete)throw Error('wasm 事件流没有给出完成事件');

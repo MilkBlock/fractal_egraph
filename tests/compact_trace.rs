@@ -43,3 +43,46 @@ fn compact_stream_keeps_analysis_but_omits_per_application_rendering() {
     assert_eq!(summaries[0], summaries[1]);
     fs::remove_dir_all(root).unwrap();
 }
+
+#[test]
+fn graphless_run_keeps_catalog_without_dot_or_svg_files() {
+    let root = std::env::temp_dir().join(format!("graphless-{}", std::process::id()));
+    fs::create_dir_all(&root).unwrap();
+    let src = root.join("input.egg");
+    fs::write(
+        &src,
+        "(datatype T (X i64) (Y i64)) (rewrite (X n) (Y n)) (X 1) (run 1)",
+    )
+    .unwrap();
+    let out = root.join("run");
+    let r = Command::new(env!("CARGO_BIN_EXE_egg_layout"))
+        .args([
+            "analyze",
+            "--source",
+            src.to_str().unwrap(),
+            "--output",
+            out.to_str().unwrap(),
+        ])
+        .env("EGG_LAYOUT_GRAPHS", "0")
+        .env("EGG_LAYOUT_EAGER_SVG", "1")
+        .output()
+        .unwrap();
+    assert!(r.status.success(), "{}", String::from_utf8_lossy(&r.stderr));
+    fn check(p: &std::path::Path) {
+        for e in fs::read_dir(p).unwrap() {
+            let p = e.unwrap().path();
+            if p.is_dir() {
+                check(&p)
+            } else {
+                assert!(!matches!(
+                    p.extension().and_then(|s| s.to_str()),
+                    Some("dot" | "svg")
+                ));
+            }
+        }
+    }
+    check(&out);
+    assert!(out.join("catalog/catalog.json").exists());
+    assert!(out.join("analysis.json").exists());
+    fs::remove_dir_all(root).unwrap();
+}
