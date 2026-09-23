@@ -274,6 +274,12 @@ pub(super) fn read(path: &Path) -> Result<Captured> {
         datatype_name,
         rules,
         pool,
+        record_index: h
+            .records
+            .iter()
+            .enumerate()
+            .map(|(i, r)| (r.id, i))
+            .collect(),
         records: h.records,
         events: h.events,
         rounds: h.rounds,

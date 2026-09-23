@@ -133,6 +133,50 @@ pub struct LayerStore {
     #[serde(skip)]
     events: BTreeMap<u64, usize>,
 }
+/// Borrowed serialization avoids an intermediate JSON tree for local ripen history.
+pub(crate) struct LayerReport<'a>(pub &'a LayerStore);
+impl Serialize for LayerReport<'_> {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        use serde::ser::{SerializeMap, SerializeSeq};
+        struct Occurrences<'a>(&'a [Occurrence]);
+        impl Serialize for Occurrences<'_> {
+            fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+                #[derive(Serialize)]
+                struct Item<'a> {
+                    event: u64,
+                    comb: usize,
+                    parents: &'a [usize],
+                    coarse_layer: usize,
+                    smooth_layer: Option<usize>,
+                    boundary_restart: bool,
+                }
+                let mut seq = serializer.serialize_seq(Some(self.0.len()))?;
+                for o in self.0 {
+                    seq.serialize_element(&Item {
+                        event: o.apply.event,
+                        comb: o.comb,
+                        parents: &o.apply.parents,
+                        coarse_layer: o.coarse_layer,
+                        smooth_layer: o.smooth_layer,
+                        boundary_restart: o.boundary_restart,
+                    })?;
+                }
+                seq.end()
+            }
+        }
+        let s = self.0;
+        let mut map = serializer.serialize_map(Some(8))?;
+        map.serialize_entry("schema", "coarse-smooth-layers/v1")?;
+        map.serialize_entry("backend", "rust")?;
+        map.serialize_entry("scope", "Observed dependency interfaces; shared definitions, occurrence-specific evidence. No prefix/block admission and no arbitrary subtree enumeration. Layer IDs are run-local, not semantic identifiers.")?;
+        map.serialize_entry("ripen", &s.ripen)?;
+        map.serialize_entry("combs", &s.combs)?;
+        map.serialize_entry("coarse_layers", &s.coarse_layers)?;
+        map.serialize_entry("smooth_layers", &s.smooth_layers)?;
+        map.serialize_entry("occurrences", &Occurrences(&s.occurrences))?;
+        map.end()
+    }
+}
 impl LayerStore {
     pub fn occurrence(&self, event: u64) -> Option<&Occurrence> {
         self.events.get(&event).map(|i| &self.occurrences[*i])

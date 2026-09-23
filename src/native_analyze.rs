@@ -149,6 +149,7 @@ struct Captured {
     datatype_name: String,
     rules: Vec<RuleInfo>,
     records: Vec<Record>,
+    record_index: BTreeMap<u64, usize>,
     pool: Pool,
     events: usize,
     rounds: Option<usize>,
@@ -270,6 +271,7 @@ fn capture_text_with_sink(
         datatype_name,
         rules,
         records: vec![],
+        record_index: BTreeMap::new(),
         pool: Pool::default(),
         events: 0,
         rounds: Some(0),
@@ -398,6 +400,7 @@ fn collect(
     c: &mut Captured,
     producers: &mut BTreeMap<u64, Producer>,
 ) -> Result {
+    let prior_scope = c.last_scope;
     let rules = &c.rules;
     let names: BTreeMap<_, _> = rules
         .iter()
@@ -424,8 +427,10 @@ fn collect(
         .map(|x| x.match_event_id)
         .collect();
     let writes = batch.writes;
+    let mut added_producers = vec![];
     for w in &writes {
         if w.outcome == WriteOutcome::Inserted && w.rebuild_of.is_none() {
+            added_producers.push(w.event_id);
             producers.insert(
                 w.event_id,
                 Producer {
@@ -499,7 +504,7 @@ fn collect(
         .collect();
     let pool = &mut c.pool;
     let records = &mut c.records;
-    let mut imported: BTreeMap<_, _> = records.iter().enumerate().map(|(i, r)| (r.id, i)).collect();
+    let imported = &mut c.record_index;
     let mut ordered = matches.iter().collect::<Vec<_>>();
     ordered.sort_by_key(|m| m.event_id);
     for m in ordered {
@@ -780,8 +785,19 @@ fn collect(
     // Certificates in rolled-back scopes cannot serve future reads. A read's
     // live origin still must explicitly reference this exact committed row.
     let current_scope = resets.len();
-    producers
-        .retain(|_, p| scope(p.match_id) == current_scope && imported.contains_key(&p.match_id));
+    if prior_scope != current_scope {
+        producers.retain(|_, p| {
+            scope(p.match_id) == current_scope && imported.contains_key(&p.match_id)
+        });
+    } else {
+        for id in added_producers {
+            if producers.get(&id).is_some_and(|p| {
+                scope(p.match_id) != current_scope || !imported.contains_key(&p.match_id)
+            }) {
+                producers.remove(&id);
+            }
+        }
+    }
     eprintln!(
         "[trace] consumed {batch_len} raw events; raw buffers drained; {} producer certificates",
         producers.len()
@@ -794,10 +810,11 @@ fn collect(
 fn update_layers(c: &mut Captured) -> Result {
     c.layers.ripen = c.boundaries.last().and_then(|b| b.ripen.clone());
     use crate::coarse_smooth::{Apply, Effect, RelativeBinding};
+    let rule_text: Vec<_> = c.rules.iter().map(|r| r.rule.to_string()).collect();
     for r in c.records.iter().skip(c.layers.occurrences.len()) {
         let apply = Apply {
             event: r.id,
-            rule: c.rules[r.rule].rule.to_string(),
+            rule: rule_text[r.rule].clone(),
             input_roles: r
                 .inputs
                 .iter()
@@ -997,6 +1014,7 @@ fn execute(
         }
         emit(frame)?;
     }
+    let finish_started = Instant::now();
     let mut report = json!({"status":if pipeline.report()["counts"]["ObservedUnfinished"].as_u64().unwrap_or(0)>0 {"observed_unfinished"}else{"complete"},"summary":{"applications":c.records.len(),"logical_matches":c.events,"excluded":c.rejected,"scope":"native history -> CS -> ripen -> equivalence -> weak dominate"},"layers":c.layers.report(),"saturated_rule_composition":null});
     report["saturated_rule_composition"] = pipeline.take_report();
     std::fs::write(out.join("analysis.json"), serde_json::to_vec(&report)?)?;
@@ -1004,6 +1022,20 @@ fn execute(
         out.join("layers.json"),
         serde_json::to_vec(&c.layers.report())?,
     )?;
+    if std::env::var_os("EGG_LAYOUT_PROFILE").is_some() {
+        eprintln!(
+            "[perf-finish] output_seconds={:.6}",
+            finish_started.elapsed().as_secs_f64()
+        );
+    }
+    let cleanup_started = Instant::now();
+    pipeline.release_engines();
+    if std::env::var_os("EGG_LAYOUT_PROFILE").is_some() {
+        eprintln!(
+            "[perf-finish] cleanup_seconds={:.6}",
+            cleanup_started.elapsed().as_secs_f64()
+        );
+    }
     emit(json!({"kind":"rendering","message":"Analysis complete; rendering SVGs in parallel"}))?;
     render_batch.finish()?;
     Ok(report)
@@ -1053,4 +1085,48 @@ pub fn run_with_observation(
         observation,
         &mut |_| Ok(()),
     )
+}
+
+#[cfg(test)]
+mod incremental_history_tests {
+    use super::*;
+    #[test]
+    fn producer_index_does_not_reuse_rolled_back_facts() {
+        let c = capture_text_with_sink(
+            "scope-regression.egg",
+            r#"
+            (datatype E (A i64) (B i64) (C i64))
+            (ruleset first) (ruleset second)
+            (rewrite (A x) (B x) :ruleset first :name "make-b")
+            (rewrite (B x) (C x) :ruleset second :name "make-c")
+            (A 1)
+            (push)
+            (run first 1)
+            (pop)
+            (run second 1)
+            (run first 1)
+            (run second 1)
+        "#,
+            None,
+            None,
+        )
+        .unwrap();
+        assert_eq!(c.record_index.len(), c.records.len());
+        let make_b: Vec<_> = c
+            .records
+            .iter()
+            .enumerate()
+            .filter(|(_, r)| c.rules[r.rule].rule.name == "make-b")
+            .map(|(i, _)| i)
+            .collect();
+        let make_c: Vec<_> = c
+            .records
+            .iter()
+            .filter(|r| c.rules[r.rule].rule.name == "make-c")
+            .collect();
+        assert_eq!(make_b.len(), 2);
+        assert_eq!(make_c.len(), 1);
+        assert!(make_c[0].parents.contains(&make_b[1]));
+        assert!(!make_c[0].parents.contains(&make_b[0]));
+    }
 }

@@ -6,6 +6,7 @@ pub(super) struct CachedQuery {
     query: egglog::CompiledFactQuery,
     initial: Vec<Vec<Value>>,
     pub executions: usize,
+    initial_scans: usize,
     sorts: Vec<egglog::ArcSort>,
     current: Option<(usize, Vec<Vec<Value>>)>,
     pub cache_hits: usize,
@@ -102,18 +103,26 @@ pub(super) fn observe(
                 Ok((sort.clone(), lit))
             })
             .collect::<Result<Vec<_>>>()?;
-        let initial_query = task
-            .before
-            .compile_fact_query(&values, &atoms, &projection)?;
-        let initial = task.before.run_fact_query(&initial_query);
-        task.before.free_fact_query(initial_query);
-        let initial = initial?;
+        // An empty required table proves the initial join empty; no optimizer
+        // or scan is needed. This is an exact negative test, not sampling.
+        let initial_scans = usize::from(atoms.iter().all(|(op, _)| task.before.get_size(op) != 0));
+        let initial = if initial_scans != 0 {
+            let initial_query = task
+                .before
+                .compile_fact_query(&values, &atoms, &projection)?;
+            let result = task.before.run_fact_query(&initial_query);
+            task.before.free_fact_query(initial_query);
+            result?
+        } else {
+            vec![]
+        };
         let query = task.eg.compile_fact_query(&values, &atoms, &projection)?;
         task.weak_queries.insert(
             key.clone(),
             CachedQuery {
                 query,
                 initial,
+                initial_scans,
                 executions: 0,
                 sorts: projection
                     .iter()
@@ -133,7 +142,23 @@ pub(super) fn observe(
         .as_ref()
         .is_none_or(|(epoch, _)| *epoch != task.query_epoch)
     {
-        cached.current = Some((task.query_epoch, task.eg.run_fact_query(&cached.query)?));
+        let rows = if std::env::var("EGG_LAYOUT_FULL_TRACE").as_deref() == Ok("1") {
+            task.eg.run_fact_query(&cached.query)?
+        } else {
+            let excluded = cached
+                .initial
+                .iter()
+                .map(|row| {
+                    row.iter()
+                        .zip(&cached.sorts)
+                        .map(|(v, s)| task.eg.get_canonical_value(*v, s))
+                        .collect()
+                })
+                .collect();
+            let (matched, fresh) = task.eg.run_fact_query_difference(&cached.query, excluded)?;
+            matched.into_iter().chain(fresh).collect()
+        };
+        cached.current = Some((task.query_epoch, rows));
         cached.executions += 1;
     } else {
         cached.cache_hits += 1;
@@ -159,7 +184,7 @@ pub(super) fn observe(
         .collect();
     let reentries: Vec<_> = now.difference(&initial).cloned().collect();
     Ok(
-        json!({"erased_payload":erase_payload,"query_cache":{"compilations":2,"initial_scans":1,"current_scans":cached.executions,"result_cache_hits":cached.cache_hits,"per_check_engine_clones":0},"status":if now.is_empty(){"not_matched"}else{"matched"},"pattern_variables":vars,"trigger_rows":rows,"typed_values":pattern.values,"initial_bindings":initial,"bindings":now,"new_bindings":reentries,"new_effects":task.has_effects,"scope":if task.done{"saturated local body"}else{"running prefix"},"classification":"observation only; no termination or dissipativity inference"}),
+        json!({"bindings_complete":std::env::var("EGG_LAYOUT_FULL_TRACE").as_deref() == Ok("1"),"binding_semantics":"existence and freshness witnesses; enable EGG_LAYOUT_FULL_TRACE=1 for all bindings","erased_payload":erase_payload,"query_cache":{"compilations":1+cached.initial_scans,"initial_scans":cached.initial_scans,"current_scans":cached.executions,"result_cache_hits":cached.cache_hits,"per_check_engine_clones":0},"status":if now.is_empty(){"not_matched"}else{"matched"},"pattern_variables":vars,"trigger_rows":rows,"typed_values":pattern.values,"initial_bindings":initial,"bindings":now,"new_bindings":reentries,"new_effects":task.has_effects,"scope":if task.done{"saturated local body"}else{"running prefix"},"classification":"observation only; no termination or dissipativity inference"}),
     )
 }
 

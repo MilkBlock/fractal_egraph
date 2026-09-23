@@ -2,6 +2,7 @@
 //! scheduling never drops entries or declares a running task saturated.
 use super::*;
 use crate::coarse_smooth::LayerStore;
+use rayon::prelude::*;
 use std::path::PathBuf;
 struct Work {
     id: usize,
@@ -9,6 +10,7 @@ struct Work {
     active_seconds: f64,
 }
 pub(super) struct Pipeline {
+    worker_pool: rayon::ThreadPool,
     out: PathBuf,
     source: String,
     cs: cs::Store,
@@ -32,7 +34,19 @@ impl Pipeline {
         source: String,
         observation: crate::ripen_observation::Limits,
     ) -> Result<Self> {
+        let threads = std::env::var("EGG_LAYOUT_ANALYSIS_THREADS")
+            .or_else(|_| std::env::var("EGG_LAYOUT_QUERY_THREADS"))
+            .ok()
+            .map(|s| s.parse::<usize>())
+            .transpose()?
+            .unwrap_or(4);
+        if threads == 0 {
+            return Err("EGG_LAYOUT_ANALYSIS_THREADS must be positive".into());
+        }
         Ok(Self {
+            worker_pool: rayon::ThreadPoolBuilder::new()
+                .num_threads(threads)
+                .build()?,
             out: out.into(),
             source,
             cs: Default::default(),
@@ -59,6 +73,11 @@ impl Pipeline {
     pub fn report(&self) -> &Json {
         &self.report
     }
+    pub fn release_engines(&mut self) {
+        let work = std::mem::take(&mut self.work);
+        self.worker_pool
+            .install(|| work.into_par_iter().with_max_len(1).for_each(drop));
+    }
     pub fn take_report(&mut self) -> Json {
         std::mem::take(&mut self.report)
     }
@@ -78,6 +97,7 @@ impl Pipeline {
         if !self.out.join("source.egg").exists() {
             std::fs::write(self.out.join("source.egg"), &c.preview_source)?;
         }
+        let mut pending = vec![];
         for (_, unit) in self.cs.discover(c, layers, boundary)? {
             let id = self.jobs.len();
             let u = &self.cs.units[unit];
@@ -107,7 +127,7 @@ impl Pipeline {
                     self.aliases.insert(id, owner);
                     job["state"] = json!("WaitingEquivalent");
                     job["fully_equivalent_to"] = json!(owner);
-                } else {
+                } else if crate::graph_render::graphs_enabled() {
                     let session = ripen::Session::new_cached(&entry, &folder, &self.preparation)?;
                     if session.initial.is_some() {
                         self.owners.insert(key, id);
@@ -117,6 +137,8 @@ impl Pipeline {
                         session,
                         active_seconds: 0.,
                     });
+                } else {
+                    pending.push((id, key, entry, folder));
                 }
                 Ok(())
             })();
@@ -126,19 +148,90 @@ impl Pipeline {
             }
             self.jobs.push(job);
         }
+        let prepare = |(id, key, entry, folder): &(usize, String, PathBuf, PathBuf)| {
+            (
+                *id,
+                key.clone(),
+                ripen::Session::new_cached(entry, folder, &self.preparation)
+                    .map_err(|e| e.to_string()),
+            )
+        };
+        let prepared: Vec<_> = if crate::graph_render::graphs_enabled() {
+            pending.iter().map(prepare).collect()
+        } else {
+            self.worker_pool
+                .install(|| pending.par_iter().with_max_len(1).map(prepare).collect())
+        };
+        for (id, key, result) in prepared {
+            if let Some(&owner) = self.owners.get(&key) {
+                self.aliases.insert(id, owner);
+                self.jobs[id]["state"] = json!("WaitingEquivalent");
+                self.jobs[id]["fully_equivalent_to"] = json!(owner);
+                continue;
+            }
+            match result {
+                Ok(session) => {
+                    if session.initial.is_some() {
+                        self.owners.insert(key, id);
+                    }
+                    self.work.push(Work {
+                        id,
+                        session,
+                        active_seconds: 0.,
+                    });
+                }
+                Err(e) => {
+                    self.jobs[id]["state"] = json!("Rejected");
+                    self.jobs[id]["reason"] = json!(e);
+                }
+            }
+        }
         mark("register_entries");
         let mut changed = false;
         // One bounded batch of native passes per live task; this is fair interleaving, not a
         // completion/round budget. execute() keeps polling until completion or stop.
-        for work in &mut self.work {
-            if self.jobs[work.id]["state"] != "Running" {
-                continue;
+        let jobs = &self.jobs;
+        let observation = &self.observation;
+        let advance = |work: &mut Work| {
+            if jobs[work.id]["state"] != "Running" {
+                return None;
             }
             let started = std::time::Instant::now();
             let result = work
                 .session
-                .advance_with_observation(&self.observation, work.active_seconds);
+                .advance_with_observation(observation, work.active_seconds)
+                .map_err(|e| e.to_string());
             work.active_seconds += started.elapsed().as_secs_f64();
+            let facts = work.session.report["tables"]
+                .as_object()
+                .map(|t| t.values().filter_map(Json::as_u64).sum::<u64>() as usize)
+                .unwrap_or(0);
+            let snapshot = (result.is_ok()
+                && !work.session.done
+                && (!observation.reached(work.active_seconds, facts).is_empty()
+                    || work.session.report["native_stop_reason"].is_string()))
+            .then(|| {
+                work.session
+                    .snapshot_unfinished()
+                    .unwrap_or_else(|e| json!({"status":"unavailable","reason":e.to_string()}))
+            });
+            Some((result, snapshot))
+        };
+        let results: Vec<_> = if crate::graph_render::graphs_enabled() {
+            self.work.iter_mut().map(advance).collect()
+        } else {
+            self.worker_pool.install(|| {
+                self.work
+                    .par_iter_mut()
+                    .with_max_len(1)
+                    .map(advance)
+                    .collect()
+            })
+        };
+        for (work, result) in self.work.iter_mut().zip(results) {
+            let Some((result, snapshot)) = result else {
+                continue;
+            };
             match result {
                 Ok(()) => {
                     self.jobs[work.id]["ripen"] = work.session.report["ripen"].clone();
@@ -154,20 +247,15 @@ impl Pipeline {
                     }
                     if !work.session.done && !reasons.is_empty() {
                         let mut evidence = json!({"admission":"growth_observation","unfinished":true,"scope":"unfinished ripen; starting condition unresolved","growth":{"before_facts":work.session.initial_facts,"after_facts":facts,"active_seconds":work.active_seconds,"reasons":reasons,"limits":self.observation}});
-                        evidence["snapshot"] = work.session.snapshot_unfinished().unwrap_or_else(
-                            |e| json!({"status":"unavailable","reason":e.to_string()}),
-                        );
+                        evidence["snapshot"] = snapshot
+                            .expect("observation snapshot prepared with the same stop condition");
                         self.jobs[work.id]["state"] = json!("ObservedUnfinished");
                         self.jobs[work.id]["observation"] = evidence.clone();
                         work.session.report["ripen"]["state"] = json!("ObservedUnfinished");
                         work.session.report["observation"] = evidence.clone();
                         work.session.report["origin"] = self.jobs[work.id]["origin"].clone();
                         self.jobs[work.id]["ripen"] = work.session.report["ripen"].clone();
-                        let folder = PathBuf::from(self.jobs[work.id]["folder"].as_str().unwrap());
-                        crate::pipeline::write_json(
-                            &folder.join("ripen.json"),
-                            &work.session.report,
-                        )?;
+                        work.session.write_report()?;
                         if let Some(trigger) = &work.session.trigger {
                             let marker = self.jobs[work.id]["origin"]["parameter_marker"]
                                 .as_str()
@@ -185,10 +273,10 @@ impl Pipeline {
                         }
                     }
                     if work.session.done {
-                        let mut report = work.session.report.clone();
-                        report["origin"] = self.jobs[work.id]["origin"].clone();
+                        work.session.report["origin"] = self.jobs[work.id]["origin"].clone();
+                        work.session.write_report()?;
+                        let report = &work.session.report;
                         let folder = PathBuf::from(self.jobs[work.id]["folder"].as_str().unwrap());
-                        std::fs::write(folder.join("ripen.json"), serde_json::to_vec(&report)?)?;
                         self.jobs[work.id]["state"] = json!("Saturated");
                         self.jobs[work.id]["export"] = report["saturated_rule_composition"].clone();
                         if report["saturated_rule_composition"]["status"] == "exported" {
@@ -280,11 +368,12 @@ impl Pipeline {
             .iter()
             .map(|w| (w.id, w.session.trigger.clone(), w.session.initial.is_some()))
             .collect();
-        for (target_id, initial, certified) in targets {
+        let mut requests = vec![vec![]; self.work.len()];
+        for (t, (target_id, initial, certified)) in targets.iter().enumerate() {
             let Some(pattern) = initial.as_ref() else {
                 continue;
             };
-            let marker = self.jobs[target_id]["origin"]["parameter_marker"]
+            let marker = self.jobs[*target_id]["origin"]["parameter_marker"]
                 .as_str()
                 .unwrap_or("");
             let ops: BTreeSet<_> = pattern
@@ -300,16 +389,18 @@ impl Pipeline {
                     Some(possible.map_or(ids.clone(), |p| p.intersection(&ids).copied().collect()));
             }
             for i in possible.unwrap_or_default() {
-                let source = &mut self.work[i];
-                if !certified && source.id != target_id {
+                let source = &self.work[i];
+                if !certified && source.id != *target_id {
                     continue;
                 }
                 let round = source.session.report["ripen"]["round"]
                     .as_u64()
                     .unwrap_or(0);
-                let key = (source.id, target_id);
-                if self.weak.get(&key).is_some_and(|(seen, _)| *seen == round)
-                    || (source.id == target_id
+                if self
+                    .weak
+                    .get(&(source.id, *target_id))
+                    .is_some_and(|(seen, _)| *seen == round)
+                    || (source.id == *target_id
                         && self
                             .structural_reentry
                             .get(&source.id)
@@ -317,39 +408,81 @@ impl Pipeline {
                 {
                     continue;
                 }
-                if certified {
-                    let result = weak_dominate::observe(
-                        &mut source.session,
-                        pattern,
-                        marker,
-                        target_id,
-                        false,
-                    )
-                    .unwrap_or_else(|e| json!({"status":"unresolved","reason":e.to_string()}));
-                    self.weak.insert(key, (round, result));
-                }
-                if source.id == target_id {
-                    let mut structural = weak_dominate::observe(
-                        &mut source.session,
-                        pattern,
-                        marker,
-                        target_id,
-                        true,
-                    )
-                    .unwrap_or_else(|e| json!({"status":"unresolved","reason":e.to_string()}));
-                    structural["observed_round"] = json!(round);
-                    self.reentry.observe(
-                        source.id,
-                        target_id,
-                        round,
-                        pattern,
-                        marker,
-                        &source.session.effect_components,
-                        source.session.union_effect,
-                        &structural,
-                    )?;
-                    self.structural_reentry.insert(source.id, structural);
-                }
+                requests[i].push(t);
+            }
+        }
+        let jobs = &self.jobs;
+        let work = &mut self.work;
+        let grouped: Vec<Vec<_>> = self.worker_pool.install(|| {
+            work.par_iter_mut()
+                .with_max_len(1)
+                .enumerate()
+                .map(|(i, source)| {
+                    requests[i]
+                        .iter()
+                        .map(|&t| {
+                            let (target_id, pattern, certified) = &targets[t];
+                            let pattern = pattern.as_ref().unwrap();
+                            let marker = jobs[*target_id]["origin"]["parameter_marker"]
+                                .as_str()
+                                .unwrap_or("");
+                            let round = source.session.report["ripen"]["round"]
+                                .as_u64()
+                                .unwrap_or(0);
+                            let result = certified.then(|| {
+                                weak_dominate::observe(
+                                    &mut source.session,
+                                    pattern,
+                                    marker,
+                                    *target_id,
+                                    false,
+                                )
+                                .unwrap_or_else(
+                                    |e| json!({"status":"unresolved","reason":e.to_string()}),
+                                )
+                            });
+                            let structural = (source.id == *target_id).then(|| {
+                                weak_dominate::observe(
+                                    &mut source.session,
+                                    pattern,
+                                    marker,
+                                    *target_id,
+                                    true,
+                                )
+                                .unwrap_or_else(
+                                    |e| json!({"status":"unresolved","reason":e.to_string()}),
+                                )
+                            });
+                            (t, i, source.id, round, result, structural)
+                        })
+                        .collect()
+                })
+                .collect()
+        });
+        let mut results: Vec<_> = grouped.into_iter().flatten().collect();
+        results.sort_by_key(|r| (r.0, r.1));
+        for (t, i, id, round, result, structural) in results {
+            let (target_id, pattern, _) = &targets[t];
+            if let Some(result) = result {
+                self.weak.insert((id, *target_id), (round, result));
+            }
+            if let Some(mut structural) = structural {
+                structural["observed_round"] = json!(round);
+                let source = &self.work[i];
+                let marker = self.jobs[*target_id]["origin"]["parameter_marker"]
+                    .as_str()
+                    .unwrap_or("");
+                self.reentry.observe(
+                    id,
+                    *target_id,
+                    round,
+                    pattern.as_ref().unwrap(),
+                    marker,
+                    &source.session.effect_components,
+                    source.session.union_effect,
+                    &structural,
+                )?;
+                self.structural_reentry.insert(id, structural);
             }
         }
         // Search existing bucket C conditions in each paused unfinished body.
@@ -439,7 +572,7 @@ impl Pipeline {
                 .or_default() += 1;
         }
         mark("weak_queries_and_evidence");
-        self.report = json!({"weak_query_cache":{"result_cache_hits":self.work.iter().flat_map(|w|w.session.weak_queries.values()).map(|q|q.cache_hits).sum::<usize>(),"compiled_pairs":self.work.iter().map(|w|w.session.weak_queries.len()).sum::<usize>(),"current_scans":self.work.iter().flat_map(|w|w.session.weak_queries.values()).map(|q|q.executions).sum::<usize>()},"step_seconds":timings,"preparation_cache":self.preparation.stats(),"kind":"saturated_rule_composition_snapshot","boundary":boundary,"jobs":self.jobs,"cs":self.cs.report(),"weak_dominate":weak,"observation_limits":self.observation,"bucket_trigger_matches":self.bucket_matches.values().map(|(_,r)|r).collect::<Vec<_>>(),"reentry_buckets":self.reentry.report(),"structural_reentry":self.structural_reentry,"weak_unresolved":unresolved,"counts":counts,"not_queued":0,"limits":null,"scope":"all observed CS entries; fair resumable sweeps; no heuristic selection, live tier0 substitution or termination guess","catalog":self.catalog});
+        self.report = json!({"analysis_threads":self.worker_pool.current_num_threads(),"weak_query_cache":{"result_cache_hits":self.work.iter().flat_map(|w|w.session.weak_queries.values()).map(|q|q.cache_hits).sum::<usize>(),"compiled_pairs":self.work.iter().map(|w|w.session.weak_queries.len()).sum::<usize>(),"current_scans":self.work.iter().flat_map(|w|w.session.weak_queries.values()).map(|q|q.executions).sum::<usize>()},"step_seconds":timings,"preparation_cache":self.preparation.stats(),"kind":"saturated_rule_composition_snapshot","boundary":boundary,"jobs":self.jobs,"cs":self.cs.report(),"weak_dominate":weak,"observation_limits":self.observation,"bucket_trigger_matches":self.bucket_matches.values().map(|(_,r)|r).collect::<Vec<_>>(),"reentry_buckets":self.reentry.report(),"structural_reentry":self.structural_reentry,"weak_unresolved":unresolved,"counts":counts,"not_queued":0,"limits":null,"scope":"all observed CS entries; fair resumable sweeps; no heuristic selection, live tier0 substitution or termination guess","catalog":self.catalog});
         crate::pipeline::write_json(
             &self.out.join("saturated-rule-composition/queue.json"),
             &self.report,

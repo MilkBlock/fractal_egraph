@@ -1,0 +1,50 @@
+{
+  "scope": "Actual native runtime: complete three-round mini3 analysis, DOT/SVG disabled; release ThinLTO; process wall time, excluding compilation; no sampling or phase profiling.",
+  "source_sha256": "ac498b753752adb472a536f01a1f8411fc193a982516513c90eefb4585194015",
+  "command": "EGG_LAYOUT_GRAPHS=0 /usr/bin/time -l target/release/egg_layout analyze --source experiments/math_mini3/source.egg --output NEW_DIR",
+  "limits": {
+    "milliseconds": 50,
+    "facts": 200000,
+    "sweep_steps": 4
+  },
+  "analysis_threads": 4,
+  "runs": [
+    {
+      "run": 1,
+      "wall_seconds": 1.33,
+      "peak_rss_bytes": 654262272,
+      "exit_status": "completed"
+    },
+    {
+      "run": 2,
+      "wall_seconds": 1.06,
+      "peak_rss_bytes": 624721920,
+      "exit_status": "completed"
+    },
+    {
+      "run": 3,
+      "wall_seconds": 1.07,
+      "peak_rss_bytes": 613400576,
+      "exit_status": "completed"
+    }
+  ],
+  "goal_seconds": 1.0,
+  "goal_met": false,
+  "regression": {
+    "completed_states": 79,
+    "same_completed_state_structure": 79,
+    "unchanged_completed_source_weak_dominate_decisions": 488,
+    "unfinished": 6,
+    "note": "Unfinished prefixes vary with wall-clock limits; no fixed-work equivalence claimed for those prefixes."
+  },
+  "retained_changes": [
+    "Independent DB clone notification queues",
+    "Exact existential and fresh-match query witnesses with success short-circuiting",
+    "Flat Generic Join for read-only probes",
+    "Effect-only local ripen tracing; full tier0 dependency history retained",
+    "Parallel independent preparation, ripen, probes, snapshots and cleanup with stable publication order",
+    "Prepared AST reuse and incremental producer indexing",
+    "Borrowed report serialization and numeric export indexing"
+  ],
+  "not_implemented": "Reusing local ripen origin templates to guide tier0 applications."
+}

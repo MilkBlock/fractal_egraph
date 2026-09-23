@@ -149,3 +149,65 @@ fn local_ripen_history_is_optional_without_changing_finite_analysis() {
     assert!(!results[0].1.is_empty());
     fs::remove_dir_all(root).unwrap();
 }
+
+#[test]
+fn existential_parallel_queries_preserve_full_enumeration_decisions() {
+    let root = std::env::temp_dir().join(format!("query-decision-ablation-{}", std::process::id()));
+    fs::create_dir_all(&root).unwrap();
+    let source = root.join("input.egg");
+    fs::write(&source,"(datatype E (V i64) (A E) (B E) (C E) (D E)) (rewrite (A x) (B x)) (rewrite (B x) (C x)) (rewrite (C x) (D x)) (A (V 1)) (B (V 2)) (C (V 3)) (run 3)").unwrap();
+    let mut reports = vec![];
+    for full in [true, false] {
+        let out = root.join(if full { "full" } else { "existential" });
+        let result = Command::new(env!("CARGO_BIN_EXE_egg_layout"))
+            .args([
+                "analyze",
+                "--source",
+                source.to_str().unwrap(),
+                "--output",
+                out.to_str().unwrap(),
+                "--ripen-observe-ms",
+                "60000",
+                "--ripen-observe-facts",
+                "1000",
+            ])
+            .env("EGG_LAYOUT_GRAPHS", "0")
+            .env("EGG_LAYOUT_RIPEN_HISTORY", "0")
+            .env("EGG_LAYOUT_FULL_TRACE", if full { "1" } else { "0" })
+            .env("EGG_LAYOUT_QUERY_THREADS", if full { "1" } else { "4" })
+            .output()
+            .unwrap();
+        assert!(
+            result.status.success(),
+            "{}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+        let a: serde_json::Value =
+            serde_json::from_slice(&fs::read(out.join("analysis.json")).unwrap()).unwrap();
+        let q = &a["saturated_rule_composition"];
+        let decisions: Vec<_> = q["weak_dominate"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|e| {
+                serde_json::json!([
+                    e["from"],
+                    e["to"],
+                    e["same_ripened_family"],
+                    e["reentry_observation"],
+                    e["evidence"]["status"],
+                    e["evidence"]["new_effects"],
+                    !e["evidence"]["new_bindings"].as_array().unwrap().is_empty()
+                ])
+            })
+            .collect();
+        assert!(!decisions.is_empty());
+        reports.push((
+            q["counts"].clone(),
+            q["catalog"]["catalog"]["saturated_rule_compositions"].clone(),
+            decisions,
+        ));
+    }
+    assert_eq!(reports[0], reports[1]);
+    fs::remove_dir_all(root).unwrap();
+}

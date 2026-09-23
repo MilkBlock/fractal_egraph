@@ -45,24 +45,57 @@ pub(super) struct Session {
     pub report: Json,
     pub done: bool,
 }
+struct Report<'a>(&'a Session);
+impl serde::Serialize for Report<'_> {
+    fn serialize<S: serde::Serializer>(
+        &self,
+        serializer: S,
+    ) -> std::result::Result<S::Ok, S::Error> {
+        use serde::ser::SerializeMap;
+        let mut map = serializer.serialize_map(None)?;
+        for (k, v) in self.0.report.as_object().unwrap() {
+            if k == "tier1" && self.0.record_history {
+                map.serialize_entry(k, &crate::coarse_smooth::LayerReport(&self.0.c.layers))?;
+            } else {
+                map.serialize_entry(k, v)?;
+            }
+        }
+        map.end()
+    }
+}
 impl Session {
+    pub(super) fn write_report(&self) -> Result<()> {
+        crate::pipeline::write_json(&self.out.join("ripen.json"), &Report(self))
+    }
     pub fn new(source: &Path, out: &Path) -> Result<Self> {
-        Self::new_impl(source, out, None)
+        Self::new_impl(source, out, None, None)
     }
     pub(super) fn new_cached(source: &Path, out: &Path, cache: &PreparationCache) -> Result<Self> {
-        Self::new_impl(source, out, cache.environment.as_ref())
+        Self::new_impl(
+            source,
+            out,
+            cache.environment.as_ref(),
+            Some(&cache.prepared_commands),
+        )
     }
     fn new_impl(
         source: &Path,
         out: &Path,
         environment: Option<&entry::Environment>,
+        prepared: Option<&std::collections::HashMap<String, Vec<Command>>>,
     ) -> Result<Self> {
         let source = source.canonicalize()?;
         let text = std::fs::read_to_string(&source)?;
-        let mut eg = measured_engine();
-        let commands = crate::visual_rule::surface_program(
-            eg.parse_program(Some(source.display().to_string()), &text)?,
-        );
+        let mut eg = environment
+            .map(|e| e.base.clone())
+            .unwrap_or_else(measured_engine);
+        let commands = if let Some(commands) = prepared.and_then(|c| c.get(&text)) {
+            commands.clone()
+        } else {
+            crate::visual_rule::surface_program(
+                eg.parse_program(Some(source.display().to_string()), &text)?,
+            )
+        };
         let mut setup = vec![];
         let mut checks = vec![];
         let mut rules = vec![];
@@ -89,11 +122,13 @@ impl Session {
                 if !rule.head.0.iter().all(supported_action) { return Err("ripen rejects delete and other unsupported actions".into()); }
                 if !names.insert(rule.name.clone()) { return Err("ripen rule names must be unique".into()); }
                 rulesets.insert(rule.ruleset.clone());
+                if environment.is_none() {
                 let calls = crate::visual_rule::positions(rule).into_iter().map(|(span,path,_)| {
                     let expression=crate::visual_rule::owned_expression_at(rule,&path).unwrap().clone();
                     (Arc::from(span),(path,expression))
                 }).collect();
                 rules.push(RuleInfo{rule:rule.clone(),calls});
+                }
             }
             Command::AddRuleset(..) | Command::Relation {..} | Command::Function{..} => {}
             Command::Action(a) if supported_action(a) => {}
@@ -125,7 +160,6 @@ impl Session {
             if code != environment.code {
                 return Err("cached ripen rule environment mismatch".into());
             }
-            eg = environment.base.clone();
             rules = environment.rules.clone(); // source spans must match the compiled rules
             eg.run_program(
                 setup
@@ -144,7 +178,12 @@ impl Session {
                 port_values.push((name.clone(), sort, value));
             }
         }
-        let trace = TraceSession::with_dependencies();
+        let record_history = std::env::var("EGG_LAYOUT_RIPEN_HISTORY").as_deref() == Ok("1");
+        let trace = if record_history {
+            TraceSession::with_dependencies()
+        } else {
+            TraceSession::with_effects()
+        };
         let c = Captured {
             changes: vec![],
             last_scope: 0,
@@ -155,6 +194,7 @@ impl Session {
             datatype_name,
             rules,
             records: vec![],
+            record_index: BTreeMap::new(),
             pool: Pool::default(),
             events: 0,
             rounds: Some(0),
@@ -220,7 +260,7 @@ impl Session {
             before,
             query_epoch: 0,
             table_names,
-            record_history: std::env::var("EGG_LAYOUT_RIPEN_HISTORY").as_deref() != Ok("0"),
+            record_history,
             weak_queries: BTreeMap::new(),
             has_effects: false,
             initial_facts,
@@ -315,7 +355,8 @@ impl Session {
                 } else {
                     // Downstream sharing consumes states and effects, not this local
                     // application DAG. Keep tier0 analysis unchanged; drain local trace.
-                    self.c.events += self.trace.drain_completed().matches.len();
+                    self.c.events += self.trace.take_effect_match_count();
+                    self.trace.drain_completed();
                 }
                 if native_stop_reason.is_some() {
                     break;
@@ -385,8 +426,8 @@ impl Session {
                 Err(e) => exported = json!({"status":"unavailable","reason":e.to_string()}),
             }
         }
-        self.report = json!({"native_stop_reason":native_stop_reason,"observation_limits":limits,"sweep":{"steps":steps,"max_steps":limits.sweep_steps},"ripen":f,"source":self.source,"source_text":self.text,"checks":if self.done{"passed"}else{"deferred"},"checks_count":self.checks.len(),"internal_history":self.record_history,"imported_applies":if self.record_history {Some(self.c.records.len())} else {None},"events":self.c.events,"saturated_rule_composition":exported,"native_egraph":if self.final_state.is_some(){Some("native-egraph.dot")}else{None},"tier1":if self.record_history {Some(self.c.layers.report())} else {None},"tables":table_counts(&self.eg,&self.table_names)});
-        crate::pipeline::write_json(&self.out.join("ripen.json"), &self.report)?;
+        self.report = json!({"native_stop_reason":native_stop_reason,"observation_limits":limits,"sweep":{"steps":steps,"max_steps":limits.sweep_steps},"ripen":f,"source":self.source,"source_text":self.text,"checks":if self.done{"passed"}else{"deferred"},"checks_count":self.checks.len(),"internal_history":self.record_history,"imported_applies":if self.record_history {Some(self.c.records.len())} else {None},"events":self.c.events,"saturated_rule_composition":exported,"native_egraph":if self.final_state.is_some(){Some("native-egraph.dot")}else{None},"tier1":null,"tables":table_counts(&self.eg,&self.table_names)});
+        self.write_report()?;
         if self.done {
             let replay = self
                 .setup
@@ -419,19 +460,6 @@ pub fn run(source: &Path, out: &Path) -> Result<Json> {
     }
     render_batch.finish()?;
     Ok(task.report)
-}
-fn table_sizes(eg: &EGraph, declarations: &str) -> Result<BTreeMap<String, usize>> {
-    let mut parser = measured_engine();
-    let names: Vec<_> = parser
-        .parse_program(None, declarations)?
-        .into_iter()
-        .flat_map(|cmd| match cmd {
-            Command::Datatype { variants, .. } => variants.into_iter().map(|v| v.name).collect(),
-            Command::Relation { name, .. } | Command::Function { name, .. } => vec![name],
-            _ => vec![],
-        })
-        .collect();
-    Ok(table_counts(eg, &names))
 }
 fn table_counts(eg: &EGraph, names: &[String]) -> BTreeMap<String, usize> {
     names
@@ -550,11 +578,17 @@ fn export_state(
     if crate::graph_render::graphs_enabled() {
         write_native_graph(eg, out, "native-egraph")?;
     }
-    let mut ids = BTreeMap::<String, usize>::new();
+    let sort_cache: BTreeMap<_, _> = [name.as_str(), "Unit", "i64", "String", "bool"]
+        .into_iter()
+        .enumerate()
+        .map(|(i, ty)| (ty, (i, eg.get_arcsort_by(|s| s.name() == ty))))
+        .collect();
+    let mut ids = BTreeMap::<(usize, Value), usize>::new();
+    let mut local_ids = vec![];
     let mut values = vec![];
     let mut vertex = |ty: &str, v: Value| -> Result<usize> {
-        let sort = eg.get_arcsort_by(|s| s.name() == ty);
-        let key = eg.value_to_class_id(&sort, v).to_string();
+        let (sort_id, sort) = &sort_cache[ty];
+        let key = (*sort_id, eg.get_canonical_value(v, sort));
         if let Some(i) = ids.get(&key) {
             return Ok(*i);
         }
@@ -570,6 +604,7 @@ fn export_state(
         };
         let i = values.len();
         ids.insert(key, i);
+        local_ids.push(eg.value_to_class_id(sort, v).to_string());
         values.push(Vertex {
             sort: ty.into(),
             literal,
@@ -650,10 +685,6 @@ fn export_state(
         .collect();
     rules.sort();
     rules.dedup();
-    let mut local_ids = vec![String::new(); values.len()];
-    for (key, i) in ids {
-        local_ids[i] = key;
-    }
     let mut state = SaturatedRuleComposition {
         version: 2,
         local_ids,

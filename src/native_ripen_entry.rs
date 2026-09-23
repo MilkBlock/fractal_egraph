@@ -35,9 +35,9 @@ pub(super) struct Environment {
     pub code: String,
     source: String,
     hole: String,
-    declarations: String,
     constructors: BTreeSet<String>,
     commands: Vec<Command>,
+    table_names: Vec<String>,
 }
 impl Environment {
     fn new(c: &Captured) -> Result<Self> {
@@ -69,11 +69,6 @@ impl Environment {
                 _ => Vec::new(),
             })
             .collect();
-        let declarations = datatypes
-            .iter()
-            .map(ToString::to_string)
-            .collect::<Vec<_>>()
-            .join("\n");
         let mut entry = datatypes.clone();
         let rulesets: BTreeSet<_> = c
             .rules
@@ -100,14 +95,26 @@ impl Environment {
             code,
             source: c.preview_source.clone(),
             hole,
-            declarations,
             constructors,
+            table_names: datatypes
+                .iter()
+                .flat_map(|c| match c {
+                    Command::Datatype { variants, .. } => {
+                        variants.iter().map(|v| v.name.clone()).collect()
+                    }
+                    Command::Relation { name, .. } | Command::Function { name, .. } => {
+                        vec![name.clone()]
+                    }
+                    _ => vec![],
+                })
+                .collect(),
             commands: entry,
         })
     }
 }
 #[derive(Default)]
 pub(in crate::native_analyze) struct PreparationCache {
+    pub(super) prepared_commands: std::collections::HashMap<String, Vec<Command>>,
     pub(super) environment: Option<Environment>,
     validated: std::collections::HashMap<String, (Json, Json)>,
     checks: std::collections::HashMap<String, egglog::CompiledCheck>,
@@ -138,6 +145,7 @@ impl PreparationCache {
             self.environment = Some(Environment::new(c)?);
             *self.timings.entry("environment_setup").or_default() += tick.elapsed().as_secs_f64();
             self.validated.clear();
+            self.prepared_commands.clear();
             self.checks.clear();
             self.environments += 1;
         }
@@ -166,7 +174,7 @@ fn extract(
     }
     let environment = cache.environment.as_mut().unwrap();
     let hole = environment.hole.clone();
-    let declarations = environment.declarations.clone();
+    let table_names = environment.table_names.clone();
     let constructors = &environment.constructors;
     let mut entry = environment.commands.clone();
     let environment_len = entry.len();
@@ -525,7 +533,7 @@ fn extract(
         eg.run_program(entry[environment_len..].to_vec())?;
         elapsed!("seed_parameters", tick);
         let tick = std::time::Instant::now();
-        let initial_tables = super::table_sizes(&eg, &declarations)?;
+        let initial_tables = super::table_counts(&eg, &table_names);
         elapsed!("table_statistics", tick);
         for ((i, _, _, commands, _), groups) in stages.iter().zip(plans) {
             for (phase, lo, hi, key) in groups {
@@ -543,7 +551,7 @@ fn extract(
         let tick = std::time::Instant::now();
         let tables = (
             json!(initial_tables),
-            json!(super::table_sizes(&eg, &declarations)?),
+            json!(super::table_counts(&eg, &table_names)),
         );
         elapsed!("table_statistics", tick);
         cache.validated.insert(key, tables.clone());
@@ -559,6 +567,10 @@ fn extract(
         "; Extracted symbolic interface. Boundary constructors are opaque, not recovered original terms.\n{}\n",
         encode(&entry)
     );
+    cache
+        .prepared_commands
+        .entry(text.clone())
+        .or_insert_with(|| entry.clone());
     let slots: BTreeMap<_, _> = member_ids
         .iter()
         .enumerate()

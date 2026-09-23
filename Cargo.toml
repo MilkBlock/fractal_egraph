@@ -19,3 +19,7 @@ getrandom = { version = "0.3", features = ["wasm_js"] }
 [[bin]]
 name = "egg_layout"
 path = "src/main.rs"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

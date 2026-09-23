@@ -126,10 +126,14 @@ cargo run --release --offline -- analyze \
 
 每个 cell 的 `ripen.json` 中 `sweep.steps` 记录本批实际推进轮数，`sweep.max_steps` 记录配置值。`EGG_LAYOUT_RIPEN_SWEEP_STEPS` 可配置分析/调试流程，默认 4；`--ripen-sweep-steps` 可覆盖它。
 
-默认不发送逐 application 的 DOT / Typst / binding 展示日志；FractalRule、覆盖统计和图仍保留。需要完整逐条展示时设置 `EGG_LAYOUT_FULL_TRACE=1`（网页服务也读取此环境变量）。`--save-history` 仍显式保存可重放分析历史。内部依赖事件仍在提交后被分析并排空，不能删掉用于判定 composition 的 provenance。
+默认不发送逐 application 的 DOT / Typst / binding 展示日志；FractalRule、覆盖统计和图仍保留。需要完整逐条展示时设置 `EGG_LAYOUT_FULL_TRACE=1`（网页服务也读取此环境变量）。`--save-history` 仍显式保存可重放分析历史。tier0 的内部依赖事件仍在提交后被分析并排空，保留用于判定 composition 的 provenance。
 
 SVG 排版在分析结束后统一并行执行，不再阻塞每轮 ripen。默认独立线程池并发 2 个 Graphviz 进程，可设置 `EGG_LAYOUT_SVG_THREADS=4` 调整；`EGG_LAYOUT_EAGER_SVG=0` 仍关闭生成。同一路径只渲染最终 DOT，共享实例复制已完成的 SVG。CLI 等待全部图表完成后退出，网页显示单独的渲染阶段。单张复杂图仍可能排版很慢，并行不会消除这一成本。
 
 网页运行按钮旁的“生成 DOT / SVG”复选框可关闭本次运行的图表生成，保留分析和统计 JSON。本地服务逐请求传递此配置；CLI 可使用 `EGG_LAYOUT_GRAPHS=0 cargo run --release --bin egg_layout -- analyze --source FILE --output DIR`。此开关比只关闭 SVG 更彻底，也跳过 DOT 和 layer 图构造。
 
-无图表 CLI 分析只保存最终分析和判等目录等数据，不再构造/保存逐轮展示快照；网页仍推送实时统计。`EGG_LAYOUT_RIPEN_HISTORY=0` 是局部 ripen 诊断历史的实验开关，默认保持开启；关闭它不影响 tier0 采集，但在时间限制下可能让未完成状态变大，不能保证更快。
+无图表 CLI 分析只保存最终分析和判等目录等数据，不再构造/保存逐轮展示快照；网页仍推送实时统计。局部 ripen 默认只保留真实提交的 effect 摘要，使用 `EGG_LAYOUT_RIPEN_HISTORY=1` 可恢复局部 binding 和 Coarse/Smooth 历史；tier0 的完整历史分析不变。
+
+无图表分析使用 4 个独立任务线程，可通过 `EGG_LAYOUT_ANALYSIS_THREADS` 设置（兼容旧名 `EGG_LAYOUT_QUERY_THREADS`）。准备好的 AST、查询计划、未变化状态的查询结果会复用；每个任务拥有独立 egraph 和提交通知队列。
+
+weak-dominate 默认返回“存在匹配 / 存在新匹配”的精确见证，`bindings_complete=false` 表示 binding 列表不穷举。发现新匹配即可停止只读 Join；无新匹配时仍完整执行以证明不存在。`EGG_LAYOUT_FULL_TRACE=1` 恢复完整 binding 枚举。它与 `EGG_LAYOUT_RIPEN_HISTORY=1` 分别控制查询证据和局部执行历史。
