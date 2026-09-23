@@ -286,7 +286,7 @@ impl Counters {
 /// A collection of tables and indexes over them.
 ///
 /// A database also owns the memory pools used by its tables.
-#[derive(Clone, Default)]
+#[derive(Default)]
 pub struct Database {
     // NB: some fields are pub(crate) to allow some internal modules to avoid
     // borrowing the whole table.
@@ -309,6 +309,39 @@ pub struct Database {
     /// This is primarily used to determine whether or not to attempt to do some operations in
     /// parallel.
     total_size_estimate: usize,
+}
+
+impl Clone for Database {
+    fn clone(&self) -> Self {
+        Self {
+            tables: self.tables.clone(),
+            counters: self.counters.clone(),
+            external_functions: self.external_functions.clone(),
+            container_values: self.container_values.clone(),
+            notification_list: self.notification_list.deep_clone(),
+            deps: self.deps.clone(),
+            base_values: self.base_values.clone(),
+            total_size_estimate: self.total_size_estimate,
+        }
+    }
+}
+
+#[cfg(test)]
+mod clone_notification_tests {
+    use super::*;
+    #[test]
+    fn database_clone_preserves_but_does_not_share_pending_notifications() {
+        let db = Database::default();
+        let a = TableId::from_usize(0);
+        let b = TableId::from_usize(1);
+        db.notification_list.notify(a);
+        let copy = db.clone();
+        assert_eq!(db.notification_list.reset().as_slice(), &[a]);
+        assert_eq!(copy.notification_list.reset().as_slice(), &[a]);
+        copy.notification_list.notify(b);
+        assert!(db.notification_list.reset().is_empty());
+        assert_eq!(copy.notification_list.reset().as_slice(), &[b]);
+    }
 }
 
 impl Database {

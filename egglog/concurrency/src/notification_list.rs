@@ -33,6 +33,17 @@ impl<K: NumericId> Default for NotificationList<K> {
 }
 
 impl<K: NumericId> NotificationList<K> {
+    /// Copy a quiescent list into an independent notification domain.
+    /// Ordinary Clone intentionally shares notifications among one DB's workers.
+    /// The caller must not concurrently notify/reset while taking this snapshot.
+    pub fn deep_clone(&self) -> Self {
+        let copy = Self::default();
+        for &item in self.inner.notified.lock().unwrap().iter() {
+            copy.notify(item);
+        }
+        copy
+    }
+
     /// Notify a given item.
     ///
     /// It is expected that the space of `item`s is fairly dense: this implementation will use O(n)
