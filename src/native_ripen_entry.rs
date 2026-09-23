@@ -56,6 +56,13 @@ fn extract(
         return Err("expected datatype".into());
     };
     variants.extend(extra.clone());
+    let constructors: BTreeSet<String> = datatypes
+        .iter()
+        .flat_map(|d| match d {
+            Command::Datatype { variants, .. } => variants.iter().map(|v| v.name.clone()).collect(),
+            _ => Vec::new(),
+        })
+        .collect();
     let declarations = datatypes
         .iter()
         .map(ToString::to_string)
@@ -76,9 +83,15 @@ fn extract(
     }));
     let mut values = BTreeMap::new();
     let mut parameters = vec![];
-    let mut initial_reads = BTreeSet::new();
+    let mut stages = vec![];
+    let mut final_checks = vec![];
+    let mut injections = vec![];
     for i in &members {
         let r = &c.records[*i];
+        let rule = &c.rules[r.rule];
+        // Allocate external parameters at their first use, after earlier selected
+        // applications have supplied their outputs. A later external port must
+        // not pre-allocate a hole for an internally produced value.
         for ((input, p), v) in r.inputs.iter().zip(&r.ports).zip(&r.wanted) {
             if !outside(r, p, &members) {
                 continue;
@@ -109,20 +122,11 @@ fn extract(
                     values.insert(*v, term);
                     parameters.push(json!({"name":name,"token":v,"sort":c.datatype_name,"semantics":"opaque boundary parameter"}));
                 }
-                Input::Read(_) => {
-                    initial_reads.insert(*v);
-                }
+                Input::Read(_) => {}
             }
         }
-    }
-    let boundary_values: BTreeSet<_> = values.keys().copied().collect();
-    let mut seeds = BTreeMap::new();
-    let mut stages = vec![];
-    let mut final_checks = vec![];
-    let mut injections = vec![];
-    for i in &members {
-        let r = &c.records[*i];
-        let rule = &c.rules[r.rule];
+        let mut seeds = BTreeMap::new();
+        let mut requirements = BTreeMap::new();
         let mut env = BTreeMap::new();
         for (input, v) in r.inputs.iter().zip(&r.wanted) {
             if let Input::Var(name) = input {
@@ -150,15 +154,34 @@ fn extract(
                                     .0
                                     .starts_with(&format!("{outer_path}/args/"))
                             {
-                                return Err("seeding an external row would materialize an internal read; staged injection is required".into());
+                                let expr = subst(&rule.calls[inner].1, &env)?;
+                                requirements.insert(expr.to_string(), eq(expr.clone(), expr));
                             }
                         }
                     }
-                    // No external row may be bootstrapped by generating an internal result.
-                    for (var, v) in r.inputs.iter().zip(&r.wanted) {
-                        if matches!(var, Input::Var(_)) && !boundary_values.contains(v) {
-                            return Err("external row depends on an internal result; staged injection is required".into());
+                    // Only bindings actually used by this external fact matter.
+                    // Their symbolic terms must already exist before injection.
+                    fn variables(e: &Expr, out: &mut BTreeSet<String>) {
+                        match e {
+                            Expr::Var(_, v) => {
+                                out.insert(v.clone());
+                            }
+                            Expr::Call(_, _, args) => {
+                                for a in args {
+                                    variables(a, out);
+                                }
+                            }
+                            _ => {}
                         }
+                    }
+                    let mut needed = BTreeSet::new();
+                    variables(&rule.calls[span].1, &mut needed);
+                    for name in needed {
+                        let expr = env
+                            .get(&name)
+                            .ok_or("missing external fact binding")?
+                            .clone();
+                        requirements.insert(expr.to_string(), eq(expr.clone(), expr));
                     }
                     let expr = subst(
                         &rule.calls.get(span).ok_or("missing read expression")?.1,
@@ -168,10 +191,67 @@ fn extract(
                 }
             }
         }
-        let mut commands = std::mem::take(&mut seeds).into_values().collect::<Vec<_>>();
-        if !commands.is_empty() {
-            injections.push(json!({"before_record":i,"facts":commands.iter().map(ToString::to_string).collect::<Vec<_>>()}));
+        // Preserve alias constraints carried by the committed external read row,
+        // including nested constructor reads absent from top-level LHS equalities.
+        // Match-event substitutions alone omit these row-result identities.
+        for (read, (input, port)) in r
+            .inputs
+            .iter()
+            .zip(&r.ports)
+            .filter(|(input, _)| matches!(input, Input::Read(_)))
+            .enumerate()
+        {
+            let Input::Read(span) = input else {
+                unreachable!()
+            };
+            if !outside(r, port, &members) {
+                continue;
+            }
+            let Some(id) = r.read_results.get(read).copied().flatten() else {
+                continue;
+            };
+            let term = subst(&rule.calls[span].1, &env)?;
+            if let Some(previous) = values.get(&id) {
+                if previous != &term {
+                    let command = Command::Action(Action::Union(sp(), previous.clone(), term));
+                    seeds.insert(format!("~{}", command), command);
+                }
+            } else {
+                values.insert(id, term);
+            }
         }
+        // An external constructor fact includes its output binding/equality,
+        // not merely the existence of its input-key row. These are explicit
+        // coarse assumptions from the original LHS, never inferred from a failed
+        // output-alias check. Internal facts remain check-only.
+        for f in &rule.rule.body {
+            if let Fact::Eq(_, a, b) = f {
+                let external_side = |e: &Expr| {
+                    r.inputs.iter().zip(&r.ports).any(|(input,p)| {
+                    matches!(input, Input::Read(span) if outside(r,p,&members) && &rule.calls[span].1 == e)
+                })
+                };
+                if external_side(a) || external_side(b) {
+                    let a = subst(a, &env)?;
+                    let b = subst(b, &env)?;
+                    let math =
+                        |e: &Expr| matches!(e,Expr::Call(_,op,_) if constructors.contains(op));
+                    if math(&a) && math(&b) && a != b {
+                        let command = Command::Action(Action::Union(sp(), a, b));
+                        // Equality follows row materialization at this stage.
+                        seeds.insert(format!("~{}", command), command);
+                    }
+                }
+            }
+        }
+        let mut commands = requirements.into_values().collect::<Vec<_>>();
+        let injection_start = commands.len();
+        let facts = seeds.into_values().collect::<Vec<_>>();
+        if !facts.is_empty() {
+            injections.push(json!({"before_record":i,"requires":commands.iter().map(ToString::to_string).collect::<Vec<_>>(),"facts":facts.iter().map(ToString::to_string).collect::<Vec<_>>()}));
+        }
+        commands.extend(facts);
+        let lhs_start = commands.len();
         for fact in &rule.rule.body {
             commands.push(check(match fact {
                 Fact::Eq(_, a, b) => Fact::Eq(sp(), subst(a, &env)?, subst(b, &env)?),
@@ -209,6 +289,7 @@ fn extract(
             });
             commands.push(Command::Action(action));
         }
+        let alias_start = commands.len();
         for (output, v) in r.outputs.iter().zip(&r.values) {
             let term = match output {
                 Output::Var(n) => env.get(n).cloned().ok_or("missing output binding")?,
@@ -235,15 +316,33 @@ fn extract(
                 values.insert(*v, term);
             }
         }
-        stages.push((*i, r.id, preconditions, commands));
+        stages.push((
+            *i,
+            r.id,
+            preconditions,
+            commands,
+            [injection_start, lhs_start, alias_start],
+        ));
     }
-    entry.extend(seeds.into_values());
     let mut eg = super::measured_engine();
     eg.run_program(entry.clone())?;
     let initial_tables = super::table_sizes(&eg, &declarations)?;
-    for (i, _, _, commands) in &stages {
-        eg.run_program(commands.clone())
-            .map_err(|e| format!("CS member {i} cannot replay from extracted entry: {e}"))?;
+    for (i, _, preconditions, commands, [injection_start, lhs_start, alias_start]) in &stages {
+        for (n, command) in commands.iter().enumerate() {
+            let phase = if n < *injection_start {
+                "internal fact before external injection"
+            } else if n < *lhs_start {
+                "external fact injection"
+            } else if n < *preconditions {
+                "LHS fact"
+            } else if n < *alias_start {
+                "rule action"
+            } else {
+                "recorded output alias"
+            };
+            eg.run_program(vec![command.clone()])
+                .map_err(|e| format!("CS member {i}: {phase} failed: {e}"))?;
+        }
     }
     let encode = |xs: &[Command]| {
         xs.iter()
@@ -256,12 +355,12 @@ fn extract(
         encode(&entry),
         stages
             .iter()
-            .map(|(_, _, _, s)| encode(s))
+            .map(|(_, _, _, s, _)| encode(s))
             .collect::<Vec<_>>()
             .join("\n")
     );
     let seed_text = encode(&entry);
-    for (_, _, _, commands) in &stages {
+    for (_, _, _, commands, _) in &stages {
         entry.extend(commands.clone());
     }
     entry.extend(final_checks);
@@ -294,7 +393,7 @@ fn extract(
             "binding":wiring,"aliases":aliases,"input_roles":a.input_roles,"output_roles":a.output_roles,"source_coarse_layer":o.coarse_layer,"source_smooth_layer":o.smooth_layer})
     }).collect();
     let provenance = json!({"kind":"symbolic_cs_interface","template":null,"members":member_ids,"root_member":root_member,"comb_members":comb_members,"kind_scope":"use_kind is relative to directly recorded dependencies inside this CS entry; source_kind is the original layer classification; neither minimizes alternate proof requirements",
-        "events":stages.iter().map(|(i,e,n,_)|json!({"record":i,"event":e,"precondition_checks":n})).collect::<Vec<_>>(),
+        "events":stages.iter().map(|(i,e,n,_,_)|json!({"record":i,"event":e,"precondition_checks":n})).collect::<Vec<_>>(),
         "initial_tables":initial_tables,"original_use_tables":super::table_sizes(&eg,&declarations)?,"parameter_marker":hole,
         "symbolic_values":values.iter().map(|(token,term)|json!({"token":token,"term":term.to_string(),"sort":c.pool.values[*token].sort})).collect::<Vec<_>>(),
         "parameters":parameters,"all_source_rules":c.rules.len(),"validation":"all original LHS checks and recorded output aliases passed before/after the corresponding ground actions",
@@ -368,4 +467,114 @@ pub(in crate::native_analyze) fn prepare_members(
         return Err("invalid dependency candidate members".into());
     }
     extract(c, members, members.len() - 1)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn captured(source: &str) -> Captured {
+        let mut c = capture_text_with_sink("staged.egg", source, None, None).unwrap();
+        update_layers(&mut c).unwrap();
+        c
+    }
+    #[test]
+    fn external_parent_fact_is_injected_after_its_internal_child_exists() {
+        let c = captured(
+            r#"
+(datatype E (V) (G E) (F E) (H E))
+(ruleset first) (ruleset outside) (ruleset last)
+(rule ((= x (V))) ((G x)) :ruleset first :name "producer")
+(rule ((= g (G x))) ((F g)) :ruleset outside :name "external")
+(rule ((= g (G x)) (= f (F g))) ((H g)) :ruleset last :name "consumer")
+(V) (run first 1) (run outside 1) (run last 1)
+"#,
+        );
+        let members: Vec<_> = c
+            .records
+            .iter()
+            .enumerate()
+            .filter(|(_, r)| c.rules[r.rule].rule.name != "external")
+            .map(|(i, _)| i)
+            .collect();
+        assert_eq!(members.len(), 2);
+        let (source, _, origin) = prepare_members(&c, &members).unwrap();
+        assert_eq!(origin["staged_injections"].as_array().unwrap().len(), 2);
+        let last = origin["staged_injections"]
+            .as_array()
+            .unwrap()
+            .last()
+            .unwrap();
+        assert!(
+            last["requires"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|s| s.as_str().unwrap().contains("(G "))
+        );
+        let mut eg = EGraph::default();
+        eg.parse_and_run_program(None, &source).unwrap();
+        assert_eq!(eg.get_size("H"), 1);
+        let path =
+            std::env::temp_dir().join(format!("staged-cs-history-{}.json", std::process::id()));
+        history::save(&path, Path::new("staged.egg"), &c).unwrap();
+        let mut replay = history::read(&path).unwrap();
+        update_layers(&mut replay).unwrap();
+        let (replayed, _, _) = prepare_members(&replay, &members).unwrap();
+        assert_eq!(
+            source, replayed,
+            "saved row identities must survive offline replay"
+        );
+        std::fs::remove_file(path).unwrap();
+    }
+    #[test]
+    fn explicit_external_lhs_equality_is_preserved_as_coarse_fact() {
+        let c = captured(
+            r#"
+(datatype E (V) (A E) (B E) (G E))
+(rule ((= x (A a)) (= x (B b))) ((G x)) :name "producer")
+(union (A (V)) (B (V))) (run 1)
+"#,
+        );
+        let (source, _, origin) = prepare_members(&c, &[0]).unwrap();
+        let facts = origin["staged_injections"][0]["facts"].as_array().unwrap();
+        assert!(
+            facts
+                .iter()
+                .any(|x| x.as_str().unwrap().starts_with("(union"))
+        );
+        let mut eg = EGraph::default();
+        eg.parse_and_run_program(None, &source).unwrap();
+        assert_eq!(eg.get_size("G"), 1);
+    }
+    #[test]
+    #[ignore = "explicit math preparation audit; no ripen or saturation claims"]
+    fn math_six_round_preparation_audit() {
+        let source = std::fs::read_to_string("egglog/tests/math-microbenchmark.egg").unwrap();
+        let mut store = cs::Store::default();
+        let mut jobs = vec![];
+        let mut boundary = 0;
+        let mut sink = |c: &mut Captured| -> Result {
+            update_layers(c)?;
+            boundary += 1;
+            for (_, id) in store.discover(c, &c.layers, boundary)? {
+                let u = &store.units[id];
+                let result = prepare_members(c, &u.members());
+                jobs.push(match result {
+                    Ok((_,_,origin)) => json!({"unit":id,"members":u.members(),"composite":u.source_composition.is_some(),"prepared":true,"injection_stages":origin["staged_injections"].as_array().unwrap().len()}),
+                    Err(e) => json!({"unit":id,"members":u.members(),"composite":u.source_composition.is_some(),"prepared":false,"reason":e.to_string()}),
+                });
+            }
+            Ok(())
+        };
+        capture_text_with_sink("math-preparation-audit", &source, Some(6), Some(&mut sink))
+            .unwrap();
+        let path = std::path::Path::new("out/staged-cs-preparation");
+        std::fs::create_dir_all(path).unwrap();
+        std::fs::write(path.join("six-rounds.json"),serde_json::to_vec_pretty(&json!({"rounds":6,"scope":"all registered CS compositions; preparation and replay checks only, no saturation","jobs":jobs})).unwrap()).unwrap();
+        eprintln!(
+            "prepared {} / {}",
+            jobs.iter().filter(|j| j["prepared"] == true).count(),
+            jobs.len()
+        );
+    }
 }

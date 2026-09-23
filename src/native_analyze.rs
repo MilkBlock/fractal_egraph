@@ -114,6 +114,9 @@ pub struct Record {
     pub parents: Vec<usize>,
     pub ports: Vec<Port>,
     pub inputs: Vec<Input>,
+    /// Constructor output identities from committed LHS row witnesses, in read order.
+    #[serde(default)]
+    read_results: Vec<Option<usize>>,
     pub outputs: Vec<Output>,
     values: Vec<usize>,
     wanted: Vec<usize>,
@@ -599,8 +602,19 @@ fn collect(
         rs.sort_by_key(|r| (r.source_span.clone(), r.table_name.clone(), r.event_id));
         let mut required = vec![];
         let mut read_parents = vec![];
+        let mut read_results = vec![];
         let mut parents = BTreeSet::new();
         for r in rs.iter() {
+            read_results.push(
+                schemas
+                    .get(&format!("{:?}", r.table))
+                    .and_then(|(_, arity, sorts)| {
+                        (sorts[*arity].as_ref() == datatype_name)
+                            .then(|| r.row.get(*arity))
+                            .flatten()
+                    })
+                    .map(|v| pool.intern(value_token(*v))),
+            );
             let valid = r
                 .producer_match_event_id
                 .zip(r.producer_write_event_id)
@@ -680,6 +694,7 @@ fn collect(
             parents,
             ports,
             inputs,
+            read_results,
             outputs,
             values,
             wanted,

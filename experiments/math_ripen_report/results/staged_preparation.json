@@ -1,0 +1,19 @@
+{
+  "scope": "same six tier0 rounds, all 979 registered compositions; preparation and replay checks only, NOT saturation",
+  "before": {
+    "single_cs_prepared": 316,
+    "single_cs_total": 407,
+    "composite_prepared": 0,
+    "composite_total": 572
+  },
+  "after": {
+    "single_cs_prepared": 405,
+    "single_cs_total": 407,
+    "composite_prepared": 543,
+    "composite_total": 572
+  },
+  "remaining_rejections": {
+    "recorded_output_alias": 31
+  },
+  "members_identical": true
+}

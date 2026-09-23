@@ -178,3 +178,29 @@ cargo run --release --offline --example ripen_initial_ablation -- \
 外部窗口可通过 `--observe-seconds` 调整；这不会改变程序 schedule、已登记入口或饱和判据。不同机器在截止时可能停在不同 boundary，必须使用同一 checkpoint 的分母重算，不能照抄本报告百分比。
 
 本次完整原始目录保留在 `out/math-ripen-report-profile`、`out/math-ripen-report-trace` 和 `out/math-ripen-report-initial-ablation`；只提交可复现源代码、小型证据与报告，不提交多 GB 中间数据。
+
+## 后续修复：CS 分阶段注入与 coarse fact 的等价条件
+
+本节是后续版本的独立六轮对照，不覆盖上面的旧版九轮统计，也不声称完成 saturation。
+
+修复：按 rule application 的依赖顺序准备外部 fact；引用本组合已产生的节点时，先检查该节点存在，再注入外部 fact。只检查该 fact 实际引用的变量。RipenInput 在首次外部使用时创建，避免提前占用内部输出。外部 constructor 读事件的输出身份随历史保存，保留它与已有 binding 的等价条件；这些是明确的 coarse fact，而不是由失败检查猜测的 union。
+
+对同一源程序的前六轮，确认登记的 979 个组合的成员列表逐项一致：
+
+| coarse facts 构造及逐步执行检查 | 修改前 | 修改后 |
+|---|---:|---:|
+| 单个 CS 对 | 316 / 407 | 405 / 407 |
+| CS 对的组合 | 0 / 572 | 543 / 572 |
+| 合计 | 316 / 979 | 948 / 979 |
+
+剩余 31 项均明确定位到 recorded output alias 检查：例如历史要求 `Mul(a,b)` 与 `Mul(b,a)` 相等，但当前选中组合的逐步执行尚未证明它。没有通过补无来源 union 或忽略检查放行；这些项仍然拒绝。**948 是准备/验证通过数，不是饱和数，也不是 bake 命中数。**
+
+新增回归覆盖分阶段引用内部节点、coarse fact 的显式等价条件，以及保存历史后离线重放得到相同的 symbolic CS 程序。旧历史缺少新的 read-results 字段时保持保守处理，不凭空恢复等价关系。
+
+复现（只做六轮准备检查，不启动所有 ripen）：
+
+```sh
+cargo test --release --offline --lib math_six_round_preparation_audit -- --ignored --nocapture
+```
+
+完整逐项结果写入 `out/staged-cs-preparation/six-rounds.json`；精简前后统计见 [staged_preparation.json](results/staged_preparation.json)。
