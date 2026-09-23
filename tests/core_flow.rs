@@ -109,7 +109,7 @@ fn finite_reentry_is_observed_but_not_called_infinite() {
         assert_eq!(cache["compilations"], 2);
         assert_eq!(cache["initial_scans"], 1);
         assert_eq!(cache["per_check_engine_clones"], 0);
-        assert!(cache["current_scans"].as_u64().unwrap() > 1);
+        assert!(cache["current_scans"].as_u64().unwrap() >= 1);
     }
     fs::remove_dir_all(out).unwrap();
 }

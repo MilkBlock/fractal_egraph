@@ -16,7 +16,7 @@ cargo run --release --offline -- analyze \
   --source egglog/tests/math-microbenchmark.egg --rounds 6 --output out/math-new
 ```
 
-输出目录必须不存在。省略 `--rounds` 时遵循源程序 schedule。Ripen 默认没有自动轮数、时间或工作量上限；可显式指定 `--ripen-observe-ms N` 或 `--ripen-observe-facts N`，在 sweep 边界保存并挂起未完成观察。未指定时可用 Ctrl-C 取消。一个任务的一次完整 ruleset sweep 是调度粒度，不是终止预算；单次 sweep 本身也可能很昂贵。
+输出目录必须不存在。省略 `--rounds` 时遵循源程序 schedule。Ripen 默认没有自动轮数、时间或工作量上限；可显式指定 `--ripen-observe-ms N` 或 `--ripen-observe-facts N`，在 sweep 边界保存并挂起未完成观察。未指定时可用 Ctrl-C 取消。一个 sweep 默认最多推进 4 轮，每轮让各 ruleset 各执行一步；遇到不动点或显式上限提前结束。可用 `--ripen-sweep-steps N` 调整。单次原生 step 仍可能很昂贵。
 
 默认不写完整历史。需要重新分析时：
 
@@ -116,10 +116,12 @@ cargo run --release --offline -- analyze \
   --ripen-observe-facts 11
 ```
 
-也可用 `--ripen-observe-ms N` 限定每个 cell 的累计 ripen 推进时间（不含准备和其他 cell 等待时间）。调试网页可在启动服务时设置 `EGG_LAYOUT_RIPEN_OBSERVE_MS` / `EGG_LAYOUT_RIPEN_OBSERVE_FACTS`。两个限制均默认关闭，设置两者时任一个达到即记录。检查只发生在完整 sweep 后，不抢占单次原生 join，因此不是硬实时限制。
+也可用 `--ripen-observe-ms N` 限定每个 cell 的累计 ripen 推进时间（不含准备和其他 cell 等待时间）。调试网页可在启动服务时设置 `EGG_LAYOUT_RIPEN_OBSERVE_MS` / `EGG_LAYOUT_RIPEN_OBSERVE_FACTS`。两个限制均默认关闭，设置两者时任一个达到即记录。检查发生在 sweep 内每一轮结束后，不抢占单次原生 join，因此不是硬实时限制。
 
 未完成任务标为 `ObservedUnfinished`，整体分析标为 `observed_unfinished`。若事实数比起始图增加，整个 CS 以 `growth_observation` 入桶，`starting_condition_resolved` 保持 false。未增长但超过时间的任务只保留未完成记录，不硬称增长。已有共享任务跟随 owner 的未完成状态，不会永久停在 WaitingEquivalent。
 
 保存 `unfinished-state.json`（仅观察图，不是饱和证明）。随后遍历桶中已有 C，在未完成图上查询，结果放入 `bucket_trigger_matches`；分别标记“包含已有 C”和“出现新的 binding”。初始 C 一直存在不再阻止入桶，也不会被当作已证明的循环。
 
 这些已知 C 的命中与桶内直接的 coarse fact cover 分开保存，不凭一次命中宣布两个 FractalRule 等价。验证说明见 [DABC 与多叉测试](experiments/reentry_forms/README.md)。
+
+每个 cell 的 `ripen.json` 中 `sweep.steps` 记录本批实际推进轮数，`sweep.max_steps` 记录配置值。`EGG_LAYOUT_RIPEN_SWEEP_STEPS` 可配置分析/调试流程，默认 4；`--ripen-sweep-steps` 可覆盖它。

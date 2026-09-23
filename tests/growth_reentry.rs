@@ -15,6 +15,7 @@ fn run(name: &str, facts: usize) -> (PathBuf, Value) {
         None,
         false,
         Limits {
+            sweep_steps: 4,
             facts: Some(facts),
             milliseconds: None,
         },
@@ -55,6 +56,11 @@ fn dabc_prefix_enters_bucket_without_self_reentry() {
     assert_eq!(report["ripen"]["state"], "ObservedUnfinished");
     assert_eq!(report["tables"]["D"], 1);
     assert_eq!(report["tables"]["Next"], 2);
+    assert_eq!(report["sweep"]["max_steps"], 4);
+    assert_eq!(
+        report["sweep"]["steps"], 2,
+        "observation limit must stop within a four-step sweep"
+    );
     fs::remove_dir_all(out).unwrap();
 }
 #[test]
@@ -99,6 +105,7 @@ fn paused_owner_releases_aliases_and_searches_other_bucket_conditions() {
         None,
         false,
         Limits {
+            sweep_steps: 4,
             facts: Some(11),
             milliseconds: None,
         },
@@ -133,6 +140,7 @@ fn observation_limit_selection_has_no_implicit_defaults() {
     assert!(Limits::default().reached(100000., 100000).is_empty());
     assert_eq!(
         Limits {
+            sweep_steps: 4,
             milliseconds: Some(5),
             facts: None
         }
@@ -141,6 +149,7 @@ fn observation_limit_selection_has_no_implicit_defaults() {
     );
     assert_eq!(
         Limits {
+            sweep_steps: 4,
             milliseconds: None,
             facts: Some(5)
         }
@@ -149,6 +158,7 @@ fn observation_limit_selection_has_no_implicit_defaults() {
     );
     assert!(
         Limits {
+            sweep_steps: 4,
             milliseconds: Some(0),
             facts: None
         }
@@ -168,6 +178,7 @@ fn explicit_time_observation_pauses_between_sweeps() {
         None,
         false,
         Limits {
+            sweep_steps: 4,
             facts: None,
             milliseconds: Some(1),
         },

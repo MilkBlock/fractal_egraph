@@ -125,14 +125,16 @@ impl Pipeline {
         }
         mark("register_entries");
         let mut changed = false;
-        // Exactly one semantic sweep per live task; this is fair interleaving, not a
+        // One bounded batch of native passes per live task; this is fair interleaving, not a
         // completion/round budget. execute() keeps polling until completion or stop.
         for work in &mut self.work {
             if self.jobs[work.id]["state"] != "Running" {
                 continue;
             }
             let started = std::time::Instant::now();
-            let result = work.session.advance();
+            let result = work
+                .session
+                .advance_with_observation(&self.observation, work.active_seconds);
             work.active_seconds += started.elapsed().as_secs_f64();
             match result {
                 Ok(()) => {
