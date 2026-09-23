@@ -276,7 +276,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         cp('state').replaceChildren(new Option('全部概览',''));
         cp('table').replaceChildren();cp('view').replaceChildren();cp('rule').textContent='';
         cp('details').textContent=JSON.stringify(result.jobs,null,2);
-        cp('status').textContent=`边界 ${result.boundary} · ${Object.entries(result.counts).map(([k,v])=>k+' '+v).join(' / ')||'尚无 CS'} · 已注册 ${result.jobs.length} 个入口。所有活动任务公平推进，没有自动轮数或候选截断。`;
+        cp('status').textContent=`边界 ${result.boundary} · ${Object.entries(result.counts).map(([k,v])=>k+' '+v).join(' / ')||'尚无 CS'} · 已注册 ${result.jobs.length} 个入口。Ripen 上限 ${result.observation_limits?.milliseconds ?? "关闭"} ms / ${result.observation_limits?.facts ?? "关闭"} facts（原生协作停止）。`;
         cp('weak').replaceChildren();
         const edges=(result.weak_dominate||[]).filter(e=>e.evidence?.bindings?.length);
         const details=document.createElement('details'),summary=document.createElement('summary'),pre=document.createElement('pre');

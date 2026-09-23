@@ -143,7 +143,12 @@ impl Pipeline {
                         .as_object()
                         .map(|t| t.values().filter_map(Json::as_u64).sum::<u64>() as usize)
                         .unwrap_or(0);
-                    let reasons = self.observation.reached(work.active_seconds, facts);
+                    let mut reasons = self.observation.reached(work.active_seconds, facts);
+                    if let Some(reason) = work.session.report["native_stop_reason"].as_str() {
+                        if !reasons.contains(&reason) {
+                            reasons.push(reason);
+                        }
+                    }
                     if !work.session.done && !reasons.is_empty() {
                         let mut evidence = json!({"admission":"growth_observation","unfinished":true,"scope":"unfinished ripen; starting condition unresolved","growth":{"before_facts":work.session.initial_facts,"after_facts":facts,"active_seconds":work.active_seconds,"reasons":reasons,"limits":self.observation}});
                         evidence["snapshot"] = work.session.snapshot_unfinished().unwrap_or_else(

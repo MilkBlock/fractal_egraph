@@ -56,3 +56,9 @@ EGG_LAYOUT_EAGER_SVG=0 cargo run --release --offline -- analyze \
 因此已直接确认用户报告的高内存现场：大量 trace 批次和持续保留的 producer/历史正在处理。`drain_completed` 只是把事件从缓冲移交给 collector，不等于这些数据及其衍生历史已经释放。要进一步分摊每一种分配仍需专门内存分析。
 
 只对该子进程发送 SIGSTOP 保留现场，未终止 Python；暂停不释放内存。现场摘要见 `live_process.json`，栈保存在 `/tmp/egg-layout-63343.sample.txt`。PID 状态是当时记录，不保证日后仍有效。
+
+## Native admission protection and compact presentation trace
+
+One actual egglog runtime run (`native_admission.json`), using the **defaults** with no explicit ripen flags and SVG disabled: 6.19 s elapsed, 1,527,922,688 bytes peak process RSS (~1.42 GiB), exit 0. Command: `python3 experiments/math_mini3/bench.py --output out/native-admission-mini3 --default-only --no-svg --seconds 15`. The recorded commit is the parent; measurement included the working-tree patch described in the result.
+
+Default ripen limits are now 50 ms / 200,000 facts. Native join/admission checks stop before additional match trace allocation; admitted effects and rebuild finish. Pending write reservations may stop before actual facts reach the limit. This is not a total-process memory cap. Default presentation omits per-application DOT/Typst stream events; analytical provenance is retained. The remaining ~1.42 GiB is still substantial, and this experiment does not establish a major memory reduction.

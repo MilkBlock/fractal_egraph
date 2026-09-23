@@ -11,8 +11,8 @@ impl Default for Limits {
     fn default() -> Self {
         Self {
             sweep_steps: 4,
-            milliseconds: None,
-            facts: None,
+            milliseconds: Some(50),
+            facts: Some(200_000),
         }
     }
 }
@@ -27,11 +27,13 @@ impl Limits {
             milliseconds: std::env::var("EGG_LAYOUT_RIPEN_OBSERVE_MS")
                 .ok()
                 .map(|s| s.parse())
-                .transpose()?,
+                .transpose()?
+                .or(Self::default().milliseconds),
             facts: std::env::var("EGG_LAYOUT_RIPEN_OBSERVE_FACTS")
                 .ok()
                 .map(|s| s.parse())
-                .transpose()?,
+                .transpose()?
+                .or(Self::default().facts),
         };
         limits.validate()?;
         Ok(limits)

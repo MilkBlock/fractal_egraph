@@ -259,39 +259,41 @@ impl Session {
         self.round += 1;
         let mut updated = false;
         let mut steps = 0;
+        let mut native_stop_reason = None;
         for _ in 0..limits.sweep_steps {
             steps += 1;
             updated = false;
             for ruleset in &self.rulesets {
-                updated |= self.eg.step_rules_with_trace(ruleset, &self.trace)?.updated;
+                let facts: usize = table_sizes(&self.eg, &self.c.datatype)?.values().sum();
+                self.trace.set_execution_limits(
+                    limits.milliseconds.map(|ms| {
+                        std::time::Duration::from_secs_f64(
+                            (ms as f64 / 1000. - elapsed - started.elapsed().as_secs_f64()).max(0.),
+                        )
+                    }),
+                    limits.facts.map(|n| n.saturating_sub(facts)),
+                );
+                let result = self.eg.step_rules_with_trace(ruleset, &self.trace);
+                native_stop_reason = self.trace.execution_stop_reason();
+                self.trace.clear_execution_limits();
+                updated |= result?.updated;
                 self.schedule += &format!("(run {ruleset} 1)\n");
                 let table_names: BTreeMap<_, _> = self.trace.table_names().into_iter().collect();
-                for write in self
-                    .trace
-                    .write_events()
-                    .iter()
-                    .filter(|w| w.outcome == WriteOutcome::Inserted && w.rebuild_of.is_none())
-                {
-                    if let Some(name) = table_names.get(&write.table) {
-                        *self.effect_components.entry(name.to_string()).or_default() += 1;
+                let (inserted, union_effect, has_effects) = self.trace.effect_summary();
+                for (table, count) in inserted {
+                    if let Some(name) = table_names.get(&table) {
+                        *self.effect_components.entry(name.to_string()).or_default() +=
+                            count as u64;
                     }
                 }
-                self.union_effect |= self
-                    .trace
-                    .union_events()
-                    .iter()
-                    .any(|u| u.displaced.is_some());
-                self.has_effects |=
-                    self.trace.write_events().iter().any(|w| {
-                        matches!(w.outcome, WriteOutcome::Inserted | WriteOutcome::Updated)
-                    }) || self
-                        .trace
-                        .union_events()
-                        .iter()
-                        .any(|u| u.displaced.is_some());
+                self.union_effect |= union_effect;
+                self.has_effects |= has_effects;
                 collect(&self.eg, &self.trace, &mut self.c, &mut self.producers)?;
+                if native_stop_reason.is_some() {
+                    break;
+                }
             }
-            if !updated {
+            if !updated || native_stop_reason.is_some() {
                 break;
             }
             let facts = if limits.facts.is_some() {
@@ -308,7 +310,7 @@ impl Session {
         }
         let f = crate::coarse_smooth::RipenFeedback {
             origin: None,
-            state: if updated {
+            state: if updated || native_stop_reason.is_some() {
                 "Running".into()
             } else {
                 "Saturated".into()
@@ -326,7 +328,7 @@ impl Session {
             end: self.c.records.len(),
         });
         update_layers(&mut self.c)?;
-        self.done = !updated;
+        self.done = !updated && native_stop_reason.is_none();
         let mut exported = json!({"status":"running"});
         if self.done {
             self.eg.run_program(self.checks.clone())?;
@@ -353,7 +355,7 @@ impl Session {
                 Err(e) => exported = json!({"status":"unavailable","reason":e.to_string()}),
             }
         }
-        self.report = json!({"sweep":{"steps":steps,"max_steps":limits.sweep_steps},"ripen":f,"source":self.source,"source_text":self.text,"checks":if self.done{"passed"}else{"deferred"},"checks_count":self.checks.len(),"imported_applies":self.c.records.len(),"events":self.c.events,"saturated_rule_composition":exported,"native_egraph":if self.final_state.is_some(){Some("native-egraph.dot")}else{None},"tier1":self.c.layers.report(),"tables":table_sizes(&self.eg,&self.c.datatype)?});
+        self.report = json!({"native_stop_reason":native_stop_reason,"observation_limits":limits,"sweep":{"steps":steps,"max_steps":limits.sweep_steps},"ripen":f,"source":self.source,"source_text":self.text,"checks":if self.done{"passed"}else{"deferred"},"checks_count":self.checks.len(),"imported_applies":self.c.records.len(),"events":self.c.events,"saturated_rule_composition":exported,"native_egraph":if self.final_state.is_some(){Some("native-egraph.dot")}else{None},"tier1":self.c.layers.report(),"tables":table_sizes(&self.eg,&self.c.datatype)?});
         crate::pipeline::write_json(&self.out.join("ripen.json"), &self.report)?;
         if self.done {
             let replay = self

@@ -1,0 +1,21 @@
+{
+  "commit": "da4db9ccbe36e3123d63e026f7797c81c8e7a2df",
+  "source_sha256": "ac498b753752adb472a536f01a1f8411fc193a982516513c90eefb4585194015",
+  "eager_svg": false,
+  "external_guard": {
+    "seconds": 15.0,
+    "group_rss_bytes": 4294967296
+  },
+  "runs": [
+    {
+      "name": "analysis-default",
+      "elapsed_seconds": 6.192189791996498,
+      "exit_code": 0,
+      "stop_reason": null,
+      "sampled_peak_group_rss_bytes": 1528971264,
+      "time_peak_process_rss_bytes": 1527922688,
+      "native_seconds": null
+    }
+  ],
+  "working_tree_change": "native admission checks + compact presentation trace; uncommitted during measurement"
+}

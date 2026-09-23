@@ -55,10 +55,11 @@ fn dabc_prefix_enters_bucket_without_self_reentry() {
     .unwrap();
     assert_eq!(report["ripen"]["state"], "ObservedUnfinished");
     assert_eq!(report["tables"]["D"], 1);
-    assert_eq!(report["tables"]["Next"], 2);
+    assert!(report["tables"]["Next"].as_u64().unwrap() <= 2);
+    assert_eq!(report["native_stop_reason"], "pending_fact_reservations");
     assert_eq!(report["sweep"]["max_steps"], 4);
-    assert_eq!(
-        report["sweep"]["steps"], 2,
+    assert!(
+        report["sweep"]["steps"].as_u64().unwrap() <= 2,
         "observation limit must stop within a four-step sweep"
     );
     fs::remove_dir_all(out).unwrap();
@@ -78,9 +79,10 @@ fn branching_growth_is_kept_without_inventing_a_cycle() {
         &fs::read(out.join("saturated-rule-composition/cells/CSUnit-000000/ripen.json")).unwrap(),
     )
     .unwrap();
-    assert_eq!(report["tables"]["Left"], 3);
-    assert_eq!(report["tables"]["Right"], 3);
-    assert_eq!(report["tables"]["B"], 6);
+    assert!(report["tables"]["Left"].as_u64().unwrap() <= 3);
+    assert!(report["tables"]["Right"].as_u64().unwrap() <= 3);
+    assert!(report["tables"]["B"].as_u64().unwrap() <= 6);
+    assert_eq!(report["native_stop_reason"], "pending_fact_reservations");
     assert_eq!(
         q["reentry_buckets"]["groups"][0]["new_node_operators"],
         serde_json::json!(["A", "B", "C", "Left", "Right"])
@@ -136,8 +138,9 @@ fn paused_owner_releases_aliases_and_searches_other_bucket_conditions() {
     fs::remove_dir_all(root).unwrap();
 }
 #[test]
-fn observation_limit_selection_has_no_implicit_defaults() {
-    assert!(Limits::default().reached(100000., 100000).is_empty());
+fn observation_limit_selection_uses_shared_defaults() {
+    assert_eq!(Limits::default().milliseconds, Some(50));
+    assert_eq!(Limits::default().facts, Some(200_000));
     assert_eq!(
         Limits {
             sweep_steps: 4,

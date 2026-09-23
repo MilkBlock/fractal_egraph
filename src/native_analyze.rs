@@ -891,6 +891,15 @@ fn execute(
     emit: &mut dyn FnMut(Json) -> Result,
 ) -> Result<Json> {
     std::fs::create_dir_all(out)?;
+    let detailed_trace = std::env::var("EGG_LAYOUT_FULL_TRACE").as_deref() == Ok("1");
+    eprintln!(
+        "ripen limits: {} ms, {} facts; detailed trace: {}",
+        observation
+            .milliseconds
+            .map_or("off".into(), |n| n.to_string()),
+        observation.facts.map_or("off".into(), |n| n.to_string()),
+        detailed_trace
+    );
     let mut pipeline =
         saturated_rule_composition_pipeline::Pipeline::new(out, name.into(), observation)?;
     let mut manifest = vec![];
@@ -899,7 +908,7 @@ fn execute(
     let mut boundary_emit = |c: &mut Captured| -> Result {
         update_layers(c)?;
         boundary += 1;
-        for r in &c.records[emitted..] {
+        for r in c.records[emitted..].iter().filter(|_| detailed_trace) {
             let rule = &c.rules[r.rule].rule;
             let mut row = debug::render(rule);
             let (line, end) = debug::location(rule);

@@ -631,7 +631,14 @@ impl EGraph {
         }
 
         let rebuild_timer = Instant::now();
-        self.rebuild(trace)?;
+        if let Some(trace) = trace {
+            trace.enforce_execution_limits(false);
+        }
+        let rebuilt = self.rebuild(trace);
+        if let Some(trace) = trace {
+            trace.enforce_execution_limits(true);
+        }
+        rebuilt?;
         iteration_report.rebuild_time = rebuild_timer.elapsed();
 
         if let Some(message) = self.panic_message.lock().unwrap().take() {
@@ -1439,6 +1446,10 @@ fn run_rules_impl(
             *plan = Some(info.query.build_cached_plan(db, &info.desc, witnesses)?);
         }
     }
+    let previous: Vec<_> = rules
+        .iter()
+        .map(|id| (*id, rule_info[*id].last_run_at))
+        .collect();
     let mut rsb = db.new_rule_set();
     for rule in rules {
         let info = &mut rule_info[*rule];
@@ -1454,10 +1465,17 @@ fn run_rules_impl(
         info.last_run_at = next_ts;
     }
     let ruleset = rsb.build();
-    Ok(match trace {
+    let report = match trace {
         Some(trace) => db.run_rule_set_with_trace(&ruleset, report_level, trace),
         None => db.run_rule_set(&ruleset, report_level),
-    })
+    };
+    if trace.is_some_and(TraceSession::execution_was_interrupted) {
+        // Do not skip unvisited semi-naive input when the query stopped early.
+        for (id, ts) in previous {
+            rule_info[id].last_run_at = ts;
+        }
+    }
+    Ok(report)
 }
 
 // These markers are just used to make it easy to distinguish time spent in

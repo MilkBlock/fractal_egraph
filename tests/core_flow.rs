@@ -119,6 +119,8 @@ fn infinite_cell_keeps_running_while_finite_cell_completes_and_is_cancellable() 
     let source = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/core_flow/fair.egg");
     let mut child = Command::new(env!("CARGO_BIN_EXE_egg_layout"))
         .env("EGG_LAYOUT_SATURATED_RULE_COMPOSITION_OUTPUT", &out)
+        .env("EGG_LAYOUT_RIPEN_OBSERVE_MS", "10000")
+        .env("EGG_LAYOUT_RIPEN_OBSERVE_FACTS", "10000000")
         .arg("debug-stream")
         .arg(source)
         .stdout(Stdio::piped())

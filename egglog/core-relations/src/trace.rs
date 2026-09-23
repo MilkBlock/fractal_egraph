@@ -14,7 +14,7 @@
 
 use std::sync::{
     Arc, Mutex,
-    atomic::{AtomicU64, Ordering},
+    atomic::{AtomicBool, AtomicU8, AtomicU64, AtomicUsize, Ordering},
 };
 
 use crate::{Value, Variable};
@@ -67,9 +67,60 @@ pub struct RuleActionOutcomeEvent {
     pub outcome: RuleActionOutcome,
 }
 
+/// Cooperative search admission. Accepted actions still commit and rebuild.
+/// Row credits reserve worst-case writes before match/trace allocation; duplicate
+/// writes can therefore stop earlier than the final live-row limit.
+pub struct ExecutionControl {
+    deadline: Option<web_time::Instant>,
+    row_credits: Option<usize>,
+    reserved: AtomicUsize,
+    reason: AtomicU8,
+    enabled: AtomicBool,
+}
+impl ExecutionControl {
+    pub fn should_stop(&self) -> bool {
+        if !self.enabled.load(Ordering::Relaxed) {
+            return false;
+        }
+        if self.reason.load(Ordering::Relaxed) != 0 {
+            return true;
+        }
+        if self.deadline.is_some_and(|d| web_time::Instant::now() >= d) {
+            let _ = self
+                .reason
+                .compare_exchange(0, 1, Ordering::Relaxed, Ordering::Relaxed);
+            return true;
+        }
+        false
+    }
+    fn admit(&self, credits: usize) -> bool {
+        if !self.enabled.load(Ordering::Relaxed) {
+            return true;
+        }
+        if self.should_stop() {
+            return false;
+        }
+        if let Some(limit) = self.row_credits {
+            if self
+                .reserved
+                .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |n| {
+                    n.checked_add(credits).filter(|n| *n <= limit)
+                })
+                .is_err()
+            {
+                let _ = self
+                    .reason
+                    .compare_exchange(0, 2, Ordering::Relaxed, Ordering::Relaxed);
+                return false;
+            }
+        }
+        true
+    }
+}
 #[derive(Default)]
 struct TraceState {
     next_event_id: AtomicU64,
+    control: Mutex<Option<Arc<ExecutionControl>>>,
     scope_resets: Mutex<Vec<u64>>,
     dependencies_enabled: bool,
     table_names: Mutex<std::collections::HashMap<crate::TableId, Arc<str>>>,
@@ -118,6 +169,54 @@ impl TraceBatch {
     }
 }
 impl TraceSession {
+    /// Arm before one native step, with remaining time and row reservation.
+    /// Do not reconfigure while workers are running.
+    pub fn set_execution_limits(
+        &self,
+        time: Option<std::time::Duration>,
+        row_credits: Option<usize>,
+    ) {
+        *self.state.control.lock().unwrap() = if time.is_none() && row_credits.is_none() {
+            None
+        } else {
+            Some(Arc::new(ExecutionControl {
+                deadline: time.map(|d| web_time::Instant::now() + d),
+                row_credits,
+                reserved: AtomicUsize::new(0),
+                reason: AtomicU8::new(0),
+                enabled: AtomicBool::new(true),
+            }))
+        };
+    }
+    pub fn clear_execution_limits(&self) {
+        self.state.control.lock().unwrap().take();
+    }
+    pub fn execution_control(&self) -> Option<Arc<ExecutionControl>> {
+        self.state.control.lock().unwrap().clone()
+    }
+    pub fn admit_action(&self, credits: usize) -> bool {
+        self.execution_control()
+            .is_none_or(|c| c.admit(credits.max(1)))
+    }
+    pub fn execution_stop_reason(&self) -> Option<&'static str> {
+        self.execution_control()
+            .and_then(|c| match c.reason.load(Ordering::Relaxed) {
+                1 => Some("time"),
+                2 => Some("pending_fact_reservations"),
+                _ => None,
+            })
+    }
+    pub fn execution_was_interrupted(&self) -> bool {
+        self.execution_control().is_some_and(|c| {
+            c.enabled.load(Ordering::Relaxed) && c.reason.load(Ordering::Relaxed) != 0
+        })
+    }
+    /// Rebuild must restore consistency after admitted writes, even after stop.
+    pub fn enforce_execution_limits(&self, enabled: bool) {
+        if let Some(c) = self.execution_control() {
+            c.enabled.store(enabled, Ordering::Relaxed);
+        }
+    }
     /// Number of raw records buffered, excluding compact equality/scope metadata.
     pub fn buffered_event_count(&self) -> usize {
         self.state.matches.lock().unwrap().len()
@@ -257,6 +356,26 @@ impl TraceSession {
     }
     /// Inserted/Deduplicated/Updated are emitted at SortedWritesTable commit.
     /// Unsupported is only a staging notification for a table without commit hooks.
+    pub fn effect_summary(&self) -> (std::collections::HashMap<crate::TableId, usize>, bool, bool) {
+        let mut inserted = std::collections::HashMap::new();
+        let writes = self.state.writes.lock().unwrap();
+        let mut changed = false;
+        for w in writes.iter() {
+            changed |= matches!(w.outcome, WriteOutcome::Inserted | WriteOutcome::Updated);
+            if w.outcome == WriteOutcome::Inserted && w.rebuild_of.is_none() {
+                *inserted.entry(w.table).or_default() += 1;
+            }
+        }
+        drop(writes);
+        let union = self
+            .state
+            .unions
+            .lock()
+            .unwrap()
+            .iter()
+            .any(|u| u.displaced.is_some());
+        (inserted, union, changed || union)
+    }
     pub fn write_events(&self) -> Vec<WriteEvent> {
         self.state.writes.lock().unwrap().clone()
     }

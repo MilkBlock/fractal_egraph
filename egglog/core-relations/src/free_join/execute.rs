@@ -405,7 +405,7 @@ impl Database {
                     let exec_state = exec_state.clone();
                     let match_counter = match_counter.clone();
                     scope.spawn(move |rule_scope| {
-                        let join_state = JoinState::new(db, exec_state.clone());
+                        let join_state = JoinState::new(db, exec_state.clone(), trace);
                         let mut binding_info = BindingInfo::default();
                         for (id, info) in plan.atoms().iter() {
                             let table = join_state.db.get_table(info.table);
@@ -534,7 +534,7 @@ impl Database {
                 .collect();
         } else {
             rule_reports = HashMap::default();
-            let join_state = JoinState::new(self, exec_state.clone());
+            let join_state = JoinState::new(self, exec_state.clone(), trace);
             // Just run all of the plans in order with a single in-place action
             // buffer.
             let mut action_buf = InPlaceActionBuffer {
@@ -691,6 +691,7 @@ impl Default for ActionState {
 
 struct JoinState<'a> {
     db: &'a Database,
+    control: Option<Arc<crate::trace::ExecutionControl>>,
     exec_state: ExecutionState<'a>,
     /// Cached thread-local pool for SortedOffsetVector allocations.
     /// Stored here to avoid a per-call `with_pool_set` TLS access in `get_index`.
@@ -843,9 +844,14 @@ impl BindingInfo {
 }
 
 impl<'a> JoinState<'a> {
-    fn new(db: &'a Database, exec_state: ExecutionState<'a>) -> Self {
+    fn new(
+        db: &'a Database,
+        exec_state: ExecutionState<'a>,
+        trace: Option<&crate::trace::TraceSession>,
+    ) -> Self {
         Self {
             db,
+            control: trace.and_then(|t| t.execution_control()),
             exec_state,
             pool: with_pool_set(|ps| ps.get_pool()),
         }
@@ -988,7 +994,7 @@ impl<'a> JoinState<'a> {
     ) where
         'a: 'buf,
     {
-        if self.exec_state.should_stop() {
+        if self.exec_state.should_stop() || self.control.as_ref().is_some_and(|c| c.should_stop()) {
             return;
         }
 
@@ -1009,7 +1015,7 @@ impl<'a> JoinState<'a> {
         // Helper macro (not its own method to appease the borrow checker).
         macro_rules! drain_updates {
             ($updates:expr) => {
-                if self.exec_state.should_stop() {
+                if self.exec_state.should_stop() || self.control.as_ref().is_some_and(|c|c.should_stop()) {
                     return;
                 }
                 // TODO: `supports_parallel_drain`` is a hack because currently
@@ -1028,6 +1034,7 @@ impl<'a> JoinState<'a> {
                             binding_info.insert_subset(atom, Subset::Dense(range));
                         }
                         UpdateInstr::EndFrame => {
+                            if self.control.as_ref().is_some_and(|c|c.should_stop()){return;}
                             // Inline leaf-level: if cur+1 is the leaf (no more
                             // join stages), call push_bindings directly without
                             // a recursive run_plan call, avoiding function call
@@ -1054,10 +1061,13 @@ impl<'a> JoinState<'a> {
         }
         macro_rules! drain_updates_parallel {
             ($updates:expr) => {{
-                if self.exec_state.should_stop() {
+                if self.exec_state.should_stop()
+                    || self.control.as_ref().is_some_and(|c| c.should_stop())
+                {
                     return;
                 }
                 let db = self.db;
+                let control = self.control.clone();
                 let exec_state_for_factory = self.exec_state.clone();
                 let exec_state_for_work = self.exec_state.clone();
                 action_buf.recur(
@@ -1086,6 +1096,7 @@ impl<'a> JoinState<'a> {
                             UpdateInstr::EndFrame => {
                                 JoinState {
                                     db,
+                                    control: control.clone(),
                                     exec_state: exec_state_for_work.clone(),
                                     // Each rayon task uses its own thread-local pool.
                                     // This makes drain_updates_parallel slightly more expensive
@@ -1800,6 +1811,12 @@ impl<'a, 'outer: 'a> ActionBuffer<'a, ActionId> for InPlaceActionBuffer<'outer> 
         bindings: &DenseIdMap<Variable, Value>,
         mut to_exec_state: impl FnMut() -> ExecutionState<'a>,
     ) {
+        if self
+            .trace
+            .is_some_and(|t| !t.admit_action(self.rule_set.actions[action].instrs.len()))
+        {
+            return;
+        }
         let action_state = self.batches.get_or_default(action);
         action_state.n_runs += 1;
         action_state.len += 1;
@@ -1907,6 +1924,12 @@ impl<'scope> ActionBuffer<'scope, ActionId> for ScopedActionBuffer<'_, 'scope> {
         mut to_exec_state: impl FnMut() -> ExecutionState<'scope>,
     ) {
         self.needs_flush = true;
+        if self
+            .trace
+            .is_some_and(|t| !t.admit_action(self.rule_set.actions[action].instrs.len()))
+        {
+            return;
+        }
         let action_state = self.batches.get_or_default(action);
         action_state.n_runs += 1;
         action_state.len += 1;
