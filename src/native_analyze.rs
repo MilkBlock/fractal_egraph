@@ -297,12 +297,14 @@ fn capture_text_with_sink(
                         round: known.then_some(count),
                         end: c.records.len(),
                     });
+                    let collect_seconds = collect_start.elapsed().as_secs_f64();
+                    let sink_start = Instant::now();
                     if let Some(sink) = sink.as_mut() {
                         sink(&mut c)?;
                     }
-                    let collect_seconds = collect_start.elapsed().as_secs_f64();
+                    let sink_seconds = sink_start.elapsed().as_secs_f64();
                     eprintln!(
-                        "[perf-round] round={count} tier0={tier0_seconds:.6} collect={collect_seconds:.6}"
+                        "[perf-round] round={count} tier0={tier0_seconds:.6} collect={collect_seconds:.6} analysis_and_output={sink_seconds:.6}"
                     );
                     eprintln!("[native] round {count} completed");
                 }

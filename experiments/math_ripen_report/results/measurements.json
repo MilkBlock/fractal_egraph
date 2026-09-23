@@ -1,0 +1,2144 @@
+{
+  "profile_run": {
+    "commit": "f2fe288ef744ad1f477f9b7c43ea450d8139722b",
+    "source": "egglog/tests/math-microbenchmark.egg",
+    "source_sha256": "aaa8942131b4db57e76710486718790e1d7f2cb9288aeb702c0c17019439cf16",
+    "observation_seconds": 180.0,
+    "kernel": "local patched egglog, no trace baseline; not pristine upstream",
+    "machine": "Darwin MineralSteinsdeMacBook-Pro.local 24.3.0 Darwin Kernel Version 24.3.0: Thu Jan  2 20:24:23 PST 2025; root:xnu-11215.81.4~3/RELEASE_ARM64_T6031 arm64",
+    "source_files": {
+      "src/native_analyze.rs": "b7e59b7d17fcff9a6fc6596605618ed7b7f15b1409ffa7620255f24eef5d9ec0",
+      "src/native_saturated_rule_composition_pipeline.rs": "ce39273e51163842bb748af980d26d82bce30211e552aba934e01ce6c0496b8e"
+    },
+    "runs": [
+      {
+        "name": "baseline-1",
+        "command": [
+          "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+          "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+        ],
+        "wall_seconds": 0.8680283330031671,
+        "exit_code": 0,
+        "stop_reason": null,
+        "sampled_peak_group_rss_kib": 1056,
+        "samples": [
+          {
+            "seconds": 0.0010248330072499812,
+            "rss_kib": 1056,
+            "cpu_percent": 0.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "baseline-2",
+        "command": [
+          "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+          "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+        ],
+        "wall_seconds": 0.3387286250363104,
+        "exit_code": 0,
+        "stop_reason": null,
+        "sampled_peak_group_rss_kib": 2096,
+        "samples": [
+          {
+            "seconds": 0.00113145902287215,
+            "rss_kib": 2096,
+            "cpu_percent": 0.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "baseline-3",
+        "command": [
+          "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+          "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+        ],
+        "wall_seconds": 0.3409169160295278,
+        "exit_code": 0,
+        "stop_reason": null,
+        "sampled_peak_group_rss_kib": 4688,
+        "samples": [
+          {
+            "seconds": 0.001249833032488823,
+            "rss_kib": 4688,
+            "cpu_percent": 0.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "analyze-11",
+        "command": [
+          "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+          "analyze",
+          "--source",
+          "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg",
+          "--output",
+          "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-ripen-report-profile/analyze-11"
+        ],
+        "wall_seconds": 180.7932387079927,
+        "exit_code": -9,
+        "stop_reason": "external_observation_window_ended; not a saturation or infinity verdict",
+        "sampled_peak_group_rss_kib": 7047392,
+        "samples": [
+          {
+            "seconds": 0.0011567919864319265,
+            "rss_kib": 1472,
+            "cpu_percent": 0.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 1.0486210000235587,
+            "rss_kib": 38432,
+            "cpu_percent": 32.3,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "dot"
+            ]
+          },
+          {
+            "seconds": 2.0922345420112833,
+            "rss_kib": 58544,
+            "cpu_percent": 12.5,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 3.134702333016321,
+            "rss_kib": 91888,
+            "cpu_percent": 17.2,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "dot"
+            ]
+          },
+          {
+            "seconds": 4.177730125025846,
+            "rss_kib": 125104,
+            "cpu_percent": 70.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "(dot)"
+            ]
+          },
+          {
+            "seconds": 5.224858375033364,
+            "rss_kib": 150240,
+            "cpu_percent": 40.5,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "(dot)"
+            ]
+          },
+          {
+            "seconds": 6.270816583011765,
+            "rss_kib": 184528,
+            "cpu_percent": 95.9,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "dot"
+            ]
+          },
+          {
+            "seconds": 7.317103291978128,
+            "rss_kib": 191952,
+            "cpu_percent": 37.9,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 8.366108542017173,
+            "rss_kib": 221664,
+            "cpu_percent": 23.3,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "dot"
+            ]
+          },
+          {
+            "seconds": 9.408956874976866,
+            "rss_kib": 242416,
+            "cpu_percent": 222.2,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "(dot)"
+            ]
+          },
+          {
+            "seconds": 10.450521041988395,
+            "rss_kib": 310912,
+            "cpu_percent": 176.4,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "dot"
+            ]
+          },
+          {
+            "seconds": 11.493126542016398,
+            "rss_kib": 327184,
+            "cpu_percent": 123.9,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "(dot)"
+            ]
+          },
+          {
+            "seconds": 12.535853207984474,
+            "rss_kib": 323760,
+            "cpu_percent": 33.8,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 13.580855042033363,
+            "rss_kib": 338272,
+            "cpu_percent": 258.2,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 14.624572792032268,
+            "rss_kib": 352416,
+            "cpu_percent": 31.6,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 15.668890041997656,
+            "rss_kib": 474816,
+            "cpu_percent": 261.6,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 16.71328004199313,
+            "rss_kib": 479504,
+            "cpu_percent": 194.5,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 17.75885666703107,
+            "rss_kib": 483664,
+            "cpu_percent": 268.2,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 18.80222783301724,
+            "rss_kib": 491632,
+            "cpu_percent": 221.7,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 19.850239208026323,
+            "rss_kib": 504576,
+            "cpu_percent": 107.7,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 20.896111125010066,
+            "rss_kib": 534352,
+            "cpu_percent": 125.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "(dot)"
+            ]
+          },
+          {
+            "seconds": 21.942347125033848,
+            "rss_kib": 530976,
+            "cpu_percent": 70.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 22.99043854197953,
+            "rss_kib": 562192,
+            "cpu_percent": 75.7,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "(dot)"
+            ]
+          },
+          {
+            "seconds": 24.035590792016592,
+            "rss_kib": 557712,
+            "cpu_percent": 340.9,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 25.083415874978527,
+            "rss_kib": 565024,
+            "cpu_percent": 207.8,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 26.12912499997765,
+            "rss_kib": 565728,
+            "cpu_percent": 205.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 27.177714792022016,
+            "rss_kib": 615392,
+            "cpu_percent": 89.8,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 28.221342667005956,
+            "rss_kib": 957136,
+            "cpu_percent": 97.8,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 29.2647485419875,
+            "rss_kib": 959104,
+            "cpu_percent": 283.7,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 30.308835417032242,
+            "rss_kib": 960896,
+            "cpu_percent": 239.4,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 31.355010500003118,
+            "rss_kib": 962512,
+            "cpu_percent": 225.9,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 32.39966195798479,
+            "rss_kib": 963696,
+            "cpu_percent": 279.6,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 33.44351904198993,
+            "rss_kib": 967760,
+            "cpu_percent": 273.7,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 34.49031066702446,
+            "rss_kib": 972256,
+            "cpu_percent": 203.2,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 35.53411374997813,
+            "rss_kib": 981312,
+            "cpu_percent": 161.1,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 36.579929500003345,
+            "rss_kib": 1006496,
+            "cpu_percent": 89.9,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "(dot)"
+            ]
+          },
+          {
+            "seconds": 37.62153333303286,
+            "rss_kib": 1000032,
+            "cpu_percent": 186.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 38.66623116697883,
+            "rss_kib": 1004304,
+            "cpu_percent": 242.5,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 39.713888375030365,
+            "rss_kib": 1022496,
+            "cpu_percent": 113.6,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "dot"
+            ]
+          },
+          {
+            "seconds": 40.75853799999459,
+            "rss_kib": 1024608,
+            "cpu_percent": 80.3,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 41.80378150002798,
+            "rss_kib": 1038112,
+            "cpu_percent": 175.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 42.84831691702129,
+            "rss_kib": 1063856,
+            "cpu_percent": 153.8,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "(dot)"
+            ]
+          },
+          {
+            "seconds": 43.89392287499504,
+            "rss_kib": 1058384,
+            "cpu_percent": 96.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 44.94148804200813,
+            "rss_kib": 1072144,
+            "cpu_percent": 248.4,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 45.98652470798697,
+            "rss_kib": 1075264,
+            "cpu_percent": 330.2,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 47.028956082998775,
+            "rss_kib": 1080592,
+            "cpu_percent": 117.8,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 48.077138416992966,
+            "rss_kib": 1087392,
+            "cpu_percent": 141.8,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 49.12252949998947,
+            "rss_kib": 1090288,
+            "cpu_percent": 204.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 50.16317066701595,
+            "rss_kib": 1093392,
+            "cpu_percent": 177.8,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 51.206460750021506,
+            "rss_kib": 1093536,
+            "cpu_percent": 203.7,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 52.2523478330113,
+            "rss_kib": 1107664,
+            "cpu_percent": 201.5,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "dot"
+            ]
+          },
+          {
+            "seconds": 53.29395345802186,
+            "rss_kib": 1107168,
+            "cpu_percent": 184.7,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 54.33562324999366,
+            "rss_kib": 1108224,
+            "cpu_percent": 187.3,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 55.37709329201607,
+            "rss_kib": 1108480,
+            "cpu_percent": 236.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 56.42208887502784,
+            "rss_kib": 1182768,
+            "cpu_percent": 35.5,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "dot"
+            ]
+          },
+          {
+            "seconds": 57.46876858302858,
+            "rss_kib": 1172912,
+            "cpu_percent": 84.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 58.51182291703299,
+            "rss_kib": 1173408,
+            "cpu_percent": 96.3,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 59.55874095798936,
+            "rss_kib": 1319984,
+            "cpu_percent": 91.4,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 60.59988270798931,
+            "rss_kib": 1387472,
+            "cpu_percent": 100.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 61.64404383301735,
+            "rss_kib": 1669728,
+            "cpu_percent": 100.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 62.6856489580241,
+            "rss_kib": 1886400,
+            "cpu_percent": 84.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 63.73081733298022,
+            "rss_kib": 2505360,
+            "cpu_percent": 100.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 64.77580750000197,
+            "rss_kib": 2551312,
+            "cpu_percent": 308.5,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 65.81953300000168,
+            "rss_kib": 2554512,
+            "cpu_percent": 308.7,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 66.86794520798139,
+            "rss_kib": 2555792,
+            "cpu_percent": 239.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 67.91328470798908,
+            "rss_kib": 2556480,
+            "cpu_percent": 255.9,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 68.95966745802434,
+            "rss_kib": 2560944,
+            "cpu_percent": 202.6,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 70.00704645802034,
+            "rss_kib": 2562192,
+            "cpu_percent": 279.7,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 71.050546457991,
+            "rss_kib": 2563424,
+            "cpu_percent": 272.4,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 72.09351966698887,
+            "rss_kib": 2564864,
+            "cpu_percent": 257.1,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 73.14083666697843,
+            "rss_kib": 2565824,
+            "cpu_percent": 265.6,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 74.18625741702272,
+            "rss_kib": 2569680,
+            "cpu_percent": 189.5,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 75.23133824998513,
+            "rss_kib": 2570880,
+            "cpu_percent": 196.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 76.27548983303132,
+            "rss_kib": 2571536,
+            "cpu_percent": 225.8,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 77.31922304199543,
+            "rss_kib": 2572944,
+            "cpu_percent": 200.8,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 78.36420520802494,
+            "rss_kib": 2573888,
+            "cpu_percent": 141.2,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 79.40619479201268,
+            "rss_kib": 2574432,
+            "cpu_percent": 252.2,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 80.45002716698218,
+            "rss_kib": 2579232,
+            "cpu_percent": 257.1,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 81.49506858299719,
+            "rss_kib": 2582752,
+            "cpu_percent": 232.1,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 82.5382953750086,
+            "rss_kib": 2586848,
+            "cpu_percent": 227.4,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 83.58151579200057,
+            "rss_kib": 2590336,
+            "cpu_percent": 286.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 84.6261528750183,
+            "rss_kib": 2592896,
+            "cpu_percent": 282.5,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 85.6689953749883,
+            "rss_kib": 2616208,
+            "cpu_percent": 257.1,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "(dot)"
+            ]
+          },
+          {
+            "seconds": 86.716338541999,
+            "rss_kib": 2600576,
+            "cpu_percent": 211.8,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 87.75951762503246,
+            "rss_kib": 2602336,
+            "cpu_percent": 253.4,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 88.80314462498063,
+            "rss_kib": 2604304,
+            "cpu_percent": 273.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 89.84402608301025,
+            "rss_kib": 2608256,
+            "cpu_percent": 303.1,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 90.88644887501141,
+            "rss_kib": 2614720,
+            "cpu_percent": 220.7,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 91.93200020800577,
+            "rss_kib": 2616624,
+            "cpu_percent": 252.2,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 92.97568870801479,
+            "rss_kib": 2617552,
+            "cpu_percent": 269.7,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 94.0194453750155,
+            "rss_kib": 2621136,
+            "cpu_percent": 244.9,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 95.06401412503328,
+            "rss_kib": 2623184,
+            "cpu_percent": 182.2,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 96.11003916698974,
+            "rss_kib": 2624624,
+            "cpu_percent": 150.3,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 97.15299833298195,
+            "rss_kib": 2625232,
+            "cpu_percent": 270.2,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 98.19494320801459,
+            "rss_kib": 2627264,
+            "cpu_percent": 236.8,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 99.24255470797652,
+            "rss_kib": 2629264,
+            "cpu_percent": 174.4,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 100.2842875419883,
+            "rss_kib": 2630624,
+            "cpu_percent": 235.2,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 101.33138679200783,
+            "rss_kib": 2643824,
+            "cpu_percent": 208.5,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "dot"
+            ]
+          },
+          {
+            "seconds": 102.37700091698207,
+            "rss_kib": 2635424,
+            "cpu_percent": 229.9,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 103.42228037503082,
+            "rss_kib": 2637024,
+            "cpu_percent": 288.6,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 104.46884500002488,
+            "rss_kib": 2638992,
+            "cpu_percent": 259.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 105.5126135830069,
+            "rss_kib": 2655936,
+            "cpu_percent": 213.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "dot"
+            ]
+          },
+          {
+            "seconds": 106.55805258301552,
+            "rss_kib": 2651408,
+            "cpu_percent": 238.9,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 107.60096687503392,
+            "rss_kib": 2657136,
+            "cpu_percent": 125.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 108.64675662497757,
+            "rss_kib": 2669936,
+            "cpu_percent": 199.3,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 109.68987854197621,
+            "rss_kib": 2680208,
+            "cpu_percent": 67.1,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 110.73861883301288,
+            "rss_kib": 2689280,
+            "cpu_percent": 220.5,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 111.78253091702936,
+            "rss_kib": 2695520,
+            "cpu_percent": 256.5,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 112.82663958298508,
+            "rss_kib": 2704416,
+            "cpu_percent": 282.6,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 113.8723745829775,
+            "rss_kib": 2709824,
+            "cpu_percent": 229.2,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 114.91551954200258,
+            "rss_kib": 2717488,
+            "cpu_percent": 150.6,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 115.95873195800232,
+            "rss_kib": 2747488,
+            "cpu_percent": 110.2,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "(dot)"
+            ]
+          },
+          {
+            "seconds": 117.00169466697844,
+            "rss_kib": 2742032,
+            "cpu_percent": 240.5,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 118.04702045803424,
+            "rss_kib": 2750352,
+            "cpu_percent": 157.2,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 119.09395075001521,
+            "rss_kib": 2755712,
+            "cpu_percent": 171.1,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 120.14324845798546,
+            "rss_kib": 2766816,
+            "cpu_percent": 126.1,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 121.18799241702072,
+            "rss_kib": 2789952,
+            "cpu_percent": 159.6,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "dot"
+            ]
+          },
+          {
+            "seconds": 122.22976975003257,
+            "rss_kib": 2788032,
+            "cpu_percent": 267.5,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 123.27801695797825,
+            "rss_kib": 2790080,
+            "cpu_percent": 287.4,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 124.32452208298491,
+            "rss_kib": 2792208,
+            "cpu_percent": 294.4,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 125.36863145802636,
+            "rss_kib": 2793872,
+            "cpu_percent": 285.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 126.41505979199428,
+            "rss_kib": 2794096,
+            "cpu_percent": 241.8,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 127.45906424999703,
+            "rss_kib": 2796880,
+            "cpu_percent": 282.9,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 128.50173466699198,
+            "rss_kib": 2797232,
+            "cpu_percent": 273.7,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 129.54410304198973,
+            "rss_kib": 2797392,
+            "cpu_percent": 329.4,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 130.59324062499218,
+            "rss_kib": 2797664,
+            "cpu_percent": 275.8,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 131.6378684170195,
+            "rss_kib": 2800560,
+            "cpu_percent": 186.7,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 132.68575845798478,
+            "rss_kib": 2801904,
+            "cpu_percent": 271.6,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 133.7336565000005,
+            "rss_kib": 2803824,
+            "cpu_percent": 173.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 134.77810325002065,
+            "rss_kib": 2804192,
+            "cpu_percent": 217.1,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 135.82351225003367,
+            "rss_kib": 2804272,
+            "cpu_percent": 249.2,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 136.8679848749889,
+            "rss_kib": 2805248,
+            "cpu_percent": 195.7,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 137.91365512501216,
+            "rss_kib": 2806000,
+            "cpu_percent": 167.7,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 138.958497042011,
+            "rss_kib": 2806128,
+            "cpu_percent": 202.1,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 140.00242525001522,
+            "rss_kib": 2806480,
+            "cpu_percent": 206.5,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 141.05046100000618,
+            "rss_kib": 2806608,
+            "cpu_percent": 185.8,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 142.09410975000355,
+            "rss_kib": 2806784,
+            "cpu_percent": 188.6,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 143.13851991703268,
+            "rss_kib": 2807008,
+            "cpu_percent": 239.8,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 144.18317450000905,
+            "rss_kib": 2807248,
+            "cpu_percent": 188.2,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 145.22929183300585,
+            "rss_kib": 2807344,
+            "cpu_percent": 227.2,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 146.2732481249841,
+            "rss_kib": 2807376,
+            "cpu_percent": 226.1,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 147.3210100000142,
+            "rss_kib": 2807440,
+            "cpu_percent": 150.9,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 148.37060095800553,
+            "rss_kib": 2807552,
+            "cpu_percent": 157.4,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 149.41492620803183,
+            "rss_kib": 2808000,
+            "cpu_percent": 191.4,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 150.4571654170286,
+            "rss_kib": 2808000,
+            "cpu_percent": 206.6,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 151.506603042013,
+            "rss_kib": 2808016,
+            "cpu_percent": 277.8,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 152.55138337501558,
+            "rss_kib": 2827728,
+            "cpu_percent": 226.1,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "(dot)"
+            ]
+          },
+          {
+            "seconds": 153.5963397080195,
+            "rss_kib": 2817008,
+            "cpu_percent": 174.8,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 154.64052691700635,
+            "rss_kib": 2817376,
+            "cpu_percent": 213.9,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 155.6848820829764,
+            "rss_kib": 2817776,
+            "cpu_percent": 171.9,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 156.72951358300634,
+            "rss_kib": 2818864,
+            "cpu_percent": 223.8,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 157.77433387498604,
+            "rss_kib": 2819184,
+            "cpu_percent": 206.8,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 158.8206357919844,
+            "rss_kib": 2819632,
+            "cpu_percent": 183.4,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 159.8669151670183,
+            "rss_kib": 2819792,
+            "cpu_percent": 196.9,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 160.91094362502918,
+            "rss_kib": 2819920,
+            "cpu_percent": 254.6,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 161.95844633301022,
+            "rss_kib": 3071248,
+            "cpu_percent": 73.4,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "(dot)"
+            ]
+          },
+          {
+            "seconds": 163.00276637502247,
+            "rss_kib": 3069808,
+            "cpu_percent": 21.9,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+              "(dot)"
+            ]
+          },
+          {
+            "seconds": 164.049642625032,
+            "rss_kib": 3054800,
+            "cpu_percent": 94.3,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 165.0941106249811,
+            "rss_kib": 3054848,
+            "cpu_percent": 88.7,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 166.14087029203074,
+            "rss_kib": 3055168,
+            "cpu_percent": 97.9,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 167.18360020802356,
+            "rss_kib": 3055168,
+            "cpu_percent": 96.2,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 168.22668308299035,
+            "rss_kib": 3165440,
+            "cpu_percent": 83.1,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 169.27152916701743,
+            "rss_kib": 3367024,
+            "cpu_percent": 82.2,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 170.3151471670135,
+            "rss_kib": 3530032,
+            "cpu_percent": 98.9,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 171.3569065000047,
+            "rss_kib": 3879040,
+            "cpu_percent": 90.5,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 172.39795654203044,
+            "rss_kib": 3738960,
+            "cpu_percent": 100.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 173.44189029198606,
+            "rss_kib": 3808528,
+            "cpu_percent": 100.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 174.4841472079861,
+            "rss_kib": 3877952,
+            "cpu_percent": 98.9,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 175.5260777079966,
+            "rss_kib": 3909056,
+            "cpu_percent": 100.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 176.5684019170003,
+            "rss_kib": 4069056,
+            "cpu_percent": 100.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 177.6128974169842,
+            "rss_kib": 4192944,
+            "cpu_percent": 100.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 178.65662145800889,
+            "rss_kib": 4848896,
+            "cpu_percent": 100.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 179.70432104199426,
+            "rss_kib": 5862016,
+            "cpu_percent": 84.1,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          },
+          {
+            "seconds": 180.74830070801545,
+            "rss_kib": 7047392,
+            "cpu_percent": 91.2,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "trace_run": {
+    "commit": "f2fe288ef744ad1f477f9b7c43ea450d8139722b",
+    "source": "egglog/tests/math-microbenchmark.egg",
+    "source_sha256": "aaa8942131b4db57e76710486718790e1d7f2cb9288aeb702c0c17019439cf16",
+    "observation_seconds": 180.0,
+    "kernel": "local patched egglog, no trace baseline; not pristine upstream",
+    "machine": "Darwin MineralSteinsdeMacBook-Pro.local 24.3.0 Darwin Kernel Version 24.3.0: Thu Jan  2 20:24:23 PST 2025; root:xnu-11215.81.4~3/RELEASE_ARM64_T6031 arm64",
+    "source_files": {
+      "src/native_analyze.rs": "b7e59b7d17fcff9a6fc6596605618ed7b7f15b1409ffa7620255f24eef5d9ec0",
+      "src/native_saturated_rule_composition_pipeline.rs": "ce39273e51163842bb748af980d26d82bce30211e552aba934e01ce6c0496b8e"
+    },
+    "runs": [
+      {
+        "name": "trace-11",
+        "command": [
+          "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+          "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg",
+          "trace"
+        ],
+        "wall_seconds": 4.515454042004421,
+        "exit_code": 0,
+        "stop_reason": null,
+        "sampled_peak_group_rss_kib": 1655936,
+        "samples": [
+          {
+            "seconds": 0.0009836250101216137,
+            "rss_kib": 1264,
+            "cpu_percent": 0.0,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline"
+            ]
+          },
+          {
+            "seconds": 1.0465014589717612,
+            "rss_kib": 456944,
+            "cpu_percent": 1078.8,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline"
+            ]
+          },
+          {
+            "seconds": 2.092690624995157,
+            "rss_kib": 1098304,
+            "cpu_percent": 712.9,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline"
+            ]
+          },
+          {
+            "seconds": 3.140052624978125,
+            "rss_kib": 1594032,
+            "cpu_percent": 970.3,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline"
+            ]
+          },
+          {
+            "seconds": 4.191210708988365,
+            "rss_kib": 1655936,
+            "cpu_percent": 198.6,
+            "processes": [
+              "/usr/bin/time",
+              "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "baseline": [
+    {
+      "run": "baseline-1",
+      "native_seconds": 0.330205167,
+      "wall_seconds": 0.84,
+      "max_rss_bytes": 509296640
+    },
+    {
+      "run": "baseline-2",
+      "native_seconds": 0.291065042,
+      "wall_seconds": 0.31,
+      "max_rss_bytes": 515538944
+    },
+    {
+      "run": "baseline-3",
+      "native_seconds": 0.305975584,
+      "wall_seconds": 0.33,
+      "max_rss_bytes": 514834432
+    }
+  ],
+  "trace": {
+    "native_seconds": 4.128249375,
+    "max_rss_bytes": 1843462144,
+    "rounds": [
+      {
+        "trace_round": 1,
+        "seconds": 0.000708833,
+        "matches": 20,
+        "reads": 25,
+        "writes": 35,
+        "unions": 0,
+        "events": 100
+      },
+      {
+        "trace_round": 2,
+        "seconds": 0.000322,
+        "matches": 44,
+        "reads": 62,
+        "writes": 66,
+        "unions": 0,
+        "events": 218
+      },
+      {
+        "trace_round": 3,
+        "seconds": 0.000361417,
+        "matches": 65,
+        "reads": 92,
+        "writes": 110,
+        "unions": 0,
+        "events": 332
+      },
+      {
+        "trace_round": 4,
+        "seconds": 0.0006115,
+        "matches": 139,
+        "reads": 205,
+        "writes": 228,
+        "unions": 0,
+        "events": 739
+      },
+      {
+        "trace_round": 5,
+        "seconds": 0.001245125,
+        "matches": 368,
+        "reads": 578,
+        "writes": 559,
+        "unions": 0,
+        "events": 1926
+      },
+      {
+        "trace_round": 6,
+        "seconds": 0.002565875,
+        "matches": 893,
+        "reads": 1445,
+        "writes": 1353,
+        "unions": 0,
+        "events": 4963
+      },
+      {
+        "trace_round": 7,
+        "seconds": 0.00518725,
+        "matches": 2194,
+        "reads": 3734,
+        "writes": 3232,
+        "unions": 0,
+        "events": 12026
+      },
+      {
+        "trace_round": 8,
+        "seconds": 0.011428208,
+        "matches": 4812,
+        "reads": 8390,
+        "writes": 7648,
+        "unions": 0,
+        "events": 26834
+      },
+      {
+        "trace_round": 9,
+        "seconds": 0.043541583,
+        "matches": 16640,
+        "reads": 29849,
+        "writes": 28728,
+        "unions": 0,
+        "events": 97418
+      },
+      {
+        "trace_round": 10,
+        "seconds": 0.337885958,
+        "matches": 95945,
+        "reads": 178514,
+        "writes": 169696,
+        "unions": 0,
+        "events": 591987
+      },
+      {
+        "trace_round": 11,
+        "seconds": 3.019366625,
+        "matches": 823091,
+        "reads": 1579323,
+        "writes": 1514303,
+        "unions": 0,
+        "events": 5299516
+      }
+    ]
+  },
+  "pipeline_phases": [
+    {
+      "boundary": 1,
+      "phase": "register_entries",
+      "seconds": 1.457976
+    },
+    {
+      "boundary": 1,
+      "phase": "advance_and_share",
+      "seconds": 0.270169
+    },
+    {
+      "boundary": 1,
+      "phase": "exact_catalog",
+      "seconds": 0.003814
+    },
+    {
+      "boundary": 1,
+      "phase": "weak_queries_and_evidence",
+      "seconds": 0.002731
+    },
+    {
+      "boundary": 2,
+      "phase": "register_entries",
+      "seconds": 1.549136
+    },
+    {
+      "boundary": 2,
+      "phase": "advance_and_share",
+      "seconds": 0.406053
+    },
+    {
+      "boundary": 2,
+      "phase": "exact_catalog",
+      "seconds": 0.006894
+    },
+    {
+      "boundary": 2,
+      "phase": "weak_queries_and_evidence",
+      "seconds": 0.009084
+    },
+    {
+      "boundary": 3,
+      "phase": "register_entries",
+      "seconds": 0.249127
+    },
+    {
+      "boundary": 3,
+      "phase": "advance_and_share",
+      "seconds": 0.406647
+    },
+    {
+      "boundary": 3,
+      "phase": "exact_catalog",
+      "seconds": 0.009759
+    },
+    {
+      "boundary": 3,
+      "phase": "weak_queries_and_evidence",
+      "seconds": 0.004951
+    },
+    {
+      "boundary": 4,
+      "phase": "register_entries",
+      "seconds": 1.043327
+    },
+    {
+      "boundary": 4,
+      "phase": "advance_and_share",
+      "seconds": 0.145182
+    },
+    {
+      "boundary": 4,
+      "phase": "exact_catalog",
+      "seconds": 0.011389
+    },
+    {
+      "boundary": 4,
+      "phase": "weak_queries_and_evidence",
+      "seconds": 0.012755
+    },
+    {
+      "boundary": 5,
+      "phase": "register_entries",
+      "seconds": 3.274553
+    },
+    {
+      "boundary": 5,
+      "phase": "advance_and_share",
+      "seconds": 0.456584
+    },
+    {
+      "boundary": 5,
+      "phase": "exact_catalog",
+      "seconds": 0.031763
+    },
+    {
+      "boundary": 5,
+      "phase": "weak_queries_and_evidence",
+      "seconds": 0.061371
+    },
+    {
+      "boundary": 6,
+      "phase": "register_entries",
+      "seconds": 3.975631
+    },
+    {
+      "boundary": 6,
+      "phase": "advance_and_share",
+      "seconds": 0.786207
+    },
+    {
+      "boundary": 6,
+      "phase": "exact_catalog",
+      "seconds": 0.069008
+    },
+    {
+      "boundary": 6,
+      "phase": "weak_queries_and_evidence",
+      "seconds": 0.12475
+    },
+    {
+      "boundary": 7,
+      "phase": "register_entries",
+      "seconds": 11.050407
+    },
+    {
+      "boundary": 7,
+      "phase": "advance_and_share",
+      "seconds": 0.843356
+    },
+    {
+      "boundary": 7,
+      "phase": "exact_catalog",
+      "seconds": 0.236753
+    },
+    {
+      "boundary": 7,
+      "phase": "weak_queries_and_evidence",
+      "seconds": 0.307249
+    },
+    {
+      "boundary": 8,
+      "phase": "register_entries",
+      "seconds": 27.413748
+    },
+    {
+      "boundary": 8,
+      "phase": "advance_and_share",
+      "seconds": 3.103573
+    },
+    {
+      "boundary": 8,
+      "phase": "exact_catalog",
+      "seconds": 1.201216
+    },
+    {
+      "boundary": 8,
+      "phase": "weak_queries_and_evidence",
+      "seconds": 1.746468
+    },
+    {
+      "boundary": 9,
+      "phase": "register_entries",
+      "seconds": 97.272472
+    },
+    {
+      "boundary": 9,
+      "phase": "advance_and_share",
+      "seconds": 6.275237
+    },
+    {
+      "boundary": 9,
+      "phase": "exact_catalog",
+      "seconds": 3.867303
+    },
+    {
+      "boundary": 9,
+      "phase": "weak_queries_and_evidence",
+      "seconds": 7.21953
+    }
+  ],
+  "pipeline_rounds": [
+    {
+      "round": 1,
+      "tier0": 0.00037,
+      "collect": 0.000378,
+      "analysis_and_output": 1.738895
+    },
+    {
+      "round": 2,
+      "tier0": 0.000399,
+      "collect": 0.000286,
+      "analysis_and_output": 1.982159
+    },
+    {
+      "round": 3,
+      "tier0": 0.000502,
+      "collect": 0.000452,
+      "analysis_and_output": 0.684559
+    },
+    {
+      "round": 4,
+      "tier0": 0.000767,
+      "collect": 0.000806,
+      "analysis_and_output": 1.235047
+    },
+    {
+      "round": 5,
+      "tier0": 0.001465,
+      "collect": 0.001959,
+      "analysis_and_output": 3.87649
+    },
+    {
+      "round": 6,
+      "tier0": 0.002848,
+      "collect": 0.004855,
+      "analysis_and_output": 5.078337
+    },
+    {
+      "round": 7,
+      "tier0": 0.005806,
+      "collect": 0.01154,
+      "analysis_and_output": 12.83237
+    },
+    {
+      "round": 8,
+      "tier0": 0.012159,
+      "collect": 0.030054,
+      "analysis_and_output": 34.846591
+    }
+  ],
+  "phase_totals": {
+    "advance_and_share": 12.693007999999999,
+    "exact_catalog": 5.437899,
+    "register_entries": 147.286377,
+    "weak_queries_and_evidence": 9.488889
+  },
+  "table_rows": {
+    "Add": 641743,
+    "Const": 5,
+    "Cos": 1,
+    "Diff": 13504,
+    "Div": 3,
+    "Integral": 32434,
+    "Ln": 1,
+    "Mul": 345075,
+    "Pow": 2,
+    "Sin": 1,
+    "Sqrt": 1,
+    "Sub": 15123,
+    "Var": 3
+  },
+  "shape_log": [
+    "shape_enodes=1047896 shape_eclasses=443832 shape_average=2.361019485",
+    "baseline_native_seconds=0.303613666 traced=false"
+  ]
+}

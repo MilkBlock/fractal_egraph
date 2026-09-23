@@ -141,6 +141,9 @@ impl Session {
             out,
         )
         .ok();
+        if let Some(state) = &initial {
+            crate::pipeline::write_json(&out.join("initial-state.json"), state)?;
+        }
         let before = eg.clone();
         Ok(Self {
             eg,

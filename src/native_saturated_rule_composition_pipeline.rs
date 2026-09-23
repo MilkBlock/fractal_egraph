@@ -45,6 +45,17 @@ impl Pipeline {
         self.report.clone()
     }
     pub fn step(&mut self, c: &Captured, layers: &LayerStore, boundary: usize) -> Result<Json> {
+        let profile = std::env::var_os("EGG_LAYOUT_PROFILE").is_some();
+        let mut phase = std::time::Instant::now();
+        let mut timings = BTreeMap::new();
+        let mut mark = |name: &str| {
+            let seconds = phase.elapsed().as_secs_f64();
+            timings.insert(name.to_string(), seconds);
+            if profile {
+                eprintln!("[perf-ripen] boundary={boundary} phase={name} seconds={seconds:.6}");
+            }
+            phase = std::time::Instant::now();
+        };
         std::fs::create_dir_all(self.out.join("saturated-rule-composition/cells"))?;
         if !self.out.join("source.egg").exists() {
             std::fs::write(self.out.join("source.egg"), &c.preview_source)?;
@@ -93,6 +104,7 @@ impl Pipeline {
             }
             self.jobs.push(job);
         }
+        mark("register_entries");
         let mut changed = false;
         // Exactly one semantic sweep per live task; this is fair interleaving, not a
         // completion/round budget. execute() keeps polling until completion or stop.
@@ -159,6 +171,7 @@ impl Pipeline {
                 }
             }
         }
+        mark("advance_and_share");
         if changed {
             let dir = self.out.join("catalog");
             let cat = crate::saturated_rule_composition::refresh_catalog(&self.completed, &dir)?;
@@ -173,6 +186,7 @@ impl Pipeline {
                 json!({"catalog":cat,"states":states,"dot":std::fs::read_to_string(dir.join("catalog.dot"))?}),
             );
         }
+        mark("exact_catalog");
         // Necessary operator conditions are an exact inverted index, not Top-K.
         let mut bodies = BTreeMap::<String, BTreeSet<usize>>::new();
         for (i, w) in self.work.iter().enumerate() {
@@ -251,7 +265,8 @@ impl Pipeline {
                 .entry(j["state"].as_str().unwrap().into())
                 .or_default() += 1;
         }
-        self.report = json!({"kind":"saturated_rule_composition_snapshot","boundary":boundary,"jobs":self.jobs,"cs":self.cs.report(),"weak_dominate":weak,"weak_unresolved":unresolved,"counts":counts,"not_queued":0,"limits":null,"scope":"all observed CS entries; fair resumable sweeps; no heuristic selection, live tier0 substitution or termination guess","catalog":self.catalog});
+        mark("weak_queries_and_evidence");
+        self.report = json!({"step_seconds":timings,"kind":"saturated_rule_composition_snapshot","boundary":boundary,"jobs":self.jobs,"cs":self.cs.report(),"weak_dominate":weak,"weak_unresolved":unresolved,"counts":counts,"not_queued":0,"limits":null,"scope":"all observed CS entries; fair resumable sweeps; no heuristic selection, live tier0 substitution or termination guess","catalog":self.catalog});
         crate::pipeline::write_json(
             &self.out.join("saturated-rule-composition/queue.json"),
             &self.report,

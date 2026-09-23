@@ -1,0 +1,364 @@
+{
+  "boundary": 9,
+  "jobs": 25652,
+  "counts": {
+    "Rejected": 15722,
+    "Running": 113,
+    "Saturated": 9400,
+    "WaitingEquivalent": 417
+  },
+  "by_origin": {
+    "base/Saturated": 9374,
+    "base/Running": 101,
+    "base/Rejected": 3433,
+    "composite/Rejected": 12289,
+    "base/WaitingEquivalent": 396,
+    "composite/Running": 12,
+    "composite/Saturated": 26,
+    "composite/WaitingEquivalent": 21
+  },
+  "composition_forms": {
+    "CoarseJoin": 1294,
+    "CCSS": 954,
+    "CSCS": 11603
+  },
+  "rejection_reasons": {
+    "entry replay/check failed": 8975,
+    "seeding an external row would materialize an internal read; staged injection is required": 4315,
+    "external row depends on an internal result; staged injection is required": 2432
+  },
+  "fully_equivalent_alias_jobs": 9736,
+  "saturated_families": 30,
+  "distinct_saturated_entry_texts": 81,
+  "physical_saturated_jobs": 81,
+  "coverage": {
+    "schema": "ripen-cs-coverage/v1",
+    "status": "ok",
+    "known_layers": 13304,
+    "verified_layers": 9374,
+    "not_verified_layers": 3930,
+    "total_states": 30,
+    "unattributed_triggers": 10,
+    "rows": [
+      {
+        "state": 18,
+        "count": 3113,
+        "distinct_entries": 12,
+        "triggers": 3115,
+        "attributed_triggers": 3113,
+        "rank": 1,
+        "cumulative": 3113,
+        "coverage": 0.23398977751052316
+      },
+      {
+        "state": 15,
+        "count": 2997,
+        "distinct_entries": 3,
+        "triggers": 2997,
+        "attributed_triggers": 2997,
+        "rank": 2,
+        "cumulative": 6110,
+        "coverage": 0.45926037282020443
+      },
+      {
+        "state": 16,
+        "count": 1114,
+        "distinct_entries": 3,
+        "triggers": 1115,
+        "attributed_triggers": 1114,
+        "rank": 3,
+        "cumulative": 7224,
+        "coverage": 0.5429945880938064
+      },
+      {
+        "state": 0,
+        "count": 703,
+        "distinct_entries": 1,
+        "triggers": 703,
+        "attributed_triggers": 703,
+        "rank": 4,
+        "cumulative": 7927,
+        "coverage": 0.59583583884546
+      },
+      {
+        "state": 22,
+        "count": 378,
+        "distinct_entries": 6,
+        "triggers": 378,
+        "attributed_triggers": 378,
+        "rank": 5,
+        "cumulative": 8305,
+        "coverage": 0.6242483463619964
+      },
+      {
+        "state": 2,
+        "count": 354,
+        "distinct_entries": 1,
+        "triggers": 354,
+        "attributed_triggers": 354,
+        "rank": 6,
+        "cumulative": 8659,
+        "coverage": 0.6508568851473241
+      },
+      {
+        "state": 6,
+        "count": 316,
+        "distinct_entries": 5,
+        "triggers": 316,
+        "attributed_triggers": 316,
+        "rank": 7,
+        "cumulative": 8975,
+        "coverage": 0.6746091401082381
+      },
+      {
+        "state": 20,
+        "count": 108,
+        "distinct_entries": 3,
+        "triggers": 108,
+        "attributed_triggers": 108,
+        "rank": 8,
+        "cumulative": 9083,
+        "coverage": 0.6827269993986771
+      },
+      {
+        "state": 13,
+        "count": 93,
+        "distinct_entries": 9,
+        "triggers": 93,
+        "attributed_triggers": 93,
+        "rank": 9,
+        "cumulative": 9176,
+        "coverage": 0.6897173782321107
+      },
+      {
+        "state": 4,
+        "count": 69,
+        "distinct_entries": 4,
+        "triggers": 69,
+        "attributed_triggers": 69,
+        "rank": 10,
+        "cumulative": 9245,
+        "coverage": 0.6949037883343355
+      },
+      {
+        "state": 24,
+        "count": 58,
+        "distinct_entries": 3,
+        "triggers": 58,
+        "attributed_triggers": 58,
+        "rank": 11,
+        "cumulative": 9303,
+        "coverage": 0.6992633794347565
+      },
+      {
+        "state": 23,
+        "count": 16,
+        "distinct_entries": 3,
+        "triggers": 17,
+        "attributed_triggers": 16,
+        "rank": 12,
+        "cumulative": 9319,
+        "coverage": 0.7004660252555622
+      },
+      {
+        "state": 9,
+        "count": 12,
+        "distinct_entries": 3,
+        "triggers": 12,
+        "attributed_triggers": 12,
+        "rank": 13,
+        "cumulative": 9331,
+        "coverage": 0.7013680096211665
+      },
+      {
+        "state": 27,
+        "count": 9,
+        "distinct_entries": 2,
+        "triggers": 18,
+        "attributed_triggers": 17,
+        "rank": 14,
+        "cumulative": 9340,
+        "coverage": 0.7020444978953698
+      },
+      {
+        "state": 26,
+        "count": 8,
+        "distinct_entries": 2,
+        "triggers": 16,
+        "attributed_triggers": 16,
+        "rank": 15,
+        "cumulative": 9348,
+        "coverage": 0.7026458208057726
+      },
+      {
+        "state": 1,
+        "count": 4,
+        "distinct_entries": 1,
+        "triggers": 4,
+        "attributed_triggers": 4,
+        "rank": 16,
+        "cumulative": 9352,
+        "coverage": 0.7029464822609741
+      },
+      {
+        "state": 25,
+        "count": 4,
+        "distinct_entries": 1,
+        "triggers": 8,
+        "attributed_triggers": 4,
+        "rank": 17,
+        "cumulative": 9356,
+        "coverage": 0.7032471437161756
+      },
+      {
+        "state": 17,
+        "count": 3,
+        "distinct_entries": 1,
+        "triggers": 3,
+        "attributed_triggers": 3,
+        "rank": 18,
+        "cumulative": 9359,
+        "coverage": 0.7034726398075767
+      },
+      {
+        "state": 5,
+        "count": 2,
+        "distinct_entries": 2,
+        "triggers": 2,
+        "attributed_triggers": 2,
+        "rank": 19,
+        "cumulative": 9361,
+        "coverage": 0.7036229705351774
+      },
+      {
+        "state": 10,
+        "count": 2,
+        "distinct_entries": 2,
+        "triggers": 2,
+        "attributed_triggers": 2,
+        "rank": 20,
+        "cumulative": 9363,
+        "coverage": 0.7037733012627782
+      },
+      {
+        "state": 14,
+        "count": 2,
+        "distinct_entries": 1,
+        "triggers": 2,
+        "attributed_triggers": 2,
+        "rank": 21,
+        "cumulative": 9365,
+        "coverage": 0.7039236319903789
+      },
+      {
+        "state": 19,
+        "count": 2,
+        "distinct_entries": 1,
+        "triggers": 2,
+        "attributed_triggers": 2,
+        "rank": 22,
+        "cumulative": 9367,
+        "coverage": 0.7040739627179795
+      },
+      {
+        "state": 3,
+        "count": 1,
+        "distinct_entries": 1,
+        "triggers": 1,
+        "attributed_triggers": 1,
+        "rank": 23,
+        "cumulative": 9368,
+        "coverage": 0.7041491280817799
+      },
+      {
+        "state": 7,
+        "count": 1,
+        "distinct_entries": 1,
+        "triggers": 1,
+        "attributed_triggers": 1,
+        "rank": 24,
+        "cumulative": 9369,
+        "coverage": 0.7042242934455802
+      },
+      {
+        "state": 8,
+        "count": 1,
+        "distinct_entries": 1,
+        "triggers": 1,
+        "attributed_triggers": 1,
+        "rank": 25,
+        "cumulative": 9370,
+        "coverage": 0.7042994588093806
+      },
+      {
+        "state": 11,
+        "count": 1,
+        "distinct_entries": 1,
+        "triggers": 1,
+        "attributed_triggers": 1,
+        "rank": 26,
+        "cumulative": 9371,
+        "coverage": 0.704374624173181
+      },
+      {
+        "state": 12,
+        "count": 1,
+        "distinct_entries": 1,
+        "triggers": 1,
+        "attributed_triggers": 1,
+        "rank": 27,
+        "cumulative": 9372,
+        "coverage": 0.7044497895369813
+      },
+      {
+        "state": 21,
+        "count": 1,
+        "distinct_entries": 1,
+        "triggers": 1,
+        "attributed_triggers": 1,
+        "rank": 28,
+        "cumulative": 9373,
+        "coverage": 0.7045249549007817
+      },
+      {
+        "state": 29,
+        "count": 1,
+        "distinct_entries": 1,
+        "triggers": 1,
+        "attributed_triggers": 1,
+        "rank": 29,
+        "cumulative": 9374,
+        "coverage": 0.7046001202645821
+      },
+      {
+        "state": 28,
+        "count": 0,
+        "distinct_entries": 0,
+        "triggers": 1,
+        "attributed_triggers": 0,
+        "rank": 30,
+        "cumulative": 9374,
+        "coverage": 0.7046001202645821
+      }
+    ],
+    "definition": "Exact saturation equality for whole CS member sets; deduplicate original coarse_layer IDs across versions and triggers. Combined components do not inherit equivalence. Population includes only recorded base CS descriptors, not every possible layer."
+  },
+  "weak_relations": 5795,
+  "reentry_observations": 451,
+  "weak_unresolved": 0,
+  "running_rounds": {
+    "1": 63,
+    "2": 24,
+    "3": 11,
+    "4": 7,
+    "5": 4,
+    "6": 2,
+    "8": 1,
+    "9": 1
+  },
+  "last_catalog_timings": {
+    "compare_seconds": 0.8051905650000001,
+    "key_seconds": 0.054976289000000386,
+    "read_seconds": 1.961008208
+  }
+}
