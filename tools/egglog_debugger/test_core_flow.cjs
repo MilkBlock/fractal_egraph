@@ -42,6 +42,12 @@ const { chromium } = require('playwright');
     await page.click('#native-layer-load');
     await page.waitForFunction(()=>!document.querySelector('#native-layer-load').disabled);
     assert.equal(await page.locator('#native-layer-round option').count(),manifest.length);
+    await page.locator('#native-saturated-rule-composition-coverage [data-state]').first().click();
+    await page.waitForFunction(()=>document.querySelector('#native-saturated-rule-composition-view').dataset.ready==='true' && document.querySelectorAll('[data-ripen-graph] svg').length===2).catch(async e=>{console.error(await page.locator('#native-saturated-rule-composition-caption').innerText());throw e;});
+    assert.equal(await page.locator('#native-saturated-rule-composition-diagram').inputValue(),'ripen');
+    assert.equal(await page.locator('[data-ripen-graph="initial"] svg').count(),1);
+    assert.equal(await page.locator('[data-ripen-graph="saturated"] svg').count(),1);
+    assert((await page.locator('#native-saturated-rule-composition-caption').innerText()).includes('smooth saturation 前'));
     assert.deepEqual(errors,[]);
     console.log('Core CS/ripen panel, live progress and directory loading passed');
   } finally {await browser.close();}

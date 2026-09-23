@@ -14,10 +14,10 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
       <div id="native-layer-viewport"></div><pre id="native-layer-error"></pre>
       <details><summary>返回 binding、条件与 effect 证据</summary><pre id="native-layer-details"></pre></details>
       <details><summary>当前 Typst / DOT 源码</summary><pre id="native-layer-code"></pre></details>`;
-    const catalogPanel=document.createElement('section');catalogPanel.hidden=true;catalogPanel.innerHTML=`<p>Saturated rule composition · 每轮处理进度与共享闭包</p><input hidden id="native-saturated-rule-composition-path" placeholder="out/ 中的 saturated-rule-composition-catalog 目录"><button hidden id="native-saturated-rule-composition-load">载入共享目录</button><select id="native-saturated-rule-composition" aria-label="共享闭包"><option value="">全部概览</option></select><select id="native-saturated-rule-composition-comb" aria-label="对应组合"><option value="">所有对应组合</option></select><select id="native-saturated-rule-composition-instance" aria-label="触发实例"><option value="">示例实例</option></select><select id="native-saturated-rule-composition-diagram" aria-label="SaturatedRuleComposition 图类型"><option value="comb">来源 rule comb</option><option value="cs">CSCS / CCSS 引用组合</option><option value="egraph">闭包 e-graph</option><option value="layers">来源 Coarse / Smooth layer</option><option value="body">合并前 / 合并后 body</option></select><div id="native-saturated-rule-composition-caption"></div><div id="native-saturated-rule-composition-status"></div><div id="native-saturated-rule-composition-coverage"></div><div id="native-saturated-rule-composition-weak"></div><div id="native-saturated-rule-composition-table"></div><div id="native-saturated-rule-composition-view"></div><pre id="native-saturated-rule-composition-rule" style="white-space:pre-wrap"></pre><pre id="native-saturated-rule-composition-details"></pre>`;panel.append(catalogPanel);
+    const catalogPanel=document.createElement('section');catalogPanel.hidden=true;catalogPanel.innerHTML=`<p>Saturated rule composition · 每轮处理进度与共享闭包</p><input hidden id="native-saturated-rule-composition-path" placeholder="out/ 中的 saturated-rule-composition-catalog 目录"><button hidden id="native-saturated-rule-composition-load">载入共享目录</button><select id="native-saturated-rule-composition" aria-label="共享闭包"><option value="">全部概览</option></select><select id="native-saturated-rule-composition-comb" aria-label="对应组合"><option value="">所有对应组合</option></select><select id="native-saturated-rule-composition-instance" aria-label="触发实例"><option value="">示例实例</option></select><select id="native-saturated-rule-composition-diagram" aria-label="SaturatedRuleComposition 图类型"><option value="comb">来源 rule comb</option><option value="cs">CSCS / CCSS 引用组合</option><option value="egraph">闭包 e-graph</option><option value="layers">来源 Coarse / Smooth layer</option><option value="ripen">初始 coarse facts / 饱和图</option><option value="body">合并前 / 合并后 body</option></select><div id="native-saturated-rule-composition-caption"></div><div id="native-saturated-rule-composition-status"></div><div id="native-saturated-rule-composition-coverage"></div><div id="native-saturated-rule-composition-weak"></div><div id="native-saturated-rule-composition-table"></div><div id="native-saturated-rule-composition-view"></div><pre id="native-saturated-rule-composition-rule" style="white-space:pre-wrap"></pre><pre id="native-saturated-rule-composition-details"></pre>`;panel.append(catalogPanel);
     const cp=id=>catalogPanel.querySelector('#native-saturated-rule-composition'+(id==='state'?'':'-'+id));
     let catalogData=null,catalogVersion=0,catalogError=null,coverageContext=null;
-    const NO_CATALOG='尚无 SaturatedRuleComposition 快照：请先「运行并识别」（它会自动跑有预算的 ripen 队列），或在目录框载入一次带 SaturatedRuleComposition 的运行目录（含 catalog/）。Pending / Suspended 不代表已闭合。';
+    const NO_CATALOG='尚无 SaturatedRuleComposition 快照：请先「运行并识别」（它会自动推进 ripen 队列），或在目录框载入一次带 SaturatedRuleComposition 的运行目录（含 catalog/）。Pending / Suspended 不代表已闭合。';
     const STALE_SNAPSHOTS='该目录的每轮快照里没有 SaturatedRuleComposition 数据（生成于 SaturatedRuleComposition 管线接入之前）。请用当前版本重新 analyze，或用「运行并识别」重跑一次。';
     function catalogGraph(){
         const c=catalogData.catalog,scope=cp('state').value,nodes=[],edges=[];
@@ -179,9 +179,38 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         cp('caption').textContent=`C${state}：合并前 ${before.g.nodes.length} 个原始成员 → 合并后 1 个饱和 body${body?.cell?'（'+body.cell.split('/').slice(-1)[0]+'）':''}。左侧由记录的触发实例重建，右侧是 cell 的原生导出，两者不是同一份数据。`;
         cp('view').dataset.ready='true';
     }
+    async function renderRipenPair(){
+        const version=++catalogVersion,view=cp('view');
+        view.dataset.ready='false';view.replaceChildren();
+        const state=cp('state').value,trigger=cp('instance').value||cp('instance').options[1]?.value;
+        if(state===''||trigger===undefined){cp('caption').textContent='请选择一个饱和族。';return;}
+        cp('caption').textContent=`C${state} · 载入实例 ${trigger} 的初始与饱和图…`;
+        try{
+            const response=await post('saturated-rule-composition-body',{path:cp('path').value,state:Number(state),trigger:Number(trigger)});
+            const body=await response.json();if(version!==catalogVersion)return;
+            if(body.error)throw new Error(body.error);
+            const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px';
+            view.append(grid);view.dataset.dot=body.dot||'';
+            for(const [kind,label,svg,source] of [
+                ['initial','Initial ripened egraph · coarse facts only',body.initial_svg,body.initial_dot],
+                ['saturated','Saturated ripened egraph',body.svg,body.dot]]){
+                const section=document.createElement('section');section.dataset.ripenGraph=kind;
+                const title=document.createElement('h3');title.textContent=label;section.append(title);
+                const host=document.createElement('div');host.style.overflow='auto';section.append(host);grid.append(section);
+                let markup=svg;
+                if(!markup&&source)markup=await(await post('render',{kind:'dot',source})).text();
+                if(version!==catalogVersion)return;
+                if(markup)mountSvg(markup,host);
+                else host.textContent='该实例未保存此原生图，请用当前版本重新运行。';
+            }
+            cp('caption').textContent=`C${state} · 实例 ${trigger}（${body.cell.split('/').at(-1)}）。左：coarse fact 注入并回放后、smooth saturation 前；右：同一实例饱和后。可切换触发实例查看不同初始图。`;
+            cp('rule').textContent=body.entry||'';view.dataset.ready='true';
+        }catch(error){if(version===catalogVersion){cp('caption').textContent='载入图失败：'+error;view.dataset.ready='true';}}
+    }
     async function renderCatalog(){
+        renderCoverage(cp('coverage'),ripenCoverage(catalogData?.catalog,coverageContext?.cs),id=>{cp('state').value=String(id);combOptions();cp('diagram').value='ripen';renderCatalog();});
+        if(catalogData?.catalog&&cp('diagram').value==='ripen'){await renderRipenPair();return;}
         if(catalogData?.catalog&&cp('diagram').value==='body'){catalogVersion++;await renderBody();return;}
-        renderCoverage(cp('coverage'),ripenCoverage(catalogData?.catalog,coverageContext?.cs),id=>{cp('state').value=String(id);combOptions();renderCatalog();});
         const v=++catalogVersion,c=catalogData.catalog;cp('view').dataset.ready='false';cp('rule').textContent='';
         try{
             let source=catalogData.dot,g=null;
@@ -285,6 +314,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     function reset(){dropStaleDirectory();clearCatalog();mode();abort?.abort();version++;frames=[];pinned=false;rendered=false;previewCache.clear();$('round').replaceChildren();$('scope').replaceChildren(new Option('全部',''));$('viewport').replaceChildren();$('details').textContent='';$('code').textContent='';$('status').textContent='等待实际执行边界…';}
     function receive(f){
         if(f.kind!=='layer_snapshot'||!f.graphs||!f.analysis)throw Error('无效的 layer 快照');
+        if(f.ripen_output_directory)cp('path').value=f.ripen_output_directory;
         frames.push(f);$('round').add(new Option(f.label,String(frames.length-1)));
         // New data does not start expensive render subprocesses automatically.
         if(!pinned){$('round').value=String(frames.length-1);options(false);}
@@ -316,7 +346,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     $('download').onclick=()=>{const source=$('kind').value==='saturated_rule_composition'?cp('view').dataset.dot:dot(selectedGraph());if(!source)return;const a=document.createElement('a'),u=URL.createObjectURL(new Blob([source],{type:'text/vnd.graphviz'}));a.href=u;a.download='cs-ripen.dot';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);};
     async function load(path){
         const controls=['load','render','round','kind','scope','format'];controls.forEach(id=>$(id).disabled=true);
-        try {const data=await (await post('layer-run',{path})).json();reset();for(const f of data.frames)receive(f);if(data.saturated_rule_composition_catalog&&!data.frames.some(f=>f.saturated_rule_composition)){cp('path').value=data.saturated_rule_composition_catalog;await cp('load').onclick();}mode();}
+        try {const data=await (await post('layer-run',{path})).json();reset();for(const f of data.frames)receive(f);cp('path').value=path;if(data.saturated_rule_composition_catalog&&!data.frames.some(f=>f.saturated_rule_composition)){cp('path').value=data.saturated_rule_composition_catalog;await cp('load').onclick();}mode();}
         finally {controls.forEach(id=>$(id).disabled=false);}
     }
     $('load').onclick=()=>{const path=$('directory').value;return load(path).catch(e=>{if($('kind').value==='saturated_rule_composition'){reset();$('directory').value=path;cp('path').value=path;mode();return cp('load').onclick();}$('error').textContent=e.message;});};

@@ -206,8 +206,15 @@ class Handler(SimpleHTTPRequestHandler):
                     raise ValueError('Catalog must remain inside out/')
                 catalog = json.loads((folder / 'catalog.json').read_text())
                 state = int(data['state'])
-                trigger = next((t for t in catalog.get('triggers') or []
-                                if t.get('saturated_rule_composition') == state), None)
+                triggers = catalog.get('triggers') or []
+                selected = data.get('trigger')
+                if selected is not None:
+                    selected = int(selected)
+                    if selected < 0 or selected >= len(triggers) or triggers[selected].get('saturated_rule_composition') != state:
+                        return self.reply(400, {'error':'所选实例不属于该饱和族'})
+                    trigger = triggers[selected]
+                else:
+                    trigger = next((t for t in triggers if t.get('saturated_rule_composition') == state), None)
                 if trigger is None:
                     return self.reply(404, {'error': f'C{state} 没有触发实例，无法定位 cell'})
                 cell = Path(trigger['source']).resolve()
