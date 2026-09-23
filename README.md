@@ -127,3 +127,5 @@ cargo run --release --offline -- analyze \
 每个 cell 的 `ripen.json` 中 `sweep.steps` 记录本批实际推进轮数，`sweep.max_steps` 记录配置值。`EGG_LAYOUT_RIPEN_SWEEP_STEPS` 可配置分析/调试流程，默认 4；`--ripen-sweep-steps` 可覆盖它。
 
 默认不发送逐 application 的 DOT / Typst / binding 展示日志；FractalRule、覆盖统计和图仍保留。需要完整逐条展示时设置 `EGG_LAYOUT_FULL_TRACE=1`（网页服务也读取此环境变量）。`--save-history` 仍显式保存可重放分析历史。内部依赖事件仍在提交后被分析并排空，不能删掉用于判定 composition 的 provenance。
+
+SVG 排版在分析结束后统一并行执行，不再阻塞每轮 ripen。默认独立线程池并发 2 个 Graphviz 进程，可设置 `EGG_LAYOUT_SVG_THREADS=4` 调整；`EGG_LAYOUT_EAGER_SVG=0` 仍关闭生成。同一路径只渲染最终 DOT，共享实例复制已完成的 SVG。CLI 等待全部图表完成后退出，网页显示单独的渲染阶段。单张复杂图仍可能排版很慢，并行不会消除这一成本。

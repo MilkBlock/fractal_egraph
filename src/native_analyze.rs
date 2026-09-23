@@ -891,6 +891,7 @@ fn execute(
     emit: &mut dyn FnMut(Json) -> Result,
 ) -> Result<Json> {
     std::fs::create_dir_all(out)?;
+    let render_batch = crate::graph_render::Batch::start()?;
     let detailed_trace = std::env::var("EGG_LAYOUT_FULL_TRACE").as_deref() == Ok("1");
     eprintln!(
         "ripen limits: {} ms, {} facts; detailed trace: {}",
@@ -989,6 +990,8 @@ fn execute(
         out.join("layers.json"),
         serde_json::to_vec(&c.layers.report())?,
     )?;
+    emit(json!({"kind":"rendering","message":"Analysis complete; rendering SVGs in parallel"}))?;
+    render_batch.finish()?;
     Ok(report)
 }
 pub fn run(

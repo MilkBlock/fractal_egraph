@@ -225,7 +225,9 @@ impl Pipeline {
                     "native-egraph-initial.dot",
                     "native-egraph-initial.svg",
                 ] {
-                    if source.join(name).exists() {
+                    if name.ends_with(".svg") {
+                        crate::graph_render::copy(&source.join(name), &folder.join(name))?;
+                    } else if source.join(name).exists() {
                         std::fs::copy(source.join(name), folder.join(name))?;
                     }
                 }

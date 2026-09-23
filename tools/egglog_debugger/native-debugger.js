@@ -593,6 +593,7 @@ export function installNativeDebugger(editor) {
                 if(row.kind==='error')throw Error(row.error);
                 if(row.kind==='complete'){complete=true;runStatus='complete';status(row.analysis_status==='observed_unfinished'?'观察结束：仍有未完成的 ripen，增长记录已保存；这不是 Saturated 或 infi 判定。':`完成：${rows.filter(r=>r.kind==='application').length} 个有效应用；CS、ripen 等价桶与 weak dominate 见统计面板。`);}
                 else if(row.kind==='layer_snapshot')layerPanel.receive(row);
+                else if(row.kind==='rendering'){status('分析完成，正在并行生成 SVG；完成后图表可用。');}
                 else if(row.kind==='ripen_progress'){layerPanel.progress(row.saturated_rule_composition);status('Ripen · '+JSON.stringify(row.saturated_rule_composition.counts));}
                 else if(row.kind==='boundary')status(`执行边界 ${row.boundary}：${row.applications} 个有效应用；${row.logical_matches} 个逻辑匹配，排除 ${row.excluded} 个。`);
                 else {rows.push(row);addRow(row);}

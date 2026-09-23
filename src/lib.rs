@@ -12,3 +12,5 @@ pub mod cc_merge;
 pub mod reentry_bucket;
 
 pub mod ripen_observation;
+
+mod graph_render;

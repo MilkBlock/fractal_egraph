@@ -381,11 +381,13 @@ pub fn run(source: &Path, out: &Path) -> Result<Json> {
     if out.exists() {
         return Err("ripen output already exists".into());
     }
+    let render_batch = crate::graph_render::Batch::start()?;
     let mut task = Session::new(source, out)?;
     while !task.done {
         task.advance()?;
         eprintln!("[ripen] {}", task.report["ripen"]);
     }
+    render_batch.finish()?;
     Ok(task.report)
 }
 fn table_sizes(eg: &EGraph, datatype: &str) -> Result<BTreeMap<String, usize>> {
@@ -422,11 +424,7 @@ fn write_native_graph(eg: &EGraph, out: &Path, stem: &str) -> Result<()> {
     serialized
         .egraph
         .to_dot_file(out.join(format!("{stem}.dot")))?;
-    if std::env::var("EGG_LAYOUT_EAGER_SVG").as_deref() != Ok("0") {
-        serialized
-            .egraph
-            .to_svg_file(out.join(format!("{stem}.svg")))?;
-    }
+    crate::graph_render::enqueue(&out.join(format!("{stem}.dot")))?;
     Ok(())
 }
 
@@ -528,11 +526,7 @@ fn export_state(
     serialized
         .egraph
         .to_dot_file(out.join("native-egraph.dot"))?;
-    if std::env::var("EGG_LAYOUT_EAGER_SVG").as_deref() != Ok("0") {
-        serialized
-            .egraph
-            .to_svg_file(out.join("native-egraph.svg"))?;
-    }
+    crate::graph_render::enqueue(&out.join("native-egraph.dot"))?;
     let literals: BTreeMap<_, _> = serialized
         .egraph
         .nodes
