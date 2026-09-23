@@ -172,6 +172,7 @@ pub fn stream_source(
         None,
         false,
         std::env::var_os("EGG_LAYOUT_SATURATED_RULE_COMPOSITION_OUTPUT").is_none(),
+        true,
         crate::ripen_observation::Limits::from_env()?,
         emit,
     )?;

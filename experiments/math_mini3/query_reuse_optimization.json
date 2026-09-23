@@ -1,0 +1,129 @@
+{
+  "scope": "Actual runtime, mini3, no DOT/SVG, unchanged default 50 ms / 200000 facts. Single measurements; unfinished prefixes are not fixed-work comparisons.",
+  "runs": {
+    "graphless-query-epoch": {
+      "time_real_seconds": 4.52,
+      "time_peak_process_rss_bytes": 1612693504,
+      "exit_code": 0,
+      "phases": {
+        "register_entries": 0.34508,
+        "advance_and_share": 1.436311,
+        "exact_catalog": 0.10753199999999999,
+        "weak_queries_and_evidence": 1.333071
+      },
+      "counts": {
+        "ObservedUnfinished": 6,
+        "Saturated": 79
+      },
+      "query_cache": {
+        "compiled_pairs": 1804,
+        "current_scans": 2425,
+        "result_cache_hits": 297
+      }
+    },
+    "graphless-one-worker": {
+      "time_real_seconds": 4.27,
+      "time_peak_process_rss_bytes": 1684897792,
+      "exit_code": 0,
+      "phases": {
+        "register_entries": 0.271086,
+        "advance_and_share": 1.579124,
+        "exact_catalog": 0.104358,
+        "weak_queries_and_evidence": 1.1902650000000001
+      },
+      "counts": {
+        "ObservedUnfinished": 6,
+        "Saturated": 79
+      },
+      "query_cache": {
+        "compiled_pairs": 1804,
+        "current_scans": 2425,
+        "result_cache_hits": 297
+      }
+    },
+    "graphless-compact-ripen": {
+      "time_real_seconds": 9.88,
+      "time_peak_process_rss_bytes": 1650343936,
+      "exit_code": 0,
+      "phases": {
+        "register_entries": 0.368257,
+        "advance_and_share": 0.786582,
+        "exact_catalog": 0.08627499999999999,
+        "weak_queries_and_evidence": 3.40571
+      },
+      "counts": {
+        "ObservedUnfinished": 6,
+        "Saturated": 79
+      },
+      "query_cache": {
+        "compiled_pairs": 1804,
+        "current_scans": 2568,
+        "result_cache_hits": 306
+      }
+    },
+    "graphless-final-no-frames": {
+      "time_real_seconds": 6.58,
+      "time_peak_process_rss_bytes": 1419575296,
+      "exit_code": 0,
+      "phases": {
+        "register_entries": 0.35795,
+        "advance_and_share": 0.768802,
+        "exact_catalog": 0.09358999999999999,
+        "weak_queries_and_evidence": 3.37562
+      },
+      "counts": {
+        "ObservedUnfinished": 6,
+        "Saturated": 79
+      },
+      "query_cache": {
+        "compiled_pairs": 1804,
+        "current_scans": 2568,
+        "result_cache_hits": 306
+      }
+    },
+    "graphless-best-combo": {
+      "time_real_seconds": 4.55,
+      "time_peak_process_rss_bytes": 1354629120,
+      "exit_code": 0,
+      "phases": {
+        "register_entries": 0.371827,
+        "advance_and_share": 1.456545,
+        "exact_catalog": 0.112221,
+        "weak_queries_and_evidence": 1.391651
+      },
+      "counts": {
+        "ObservedUnfinished": 6,
+        "Saturated": 79
+      },
+      "query_cache": {
+        "compiled_pairs": 1804,
+        "current_scans": 2425,
+        "result_cache_hits": 297
+      }
+    },
+    "graphless-version-cache": {
+      "time_real_seconds": 4.77,
+      "time_peak_process_rss_bytes": 1545388032,
+      "exit_code": 0,
+      "phases": {
+        "register_entries": 0.373768,
+        "advance_and_share": 1.590337,
+        "exact_catalog": 0.114286,
+        "weak_queries_and_evidence": 1.446698
+      },
+      "counts": {
+        "ObservedUnfinished": 6,
+        "Saturated": 79
+      },
+      "query_cache": {
+        "compiled_pairs": 1804,
+        "current_scans": 2178,
+        "result_cache_hits": 544
+      }
+    }
+  },
+  "completed_state_json_equal": 78,
+  "completed_state_equal_excluding_run_local_ids": 79,
+  "final_completed_state_equal_excluding_run_local_ids": 79,
+  "final_completed_state_json_equal": 78
+}

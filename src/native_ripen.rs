@@ -19,6 +19,9 @@ fn supported_action(a: &Action) -> bool {
 pub(super) struct Session {
     pub eg: EGraph,
     pub before: EGraph,
+    pub query_epoch: usize,
+    table_names: Vec<String>,
+    record_history: bool,
     pub weak_queries: BTreeMap<String, weak_dominate::CachedQuery>,
     pub has_effects: bool,
     pub initial_facts: usize,
@@ -198,11 +201,26 @@ impl Session {
         if let Some(state) = &trigger {
             crate::pipeline::write_json(&out.join("trigger-state.json"), state)?;
         }
-        let initial_facts = table_sizes(&eg, &c.datatype)?.values().sum();
+        let table_names: Vec<String> = setup
+            .iter()
+            .flat_map(|cmd| match cmd {
+                Command::Datatype { variants, .. } => {
+                    variants.iter().map(|v| v.name.clone()).collect()
+                }
+                Command::Relation { name, .. } | Command::Function { name, .. } => {
+                    vec![name.clone()]
+                }
+                _ => vec![],
+            })
+            .collect();
+        let initial_facts = table_counts(&eg, &table_names).values().sum();
         let before = eg.clone();
         Ok(Self {
             eg,
             before,
+            query_epoch: 0,
+            table_names,
+            record_history: std::env::var("EGG_LAYOUT_RIPEN_HISTORY").as_deref() != Ok("0"),
             weak_queries: BTreeMap::new(),
             has_effects: false,
             initial_facts,
@@ -264,7 +282,7 @@ impl Session {
             steps += 1;
             updated = false;
             for ruleset in &self.rulesets {
-                let facts: usize = table_sizes(&self.eg, &self.c.datatype)?.values().sum();
+                let facts: usize = table_counts(&self.eg, &self.table_names).values().sum();
                 self.trace.set_execution_limits(
                     limits.milliseconds.map(|ms| {
                         std::time::Duration::from_secs_f64(
@@ -276,7 +294,11 @@ impl Session {
                 let result = self.eg.step_rules_with_trace(ruleset, &self.trace);
                 native_stop_reason = self.trace.execution_stop_reason();
                 self.trace.clear_execution_limits();
-                updated |= result?.updated;
+                let changed = result?.updated;
+                if changed {
+                    self.query_epoch += 1;
+                }
+                updated |= changed;
                 self.schedule += &format!("(run {ruleset} 1)\n");
                 let table_names: BTreeMap<_, _> = self.trace.table_names().into_iter().collect();
                 let (inserted, union_effect, has_effects) = self.trace.effect_summary();
@@ -288,7 +310,13 @@ impl Session {
                 }
                 self.union_effect |= union_effect;
                 self.has_effects |= has_effects;
-                collect(&self.eg, &self.trace, &mut self.c, &mut self.producers)?;
+                if self.record_history {
+                    collect(&self.eg, &self.trace, &mut self.c, &mut self.producers)?;
+                } else {
+                    // Downstream sharing consumes states and effects, not this local
+                    // application DAG. Keep tier0 analysis unchanged; drain local trace.
+                    self.c.events += self.trace.drain_completed().matches.len();
+                }
                 if native_stop_reason.is_some() {
                     break;
                 }
@@ -297,7 +325,7 @@ impl Session {
                 break;
             }
             let facts = if limits.facts.is_some() {
-                table_sizes(&self.eg, &self.c.datatype)?.values().sum()
+                table_counts(&self.eg, &self.table_names).values().sum()
             } else {
                 0
             };
@@ -321,13 +349,15 @@ impl Session {
             excluded_matches: self.c.rejected,
             scope: "whole isolated cell".into(),
         };
-        self.c.boundaries.push(CaptureBoundary {
-            ripen: Some(f.clone()),
-            kind: "ripen-round".into(),
-            round: Some(self.round),
-            end: self.c.records.len(),
-        });
-        update_layers(&mut self.c)?;
+        if self.record_history {
+            self.c.boundaries.push(CaptureBoundary {
+                ripen: Some(f.clone()),
+                kind: "ripen-round".into(),
+                round: Some(self.round),
+                end: self.c.records.len(),
+            });
+            update_layers(&mut self.c)?;
+        }
         self.done = !updated && native_stop_reason.is_none();
         let mut exported = json!({"status":"running"});
         if self.done {
@@ -355,7 +385,7 @@ impl Session {
                 Err(e) => exported = json!({"status":"unavailable","reason":e.to_string()}),
             }
         }
-        self.report = json!({"native_stop_reason":native_stop_reason,"observation_limits":limits,"sweep":{"steps":steps,"max_steps":limits.sweep_steps},"ripen":f,"source":self.source,"source_text":self.text,"checks":if self.done{"passed"}else{"deferred"},"checks_count":self.checks.len(),"imported_applies":self.c.records.len(),"events":self.c.events,"saturated_rule_composition":exported,"native_egraph":if self.final_state.is_some(){Some("native-egraph.dot")}else{None},"tier1":self.c.layers.report(),"tables":table_sizes(&self.eg,&self.c.datatype)?});
+        self.report = json!({"native_stop_reason":native_stop_reason,"observation_limits":limits,"sweep":{"steps":steps,"max_steps":limits.sweep_steps},"ripen":f,"source":self.source,"source_text":self.text,"checks":if self.done{"passed"}else{"deferred"},"checks_count":self.checks.len(),"internal_history":self.record_history,"imported_applies":if self.record_history {Some(self.c.records.len())} else {None},"events":self.c.events,"saturated_rule_composition":exported,"native_egraph":if self.final_state.is_some(){Some("native-egraph.dot")}else{None},"tier1":if self.record_history {Some(self.c.layers.report())} else {None},"tables":table_counts(&self.eg,&self.table_names)});
         crate::pipeline::write_json(&self.out.join("ripen.json"), &self.report)?;
         if self.done {
             let replay = self
@@ -390,24 +420,24 @@ pub fn run(source: &Path, out: &Path) -> Result<Json> {
     render_batch.finish()?;
     Ok(task.report)
 }
-fn table_sizes(eg: &EGraph, datatype: &str) -> Result<BTreeMap<String, usize>> {
+fn table_sizes(eg: &EGraph, declarations: &str) -> Result<BTreeMap<String, usize>> {
     let mut parser = measured_engine();
-    let cmds = parser.parse_program(None, datatype)?;
-    let mut sizes = BTreeMap::new();
-    for cmd in &cmds {
-        let names: Vec<String> = match cmd {
-            Command::Datatype { variants, .. } => variants.iter().map(|v| v.name.clone()).collect(),
-            Command::Relation { name, .. } => vec![name.clone()],
-            Command::Function { name, .. } => vec![name.clone()],
+    let names: Vec<_> = parser
+        .parse_program(None, declarations)?
+        .into_iter()
+        .flat_map(|cmd| match cmd {
+            Command::Datatype { variants, .. } => variants.into_iter().map(|v| v.name).collect(),
+            Command::Relation { name, .. } | Command::Function { name, .. } => vec![name],
             _ => vec![],
-        };
-        for name in names {
-            let mut count = 0;
-            eg.function_for_each(&name, |_| count += 1)?;
-            sizes.insert(name, count);
-        }
-    }
-    Ok(sizes)
+        })
+        .collect();
+    Ok(table_counts(eg, &names))
+}
+fn table_counts(eg: &EGraph, names: &[String]) -> BTreeMap<String, usize> {
+    names
+        .iter()
+        .map(|name| (name.clone(), eg.get_size(name)))
+        .collect()
 }
 
 /// Export the replayed local graph together with visibility and fixed ports.

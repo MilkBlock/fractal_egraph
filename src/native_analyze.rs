@@ -887,6 +887,7 @@ fn execute(
     replay: Option<&Path>,
     save_history: bool,
     persist_frames: bool,
+    stream_frames: bool,
     observation: crate::ripen_observation::Limits,
     emit: &mut dyn FnMut(Json) -> Result,
 ) -> Result<Json> {
@@ -925,6 +926,10 @@ fn execute(
             emit(row)?;
         }
         emitted = c.records.len();
+        pipeline.step(c, &c.layers, boundary)?;
+        if !persist_frames && !stream_frames {
+            return Ok(());
+        }
         let b = c.boundaries.last().cloned().unwrap_or(CaptureBoundary {
             ripen: None,
             kind: "capture".into(),
@@ -932,7 +937,7 @@ fn execute(
             end: c.records.len(),
         });
         let mut frame = layer_view::snapshot(&c.layers, &b, boundary, &c.preview_source)?;
-        frame["saturated_rule_composition"] = pipeline.step(c, &c.layers, boundary)?;
+        frame["saturated_rule_composition"] = pipeline.report().clone();
         frame["ripen_output_directory"] = json!(out);
         if let Some(dot) = frame["saturated_rule_composition"]["catalog"]["dot"].as_str() {
             frame["dots"]["saturated_rule_composition"] = json!(dot);
@@ -957,36 +962,41 @@ fn execute(
     // Running and can be interrupted by the caller, never marked saturated.
     while pipeline.has_work() {
         boundary += 1;
-        let q = pipeline.step(&c, &c.layers, boundary)?;
-        let mut progress = json!({"kind":"ripen_progress"});
-        progress["saturated_rule_composition"] = q;
-        emit(progress)?;
-    }
-    let b = CaptureBoundary {
-        ripen: None,
-        kind: if pipeline.report()["counts"]["ObservedUnfinished"]
-            .as_u64()
-            .unwrap_or(0)
-            > 0
-        {
-            "ripen-observation"
-        } else {
-            "ripen-complete"
+        pipeline.step(&c, &c.layers, boundary)?;
+        if stream_frames {
+            let q = pipeline.report().clone();
+            let mut progress = json!({"kind":"ripen_progress"});
+            progress["saturated_rule_composition"] = q;
+            emit(progress)?;
         }
-        .into(),
-        round: None,
-        end: c.records.len(),
-    };
-    boundary += 1;
-    let mut frame = layer_view::snapshot(&c.layers, &b, boundary, &c.preview_source)?;
-    frame["saturated_rule_composition"] = pipeline.report().clone();
-    if let Some(dot) = frame["saturated_rule_composition"]["catalog"]["dot"].as_str() {
-        frame["dots"]["saturated_rule_composition"] = json!(dot);
     }
-    if persist_frames {
-        layer_view::persist(out, &frame, &mut manifest)?;
+    if persist_frames || stream_frames {
+        let b = CaptureBoundary {
+            ripen: None,
+            kind: if pipeline.report()["counts"]["ObservedUnfinished"]
+                .as_u64()
+                .unwrap_or(0)
+                > 0
+            {
+                "ripen-observation"
+            } else {
+                "ripen-complete"
+            }
+            .into(),
+            round: None,
+            end: c.records.len(),
+        };
+        boundary += 1;
+        let mut frame = layer_view::snapshot(&c.layers, &b, boundary, &c.preview_source)?;
+        frame["saturated_rule_composition"] = pipeline.report().clone();
+        if let Some(dot) = frame["saturated_rule_composition"]["catalog"]["dot"].as_str() {
+            frame["dots"]["saturated_rule_composition"] = json!(dot);
+        }
+        if persist_frames {
+            layer_view::persist(out, &frame, &mut manifest)?;
+        }
+        emit(frame)?;
     }
-    emit(frame)?;
     let mut report = json!({"status":if pipeline.report()["counts"]["ObservedUnfinished"].as_u64().unwrap_or(0)>0 {"observed_unfinished"}else{"complete"},"summary":{"applications":c.records.len(),"logical_matches":c.events,"excluded":c.rejected,"scope":"native history -> CS -> ripen -> equivalence -> weak dominate"},"layers":c.layers.report(),"saturated_rule_composition":null});
     report["saturated_rule_composition"] = pipeline.take_report();
     std::fs::write(out.join("analysis.json"), serde_json::to_vec(&report)?)?;
@@ -1038,7 +1048,8 @@ pub fn run_with_observation(
         out,
         replay,
         save_history,
-        true,
+        crate::graph_render::graphs_enabled(),
+        false,
         observation,
         &mut |_| Ok(()),
     )

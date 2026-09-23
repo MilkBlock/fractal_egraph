@@ -86,3 +86,66 @@ fn graphless_run_keeps_catalog_without_dot_or_svg_files() {
     assert!(out.join("analysis.json").exists());
     fs::remove_dir_all(root).unwrap();
 }
+
+#[test]
+fn local_ripen_history_is_optional_without_changing_finite_analysis() {
+    let root = std::env::temp_dir().join(format!("ripen-history-ablation-{}", std::process::id()));
+    fs::create_dir_all(&root).unwrap();
+    let source = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/core_flow/reentry.egg");
+    let mut results = vec![];
+    for history in [false, true] {
+        let out = root.join(if history { "full" } else { "compact" });
+        let r = Command::new(env!("CARGO_BIN_EXE_egg_layout"))
+            .args([
+                "analyze",
+                "--source",
+                source.to_str().unwrap(),
+                "--output",
+                out.to_str().unwrap(),
+                "--ripen-observe-ms",
+                "10000",
+            ])
+            .env("EGG_LAYOUT_GRAPHS", "0")
+            .env("EGG_LAYOUT_RIPEN_HISTORY", if history { "1" } else { "0" })
+            .output()
+            .unwrap();
+        assert!(r.status.success(), "{}", String::from_utf8_lossy(&r.stderr));
+        let q: serde_json::Value =
+            serde_json::from_slice(&fs::read(out.join("analysis.json")).unwrap()).unwrap();
+        let mut states = std::collections::BTreeMap::new();
+        for cell in fs::read_dir(out.join("saturated-rule-composition/cells")).unwrap() {
+            let cell = cell.unwrap();
+            let p = cell.path().join("saturated-rule-composition.json");
+            if p.exists() {
+                states.insert(
+                    cell.file_name(),
+                    serde_json::from_slice::<serde_json::Value>(&fs::read(p).unwrap()).unwrap(),
+                );
+            }
+        }
+        let edges: Vec<_> = q["saturated_rule_composition"]["weak_dominate"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|e| {
+                serde_json::json!([
+                    e["from"],
+                    e["to"],
+                    e["evidence"]["bindings"],
+                    e["evidence"]["new_bindings"],
+                    e["evidence"]["new_effects"],
+                    e["reentry_observation"]
+                ])
+            })
+            .collect();
+        results.push((
+            q["saturated_rule_composition"]["counts"].clone(),
+            states,
+            edges,
+        ));
+    }
+    assert_eq!(results[0], results[1]);
+    assert!(!results[0].1.is_empty());
+    fs::remove_dir_all(root).unwrap();
+}
