@@ -1,0 +1,15 @@
+{
+  "scope": "all six-round CS preparations, no saturation; cache-off builds a fresh rule environment per composition",
+  "compositions": 979,
+  "prepared": 948,
+  "identical_job_evidence": true,
+  "without_cache_seconds": 9.237048917,
+  "with_cache_seconds": 5.864085084,
+  "ratio": 1.5751901250892557,
+  "cache": {
+    "environment_compilations": 1,
+    "validated_compositions": 684,
+    "validation_cache_hits": 264,
+    "validation_runs": 715
+  }
+}

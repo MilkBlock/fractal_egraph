@@ -2,7 +2,7 @@
 use super::*;
 #[path = "native_ripen_entry.rs"]
 mod entry;
-pub(super) use entry::prepare_members;
+pub(super) use entry::PreparationCache;
 pub(super) fn measured_engine() -> EGraph {
     EGraph::default()
 }
@@ -40,6 +40,16 @@ pub(super) struct Session {
 }
 impl Session {
     pub fn new(source: &Path, out: &Path) -> Result<Self> {
+        Self::new_impl(source, out, None)
+    }
+    pub(super) fn new_cached(source: &Path, out: &Path, cache: &PreparationCache) -> Result<Self> {
+        Self::new_impl(source, out, cache.environment.as_ref())
+    }
+    fn new_impl(
+        source: &Path,
+        out: &Path,
+        environment: Option<&entry::Environment>,
+    ) -> Result<Self> {
         let source = source.canonicalize()?;
         let text = std::fs::read_to_string(&source)?;
         let mut eg = measured_engine();
@@ -98,7 +108,28 @@ impl Session {
             .collect::<Vec<_>>()
             .join("\n");
         let rulesets: Vec<_> = rulesets.into_iter().collect();
-        eg.run_program(setup.clone())?;
+        if let Some(environment) = environment {
+            let code = setup
+                .iter()
+                .filter(|c| !matches!(c, Command::Action(_)))
+                .map(ToString::to_string)
+                .collect::<Vec<_>>()
+                .join("\n");
+            if code != environment.code {
+                return Err("cached ripen rule environment mismatch".into());
+            }
+            eg = environment.base.clone();
+            rules = environment.rules.clone(); // source spans must match the compiled rules
+            eg.run_program(
+                setup
+                    .iter()
+                    .filter(|c| matches!(c, Command::Action(_)))
+                    .cloned()
+                    .collect(),
+            )?;
+        } else {
+            eg.run_program(setup.clone())?;
+        }
         let mut port_values = vec![];
         for cmd in &setup {
             if let Command::Action(Action::Let(_, name, _)) = cmd {

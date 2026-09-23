@@ -18,6 +18,7 @@ pub(super) struct Pipeline {
     completed: Vec<PathBuf>,
     catalog: Option<Json>,
     report: Json,
+    preparation: ripen::PreparationCache,
     weak: BTreeMap<(usize, usize), (u64, Json)>,
 }
 impl Pipeline {
@@ -33,6 +34,7 @@ impl Pipeline {
             completed: vec![],
             catalog: None,
             report: Json::Null,
+            preparation: Default::default(),
             weak: BTreeMap::new(),
         })
     }
@@ -70,7 +72,7 @@ impl Pipeline {
                 .join("saturated-rule-composition/cells")
                 .join(format!("CSUnit-{unit:06}"));
             let prepared = (|| -> Result<()> {
-                let (source, validation, mut origin) = ripen::prepare_members(c, &members)?;
+                let (source, validation, mut origin) = self.preparation.prepare(c, &members)?;
                 origin["candidate_kind"] = json!("CSUnit");
                 origin["candidate_id"] = json!(unit);
                 origin["history"] = json!(self.source);
@@ -90,7 +92,7 @@ impl Pipeline {
                     job["state"] = json!("WaitingEquivalent");
                     job["fully_equivalent_to"] = json!(owner);
                 } else {
-                    let session = ripen::Session::new(&entry, &folder)?;
+                    let session = ripen::Session::new_cached(&entry, &folder, &self.preparation)?;
                     if session.initial.is_some() {
                         self.owners.insert(key, id);
                     }
@@ -266,7 +268,7 @@ impl Pipeline {
                 .or_default() += 1;
         }
         mark("weak_queries_and_evidence");
-        self.report = json!({"step_seconds":timings,"kind":"saturated_rule_composition_snapshot","boundary":boundary,"jobs":self.jobs,"cs":self.cs.report(),"weak_dominate":weak,"weak_unresolved":unresolved,"counts":counts,"not_queued":0,"limits":null,"scope":"all observed CS entries; fair resumable sweeps; no heuristic selection, live tier0 substitution or termination guess","catalog":self.catalog});
+        self.report = json!({"step_seconds":timings,"preparation_cache":self.preparation.stats(),"kind":"saturated_rule_composition_snapshot","boundary":boundary,"jobs":self.jobs,"cs":self.cs.report(),"weak_dominate":weak,"weak_unresolved":unresolved,"counts":counts,"not_queued":0,"limits":null,"scope":"all observed CS entries; fair resumable sweeps; no heuristic selection, live tier0 substitution or termination guess","catalog":self.catalog});
         crate::pipeline::write_json(
             &self.out.join("saturated-rule-composition/queue.json"),
             &self.report,

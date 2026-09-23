@@ -44,6 +44,13 @@ fn all_observed_entries_are_registered_and_identical_entries_share_work() {
     assert!(r.status.success(), "{}", String::from_utf8_lossy(&r.stderr));
     let q = read(out.join("saturated-rule-composition/queue.json"));
     assert!(q["jobs"].as_array().unwrap().len() >= 270);
+    assert_eq!(q["preparation_cache"]["environment_compilations"], 1);
+    assert!(
+        q["preparation_cache"]["validation_cache_hits"]
+            .as_u64()
+            .unwrap()
+            >= 269
+    );
     assert_eq!(q["not_queued"], 0);
     assert!(q["limits"].is_null());
     assert!(

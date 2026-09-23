@@ -29,58 +29,132 @@ fn outside(r: &Record, p: &Port, members: &BTreeSet<usize>) -> bool {
     }
 }
 
+pub(super) struct Environment {
+    pub base: EGraph,
+    pub rules: Vec<RuleInfo>,
+    pub code: String,
+    source: String,
+    hole: String,
+    declarations: String,
+    constructors: BTreeSet<String>,
+    commands: Vec<Command>,
+}
+impl Environment {
+    fn new(c: &Captured) -> Result<Self> {
+        audit(c)?;
+        let mut hole = "RipenInput".to_string();
+        while c.preview_source.contains(&hole) {
+            hole.push('_');
+        }
+        let mut parser = super::measured_engine();
+        let mut datatypes = parser.parse_program(None, &c.datatype)?;
+        let extra = parser.parse_program(None, &format!("(datatype Temporary ({hole} i64))"))?;
+        let Command::Datatype {
+            variants: extra, ..
+        } = &extra[0]
+        else {
+            unreachable!()
+        };
+        let datatype_index=datatypes.iter().position(|c| matches!(c,Command::Datatype{..})).ok_or("symbolic ripen needs an equality datatype; scalar-only bindings are not parameterized yet")?;
+        let Command::Datatype { variants, .. } = &mut datatypes[datatype_index] else {
+            return Err("expected datatype".into());
+        };
+        variants.extend(extra.clone());
+        let constructors: BTreeSet<String> = datatypes
+            .iter()
+            .flat_map(|d| match d {
+                Command::Datatype { variants, .. } => {
+                    variants.iter().map(|v| v.name.clone()).collect()
+                }
+                _ => Vec::new(),
+            })
+            .collect();
+        let declarations = datatypes
+            .iter()
+            .map(ToString::to_string)
+            .collect::<Vec<_>>()
+            .join("\n");
+        let mut entry = datatypes.clone();
+        let rulesets: BTreeSet<_> = c
+            .rules
+            .iter()
+            .map(|r| r.rule.ruleset.clone())
+            .filter(|r| !r.is_empty())
+            .collect();
+        for ruleset in rulesets {
+            entry.push(Command::AddRuleset(sp(), ruleset));
+        }
+        entry.extend(c.rules.iter().map(|r| Command::Rule {
+            rule: r.rule.clone(),
+        }));
+        let code = entry
+            .iter()
+            .map(ToString::to_string)
+            .collect::<Vec<_>>()
+            .join("\n");
+        let mut base = super::measured_engine();
+        base.run_program(entry.clone())?;
+        Ok(Self {
+            base,
+            rules: c.rules.clone(),
+            code,
+            source: c.preview_source.clone(),
+            hole,
+            declarations,
+            constructors,
+            commands: entry,
+        })
+    }
+}
+#[derive(Default)]
+pub(in crate::native_analyze) struct PreparationCache {
+    pub(super) environment: Option<Environment>,
+    validated: std::collections::HashMap<String, (Json, Json)>,
+    hits: usize,
+    validations: usize,
+    environments: usize,
+}
+impl PreparationCache {
+    pub fn stats(&self) -> Json {
+        json!({"environment_compilations":self.environments,"validation_runs":self.validations,"validation_cache_hits":self.hits,"validated_compositions":self.validated.len()})
+    }
+    pub fn prepare(&mut self, c: &Captured, members: &[usize]) -> Result<(String, String, Json)> {
+        if members.is_empty()
+            || members.windows(2).any(|p| p[0] >= p[1])
+            || members.last().unwrap() >= &c.records.len()
+        {
+            return Err("invalid CS composition members".into());
+        }
+        if self
+            .environment
+            .as_ref()
+            .is_none_or(|e| e.source != c.preview_source)
+        {
+            self.environment = Some(Environment::new(c)?);
+            self.validated.clear();
+            self.environments += 1;
+        }
+        extract(c, members, members.len() - 1, self)
+    }
+}
+
 fn extract(
     c: &Captured,
     member_ids: &[usize],
     root_member: usize,
+    cache: &mut PreparationCache,
 ) -> Result<(String, String, Json)> {
     let members: BTreeSet<_> = member_ids.iter().copied().collect();
     if members.is_empty() {
         return Err("empty coarse entry".into());
     }
-    let mut hole = "RipenInput".to_string();
-    while c.preview_source.contains(&hole) {
-        hole.push('_');
-    }
+    let environment = cache.environment.as_ref().unwrap();
+    let hole = environment.hole.clone();
+    let declarations = environment.declarations.clone();
+    let constructors = &environment.constructors;
+    let mut entry = environment.commands.clone();
+    let environment_len = entry.len();
     let mut parser = super::measured_engine();
-    let mut datatypes = parser.parse_program(None, &c.datatype)?;
-    let extra = parser.parse_program(None, &format!("(datatype Temporary ({hole} i64))"))?;
-    let Command::Datatype {
-        variants: extra, ..
-    } = &extra[0]
-    else {
-        unreachable!()
-    };
-    let datatype_index=datatypes.iter().position(|c| matches!(c,Command::Datatype{..})).ok_or("symbolic ripen needs an equality datatype; scalar-only bindings are not parameterized yet")?;
-    let Command::Datatype { variants, .. } = &mut datatypes[datatype_index] else {
-        return Err("expected datatype".into());
-    };
-    variants.extend(extra.clone());
-    let constructors: BTreeSet<String> = datatypes
-        .iter()
-        .flat_map(|d| match d {
-            Command::Datatype { variants, .. } => variants.iter().map(|v| v.name.clone()).collect(),
-            _ => Vec::new(),
-        })
-        .collect();
-    let declarations = datatypes
-        .iter()
-        .map(ToString::to_string)
-        .collect::<Vec<_>>()
-        .join("\n");
-    let mut entry = datatypes.clone();
-    let rulesets: BTreeSet<_> = c
-        .rules
-        .iter()
-        .map(|r| r.rule.ruleset.clone())
-        .filter(|r| !r.is_empty())
-        .collect();
-    for ruleset in rulesets {
-        entry.push(Command::AddRuleset(sp(), ruleset));
-    }
-    entry.extend(c.rules.iter().map(|r| Command::Rule {
-        rule: r.rule.clone(),
-    }));
     let mut values = BTreeMap::new();
     let mut parameters = vec![];
     let mut stages = vec![];
@@ -324,26 +398,6 @@ fn extract(
             [injection_start, lhs_start, alias_start],
         ));
     }
-    let mut eg = super::measured_engine();
-    eg.run_program(entry.clone())?;
-    let initial_tables = super::table_sizes(&eg, &declarations)?;
-    for (i, _, preconditions, commands, [injection_start, lhs_start, alias_start]) in &stages {
-        for (n, command) in commands.iter().enumerate() {
-            let phase = if n < *injection_start {
-                "internal fact before external injection"
-            } else if n < *lhs_start {
-                "external fact injection"
-            } else if n < *preconditions {
-                "LHS fact"
-            } else if n < *alias_start {
-                "rule action"
-            } else {
-                "recorded output alias"
-            };
-            eg.run_program(vec![command.clone()])
-                .map_err(|e| format!("CS member {i}: {phase} failed: {e}"))?;
-        }
-    }
     let encode = |xs: &[Command]| {
         xs.iter()
             .map(ToString::to_string)
@@ -359,6 +413,62 @@ fn extract(
             .collect::<Vec<_>>()
             .join("\n")
     );
+    // Canonical relative ports and aliases distinguish identical rule names
+    // applied at different positions. Include the complete generated assumptions
+    // and actions as a conservative final discriminator before any replay.
+    let slots: BTreeMap<_, _> = member_ids
+        .iter()
+        .enumerate()
+        .map(|(slot, id)| (*id, slot))
+        .collect();
+    let mut symbols = BTreeMap::new();
+    let mut sym = |id: usize| {
+        let next = symbols.len();
+        let n = *symbols.entry(id).or_insert(next);
+        json!([n, c.pool.values[id].sort, c.pool.literals.get(&id)])
+    };
+    let signature:Vec<_>=member_ids.iter().map(|i| {
+        let r=&c.records[*i];
+        let wiring:Vec<_>=r.ports.iter().zip(&r.wanted).map(|(p,v)|match p {
+            Port::Parent(parent,output) if slots.contains_key(&r.parents[*parent]) => json!(["local",slots[&r.parents[*parent]],output]),
+            _=>json!(["external",sym(*v)]),
+        }).collect();
+        let apply=&c.layers.occurrences[*i].apply;
+        json!({"rule":r.rule,"input_roles":apply.input_roles,"output_roles":apply.output_roles,"wiring":wiring,"inputs":r.wanted.iter().map(|v|sym(*v)).collect::<Vec<_>>(),"outputs":r.values.iter().map(|v|sym(*v)).collect::<Vec<_>>(),"read_results":r.read_results.iter().map(|v|v.map(&mut sym)).collect::<Vec<_>>(),"unions":r.unions.iter().map(|(a,b)|json!([sym(*a),sym(*b)])).collect::<Vec<_>>()})
+    }).collect();
+    let key = serde_json::to_string(&(signature, &validation))?;
+    let (initial_tables, original_tables) = if let Some(tables) = cache.validated.get(&key) {
+        cache.hits += 1;
+        tables.clone()
+    } else {
+        cache.validations += 1;
+        let mut eg = environment.base.clone();
+        eg.run_program(entry[environment_len..].to_vec())?;
+        let initial_tables = super::table_sizes(&eg, &declarations)?;
+        for (i, _, preconditions, commands, [injection_start, lhs_start, alias_start]) in &stages {
+            for (n, command) in commands.iter().enumerate() {
+                let phase = if n < *injection_start {
+                    "internal fact before external injection"
+                } else if n < *lhs_start {
+                    "external fact injection"
+                } else if n < *preconditions {
+                    "LHS fact"
+                } else if n < *alias_start {
+                    "rule action"
+                } else {
+                    "recorded output alias"
+                };
+                eg.run_program(vec![command.clone()])
+                    .map_err(|e| format!("CS member {i}: {phase} failed: {e}"))?;
+            }
+        }
+        let tables = (
+            json!(initial_tables),
+            json!(super::table_sizes(&eg, &declarations)?),
+        );
+        cache.validated.insert(key, tables.clone());
+        tables
+    };
     let seed_text = encode(&entry);
     for (_, _, _, commands, _) in &stages {
         entry.extend(commands.clone());
@@ -394,7 +504,7 @@ fn extract(
     }).collect();
     let provenance = json!({"kind":"symbolic_cs_interface","template":null,"members":member_ids,"root_member":root_member,"comb_members":comb_members,"kind_scope":"use_kind is relative to directly recorded dependencies inside this CS entry; source_kind is the original layer classification; neither minimizes alternate proof requirements",
         "events":stages.iter().map(|(i,e,n,_,_)|json!({"record":i,"event":e,"precondition_checks":n})).collect::<Vec<_>>(),
-        "initial_tables":initial_tables,"original_use_tables":super::table_sizes(&eg,&declarations)?,"parameter_marker":hole,
+        "initial_tables":initial_tables,"original_use_tables":original_tables,"parameter_marker":hole,
         "symbolic_values":values.iter().map(|(token,term)|json!({"token":token,"term":term.to_string(),"sort":c.pool.values[*token].sort})).collect::<Vec<_>>(),
         "parameters":parameters,"all_source_rules":c.rules.len(),"validation":"all original LHS checks and recorded output aliases passed before/after the corresponding ground actions",
         "staged_injections":injections,"initial_source":seed_text,"concrete_boundary_structure_recovered":false,
@@ -455,18 +565,9 @@ fn audit(c: &Captured) -> Result {
     Ok(())
 }
 
-pub(in crate::native_analyze) fn prepare_members(
-    c: &Captured,
-    members: &[usize],
-) -> Result<(String, String, Json)> {
-    audit(c)?;
-    if members.is_empty()
-        || members.windows(2).any(|p| p[0] >= p[1])
-        || members.last().unwrap() >= &c.records.len()
-    {
-        return Err("invalid dependency candidate members".into());
-    }
-    extract(c, members, members.len() - 1)
+#[cfg(test)]
+fn prepare_members(c: &Captured, members: &[usize]) -> Result<(String, String, Json)> {
+    PreparationCache::default().prepare(c, members)
 }
 
 #[cfg(test)]
@@ -547,10 +648,81 @@ mod tests {
         assert_eq!(eg.get_size("G"), 1);
     }
     #[test]
+    fn preparation_cache_shares_renamed_values_but_preserves_aliases_and_environment() {
+        let source = r#"
+(datatype E (V i64) (Pair E E) (Out E E))
+(rule ((= p (Pair a b))) ((Out a b)) :name "copy")
+(Pair (V 1) (V 2)) (Pair (V 3) (V 4)) (Pair (V 5) (V 5))
+(run 1)
+"#;
+        let c = captured(source);
+        assert_eq!(c.records.len(), 3);
+        let mut cache = PreparationCache::default();
+        for i in 0..3 {
+            let uncached = prepare_members(&c, &[i]).unwrap();
+            let cached = cache.prepare(&c, &[i]).unwrap();
+            assert_eq!(
+                uncached, cached,
+                "cache must preserve each instance's own provenance"
+            );
+        }
+        assert_eq!(cache.stats()["environment_compilations"], 1);
+        assert_eq!(cache.stats()["validation_runs"], 2);
+        assert_eq!(cache.stats()["validation_cache_hits"], 1);
+        let changed = captured(&source.replace("(Out a b)", "(Out b a)"));
+        cache.prepare(&changed, &[0]).unwrap();
+        assert_eq!(cache.stats()["environment_compilations"], 2);
+    }
+    #[test]
+    fn preparation_cache_distinguishes_relative_binding_from_external_binding() {
+        let mut c = captured(
+            r#"
+(datatype E (V) (G E) (H E))
+(ruleset first) (ruleset last)
+(rule ((= x (V))) ((G x)) :ruleset first :name "producer")
+(rule ((= g (G x))) ((H g)) :ruleset last :name "consumer")
+(V) (run first 1) (run last 1)
+"#,
+        );
+        let mut cache = PreparationCache::default();
+        cache.prepare(&c, &[0, 1]).unwrap();
+        // Key-isolation test: the same term may be supplied through a different
+        // interface. Even if replay succeeds, that interface must not hit cache.
+        let slot = c.records[1]
+            .inputs
+            .iter()
+            .zip(&c.records[1].ports)
+            .position(|(i, p)| matches!(i, Input::Var(_)) && matches!(p, Port::Parent(..)))
+            .unwrap();
+        c.records[1].ports[slot] = Port::External(0);
+        cache.prepare(&c, &[0, 1]).unwrap();
+        assert_eq!(cache.stats()["validation_runs"], 2);
+        assert_eq!(cache.stats()["validation_cache_hits"], 0);
+    }
+    #[test]
+    fn preparation_cache_preserves_scalar_literals() {
+        let c = captured(
+            r#"
+(datatype E (V i64) (Out i64))
+(rule ((= v (V n))) ((Out n)) :name "scalar")
+(V 1) (V 2) (run 1)
+"#,
+        );
+        let mut cache = PreparationCache::default();
+        for i in 0..c.records.len() {
+            cache.prepare(&c, &[i]).unwrap();
+        }
+        assert_eq!(cache.stats()["validation_runs"], 2);
+        assert_eq!(cache.stats()["validation_cache_hits"], 0);
+    }
+    #[test]
     #[ignore = "explicit math preparation audit; no ripen or saturation claims"]
     fn math_six_round_preparation_audit() {
         let source = std::fs::read_to_string("egglog/tests/math-microbenchmark.egg").unwrap();
         let mut store = cs::Store::default();
+        let use_cache = std::env::var_os("EGG_LAYOUT_PREPARATION_CACHE").is_some();
+        let mut cache = PreparationCache::default();
+        let start = std::time::Instant::now();
         let mut jobs = vec![];
         let mut boundary = 0;
         let mut sink = |c: &mut Captured| -> Result {
@@ -558,7 +730,11 @@ mod tests {
             boundary += 1;
             for (_, id) in store.discover(c, &c.layers, boundary)? {
                 let u = &store.units[id];
-                let result = prepare_members(c, &u.members());
+                let result = if use_cache {
+                    cache.prepare(c, &u.members())
+                } else {
+                    prepare_members(c, &u.members())
+                };
                 jobs.push(match result {
                     Ok((_,_,origin)) => json!({"unit":id,"members":u.members(),"composite":u.source_composition.is_some(),"prepared":true,"injection_stages":origin["staged_injections"].as_array().unwrap().len()}),
                     Err(e) => json!({"unit":id,"members":u.members(),"composite":u.source_composition.is_some(),"prepared":false,"reason":e.to_string()}),
@@ -570,7 +746,7 @@ mod tests {
             .unwrap();
         let path = std::path::Path::new("out/staged-cs-preparation");
         std::fs::create_dir_all(path).unwrap();
-        std::fs::write(path.join("six-rounds.json"),serde_json::to_vec_pretty(&json!({"rounds":6,"scope":"all registered CS compositions; preparation and replay checks only, no saturation","jobs":jobs})).unwrap()).unwrap();
+        std::fs::write(path.join(if use_cache {"six-rounds-cached.json"} else {"six-rounds.json"}),serde_json::to_vec_pretty(&json!({"cache_enabled":use_cache,"cache":cache.stats(),"elapsed_seconds":start.elapsed().as_secs_f64(),"rounds":6,"scope":"all registered CS compositions; preparation and replay checks only, no saturation","jobs":jobs})).unwrap()).unwrap();
         eprintln!(
             "prepared {} / {}",
             jobs.iter().filter(|j| j["prepared"] == true).count(),

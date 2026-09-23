@@ -204,3 +204,28 @@ cargo test --release --offline --lib math_six_round_preparation_audit -- --ignor
 ```
 
 完整逐项结果写入 `out/staged-cs-preparation/six-rounds.json`；精简前后统计见 [staged_preparation.json](results/staged_preparation.json)。
+
+## 后续优化：验证前去重与规则环境共享
+
+同一规则环境只安装/编译一次；独立组合的验证与正式 ripen 都克隆该环境，数据、union 和运行状态仍各自隔离。组合准备时先建立精确键，再决定是否执行验证。键包含规则顺序、输入/输出位置、相对 binding、跨成员别名、类型/字面量、外部读结果身份、union 信息，以及完整的注入条件与检查/动作程序。哈希表命中后仍比较完整键，不以哈希碰撞认定等价。
+
+缓存只保存已验证成功的结果，未验证或失败的组合不会因此获得成功状态。每个实例仍生成自己的来源、binding 和成员说明。该优化没有实现任意图同构去重，可能保守地错过共享；也仍需构造符号程序才能计算完整键。
+
+六轮、全部 979 个组合的同版本开关对照：
+
+| 指标 | 关闭缓存 | 启用缓存 |
+|---|---:|---:|
+| 准备检查耗时（单次本地测量） | 9.237 s | 5.864 s |
+| 检查通过 | 948 | 948 |
+| 成员、状态和逐项诊断 | 与缓存开启逐项一致 | 与缓存关闭逐项一致 |
+
+启用缓存时规则环境编译 1 次，实际验证 715 次，跳过重复验证 264 次；缓存保存 684 个成功组合。其余 31 次为仍未证明的输出 alias，不缓存成成功。约 1.58 倍是准备检查的比值，不是全流水线的比值。
+
+```sh
+# 同一测试默认每个组合独立准备
+cargo test --release --offline --lib math_six_round_preparation_audit -- --ignored --nocapture
+# 开启跨组合缓存
+EGG_LAYOUT_PREPARATION_CACHE=1 cargo test --release --offline --lib math_six_round_preparation_audit -- --ignored --nocapture
+```
+
+生产流水线默认启用；上述环境变量仅选择测试对照路径。运行队列中的 `preparation_cache` 提供实际编译、验证和命中计数。摘要见 [preparation_cache.json](results/preparation_cache.json)。回归覆盖具体值重命名可共享、别名/字面量/相对与外部 binding 不误合并、规则环境变化失效，以及 270 个实际实例的缓存命中。
