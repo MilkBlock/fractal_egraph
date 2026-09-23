@@ -420,9 +420,11 @@ fn write_native_graph(eg: &EGraph, out: &Path, stem: &str) -> Result<()> {
     serialized
         .egraph
         .to_dot_file(out.join(format!("{stem}.dot")))?;
-    serialized
-        .egraph
-        .to_svg_file(out.join(format!("{stem}.svg")))?;
+    if std::env::var("EGG_LAYOUT_EAGER_SVG").as_deref() != Ok("0") {
+        serialized
+            .egraph
+            .to_svg_file(out.join(format!("{stem}.svg")))?;
+    }
     Ok(())
 }
 
@@ -524,9 +526,11 @@ fn export_state(
     serialized
         .egraph
         .to_dot_file(out.join("native-egraph.dot"))?;
-    serialized
-        .egraph
-        .to_svg_file(out.join("native-egraph.svg"))?;
+    if std::env::var("EGG_LAYOUT_EAGER_SVG").as_deref() != Ok("0") {
+        serialized
+            .egraph
+            .to_svg_file(out.join("native-egraph.svg"))?;
+    }
     let literals: BTreeMap<_, _> = serialized
         .egraph
         .nodes

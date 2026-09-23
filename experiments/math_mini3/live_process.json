@@ -1,0 +1,27 @@
+{
+  "parent_pid": 10975,
+  "child_pid": 63343,
+  "observed_at": "2026-09-23 19:49 Asia/Shanghai",
+  "physical_footprint_reported_by_sample": "25.4G",
+  "sampled_stack": "Pipeline::step -> Session::advance_with_observation -> collect -> BTreeMap::retain / ExtractIf",
+  "trace_batches": [
+    2334405,
+    8589833,
+    33250992
+  ],
+  "producer_certificates": [
+    626505,
+    2257453,
+    8538587
+  ],
+  "observation_limits": {
+    "facts": null,
+    "milliseconds": null,
+    "sweep_steps": 4
+  },
+  "source_run": 11,
+  "last_completed_tier0_round": 3,
+  "debugger_run": "out/debugger/6a25135c1a1645509ec523ee2369d6f9",
+  "action": "SIGSTOP child only to preserve diagnostic state; not terminated, memory not released",
+  "scope": "live user-selected process; distinct from the bounded mini3 benchmark"
+}

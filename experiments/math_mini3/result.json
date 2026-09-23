@@ -1,0 +1,247 @@
+{
+  "source": "experiments/math_mini3/source.egg",
+  "source_change": "only (run 11) -> (run 3); rules and initial terms preserved",
+  "native_constructor_rows": 208,
+  "runs": [
+    {
+      "run": "math-mini3-benchmark",
+      "mode": "native",
+      "eager_svg": true,
+      "elapsed_seconds": 0.2102712499909103,
+      "exit_code": 0,
+      "stop_reason": null,
+      "sampled_peak_group_rss_bytes": 1081344,
+      "time_peak_process_rss_bytes": 8568832,
+      "native_seconds": 0.005390917
+    },
+    {
+      "run": "math-mini3-benchmark",
+      "mode": "analysis-default",
+      "eager_svg": true,
+      "elapsed_seconds": 10.071568500017747,
+      "exit_code": -9,
+      "stop_reason": "external_time_guard",
+      "sampled_peak_group_rss_bytes": 291143680,
+      "time_peak_process_rss_bytes": null,
+      "native_seconds": null
+    },
+    {
+      "run": "math-mini3-benchmark",
+      "mode": "analysis-50ms-200k",
+      "eager_svg": true,
+      "elapsed_seconds": 10.095158665964846,
+      "exit_code": -9,
+      "stop_reason": "external_time_guard",
+      "sampled_peak_group_rss_bytes": 285917184,
+      "time_peak_process_rss_bytes": null,
+      "native_seconds": null
+    },
+    {
+      "run": "math-mini3-profile",
+      "mode": "analysis-50ms-200k",
+      "eager_svg": true,
+      "elapsed_seconds": 30.154626500036102,
+      "exit_code": -9,
+      "stop_reason": "external_time_guard",
+      "sampled_peak_group_rss_bytes": 564166656,
+      "time_peak_process_rss_bytes": null,
+      "native_seconds": null
+    },
+    {
+      "run": "math-mini3-no-svg",
+      "mode": "analysis-50ms-200k",
+      "eager_svg": false,
+      "elapsed_seconds": 6.619445457996335,
+      "exit_code": 0,
+      "stop_reason": null,
+      "sampled_peak_group_rss_bytes": 1650393088,
+      "time_peak_process_rss_bytes": 1661698048,
+      "native_seconds": null
+    },
+    {
+      "run": "math-mini3-default-no-svg",
+      "mode": "analysis-default",
+      "eager_svg": false,
+      "elapsed_seconds": 10.172917749965563,
+      "exit_code": -9,
+      "stop_reason": "external_time_guard",
+      "sampled_peak_group_rss_bytes": 3813031936,
+      "time_peak_process_rss_bytes": null,
+      "native_seconds": null
+    }
+  ],
+  "bounded_no_svg": {
+    "status": "observed_unfinished",
+    "counts": {
+      "ObservedUnfinished": 6,
+      "Saturated": 79
+    },
+    "phase_seconds": {
+      "register_entries": 0.442424,
+      "advance_and_share": 2.27849,
+      "exact_catalog": 0.115048,
+      "weak_queries_and_evidence": 1.8511419999999998
+    },
+    "weak_edges": 626,
+    "weak_binding_tuples": 50552,
+    "unfinished": [
+      {
+        "candidate_id": 19,
+        "observation": {
+          "admission": "growth_observation",
+          "growth": {
+            "active_seconds": 0.080174749,
+            "after_facts": 2690,
+            "before_facts": 10,
+            "limits": {
+              "facts": 200000,
+              "milliseconds": 50,
+              "sweep_steps": 4
+            },
+            "reasons": [
+              "time"
+            ]
+          },
+          "scope": "unfinished ripen; starting condition unresolved",
+          "snapshot": {
+            "facts": 2690,
+            "path": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-mini3-no-svg/bounded/saturated-rule-composition/cells/CSUnit-000019/unfinished-state.json",
+            "status": "observed_only"
+          },
+          "unfinished": true
+        }
+      },
+      {
+        "candidate_id": 34,
+        "observation": {
+          "admission": "growth_observation",
+          "growth": {
+            "active_seconds": 0.078677166,
+            "after_facts": 2690,
+            "before_facts": 10,
+            "limits": {
+              "facts": 200000,
+              "milliseconds": 50,
+              "sweep_steps": 4
+            },
+            "reasons": [
+              "time"
+            ]
+          },
+          "scope": "unfinished ripen; starting condition unresolved",
+          "snapshot": {
+            "facts": 2690,
+            "path": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-mini3-no-svg/bounded/saturated-rule-composition/cells/CSUnit-000034/unfinished-state.json",
+            "status": "observed_only"
+          },
+          "unfinished": true
+        }
+      },
+      {
+        "candidate_id": 46,
+        "observation": {
+          "admission": "growth_observation",
+          "growth": {
+            "active_seconds": 0.158464208,
+            "after_facts": 6177,
+            "before_facts": 14,
+            "limits": {
+              "facts": 200000,
+              "milliseconds": 50,
+              "sweep_steps": 4
+            },
+            "reasons": [
+              "time"
+            ]
+          },
+          "scope": "unfinished ripen; starting condition unresolved",
+          "snapshot": {
+            "facts": 6177,
+            "path": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-mini3-no-svg/bounded/saturated-rule-composition/cells/CSUnit-000046/unfinished-state.json",
+            "status": "observed_only"
+          },
+          "unfinished": true
+        }
+      },
+      {
+        "candidate_id": 49,
+        "observation": {
+          "admission": "growth_observation",
+          "growth": {
+            "active_seconds": 0.088605457,
+            "after_facts": 3220,
+            "before_facts": 11,
+            "limits": {
+              "facts": 200000,
+              "milliseconds": 50,
+              "sweep_steps": 4
+            },
+            "reasons": [
+              "time"
+            ]
+          },
+          "scope": "unfinished ripen; starting condition unresolved",
+          "snapshot": {
+            "facts": 3220,
+            "path": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-mini3-no-svg/bounded/saturated-rule-composition/cells/CSUnit-000049/unfinished-state.json",
+            "status": "observed_only"
+          },
+          "unfinished": true
+        }
+      },
+      {
+        "candidate_id": 75,
+        "observation": {
+          "admission": "growth_observation",
+          "growth": {
+            "active_seconds": 0.35100458300000004,
+            "after_facts": 13678,
+            "before_facts": 16,
+            "limits": {
+              "facts": 200000,
+              "milliseconds": 50,
+              "sweep_steps": 4
+            },
+            "reasons": [
+              "time"
+            ]
+          },
+          "scope": "unfinished ripen; starting condition unresolved",
+          "snapshot": {
+            "facts": 13678,
+            "path": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-mini3-no-svg/bounded/saturated-rule-composition/cells/CSUnit-000075/unfinished-state.json",
+            "status": "observed_only"
+          },
+          "unfinished": true
+        }
+      },
+      {
+        "candidate_id": 80,
+        "observation": {
+          "admission": "growth_observation",
+          "growth": {
+            "active_seconds": 0.343675416,
+            "after_facts": 11011,
+            "before_facts": 24,
+            "limits": {
+              "facts": 200000,
+              "milliseconds": 50,
+              "sweep_steps": 4
+            },
+            "reasons": [
+              "time"
+            ]
+          },
+          "scope": "unfinished ripen; starting condition unresolved",
+          "snapshot": {
+            "facts": 11011,
+            "path": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-mini3-no-svg/bounded/saturated-rule-composition/cells/CSUnit-000080/unfinished-state.json",
+            "status": "observed_only"
+          },
+          "unfinished": true
+        }
+      }
+    ]
+  },
+  "scope": "single-run diagnostic comparisons; RSS, not virtual memory; 25 GB peak not reproduced; no inference from externally stopped runs"
+}
