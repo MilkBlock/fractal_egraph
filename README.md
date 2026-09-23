@@ -83,3 +83,27 @@ cargo test --release --offline --test native_fact_query benchmark -- --ignored -
 完整 math-microbenchmark 的 bake 决策评估见 [实验报告](experiments/math_ripen_report/README.md)：包含 11 轮原生/trace 对照、未完成的完整流水线、初始结构与饱和结构判等 ablation，以及实际覆盖分母。
 
 可选 CC 放开合并实验：`cc-merge --rules FILE --seeds FILE --output DIR --generations N`。按代穷举饱和族的配对与 binding，支持新族递归接续，输出增长曲线数据；不改变默认分析流程。配置与支持范围见 [CC 实验说明](experiments/cc_merge_probe/README.md)。
+
+## Non-trivial reentry 桶
+
+现在会把结构再入观察归组，并维护多个已观察的最小 starting conditions：
+
+- 原来的精确 weak 查询不变；另做擦除字面值的结构查询，避免 length 衰减让相同结构完全无法进入桶。
+- 需要新增 effect 和相对于初始图新增的结构 binding；这只是再入嫌疑，不是因果归纳证明。
+- 第一版“成分类似”定义为新增节点的 operator 集合相同、union 标记相同、规则环境相同。数量作为证据保留，不使用阈值、打分或 Top-K。
+- 在桶内使用 egglog 原生 Join 检查 coarse fact 的结构 cover：保留类型、参数位置、重复变量的相等约束和命名接口；不同变量不被额外假定为不相等。这里只比较擦除值后的条件，不是完整规则行为判等。
+- 已观察的小条件替代大条件进入最小集合；互不 cover 的条件都保留，大条件及原始记录也保留。双向 cover 表示相同抽象条件，不表示相同 FractalRule。
+- 字面值仅从结构查询和抽象条件中擦除，原始条件仍保存。不改变实际 rule 执行，不用抽象结果替换 tier0，也不分类 infi / dissipative。
+
+包含 primitive 条件的图可导出 `trigger-state.json` 用于观察；它不会因此获得原本缺失的饱和共享证明。当前只处理已登记 CS 的观察，不搜索未出现的更小条件，不枚举循环体，也没有新增时间/size 截断。
+
+`queue.json` / 最终分析里的 `reentry_buckets` 包含成分桶、cover 映射、最小条件集合、观察记录和原始条件；`structural_reentry` 保留擦除值后的查询证据。网页饱和组合面板的 weak 信息下方可展开 **non-trivial reentry**，点击条件查看证据。查询绑定数不是实际 rule apply 次数。
+
+快速例子（真实有限递减，不会被宣布为 infi）：
+
+```sh
+cargo run --release --offline -- analyze \
+  --source tests/fixtures/core_flow/length_reentry.egg --output out/reentry-length-new
+```
+
+回归覆盖多个互不可比的最小条件、大条件保留、别名约束、值擦除但保留原文、成分分组与实际有限长度再入。核心实现：`src/reentry_bucket.rs`。

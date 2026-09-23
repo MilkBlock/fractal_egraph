@@ -19,9 +19,12 @@ fn supported_action(a: &Action) -> bool {
 pub(super) struct Session {
     pub eg: EGraph,
     pub before: EGraph,
-    pub weak_queries: BTreeMap<usize, weak_dominate::CachedQuery>,
+    pub weak_queries: BTreeMap<(usize, bool), weak_dominate::CachedQuery>,
     pub has_effects: bool,
+    pub effect_components: BTreeMap<String, u64>,
+    pub union_effect: bool,
     pub initial: Option<crate::saturated_rule_composition::SaturatedRuleComposition>,
+    pub trigger: Option<crate::saturated_rule_composition::SaturatedRuleComposition>,
     pub final_state: Option<crate::saturated_rule_composition::SaturatedRuleComposition>,
     source: std::path::PathBuf,
     out: std::path::PathBuf,
@@ -170,10 +173,29 @@ impl Session {
             &port_values,
             true,
             out,
+            false,
         )
         .ok();
         if let Some(state) = &initial {
             crate::pipeline::write_json(&out.join("initial-state.json"), state)?;
+        }
+        let trigger = initial.clone().or_else(|| {
+            export_state(
+                setup
+                    .iter()
+                    .find(|c| matches!(c, Command::Datatype { .. }))
+                    .unwrap(),
+                &eg,
+                &c,
+                &port_values,
+                true,
+                out,
+                true,
+            )
+            .ok()
+        });
+        if let Some(state) = &trigger {
+            crate::pipeline::write_json(&out.join("trigger-state.json"), state)?;
         }
         let before = eg.clone();
         Ok(Self {
@@ -181,7 +203,10 @@ impl Session {
             before,
             weak_queries: BTreeMap::new(),
             has_effects: false,
+            effect_components: BTreeMap::new(),
+            union_effect: false,
             initial,
+            trigger,
             final_state: None,
             source,
             out: out.to_path_buf(),
@@ -208,6 +233,22 @@ impl Session {
         for ruleset in &self.rulesets {
             updated |= self.eg.step_rules_with_trace(ruleset, &self.trace)?.updated;
             self.schedule += &format!("(run {ruleset} 1)\n");
+            let table_names: BTreeMap<_, _> = self.trace.table_names().into_iter().collect();
+            for write in self
+                .trace
+                .write_events()
+                .iter()
+                .filter(|w| w.outcome == WriteOutcome::Inserted && w.rebuild_of.is_none())
+            {
+                if let Some(name) = table_names.get(&write.table) {
+                    *self.effect_components.entry(name.to_string()).or_default() += 1;
+                }
+            }
+            self.union_effect |= self
+                .trace
+                .union_events()
+                .iter()
+                .any(|u| u.displaced.is_some());
             self.has_effects |= self
                 .trace
                 .write_events()
@@ -254,6 +295,7 @@ impl Session {
                 &self.ports,
                 true,
                 &self.out,
+                false,
             ) {
                 Ok(state) => {
                     std::fs::write(
@@ -346,6 +388,7 @@ fn export_state(
     ports: &[(String, egglog::ArcSort, Value)],
     symbolic: bool,
     out: &Path,
+    observation_only: bool,
 ) -> Result<crate::saturated_rule_composition::SaturatedRuleComposition> {
     use crate::saturated_rule_composition::{Row, SaturatedRuleComposition, Vertex};
     let Command::Datatype { name, variants, .. } = datatype else {
@@ -420,7 +463,7 @@ fn export_state(
             }
             _ => false,
         });
-        if !body || !head {
+        if !observation_only && (!body || !head) {
             return Err("SaturatedRuleComposition sharing currently certifies positive constructor/equality rules only; primitive guards/actions require an explicit semantics contract".into());
         }
     }
@@ -558,7 +601,7 @@ fn export_state(
     let mut state = SaturatedRuleComposition {
         version: 2,
         local_ids,
-        scope: json!({"datatype":name,"constructors":sorted.iter().map(|v|json!({"name":v.name,"types":v.types,"cost":v.cost.map(|x|x.to_string()),"unextractable":v.unextractable})).collect::<Vec<_>>(),"rules":rules,"symbolic_boundary":symbolic,"semantics":"positive-constructor-equality/v1","ports":"fixed named globals; otherwise all facts observable"}),
+        scope: json!({"datatype":name,"constructors":sorted.iter().map(|v|json!({"name":v.name,"types":v.types,"cost":v.cost.map(|x|x.to_string()),"unextractable":v.unextractable})).collect::<Vec<_>>(),"rules":rules,"symbolic_boundary":symbolic,"semantics":if observation_only{"observed-constructor-graph/v1"}else{"positive-constructor-equality/v1"},"observation_only":observation_only,"ports":"fixed named globals; otherwise all facts observable"}),
         values,
         subsumed_rows: rows
             .iter()
@@ -603,6 +646,15 @@ fn export_state(
         // Visibility and mutable tables make scheduling observable. Do not use
         // the order-insensitive theory normalization of the pure fragment.
         state.scope["operational_schedule"] = json!({"registered_rules":c.rules.iter().map(|r|r.rule.to_string()).collect::<Vec<_>>(),"sweep":"sorted ruleset names, native rule order"});
+    }
+    if observation_only {
+        state.scope["semantics"] = json!("observed-constructor-graph/v1");
+    } else {
+        state
+            .scope
+            .as_object_mut()
+            .unwrap()
+            .remove("observation_only");
     }
     Ok(state)
 }

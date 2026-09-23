@@ -12,8 +12,13 @@ pub(super) fn observe(
     pattern: &State,
     marker: &str,
     key: usize,
+    erase_payload: bool,
 ) -> Result<Json> {
-    let Some(source) = &task.initial else {
+    let Some(source) = (if erase_payload {
+        &task.trigger
+    } else {
+        &task.initial
+    }) else {
         return Ok(json!({"status":"unsupported_source"}));
     };
     if source.scope != pattern.scope {
@@ -26,10 +31,14 @@ pub(super) fn observe(
     if rows.is_empty() {
         return Ok(json!({"status":"no_structural_trigger"}));
     }
+    let key = (key, erase_payload);
     let vars: BTreeSet<_> = rows
         .iter()
         .flat_map(|r| r.args.iter().chain(std::iter::once(&r.result)))
-        .filter(|i| pattern.values[**i].literal.is_none())
+        .filter(|i| {
+            pattern.values[**i].literal.is_none()
+                || (erase_payload && pattern.values[**i].sort != "Unit")
+        })
         .copied()
         .collect();
     let vars: Vec<_> = vars.into_iter().collect();
@@ -42,6 +51,7 @@ pub(super) fn observe(
                 let literal = v
                     .literal
                     .as_ref()
+                    .filter(|_| !erase_payload || v.sort == "Unit")
                     .map(|text| -> Result<_> {
                         match parser.get_expr_from_string(None, text)? {
                             Expr::Lit(_, l) => Ok(l),
@@ -98,6 +108,6 @@ pub(super) fn observe(
     let now: BTreeSet<_> = current.into_iter().map(canonical).collect();
     let reentries: Vec<_> = now.difference(&initial).cloned().collect();
     Ok(
-        json!({"query_cache":{"compilations":2,"initial_scans":1,"current_scans":cached.executions,"per_check_engine_clones":0},"status":if now.is_empty(){"not_matched"}else{"matched"},"pattern_variables":vars,"trigger_rows":rows,"typed_values":pattern.values,"initial_bindings":initial,"bindings":now,"new_bindings":reentries,"new_effects":task.has_effects,"scope":if task.done{"saturated local body"}else{"running prefix"},"classification":"observation only; no termination or dissipativity inference"}),
+        json!({"erased_payload":erase_payload,"query_cache":{"compilations":2,"initial_scans":1,"current_scans":cached.executions,"per_check_engine_clones":0},"status":if now.is_empty(){"not_matched"}else{"matched"},"pattern_variables":vars,"trigger_rows":rows,"typed_values":pattern.values,"initial_bindings":initial,"bindings":now,"new_bindings":reentries,"new_effects":task.has_effects,"scope":if task.done{"saturated local body"}else{"running prefix"},"classification":"observation only; no termination or dissipativity inference"}),
     )
 }

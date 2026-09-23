@@ -282,6 +282,22 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         const details=document.createElement('details'),summary=document.createElement('summary'),pre=document.createElement('pre');
         summary.textContent=`weak dominate：${edges.length} 条已观测关系；再入观察 ${edges.filter(e=>e.reentry_observation).length}（未证明 infi / 耗散）；无法判定 ${(result.weak_unresolved||[]).length} 条`;
         details.append(summary,pre);details.ontoggle=()=>{if(details.open)pre.textContent=JSON.stringify({relations:edges,unresolved:result.weak_unresolved||[]},null,2);};cp('weak').append(details);
+        const buckets=result.reentry_buckets;
+        if(buckets){
+            const box=document.createElement('details');box.id='native-reentry-buckets';
+            const title=document.createElement('summary');const groups=buckets.groups||[];
+            title.textContent=`non-trivial reentry：${groups.length} 个成分桶 · ${groups.reduce((n,g)=>n+g.minimal_starting_conditions.length,0)} 个已观察的最小 starting conditions`;
+            box.append(title);const note=document.createElement('p');note.textContent='按新增节点的 operator 成分分组；忽略字面值但保留类型、binding 别名与位置。这里不是 infi / 耗散分类，也不是已证明的循环体。';box.append(note);
+            const table=document.createElement('table');const head=document.createElement('tr');
+            for(const text of ['桶','新增成分','最小 starting conditions','保留条件数']){const cell=document.createElement('th');cell.textContent=text;head.append(cell);}table.append(head);
+            const evidence=document.createElement('pre');evidence.style.whiteSpace='pre-wrap';
+            for(const g of groups){const row=document.createElement('tr');
+                for(const text of [String(g.id),g.new_node_operators.join(', ')+(g.union_effect?' + union':'')]){const cell=document.createElement('td');cell.textContent=text;row.append(cell);}
+                const minima=document.createElement('td');for(const id of g.minimal_starting_conditions){const button=document.createElement('button');button.textContent='条件 '+id;button.onclick=()=>{const c=buckets.conditions[id];const targets=[...new Set(c.observations.map(o=>o.target))];evidence.textContent=JSON.stringify({condition:c,cover:g.cover,original_conditions:targets.map(t=>({target:t,condition:buckets.original_conditions[t]}))},null,2);};minima.append(button);}row.append(minima);
+                const count=document.createElement('td');count.textContent=String(g.conditions.length);row.append(count);table.append(row);
+            }box.append(table,evidence);cp('weak').append(box);
+        }
+
         if(catalogData){
             for(let i=0;i<catalogData.catalog.saturated_rule_compositions;i++)cp('state').add(new Option(`SaturatedRuleComposition C${i}`,String(i)));
             cp('status').textContent+=` ${catalogData.catalog.triggers.length} 个历史入口 → ${catalogData.catalog.saturated_rule_compositions} 个饱和等价桶。`;
@@ -289,7 +305,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
             combOptions();if($('kind').value==='saturated_rule_composition')renderCatalog();
         }else{
             combOptions();
-            cp('status').textContent+=' 本轮尚无 Saturated 结果（Running / WaitingEquivalent 不代表已闭合）；本次运行的数据已在内存里，无需手动载入目录。';
+            cp('status').textContent+=' 本轮尚无可共享的饱和图（Running / WaitingEquivalent 不代表已闭合）；本次运行的数据已在内存里，无需手动载入目录。';
             // A run that rejects every queued job looks like "nothing happened" unless the
             // queue's own reason is surfaced here.
             const tally=new Map();

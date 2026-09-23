@@ -1,0 +1,5 @@
+(datatype E (N i64))
+(rule ((= root (N n)) (> n 0))
+      ((union root (N (- n 1)))) :name "decrease")
+(N 3)
+(run 1)

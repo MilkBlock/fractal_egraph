@@ -19,6 +19,8 @@ pub(super) struct Pipeline {
     catalog: Option<Json>,
     report: Json,
     preparation: ripen::PreparationCache,
+    reentry: crate::reentry_bucket::Buckets,
+    structural_reentry: BTreeMap<usize, Json>,
     weak: BTreeMap<(usize, usize), (u64, Json)>,
 }
 impl Pipeline {
@@ -35,6 +37,8 @@ impl Pipeline {
             catalog: None,
             report: Json::Null,
             preparation: Default::default(),
+            reentry: Default::default(),
+            structural_reentry: BTreeMap::new(),
             weak: BTreeMap::new(),
         })
     }
@@ -205,9 +209,9 @@ impl Pipeline {
         let targets: Vec<_> = self
             .work
             .iter()
-            .map(|w| (w.id, w.session.initial.clone()))
+            .map(|w| (w.id, w.session.trigger.clone(), w.session.initial.is_some()))
             .collect();
-        for (target_id, initial) in targets {
+        for (target_id, initial, certified) in targets {
             let Some(pattern) = initial.as_ref() else {
                 continue;
             };
@@ -228,17 +232,55 @@ impl Pipeline {
             }
             for i in possible.unwrap_or_default() {
                 let source = &mut self.work[i];
+                if !certified && source.id != target_id {
+                    continue;
+                }
                 let round = source.session.report["ripen"]["round"]
                     .as_u64()
                     .unwrap_or(0);
                 let key = (source.id, target_id);
-                if self.weak.get(&key).is_some_and(|(seen, _)| *seen == round) {
+                if self.weak.get(&key).is_some_and(|(seen, _)| *seen == round)
+                    || (source.id == target_id
+                        && self
+                            .structural_reentry
+                            .get(&source.id)
+                            .is_some_and(|r| r["observed_round"] == round))
+                {
                     continue;
                 }
-                let result =
-                    weak_dominate::observe(&mut source.session, pattern, marker, target_id)
-                        .unwrap_or_else(|e| json!({"status":"unresolved","reason":e.to_string()}));
-                self.weak.insert(key, (round, result));
+                if certified {
+                    let result = weak_dominate::observe(
+                        &mut source.session,
+                        pattern,
+                        marker,
+                        target_id,
+                        false,
+                    )
+                    .unwrap_or_else(|e| json!({"status":"unresolved","reason":e.to_string()}));
+                    self.weak.insert(key, (round, result));
+                }
+                if source.id == target_id {
+                    let mut structural = weak_dominate::observe(
+                        &mut source.session,
+                        pattern,
+                        marker,
+                        target_id,
+                        true,
+                    )
+                    .unwrap_or_else(|e| json!({"status":"unresolved","reason":e.to_string()}));
+                    structural["observed_round"] = json!(round);
+                    self.reentry.observe(
+                        source.id,
+                        target_id,
+                        round,
+                        pattern,
+                        marker,
+                        &source.session.effect_components,
+                        source.session.union_effect,
+                        &structural,
+                    )?;
+                    self.structural_reentry.insert(source.id, structural);
+                }
             }
         }
         let mut families = BTreeMap::new();
@@ -255,6 +297,32 @@ impl Pipeline {
             }
         }
         let weak:Vec<_>=self.weak.iter().filter(|(_,(_,r))|r["bindings"].as_array().is_some_and(|b|!b.is_empty())).map(|((from,to),(_,r))|json!({"from":from,"to":to,"same_ripened_family":from==to||families.get(from).zip(families.get(to)).is_some_and(|(a,b)|a==b),"reentry_observation":(from==to||families.get(from).zip(families.get(to)).is_some_and(|(a,b)|a==b))&&r["new_effects"]==true&&r["new_bindings"].as_array().is_some_and(|v|!v.is_empty()),"classification":"unclassified; fresh effects and bindings do not prove a fractal family","evidence":r})).collect();
+        for e in weak
+            .iter()
+            .filter(|e| e["reentry_observation"] == true && e["from"] != e["to"])
+        {
+            let from = e["from"].as_u64().unwrap() as usize;
+            let to = e["to"].as_u64().unwrap() as usize;
+            let source = self.work.iter().find(|w| w.id == from).unwrap();
+            let target = self.work.iter().find(|w| w.id == to).unwrap();
+            if let Some(pattern) = &target.session.initial {
+                let marker = self.jobs[to]["origin"]["parameter_marker"]
+                    .as_str()
+                    .unwrap_or("");
+                self.reentry.observe(
+                    from,
+                    to,
+                    source.session.report["ripen"]["round"]
+                        .as_u64()
+                        .unwrap_or(0),
+                    pattern,
+                    marker,
+                    &source.session.effect_components,
+                    source.session.union_effect,
+                    &e["evidence"],
+                )?;
+            }
+        }
         let unresolved: Vec<_> = self
             .weak
             .iter()
@@ -268,7 +336,7 @@ impl Pipeline {
                 .or_default() += 1;
         }
         mark("weak_queries_and_evidence");
-        self.report = json!({"step_seconds":timings,"preparation_cache":self.preparation.stats(),"kind":"saturated_rule_composition_snapshot","boundary":boundary,"jobs":self.jobs,"cs":self.cs.report(),"weak_dominate":weak,"weak_unresolved":unresolved,"counts":counts,"not_queued":0,"limits":null,"scope":"all observed CS entries; fair resumable sweeps; no heuristic selection, live tier0 substitution or termination guess","catalog":self.catalog});
+        self.report = json!({"step_seconds":timings,"preparation_cache":self.preparation.stats(),"kind":"saturated_rule_composition_snapshot","boundary":boundary,"jobs":self.jobs,"cs":self.cs.report(),"weak_dominate":weak,"reentry_buckets":self.reentry.report(),"structural_reentry":self.structural_reentry,"weak_unresolved":unresolved,"counts":counts,"not_queued":0,"limits":null,"scope":"all observed CS entries; fair resumable sweeps; no heuristic selection, live tier0 substitution or termination guess","catalog":self.catalog});
         crate::pipeline::write_json(
             &self.out.join("saturated-rule-composition/queue.json"),
             &self.report,

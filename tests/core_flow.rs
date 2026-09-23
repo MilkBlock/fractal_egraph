@@ -80,6 +80,18 @@ fn finite_reentry_is_observed_but_not_called_infinite() {
     let q = &r["saturated_rule_composition"];
     assert_eq!(q["counts"]["Saturated"], 1);
     assert!(
+        !q["reentry_buckets"]["groups"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    assert!(
+        !q["reentry_buckets"]["original_conditions"]
+            .as_object()
+            .unwrap()
+            .is_empty()
+    );
+    assert!(
         q["weak_dominate"]
             .as_array()
             .unwrap()
@@ -146,4 +158,45 @@ fn infinite_cell_keeps_running_while_finite_cell_completes_and_is_cancellable() 
             .any(|e| e["reentry_observation"] == true)
     );
     fs::remove_dir_all(out).unwrap();
+}
+
+#[test]
+fn finite_length_reentry_is_bucketed_after_value_erasure() {
+    let root = fresh("length-bucket");
+    fs::create_dir(&root).unwrap();
+    let source = root.join("source.egg");
+    fs::write(
+        &source,
+        include_str!("fixtures/core_flow/length_reentry.egg"),
+    )
+    .unwrap();
+    let r = egg_layout::native_analyze::run(&source, &root.join("run"), None, None, false).unwrap();
+    let q = &r["saturated_rule_composition"];
+    assert!(q["counts"]["Saturated"].as_u64().unwrap_or(0) > 0);
+    assert!(
+        !q["reentry_buckets"]["groups"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    assert!(
+        q["structural_reentry"]
+            .as_object()
+            .unwrap()
+            .values()
+            .any(|e| e["erased_payload"] == true
+                && e["new_bindings"].as_array().is_some_and(|b| !b.is_empty()))
+    );
+    assert!(
+        q["reentry_buckets"]["original_conditions"]
+            .as_object()
+            .unwrap()
+            .values()
+            .any(|s| s["values"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|v| v["literal"] == "3"))
+    );
+    fs::remove_dir_all(root).unwrap();
 }
