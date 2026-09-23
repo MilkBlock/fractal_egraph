@@ -1,0 +1,79 @@
+{
+  "date": "2026-09-23",
+  "revision": "v0.2.5",
+  "language": "English",
+  "format": "LaTeX",
+  "offline": true,
+  "runtime_commits": [
+    "3bd9c8d",
+    "7dcd5dc",
+    "df8b122"
+  ],
+  "evidence_hashes": {
+    "src/native_analyze.rs": "ea6fb995621563248cc3d662a0b169613b09f6ea5729b576ea2b6511e83cac57",
+    "src/native_ripen.rs": "ce344152c3f801eec6ab7a086c190580068d48be5e75ec80b248020f3412c1fe",
+    "src/native_weak_dominate.rs": "1873809d3fbd66ef9c38a4f629690058fbc1746134b0970e43ef7c8ba1e074e1",
+    "src/native_cs.rs": "2b7b728f963efb416a320217797bc1620574eafaedc8a3aa164ad669ed1d21fb",
+    "src/native_saturated_rule_composition_pipeline.rs": "041f4cd2c688bc62a994d2dd14dc28278f5d74c00d0d6ade6142e923e7ed4270",
+    "src/saturated_rule_composition.rs": "8e10d191ce2b2802520e0324910f6d0dc1b56f2a6976f3dbf84a9091f43b524f",
+    "src/graph_render.rs": "97c682c447f1a4a8811107ecc21e61e21a3e1b803be8f929bd47a4ec90f00522",
+    "src/ripen_observation.rs": "eb07bf50fd11d745d2fb6e92caa42ee0253ff70c06c9b28c06daa138d72f3de0",
+    "egglog/core-relations/src/trace.rs": "3932d419695a3d5429bae7975bd9d2747804f4d8ddac88c6b5c80a85b5b1608f",
+    "egglog/core-relations/src/free_join/mod.rs": "474b7a1636e5cfafab99052334b45e6f6d911261c2b068775da51f2174a97322",
+    "egglog/concurrency/src/notification_list.rs": "720cfa3f32a7ebd3798b91ac868f02c7961034363d336339f48331ed777305c6",
+    "egglog/src/fact_query.rs": "4d15a865e4d341a36d76766d191e34379571196035fa36f7a39578b7d52ca738",
+    "tests/reentry_history_regression.rs": "57a088008a586968b4bef36a022742ff23efd2290c596118a43680f4d8c15997",
+    "tests/native_fact_query.rs": "5afbdeab5299548f86049a97a29fb44209cfb0a9d52c95e873c3dd041cb91d2a",
+    "tests/native_clone.rs": "d433b384b09eff3ce56eaea19e3bd67ca7a9a0d89521046562e027da674b1c4f",
+    "tests/compact_trace.rs": "9a2f43a543339f2798024ef3baddca9c4d58b312db2908001db9dcd813482c11",
+    "tests/native_execution_limits.rs": "a069ab01c679cee8ddf1fb568a9787a8e228b998a1d24cad97400de5f5dbf332",
+    "experiments/math_mini3/near_second.json": "ca2249e52644083ef36c1a5fa7f4cd4d254c8da5633380b73fb8ff3a5d2ee56a",
+    "src/native_ripen_entry.rs": "ea3ad3e4840d1506bb0dcf366016796a4745e185ac1fb40c076e52c49fad4f38",
+    "src/coarse_smooth.rs": "ae49f766b03306a820de1fa8abf0bf88d9abc4341e0b82f2d0796a6fa9299c07",
+    "Cargo.toml": "3e33c4ccdaaef418cf657ce12bb40c72e12f4d6e0aaf99dd6564ee3c6a0af539",
+    "experiments/math_mini3/source.egg": "ac498b753752adb472a536f01a1f8411fc193a982516513c90eefb4585194015",
+    "docs/papers/event-driven-hierarchical-rule-composition.tex": "5c83d7b16bde3b8ab494cab049c633534f87a71bddc43abc0d274b0c74e85828",
+    "docs/papers/figures/provenance-runtime.tex": "3bb6f8f89a392d3444897c8cd1c922dd02491f583a237937f3bf88dfeab4f82d"
+  },
+  "implemented": [
+    "Full tier0 provenance; effect-only local ripen with optional full local history",
+    "Native cooperative limits and retained unfinished prefixes",
+    "Exact existence/freshness queries, caching, and independent clone notifications",
+    "Parallel graph-free analysis and separate SVG rendering"
+  ],
+  "proposed": [
+    "Finite origin template T=(P,S,D,rho,Gamma,E)",
+    "Instance(T,theta,Phi,O) feedback to tier0",
+    "General recurrence induction and live tier0 replacement"
+  ],
+  "measurement_source": "experiments/math_mini3/near_second.json",
+  "subsecond_goal_met": false,
+  "dabc_scope": "Growth and reentry observations; minimal loop trigger unresolved",
+  "historical_material": "Earlier Use/candidate limits, promotion/storage/Bake results remain explicitly historical; see references-verified.json.",
+  "new_figure_pages": {
+    "tracing": [
+      11
+    ],
+    "template": [
+      12
+    ],
+    "stop": [
+      21
+    ],
+    "measurements": [
+      22
+    ],
+    "proof": [
+      13
+    ]
+  },
+  "native_assets": "Pre-existing working-tree assets reused without regeneration; unrelated edits and deleted older PDFs preserved.",
+  "paper_revision_date": "2026-09-24",
+  "pdf_sha256": "8faf0571cacc953de437620779730ba879a22dfc50d8bf9c16feb923bd905ce3",
+  "validation": {
+    "latexmk": "passed",
+    "overfull_boxes": 0,
+    "undefined_references": 0,
+    "visual_review": "title, pipeline, tracing paths, origin-template diagram, conditional proof, native stop path, and performance table reviewed as rendered pages"
+  }
+}

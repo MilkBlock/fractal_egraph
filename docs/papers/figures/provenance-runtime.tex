@@ -1,0 +1,67 @@
+% September 2026: solid edges are implemented; dashed edges are proposals/options.
+\newcommand{\HistoryModesFigure}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}[node distance=8mm and 9mm]
+\node[box,text width=36mm] (t0) {tier0 egraph\\ordinary execution};
+\node[box,text width=39mm,right=of t0] (history) {Versioned applications\\bindings and dependencies};
+\node[box,text width=35mm,right=of history] (layers) {Coarse / smooth\\CS composition};
+\node[box,text width=36mm,below=15mm of t0] (local) {Isolated ripen egraph\\same native engine};
+\node[box,text width=39mm,right=of local] (effects) {Committed effects\\state and union evidence};
+\node[box,text width=35mm,right=of effects] (queries) {Saturation catalog\\weak-dominate queries};
+\node[box,text width=39mm,below=14mm of effects] (optional) {Optional local history\\origin-template material};
+\draw[arr] (t0)--(history);\draw[arr] (history)--(layers);
+\draw[arr] (layers.south)--++(0,-5mm)-|(local.north);
+\draw[arr] (local)--(effects);\draw[arr] (effects)--(queries);
+\draw[proposed] (local.south)|-(optional.west);
+\draw[proposed] (optional.east)--++(15mm,0) node[right,font=\scriptsize,align=left]{proposed template\\feedback to tier0};
+\end{tikzpicture}
+\caption{Two uses of tracing. Tier0 retains application provenance for composition
+analysis. Local ripen normally retains committed-effect summaries; full local
+binding/layer history is optional. Turning off that diagnostic history does not
+turn off tier0 provenance. Template feedback is a proposed consumer of the optional
+history, not a feature of the current execution path.}
+\label{fig:history-modes}
+\end{figure}}
+
+\newcommand{\OriginTemplateFigure}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}[node distance=9mm and 8mm]
+\node[lhs,text width=40mm] (input) {$b_0=\mathrm{Add}(y,z)$\\$b_1=\mathrm{Add}(x,b_0)$};
+\node[coarse,text width=22mm,right=of input] (assoc) {$R_a$\\association};
+\node[rhs,text width=47mm,right=of assoc] (out) {$s_1=\mathrm{Add}(x,y)$\\$s_2=\mathrm{Add}(s_1,z)$\\$b_1\equiv s_2$};
+\node[smooth,text width=40mm,below=18mm of assoc] (comm) {$R_c$ at $s_1$\\$u\mapsto x,\ v\mapsto y$};
+\node[rhs,text width=42mm,right=of comm] (new) {$s_3=\mathrm{Add}(y,x)$\\$s_1\equiv s_3$};
+\draw[arr] (input)--(assoc);\draw[arr] (assoc)--(out);
+\draw[arr] (out.south)--++(0,-5mm)-|node[pos=.25,above,font=\scriptsize]{input fact slot $s_1$}(comm.north);
+\draw[arr] (comm)--(new);
+\node[box,text width=120mm,below=13mm of comm,xshift=10mm] (instance)
+{Proposed instance: $T$, $\theta=(x\mapsto a,y\mapsto b,z\mapsto c)$,\quad
+$\Phi(s_i)=$ actual typed fact/version, plus residual obligations};
+\draw[proposed] (comm.south)--(instance.north);
+\end{tikzpicture}
+\caption{A proposed origin template using association and commutation from
+\texttt{math.egg}. Blue/orange boxes are LHS/RHS fact slots; purple/teal boxes
+are context-relative coarse/smooth applications. The second application reads a
+known internal slot instead of rediscovering its wiring. A slot can map to an
+already existing fact: this drawing describes a reusable derivation interface,
+not a claim that each orange slot caused a fresh tier0 insertion.}
+\label{fig:origin-template}
+\end{figure}}
+
+\newcommand{\NativeStopFigure}{%
+\begin{figure}[!htbp]\centering
+\begin{tikzpicture}[node distance=5mm]
+\node[box,text width=30mm] (admit) {Join checkpoint\\stop admission};
+\node[box,text width=30mm,right=of admit] (actions) {Admitted actions\\finish execution};
+\node[box,text width=30mm,right=of actions] (commit) {Commit writes\\restore consistency};
+\node[box,text width=30mm,right=of commit] (stop) {Retain prefix\\ObservedUnfinished};
+\draw[arr] (admit)--(actions);\draw[arr] (actions)--(commit);\draw[arr] (commit)--(stop);
+\node[above=6mm of admit,font=\scriptsize,align=center] (limit) {limit reached:\\stop admitting new matches};
+\draw[arr] (limit)--(admit);
+\end{tikzpicture}
+\caption{The stop path is cooperative. A time/space observation stops new work,
+not already admitted mutations or their required rebuild. The retained prefix is
+not a saturated body. Success of an existential query uses a separate read-only
+stop signal; it does not certify saturation either.}
+\label{fig:native-stop}
+\end{figure}}
