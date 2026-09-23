@@ -426,6 +426,10 @@ pub enum PlanStrategy {
     /// single variable per stage.
     #[default]
     Gj,
+
+    /// Generic Join without tree decomposition or intermediate materialization.
+    /// Useful for short-lived read-only probes that can stop on success.
+    GjFlat,
 }
 
 /// Pick the next variable to eliminate and computes its neighborhood.
@@ -1058,7 +1062,7 @@ pub(crate) fn tree_decompose_and_plan(
             })
         }};
     }
-    if ctx.atoms.len() <= 2 {
+    if ctx.atoms.len() <= 2 || matches!(strat, PlanStrategy::GjFlat) {
         return fast_path!();
     }
 
@@ -1350,7 +1354,9 @@ fn plan_stages(ctx: &PlanningContext, strat: PlanStrategy) -> (Vec<JoinHeader>, 
         PlanStrategy::PureSize | PlanStrategy::MinCover => {
             plan_free_join(ctx, &mut state, strat, &remaining_constraints, &mut instrs)
         }
-        PlanStrategy::Gj => plan_gj(ctx, &mut state, &remaining_constraints, &mut instrs),
+        PlanStrategy::Gj | PlanStrategy::GjFlat => {
+            plan_gj(ctx, &mut state, &remaining_constraints, &mut instrs)
+        }
     };
 
     (header, instrs)
@@ -1385,7 +1391,7 @@ fn plan_free_join(
                 size_info.push((atom, *size));
             }
         }
-        PlanStrategy::Gj => unreachable!(),
+        PlanStrategy::Gj | PlanStrategy::GjFlat => unreachable!(),
     };
 
     size_info.sort_by_key(|(_, size)| *size);

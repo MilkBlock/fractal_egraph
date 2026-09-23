@@ -182,3 +182,92 @@ fn compiled_check_groups_observe_action_order_and_do_not_share_results() {
         "free variables cannot be batched as independent checks"
     );
 }
+
+#[test]
+fn existence_and_freshness_equal_full_enumeration_for_joins() {
+    let mut eg = EGraph::default();
+    eg.parse_and_run_program(None, "(relation Edge (i64 i64))")
+        .unwrap();
+    for x in 0..6 {
+        for y in 0..6 {
+            if (x + y) % 2 == 0 {
+                eg.parse_and_run_program(None, &format!("(Edge {x} {y})"))
+                    .unwrap();
+            }
+        }
+    }
+    for projection in [vec![0, 1, 2], vec![0], vec![]] {
+        let q = eg
+            .compile_fact_query(
+                &vec![("i64".into(), None); 3],
+                &[
+                    ("Edge".into(), vec![0, 1]),
+                    ("Edge".into(), vec![1, 2]),
+                    ("Edge".into(), vec![0, 2]),
+                ],
+                &projection,
+            )
+            .unwrap();
+        let full: BTreeSet<_> = eg.run_fact_query(&q).unwrap().into_iter().collect();
+        assert!(!full.is_empty());
+        for stride in [0, 1, 2] {
+            let excluded: std::collections::HashSet<_> = full
+                .iter()
+                .enumerate()
+                .filter(|(i, _)| stride != 0 && i % stride == 0)
+                .map(|(_, r)| r.clone())
+                .collect();
+            let (matched, fresh) = eg.run_fact_query_difference(&q, excluded.clone()).unwrap();
+            assert_eq!(matched.is_some(), !full.is_empty());
+            assert_eq!(fresh.is_some(), full.iter().any(|r| !excluded.contains(r)));
+            assert!(full.contains(&matched.unwrap()));
+            if let Some(fresh) = fresh {
+                assert!(full.contains(&fresh));
+                assert!(!excluded.contains(&fresh));
+            }
+            assert_eq!(
+                eg.run_fact_query(&q)
+                    .unwrap()
+                    .into_iter()
+                    .collect::<BTreeSet<_>>(),
+                full
+            );
+        }
+        eg.free_fact_query(q);
+    }
+}
+
+#[test]
+fn difference_witnesses_follow_union_and_subsume() {
+    let mut eg = EGraph::default();
+    eg.parse_and_run_program(
+        None,
+        "(datatype E (A) (B) (C)) (relation P (E)) (relation Q (E)) (P (A)) (Q (B))",
+    )
+    .unwrap();
+    let q = query(&mut eg);
+    for update in [
+        "",
+        "(union (A) (B))",
+        "(P (C)) (Q (C))",
+        "(subsume (P (C)))",
+    ] {
+        let before = eg.run_fact_query(&q).unwrap();
+        if !update.is_empty() {
+            eg.parse_and_run_program(None, update).unwrap();
+        }
+        let sort = eg.get_arcsort_by(|s| s.name() == "E");
+        let excluded: std::collections::HashSet<_> = before
+            .into_iter()
+            .map(|row| {
+                row.into_iter()
+                    .map(|v| eg.get_canonical_value(v, &sort))
+                    .collect()
+            })
+            .collect();
+        let full: BTreeSet<_> = eg.run_fact_query(&q).unwrap().into_iter().collect();
+        let (matched, fresh) = eg.run_fact_query_difference(&q, excluded.clone()).unwrap();
+        assert_eq!(matched.is_some(), !full.is_empty());
+        assert_eq!(fresh.is_some(), full.iter().any(|r| !excluded.contains(r)));
+    }
+}

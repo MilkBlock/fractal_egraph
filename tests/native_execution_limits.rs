@@ -69,3 +69,52 @@ fn interrupted_union_still_rebuilds_and_resumes() {
             .unwrap();
     }
 }
+
+#[test]
+fn effect_summary_matches_dependency_trace_through_union_and_rebuild() {
+    let mut summaries = vec![];
+    for compact in [false, true] {
+        let mut eg = EGraph::default();
+        eg.parse_and_run_program(
+            None,
+            r#"
+            (datatype E (Atom i64) (Pair E E))
+            (relation P (E))
+            (function score (E) i64 :merge (min old new))
+            (Atom 0) (P (Atom 1)) (P (Atom 2))
+            (Pair (Atom 1) (Atom 2))
+            (set (score (Atom 1)) 10) (set (score (Atom 2)) 20)
+            (rule ((P x) (= y (Atom 0))) ((union x y) (set (score x) 5)) :name "merge-score")
+        "#,
+        )
+        .unwrap();
+        let trace = if compact {
+            TraceSession::with_effects()
+        } else {
+            TraceSession::with_dependencies()
+        };
+        eg.step_rules_with_trace("", &trace).unwrap();
+        let (counts, union, changed) = trace.effect_summary();
+        let names: std::collections::HashMap<_, _> = trace.table_names().into_iter().collect();
+        let counts: std::collections::BTreeMap<_, _> = counts
+            .into_iter()
+            .map(|(k, v)| (names[&k].to_string(), v))
+            .collect();
+        eg.parse_and_run_program(
+            None,
+            "(check (= (Atom 1) (Atom 2))) (check (= (score (Atom 1)) 5))",
+        )
+        .unwrap();
+        summaries.push((counts, union, changed));
+        if compact {
+            assert!(trace.matches().is_empty());
+            assert!(trace.row_reads().is_empty());
+            assert!(trace.write_events().is_empty());
+            assert!(trace.take_effect_match_count() > 0);
+        }
+        trace.drain_completed();
+        assert_eq!(trace.effect_summary(), (Default::default(), false, false));
+    }
+    assert_eq!(summaries[0], summaries[1]);
+    assert!(summaries[0].1 && summaries[0].2, "{summaries:?}");
+}

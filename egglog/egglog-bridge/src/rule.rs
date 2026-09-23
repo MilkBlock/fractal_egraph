@@ -180,7 +180,8 @@ impl RuleBuilder<'_> {
         self.egraph.new_panic(message)
     }
 
-    pub(crate) fn set_plan_strategy(&mut self, strategy: PlanStrategy) {
+    /// Select the native join planner; this does not change rule semantics.
+    pub fn set_plan_strategy(&mut self, strategy: PlanStrategy) {
         self.query.plan_strategy = strategy;
     }
 

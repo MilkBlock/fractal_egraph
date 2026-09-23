@@ -6,7 +6,16 @@ use super::*;
 pub struct CompiledFactQuery {
     rule: egglog_bridge::RuleId,
     callback: ExternalFunctionId,
-    rows: Arc<std::sync::Mutex<Vec<Vec<Value>>>>,
+    rows: Arc<std::sync::Mutex<QueryRows>>,
+    stop: Arc<std::sync::atomic::AtomicBool>,
+}
+
+#[derive(Default)]
+struct QueryRows {
+    rows: Vec<Vec<Value>>,
+    excluded: Option<std::collections::HashSet<Vec<Value>>>,
+    matched: Option<Vec<Value>>,
+    fresh: Option<Vec<Value>>,
 }
 
 impl EGraph {
@@ -78,15 +87,30 @@ impl EGraph {
         if projection.iter().any(|i| !bound.contains(i)) {
             return Err(error("unbound query projection"));
         }
-        let rows = Arc::new(std::sync::Mutex::new(Vec::new()));
+        let rows = Arc::new(std::sync::Mutex::new(QueryRows::default()));
         let buffer = rows.clone();
+        let stop = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let success = stop.clone();
         let callback = self
             .backend
             .register_external_func(Box::new(make_external_func(move |_, args| {
-                buffer.lock().unwrap().push(args.to_vec());
+                let mut sink = buffer.lock().unwrap();
+                if let Some(excluded) = &sink.excluded {
+                    let fresh = sink.fresh.is_none() && !excluded.contains(args);
+                    if fresh {
+                        sink.fresh = Some(args.to_vec());
+                        success.store(true, std::sync::atomic::Ordering::Relaxed);
+                    }
+                    if sink.matched.is_none() {
+                        sink.matched = Some(args.to_vec());
+                    }
+                } else {
+                    sink.rows.push(args.to_vec());
+                }
                 Some(Value::new_const(0))
             })));
         let mut rb = self.backend.new_rule("read-only fact query", false);
+        rb.set_plan_strategy(core_relations::PlanStrategy::GjFlat);
         let entries: Vec<_> = values
             .iter()
             .zip(&sorts)
@@ -117,17 +141,43 @@ impl EGraph {
             rule: rb.build(),
             callback,
             rows,
+            stop,
         })
     }
 
     /// Reuse the compiled join. Advances backend maintenance timestamps but
     /// performs no logical writes, unions or user-rule execution.
     pub fn run_fact_query(&mut self, query: &CompiledFactQuery) -> Result<Vec<Vec<Value>>, Error> {
-        query.rows.lock().unwrap().clear();
+        *query.rows.lock().unwrap() = QueryRows::default();
         self.backend
             .run_rules(&[query.rule])
             .map_err(|e| Error::BackendError(e.to_string()))?;
-        Ok(std::mem::take(&mut *query.rows.lock().unwrap()))
+        Ok(std::mem::take(&mut query.rows.lock().unwrap().rows))
+    }
+
+    /// Exact existence and set-difference witnesses, without storing all results.
+    /// Stops once a fresh tuple proves both predicates; negative results exhaust
+    /// the join. Excluded tuples must use this graph's
+    /// current canonical values and the same projection as the compiled query.
+    pub fn run_fact_query_difference(
+        &mut self,
+        query: &CompiledFactQuery,
+        excluded: std::collections::HashSet<Vec<Value>>,
+    ) -> Result<(Option<Vec<Value>>, Option<Vec<Value>>), Error> {
+        *query.rows.lock().unwrap() = QueryRows {
+            excluded: Some(excluded),
+            ..Default::default()
+        };
+        query
+            .stop
+            .store(false, std::sync::atomic::Ordering::Relaxed);
+        let result = self
+            .backend
+            .run_read_only_rules_until(&[query.rule], &query.stop)
+            .map_err(|e| Error::BackendError(e.to_string()));
+        let rows = std::mem::take(&mut *query.rows.lock().unwrap());
+        result?;
+        Ok((rows.matched, rows.fresh))
     }
 
     pub fn free_fact_query(&mut self, query: CompiledFactQuery) {

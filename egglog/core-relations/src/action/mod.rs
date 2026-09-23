@@ -624,7 +624,7 @@ impl ExecutionState<'_> {
         atoms: &[crate::trace::TraceAtom],
         bindings: &DenseIdMap<Variable, Value>,
     ) {
-        if !trace.dependencies_enabled() {
+        if !trace.records_dependencies() {
             return;
         }
         let mut reads = Vec::new();
@@ -749,7 +749,16 @@ impl ExecutionState<'_> {
 
         match inst {
             Instr::TraceSource(source) => {
-                self.buffers.trace_source = source.clone();
+                self.buffers.trace_source = if self
+                    .buffers
+                    .trace_cause
+                    .as_ref()
+                    .is_some_and(|(trace, _)| trace.records_dependencies())
+                {
+                    source.clone()
+                } else {
+                    None
+                };
             }
             Instr::LookupOrInsertDefault {
                 table: table_id,

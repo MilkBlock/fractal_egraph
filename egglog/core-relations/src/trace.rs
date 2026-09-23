@@ -123,6 +123,9 @@ struct TraceState {
     control: Mutex<Option<Arc<ExecutionControl>>>,
     scope_resets: Mutex<Vec<u64>>,
     dependencies_enabled: bool,
+    effects_only: bool,
+    match_count: AtomicUsize,
+    effect_counts: Mutex<(std::collections::HashMap<crate::TableId, usize>, bool)>,
     table_names: Mutex<std::collections::HashMap<crate::TableId, Arc<str>>>,
     writes: Mutex<Vec<WriteEvent>>,
     unions: Mutex<Vec<UnionEvent>>,
@@ -231,6 +234,7 @@ impl TraceSession {
     /// equality edges remain available for future rebuild explanations; raw union
     /// events are returned only once. IDs and session identity are never reset.
     pub fn drain_completed(&self) -> TraceBatch {
+        *self.state.effect_counts.lock().unwrap() = Default::default();
         let unions = std::mem::take(&mut *self.state.unions.lock().unwrap());
         let reset = self.scope_resets().into_iter().max();
         let mut edges = self.state.equality_edges.lock().unwrap();
@@ -265,6 +269,22 @@ impl TraceSession {
                 ..Default::default()
             }),
         }
+    }
+    /// Keep committed write/union effects, without LHS witnesses or binding history.
+    pub fn with_effects() -> Self {
+        Self {
+            state: Arc::new(TraceState {
+                dependencies_enabled: true,
+                effects_only: true,
+                ..Default::default()
+            }),
+        }
+    }
+    pub fn records_dependencies(&self) -> bool {
+        self.state.dependencies_enabled && !self.state.effects_only
+    }
+    pub fn take_effect_match_count(&self) -> usize {
+        self.state.match_count.swap(0, Ordering::Relaxed)
     }
     /// Record a successful scope rollback. Earlier block certificates need
     /// revalidation even when restored rows still carry historical origins.
@@ -357,6 +377,17 @@ impl TraceSession {
     /// Inserted/Deduplicated/Updated are emitted at SortedWritesTable commit.
     /// Unsupported is only a staging notification for a table without commit hooks.
     pub fn effect_summary(&self) -> (std::collections::HashMap<crate::TableId, usize>, bool, bool) {
+        if self.state.effects_only {
+            let effects = self.state.effect_counts.lock().unwrap();
+            let union = self
+                .state
+                .unions
+                .lock()
+                .unwrap()
+                .iter()
+                .any(|u| u.displaced.is_some());
+            return (effects.0.clone(), union, effects.1 || union);
+        }
         let mut inserted = std::collections::HashMap::new();
         let writes = self.state.writes.lock().unwrap();
         let mut changed = false;
@@ -392,6 +423,14 @@ impl TraceSession {
         outcome: WriteOutcome,
     ) -> u64 {
         let event_id = self.state.next_event_id.fetch_add(1, Ordering::Relaxed);
+        if self.state.effects_only {
+            let mut effects = self.state.effect_counts.lock().unwrap();
+            effects.1 |= matches!(outcome, WriteOutcome::Inserted | WriteOutcome::Updated);
+            if outcome == WriteOutcome::Inserted && cause.rebuild_of.is_none() {
+                *effects.0.entry(cause.table).or_default() += 1;
+            }
+            return event_id;
+        }
         self.state.writes.lock().unwrap().push(WriteEvent {
             source_span: cause.source_span.clone(),
             event_id,
@@ -448,6 +487,10 @@ impl TraceSession {
         bindings: &crate::numeric_id::DenseIdMap<Variable, Value>,
     ) -> u64 {
         let event_id = self.state.next_event_id.fetch_add(1, Ordering::Relaxed);
+        if self.state.effects_only {
+            self.state.match_count.fetch_add(1, Ordering::Relaxed);
+            return event_id;
+        }
         let bindings = bindings
             .iter()
             .map(|(variable, value)| RuleMatchBinding {
@@ -470,6 +513,9 @@ impl TraceSession {
         match_event_ids: &[u64],
         survived: impl IntoIterator<Item = bool>,
     ) {
+        if self.state.effects_only {
+            return;
+        }
         let mut outcomes = self.state.action_outcomes.lock().unwrap();
         for (match_event_id, survived) in match_event_ids.iter().copied().zip(survived) {
             let event_id = self.state.next_event_id.fetch_add(1, Ordering::Relaxed);

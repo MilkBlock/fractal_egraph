@@ -410,6 +410,27 @@ impl EGraph {
         self.db.estimate_size(self.funcs[table].table, None)
     }
 
+    /// For collector-only, non-seminaive queries. Never use for mutation rules:
+    /// successful early exit is not saturation and does not run a rebuild.
+    pub fn run_read_only_rules_until(
+        &mut self,
+        rules: &[RuleId],
+        stop: &Arc<std::sync::atomic::AtomicBool>,
+    ) -> Result<RuleSetReport> {
+        let ts = self.next_ts();
+        let result = run_rules_impl_control(
+            &mut self.db,
+            &mut self.rules,
+            rules,
+            ts,
+            self.report_level,
+            None,
+            Some(stop),
+        );
+        self.inc_ts();
+        result
+    }
+
     pub fn table_size(&self, table: FunctionId) -> usize {
         self.db.get_table(self.funcs[table].table).len()
     }
@@ -1434,6 +1455,18 @@ fn run_rules_impl(
     report_level: ReportLevel,
     trace: Option<&TraceSession>,
 ) -> Result<RuleSetReport> {
+    run_rules_impl_control(db, rule_info, rules, next_ts, report_level, trace, None)
+}
+
+fn run_rules_impl_control(
+    db: &mut Database,
+    rule_info: &mut DenseIdMapWithReuse<RuleId, RuleInfo>,
+    rules: &[RuleId],
+    next_ts: Timestamp,
+    report_level: ReportLevel,
+    trace: Option<&TraceSession>,
+    stop: Option<&Arc<std::sync::atomic::AtomicBool>>,
+) -> Result<RuleSetReport> {
     let witnesses = trace.is_some_and(TraceSession::dependencies_enabled);
     for rule in rules {
         let info = &mut rule_info[*rule];
@@ -1467,7 +1500,10 @@ fn run_rules_impl(
     let ruleset = rsb.build();
     let report = match trace {
         Some(trace) => db.run_rule_set_with_trace(&ruleset, report_level, trace),
-        None => db.run_rule_set(&ruleset, report_level),
+        None => match stop {
+            Some(stop) => db.run_rule_set_until(&ruleset, report_level, stop),
+            None => db.run_rule_set(&ruleset, report_level),
+        },
     };
     if trace.is_some_and(TraceSession::execution_was_interrupted) {
         // Do not skip unvisited semi-naive input when the query stopped early.
