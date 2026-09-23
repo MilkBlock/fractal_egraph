@@ -81,3 +81,5 @@ cargo test --release --offline --test native_fact_query benchmark -- --ignored -
 本地一次 release 测量：200 个匹配 binding，重复 60 次，旧克隆+解析/编译路径 23.34 ms，缓存原生 Join 1.45 ms（约 16 倍）。这是原生查询层的热查询微基准，缓存编译在计时外；不代表整个 ripen / math 流水线加速。回归覆盖 union、插入、函数更新、subsume、类型/字面量/别名约束，以及不执行用户规则。
 
 完整 math-microbenchmark 的 bake 决策评估见 [实验报告](experiments/math_ripen_report/README.md)：包含 11 轮原生/trace 对照、未完成的完整流水线、初始结构与饱和结构判等 ablation，以及实际覆盖分母。
+
+可选 CC 放开合并实验：`cc-merge --rules FILE --seeds FILE --output DIR --generations N`。按代穷举饱和族的配对与 binding，支持新族递归接续，输出增长曲线数据；不改变默认分析流程。配置与支持范围见 [CC 实验说明](experiments/cc_merge_probe/README.md)。

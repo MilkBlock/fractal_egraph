@@ -50,3 +50,49 @@ cargo run --release --offline --example cc_merge_probe -- out/cc-merge-new
 ```
 
 目录必须不存在。若修改 demo 导致两个初始饱和族不再仅有两个交换行，实验会拒绝继续，避免把不完整状态冒充 Sat(C₂)。
+
+## 可选的通用递归实验功能
+
+默认 `analyze` 不变。通过独立的 `cc-merge` 命令启用：
+
+```sh
+cargo run --release --offline -- cc-merge \
+  --rules experiments/cc_merge_probe/demo.egg \
+  --seeds experiments/cc_merge_probe/seeds.json \
+  --output out/cc-generation-1 --generations 1
+```
+
+`--rules` 是自包含的 datatype 与规则文件；`--seeds` 是 coarse facts 的配置。程序先对每个配置做 saturation，再放开已饱和族之间的配对。
+
+```json
+[
+  {"parameters":2,"facts":["(Add p0 p1)"],"result":"(Add p0 p1)"},
+  {"parameters":2,"facts":["(Mul p0 p1)"],"result":"(Mul p0 p1)"}
+]
+```
+
+修改参数数目、facts、constructor 的参数数量和规则，就能测试不同规模。p0、p1 等是显式的外部参数；事实可以是 constructor 表达式或 union。`result` 指明该组合提供的结果。此命令从这些配置建立饱和族，目前不是直接导入旧 catalog 的接口。
+
+- 第 1 代穷举初始饱和族的所有有向配对和 binding。
+- 第 2 代把新发现的族也纳入配对；以此类推。已处理过的有向族对不重复运行。
+- 一代开始时固定本代族集合，本代新族下一代才接续。
+- 每个参数可以连接左图的任意同类型 e-class，也可引用新外部参数；穷举参数别名。流式枚举，不预先分配全部 binding 数组。
+- 每个合并都继续原生 saturation，随后做完整状态判等。接口保留外部参数位置和当前 result；不保留每一步的历史 result 名字。因此其族编号/数量不应直接与旧的固定双-result demo 对照。
+- `--generations` 是用户指定的实验范围，默认 1；不是自动发现预算。范围内没有 Top-K、binding 数上限或 saturation 限时。若规则无限生成，某次合并会持续运行，可主动终止。
+
+输出：
+
+| 文件 | 内容 |
+|---|---|
+| `generations.csv` | 每代配对数、binding 数、新族数、继续产生变化的合并数、最大参数/目标 e-class 数、耗时 |
+| `merges.jsonl` | 每次合并的左右族、binding、fresh 参数数、结果族、sweep 数和事实数 |
+| `families/*.json` | 完整饱和结构与固定接口 |
+| `summary.json` | 已完成代的汇总 |
+| `progress.json` | 当前 seed / 合并；正常完成或错误状态 |
+| `rules.egg`、`seeds.json` | 本次输入副本 |
+
+binding 中小于 n 的数表示左图第几个同类型 e-class（按其 `values` 数组筛选顺序）；n 及以后的数表示依首次使用顺序分配的新参数。同一编号表示 alias。族图导入保留循环与共享，内部使用私有 constructor 分配节点；统计图排除这些脚手架行，但耗时包含分配工作。
+
+当前范围是单个等价 datatype、constructor/union 规则；constructor 的字段可为该 datatype 或 i64/String/bool。关系、一般 function、delete/subsume、include 和多 datatype 尚不支持。不会把不支持的程序当作已成功实验。
+
+已验证：原 demo 的 68 个 binding 与 7 个继续变化的合并；小型两代递归接续且无重复配对；scalar 字段与循环图导入。尚未运行完整 math 的多代实验，也尚未证明增长率是指数级。

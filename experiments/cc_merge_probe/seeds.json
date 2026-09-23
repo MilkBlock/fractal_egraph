@@ -1,0 +1,4 @@
+[
+  {"parameters":2,"facts":["(Add p0 p1)"],"result":"(Add p0 p1)"},
+  {"parameters":2,"facts":["(Mul p0 p1)"],"result":"(Mul p0 p1)"}
+]

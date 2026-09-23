@@ -6,3 +6,5 @@ pub mod pipeline;
 pub mod saturated_rule_composition;
 pub mod state_difference;
 pub mod visual_rule;
+
+pub mod cc_merge;

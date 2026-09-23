@@ -5,9 +5,32 @@ fn main() -> Result {
     match args.first().map(String::as_str) {
         None | Some("--help" | "help" | "-h") => {
             println!(
-                "egg_layout: analyze --source FILE --output DIR [--rounds N] [--save-history]\n  analyze --replay-history FILE --output DIR\n  debug-stream FILE\n  debug-patterns FILE\n  parse-check FILE\n  ripen FILE DIR\n  saturated-rule-composition-compare A.json B.json\n  saturated-rule-composition-catalog DIR RIPEN_DIR...\n  ripen-diff A.json B.json REPORT.json [ANCHORS.json]\nRipen has no automatic round/work limits. Stop the process to interrupt Running tasks."
+                "egg_layout: analyze --source FILE --output DIR [--rounds N] [--save-history]\n  analyze --replay-history FILE --output DIR\n  cc-merge --rules FILE --seeds FILE --output DIR [--generations N]\n  debug-stream FILE\n  debug-patterns FILE\n  parse-check FILE\n  ripen FILE DIR\n  saturated-rule-composition-compare A.json B.json\n  saturated-rule-composition-catalog DIR RIPEN_DIR...\n  ripen-diff A.json B.json REPORT.json [ANCHORS.json]\nRipen has no automatic round/work limits. Stop the process to interrupt Running tasks."
             );
             Ok(())
+        }
+        Some("cc-merge") => {
+            let (mut rules, mut seeds, mut out, mut generations) = (None, None, None, 1);
+            let mut i = 1;
+            while i < args.len() {
+                let key = &args[i];
+                i += 1;
+                let value = args.get(i).ok_or("missing CC option value")?;
+                match key.as_str() {
+                    "--rules" => rules = Some(PathBuf::from(value)),
+                    "--seeds" => seeds = Some(PathBuf::from(value)),
+                    "--output" => out = Some(PathBuf::from(value)),
+                    "--generations" => generations = value.parse()?,
+                    _ => return Err(format!("unknown CC option {key}").into()),
+                }
+                i += 1;
+            }
+            egg_layout::cc_merge::run(
+                &rules.ok_or("--rules required")?,
+                &seeds.ok_or("--seeds required")?,
+                &out.ok_or("--output required")?,
+                generations,
+            )
         }
         Some("analyze") => {
             let mut source = None;
