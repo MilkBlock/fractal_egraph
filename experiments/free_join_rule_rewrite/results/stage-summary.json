@@ -1,0 +1,265 @@
+{
+  "scope": "actual egglog 3.0 runtime stage-info; matches are logical matches, not committed mutations",
+  "rules": [
+    {
+      "rule": "(rewrite (Mul a (Add b c)) (Add (Mul a b) (Mul a c)))",
+      "invocations": 21,
+      "matches": 309520,
+      "search_ms": 56.528667,
+      "matches_per_ms": 5475.45195077747,
+      "stage_kinds": {
+        "FusedIntersect": 42,
+        "Intersect": 21
+      },
+      "distinct_plan_count": 1
+    },
+    {
+      "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
+      "invocations": 21,
+      "matches": 317828,
+      "search_ms": 42.883959,
+      "matches_per_ms": 7411.3493112891,
+      "stage_kinds": {
+        "FusedIntersect": 42,
+        "Intersect": 21
+      },
+      "distinct_plan_count": 1
+    },
+    {
+      "rule": "(rewrite (Add (Mul a b) (Mul a c)) (Mul a (Add b c)))",
+      "invocations": 31,
+      "matches": 44219,
+      "search_ms": 38.738793,
+      "matches_per_ms": 1141.4656104540995,
+      "stage_kinds": {
+        "Intersect": 93,
+        "FusedIntersect": 93
+      },
+      "distinct_plan_count": 1
+    },
+    {
+      "rule": "(rewrite (Mul a (Mul b c)) (Mul (Mul a b) c))",
+      "invocations": 21,
+      "matches": 81892,
+      "search_ms": 12.189542,
+      "matches_per_ms": 6718.217960937335,
+      "stage_kinds": {
+        "FusedIntersect": 42,
+        "Intersect": 21
+      },
+      "distinct_plan_count": 1
+    },
+    {
+      "rule": "(rewrite (Integral (Mul a b) x) (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x)))",
+      "invocations": 21,
+      "matches": 12825,
+      "search_ms": 7.022876,
+      "matches_per_ms": 1826.1749175124264,
+      "stage_kinds": {
+        "FusedIntersect": 42,
+        "Intersect": 21
+      },
+      "distinct_plan_count": 1
+    },
+    {
+      "rule": "(rewrite (Integral (Add f g) x) (Add (Integral f x) (Integral g x)))",
+      "invocations": 21,
+      "matches": 24058,
+      "search_ms": 4.855124,
+      "matches_per_ms": 4955.177251909529,
+      "stage_kinds": {
+        "FusedIntersect": 42,
+        "Intersect": 21
+      },
+      "distinct_plan_count": 1
+    },
+    {
+      "rule": "(rewrite (Add a b) (Add b a))",
+      "invocations": 11,
+      "matches": 72847,
+      "search_ms": 3.880707,
+      "matches_per_ms": 18771.579508579234,
+      "stage_kinds": {
+        "FusedIntersect": 11
+      },
+      "distinct_plan_count": 1
+    },
+    {
+      "rule": "(rewrite (Diff x (Add a b)) (Add (Diff x a) (Diff x b)))",
+      "invocations": 21,
+      "matches": 15190,
+      "search_ms": 3.014126,
+      "matches_per_ms": 5039.603520224437,
+      "stage_kinds": {
+        "FusedIntersect": 42,
+        "Intersect": 21
+      },
+      "distinct_plan_count": 1
+    },
+    {
+      "rule": "(rewrite (Mul a b) (Mul b a))",
+      "invocations": 11,
+      "matches": 53415,
+      "search_ms": 2.736041,
+      "matches_per_ms": 19522.733760203155,
+      "stage_kinds": {
+        "FusedIntersect": 11
+      },
+      "distinct_plan_count": 1
+    },
+    {
+      "rule": "(rewrite (Diff x (Mul a b)) (Add (Mul a (Diff x b)) (Mul b (Diff x a))))",
+      "invocations": 21,
+      "matches": 4467,
+      "search_ms": 1.656127,
+      "matches_per_ms": 2697.256913268125,
+      "stage_kinds": {
+        "FusedIntersect": 42,
+        "Intersect": 21
+      },
+      "distinct_plan_count": 1
+    },
+    {
+      "rule": "(rewrite (Integral (Sub f g) x) (Sub (Integral f x) (Integral g x)))",
+      "invocations": 21,
+      "matches": 2654,
+      "search_ms": 0.937666,
+      "matches_per_ms": 2830.4321581458644,
+      "stage_kinds": {
+        "FusedIntersect": 42,
+        "Intersect": 21
+      },
+      "distinct_plan_count": 1
+    },
+    {
+      "rule": "(rewrite (Sub a b) (Add a (Mul (Const -1) b)))",
+      "invocations": 11,
+      "matches": 4170,
+      "search_ms": 0.618167,
+      "matches_per_ms": 6745.749934888145,
+      "stage_kinds": {
+        "FusedIntersect": 11
+      },
+      "distinct_plan_count": 1
+    },
+    {
+      "rule": "(rewrite (Integral (Cos x) x) (Sin x))",
+      "invocations": 11,
+      "matches": 1,
+      "search_ms": 0.128667,
+      "matches_per_ms": 7.772000590672045,
+      "stage_kinds": {
+        "Intersect": 22,
+        "FusedIntersect": 11
+      },
+      "distinct_plan_count": 1
+    },
+    {
+      "rule": "(rewrite (Integral (Const 1) x) x)",
+      "invocations": 12,
+      "matches": 0,
+      "search_ms": 0.104793,
+      "matches_per_ms": 0.0,
+      "stage_kinds": {
+        "Intersect": 12,
+        "FusedIntersect": 12
+      },
+      "distinct_plan_count": 1
+    },
+    {
+      "rule": "(rewrite (Diff x (Sin x)) (Cos x))",
+      "invocations": 9,
+      "matches": 2,
+      "search_ms": 0.060583,
+      "matches_per_ms": 33.012561279566874,
+      "stage_kinds": {
+        "Intersect": 18,
+        "FusedIntersect": 9
+      },
+      "distinct_plan_count": 1
+    },
+    {
+      "rule": "(rewrite (Sub a a) (Const 0))",
+      "invocations": 11,
+      "matches": 0,
+      "search_ms": 0.028501,
+      "matches_per_ms": 0.0,
+      "stage_kinds": {
+        "FusedIntersect": 11
+      },
+      "distinct_plan_count": 1
+    },
+    {
+      "rule": "(rewrite (Mul (Pow a b) (Pow a c)) (Pow a (Add b c)))",
+      "invocations": 11,
+      "matches": 0,
+      "search_ms": 0.022666,
+      "matches_per_ms": 0.0,
+      "stage_kinds": {
+        "Intersect": 33,
+        "FusedIntersect": 33
+      },
+      "distinct_plan_count": 1
+    },
+    {
+      "rule": "(rewrite (Diff x (Cos x)) (Mul (Const -1) (Sin x)))",
+      "invocations": 11,
+      "matches": 1,
+      "search_ms": 0.016043,
+      "matches_per_ms": 62.33248145608676,
+      "stage_kinds": {
+        "Intersect": 22,
+        "FusedIntersect": 11
+      },
+      "distinct_plan_count": 1
+    },
+    {
+      "rule": "(rewrite (Integral (Sin x) x) (Mul (Const -1) (Cos x)))",
+      "invocations": 9,
+      "matches": 2,
+      "search_ms": 0.015291,
+      "matches_per_ms": 130.79589300895952,
+      "stage_kinds": {
+        "Intersect": 18,
+        "FusedIntersect": 9
+      },
+      "distinct_plan_count": 1
+    },
+    {
+      "rule": "(rewrite (Mul a (Const 1)) a)",
+      "invocations": 12,
+      "matches": 0,
+      "search_ms": 0.014918,
+      "matches_per_ms": 0.0,
+      "stage_kinds": {
+        "Intersect": 12,
+        "FusedIntersect": 12
+      },
+      "distinct_plan_count": 1
+    },
+    {
+      "rule": "(rewrite (Pow x (Const 2)) (Mul x x))",
+      "invocations": 2,
+      "matches": 1,
+      "search_ms": 0.001876,
+      "matches_per_ms": 533.0490405117271,
+      "stage_kinds": {
+        "Intersect": 2,
+        "FusedIntersect": 2
+      },
+      "distinct_plan_count": 1
+    },
+    {
+      "rule": "(rewrite (Pow x (Const 1)) x)",
+      "invocations": 2,
+      "matches": 0,
+      "search_ms": 0.001542,
+      "matches_per_ms": 0.0,
+      "stage_kinds": {
+        "Intersect": 2,
+        "FusedIntersect": 2
+      },
+      "distinct_plan_count": 1
+    }
+  ]
+}

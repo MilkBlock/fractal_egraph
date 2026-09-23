@@ -1,0 +1,165 @@
+{
+  "runtime": "official egglog v3.0.0 release source, release build, one thread",
+  "date": "2026-09-23",
+  "warmup_policy": "first run per mode excluded from medians",
+  "runs": [
+    {
+      "mode": "baseline",
+      "run": 1,
+      "wall_s": 0.4346458329819143,
+      "search_s": 0.181,
+      "merge_s": 0.064,
+      "rebuild_s": 0.177
+    },
+    {
+      "mode": "baseline",
+      "run": 2,
+      "wall_s": 0.42940783401718363,
+      "search_s": 0.178,
+      "merge_s": 0.063,
+      "rebuild_s": 0.175
+    },
+    {
+      "mode": "baseline",
+      "run": 3,
+      "wall_s": 0.4234980420442298,
+      "search_s": 0.176,
+      "merge_s": 0.062,
+      "rebuild_s": 0.174
+    },
+    {
+      "mode": "baseline",
+      "run": 4,
+      "wall_s": 0.436181208002381,
+      "search_s": 0.181,
+      "merge_s": 0.064,
+      "rebuild_s": 0.179
+    },
+    {
+      "mode": "baseline",
+      "run": 5,
+      "wall_s": 0.4353349159937352,
+      "search_s": 0.178,
+      "merge_s": 0.062,
+      "rebuild_s": 0.184
+    },
+    {
+      "mode": "baseline",
+      "run": 6,
+      "wall_s": 0.42910554102854803,
+      "search_s": 0.177,
+      "merge_s": 0.063,
+      "rebuild_s": 0.175
+    },
+    {
+      "mode": "baseline",
+      "run": 7,
+      "wall_s": 0.42963854200206697,
+      "search_s": 0.178,
+      "merge_s": 0.06,
+      "rebuild_s": 0.18
+    },
+    {
+      "mode": "baseline",
+      "run": 8,
+      "wall_s": 0.4347874590312131,
+      "search_s": 0.182,
+      "merge_s": 0.066,
+      "rebuild_s": 0.174
+    },
+    {
+      "mode": "baseline",
+      "run": 9,
+      "wall_s": 0.43830533302389085,
+      "search_s": 0.18,
+      "merge_s": 0.067,
+      "rebuild_s": 0.178
+    },
+    {
+      "mode": "no_decomp",
+      "run": 1,
+      "wall_s": 0.4178614169941284,
+      "search_s": 0.178,
+      "merge_s": 0.061,
+      "rebuild_s": 0.167
+    },
+    {
+      "mode": "no_decomp",
+      "run": 2,
+      "wall_s": 0.40290504100266844,
+      "search_s": 0.17,
+      "merge_s": 0.058,
+      "rebuild_s": 0.163
+    },
+    {
+      "mode": "no_decomp",
+      "run": 3,
+      "wall_s": 0.4101439159712754,
+      "search_s": 0.17,
+      "merge_s": 0.06,
+      "rebuild_s": 0.168
+    },
+    {
+      "mode": "no_decomp",
+      "run": 4,
+      "wall_s": 0.39677875000052154,
+      "search_s": 0.17,
+      "merge_s": 0.056,
+      "rebuild_s": 0.158
+    },
+    {
+      "mode": "no_decomp",
+      "run": 5,
+      "wall_s": 0.40176483296090737,
+      "search_s": 0.172,
+      "merge_s": 0.06,
+      "rebuild_s": 0.159
+    },
+    {
+      "mode": "no_decomp",
+      "run": 6,
+      "wall_s": 0.41695604199776426,
+      "search_s": 0.17,
+      "merge_s": 0.059,
+      "rebuild_s": 0.175
+    },
+    {
+      "mode": "no_decomp",
+      "run": 7,
+      "wall_s": 0.40775216603651643,
+      "search_s": 0.17,
+      "merge_s": 0.061,
+      "rebuild_s": 0.164
+    },
+    {
+      "mode": "no_decomp",
+      "run": 8,
+      "wall_s": 0.40917704202001914,
+      "search_s": 0.168,
+      "merge_s": 0.064,
+      "rebuild_s": 0.166
+    },
+    {
+      "mode": "no_decomp",
+      "run": 9,
+      "wall_s": 0.42654862499330193,
+      "search_s": 0.176,
+      "merge_s": 0.063,
+      "rebuild_s": 0.175
+    }
+  ],
+  "medians": {
+    "baseline": {
+      "wall_s": 0.43221300051664,
+      "search_s": 0.178,
+      "merge_s": 0.063,
+      "rebuild_s": 0.1765
+    },
+    "no_decomp": {
+      "wall_s": 0.4084646040282678,
+      "search_s": 0.17,
+      "merge_s": 0.06,
+      "rebuild_s": 0.165
+    }
+  }
+}
