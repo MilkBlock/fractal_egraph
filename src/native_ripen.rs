@@ -21,6 +21,7 @@ pub(super) struct Session {
     pub before: EGraph,
     pub weak_queries: BTreeMap<(usize, bool), weak_dominate::CachedQuery>,
     pub has_effects: bool,
+    pub initial_facts: usize,
     pub effect_components: BTreeMap<String, u64>,
     pub union_effect: bool,
     pub initial: Option<crate::saturated_rule_composition::SaturatedRuleComposition>,
@@ -197,12 +198,14 @@ impl Session {
         if let Some(state) = &trigger {
             crate::pipeline::write_json(&out.join("trigger-state.json"), state)?;
         }
+        let initial_facts = table_sizes(&eg, &c.datatype)?.values().sum();
         let before = eg.clone();
         Ok(Self {
             eg,
             before,
             weak_queries: BTreeMap::new(),
             has_effects: false,
+            initial_facts,
             effect_components: BTreeMap::new(),
             union_effect: false,
             initial,
@@ -223,6 +226,23 @@ impl Session {
             report: json!({"ripen":{"state":"Running","round":0}}),
             done: false,
         })
+    }
+    pub(super) fn snapshot_unfinished(&self) -> Result<Json> {
+        let state = export_state(
+            self.setup
+                .iter()
+                .find(|c| matches!(c, Command::Datatype { .. }))
+                .unwrap(),
+            &self.eg,
+            &self.c,
+            &self.ports,
+            true,
+            &self.out,
+            true,
+        )?;
+        let path = self.out.join("unfinished-state.json");
+        crate::pipeline::write_json(&path, &state)?;
+        Ok(json!({"status":"observed_only","path":path,"facts":state.rows.len()}))
     }
     pub fn advance(&mut self) -> Result<()> {
         if self.done {

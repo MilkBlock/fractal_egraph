@@ -151,11 +151,20 @@ impl Buckets {
         union_effect: bool,
         evidence: &Value,
     ) -> Result {
-        if evidence["new_effects"] != true
-            || !evidence["new_bindings"]
+        let growth = evidence["admission"] == "growth_observation"
+            && evidence["unfinished"] == true
+            && evidence["growth"]["after_facts"].as_u64().unwrap_or(0)
+                > evidence["growth"]["before_facts"]
+                    .as_u64()
+                    .unwrap_or(u64::MAX)
+            && evidence["growth"]["reasons"]
                 .as_array()
-                .is_some_and(|x| !x.is_empty())
-        {
+                .is_some_and(|r| !r.is_empty());
+        let fresh = evidence["new_effects"] == true
+            && evidence["new_bindings"]
+                .as_array()
+                .is_some_and(|r| !r.is_empty());
+        if !growth && !fresh {
             return Ok(());
         }
         let rows: Vec<_> = trigger
@@ -236,8 +245,21 @@ impl Buckets {
         self.original
             .entry(target)
             .or_insert_with(|| trigger.clone());
-        self.conditions[id].links.insert((source,target),json!({"source":source,"target":target,"round":round,"components":components,"union_effect":union_effect,"new_bindings":evidence["new_bindings"],"scope":evidence["scope"]}));
+        let prior_growth = self.conditions[id]
+            .links
+            .get(&(source, target))
+            .map(|r| r["growth"].clone())
+            .unwrap_or(Value::Null);
+        let growth_evidence = if growth {
+            evidence["growth"].clone()
+        } else {
+            prior_growth
+        };
+        self.conditions[id].links.insert((source,target),json!({"source":source,"target":target,"round":round,"components":components,"union_effect":union_effect,"admission":if !growth_evidence.is_null(){"growth_observation"}else{"fresh_binding"},"starting_condition_resolved":false,"growth":growth_evidence,"new_bindings":evidence["new_bindings"],"scope":evidence["scope"]}));
         Ok(())
+    }
+    pub fn known_targets(&self) -> BTreeSet<usize> {
+        self.original.keys().copied().collect()
     }
     pub fn report(&self) -> Value {
         let groups:Vec<_>=self.groups.iter().enumerate().map(|(id,g)|{

@@ -287,13 +287,13 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
             const box=document.createElement('details');box.id='native-reentry-buckets';
             const title=document.createElement('summary');const groups=buckets.groups||[];
             title.textContent=`non-trivial reentry：${groups.length} 个成分桶 · ${groups.reduce((n,g)=>n+g.minimal_starting_conditions.length,0)} 个已观察的最小 starting conditions`;
-            box.append(title);const note=document.createElement('p');note.textContent='按新增节点的 operator 成分分组；忽略字面值但保留类型、binding 别名与位置。这里不是 infi / 耗散分类，也不是已证明的循环体。';box.append(note);
+            box.append(title);const note=document.createElement('p');note.textContent='按新增节点的 operator 成分分组；忽略字面值但保留类型、binding 别名与位置。增长观察可直接入桶，不要求自身 C 再现；真正的起始条件可能尚未确定。这不是 infi / 耗散分类，也不是已证明的循环体。';box.append(note);
             const table=document.createElement('table');const head=document.createElement('tr');
             for(const text of ['桶','新增成分','最小 starting conditions','保留条件数']){const cell=document.createElement('th');cell.textContent=text;head.append(cell);}table.append(head);
             const evidence=document.createElement('pre');evidence.style.whiteSpace='pre-wrap';
             for(const g of groups){const row=document.createElement('tr');
                 for(const text of [String(g.id),g.new_node_operators.join(', ')+(g.union_effect?' + union':'')]){const cell=document.createElement('td');cell.textContent=text;row.append(cell);}
-                const minima=document.createElement('td');for(const id of g.minimal_starting_conditions){const button=document.createElement('button');button.textContent='条件 '+id;button.onclick=()=>{const c=buckets.conditions[id];const targets=[...new Set(c.observations.map(o=>o.target))];evidence.textContent=JSON.stringify({condition:c,cover:g.cover,original_conditions:targets.map(t=>({target:t,condition:buckets.original_conditions[t]}))},null,2);};minima.append(button);}row.append(minima);
+                const minima=document.createElement('td');for(const id of g.minimal_starting_conditions){const button=document.createElement('button');button.textContent='条件 '+id;button.onclick=()=>{const c=buckets.conditions[id];const targets=[...new Set(c.observations.map(o=>o.target))];evidence.textContent=JSON.stringify({condition:c,cover:g.cover,known_C_matches:(result.bucket_trigger_matches||[]).filter(m=>targets.includes(m.target)),original_conditions:targets.map(t=>({target:t,condition:buckets.original_conditions[t]}))},null,2);};minima.append(button);}row.append(minima);
                 const count=document.createElement('td');count.textContent=String(g.conditions.length);row.append(count);table.append(row);
             }box.append(table,evidence);cp('weak').append(box);
         }

@@ -10,3 +10,5 @@ pub mod visual_rule;
 pub mod cc_merge;
 
 pub mod reentry_bucket;
+
+pub mod ripen_observation;

@@ -12,7 +12,8 @@ const {chromium}=require('playwright');
   assert((await bucket.locator('summary').innerText()).includes('1 个成分桶'));
   await bucket.locator('summary').click();await bucket.getByRole('button',{name:'条件 0',exact:true}).click();
   const data=JSON.parse(await bucket.locator('pre').innerText());
-  assert(data.original_conditions[0].condition.values.some(v=>v.literal==='3'));
+  if(process.argv[3]==='growth')assert(data.condition.observations.some(o=>o.admission==='growth_observation'&&o.starting_condition_resolved===false));
+  else assert(data.original_conditions[0].condition.values.some(v=>v.literal==='3'));
   assert(data.condition.abstract_condition.values.every(v=>v.literal===null));
   assert.deepEqual(errors,[]);console.log('Reentry bucket, minimal condition and original literal evidence passed');
  }finally{await browser.close();}

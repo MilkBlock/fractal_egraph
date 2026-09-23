@@ -1,0 +1,134 @@
+{
+  "dabc": {
+    "analysis_status": "observed_unfinished",
+    "counts": {
+      "ObservedUnfinished": 1
+    },
+    "observation": {
+      "admission": "growth_observation",
+      "growth": {
+        "active_seconds": 0.003315833,
+        "after_facts": 11,
+        "before_facts": 3,
+        "limits": {
+          "facts": 11,
+          "milliseconds": null
+        },
+        "reasons": [
+          "facts"
+        ]
+      },
+      "scope": "unfinished ripen; starting condition unresolved",
+      "snapshot": {
+        "facts": 11,
+        "path": "out/reentry-growth-final/dabc/saturated-rule-composition/cells/CSUnit-000000/unfinished-state.json",
+        "status": "observed_only"
+      },
+      "unfinished": true
+    },
+    "tables": {
+      "A": 3,
+      "B": 2,
+      "C": 2,
+      "D": 1,
+      "Next": 2,
+      "RipenInput": 1,
+      "Z": 0
+    },
+    "self_new_bindings": [],
+    "groups": [
+      {
+        "conditions": [
+          0
+        ],
+        "cover": [],
+        "id": 0,
+        "minimal_starting_conditions": [
+          0
+        ],
+        "new_node_operators": [
+          "A",
+          "B",
+          "C",
+          "Next"
+        ],
+        "union_effect": false
+      }
+    ],
+    "bucket_trigger_matches": [
+      {
+        "source": 0,
+        "target": 0,
+        "contains_known_C": true,
+        "fresh_match": false
+      }
+    ]
+  },
+  "branching": {
+    "analysis_status": "observed_unfinished",
+    "counts": {
+      "ObservedUnfinished": 1
+    },
+    "observation": {
+      "admission": "growth_observation",
+      "growth": {
+        "active_seconds": 0.002287623,
+        "after_facts": 19,
+        "before_facts": 3,
+        "limits": {
+          "facts": 18,
+          "milliseconds": null
+        },
+        "reasons": [
+          "facts"
+        ]
+      },
+      "scope": "unfinished ripen; starting condition unresolved",
+      "snapshot": {
+        "facts": 19,
+        "path": "out/reentry-growth-final/branching/saturated-rule-composition/cells/CSUnit-000000/unfinished-state.json",
+        "status": "observed_only"
+      },
+      "unfinished": true
+    },
+    "tables": {
+      "A": 3,
+      "B": 6,
+      "C": 2,
+      "D": 1,
+      "Left": 3,
+      "Right": 3,
+      "RipenInput": 1,
+      "Z": 0
+    },
+    "self_new_bindings": [],
+    "groups": [
+      {
+        "conditions": [
+          0
+        ],
+        "cover": [],
+        "id": 0,
+        "minimal_starting_conditions": [
+          0
+        ],
+        "new_node_operators": [
+          "A",
+          "B",
+          "C",
+          "Left",
+          "Right"
+        ],
+        "union_effect": false
+      }
+    ],
+    "bucket_trigger_matches": [
+      {
+        "source": 0,
+        "target": 0,
+        "contains_known_C": true,
+        "fresh_match": false
+      }
+    ]
+  }
+}

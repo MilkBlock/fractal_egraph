@@ -887,10 +887,12 @@ fn execute(
     replay: Option<&Path>,
     save_history: bool,
     persist_frames: bool,
+    observation: crate::ripen_observation::Limits,
     emit: &mut dyn FnMut(Json) -> Result,
 ) -> Result<Json> {
     std::fs::create_dir_all(out)?;
-    let mut pipeline = saturated_rule_composition_pipeline::Pipeline::new(out, name.into())?;
+    let mut pipeline =
+        saturated_rule_composition_pipeline::Pipeline::new(out, name.into(), observation)?;
     let mut manifest = vec![];
     let mut emitted = 0;
     let mut boundary = 0;
@@ -949,7 +951,16 @@ fn execute(
     }
     let b = CaptureBoundary {
         ripen: None,
-        kind: "ripen-complete".into(),
+        kind: if pipeline.report()["counts"]["ObservedUnfinished"]
+            .as_u64()
+            .unwrap_or(0)
+            > 0
+        {
+            "ripen-observation"
+        } else {
+            "ripen-complete"
+        }
+        .into(),
         round: None,
         end: c.records.len(),
     };
@@ -963,7 +974,7 @@ fn execute(
         layer_view::persist(out, &frame, &mut manifest)?;
     }
     emit(frame)?;
-    let report = json!({"status":"complete","summary":{"applications":c.records.len(),"logical_matches":c.events,"excluded":c.rejected,"scope":"native history -> CS -> ripen -> equivalence -> weak dominate"},"layers":c.layers.report(),"saturated_rule_composition":pipeline.report()});
+    let report = json!({"status":if pipeline.report()["counts"]["ObservedUnfinished"].as_u64().unwrap_or(0)>0 {"observed_unfinished"}else{"complete"},"summary":{"applications":c.records.len(),"logical_matches":c.events,"excluded":c.rejected,"scope":"native history -> CS -> ripen -> equivalence -> weak dominate"},"layers":c.layers.report(),"saturated_rule_composition":pipeline.report()});
     std::fs::write(out.join("analysis.json"), serde_json::to_vec(&report)?)?;
     std::fs::write(
         out.join("layers.json"),
@@ -978,6 +989,24 @@ pub fn run(
     replay: Option<&Path>,
     save_history: bool,
 ) -> Result<Json> {
+    run_with_observation(
+        source,
+        out,
+        rounds,
+        replay,
+        save_history,
+        crate::ripen_observation::Limits::from_env()?,
+    )
+}
+pub fn run_with_observation(
+    source: &Path,
+    out: &Path,
+    rounds: Option<usize>,
+    replay: Option<&Path>,
+    save_history: bool,
+    observation: crate::ripen_observation::Limits,
+) -> Result<Json> {
+    observation.validate()?;
     if out.exists() {
         return Err("analysis output already exists".into());
     }
@@ -994,6 +1023,7 @@ pub fn run(
         replay,
         save_history,
         true,
+        observation,
         &mut |_| Ok(()),
     )
 }

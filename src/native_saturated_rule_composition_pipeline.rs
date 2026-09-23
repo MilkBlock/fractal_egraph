@@ -6,6 +6,7 @@ use std::path::PathBuf;
 struct Work {
     id: usize,
     session: ripen::Session,
+    active_seconds: f64,
 }
 pub(super) struct Pipeline {
     out: PathBuf,
@@ -18,13 +19,19 @@ pub(super) struct Pipeline {
     completed: Vec<PathBuf>,
     catalog: Option<Json>,
     report: Json,
+    observation: crate::ripen_observation::Limits,
+    bucket_matches: BTreeMap<(usize, usize), (u64, Json)>,
     preparation: ripen::PreparationCache,
     reentry: crate::reentry_bucket::Buckets,
     structural_reentry: BTreeMap<usize, Json>,
     weak: BTreeMap<(usize, usize), (u64, Json)>,
 }
 impl Pipeline {
-    pub fn new(out: &Path, source: String) -> Result<Self> {
+    pub fn new(
+        out: &Path,
+        source: String,
+        observation: crate::ripen_observation::Limits,
+    ) -> Result<Self> {
         Ok(Self {
             out: out.into(),
             source,
@@ -36,6 +43,8 @@ impl Pipeline {
             completed: vec![],
             catalog: None,
             report: Json::Null,
+            observation,
+            bucket_matches: BTreeMap::new(),
             preparation: Default::default(),
             reentry: Default::default(),
             structural_reentry: BTreeMap::new(),
@@ -100,7 +109,11 @@ impl Pipeline {
                     if session.initial.is_some() {
                         self.owners.insert(key, id);
                     }
-                    self.work.push(Work { id, session });
+                    self.work.push(Work {
+                        id,
+                        session,
+                        active_seconds: 0.,
+                    });
                 }
                 Ok(())
             })();
@@ -118,9 +131,49 @@ impl Pipeline {
             if self.jobs[work.id]["state"] != "Running" {
                 continue;
             }
-            match work.session.advance() {
+            let started = std::time::Instant::now();
+            let result = work.session.advance();
+            work.active_seconds += started.elapsed().as_secs_f64();
+            match result {
                 Ok(()) => {
                     self.jobs[work.id]["ripen"] = work.session.report["ripen"].clone();
+                    let facts = work.session.report["tables"]
+                        .as_object()
+                        .map(|t| t.values().filter_map(Json::as_u64).sum::<u64>() as usize)
+                        .unwrap_or(0);
+                    let reasons = self.observation.reached(work.active_seconds, facts);
+                    if !work.session.done && !reasons.is_empty() {
+                        let mut evidence = json!({"admission":"growth_observation","unfinished":true,"scope":"unfinished ripen; starting condition unresolved","growth":{"before_facts":work.session.initial_facts,"after_facts":facts,"active_seconds":work.active_seconds,"reasons":reasons,"limits":self.observation}});
+                        evidence["snapshot"] = work.session.snapshot_unfinished().unwrap_or_else(
+                            |e| json!({"status":"unavailable","reason":e.to_string()}),
+                        );
+                        self.jobs[work.id]["state"] = json!("ObservedUnfinished");
+                        self.jobs[work.id]["observation"] = evidence.clone();
+                        work.session.report["ripen"]["state"] = json!("ObservedUnfinished");
+                        work.session.report["observation"] = evidence.clone();
+                        work.session.report["origin"] = self.jobs[work.id]["origin"].clone();
+                        self.jobs[work.id]["ripen"] = work.session.report["ripen"].clone();
+                        let folder = PathBuf::from(self.jobs[work.id]["folder"].as_str().unwrap());
+                        crate::pipeline::write_json(
+                            &folder.join("ripen.json"),
+                            &work.session.report,
+                        )?;
+                        if let Some(trigger) = &work.session.trigger {
+                            let marker = self.jobs[work.id]["origin"]["parameter_marker"]
+                                .as_str()
+                                .unwrap_or("");
+                            self.reentry.observe(
+                                work.id,
+                                work.id,
+                                work.session.report["ripen"]["round"].as_u64().unwrap_or(0),
+                                trigger,
+                                marker,
+                                &work.session.effect_components,
+                                work.session.union_effect,
+                                &evidence,
+                            )?;
+                        }
+                    }
                     if work.session.done {
                         let mut report = work.session.report.clone();
                         report["origin"] = self.jobs[work.id]["origin"].clone();
@@ -147,6 +200,10 @@ impl Pipeline {
             if self.jobs[owner]["state"] == "Rejected" {
                 self.jobs[id]["state"] = json!("Rejected");
                 self.jobs[id]["reason"] = self.jobs[owner]["reason"].clone();
+            } else if self.jobs[owner]["state"] == "ObservedUnfinished" {
+                self.jobs[id]["state"] = json!("ObservedUnfinished");
+                self.jobs[id]["observation"] = self.jobs[owner]["observation"].clone();
+                self.jobs[id]["ripen"] = self.jobs[owner]["ripen"].clone();
             } else if self.jobs[owner]["state"] == "Saturated" {
                 let folder = PathBuf::from(self.jobs[id]["folder"].as_str().unwrap());
                 let source = PathBuf::from(self.jobs[owner]["folder"].as_str().unwrap());
@@ -283,6 +340,40 @@ impl Pipeline {
                 }
             }
         }
+        // Search existing bucket C conditions in each paused unfinished body.
+        // Presence is recorded separately from evidence of a fresh match.
+        let known = self.reentry.known_targets();
+        let triggers: Vec<_> = self
+            .work
+            .iter()
+            .filter(|w| known.contains(&w.id))
+            .filter_map(|w| w.session.trigger.clone().map(|p| (w.id, p)))
+            .collect();
+        for source in &mut self.work {
+            if self.jobs[source.id]["state"] != "ObservedUnfinished" {
+                continue;
+            }
+            let round = source.session.report["ripen"]["round"]
+                .as_u64()
+                .unwrap_or(0);
+            for (target, pattern) in &triggers {
+                let key = (source.id, *target);
+                if self
+                    .bucket_matches
+                    .get(&key)
+                    .is_some_and(|(old, _)| *old == round)
+                {
+                    continue;
+                }
+                let marker = self.jobs[*target]["origin"]["parameter_marker"]
+                    .as_str()
+                    .unwrap_or("");
+                let result =
+                    weak_dominate::observe(&mut source.session, pattern, marker, *target, true)
+                        .unwrap_or_else(|e| json!({"status":"unresolved","reason":e.to_string()}));
+                self.bucket_matches.insert(key,(round,json!({"source":source.id,"target":target,"round":round,"contains_known_C":result["bindings"].as_array().is_some_and(|r|!r.is_empty()),"fresh_match":result["new_bindings"].as_array().is_some_and(|r|!r.is_empty()),"evidence":result})));
+            }
+        }
         let mut families = BTreeMap::new();
         if let Some(cat) = &self.catalog {
             for t in cat["catalog"]["triggers"].as_array().into_iter().flatten() {
@@ -336,7 +427,7 @@ impl Pipeline {
                 .or_default() += 1;
         }
         mark("weak_queries_and_evidence");
-        self.report = json!({"step_seconds":timings,"preparation_cache":self.preparation.stats(),"kind":"saturated_rule_composition_snapshot","boundary":boundary,"jobs":self.jobs,"cs":self.cs.report(),"weak_dominate":weak,"reentry_buckets":self.reentry.report(),"structural_reentry":self.structural_reentry,"weak_unresolved":unresolved,"counts":counts,"not_queued":0,"limits":null,"scope":"all observed CS entries; fair resumable sweeps; no heuristic selection, live tier0 substitution or termination guess","catalog":self.catalog});
+        self.report = json!({"step_seconds":timings,"preparation_cache":self.preparation.stats(),"kind":"saturated_rule_composition_snapshot","boundary":boundary,"jobs":self.jobs,"cs":self.cs.report(),"weak_dominate":weak,"observation_limits":self.observation,"bucket_trigger_matches":self.bucket_matches.values().map(|(_,r)|r).collect::<Vec<_>>(),"reentry_buckets":self.reentry.report(),"structural_reentry":self.structural_reentry,"weak_unresolved":unresolved,"counts":counts,"not_queued":0,"limits":null,"scope":"all observed CS entries; fair resumable sweeps; no heuristic selection, live tier0 substitution or termination guess","catalog":self.catalog});
         crate::pipeline::write_json(
             &self.out.join("saturated-rule-composition/queue.json"),
             &self.report,

@@ -164,7 +164,7 @@ pub fn stream_source(
                     .as_nanos()
             ))
         });
-    super::execute(
+    let report = super::execute(
         name,
         text,
         None,
@@ -172,7 +172,8 @@ pub fn stream_source(
         None,
         false,
         std::env::var_os("EGG_LAYOUT_SATURATED_RULE_COMPOSITION_OUTPUT").is_none(),
+        crate::ripen_observation::Limits::from_env()?,
         emit,
     )?;
-    emit(json!({"kind":"complete"}))
+    emit(json!({"kind":"complete","analysis_status":report["status"]}))
 }

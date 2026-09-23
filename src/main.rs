@@ -5,7 +5,7 @@ fn main() -> Result {
     match args.first().map(String::as_str) {
         None | Some("--help" | "help" | "-h") => {
             println!(
-                "egg_layout: analyze --source FILE --output DIR [--rounds N] [--save-history]\n  analyze --replay-history FILE --output DIR\n  cc-merge --rules FILE --seeds FILE --output DIR [--generations N]\n  debug-stream FILE\n  debug-patterns FILE\n  parse-check FILE\n  ripen FILE DIR\n  saturated-rule-composition-compare A.json B.json\n  saturated-rule-composition-catalog DIR RIPEN_DIR...\n  ripen-diff A.json B.json REPORT.json [ANCHORS.json]\nRipen has no automatic round/work limits. Stop the process to interrupt Running tasks."
+                "egg_layout: analyze --source FILE --output DIR [--rounds N] [--save-history]\n  analyze --replay-history FILE --output DIR\n  cc-merge --rules FILE --seeds FILE --output DIR [--generations N]\n  debug-stream FILE\n  debug-patterns FILE\n  parse-check FILE\n  ripen FILE DIR\n  saturated-rule-composition-compare A.json B.json\n  saturated-rule-composition-catalog DIR RIPEN_DIR...\n  ripen-diff A.json B.json REPORT.json [ANCHORS.json]\nOptional analyze flags: --ripen-observe-ms N / --ripen-observe-facts N. No hidden limits; observation pauses unfinished tasks between sweeps."
             );
             Ok(())
         }
@@ -38,6 +38,7 @@ fn main() -> Result {
             let mut rounds = None;
             let mut replay = None;
             let mut save = false;
+            let mut observation = egg_layout::ripen_observation::Limits::from_env()?;
             let mut i = 1;
             while i < args.len() {
                 match args[i].as_str() {
@@ -58,6 +59,22 @@ fn main() -> Result {
                         replay = Some(PathBuf::from(args.get(i).ok_or("missing history")?));
                     }
                     "--save-history" => save = true,
+                    "--ripen-observe-ms" => {
+                        i += 1;
+                        observation.milliseconds = Some(
+                            args.get(i)
+                                .ok_or("missing observation milliseconds")?
+                                .parse()?,
+                        );
+                    }
+                    "--ripen-observe-facts" => {
+                        i += 1;
+                        observation.facts = Some(
+                            args.get(i)
+                                .ok_or("missing observation fact count")?
+                                .parse()?,
+                        );
+                    }
                     "--recapture-tier0" => {}
                     x => {
                         return Err(format!(
@@ -72,12 +89,13 @@ fn main() -> Result {
             if replay.is_none() && source.as_os_str().is_empty() {
                 return Err("--source is required".into());
             }
-            let r = native_analyze::run(
+            let r = native_analyze::run_with_observation(
                 &source,
                 &out.ok_or("--output is required")?,
                 rounds,
                 replay.as_deref(),
                 save,
+                observation,
             )?;
             println!("{}", r["summary"]);
             Ok(())

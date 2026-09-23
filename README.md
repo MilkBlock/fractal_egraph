@@ -16,7 +16,7 @@ cargo run --release --offline -- analyze \
   --source egglog/tests/math-microbenchmark.egg --rounds 6 --output out/math-new
 ```
 
-输出目录必须不存在。省略 `--rounds` 时遵循源程序 schedule。Ripen 没有自动轮数、时间或工作量上限；未达到不动点的任务会持续执行，可用 Ctrl-C 取消。一个任务的一次完整 ruleset sweep 是调度粒度，不是终止预算；单次 sweep 本身也可能很昂贵。
+输出目录必须不存在。省略 `--rounds` 时遵循源程序 schedule。Ripen 默认没有自动轮数、时间或工作量上限；可显式指定 `--ripen-observe-ms N` 或 `--ripen-observe-facts N`，在 sweep 边界保存并挂起未完成观察。未指定时可用 Ctrl-C 取消。一个任务的一次完整 ruleset sweep 是调度粒度，不是终止预算；单次 sweep 本身也可能很昂贵。
 
 默认不写完整历史。需要重新分析时：
 
@@ -95,7 +95,7 @@ cargo test --release --offline --test native_fact_query benchmark -- --ignored -
 - 已观察的小条件替代大条件进入最小集合；互不 cover 的条件都保留，大条件及原始记录也保留。双向 cover 表示相同抽象条件，不表示相同 FractalRule。
 - 字面值仅从结构查询和抽象条件中擦除，原始条件仍保存。不改变实际 rule 执行，不用抽象结果替换 tier0，也不分类 infi / dissipative。
 
-包含 primitive 条件的图可导出 `trigger-state.json` 用于观察；它不会因此获得原本缺失的饱和共享证明。当前只处理已登记 CS 的观察，不搜索未出现的更小条件，不枚举循环体，也没有新增时间/size 截断。
+包含 primitive 条件的图可导出 `trigger-state.json` 用于观察；它不会因此获得原本缺失的饱和共享证明。当前只处理已登记 CS 的观察，不搜索未出现的更小条件，不枚举循环体。显式设置观察阈值时，增长中的整个 CS 可直接入桶，不要求自己的 C 再次出现。
 
 `queue.json` / 最终分析里的 `reentry_buckets` 包含成分桶、cover 映射、最小条件集合、观察记录和原始条件；`structural_reentry` 保留擦除值后的查询证据。网页饱和组合面板的 weak 信息下方可展开 **non-trivial reentry**，点击条件查看证据。查询绑定数不是实际 rule apply 次数。
 
@@ -107,3 +107,19 @@ cargo run --release --offline -- analyze \
 ```
 
 回归覆盖多个互不可比的最小条件、大条件保留、别名约束、值擦除但保留原文、成分分组与实际有限长度再入。核心实现：`src/reentry_bucket.rs`。
+
+### 增长先入桶，随后查已有 C
+
+```sh
+cargo run --release --offline -- analyze \
+  --source experiments/reentry_forms/dabc.egg --output out/dabc-observed \
+  --ripen-observe-facts 11
+```
+
+也可用 `--ripen-observe-ms N` 限定每个 cell 的累计 ripen 推进时间（不含准备和其他 cell 等待时间）。调试网页可在启动服务时设置 `EGG_LAYOUT_RIPEN_OBSERVE_MS` / `EGG_LAYOUT_RIPEN_OBSERVE_FACTS`。两个限制均默认关闭，设置两者时任一个达到即记录。检查只发生在完整 sweep 后，不抢占单次原生 join，因此不是硬实时限制。
+
+未完成任务标为 `ObservedUnfinished`，整体分析标为 `observed_unfinished`。若事实数比起始图增加，整个 CS 以 `growth_observation` 入桶，`starting_condition_resolved` 保持 false。未增长但超过时间的任务只保留未完成记录，不硬称增长。已有共享任务跟随 owner 的未完成状态，不会永久停在 WaitingEquivalent。
+
+保存 `unfinished-state.json`（仅观察图，不是饱和证明）。随后遍历桶中已有 C，在未完成图上查询，结果放入 `bucket_trigger_matches`；分别标记“包含已有 C”和“出现新的 binding”。初始 C 一直存在不再阻止入桶，也不会被当作已证明的循环。
+
+这些已知 C 的命中与桶内直接的 coarse fact cover 分开保存，不凭一次命中宣布两个 FractalRule 等价。验证说明见 [DABC 与多叉测试](experiments/reentry_forms/README.md)。
