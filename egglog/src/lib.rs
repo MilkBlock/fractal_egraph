@@ -2566,3 +2566,6 @@ mod tests {
         assert_eq!(res[0].to_string(), "(exp)\n");
     }
 }
+
+mod fact_query;
+pub use fact_query::CompiledFactQuery;

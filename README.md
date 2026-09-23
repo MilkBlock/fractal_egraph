@@ -54,7 +54,7 @@ python3 tools/egglog_debugger/server.py --port 8080
 4. `native_ripen_entry.rs` 将入口及条件、binding、外部注入义务转换为 symbolic entry；不支持的时序/操作明确拒绝，不伪装成已完成。
 5. `native_ripen.rs` 为不同入口保留独立原生引擎。流水线公平轮转，每轮推进所有 live 任务；相同入口共享执行。
 6. `saturated_rule_composition.rs` 在规则环境、接口、类型、字面量、可见性等条件下精确判等。没有搜索预算，最坏情况仍可能昂贵。
-7. `native_weak_dominate.rs` 在原生状态中查询已登记的 coarse fact，通过必要 operator 索引筛选可匹配状态，保留 binding 与新增 effect 观察。
+7. `native_weak_dominate.rs` 在原生状态中查询已登记的 coarse fact，通过必要 operator 索引筛选可匹配状态，保留 binding 与新增 effect 观察。查询由 `egglog/src/fact_query.rs` 编译为原生 Join，通过回调收集 binding，不创建临时 relation。每个引擎/入口保存一个当前查询与一次初始匹配结果；后续检查无需克隆引擎或重新编译。初始结果仍按当前 union 代表元校正。每个 ripen session 的初始快照仍保留，缓存也随已登记查询数量增长。
 
 **Weak dominate 不等于完整闭包等价。** 新 binding、已提交新 effect 及同一共享族只产生再入观察；目前没有证明该 effect 导致具体再入，也没有归纳证明无限或耗散型 FractalRule。weak 匹配不会自动生成任意组合。尚未将共享状态替换进 tier0 matcher，因此覆盖统计不是实际 tier0 内存节省或加速证明。
 
@@ -71,3 +71,11 @@ node tools/egglog_debugger/test_ripen_coverage.mjs
 `tests/core_flow.rs` 验证 270 个观察入口全部登记、等价入口共享原生执行、有限再入，以及有限/无限任务共存时的进度与显式取消。测试测量实际 egglog runtime；取消期限仅属于测试进程，不是推理算法预算。
 
 `egglog-baseline` 保留原版导入基准。用户尚未提交的旧实验文件可能仍在工作区，但不再注册为构建目标。
+
+### Weak 查询复用对照
+
+```sh
+cargo test --release --offline --test native_fact_query benchmark -- --ignored --nocapture
+```
+
+本地一次 release 测量：200 个匹配 binding，重复 60 次，旧克隆+解析/编译路径 23.34 ms，缓存原生 Join 1.45 ms（约 16 倍）。这是原生查询层的热查询微基准，缓存编译在计时外；不代表整个 ripen / math 流水线加速。回归覆盖 union、插入、函数更新、subsume、类型/字面量/别名约束，以及不执行用户规则。

@@ -85,6 +85,13 @@ fn finite_reentry_is_observed_but_not_called_infinite() {
             .unwrap()
             .starts_with("unclassified")
     }));
+    for edge in q["weak_dominate"].as_array().unwrap() {
+        let cache = &edge["evidence"]["query_cache"];
+        assert_eq!(cache["compilations"], 2);
+        assert_eq!(cache["initial_scans"], 1);
+        assert_eq!(cache["per_check_engine_clones"], 0);
+        assert!(cache["current_scans"].as_u64().unwrap() > 1);
+    }
     fs::remove_dir_all(out).unwrap();
 }
 #[test]

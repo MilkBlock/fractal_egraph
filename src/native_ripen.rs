@@ -19,6 +19,7 @@ fn supported_action(a: &Action) -> bool {
 pub(super) struct Session {
     pub eg: EGraph,
     pub before: EGraph,
+    pub weak_queries: BTreeMap<usize, weak_dominate::CachedQuery>,
     pub has_effects: bool,
     pub initial: Option<crate::saturated_rule_composition::SaturatedRuleComposition>,
     pub final_state: Option<crate::saturated_rule_composition::SaturatedRuleComposition>,
@@ -144,6 +145,7 @@ impl Session {
         Ok(Self {
             eg,
             before,
+            weak_queries: BTreeMap::new(),
             has_effects: false,
             initial,
             final_state: None,
@@ -162,9 +164,6 @@ impl Session {
             report: json!({"ripen":{"state":"Running","round":0}}),
             done: false,
         })
-    }
-    pub fn source_text(&self) -> &str {
-        &self.text
     }
     pub fn advance(&mut self) -> Result<()> {
         if self.done {

@@ -186,11 +186,16 @@ impl Pipeline {
                 }
             }
         }
-        for target in &self.work {
-            let Some(pattern) = &target.session.initial else {
+        let targets: Vec<_> = self
+            .work
+            .iter()
+            .map(|w| (w.id, w.session.initial.clone()))
+            .collect();
+        for (target_id, initial) in targets {
+            let Some(pattern) = initial.as_ref() else {
                 continue;
             };
-            let marker = self.jobs[target.id]["origin"]["parameter_marker"]
+            let marker = self.jobs[target_id]["origin"]["parameter_marker"]
                 .as_str()
                 .unwrap_or("");
             let ops: BTreeSet<_> = pattern
@@ -206,16 +211,17 @@ impl Pipeline {
                     Some(possible.map_or(ids.clone(), |p| p.intersection(&ids).copied().collect()));
             }
             for i in possible.unwrap_or_default() {
-                let source = &self.work[i];
+                let source = &mut self.work[i];
                 let round = source.session.report["ripen"]["round"]
                     .as_u64()
                     .unwrap_or(0);
-                let key = (source.id, target.id);
+                let key = (source.id, target_id);
                 if self.weak.get(&key).is_some_and(|(seen, _)| *seen == round) {
                     continue;
                 }
-                let result = weak_dominate::observe(&source.session, pattern, marker)
-                    .unwrap_or_else(|e| json!({"status":"unresolved","reason":e.to_string()}));
+                let result =
+                    weak_dominate::observe(&mut source.session, pattern, marker, target_id)
+                        .unwrap_or_else(|e| json!({"status":"unresolved","reason":e.to_string()}));
                 self.weak.insert(key, (round, result));
             }
         }
