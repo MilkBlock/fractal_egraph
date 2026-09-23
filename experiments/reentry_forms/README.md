@@ -20,7 +20,7 @@ cargo run --release --offline -- analyze \
 | DABCABC… | 3 | 11 | 0 | 1 |
 | 多叉 | 3 | 19 | 0 | 1 |
 
-多叉保留 Left 3、Right 3、B 6。事实数按 cell 表行计，包含一个 RipenInput 行；阈值在完整 sweep 结束后检查，因此 18 可观察到 19。
+上表是旧版 sweep 边界检查的历史结果。当前原生匹配入队前按待写额度检查，可能在实际事实数达到阈值前停止；不能再依赖上表的具体数量。事实数按 cell 表行计，包含 RipenInput 行。
 
 两者均为 `ObservedUnfinished`，没有 Sat 共享目录，尚未确定真正的 starting condition。D 没有重现自己的初始 C，仍然正确存入增长观察桶。`result.json` 保存这次实际原生执行的计数与原因。
 
@@ -28,4 +28,14 @@ cargo run --release --offline -- analyze \
 
 还验证了：新注册的 A 对应条件可以在 D 的未完成图中找到；同一 owner 的共享任务会一起标为未完成，不会卡在 WaitingEquivalent；时间阈值也能触发观察。相关测试见 `tests/growth_reentry.rs`。
 
-限制：检查点不抢占单次原生 sweep。未完成图保存在各 cell 的 `unfinished-state.json`，仅作观察；目前没有进程退出后继续同一个原生引擎的恢复功能。没有证明 infi，也没有自动把 D 缩减成 A/B/C。
+限制：当前在原生 Join / 匹配入队边界协作停止，已接收动作与必要 rebuild 会完成。未完成图保存在各 cell 的 `unfinished-state.json`，仅作观察；目前没有进程退出后继续同一个原生引擎的恢复功能。没有证明 infi，也没有自动把 D 缩减成 A/B/C。
+
+## 局部历史开关回归
+
+`tests/reentry_history_regression.rs` 对 DABCABC 和多叉树各跑两次真实 native 分析（局部历史开/关）。统一使用 80 facts 待写额度、60 秒时间保护，断言实际停止原因是待写额度，不以墙钟耗时决定比较深度。测试要求 A/B/C 均出现至少三处，D 仍只有一处，并对比未完成图（排除运行时 ID）、表计数、增长分桶、weak-dominate 和再入证据（排除耗时）。
+
+这保护的是 **DABCABC / 多叉增长观察不会因关闭诊断历史而丢失或误报**，不是已经实现 ABC 最小循环体归纳的声明。测试明确要求 `starting_condition_resolved=false`，且不得把 unfinished 图放进 Saturated 目录。
+
+```sh
+cargo test --offline --test reentry_history_regression --test growth_reentry --test core_flow --test native_execution_limits --test compact_trace
+```
