@@ -1,0 +1,27 @@
+{
+  "scope": "one six-round cached preparation audit; no saturation",
+  "elapsed_seconds": 5.851868416,
+  "cache": {
+    "environment_compilations": 1,
+    "seconds": {
+      "LHS fact": 0.7607745939999989,
+      "clone_validation_egraph": 0.16160549599999996,
+      "construct_facts_bindings": 0.1558873869999999,
+      "encode_key": 0.10667652800000012,
+      "encode_result_provenance": 0.15612912899999992,
+      "environment_setup": 0.0029845,
+      "external fact injection": 0.13173151899999988,
+      "internal fact before external injection": 0.20524818599999972,
+      "prepare_total": 5.781353625000004,
+      "recorded output alias": 2.7641729040000014,
+      "rule action": 0.4343403289999988,
+      "seed_parameters": 0.04680126599999997,
+      "table_statistics": 0.37601199599999996
+    },
+    "validated_compositions": 684,
+    "validation_cache_hits": 264,
+    "validation_runs": 715
+  },
+  "compositions": 979,
+  "prepared": 948
+}

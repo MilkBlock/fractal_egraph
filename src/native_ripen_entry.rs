@@ -113,10 +113,11 @@ pub(in crate::native_analyze) struct PreparationCache {
     hits: usize,
     validations: usize,
     environments: usize,
+    timings: BTreeMap<&'static str, f64>,
 }
 impl PreparationCache {
     pub fn stats(&self) -> Json {
-        json!({"environment_compilations":self.environments,"validation_runs":self.validations,"validation_cache_hits":self.hits,"validated_compositions":self.validated.len()})
+        json!({"seconds":self.timings,"environment_compilations":self.environments,"validation_runs":self.validations,"validation_cache_hits":self.hits,"validated_compositions":self.validated.len()})
     }
     pub fn prepare(&mut self, c: &Captured, members: &[usize]) -> Result<(String, String, Json)> {
         if members.is_empty()
@@ -130,11 +131,16 @@ impl PreparationCache {
             .as_ref()
             .is_none_or(|e| e.source != c.preview_source)
         {
+            let tick = std::time::Instant::now();
             self.environment = Some(Environment::new(c)?);
+            *self.timings.entry("environment_setup").or_default() += tick.elapsed().as_secs_f64();
             self.validated.clear();
             self.environments += 1;
         }
-        extract(c, members, members.len() - 1, self)
+        let tick = std::time::Instant::now();
+        let result = extract(c, members, members.len() - 1, self);
+        *self.timings.entry("prepare_total").or_default() += tick.elapsed().as_secs_f64();
+        result
     }
 }
 
@@ -144,6 +150,12 @@ fn extract(
     root_member: usize,
     cache: &mut PreparationCache,
 ) -> Result<(String, String, Json)> {
+    macro_rules! elapsed {
+        ($name:expr,$tick:expr) => {
+            *cache.timings.entry($name).or_default() += $tick.elapsed().as_secs_f64()
+        };
+    }
+    let build_tick = std::time::Instant::now();
     let members: BTreeSet<_> = member_ids.iter().copied().collect();
     if members.is_empty() {
         return Err("empty coarse entry".into());
@@ -398,6 +410,8 @@ fn extract(
             [injection_start, lhs_start, alias_start],
         ));
     }
+    elapsed!("construct_facts_bindings", build_tick);
+    let key_tick = std::time::Instant::now();
     let encode = |xs: &[Command]| {
         xs.iter()
             .map(ToString::to_string)
@@ -437,14 +451,21 @@ fn extract(
         json!({"rule":r.rule,"input_roles":apply.input_roles,"output_roles":apply.output_roles,"wiring":wiring,"inputs":r.wanted.iter().map(|v|sym(*v)).collect::<Vec<_>>(),"outputs":r.values.iter().map(|v|sym(*v)).collect::<Vec<_>>(),"read_results":r.read_results.iter().map(|v|v.map(&mut sym)).collect::<Vec<_>>(),"unions":r.unions.iter().map(|(a,b)|json!([sym(*a),sym(*b)])).collect::<Vec<_>>()})
     }).collect();
     let key = serde_json::to_string(&(signature, &validation))?;
+    elapsed!("encode_key", key_tick);
     let (initial_tables, original_tables) = if let Some(tables) = cache.validated.get(&key) {
         cache.hits += 1;
         tables.clone()
     } else {
         cache.validations += 1;
+        let tick = std::time::Instant::now();
         let mut eg = environment.base.clone();
+        elapsed!("clone_validation_egraph", tick);
+        let tick = std::time::Instant::now();
         eg.run_program(entry[environment_len..].to_vec())?;
+        elapsed!("seed_parameters", tick);
+        let tick = std::time::Instant::now();
         let initial_tables = super::table_sizes(&eg, &declarations)?;
+        elapsed!("table_statistics", tick);
         for (i, _, preconditions, commands, [injection_start, lhs_start, alias_start]) in &stages {
             for (n, command) in commands.iter().enumerate() {
                 let phase = if n < *injection_start {
@@ -458,17 +479,22 @@ fn extract(
                 } else {
                     "recorded output alias"
                 };
-                eg.run_program(vec![command.clone()])
-                    .map_err(|e| format!("CS member {i}: {phase} failed: {e}"))?;
+                let tick = std::time::Instant::now();
+                let result = eg.run_program(vec![command.clone()]);
+                elapsed!(phase, tick);
+                result.map_err(|e| format!("CS member {i}: {phase} failed: {e}"))?;
             }
         }
+        let tick = std::time::Instant::now();
         let tables = (
             json!(initial_tables),
             json!(super::table_sizes(&eg, &declarations)?),
         );
+        elapsed!("table_statistics", tick);
         cache.validated.insert(key, tables.clone());
         tables
     };
+    let output_tick = std::time::Instant::now();
     let seed_text = encode(&entry);
     for (_, _, _, commands, _) in &stages {
         entry.extend(commands.clone());
@@ -509,6 +535,7 @@ fn extract(
         "parameters":parameters,"all_source_rules":c.rules.len(),"validation":"all original LHS checks and recorded output aliases passed before/after the corresponding ground actions",
         "staged_injections":injections,"initial_source":seed_text,"concrete_boundary_structure_recovered":false,
         "saturated_scope":"extracted interface only; not the complete original tier0 neighborhood"});
+    elapsed!("encode_result_provenance", output_tick);
     Ok((text, validation, provenance))
 }
 
