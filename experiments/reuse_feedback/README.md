@@ -109,3 +109,8 @@ records synthetic maintenance/probe microbenchmarks and the fixed bitmap's
 saturation under a large distinct-operator workload. This is kept separate from
 the native evidence. Each immutable filter uses 160 bytes; it is rebuilt from
 validated library bodies, never patched to represent a changed runtime instance.
+
+The original B(x) + Extra(x,y) -> C(x,y) -> D(x,y) acceptance case is now in
+[minimal/README.md](minimal/README.md). It exercises partial-body query validation,
+key-bound anchor selection, two legal y bindings, fresh parameters and stable
+library counts, with independent native final-state and causal-DAG checks.

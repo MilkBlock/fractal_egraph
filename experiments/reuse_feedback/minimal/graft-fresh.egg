@@ -1,0 +1,12 @@
+(datatype E (V i64) (A E) (B E) (C E E) (D E E))
+(relation Extra (E E))
+(rewrite (A x) (B x) :name "a-to-b")
+(rule ((= b (B x)) (Extra x y)) ((C x y)) :name "external-graft")
+(rewrite (C x y) (D x y) :name "internal-follow-on")
+(A (V 11))
+(Extra (V 11) (V 12))
+(Extra (V 11) (V 13))
+; Same x with two legal y bindings must preserve both matches.
+(run 4)
+(check (= (C (V 11) (V 12)) (D (V 11) (V 12))))
+(check (= (C (V 11) (V 13)) (D (V 11) (V 13))))

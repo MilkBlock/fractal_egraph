@@ -284,3 +284,6 @@ impl Drop for Engine {
 pub mod rule_runner;
 #[path = "reuse_view_observer.rs"]
 mod view_observer;
+
+#[path = "reuse_fragment.rs"]
+pub mod fragment;

@@ -452,6 +452,11 @@ impl Library {
         out
     }
     pub fn fragments(&self) -> Vec<super::planner::Query> {
+        self.fragment_catalog().into_iter().map(|(q, _)| q).collect::<BTreeSet<_>>().into_iter().collect()
+    }
+    /// Keep physical input arities so omitted relation results cannot be mistaken
+    /// for arguments while validating a source fragment against a larger body.
+    pub fn fragment_catalog(&self) -> Vec<(super::planner::Query, Vec<usize>)> {
         let mut result = BTreeSet::new();
         for e in &self.entries {
             let b = &self.bodies[self.enclosures[e.enclosure.0].body.0].graph;
@@ -478,7 +483,10 @@ impl Library {
                 .collect::<BTreeSet<_>>()
                 .into_iter()
                 .collect();
-            result.insert(super::planner::Query {
+            let arities = b.rows.iter().enumerate()
+                .filter(|(i, r)| r.op != marker && !b.subsumed_rows.contains(i))
+                .map(|(_, r)| r.args.len()).collect();
+            result.insert((super::planner::Query {
                 values: b
                     .values
                     .iter()
@@ -486,7 +494,7 @@ impl Library {
                     .collect(),
                 atoms,
                 projection,
-            });
+            }, arities));
         }
         result.into_iter().collect()
     }

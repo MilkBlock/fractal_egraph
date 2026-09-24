@@ -180,7 +180,8 @@ instance. Library loading reconstructs it from validated bodies.
 
 The source planner constructs one OR-union filter for its library and uses it
 before building candidate prefix keys. A Maybe still requires an exact normalized
-fragment-key hit, binding checks and the ordinary residual matcher. A negative
+fragment-key hit or exact typed containment in a visible baked body, followed by
+binding checks and the ordinary residual matcher. A negative
 only skips that library candidate; it never removes a native rule or a binding.
 `feature_filter` reports probes, rejections and resident bitmap bytes.
 
@@ -246,10 +247,10 @@ The positive runner uses egglog's parser, lowers supported LHS constructor/relat
 atoms, and matches existing baked conjunctive fragments. It replaces a matching
 prefix with a shared summary relation exposing **all** fragment variables. Before
 each finite native Run step, a separate view ruleset refreshes these relations.
-Each later fragment atom must have its lookup key bound by preceding atoms
-(or literals). Thus the view cannot have more rows than its first table. Unbound
-lookup keys retain the native plan; there is no candidate budget or row-count
-heuristic. No user facts are hidden or removed. Constructors, relation insertions, and unions
+The planner first tries canonical atom order, then tries each atom as the
+anchor and greedily appends lookups whose keys are already bound (or literal).
+Thus the view cannot have more rows than its anchor table. Fragments with no such
+order retain the native plan; there is no candidate budget or row-count heuristic. No user facts are hidden or removed. Constructors, relation insertions, and unions
 are supported; delete/subsume/function updates, naive rules and unbounded schedules
 are rejected by this opt-in runner. Complex LHS conditions or global-bound LHSs
 retain the native plan. A residual call-result used as a lookup key also retains
@@ -381,3 +382,29 @@ not establish an end-to-end speedup or justify default planner replacement.
 Detailed per-table and refresh counts are retained in
 `experiments/reuse_feedback/planner-scan-results.json`; the generator and regression
 tests reproduce both the gain and losing control without a hardware timing threshold.
+
+## Partial-body query reuse and the minimal adaptive cycle
+
+A source LHS prefix need not equal an entire RipSatEgraph. After feature filtering,
+`planner::fragment::contains` validates typed conjunctive matching against each
+visible baked body, preserving physical argument arities, literals and shared
+variable identities. It permits aliasing and repeated use of a row, like native
+positive queries. It does not prove semantic closure/trigger equivalence, and it
+does not synthesize RHS effects. Opaque marker and subsumed rows are excluded.
+Validation results (positive and negative) are cached by normalized fragment shape
+within a planner/library lifetime, independent of actual bindings. `Maybe` alone
+never installs a view. Exact search is finite but can be expensive for symmetric
+bodies; this is not a general constant-time graph matcher.
+
+The query itself is still populated and joined by the native engine over current
+facts. The original B(x) + Extra(x,y) example now learns C/D in the first cycle,
+then reuses the B/Extra fragment of that larger learned body on new values. Extra
+is chosen as the anchor to bind y before the B lookup, preserving multiple y
+matches without precomputing an independent Cartesian product. The second and
+third cycles reuse two summary rows and add no body, enclosure or source entry.
+
+See `experiments/reuse_feedback/minimal/README.md` and `result.json`. Its first
+cycle has no registered summary instance, so no first-cycle break count is claimed.
+The established A/B/Flag fixture still tests the observed reuse/break/supplement
+counters. Layer comparisons after reordering must account for independent event
+permutations while preserving the complete causal DAG and sharing.

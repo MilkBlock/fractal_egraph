@@ -291,7 +291,7 @@ pub fn run_profiled(
         return Err("optimized rule execution differs from native reference".into());
     }
     Ok((
-        json!({"scope":"positive finite native tier0 rule execution; optional native summary graft tracing; no virtual native rows","plans":planner.plans,"fallback_rules":planner.fallback,"views":planner.shared.len(),"feature_filter":{"probes":planner.filter_probes,"rejected":planner.filter_rejections,"storage_bytes":super::super::features::Features::STORAGE_BYTES},"reference_equivalent":equivalent,"optimized_seconds":optimized_seconds,"reference_seconds":reference_seconds,"read_profile":if profile {json!({"optimized":optimized_reads,"reference":reference_reads,"view_refresh":refresh_work,"source_and_other_queries":optimized_work.difference(refresh_work),"scope":"actual native SortedWritesTable row visits during search/apply, including lazy index builds and rebuild queries; source total includes checks; merge and output inspection excluded; unsupported tables explicit; not mutations","timings_include_instrumentation":true})}else{Value::Null},"grafts":if observe {planner.observer.report()}else{Value::Null}}),
+        json!({"scope":"positive finite native tier0 rule execution; optional native summary graft tracing; no virtual native rows","plans":planner.plans,"fallback_rules":planner.fallback,"views":planner.shared.len(),"fragment_validation_cache_entries":planner.fragment_checks.len(),"feature_filter":{"probes":planner.filter_probes,"rejected":planner.filter_rejections,"storage_bytes":super::super::features::Features::STORAGE_BYTES},"reference_equivalent":equivalent,"optimized_seconds":optimized_seconds,"reference_seconds":reference_seconds,"read_profile":if profile {json!({"optimized":optimized_reads,"reference":reference_reads,"view_refresh":refresh_work,"source_and_other_queries":optimized_work.difference(refresh_work),"scope":"actual native SortedWritesTable row visits during search/apply, including lazy index builds and rebuild queries; source total includes checks; merge and output inspection excluded; unsupported tables explicit; not mutations","timings_include_instrumentation":true})}else{Value::Null},"grafts":if observe {planner.observer.report()}else{Value::Null}}),
         planner.observer.known,
     ))
 }
@@ -355,6 +355,8 @@ pub(crate) struct SourcePlanner {
     globals: BTreeSet<String>,
     viewset: String,
     baked: BTreeSet<Key>,
+    fragment_catalog: Vec<(Query, Vec<usize>)>,
+    fragment_checks: BTreeMap<Key, bool>,
     features: super::super::features::Features,
     filter_probes: usize,
     filter_rejections: usize,
@@ -403,10 +405,10 @@ impl SourcePlanner {
             viewset.push('_');
         }
         eg.parse_and_run_program(None, &format!("(ruleset {viewset})"))?;
-        let baked = library
-            .fragments()
+        let fragment_catalog = library.fragment_catalog();
+        let baked = fragment_catalog
             .iter()
-            .map(|q| q.key(&q.atoms).map(|x| x.0))
+            .map(|(q, _)| q.key(&q.atoms).map(|x| x.0))
             .collect::<Result<_>>()?;
         let mut observer = super::view_observer::Observer::default();
         observer.known = library.observed_grafts();
@@ -415,6 +417,8 @@ impl SourcePlanner {
             globals,
             viewset,
             baked,
+            fragment_catalog,
+            fragment_checks: BTreeMap::new(),
             features: library.fragment_features(),
             filter_probes: 0,
             filter_rejections: 0,
@@ -507,12 +511,37 @@ impl SourcePlanner {
                 }
             }
             let (key, vars) = lower.query.key(&lower.query.atoms[..n])?;
-            if baked.contains(&key) {
+            let known = if baked.contains(&key) {
+                true
+            } else {
+                if !self.fragment_checks.contains_key(&key) {
+                    let candidate = Query {
+                        values: key.values.clone(),
+                        atoms: key.atoms.clone(),
+                        projection: vec![],
+                    };
+                    let arities: Vec<_> = key
+                        .atoms
+                        .iter()
+                        .map(|(op, _)| eg.get_function(op).unwrap().schema().input.len())
+                        .collect();
+                    let mut found = false;
+                    for (body, body_arities) in &self.fragment_catalog {
+                        if super::fragment::contains(body, body_arities, &candidate, &arities)? {
+                            found = true;
+                            break;
+                        }
+                    }
+                    self.fragment_checks.insert(key.clone(), found);
+                }
+                self.fragment_checks[&key]
+            };
+            if known {
                 chosen = Some((n, key, vars));
                 break;
             }
         }
-        let Some((n, key, vars)) = chosen else {
+        let Some((n, mut key, mut vars)) = chosen else {
             eg.run_program(vec![Command::Rule { rule }])?;
             return Ok(());
         };
@@ -547,11 +576,21 @@ impl SourcePlanner {
             .iter()
             .map(|(op, _)| eg.get_function(op).unwrap().schema().input.len())
             .collect();
-        let nonexpanding = key_bound(&key, &arities);
-        if !nonexpanding {
+        let Some(order) = bounded_order(&key, &arities) else {
             fallback.push(json!({"rule":rule.name,"reason":"fragment has an unbound lookup key and may multiply summary rows"}));
             eg.run_program(vec![Command::Rule { rule }])?;
             return Ok(());
+        };
+        let reordered = order.iter().copied().ne(0..n);
+        if reordered {
+            let atoms: Vec<_> = order
+                .iter()
+                .map(|i| lower.query.atoms[*i].clone())
+                .collect();
+            let spans: Vec<_> = order.iter().map(|i| lower.spans[*i].clone()).collect();
+            lower.query.atoms[..n].clone_from_slice(&atoms);
+            lower.spans[..n].clone_from_slice(&spans);
+            (key, vars) = lower.query.key(&lower.query.atoms[..n])?;
         }
         let facts: Vec<_> = lower
             .query
@@ -640,7 +679,7 @@ impl SourcePlanner {
         }
         rule.body = replacement.body.clone();
         rule.span = span;
-        plans.push(json!({"rule":rule.name,"original_atoms":facts.len(),"new_atoms":1+facts.len()-n,"view":view,"all_binding_columns":vars.len(),"summary_row_bound":"at most the first atom table row count"}));
+        plans.push(json!({"rule":rule.name,"original_atoms":facts.len(),"new_atoms":1+facts.len()-n,"view":view,"all_binding_columns":vars.len(),"summary_row_bound":"at most the first atom table row count","reordered_for_bound_keys":reordered}));
         eg.run_program(vec![Command::Rule { rule }])?;
         *rule_index += 1;
 
@@ -656,7 +695,7 @@ impl SourcePlanner {
         self.observer.consume(eg, batch)
     }
     pub(crate) fn report(&self) -> Value {
-        json!({"plans":self.plans,"fallback_rules":self.fallback,"views":self.shared.len(),"feature_filter":{"probes":self.filter_probes,"rejected":self.filter_rejections,"storage_bytes":super::super::features::Features::STORAGE_BYTES},"grafts":self.observer.report()})
+        json!({"plans":self.plans,"fallback_rules":self.fallback,"views":self.shared.len(),"fragment_validation_cache_entries":self.fragment_checks.len(),"feature_filter":{"probes":self.filter_probes,"rejected":self.filter_rejections,"storage_bytes":super::super::features::Features::STORAGE_BYTES},"grafts":self.observer.report()})
     }
     pub(crate) fn signatures(&self) -> BTreeSet<String> {
         self.observer.known.clone()
@@ -772,6 +811,42 @@ fn snapshot(
     Ok(state)
 }
 
+/// Try each existing atom as the anchor, then greedily append keyed lookups.
+/// Bound variables only grow, so choosing any available lookup cannot make a
+/// remaining lookup harder. It tries each anchor, not every atom permutation.
+fn bounded_order(key: &Key, arities: &[usize]) -> Option<Vec<usize>> {
+    if key.atoms.is_empty()
+        || key.atoms.len() != arities.len()
+        || key
+            .atoms
+            .iter()
+            .zip(arities)
+            .any(|((_, cols), n)| *n > cols.len())
+    {
+        return None;
+    }
+    if key_bound(key, arities) {
+        return Some((0..key.atoms.len()).collect());
+    }
+    for first in 0..key.atoms.len() {
+        let mut bound: BTreeSet<_> = key.atoms[first].1.iter().copied().collect();
+        let mut remaining: BTreeSet<_> = (0..key.atoms.len()).filter(|i| *i != first).collect();
+        let mut order = vec![first];
+        while let Some(next) = remaining.iter().copied().find(|i| {
+            key.atoms[*i].1[..arities[*i]]
+                .iter()
+                .all(|v| bound.contains(v) || key.values[*v].1.is_some())
+        }) {
+            remaining.remove(&next);
+            bound.extend(key.atoms[next].1.iter().copied());
+            order.push(next);
+        }
+        if remaining.is_empty() {
+            return Some(order);
+        }
+    }
+    None
+}
 fn key_bound(key: &Key, arities: &[usize]) -> bool {
     let Some((_, first)) = key.atoms.first() else {
         return false;
@@ -798,6 +873,16 @@ fn key_bound(key: &Key, arities: &[usize]) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn anchors_on_external_keys_without_materializing_a_cartesian_product() {
+        let mut key = Key {
+            values: vec![("E".into(), None); 4],
+            atoms: vec![("B".into(), vec![0, 2]), ("Extra".into(), vec![0, 1])],
+        };
+        assert_eq!(bounded_order(&key, &[1, 2]), Some(vec![1, 0]));
+        key.atoms[1].1 = vec![1, 3];
+        assert_eq!(bounded_order(&key, &[1, 2]), None);
+    }
     #[test]
     fn rejects_unbound_keys_without_a_size_heuristic() {
         let mut k = Key {

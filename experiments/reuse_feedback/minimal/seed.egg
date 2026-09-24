@@ -1,0 +1,5 @@
+(datatype E (V i64) (A E) (B E) (C E E) (D E E))
+(relation Extra (E E))
+(rewrite (A x) (B x) :name "a-to-b")
+(A (V 1))
+(run 1)

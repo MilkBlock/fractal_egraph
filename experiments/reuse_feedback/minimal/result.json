@@ -1,0 +1,160 @@
+{
+  "scope": "actual native A->B, B+Extra->C->D cycle; two y bindings; independent native final-state verification; no inference from logical matches to committed mutations",
+  "initial_counts": {
+    "bodies": 1,
+    "enclosures": 1,
+    "entries": 1
+  },
+  "cycles": [
+    {
+      "cycle": 1,
+      "parameters": [
+        1,
+        2,
+        3
+      ],
+      "source_executions": 1,
+      "reference_equivalent": true,
+      "source_applications": {
+        "applications": 5,
+        "excluded": 0,
+        "logical_matches": 5,
+        "scope": "native history -> CS -> ripen -> equivalence -> weak dominate"
+      },
+      "views": 0,
+      "plans": [],
+      "fragment_validation_cache_entries": 0,
+      "reuse_count": 0,
+      "incomplete_witnesses": 0,
+      "new_enclosure_count": 3,
+      "library_counts": {
+        "bodies": 4,
+        "enclosures": 4,
+        "entries": 4
+      }
+    },
+    {
+      "cycle": 2,
+      "parameters": [
+        11,
+        12,
+        13
+      ],
+      "source_executions": 1,
+      "reference_equivalent": true,
+      "source_applications": {
+        "applications": 5,
+        "excluded": 0,
+        "logical_matches": 5,
+        "scope": "native history -> CS -> ripen -> equivalence -> weak dominate"
+      },
+      "views": 1,
+      "plans": [
+        {
+          "all_binding_columns": 3,
+          "new_atoms": 1,
+          "original_atoms": 2,
+          "reordered_for_bound_keys": true,
+          "rule": "external-graft",
+          "summary_row_bound": "at most the first atom table row count",
+          "view": "reuse_views_0"
+        }
+      ],
+      "fragment_validation_cache_entries": 1,
+      "reuse_count": 2,
+      "incomplete_witnesses": 0,
+      "new_enclosure_count": 0,
+      "library_counts": {
+        "bodies": 4,
+        "enclosures": 4,
+        "entries": 4
+      }
+    },
+    {
+      "cycle": 3,
+      "parameters": [
+        11,
+        12,
+        13
+      ],
+      "source_executions": 1,
+      "reference_equivalent": true,
+      "source_applications": {
+        "applications": 5,
+        "excluded": 0,
+        "logical_matches": 5,
+        "scope": "native history -> CS -> ripen -> equivalence -> weak dominate"
+      },
+      "views": 1,
+      "plans": [
+        {
+          "all_binding_columns": 3,
+          "new_atoms": 1,
+          "original_atoms": 2,
+          "reordered_for_bound_keys": true,
+          "rule": "external-graft",
+          "summary_row_bound": "at most the first atom table row count",
+          "view": "reuse_views_0"
+        }
+      ],
+      "fragment_validation_cache_entries": 1,
+      "reuse_count": 2,
+      "incomplete_witnesses": 0,
+      "new_enclosure_count": 0,
+      "library_counts": {
+        "bodies": 4,
+        "enclosures": 4,
+        "entries": 4
+      }
+    }
+  ],
+  "graft_observation_limit": "The first run has no registered summary view. Its coarse interactions are learned from native source history; summary-observer counters do not establish a closed-instance break count for that run.",
+  "layer_verification": "Integration test compares complete occurrence/layer DAGs up to a sharing-preserving bijection, because keyed anchor reordering may permute independent events.",
+  "final_microbenchmark_regression": {
+    "scope": "synthetic Reuse Graph API, not native execution throughput",
+    "baseline": "original saved reuse-bench-base, not a rolling baseline",
+    "threshold_fraction": 0.2,
+    "results": {
+      "body_hit_last/1": {
+        "baseline_median_ns": 9825.51953125,
+        "current_median_ns": 10072.75390625,
+        "change_fraction": 0.025162473517422956
+      },
+      "body_hit_last/256": {
+        "baseline_median_ns": 52826.82421875,
+        "current_median_ns": 49351.234375,
+        "change_fraction": -0.06579214054886151
+      },
+      "body_hit_last/64": {
+        "baseline_median_ns": 20137.53125,
+        "current_median_ns": 20000.8125,
+        "change_fraction": -0.006789250792596513
+      },
+      "descriptor_hit": {
+        "baseline_median_ns": 499.51171875,
+        "current_median_ns": 507.8125,
+        "change_fraction": 0.016617790811339184
+      },
+      "graft_insert": {
+        "baseline_median_ns": 191.40625,
+        "current_median_ns": 215.98046875,
+        "change_fraction": 0.12838775510204092
+      },
+      "instance_hit": {
+        "baseline_median_ns": 309.890625,
+        "current_median_ns": 311.5234375,
+        "change_fraction": 0.005268996117581803
+      },
+      "instance_insert": {
+        "baseline_median_ns": 341.796875,
+        "current_median_ns": 338.2109375,
+        "change_fraction": -0.010491428571428596
+      },
+      "reuse_insert": {
+        "baseline_median_ns": 35.31640625,
+        "current_median_ns": 33.8515625,
+        "change_fraction": -0.04147771264240685
+      }
+    }
+  }
+}
