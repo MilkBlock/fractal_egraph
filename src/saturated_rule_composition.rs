@@ -20,7 +20,8 @@ pub struct Row {
     pub result: usize,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
-/// A finite, exported local replay result.
+/// Legacy export DTO for a finite local replay state (including entry/prefix snapshots).
+/// Use `reuse_graph::RipSatEgraph` when a completed native saturation is required.
 ///
 /// This is deliberately a *state* record, not a rule macro: it contains the
 /// rows and equality-shaped value graph observed after replaying one trigger
