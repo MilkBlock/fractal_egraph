@@ -442,6 +442,15 @@ impl Library {
         }
         super::storage::SharedBodies::new(packed)
     }
+    /// Immutable union filter, built once per planner. Marker/hidden rows may
+    /// produce false positives; they cannot hide a visible fragment.
+    pub fn fragment_features(&self) -> super::features::Features {
+        let mut out = super::features::Features::default();
+        for body in &self.bodies {
+            out.merge(&super::features::Features::bake_state(&body.graph));
+        }
+        out
+    }
     pub fn fragments(&self) -> Vec<super::planner::Query> {
         let mut result = BTreeSet::new();
         for e in &self.entries {

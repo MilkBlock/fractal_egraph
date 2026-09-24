@@ -268,7 +268,7 @@ pub fn run_observed(
         return Err("optimized rule execution differs from native reference".into());
     }
     Ok((
-        json!({"scope":"positive finite native tier0 rule execution; optional native summary graft tracing; no virtual native rows","plans":planner.plans,"fallback_rules":planner.fallback,"views":planner.shared.len(),"reference_equivalent":equivalent,"optimized_seconds":optimized_seconds,"reference_seconds":reference_seconds,"grafts":if observe {planner.observer.report()}else{Value::Null}}),
+        json!({"scope":"positive finite native tier0 rule execution; optional native summary graft tracing; no virtual native rows","plans":planner.plans,"fallback_rules":planner.fallback,"views":planner.shared.len(),"feature_filter":{"probes":planner.filter_probes,"rejected":planner.filter_rejections,"storage_bytes":super::super::features::Features::STORAGE_BYTES},"reference_equivalent":equivalent,"optimized_seconds":optimized_seconds,"reference_seconds":reference_seconds,"grafts":if observe {planner.observer.report()}else{Value::Null}}),
         planner.observer.known,
     ))
 }
@@ -278,6 +278,9 @@ pub(crate) struct SourcePlanner {
     globals: BTreeSet<String>,
     viewset: String,
     baked: BTreeSet<Key>,
+    features: super::super::features::Features,
+    filter_probes: usize,
+    filter_rejections: usize,
     shared: BTreeMap<Key, String>,
     observer: super::view_observer::Observer,
     plans: Vec<Value>,
@@ -335,6 +338,9 @@ impl SourcePlanner {
             globals,
             viewset,
             baked,
+            features: library.fragment_features(),
+            filter_probes: 0,
+            filter_rejections: 0,
             shared: BTreeMap::new(),
             observer,
             plans: vec![],
@@ -397,8 +403,32 @@ impl SourcePlanner {
             .map(|i| lower.query.atoms[*i].clone())
             .collect();
         lower.spans = order.iter().map(|i| lower.spans[*i].clone()).collect();
+        let feature_atoms = lower
+            .query
+            .atoms
+            .iter()
+            .enumerate()
+            .map(|(i, (op, _))| {
+                super::super::features::TypedAtom::from_query_atom(
+                    &lower.query,
+                    i,
+                    eg.get_function(op).unwrap().schema().input.len(),
+                )
+            })
+            .collect::<Option<Vec<_>>>();
         let mut chosen = None;
         for n in (2..=lower.query.atoms.len()).rev() {
+            if let Some(atoms) = &feature_atoms {
+                self.filter_probes += 1;
+                if self
+                    .features
+                    .probe_typed(&atoms[..n], super::super::features::Region::BodyOnly)
+                    == super::super::features::Probe::No
+                {
+                    self.filter_rejections += 1;
+                    continue;
+                }
+            }
             let (key, vars) = lower.query.key(&lower.query.atoms[..n])?;
             if baked.contains(&key) {
                 chosen = Some((n, key, vars));
@@ -549,7 +579,7 @@ impl SourcePlanner {
         self.observer.consume(eg, batch)
     }
     pub(crate) fn report(&self) -> Value {
-        json!({"plans":self.plans,"fallback_rules":self.fallback,"views":self.shared.len(),"grafts":self.observer.report()})
+        json!({"plans":self.plans,"fallback_rules":self.fallback,"views":self.shared.len(),"feature_filter":{"probes":self.filter_probes,"rejected":self.filter_rejections,"storage_bytes":super::super::features::Features::STORAGE_BYTES},"grafts":self.observer.report()})
     }
     pub(crate) fn signatures(&self) -> BTreeSet<String> {
         self.observer.known.clone()

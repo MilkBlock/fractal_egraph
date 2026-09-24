@@ -31,3 +31,7 @@ harness = false
 [[bench]]
 name = "native_shared_snapshot"
 harness = false
+
+[[bench]]
+name = "reuse_features"
+harness = false
