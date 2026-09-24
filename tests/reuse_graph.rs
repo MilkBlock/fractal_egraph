@@ -425,6 +425,83 @@ fn actual_native_artifacts_admit_saturation_but_not_growth_prefixes() {
             q.atoms.push(q.atoms[0].clone());
             assert_eq!(engine.query(&q).unwrap(), engine.reference(&q).unwrap());
             assert_eq!(engine.stats.fragment_joins, 1);
+            let program = "(datatype E (V i64) (A E) (B E)) (relation Flag (E)) (relation Done (E)) (rewrite (A x) (B x)) (rule ((= r (A x)) (= r (B x)) (Flag x)) ((Done r))) (A (V 1)) (Flag (V 1)) (run 3) (check (Done (A (V 1))))";
+            let result =
+                egg_layout::reuse_graph::planner::rule_runner::run(program, &library).unwrap();
+            assert_eq!(result["reference_equivalent"], true);
+            assert_eq!(result["views"], 1, "{result}");
+            assert_eq!(result["plans"][0]["original_atoms"], 3);
+            assert_eq!(result["plans"][0]["new_atoms"], 2);
+            let (observed, signatures) =
+                egg_layout::reuse_graph::planner::rule_runner::run_observed(
+                    program, &library, true,
+                )
+                .unwrap();
+            assert!(
+                observed["grafts"]["reuse_count"].as_u64().unwrap() > 0,
+                "{observed}"
+            );
+            assert_eq!(
+                observed["grafts"]["unexpected_break_count"], 1,
+                "{observed}"
+            );
+            let mut learned_library =
+                egg_layout::reuse_graph::library::Library::load(&library_path).unwrap();
+            learned_library.remember_grafts(signatures);
+            let prediction_file = root.join("predictions.json");
+            learned_library.save(&prediction_file).unwrap();
+            let learned_library =
+                egg_layout::reuse_graph::library::Library::load(&prediction_file).unwrap();
+
+            let predicted = egg_layout::reuse_graph::planner::rule_runner::run_observed(
+                program,
+                &learned_library,
+                true,
+            )
+            .unwrap()
+            .0;
+            assert_eq!(predicted["grafts"]["unexpected_break_count"], 0);
+            assert!(
+                predicted["grafts"]["committed_external_grafts"]
+                    .as_u64()
+                    .unwrap()
+                    > 0
+            );
+
+            for steps in [1, 2, 3] {
+                let prefix = program
+                    .replace("(run 3)", &format!("(run {steps})"))
+                    .replace("(check (Done (A (V 1))))", "");
+                assert_eq!(
+                    egg_layout::reuse_graph::planner::rule_runner::run(&prefix, &library).unwrap()
+                        ["reference_equivalent"],
+                    true
+                );
+            }
+
+            let multi = program.replace(
+                "(run 3)",
+                "(A (V 2)) (Flag (V 2)) (run 2) (union (V 1) (V 2)) (run 2)",
+            );
+            assert_eq!(
+                egg_layout::reuse_graph::planner::rule_runner::run(&multi, &library).unwrap()["reference_equivalent"],
+                true
+            );
+            let anchored = program
+                .replace("(rule ((= r", "(let pinned (V 1)) (rule ((= r")
+                .replace("(Flag x))", "(Flag pinned))");
+            assert_eq!(
+                egg_layout::reuse_graph::planner::rule_runner::run(&anchored, &library).unwrap()["reference_equivalent"],
+                true
+            );
+
+            assert!(
+                egg_layout::reuse_graph::planner::rule_runner::run(
+                    "(datatype E (A)) (A) (subsume (A))",
+                    &library
+                )
+                .is_err()
+            );
 
             let second = root.join("roundtrip.json");
             library.save(&second).unwrap();

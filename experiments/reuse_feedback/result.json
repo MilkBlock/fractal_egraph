@@ -1,0 +1,34 @@
+{
+  "scope": "actual native positive-program feedback experiment; optimized execution and reference trace learning are separate passes; no speedup claim",
+  "first": {
+    "plans": [
+      {
+        "all_binding_columns": 2,
+        "new_atoms": 2,
+        "original_atoms": 3,
+        "rule": "use-closed-fragment",
+        "view": "reuse_views_0"
+      }
+    ],
+    "reference_equivalent": true,
+    "reuse_count": 2,
+    "unexpected_break_count": 1,
+    "new_enclosure_count": 3,
+    "library": {
+      "bodies": 3,
+      "enclosures": 4,
+      "entries": 4
+    }
+  },
+  "repeat": {
+    "reference_equivalent": true,
+    "reuse_count": 2,
+    "unexpected_break_count": 0,
+    "new_enclosure_count": 0,
+    "library": {
+      "bodies": 3,
+      "enclosures": 4,
+      "entries": 4
+    }
+  }
+}

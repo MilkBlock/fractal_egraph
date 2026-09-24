@@ -76,3 +76,38 @@ fn alpha_renaming_reuses_plan_but_alias_constraints_do_not() {
     alias.projection = vec![0];
     assert!(e.query(&alias).unwrap().is_empty());
 }
+
+#[test]
+fn query_boundary_grows_without_losing_previously_hidden_bindings() {
+    let source = "(datatype E (A) (B) (C)) (relation P (E)) (relation Q (E)) (relation Link (E E)) (P (A)) (P (C)) (Link (A) (B)) (Link (C) (B)) (Q (B))";
+    let mut e = Engine::default();
+    let mut baseline = Engine::default();
+    e.execute(source).unwrap();
+    baseline.execute(source).unwrap();
+    let full = query();
+    let mut prefix = full.clone();
+    prefix.atoms.pop();
+    e.query(&prefix).unwrap();
+    let mut narrow = full.clone();
+    narrow.projection = vec![1];
+    assert_eq!(
+        e.query(&narrow).unwrap(),
+        baseline.reference(&narrow).unwrap()
+    );
+    assert_eq!(
+        e.boundary_demands()[0]["required_columns"]
+            .as_array()
+            .unwrap()
+            .len(),
+        1
+    );
+    assert_eq!(e.query(&full).unwrap(), baseline.reference(&full).unwrap());
+    assert_eq!(
+        e.boundary_demands()[0]["required_columns"]
+            .as_array()
+            .unwrap()
+            .len(),
+        2
+    );
+    assert_eq!(e.query(&full).unwrap().len(), 2);
+}

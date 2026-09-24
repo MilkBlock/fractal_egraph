@@ -115,6 +115,8 @@ pub struct Library {
     bodies: Vec<BodyRecord>,
     enclosures: Vec<EnclosureDescriptor>,
     entries: Vec<EntryRecord>,
+    #[serde(default)]
+    observed_grafts: BTreeSet<String>,
 }
 impl Default for Library {
     fn default() -> Self {
@@ -123,6 +125,7 @@ impl Default for Library {
             bodies: vec![],
             enclosures: vec![],
             entries: vec![],
+            observed_grafts: BTreeSet::new(),
         }
     }
 }
@@ -203,7 +206,7 @@ impl Library {
             previous.push(b.graph.clone());
         }
         let data = serde_json::to_vec_pretty(
-            &json!({"schema":"rip-sat-library/v2","bodies":bodies,"enclosures":self.enclosures,"entries":self.entries}),
+            &json!({"schema":"rip-sat-library/v2","bodies":bodies,"enclosures":self.enclosures,"entries":self.entries,"observed_grafts":self.observed_grafts}),
         )?;
         let mut file = std::fs::OpenOptions::new()
             .write(true)
@@ -211,6 +214,12 @@ impl Library {
             .open(path)?;
         file.write_all(&data)?;
         Ok(())
+    }
+    pub fn observed_grafts(&self) -> BTreeSet<String> {
+        self.observed_grafts.clone()
+    }
+    pub fn remember_grafts(&mut self, keys: impl IntoIterator<Item = String>) {
+        self.observed_grafts.extend(keys);
     }
     pub fn counts(&self) -> Value {
         json!({"bodies":self.bodies.len(),"enclosures":self.enclosures.len(),"entries":self.entries.len()})

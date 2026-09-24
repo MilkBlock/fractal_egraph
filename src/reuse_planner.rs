@@ -185,7 +185,24 @@ impl Engine {
                     demand.1.insert(i);
                 }
             }
-            let left = self.scan(left)?;
+            // Grow one shared interface per fragment, never a cache entry for
+            // every query/instance/path. Internal existential columns are omitted
+            // from this join; widening uses the complete native binding cache.
+            let columns: Vec<_> = demand.1.iter().copied().collect();
+            let full_left = self.scan(left)?;
+            let left = if columns.len() == lvars.len() {
+                full_left
+            } else {
+                Arc::new(
+                    full_left
+                        .iter()
+                        .map(|row| columns.iter().map(|i| row[*i]).collect())
+                        .collect::<BTreeSet<Vec<NativeValue>>>()
+                        .into_iter()
+                        .collect(),
+                )
+            };
+            let lvars: Vec<_> = columns.iter().map(|i| lvars[*i]).collect();
             let right = self.scan(right)?;
             let shared: Vec<_> = lvars
                 .iter()
@@ -233,8 +250,8 @@ impl Engine {
             .into_iter()
             .collect())
     }
-    /// Observed exposed columns, shared across alpha-renamed queries and instances.
-    /// These are next-Bake interface suggestions; no automatic semantic rewrite.
+    /// Actual projected query interfaces, widened by observed consumer demand.
+    /// This does not modify enclosure triggers or their semantic assumptions.
     pub fn boundary_demands(&self) -> Value {
         json!(self.boundary_demand.iter().map(|(key,(uses,ports))|json!({"atoms":key.atoms,"typed_values":key.values,"uses":uses,"required_columns":ports})).collect::<Vec<_>>())
     }
@@ -263,3 +280,7 @@ impl Drop for Engine {
         self.clear();
     }
 }
+#[path = "reuse_rule_runner.rs"]
+pub mod rule_runner;
+#[path = "reuse_view_observer.rs"]
+mod view_observer;

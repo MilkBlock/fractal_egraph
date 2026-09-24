@@ -1,10 +1,9 @@
-# Reuse Graph: contracts and offline Bake library
+# Reuse Graph: contracts and validated feedback
 
 Implementation: `src/reuse_graph.rs` and `src/reuse_library.rs`. These provide
-data-model/accounting contracts and explicit offline native-artifact import. It does **not** yet discover templates, validate a graft's
-semantic applicability, install a macro, modify the matcher, or virtualize facts.
-Native preparation now exports a typed origin recipe and interface terms;
-execution and planner behavior are unchanged.
+data-model/accounting contracts, native-artifact import, online supplementation,
+and opt-in positive-rule view planning. The ordinary analyzer keeps its native
+matcher. Native mutable facts are not virtualized.
 
 ## Names and identities
 
@@ -56,8 +55,9 @@ The three counters are:
 
 Changing an instance revision clears its fact-slot mappings. Stale evidence,
 conflicting event payloads, wrong-run events, invalid slots/types and inconsistent
-required aliases are rejected before counters change. This does not yet implement
-native union subscriptions, instance re-canonicalization or guard validation.
+required aliases are rejected before counters change. The foundation API alone does not implement native subscriptions or guard
+validation. The opt-in view observer described below re-canonicalizes its own
+summary instances at execution boundaries.
 
 ## Tests and evidence scope
 
@@ -76,19 +76,24 @@ storage-compression benchmark.
 runtime event indexes is not supported. The separate Bake library persists static
 bodies, descriptors and source/origin evidence; it never restores runtime counters.
 
-## Next stages
+## Implementation status
 
 1. **Done:** objects, typed references, structural checks and accounting.
 2. **Done (offline):** Bake library import/export and native origin-recipe extraction;
    this captures the selected composed entry, not a complete local saturation trace.
 3. **Done:** conservative fragment filters (unknown ports return Maybe).
-4. **Partial:** online completed-ripen supplementation is integrated; live tier0 graft
-   instance tracking remains pending.
-5. **Done for immutable library rows:** verified backward references and exact reconstruction.
-6. **Partial:** native read-only query reuse is implemented and differential-tested;
-   source rule LHS substitution remains pending.
-7. **Partial:** workload column-demand reports and virtual immutable library rows;
-   semantic boundary rewrites and native table virtualization remain pending.
+4. Native completed-ripen supplementation is integrated; the opt-in positive runner
+   observes matched summary instances and committed external graft signatures.
+5. Verified immutable-library row references and exact reconstruction.
+6. Read-only query reuse plus opt-in positive-rule LHS view substitution, with
+   independent native final-state comparison. Arbitrary mutation semantics and
+   optimized source tracing are outside this path.
+7. Query interfaces now narrow to demanded columns and widen when new consumers
+   need more. Immutable baked rows support virtual references; native mutable-row
+   virtualization is **not implemented or enabled**.
+
+These form a bounded feedback experiment, not a claim of complete general-purpose
+planner replacement or production-ready single-pass execution.
 
 ## Timing regression benchmark
 
@@ -192,12 +197,49 @@ partial effects. No mutable raw engine escapes this wrapper.
 `reuse-query` compares the result with a native whole-query join. This optimizes
 read-only queries, not the native rule matcher or semi-naive rule schedule.
 `boundary_demands()` records which fragment columns the workload actually uses;
-these are suggestions for the next Bake, not automatically validated trigger changes.
+query joins use this interface immediately and widen it as needed. Enclosure
+triggers and their semantic assumptions are not rewritten.
 
-Remaining obligations before enabling the originally planned complete feedback:
-- Map actual tier0 reads/committed effects to live enclosure instances; preserve
-  causality and canonical identities across union and table updates.
-- Replace rule LHS fragments while reconstructing original row provenance and
-  preserving every semi-naive delta variant. Read-only query equivalence is insufficient.
-- Validate adaptive boundary changes, and make any native virtual rows share the
-  same identity, visibility and notifications as explicit rows.
+## Positive native rule execution and observed feedback
+
+```sh
+cargo run --release --offline -- reuse-run NEW.egg LIBRARY.json
+cargo run --release --offline -- reuse-run NEW.egg LIBRARY.json --learn-grafts NEXT.json
+EGG_LAYOUT_GRAPHS=0 cargo run --release --offline -- reuse-cycle NEW.egg LIBRARY.json out/cycle
+```
+
+The positive runner uses egglog's parser, lowers supported LHS constructor/relation
+atoms, and matches existing baked conjunctive fragments. It replaces a matching
+prefix with a shared summary relation exposing **all** fragment variables. Before
+each finite native Run step, a separate view ruleset refreshes these relations.
+Each later fragment atom must have its lookup key bound by preceding atoms
+(or literals). Thus the view cannot have more rows than its first table. Unbound
+lookup keys retain the native plan; there is no candidate budget or row-count
+heuristic. No user facts are hidden or removed. Constructors, relation insertions, and unions
+are supported; delete/subsume/function updates, naive rules and unbounded schedules
+are rejected by this opt-in runner. Complex LHS conditions or global-bound LHSs
+retain the native plan. The separate read-only query runtime does support updates,
+subsume and rollback via cache invalidation.
+
+Every `reuse-run` checks all user table rows, equality structure, private relation
+outputs and named globals against a separate native execution. This is a concrete
+program check, not an inductive proof for arbitrary programs. Timing includes view
+setup/refresh; the small fixture is currently slower than native execution.
+
+`--learn-grafts` enables actual native dependency tracing for source rules using
+summary rows. A graft needs a complete row witness, an external read beyond the
+summary footprint, and a committed insertion or nontrivial union. Unknown signatures
+count at most one break per canonical instance until re-Bake; unions re-key the
+instance registry. Signatures retain typed rule/wiring and input-alias information.
+They are predictive observations only. They do not authorize a rewrite, skip ripen,
+or certify saturation. Evidence is aggregated by signature and raw batches drained.
+
+`reuse-cycle` combines this run with the ordinary native trace/ripen learner and
+writes `adaptive-library.json`. Optimized execution, reference verification and
+learning remain separate passes. It is an end-to-end validation experiment, not
+an end-to-end speed optimization. See [the reproducible fixture](../experiments/reuse_feedback/README.md).
+
+Before production promotion, remaining work includes a single-pass bridge from
+optimized summaries back to original source-row provenance, semantic adaptation
+of enclosure triggers, and explicit/virtual native row identity plus incremental
+notifications. The current version deliberately retains native hashcons storage.
