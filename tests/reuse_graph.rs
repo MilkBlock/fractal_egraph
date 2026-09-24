@@ -383,6 +383,49 @@ fn actual_native_artifacts_admit_saturation_but_not_growth_prefixes() {
                 "{summary}"
             );
             assert_eq!(library.instantiate().unwrap().metrics().reuse_count, 0);
+            let learned = root.join("learned");
+            let run = Command::new(env!("CARGO_BIN_EXE_egg_layout"))
+                .args([
+                    "analyze",
+                    "--source",
+                    path.to_str().unwrap(),
+                    "--output",
+                    learned.to_str().unwrap(),
+                    "--reuse-library",
+                    library_path.to_str().unwrap(),
+                    "--ripen-observe-ms",
+                    "60000",
+                ])
+                .env("EGG_LAYOUT_GRAPHS", "0")
+                .output()
+                .unwrap();
+            assert!(
+                run.status.success(),
+                "{}",
+                String::from_utf8_lossy(&run.stderr)
+            );
+            let queue: Value = serde_json::from_slice(
+                &fs::read(learned.join("saturated-rule-composition/queue.json")).unwrap(),
+            )
+            .unwrap();
+            assert!(
+                queue["reuse_learning"]["body_storage_reuse_count"]
+                    .as_u64()
+                    .unwrap()
+                    > 0,
+                "{queue}"
+            );
+            assert_eq!(queue["reuse_learning"]["new_enclosure_count"], 0);
+            egg_layout::reuse_graph::library::Library::load(&learned.join("reuse-library.json"))
+                .unwrap();
+            let mut engine = egg_layout::reuse_graph::planner::Engine::default();
+            engine.execute(&fs::read_to_string(&path).unwrap()).unwrap();
+            engine.install_library(&library).unwrap();
+            let mut q = library.fragments().remove(0);
+            q.atoms.push(q.atoms[0].clone());
+            assert_eq!(engine.query(&q).unwrap(), engine.reference(&q).unwrap());
+            assert_eq!(engine.stats.fragment_joins, 1);
+
             let second = root.join("roundtrip.json");
             library.save(&second).unwrap();
             assert_eq!(fs::read(&second).unwrap(), fs::read(&library_path).unwrap());
@@ -519,5 +562,91 @@ fn recipe_preserves_cross_step_external_aliases_and_cut_obligations() {
     assert_ne!(
         g.register_enclosure(a, Admission::InitialBake).unwrap(),
         g.register_enclosure(d, Admission::InitialBake).unwrap()
+    );
+}
+
+#[test]
+fn feature_filters_never_reject_known_rows_or_unknown_boundaries() {
+    use egg_layout::reuse_graph::features::{Features, Probe, Region};
+    let b = body();
+    let f = Features::bake(&b);
+    for r in &b.graph().rows {
+        assert_eq!(
+            f.probe([(r.op.as_str(), r.args.len())], Region::BodyOnly),
+            Probe::Maybe
+        );
+    }
+    assert_eq!(f.probe([("NeverPresent", 2)], Region::BodyOnly), Probe::No);
+    assert_eq!(
+        f.probe([("NeverPresent", 2)], Region::ThroughBoundary),
+        Probe::Maybe
+    );
+    assert_eq!(
+        f.probe([("Add", 2), ("Add", 2)], Region::BodyOnly),
+        Probe::Maybe
+    );
+}
+
+#[test]
+fn stored_body_delta_roundtrips_visibility_and_rejects_forward_base() {
+    use egg_layout::reuse_graph::storage::StoredState;
+    let mut a = state();
+    a.rows = (0..40)
+        .map(|i| Row {
+            op: format!("LongConstructorName{i}"),
+            args: vec![0, 1],
+            result: 2,
+        })
+        .collect();
+    let mut b = a.clone();
+    b.rows.push(Row {
+        op: "Extra".into(),
+        args: vec![1],
+        result: 2,
+    });
+    b.subsumed_rows = vec![0, 2];
+    let encoded = StoredState::select(&b, &[a.clone()]).unwrap();
+    assert!(matches!(encoded, StoredState::Delta { .. }));
+    assert_eq!(
+        serde_json::to_value(encoded.expand(&[a]).unwrap()).unwrap(),
+        serde_json::to_value(&b).unwrap()
+    );
+    assert!(encoded.expand(&[]).is_err());
+    let mut unrelated = b.clone();
+    unrelated.scope = json!({"different":"rules"});
+    assert!(matches!(
+        StoredState::select(&b, &[unrelated]).unwrap(),
+        StoredState::Full(_)
+    ));
+}
+
+#[test]
+fn virtual_baked_rows_share_storage_without_sharing_visibility() {
+    use egg_layout::reuse_graph::storage::{SharedBodies, StoredState};
+    let a = state();
+    let delta = StoredState::Delta {
+        base: 0,
+        shared: vec![0, 1],
+        added: vec![],
+        hidden: vec![0],
+        local_ids: vec![],
+    };
+    let store = SharedBodies::new(vec![StoredState::Full(a), delta]).unwrap();
+    assert!(std::ptr::eq(
+        store.row(0, 0).unwrap(),
+        store.row(1, 0).unwrap()
+    ));
+    assert!(store.visible(0, 0));
+    assert!(!store.visible(1, 0));
+    assert!(store.row(1, 2).is_none());
+    assert!(
+        SharedBodies::new(vec![StoredState::Delta {
+            base: 0,
+            shared: vec![],
+            added: vec![],
+            hidden: vec![],
+            local_ids: vec![]
+        }])
+        .is_err()
     );
 }

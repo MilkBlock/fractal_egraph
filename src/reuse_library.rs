@@ -171,7 +171,23 @@ impl Library {
         Ok(graph)
     }
     pub fn load(path: &Path) -> Result<Self> {
-        let library: Self = serde_json::from_slice(&std::fs::read(path)?)?;
+        let mut encoded: Value = serde_json::from_slice(&std::fs::read(path)?)?;
+        if encoded["schema"] == "rip-sat-library/v2" {
+            let mut previous = vec![];
+            for b in encoded["bodies"]
+                .as_array_mut()
+                .ok_or("missing stored bodies")?
+            {
+                let storage: super::storage::StoredState =
+                    serde_json::from_value(b["storage"].take())?;
+                let state = storage.expand(&previous)?;
+                b["graph"] = serde_json::to_value(&state)?;
+                b.as_object_mut().unwrap().remove("storage");
+                previous.push(state);
+            }
+            encoded["schema"] = json!("rip-sat-library/v1");
+        }
+        let library: Self = serde_json::from_value(encoded)?;
         library.instantiate()?;
         Ok(library)
     }
@@ -179,7 +195,16 @@ impl Library {
         self.instantiate()?;
         // Refuse accidental baseline/library replacement.
         use std::io::Write;
-        let data = serde_json::to_vec_pretty(self)?;
+        let mut previous = vec![];
+        let mut bodies = vec![];
+        for b in &self.bodies {
+            let storage = super::storage::StoredState::select(&b.graph, &previous)?;
+            bodies.push(json!({"storage":storage,"report":b.report}));
+            previous.push(b.graph.clone());
+        }
+        let data = serde_json::to_vec_pretty(
+            &json!({"schema":"rip-sat-library/v2","bodies":bodies,"enclosures":self.enclosures,"entries":self.entries}),
+        )?;
         let mut file = std::fs::OpenOptions::new()
             .write(true)
             .create_new(true)
@@ -196,6 +221,18 @@ impl Library {
         let state: SaturatedRuleComposition = serde_json::from_slice(&std::fs::read(
             path.join("saturated-rule-composition.json"),
         )?)?;
+        let source = std::fs::read_to_string(path.join("entry.egg"))?;
+        self.admit_native(graph, state, &report, source, Admission::InitialBake)?;
+        Ok(())
+    }
+    pub(crate) fn admit_native(
+        &mut self,
+        graph: &mut ReuseGraph,
+        state: SaturatedRuleComposition,
+        report: &Value,
+        source: String,
+        admission: Admission,
+    ) -> Result<(EnclosureId, bool)> {
         let body = RipSatEgraph::from_native_export(state.clone(), &report)?;
         let origin = &report["origin"];
         let recipe: Vec<Comb> = serde_json::from_value(origin["reuse_recipe"].clone())?;
@@ -203,7 +240,6 @@ impl Library {
         let interface = resolve_interface(terms, &state)?;
         let upper = interface.upper;
         let lower = interface.lower;
-        let source = std::fs::read_to_string(path.join("entry.egg"))?;
         // Validate before mutating the library. The graph is only an import index.
         let mut validator = ReuseGraph::default();
         let temporary = validator.intern_body(body.clone())?.id;
@@ -227,7 +263,7 @@ impl Library {
             },
             origin: recipe,
         };
-        let enclosure = graph.register_enclosure(descriptor, Admission::InitialBake)?;
+        let enclosure = graph.register_enclosure(descriptor, admission)?;
         if interned.inserted {
             self.bodies.push(BodyRecord {
                 graph: state,
@@ -249,7 +285,7 @@ impl Library {
                 origin: origin.clone(),
             });
         }
-        Ok(())
+        Ok((enclosure, !interned.inserted))
     }
 }
 fn resolve_interface(terms: &Value, state: &SaturatedRuleComposition) -> Result<Interface> {
@@ -323,4 +359,106 @@ pub fn bake(runs: &[String], output: &Path) -> Result<Value> {
     Ok(
         json!({"counts":library.counts(),"skipped":skipped,"scope":"offline native-artifact library; no planner substitution"}),
     )
+}
+
+/// Online admission from completed native jobs. No filesystem trace replay.
+pub struct Learner {
+    pub graph: ReuseGraph,
+    library: Library,
+    initial: Value,
+    admitted: Vec<Value>,
+    rejected: Vec<Value>,
+}
+impl Learner {
+    pub fn load(path: &Path) -> Result<Self> {
+        let library = Library::load(path)?;
+        let graph = library.instantiate()?;
+        let initial = library.counts();
+        Ok(Self {
+            graph,
+            library,
+            initial,
+            admitted: vec![],
+            rejected: vec![],
+        })
+    }
+    pub fn observe(
+        &mut self,
+        job: usize,
+        state: SaturatedRuleComposition,
+        report: &Value,
+        source: String,
+    ) {
+        match self.library.admit_native(
+            &mut self.graph,
+            state,
+            report,
+            source,
+            Admission::RuntimeSupplement,
+        ) {
+            Ok((id, shared)) => self
+                .admitted
+                .push(json!({"job":job,"enclosure":id,"body_storage_reused":shared})),
+            Err(e) => self
+                .rejected
+                .push(json!({"job":job,"reason":e.to_string()})),
+        }
+    }
+    pub fn report(&self) -> Value {
+        json!({"initial":self.initial,"current":self.library.counts(),"new_enclosure_count":self.graph.metrics().new_enclosure_count,"body_storage_reuse_count":self.admitted.iter().filter(|a|a["body_storage_reused"]==true).count(),"admitted":self.admitted,"rejected":self.rejected,"unexpected_break_count":null,"scope":"online completed-ripen admission; live tier0 graft instances not yet observed"})
+    }
+    pub fn save(&self, path: &Path) -> Result<()> {
+        self.library.save(path)
+    }
+}
+impl Library {
+    /// Positive visible fragments only; marker rows are placeholders, not native tables.
+    pub fn shared_bodies(&self) -> Result<super::storage::SharedBodies> {
+        let mut previous = vec![];
+        let mut packed = vec![];
+        for b in &self.bodies {
+            packed.push(super::storage::StoredState::select(&b.graph, &previous)?);
+            previous.push(b.graph.clone());
+        }
+        super::storage::SharedBodies::new(packed)
+    }
+    pub fn fragments(&self) -> Vec<super::planner::Query> {
+        let mut result = BTreeSet::new();
+        for e in &self.entries {
+            let b = &self.bodies[self.enclosures[e.enclosure.0].body.0].graph;
+            let marker = e.origin["parameter_marker"].as_str().unwrap_or("");
+            let atoms: Vec<_> = b
+                .rows
+                .iter()
+                .enumerate()
+                .filter(|(i, r)| r.op != marker && !b.subsumed_rows.contains(i))
+                .map(|(_, r)| {
+                    let mut columns = r.args.clone();
+                    if b.values[r.result].sort != "Unit" {
+                        columns.push(r.result);
+                    }
+                    (r.op.clone(), columns)
+                })
+                .collect();
+            if atoms.is_empty() {
+                continue;
+            }
+            let projection = atoms
+                .iter()
+                .flat_map(|(_, cols)| cols.iter().copied())
+                .collect::<BTreeSet<_>>()
+                .into_iter()
+                .collect();
+            result.insert(super::planner::Query {
+                values: b
+                    .values
+                    .iter()
+                    .map(|v| (v.sort.clone(), v.literal.clone()))
+                    .collect(),
+                atoms,
+                projection,
+            });
+        }
+        result.into_iter().collect()
+    }
 }

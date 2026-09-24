@@ -158,6 +158,7 @@ pub struct InternedBody {
 #[derive(Default)]
 pub struct ReuseGraph {
     bodies: Vec<RipSatEgraph>,
+    features: Vec<features::Features>,
     enclosures: Vec<Arc<EnclosureDescriptor>>,
     enclosure_index: BTreeMap<Arc<EnclosureDescriptor>, EnclosureId>,
     instances: Vec<EnclosureInstance>,
@@ -184,12 +185,16 @@ impl ReuseGraph {
         }
         let id = RipSatId(self.bodies.len());
         let value_map = (0..body.graph().values.len()).collect();
+        self.features.push(features::Features::bake(&body));
         self.bodies.push(body);
         Ok(InternedBody {
             id,
             value_map,
             inserted: true,
         })
+    }
+    pub fn features(&self, id: RipSatId) -> Option<&features::Features> {
+        self.features.get(id.0)
     }
     pub fn body(&self, id: RipSatId) -> Option<&RipSatEgraph> {
         self.bodies.get(id.0)
@@ -461,5 +466,11 @@ impl ReuseGraph {
     }
 }
 
+#[path = "reuse_features.rs"]
+pub mod features;
 #[path = "reuse_library.rs"]
 pub mod library;
+#[path = "reuse_planner.rs"]
+pub mod planner;
+#[path = "reuse_storage.rs"]
+pub mod storage;

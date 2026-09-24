@@ -907,6 +907,7 @@ fn execute(
     stream_frames: bool,
     observation: crate::ripen_observation::Limits,
     emit: &mut dyn FnMut(Json) -> Result,
+    reuse_library:Option<&Path>,
 ) -> Result<Json> {
     std::fs::create_dir_all(out)?;
     let render_batch = crate::graph_render::Batch::start()?;
@@ -921,7 +922,7 @@ fn execute(
         detailed_trace
     );
     let mut pipeline =
-        saturated_rule_composition_pipeline::Pipeline::new(out, name.into(), observation)?;
+        saturated_rule_composition_pipeline::Pipeline::new(out, name.into(), observation,reuse_library)?;
     let mut manifest = vec![];
     let mut emitted = 0;
     let mut boundary = 0;
@@ -1029,6 +1030,7 @@ fn execute(
         );
     }
     let cleanup_started = Instant::now();
+    pipeline.save_reuse_library()?;
     pipeline.release_engines();
     if std::env::var_os("EGG_LAYOUT_PROFILE").is_some() {
         eprintln!(
@@ -1064,6 +1066,12 @@ pub fn run_with_observation(
     save_history: bool,
     observation: crate::ripen_observation::Limits,
 ) -> Result<Json> {
+    run_with_reuse(source,out,rounds,replay,save_history,observation,None)
+}
+pub fn run_with_reuse(
+    source:&Path,out:&Path,rounds:Option<usize>,replay:Option<&Path>,save_history:bool,
+    observation:crate::ripen_observation::Limits,reuse_library:Option<&Path>,
+)->Result<Json> {
     observation.validate()?;
     if out.exists() {
         return Err("analysis output already exists".into());
@@ -1084,6 +1092,7 @@ pub fn run_with_observation(
         false,
         observation,
         &mut |_| Ok(()),
+        reuse_library,
     )
 }
 

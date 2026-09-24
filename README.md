@@ -4,7 +4,7 @@
 
 当前主线是 Rust 数据结构，不再使用 Tier1 `.egg`、Use 模板搜索、启发式分割、自动候选预算或旧 Babble/Tier2 实验 API。旧实现可从 Git 历史查阅。
 
-Reuse Graph 的第一阶段已提供 `RipSatEgraph` 共享主体、封装/实例身份、graft 连接度和复用/破坏/补充计数，见 [数据结构与边界](docs/reuse-graph.md)。支持从新生成的原生 ripen 产物离线构建、保存和校验共享库；尚未接入运行时自动学习或 planner。
+Reuse Graph 的第一阶段已提供 `RipSatEgraph` 共享主体、封装/实例身份、graft 连接度和复用/破坏/补充计数，见 [数据结构与边界](docs/reuse-graph.md)。支持从新生成的原生 ripen 产物离线构建、保存和校验共享库；可用 `analyze --reuse-library FILE` 在线补充已完成的 ripen 结果，`reuse-query` 验证只读 Join 片段复用；尚未替换 tier0 规则 matcher。
 
 ## 运行
 

@@ -32,7 +32,7 @@ pub(super) struct Session {
     pub final_state: Option<crate::saturated_rule_composition::SaturatedRuleComposition>,
     source: std::path::PathBuf,
     out: std::path::PathBuf,
-    text: String,
+    pub(super) text: String,
     setup: Vec<Command>,
     checks: Vec<Command>,
     c: Captured,

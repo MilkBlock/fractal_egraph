@@ -81,12 +81,14 @@ bodies, descriptors and source/origin evidence; it never restores runtime counte
 1. **Done:** objects, typed references, structural checks and accounting.
 2. **Done (offline):** Bake library import/export and native origin-recipe extraction;
    this captures the selected composed entry, not a complete local saturation trace.
-3. Conservative fragment filters (unknown ports return Maybe).
-4. Runtime graft observation and supplementary learning, initially without changing
-   native execution results.
-5. Verified storage-reference/recipe selection.
-6. Planner query reuse with full binding-coverage checks.
-7. Workload-guided boundary changes; only then selected storage virtualization.
+3. **Done:** conservative fragment filters (unknown ports return Maybe).
+4. **Partial:** online completed-ripen supplementation is integrated; live tier0 graft
+   instance tracking remains pending.
+5. **Done for immutable library rows:** verified backward references and exact reconstruction.
+6. **Partial:** native read-only query reuse is implemented and differential-tested;
+   source rule LHS substitution remains pending.
+7. **Partial:** workload column-demand reports and virtual immutable library rows;
+   semantic boundary rewrites and native table virtualization remain pending.
 
 ## Timing regression benchmark
 
@@ -144,3 +146,58 @@ This is trusted local artifact import with structural validation, not a sandbox
 for untrusted libraries, a fresh semantic replay, or a proof that arbitrary new
 bindings can execute the recipe. The library does not install rules in tier0.
 The v1 JSON is a machine interchange/debug format, not an executable `.egg` DSL.
+
+## Conservative filters and exact shared storage
+
+Every interned body has a 256-bit OR filter on operator/arity. `BodyOnly` queries
+may return No; any query through an input or unknown graft must use
+`ThroughBoundary`, which returns Maybe. Hits do not prove a match. The filter
+is immutable with its body; it is never used as a filter over a changed instance.
+
+Library writes now use `rip-sat-library/v2` (v1 is still readable). A body can
+reference rows from an earlier body only when value slots, environment and named
+ports agree, reconstruction is exact, and the compact encoding is smaller.
+Visibility remains local to the referencing body. Current selection shares a
+common row prefix; it does not claim arbitrary subgraph embedding. Weak dominance
+alone is never a storage certificate. `SharedBodies` can borrow rows through
+multiple references without expanding them; these are **library rows**, not virtual
+native egglog rows. Loading the standard Library currently expands bodies for
+validation and import, so this is not an end-to-end peak-memory reduction claim.
+
+## Online supplementation and native query reuse
+
+```sh
+cargo run --release --offline -- analyze --source NEW.egg --output out/adaptive \\
+  --reuse-library out/library.json
+cargo run --release --offline -- reuse-library-check out/adaptive/reuse-library.json
+# QUERY.json has values, atoms and projection fields (see planner::Query).
+cargo run --release --offline -- reuse-query NEW.egg out/library.json QUERY.json
+```
+
+Online admission uses completed native ripen sessions directly, without a trace
+file round-trip. The final library contains the original Bake and valid newly
+observed enclosures. `queue.json.reuse_learning` reports adopted body storage
+sharing, new enclosures and rejected admissions. It deliberately reports live
+`unexpected_break_count` as null: completed-CS observations alone do not establish
+which live tier0 enclosure instance was broken. No metric is fabricated from a
+similar-looking body or an ordinary match event.
+
+The owned `planner::Engine` compiles queries through native egglog Join. An already
+known/baked atom prefix can replace part of a larger query: the complete prefix
+bindings are joined against the residual on **all** shared variables. Cached keys
+normalize variable IDs. Mutation invalidates results before execution; declarations
+and push/pop also discard compiled handles. This includes failing executions with
+partial effects. No mutable raw engine escapes this wrapper.
+
+`reuse-query` compares the result with a native whole-query join. This optimizes
+read-only queries, not the native rule matcher or semi-naive rule schedule.
+`boundary_demands()` records which fragment columns the workload actually uses;
+these are suggestions for the next Bake, not automatically validated trigger changes.
+
+Remaining obligations before enabling the originally planned complete feedback:
+- Map actual tier0 reads/committed effects to live enclosure instances; preserve
+  causality and canonical identities across union and table updates.
+- Replace rule LHS fragments while reconstructing original row provenance and
+  preserving every semi-naive delta variant. Read-only query equivalence is insufficient.
+- Validate adaptive boundary changes, and make any native virtual rows share the
+  same identity, visibility and notifications as explicit rows.
