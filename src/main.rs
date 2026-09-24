@@ -5,8 +5,24 @@ fn main() -> Result {
     match args.first().map(String::as_str) {
         None | Some("--help" | "help" | "-h") => {
             println!(
-                "egg_layout: analyze --source FILE --output DIR [--rounds N] [--save-history]\n  analyze --replay-history FILE --output DIR\n  cc-merge --rules FILE --seeds FILE --output DIR [--generations N]\n  debug-stream FILE\n  debug-patterns FILE\n  parse-check FILE\n  ripen FILE DIR\n  saturated-rule-composition-compare A.json B.json\n  saturated-rule-composition-catalog DIR RIPEN_DIR...\n  ripen-diff A.json B.json REPORT.json [ANCHORS.json]\nOptional analyze flags: --ripen-sweep-steps N (default 4), --ripen-observe-ms N / --ripen-observe-facts N. Defaults: 50 ms / 200000 facts; native admission pauses unfinished tasks."
+                "egg_layout: reuse-bake OUTPUT.json RUN_DIR...\n  reuse-library-check LIBRARY.json\n  analyze --source FILE --output DIR [--rounds N] [--save-history]\n  analyze --replay-history FILE --output DIR\n  cc-merge --rules FILE --seeds FILE --output DIR [--generations N]\n  debug-stream FILE\n  debug-patterns FILE\n  parse-check FILE\n  ripen FILE DIR\n  saturated-rule-composition-compare A.json B.json\n  saturated-rule-composition-catalog DIR RIPEN_DIR...\n  ripen-diff A.json B.json REPORT.json [ANCHORS.json]\nOptional analyze flags: --ripen-sweep-steps N (default 4), --ripen-observe-ms N / --ripen-observe-facts N. Defaults: 50 ms / 200000 facts; native admission pauses unfinished tasks."
             );
+            Ok(())
+        }
+        Some("reuse-bake") => {
+            if args.len() < 3 {
+                return Err("usage: reuse-bake OUTPUT.json RUN_DIR...".into());
+            }
+            let report = egg_layout::reuse_graph::library::bake(&args[2..], Path::new(&args[1]))?;
+            println!("{}", serde_json::to_string_pretty(&report)?);
+            Ok(())
+        }
+        Some("reuse-library-check") => {
+            if args.len() != 2 {
+                return Err("usage: reuse-library-check LIBRARY.json".into());
+            }
+            let library = egg_layout::reuse_graph::library::Library::load(Path::new(&args[1]))?;
+            println!("{}", library.counts());
             Ok(())
         }
         Some("cc-merge") => {

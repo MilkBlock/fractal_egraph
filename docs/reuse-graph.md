@@ -1,9 +1,10 @@
-# Reuse Graph: phase 1 contracts
+# Reuse Graph: contracts and offline Bake library
 
-Implementation: `src/reuse_graph.rs`. This is an in-memory data-model and
-accounting foundation. It does **not** yet discover templates, validate a graft's
+Implementation: `src/reuse_graph.rs` and `src/reuse_library.rs`. These provide
+data-model/accounting contracts and explicit offline native-artifact import. It does **not** yet discover templates, validate a graft's
 semantic applicability, install a macro, modify the matcher, or virtualize facts.
-The normal native analysis pipeline is unchanged.
+Native preparation now exports a typed origin recipe and interface terms;
+execution and planner behavior are unchanged.
 
 ## Names and identities
 
@@ -15,7 +16,8 @@ The normal native analysis pipeline is unchanged.
   proof or an adversarially supplied report.
 - **EnclosureDescriptor** refers to a canonical body, upper/lower interface slots,
   and an origin recipe using the existing `Comb` / `RelativeBinding` vocabulary.
-  Recipe parents are local topological indices. Rules retain their original
+  Recipe parents are local topological indices. Alias/effect symbols share one
+  namespace across recipe steps, preserving cross-step external identity. Rules retain their original
   guards in their full rule text; semantic replay validation remains the native
   verifier's responsibility. Structural interning is not general equivalence of
   arbitrary triggers.
@@ -71,12 +73,14 @@ the completed artifact can enter a RipSatEgraph. It is not a planner speedup or
 storage-compression benchmark.
 
 `report()` is an inspection snapshot, not a resumable library file: restoring
-all event indexes and proving imported contracts belongs to phase 2.
+runtime event indexes is not supported. The separate Bake library persists static
+bodies, descriptors and source/origin evidence; it never restores runtime counters.
 
 ## Next stages
 
 1. **Done:** objects, typed references, structural checks and accounting.
-2. Bake library import/export and native origin-template extraction.
+2. **Done (offline):** Bake library import/export and native origin-recipe extraction;
+   this captures the selected composed entry, not a complete local saturation trace.
 3. Conservative fragment filters (unknown ports return Maybe).
 4. Runtime graft observation and supplementary learning, initially without changing
    native execution results.
@@ -111,3 +115,32 @@ native ripen throughput, memory growth or end-to-end analysis latency.
 No additional dependencies or network access are required. Baseline JSON is local
 and deliberately not automatically refreshed. Test the checker with
 `python3 -m unittest discover -s tools/bench -p 'test_*.py'`.
+
+## Build a library from native runs
+
+```sh
+EGG_LAYOUT_GRAPHS=0 cargo run --release --offline -- analyze \
+  --source YOUR.egg --output out/new-run
+cargo run --release --offline -- reuse-bake out/library.json out/new-run
+cargo run --release --offline -- reuse-library-check out/library.json
+```
+
+Multiple run directories may follow the output filename. The output must not
+exist. `reuse-bake` prints counts and a per-cell skipped reason; older artifacts
+without `reuse_recipe` must be recaptured. Unfinished or unsupported cells never
+enter the saturated body table. Bodies are stored once, descriptors reference
+body IDs, and each source/origin record remains attached to its descriptor.
+Initial admissions and library reload do not count as runtime reuse.
+
+Upper ports are equality-valued outputs of the selected root occurrence; lower
+ports are extracted opaque RipenInput parameters, in declaration order. Ground
+interface expressions are parsed with egglog and resolved against the exported
+state, including union aliases. Missing or ambiguous terms are rejected, not
+silently replaced with all body nodes. Cut producer dependencies become external
+bindings and missing effect obligations. This conservative recipe is not proof
+minimization. Staged injection evidence and full source remain in each entry.
+
+This is trusted local artifact import with structural validation, not a sandbox
+for untrusted libraries, a fresh semantic replay, or a proof that arbitrary new
+bindings can execute the recipe. The library does not install rules in tier0.
+The v1 JSON is a machine interchange/debug format, not an executable `.egg` DSL.

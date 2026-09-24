@@ -595,7 +595,15 @@ fn extract(
             "parents":a.parents.iter().filter_map(|p|slots.get(p).copied()).collect::<BTreeSet<_>>(),"external_parents":external_parents,
             "binding":wiring,"aliases":aliases,"input_roles":a.input_roles,"output_roles":a.output_roles,"source_coarse_layer":o.coarse_layer,"source_smooth_layer":o.smooth_layer})
     }).collect();
-    let provenance = json!({"kind":"symbolic_cs_interface","template":null,"members":member_ids,"root_member":root_member,"comb_members":comb_members,"kind_scope":"use_kind is relative to directly recorded dependencies inside this CS entry; source_kind is the original layer classification; neither minimizes alternate proof requirements",
+    // Typed recipe uses occurrence-local parents, retaining effects and external obligations.
+    let selected: Vec<_> = member_ids.iter().map(|i| c.layers.occurrences[*i].apply.clone()).collect();
+    let recipe = crate::reuse_graph::library::local_recipe(&selected, member_ids)?;
+    let upper_terms: Vec<_> = c.records[root_member].values.iter()
+        .filter(|v| c.pool.values[**v].sort.as_ref() == c.datatype_name)
+        .filter_map(|v| values.get(v).map(ToString::to_string)).collect();
+    let lower_terms: Vec<_> = parameters.iter().filter_map(|p| p["token"].as_u64())
+        .map(|v| values[&(v as usize)].to_string()).collect();
+    let provenance = json!({"reuse_recipe":recipe,"reuse_interface_terms":{"upper":upper_terms,"lower":lower_terms},"kind":"symbolic_cs_interface","template":null,"members":member_ids,"root_member":root_member,"comb_members":comb_members,"kind_scope":"use_kind is relative to directly recorded dependencies inside this CS entry; source_kind is the original layer classification; neither minimizes alternate proof requirements",
         "events":stages.iter().map(|(i,e,n,_,_)|json!({"record":i,"event":e,"precondition_checks":n})).collect::<Vec<_>>(),
         "initial_tables":initial_tables,"original_use_tables":original_tables,"parameter_marker":hole,
         "symbolic_values":values.iter().map(|(token,term)|json!({"token":token,"term":term.to_string(),"sort":c.pool.values[*token].sort})).collect::<Vec<_>>(),

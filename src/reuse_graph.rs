@@ -59,12 +59,13 @@ pub struct Interface {
     pub lower: Vec<usize>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct EnclosureDescriptor {
     pub body: RipSatId,
     pub interface: Interface,
     /// Reuses the existing normalized Comb vocabulary. Parent indices are LOCAL
     /// to this topologically ordered recipe, not global trace/instance IDs.
+    /// Alias/effect symbols share ONE namespace across all recipe steps.
     /// Full rule text retains its guards; this module does not execute or prove
     /// the recipe. Native replay validation is required before runtime reuse.
     pub origin: Vec<Comb>,
@@ -230,8 +231,9 @@ impl ReuseGraph {
         {
             return Err("a fixed literal is not a variable interface port".into());
         }
+        // One namespace preserves aliases/effect identity across recipe steps.
+        let mut names = BTreeMap::new();
         for step in &mut descriptor.origin {
-            let mut names = BTreeMap::new();
             step.aliases = step
                 .aliases
                 .iter()
@@ -458,3 +460,6 @@ impl ReuseGraph {
             "grafts":self.graft_events.values().map(|(g,u)|json!({"graft":g,"unexpected":u,"connectivity":g.connectivity()})).collect::<Vec<_>>(),"metrics":self.metrics})
     }
 }
+
+#[path = "reuse_library.rs"]
+pub mod library;

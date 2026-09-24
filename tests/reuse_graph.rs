@@ -370,6 +370,34 @@ fn actual_native_artifacts_admit_saturation_but_not_growth_prefixes() {
             RipSatEgraph::from_native_export(g, &r).is_ok(),
             label == "finite"
         );
+        let library_path = root.join(format!("{label}-library.json"));
+        let summary = egg_layout::reuse_graph::library::bake(
+            &[out.to_string_lossy().into_owned()],
+            &library_path,
+        )
+        .unwrap();
+        let library = egg_layout::reuse_graph::library::Library::load(&library_path).unwrap();
+        if label == "finite" {
+            assert!(
+                summary["counts"]["bodies"].as_u64().unwrap() > 0,
+                "{summary}"
+            );
+            assert_eq!(library.instantiate().unwrap().metrics().reuse_count, 0);
+            let second = root.join("roundtrip.json");
+            library.save(&second).unwrap();
+            assert_eq!(fs::read(&second).unwrap(), fs::read(&library_path).unwrap());
+            assert!(
+                library.save(&second).is_err(),
+                "must not overwrite a library"
+            );
+            let mut invalid: Value = serde_json::from_slice(&fs::read(&second).unwrap()).unwrap();
+            invalid["bodies"][0]["report"]["ripen"]["state"] = json!("ObservedUnfinished");
+            fs::write(&second, serde_json::to_vec(&invalid).unwrap()).unwrap();
+            assert!(egg_layout::reuse_graph::library::Library::load(&second).is_err());
+        } else {
+            assert_eq!(summary["counts"]["bodies"], 0);
+            assert!(!summary["skipped"].as_array().unwrap().is_empty());
+        }
     }
     fs::remove_dir_all(root).unwrap();
 }
@@ -420,4 +448,76 @@ fn aliased_fact_slots_count_one_actual_node_and_stale_maps_are_rejected() {
     stale.event.id = 2;
     assert!(graph.observe_graft(stale, true).is_err());
     assert_eq!(graph.metrics().unexpected_break_count, 1);
+}
+
+#[test]
+fn recipe_preserves_cross_step_external_aliases_and_cut_obligations() {
+    use egg_layout::coarse_smooth::{Apply, Effect};
+    use egg_layout::reuse_graph::library::local_recipe;
+    let first = Apply {
+        event: 1,
+        rule: "first".into(),
+        input_roles: vec!["x".into()],
+        output_roles: vec!["y".into()],
+        parents: vec![],
+        binding: vec![RelativeBinding::External { slot: 0 }],
+        wanted: vec![10],
+        outputs: vec![20],
+        external: vec![10],
+        required: vec![],
+        external_facts: vec![],
+        produced: vec![Effect::RowFact(30)],
+    };
+    let second = Apply {
+        event: 2,
+        rule: "second".into(),
+        input_roles: vec!["x".into()],
+        output_roles: vec!["y".into()],
+        parents: vec![5],
+        binding: vec![RelativeBinding::ParentPort {
+            parent: 0,
+            output: 0,
+        }],
+        wanted: vec![20],
+        outputs: vec![40],
+        external: vec![],
+        required: vec![Effect::RowFact(30)],
+        external_facts: vec![],
+        produced: vec![],
+    };
+    let full = local_recipe(&[first.clone(), second.clone()], &[5, 9]).unwrap();
+    assert_eq!(full[1].kind, CombKind::SmoothRuleComposition);
+    assert_eq!(full[0].aliases[1], full[1].aliases[0]);
+    assert_eq!(full[0].effects, full[1].requirements);
+    let cut = local_recipe(&[second], &[9]).unwrap();
+    assert_eq!(cut[0].kind, CombKind::CoarseRuleComposition);
+    assert_eq!(cut[0].external_facts, cut[0].requirements);
+    assert!(matches!(
+        cut[0].binding[0],
+        RelativeBinding::External { .. }
+    ));
+    let mut g = ReuseGraph::default();
+    let b = g.intern_body(body()).unwrap().id;
+    let mut a = descriptor(b, "first");
+    a.origin = local_recipe(
+        &[
+            first.clone(),
+            Apply {
+                event: 3,
+                ..first.clone()
+            },
+        ],
+        &[5, 9],
+    )
+    .unwrap();
+    let mut different = first.clone();
+    different.event = 3;
+    different.wanted = vec![50];
+    different.external = vec![50];
+    let mut d = a.clone();
+    d.origin = local_recipe(&[first, different], &[5, 9]).unwrap();
+    assert_ne!(
+        g.register_enclosure(a, Admission::InitialBake).unwrap(),
+        g.register_enclosure(d, Admission::InitialBake).unwrap()
+    );
 }

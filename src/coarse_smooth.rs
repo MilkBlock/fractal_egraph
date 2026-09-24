@@ -66,7 +66,7 @@ pub struct Apply {
     pub external_facts: Vec<Effect>,
     pub produced: Vec<Effect>,
 }
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 /// Context-relative role of one recorded rule application.
 ///
 /// A coarse rule composition consumes a newly supplied obligation; a smooth
@@ -76,7 +76,7 @@ pub enum CombKind {
     CoarseRuleComposition,
     SmoothRuleComposition,
 }
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct Comb {
     pub kind: CombKind,
     pub rule: String,
