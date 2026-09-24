@@ -1,0 +1,1265 @@
+{
+  "measured_at": "2026-09-25T00:11:22.440124+08:00",
+  "scope": "actual native egglog search/apply table row visits, including view refresh and lazy indexes; no throughput or mutation-count claim",
+  "instrumentation": "native-read-profile Cargo feature; all default-build counter code compiled out",
+  "workload": "seeded A/B fragment; deterministic consumer fanout; three source rounds; independently verified all-user-table final state",
+  "results": [
+    {
+      "consumers": 1,
+      "bindings": 64,
+      "views": 1,
+      "reference_equivalent": true,
+      "feature_filter": {
+        "probes": 2,
+        "rejected": 1,
+        "storage_bytes": 160
+      },
+      "read_profile": {
+        "optimized": {
+          "tables": [
+            {
+              "counts": null,
+              "table": "$uf"
+            },
+            {
+              "counts": {
+                "key_lookups": 128,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "V"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 66,
+                "scan_rows": 192
+              },
+              "table": "A"
+            },
+            {
+              "counts": {
+                "key_lookups": 0,
+                "refine_rows": 0,
+                "scan_calls": 65,
+                "scan_rows": 128
+              },
+              "table": "B"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag0"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done0"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 65,
+                "scan_rows": 128
+              },
+              "table": "reuse_views_0"
+            }
+          ],
+          "total": {
+            "key_lookups": 384,
+            "refine_rows": 0,
+            "scan_calls": 197,
+            "scan_rows": 512
+          }
+        },
+        "reference": {
+          "tables": [
+            {
+              "counts": null,
+              "table": "$uf"
+            },
+            {
+              "counts": {
+                "key_lookups": 128,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "V"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 66,
+                "scan_rows": 192
+              },
+              "table": "A"
+            },
+            {
+              "counts": {
+                "key_lookups": 0,
+                "refine_rows": 0,
+                "scan_calls": 65,
+                "scan_rows": 128
+              },
+              "table": "B"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag0"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done0"
+            }
+          ],
+          "total": {
+            "key_lookups": 320,
+            "refine_rows": 0,
+            "scan_calls": 132,
+            "scan_rows": 384
+          }
+        },
+        "scope": "actual native SortedWritesTable row visits during search/apply, including lazy index builds and rebuild queries; source total includes checks; merge and output inspection excluded; unsupported tables explicit; not mutations",
+        "source_and_other_queries": {
+          "key_lookups": 320,
+          "refine_rows": 0,
+          "scan_calls": 67,
+          "scan_rows": 256
+        },
+        "timings_include_instrumentation": true,
+        "view_refresh": {
+          "key_lookups": 64,
+          "refine_rows": 0,
+          "scan_calls": 130,
+          "scan_rows": 256
+        }
+      },
+      "scan_reduction_fraction": -0.33333333333333326
+    },
+    {
+      "consumers": 8,
+      "bindings": 64,
+      "views": 1,
+      "reference_equivalent": true,
+      "feature_filter": {
+        "probes": 16,
+        "rejected": 8,
+        "storage_bytes": 160
+      },
+      "read_profile": {
+        "optimized": {
+          "tables": [
+            {
+              "counts": null,
+              "table": "$uf"
+            },
+            {
+              "counts": {
+                "key_lookups": 576,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "V"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 66,
+                "scan_rows": 192
+              },
+              "table": "A"
+            },
+            {
+              "counts": {
+                "key_lookups": 0,
+                "refine_rows": 0,
+                "scan_calls": 65,
+                "scan_rows": 128
+              },
+              "table": "B"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag0"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done0"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 513,
+                "scan_rows": 576
+              },
+              "table": "reuse_views_0"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag1"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done1"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag2"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done2"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag3"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done3"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag4"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done4"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag5"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done5"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag6"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done6"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag7"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done7"
+            }
+          ],
+          "total": {
+            "key_lookups": 1728,
+            "refine_rows": 0,
+            "scan_calls": 652,
+            "scan_rows": 1408
+          }
+        },
+        "reference": {
+          "tables": [
+            {
+              "counts": null,
+              "table": "$uf"
+            },
+            {
+              "counts": {
+                "key_lookups": 576,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "V"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 514,
+                "scan_rows": 640
+              },
+              "table": "A"
+            },
+            {
+              "counts": {
+                "key_lookups": 0,
+                "refine_rows": 0,
+                "scan_calls": 513,
+                "scan_rows": 576
+              },
+              "table": "B"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag0"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done0"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag1"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done1"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag2"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done2"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag3"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done3"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag4"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done4"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag5"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done5"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag6"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done6"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag7"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done7"
+            }
+          ],
+          "total": {
+            "key_lookups": 1664,
+            "refine_rows": 0,
+            "scan_calls": 1035,
+            "scan_rows": 1728
+          }
+        },
+        "scope": "actual native SortedWritesTable row visits during search/apply, including lazy index builds and rebuild queries; source total includes checks; merge and output inspection excluded; unsupported tables explicit; not mutations",
+        "source_and_other_queries": {
+          "key_lookups": 1664,
+          "refine_rows": 0,
+          "scan_calls": 522,
+          "scan_rows": 1152
+        },
+        "timings_include_instrumentation": true,
+        "view_refresh": {
+          "key_lookups": 64,
+          "refine_rows": 0,
+          "scan_calls": 130,
+          "scan_rows": 256
+        }
+      },
+      "scan_reduction_fraction": 0.18518518518518523
+    },
+    {
+      "consumers": 16,
+      "bindings": 64,
+      "views": 1,
+      "reference_equivalent": true,
+      "feature_filter": {
+        "probes": 32,
+        "rejected": 16,
+        "storage_bytes": 160
+      },
+      "read_profile": {
+        "optimized": {
+          "tables": [
+            {
+              "counts": null,
+              "table": "$uf"
+            },
+            {
+              "counts": {
+                "key_lookups": 1088,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "V"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 66,
+                "scan_rows": 192
+              },
+              "table": "A"
+            },
+            {
+              "counts": {
+                "key_lookups": 0,
+                "refine_rows": 0,
+                "scan_calls": 65,
+                "scan_rows": 128
+              },
+              "table": "B"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag0"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done0"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1025,
+                "scan_rows": 1088
+              },
+              "table": "reuse_views_0"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag1"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done1"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag2"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done2"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag3"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done3"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag4"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done4"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag5"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done5"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag6"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done6"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag7"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done7"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag8"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done8"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag9"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done9"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag10"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done10"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag11"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done11"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag12"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done12"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag13"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done13"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag14"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done14"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag15"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done15"
+            }
+          ],
+          "total": {
+            "key_lookups": 3264,
+            "refine_rows": 0,
+            "scan_calls": 1172,
+            "scan_rows": 2432
+          }
+        },
+        "reference": {
+          "tables": [
+            {
+              "counts": null,
+              "table": "$uf"
+            },
+            {
+              "counts": {
+                "key_lookups": 1088,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "V"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1026,
+                "scan_rows": 1152
+              },
+              "table": "A"
+            },
+            {
+              "counts": {
+                "key_lookups": 0,
+                "refine_rows": 0,
+                "scan_calls": 1025,
+                "scan_rows": 1088
+              },
+              "table": "B"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag0"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done0"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag1"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done1"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag2"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done2"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag3"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done3"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag4"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done4"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag5"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done5"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag6"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done6"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag7"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done7"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag8"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done8"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag9"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done9"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag10"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done10"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag11"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done11"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag12"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done12"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag13"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done13"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag14"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done14"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 1,
+                "scan_rows": 64
+              },
+              "table": "Flag15"
+            },
+            {
+              "counts": {
+                "key_lookups": 64,
+                "refine_rows": 0,
+                "scan_calls": 0,
+                "scan_rows": 0
+              },
+              "table": "Done15"
+            }
+          ],
+          "total": {
+            "key_lookups": 3200,
+            "refine_rows": 0,
+            "scan_calls": 2067,
+            "scan_rows": 3264
+          }
+        },
+        "scope": "actual native SortedWritesTable row visits during search/apply, including lazy index builds and rebuild queries; source total includes checks; merge and output inspection excluded; unsupported tables explicit; not mutations",
+        "source_and_other_queries": {
+          "key_lookups": 3200,
+          "refine_rows": 0,
+          "scan_calls": 1042,
+          "scan_rows": 2176
+        },
+        "timings_include_instrumentation": true,
+        "view_refresh": {
+          "key_lookups": 64,
+          "refine_rows": 0,
+          "scan_calls": 130,
+          "scan_rows": 256
+        }
+      },
+      "scan_reduction_fraction": 0.2549019607843137
+    }
+  ]
+}

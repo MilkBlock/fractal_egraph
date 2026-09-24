@@ -1,0 +1,52 @@
+{
+  "batch": 128,
+  "results": [
+    {
+      "bake_median_ns": 170.5703125,
+      "boundary_median_ns": 0.9765625,
+      "bytes": 160,
+      "probe_median_ns": 34.50390625,
+      "queries": 256,
+      "rejected": 192,
+      "rejection_fraction": 0.75,
+      "rows": 2
+    },
+    {
+      "bake_median_ns": 5291.83203125,
+      "boundary_median_ns": 0.9765625,
+      "bytes": 160,
+      "probe_median_ns": 78.44921875,
+      "queries": 256,
+      "rejected": 187,
+      "rejection_fraction": 0.73046875,
+      "rows": 64
+    },
+    {
+      "bake_median_ns": 20678.05859375,
+      "boundary_median_ns": 0.9765625,
+      "bytes": 160,
+      "probe_median_ns": 82.3515625,
+      "queries": 256,
+      "rejected": 17,
+      "rejection_fraction": 0.06640625,
+      "rows": 256
+    }
+  ],
+  "samples": 30,
+  "scope": "synthetic immutable filter maintenance and probes; independent marginal Bloom features; not native runtime latency",
+  "warmup_batches": 5,
+  "regression_check": {
+    "threshold_fraction": 0.2,
+    "scope": "existing synthetic Reuse Graph API microbenchmark; previous saved baseline, same machine",
+    "changes": {
+      "body_hit_last/1": -0.010848323240157609,
+      "body_hit_last/256": -6.872753332909376e-05,
+      "body_hit_last/64": -6.566428395371471e-05,
+      "descriptor_hit": -0.008023121387283227,
+      "graft_insert": 0.04373152343135023,
+      "instance_hit": -0.025901367592208846,
+      "instance_insert": -0.028739142236699267,
+      "reuse_insert": -0.037236428891879725
+    }
+  }
+}

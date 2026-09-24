@@ -85,3 +85,27 @@ sharing saves duplicate **row payloads** at the same binding; indexes and metada
 still clone. This is not cross-parameter virtual fact storage or proof of an
 end-to-end speedup. The historical native math timing comparison is only a smoke
 check against the previous session's saved pre-COW sample.
+
+## Typed filters and native scan evidence
+
+`planner-scan-results.json` measures **actual native** table row visits, with one
+shared A/B view, 64 bindings and 1/8/16 consumers. Including refresh, scans change
+by +33.3% / -18.5% / -25.5%. Final states are independently checked. The losing
+one-consumer case remains a regression control; these counts are not elapsed-time
+speedups, mutation counts or a reason to enable planning globally. `$uf` table
+profiling is explicitly unsupported; user and summary table scans are covered.
+
+```sh
+cargo build --release --offline --features native-read-profile
+python3 tools/bench/measure_reuse_scans.py --output /tmp/reuse-scans.json
+cargo test --offline --features native-read-profile \
+  --test native_read_profile --test reuse_scan_profile --test reuse_features
+```
+
+The feature filter is used before exact library-prefix matching. It adds typed
+columns, canonical literal positions and equality within the first four columns.
+Unknown boundary/condition/staleness cases remain Maybe. `filter-results.json`
+records synthetic maintenance/probe microbenchmarks and the fixed bitmap's
+saturation under a large distinct-operator workload. This is kept separate from
+the native evidence. Each immutable filter uses 160 bytes; it is rebuilt from
+validated library bodies, never patched to represent a changed runtime instance.

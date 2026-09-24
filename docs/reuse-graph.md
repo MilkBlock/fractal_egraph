@@ -81,8 +81,8 @@ bodies, descriptors and source/origin evidence; it never restores runtime counte
 1. **Done:** objects, typed references, structural checks and accounting.
 2. **Done (offline):** Bake library import/export and native origin-recipe extraction;
    this captures the selected composed entry, not a complete local saturation trace.
-3. Conservative operator/arity filters (unknown ports return Maybe); typed sort
-   and positional features remain to be added.
+3. Conservative operator/arity, typed column, literal-position and bounded
+   equality-position filters; unknown conditions or connections return Maybe.
 4. Native completed-ripen supplementation is integrated; the opt-in positive runner
    observes matched summary instances and committed external graft signatures.
    Single-pass capture expands source witnesses before feeding the ordinary
@@ -165,10 +165,33 @@ The v1 JSON is a machine interchange/debug format, not an executable `.egg` DSL.
 
 ## Conservative filters and exact shared storage
 
-Every interned body has a 256-bit OR filter on operator/arity. `BodyOnly` queries
-may return No; any query through an input or unknown graft must use
-`ThroughBoundary`, which returns Maybe. Hits do not prove a match. The filter
-is immutable with its body; it is never used as a filter over a changed instance.
+Every interned body has a 160-byte OR filter: 256 bits for operator/arity,
+512 for typed argument/result columns, and 512 for literal/equality positions.
+Equality requirements within the first four columns are supported; later ones
+are ignored, never rejected. Different variables do not require unequal values.
+Literal strings use native AST canonical encoding; `TypedAtom::from_query_atom`
+normalizes parsed literals and rejects unevaluated expressions.
+
+Only `BodyOnly` queries may return No. `ThroughBoundary`, `UnknownConditions`
+and `StaleConnections` return Maybe. Malformed atom shapes also return Maybe.
+Hits do not prove a match; marginal features may come from different rows. The
+filter is immutable with its body and is never updated to stand for a mutable
+instance. Library loading reconstructs it from validated bodies.
+
+The source planner constructs one OR-union filter for its library and uses it
+before building candidate prefix keys. A Maybe still requires an exact normalized
+fragment-key hit, binding checks and the ordinary residual matcher. A negative
+only skips that library candidate; it never removes a native rule or a binding.
+`feature_filter` reports probes, rejections and resident bitmap bytes.
+
+`cargo test --offline --test reuse_features` differentially checks real native
+queries against a completed native ripen export, including literals, aliases,
+projection and uncertain/stale regions. `cargo bench --offline --bench reuse_features`
+measures **synthetic** filter maintenance/probe costs, not execution speed.
+The fixed bitmap can saturate: the 256-distinct-operator stress fixture rejects
+only 6.6% of probes, versus 75% in the two-operator fixture. Larger libraries do
+not receive a guaranteed rejection rate. See `filter-results.json` in the feedback
+experiment for measured costs.
 
 Library writes now use `rip-sat-library/v2` (v1 is still readable). A body can
 reference rows from an earlier body only when value slots, environment and named
@@ -306,8 +329,55 @@ The benchmark compares clone+drop of the same native engine with ordinary and
 shared row buffers, with setup outside timing. It also counts unique allocations
 across four copies without double-counting overlapping row sharing.
 
-Remaining full-plan work includes broader provenance support, native Join row-scan
-and end-to-end performance evidence, semantic trigger/boundary adaptation, validated
+Remaining full-plan work includes broader provenance support, general-workload
+end-to-end performance evidence, semantic trigger/boundary adaptation, validated
 graft/residual storage recipes beyond row-prefix sharing, and cross-binding virtual
 native identity with union and delta. The current snapshot mechanism does not
 complete those stages.
+
+## Native Join row-work measurements
+
+Build instrumentation explicitly; ordinary builds contain neither the counter
+fields nor counter branches in table iteration:
+
+```sh
+cargo build --release --offline --features native-read-profile
+python3 tools/bench/measure_reuse_scans.py --output /tmp/reuse-scans.json
+# Or profile a supported program with its independently executed reference:
+target/release/egg_layout reuse-run NEW.egg LIBRARY.json --read-profile
+cargo test --offline --features native-read-profile \
+  --test native_read_profile --test reuse_scan_profile
+```
+
+`scan_rows` counts actual SortedWritesTable row positions visited during native
+search/apply, including stale rows and rows rejected by predicates. Bounded dense
+and sparse scans count the exact positions traversed, not table cardinality or
+logical matches. Lazy index construction counts too. `refine_rows` separately
+counts repeated row predicate passes; `key_lookups` counts keyed API calls rather
+than hash-bucket comparisons. Cached index probes are not row scans. Commit/merge
+and out-of-query inspection are excluded; native rebuild *queries* are included.
+These are work counters, never mutation counts or distinct-fact counts.
+
+Counters are per engine/table; new tables join enabled profiling and cloned
+engines start independent zero counters. Unsupported table implementations return
+null, not fabricated zeros (`$uf` is unsupported in the current fixtures).
+Profiled time includes instrumentation overhead and is not a throughput benchmark.
+
+The native A/B fixture has 64 parameter bindings and 1, 8 or 16 independent
+consumers. All consumers share one summary, all-user-table final state agrees
+with the independent native reference, and total optimized scans **include view
+refresh**:
+
+| Consumers | Reference scans | Optimized scans | Change |
+|---:|---:|---:|---:|
+| 1 | 384 | 512 | +33.3% |
+| 8 | 1728 | 1408 | -18.5% |
+| 16 | 3264 | 2432 | -25.5% |
+
+This establishes amortized scan reduction in a supported native workload, and
+also demonstrates why single-consumer precomputation may lose. Other costs are
+not hidden: in the 16-consumer case keyed lookups rise from 3200 to 3264. It does
+not establish an end-to-end speedup or justify default planner replacement.
+Detailed per-table and refresh counts are retained in
+`experiments/reuse_feedback/planner-scan-results.json`; the generator and regression
+tests reproduce both the gain and losing control without a hardware timing threshold.

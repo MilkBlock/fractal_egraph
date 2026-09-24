@@ -5,7 +5,7 @@ fn main() -> Result {
     match args.first().map(String::as_str) {
         None | Some("--help" | "help" | "-h") => {
             println!(
-                "egg_layout: reuse-bake OUTPUT.json RUN_DIR...\n  reuse-library-check LIBRARY.json\n  reuse-query SOURCE.egg LIBRARY.json QUERY.json\n  reuse-run SOURCE.egg LIBRARY.json [--learn-grafts OUTPUT.json]\n  reuse-cycle SOURCE.egg LIBRARY.json OUTPUT_DIR\n  analyze --source FILE --output DIR [--rounds N] [--save-history]\n  analyze --replay-history FILE --output DIR\n  cc-merge --rules FILE --seeds FILE --output DIR [--generations N]\n  debug-stream FILE\n  debug-patterns FILE\n  parse-check FILE\n  ripen FILE DIR\n  saturated-rule-composition-compare A.json B.json\n  saturated-rule-composition-catalog DIR RIPEN_DIR...\n  ripen-diff A.json B.json REPORT.json [ANCHORS.json]\nOptional analyze flags: --reuse-library FILE [--reuse-plan]; --ripen-sweep-steps N (default 4), --ripen-observe-ms N / --ripen-observe-facts N. Defaults: 50 ms / 200000 facts; native admission pauses unfinished tasks."
+                "egg_layout: reuse-bake OUTPUT.json RUN_DIR...\n  reuse-library-check LIBRARY.json\n  reuse-query SOURCE.egg LIBRARY.json QUERY.json\n  reuse-run SOURCE.egg LIBRARY.json [--learn-grafts OUTPUT.json] [--read-profile]\n  reuse-cycle SOURCE.egg LIBRARY.json OUTPUT_DIR\n  analyze --source FILE --output DIR [--rounds N] [--save-history]\n  analyze --replay-history FILE --output DIR\n  cc-merge --rules FILE --seeds FILE --output DIR [--generations N]\n  debug-stream FILE\n  debug-patterns FILE\n  parse-check FILE\n  ripen FILE DIR\n  saturated-rule-composition-compare A.json B.json\n  saturated-rule-composition-catalog DIR RIPEN_DIR...\n  ripen-diff A.json B.json REPORT.json [ANCHORS.json]\nOptional analyze flags: --reuse-library FILE [--reuse-plan]; --ripen-sweep-steps N (default 4), --ripen-observe-ms N / --ripen-observe-facts N. Defaults: 50 ms / 200000 facts; native admission pauses unfinished tasks."
             );
             Ok(())
         }
@@ -19,11 +19,21 @@ fn main() -> Result {
             println!("{}",serde_json::to_string_pretty(&report)?);Ok(())
         }
         Some("reuse-run") => {
-            if args.len()!=3 && args.len()!=5 {return Err("usage: reuse-run SOURCE.egg LIBRARY.json [--learn-grafts OUTPUT.json]".into());}
-            if args.len()==5 && args[3]!="--learn-grafts" {return Err("unknown reuse-run option".into());}
+            if args.len() < 3 {return Err("usage: reuse-run SOURCE.egg LIBRARY.json [--learn-grafts OUTPUT.json] [--read-profile]".into());}
+            let mut output = None;
+            let mut profile = false;
+            let mut i = 3;
+            while i < args.len() {
+                match args[i].as_str() {
+                    "--read-profile" => profile = true,
+                    "--learn-grafts" => { i += 1; output = Some(Path::new(args.get(i).ok_or("missing learned library output")?)); }
+                    _ => return Err("unknown reuse-run option".into()),
+                }
+                i += 1;
+            }
             let mut library=egg_layout::reuse_graph::library::Library::load(Path::new(&args[2]))?;
-            let (result,observed)=egg_layout::reuse_graph::planner::rule_runner::run_observed(&std::fs::read_to_string(&args[1])?,&library,args.len()==5)?;
-            if args.len()==5 {library.remember_grafts(observed);library.save(Path::new(&args[4]))?;}
+            let (result,observed)=egg_layout::reuse_graph::planner::rule_runner::run_profiled(&std::fs::read_to_string(&args[1])?,&library,output.is_some(),profile)?;
+            if let Some(output)=output {library.remember_grafts(observed);library.save(output)?;}
             println!("{}",serde_json::to_string_pretty(&result)?);Ok(())
         }
         Some("reuse-query") => {

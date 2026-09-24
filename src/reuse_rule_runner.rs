@@ -191,11 +191,27 @@ pub fn run_observed(
     library: &super::super::library::Library,
     observe: bool,
 ) -> Result<(Value, BTreeSet<String>)> {
+    run_profiled(source, library, observe, false)
+}
+/// The diagnostic build measures real native table work for both executions.
+/// Default builds have no counter fields or branches in the native table loops.
+pub fn run_profiled(
+    source: &str,
+    library: &super::super::library::Library,
+    observe: bool,
+    profile: bool,
+) -> Result<(Value, BTreeSet<String>)> {
+    if profile && !cfg!(feature = "native-read-profile") {
+        return Err("read profiling requires cargo --features native-read-profile".into());
+    }
     let start = std::time::Instant::now();
     let mut observer = super::view_observer::Observer::default();
     observer.known = library.observed_grafts();
     let trace = egglog::TraceSession::with_dependencies();
     let mut eg = EGraph::default();
+    #[cfg(feature = "native-read-profile")]
+    eg.reset_join_read_profile(profile);
+    let mut refresh_work = ReadWork::default();
     let commands = crate::visual_rule::surface_program(eg.parse_program(None, source)?);
     let mut equality_sorts = BTreeSet::new();
     let mut tables = BTreeSet::new();
@@ -239,7 +255,9 @@ pub fn run_observed(
         match c {
             Command::Rule { rule } => planner.install(&mut eg, rule, observe.then_some(&trace))?,
             Command::RunSchedule(s) => {
+                let before_refresh = read_work(&eg, profile);
                 planner.refresh(&mut eg)?;
+                refresh_work.add(read_work(&eg, profile).difference(before_refresh));
                 if observe {
                     eg.run_program_with_trace(vec![Command::RunSchedule(s)], &trace)?;
                     planner.observer.consume(&eg, &trace.drain_completed())?;
@@ -253,11 +271,16 @@ pub fn run_observed(
         }
     }
     let optimized_seconds = start.elapsed().as_secs_f64();
+    let optimized_reads = read_report(&eg, profile);
+    let optimized_work = read_work(&eg, profile);
     // Independent native program; comparisons below include every user table.
     let mut reference = EGraph::default();
+    #[cfg(feature = "native-read-profile")]
+    reference.reset_join_read_profile(profile);
     let start = std::time::Instant::now();
     reference.parse_and_run_program(None, source)?;
     let reference_seconds = start.elapsed().as_secs_f64();
+    let reference_reads = read_report(&reference, profile);
     let a = snapshot(&mut eg, &tables, source, &equality_sorts, &globals)?;
     let b = snapshot(&mut reference, &tables, source, &equality_sorts, &globals)?;
     let equivalent = matches!(
@@ -268,10 +291,64 @@ pub fn run_observed(
         return Err("optimized rule execution differs from native reference".into());
     }
     Ok((
-        json!({"scope":"positive finite native tier0 rule execution; optional native summary graft tracing; no virtual native rows","plans":planner.plans,"fallback_rules":planner.fallback,"views":planner.shared.len(),"feature_filter":{"probes":planner.filter_probes,"rejected":planner.filter_rejections,"storage_bytes":super::super::features::Features::STORAGE_BYTES},"reference_equivalent":equivalent,"optimized_seconds":optimized_seconds,"reference_seconds":reference_seconds,"grafts":if observe {planner.observer.report()}else{Value::Null}}),
+        json!({"scope":"positive finite native tier0 rule execution; optional native summary graft tracing; no virtual native rows","plans":planner.plans,"fallback_rules":planner.fallback,"views":planner.shared.len(),"feature_filter":{"probes":planner.filter_probes,"rejected":planner.filter_rejections,"storage_bytes":super::super::features::Features::STORAGE_BYTES},"reference_equivalent":equivalent,"optimized_seconds":optimized_seconds,"reference_seconds":reference_seconds,"read_profile":if profile {json!({"optimized":optimized_reads,"reference":reference_reads,"view_refresh":refresh_work,"source_and_other_queries":optimized_work.difference(refresh_work),"scope":"actual native SortedWritesTable row visits during search/apply, including lazy index builds and rebuild queries; source total includes checks; merge and output inspection excluded; unsupported tables explicit; not mutations","timings_include_instrumentation":true})}else{Value::Null},"grafts":if observe {planner.observer.report()}else{Value::Null}}),
         planner.observer.known,
     ))
 }
+#[derive(Clone, Copy, Debug, Default, Serialize)]
+struct ReadWork {
+    scan_calls: usize,
+    scan_rows: usize,
+    refine_rows: usize,
+    key_lookups: usize,
+}
+impl ReadWork {
+    fn add(&mut self, b: Self) {
+        self.scan_calls += b.scan_calls;
+        self.scan_rows += b.scan_rows;
+        self.refine_rows += b.refine_rows;
+        self.key_lookups += b.key_lookups;
+    }
+    fn difference(self, b: Self) -> Self {
+        Self {
+            scan_calls: self.scan_calls - b.scan_calls,
+            scan_rows: self.scan_rows - b.scan_rows,
+            refine_rows: self.refine_rows - b.refine_rows,
+            key_lookups: self.key_lookups - b.key_lookups,
+        }
+    }
+}
+fn read_work(eg: &EGraph, enabled: bool) -> ReadWork {
+    let mut work = ReadWork::default();
+    #[cfg(feature = "native-read-profile")]
+    if enabled {
+        for (_, profile) in eg.join_read_profile() {
+            if let Some(p) = profile {
+                work.add(ReadWork {
+                    scan_calls: p.scan_calls,
+                    scan_rows: p.scan_rows,
+                    refine_rows: p.refine_rows,
+                    key_lookups: p.key_lookups,
+                });
+            }
+        }
+    }
+    #[cfg(not(feature = "native-read-profile"))]
+    let _ = (eg, enabled, &mut work);
+    work
+}
+fn read_report(eg: &EGraph, enabled: bool) -> Value {
+    #[cfg(feature = "native-read-profile")]
+    if enabled {
+        let tables:Vec<_> = eg.join_read_profile().into_iter().map(|(name, p)| {
+            json!({"table":name,"counts":p.map(|p|json!({"scan_calls":p.scan_calls,"scan_rows":p.scan_rows,"refine_rows":p.refine_rows,"key_lookups":p.key_lookups}))})
+        }).collect();
+        return json!({"total":read_work(eg,true),"tables":tables});
+    }
+    let _ = (eg, enabled);
+    Value::Null
+}
+
 /// Reusable source planner shared by the runner and the native capture pipeline.
 pub(crate) struct SourcePlanner {
     source: String,
