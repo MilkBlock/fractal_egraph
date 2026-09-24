@@ -384,6 +384,20 @@ impl EGraph {
         self.get_canon_in_uf(res)
     }
 
+    #[cfg(feature = "table-read-profile")]
+    pub fn reset_join_read_profile(&mut self, enabled: bool) {
+        self.db.reset_join_read_profile(enabled);
+    }
+    #[cfg(feature = "table-read-profile")]
+    pub fn join_read_profile(
+        &self,
+    ) -> Vec<(
+        Option<String>,
+        Option<core_relations::read_profile::JoinReadProfile>,
+    )> {
+        self.db.join_read_profile()
+    }
+
     /// Freeze supported native row buffers before an explicit shared fork.
     pub fn freeze_snapshot_rows(&mut self) -> usize {
         self.db.freeze_snapshot_rows()

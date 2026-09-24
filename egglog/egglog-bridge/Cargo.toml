@@ -37,3 +37,6 @@ name = "ac"
 
 [[example]]
 name = "math"
+
+[features]
+table-read-profile = ["egglog-core-relations/table-read-profile"]

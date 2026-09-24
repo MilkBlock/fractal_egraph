@@ -241,3 +241,58 @@ fn frozen_rows_survive_parallel_updates_and_cell_deletion() {
             }
         });
 }
+
+#[cfg(feature = "table-read-profile")]
+#[test]
+fn row_profile_counts_positions_before_stale_and_constraint_filtering() {
+    let mut table = fill_table((0..10).map(|i| vec![v(i), v(i)]), 1, None, |_, _| None);
+    table.reset_join_read_profile(true);
+    let counter = table.join_read_counters().unwrap();
+    let guard = crate::read_profile::JoinReadGuard::new(std::iter::once(counter.clone()));
+    let all = table.all();
+    let mut found = 0;
+    table.scan_generic_bounded(
+        all.as_ref(),
+        Offset::new(2),
+        4,
+        &[Constraint::EqConst {
+            col: ColumnId::new(0),
+            val: v(4),
+        }],
+        |_, _| found += 1,
+    );
+    assert_eq!(found, 1);
+    assert_eq!(counter.snapshot().scan_rows, 4);
+    let mut sparse = crate::Subset::empty();
+    for i in [0, 3, 7, 9] {
+        sparse.add_row_sorted(RowId::new(i));
+    }
+    table.scan_generic_bounded(sparse.as_ref(), Offset::new(1), 2, &[], |_, _| {});
+    assert_eq!(counter.snapshot().scan_rows, 6);
+    let selected = table.refine_one(
+        all,
+        &Constraint::EqConst {
+            col: ColumnId::new(0),
+            val: v(4),
+        },
+    );
+    assert_eq!(selected.size(), 1);
+    assert_eq!(counter.snapshot().refine_rows, 10);
+    drop(guard);
+    empty_execution_state!(e);
+    table.new_buffer().stage_remove(&[v(3)]);
+    table.merge(&mut e);
+    let guard = crate::read_profile::JoinReadGuard::new(std::iter::once(counter.clone()));
+    let mut live = 0;
+    table.scan_generic(table.all().as_ref(), |_, _| live += 1);
+    assert_eq!(live, 9);
+    assert_eq!(
+        counter.snapshot().scan_rows,
+        16,
+        "the stale row was still visited"
+    );
+    drop(guard);
+    let before = counter.snapshot();
+    table.scan_generic(table.all().as_ref(), |_, _| {});
+    assert_eq!(counter.snapshot(), before);
+}

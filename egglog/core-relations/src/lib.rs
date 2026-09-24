@@ -16,6 +16,8 @@ pub(crate) mod query;
 pub(crate) mod row_buffer;
 pub(crate) mod table;
 pub mod trace;
+#[cfg(feature = "table-read-profile")]
+pub mod read_profile;
 
 pub(crate) mod table_spec;
 pub(crate) mod uf;

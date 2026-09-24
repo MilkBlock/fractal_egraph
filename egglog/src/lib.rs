@@ -1943,6 +1943,23 @@ impl EGraph {
         self.backend.table_size(function_id)
     }
 
+    /// Diagnostic table work during native search/apply, excluding merge and
+    /// out-of-query inspection. Requires an opt-in build; resets current counts.
+    #[cfg(feature = "table-read-profile")]
+    pub fn reset_join_read_profile(&mut self, enabled: bool) {
+        self.backend.reset_join_read_profile(enabled);
+    }
+    /// None identifies a table without this instrumentation, not a zero count.
+    #[cfg(feature = "table-read-profile")]
+    pub fn join_read_profile(
+        &self,
+    ) -> Vec<(
+        Option<String>,
+        Option<core_relations::read_profile::JoinReadProfile>,
+    )> {
+        self.backend.join_read_profile()
+    }
+
     /// Fork this native engine with immutable row allocations shared until a
     /// branch writes. Values and row IDs retain normal engine-local identity;
     /// this does not substitute parameterized templates or share mutation queues.

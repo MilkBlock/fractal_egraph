@@ -157,6 +157,13 @@ pub trait Table: Any + Send + Sync {
         None
     }
 
+    #[cfg(feature = "table-read-profile")]
+    fn reset_join_read_profile(&mut self, _enabled: bool) {}
+    #[cfg(feature = "table-read-profile")]
+    fn join_read_counters(&self) -> Option<std::sync::Arc<crate::read_profile::JoinReadCounters>> {
+        None
+    }
+
     /// If this table can perform a table-level rebuild, construct a [`Rebuilder`] for it.
     fn rebuilder<'a>(&'a self, _cols: &[ColumnId]) -> Option<Box<dyn Rebuilder + 'a>> {
         None

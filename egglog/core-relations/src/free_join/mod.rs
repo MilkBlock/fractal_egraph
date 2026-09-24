@@ -288,6 +288,8 @@ impl Counters {
 /// A database also owns the memory pools used by its tables.
 #[derive(Default)]
 pub struct Database {
+    #[cfg(feature = "table-read-profile")]
+    read_profiling: bool,
     // NB: some fields are pub(crate) to allow some internal modules to avoid
     // borrowing the whole table.
     pub(crate) tables: DenseIdMap<TableId, TableInfo>,
@@ -312,6 +314,35 @@ pub struct Database {
 }
 
 impl Database {
+    #[cfg(feature = "table-read-profile")]
+    pub fn reset_join_read_profile(&mut self, enabled: bool) {
+        self.read_profiling = enabled;
+        for (_, info) in self.tables.iter_mut() {
+            info.table.reset_join_read_profile(enabled);
+        }
+    }
+    #[cfg(feature = "table-read-profile")]
+    pub fn join_read_profile(
+        &self,
+    ) -> Vec<(Option<String>, Option<crate::read_profile::JoinReadProfile>)> {
+        self.tables
+            .iter()
+            .map(|(_, info)| {
+                (
+                    info.name.as_ref().map(ToString::to_string),
+                    info.table.join_read_counters().map(|c| c.snapshot()),
+                )
+            })
+            .collect()
+    }
+    #[cfg(feature = "table-read-profile")]
+    pub(crate) fn begin_join_read_profile(&self) -> crate::read_profile::JoinReadGuard {
+        crate::read_profile::JoinReadGuard::new(
+            self.tables
+                .iter()
+                .filter_map(|(_, info)| info.table.join_read_counters()),
+        )
+    }
     pub fn freeze_snapshot_rows(&mut self) -> usize {
         self.tables
             .iter_mut()
@@ -337,6 +368,8 @@ impl Database {
 impl Clone for Database {
     fn clone(&self) -> Self {
         Self {
+            #[cfg(feature = "table-read-profile")]
+            read_profiling: self.read_profiling,
             tables: self.tables.clone(),
             counters: self.counters.clone(),
             external_functions: self.external_functions.clone(),
@@ -725,6 +758,10 @@ impl Database {
             indexes: IndexCatalog::new(),
             column_indexes: IndexCatalog::new(),
         });
+        #[cfg(feature = "table-read-profile")]
+        if self.read_profiling {
+            self.tables[res].table.reset_join_read_profile(true);
+        }
         self.deps.add_table(res, read_deps, write_deps);
         res
     }

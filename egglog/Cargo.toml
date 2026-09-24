@@ -130,6 +130,7 @@ bin = [
 ]
 serde = ["egraph-serialize/serde"]
 graphviz = ["egraph-serialize/graphviz"]
+table-read-profile = ["egglog-core-relations/table-read-profile", "egglog-bridge/table-read-profile"]
 
 [dependencies]
 clap = { workspace = true, features = ["derive"], optional = true }

@@ -391,6 +391,8 @@ impl Database {
         if rule_set.plans.is_empty() {
             return RuleSetReport::default();
         }
+        #[cfg(feature = "table-read-profile")]
+        let read_profile_guard = self.begin_join_read_profile();
         let match_counter = Arc::new(MatchCounter::new(rule_set.actions.n_ids()));
 
         let search_and_apply_timer = Instant::now();
@@ -669,6 +671,10 @@ impl Database {
         }
         let search_and_apply_time = search_and_apply_timer.elapsed();
 
+        // Search/apply (including lazy index construction) is measured separately
+        // from commit/merge. Rebuild query plans get their own search interval.
+        #[cfg(feature = "table-read-profile")]
+        drop(read_profile_guard);
         let merge_timer = Instant::now();
         let changed = self.merge_all();
         let merge_time = merge_timer.elapsed();

@@ -192,6 +192,8 @@ impl NativeRows {
 }
 
 pub struct SortedWritesTable {
+    #[cfg(feature = "table-read-profile")]
+    read_profile: Option<Arc<crate::read_profile::JoinReadCounters>>,
     generation: Generation,
     data: NativeRows,
     hash: ShardedHashTable<TableEntry>,
@@ -212,6 +214,11 @@ pub struct SortedWritesTable {
 impl Clone for SortedWritesTable {
     fn clone(&self) -> SortedWritesTable {
         SortedWritesTable {
+            #[cfg(feature = "table-read-profile")]
+            read_profile: self
+                .read_profile
+                .as_ref()
+                .map(|_| Arc::new(Default::default())),
             generation: self.generation,
             data: self.data.clone(),
             hash: self.hash.clone(),
@@ -428,6 +435,14 @@ impl Table for SortedWritesTable {
             )),
         }
     }
+    #[cfg(feature = "table-read-profile")]
+    fn reset_join_read_profile(&mut self, enabled: bool) {
+        self.read_profile = enabled.then(|| Arc::new(Default::default()));
+    }
+    #[cfg(feature = "table-read-profile")]
+    fn join_read_counters(&self) -> Option<Arc<crate::read_profile::JoinReadCounters>> {
+        self.read_profile.clone()
+    }
     fn as_any(&self) -> &dyn Any {
         self
     }
@@ -505,6 +520,10 @@ impl Table for SortedWritesTable {
             hi.index(),
             self.data.data.len()
         );
+        #[cfg(feature = "table-read-profile")]
+        if let Some(profile) = &self.read_profile {
+            profile.scan(subset.size());
+        }
         if self.data.stale_rows == 0 {
             // Fast path: no stale rows, skip is_stale check per row.
             // SAFETY: subsets are sorted, low must be at most hi, and hi is less
@@ -543,6 +562,12 @@ impl Table for SortedWritesTable {
             hi.index(),
             self.data.data.len()
         );
+        #[cfg(feature = "table-read-profile")]
+        if let Some(profile) = &self.read_profile {
+            // iter_bounded visits exactly this many subset positions, independent
+            // of stale rows and predicate results (including sparse subsets).
+            profile.scan(subset.size().saturating_sub(start.index()).min(n));
+        }
         if cs.is_empty() {
             if self.data.stale_rows == 0 {
                 // Fast path: no stale rows, skip bounds check and is_stale check.
@@ -647,6 +672,10 @@ impl Table for SortedWritesTable {
     }
 
     fn refine_one(&self, mut subset: Subset, c: &Constraint) -> Subset {
+        #[cfg(feature = "table-read-profile")]
+        if let Some(profile) = &self.read_profile {
+            profile.refine(subset.size());
+        }
         // NB: we aren't using any of the `fast_subset` tricks here. We may want
         // to if the higher-level implementations end up using it directly.
         subset.retain(|row| self.eval(std::slice::from_ref(c), row));
@@ -673,6 +702,10 @@ impl Table for SortedWritesTable {
     }
 
     fn get_row(&self, key: &[Value]) -> Option<Row> {
+        #[cfg(feature = "table-read-profile")]
+        if let Some(profile) = &self.read_profile {
+            profile.lookup();
+        }
         let id = get_entry(key, self.n_keys, &self.hash, |row| {
             &self.data.get_row(row).unwrap()[0..self.n_keys] == key
         })?;
@@ -682,6 +715,10 @@ impl Table for SortedWritesTable {
     }
 
     fn get_row_column(&self, key: &[Value], col: ColumnId) -> Option<Value> {
+        #[cfg(feature = "table-read-profile")]
+        if let Some(profile) = &self.read_profile {
+            profile.lookup();
+        }
         let id = get_entry(key, self.n_keys, &self.hash, |row| {
             &self.data.get_row(row).unwrap()[0..self.n_keys] == key
         })?;
@@ -712,6 +749,8 @@ impl SortedWritesTable {
         let shard_data = hash.shard_data();
         let rebuild_index = Index::new(to_rebuild.clone(), ColumnIndex::new());
         SortedWritesTable {
+            #[cfg(feature = "table-read-profile")]
+            read_profile: None,
             generation: Generation::new(0),
             data: NativeRows::Owned(Rows::new(RowBuffer::new(n_columns))),
             hash,

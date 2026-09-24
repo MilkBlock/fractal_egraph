@@ -32,6 +32,9 @@ harness = false
 name = "native_shared_snapshot"
 harness = false
 
+[features]
+native-read-profile = ["egglog/table-read-profile"]
+
 [[bench]]
 name = "reuse_features"
 harness = false
