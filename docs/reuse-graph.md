@@ -83,3 +83,31 @@ all event indexes and proving imported contracts belongs to phase 2.
 5. Verified storage-reference/recipe selection.
 6. Planner query reuse with full binding-coverage checks.
 7. Workload-guided boundary changes; only then selected storage virtualization.
+
+## Timing regression benchmark
+
+```sh
+# Establish a baseline once on this machine (do not overwrite it during checks).
+REUSE_BENCH_OUTPUT=/tmp/reuse-base.json cargo bench --offline --bench reuse_graph
+# After a change:
+REUSE_BENCH_OUTPUT=/tmp/reuse-current.json cargo bench --offline --bench reuse_graph
+python3 tools/bench/check_reuse.py /tmp/reuse-base.json /tmp/reuse-current.json
+```
+
+The checker exits 1 when any median regresses by more than 20%; use
+`--threshold 0.10` for 10%. Missing benchmarks or incompatible metadata fail
+rather than silently skipping checks. Run on the same idle machine with the same
+Rust toolchain and build profile; OS/architecture checks cannot detect all machine
+or load differences. Repeat a failed comparison before attributing it to code.
+
+The harness uses 5 warmup batches and 30 measured batches of 128 calls each.
+Fixture setup and destruction are outside timing; API allocation, argument clones,
+and incremental index growth within a batch are included. It covers exact body
+lookup at catalog sizes 1/64/256, descriptor lookup, instance lookup/insertion,
+graft insertion and adopted-reuse insertion. Synthetic bodies have two rows;
+this guards API overhead and catalog scan cost, not large-graph isomorphism,
+native ripen throughput, memory growth or end-to-end analysis latency.
+
+No additional dependencies or network access are required. Baseline JSON is local
+and deliberately not automatically refreshed. Test the checker with
+`python3 -m unittest discover -s tools/bench -p 'test_*.py'`.
