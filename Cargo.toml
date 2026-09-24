@@ -27,3 +27,7 @@ codegen-units = 1
 [[bench]]
 name = "reuse_graph"
 harness = false
+
+[[bench]]
+name = "native_shared_snapshot"
+harness = false

@@ -133,9 +133,67 @@ impl Rows {
 pub type MergeFn =
     dyn Fn(&mut ExecutionState, &[Value], &[Value], &mut Vec<Value>) -> bool + Send + Sync;
 
+/// Frozen native row storage keeps the SAME row IDs and layout. Hash indexes,
+/// pending writes, provenance and notifications remain branch-local. Every
+/// mutable access detaches; parallel Cell writes have an explicit detach barrier.
+enum NativeRows {
+    Owned(Rows),
+    Shared(Arc<Rows>),
+}
+impl Clone for NativeRows {
+    fn clone(&self) -> Self {
+        match self {
+            Self::Owned(r) => Self::Owned(r.clone()),
+            Self::Shared(r) => Self::Shared(r.clone()),
+        }
+    }
+}
+impl std::ops::Deref for NativeRows {
+    type Target = Rows;
+    fn deref(&self) -> &Rows {
+        match self {
+            Self::Owned(r) => r,
+            Self::Shared(r) => r,
+        }
+    }
+}
+impl std::ops::DerefMut for NativeRows {
+    fn deref_mut(&mut self) -> &mut Rows {
+        if let Self::Shared(r) = self {
+            let arity = r.data.arity();
+            let old = mem::replace(self, Self::Owned(Rows::new(RowBuffer::new(arity))));
+            let Self::Shared(r) = old else { unreachable!() };
+            *self = Self::Owned(Arc::try_unwrap(r).unwrap_or_else(|r| (*r).clone()));
+        }
+        match self {
+            Self::Owned(r) => r,
+            Self::Shared(_) => unreachable!(),
+        }
+    }
+}
+impl NativeRows {
+    fn freeze(&mut self) {
+        if matches!(self, Self::Shared(_)) {
+            return;
+        }
+        let arity = self.data.arity();
+        let Self::Owned(r) = mem::replace(self, Self::Owned(Rows::new(RowBuffer::new(arity))))
+        else {
+            unreachable!()
+        };
+        *self = Self::Shared(Arc::new(r));
+    }
+    fn owners(&self) -> usize {
+        match self {
+            Self::Owned(_) => 1,
+            Self::Shared(r) => Arc::strong_count(r),
+        }
+    }
+}
+
 pub struct SortedWritesTable {
     generation: Generation,
-    data: Rows,
+    data: NativeRows,
     hash: ShardedHashTable<TableEntry>,
 
     n_keys: usize,
@@ -352,6 +410,23 @@ impl Table for SortedWritesTable {
     }
     fn dyn_clone(&self) -> Box<dyn Table> {
         Box::new(self.clone())
+    }
+    fn freeze_rows(&mut self) -> usize {
+        let bytes = self.data.data.len() * self.n_columns * std::mem::size_of::<Value>();
+        if bytes > 0 {
+            self.data.freeze();
+        }
+        bytes
+    }
+    fn shared_row_storage(&self) -> Option<(usize, usize, usize)> {
+        match &self.data {
+            NativeRows::Owned(_) => None,
+            NativeRows::Shared(r) => Some((
+                Arc::as_ptr(r) as usize,
+                self.data.owners(),
+                r.data.len() * self.n_columns * std::mem::size_of::<Value>(),
+            )),
+        }
     }
     fn as_any(&self) -> &dyn Any {
         self
@@ -638,7 +713,7 @@ impl SortedWritesTable {
         let rebuild_index = Index::new(to_rebuild.clone(), ColumnIndex::new());
         SortedWritesTable {
             generation: Generation::new(0),
-            data: Rows::new(RowBuffer::new(n_columns)),
+            data: NativeRows::Owned(Rows::new(RowBuffer::new(n_columns))),
             hash,
             n_keys,
             n_columns,
@@ -654,6 +729,9 @@ impl SortedWritesTable {
 
     /// Flush all pending removals, in parallel.
     fn parallel_delete(&mut self) -> bool {
+        // set_stale_shared below mutates through &RowBuffer; detach before any
+        // worker starts so another native snapshot cannot observe those writes.
+        let _ = &mut *self.data;
         let shard_data = self.hash.shard_data();
         let stale_delta: usize = self
             .hash
@@ -748,7 +826,9 @@ impl SortedWritesTable {
 
     fn do_insert(&mut self, exec_state: &mut ExecutionState) -> bool {
         let total = self.pending_state.total_rows.swap(0, Ordering::Relaxed);
-        self.data.data.reserve(total);
+        if total > 0 && matches!(self.data, NativeRows::Owned(_)) {
+            self.data.data.reserve(total);
+        }
         if !self.pending_state.has_provenance.load(Ordering::Relaxed) && parallelize_table_op(total)
         {
             if let Some(col) = self.sort_by {
@@ -1315,7 +1395,8 @@ impl SortedWritesTable {
             });
         // SAFETY: see above longer comment.
         unsafe { self.data.scratch.set_len(prev_count) };
-        mem::swap(&mut self.data.data, &mut self.data.scratch);
+        let data = &mut *self.data;
+        mem::swap(&mut data.data, &mut data.scratch);
         self.data.stale_rows = 0;
     }
     fn rehash_impl(

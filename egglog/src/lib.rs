@@ -1943,6 +1943,18 @@ impl EGraph {
         self.backend.table_size(function_id)
     }
 
+    /// Fork this native engine with immutable row allocations shared until a
+    /// branch writes. Values and row IDs retain normal engine-local identity;
+    /// this does not substitute parameterized templates or share mutation queues.
+    pub fn fork_shared(&mut self) -> Self {
+        self.backend.freeze_snapshot_rows();
+        self.clone()
+    }
+    /// Allocation identity/owners/bytes for diagnosing native snapshot sharing.
+    pub fn shared_row_storage(&self) -> Vec<(Option<String>, usize, usize, usize)> {
+        self.backend.shared_row_storage()
+    }
+
     /// Lookup a tuple in afunction in the e-graph.
     ///
     /// Returns `None` if the tuple does not exist.

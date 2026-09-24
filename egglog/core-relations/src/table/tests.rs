@@ -179,3 +179,65 @@ fn shard_math() {
     // Picking low numbers should all get shard 0.
     assert!((0..100_000).all(|x| table.shard_data().shard_id(x as u64) == ShardId::new(0)));
 }
+
+#[test]
+fn frozen_rows_survive_parallel_updates_and_cell_deletion() {
+    rayon::ThreadPoolBuilder::new()
+        .num_threads(4)
+        .build()
+        .unwrap()
+        .install(|| {
+            // Both the unordered writer and sorted writer's scratch/rehash path
+            // must detach before parallel writes through interior Cell storage.
+            for sort_by in [None, Some(ColumnId::new(2))] {
+                empty_execution_state!(e);
+                let mut base = super::SortedWritesTable::new(
+                    1,
+                    3,
+                    sort_by,
+                    vec![],
+                    Box::new(|_, old, new, out| {
+                        if old == new {
+                            false
+                        } else {
+                            out.extend_from_slice(new);
+                            true
+                        }
+                    }),
+                );
+                {
+                    let mut buffer = base.new_buffer();
+                    for i in 0..25000 {
+                        buffer.stage_insert(&[v(i), v(i), v(0)]);
+                    }
+                }
+                base.merge(&mut e);
+                base.freeze_rows();
+                let mut update = base.clone();
+                let mut delete = base.clone();
+                {
+                    let mut buffer = update.new_buffer();
+                    for i in 0..25000 {
+                        buffer.stage_insert(&[v(i), v(i + 1), v(1)]);
+                    }
+                }
+                update.merge(&mut e);
+                {
+                    let mut buffer = delete.new_buffer();
+                    for i in 0..25000 {
+                        buffer.stage_remove(&[v(i)]);
+                    }
+                }
+                delete.merge(&mut e);
+                assert_eq!(base.len(), 25000);
+                assert_eq!(delete.len(), 0);
+                for i in [0, 123, 24999] {
+                    assert_eq!(&*base.get_row(&[v(i)]).unwrap().vals, &[v(i), v(i), v(0)]);
+                    assert_eq!(
+                        &*update.get_row(&[v(i)]).unwrap().vals,
+                        &[v(i), v(i + 1), v(1)]
+                    );
+                }
+            }
+        });
+}

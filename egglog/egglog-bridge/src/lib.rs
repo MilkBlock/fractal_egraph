@@ -384,6 +384,13 @@ impl EGraph {
         self.get_canon_in_uf(res)
     }
 
+    /// Freeze supported native row buffers before an explicit shared fork.
+    pub fn freeze_snapshot_rows(&mut self) -> usize {
+        self.db.freeze_snapshot_rows()
+    }
+    pub fn shared_row_storage(&self) -> Vec<(Option<String>, usize, usize, usize)> {
+        self.db.shared_row_storage()
+    }
     /// Lookup the id associated with a function `func` and the given arguments
     /// (`key`).
     /// Exact current physical row for diagnostic version validation.

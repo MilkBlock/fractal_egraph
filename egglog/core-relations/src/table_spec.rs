@@ -147,6 +147,15 @@ pub trait Table: Any + Send + Sync {
     /// A variant of clone that returns a boxed trait object; this trait object
     /// must contain all of the data associated with the current table.
     fn dyn_clone(&self) -> Box<dyn Table>;
+    /// Opt-in native snapshot sharing. Default tables retain ordinary deep clone.
+    fn freeze_rows(&mut self) -> usize {
+        0
+    }
+    /// Diagnostic allocation identity, owner count, and logical row bytes.
+    /// This is not a semantic row/fact ID and must not be persisted.
+    fn shared_row_storage(&self) -> Option<(usize, usize, usize)> {
+        None
+    }
 
     /// If this table can perform a table-level rebuild, construct a [`Rebuilder`] for it.
     fn rebuilder<'a>(&'a self, _cols: &[ColumnId]) -> Option<Box<dyn Rebuilder + 'a>> {

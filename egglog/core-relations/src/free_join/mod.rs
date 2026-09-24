@@ -311,6 +311,29 @@ pub struct Database {
     total_size_estimate: usize,
 }
 
+impl Database {
+    pub fn freeze_snapshot_rows(&mut self) -> usize {
+        self.tables
+            .iter_mut()
+            .map(|(_, info)| info.table.freeze_rows())
+            .sum()
+    }
+    pub fn shared_row_storage(&self) -> Vec<(Option<String>, usize, usize, usize)> {
+        self.tables
+            .iter()
+            .filter_map(|(_, info)| {
+                info.table.shared_row_storage().map(|(id, owners, bytes)| {
+                    (
+                        info.name.as_ref().map(ToString::to_string),
+                        id,
+                        owners,
+                        bytes,
+                    )
+                })
+            })
+            .collect()
+    }
+}
 impl Clone for Database {
     fn clone(&self) -> Self {
         Self {
