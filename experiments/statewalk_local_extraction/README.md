@@ -144,3 +144,29 @@ region_cost = sum(selected candidate costs)
 5. 用 math microbenchmark 比较原始局部计划与 extracted plan；成功后再考虑将选择结果反馈给 tier-0 调度。
 
 这一顺序保留了完整原规则作为回退，也让公共子结构只改善局部候选质量。它不会因为一次全局替换而污染其他 rule context。
+
+## Raytrace extraction 实测
+
+在 `check_statewalk` commit `ae80f82a` 的现有 release 二进制上运行：
+
+```bash
+target/release/eggcc \
+  --run-mode optimize \
+  --run-data-out REPORT.json \
+  benchmarks/passing/raytrace/raytrace.rs
+```
+
+2026-09-24 连续三次结果：
+
+| run | wall | compile report | StateWalk/Tiger extraction | serialization |
+|---:|---:|---:|---:|---:|
+| 1 | 52.310 s | 51.256 s | 7.295 s | 1.982 s |
+| 2 | 50.077 s | 49.919 s | 6.669 s | 1.850 s |
+| 3 | 47.621 s | 47.533 s | 6.330 s | 1.584 s |
+| **median** | **50.077 s** | **49.919 s** | **6.669 s** | **1.850 s** |
+
+当前 extraction 占 wall 中位数约 **13.3%**。它仍然不是便宜操作，但当前 raytrace 的主要时间已经在 equality saturation、分析和其他编译工作，而不是 StateWalk extraction。
+
+仓库 camera-ready 数据中的 `eggcc-tiger-O0-O0` 曾记录 extraction **22.603 s**、compile **194.208 s**。同一数据中的 `eggcc-tiger-ILP-COMPARISON` 为 4,444 秒 extraction，但它对 724 个 region 重复计时四种 StateWalk 配置及 ILP/CBC，不是一次正常 StateWalk extraction，不能拿来作为默认路径耗时。
+
+机器相关原始结果保存在 `raytrace-timing.json`。

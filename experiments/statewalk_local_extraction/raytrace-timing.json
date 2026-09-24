@@ -1,0 +1,46 @@
+{
+  "date": "2026-09-24",
+  "repository": "check_statewalk",
+  "commit": "ae80f82a",
+  "benchmark": "benchmarks/passing/raytrace/raytrace.rs",
+  "command": "target/release/eggcc --run-mode optimize --run-data-out REPORT benchmarks/passing/raytrace/raytrace.rs",
+  "scope": "actual current eggcc release binary; eggcc_extraction_time is Tiger/StateWalk extraction reported by the runtime",
+  "runs": [
+    {
+      "run": 1,
+      "wall_s": 52.31,
+      "compile_s": 51.255935916,
+      "extraction_s": 7.295456792,
+      "serialization_s": 1.981543709
+    },
+    {
+      "run": 2,
+      "wall_s": 50.076981458,
+      "compile_s": 49.9188635,
+      "extraction_s": 6.669211917,
+      "serialization_s": 1.850214416
+    },
+    {
+      "run": 3,
+      "wall_s": 47.620965208,
+      "compile_s": 47.532750417,
+      "extraction_s": 6.330059167,
+      "serialization_s": 1.583873167
+    }
+  ],
+  "median": {
+    "wall_s": 50.076981458,
+    "compile_s": 49.9188635,
+    "extraction_s": 6.669211917,
+    "serialization_s": 1.850214416,
+    "extraction_fraction_of_wall": 0.13317919177284132
+  },
+  "archived_camera_ready": {
+    "source": "check_statewalk/reproduce/eggcc-submission-combined.json",
+    "run_method": "eggcc-tiger-O0-O0",
+    "compile_s": 194.208306766,
+    "extraction_s": 22.603273642,
+    "serialization_s": 56.89439332
+  },
+  "note": "eggcc-tiger-ILP-COMPARISON is excluded from the direct comparison because it times multiple StateWalk configurations and ILP solvers across 724 regions."
+}
