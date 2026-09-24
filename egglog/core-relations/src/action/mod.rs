@@ -621,6 +621,8 @@ impl ExecutionState<'_> {
         &self,
         trace: &crate::trace::TraceSession,
         event: u64,
+        rule: &str,
+        names: &crate::query::SymbolMap,
         atoms: &[crate::trace::TraceAtom],
         bindings: &DenseIdMap<Variable, Value>,
     ) {
@@ -629,7 +631,14 @@ impl ExecutionState<'_> {
         }
         let mut reads = Vec::new();
         let mut complete = true;
+        let source_plan = trace.source_reads(rule);
         for atom in atoms {
+            if source_plan
+                .as_ref()
+                .is_some_and(|p| p.summary_table != atom.table)
+            {
+                continue;
+            }
             let table = &self.db.table_info[atom.table].table;
             if !table.supports_row_provenance() {
                 complete = false;
@@ -654,6 +663,7 @@ impl ExecutionState<'_> {
             };
             let producer = table.row_producer(&keys, &row.vals);
             reads.push(crate::trace::RowWitness {
+                planner_summary: source_plan.is_some(),
                 source_span: atom.source_span.clone(),
                 table: atom.table,
                 table_name: self.db.table_info[atom.table].name.clone(),
@@ -661,6 +671,45 @@ impl ExecutionState<'_> {
                 row: row.vals.to_vec(),
                 producer,
             });
+        }
+        if let Some(plan) = source_plan {
+            let named: std::collections::HashMap<_, _> = names
+                .vars
+                .iter()
+                .filter_map(|(var, name)| bindings.get(*var).map(|v| (name.as_ref(), *v)))
+                .collect();
+            for source in &plan.reads {
+                let keys: Option<Vec<_>> = source
+                    .keys
+                    .iter()
+                    .map(|key| match key {
+                        crate::trace::SourceReadKey::Named(n) => named.get(n.as_ref()).copied(),
+                        crate::trace::SourceReadKey::Constant(v) => Some(*v),
+                    })
+                    .collect();
+                let Some(keys) = keys else {
+                    complete = false;
+                    continue;
+                };
+                let table = &self.db.table_info[source.table].table;
+                if !table.supports_row_provenance() {
+                    complete = false;
+                    continue;
+                }
+                let Some(row) = table.get_row(&keys) else {
+                    complete = false;
+                    continue;
+                };
+                reads.push(crate::trace::RowWitness {
+                    planner_summary: false,
+                    source_span: source.source_span.clone(),
+                    table: source.table,
+                    table_name: self.db.table_info[source.table].name.clone(),
+                    producer: table.row_producer(&keys, &row.vals),
+                    key: keys,
+                    row: row.vals.to_vec(),
+                });
+            }
         }
         trace.record_reads(event, reads, complete);
     }

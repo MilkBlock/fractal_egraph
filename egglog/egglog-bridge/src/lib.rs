@@ -391,8 +391,11 @@ impl EGraph {
     pub fn shared_row_storage(&self) -> Vec<(Option<String>, usize, usize, usize)> {
         self.db.shared_row_storage()
     }
-    /// Lookup the id associated with a function `func` and the given arguments
-    /// (`key`).
+    /// Engine-local table identity for diagnostic source-read plans.
+    pub fn function_table_id(&self, func: FunctionId) -> TableId {
+        self.funcs[func].table
+    }
+
     /// Exact current physical row for diagnostic version validation.
     pub fn lookup_row(&self, func: FunctionId, key: &[Value]) -> Option<Vec<Value>> {
         self.db

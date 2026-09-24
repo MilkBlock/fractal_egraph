@@ -11,7 +11,6 @@
 //! We also have a slightly outdated [video tutorial](https://www.youtube.com/watch?v=N2RDQGRBrSY).
 //!
 pub mod ast;
-mod ground_import;
 #[cfg(feature = "bin")]
 mod cli;
 mod command_macro;
@@ -19,6 +18,7 @@ pub mod constraint;
 mod core;
 mod exec_state;
 pub mod extract;
+mod ground_import;
 pub mod prelude;
 mod proofs;
 
@@ -44,7 +44,7 @@ pub use core::{ResolvedCall, SpecializedPrimitive};
 pub use core_relations::{
     BaseValue, ContainerValue, ExecutionState, OriginInvalidation, OriginInvalidationReason,
     RowReadEvent, RuleActionOutcome, RuleActionOutcomeEvent, RuleMatchBinding, RuleMatchEvent,
-    TraceSession, TraceBatch, Value, WriteEvent, WriteOutcome,
+    TraceBatch, TraceSession, Value, WriteEvent, WriteOutcome,
 };
 use core_relations::{ExternalFunctionId, make_external_func};
 use csv::Writer;
@@ -1955,10 +1955,62 @@ impl EGraph {
         self.backend.shared_row_storage()
     }
 
-    /// Lookup a tuple in afunction in the e-graph.
-    ///
-    /// Returns `None` if the tuple does not exist.
-    /// `panics` if the function does not exist.
+    /// Configure exact source-row diagnostics for an optimized rule. Only named
+    /// bindings and literals are accepted; no expression is evaluated or inserted.
+    /// The caller must establish LHS equivalence separately. Invalid/missing keys
+    /// at runtime leave physical_witness_complete false. Rollback clears plans.
+    pub fn register_source_read_plan(
+        &self,
+        trace: &TraceSession,
+        rule: &str,
+        summary: &str,
+        reads: Vec<(String, Vec<Expr>, Option<Arc<str>>)>,
+        visible: Vec<String>,
+    ) -> Result<(), Error> {
+        use core_relations::trace::{SourceRead, SourceReadKey, SourceReadPlan};
+        let error = |s: &str| Error::BackendError(s.to_string());
+        let summary = self
+            .functions
+            .get(summary)
+            .ok_or_else(|| error("unknown summary table"))?;
+        let reads = reads
+            .into_iter()
+            .map(|(name, args, span)| {
+                let f = self
+                    .functions
+                    .get(&name)
+                    .ok_or_else(|| error("unknown source table"))?;
+                if args.len() != f.schema.input.len() {
+                    return Err(error("source key arity mismatch"));
+                }
+                let keys = args
+                    .into_iter()
+                    .map(|e| match e {
+                        Expr::Var(_, v) => Ok(SourceReadKey::Named(v.into())),
+                        Expr::Lit(_, l) => {
+                            Ok(SourceReadKey::Constant(literal_to_value(&self.backend, &l)))
+                        }
+                        _ => Err(error("source read key must be a named binding or literal")),
+                    })
+                    .collect::<Result<Vec<_>, _>>()?;
+                Ok(SourceRead {
+                    table: self.backend.function_table_id(f.backend_id),
+                    source_span: span,
+                    keys,
+                })
+            })
+            .collect::<Result<Vec<_>, Error>>()?;
+        trace.set_source_reads(
+            rule.into(),
+            SourceReadPlan {
+                reads,
+                visible_bindings: visible.into_iter().map(Into::into).collect(),
+                summary_table: self.backend.function_table_id(summary.backend_id),
+            },
+        );
+        Ok(())
+    }
+
     /// Read a physical row, including version metadata, without creating it.
     pub fn lookup_function_row(&self, name: &str, key: &[Value]) -> Option<Vec<Value>> {
         self.backend
@@ -2580,4 +2632,4 @@ mod tests {
 }
 
 mod fact_query;
-pub use fact_query::{CompiledFactQuery, CompiledCheck};
+pub use fact_query::{CompiledCheck, CompiledFactQuery};

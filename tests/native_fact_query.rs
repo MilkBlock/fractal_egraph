@@ -271,3 +271,98 @@ fn difference_witnesses_follow_union_and_subsume() {
         assert_eq!(fresh.is_some(), full.iter().any(|r| !excluded.contains(r)));
     }
 }
+
+#[test]
+fn source_witness_plan_keeps_actual_producers_through_a_summary() {
+    use egglog::{
+        TraceSession, WriteOutcome,
+        ast::{Expr, Span},
+    };
+    let mut eg = EGraph::default();
+    eg.parse_and_run_program(None,"(datatype E (A)) (relation Seed (E)) (relation P (E)) (relation Q (E)) (relation Summary (E)) (relation Out (E)) (ruleset make) (ruleset fill) (ruleset consume) (rule ((Seed x)) ((P x) (Q x)) :ruleset make :name \"producer\") (rule ((P x) (Q x)) ((Summary x)) :ruleset fill) (rule ((Summary x)) ((Out x)) :ruleset consume :name \"consumer\") (Seed (A))").unwrap();
+    let trace = TraceSession::with_dependencies();
+    let run = eg.parse_program(None, "(run make 1)").unwrap();
+    eg.run_program_with_trace(run, &trace).unwrap();
+    let produced = trace.drain_completed();
+    let ids: BTreeSet<_> = produced
+        .writes
+        .iter()
+        .filter(|w| w.outcome == WriteOutcome::Inserted)
+        .map(|w| w.event_id)
+        .collect();
+    eg.parse_and_run_program(None, "(run fill 1)").unwrap();
+    let mut parser = egglog::ast::Parser::default();
+    let x = parser.get_expr_from_string(None, "x").unwrap();
+    eg.register_source_read_plan(
+        &trace,
+        "consumer",
+        "Summary",
+        vec![
+            ("P".into(), vec![x.clone()], Some("original:P".into())),
+            ("Q".into(), vec![x], Some("original:Q".into())),
+        ],
+        vec!["x".into()],
+    )
+    .unwrap();
+    let run = eg.parse_program(None, "(run consume 1)").unwrap();
+    eg.run_program_with_trace(run, &trace).unwrap();
+    let b = trace.drain_completed();
+    let m = b
+        .matches
+        .iter()
+        .find(|m| m.rule.as_ref() == "consumer")
+        .unwrap();
+    assert!(m.physical_witness_complete);
+    let reads: Vec<_> = b
+        .reads
+        .iter()
+        .filter(|r| r.match_event_id == m.event_id && !r.planner_summary)
+        .collect();
+    assert_eq!(reads.len(), 2);
+    assert!(
+        reads
+            .iter()
+            .all(|r| r.producer_write_event_id.is_some_and(|i| ids.contains(&i)))
+    );
+    assert!(
+        reads
+            .iter()
+            .all(|r| r.source_span.as_deref().unwrap().starts_with("original:"))
+    );
+    assert_eq!(b.reads.iter().filter(|r| r.planner_summary).count(), 1);
+    // A missing source binding must not fabricate a complete proof.
+    let missing = Expr::Var(
+        Span::Rust(std::sync::Arc::new(egglog::ast::RustSpan {
+            file: file!(),
+            line: line!(),
+            column: column!(),
+        })),
+        "missing".into(),
+    );
+    eg.register_source_read_plan(
+        &trace,
+        "consumer",
+        "Summary",
+        vec![("Q".into(), vec![missing], None)],
+        vec!["x".into()],
+    )
+    .unwrap();
+    eg.parse_and_run_program(None, "(datatype F (Unused)) (Seed (A))")
+        .unwrap();
+    // A naive diagnostic consumer guarantees a second match even with no delta.
+    eg.parse_and_run_program(None,"(ruleset diagnose) (rule ((Summary x)) ((Out x)) :ruleset diagnose :name \"diagnose\" :naive)").unwrap();
+    let missing = parser.get_expr_from_string(None, "missing").unwrap();
+    eg.register_source_read_plan(
+        &trace,
+        "diagnose",
+        "Summary",
+        vec![("Q".into(), vec![missing], None)],
+        vec!["x".into()],
+    )
+    .unwrap();
+    let run = eg.parse_program(None, "(run diagnose 1)").unwrap();
+    eg.run_program_with_trace(run, &trace).unwrap();
+    let missing = trace.drain_completed();
+    assert!(!missing.matches.is_empty());
+    assert!(missing.matches.iter().all(|m| !m.physical_witness_complete));
+}

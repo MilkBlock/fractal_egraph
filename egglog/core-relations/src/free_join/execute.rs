@@ -1852,6 +1852,8 @@ impl<'a, 'outer: 'a> ActionBuffer<'a, ActionId> for InPlaceActionBuffer<'outer> 
                 to_exec_state().record_lhs_reads(
                     trace,
                     match_event_id,
+                    &action_info.trace_rule,
+                    &action_info.trace_symbols,
                     &action_info.trace_atoms,
                     bindings,
                 );
@@ -1965,6 +1967,8 @@ impl<'scope> ActionBuffer<'scope, ActionId> for ScopedActionBuffer<'_, 'scope> {
                 to_exec_state().record_lhs_reads(
                     trace,
                     match_event_id,
+                    &action_info.trace_rule,
+                    &action_info.trace_symbols,
                     &action_info.trace_atoms,
                     bindings,
                 );

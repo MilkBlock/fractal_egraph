@@ -19,6 +19,26 @@ use std::sync::{
 
 use crate::{Value, Variable};
 
+/// An engine-local, read-only expansion of a planned query into source row keys.
+/// Registration is diagnostic metadata, not proof that the query rewrite is sound.
+#[derive(Clone, Debug)]
+pub enum SourceReadKey {
+    Named(Arc<str>),
+    Constant(Value),
+}
+#[derive(Clone, Debug)]
+pub struct SourceRead {
+    pub table: crate::TableId,
+    pub source_span: Option<Arc<str>>,
+    pub keys: Vec<SourceReadKey>,
+}
+#[derive(Clone, Debug)]
+pub struct SourceReadPlan {
+    pub reads: Vec<SourceRead>,
+    pub visible_bindings: std::collections::BTreeSet<Arc<str>>,
+    pub summary_table: crate::TableId,
+}
+
 /// A variable binding in a completed logical rule match.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RuleMatchBinding {
@@ -124,6 +144,8 @@ struct TraceState {
     scope_resets: Mutex<Vec<u64>>,
     dependencies_enabled: bool,
     effects_only: bool,
+    has_read_plans: AtomicBool,
+    read_plans: Mutex<std::collections::HashMap<Arc<str>, Arc<SourceReadPlan>>>,
     match_count: AtomicUsize,
     effect_counts: Mutex<(std::collections::HashMap<crate::TableId, usize>, bool)>,
     table_names: Mutex<std::collections::HashMap<crate::TableId, Arc<str>>>,
@@ -172,6 +194,21 @@ impl TraceBatch {
     }
 }
 impl TraceSession {
+    /// Register before execution; table IDs belong to the compiling engine.
+    pub fn set_source_reads(&self, rule: Arc<str>, plan: SourceReadPlan) {
+        self.state
+            .read_plans
+            .lock()
+            .unwrap()
+            .insert(rule, Arc::new(plan));
+        self.state.has_read_plans.store(true, Ordering::Release);
+    }
+    pub(crate) fn source_reads(&self, rule: &str) -> Option<Arc<SourceReadPlan>> {
+        if !self.state.has_read_plans.load(Ordering::Acquire) {
+            return None;
+        }
+        self.state.read_plans.lock().unwrap().get(rule).cloned()
+    }
     /// Arm before one native step, with remaining time and row reservation.
     /// Do not reconfigure while workers are running.
     pub fn set_execution_limits(
@@ -289,6 +326,8 @@ impl TraceSession {
     /// Record a successful scope rollback. Earlier block certificates need
     /// revalidation even when restored rows still carry historical origins.
     pub fn record_scope_reset(&self) {
+        self.state.read_plans.lock().unwrap().clear();
+        self.state.has_read_plans.store(false, Ordering::Release);
         let id = self.state.next_event_id.fetch_add(1, Ordering::Relaxed);
         self.state.scope_resets.lock().unwrap().push(id);
     }
@@ -467,6 +506,7 @@ impl TraceSession {
             let producer = origin.as_ref().map(|p| p.match_event_id);
             let producer_write = origin.as_ref().and_then(|p| p.commit_event_id);
             out.push(RowReadEvent {
+                planner_summary: r.planner_summary,
                 source_span: r.source_span,
                 event_id: self.state.next_event_id.fetch_add(1, Ordering::Relaxed),
                 match_event_id: match_id,
@@ -491,8 +531,17 @@ impl TraceSession {
             self.state.match_count.fetch_add(1, Ordering::Relaxed);
             return event_id;
         }
+        let source_plan = self.source_reads(&rule);
         let bindings = bindings
             .iter()
+            .filter(|(variable, _)| {
+                source_plan.as_ref().is_none_or(|p| {
+                    variable_names
+                        .vars
+                        .get(variable)
+                        .is_some_and(|n| p.visible_bindings.contains(n))
+                })
+            })
             .map(|(variable, value)| RuleMatchBinding {
                 variable,
                 name: variable_names.vars.get(&variable).cloned(),
@@ -580,6 +629,8 @@ pub struct WriteEvent {
 }
 #[derive(Clone, Debug)]
 pub struct RowReadEvent {
+    /// Planner-only summary witness; source analyses should use expanded reads.
+    pub planner_summary: bool,
     /// Source-file identity and byte range of the query atom before planning.
     /// This is not the row's position in a join traversal.
     pub source_span: Option<Arc<str>>,
@@ -614,6 +665,7 @@ impl TraceCause {
     }
 }
 pub(crate) struct RowWitness {
+    pub planner_summary: bool,
     pub source_span: Option<Arc<str>>,
     pub table: crate::TableId,
     pub table_name: Option<Arc<str>>,
