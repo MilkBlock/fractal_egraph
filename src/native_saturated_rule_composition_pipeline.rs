@@ -81,6 +81,11 @@ impl Pipeline {
         self.worker_pool
             .install(|| work.into_par_iter().with_max_len(1).for_each(drop));
     }
+    pub fn remember_grafts(&mut self, keys: BTreeSet<String>) {
+        if let Some(learner) = &mut self.learner {
+            learner.remember_grafts(keys);
+        }
+    }
     pub fn save_reuse_library(&self)->Result<()> {
         if let Some(learner)=&self.learner {learner.save(&self.out.join("reuse-library.json"))?;}
         Ok(())

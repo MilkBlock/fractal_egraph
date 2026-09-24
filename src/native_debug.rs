@@ -176,6 +176,7 @@ pub fn stream_source(
         crate::ripen_observation::Limits::from_env()?,
         emit,
         None,
+        false,
     )?;
     emit(json!({"kind":"complete","analysis_status":report["status"]}))
 }

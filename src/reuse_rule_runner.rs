@@ -1,6 +1,6 @@
 //! Opt-in source-rule view planning for positive constructor/relation programs.
 //! Summary relations are refreshed before each finite Run step. No native facts
-//! are hidden, deleted or virtualized. Tracing is deliberately not rewritten.
+//! are hidden, deleted or virtualized. Planned traces expand exact source-row keys.
 use super::*;
 use egglog::ast::{Action, Command, Expr, Fact, GenericSchedule};
 
@@ -10,6 +10,7 @@ struct Lower<'a> {
     names: Vec<String>,
     vars: BTreeMap<String, usize>,
     source: &'a str,
+    spans: Vec<Option<Arc<str>>>,
 }
 impl<'a> Lower<'a> {
     fn new(eg: &'a EGraph, source: &'a str) -> Self {
@@ -23,6 +24,7 @@ impl<'a> Lower<'a> {
             },
             names: vec![],
             vars: BTreeMap::new(),
+            spans: vec![],
         }
     }
     fn fresh(&mut self, sort: &str) -> usize {
@@ -65,7 +67,7 @@ impl<'a> Lower<'a> {
                 self.names[i] = lit.to_string();
                 Ok(i)
             }
-            Expr::Call(_, op, args) => {
+            Expr::Call(span, op, args) => {
                 let schema = self
                     .eg
                     .get_function(op)
@@ -84,6 +86,12 @@ impl<'a> Lower<'a> {
                     columns.push(id);
                 }
                 self.query.atoms.push((op.clone(), columns));
+                self.spans.push(match span {
+                    egglog::ast::Span::Egglog(s) => {
+                        Some(format!("{:?}:{}:{}", s.file.name, s.i, s.j).into())
+                    }
+                    _ => None,
+                });
                 Ok(id)
             }
         }
@@ -225,139 +233,16 @@ pub fn run_observed(
         }
         normalized.push(c);
     }
-    let mut viewset = "reuse_views".to_string();
-    while source.contains(&viewset) {
-        viewset.push('_');
-    }
-    eg.parse_and_run_program(None, &format!("(ruleset {viewset})"))?;
-    let baked: BTreeSet<_> = library
-        .fragments()
-        .iter()
-        .map(|q| q.key(&q.atoms).map(|x| x.0))
-        .collect::<Result<_>>()?;
-    let mut shared: BTreeMap<Key, String> = BTreeMap::new();
-    let mut plans = vec![];
-    let mut fallback = vec![];
-    let mut rule_index = 0;
+    let mut planner = SourcePlanner::new(&mut eg, library, source, globals.clone())?;
+    planner.observer.known = observer.known;
     for c in normalized {
         match c {
-            Command::Rule { mut rule } => {
-                if rule.name.is_empty() {
-                    rule.name = format!("{viewset}_source_{}", observer.rules.len());
-                }
-                observer.rules.insert(rule.name.clone(), rule.to_string());
-                let mut lower = Lower::new(&eg, source);
-                let lowered = rule.body.iter().try_for_each(|f| lower.fact(f));
-                if let Err(e) = lowered {
-                    fallback.push(json!({"rule":rule.name,"reason":e.to_string()}));
-                    eg.run_program(vec![Command::Rule { rule }])?;
-                    continue;
-                }
-                if lower
-                    .vars
-                    .values()
-                    .any(|i| lower.query.values[*i].0.starts_with('@'))
-                {
-                    fallback.push(json!({"rule":rule.name,"reason":"named private relation output uses native plan"}));
-                    eg.run_program(vec![Command::Rule { rule }])?;
-                    continue;
-                }
-                if lower
-                    .names
-                    .iter()
-                    .any(|name| globals.contains(name) || name == "_")
-                {
-                    fallback.push(
-                        json!({"rule":rule.name,"reason":"global-bound LHS uses native plan"}),
-                    );
-                    eg.run_program(vec![Command::Rule { rule }])?;
-                    continue;
-                }
-                // Match baked table order; no arbitrary-subgraph search.
-                lower.query.atoms.sort_by(|a, b| a.0.cmp(&b.0));
-                let mut chosen = None;
-                for n in (2..=lower.query.atoms.len()).rev() {
-                    let (key, vars) = lower.query.key(&lower.query.atoms[..n])?;
-                    if baked.contains(&key) {
-                        chosen = Some((n, key, vars));
-                        break;
-                    }
-                }
-                let Some((n, key, vars)) = chosen else {
-                    eg.run_program(vec![Command::Rule { rule }])?;
-                    continue;
-                };
-                // A keyed lookup cannot multiply the first atom's rows. Avoid
-                // materializing a Cartesian/fan-out view without arbitrary caps.
-                let arities: Vec<_> = lower.query.atoms[..n]
-                    .iter()
-                    .map(|(op, _)| eg.get_function(op).unwrap().schema().input.len())
-                    .collect();
-                let nonexpanding = key_bound(&key, &arities);
-                if !nonexpanding {
-                    fallback.push(json!({"rule":rule.name,"reason":"fragment has an unbound lookup key and may multiply summary rows"}));
-                    eg.run_program(vec![Command::Rule { rule }])?;
-                    continue;
-                }
-                let facts: Vec<_> = lower
-                    .query
-                    .atoms
-                    .iter()
-                    .map(|(op, args)| lower.atom(op, args))
-                    .collect();
-                let args = vars
-                    .iter()
-                    .map(|v| lower.names[*v].clone())
-                    .collect::<Vec<_>>()
-                    .join(" ");
-                let types = vars
-                    .iter()
-                    .map(|v| lower.query.values[*v].0.clone())
-                    .collect::<Vec<_>>()
-                    .join(" ");
-                let mut view = shared
-                    .get(&key)
-                    .cloned()
-                    .unwrap_or_else(|| format!("{viewset}_{}", shared.len()));
-                while source.contains(&view) {
-                    view.push('_');
-                }
-                let new = !shared.contains_key(&key);
-                observer.views.insert(
-                    view.clone(),
-                    (
-                        key.clone(),
-                        lower.query.atoms[..n]
-                            .iter()
-                            .map(|(op, _)| eg.get_function(op).unwrap().schema().input.len())
-                            .collect(),
-                    ),
-                );
-                let summary = format!("({view} {args})");
-                let body = format!("{} {}", summary, facts[n..].join(" "));
-                let span = rule.span.clone();
-                drop(lower);
-                if new {
-                    eg.parse_and_run_program(None,&format!("(relation {view} ({types})) (rule ({}) ({summary}) :ruleset {viewset} :name \"{viewset}_fill_{rule_index}\")",facts[..n].join(" ")))?;
-                    shared.insert(key, view.clone());
-                }
-                let parsed = eg.parse_program(None, &format!("(rule ({body}) ())"))?;
-                let Command::Rule { rule: replacement } = &parsed[0] else {
-                    unreachable!()
-                };
-                rule.body = replacement.body.clone();
-                rule.span = span;
-                plans.push(json!({"rule":rule.name,"original_atoms":facts.len(),"new_atoms":1+facts.len()-n,"view":view,"all_binding_columns":vars.len(),"summary_row_bound":"at most the first atom table row count"}));
-                eg.run_program(vec![Command::Rule { rule }])?;
-                rule_index += 1;
-            }
+            Command::Rule { rule } => planner.install(&mut eg, rule, observe.then_some(&trace))?,
             Command::RunSchedule(s) => {
-                if !shared.is_empty() {
-                    eg.parse_and_run_program(None, &format!("(run {viewset} 1)"))?;
-                }
+                planner.refresh(&mut eg)?;
                 if observe {
                     eg.run_program_with_trace(vec![Command::RunSchedule(s)], &trace)?;
-                    observer.consume(&eg, trace.drain_completed())?;
+                    planner.observer.consume(&eg, &trace.drain_completed())?;
                 } else {
                     eg.run_program(vec![Command::RunSchedule(s)])?;
                 }
@@ -383,9 +268,292 @@ pub fn run_observed(
         return Err("optimized rule execution differs from native reference".into());
     }
     Ok((
-        json!({"scope":"positive finite native tier0 rule execution; optional native summary graft tracing; no virtual native rows","plans":plans,"fallback_rules":fallback,"views":shared.len(),"reference_equivalent":equivalent,"optimized_seconds":optimized_seconds,"reference_seconds":reference_seconds,"grafts":if observe {observer.report()}else{Value::Null}}),
-        observer.known,
+        json!({"scope":"positive finite native tier0 rule execution; optional native summary graft tracing; no virtual native rows","plans":planner.plans,"fallback_rules":planner.fallback,"views":planner.shared.len(),"reference_equivalent":equivalent,"optimized_seconds":optimized_seconds,"reference_seconds":reference_seconds,"grafts":if observe {planner.observer.report()}else{Value::Null}}),
+        planner.observer.known,
     ))
+}
+/// Reusable source planner shared by the runner and the native capture pipeline.
+pub(crate) struct SourcePlanner {
+    source: String,
+    globals: BTreeSet<String>,
+    viewset: String,
+    baked: BTreeSet<Key>,
+    shared: BTreeMap<Key, String>,
+    observer: super::view_observer::Observer,
+    plans: Vec<Value>,
+    fallback: Vec<Value>,
+    rule_index: usize,
+}
+impl SourcePlanner {
+    pub(crate) fn supports_capture(commands: &[Command]) -> bool {
+        let tables: BTreeSet<_> = commands
+            .iter()
+            .flat_map(|c| match c {
+                Command::Datatype { variants, .. } => {
+                    variants.iter().map(|v| v.name.clone()).collect::<Vec<_>>()
+                }
+                Command::Relation { name, .. } => vec![name.clone()],
+                _ => vec![],
+            })
+            .collect();
+        commands.iter().all(|c| match c {
+            Command::Rule { rule } => {
+                !rule.naive && rule.head.0.iter().all(|a| positive_action(a, &tables))
+            }
+            Command::Action(a) => positive_action(a, &tables),
+            Command::RunSchedule(GenericSchedule::Run(_, r)) => r.until.is_none(),
+            Command::RunSchedule(GenericSchedule::Repeat(_, _, s)) => {
+                matches!(s.as_ref(),GenericSchedule::Run(_,r) if r.until.is_none())
+            }
+            Command::Datatype { .. }
+            | Command::Relation { .. }
+            | Command::AddRuleset(..)
+            | Command::Check(..) => true,
+            _ => false,
+        })
+    }
+    pub(crate) fn new(
+        eg: &mut EGraph,
+        library: &super::super::library::Library,
+        source: &str,
+        globals: BTreeSet<String>,
+    ) -> Result<Self> {
+        let mut viewset = "reuse_views".to_string();
+        while source.contains(&viewset) {
+            viewset.push('_');
+        }
+        eg.parse_and_run_program(None, &format!("(ruleset {viewset})"))?;
+        let baked = library
+            .fragments()
+            .iter()
+            .map(|q| q.key(&q.atoms).map(|x| x.0))
+            .collect::<Result<_>>()?;
+        let mut observer = super::view_observer::Observer::default();
+        observer.known = library.observed_grafts();
+        Ok(Self {
+            source: source.into(),
+            globals,
+            viewset,
+            baked,
+            shared: BTreeMap::new(),
+            observer,
+            plans: vec![],
+            fallback: vec![],
+            rule_index: 0,
+        })
+    }
+    pub(crate) fn install(
+        &mut self,
+        eg: &mut EGraph,
+        mut rule: egglog::ast::Rule,
+        trace: Option<&egglog::TraceSession>,
+    ) -> Result<()> {
+        let source = self.source.as_str();
+        let globals = &self.globals;
+        let viewset = &self.viewset;
+        let baked = &self.baked;
+        let shared = &mut self.shared;
+        let observer = &mut self.observer;
+        let plans = &mut self.plans;
+        let fallback = &mut self.fallback;
+        let rule_index = &mut self.rule_index;
+
+        if rule.name.is_empty() {
+            rule.name = format!("{viewset}_source_{}", observer.rules.len());
+        }
+        observer.rules.insert(rule.name.clone(), rule.to_string());
+        let mut lower = Lower::new(&eg, source);
+        let lowered = rule.body.iter().try_for_each(|f| lower.fact(f));
+        if let Err(e) = lowered {
+            fallback.push(json!({"rule":rule.name,"reason":e.to_string()}));
+            eg.run_program(vec![Command::Rule { rule }])?;
+            return Ok(());
+        }
+        if lower
+            .vars
+            .values()
+            .any(|i| lower.query.values[*i].0.starts_with('@'))
+        {
+            fallback.push(
+                json!({"rule":rule.name,"reason":"named private relation output uses native plan"}),
+            );
+            eg.run_program(vec![Command::Rule { rule }])?;
+            return Ok(());
+        }
+        if lower
+            .names
+            .iter()
+            .any(|name| globals.contains(name) || name == "_")
+        {
+            fallback.push(json!({"rule":rule.name,"reason":"global-bound LHS uses native plan"}));
+            eg.run_program(vec![Command::Rule { rule }])?;
+            return Ok(());
+        }
+        // Match baked table order; no arbitrary-subgraph search.
+        let mut order: Vec<_> = (0..lower.query.atoms.len()).collect();
+        order.sort_by(|a, b| lower.query.atoms[*a].0.cmp(&lower.query.atoms[*b].0));
+        lower.query.atoms = order
+            .iter()
+            .map(|i| lower.query.atoms[*i].clone())
+            .collect();
+        lower.spans = order.iter().map(|i| lower.spans[*i].clone()).collect();
+        let mut chosen = None;
+        for n in (2..=lower.query.atoms.len()).rev() {
+            let (key, vars) = lower.query.key(&lower.query.atoms[..n])?;
+            if baked.contains(&key) {
+                chosen = Some((n, key, vars));
+                break;
+            }
+        }
+        let Some((n, key, vars)) = chosen else {
+            eg.run_program(vec![Command::Rule { rule }])?;
+            return Ok(());
+        };
+        // Native lowering can eliminate a call-result variable used as another
+        // atom's key. Summary columns preserve it, but residual-only results do
+        // not necessarily retain their source name in the compiled SymbolMap.
+        // Until read plans can follow those aliases, keep the original rule:
+        // an optimized match without complete source provenance loses history.
+        let call_results: BTreeSet<_> = lower
+            .query
+            .atoms
+            .iter()
+            .filter_map(|(op, cols)| {
+                let arity = eg.get_function(op).unwrap().schema().input.len();
+                cols.get(arity).copied()
+            })
+            .collect();
+        let missing_source_key = lower.query.atoms.iter().any(|(op, cols)| {
+            let arity = eg.get_function(op).unwrap().schema().input.len();
+            cols[..arity]
+                .iter()
+                .any(|v| call_results.contains(v) && !vars.contains(v))
+        });
+        if missing_source_key {
+            fallback.push(json!({"rule":rule.name,"reason":"residual call-result key may be eliminated from source witness bindings"}));
+            eg.run_program(vec![Command::Rule { rule }])?;
+            return Ok(());
+        }
+        // A keyed lookup cannot multiply the first atom's rows. Avoid
+        // materializing a Cartesian/fan-out view without arbitrary caps.
+        let arities: Vec<_> = lower.query.atoms[..n]
+            .iter()
+            .map(|(op, _)| eg.get_function(op).unwrap().schema().input.len())
+            .collect();
+        let nonexpanding = key_bound(&key, &arities);
+        if !nonexpanding {
+            fallback.push(json!({"rule":rule.name,"reason":"fragment has an unbound lookup key and may multiply summary rows"}));
+            eg.run_program(vec![Command::Rule { rule }])?;
+            return Ok(());
+        }
+        let facts: Vec<_> = lower
+            .query
+            .atoms
+            .iter()
+            .map(|(op, args)| lower.atom(op, args))
+            .collect();
+        let args = vars
+            .iter()
+            .map(|v| lower.names[*v].clone())
+            .collect::<Vec<_>>()
+            .join(" ");
+        let types = vars
+            .iter()
+            .map(|v| lower.query.values[*v].0.clone())
+            .collect::<Vec<_>>()
+            .join(" ");
+        let mut view = shared
+            .get(&key)
+            .cloned()
+            .unwrap_or_else(|| format!("{viewset}_{}", shared.len()));
+        while source.contains(&view) {
+            view.push('_');
+        }
+        let new = !shared.contains_key(&key);
+        observer.views.insert(
+            view.clone(),
+            (
+                key.clone(),
+                lower.query.atoms[..n]
+                    .iter()
+                    .map(|(op, _)| eg.get_function(op).unwrap().schema().input.len())
+                    .collect(),
+            ),
+        );
+        let summary = format!("({view} {args})");
+        let body = format!("{} {}", summary, facts[n..].join(" "));
+        let span = rule.span.clone();
+        let mut parser = egglog::ast::Parser::default();
+        let source_reads = lower
+            .query
+            .atoms
+            .iter()
+            .zip(&lower.spans)
+            .map(|((op, cols), span)| {
+                let arity = eg.get_function(op).unwrap().schema().input.len();
+                let keys = cols[..arity]
+                    .iter()
+                    .map(|i| match &lower.query.values[*i].1 {
+                        Some(l) => parser.get_expr_from_string(None, l).map_err(Into::into),
+                        None => Ok(Expr::Var(rule.span.clone(), lower.names[*i].clone())),
+                    })
+                    .collect::<Result<Vec<_>>>()?;
+                Ok((op.clone(), keys, span.clone()))
+            })
+            .collect::<Result<Vec<_>>>()?;
+        // Call-result variables are determined by keyed row witnesses. Native
+        // lowering normally eliminates their source names; exposing a summary
+        // column must not turn them into new external ripen parameters.
+        let defined: BTreeSet<_> = rule
+            .body
+            .iter()
+            .filter_map(|f| match f {
+                Fact::Eq(_, Expr::Var(_, v), Expr::Call(..))
+                | Fact::Eq(_, Expr::Call(..), Expr::Var(_, v)) => Some(v),
+                _ => None,
+            })
+            .collect();
+        let visible = lower
+            .vars
+            .keys()
+            .filter(|v| !defined.contains(v))
+            .cloned()
+            .collect();
+        drop(lower);
+        if new {
+            eg.parse_and_run_program(None,&format!("(relation {view} ({types})) (rule ({}) ({summary}) :ruleset {viewset} :name \"{viewset}_fill_{rule_index}\")",facts[..n].join(" ")))?;
+            shared.insert(key, view.clone());
+        }
+        let parsed = eg.parse_program(None, &format!("(rule ({body}) ())"))?;
+        let Command::Rule { rule: replacement } = &parsed[0] else {
+            unreachable!()
+        };
+        if let Some(trace) = trace {
+            eg.register_source_read_plan(trace, &rule.name, &view, source_reads, visible)?;
+        }
+        rule.body = replacement.body.clone();
+        rule.span = span;
+        plans.push(json!({"rule":rule.name,"original_atoms":facts.len(),"new_atoms":1+facts.len()-n,"view":view,"all_binding_columns":vars.len(),"summary_row_bound":"at most the first atom table row count"}));
+        eg.run_program(vec![Command::Rule { rule }])?;
+        *rule_index += 1;
+
+        Ok(())
+    }
+    pub(crate) fn refresh(&self, eg: &mut EGraph) -> Result<()> {
+        if !self.shared.is_empty() {
+            eg.parse_and_run_program(None, &format!("(run {} 1)", self.viewset))?;
+        }
+        Ok(())
+    }
+    pub(crate) fn consume(&mut self, eg: &EGraph, batch: &egglog::TraceBatch) -> Result<()> {
+        self.observer.consume(eg, batch)
+    }
+    pub(crate) fn report(&self) -> Value {
+        json!({"plans":self.plans,"fallback_rules":self.fallback,"views":self.shared.len(),"grafts":self.observer.report()})
+    }
+    pub(crate) fn signatures(&self) -> BTreeSet<String> {
+        self.observer.known.clone()
+    }
 }
 fn snapshot(
     eg: &mut EGraph,

@@ -81,19 +81,25 @@ bodies, descriptors and source/origin evidence; it never restores runtime counte
 1. **Done:** objects, typed references, structural checks and accounting.
 2. **Done (offline):** Bake library import/export and native origin-recipe extraction;
    this captures the selected composed entry, not a complete local saturation trace.
-3. **Done:** conservative fragment filters (unknown ports return Maybe).
+3. Conservative operator/arity filters (unknown ports return Maybe); typed sort
+   and positional features remain to be added.
 4. Native completed-ripen supplementation is integrated; the opt-in positive runner
    observes matched summary instances and committed external graft signatures.
+   Single-pass capture expands source witnesses before feeding the ordinary
+   Coarse/Smooth learner; normal unplanned capture does not count summary reuse.
 5. Verified immutable-library row references and exact reconstruction.
 6. Read-only query reuse plus opt-in positive-rule LHS view substitution, with
-   independent native final-state comparison. Arbitrary mutation semantics and
-   optimized source tracing are outside this path.
+   independent native final-state comparison in `reuse-run`. `reuse-cycle` instead
+   uses source witness expansion in a single capture. Arbitrary mutation semantics
+   remain outside planner substitution.
 7. Query interfaces now narrow to demanded columns and widen when new consumers
    need more. Immutable baked rows support virtual references; native mutable-row
-   virtualization is **not implemented or enabled**.
+   template virtualization is **not implemented or enabled**. Same-binding native
+   snapshots can share row allocations with copy-on-write; see below.
 
-These form a bounded feedback experiment, not a claim of complete general-purpose
-planner replacement or production-ready single-pass execution.
+These form a bounded feedback experiment. Positive finite source execution and
+trace/ripen learning now share a single capture pass. Unsupported programs retain
+the native plan; this is not a general-purpose planner replacement.
 
 ## Timing regression benchmark
 
@@ -149,7 +155,12 @@ minimization. Staged injection evidence and full source remain in each entry.
 
 This is trusted local artifact import with structural validation, not a sandbox
 for untrusted libraries, a fresh semantic replay, or a proof that arbitrary new
-bindings can execute the recipe. The library does not install rules in tier0.
+bindings can execute the recipe. The library importer does not install rules in tier0.
+Runtime supplementation keeps the first validated source/origin record for a given
+(enclosure, replay source). Fresh history paths and event IDs do not append duplicate
+entries; detailed occurrence evidence remains in each run's ripen artifacts.
+Initial Bake retains distinct supplied origins. Different source programs are
+still retained, and different descriptors/triggers are not collapsed.
 The v1 JSON is a machine interchange/debug format, not an executable `.egg` DSL.
 
 ## Conservative filters and exact shared storage
@@ -218,8 +229,10 @@ lookup keys retain the native plan; there is no candidate budget or row-count
 heuristic. No user facts are hidden or removed. Constructors, relation insertions, and unions
 are supported; delete/subsume/function updates, naive rules and unbounded schedules
 are rejected by this opt-in runner. Complex LHS conditions or global-bound LHSs
-retain the native plan. The separate read-only query runtime does support updates,
-subsume and rollback via cache invalidation.
+retain the native plan. A residual call-result used as a lookup key also retains
+the native plan when its compiled binding name may be eliminated; otherwise a
+correct match could lose its source provenance. The separate read-only query
+runtime does support updates, subsume and rollback via cache invalidation.
 
 Every `reuse-run` checks all user table rows, equality structure, private relation
 outputs and named globals against a separate native execution. This is a concrete
@@ -234,12 +247,67 @@ instance registry. Signatures retain typed rule/wiring and input-alias informati
 They are predictive observations only. They do not authorize a rewrite, skip ripen,
 or certify saturation. Evidence is aggregated by signature and raw batches drained.
 
-`reuse-cycle` combines this run with the ordinary native trace/ripen learner and
-writes `adaptive-library.json`. Optimized execution, reference verification and
-learning remain separate passes. It is an end-to-end validation experiment, not
-an end-to-end speed optimization. See [the reproducible fixture](../experiments/reuse_feedback/README.md).
+`reuse-cycle` now executes the source **once**, with planned matching and native
+trace/ripen learning in the same capture. It writes `reuse-library.json` (the old
+three-pass command used `adaptive-library.json`) and reports `source_executions: 1`.
+This count excludes local ripen engine execution and summary refreshes. It does
+not perform an independent reference rerun. The regression tests compare planned
+and ordinary source captures; `reuse-run` still performs its exact final-state
+reference check. See [the reproducible fixture](../experiments/reuse_feedback/README.md).
 
-Before production promotion, remaining work includes a single-pass bridge from
-optimized summaries back to original source-row provenance, semantic adaptation
-of enclosure triggers, and explicit/virtual native row identity plus incremental
-notifications. The current version deliberately retains native hashcons storage.
+The same path is available explicitly:
+
+```sh
+EGG_LAYOUT_GRAPHS=0 cargo run --release --offline -- analyze \
+  --source NEW.egg --output out/singlepass --reuse-library LIBRARY.json \
+  --reuse-plan --save-history
+cargo test --offline --test reuse_singlepass --test native_fact_query
+```
+
+At match time an engine-local read plan resolves each original source atom's key
+from actual compiled bindings or literals. It reads the existing row, physical
+version and producer without inserting or evaluating an expression. Summary
+witnesses are marked `planner_summary`; only restored source reads enter the
+Coarse/Smooth history. Missing keys or rows make the witness incomplete. The
+planner falls back when it cannot guarantee that a residual call-result key keeps
+its source name. Call-result variables exposed by summary columns do not become
+new external ripen parameters. Rollback clears source-read registrations.
+
+Single-pass regression covers union, DABCABC and branching unfinished growth,
+nested residual fallback, subsume program fallback, and three feedback cycles
+including fresh parameter values and different source paths. Repeated cycles keep
+body, descriptor **and source-entry** counts stable. This does not prove a speedup,
+general guard/trigger adaptation, or arbitrary LHS provenance reconstruction.
+
+## Native snapshot row sharing
+
+`EGraph::fork_shared()` freezes supported native row allocations and clones the
+engine with shared immutable rows. Row IDs, values and hashcons identities retain
+their ordinary same-binding meaning. Mutation detaches storage; hash indexes,
+pending mutations and incremental state remain branch-local. The parallel deletion
+path explicitly detaches before writing through `Cell`. Parallel insertion obtains
+exclusive storage before constructing its writer. Sorted-writer scratch/rehash is
+also tested. Other table implementations retain their ordinary clone behavior.
+
+Native ripen uses this fork for its before/current snapshots and reports
+`snapshot_sharing` with shared table count and logical row bytes. Allocation IDs
+are process-local diagnostics and never persisted as fact identity. These bytes
+exclude indexes, allocator capacity and other engine metadata; they are not RSS.
+This is **actual egglog native storage**, but not cross-binding template
+virtualization, arbitrary subgraph sharing or a replacement for native union/delta.
+
+```sh
+cargo test --offline --test native_shared_snapshot
+cargo test --offline --manifest-path egglog/core-relations/Cargo.toml --lib
+cargo bench --offline --bench native_shared_snapshot
+```
+
+The benchmark compares clone+drop of the same native engine with ordinary and
+shared row buffers, with setup outside timing. It also counts unique allocations
+across four copies without double-counting overlapping row sharing.
+
+Remaining full-plan work includes broader provenance support, native Join row-scan
+and end-to-end performance evidence, semantic trigger/boundary adaptation, validated
+graft/residual storage recipes beyond row-prefix sharing, and cross-binding virtual
+native identity with union and delta. The current snapshot mechanism does not
+complete those stages.

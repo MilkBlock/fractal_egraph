@@ -185,6 +185,8 @@ impl Session {
             TraceSession::with_effects()
         };
         let c = Captured {
+            reuse_plan: Json::Null,
+            reuse_signatures: BTreeSet::new(),
             changes: vec![],
             last_scope: 0,
             preview_source: text.clone(),
@@ -254,7 +256,7 @@ impl Session {
             })
             .collect();
         let initial_facts = table_counts(&eg, &table_names).values().sum();
-        let before = eg.clone();
+        let before = eg.fork_shared();
         Ok(Self {
             eg,
             before,
@@ -426,7 +428,9 @@ impl Session {
                 Err(e) => exported = json!({"status":"unavailable","reason":e.to_string()}),
             }
         }
-        self.report = json!({"native_stop_reason":native_stop_reason,"observation_limits":limits,"sweep":{"steps":steps,"max_steps":limits.sweep_steps},"ripen":f,"source":self.source,"source_text":self.text,"checks":if self.done{"passed"}else{"deferred"},"checks_count":self.checks.len(),"internal_history":self.record_history,"imported_applies":if self.record_history {Some(self.c.records.len())} else {None},"events":self.c.events,"saturated_rule_composition":exported,"native_egraph":if self.final_state.is_some(){Some("native-egraph.dot")}else{None},"tier1":null,"tables":table_counts(&self.eg,&self.table_names)});
+        let shared=self.eg.shared_row_storage();
+        let snapshot_sharing=json!({"shared_tables":shared.iter().filter(|(_,_,owners,_)|*owners>1).count(),"shared_logical_row_bytes":shared.iter().filter(|(_,_,owners,_)|*owners>1).map(|(_,_,_,bytes)|*bytes).sum::<usize>(),"scope":"native before/current snapshot row allocations; excludes indexes and metadata; no parameter remapping"});
+        self.report = json!({"snapshot_sharing":snapshot_sharing,"native_stop_reason":native_stop_reason,"observation_limits":limits,"sweep":{"steps":steps,"max_steps":limits.sweep_steps},"ripen":f,"source":self.source,"source_text":self.text,"checks":if self.done{"passed"}else{"deferred"},"checks_count":self.checks.len(),"internal_history":self.record_history,"imported_applies":if self.record_history {Some(self.c.records.len())} else {None},"events":self.c.events,"saturated_rule_composition":exported,"native_egraph":if self.final_state.is_some(){Some("native-egraph.dot")}else{None},"tier1":null,"tables":table_counts(&self.eg,&self.table_names)});
         self.write_report()?;
         if self.done {
             let replay = self

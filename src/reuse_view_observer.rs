@@ -16,7 +16,7 @@ pub(super) struct Observer {
     evidence: BTreeMap<String, Value>,
 }
 impl Observer {
-    pub fn consume(&mut self, eg: &EGraph, batch: TraceBatch) -> Result<()> {
+    pub fn consume(&mut self, eg: &EGraph, batch: &TraceBatch) -> Result<()> {
         let changed: BTreeSet<_> = batch
             .writes
             .iter()

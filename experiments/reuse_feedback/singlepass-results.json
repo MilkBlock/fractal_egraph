@@ -1,0 +1,185 @@
+{
+  "date": "2026-09-24",
+  "scope": "actual native egglog source capture, trace/ripen learning and same-binding snapshots; not a standalone prototype or end-to-end speedup claim",
+  "verification": {
+    "independent_reuse_run_final_state_equivalent": true,
+    "root_integration_tests_passed": 30,
+    "root_integration_tests_ignored": 1,
+    "core_relation_tests_passed": 55,
+    "cases": [
+      "source producer/version restoration",
+      "nested residual fallback",
+      "subsume native fallback",
+      "union",
+      "DABCABC unfinished",
+      "branching unfinished",
+      "new-binding repeated-cycle entry stability",
+      "parallel sorted and unsorted snapshot mutation isolation"
+    ]
+  },
+  "cycles": [
+    {
+      "cycle": 1,
+      "parameters": [
+        1,
+        2
+      ],
+      "distinct_source_path": true,
+      "source_executions": 1,
+      "views": 1,
+      "reuse_count": 2,
+      "unexpected_break_count": 1,
+      "committed_external_grafts": 2,
+      "incomplete_witnesses": 0,
+      "new_enclosure_count": 3,
+      "library_counts": {
+        "bodies": 3,
+        "enclosures": 4,
+        "entries": 4
+      }
+    },
+    {
+      "cycle": 2,
+      "parameters": [
+        11,
+        12
+      ],
+      "distinct_source_path": true,
+      "source_executions": 1,
+      "views": 1,
+      "reuse_count": 2,
+      "unexpected_break_count": 0,
+      "committed_external_grafts": 2,
+      "incomplete_witnesses": 0,
+      "new_enclosure_count": 0,
+      "library_counts": {
+        "bodies": 3,
+        "enclosures": 4,
+        "entries": 4
+      }
+    },
+    {
+      "cycle": 3,
+      "parameters": [
+        11,
+        12
+      ],
+      "distinct_source_path": true,
+      "source_executions": 1,
+      "views": 1,
+      "reuse_count": 2,
+      "unexpected_break_count": 0,
+      "committed_external_grafts": 2,
+      "incomplete_witnesses": 0,
+      "new_enclosure_count": 0,
+      "library_counts": {
+        "bodies": 3,
+        "enclosures": 4,
+        "entries": 4
+      }
+    }
+  ],
+  "native_snapshot_benchmark": {
+    "avoided_logical_row_bytes": 491520,
+    "copies": 4,
+    "deep_clone_drop_median_seconds": 0.000190234375,
+    "ratio": 0.9140931416837783,
+    "scope": "actual native same-binding snapshots; row payload only; indexes, metadata and processes excluded",
+    "shared_clone_drop_median_seconds": 0.00017389193750000001
+  },
+  "reuse_microbenchmarks": {
+    "threshold_fraction": 0.2,
+    "comparison": "previous-session saved final baseline; same machine and benchmark schema",
+    "results": {
+      "body_hit_last/1": {
+        "previous_median_ns": 9992.34765625,
+        "current_median_ns": 9992.18359375,
+        "change_fraction": -1.6418814241081492e-05
+      },
+      "body_hit_last/256": {
+        "previous_median_ns": 53316.41015625,
+        "current_median_ns": 52119.3046875,
+        "change_fraction": -0.022452852043896798
+      },
+      "body_hit_last/64": {
+        "previous_median_ns": 20266.11328125,
+        "current_median_ns": 19809.5703125,
+        "change_fraction": -0.02252740633658601
+      },
+      "descriptor_hit": {
+        "previous_median_ns": 521.9765625,
+        "current_median_ns": 506.8359375,
+        "change_fraction": -0.029006331103228367
+      },
+      "graft_insert": {
+        "previous_median_ns": 191.73046875,
+        "current_median_ns": 223.30859375,
+        "change_fraction": 0.16470060917221852
+      },
+      "instance_hit": {
+        "previous_median_ns": 319.01171875,
+        "current_median_ns": 320.4765625,
+        "change_fraction": 0.004591817992579683
+      },
+      "instance_insert": {
+        "previous_median_ns": 335.7734375,
+        "current_median_ns": 345.375,
+        "change_fraction": 0.02859536052490741
+      },
+      "reuse_insert": {
+        "previous_median_ns": 34.5,
+        "current_median_ns": 34.828125,
+        "change_fraction": 0.009510869565217295
+      }
+    },
+    "scope": "synthetic Reuse Graph API microbenchmarks, not native runtime throughput"
+  },
+  "native_execution_smoke": {
+    "samples_seconds": [
+      0.014079,
+      0.008239167,
+      0.003228959,
+      0.003111,
+      0.0033915,
+      0.003424666,
+      0.003148375,
+      0.003093,
+      0.003114917,
+      0.003262875,
+      0.003140917,
+      0.003122291,
+      0.003006,
+      0.003129958,
+      0.00320325,
+      0.003145208,
+      0.003105333,
+      0.003136291,
+      0.003113417,
+      0.003109625
+    ],
+    "warmup_runs": 3,
+    "median_seconds": 0.003129958,
+    "baseline": {
+      "samples_seconds": [
+        0.011051167,
+        0.003249791,
+        0.003198291,
+        0.003290958,
+        0.003237542,
+        0.003463042,
+        0.003563542
+      ],
+      "median_seconds": 0.003290958,
+      "scope": "native math mini3; existing release binary before COW changes"
+    },
+    "scope": "actual native math mini3 execution; excludes CS/ripen; historical pre-COW baseline from previous session",
+    "relative_change": -0.048921924862000754
+  },
+  "limitations": [
+    "No independent native rerun inside reuse-cycle; separate regression and reuse-run validation.",
+    "No actual Join row-scan reduction metric or end-to-end speedup established.",
+    "Shared snapshot row bytes exclude indexes, metadata and allocation capacity; not RSS.",
+    "Same-binding snapshots do not implement cross-binding virtual native facts."
+  ],
+  "rustc": "rustc 1.94.0 (4a4ef493e 2026-03-02)"
+}

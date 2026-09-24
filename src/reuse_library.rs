@@ -1,4 +1,4 @@
-//! Explicit, offline Bake import. No runtime mutation or planner substitution.
+//! Validated Bake persistence and admission from completed native ripen jobs.
 use super::*;
 use crate::coarse_smooth::{Apply, CombKind, RelativeBinding, canonical_effect, symbol};
 use egglog::ast::{Action, Command, Expr};
@@ -286,7 +286,15 @@ impl Library {
         if !self
             .entries
             .iter()
-            .any(|e| e.enclosure == enclosure && e.source == source && e.origin == *origin)
+            .any(|e| {
+                e.enclosure == enclosure
+                    && e.source == source
+                    // Runtime occurrences have fresh history paths/event IDs.
+                    // Keep the first validated replay evidence for this recipe;
+                    // occurrence evidence remains in the run's ripen artifacts.
+                    // Initial Bake still preserves distinct supplied origins.
+                    && (admission == Admission::RuntimeSupplement || e.origin == *origin)
+            })
         {
             self.entries.push(EntryRecord {
                 enclosure,
@@ -379,6 +387,9 @@ pub struct Learner {
     rejected: Vec<Value>,
 }
 impl Learner {
+    pub fn remember_grafts(&mut self, keys: impl IntoIterator<Item = String>) {
+        self.library.remember_grafts(keys);
+    }
     pub fn load(path: &Path) -> Result<Self> {
         let library = Library::load(path)?;
         let graph = library.instantiate()?;

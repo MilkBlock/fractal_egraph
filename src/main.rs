@@ -5,7 +5,7 @@ fn main() -> Result {
     match args.first().map(String::as_str) {
         None | Some("--help" | "help" | "-h") => {
             println!(
-                "egg_layout: reuse-bake OUTPUT.json RUN_DIR...\n  reuse-library-check LIBRARY.json\n  reuse-query SOURCE.egg LIBRARY.json QUERY.json\n  reuse-run SOURCE.egg LIBRARY.json [--learn-grafts OUTPUT.json]\n  reuse-cycle SOURCE.egg LIBRARY.json OUTPUT_DIR\n  analyze --source FILE --output DIR [--rounds N] [--save-history]\n  analyze --replay-history FILE --output DIR\n  cc-merge --rules FILE --seeds FILE --output DIR [--generations N]\n  debug-stream FILE\n  debug-patterns FILE\n  parse-check FILE\n  ripen FILE DIR\n  saturated-rule-composition-compare A.json B.json\n  saturated-rule-composition-catalog DIR RIPEN_DIR...\n  ripen-diff A.json B.json REPORT.json [ANCHORS.json]\nOptional analyze flags: --reuse-library FILE; --ripen-sweep-steps N (default 4), --ripen-observe-ms N / --ripen-observe-facts N. Defaults: 50 ms / 200000 facts; native admission pauses unfinished tasks."
+                "egg_layout: reuse-bake OUTPUT.json RUN_DIR...\n  reuse-library-check LIBRARY.json\n  reuse-query SOURCE.egg LIBRARY.json QUERY.json\n  reuse-run SOURCE.egg LIBRARY.json [--learn-grafts OUTPUT.json]\n  reuse-cycle SOURCE.egg LIBRARY.json OUTPUT_DIR\n  analyze --source FILE --output DIR [--rounds N] [--save-history]\n  analyze --replay-history FILE --output DIR\n  cc-merge --rules FILE --seeds FILE --output DIR [--generations N]\n  debug-stream FILE\n  debug-patterns FILE\n  parse-check FILE\n  ripen FILE DIR\n  saturated-rule-composition-compare A.json B.json\n  saturated-rule-composition-catalog DIR RIPEN_DIR...\n  ripen-diff A.json B.json REPORT.json [ANCHORS.json]\nOptional analyze flags: --reuse-library FILE [--reuse-plan]; --ripen-sweep-steps N (default 4), --ripen-observe-ms N / --ripen-observe-facts N. Defaults: 50 ms / 200000 facts; native admission pauses unfinished tasks."
             );
             Ok(())
         }
@@ -13,13 +13,8 @@ fn main() -> Result {
             if args.len()!=4 {return Err("usage: reuse-cycle SOURCE.egg LIBRARY.json OUTPUT_DIR".into());}
             let out=Path::new(&args[3]);
             if out.exists(){return Err("reuse-cycle output already exists".into());}
-            let library=egg_layout::reuse_graph::library::Library::load(Path::new(&args[2]))?;
-            let (execution,signatures)=egg_layout::reuse_graph::planner::rule_runner::run_observed(&std::fs::read_to_string(&args[1])?,&library,true)?;
-            native_analyze::run_with_reuse(Path::new(&args[1]),out,None,None,false,egg_layout::ripen_observation::Limits::from_env()?,Some(Path::new(&args[2])))?;
-            let mut learned=egg_layout::reuse_graph::library::Library::load(&out.join("reuse-library.json"))?;
-            learned.remember_grafts(signatures);learned.save(&out.join("adaptive-library.json"))?;
-            let queue:serde_json::Value=serde_json::from_slice(&std::fs::read(out.join("saturated-rule-composition/queue.json"))?)?;
-            let report=serde_json::json!({"execution":execution,"learning":queue["reuse_learning"],"library":out.join("adaptive-library.json"),"scope":"validated positive-program feedback experiment: optimized execution, independent native reference, and native trace/ripen learning are separate passes; not an end-to-end speedup claim"});
+            let analysis=native_analyze::run_configured(Path::new(&args[1]),out,None,None,false,egg_layout::ripen_observation::Limits::from_env()?,Some(Path::new(&args[2])),true)?;
+            let report=serde_json::json!({"execution":analysis["reuse_plan"],"learning":analysis["saturated_rule_composition"]["reuse_learning"],"library":out.join("reuse-library.json"),"source_executions":1,"scope":"single native source execution with source-row witness expansion and online ripen learning; no independent reference rerun"});
             std::fs::write(out.join("reuse-cycle.json"),serde_json::to_vec_pretty(&report)?)?;
             println!("{}",serde_json::to_string_pretty(&report)?);Ok(())
         }
@@ -90,10 +85,12 @@ fn main() -> Result {
             let mut replay = None;
             let mut save = false;
             let mut reuse_library=None;
+            let mut optimize=false;
             let mut observation = egg_layout::ripen_observation::Limits::from_env()?;
             let mut i = 1;
             while i < args.len() {
                 match args[i].as_str() {
+                    "--reuse-plan" => optimize=true,
                     "--reuse-library" => {i+=1;reuse_library=Some(PathBuf::from(args.get(i).ok_or("missing reuse library")?));}
                     "--source" => {
                         i += 1;
@@ -147,7 +144,7 @@ fn main() -> Result {
             if replay.is_none() && source.as_os_str().is_empty() {
                 return Err("--source is required".into());
             }
-            let r = native_analyze::run_with_reuse(
+            let r = native_analyze::run_configured(
                 &source,
                 &out.ok_or("--output is required")?,
                 rounds,
@@ -155,6 +152,7 @@ fn main() -> Result {
                 save,
                 observation,
                 reuse_library.as_deref(),
+                optimize,
             )?;
             println!("{}", r["summary"]);
             Ok(())

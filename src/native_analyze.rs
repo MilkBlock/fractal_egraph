@@ -140,6 +140,8 @@ struct CaptureBoundary {
     end: usize,
 }
 struct Captured {
+    reuse_plan: Json,
+    reuse_signatures: BTreeSet<String>,
     changes: Vec<crate::closure_contract::Change>,
     last_scope: usize,
     preview_source: String,
@@ -186,8 +188,14 @@ fn capture_text_with_sink(
     name: &str,
     text: &str,
     rounds: Option<usize>,
-    mut sink: Option<&mut dyn FnMut(&mut Captured) -> Result>,
+    sink: Option<&mut dyn FnMut(&mut Captured) -> Result>,
 ) -> Result<Captured> {
+    capture_text_with_planner(name,text,rounds,sink,None)
+}
+fn capture_text_with_planner(
+    name:&str,text:&str,rounds:Option<usize>,mut sink:Option<&mut dyn FnMut(&mut Captured)->Result>,
+    library:Option<&crate::reuse_graph::library::Library>,
+)->Result<Captured> {
     let started = Instant::now();
     let mut eg = EGraph::default();
     let mut commands =
@@ -262,6 +270,8 @@ fn capture_text_with_sink(
     }
     let trace = TraceSession::with_dependencies();
     let mut c = Captured {
+        reuse_plan: Json::Null,
+        reuse_signatures: BTreeSet::new(),
         changes: vec![],
         last_scope: 0,
         preview_source: text.to_owned(),
@@ -280,6 +290,13 @@ fn capture_text_with_sink(
         trace_batches: 0,
         rejected: 0,
     };
+    use crate::reuse_graph::planner::rule_runner::SourcePlanner;
+    let mut planner=if let Some(library)=library {
+        if SourcePlanner::supports_capture(&commands) {
+            let globals=commands.iter().filter_map(|c|match c {Command::Action(Action::Let(_,n,_))=>Some(n.clone()),_=>None}).collect();
+            Some(SourcePlanner::new(&mut eg,library,text,globals)?)
+        } else {c.reuse_plan=json!({"status":"native_fallback","reason":"program is outside the positive finite planner subset"});None}
+    } else {None};
     let mut producers = BTreeMap::new();
     let mut count = 0;
     let mut known = true;
@@ -288,6 +305,7 @@ fn capture_text_with_sink(
             if matches!(**inner, egglog::ast::GenericSchedule::Run(..)) {
                 for _ in 0..*n {
                     let round_start = Instant::now();
+                    if let Some(p)=&planner {p.refresh(&mut eg)?;}
                     eg.run_program_with_trace(
                         vec![Command::RunSchedule((**inner).clone())],
                         &trace,
@@ -295,7 +313,7 @@ fn capture_text_with_sink(
                     let tier0_seconds = round_start.elapsed().as_secs_f64();
                     let collect_start = Instant::now();
                     count += 1;
-                    collect(&eg, &trace, &mut c, &mut producers)?;
+                    collect_with_planner(&eg, &trace, &mut c, &mut producers,planner.as_mut())?;
                     c.boundaries.push(CaptureBoundary {
                         ripen: None,
                         kind: if known { "round" } else { "execution-boundary" }.into(),
@@ -344,7 +362,11 @@ fn capture_text_with_sink(
             }
             _ => None,
         };
-        eg.run_program_with_trace(vec![command], &trace)?;
+        if schedule {if let Some(p)=&planner {p.refresh(&mut eg)?;}}
+        match command {
+            Command::Rule{rule} if planner.is_some()=>planner.as_mut().unwrap().install(&mut eg,rule,Some(&trace))?,
+            command=>{eg.run_program_with_trace(vec![command], &trace)?;}
+        }
         if let Some((reset, tables)) = external_change {
             c.changes.push(crate::closure_contract::Change {
                 boundary: c.boundaries.len() + 1,
@@ -354,7 +376,7 @@ fn capture_text_with_sink(
             });
         }
         if schedule {
-            collect(&eg, &trace, &mut c, &mut producers)?;
+            collect_with_planner(&eg, &trace, &mut c, &mut producers,planner.as_mut())?;
             c.boundaries.push(CaptureBoundary {
                 ripen: None,
                 kind: "execution-boundary".into(),
@@ -366,7 +388,7 @@ fn capture_text_with_sink(
             }
         }
     }
-    collect(&eg, &trace, &mut c, &mut producers)?;
+    collect_with_planner(&eg, &trace, &mut c, &mut producers,planner.as_mut())?;
     if c.boundaries.last().is_none_or(|b| b.end != c.records.len())
         || c.changes
             .last()
@@ -400,6 +422,9 @@ fn collect(
     c: &mut Captured,
     producers: &mut BTreeMap<u64, Producer>,
 ) -> Result {
+    collect_with_planner(eg,trace,c,producers,None)
+}
+fn collect_with_planner(eg:&EGraph,trace:&TraceSession,c:&mut Captured,producers:&mut BTreeMap<u64,Producer>,planner:Option<&mut crate::reuse_graph::planner::rule_runner::SourcePlanner>)->Result {
     let prior_scope = c.last_scope;
     let rules = &c.rules;
     let names: BTreeMap<_, _> = rules
@@ -408,6 +433,7 @@ fn collect(
         .map(|(i, r)| (r.rule.name.clone(), i))
         .collect();
     let batch = trace.drain_completed();
+    if let Some(planner)=planner {planner.consume(eg,&batch)?;c.reuse_plan=planner.report();c.reuse_signatures=planner.signatures();}
     let batch_len = batch.len();
     c.trace_peak = c.trace_peak.max(batch_len);
     c.trace_batches += usize::from(batch_len > 0);
@@ -474,7 +500,7 @@ fn collect(
             );
         }
     }
-    for r in batch.reads {
+    for r in batch.reads.into_iter().filter(|r|!r.planner_summary) {
         reads.entry(r.match_event_id).or_default().push(r);
     }
     let variable_sorts: Vec<BTreeMap<String, Arc<str>>> = rules
@@ -908,6 +934,7 @@ fn execute(
     observation: crate::ripen_observation::Limits,
     emit: &mut dyn FnMut(Json) -> Result,
     reuse_library:Option<&Path>,
+    optimize:bool,
 ) -> Result<Json> {
     std::fs::create_dir_all(out)?;
     let render_batch = crate::graph_render::Batch::start()?;
@@ -970,7 +997,8 @@ fn execute(
         boundary_emit(&mut c)?;
         c
     } else {
-        capture_text_with_sink(name, text, rounds, Some(&mut boundary_emit))?
+        let library=if optimize {Some(crate::reuse_graph::library::Library::load(reuse_library.ok_or("optimization requires a reuse library")?)?)}else{None};
+        if let Some(library)=&library {capture_text_with_planner(name,text,rounds,Some(&mut boundary_emit),Some(library))?} else {capture_text_with_sink(name,text,rounds,Some(&mut boundary_emit))?}
     };
     drop(boundary_emit);
     if save_history {
@@ -1017,6 +1045,7 @@ fn execute(
     }
     let finish_started = Instant::now();
     let mut report = json!({"status":if pipeline.report()["counts"]["ObservedUnfinished"].as_u64().unwrap_or(0)>0 {"observed_unfinished"}else{"complete"},"summary":{"applications":c.records.len(),"logical_matches":c.events,"excluded":c.rejected,"scope":"native history -> CS -> ripen -> equivalence -> weak dominate"},"layers":c.layers.report(),"saturated_rule_composition":null});
+    report["reuse_plan"]=c.reuse_plan.clone();
     report["saturated_rule_composition"] = pipeline.take_report();
     std::fs::write(out.join("analysis.json"), serde_json::to_vec(&report)?)?;
     std::fs::write(
@@ -1030,6 +1059,7 @@ fn execute(
         );
     }
     let cleanup_started = Instant::now();
+    pipeline.remember_grafts(c.reuse_signatures.clone());
     pipeline.save_reuse_library()?;
     pipeline.release_engines();
     if std::env::var_os("EGG_LAYOUT_PROFILE").is_some() {
@@ -1072,6 +1102,10 @@ pub fn run_with_reuse(
     source:&Path,out:&Path,rounds:Option<usize>,replay:Option<&Path>,save_history:bool,
     observation:crate::ripen_observation::Limits,reuse_library:Option<&Path>,
 )->Result<Json> {
+    run_configured(source,out,rounds,replay,save_history,observation,reuse_library,false)
+}
+pub fn run_configured(source:&Path,out:&Path,rounds:Option<usize>,replay:Option<&Path>,save_history:bool,observation:crate::ripen_observation::Limits,reuse_library:Option<&Path>,optimize:bool)->Result<Json> {
+    if optimize && (reuse_library.is_none()||replay.is_some()){return Err("planned capture requires a source and reuse library, not history replay".into());}
     observation.validate()?;
     if out.exists() {
         return Err("analysis output already exists".into());
@@ -1093,6 +1127,7 @@ pub fn run_with_reuse(
         observation,
         &mut |_| Ok(()),
         reuse_library,
+        optimize,
     )
 }
 

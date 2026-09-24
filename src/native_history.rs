@@ -265,6 +265,8 @@ pub(super) fn read(path: &Path) -> Result<Captured> {
         )
     });
     Ok(Captured {
+        reuse_plan: Json::Null,
+        reuse_signatures: BTreeSet::new(),
         changes: h.changes,
         last_scope: 0,
         preview_source,
