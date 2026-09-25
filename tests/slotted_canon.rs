@@ -158,3 +158,46 @@ fn witness_and_runtime_instance_do_not_change_slotted_identity() {
     );
     assert_eq!(canon.insert(from), 0);
 }
+
+#[test]
+fn two_symmetric_slots_do_not_absorb_an_asymmetric_slot() {
+    let symmetric = |target: usize| GraftCandidate {
+        rule: "three-input".into(),
+        slots: vec![
+            SlotDescriptor {
+                sort: "E".into(),
+                role: "input".into(),
+                upper_degree: 1,
+                lower_degree: 1,
+                alias_class: 0,
+            },
+            SlotDescriptor {
+                sort: "E".into(),
+                role: "input".into(),
+                upper_degree: 1,
+                lower_degree: 1,
+                alias_class: 0,
+            },
+            SlotDescriptor {
+                sort: "E".into(),
+                role: "anchor".into(),
+                upper_degree: 0,
+                lower_degree: 2,
+                alias_class: 1,
+            },
+        ],
+        targets: [target].into_iter().collect(),
+        upper: [target].into_iter().collect(),
+        lower: BTreeSet::new(),
+        binding: vec![RelativeBinding::External { slot: target }],
+        residual_ops: vec!["C".into()],
+        witness: None,
+    };
+    let mut canon = SlottedCanon::new();
+    let a = canon.insert(symmetric(0));
+    let b = canon.insert(symmetric(1));
+    let anchor = canon.insert(symmetric(2));
+    assert_eq!(a, b);
+    assert_ne!(a, anchor);
+    assert_eq!(canon.report().orbit_sizes, vec![2, 1]);
+}
