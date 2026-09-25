@@ -1,0 +1,1201 @@
+{
+  "candidate_graft_attachments": 478,
+  "interpretation": "Candidates are possible Graft attachment positions derived from observed CoarseLayer Apply input roles. They are not claims that every candidate committed a runtime Graft.",
+  "layers": {
+    "coarse_layers": 53,
+    "combs": 102,
+    "occurrences": 129,
+    "smooth_layers": 40
+  },
+  "slotted_canon": {
+    "ambiguous_classes": 55,
+    "candidates": 478,
+    "compression_ratio": 0.2489539748953975,
+    "orbit_sizes": [
+      38,
+      19,
+      34,
+      17,
+      52,
+      26,
+      1,
+      1,
+      1,
+      6,
+      6,
+      6,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      2,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      26,
+      13,
+      20,
+      10,
+      10,
+      10,
+      8,
+      4,
+      4,
+      4,
+      4,
+      2,
+      2,
+      2,
+      2,
+      1,
+      1,
+      1,
+      2,
+      1,
+      1,
+      1,
+      6,
+      3,
+      3,
+      6,
+      2,
+      2,
+      2,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      2,
+      2,
+      2,
+      2,
+      1,
+      1,
+      1,
+      3,
+      3,
+      3,
+      3,
+      3,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "orbits": 119,
+    "scope": "Graft attachment orbit canonicalization; no tier0 union, no RipSatEgraph closure proof"
+  },
+  "source_scope": "saved actual native math_mini3 bounded layers; no new execution",
+  "top_orbits": [
+    {
+      "binding": [],
+      "orbit": 0,
+      "rule": "(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")",
+      "size": 38,
+      "slot_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:commutative",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          2
+        ]
+      ],
+      "target_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:commutative",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ]
+    },
+    {
+      "binding": [],
+      "orbit": 1,
+      "rule": "(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")",
+      "size": 19,
+      "slot_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:commutative",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          2
+        ]
+      ],
+      "target_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ]
+      ]
+    },
+    {
+      "binding": [],
+      "orbit": 2,
+      "rule": "(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")",
+      "size": 34,
+      "slot_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:commutative",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          2
+        ]
+      ],
+      "target_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:commutative",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ]
+    },
+    {
+      "binding": [],
+      "orbit": 3,
+      "rule": "(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")",
+      "size": 17,
+      "slot_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:commutative",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          2
+        ]
+      ],
+      "target_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ]
+      ]
+    },
+    {
+      "binding": [],
+      "orbit": 4,
+      "rule": "(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")",
+      "size": 52,
+      "slot_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:commutative",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          2
+        ]
+      ],
+      "target_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:commutative",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ]
+    },
+    {
+      "binding": [],
+      "orbit": 5,
+      "rule": "(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")",
+      "size": 26,
+      "slot_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:commutative",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          2
+        ]
+      ],
+      "target_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ]
+      ]
+    },
+    {
+      "binding": [],
+      "orbit": 9,
+      "rule": "(rule ((= __viz_root (Sub a b)))\n      ((union __viz_root (Add a (Mul (Const -1) b))))\n         :name \"R4\")",
+      "size": 6,
+      "slot_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos0",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos1",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ],
+      "target_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos0",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ]
+    },
+    {
+      "binding": [],
+      "orbit": 10,
+      "rule": "(rule ((= __viz_root (Sub a b)))\n      ((union __viz_root (Add a (Mul (Const -1) b))))\n         :name \"R4\")",
+      "size": 6,
+      "slot_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos0",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos1",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ],
+      "target_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos1",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ]
+    },
+    {
+      "binding": [],
+      "orbit": 11,
+      "rule": "(rule ((= __viz_root (Sub a b)))\n      ((union __viz_root (Add a (Mul (Const -1) b))))\n         :name \"R4\")",
+      "size": 6,
+      "slot_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos0",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos1",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ],
+      "target_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ]
+      ]
+    },
+    {
+      "binding": [],
+      "orbit": 12,
+      "rule": "(rule ((= __viz_root (Mul a (Add b c))))\n      ((union __viz_root (Add (Mul a b) (Mul a c))))\n         :name \"R9\")",
+      "size": 2,
+      "slot_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth1",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:commutative",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          2
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos2",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ],
+      "target_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:commutative",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ]
+    },
+    {
+      "binding": [],
+      "orbit": 19,
+      "rule": "(rule ((= __viz_root (Diff x (Add a b))))\n      ((union __viz_root (Add (Diff x a) (Diff x b))))\n         :name \"R14\")",
+      "size": 2,
+      "slot_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth1",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos0",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos1",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos2",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ],
+      "target_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos0",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ]
+    },
+    {
+      "binding": [],
+      "orbit": 20,
+      "rule": "(rule ((= __viz_root (Diff x (Add a b))))\n      ((union __viz_root (Add (Diff x a) (Diff x b))))\n         :name \"R14\")",
+      "size": 2,
+      "slot_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth1",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos0",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos1",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos2",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ],
+      "target_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos1",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ]
+    },
+    {
+      "binding": [],
+      "orbit": 21,
+      "rule": "(rule ((= __viz_root (Diff x (Add a b))))\n      ((union __viz_root (Add (Diff x a) (Diff x b))))\n         :name \"R14\")",
+      "size": 2,
+      "slot_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth1",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos0",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos1",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos2",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ],
+      "target_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos2",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ]
+    },
+    {
+      "binding": [],
+      "orbit": 22,
+      "rule": "(rule ((= __viz_root (Diff x (Add a b))))\n      ((union __viz_root (Add (Diff x a) (Diff x b))))\n         :name \"R14\")",
+      "size": 2,
+      "slot_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth1",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos0",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos1",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos2",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ],
+      "target_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ]
+      ]
+    },
+    {
+      "binding": [],
+      "orbit": 23,
+      "rule": "(rule ((= __viz_root (Diff x (Add a b))))\n      ((union __viz_root (Add (Diff x a) (Diff x b))))\n         :name \"R14\")",
+      "size": 2,
+      "slot_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth1",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos0",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos1",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos2",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ],
+      "target_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth1",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ]
+      ]
+    },
+    {
+      "binding": [],
+      "orbit": 34,
+      "rule": "(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")",
+      "size": 26,
+      "slot_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:commutative",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          2
+        ]
+      ],
+      "target_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:commutative",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ]
+    },
+    {
+      "binding": [],
+      "orbit": 35,
+      "rule": "(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")",
+      "size": 13,
+      "slot_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:commutative",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          2
+        ]
+      ],
+      "target_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ]
+      ]
+    },
+    {
+      "binding": [],
+      "orbit": 36,
+      "rule": "(rule ((= __viz_root (Add a (Add b c))))\n      ((union __viz_root (Add (Add a b) c)))\n         :name \"R2\")",
+      "size": 20,
+      "slot_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth1",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:commutative",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          2
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos2",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ],
+      "target_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:commutative",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ]
+    },
+    {
+      "binding": [],
+      "orbit": 37,
+      "rule": "(rule ((= __viz_root (Add a (Add b c))))\n      ((union __viz_root (Add (Add a b) c)))\n         :name \"R2\")",
+      "size": 10,
+      "slot_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth1",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:commutative",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          2
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos2",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ],
+      "target_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos2",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ]
+    },
+    {
+      "binding": [],
+      "orbit": 38,
+      "rule": "(rule ((= __viz_root (Add a (Add b c))))\n      ((union __viz_root (Add (Add a b) c)))\n         :name \"R2\")",
+      "size": 10,
+      "slot_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth1",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:commutative",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          2
+        ],
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 0,
+            "role": "var:pos2",
+            "sort": "Math",
+            "upper_degree": 1
+          },
+          1
+        ]
+      ],
+      "target_classes": [
+        [
+          {
+            "alias_class": 0,
+            "lower_degree": 1,
+            "role": "read:depth0",
+            "sort": "Math",
+            "upper_degree": 0
+          },
+          1
+        ]
+      ]
+    }
+  ]
+}

@@ -67,3 +67,22 @@ cargo test --offline --test slotted_canon
 因此两种 canon 压缩的是不同对象：`RipSatEgraph` canon 压缩已验证的局部闭包
 主体；`SlottedCanon` canon 压缩尚未分别 ripen 的边界接入候选。前者决定
 主体存储共享，后者减少 Graft 组合空间。两者不能互相替代。
+
+## math_mini3 实际分析
+
+用已经成功完成的 `math_mini3` bounded native 分析产物
+`out/math-mini3-no-svg/bounded/layers.json` 运行：
+
+```sh
+cargo run --offline --example slotted_canon_math -- \
+  out/math-mini3-no-svg/bounded/layers.json
+```
+
+这次分析的输入包含 102 个 `Comb`、129 个 Apply occurrence、53 个
+`CoarseLayer` 和 40 个 `SmoothLayer`。按实际 CoarseRule 的 input roles
+构造 478 个 Graft attachment candidates，`SlottedCanon` 压成 119 个
+orbit，压缩比例为 24.90%，其中 55 个 orbit 含有多个成员。
+
+完整结果保存在 `experiments/math_mini3/slotted_canon_report.json`。这是对已保存
+native layers 的结构分析，不是一次新的完整 ripen 执行；它也不声称这些
+attachment candidates 都已经实际提交为 Graft。
