@@ -17,3 +17,4 @@ mod graph_render;
 
 pub mod reuse_graph;
 pub mod slotted_canon;
+pub mod slotted_dot;
