@@ -1,0 +1,15 @@
+{
+  "scope": "structural comparison of actual RipSatEgraph body canonicalization and Graft attachment orbit canonicalization; no tier0 union and no speedup claim",
+  "ripsat_canon": {
+    "bodies": 2,
+    "equivalent_bodies": 1,
+    "criterion": "complete saturated typed body equivalence"
+  },
+  "slotted_canon": {
+    "candidates": 3,
+    "orbits": 2,
+    "orbit_sizes": [2, 1],
+    "criterion": "rule, slot classes, target/upper/lower multiplicities, binding shape, residual operator shape"
+  },
+  "interpretation": "two symmetric RipenInput attachment positions share one GraftOrbit; a role/connection asymmetry remains separate"
+}
