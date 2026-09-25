@@ -86,3 +86,14 @@ orbit，压缩比例为 24.90%，其中 55 个 orbit 含有多个成员。
 完整结果保存在 `experiments/math_mini3/slotted_canon_report.json`。这是对已保存
 native layers 的结构分析，不是一次新的完整 ripen 执行；它也不声称这些
 attachment candidates 都已经实际提交为 Graft。
+
+
+## Slotted DOT export
+
+The original slotted implementation exposes `dump()` but does not provide an
+egglog-style DOT file. The local exporter is [slotted_dot.rs](/Users/mineralsteins/Repos/egg_related/egg_layout/src/slotted_dot.rs). It renders e-class slot sets, e-node boxes, AppliedId SlotMap edges, and small proven slot-permutation groups as yellow diamonds. Permutation enumeration is capped at eight slots; larger groups are marked as skipped instead of causing unbounded debug work.
+
+```sh
+cargo run --offline --example slotted_dot > /tmp/slotted.dot
+dot -Tsvg /tmp/slotted.dot -o /tmp/slotted.svg
+```
