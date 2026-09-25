@@ -1,106 +1,168 @@
-//! Graphviz DOT export for the original `slotted-egraphs` data model.
-use slotted_egraphs::{Analysis, AppliedId, EGraph, Language, Slot, SlotMap};
-use std::fmt::Debug;
+//! Read-only DOT export of the original slotted-egraphs engine.
+use slotted_egraphs::{Analysis, AppliedId, EGraph, Language, Slot, SlotMap, SyntaxElem};
 
-fn esc(s: impl AsRef<str>) -> String {
-    s.as_ref()
-        .replace('\\', "\\\\")
-        .replace('"', "\\\"")
-        .replace('\n', "\\n")
+fn quote(s: &str) -> String {
+    serde_json::to_string(s).unwrap()
 }
-fn next_permutation(values: &mut [Slot]) -> bool {
-    if values.len() < 2 {
-        return false;
-    }
-    let mut i = values.len() - 2;
-    while values[i] >= values[i + 1] {
-        if i == 0 {
-            return false;
+fn html(s: &str) -> String {
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+}
+#[derive(Clone, Copy)]
+pub struct DotOptions {
+    /// Debug only. None does not query symmetries. A global budget also applies;
+    /// this never changes canonicalization or bounds native rule execution.
+    pub symmetry_slot_limit: Option<usize>,
+    pub permutation_budget: usize,
+}
+impl Default for DotOptions {
+    fn default() -> Self {
+        Self {
+            symmetry_slot_limit: None,
+            permutation_budget: 0,
         }
-        i -= 1;
     }
-    let mut j = values.len() - 1;
-    while values[j] <= values[i] {
-        j -= 1;
-    }
-    values.swap(i, j);
-    values[i + 1..].reverse();
+}
+fn next_permutation(v: &mut [Slot]) -> bool {
+    let Some(i) = (0..v.len().saturating_sub(1))
+        .rev()
+        .find(|i| v[*i] < v[*i + 1])
+    else {
+        return false;
+    };
+    let j = (i + 1..v.len()).rev().find(|j| v[*j] > v[i]).unwrap();
+    v.swap(i, j);
+    v[i + 1..].reverse();
     true
 }
-fn symmetry_permutations<L, N>(
-    eg: &EGraph<L, N>,
-    id: slotted_egraphs::Id,
-    slots: &[Slot],
-) -> Option<Vec<SlotMap>>
-where
-    L: Language + Debug,
-    N: Analysis<L>,
-{
-    if slots.len() > 8 {
-        return None;
-    }
-    let base = AppliedId::new(id, SlotMap::identity(&eg.slots(id)));
-    let mut current = slots.to_vec();
-    let mut out = vec![];
-    loop {
-        if current != slots {
-            let pairs = slots
-                .iter()
-                .copied()
-                .zip(current.iter().copied())
-                .collect::<Vec<_>>();
-            let map = SlotMap::from_pairs(&pairs);
-            if eg.eq(&base, &AppliedId::new(id, map.clone())) {
-                out.push(map);
-            }
-        }
-        if !next_permutation(&mut current) {
-            break;
-        }
-    }
-    Some(out)
+pub fn to_dot<L: Language, N: Analysis<L>>(eg: &EGraph<L, N>) -> String {
+    to_dot_with_options(eg, DotOptions::default())
 }
-/// Render all live e-classes. Blue clusters are e-classes, gray boxes are
-/// e-nodes, gray edges are AppliedId child mappings, and yellow diamonds are
-/// non-identity slot permutations proven equivalent by the original egraph.
-pub fn to_dot<L, N>(eg: &EGraph<L, N>) -> String
-where
-    L: Language + Debug,
-    N: Analysis<L>,
-{
+/// Every referenced e-class has one explicit anchor inside its cluster. Child
+/// ports carry full formal->actual SlotMaps, including repeated child-class use.
+/// No dependency on recursion depth, so cyclic egraphs also export finitely.
+pub fn to_dot_with_options<L: Language, N: Analysis<L>>(
+    eg: &EGraph<L, N>,
+    options: DotOptions,
+) -> String {
     let mut out = String::from(
-        "digraph SlottedEGraph {\n  rankdir=TB;\n  graph [pad=0.2, nodesep=0.25, ranksep=0.55];\n  node [fontname=Helvetica, fontsize=10];\n",
+        "digraph SlottedEGraph {\nrankdir=TB; graph [compound=true]; node [fontname=Helvetica,fontsize=10];\n",
     );
-    for id in eg.ids() {
+    let mut edges = String::new();
+    let mut budget = options.permutation_budget;
+    let mut ids = eg.ids();
+    ids.sort();
+    for id in ids {
         let mut slots = eg.slots(id).into_iter().collect::<Vec<_>>();
         slots.sort();
-        out.push_str(&format!("  subgraph cluster_eclass_{} {{\n    color=\"#4c78a8\"; style=rounded; label=\"EClass {:?} slots {{{}}}\";\n",id.0,id,esc(slots.iter().map(ToString::to_string).collect::<Vec<_>>().join(", "))));
+        let label = format!(
+            "EClass {} ({})",
+            id.0,
+            slots
+                .iter()
+                .map(ToString::to_string)
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
+        out += &format!(
+            "subgraph cluster_eclass_{} {{ style=\"rounded,dashed\"; color=\"#4c78a8\"; label={};\n",
+            id.0,
+            quote(&label)
+        );
+        out += &format!("eclass_{} [shape=point,width=0.04,label=\"\"];\n", id.0);
         let mut nodes = eg.enodes(id).into_iter().collect::<Vec<_>>();
-        nodes.sort_by_key(|n| format!("{n:?}"));
-        for (index, node) in nodes.iter().enumerate() {
-            let node_id = format!("e{}_{}", id.0, index);
-            out.push_str(&format!(
-                "    {node_id} [shape=box, style=filled, fillcolor=\"#eeeeee\", label=\"{}\"];\n",
-                esc(format!("{node:?}"))
-            ));
-            for child in node.applied_id_occurrences() {
-                let found = eg.find_applied_id(child);
-                let child_id = format!("eclass_{}", found.id.0);
-                out.push_str(&format!(
-                    "    {node_id} -> {child_id} [label=\"{}\", color=\"#555555\"];\n",
-                    esc(format!("{:?}", found.m))
-                ));
+        nodes.sort();
+        for (i, node) in nodes.iter().enumerate() {
+            let nid = format!("e{}_{}", id.0, i);
+            let syntax = node.to_syntax();
+            let labels: Vec<_> = syntax
+                .iter()
+                .filter_map(|s| match s {
+                    SyntaxElem::String(s) => {
+                        if let Ok(meta) = serde_json::from_str::<serde_json::Value>(s) {
+                            if let Some(rule) = meta["rule"].as_str() {
+                                return Some(rule.lines().next().unwrap_or(rule).to_string());
+                            }
+                        }
+                        Some(s.clone())
+                    }
+                    SyntaxElem::Slot(s) => Some(s.to_string()),
+                    _ => None,
+                })
+                .collect();
+            out += &format!(
+                "{nid} [shape=plain,tooltip={},label=<<TABLE BORDER=\"1\" CELLBORDER=\"0\" CELLSPACING=\"0\"><TR><TD BGCOLOR=\"#eeeeee\">{}</TD></TR>",
+                quote(&labels.join(" ")),
+                html(&labels.join(" "))
+            );
+            for (p, child) in node.applied_id_occurrences().iter().enumerate() {
+                let child = eg.find_applied_id(child);
+                let label = child
+                    .m
+                    .iter()
+                    .map(|(a, b)| format!("{a} → {b}"))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                out += &format!(
+                    "<TR><TD PORT=\"p{p}\" BGCOLOR=\"#f5f5f5\">arg {p}: ({})</TD></TR>",
+                    html(&label)
+                );
+                edges += &format!("{nid}:p{p} -> eclass_{} [label=\"{p}\"];\n", child.id.0);
             }
+            out += "</TABLE>>];\n";
         }
-        match symmetry_permutations(eg,id,&slots) {
-            Some(perms)=>{
-                let anchor=format!("class_anchor_{}",id.0);out.push_str(&format!("    {anchor} [shape=point, width=0.05, label=\"\"];\n"));
-                for (i,perm) in perms.iter().enumerate(){let p=format!("perm_{}_{}",id.0,i);out.push_str(&format!("    {p} [shape=diamond, style=filled, fillcolor=\"#f6d55c\", label=\"{}\"];\n",esc(format!("perm {:?}",perm))));out.push_str(&format!("    {anchor} -> {p} [dir=none, style=dashed, color=\"#c28e00\"];\n"));}
+        if let Some(limit) = options.symmetry_slot_limit {
+            let mut tested = 0;
+            let mut accepted = 0;
+            let mut complete = false;
+            if slots.len() <= limit {
+                let base = AppliedId::new(id, SlotMap::identity(&eg.slots(id)));
+                let mut permutation = slots.clone();
+                complete = true;
+                while next_permutation(&mut permutation) {
+                    if budget == 0 {
+                        complete = false;
+                        break;
+                    }
+                    budget -= 1;
+                    tested += 1;
+                    let map: SlotMap = slots
+                        .iter()
+                        .copied()
+                        .zip(permutation.iter().copied())
+                        .collect();
+                    if eg.eq(&base, &AppliedId::new(id, map.clone())) {
+                        out += &format!(
+                            "perm_{}_{accepted} [shape=diamond,color=\"#c28e00\",label={}];\n",
+                            id.0,
+                            quote(&format!("{map:?}"))
+                        );
+                        edges += &format!(
+                            "eclass_{} -> perm_{}_{accepted} [dir=none,style=dashed];\n",
+                            id.0, id.0
+                        );
+                        accepted += 1;
+                    }
+                }
             }
-            None=>out.push_str(&format!("    group_note_{} [shape=note, label=\"symmetry enumeration skipped: {} slots\"];\n",id.0,slots.len())),
+            out += &format!(
+                "symmetry_{} [shape=note,label={}];\n",
+                id.0,
+                quote(&format!(
+                    "symmetry: {accepted} nonidentity / {tested} tested; {}",
+                    if complete {
+                        "complete"
+                    } else {
+                        "incomplete/skipped"
+                    }
+                ))
+            );
         }
-        out.push_str("  }\n");
+        out += "}\n";
     }
-    out.push_str("  legend [shape=note, label=\"blue cluster = e-class\\ngray box = slotted e-node\\ngray edge = AppliedId SlotMap\\nyellow diamond = proven non-identity slot permutation\"];\n}\n");
+    out += &edges;
+    out += "legend [shape=note,label=\"dashed cluster: e-class with formal slots\\nargument box: AppliedId formal -> actual SlotMap\\nsame child class may have different argument maps\\nno symmetry enumeration by default\"];\n}\n";
     out
 }

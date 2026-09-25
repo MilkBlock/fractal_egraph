@@ -97,3 +97,63 @@ egglog-style DOT file. The local exporter is [slotted_dot.rs](/Users/mineralstei
 cargo run --offline --example slotted_dot > /tmp/slotted.dot
 dot -Tsvg /tmp/slotted.dot -o /tmp/slotted.svg
 ```
+
+## 主线接入与 math_mini3 三轮结果（2026-09-25）
+
+主线 `analyze` 现在在启用图输出时，额外生成：
+
+- `slotted-canon.json`：原版 slotted-egraphs 的 alpha-normalized Apply 类、实例 SlotMap、CoarseLayer/SmoothLayer 和 Grafting coarse rule 标记；
+- `slotted-canon.dsl`：可读的调试 DSL；
+- `slotted-canon.dot`：CoarseLayer、SmoothLayer、Apply、slotted class 与 Grafting 标记；
+- `slotted-egraph.dot`：原版 slotted egraph 的 e-class、AppliedId SlotMap 和 slot symmetry 图。
+
+编码直接使用锁定版本 `slotted-egraphs = 0.0.36` 的 `EGraph`、`AppliedId`、`SlotMap`、`Language` 和 alpha-normalized `weak_shape`。观察到的 Apply DAG 以 parent `AppliedId` 引用保存，不递归展开完整父树，因此 10 层以上的结构不会因为 DOT 标签重复打印而爆栈。Concrete event、CoarseLayer ID 和 runtime fact ID 不进入 slotted class identity；完整实例证据仍保存在 JSON。
+
+`math_mini3` 使用真实 native 分析，`(run 3)`，50 ms / 200K facts ripen observation，单线程并把 Rust stack 提升到 32 MiB 以容纳当前深层观察。结果：
+
+| 指标 | 数量 |
+|---|---:|
+| Apply applications | 129 |
+| CoarseLayer | 53 |
+| SmoothLayer | 40 |
+| slotted e-class / enode | 102 / 102 |
+| Apply classes | 102 |
+| Grafting coarse applications | 18 |
+| Grafting classes | 18 |
+| shared Graft classes | 0 |
+| concrete instance SlotMap entries | 1825 |
+
+这次完整 Apply DAG 的严格 slotted class key 保留了 rule text、输入/输出 role、RelativeBinding、parent AppliedId 结构、boundary restart 和 typed token/effect fields。因此 18 个 Grafting coarse applications 在当前严格 DSL 中全部保持独立；没有把“同名 Add/Mul”错误合并成共享 Graft。之前浅层 role signature 得到的 orbit 数量不能作为主线结果，已降级为候选过滤实验。
+
+主线 DSL 的核心形式是：
+
+```text
+(class C {
+  rule: original CoarseRule/SmoothRule text,
+  parents: [AppliedId ...],
+  slots: [typed token/effect slot ...],
+  binding: RelativeBinding,
+  boundary_restart: bool
+})
+(instance Apply {
+  class: C,
+  CoarseLayer: Cn,
+  SmoothLayer: Sn?,
+  parent AppliedId references,
+  concrete SlotMap,
+  grafting_coarse_rule: bool
+})
+```
+
+它是调试 DSL，不是可执行 `.egg` 规则，也不把 slotted class 等价直接提交为 tier0 union。`RipSatEgraph` 完整主体判等仍然独立执行；slotted class 只表达观察到的参数化 Apply DAG 结构。
+
+复现：
+
+```sh
+RUST_MIN_STACK=33554432 EGG_LAYOUT_ANALYSIS_THREADS=1 \
+  cargo run --release --offline -- analyze \
+  --source experiments/math_mini3/source.egg --output out/math-mini-slotted \
+  --save-history --ripen-observe-ms 50 --ripen-observe-facts 200000
+```
+
+若不设置 `RUST_MIN_STACK`，深层三轮分析可能在最终 slotted export 或 native ripen 清理阶段触发默认线程栈限制；这不是把观察前缀宣布为饱和，也不是 slotted canonicalization 正确性失败。输出目录中的四个 slotted 文件分别用于 DSL、Coarse/Smooth/Graft 图和原版 slotted egraph 图。

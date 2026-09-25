@@ -1,0 +1,566 @@
+digraph SlottedLayers {
+rankdir=TB; graph [compound=true]; node [fontname=Helvetica];
+subgraph cluster_c0 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 0 ($f0, $f1, $f2, $f3, $f4)\n6 Apply / 0 Graft";
+c0 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i0 [shape=ellipse,label="Apply 0 / CoarseLayer 0 / SmoothLayer null"]; i0 -> c0 [style=dotted,label="instance SlotMap (see JSON)"];
+i1 [shape=ellipse,label="Apply 1 / CoarseLayer 1 / SmoothLayer null"]; i1 -> c0 [style=dotted,label="instance SlotMap (see JSON)"];
+i3 [shape=ellipse,label="Apply 3 / CoarseLayer 3 / SmoothLayer null"]; i3 -> c0 [style=dotted,label="instance SlotMap (see JSON)"];
+i4 [shape=ellipse,label="Apply 4 / CoarseLayer 4 / SmoothLayer null"]; i4 -> c0 [style=dotted,label="instance SlotMap (see JSON)"];
+i5 [shape=ellipse,label="Apply 5 / CoarseLayer 5 / SmoothLayer null"]; i5 -> c0 [style=dotted,label="instance SlotMap (see JSON)"];
+i6 [shape=ellipse,label="Apply 6 / CoarseLayer 6 / SmoothLayer null"]; i6 -> c0 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c1 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 1 ($f5, $f6, $f7)\n1 Apply / 0 Graft";
+c1 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i2 [shape=ellipse,label="Apply 2 / CoarseLayer 2 / SmoothLayer null"]; i2 -> c1 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c2 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 2 ($f8, $f9, $f10, $f11, $f12)\n5 Apply / 0 Graft";
+c2 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i7 [shape=ellipse,label="Apply 7 / CoarseLayer 7 / SmoothLayer null"]; i7 -> c2 [style=dotted,label="instance SlotMap (see JSON)"];
+i8 [shape=ellipse,label="Apply 8 / CoarseLayer 8 / SmoothLayer null"]; i8 -> c2 [style=dotted,label="instance SlotMap (see JSON)"];
+i9 [shape=ellipse,label="Apply 9 / CoarseLayer 9 / SmoothLayer null"]; i9 -> c2 [style=dotted,label="instance SlotMap (see JSON)"];
+i10 [shape=ellipse,label="Apply 10 / CoarseLayer 10 / SmoothLayer null"]; i10 -> c2 [style=dotted,label="instance SlotMap (see JSON)"];
+i101 [shape=ellipse,label="Apply 101 / CoarseLayer 35 / SmoothLayer null"]; i101 -> c2 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c3 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 3 ($f13, $f14, $f15, $f16, $f17, $f18, $f19, $f20, $f21, $f22)\n1 Apply / 0 Graft";
+c3 [shape=box,label="(rule ((= __viz_root (Sub a b)))\n      ((union __viz_root (Add a (Mul (Const -1) b))))\n         :name \"R4\")"];
+i11 [shape=ellipse,label="Apply 11 / CoarseLayer 11 / SmoothLayer null"]; i11 -> c3 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c4 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 4 ($f23, $f24, $f25, $f26, $f27, $f28, $f29, $f30)\n3 Apply / 0 Graft";
+c4 [shape=box,label="(rule ((= __viz_root (Sub a b)))\n      ((union __viz_root (Add a (Mul (Const -1) b))))\n         :name \"R4\")"];
+i12 [shape=ellipse,label="Apply 12 / CoarseLayer 12 / SmoothLayer null"]; i12 -> c4 [style=dotted,label="instance SlotMap (see JSON)"];
+i13 [shape=ellipse,label="Apply 13 / CoarseLayer 13 / SmoothLayer null"]; i13 -> c4 [style=dotted,label="instance SlotMap (see JSON)"];
+i14 [shape=ellipse,label="Apply 14 / CoarseLayer 14 / SmoothLayer null"]; i14 -> c4 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c5 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 5 ($f31, $f32, $f33, $f34, $f35, $f36, $f37, $f38, $f39, $f40)\n1 Apply / 0 Graft";
+c5 [shape=box,label="(rule ((= __viz_root (Mul a (Add b c))))\n      ((union __viz_root (Add (Mul a b) (Mul a c))))\n         :name \"R9\")"];
+i15 [shape=ellipse,label="Apply 15 / CoarseLayer 15 / SmoothLayer null"]; i15 -> c5 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c6 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 6 ($f41, $f42, $f43, $f44, $f45)\n1 Apply / 0 Graft";
+c6 [shape=box,label="(rule ((= __viz_root (Pow x (Const 2))))\n      ((union __viz_root (Mul x x)))\n         :name \"R13\")"];
+i16 [shape=ellipse,label="Apply 16 / CoarseLayer 16 / SmoothLayer null"]; i16 -> c6 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c7 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 7 ($f46, $f47, $f48, $f49, $f50, $f51, $f52, $f53, $f54, $f55, $f56)\n1 Apply / 0 Graft";
+c7 [shape=box,label="(rule ((= __viz_root (Diff x (Add a b))))\n      ((union __viz_root (Add (Diff x a) (Diff x b))))\n         :name \"R14\")"];
+i17 [shape=ellipse,label="Apply 17 / CoarseLayer 17 / SmoothLayer null"]; i17 -> c7 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c8 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 8 ($f57, $f58, $f59, $f60, $f61, $f62, $f63, $f64, $f65, $f66)\n1 Apply / 0 Graft";
+c8 [shape=box,label="(rule ((= __viz_root (Integral (Add f g) x)))\n      ((union __viz_root (Add (Integral f x) (Integral g x))))\n         :name \"R21\")"];
+i18 [shape=ellipse,label="Apply 18 / CoarseLayer 18 / SmoothLayer null"]; i18 -> c8 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c9 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 9 ($f67, $f68, $f69, $f70, $f71, $f72, $f73, $f74, $f75, $f76, $f77, $f78, $f79, $f80, $f81)\n1 Apply / 0 Graft";
+c9 [shape=box,label="(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")"];
+i19 [shape=ellipse,label="Apply 19 / CoarseLayer 19 / SmoothLayer null"]; i19 -> c9 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c10 { style="rounded,dashed"; color="#43864b"; label="Slotted class 10 ($f82, $f83, $f84, $f85, $f86)\n6 Apply / 0 Graft";
+c10 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i20 [shape=ellipse,label="Apply 20 / CoarseLayer 6 / SmoothLayer 0"]; i20 -> c10 [style=dotted,label="instance SlotMap (see JSON)"];
+i23 [shape=ellipse,label="Apply 23 / CoarseLayer 1 / SmoothLayer 3"]; i23 -> c10 [style=dotted,label="instance SlotMap (see JSON)"];
+i24 [shape=ellipse,label="Apply 24 / CoarseLayer 0 / SmoothLayer 4"]; i24 -> c10 [style=dotted,label="instance SlotMap (see JSON)"];
+i28 [shape=ellipse,label="Apply 28 / CoarseLayer 3 / SmoothLayer 8"]; i28 -> c10 [style=dotted,label="instance SlotMap (see JSON)"];
+i31 [shape=ellipse,label="Apply 31 / CoarseLayer 5 / SmoothLayer 11"]; i31 -> c10 [style=dotted,label="instance SlotMap (see JSON)"];
+i32 [shape=ellipse,label="Apply 32 / CoarseLayer 4 / SmoothLayer 12"]; i32 -> c10 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c11 { style="rounded,dashed"; color="#43864b"; label="Slotted class 11 ($f87, $f88, $f89, $f90, $f91, $f92, $f93, $f94, $f95, $f96, $f97)\n1 Apply / 0 Graft";
+c11 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i21 [shape=ellipse,label="Apply 21 / CoarseLayer 11 / SmoothLayer 1"]; i21 -> c11 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c12 { style="rounded,dashed"; color="#43864b"; label="Slotted class 12 ($f98, $f99, $f100, $f101, $f102, $f103, $f104, $f105, $f106, $f107, $f108)\n1 Apply / 0 Graft";
+c12 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i22 [shape=ellipse,label="Apply 22 / CoarseLayer 15 / SmoothLayer 2"]; i22 -> c12 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c13 { style="rounded,dashed"; color="#43864b"; label="Slotted class 13 ($f109, $f110, $f111, $f112, $f113, $f114, $f115, $f116, $f117)\n3 Apply / 0 Graft";
+c13 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i25 [shape=ellipse,label="Apply 25 / CoarseLayer 12 / SmoothLayer 5"]; i25 -> c13 [style=dotted,label="instance SlotMap (see JSON)"];
+i27 [shape=ellipse,label="Apply 27 / CoarseLayer 14 / SmoothLayer 7"]; i27 -> c13 [style=dotted,label="instance SlotMap (see JSON)"];
+i29 [shape=ellipse,label="Apply 29 / CoarseLayer 13 / SmoothLayer 9"]; i29 -> c13 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c14 { style="rounded,dashed"; color="#43864b"; label="Slotted class 14 ($f118, $f119, $f120, $f121, $f122, $f123, $f124, $f125, $f126, $f127, $f128)\n1 Apply / 0 Graft";
+c14 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i26 [shape=ellipse,label="Apply 26 / CoarseLayer 18 / SmoothLayer 6"]; i26 -> c14 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c15 { style="rounded,dashed"; color="#43864b"; label="Slotted class 15 ($f129, $f130, $f131, $f132, $f133, $f134, $f135, $f136, $f137, $f138, $f139, $f140)\n1 Apply / 0 Graft";
+c15 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i30 [shape=ellipse,label="Apply 30 / CoarseLayer 17 / SmoothLayer 10"]; i30 -> c15 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c16 { style="rounded,dashed"; color="#43864b"; label="Slotted class 16 ($f141, $f142, $f143, $f144, $f145)\n1 Apply / 0 Graft";
+c16 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i33 [shape=ellipse,label="Apply 33 / CoarseLayer 16 / SmoothLayer 13"]; i33 -> c16 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c17 { style="rounded,dashed"; color="#43864b"; label="Slotted class 17 ($f146, $f147, $f148, $f149, $f150)\n4 Apply / 0 Graft";
+c17 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i34 [shape=ellipse,label="Apply 34 / CoarseLayer 7 / SmoothLayer 14"]; i34 -> c17 [style=dotted,label="instance SlotMap (see JSON)"];
+i36 [shape=ellipse,label="Apply 36 / CoarseLayer 8 / SmoothLayer 16"]; i36 -> c17 [style=dotted,label="instance SlotMap (see JSON)"];
+i39 [shape=ellipse,label="Apply 39 / CoarseLayer 10 / SmoothLayer 17"]; i39 -> c17 [style=dotted,label="instance SlotMap (see JSON)"];
+i41 [shape=ellipse,label="Apply 41 / CoarseLayer 9 / SmoothLayer 18"]; i41 -> c17 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c18 { style="rounded,dashed"; color="#43864b"; label="Slotted class 18 ($f151, $f152, $f153, $f154, $f155, $f156, $f157, $f158, $f159, $f160, $f161, $f162, $f163, $f164, $f165, $f166)\n1 Apply / 0 Graft";
+c18 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i35 [shape=ellipse,label="Apply 35 / CoarseLayer 19 / SmoothLayer 15"]; i35 -> c18 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c19 { style="rounded,dashed"; color="#43864b"; label="Slotted class 19 ($f167, $f168, $f169, $f170, $f171, $f172, $f173, $f174, $f175)\n3 Apply / 0 Graft";
+c19 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i37 [shape=ellipse,label="Apply 37 / CoarseLayer 14 / SmoothLayer 7"]; i37 -> c19 [style=dotted,label="instance SlotMap (see JSON)"];
+i43 [shape=ellipse,label="Apply 43 / CoarseLayer 13 / SmoothLayer 9"]; i43 -> c19 [style=dotted,label="instance SlotMap (see JSON)"];
+i44 [shape=ellipse,label="Apply 44 / CoarseLayer 12 / SmoothLayer 5"]; i44 -> c19 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c20 { style="rounded,dashed"; color="#43864b"; label="Slotted class 20 ($f176, $f177, $f178, $f179, $f180, $f181, $f182, $f183, $f184, $f185, $f186, $f187, $f188, $f189, $f190, $f191)\n1 Apply / 0 Graft";
+c20 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i38 [shape=ellipse,label="Apply 38 / CoarseLayer 19 / SmoothLayer 15"]; i38 -> c20 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c21 { style="rounded,dashed"; color="#43864b"; label="Slotted class 21 ($f192, $f193, $f194, $f195, $f196, $f197, $f198, $f199, $f200, $f201, $f202)\n1 Apply / 0 Graft";
+c21 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i40 [shape=ellipse,label="Apply 40 / CoarseLayer 11 / SmoothLayer 1"]; i40 -> c21 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c22 { style="rounded,dashed"; color="#43864b"; label="Slotted class 22 ($f203, $f204, $f205, $f206, $f207, $f208, $f209, $f210, $f211, $f212, $f213)\n1 Apply / 0 Graft";
+c22 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i42 [shape=ellipse,label="Apply 42 / CoarseLayer 15 / SmoothLayer 2"]; i42 -> c22 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c23 { style="rounded,dashed"; color="#43864b"; label="Slotted class 23 ($f214, $f215, $f216, $f217, $f218, $f219, $f220, $f221, $f222, $f223)\n1 Apply / 0 Graft";
+c23 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i45 [shape=ellipse,label="Apply 45 / CoarseLayer 15 / SmoothLayer 2"]; i45 -> c23 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c24 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 24 ($f224, $f225, $f226, $f227, $f228, $f229, $f230, $f231, $f232, $f233, $f234, $f235, $f236, $f237)\n1 Apply / 1 Graft";
+c24 [shape=box,label="(rule ((= __viz_root (Add a (Add b c))))\n      ((union __viz_root (Add (Add a b) c)))\n         :name \"R2\")"];
+i46 [shape=ellipse,label="Apply 46 / CoarseLayer 20 / SmoothLayer null"]; i46 -> c24 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c25 { style="rounded,dashed"; color="#43864b"; label="Slotted class 25 ($f238, $f239, $f240, $f241, $f242, $f243, $f244, $f245, $f246, $f247, $f248, $f249, $f250, $f251, $f252, $f253, $f254)\n1 Apply / 0 Graft";
+c25 [shape=box,label="(rule ((= __viz_root (Add a (Add b c))))\n      ((union __viz_root (Add (Add a b) c)))\n         :name \"R2\")"];
+i47 [shape=ellipse,label="Apply 47 / CoarseLayer 21 / SmoothLayer 19"]; i47 -> c25 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c26 { style="rounded,dashed"; color="#43864b"; label="Slotted class 26 ($f255, $f256, $f257, $f258, $f259, $f260, $f261, $f262, $f263, $f264, $f265, $f266, $f267, $f268, $f269, $f270, $f271)\n1 Apply / 0 Graft";
+c26 [shape=box,label="(rule ((= __viz_root (Mul a (Mul b c))))\n      ((union __viz_root (Mul (Mul a b) c)))\n         :name \"R3\")"];
+i48 [shape=ellipse,label="Apply 48 / CoarseLayer 22 / SmoothLayer 20"]; i48 -> c26 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c27 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 27 ($f272, $f273, $f274, $f275, $f276, $f277, $f278, $f279, $f280, $f281, $f282)\n1 Apply / 1 Graft";
+c27 [shape=box,label="(rule ((= __viz_root (Mul a (Mul b c))))\n      ((union __viz_root (Mul (Mul a b) c)))\n         :name \"R3\")"];
+i49 [shape=ellipse,label="Apply 49 / CoarseLayer 23 / SmoothLayer null"]; i49 -> c27 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c28 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 28 ($f283, $f284, $f285, $f286, $f287, $f288, $f289, $f290, $f291, $f292, $f293, $f294, $f295, $f296, $f297, $f298)\n1 Apply / 1 Graft";
+c28 [shape=box,label="(rule ((= __viz_root (Mul a (Mul b c))))\n      ((union __viz_root (Mul (Mul a b) c)))\n         :name \"R3\")"];
+i50 [shape=ellipse,label="Apply 50 / CoarseLayer 24 / SmoothLayer null"]; i50 -> c28 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c29 { style="rounded,dashed"; color="#43864b"; label="Slotted class 29 ($f299, $f300, $f301, $f302, $f303, $f304, $f305, $f306, $f307, $f308, $f309, $f310, $f311, $f312, $f313, $f314, $f315, $f316, $f317)\n1 Apply / 0 Graft";
+c29 [shape=box,label="(rule ((= __viz_root (Sub a b)))\n      ((union __viz_root (Add a (Mul (Const -1) b))))\n         :name \"R4\")"];
+i51 [shape=ellipse,label="Apply 51 / CoarseLayer 19 / SmoothLayer 15"]; i51 -> c29 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c30 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 30 ($f318, $f319, $f320, $f321, $f322, $f323, $f324, $f325, $f326)\n1 Apply / 1 Graft";
+c30 [shape=box,label="(rule ((= __viz_root (Mul a (Add b c))))\n      ((union __viz_root (Add (Mul a b) (Mul a c))))\n         :name \"R9\")"];
+i52 [shape=ellipse,label="Apply 52 / CoarseLayer 25 / SmoothLayer null"]; i52 -> c30 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c31 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 31 ($f327, $f328, $f329, $f330, $f331, $f332, $f333, $f334, $f335, $f336, $f337, $f338, $f339)\n1 Apply / 1 Graft";
+c31 [shape=box,label="(rule ((= __viz_root (Mul a (Add b c))))\n      ((union __viz_root (Add (Mul a b) (Mul a c))))\n         :name \"R9\")"];
+i53 [shape=ellipse,label="Apply 53 / CoarseLayer 26 / SmoothLayer null"]; i53 -> c31 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c32 { style="rounded,dashed"; color="#43864b"; label="Slotted class 32 ($f340, $f341, $f342, $f343, $f344, $f345, $f346, $f347, $f348, $f349, $f350)\n1 Apply / 0 Graft";
+c32 [shape=box,label="(rule ((= __viz_root (Add (Mul a b) (Mul a c))))\n      ((union __viz_root (Mul a (Add b c))))\n         :name \"R10\")"];
+i54 [shape=ellipse,label="Apply 54 / CoarseLayer 15 / SmoothLayer 2"]; i54 -> c32 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c33 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 33 ($f351, $f352, $f353, $f354, $f355, $f356, $f357, $f358, $f359, $f360)\n1 Apply / 1 Graft";
+c33 [shape=box,label="(rule ((= __viz_root (Diff x (Add a b))))\n      ((union __viz_root (Add (Diff x a) (Diff x b))))\n         :name \"R14\")"];
+i55 [shape=ellipse,label="Apply 55 / CoarseLayer 27 / SmoothLayer null"]; i55 -> c33 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c34 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 34 ($f361, $f362, $f363, $f364, $f365, $f366, $f367, $f368, $f369, $f370, $f371, $f372, $f373, $f374, $f375, $f376, $f377, $f378)\n1 Apply / 1 Graft";
+c34 [shape=box,label="(rule ((= __viz_root (Diff x (Add a b))))\n      ((union __viz_root (Add (Diff x a) (Diff x b))))\n         :name \"R14\")"];
+i56 [shape=ellipse,label="Apply 56 / CoarseLayer 28 / SmoothLayer null"]; i56 -> c34 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c35 { style="rounded,dashed"; color="#43864b"; label="Slotted class 35 ($f379, $f380, $f381, $f382, $f383, $f384, $f385, $f386, $f387, $f388, $f389, $f390, $f391, $f392, $f393, $f394, $f395, $f396, $f397, $f398, $f399, $f400, $f401)\n1 Apply / 0 Graft";
+c35 [shape=box,label="(rule ((= __viz_root (Diff x (Mul a b))))\n      ((union __viz_root (Add (Mul a (Diff x b)) (Mul b (Diff x a)))))\n         :name \"R15\")"];
+i57 [shape=ellipse,label="Apply 57 / CoarseLayer 29 / SmoothLayer 21"]; i57 -> c35 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c36 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 36 ($f402, $f403, $f404, $f405, $f406, $f407, $f408, $f409, $f410, $f411, $f412, $f413, $f414, $f415, $f416, $f417)\n1 Apply / 1 Graft";
+c36 [shape=box,label="(rule ((= __viz_root (Diff x (Mul a b))))\n      ((union __viz_root (Add (Mul a (Diff x b)) (Mul b (Diff x a)))))\n         :name \"R15\")"];
+i58 [shape=ellipse,label="Apply 58 / CoarseLayer 30 / SmoothLayer null"]; i58 -> c36 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c37 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 37 ($f418, $f419, $f420, $f421, $f422, $f423, $f424, $f425, $f426, $f427, $f428, $f429, $f430, $f431, $f432, $f433, $f434, $f435, $f436, $f437)\n1 Apply / 1 Graft";
+c37 [shape=box,label="(rule ((= __viz_root (Diff x (Cos x))))\n      ((union __viz_root (Mul (Const -1) (Sin x))))\n         :name \"R17\")"];
+i59 [shape=ellipse,label="Apply 59 / CoarseLayer 31 / SmoothLayer null"]; i59 -> c37 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c38 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 38 ($f438, $f439, $f440, $f441, $f442, $f443, $f444, $f445, $f446, $f447, $f448)\n1 Apply / 1 Graft";
+c38 [shape=box,label="(rule ((= __viz_root (Integral (Cos x) x)))\n      ((union __viz_root (Sin x)))\n         :name \"R19\")"];
+i60 [shape=ellipse,label="Apply 60 / CoarseLayer 32 / SmoothLayer null"]; i60 -> c38 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c39 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 39 ($f449, $f450, $f451, $f452, $f453, $f454, $f455, $f456, $f457)\n1 Apply / 1 Graft";
+c39 [shape=box,label="(rule ((= __viz_root (Integral (Add f g) x)))\n      ((union __viz_root (Add (Integral f x) (Integral g x))))\n         :name \"R21\")"];
+i61 [shape=ellipse,label="Apply 61 / CoarseLayer 33 / SmoothLayer null"]; i61 -> c39 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c40 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 40 ($f458, $f459, $f460, $f461, $f462, $f463, $f464, $f465, $f466, $f467, $f468, $f469, $f470, $f471, $f472, $f473)\n1 Apply / 1 Graft";
+c40 [shape=box,label="(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")"];
+i62 [shape=ellipse,label="Apply 62 / CoarseLayer 34 / SmoothLayer null"]; i62 -> c40 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c41 { style="rounded,dashed"; color="#43864b"; label="Slotted class 41 ($f474, $f475, $f476, $f477, $f478, $f479, $f480, $f481, $f482, $f483, $f484, $f485, $f486, $f487, $f488, $f489, $f490, $f491, $f492, $f493, $f494, $f495, $f496, $f497, $f498, $f499)\n1 Apply / 0 Graft";
+c41 [shape=box,label="(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")"];
+i63 [shape=ellipse,label="Apply 63 / CoarseLayer 19 / SmoothLayer 15"]; i63 -> c41 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c42 { style="rounded,dashed"; color="#43864b"; label="Slotted class 42 ($f500, $f501, $f502, $f503, $f504, $f505, $f506, $f507, $f508, $f509, $f510, $f511, $f512, $f513, $f514)\n1 Apply / 0 Graft";
+c42 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i64 [shape=ellipse,label="Apply 64 / CoarseLayer 20 / SmoothLayer 22"]; i64 -> c42 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c43 { style="rounded,dashed"; color="#43864b"; label="Slotted class 43 ($f515, $f516, $f517, $f518, $f519, $f520, $f521, $f522, $f523, $f524, $f525)\n1 Apply / 0 Graft";
+c43 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i65 [shape=ellipse,label="Apply 65 / CoarseLayer 15 / SmoothLayer 2"]; i65 -> c43 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c44 { style="rounded,dashed"; color="#43864b"; label="Slotted class 44 ($f526, $f527, $f528, $f529, $f530, $f531, $f532, $f533, $f534)\n3 Apply / 0 Graft";
+c44 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i66 [shape=ellipse,label="Apply 66 / CoarseLayer 13 / SmoothLayer 9"]; i66 -> c44 [style=dotted,label="instance SlotMap (see JSON)"];
+i68 [shape=ellipse,label="Apply 68 / CoarseLayer 12 / SmoothLayer 5"]; i68 -> c44 [style=dotted,label="instance SlotMap (see JSON)"];
+i75 [shape=ellipse,label="Apply 75 / CoarseLayer 14 / SmoothLayer 7"]; i75 -> c44 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c45 { style="rounded,dashed"; color="#43864b"; label="Slotted class 45 ($f535, $f536, $f537, $f538, $f539, $f540, $f541, $f542, $f543, $f544, $f545, $f546, $f547, $f548, $f549, $f550, $f551, $f552)\n1 Apply / 0 Graft";
+c45 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i67 [shape=ellipse,label="Apply 67 / CoarseLayer 21 / SmoothLayer 19"]; i67 -> c45 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c46 { style="rounded,dashed"; color="#43864b"; label="Slotted class 46 ($f553, $f554, $f555, $f556, $f557, $f558, $f559, $f560, $f561, $f562, $f563)\n1 Apply / 0 Graft";
+c46 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i69 [shape=ellipse,label="Apply 69 / CoarseLayer 18 / SmoothLayer 6"]; i69 -> c46 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c47 { style="rounded,dashed"; color="#43864b"; label="Slotted class 47 ($f564, $f565, $f566, $f567, $f568, $f569, $f570, $f571, $f572, $f573, $f574, $f575, $f576, $f577, $f578, $f579, $f580, $f581, $f582, $f583, $f584, $f585, $f586)\n1 Apply / 0 Graft";
+c47 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i70 [shape=ellipse,label="Apply 70 / CoarseLayer 29 / SmoothLayer 21"]; i70 -> c47 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c48 { style="rounded,dashed"; color="#43864b"; label="Slotted class 48 ($f587, $f588, $f589, $f590, $f591, $f592, $f593, $f594, $f595, $f596, $f597, $f598, $f599)\n1 Apply / 0 Graft";
+c48 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i71 [shape=ellipse,label="Apply 71 / CoarseLayer 26 / SmoothLayer 23"]; i71 -> c48 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c49 { style="rounded,dashed"; color="#43864b"; label="Slotted class 49 ($f600, $f601, $f602, $f603, $f604, $f605, $f606, $f607, $f608, $f609, $f610, $f611, $f612, $f613, $f614, $f615)\n1 Apply / 0 Graft";
+c49 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i72 [shape=ellipse,label="Apply 72 / CoarseLayer 30 / SmoothLayer 24"]; i72 -> c49 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c50 { style="rounded,dashed"; color="#43864b"; label="Slotted class 50 ($f616, $f617, $f618, $f619, $f620, $f621, $f622, $f623, $f624, $f625, $f626)\n1 Apply / 0 Graft";
+c50 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i73 [shape=ellipse,label="Apply 73 / CoarseLayer 11 / SmoothLayer 1"]; i73 -> c50 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c51 { style="rounded,dashed"; color="#43864b"; label="Slotted class 51 ($f627, $f628, $f629, $f630, $f631, $f632, $f633, $f634, $f635, $f636, $f637, $f638, $f639, $f640, $f641, $f642, $f643, $f644, $f645)\n1 Apply / 0 Graft";
+c51 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i74 [shape=ellipse,label="Apply 74 / CoarseLayer 28 / SmoothLayer 25"]; i74 -> c51 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c52 { style="rounded,dashed"; color="#43864b"; label="Slotted class 52 ($f646, $f647, $f648, $f649, $f650, $f651, $f652, $f653, $f654, $f655, $f656, $f657)\n1 Apply / 0 Graft";
+c52 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i76 [shape=ellipse,label="Apply 76 / CoarseLayer 17 / SmoothLayer 10"]; i76 -> c52 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c53 { style="rounded,dashed"; color="#43864b"; label="Slotted class 53 ($f658, $f659, $f660, $f661, $f662, $f663, $f664, $f665, $f666, $f667, $f668, $f669, $f670, $f671, $f672)\n1 Apply / 0 Graft";
+c53 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i77 [shape=ellipse,label="Apply 77 / CoarseLayer 20 / SmoothLayer 22"]; i77 -> c53 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c54 { style="rounded,dashed"; color="#43864b"; label="Slotted class 54 ($f673, $f674, $f675, $f676, $f677, $f678, $f679, $f680, $f681, $f682, $f683, $f684, $f685, $f686, $f687, $f688, $f689, $f690, $f691, $f692)\n1 Apply / 0 Graft";
+c54 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i78 [shape=ellipse,label="Apply 78 / CoarseLayer 19 / SmoothLayer 15"]; i78 -> c54 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c55 { style="rounded,dashed"; color="#43864b"; label="Slotted class 55 ($f693, $f694, $f695, $f696, $f697, $f698, $f699, $f700, $f701, $f702, $f703, $f704, $f705, $f706, $f707, $f708, $f709, $f710)\n1 Apply / 0 Graft";
+c55 [shape=box,label="(rule ((= __viz_root (Add a b)))\n      ((union __viz_root (Add b a)))\n         :name \"R0\")"];
+i79 [shape=ellipse,label="Apply 79 / CoarseLayer 21 / SmoothLayer 19"]; i79 -> c55 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c56 { style="rounded,dashed"; color="#43864b"; label="Slotted class 56 ($f711, $f712, $f713, $f714, $f715, $f716, $f717, $f718, $f719, $f720, $f721, $f722, $f723, $f724, $f725, $f726, $f727, $f728, $f729, $f730, $f731, $f732, $f733, $f734)\n1 Apply / 0 Graft";
+c56 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i80 [shape=ellipse,label="Apply 80 / CoarseLayer 29 / SmoothLayer 21"]; i80 -> c56 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c57 { style="rounded,dashed"; color="#43864b"; label="Slotted class 57 ($f735, $f736, $f737, $f738, $f739, $f740, $f741, $f742, $f743, $f744, $f745)\n1 Apply / 0 Graft";
+c57 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i81 [shape=ellipse,label="Apply 81 / CoarseLayer 11 / SmoothLayer 1"]; i81 -> c57 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c58 { style="rounded,dashed"; color="#43864b"; label="Slotted class 58 ($f746, $f747, $f748, $f749, $f750, $f751, $f752, $f753, $f754, $f755, $f756, $f757, $f758, $f759, $f760, $f761)\n1 Apply / 0 Graft";
+c58 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i82 [shape=ellipse,label="Apply 82 / CoarseLayer 19 / SmoothLayer 15"]; i82 -> c58 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c59 { style="rounded,dashed"; color="#43864b"; label="Slotted class 59 ($f762, $f763, $f764, $f765, $f766, $f767, $f768, $f769, $f770)\n3 Apply / 0 Graft";
+c59 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i83 [shape=ellipse,label="Apply 83 / CoarseLayer 12 / SmoothLayer 5"]; i83 -> c59 [style=dotted,label="instance SlotMap (see JSON)"];
+i92 [shape=ellipse,label="Apply 92 / CoarseLayer 13 / SmoothLayer 9"]; i92 -> c59 [style=dotted,label="instance SlotMap (see JSON)"];
+i96 [shape=ellipse,label="Apply 96 / CoarseLayer 14 / SmoothLayer 7"]; i96 -> c59 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c60 { style="rounded,dashed"; color="#43864b"; label="Slotted class 60 ($f771, $f772, $f773, $f774, $f775, $f776, $f777, $f778, $f779, $f780, $f781, $f782, $f783, $f784, $f785, $f786)\n1 Apply / 0 Graft";
+c60 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i84 [shape=ellipse,label="Apply 84 / CoarseLayer 19 / SmoothLayer 15"]; i84 -> c60 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c61 { style="rounded,dashed"; color="#43864b"; label="Slotted class 61 ($f787, $f788, $f789, $f790, $f791, $f792, $f793, $f794, $f795, $f796, $f797, $f798, $f799, $f800)\n1 Apply / 0 Graft";
+c61 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i85 [shape=ellipse,label="Apply 85 / CoarseLayer 26 / SmoothLayer 23"]; i85 -> c61 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c62 { style="rounded,dashed"; color="#43864b"; label="Slotted class 62 ($f801, $f802, $f803, $f804, $f805, $f806, $f807, $f808, $f809, $f810, $f811, $f812, $f813, $f814, $f815, $f816, $f817, $f818, $f819, $f820, $f821, $f822, $f823, $f824, $f825, $f826, $f827)\n1 Apply / 0 Graft";
+c62 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i86 [shape=ellipse,label="Apply 86 / CoarseLayer 19 / SmoothLayer 15"]; i86 -> c62 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c63 { style="rounded,dashed"; color="#43864b"; label="Slotted class 63 ($f828, $f829, $f830, $f831, $f832, $f833, $f834, $f835, $f836, $f837, $f838, $f839, $f840, $f841, $f842, $f843, $f844)\n1 Apply / 0 Graft";
+c63 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i87 [shape=ellipse,label="Apply 87 / CoarseLayer 24 / SmoothLayer 26"]; i87 -> c63 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c64 { style="rounded,dashed"; color="#43864b"; label="Slotted class 64 ($f845, $f846, $f847, $f848, $f849, $f850, $f851, $f852, $f853, $f854, $f855)\n1 Apply / 0 Graft";
+c64 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i88 [shape=ellipse,label="Apply 88 / CoarseLayer 15 / SmoothLayer 2"]; i88 -> c64 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c65 { style="rounded,dashed"; color="#43864b"; label="Slotted class 65 ($f856, $f857, $f858, $f859, $f860, $f861, $f862, $f863, $f864, $f865, $f866, $f867, $f868, $f869, $f870, $f871, $f872)\n1 Apply / 0 Graft";
+c65 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i89 [shape=ellipse,label="Apply 89 / CoarseLayer 34 / SmoothLayer 27"]; i89 -> c65 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c66 { style="rounded,dashed"; color="#43864b"; label="Slotted class 66 ($f873, $f874, $f875, $f876, $f877, $f878, $f879, $f880, $f881, $f882, $f883, $f884, $f885, $f886, $f887, $f888, $f889, $f890, $f891, $f892, $f893, $f894, $f895, $f896)\n1 Apply / 0 Graft";
+c66 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i90 [shape=ellipse,label="Apply 90 / CoarseLayer 29 / SmoothLayer 21"]; i90 -> c66 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c67 { style="rounded,dashed"; color="#43864b"; label="Slotted class 67 ($f897, $f898, $f899, $f900, $f901, $f902, $f903, $f904, $f905, $f906, $f907, $f908)\n1 Apply / 0 Graft";
+c67 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i91 [shape=ellipse,label="Apply 91 / CoarseLayer 23 / SmoothLayer 28"]; i91 -> c67 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c68 { style="rounded,dashed"; color="#43864b"; label="Slotted class 68 ($f909, $f910, $f911, $f912, $f913, $f914, $f915, $f916, $f917, $f918, $f919, $f920, $f921, $f922, $f923, $f924, $f925)\n1 Apply / 0 Graft";
+c68 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i93 [shape=ellipse,label="Apply 93 / CoarseLayer 24 / SmoothLayer 26"]; i93 -> c68 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c69 { style="rounded,dashed"; color="#43864b"; label="Slotted class 69 ($f926, $f927, $f928, $f929, $f930, $f931, $f932, $f933, $f934, $f935, $f936, $f937, $f938, $f939, $f940, $f941, $f942, $f943, $f944, $f945, $f946, $f947, $f948, $f949, $f950, $f951, $f952)\n1 Apply / 0 Graft";
+c69 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i94 [shape=ellipse,label="Apply 94 / CoarseLayer 19 / SmoothLayer 15"]; i94 -> c69 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c70 { style="rounded,dashed"; color="#43864b"; label="Slotted class 70 ($f953, $f954, $f955, $f956, $f957, $f958, $f959, $f960, $f961, $f962, $f963, $f964, $f965, $f966, $f967, $f968, $f969)\n1 Apply / 0 Graft";
+c70 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i95 [shape=ellipse,label="Apply 95 / CoarseLayer 34 / SmoothLayer 27"]; i95 -> c70 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c71 { style="rounded,dashed"; color="#43864b"; label="Slotted class 71 ($f970, $f971, $f972, $f973, $f974, $f975, $f976, $f977, $f978, $f979, $f980, $f981, $f982, $f983, $f984, $f985, $f986, $f987, $f988, $f989)\n1 Apply / 0 Graft";
+c71 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i97 [shape=ellipse,label="Apply 97 / CoarseLayer 19 / SmoothLayer 15"]; i97 -> c71 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c72 { style="rounded,dashed"; color="#43864b"; label="Slotted class 72 ($f990, $f991, $f992, $f993, $f994, $f995, $f996, $f997, $f998, $f999, $f1000, $f1001, $f1002, $f1003, $f1004, $f1005, $f1006, $f1007)\n1 Apply / 0 Graft";
+c72 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i98 [shape=ellipse,label="Apply 98 / CoarseLayer 22 / SmoothLayer 20"]; i98 -> c72 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c73 { style="rounded,dashed"; color="#43864b"; label="Slotted class 73 ($f1008, $f1009, $f1010, $f1011, $f1012, $f1013, $f1014, $f1015, $f1016, $f1017, $f1018, $f1019, $f1020, $f1021, $f1022, $f1023, $f1024, $f1025)\n1 Apply / 0 Graft";
+c73 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i99 [shape=ellipse,label="Apply 99 / CoarseLayer 22 / SmoothLayer 20"]; i99 -> c73 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c74 { style="rounded,dashed"; color="#43864b"; label="Slotted class 74 ($f1026, $f1027, $f1028, $f1029, $f1030, $f1031, $f1032, $f1033, $f1034, $f1035, $f1036, $f1037)\n1 Apply / 0 Graft";
+c74 [shape=box,label="(rule ((= __viz_root (Mul a b)))\n      ((union __viz_root (Mul b a)))\n         :name \"R1\")"];
+i100 [shape=ellipse,label="Apply 100 / CoarseLayer 23 / SmoothLayer 28"]; i100 -> c74 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c75 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 75 ($f1038, $f1039, $f1040, $f1041, $f1042, $f1043, $f1044, $f1045, $f1046, $f1047, $f1048, $f1049, $f1050, $f1051, $f1052)\n1 Apply / 1 Graft";
+c75 [shape=box,label="(rule ((= __viz_root (Add a (Add b c))))\n      ((union __viz_root (Add (Add a b) c)))\n         :name \"R2\")"];
+i102 [shape=ellipse,label="Apply 102 / CoarseLayer 36 / SmoothLayer null"]; i102 -> c75 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c76 { style="rounded,dashed"; color="#43864b"; label="Slotted class 76 ($f1053, $f1054, $f1055, $f1056, $f1057, $f1058, $f1059, $f1060, $f1061, $f1062, $f1063, $f1064, $f1065, $f1066, $f1067, $f1068)\n1 Apply / 0 Graft";
+c76 [shape=box,label="(rule ((= __viz_root (Add a (Add b c))))\n      ((union __viz_root (Add (Add a b) c)))\n         :name \"R2\")"];
+i103 [shape=ellipse,label="Apply 103 / CoarseLayer 37 / SmoothLayer 29"]; i103 -> c76 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c77 { style="rounded,dashed"; color="#43864b"; label="Slotted class 77 ($f1069, $f1070, $f1071, $f1072, $f1073, $f1074, $f1075, $f1076, $f1077, $f1078, $f1079, $f1080, $f1081, $f1082, $f1083, $f1084, $f1085, $f1086, $f1087, $f1088, $f1089, $f1090)\n1 Apply / 0 Graft";
+c77 [shape=box,label="(rule ((= __viz_root (Add a (Add b c))))\n      ((union __viz_root (Add (Add a b) c)))\n         :name \"R2\")"];
+i104 [shape=ellipse,label="Apply 104 / CoarseLayer 38 / SmoothLayer 30"]; i104 -> c77 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c78 { style="rounded,dashed"; color="#43864b"; label="Slotted class 78 ($f1091, $f1092, $f1093, $f1094, $f1095, $f1096, $f1097, $f1098, $f1099, $f1100, $f1101, $f1102, $f1103, $f1104, $f1105, $f1106, $f1107, $f1108, $f1109, $f1110, $f1111, $f1112, $f1113, $f1114, $f1115, $f1116)\n1 Apply / 0 Graft";
+c78 [shape=box,label="(rule ((= __viz_root (Add a (Add b c))))\n      ((union __viz_root (Add (Add a b) c)))\n         :name \"R2\")"];
+i105 [shape=ellipse,label="Apply 105 / CoarseLayer 29 / SmoothLayer 21"]; i105 -> c78 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c79 { style="rounded,dashed"; color="#43864b"; label="Slotted class 79 ($f1117, $f1118, $f1119, $f1120, $f1121, $f1122, $f1123, $f1124, $f1125, $f1126, $f1127, $f1128, $f1129, $f1130, $f1131, $f1132, $f1133, $f1134, $f1135)\n1 Apply / 0 Graft";
+c79 [shape=box,label="(rule ((= __viz_root (Add a (Add b c))))\n      ((union __viz_root (Add (Add a b) c)))\n         :name \"R2\")"];
+i106 [shape=ellipse,label="Apply 106 / CoarseLayer 39 / SmoothLayer 31"]; i106 -> c79 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c80 { style="rounded,dashed"; color="#43864b"; label="Slotted class 80 ($f1136, $f1137, $f1138, $f1139, $f1140, $f1141, $f1142, $f1143, $f1144, $f1145, $f1146, $f1147, $f1148, $f1149, $f1150, $f1151, $f1152, $f1153)\n1 Apply / 0 Graft";
+c80 [shape=box,label="(rule ((= __viz_root (Add a (Add b c))))\n      ((union __viz_root (Add (Add a b) c)))\n         :name \"R2\")"];
+i107 [shape=ellipse,label="Apply 107 / CoarseLayer 21 / SmoothLayer 19"]; i107 -> c80 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c81 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 81 ($f1154, $f1155, $f1156, $f1157, $f1158, $f1159, $f1160, $f1161, $f1162, $f1163, $f1164, $f1165, $f1166, $f1167, $f1168)\n1 Apply / 1 Graft";
+c81 [shape=box,label="(rule ((= __viz_root (Add a (Add b c))))\n      ((union __viz_root (Add (Add a b) c)))\n         :name \"R2\")"];
+i108 [shape=ellipse,label="Apply 108 / CoarseLayer 40 / SmoothLayer null"]; i108 -> c81 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c82 { style="rounded,dashed"; color="#43864b"; label="Slotted class 82 ($f1169, $f1170, $f1171, $f1172, $f1173, $f1174, $f1175, $f1176, $f1177, $f1178, $f1179, $f1180, $f1181, $f1182, $f1183, $f1184)\n1 Apply / 0 Graft";
+c82 [shape=box,label="(rule ((= __viz_root (Add a (Add b c))))\n      ((union __viz_root (Add (Add a b) c)))\n         :name \"R2\")"];
+i109 [shape=ellipse,label="Apply 109 / CoarseLayer 41 / SmoothLayer 32"]; i109 -> c82 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c83 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 83 ($f1185, $f1186, $f1187, $f1188, $f1189, $f1190, $f1191, $f1192, $f1193, $f1194, $f1195, $f1196, $f1197, $f1198, $f1199, $f1200, $f1201, $f1202, $f1203, $f1204)\n1 Apply / 1 Graft";
+c83 [shape=box,label="(rule ((= __viz_root (Add a (Add b c))))\n      ((union __viz_root (Add (Add a b) c)))\n         :name \"R2\")"];
+i110 [shape=ellipse,label="Apply 110 / CoarseLayer 42 / SmoothLayer null"]; i110 -> c83 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c84 { style="rounded,dashed"; color="#43864b"; label="Slotted class 84 ($f1205, $f1206, $f1207, $f1208, $f1209, $f1210, $f1211, $f1212, $f1213, $f1214, $f1215, $f1216, $f1217, $f1218, $f1219, $f1220, $f1221, $f1222, $f1223, $f1224, $f1225)\n1 Apply / 0 Graft";
+c84 [shape=box,label="(rule ((= __viz_root (Add a (Add b c))))\n      ((union __viz_root (Add (Add a b) c)))\n         :name \"R2\")"];
+i111 [shape=ellipse,label="Apply 111 / CoarseLayer 43 / SmoothLayer 33"]; i111 -> c84 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c85 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 85 ($f1226, $f1227, $f1228, $f1229, $f1230, $f1231, $f1232, $f1233, $f1234, $f1235, $f1236, $f1237, $f1238, $f1239, $f1240, $f1241, $f1242, $f1243, $f1244, $f1245, $f1246, $f1247)\n1 Apply / 1 Graft";
+c85 [shape=box,label="(rule ((= __viz_root (Mul a (Mul b c))))\n      ((union __viz_root (Mul (Mul a b) c)))\n         :name \"R3\")"];
+i112 [shape=ellipse,label="Apply 112 / CoarseLayer 44 / SmoothLayer null"]; i112 -> c85 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c86 { style="rounded,dashed"; color="#43864b"; label="Slotted class 86 ($f1248, $f1249, $f1250, $f1251, $f1252, $f1253, $f1254, $f1255, $f1256, $f1257, $f1258, $f1259, $f1260, $f1261, $f1262, $f1263, $f1264, $f1265, $f1266, $f1267, $f1268, $f1269, $f1270)\n1 Apply / 0 Graft";
+c86 [shape=box,label="(rule ((= __viz_root (Mul a (Mul b c))))\n      ((union __viz_root (Mul (Mul a b) c)))\n         :name \"R3\")"];
+i113 [shape=ellipse,label="Apply 113 / CoarseLayer 45 / SmoothLayer 34"]; i113 -> c86 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c87 { style="rounded,dashed"; color="#43864b"; label="Slotted class 87 ($f1271, $f1272, $f1273, $f1274, $f1275, $f1276, $f1277, $f1278, $f1279, $f1280, $f1281, $f1282, $f1283, $f1284, $f1285, $f1286, $f1287, $f1288, $f1289, $f1290, $f1291, $f1292, $f1293)\n1 Apply / 0 Graft";
+c87 [shape=box,label="(rule ((= __viz_root (Mul a (Mul b c))))\n      ((union __viz_root (Mul (Mul a b) c)))\n         :name \"R3\")"];
+i114 [shape=ellipse,label="Apply 114 / CoarseLayer 46 / SmoothLayer 35"]; i114 -> c87 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c88 { style="rounded,dashed"; color="#43864b"; label="Slotted class 88 ($f1294, $f1295, $f1296, $f1297, $f1298, $f1299, $f1300, $f1301, $f1302, $f1303, $f1304, $f1305, $f1306, $f1307, $f1308, $f1309, $f1310, $f1311, $f1312, $f1313, $f1314, $f1315, $f1316)\n1 Apply / 0 Graft";
+c88 [shape=box,label="(rule ((= __viz_root (Mul a (Mul b c))))\n      ((union __viz_root (Mul (Mul a b) c)))\n         :name \"R3\")"];
+i115 [shape=ellipse,label="Apply 115 / CoarseLayer 47 / SmoothLayer 36"]; i115 -> c88 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c89 { style="rounded,dashed"; color="#43864b"; label="Slotted class 89 ($f1317, $f1318, $f1319, $f1320, $f1321, $f1322, $f1323, $f1324, $f1325, $f1326, $f1327, $f1328, $f1329, $f1330, $f1331, $f1332, $f1333, $f1334, $f1335, $f1336, $f1337, $f1338, $f1339, $f1340, $f1341, $f1342, $f1343, $f1344, $f1345, $f1346)\n1 Apply / 0 Graft";
+c89 [shape=box,label="(rule ((= __viz_root (Sub a b)))\n      ((union __viz_root (Add a (Mul (Const -1) b))))\n         :name \"R4\")"];
+i116 [shape=ellipse,label="Apply 116 / CoarseLayer 19 / SmoothLayer 15"]; i116 -> c89 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c90 { style="rounded,dashed"; color="#43864b"; label="Slotted class 90 ($f1347, $f1348, $f1349, $f1350, $f1351, $f1352, $f1353, $f1354, $f1355, $f1356, $f1357, $f1358, $f1359, $f1360, $f1361, $f1362, $f1363, $f1364, $f1365, $f1366)\n1 Apply / 0 Graft";
+c90 [shape=box,label="(rule ((= __viz_root (Sub a b)))\n      ((union __viz_root (Add a (Mul (Const -1) b))))\n         :name \"R4\")"];
+i117 [shape=ellipse,label="Apply 117 / CoarseLayer 34 / SmoothLayer 27"]; i117 -> c90 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c91 { style="rounded,dashed"; color="#43864b"; label="Slotted class 91 ($f1367, $f1368, $f1369, $f1370, $f1371, $f1372, $f1373, $f1374, $f1375, $f1376, $f1377, $f1378, $f1379)\n1 Apply / 0 Graft";
+c91 [shape=box,label="(rule ((= __viz_root (Add (Mul a b) (Mul a c))))\n      ((union __viz_root (Mul a (Add b c))))\n         :name \"R10\")"];
+i118 [shape=ellipse,label="Apply 118 / CoarseLayer 26 / SmoothLayer 23"]; i118 -> c91 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c92 { style="rounded,dashed"; color="#43864b"; label="Slotted class 92 ($f1380, $f1381, $f1382, $f1383, $f1384, $f1385, $f1386, $f1387, $f1388, $f1389, $f1390, $f1391)\n1 Apply / 0 Graft";
+c92 [shape=box,label="(rule ((= __viz_root (Add (Mul a b) (Mul a c))))\n      ((union __viz_root (Mul a (Add b c))))\n         :name \"R10\")"];
+i119 [shape=ellipse,label="Apply 119 / CoarseLayer 15 / SmoothLayer 2"]; i119 -> c92 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c93 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 93 ($f1392, $f1393, $f1394, $f1395, $f1396, $f1397, $f1398, $f1399, $f1400, $f1401, $f1402, $f1403, $f1404, $f1405, $f1406, $f1407)\n1 Apply / 1 Graft";
+c93 [shape=box,label="(rule ((= __viz_root (Diff x (Add a b))))\n      ((union __viz_root (Add (Diff x a) (Diff x b))))\n         :name \"R14\")"];
+i120 [shape=ellipse,label="Apply 120 / CoarseLayer 48 / SmoothLayer null"]; i120 -> c93 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c94 { style="rounded,dashed"; color="#3976a8"; label="Slotted class 94 ($f1408, $f1409, $f1410, $f1411, $f1412, $f1413, $f1414, $f1415, $f1416, $f1417, $f1418, $f1419, $f1420, $f1421, $f1422, $f1423, $f1424, $f1425, $f1426, $f1427, $f1428, $f1429, $f1430, $f1431, $f1432, $f1433, $f1434, $f1435, $f1436, $f1437, $f1438, $f1439, $f1440, $f1441, $f1442, $f1443, $f1444, $f1445)\n1 Apply / 1 Graft";
+c94 [shape=box,label="(rule ((= __viz_root (Diff x (Mul a b))))\n      ((union __viz_root (Add (Mul a (Diff x b)) (Mul b (Diff x a)))))\n         :name \"R15\")"];
+i121 [shape=ellipse,label="Apply 121 / CoarseLayer 49 / SmoothLayer null"]; i121 -> c94 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c95 { style="rounded,dashed"; color="#43864b"; label="Slotted class 95 ($f1446, $f1447, $f1448, $f1449, $f1450, $f1451, $f1452, $f1453, $f1454, $f1455, $f1456, $f1457, $f1458, $f1459, $f1460, $f1461, $f1462, $f1463, $f1464, $f1465, $f1466, $f1467, $f1468, $f1469, $f1470, $f1471, $f1472)\n1 Apply / 0 Graft";
+c95 [shape=box,label="(rule ((= __viz_root (Diff x (Mul a b))))\n      ((union __viz_root (Add (Mul a (Diff x b)) (Mul b (Diff x a)))))\n         :name \"R15\")"];
+i122 [shape=ellipse,label="Apply 122 / CoarseLayer 50 / SmoothLayer 37"]; i122 -> c95 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c96 { style="rounded,dashed"; color="#43864b"; label="Slotted class 96 ($f1473, $f1474, $f1475, $f1476, $f1477, $f1478, $f1479, $f1480, $f1481, $f1482, $f1483, $f1484, $f1485, $f1486, $f1487, $f1488, $f1489, $f1490, $f1491, $f1492, $f1493, $f1494, $f1495, $f1496, $f1497, $f1498, $f1499, $f1500, $f1501, $f1502, $f1503, $f1504, $f1505)\n1 Apply / 0 Graft";
+c96 [shape=box,label="(rule ((= __viz_root (Diff x (Mul a b))))\n      ((union __viz_root (Add (Mul a (Diff x b)) (Mul b (Diff x a)))))\n         :name \"R15\")"];
+i123 [shape=ellipse,label="Apply 123 / CoarseLayer 51 / SmoothLayer 38"]; i123 -> c96 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c97 { style="rounded,dashed"; color="#43864b"; label="Slotted class 97 ($f1506, $f1507, $f1508, $f1509, $f1510, $f1511, $f1512, $f1513, $f1514, $f1515, $f1516, $f1517, $f1518, $f1519, $f1520, $f1521, $f1522, $f1523, $f1524, $f1525, $f1526, $f1527, $f1528, $f1529, $f1530, $f1531, $f1532, $f1533, $f1534, $f1535, $f1536, $f1537, $f1538, $f1539)\n1 Apply / 0 Graft";
+c97 [shape=box,label="(rule ((= __viz_root (Diff x (Mul a b))))\n      ((union __viz_root (Add (Mul a (Diff x b)) (Mul b (Diff x a)))))\n         :name \"R15\")"];
+i124 [shape=ellipse,label="Apply 124 / CoarseLayer 52 / SmoothLayer 39"]; i124 -> c97 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c98 { style="rounded,dashed"; color="#43864b"; label="Slotted class 98 ($f1540, $f1541, $f1542, $f1543, $f1544, $f1545, $f1546, $f1547, $f1548, $f1549, $f1550, $f1551, $f1552, $f1553, $f1554, $f1555, $f1556, $f1557, $f1558, $f1559, $f1560)\n1 Apply / 0 Graft";
+c98 [shape=box,label="(rule ((= __viz_root (Diff x (Mul a b))))\n      ((union __viz_root (Add (Mul a (Diff x b)) (Mul b (Diff x a)))))\n         :name \"R15\")"];
+i125 [shape=ellipse,label="Apply 125 / CoarseLayer 50 / SmoothLayer 37"]; i125 -> c98 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c99 { style="rounded,dashed"; color="#43864b"; label="Slotted class 99 ($f1561, $f1562, $f1563, $f1564, $f1565, $f1566, $f1567, $f1568, $f1569, $f1570, $f1571, $f1572, $f1573, $f1574, $f1575, $f1576, $f1577, $f1578, $f1579, $f1580, $f1581, $f1582, $f1583, $f1584, $f1585, $f1586, $f1587, $f1588, $f1589, $f1590, $f1591, $f1592, $f1593, $f1594, $f1595, $f1596, $f1597)\n1 Apply / 0 Graft";
+c99 [shape=box,label="(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")"];
+i126 [shape=ellipse,label="Apply 126 / CoarseLayer 19 / SmoothLayer 15"]; i126 -> c99 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c100 { style="rounded,dashed"; color="#43864b"; label="Slotted class 100 ($f1598, $f1599, $f1600, $f1601, $f1602, $f1603, $f1604, $f1605, $f1606, $f1607, $f1608, $f1609, $f1610, $f1611, $f1612, $f1613, $f1614, $f1615, $f1616, $f1617, $f1618, $f1619, $f1620, $f1621, $f1622, $f1623, $f1624)\n1 Apply / 0 Graft";
+c100 [shape=box,label="(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")"];
+i127 [shape=ellipse,label="Apply 127 / CoarseLayer 19 / SmoothLayer 15"]; i127 -> c100 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+subgraph cluster_c101 { style="rounded,dashed"; color="#43864b"; label="Slotted class 101 ($f1625, $f1626, $f1627, $f1628, $f1629, $f1630, $f1631, $f1632, $f1633, $f1634, $f1635, $f1636, $f1637, $f1638, $f1639, $f1640, $f1641, $f1642, $f1643, $f1644, $f1645, $f1646, $f1647, $f1648, $f1649, $f1650, $f1651)\n1 Apply / 0 Graft";
+c101 [shape=box,label="(rule ((= __viz_root (Integral (Mul a b) x)))\n      ((union __viz_root (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x))))\n         :name \"R23\")"];
+i128 [shape=ellipse,label="Apply 128 / CoarseLayer 34 / SmoothLayer 27"]; i128 -> c101 [style=dotted,label="instance SlotMap (see JSON)"];
+}
+i20 -> i6 [label="Parent 0",color="#555555"];
+i23 -> i1 [label="Parent 0",color="#555555"];
+i24 -> i0 [label="Parent 0",color="#555555"];
+i28 -> i3 [label="Parent 0",color="#555555"];
+i31 -> i5 [label="Parent 0",color="#555555"];
+i32 -> i4 [label="Parent 0",color="#555555"];
+i21 -> i11 [label="Parent 0",color="#555555"];
+i22 -> i15 [label="Parent 0",color="#555555"];
+i25 -> i12 [label="Parent 0",color="#555555"];
+i27 -> i14 [label="Parent 0",color="#555555"];
+i29 -> i13 [label="Parent 0",color="#555555"];
+i26 -> i18 [label="Parent 0",color="#555555"];
+i30 -> i17 [label="Parent 0",color="#555555"];
+i33 -> i16 [label="Parent 0",color="#555555"];
+i34 -> i7 [label="Parent 0",color="#555555"];
+i36 -> i8 [label="Parent 0",color="#555555"];
+i39 -> i10 [label="Parent 0",color="#555555"];
+i41 -> i9 [label="Parent 0",color="#555555"];
+i35 -> i19 [label="Parent 0",color="#555555"];
+i37 -> i14 [label="Parent 0",color="#555555"];
+i43 -> i13 [label="Parent 0",color="#555555"];
+i44 -> i12 [label="Parent 0",color="#555555"];
+i38 -> i19 [label="Parent 0",color="#555555"];
+i40 -> i11 [label="Parent 0",color="#555555"];
+i42 -> i15 [label="Parent 0",color="#555555"];
+i45 -> i15 [label="Parent 0",color="#555555"];
+i46 -> i12 [label="Parent 0",color="#555555"];
+i47 -> i5 [label="Parent 0",color="#555555"];
+i47 -> i15 [label="Parent 1",color="#555555"];
+i48 -> i9 [label="Parent 0",color="#555555"];
+i48 -> i11 [label="Parent 1",color="#555555"];
+i49 -> i16 [label="Parent 0",color="#555555"];
+i50 -> i11 [label="Parent 0",color="#555555"];
+i51 -> i19 [label="Parent 0",color="#555555"];
+i52 -> i3 [label="Parent 0",color="#555555"];
+i53 -> i12 [label="Parent 0",color="#555555"];
+i54 -> i15 [label="Parent 0",color="#555555"];
+i55 -> i1 [label="Parent 0",color="#555555"];
+i56 -> i11 [label="Parent 0",color="#555555"];
+i57 -> i8 [label="Parent 0",color="#555555"];
+i57 -> i17 [label="Parent 1",color="#555555"];
+i58 -> i17 [label="Parent 0",color="#555555"];
+i59 -> i19 [label="Parent 0",color="#555555"];
+i60 -> i18 [label="Parent 0",color="#555555"];
+i61 -> i0 [label="Parent 0",color="#555555"];
+i62 -> i7 [label="Parent 0",color="#555555"];
+i63 -> i19 [label="Parent 0",color="#555555"];
+i64 -> i46 [label="Parent 0",color="#555555"];
+i65 -> i22 [label="Parent 0",color="#555555"];
+i66 -> i29 [label="Parent 0",color="#555555"];
+i68 -> i25 [label="Parent 0",color="#555555"];
+i75 -> i27 [label="Parent 0",color="#555555"];
+i67 -> i47 [label="Parent 0",color="#555555"];
+i69 -> i26 [label="Parent 0",color="#555555"];
+i70 -> i57 [label="Parent 0",color="#555555"];
+i71 -> i53 [label="Parent 0",color="#555555"];
+i72 -> i58 [label="Parent 0",color="#555555"];
+i73 -> i21 [label="Parent 0",color="#555555"];
+i74 -> i56 [label="Parent 0",color="#555555"];
+i76 -> i30 [label="Parent 0",color="#555555"];
+i77 -> i46 [label="Parent 0",color="#555555"];
+i78 -> i51 [label="Parent 0",color="#555555"];
+i79 -> i47 [label="Parent 0",color="#555555"];
+i80 -> i57 [label="Parent 0",color="#555555"];
+i81 -> i40 [label="Parent 0",color="#555555"];
+i82 -> i38 [label="Parent 0",color="#555555"];
+i83 -> i44 [label="Parent 0",color="#555555"];
+i92 -> i43 [label="Parent 0",color="#555555"];
+i96 -> i37 [label="Parent 0",color="#555555"];
+i84 -> i35 [label="Parent 0",color="#555555"];
+i85 -> i53 [label="Parent 0",color="#555555"];
+i86 -> i63 [label="Parent 0",color="#555555"];
+i87 -> i50 [label="Parent 0",color="#555555"];
+i88 -> i42 [label="Parent 0",color="#555555"];
+i89 -> i62 [label="Parent 0",color="#555555"];
+i90 -> i57 [label="Parent 0",color="#555555"];
+i91 -> i49 [label="Parent 0",color="#555555"];
+i93 -> i50 [label="Parent 0",color="#555555"];
+i94 -> i63 [label="Parent 0",color="#555555"];
+i95 -> i62 [label="Parent 0",color="#555555"];
+i97 -> i51 [label="Parent 0",color="#555555"];
+i98 -> i48 [label="Parent 0",color="#555555"];
+i99 -> i48 [label="Parent 0",color="#555555"];
+i100 -> i49 [label="Parent 0",color="#555555"];
+i102 -> i25 [label="Parent 0",color="#555555"];
+i103 -> i12 [label="Parent 0",color="#555555"];
+i103 -> i53 [label="Parent 1",color="#555555"];
+i104 -> i46 [label="Parent 0",color="#555555"];
+i104 -> i53 [label="Parent 1",color="#555555"];
+i105 -> i17 [label="Parent 0",color="#555555"];
+i105 -> i57 [label="Parent 1",color="#555555"];
+i106 -> i17 [label="Parent 0",color="#555555"];
+i106 -> i58 [label="Parent 1",color="#555555"];
+i107 -> i5 [label="Parent 0",color="#555555"];
+i107 -> i22 [label="Parent 1",color="#555555"];
+i108 -> i25 [label="Parent 0",color="#555555"];
+i109 -> i4 [label="Parent 0",color="#555555"];
+i109 -> i25 [label="Parent 1",color="#555555"];
+i110 -> i46 [label="Parent 0",color="#555555"];
+i111 -> i4 [label="Parent 0",color="#555555"];
+i111 -> i46 [label="Parent 1",color="#555555"];
+i112 -> i38 [label="Parent 0",color="#555555"];
+i113 -> i11 [label="Parent 0",color="#555555"];
+i113 -> i49 [label="Parent 1",color="#555555"];
+i114 -> i16 [label="Parent 0",color="#555555"];
+i114 -> i50 [label="Parent 1",color="#555555"];
+i115 -> i16 [label="Parent 0",color="#555555"];
+i115 -> i48 [label="Parent 1",color="#555555"];
+i116 -> i63 [label="Parent 0",color="#555555"];
+i117 -> i62 [label="Parent 0",color="#555555"];
+i118 -> i53 [label="Parent 0",color="#555555"];
+i119 -> i15 [label="Parent 0",color="#555555"];
+i119 -> i22 [label="Parent 1",color="#555555"];
+i120 -> i21 [label="Parent 0",color="#555555"];
+i121 -> i63 [label="Parent 0",color="#555555"];
+i122 -> i40 [label="Parent 0",color="#555555"];
+i122 -> i56 [label="Parent 1",color="#555555"];
+i123 -> i50 [label="Parent 0",color="#555555"];
+i123 -> i56 [label="Parent 1",color="#555555"];
+i124 -> i48 [label="Parent 0",color="#555555"];
+i124 -> i56 [label="Parent 1",color="#555555"];
+i125 -> i11 [label="Parent 0",color="#555555"];
+i125 -> i56 [label="Parent 1",color="#555555"];
+i126 -> i63 [label="Parent 0",color="#555555"];
+i127 -> i19 [label="Parent 0",color="#555555"];
+i127 -> i38 [label="Parent 1",color="#555555"];
+i128 -> i62 [label="Parent 0",color="#555555"];
+legend [shape=note,label="gold = shared Grafting coarse rule class\nblue = CoarseRule; green = SmoothRule\nsame class = shared recipe, NOT equal concrete values\nonly observed dependencies, no hypothetical attachment enumeration"];
+}

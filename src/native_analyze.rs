@@ -1047,6 +1047,22 @@ fn execute(
     let mut report = json!({"status":if pipeline.report()["counts"]["ObservedUnfinished"].as_u64().unwrap_or(0)>0 {"observed_unfinished"}else{"complete"},"summary":{"applications":c.records.len(),"logical_matches":c.events,"excluded":c.rejected,"scope":"native history -> CS -> ripen -> equivalence -> weak dominate"},"layers":c.layers.report(),"saturated_rule_composition":null});
     report["reuse_plan"]=c.reuse_plan.clone();
     report["saturated_rule_composition"] = pipeline.take_report();
+    // Opt-in through the graph-output switch: leave graphless native timing alone.
+    if crate::graph_render::graphs_enabled() {
+        let specs = c.pool.values.iter().enumerate().map(|(i,t)|crate::slotted_layer::TokenSpec {
+            sort: t.sort.to_string(), literal:c.pool.literals.get(&i).cloned(),
+        }).collect::<Vec<_>>();
+        let slotted = crate::slotted_layer::LayerCanon::build(&c.layers, &specs)?;
+        report["slotted_canon"] = slotted.report().clone();
+        std::fs::write(out.join("slotted-canon.json"), serde_json::to_vec_pretty(slotted.report())?)?;
+        std::fs::write(out.join("slotted-canon.dsl"), slotted.to_dsl())?;
+        for (name,dot) in [("slotted-canon.dot",slotted.to_dot()),
+            ("slotted-egraph.dot",crate::slotted_dot::to_dot(&slotted.egraph))] {
+            let path=out.join(name);
+            std::fs::write(&path,dot)?;
+            crate::graph_render::enqueue(&path)?;
+        }
+    }
     std::fs::write(out.join("analysis.json"), serde_json::to_vec(&report)?)?;
     std::fs::write(
         out.join("layers.json"),
