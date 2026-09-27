@@ -874,6 +874,10 @@ impl SortedWritesTable {
 
     fn do_delete(&mut self) -> bool {
         let total = self.pending_state.total_removals.swap(0, Ordering::Relaxed);
+        // Buffers publish their row count when dropped before this merge phase.
+        if total == 0 {
+            return false;
+        }
 
         if parallelize_table_op(total) {
             self.parallel_delete()
@@ -884,6 +888,10 @@ impl SortedWritesTable {
 
     fn do_insert(&mut self, exec_state: &mut ExecutionState) -> bool {
         let total = self.pending_state.total_rows.swap(0, Ordering::Relaxed);
+        // Buffers publish their row count when dropped before this merge phase.
+        if total == 0 {
+            return false;
+        }
         if total > 0 && matches!(self.data, NativeRows::Owned(_)) {
             self.data.data.reserve(total);
         }
@@ -1094,8 +1102,14 @@ impl SortedWritesTable {
                 let mut exec_state = exec_state.clone();
                 let mut scratch = with_pool_set(|ps| ps.get::<Vec<Value>>());
                 let queue = &self.pending_state.pending_rows[shard_id];
+                // Empty shards must not allocate a maximum-sized staging area.
+                // Reserve from the actual first input batch; normal amortized
+                // growth handles subsequent batches without speculative capacity.
+                let Some(first) = queue.pop() else {
+                    return (checker, 0usize, false);
+                };
                 let mut marked_stale = 0usize;
-                let mut staged = StagedOutputs::new(n_keys, n_cols, BATCH_SIZE);
+                let mut staged = StagedOutputs::new(n_keys, n_cols, first.len().min(BATCH_SIZE));
                 let mut changed = false;
                 // The core flush loop: We call once `staged` reaches `BATCH_SIZE` or
                 // when we're done.
@@ -1188,7 +1202,7 @@ impl SortedWritesTable {
                 // * Add new values to `staged`
                 // * Removing entries in `shard` and mark them as stale in
                 // `data` if they will be overwritten.
-                while let Some(buf) = queue.pop() {
+                for buf in std::iter::once(first).chain(std::iter::from_fn(|| queue.pop())) {
                     // We create a read_handle once per batch to avoid blocking
                     // too many threads if someone needs to resize the row
                     // writer.

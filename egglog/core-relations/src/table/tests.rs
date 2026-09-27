@@ -296,3 +296,28 @@ fn row_profile_counts_positions_before_stale_and_constraint_filtering() {
     table.scan_generic(table.all().as_ref(), |_, _| {});
     assert_eq!(counter.snapshot(), before);
 }
+
+#[test]
+fn parallel_staging_handles_empty_shards_and_multiple_input_batches() {
+    for threads in [1,4] {
+        rayon::ThreadPoolBuilder::new().num_threads(threads).build().unwrap().install(|| {
+            empty_execution_state!(e);
+            let mut table=fill_table(vec![vec![v(0),v(1),v(0)]],1,Some(ColumnId::new(2)),|old,new| {
+                (old[1]!=new[1]).then(||new.to_vec())
+            });
+            // Many duplicate writes to two keys leave most shards empty.
+            for key in [0,1] {
+                let mut buffer=table.new_buffer();
+                for _ in 0..30_000 {buffer.stage_insert(&[v(key),v(2),v(1)]);}
+                drop(buffer);
+            }
+            table.merge(&mut e);
+            assert_eq!(table.len(),2);
+            for key in [0,1] {assert_eq!(&*table.get_row(&[v(key)]).unwrap().vals,&[v(key),v(2),v(1)]);}
+            let mut buffer=table.new_buffer();
+            for key in 2..30_002 {buffer.stage_insert(&[v(key),v(key),v(2)]);}
+            drop(buffer);table.merge(&mut e);
+            assert_eq!(table.len(),30_002);
+        });
+    }
+}

@@ -1,0 +1,1204 @@
+{
+  "source": "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg",
+  "source_sha256": "aaa8942131b4db57e76710486718790e1d7f2cb9288aeb702c0c17019439cf16",
+  "harness_sha256": "0e96613ca519a66a6ec515251a9ed1ccc6bdf662884bf7d6e9534d8d7370343a",
+  "baseline_tag": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+  "rustc": "rustc 1.94.0 (4a4ef493e 2026-03-02)\nbinary: rustc\ncommit-hash: 4a4ef493e3a1488c6e321570238084b38948f6db\ncommit-date: 2026-03-02\nhost: aarch64-apple-darwin\nrelease: 1.94.0\nLLVM version: 21.1.8\n",
+  "threads": "auto",
+  "binary_sha256": {
+    "pristine": "33d3de0f31b6ae5b36cd40a2565ebce8dc88f7990eee236a82c30c46bdd6ae4b",
+    "after": "41252b2433ea07c44ef01f9fb48ad5dbff4ab810916f717c435fa867d494717b",
+    "pristine-mi": "4ce33b48d0d585e7061b3b9e3732d7157d47ccbaf0a26ad4838b9516d4f609cd",
+    "after-mi": "0148663470ebf6464493beb6dcccae4bf45742dc88fd1799ed6d9f0b960f2d34"
+  },
+  "runs": [
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.32,
+      "peak_rss_bytes": 511983616,
+      "user_seconds": 2.26,
+      "system_seconds": 0.91,
+      "observed_wall_seconds": 0.34652229107450694,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.296592542,
+        "through_drop_seconds": 0.308457667,
+        "verification": false
+      },
+      "variant": "pristine",
+      "repetition": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.34,
+      "peak_rss_bytes": 383008768,
+      "user_seconds": 2.27,
+      "system_seconds": 0.87,
+      "observed_wall_seconds": 0.38112875004298985,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.279091584,
+        "through_drop_seconds": 0.294661917,
+        "verification": false
+      },
+      "variant": "after",
+      "repetition": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.19,
+      "peak_rss_bytes": 621182976,
+      "user_seconds": 1.52,
+      "system_seconds": 0.24,
+      "observed_wall_seconds": 0.2259084590477869,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.169949625,
+        "through_drop_seconds": 0.171001,
+        "verification": false
+      },
+      "variant": "pristine-mi",
+      "repetition": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.22,
+      "peak_rss_bytes": 514555904,
+      "user_seconds": 1.56,
+      "system_seconds": 0.21,
+      "observed_wall_seconds": 0.25001816696021706,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.166015291,
+        "through_drop_seconds": 0.166861625,
+        "verification": false
+      },
+      "variant": "after-mi",
+      "repetition": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.34,
+      "peak_rss_bytes": 389349376,
+      "user_seconds": 2.26,
+      "system_seconds": 0.95,
+      "observed_wall_seconds": 0.37864875001832843,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.327067292,
+        "through_drop_seconds": 0.33766025,
+        "verification": false
+      },
+      "variant": "after",
+      "repetition": 1
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.18,
+      "peak_rss_bytes": 607338496,
+      "user_seconds": 1.5,
+      "system_seconds": 0.22,
+      "observed_wall_seconds": 0.2216199579415843,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.172600417,
+        "through_drop_seconds": 0.1734905,
+        "verification": false
+      },
+      "variant": "pristine-mi",
+      "repetition": 1
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.18,
+      "peak_rss_bytes": 510296064,
+      "user_seconds": 1.62,
+      "system_seconds": 0.19,
+      "observed_wall_seconds": 0.2134106250014156,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.168794375,
+        "through_drop_seconds": 0.169670292,
+        "verification": false
+      },
+      "variant": "after-mi",
+      "repetition": 1
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.3,
+      "peak_rss_bytes": 504283136,
+      "user_seconds": 2.21,
+      "system_seconds": 0.66,
+      "observed_wall_seconds": 0.31815337494481355,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.285798208,
+        "through_drop_seconds": 0.29948325,
+        "verification": false
+      },
+      "variant": "pristine",
+      "repetition": 1
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.19,
+      "peak_rss_bytes": 616398848,
+      "user_seconds": 1.64,
+      "system_seconds": 0.22,
+      "observed_wall_seconds": 0.21553037501871586,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.177876917,
+        "through_drop_seconds": 0.180193667,
+        "verification": false
+      },
+      "variant": "pristine-mi",
+      "repetition": 2
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.17,
+      "peak_rss_bytes": 512409600,
+      "user_seconds": 1.59,
+      "system_seconds": 0.17,
+      "observed_wall_seconds": 0.18362641602288932,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.166461375,
+        "through_drop_seconds": 0.16723075,
+        "verification": false
+      },
+      "variant": "after-mi",
+      "repetition": 2
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.31,
+      "peak_rss_bytes": 505610240,
+      "user_seconds": 2.31,
+      "system_seconds": 0.93,
+      "observed_wall_seconds": 0.31633766705635935,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.291088666,
+        "through_drop_seconds": 0.302093041,
+        "verification": false
+      },
+      "variant": "pristine",
+      "repetition": 2
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.3,
+      "peak_rss_bytes": 386564096,
+      "user_seconds": 2.38,
+      "system_seconds": 0.89,
+      "observed_wall_seconds": 0.31549399998039007,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.286746583,
+        "through_drop_seconds": 0.299481167,
+        "verification": false
+      },
+      "variant": "after",
+      "repetition": 2
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.17,
+      "peak_rss_bytes": 521830400,
+      "user_seconds": 1.57,
+      "system_seconds": 0.19,
+      "observed_wall_seconds": 0.21093345794361085,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.165194,
+        "through_drop_seconds": 0.16599025,
+        "verification": false
+      },
+      "variant": "after-mi",
+      "repetition": 3
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.3,
+      "peak_rss_bytes": 499007488,
+      "user_seconds": 2.12,
+      "system_seconds": 0.6,
+      "observed_wall_seconds": 0.30914775002747774,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.278484,
+        "through_drop_seconds": 0.290407625,
+        "verification": false
+      },
+      "variant": "pristine",
+      "repetition": 3
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.3,
+      "peak_rss_bytes": 397950976,
+      "user_seconds": 2.34,
+      "system_seconds": 0.89,
+      "observed_wall_seconds": 0.3196752080693841,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.283713458,
+        "through_drop_seconds": 0.297794375,
+        "verification": false
+      },
+      "variant": "after",
+      "repetition": 3
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.18,
+      "peak_rss_bytes": 604700672,
+      "user_seconds": 1.63,
+      "system_seconds": 0.24,
+      "observed_wall_seconds": 0.2250298340804875,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.171076625,
+        "through_drop_seconds": 0.171795292,
+        "verification": false
+      },
+      "variant": "pristine-mi",
+      "repetition": 3
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.3,
+      "peak_rss_bytes": 504512512,
+      "user_seconds": 2.28,
+      "system_seconds": 0.88,
+      "observed_wall_seconds": 0.3081362920347601,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.280634084,
+        "through_drop_seconds": 0.293808625,
+        "verification": false
+      },
+      "variant": "pristine",
+      "repetition": 4
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.29,
+      "peak_rss_bytes": 372883456,
+      "user_seconds": 2.28,
+      "system_seconds": 0.85,
+      "observed_wall_seconds": 0.31177454092539847,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.27189275,
+        "through_drop_seconds": 0.283143709,
+        "verification": false
+      },
+      "variant": "after",
+      "repetition": 4
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.18,
+      "peak_rss_bytes": 603209728,
+      "user_seconds": 1.61,
+      "system_seconds": 0.24,
+      "observed_wall_seconds": 0.22880037501454353,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.172453541,
+        "through_drop_seconds": 0.173207583,
+        "verification": false
+      },
+      "variant": "pristine-mi",
+      "repetition": 4
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.18,
+      "peak_rss_bytes": 509526016,
+      "user_seconds": 1.66,
+      "system_seconds": 0.2,
+      "observed_wall_seconds": 0.19206216698512435,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.170410042,
+        "through_drop_seconds": 0.171259084,
+        "verification": false
+      },
+      "variant": "after-mi",
+      "repetition": 4
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.29,
+      "peak_rss_bytes": 392331264,
+      "user_seconds": 2.24,
+      "system_seconds": 0.8,
+      "observed_wall_seconds": 0.2979874579468742,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.27363975,
+        "through_drop_seconds": 0.284014,
+        "verification": false
+      },
+      "variant": "after",
+      "repetition": 5
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.19,
+      "peak_rss_bytes": 610746368,
+      "user_seconds": 1.45,
+      "system_seconds": 0.25,
+      "observed_wall_seconds": 0.22614891594275832,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.17527525,
+        "through_drop_seconds": 0.176179625,
+        "verification": false
+      },
+      "variant": "pristine-mi",
+      "repetition": 5
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.18,
+      "peak_rss_bytes": 512262144,
+      "user_seconds": 1.47,
+      "system_seconds": 0.19,
+      "observed_wall_seconds": 0.18645224999636412,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.169105417,
+        "through_drop_seconds": 0.1697925,
+        "verification": false
+      },
+      "variant": "after-mi",
+      "repetition": 5
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.31,
+      "peak_rss_bytes": 507559936,
+      "user_seconds": 2.32,
+      "system_seconds": 0.94,
+      "observed_wall_seconds": 0.34571483300533146,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.284384792,
+        "through_drop_seconds": 0.302106792,
+        "verification": false
+      },
+      "variant": "pristine",
+      "repetition": 5
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.19,
+      "peak_rss_bytes": 616611840,
+      "user_seconds": 1.58,
+      "system_seconds": 0.22,
+      "observed_wall_seconds": 0.2232809578999877,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.173259542,
+        "through_drop_seconds": 0.17403025,
+        "verification": false
+      },
+      "variant": "pristine-mi",
+      "repetition": 6
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.18,
+      "peak_rss_bytes": 519372800,
+      "user_seconds": 1.6,
+      "system_seconds": 0.16,
+      "observed_wall_seconds": 0.219447375042364,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.169916209,
+        "through_drop_seconds": 0.170764875,
+        "verification": false
+      },
+      "variant": "after-mi",
+      "repetition": 6
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.3,
+      "peak_rss_bytes": 502300672,
+      "user_seconds": 2.27,
+      "system_seconds": 0.87,
+      "observed_wall_seconds": 0.3405519580701366,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.278097875,
+        "through_drop_seconds": 0.290332583,
+        "verification": false
+      },
+      "variant": "pristine",
+      "repetition": 6
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.31,
+      "peak_rss_bytes": 376504320,
+      "user_seconds": 2.29,
+      "system_seconds": 0.84,
+      "observed_wall_seconds": 0.32064783305395395,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.29251725,
+        "through_drop_seconds": 0.304117792,
+        "verification": false
+      },
+      "variant": "after",
+      "repetition": 6
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.21,
+      "peak_rss_bytes": 511131648,
+      "user_seconds": 1.62,
+      "system_seconds": 0.15,
+      "observed_wall_seconds": 0.23603941698092967,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.198588041,
+        "through_drop_seconds": 0.1993115,
+        "verification": false
+      },
+      "variant": "after-mi",
+      "repetition": 7
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.31,
+      "peak_rss_bytes": 505282560,
+      "user_seconds": 2.15,
+      "system_seconds": 0.77,
+      "observed_wall_seconds": 0.3239792089443654,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.292580583,
+        "through_drop_seconds": 0.305313916,
+        "verification": false
+      },
+      "variant": "pristine",
+      "repetition": 7
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.31,
+      "peak_rss_bytes": 389185536,
+      "user_seconds": 2.27,
+      "system_seconds": 0.86,
+      "observed_wall_seconds": 0.35350212501361966,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.300144167,
+        "through_drop_seconds": 0.313253125,
+        "verification": false
+      },
+      "variant": "after",
+      "repetition": 7
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.19,
+      "peak_rss_bytes": 608321536,
+      "user_seconds": 1.55,
+      "system_seconds": 0.21,
+      "observed_wall_seconds": 0.226113541983068,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.175260458,
+        "through_drop_seconds": 0.176173791,
+        "verification": false
+      },
+      "variant": "pristine-mi",
+      "repetition": 7
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.33,
+      "peak_rss_bytes": 518602752,
+      "user_seconds": 2.23,
+      "system_seconds": 0.96,
+      "observed_wall_seconds": 0.349518624949269,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.3159195,
+        "through_drop_seconds": 0.328002625,
+        "verification": false
+      },
+      "variant": "pristine",
+      "repetition": 8
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.31,
+      "peak_rss_bytes": 393691136,
+      "user_seconds": 2.22,
+      "system_seconds": 0.77,
+      "observed_wall_seconds": 0.3329810829600319,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.295122291,
+        "through_drop_seconds": 0.308958041,
+        "verification": false
+      },
+      "variant": "after",
+      "repetition": 8
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.21,
+      "peak_rss_bytes": 609812480,
+      "user_seconds": 1.63,
+      "system_seconds": 0.22,
+      "observed_wall_seconds": 0.24455983296502382,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.201752584,
+        "through_drop_seconds": 0.202567167,
+        "verification": false
+      },
+      "variant": "pristine-mi",
+      "repetition": 8
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.19,
+      "peak_rss_bytes": 506675200,
+      "user_seconds": 1.56,
+      "system_seconds": 0.17,
+      "observed_wall_seconds": 0.2207891249563545,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.185818709,
+        "through_drop_seconds": 0.186909125,
+        "verification": false
+      },
+      "variant": "after-mi",
+      "repetition": 8
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.3,
+      "peak_rss_bytes": 383057920,
+      "user_seconds": 2.28,
+      "system_seconds": 0.78,
+      "observed_wall_seconds": 0.33565000002272427,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.285259542,
+        "through_drop_seconds": 0.297168584,
+        "verification": false
+      },
+      "variant": "after",
+      "repetition": 9
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.19,
+      "peak_rss_bytes": 598032384,
+      "user_seconds": 1.6,
+      "system_seconds": 0.21,
+      "observed_wall_seconds": 0.21722174994647503,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.177263833,
+        "through_drop_seconds": 0.178246083,
+        "verification": false
+      },
+      "variant": "pristine-mi",
+      "repetition": 9
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.18,
+      "peak_rss_bytes": 502530048,
+      "user_seconds": 1.58,
+      "system_seconds": 0.17,
+      "observed_wall_seconds": 0.22022008302155882,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.169528458,
+        "through_drop_seconds": 0.170374791,
+        "verification": false
+      },
+      "variant": "after-mi",
+      "repetition": 9
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.31,
+      "peak_rss_bytes": 503627776,
+      "user_seconds": 2.32,
+      "system_seconds": 0.96,
+      "observed_wall_seconds": 0.3222105409950018,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.291855125,
+        "through_drop_seconds": 0.306170209,
+        "verification": false
+      },
+      "variant": "pristine",
+      "repetition": 9
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.18,
+      "peak_rss_bytes": 612171776,
+      "user_seconds": 1.49,
+      "system_seconds": 0.24,
+      "observed_wall_seconds": 0.22699300001841038,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.171555,
+        "through_drop_seconds": 0.172227459,
+        "verification": false
+      },
+      "variant": "pristine-mi",
+      "repetition": 10
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.18,
+      "peak_rss_bytes": 508198912,
+      "user_seconds": 1.61,
+      "system_seconds": 0.18,
+      "observed_wall_seconds": 0.21212304197251797,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.17053725,
+        "through_drop_seconds": 0.171275167,
+        "verification": false
+      },
+      "variant": "after-mi",
+      "repetition": 10
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.29,
+      "peak_rss_bytes": 500170752,
+      "user_seconds": 2.26,
+      "system_seconds": 0.92,
+      "observed_wall_seconds": 0.3048570839455351,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.279163833,
+        "through_drop_seconds": 0.290108625,
+        "verification": false
+      },
+      "variant": "pristine",
+      "repetition": 10
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.31,
+      "peak_rss_bytes": 382926848,
+      "user_seconds": 2.39,
+      "system_seconds": 1.08,
+      "observed_wall_seconds": 0.32761349994689226,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.290059583,
+        "through_drop_seconds": 0.305783208,
+        "verification": false
+      },
+      "variant": "after",
+      "repetition": 10
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.17,
+      "peak_rss_bytes": 514539520,
+      "user_seconds": 1.66,
+      "system_seconds": 0.19,
+      "observed_wall_seconds": 0.1883239159360528,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.166540458,
+        "through_drop_seconds": 0.167334541,
+        "verification": false
+      },
+      "variant": "after-mi",
+      "repetition": 11
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.3,
+      "peak_rss_bytes": 504807424,
+      "user_seconds": 2.31,
+      "system_seconds": 0.94,
+      "observed_wall_seconds": 0.31899325002450496,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.286105792,
+        "through_drop_seconds": 0.29897975,
+        "verification": false
+      },
+      "variant": "pristine",
+      "repetition": 11
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.29,
+      "peak_rss_bytes": 389054464,
+      "user_seconds": 2.35,
+      "system_seconds": 0.86,
+      "observed_wall_seconds": 0.30765720806084573,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.279905625,
+        "through_drop_seconds": 0.290110292,
+        "verification": false
+      },
+      "variant": "after",
+      "repetition": 11
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.19,
+      "peak_rss_bytes": 626294784,
+      "user_seconds": 1.67,
+      "system_seconds": 0.24,
+      "observed_wall_seconds": 0.21621729107573628,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.175064417,
+        "through_drop_seconds": 0.175799208,
+        "verification": false
+      },
+      "variant": "pristine-mi",
+      "repetition": 11
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.31,
+      "peak_rss_bytes": 501825536,
+      "user_seconds": 2.32,
+      "system_seconds": 0.96,
+      "observed_wall_seconds": 0.35202691704034805,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.294717667,
+        "through_drop_seconds": 0.308145709,
+        "verification": false
+      },
+      "variant": "pristine",
+      "repetition": 12
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.29,
+      "peak_rss_bytes": 377077760,
+      "user_seconds": 2.32,
+      "system_seconds": 0.86,
+      "observed_wall_seconds": 0.31525466695893556,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.275140792,
+        "through_drop_seconds": 0.287549208,
+        "verification": false
+      },
+      "variant": "after",
+      "repetition": 12
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.18,
+      "peak_rss_bytes": 599359488,
+      "user_seconds": 1.63,
+      "system_seconds": 0.22,
+      "observed_wall_seconds": 0.20727933396119624,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.168386667,
+        "through_drop_seconds": 0.169184625,
+        "verification": false
+      },
+      "variant": "pristine-mi",
+      "repetition": 12
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.18,
+      "peak_rss_bytes": 514801664,
+      "user_seconds": 1.59,
+      "system_seconds": 0.2,
+      "observed_wall_seconds": 0.18818000005558133,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.168933125,
+        "through_drop_seconds": 0.169782541,
+        "verification": false
+      },
+      "variant": "after-mi",
+      "repetition": 12
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.3,
+      "peak_rss_bytes": 381566976,
+      "user_seconds": 2.33,
+      "system_seconds": 0.87,
+      "observed_wall_seconds": 0.3171203340170905,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.287416083,
+        "through_drop_seconds": 0.300304833,
+        "verification": false
+      },
+      "variant": "after",
+      "repetition": 13
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.18,
+      "peak_rss_bytes": 596606976,
+      "user_seconds": 1.65,
+      "system_seconds": 0.25,
+      "observed_wall_seconds": 0.19388437503948808,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.174298833,
+        "through_drop_seconds": 0.175267708,
+        "verification": false
+      },
+      "variant": "pristine-mi",
+      "repetition": 13
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.18,
+      "peak_rss_bytes": 516341760,
+      "user_seconds": 1.67,
+      "system_seconds": 0.18,
+      "observed_wall_seconds": 0.18579887505620718,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.168792291,
+        "through_drop_seconds": 0.169635958,
+        "verification": false
+      },
+      "variant": "after-mi",
+      "repetition": 13
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.3,
+      "peak_rss_bytes": 500514816,
+      "user_seconds": 2.35,
+      "system_seconds": 0.89,
+      "observed_wall_seconds": 0.31046549999155104,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.282548916,
+        "through_drop_seconds": 0.297320916,
+        "verification": false
+      },
+      "variant": "pristine",
+      "repetition": 13
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.18,
+      "peak_rss_bytes": 619184128,
+      "user_seconds": 1.69,
+      "system_seconds": 0.24,
+      "observed_wall_seconds": 0.22420299996156245,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.173848666,
+        "through_drop_seconds": 0.175037,
+        "verification": false
+      },
+      "variant": "pristine-mi",
+      "repetition": 14
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after-mi",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.17,
+      "peak_rss_bytes": 521879552,
+      "user_seconds": 1.62,
+      "system_seconds": 0.19,
+      "observed_wall_seconds": 0.21630787500180304,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.165127625,
+        "through_drop_seconds": 0.1661345,
+        "verification": false
+      },
+      "variant": "after-mi",
+      "repetition": 14
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.29,
+      "peak_rss_bytes": 509509632,
+      "user_seconds": 2.27,
+      "system_seconds": 0.86,
+      "observed_wall_seconds": 0.3041519159451127,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.271143667,
+        "through_drop_seconds": 0.284081417,
+        "verification": false
+      },
+      "variant": "pristine",
+      "repetition": 14
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/after",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.3,
+      "peak_rss_bytes": 388038656,
+      "user_seconds": 2.37,
+      "system_seconds": 0.93,
+      "observed_wall_seconds": 0.34104645799379796,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.279517625,
+        "through_drop_seconds": 0.293354333,
+        "verification": false
+      },
+      "variant": "after",
+      "repetition": 14
+    }
+  ],
+  "notes": [
+    "Pristine source from immutable egglog-baseline; current engine has inactive tracing/virtualization extensions. No analysis, macros, profiling or graph scans in timed runs.",
+    "Both builds use identical external harness, dependency lock, release ThinLTO/codegen-units=1; syn/full is unified for host proc-macro compatibility without changing pristine source.",
+    "Variants ending in -mi use the same mimalloc allocator as the original CLI. Other variants use System.",
+    "Internal timer includes EGraph creation, parser and program execution; through_drop additionally includes engine/report destruction. Process measurements include startup, source read, and final JSON."
+  ],
+  "medians": {
+    "pristine": {
+      "execution_seconds": 0.285798208,
+      "through_drop_seconds": 0.29948325,
+      "wall_seconds": 0.3,
+      "cpu_seconds": 3.1799999999999997,
+      "peak_rss_bytes": 504512512,
+      "matches": [
+        944254
+      ]
+    },
+    "after": {
+      "execution_seconds": 0.285259542,
+      "through_drop_seconds": 0.297794375,
+      "wall_seconds": 0.3,
+      "cpu_seconds": 3.1799999999999997,
+      "peak_rss_bytes": 386564096,
+      "matches": [
+        944254
+      ]
+    },
+    "pristine-mi": {
+      "execution_seconds": 0.173848666,
+      "through_drop_seconds": 0.175037,
+      "wall_seconds": 0.19,
+      "cpu_seconds": 1.8499999999999999,
+      "peak_rss_bytes": 609812480,
+      "matches": [
+        944254
+      ]
+    },
+    "after-mi": {
+      "execution_seconds": 0.168933125,
+      "through_drop_seconds": 0.169782541,
+      "wall_seconds": 0.18,
+      "cpu_seconds": 1.77,
+      "peak_rss_bytes": 512409600,
+      "matches": [
+        944254
+      ]
+    }
+  }
+}
