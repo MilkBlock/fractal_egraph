@@ -267,8 +267,9 @@ fn install(eg: &mut EGraph, id: usize, r: &Rule, m: Option<&Macro>) -> Result<St
 }
 // Instance rows are emitted by macro actions. No saturated-body query/rematching:
 // each row is the binding matrix required by native storage validation.
-fn pack_instances(eg: &mut EGraph, bake: &Bake) -> Result<Value> {
+fn pack_instances(eg: &mut EGraph, bake: &Bake, min_reuse: usize) -> Result<Value> {
     let mut instances = 0;
+    let mut templates = vec![];
     for (id, m) in &bake.macros {
         let name = format!("adaptive_instance_{id}");
         if eg.get_function(&name).is_none() {
@@ -276,9 +277,15 @@ fn pack_instances(eg: &mut EGraph, bake: &Bake) -> Result<Value> {
         }
         let bindings = eg.drain_notification_relation(&name)?;
         instances += bindings.len();
-        if bindings.is_empty() {
+        if bindings.len() < min_reuse {
+            templates.push(json!({"rule":id,"instances":bindings.len(),"packed":false,"reason":"insufficient distinct instances in this batch"}));
             continue;
         }
+        let before = eg
+            .virtual_fact_stats()
+            .iter()
+            .map(|(_, s)| s.virtual_rows)
+            .sum::<usize>();
         let template = eg.virtual_fact_template(
             m.template
                 .iter()
@@ -288,10 +295,16 @@ fn pack_instances(eg: &mut EGraph, bake: &Bake) -> Result<Value> {
                 })
                 .collect(),
         )?;
-        eg.virtualize_existing_facts(&template, &bindings)?;
+        let packed = eg.virtualize_existing_facts(&template, &bindings)?;
+        let after = eg
+            .virtual_fact_stats()
+            .iter()
+            .map(|(_, s)| s.virtual_rows)
+            .sum::<usize>();
+        templates.push(json!({"rule":id,"instances":bindings.len(),"packed":true,"distinct_native_rows":packed.distinct_native_rows,"new_virtual_rows_net":after.saturating_sub(before)}));
     }
     Ok(
-        json!({"processed_instance_packets":instances,"virtual_rows":eg.virtual_fact_stats().iter().map(|(_,s)|s.virtual_rows).sum::<usize>()}),
+        json!({"min_reuse":min_reuse,"templates":templates,"processed_instance_packets":instances,"virtual_rows":eg.virtual_fact_stats().iter().map(|(_,s)|s.virtual_rows).sum::<usize>()}),
     )
 }
 fn save_bake(out: &Path, name: &str, bake: &Bake, rules: &[Rule]) -> Result<usize> {
@@ -346,6 +359,27 @@ fn counts(eg: &EGraph) -> Value {
 /// Each round is a native simultaneous combined ruleset; swapping a RHS can
 /// advance more source inference steps. Finite round counts are NOT equal work.
 pub fn run(source: &str, input: Option<&Path>, out: &Path, mode: &str) -> Result<Value> {
+    let min_reuse = std::env::var("EGG_LAYOUT_MIN_TEMPLATE_REUSE")
+        .ok()
+        .map(|s| s.parse::<usize>())
+        .transpose()?
+        .unwrap_or(2);
+    if min_reuse == 0 {
+        return Err("minimum template reuse must be positive".into());
+    }
+    run_with_min_reuse(source, input, out, mode, min_reuse)
+}
+/// Explicit policy for reproducible ablations; 1 restores unrestricted admission.
+pub fn run_with_min_reuse(
+    source: &str,
+    input: Option<&Path>,
+    out: &Path,
+    mode: &str,
+    min_reuse: usize,
+) -> Result<Value> {
+    if min_reuse == 0 {
+        return Err("minimum template reuse must be positive".into());
+    }
     if !["native", "adaptive", "frozen"].contains(&mode) {
         return Err("unknown adaptive mode".into());
     }
@@ -441,7 +475,7 @@ pub fn run(source: &str, input: Option<&Path>, out: &Path, mode: &str) -> Result
                     let source_matches = matches - macro_matches;
                     let t = Instant::now();
                     let packing = if mode != "native" {
-                        pack_instances(&mut eg, &bake)?
+                        pack_instances(&mut eg, &bake, min_reuse)?
                     } else {
                         json!({"processed_instance_packets":0,"virtual_rows":0})
                     };
@@ -496,7 +530,7 @@ pub fn run(source: &str, input: Option<&Path>, out: &Path, mode: &str) -> Result
         }
     }
     save_bake(out, "bake_lib", &bake, &rules)?;
-    let report = json!({"mode":mode,"seconds":started.elapsed().as_secs_f64(),"execution_seconds":execution_seconds,"learning_seconds":learning_seconds,"matches":total,"samples":samples,"final":counts(&eg),"storage":crate::reuse_graph::native_storage::storage_report(&eg),"scope":"actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed"});
+    let report = json!({"mode":mode,"min_template_reuse":min_reuse,"seconds":started.elapsed().as_secs_f64(),"execution_seconds":execution_seconds,"learning_seconds":learning_seconds,"matches":total,"samples":samples,"final":counts(&eg),"storage":crate::reuse_graph::native_storage::storage_report(&eg),"scope":"actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed"});
     std::fs::write(out.join("report.json"), serde_json::to_vec_pretty(&report)?)?;
     Ok(report)
 }

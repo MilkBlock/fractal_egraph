@@ -1,0 +1,5197 @@
+{
+  "runs": [
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "frozen",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/reuse-filter-storage/run-1-0",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-0/bake_lib_round2.json"
+      ],
+      "process_wall_seconds": 0.4,
+      "peak_rss_bytes": 10682368,
+      "observed_wall_seconds": 0.40786995796952397,
+      "result": {
+        "execution_seconds": 0.002029543,
+        "final": {
+          "eclasses": 137,
+          "enodes": 347,
+          "rss_bytes": 10354688
+        },
+        "learning_seconds": 8.2e-08,
+        "matches": 211,
+        "min_template_reuse": 1,
+        "mode": "frozen",
+        "samples": [
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.000331292,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 81,
+              "rss_bytes": 8814592
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 22017,
+            "macro_matches": 19,
+            "matches": 20,
+            "packing": {
+              "min_reuse": 1,
+              "processed_instance_packets": 19,
+              "templates": [
+                {
+                  "distinct_native_rows": 13,
+                  "instances": 7,
+                  "new_virtual_rows_net": 13,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 8,
+                  "instances": 4,
+                  "new_virtual_rows_net": 8,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 2
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 3
+                },
+                {
+                  "distinct_native_rows": 21,
+                  "instances": 4,
+                  "new_virtual_rows_net": 21,
+                  "packed": true,
+                  "rule": 4
+                },
+                {
+                  "distinct_native_rows": 9,
+                  "instances": 1,
+                  "new_virtual_rows_net": 5,
+                  "packed": true,
+                  "rule": 9
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 10
+                },
+                {
+                  "distinct_native_rows": 3,
+                  "instances": 1,
+                  "new_virtual_rows_net": 3,
+                  "packed": true,
+                  "rule": 13
+                },
+                {
+                  "distinct_native_rows": 7,
+                  "instances": 1,
+                  "new_virtual_rows_net": 5,
+                  "packed": true,
+                  "rule": 14
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 15
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "distinct_native_rows": 7,
+                  "instances": 1,
+                  "new_virtual_rows_net": 5,
+                  "packed": true,
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 60
+            },
+            "packing_seconds": 0.000339083,
+            "rejected": [],
+            "round": 1,
+            "source_matches": 1
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 82,
+            "execution_seconds": 0.0010112090000000001,
+            "graph": {
+              "eclasses": 75,
+              "enodes": 151,
+              "rss_bytes": 9420800
+            },
+            "learning_seconds": 4.1e-08,
+            "library_bytes": 22017,
+            "macro_matches": 60,
+            "matches": 62,
+            "packing": {
+              "min_reuse": 1,
+              "processed_instance_packets": 60,
+              "templates": [
+                {
+                  "distinct_native_rows": 26,
+                  "instances": 20,
+                  "new_virtual_rows_net": 0,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 24,
+                  "instances": 18,
+                  "new_virtual_rows_net": 4,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "distinct_native_rows": 32,
+                  "instances": 6,
+                  "new_virtual_rows_net": 24,
+                  "packed": true,
+                  "rule": 2
+                },
+                {
+                  "distinct_native_rows": 17,
+                  "instances": 3,
+                  "new_virtual_rows_net": 12,
+                  "packed": true,
+                  "rule": 3
+                },
+                {
+                  "distinct_native_rows": 6,
+                  "instances": 1,
+                  "new_virtual_rows_net": 5,
+                  "packed": true,
+                  "rule": 4
+                },
+                {
+                  "distinct_native_rows": 15,
+                  "instances": 2,
+                  "new_virtual_rows_net": 3,
+                  "packed": true,
+                  "rule": 9
+                },
+                {
+                  "distinct_native_rows": 9,
+                  "instances": 2,
+                  "new_virtual_rows_net": 0,
+                  "packed": true,
+                  "rule": 10
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "distinct_native_rows": 14,
+                  "instances": 3,
+                  "new_virtual_rows_net": 5,
+                  "packed": true,
+                  "rule": 14
+                },
+                {
+                  "distinct_native_rows": 11,
+                  "instances": 2,
+                  "new_virtual_rows_net": 8,
+                  "packed": true,
+                  "rule": 15
+                },
+                {
+                  "distinct_native_rows": 6,
+                  "instances": 1,
+                  "new_virtual_rows_net": 5,
+                  "packed": true,
+                  "rule": 17
+                },
+                {
+                  "distinct_native_rows": 3,
+                  "instances": 1,
+                  "new_virtual_rows_net": 0,
+                  "packed": true,
+                  "rule": 19
+                },
+                {
+                  "distinct_native_rows": 7,
+                  "instances": 1,
+                  "new_virtual_rows_net": 0,
+                  "packed": true,
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 126
+            },
+            "packing_seconds": 0.000739334,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 2
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 211,
+            "execution_seconds": 0.002029543,
+            "graph": {
+              "eclasses": 137,
+              "enodes": 347,
+              "rss_bytes": 10141696
+            },
+            "learning_seconds": 8.2e-08,
+            "library_bytes": 22017,
+            "macro_matches": 126,
+            "matches": 129,
+            "packing": {
+              "min_reuse": 1,
+              "processed_instance_packets": 126,
+              "templates": [
+                {
+                  "distinct_native_rows": 31,
+                  "instances": 31,
+                  "new_virtual_rows_net": 0,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 34,
+                  "instances": 28,
+                  "new_virtual_rows_net": 8,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "distinct_native_rows": 149,
+                  "instances": 43,
+                  "new_virtual_rows_net": 112,
+                  "packed": true,
+                  "rule": 2
+                },
+                {
+                  "distinct_native_rows": 43,
+                  "instances": 12,
+                  "new_virtual_rows_net": 20,
+                  "packed": true,
+                  "rule": 3
+                },
+                {
+                  "distinct_native_rows": 11,
+                  "instances": 2,
+                  "new_virtual_rows_net": 10,
+                  "packed": true,
+                  "rule": 4
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 9
+                },
+                {
+                  "distinct_native_rows": 9,
+                  "instances": 2,
+                  "new_virtual_rows_net": 3,
+                  "packed": true,
+                  "rule": 10
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 14
+                },
+                {
+                  "distinct_native_rows": 41,
+                  "instances": 8,
+                  "new_virtual_rows_net": 32,
+                  "packed": true,
+                  "rule": 15
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 311
+            },
+            "packing_seconds": 0.001135458,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 3
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.025702666,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 840,
+          "binding_payload_bytes": 1516,
+          "tables": [
+            {
+              "dense_equivalent_bytes": 400,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 456,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Diff",
+              "tombstones": 0,
+              "virtual_rows": 17
+            },
+            {
+              "dense_equivalent_bytes": 300,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 3,
+              "direct_bytes": 240,
+              "local_header_bytes": 328,
+              "metadata_bytes": 16,
+              "overlay_rows": 9,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Integral",
+              "tombstones": 0,
+              "virtual_rows": 3
+            },
+            {
+              "dense_equivalent_bytes": 3900,
+              "descriptor_bytes": 3072,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 904,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 8,
+              "rebuild_rows_examined": 8,
+              "table": "Add",
+              "tombstones": 12,
+              "virtual_rows": 183
+            },
+            {
+              "dense_equivalent_bytes": 200,
+              "descriptor_bytes": 192,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 424,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sub",
+              "tombstones": 0,
+              "virtual_rows": 7
+            },
+            {
+              "dense_equivalent_bytes": 2080,
+              "descriptor_bytes": 1536,
+              "direct_base_rows": 6,
+              "direct_bytes": 120,
+              "local_header_bytes": 1032,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 2,
+              "rebuild_rows_examined": 2,
+              "table": "Mul",
+              "tombstones": 2,
+              "virtual_rows": 96
+            },
+            {
+              "dense_equivalent_bytes": 40,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 1,
+              "direct_bytes": 20,
+              "local_header_bytes": 328,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Pow",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 32,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sin",
+              "tombstones": 1,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 16,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Cos",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 80,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 3,
+              "direct_bytes": 48,
+              "local_header_bytes": 328,
+              "metadata_bytes": 16,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Const",
+              "tombstones": 0,
+              "virtual_rows": 2
+            }
+          ],
+          "template_header_bytes": 4704,
+          "template_payload_bytes": 3688,
+          "unique_binding_matrices": 21,
+          "unique_templates": 21
+        }
+      },
+      "threshold": 1,
+      "repeat": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "frozen",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/reuse-filter-storage/run-2-0",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-0/bake_lib_round2.json"
+      ],
+      "process_wall_seconds": 0.02,
+      "peak_rss_bytes": 10764288,
+      "observed_wall_seconds": 0.04059329198207706,
+      "result": {
+        "execution_seconds": 0.001372874,
+        "final": {
+          "eclasses": 137,
+          "enodes": 347,
+          "rss_bytes": 10633216
+        },
+        "learning_seconds": 8.2e-08,
+        "matches": 211,
+        "min_template_reuse": 2,
+        "mode": "frozen",
+        "samples": [
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.000163292,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 81,
+              "rss_bytes": 8945664
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 22017,
+            "macro_matches": 19,
+            "matches": 20,
+            "packing": {
+              "min_reuse": 2,
+              "processed_instance_packets": 19,
+              "templates": [
+                {
+                  "distinct_native_rows": 13,
+                  "instances": 7,
+                  "new_virtual_rows_net": 13,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 8,
+                  "instances": 4,
+                  "new_virtual_rows_net": 8,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 2
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 3
+                },
+                {
+                  "distinct_native_rows": 21,
+                  "instances": 4,
+                  "new_virtual_rows_net": 21,
+                  "packed": true,
+                  "rule": 4
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 9
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 10
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 14
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 15
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 42
+            },
+            "packing_seconds": 0.000125833,
+            "rejected": [],
+            "round": 1,
+            "source_matches": 1
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 82,
+            "execution_seconds": 0.000663458,
+            "graph": {
+              "eclasses": 75,
+              "enodes": 151,
+              "rss_bytes": 9732096
+            },
+            "learning_seconds": 4.1e-08,
+            "library_bytes": 22017,
+            "macro_matches": 60,
+            "matches": 62,
+            "packing": {
+              "min_reuse": 2,
+              "processed_instance_packets": 60,
+              "templates": [
+                {
+                  "distinct_native_rows": 26,
+                  "instances": 20,
+                  "new_virtual_rows_net": 6,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 24,
+                  "instances": 18,
+                  "new_virtual_rows_net": 8,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "distinct_native_rows": 32,
+                  "instances": 6,
+                  "new_virtual_rows_net": 24,
+                  "packed": true,
+                  "rule": 2
+                },
+                {
+                  "distinct_native_rows": 17,
+                  "instances": 3,
+                  "new_virtual_rows_net": 12,
+                  "packed": true,
+                  "rule": 3
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 4
+                },
+                {
+                  "distinct_native_rows": 15,
+                  "instances": 2,
+                  "new_virtual_rows_net": 3,
+                  "packed": true,
+                  "rule": 9
+                },
+                {
+                  "distinct_native_rows": 9,
+                  "instances": 2,
+                  "new_virtual_rows_net": 0,
+                  "packed": true,
+                  "rule": 10
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "distinct_native_rows": 14,
+                  "instances": 3,
+                  "new_virtual_rows_net": 8,
+                  "packed": true,
+                  "rule": 14
+                },
+                {
+                  "distinct_native_rows": 11,
+                  "instances": 2,
+                  "new_virtual_rows_net": 8,
+                  "packed": true,
+                  "rule": 15
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 111
+            },
+            "packing_seconds": 0.000438042,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 2
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 211,
+            "execution_seconds": 0.001372874,
+            "graph": {
+              "eclasses": 137,
+              "enodes": 347,
+              "rss_bytes": 10452992
+            },
+            "learning_seconds": 8.2e-08,
+            "library_bytes": 22017,
+            "macro_matches": 126,
+            "matches": 129,
+            "packing": {
+              "min_reuse": 2,
+              "processed_instance_packets": 126,
+              "templates": [
+                {
+                  "distinct_native_rows": 31,
+                  "instances": 31,
+                  "new_virtual_rows_net": 2,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 34,
+                  "instances": 28,
+                  "new_virtual_rows_net": 12,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "distinct_native_rows": 149,
+                  "instances": 43,
+                  "new_virtual_rows_net": 112,
+                  "packed": true,
+                  "rule": 2
+                },
+                {
+                  "distinct_native_rows": 43,
+                  "instances": 12,
+                  "new_virtual_rows_net": 20,
+                  "packed": true,
+                  "rule": 3
+                },
+                {
+                  "distinct_native_rows": 11,
+                  "instances": 2,
+                  "new_virtual_rows_net": 10,
+                  "packed": true,
+                  "rule": 4
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 9
+                },
+                {
+                  "distinct_native_rows": 9,
+                  "instances": 2,
+                  "new_virtual_rows_net": 3,
+                  "packed": true,
+                  "rule": 10
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 14
+                },
+                {
+                  "distinct_native_rows": 41,
+                  "instances": 8,
+                  "new_virtual_rows_net": 32,
+                  "packed": true,
+                  "rule": 15
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 302
+            },
+            "packing_seconds": 0.000922875,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 3
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.016962042,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 680,
+          "binding_payload_bytes": 1504,
+          "tables": [
+            {
+              "dense_equivalent_bytes": 400,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 4,
+              "direct_bytes": 80,
+              "local_header_bytes": 424,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Diff",
+              "tombstones": 0,
+              "virtual_rows": 16
+            },
+            {
+              "dense_equivalent_bytes": 3900,
+              "descriptor_bytes": 3072,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 904,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 8,
+              "rebuild_rows_examined": 8,
+              "table": "Add",
+              "tombstones": 12,
+              "virtual_rows": 183
+            },
+            {
+              "dense_equivalent_bytes": 200,
+              "descriptor_bytes": 192,
+              "direct_base_rows": 4,
+              "direct_bytes": 80,
+              "local_header_bytes": 360,
+              "metadata_bytes": 32,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sub",
+              "tombstones": 0,
+              "virtual_rows": 6
+            },
+            {
+              "dense_equivalent_bytes": 2080,
+              "descriptor_bytes": 1536,
+              "direct_base_rows": 6,
+              "direct_bytes": 120,
+              "local_header_bytes": 1032,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 2,
+              "rebuild_rows_examined": 2,
+              "table": "Mul",
+              "tombstones": 2,
+              "virtual_rows": 96
+            },
+            {
+              "dense_equivalent_bytes": 80,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 4,
+              "direct_bytes": 64,
+              "local_header_bytes": 328,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Const",
+              "tombstones": 0,
+              "virtual_rows": 1
+            }
+          ],
+          "template_header_bytes": 3696,
+          "template_payload_bytes": 2888,
+          "unique_binding_matrices": 17,
+          "unique_templates": 17
+        }
+      },
+      "threshold": 2,
+      "repeat": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "frozen",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/reuse-filter-storage/run-8-0",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-0/bake_lib_round2.json"
+      ],
+      "process_wall_seconds": 0.02,
+      "peak_rss_bytes": 10485760,
+      "observed_wall_seconds": 0.03477649996057153,
+      "result": {
+        "execution_seconds": 0.0011499169999999999,
+        "final": {
+          "eclasses": 137,
+          "enodes": 347,
+          "rss_bytes": 10321920
+        },
+        "learning_seconds": 4.2e-08,
+        "matches": 211,
+        "min_template_reuse": 8,
+        "mode": "frozen",
+        "samples": [
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.000164292,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 81,
+              "rss_bytes": 8945664
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 22017,
+            "macro_matches": 19,
+            "matches": 20,
+            "packing": {
+              "min_reuse": 8,
+              "processed_instance_packets": 19,
+              "templates": [
+                {
+                  "instances": 7,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 0
+                },
+                {
+                  "instances": 4,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 1
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 2
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 3
+                },
+                {
+                  "instances": 4,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 4
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 9
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 10
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 14
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 15
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 0
+            },
+            "packing_seconds": 3.0708e-05,
+            "rejected": [],
+            "round": 1,
+            "source_matches": 1
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 82,
+            "execution_seconds": 0.000539667,
+            "graph": {
+              "eclasses": 75,
+              "enodes": 151,
+              "rss_bytes": 9535488
+            },
+            "learning_seconds": 4.2e-08,
+            "library_bytes": 22017,
+            "macro_matches": 60,
+            "matches": 62,
+            "packing": {
+              "min_reuse": 8,
+              "processed_instance_packets": 60,
+              "templates": [
+                {
+                  "distinct_native_rows": 26,
+                  "instances": 20,
+                  "new_virtual_rows_net": 26,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 24,
+                  "instances": 18,
+                  "new_virtual_rows_net": 24,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "instances": 6,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 2
+                },
+                {
+                  "instances": 3,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 3
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 4
+                },
+                {
+                  "instances": 2,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 9
+                },
+                {
+                  "instances": 2,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 10
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "instances": 3,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 14
+                },
+                {
+                  "instances": 2,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 15
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 50
+            },
+            "packing_seconds": 0.000132833,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 2
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 211,
+            "execution_seconds": 0.0011499169999999999,
+            "graph": {
+              "eclasses": 137,
+              "enodes": 347,
+              "rss_bytes": 10125312
+            },
+            "learning_seconds": 4.2e-08,
+            "library_bytes": 22017,
+            "macro_matches": 126,
+            "matches": 129,
+            "packing": {
+              "min_reuse": 8,
+              "processed_instance_packets": 126,
+              "templates": [
+                {
+                  "distinct_native_rows": 31,
+                  "instances": 31,
+                  "new_virtual_rows_net": 31,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 34,
+                  "instances": 28,
+                  "new_virtual_rows_net": 30,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "distinct_native_rows": 149,
+                  "instances": 43,
+                  "new_virtual_rows_net": 112,
+                  "packed": true,
+                  "rule": 2
+                },
+                {
+                  "distinct_native_rows": 43,
+                  "instances": 12,
+                  "new_virtual_rows_net": 20,
+                  "packed": true,
+                  "rule": 3
+                },
+                {
+                  "instances": 2,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 4
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 9
+                },
+                {
+                  "instances": 2,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 10
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 14
+                },
+                {
+                  "distinct_native_rows": 41,
+                  "instances": 8,
+                  "new_virtual_rows_net": 33,
+                  "packed": true,
+                  "rule": 15
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 276
+            },
+            "packing_seconds": 0.000683125,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 3
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.014611916,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 280,
+          "binding_payload_bytes": 1444,
+          "tables": [
+            {
+              "dense_equivalent_bytes": 400,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 11,
+              "direct_bytes": 220,
+              "local_header_bytes": 520,
+              "metadata_bytes": 16,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Diff",
+              "tombstones": 0,
+              "virtual_rows": 9
+            },
+            {
+              "dense_equivalent_bytes": 3900,
+              "descriptor_bytes": 3072,
+              "direct_base_rows": 6,
+              "direct_bytes": 120,
+              "local_header_bytes": 936,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 8,
+              "rebuild_rows_examined": 8,
+              "table": "Add",
+              "tombstones": 12,
+              "virtual_rows": 177
+            },
+            {
+              "dense_equivalent_bytes": 2080,
+              "descriptor_bytes": 1536,
+              "direct_base_rows": 12,
+              "direct_bytes": 240,
+              "local_header_bytes": 1064,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Mul",
+              "tombstones": 2,
+              "virtual_rows": 90
+            }
+          ],
+          "template_header_bytes": 1360,
+          "template_payload_bytes": 1032,
+          "unique_binding_matrices": 7,
+          "unique_templates": 7
+        }
+      },
+      "threshold": 8,
+      "repeat": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "frozen",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/reuse-filter-storage/run-2-1",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-0/bake_lib_round2.json"
+      ],
+      "process_wall_seconds": 0.02,
+      "peak_rss_bytes": 10600448,
+      "observed_wall_seconds": 0.04021349991671741,
+      "result": {
+        "execution_seconds": 0.001214292,
+        "final": {
+          "eclasses": 137,
+          "enodes": 347,
+          "rss_bytes": 10321920
+        },
+        "learning_seconds": 8.3e-08,
+        "matches": 211,
+        "min_template_reuse": 2,
+        "mode": "frozen",
+        "samples": [
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.000156458,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 81,
+              "rss_bytes": 8945664
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 22017,
+            "macro_matches": 19,
+            "matches": 20,
+            "packing": {
+              "min_reuse": 2,
+              "processed_instance_packets": 19,
+              "templates": [
+                {
+                  "distinct_native_rows": 13,
+                  "instances": 7,
+                  "new_virtual_rows_net": 13,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 8,
+                  "instances": 4,
+                  "new_virtual_rows_net": 8,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 2
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 3
+                },
+                {
+                  "distinct_native_rows": 21,
+                  "instances": 4,
+                  "new_virtual_rows_net": 21,
+                  "packed": true,
+                  "rule": 4
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 9
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 10
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 14
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 15
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 42
+            },
+            "packing_seconds": 0.000113291,
+            "rejected": [],
+            "round": 1,
+            "source_matches": 1
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 82,
+            "execution_seconds": 0.000575625,
+            "graph": {
+              "eclasses": 75,
+              "enodes": 151,
+              "rss_bytes": 9715712
+            },
+            "learning_seconds": 4.1e-08,
+            "library_bytes": 22017,
+            "macro_matches": 60,
+            "matches": 62,
+            "packing": {
+              "min_reuse": 2,
+              "processed_instance_packets": 60,
+              "templates": [
+                {
+                  "distinct_native_rows": 26,
+                  "instances": 20,
+                  "new_virtual_rows_net": 6,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 24,
+                  "instances": 18,
+                  "new_virtual_rows_net": 8,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "distinct_native_rows": 32,
+                  "instances": 6,
+                  "new_virtual_rows_net": 24,
+                  "packed": true,
+                  "rule": 2
+                },
+                {
+                  "distinct_native_rows": 17,
+                  "instances": 3,
+                  "new_virtual_rows_net": 12,
+                  "packed": true,
+                  "rule": 3
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 4
+                },
+                {
+                  "distinct_native_rows": 15,
+                  "instances": 2,
+                  "new_virtual_rows_net": 3,
+                  "packed": true,
+                  "rule": 9
+                },
+                {
+                  "distinct_native_rows": 9,
+                  "instances": 2,
+                  "new_virtual_rows_net": 0,
+                  "packed": true,
+                  "rule": 10
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "distinct_native_rows": 14,
+                  "instances": 3,
+                  "new_virtual_rows_net": 8,
+                  "packed": true,
+                  "rule": 14
+                },
+                {
+                  "distinct_native_rows": 11,
+                  "instances": 2,
+                  "new_virtual_rows_net": 8,
+                  "packed": true,
+                  "rule": 15
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 111
+            },
+            "packing_seconds": 0.000386375,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 2
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 211,
+            "execution_seconds": 0.001214292,
+            "graph": {
+              "eclasses": 137,
+              "enodes": 347,
+              "rss_bytes": 10240000
+            },
+            "learning_seconds": 8.3e-08,
+            "library_bytes": 22017,
+            "macro_matches": 126,
+            "matches": 129,
+            "packing": {
+              "min_reuse": 2,
+              "processed_instance_packets": 126,
+              "templates": [
+                {
+                  "distinct_native_rows": 31,
+                  "instances": 31,
+                  "new_virtual_rows_net": 2,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 34,
+                  "instances": 28,
+                  "new_virtual_rows_net": 12,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "distinct_native_rows": 149,
+                  "instances": 43,
+                  "new_virtual_rows_net": 112,
+                  "packed": true,
+                  "rule": 2
+                },
+                {
+                  "distinct_native_rows": 43,
+                  "instances": 12,
+                  "new_virtual_rows_net": 20,
+                  "packed": true,
+                  "rule": 3
+                },
+                {
+                  "distinct_native_rows": 11,
+                  "instances": 2,
+                  "new_virtual_rows_net": 10,
+                  "packed": true,
+                  "rule": 4
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 9
+                },
+                {
+                  "distinct_native_rows": 9,
+                  "instances": 2,
+                  "new_virtual_rows_net": 3,
+                  "packed": true,
+                  "rule": 10
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 14
+                },
+                {
+                  "distinct_native_rows": 41,
+                  "instances": 8,
+                  "new_virtual_rows_net": 32,
+                  "packed": true,
+                  "rule": 15
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 302
+            },
+            "packing_seconds": 0.000911375,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 3
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.016123959,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 680,
+          "binding_payload_bytes": 1504,
+          "tables": [
+            {
+              "dense_equivalent_bytes": 400,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 4,
+              "direct_bytes": 80,
+              "local_header_bytes": 424,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Diff",
+              "tombstones": 0,
+              "virtual_rows": 16
+            },
+            {
+              "dense_equivalent_bytes": 3900,
+              "descriptor_bytes": 3072,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 904,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 8,
+              "rebuild_rows_examined": 8,
+              "table": "Add",
+              "tombstones": 12,
+              "virtual_rows": 183
+            },
+            {
+              "dense_equivalent_bytes": 200,
+              "descriptor_bytes": 192,
+              "direct_base_rows": 4,
+              "direct_bytes": 80,
+              "local_header_bytes": 360,
+              "metadata_bytes": 32,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sub",
+              "tombstones": 0,
+              "virtual_rows": 6
+            },
+            {
+              "dense_equivalent_bytes": 2080,
+              "descriptor_bytes": 1536,
+              "direct_base_rows": 6,
+              "direct_bytes": 120,
+              "local_header_bytes": 1032,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 2,
+              "rebuild_rows_examined": 2,
+              "table": "Mul",
+              "tombstones": 2,
+              "virtual_rows": 96
+            },
+            {
+              "dense_equivalent_bytes": 80,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 4,
+              "direct_bytes": 64,
+              "local_header_bytes": 328,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Const",
+              "tombstones": 0,
+              "virtual_rows": 1
+            }
+          ],
+          "template_header_bytes": 3696,
+          "template_payload_bytes": 2888,
+          "unique_binding_matrices": 17,
+          "unique_templates": 17
+        }
+      },
+      "threshold": 2,
+      "repeat": 1
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "frozen",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/reuse-filter-storage/run-8-1",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-0/bake_lib_round2.json"
+      ],
+      "process_wall_seconds": 0.02,
+      "peak_rss_bytes": 10649600,
+      "observed_wall_seconds": 0.040519375004805624,
+      "result": {
+        "execution_seconds": 0.001232459,
+        "final": {
+          "eclasses": 137,
+          "enodes": 347,
+          "rss_bytes": 10551296
+        },
+        "learning_seconds": 0.0,
+        "matches": 211,
+        "min_template_reuse": 8,
+        "mode": "frozen",
+        "samples": [
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.000153542,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 81,
+              "rss_bytes": 9060352
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 22017,
+            "macro_matches": 19,
+            "matches": 20,
+            "packing": {
+              "min_reuse": 8,
+              "processed_instance_packets": 19,
+              "templates": [
+                {
+                  "instances": 7,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 0
+                },
+                {
+                  "instances": 4,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 1
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 2
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 3
+                },
+                {
+                  "instances": 4,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 4
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 9
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 10
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 14
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 15
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 0
+            },
+            "packing_seconds": 2.7917e-05,
+            "rejected": [],
+            "round": 1,
+            "source_matches": 1
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 82,
+            "execution_seconds": 0.000553542,
+            "graph": {
+              "eclasses": 75,
+              "enodes": 151,
+              "rss_bytes": 9830400
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 22017,
+            "macro_matches": 60,
+            "matches": 62,
+            "packing": {
+              "min_reuse": 8,
+              "processed_instance_packets": 60,
+              "templates": [
+                {
+                  "distinct_native_rows": 26,
+                  "instances": 20,
+                  "new_virtual_rows_net": 26,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 24,
+                  "instances": 18,
+                  "new_virtual_rows_net": 24,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "instances": 6,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 2
+                },
+                {
+                  "instances": 3,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 3
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 4
+                },
+                {
+                  "instances": 2,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 9
+                },
+                {
+                  "instances": 2,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 10
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "instances": 3,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 14
+                },
+                {
+                  "instances": 2,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 15
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 50
+            },
+            "packing_seconds": 0.000122084,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 2
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 211,
+            "execution_seconds": 0.001232459,
+            "graph": {
+              "eclasses": 137,
+              "enodes": 347,
+              "rss_bytes": 10502144
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 22017,
+            "macro_matches": 126,
+            "matches": 129,
+            "packing": {
+              "min_reuse": 8,
+              "processed_instance_packets": 126,
+              "templates": [
+                {
+                  "distinct_native_rows": 31,
+                  "instances": 31,
+                  "new_virtual_rows_net": 31,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 34,
+                  "instances": 28,
+                  "new_virtual_rows_net": 30,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "distinct_native_rows": 149,
+                  "instances": 43,
+                  "new_virtual_rows_net": 112,
+                  "packed": true,
+                  "rule": 2
+                },
+                {
+                  "distinct_native_rows": 43,
+                  "instances": 12,
+                  "new_virtual_rows_net": 20,
+                  "packed": true,
+                  "rule": 3
+                },
+                {
+                  "instances": 2,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 4
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 9
+                },
+                {
+                  "instances": 2,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 10
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 14
+                },
+                {
+                  "distinct_native_rows": 41,
+                  "instances": 8,
+                  "new_virtual_rows_net": 33,
+                  "packed": true,
+                  "rule": 15
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 276
+            },
+            "packing_seconds": 0.00068275,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 3
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.01549825,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 280,
+          "binding_payload_bytes": 1444,
+          "tables": [
+            {
+              "dense_equivalent_bytes": 400,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 11,
+              "direct_bytes": 220,
+              "local_header_bytes": 520,
+              "metadata_bytes": 16,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Diff",
+              "tombstones": 0,
+              "virtual_rows": 9
+            },
+            {
+              "dense_equivalent_bytes": 3900,
+              "descriptor_bytes": 3072,
+              "direct_base_rows": 6,
+              "direct_bytes": 120,
+              "local_header_bytes": 936,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 8,
+              "rebuild_rows_examined": 8,
+              "table": "Add",
+              "tombstones": 12,
+              "virtual_rows": 177
+            },
+            {
+              "dense_equivalent_bytes": 2080,
+              "descriptor_bytes": 1536,
+              "direct_base_rows": 12,
+              "direct_bytes": 240,
+              "local_header_bytes": 1064,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Mul",
+              "tombstones": 2,
+              "virtual_rows": 90
+            }
+          ],
+          "template_header_bytes": 1360,
+          "template_payload_bytes": 1032,
+          "unique_binding_matrices": 7,
+          "unique_templates": 7
+        }
+      },
+      "threshold": 8,
+      "repeat": 1
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "frozen",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/reuse-filter-storage/run-1-1",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-0/bake_lib_round2.json"
+      ],
+      "process_wall_seconds": 0.02,
+      "peak_rss_bytes": 10698752,
+      "observed_wall_seconds": 0.03875700000207871,
+      "result": {
+        "execution_seconds": 0.001355041,
+        "final": {
+          "eclasses": 137,
+          "enodes": 347,
+          "rss_bytes": 10436608
+        },
+        "learning_seconds": 4.1e-08,
+        "matches": 211,
+        "min_template_reuse": 1,
+        "mode": "frozen",
+        "samples": [
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.000154583,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 81,
+              "rss_bytes": 8880128
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 22017,
+            "macro_matches": 19,
+            "matches": 20,
+            "packing": {
+              "min_reuse": 1,
+              "processed_instance_packets": 19,
+              "templates": [
+                {
+                  "distinct_native_rows": 13,
+                  "instances": 7,
+                  "new_virtual_rows_net": 13,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 8,
+                  "instances": 4,
+                  "new_virtual_rows_net": 8,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 2
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 3
+                },
+                {
+                  "distinct_native_rows": 21,
+                  "instances": 4,
+                  "new_virtual_rows_net": 21,
+                  "packed": true,
+                  "rule": 4
+                },
+                {
+                  "distinct_native_rows": 9,
+                  "instances": 1,
+                  "new_virtual_rows_net": 5,
+                  "packed": true,
+                  "rule": 9
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 10
+                },
+                {
+                  "distinct_native_rows": 3,
+                  "instances": 1,
+                  "new_virtual_rows_net": 3,
+                  "packed": true,
+                  "rule": 13
+                },
+                {
+                  "distinct_native_rows": 7,
+                  "instances": 1,
+                  "new_virtual_rows_net": 5,
+                  "packed": true,
+                  "rule": 14
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 15
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "distinct_native_rows": 7,
+                  "instances": 1,
+                  "new_virtual_rows_net": 5,
+                  "packed": true,
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 60
+            },
+            "packing_seconds": 0.00022375,
+            "rejected": [],
+            "round": 1,
+            "source_matches": 1
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 82,
+            "execution_seconds": 0.000640208,
+            "graph": {
+              "eclasses": 75,
+              "enodes": 151,
+              "rss_bytes": 9650176
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 22017,
+            "macro_matches": 60,
+            "matches": 62,
+            "packing": {
+              "min_reuse": 1,
+              "processed_instance_packets": 60,
+              "templates": [
+                {
+                  "distinct_native_rows": 26,
+                  "instances": 20,
+                  "new_virtual_rows_net": 0,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 24,
+                  "instances": 18,
+                  "new_virtual_rows_net": 4,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "distinct_native_rows": 32,
+                  "instances": 6,
+                  "new_virtual_rows_net": 24,
+                  "packed": true,
+                  "rule": 2
+                },
+                {
+                  "distinct_native_rows": 17,
+                  "instances": 3,
+                  "new_virtual_rows_net": 12,
+                  "packed": true,
+                  "rule": 3
+                },
+                {
+                  "distinct_native_rows": 6,
+                  "instances": 1,
+                  "new_virtual_rows_net": 5,
+                  "packed": true,
+                  "rule": 4
+                },
+                {
+                  "distinct_native_rows": 15,
+                  "instances": 2,
+                  "new_virtual_rows_net": 3,
+                  "packed": true,
+                  "rule": 9
+                },
+                {
+                  "distinct_native_rows": 9,
+                  "instances": 2,
+                  "new_virtual_rows_net": 0,
+                  "packed": true,
+                  "rule": 10
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "distinct_native_rows": 14,
+                  "instances": 3,
+                  "new_virtual_rows_net": 5,
+                  "packed": true,
+                  "rule": 14
+                },
+                {
+                  "distinct_native_rows": 11,
+                  "instances": 2,
+                  "new_virtual_rows_net": 8,
+                  "packed": true,
+                  "rule": 15
+                },
+                {
+                  "distinct_native_rows": 6,
+                  "instances": 1,
+                  "new_virtual_rows_net": 5,
+                  "packed": true,
+                  "rule": 17
+                },
+                {
+                  "distinct_native_rows": 3,
+                  "instances": 1,
+                  "new_virtual_rows_net": 0,
+                  "packed": true,
+                  "rule": 19
+                },
+                {
+                  "distinct_native_rows": 7,
+                  "instances": 1,
+                  "new_virtual_rows_net": 0,
+                  "packed": true,
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 126
+            },
+            "packing_seconds": 0.000564625,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 2
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 211,
+            "execution_seconds": 0.001355041,
+            "graph": {
+              "eclasses": 137,
+              "enodes": 347,
+              "rss_bytes": 10354688
+            },
+            "learning_seconds": 4.1e-08,
+            "library_bytes": 22017,
+            "macro_matches": 126,
+            "matches": 129,
+            "packing": {
+              "min_reuse": 1,
+              "processed_instance_packets": 126,
+              "templates": [
+                {
+                  "distinct_native_rows": 31,
+                  "instances": 31,
+                  "new_virtual_rows_net": 0,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 34,
+                  "instances": 28,
+                  "new_virtual_rows_net": 8,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "distinct_native_rows": 149,
+                  "instances": 43,
+                  "new_virtual_rows_net": 112,
+                  "packed": true,
+                  "rule": 2
+                },
+                {
+                  "distinct_native_rows": 43,
+                  "instances": 12,
+                  "new_virtual_rows_net": 20,
+                  "packed": true,
+                  "rule": 3
+                },
+                {
+                  "distinct_native_rows": 11,
+                  "instances": 2,
+                  "new_virtual_rows_net": 10,
+                  "packed": true,
+                  "rule": 4
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 9
+                },
+                {
+                  "distinct_native_rows": 9,
+                  "instances": 2,
+                  "new_virtual_rows_net": 3,
+                  "packed": true,
+                  "rule": 10
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 14
+                },
+                {
+                  "distinct_native_rows": 41,
+                  "instances": 8,
+                  "new_virtual_rows_net": 32,
+                  "packed": true,
+                  "rule": 15
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 311
+            },
+            "packing_seconds": 0.000900667,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 3
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.016564083,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 840,
+          "binding_payload_bytes": 1516,
+          "tables": [
+            {
+              "dense_equivalent_bytes": 400,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 456,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Diff",
+              "tombstones": 0,
+              "virtual_rows": 17
+            },
+            {
+              "dense_equivalent_bytes": 300,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 3,
+              "direct_bytes": 240,
+              "local_header_bytes": 328,
+              "metadata_bytes": 16,
+              "overlay_rows": 9,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Integral",
+              "tombstones": 0,
+              "virtual_rows": 3
+            },
+            {
+              "dense_equivalent_bytes": 3900,
+              "descriptor_bytes": 3072,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 904,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 8,
+              "rebuild_rows_examined": 8,
+              "table": "Add",
+              "tombstones": 12,
+              "virtual_rows": 183
+            },
+            {
+              "dense_equivalent_bytes": 200,
+              "descriptor_bytes": 192,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 424,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sub",
+              "tombstones": 0,
+              "virtual_rows": 7
+            },
+            {
+              "dense_equivalent_bytes": 2080,
+              "descriptor_bytes": 1536,
+              "direct_base_rows": 6,
+              "direct_bytes": 120,
+              "local_header_bytes": 1032,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 2,
+              "rebuild_rows_examined": 2,
+              "table": "Mul",
+              "tombstones": 2,
+              "virtual_rows": 96
+            },
+            {
+              "dense_equivalent_bytes": 40,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 1,
+              "direct_bytes": 20,
+              "local_header_bytes": 328,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Pow",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 32,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sin",
+              "tombstones": 1,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 16,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Cos",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 80,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 3,
+              "direct_bytes": 48,
+              "local_header_bytes": 328,
+              "metadata_bytes": 16,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Const",
+              "tombstones": 0,
+              "virtual_rows": 2
+            }
+          ],
+          "template_header_bytes": 4704,
+          "template_payload_bytes": 3688,
+          "unique_binding_matrices": 21,
+          "unique_templates": 21
+        }
+      },
+      "threshold": 1,
+      "repeat": 1
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "frozen",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/reuse-filter-storage/run-8-2",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-0/bake_lib_round2.json"
+      ],
+      "process_wall_seconds": 0.01,
+      "peak_rss_bytes": 10452992,
+      "observed_wall_seconds": 0.038997250027023256,
+      "result": {
+        "execution_seconds": 0.001143582,
+        "final": {
+          "eclasses": 137,
+          "enodes": 347,
+          "rss_bytes": 10240000
+        },
+        "learning_seconds": 1.24e-07,
+        "matches": 211,
+        "min_template_reuse": 8,
+        "mode": "frozen",
+        "samples": [
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.000147375,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 81,
+              "rss_bytes": 8863744
+            },
+            "learning_seconds": 4.1e-08,
+            "library_bytes": 22017,
+            "macro_matches": 19,
+            "matches": 20,
+            "packing": {
+              "min_reuse": 8,
+              "processed_instance_packets": 19,
+              "templates": [
+                {
+                  "instances": 7,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 0
+                },
+                {
+                  "instances": 4,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 1
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 2
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 3
+                },
+                {
+                  "instances": 4,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 4
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 9
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 10
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 14
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 15
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 0
+            },
+            "packing_seconds": 2.7542e-05,
+            "rejected": [],
+            "round": 1,
+            "source_matches": 1
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 82,
+            "execution_seconds": 0.0004994159999999999,
+            "graph": {
+              "eclasses": 75,
+              "enodes": 151,
+              "rss_bytes": 9453568
+            },
+            "learning_seconds": 8.3e-08,
+            "library_bytes": 22017,
+            "macro_matches": 60,
+            "matches": 62,
+            "packing": {
+              "min_reuse": 8,
+              "processed_instance_packets": 60,
+              "templates": [
+                {
+                  "distinct_native_rows": 26,
+                  "instances": 20,
+                  "new_virtual_rows_net": 26,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 24,
+                  "instances": 18,
+                  "new_virtual_rows_net": 24,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "instances": 6,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 2
+                },
+                {
+                  "instances": 3,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 3
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 4
+                },
+                {
+                  "instances": 2,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 9
+                },
+                {
+                  "instances": 2,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 10
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "instances": 3,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 14
+                },
+                {
+                  "instances": 2,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 15
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 50
+            },
+            "packing_seconds": 0.000129833,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 2
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 211,
+            "execution_seconds": 0.001143582,
+            "graph": {
+              "eclasses": 137,
+              "enodes": 347,
+              "rss_bytes": 10043392
+            },
+            "learning_seconds": 1.24e-07,
+            "library_bytes": 22017,
+            "macro_matches": 126,
+            "matches": 129,
+            "packing": {
+              "min_reuse": 8,
+              "processed_instance_packets": 126,
+              "templates": [
+                {
+                  "distinct_native_rows": 31,
+                  "instances": 31,
+                  "new_virtual_rows_net": 31,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 34,
+                  "instances": 28,
+                  "new_virtual_rows_net": 30,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "distinct_native_rows": 149,
+                  "instances": 43,
+                  "new_virtual_rows_net": 112,
+                  "packed": true,
+                  "rule": 2
+                },
+                {
+                  "distinct_native_rows": 43,
+                  "instances": 12,
+                  "new_virtual_rows_net": 20,
+                  "packed": true,
+                  "rule": 3
+                },
+                {
+                  "instances": 2,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 4
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 9
+                },
+                {
+                  "instances": 2,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 10
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 14
+                },
+                {
+                  "distinct_native_rows": 41,
+                  "instances": 8,
+                  "new_virtual_rows_net": 33,
+                  "packed": true,
+                  "rule": 15
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 276
+            },
+            "packing_seconds": 0.000678375,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 3
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.0140495,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 280,
+          "binding_payload_bytes": 1444,
+          "tables": [
+            {
+              "dense_equivalent_bytes": 400,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 11,
+              "direct_bytes": 220,
+              "local_header_bytes": 520,
+              "metadata_bytes": 16,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Diff",
+              "tombstones": 0,
+              "virtual_rows": 9
+            },
+            {
+              "dense_equivalent_bytes": 3900,
+              "descriptor_bytes": 3072,
+              "direct_base_rows": 6,
+              "direct_bytes": 120,
+              "local_header_bytes": 936,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 8,
+              "rebuild_rows_examined": 8,
+              "table": "Add",
+              "tombstones": 12,
+              "virtual_rows": 177
+            },
+            {
+              "dense_equivalent_bytes": 2080,
+              "descriptor_bytes": 1536,
+              "direct_base_rows": 12,
+              "direct_bytes": 240,
+              "local_header_bytes": 1064,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Mul",
+              "tombstones": 2,
+              "virtual_rows": 90
+            }
+          ],
+          "template_header_bytes": 1360,
+          "template_payload_bytes": 1032,
+          "unique_binding_matrices": 7,
+          "unique_templates": 7
+        }
+      },
+      "threshold": 8,
+      "repeat": 2
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "frozen",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/reuse-filter-storage/run-1-2",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-0/bake_lib_round2.json"
+      ],
+      "process_wall_seconds": 0.02,
+      "peak_rss_bytes": 10780672,
+      "observed_wall_seconds": 0.037869749940000474,
+      "result": {
+        "execution_seconds": 0.0012924170000000001,
+        "final": {
+          "eclasses": 137,
+          "enodes": 347,
+          "rss_bytes": 10600448
+        },
+        "learning_seconds": 8.3e-08,
+        "matches": 211,
+        "min_template_reuse": 1,
+        "mode": "frozen",
+        "samples": [
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.000163084,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 81,
+              "rss_bytes": 8945664
+            },
+            "learning_seconds": 4.2e-08,
+            "library_bytes": 22017,
+            "macro_matches": 19,
+            "matches": 20,
+            "packing": {
+              "min_reuse": 1,
+              "processed_instance_packets": 19,
+              "templates": [
+                {
+                  "distinct_native_rows": 13,
+                  "instances": 7,
+                  "new_virtual_rows_net": 13,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 8,
+                  "instances": 4,
+                  "new_virtual_rows_net": 8,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 2
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 3
+                },
+                {
+                  "distinct_native_rows": 21,
+                  "instances": 4,
+                  "new_virtual_rows_net": 21,
+                  "packed": true,
+                  "rule": 4
+                },
+                {
+                  "distinct_native_rows": 9,
+                  "instances": 1,
+                  "new_virtual_rows_net": 5,
+                  "packed": true,
+                  "rule": 9
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 10
+                },
+                {
+                  "distinct_native_rows": 3,
+                  "instances": 1,
+                  "new_virtual_rows_net": 3,
+                  "packed": true,
+                  "rule": 13
+                },
+                {
+                  "distinct_native_rows": 7,
+                  "instances": 1,
+                  "new_virtual_rows_net": 5,
+                  "packed": true,
+                  "rule": 14
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 15
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "distinct_native_rows": 7,
+                  "instances": 1,
+                  "new_virtual_rows_net": 5,
+                  "packed": true,
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 60
+            },
+            "packing_seconds": 0.000225291,
+            "rejected": [],
+            "round": 1,
+            "source_matches": 1
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 82,
+            "execution_seconds": 0.000613542,
+            "graph": {
+              "eclasses": 75,
+              "enodes": 151,
+              "rss_bytes": 9732096
+            },
+            "learning_seconds": 4.2e-08,
+            "library_bytes": 22017,
+            "macro_matches": 60,
+            "matches": 62,
+            "packing": {
+              "min_reuse": 1,
+              "processed_instance_packets": 60,
+              "templates": [
+                {
+                  "distinct_native_rows": 26,
+                  "instances": 20,
+                  "new_virtual_rows_net": 0,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 24,
+                  "instances": 18,
+                  "new_virtual_rows_net": 4,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "distinct_native_rows": 32,
+                  "instances": 6,
+                  "new_virtual_rows_net": 24,
+                  "packed": true,
+                  "rule": 2
+                },
+                {
+                  "distinct_native_rows": 17,
+                  "instances": 3,
+                  "new_virtual_rows_net": 12,
+                  "packed": true,
+                  "rule": 3
+                },
+                {
+                  "distinct_native_rows": 6,
+                  "instances": 1,
+                  "new_virtual_rows_net": 5,
+                  "packed": true,
+                  "rule": 4
+                },
+                {
+                  "distinct_native_rows": 15,
+                  "instances": 2,
+                  "new_virtual_rows_net": 3,
+                  "packed": true,
+                  "rule": 9
+                },
+                {
+                  "distinct_native_rows": 9,
+                  "instances": 2,
+                  "new_virtual_rows_net": 0,
+                  "packed": true,
+                  "rule": 10
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "distinct_native_rows": 14,
+                  "instances": 3,
+                  "new_virtual_rows_net": 5,
+                  "packed": true,
+                  "rule": 14
+                },
+                {
+                  "distinct_native_rows": 11,
+                  "instances": 2,
+                  "new_virtual_rows_net": 8,
+                  "packed": true,
+                  "rule": 15
+                },
+                {
+                  "distinct_native_rows": 6,
+                  "instances": 1,
+                  "new_virtual_rows_net": 5,
+                  "packed": true,
+                  "rule": 17
+                },
+                {
+                  "distinct_native_rows": 3,
+                  "instances": 1,
+                  "new_virtual_rows_net": 0,
+                  "packed": true,
+                  "rule": 19
+                },
+                {
+                  "distinct_native_rows": 7,
+                  "instances": 1,
+                  "new_virtual_rows_net": 0,
+                  "packed": true,
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 126
+            },
+            "packing_seconds": 0.000546792,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 2
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 211,
+            "execution_seconds": 0.0012924170000000001,
+            "graph": {
+              "eclasses": 137,
+              "enodes": 347,
+              "rss_bytes": 10485760
+            },
+            "learning_seconds": 8.3e-08,
+            "library_bytes": 22017,
+            "macro_matches": 126,
+            "matches": 129,
+            "packing": {
+              "min_reuse": 1,
+              "processed_instance_packets": 126,
+              "templates": [
+                {
+                  "distinct_native_rows": 31,
+                  "instances": 31,
+                  "new_virtual_rows_net": 0,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 34,
+                  "instances": 28,
+                  "new_virtual_rows_net": 8,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "distinct_native_rows": 149,
+                  "instances": 43,
+                  "new_virtual_rows_net": 112,
+                  "packed": true,
+                  "rule": 2
+                },
+                {
+                  "distinct_native_rows": 43,
+                  "instances": 12,
+                  "new_virtual_rows_net": 20,
+                  "packed": true,
+                  "rule": 3
+                },
+                {
+                  "distinct_native_rows": 11,
+                  "instances": 2,
+                  "new_virtual_rows_net": 10,
+                  "packed": true,
+                  "rule": 4
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 9
+                },
+                {
+                  "distinct_native_rows": 9,
+                  "instances": 2,
+                  "new_virtual_rows_net": 3,
+                  "packed": true,
+                  "rule": 10
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 14
+                },
+                {
+                  "distinct_native_rows": 41,
+                  "instances": 8,
+                  "new_virtual_rows_net": 32,
+                  "packed": true,
+                  "rule": 15
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 311
+            },
+            "packing_seconds": 0.000965083,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 3
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.017579708,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 840,
+          "binding_payload_bytes": 1516,
+          "tables": [
+            {
+              "dense_equivalent_bytes": 400,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 456,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Diff",
+              "tombstones": 0,
+              "virtual_rows": 17
+            },
+            {
+              "dense_equivalent_bytes": 300,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 3,
+              "direct_bytes": 240,
+              "local_header_bytes": 328,
+              "metadata_bytes": 16,
+              "overlay_rows": 9,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Integral",
+              "tombstones": 0,
+              "virtual_rows": 3
+            },
+            {
+              "dense_equivalent_bytes": 3900,
+              "descriptor_bytes": 3072,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 904,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 8,
+              "rebuild_rows_examined": 8,
+              "table": "Add",
+              "tombstones": 12,
+              "virtual_rows": 183
+            },
+            {
+              "dense_equivalent_bytes": 200,
+              "descriptor_bytes": 192,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 424,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sub",
+              "tombstones": 0,
+              "virtual_rows": 7
+            },
+            {
+              "dense_equivalent_bytes": 2080,
+              "descriptor_bytes": 1536,
+              "direct_base_rows": 6,
+              "direct_bytes": 120,
+              "local_header_bytes": 1032,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 2,
+              "rebuild_rows_examined": 2,
+              "table": "Mul",
+              "tombstones": 2,
+              "virtual_rows": 96
+            },
+            {
+              "dense_equivalent_bytes": 40,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 1,
+              "direct_bytes": 20,
+              "local_header_bytes": 328,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Pow",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 32,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sin",
+              "tombstones": 1,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 16,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Cos",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 80,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 3,
+              "direct_bytes": 48,
+              "local_header_bytes": 328,
+              "metadata_bytes": 16,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Const",
+              "tombstones": 0,
+              "virtual_rows": 2
+            }
+          ],
+          "template_header_bytes": 4704,
+          "template_payload_bytes": 3688,
+          "unique_binding_matrices": 21,
+          "unique_templates": 21
+        }
+      },
+      "threshold": 1,
+      "repeat": 2
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "frozen",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/reuse-filter-storage/run-2-2",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-0/bake_lib_round2.json"
+      ],
+      "process_wall_seconds": 0.02,
+      "peak_rss_bytes": 10747904,
+      "observed_wall_seconds": 0.040212165913544595,
+      "result": {
+        "execution_seconds": 0.0013717500000000001,
+        "final": {
+          "eclasses": 137,
+          "enodes": 347,
+          "rss_bytes": 10534912
+        },
+        "learning_seconds": 0.0,
+        "matches": 211,
+        "min_template_reuse": 2,
+        "mode": "frozen",
+        "samples": [
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.000141583,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 81,
+              "rss_bytes": 8945664
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 22017,
+            "macro_matches": 19,
+            "matches": 20,
+            "packing": {
+              "min_reuse": 2,
+              "processed_instance_packets": 19,
+              "templates": [
+                {
+                  "distinct_native_rows": 13,
+                  "instances": 7,
+                  "new_virtual_rows_net": 13,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 8,
+                  "instances": 4,
+                  "new_virtual_rows_net": 8,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 2
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 3
+                },
+                {
+                  "distinct_native_rows": 21,
+                  "instances": 4,
+                  "new_virtual_rows_net": 21,
+                  "packed": true,
+                  "rule": 4
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 9
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 10
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 14
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 15
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 42
+            },
+            "packing_seconds": 0.000112625,
+            "rejected": [],
+            "round": 1,
+            "source_matches": 1
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 82,
+            "execution_seconds": 0.000701125,
+            "graph": {
+              "eclasses": 75,
+              "enodes": 151,
+              "rss_bytes": 9699328
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 22017,
+            "macro_matches": 60,
+            "matches": 62,
+            "packing": {
+              "min_reuse": 2,
+              "processed_instance_packets": 60,
+              "templates": [
+                {
+                  "distinct_native_rows": 26,
+                  "instances": 20,
+                  "new_virtual_rows_net": 6,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 24,
+                  "instances": 18,
+                  "new_virtual_rows_net": 8,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "distinct_native_rows": 32,
+                  "instances": 6,
+                  "new_virtual_rows_net": 24,
+                  "packed": true,
+                  "rule": 2
+                },
+                {
+                  "distinct_native_rows": 17,
+                  "instances": 3,
+                  "new_virtual_rows_net": 12,
+                  "packed": true,
+                  "rule": 3
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 4
+                },
+                {
+                  "distinct_native_rows": 15,
+                  "instances": 2,
+                  "new_virtual_rows_net": 3,
+                  "packed": true,
+                  "rule": 9
+                },
+                {
+                  "distinct_native_rows": 9,
+                  "instances": 2,
+                  "new_virtual_rows_net": 0,
+                  "packed": true,
+                  "rule": 10
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "distinct_native_rows": 14,
+                  "instances": 3,
+                  "new_virtual_rows_net": 8,
+                  "packed": true,
+                  "rule": 14
+                },
+                {
+                  "distinct_native_rows": 11,
+                  "instances": 2,
+                  "new_virtual_rows_net": 8,
+                  "packed": true,
+                  "rule": 15
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "instances": 1,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 111
+            },
+            "packing_seconds": 0.000454417,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 2
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 211,
+            "execution_seconds": 0.0013717500000000001,
+            "graph": {
+              "eclasses": 137,
+              "enodes": 347,
+              "rss_bytes": 10289152
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 22017,
+            "macro_matches": 126,
+            "matches": 129,
+            "packing": {
+              "min_reuse": 2,
+              "processed_instance_packets": 126,
+              "templates": [
+                {
+                  "distinct_native_rows": 31,
+                  "instances": 31,
+                  "new_virtual_rows_net": 2,
+                  "packed": true,
+                  "rule": 0
+                },
+                {
+                  "distinct_native_rows": 34,
+                  "instances": 28,
+                  "new_virtual_rows_net": 12,
+                  "packed": true,
+                  "rule": 1
+                },
+                {
+                  "distinct_native_rows": 149,
+                  "instances": 43,
+                  "new_virtual_rows_net": 112,
+                  "packed": true,
+                  "rule": 2
+                },
+                {
+                  "distinct_native_rows": 43,
+                  "instances": 12,
+                  "new_virtual_rows_net": 20,
+                  "packed": true,
+                  "rule": 3
+                },
+                {
+                  "distinct_native_rows": 11,
+                  "instances": 2,
+                  "new_virtual_rows_net": 10,
+                  "packed": true,
+                  "rule": 4
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 9
+                },
+                {
+                  "distinct_native_rows": 9,
+                  "instances": 2,
+                  "new_virtual_rows_net": 3,
+                  "packed": true,
+                  "rule": 10
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 13
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 14
+                },
+                {
+                  "distinct_native_rows": 41,
+                  "instances": 8,
+                  "new_virtual_rows_net": 32,
+                  "packed": true,
+                  "rule": 15
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 17
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 19
+                },
+                {
+                  "instances": 0,
+                  "packed": false,
+                  "reason": "insufficient distinct instances in this batch",
+                  "rule": 21
+                }
+              ],
+              "virtual_rows": 302
+            },
+            "packing_seconds": 0.000857834,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 3
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.015995709,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 680,
+          "binding_payload_bytes": 1504,
+          "tables": [
+            {
+              "dense_equivalent_bytes": 400,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 4,
+              "direct_bytes": 80,
+              "local_header_bytes": 424,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Diff",
+              "tombstones": 0,
+              "virtual_rows": 16
+            },
+            {
+              "dense_equivalent_bytes": 3900,
+              "descriptor_bytes": 3072,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 904,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 8,
+              "rebuild_rows_examined": 8,
+              "table": "Add",
+              "tombstones": 12,
+              "virtual_rows": 183
+            },
+            {
+              "dense_equivalent_bytes": 200,
+              "descriptor_bytes": 192,
+              "direct_base_rows": 4,
+              "direct_bytes": 80,
+              "local_header_bytes": 360,
+              "metadata_bytes": 32,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sub",
+              "tombstones": 0,
+              "virtual_rows": 6
+            },
+            {
+              "dense_equivalent_bytes": 2080,
+              "descriptor_bytes": 1536,
+              "direct_base_rows": 6,
+              "direct_bytes": 120,
+              "local_header_bytes": 1032,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 2,
+              "rebuild_rows_examined": 2,
+              "table": "Mul",
+              "tombstones": 2,
+              "virtual_rows": 96
+            },
+            {
+              "dense_equivalent_bytes": 80,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 4,
+              "direct_bytes": 64,
+              "local_header_bytes": 328,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Const",
+              "tombstones": 0,
+              "virtual_rows": 1
+            }
+          ],
+          "template_header_bytes": 3696,
+          "template_payload_bytes": 2888,
+          "unique_binding_matrices": 17,
+          "unique_templates": 17
+        }
+      },
+      "threshold": 2,
+      "repeat": 2
+    }
+  ],
+  "scope": "same fixed library and inference; only batch distinct-instance packing threshold changes",
+  "medians": {
+    "1": {
+      "driver_ms": 17.579708,
+      "rss_bytes": 10698752,
+      "packing_ms": 1.737166
+    },
+    "2": {
+      "driver_ms": 16.123959,
+      "rss_bytes": 10747904,
+      "packing_ms": 1.424876
+    },
+    "8": {
+      "driver_ms": 14.611916,
+      "rss_bytes": 10485760,
+      "packing_ms": 0.83575
+    }
+  },
+  "full": {
+    "guard": "external benchmark guard: elapsed=9.161s, observed_group_rss=4344971264 bytes, limits=30s/4GiB: [PosixPath('/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math'), 'frozen', PosixPath('/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg'), PosixPath('/Users/mineralsteins/Repos/egg_related/egg_layout/out/reuse-filter-storage/full-2'), PosixPath('/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-0/bake_lib_round2.json')]",
+    "progress": [
+      {
+        "admitted": [],
+        "bodies": 13,
+        "cumulative_matches": 20,
+        "execution_seconds": 0.000154667,
+        "graph": {
+          "eclasses": 50,
+          "enodes": 81,
+          "rss_bytes": 8863744
+        },
+        "learning_seconds": 0.0,
+        "library_bytes": 22017,
+        "macro_matches": 19,
+        "matches": 20,
+        "packing": {
+          "min_reuse": 2,
+          "processed_instance_packets": 19,
+          "templates": [
+            {
+              "distinct_native_rows": 13,
+              "instances": 7,
+              "new_virtual_rows_net": 13,
+              "packed": true,
+              "rule": 0
+            },
+            {
+              "distinct_native_rows": 8,
+              "instances": 4,
+              "new_virtual_rows_net": 8,
+              "packed": true,
+              "rule": 1
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 2
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 3
+            },
+            {
+              "distinct_native_rows": 21,
+              "instances": 4,
+              "new_virtual_rows_net": 21,
+              "packed": true,
+              "rule": 4
+            },
+            {
+              "instances": 1,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 9
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 10
+            },
+            {
+              "instances": 1,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 13
+            },
+            {
+              "instances": 1,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 14
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 15
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 17
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 19
+            },
+            {
+              "instances": 1,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 21
+            }
+          ],
+          "virtual_rows": 42
+        },
+        "packing_seconds": 0.000111459,
+        "rejected": [],
+        "round": 1,
+        "source_matches": 1
+      },
+      {
+        "admitted": [],
+        "bodies": 13,
+        "cumulative_matches": 82,
+        "execution_seconds": 0.000629501,
+        "graph": {
+          "eclasses": 75,
+          "enodes": 151,
+          "rss_bytes": 9699328
+        },
+        "learning_seconds": 0.0,
+        "library_bytes": 22017,
+        "macro_matches": 60,
+        "matches": 62,
+        "packing": {
+          "min_reuse": 2,
+          "processed_instance_packets": 60,
+          "templates": [
+            {
+              "distinct_native_rows": 26,
+              "instances": 20,
+              "new_virtual_rows_net": 6,
+              "packed": true,
+              "rule": 0
+            },
+            {
+              "distinct_native_rows": 24,
+              "instances": 18,
+              "new_virtual_rows_net": 8,
+              "packed": true,
+              "rule": 1
+            },
+            {
+              "distinct_native_rows": 32,
+              "instances": 6,
+              "new_virtual_rows_net": 24,
+              "packed": true,
+              "rule": 2
+            },
+            {
+              "distinct_native_rows": 17,
+              "instances": 3,
+              "new_virtual_rows_net": 12,
+              "packed": true,
+              "rule": 3
+            },
+            {
+              "instances": 1,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 4
+            },
+            {
+              "distinct_native_rows": 15,
+              "instances": 2,
+              "new_virtual_rows_net": 3,
+              "packed": true,
+              "rule": 9
+            },
+            {
+              "distinct_native_rows": 9,
+              "instances": 2,
+              "new_virtual_rows_net": 0,
+              "packed": true,
+              "rule": 10
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 13
+            },
+            {
+              "distinct_native_rows": 14,
+              "instances": 3,
+              "new_virtual_rows_net": 8,
+              "packed": true,
+              "rule": 14
+            },
+            {
+              "distinct_native_rows": 11,
+              "instances": 2,
+              "new_virtual_rows_net": 8,
+              "packed": true,
+              "rule": 15
+            },
+            {
+              "instances": 1,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 17
+            },
+            {
+              "instances": 1,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 19
+            },
+            {
+              "instances": 1,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 21
+            }
+          ],
+          "virtual_rows": 111
+        },
+        "packing_seconds": 0.000372,
+        "rejected": [],
+        "round": 2,
+        "source_matches": 2
+      },
+      {
+        "admitted": [],
+        "bodies": 13,
+        "cumulative_matches": 211,
+        "execution_seconds": 0.0015420009999999999,
+        "graph": {
+          "eclasses": 137,
+          "enodes": 347,
+          "rss_bytes": 10354688
+        },
+        "learning_seconds": 0.0,
+        "library_bytes": 22017,
+        "macro_matches": 126,
+        "matches": 129,
+        "packing": {
+          "min_reuse": 2,
+          "processed_instance_packets": 126,
+          "templates": [
+            {
+              "distinct_native_rows": 31,
+              "instances": 31,
+              "new_virtual_rows_net": 2,
+              "packed": true,
+              "rule": 0
+            },
+            {
+              "distinct_native_rows": 34,
+              "instances": 28,
+              "new_virtual_rows_net": 12,
+              "packed": true,
+              "rule": 1
+            },
+            {
+              "distinct_native_rows": 149,
+              "instances": 43,
+              "new_virtual_rows_net": 112,
+              "packed": true,
+              "rule": 2
+            },
+            {
+              "distinct_native_rows": 43,
+              "instances": 12,
+              "new_virtual_rows_net": 20,
+              "packed": true,
+              "rule": 3
+            },
+            {
+              "distinct_native_rows": 11,
+              "instances": 2,
+              "new_virtual_rows_net": 10,
+              "packed": true,
+              "rule": 4
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 9
+            },
+            {
+              "distinct_native_rows": 9,
+              "instances": 2,
+              "new_virtual_rows_net": 3,
+              "packed": true,
+              "rule": 10
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 13
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 14
+            },
+            {
+              "distinct_native_rows": 41,
+              "instances": 8,
+              "new_virtual_rows_net": 32,
+              "packed": true,
+              "rule": 15
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 17
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 19
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 21
+            }
+          ],
+          "virtual_rows": 302
+        },
+        "packing_seconds": 0.000919959,
+        "rejected": [],
+        "round": 3,
+        "source_matches": 3
+      },
+      {
+        "admitted": [],
+        "bodies": 13,
+        "cumulative_matches": 677,
+        "execution_seconds": 0.003451959,
+        "graph": {
+          "eclasses": 244,
+          "enodes": 759,
+          "rss_bytes": 11485184
+        },
+        "learning_seconds": 0.0,
+        "library_bytes": 22017,
+        "macro_matches": 453,
+        "matches": 466,
+        "packing": {
+          "min_reuse": 2,
+          "processed_instance_packets": 445,
+          "templates": [
+            {
+              "distinct_native_rows": 121,
+              "instances": 121,
+              "new_virtual_rows_net": 4,
+              "packed": true,
+              "rule": 0
+            },
+            {
+              "distinct_native_rows": 60,
+              "instances": 50,
+              "new_virtual_rows_net": 16,
+              "packed": true,
+              "rule": 1
+            },
+            {
+              "distinct_native_rows": 385,
+              "instances": 214,
+              "new_virtual_rows_net": 232,
+              "packed": true,
+              "rule": 2
+            },
+            {
+              "distinct_native_rows": 105,
+              "instances": 33,
+              "new_virtual_rows_net": 54,
+              "packed": true,
+              "rule": 3
+            },
+            {
+              "distinct_native_rows": 16,
+              "instances": 3,
+              "new_virtual_rows_net": 15,
+              "packed": true,
+              "rule": 4
+            },
+            {
+              "distinct_native_rows": 26,
+              "instances": 5,
+              "new_virtual_rows_net": 12,
+              "packed": true,
+              "rule": 9
+            },
+            {
+              "distinct_native_rows": 10,
+              "instances": 2,
+              "new_virtual_rows_net": 4,
+              "packed": true,
+              "rule": 10
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 13
+            },
+            {
+              "distinct_native_rows": 7,
+              "instances": 2,
+              "new_virtual_rows_net": 5,
+              "packed": true,
+              "rule": 14
+            },
+            {
+              "distinct_native_rows": 71,
+              "instances": 15,
+              "new_virtual_rows_net": 36,
+              "packed": true,
+              "rule": 15
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 17
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 19
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 21
+            }
+          ],
+          "virtual_rows": 665
+        },
+        "packing_seconds": 0.002664333,
+        "rejected": [],
+        "round": 4,
+        "source_matches": 13
+      },
+      {
+        "admitted": [],
+        "bodies": 13,
+        "cumulative_matches": 1916,
+        "execution_seconds": 0.007675459,
+        "graph": {
+          "eclasses": 364,
+          "enodes": 1211,
+          "rss_bytes": 12959744
+        },
+        "learning_seconds": 4.2e-08,
+        "library_bytes": 22017,
+        "macro_matches": 1214,
+        "matches": 1239,
+        "packing": {
+          "min_reuse": 2,
+          "processed_instance_packets": 1182,
+          "templates": [
+            {
+              "distinct_native_rows": 249,
+              "instances": 249,
+              "new_virtual_rows_net": 44,
+              "packed": true,
+              "rule": 0
+            },
+            {
+              "distinct_native_rows": 148,
+              "instances": 122,
+              "new_virtual_rows_net": 44,
+              "packed": true,
+              "rule": 1
+            },
+            {
+              "distinct_native_rows": 460,
+              "instances": 655,
+              "new_virtual_rows_net": 94,
+              "packed": true,
+              "rule": 2
+            },
+            {
+              "distinct_native_rows": 252,
+              "instances": 84,
+              "new_virtual_rows_net": 117,
+              "packed": true,
+              "rule": 3
+            },
+            {
+              "distinct_native_rows": 56,
+              "instances": 11,
+              "new_virtual_rows_net": 55,
+              "packed": true,
+              "rule": 4
+            },
+            {
+              "distinct_native_rows": 130,
+              "instances": 27,
+              "new_virtual_rows_net": 45,
+              "packed": true,
+              "rule": 9
+            },
+            {
+              "distinct_native_rows": 47,
+              "instances": 10,
+              "new_virtual_rows_net": 11,
+              "packed": true,
+              "rule": 10
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 13
+            },
+            {
+              "distinct_native_rows": 7,
+              "instances": 2,
+              "new_virtual_rows_net": 5,
+              "packed": true,
+              "rule": 14
+            },
+            {
+              "distinct_native_rows": 85,
+              "instances": 18,
+              "new_virtual_rows_net": 32,
+              "packed": true,
+              "rule": 15
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 17
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 19
+            },
+            {
+              "distinct_native_rows": 14,
+              "instances": 4,
+              "new_virtual_rows_net": 10,
+              "packed": true,
+              "rule": 21
+            }
+          ],
+          "virtual_rows": 1062
+        },
+        "packing_seconds": 0.005310625,
+        "rejected": [],
+        "round": 5,
+        "source_matches": 25
+      },
+      {
+        "admitted": [],
+        "bodies": 13,
+        "cumulative_matches": 3368,
+        "execution_seconds": 0.016789792,
+        "graph": {
+          "eclasses": 748,
+          "enodes": 2167,
+          "rss_bytes": 14827520
+        },
+        "learning_seconds": 4.2e-08,
+        "library_bytes": 22017,
+        "macro_matches": 1378,
+        "matches": 1452,
+        "packing": {
+          "min_reuse": 2,
+          "processed_instance_packets": 1378,
+          "templates": [
+            {
+              "distinct_native_rows": 212,
+              "instances": 212,
+              "new_virtual_rows_net": 0,
+              "packed": true,
+              "rule": 0
+            },
+            {
+              "distinct_native_rows": 285,
+              "instances": 230,
+              "new_virtual_rows_net": 66,
+              "packed": true,
+              "rule": 1
+            },
+            {
+              "distinct_native_rows": 621,
+              "instances": 565,
+              "new_virtual_rows_net": 132,
+              "packed": true,
+              "rule": 2
+            },
+            {
+              "distinct_native_rows": 380,
+              "instances": 159,
+              "new_virtual_rows_net": 104,
+              "packed": true,
+              "rule": 3
+            },
+            {
+              "distinct_native_rows": 111,
+              "instances": 22,
+              "new_virtual_rows_net": 110,
+              "packed": true,
+              "rule": 4
+            },
+            {
+              "distinct_native_rows": 384,
+              "instances": 88,
+              "new_virtual_rows_net": 166,
+              "packed": true,
+              "rule": 9
+            },
+            {
+              "distinct_native_rows": 299,
+              "instances": 78,
+              "new_virtual_rows_net": 79,
+              "packed": true,
+              "rule": 10
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 13
+            },
+            {
+              "distinct_native_rows": 47,
+              "instances": 14,
+              "new_virtual_rows_net": 31,
+              "packed": true,
+              "rule": 14
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 15
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 17
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 19
+            },
+            {
+              "distinct_native_rows": 34,
+              "instances": 10,
+              "new_virtual_rows_net": 24,
+              "packed": true,
+              "rule": 21
+            }
+          ],
+          "virtual_rows": 1774
+        },
+        "packing_seconds": 0.006955792,
+        "rejected": [],
+        "round": 6,
+        "source_matches": 74
+      },
+      {
+        "admitted": [],
+        "bodies": 13,
+        "cumulative_matches": 5592,
+        "execution_seconds": 0.023035375,
+        "graph": {
+          "eclasses": 1686,
+          "enodes": 4839,
+          "rss_bytes": 17399808
+        },
+        "learning_seconds": 8.4e-08,
+        "library_bytes": 22017,
+        "macro_matches": 2068,
+        "matches": 2224,
+        "packing": {
+          "min_reuse": 2,
+          "processed_instance_packets": 2014,
+          "templates": [
+            {
+              "distinct_native_rows": 277,
+              "instances": 277,
+              "new_virtual_rows_net": 23,
+              "packed": true,
+              "rule": 0
+            },
+            {
+              "distinct_native_rows": 574,
+              "instances": 437,
+              "new_virtual_rows_net": 226,
+              "packed": true,
+              "rule": 1
+            },
+            {
+              "distinct_native_rows": 755,
+              "instances": 290,
+              "new_virtual_rows_net": 421,
+              "packed": true,
+              "rule": 2
+            },
+            {
+              "distinct_native_rows": 837,
+              "instances": 326,
+              "new_virtual_rows_net": 358,
+              "packed": true,
+              "rule": 3
+            },
+            {
+              "distinct_native_rows": 376,
+              "instances": 75,
+              "new_virtual_rows_net": 370,
+              "packed": true,
+              "rule": 4
+            },
+            {
+              "distinct_native_rows": 1198,
+              "instances": 308,
+              "new_virtual_rows_net": 608,
+              "packed": true,
+              "rule": 9
+            },
+            {
+              "distinct_native_rows": 559,
+              "instances": 144,
+              "new_virtual_rows_net": 24,
+              "packed": true,
+              "rule": 10
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 13
+            },
+            {
+              "distinct_native_rows": 148,
+              "instances": 46,
+              "new_virtual_rows_net": 95,
+              "packed": true,
+              "rule": 14
+            },
+            {
+              "distinct_native_rows": 209,
+              "instances": 47,
+              "new_virtual_rows_net": 110,
+              "packed": true,
+              "rule": 15
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 17
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 19
+            },
+            {
+              "distinct_native_rows": 206,
+              "instances": 64,
+              "new_virtual_rows_net": 136,
+              "packed": true,
+              "rule": 21
+            }
+          ],
+          "virtual_rows": 4082
+        },
+        "packing_seconds": 0.01275625,
+        "rejected": [],
+        "round": 7,
+        "source_matches": 156
+      },
+      {
+        "admitted": [],
+        "bodies": 13,
+        "cumulative_matches": 13205,
+        "execution_seconds": 0.043410125,
+        "graph": {
+          "eclasses": 5150,
+          "enodes": 15493,
+          "rss_bytes": 29081600
+        },
+        "learning_seconds": 8.4e-08,
+        "library_bytes": 22017,
+        "macro_matches": 7136,
+        "matches": 7613,
+        "packing": {
+          "min_reuse": 2,
+          "processed_instance_packets": 6914,
+          "templates": [
+            {
+              "distinct_native_rows": 935,
+              "instances": 935,
+              "new_virtual_rows_net": 40,
+              "packed": true,
+              "rule": 0
+            },
+            {
+              "distinct_native_rows": 1567,
+              "instances": 1260,
+              "new_virtual_rows_net": 486,
+              "packed": true,
+              "rule": 1
+            },
+            {
+              "distinct_native_rows": 3816,
+              "instances": 1119,
+              "new_virtual_rows_net": 2743,
+              "packed": true,
+              "rule": 2
+            },
+            {
+              "distinct_native_rows": 2552,
+              "instances": 978,
+              "new_virtual_rows_net": 1157,
+              "packed": true,
+              "rule": 3
+            },
+            {
+              "distinct_native_rows": 781,
+              "instances": 156,
+              "new_virtual_rows_net": 775,
+              "packed": true,
+              "rule": 4
+            },
+            {
+              "distinct_native_rows": 5295,
+              "instances": 1519,
+              "new_virtual_rows_net": 3293,
+              "packed": true,
+              "rule": 9
+            },
+            {
+              "distinct_native_rows": 1631,
+              "instances": 442,
+              "new_virtual_rows_net": 150,
+              "packed": true,
+              "rule": 10
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 13
+            },
+            {
+              "distinct_native_rows": 621,
+              "instances": 203,
+              "new_virtual_rows_net": 369,
+              "packed": true,
+              "rule": 14
+            },
+            {
+              "distinct_native_rows": 264,
+              "instances": 56,
+              "new_virtual_rows_net": 128,
+              "packed": true,
+              "rule": 15
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 17
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 19
+            },
+            {
+              "distinct_native_rows": 759,
+              "instances": 246,
+              "new_virtual_rows_net": 452,
+              "packed": true,
+              "rule": 21
+            }
+          ],
+          "virtual_rows": 13486
+        },
+        "packing_seconds": 0.047076708,
+        "rejected": [],
+        "round": 8,
+        "source_matches": 477
+      },
+      {
+        "admitted": [],
+        "bodies": 13,
+        "cumulative_matches": 58039,
+        "execution_seconds": 0.097081625,
+        "graph": {
+          "eclasses": 23663,
+          "enodes": 83434,
+          "rss_bytes": 94797824
+        },
+        "learning_seconds": 1.26e-07,
+        "library_bytes": 22017,
+        "macro_matches": 43356,
+        "matches": 44834,
+        "packing": {
+          "min_reuse": 2,
+          "processed_instance_packets": 41164,
+          "templates": [
+            {
+              "distinct_native_rows": 4643,
+              "instances": 4643,
+              "new_virtual_rows_net": 224,
+              "packed": true,
+              "rule": 0
+            },
+            {
+              "distinct_native_rows": 5165,
+              "instances": 4413,
+              "new_virtual_rows_net": 1500,
+              "packed": true,
+              "rule": 1
+            },
+            {
+              "distinct_native_rows": 31388,
+              "instances": 10607,
+              "new_virtual_rows_net": 26252,
+              "packed": true,
+              "rule": 2
+            },
+            {
+              "distinct_native_rows": 9864,
+              "instances": 4201,
+              "new_virtual_rows_net": 5289,
+              "packed": true,
+              "rule": 3
+            },
+            {
+              "distinct_native_rows": 2396,
+              "instances": 479,
+              "new_virtual_rows_net": 2376,
+              "packed": true,
+              "rule": 4
+            },
+            {
+              "distinct_native_rows": 33462,
+              "instances": 11675,
+              "new_virtual_rows_net": 23844,
+              "packed": true,
+              "rule": 9
+            },
+            {
+              "distinct_native_rows": 7871,
+              "instances": 2490,
+              "new_virtual_rows_net": 1023,
+              "packed": true,
+              "rule": 10
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 13
+            },
+            {
+              "distinct_native_rows": 2948,
+              "instances": 1030,
+              "new_virtual_rows_net": 1698,
+              "packed": true,
+              "rule": 14
+            },
+            {
+              "distinct_native_rows": 1335,
+              "instances": 297,
+              "new_virtual_rows_net": 611,
+              "packed": true,
+              "rule": 15
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 17
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 19
+            },
+            {
+              "distinct_native_rows": 3889,
+              "instances": 1329,
+              "new_virtual_rows_net": 2317,
+              "packed": true,
+              "rule": 21
+            }
+          ],
+          "virtual_rows": 77639
+        },
+        "packing_seconds": 0.377542125,
+        "rejected": [],
+        "round": 9,
+        "source_matches": 1478
+      },
+      {
+        "admitted": [],
+        "bodies": 13,
+        "cumulative_matches": 563268,
+        "execution_seconds": 0.88450575,
+        "graph": {
+          "eclasses": 198463,
+          "enodes": 853396,
+          "rss_bytes": 977829888
+        },
+        "learning_seconds": 1.26e-07,
+        "library_bytes": 22017,
+        "macro_matches": 499395,
+        "matches": 505229,
+        "packing": {
+          "min_reuse": 2,
+          "processed_instance_packets": 442838,
+          "templates": [
+            {
+              "distinct_native_rows": 36949,
+              "instances": 36949,
+              "new_virtual_rows_net": 3393,
+              "packed": true,
+              "rule": 0
+            },
+            {
+              "distinct_native_rows": 25608,
+              "instances": 23348,
+              "new_virtual_rows_net": 5955,
+              "packed": true,
+              "rule": 1
+            },
+            {
+              "distinct_native_rows": 464620,
+              "instances": 176236,
+              "new_virtual_rows_net": 424626,
+              "packed": true,
+              "rule": 2
+            },
+            {
+              "distinct_native_rows": 64110,
+              "instances": 30431,
+              "new_virtual_rows_net": 40870,
+              "packed": true,
+              "rule": 3
+            },
+            {
+              "distinct_native_rows": 7501,
+              "instances": 1500,
+              "new_virtual_rows_net": 7369,
+              "packed": true,
+              "rule": 4
+            },
+            {
+              "distinct_native_rows": 315266,
+              "instances": 133610,
+              "new_virtual_rows_net": 246185,
+              "packed": true,
+              "rule": 9
+            },
+            {
+              "distinct_native_rows": 53882,
+              "instances": 21184,
+              "new_virtual_rows_net": 6168,
+              "packed": true,
+              "rule": 10
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 13
+            },
+            {
+              "distinct_native_rows": 19045,
+              "instances": 7191,
+              "new_virtual_rows_net": 10405,
+              "packed": true,
+              "rule": 14
+            },
+            {
+              "distinct_native_rows": 6840,
+              "instances": 1540,
+              "new_virtual_rows_net": 3298,
+              "packed": true,
+              "rule": 15
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 17
+            },
+            {
+              "instances": 0,
+              "packed": false,
+              "reason": "insufficient distinct instances in this batch",
+              "rule": 19
+            },
+            {
+              "distinct_native_rows": 29384,
+              "instances": 10849,
+              "new_virtual_rows_net": 16850,
+              "packed": true,
+              "rule": 21
+            }
+          ],
+          "virtual_rows": 832787
+        },
+        "packing_seconds": 6.3555255,
+        "rejected": [],
+        "round": 10,
+        "source_matches": 5834
+      }
+    ]
+  }
+}
