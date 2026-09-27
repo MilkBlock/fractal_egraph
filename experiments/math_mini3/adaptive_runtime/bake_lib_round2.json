@@ -1,0 +1,1203 @@
+{
+  "schema": "adaptive-ripsat/v2",
+  "environment": [
+    "(datatype Math (Diff Math Math) (Integral Math Math) (Add Math Math) (Sub Math Math) (Mul Math Math) (Div Math Math) (Pow Math Math) (Ln Math) (Sqrt Math) (Sin Math) (Cos Math) (Const i64) (Var String))",
+    "(rewrite (Add a b) (Add b a))",
+    "(rewrite (Mul a b) (Mul b a))",
+    "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
+    "(rewrite (Mul a (Mul b c)) (Mul (Mul a b) c))",
+    "(rewrite (Sub a b) (Add a (Mul (Const -1) b)))",
+    "(rewrite (Add a (Const 0)) a)",
+    "(rewrite (Mul a (Const 0)) (Const 0))",
+    "(rewrite (Mul a (Const 1)) a)",
+    "(rewrite (Sub a a) (Const 0))",
+    "(rewrite (Mul a (Add b c)) (Add (Mul a b) (Mul a c)))",
+    "(rewrite (Add (Mul a b) (Mul a c)) (Mul a (Add b c)))",
+    "(rewrite (Mul (Pow a b) (Pow a c)) (Pow a (Add b c)))",
+    "(rewrite (Pow x (Const 1)) x)",
+    "(rewrite (Pow x (Const 2)) (Mul x x))",
+    "(rewrite (Diff x (Add a b)) (Add (Diff x a) (Diff x b)))",
+    "(rewrite (Diff x (Mul a b)) (Add (Mul a (Diff x b)) (Mul b (Diff x a))))",
+    "(rewrite (Diff x (Sin x)) (Cos x))",
+    "(rewrite (Diff x (Cos x)) (Mul (Const -1) (Sin x)))",
+    "(rewrite (Integral (Const 1) x) x)",
+    "(rewrite (Integral (Cos x) x) (Sin x))",
+    "(rewrite (Integral (Sin x) x) (Mul (Const -1) (Cos x)))",
+    "(rewrite (Integral (Add f g) x) (Add (Integral f x) (Integral g x)))",
+    "(rewrite (Integral (Sub f g) x) (Sub (Integral f x) (Integral g x)))",
+    "(rewrite (Integral (Mul a b) x) (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x)))"
+  ],
+  "macros": {
+    "0": {
+      "rule": 0,
+      "actions": "(union adaptive_root (Add a b))\n(union adaptive_root (Add b a))",
+      "rows": 2,
+      "classes": 3,
+      "proof_matches": 2,
+      "slots": [
+        [
+          "a",
+          "Math"
+        ],
+        [
+          "b",
+          "Math"
+        ],
+        [
+          "adaptive_root",
+          "Math"
+        ]
+      ],
+      "template": [
+        [
+          "Add",
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        [
+          "Add",
+          [
+            1,
+            0,
+            2
+          ]
+        ]
+      ]
+    },
+    "1": {
+      "rule": 1,
+      "actions": "(union adaptive_root (Mul a b))\n(union adaptive_root (Mul b a))",
+      "rows": 2,
+      "classes": 3,
+      "proof_matches": 2,
+      "slots": [
+        [
+          "a",
+          "Math"
+        ],
+        [
+          "b",
+          "Math"
+        ],
+        [
+          "adaptive_root",
+          "Math"
+        ]
+      ],
+      "template": [
+        [
+          "Mul",
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        [
+          "Mul",
+          [
+            1,
+            0,
+            2
+          ]
+        ]
+      ]
+    },
+    "2": {
+      "rule": 2,
+      "actions": "(let adaptive_local_4 (Add b c))\n(union adaptive_local_4 (Add c b))\n(union adaptive_root (Add adaptive_local_4 a))\n(let adaptive_local_5 (Add a b))\n(union adaptive_root (Add adaptive_local_5 c))\n(union adaptive_local_5 (Add b a))\n(union adaptive_root (Add c adaptive_local_5))\n(let adaptive_local_6 (Add a c))\n(union adaptive_root (Add adaptive_local_6 b))\n(union adaptive_root (Add b adaptive_local_6))\n(union adaptive_local_6 (Add c a))\n(union adaptive_root (Add a adaptive_local_4))",
+      "rows": 12,
+      "classes": 7,
+      "proof_matches": 18,
+      "slots": [
+        [
+          "a",
+          "Math"
+        ],
+        [
+          "adaptive_local_4",
+          "Math"
+        ],
+        [
+          "adaptive_root",
+          "Math"
+        ],
+        [
+          "b",
+          "Math"
+        ],
+        [
+          "c",
+          "Math"
+        ],
+        [
+          "adaptive_local_5",
+          "Math"
+        ],
+        [
+          "adaptive_local_6",
+          "Math"
+        ]
+      ],
+      "template": [
+        [
+          "Add",
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        [
+          "Add",
+          [
+            3,
+            4,
+            1
+          ]
+        ],
+        [
+          "Add",
+          [
+            4,
+            3,
+            1
+          ]
+        ],
+        [
+          "Add",
+          [
+            1,
+            0,
+            2
+          ]
+        ],
+        [
+          "Add",
+          [
+            0,
+            3,
+            5
+          ]
+        ],
+        [
+          "Add",
+          [
+            5,
+            4,
+            2
+          ]
+        ],
+        [
+          "Add",
+          [
+            3,
+            0,
+            5
+          ]
+        ],
+        [
+          "Add",
+          [
+            4,
+            5,
+            2
+          ]
+        ],
+        [
+          "Add",
+          [
+            0,
+            4,
+            6
+          ]
+        ],
+        [
+          "Add",
+          [
+            6,
+            3,
+            2
+          ]
+        ],
+        [
+          "Add",
+          [
+            3,
+            6,
+            2
+          ]
+        ],
+        [
+          "Add",
+          [
+            4,
+            0,
+            6
+          ]
+        ]
+      ]
+    },
+    "3": {
+      "rule": 3,
+      "actions": "(let adaptive_local_4 (Mul b c))\n(union adaptive_local_4 (Mul c b))\n(union adaptive_root (Mul adaptive_local_4 a))\n(let adaptive_local_5 (Mul a b))\n(union adaptive_root (Mul adaptive_local_5 c))\n(union adaptive_local_5 (Mul b a))\n(union adaptive_root (Mul c adaptive_local_5))\n(let adaptive_local_6 (Mul a c))\n(union adaptive_root (Mul adaptive_local_6 b))\n(union adaptive_root (Mul b adaptive_local_6))\n(union adaptive_local_6 (Mul c a))\n(union adaptive_root (Mul a adaptive_local_4))",
+      "rows": 12,
+      "classes": 7,
+      "proof_matches": 18,
+      "slots": [
+        [
+          "a",
+          "Math"
+        ],
+        [
+          "adaptive_local_4",
+          "Math"
+        ],
+        [
+          "adaptive_root",
+          "Math"
+        ],
+        [
+          "b",
+          "Math"
+        ],
+        [
+          "c",
+          "Math"
+        ],
+        [
+          "adaptive_local_5",
+          "Math"
+        ],
+        [
+          "adaptive_local_6",
+          "Math"
+        ]
+      ],
+      "template": [
+        [
+          "Mul",
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        [
+          "Mul",
+          [
+            3,
+            4,
+            1
+          ]
+        ],
+        [
+          "Mul",
+          [
+            4,
+            3,
+            1
+          ]
+        ],
+        [
+          "Mul",
+          [
+            1,
+            0,
+            2
+          ]
+        ],
+        [
+          "Mul",
+          [
+            0,
+            3,
+            5
+          ]
+        ],
+        [
+          "Mul",
+          [
+            5,
+            4,
+            2
+          ]
+        ],
+        [
+          "Mul",
+          [
+            3,
+            0,
+            5
+          ]
+        ],
+        [
+          "Mul",
+          [
+            4,
+            5,
+            2
+          ]
+        ],
+        [
+          "Mul",
+          [
+            0,
+            4,
+            6
+          ]
+        ],
+        [
+          "Mul",
+          [
+            6,
+            3,
+            2
+          ]
+        ],
+        [
+          "Mul",
+          [
+            3,
+            6,
+            2
+          ]
+        ],
+        [
+          "Mul",
+          [
+            4,
+            0,
+            6
+          ]
+        ]
+      ]
+    },
+    "4": {
+      "rule": 4,
+      "actions": "(let adaptive_local_3 (Const -1))\n(let adaptive_local_4 (Mul adaptive_local_3 b))\n(union adaptive_local_4 (Mul b adaptive_local_3))\n(union adaptive_root (Sub a b))\n(union adaptive_root (Add a adaptive_local_4))\n(union adaptive_root (Add adaptive_local_4 a))",
+      "rows": 6,
+      "classes": 5,
+      "proof_matches": 5,
+      "slots": [
+        [
+          "a",
+          "Math"
+        ],
+        [
+          "adaptive_local_4",
+          "Math"
+        ],
+        [
+          "adaptive_root",
+          "Math"
+        ],
+        [
+          "-1",
+          "i64"
+        ],
+        [
+          "adaptive_local_3",
+          "Math"
+        ],
+        [
+          "b",
+          "Math"
+        ]
+      ],
+      "template": [
+        [
+          "Add",
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        [
+          "Add",
+          [
+            1,
+            0,
+            2
+          ]
+        ],
+        [
+          "Const",
+          [
+            3,
+            4
+          ]
+        ],
+        [
+          "Mul",
+          [
+            4,
+            5,
+            1
+          ]
+        ],
+        [
+          "Mul",
+          [
+            5,
+            4,
+            1
+          ]
+        ],
+        [
+          "Sub",
+          [
+            0,
+            5,
+            2
+          ]
+        ]
+      ]
+    },
+    "9": {
+      "rule": 9,
+      "actions": "(let adaptive_local_4 (Add b c))\n(union adaptive_local_4 (Add c b))\n(union adaptive_root (Mul a adaptive_local_4))\n(union adaptive_root (Mul adaptive_local_4 a))\n(let adaptive_local_5 (Mul a b))\n(let adaptive_local_6 (Mul a c))\n(union adaptive_local_5 (Mul b a))\n(union adaptive_local_6 (Mul c a))\n(union adaptive_root (Add adaptive_local_5 adaptive_local_6))\n(union adaptive_root (Add adaptive_local_6 adaptive_local_5))",
+      "rows": 10,
+      "classes": 7,
+      "proof_matches": 14,
+      "slots": [
+        [
+          "b",
+          "Math"
+        ],
+        [
+          "c",
+          "Math"
+        ],
+        [
+          "adaptive_local_4",
+          "Math"
+        ],
+        [
+          "adaptive_local_5",
+          "Math"
+        ],
+        [
+          "adaptive_local_6",
+          "Math"
+        ],
+        [
+          "adaptive_root",
+          "Math"
+        ],
+        [
+          "a",
+          "Math"
+        ]
+      ],
+      "template": [
+        [
+          "Add",
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        [
+          "Add",
+          [
+            1,
+            0,
+            2
+          ]
+        ],
+        [
+          "Add",
+          [
+            3,
+            4,
+            5
+          ]
+        ],
+        [
+          "Add",
+          [
+            4,
+            3,
+            5
+          ]
+        ],
+        [
+          "Mul",
+          [
+            6,
+            2,
+            5
+          ]
+        ],
+        [
+          "Mul",
+          [
+            2,
+            6,
+            5
+          ]
+        ],
+        [
+          "Mul",
+          [
+            6,
+            0,
+            3
+          ]
+        ],
+        [
+          "Mul",
+          [
+            6,
+            1,
+            4
+          ]
+        ],
+        [
+          "Mul",
+          [
+            0,
+            6,
+            3
+          ]
+        ],
+        [
+          "Mul",
+          [
+            1,
+            6,
+            4
+          ]
+        ]
+      ]
+    },
+    "10": {
+      "rule": 10,
+      "actions": "(let adaptive_local_4 (Add b c))\n(union adaptive_local_4 (Add c b))\n(let adaptive_local_5 (Mul a b))\n(let adaptive_local_6 (Mul a c))\n(union adaptive_root (Mul a adaptive_local_4))\n(union adaptive_local_5 (Mul b a))\n(union adaptive_local_6 (Mul c a))\n(union adaptive_root (Mul adaptive_local_4 a))\n(union adaptive_root (Add adaptive_local_5 adaptive_local_6))\n(union adaptive_root (Add adaptive_local_6 adaptive_local_5))",
+      "rows": 10,
+      "classes": 7,
+      "proof_matches": 14,
+      "slots": [
+        [
+          "adaptive_local_5",
+          "Math"
+        ],
+        [
+          "adaptive_local_6",
+          "Math"
+        ],
+        [
+          "adaptive_root",
+          "Math"
+        ],
+        [
+          "b",
+          "Math"
+        ],
+        [
+          "c",
+          "Math"
+        ],
+        [
+          "adaptive_local_4",
+          "Math"
+        ],
+        [
+          "a",
+          "Math"
+        ]
+      ],
+      "template": [
+        [
+          "Add",
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        [
+          "Add",
+          [
+            3,
+            4,
+            5
+          ]
+        ],
+        [
+          "Add",
+          [
+            1,
+            0,
+            2
+          ]
+        ],
+        [
+          "Add",
+          [
+            4,
+            3,
+            5
+          ]
+        ],
+        [
+          "Mul",
+          [
+            6,
+            3,
+            0
+          ]
+        ],
+        [
+          "Mul",
+          [
+            6,
+            4,
+            1
+          ]
+        ],
+        [
+          "Mul",
+          [
+            6,
+            5,
+            2
+          ]
+        ],
+        [
+          "Mul",
+          [
+            3,
+            6,
+            0
+          ]
+        ],
+        [
+          "Mul",
+          [
+            4,
+            6,
+            1
+          ]
+        ],
+        [
+          "Mul",
+          [
+            5,
+            6,
+            2
+          ]
+        ]
+      ]
+    },
+    "13": {
+      "rule": 13,
+      "actions": "(let adaptive_local_2 (Const 2))\n(union adaptive_root (Mul x x))\n(union adaptive_root (Pow x adaptive_local_2))",
+      "rows": 3,
+      "classes": 3,
+      "proof_matches": 2,
+      "slots": [
+        [
+          "2",
+          "i64"
+        ],
+        [
+          "adaptive_local_2",
+          "Math"
+        ],
+        [
+          "x",
+          "Math"
+        ],
+        [
+          "adaptive_root",
+          "Math"
+        ]
+      ],
+      "template": [
+        [
+          "Const",
+          [
+            0,
+            1
+          ]
+        ],
+        [
+          "Mul",
+          [
+            2,
+            2,
+            3
+          ]
+        ],
+        [
+          "Pow",
+          [
+            2,
+            1,
+            3
+          ]
+        ]
+      ]
+    },
+    "14": {
+      "rule": 14,
+      "actions": "(let adaptive_local_4 (Add a b))\n(union adaptive_local_4 (Add b a))\n(union adaptive_root (Diff x adaptive_local_4))\n(let adaptive_local_5 (Diff x b))\n(let adaptive_local_6 (Diff x a))\n(union adaptive_root (Add adaptive_local_6 adaptive_local_5))\n(union adaptive_root (Add adaptive_local_5 adaptive_local_6))",
+      "rows": 7,
+      "classes": 7,
+      "proof_matches": 6,
+      "slots": [
+        [
+          "a",
+          "Math"
+        ],
+        [
+          "b",
+          "Math"
+        ],
+        [
+          "adaptive_local_4",
+          "Math"
+        ],
+        [
+          "adaptive_local_6",
+          "Math"
+        ],
+        [
+          "adaptive_local_5",
+          "Math"
+        ],
+        [
+          "adaptive_root",
+          "Math"
+        ],
+        [
+          "x",
+          "Math"
+        ]
+      ],
+      "template": [
+        [
+          "Add",
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        [
+          "Add",
+          [
+            3,
+            4,
+            5
+          ]
+        ],
+        [
+          "Add",
+          [
+            1,
+            0,
+            2
+          ]
+        ],
+        [
+          "Add",
+          [
+            4,
+            3,
+            5
+          ]
+        ],
+        [
+          "Diff",
+          [
+            6,
+            2,
+            5
+          ]
+        ],
+        [
+          "Diff",
+          [
+            6,
+            1,
+            4
+          ]
+        ],
+        [
+          "Diff",
+          [
+            6,
+            0,
+            3
+          ]
+        ]
+      ]
+    },
+    "15": {
+      "rule": 15,
+      "actions": "(let adaptive_local_4 (Diff x b))\n(let adaptive_local_5 (Diff x a))\n(let adaptive_local_6 (Mul a b))\n(union adaptive_local_6 (Mul b a))\n(let adaptive_local_7 (Mul a adaptive_local_4))\n(let adaptive_local_8 (Mul b adaptive_local_5))\n(union adaptive_local_7 (Mul adaptive_local_4 a))\n(union adaptive_local_8 (Mul adaptive_local_5 b))\n(union adaptive_root (Add adaptive_local_7 adaptive_local_8))\n(union adaptive_root (Add adaptive_local_8 adaptive_local_7))\n(union adaptive_root (Diff x adaptive_local_6))",
+      "rows": 11,
+      "classes": 9,
+      "proof_matches": 10,
+      "slots": [
+        [
+          "adaptive_local_7",
+          "Math"
+        ],
+        [
+          "adaptive_local_8",
+          "Math"
+        ],
+        [
+          "adaptive_root",
+          "Math"
+        ],
+        [
+          "x",
+          "Math"
+        ],
+        [
+          "adaptive_local_6",
+          "Math"
+        ],
+        [
+          "b",
+          "Math"
+        ],
+        [
+          "adaptive_local_4",
+          "Math"
+        ],
+        [
+          "a",
+          "Math"
+        ],
+        [
+          "adaptive_local_5",
+          "Math"
+        ]
+      ],
+      "template": [
+        [
+          "Add",
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        [
+          "Add",
+          [
+            1,
+            0,
+            2
+          ]
+        ],
+        [
+          "Diff",
+          [
+            3,
+            4,
+            2
+          ]
+        ],
+        [
+          "Diff",
+          [
+            3,
+            5,
+            6
+          ]
+        ],
+        [
+          "Diff",
+          [
+            3,
+            7,
+            8
+          ]
+        ],
+        [
+          "Mul",
+          [
+            7,
+            5,
+            4
+          ]
+        ],
+        [
+          "Mul",
+          [
+            5,
+            7,
+            4
+          ]
+        ],
+        [
+          "Mul",
+          [
+            7,
+            6,
+            0
+          ]
+        ],
+        [
+          "Mul",
+          [
+            5,
+            8,
+            1
+          ]
+        ],
+        [
+          "Mul",
+          [
+            6,
+            7,
+            0
+          ]
+        ],
+        [
+          "Mul",
+          [
+            8,
+            5,
+            1
+          ]
+        ]
+      ]
+    },
+    "17": {
+      "rule": 17,
+      "actions": "(let adaptive_local_2 (Const -1))\n(let adaptive_local_3 (Cos x))\n(union adaptive_root (Diff x adaptive_local_3))\n(let adaptive_local_4 (Sin x))\n(union adaptive_root (Mul adaptive_local_2 adaptive_local_4))\n(union adaptive_root (Mul adaptive_local_4 adaptive_local_2))",
+      "rows": 6,
+      "classes": 5,
+      "proof_matches": 3,
+      "slots": [
+        [
+          "-1",
+          "i64"
+        ],
+        [
+          "adaptive_local_2",
+          "Math"
+        ],
+        [
+          "x",
+          "Math"
+        ],
+        [
+          "adaptive_local_3",
+          "Math"
+        ],
+        [
+          "adaptive_root",
+          "Math"
+        ],
+        [
+          "adaptive_local_4",
+          "Math"
+        ]
+      ],
+      "template": [
+        [
+          "Const",
+          [
+            0,
+            1
+          ]
+        ],
+        [
+          "Cos",
+          [
+            2,
+            3
+          ]
+        ],
+        [
+          "Diff",
+          [
+            2,
+            3,
+            4
+          ]
+        ],
+        [
+          "Mul",
+          [
+            1,
+            5,
+            4
+          ]
+        ],
+        [
+          "Mul",
+          [
+            5,
+            1,
+            4
+          ]
+        ],
+        [
+          "Sin",
+          [
+            2,
+            5
+          ]
+        ]
+      ]
+    },
+    "19": {
+      "rule": 19,
+      "actions": "(let adaptive_local_2 (Cos x))\n(union adaptive_root (Integral adaptive_local_2 x))\n(union adaptive_root (Sin x))",
+      "rows": 3,
+      "classes": 3,
+      "proof_matches": 1,
+      "slots": [
+        [
+          "x",
+          "Math"
+        ],
+        [
+          "adaptive_local_2",
+          "Math"
+        ],
+        [
+          "adaptive_root",
+          "Math"
+        ]
+      ],
+      "template": [
+        [
+          "Cos",
+          [
+            0,
+            1
+          ]
+        ],
+        [
+          "Integral",
+          [
+            1,
+            0,
+            2
+          ]
+        ],
+        [
+          "Sin",
+          [
+            0,
+            2
+          ]
+        ]
+      ]
+    },
+    "21": {
+      "rule": 21,
+      "actions": "(let adaptive_local_4 (Add f g))\n(union adaptive_local_4 (Add g f))\n(union adaptive_root (Integral adaptive_local_4 x))\n(let adaptive_local_5 (Integral g x))\n(let adaptive_local_6 (Integral f x))\n(union adaptive_root (Add adaptive_local_6 adaptive_local_5))\n(union adaptive_root (Add adaptive_local_5 adaptive_local_6))",
+      "rows": 7,
+      "classes": 7,
+      "proof_matches": 6,
+      "slots": [
+        [
+          "f",
+          "Math"
+        ],
+        [
+          "g",
+          "Math"
+        ],
+        [
+          "adaptive_local_4",
+          "Math"
+        ],
+        [
+          "adaptive_local_6",
+          "Math"
+        ],
+        [
+          "adaptive_local_5",
+          "Math"
+        ],
+        [
+          "adaptive_root",
+          "Math"
+        ],
+        [
+          "x",
+          "Math"
+        ]
+      ],
+      "template": [
+        [
+          "Add",
+          [
+            0,
+            1,
+            2
+          ]
+        ],
+        [
+          "Add",
+          [
+            3,
+            4,
+            5
+          ]
+        ],
+        [
+          "Add",
+          [
+            1,
+            0,
+            2
+          ]
+        ],
+        [
+          "Add",
+          [
+            4,
+            3,
+            5
+          ]
+        ],
+        [
+          "Integral",
+          [
+            2,
+            6,
+            5
+          ]
+        ],
+        [
+          "Integral",
+          [
+            1,
+            6,
+            4
+          ]
+        ],
+        [
+          "Integral",
+          [
+            0,
+            6,
+            3
+          ]
+        ]
+      ]
+    }
+  },
+  "unfinished": {
+    "23": "unfinished RipSat; not admitted"
+  }
+}

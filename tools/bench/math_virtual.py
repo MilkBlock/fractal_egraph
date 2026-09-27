@@ -38,7 +38,7 @@ def measure(command, prefix, timeout=30):
                 if time.monotonic()-begin >= timeout or rss >= 4*1024**3:
                     os.killpg(proc.pid, signal.SIGKILL)
                     proc.wait()
-                    raise RuntimeError(f'external benchmark guard (30s/4GiB): {command}')
+                    raise RuntimeError(f'external benchmark guard: elapsed={time.monotonic()-begin:.3f}s, observed_group_rss={rss} bytes, limits={timeout}s/4GiB: {command}')
     text = stderr.read_text()
     peak = re.search(r'(\d+)\s+maximum resident set size', text)
     wall = re.search(r'([\d.]+)\s+real\s+', text)

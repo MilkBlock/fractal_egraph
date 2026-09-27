@@ -1,0 +1,3559 @@
+{
+  "scope": "native positive Math rewrite runtime; sampling/serialization included in process wall and RSS. Equal rounds NOT equal inferred work. Frozen library learned only from rounds 1-2.",
+  "binary_sha256": "360e5732e539f666824b1befee26e26b277550f687c4a7ef02ced5cbe4bf2161",
+  "runs": [
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "native",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/native-0"
+      ],
+      "process_wall_seconds": 0.4,
+      "peak_rss_bytes": 7946240,
+      "observed_wall_seconds": 0.40999691700562835,
+      "result": {
+        "execution_seconds": 0.000847083,
+        "final": {
+          "eclasses": 116,
+          "enodes": 208,
+          "rss_bytes": 7847936
+        },
+        "learning_seconds": 8.3e-08,
+        "matches": 129,
+        "mode": "native",
+        "samples": [
+          {
+            "admitted": [],
+            "bodies": 0,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.000186875,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 69,
+              "rss_bytes": 7061504
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 1622,
+            "macro_matches": 0,
+            "matches": 20,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 5.42e-07,
+            "rejected": [],
+            "round": 1,
+            "source_matches": 20
+          },
+          {
+            "admitted": [],
+            "bodies": 0,
+            "cumulative_matches": 64,
+            "execution_seconds": 0.00046858299999999996,
+            "graph": {
+              "eclasses": 71,
+              "enodes": 118,
+              "rss_bytes": 7487488
+            },
+            "learning_seconds": 4.2e-08,
+            "library_bytes": 1622,
+            "macro_matches": 0,
+            "matches": 44,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 2.08e-07,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 44
+          },
+          {
+            "admitted": [],
+            "bodies": 0,
+            "cumulative_matches": 129,
+            "execution_seconds": 0.000847083,
+            "graph": {
+              "eclasses": 116,
+              "enodes": 208,
+              "rss_bytes": 7815168
+            },
+            "learning_seconds": 8.3e-08,
+            "library_bytes": 1622,
+            "macro_matches": 0,
+            "matches": 65,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 2.08e-07,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 65
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.014855917,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 0,
+          "binding_payload_bytes": 0,
+          "tables": [],
+          "template_header_bytes": 0,
+          "template_payload_bytes": 0,
+          "unique_binding_matrices": 0,
+          "unique_templates": 0
+        }
+      },
+      "mode": "native",
+      "repetition": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "adaptive",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-0"
+      ],
+      "process_wall_seconds": 0.12,
+      "peak_rss_bytes": 49332224,
+      "observed_wall_seconds": 0.13171041698660702,
+      "result": {
+        "execution_seconds": 0.000850583,
+        "final": {
+          "eclasses": 118,
+          "enodes": 259,
+          "rss_bytes": 49332224
+        },
+        "learning_seconds": 0.106403124,
+        "matches": 163,
+        "mode": "adaptive",
+        "samples": [
+          {
+            "admitted": [
+              0,
+              1,
+              4,
+              9,
+              13,
+              14,
+              21
+            ],
+            "bodies": 7,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.000111,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 69,
+              "rss_bytes": 47972352
+            },
+            "learning_seconds": 0.088898583,
+            "library_bytes": 10585,
+            "macro_matches": 0,
+            "matches": 20,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 8.75e-07,
+            "rejected": [
+              {
+                "reason": "unfinished RipSat; not admitted",
+                "rule": 23
+              }
+            ],
+            "round": 1,
+            "source_matches": 20
+          },
+          {
+            "admitted": [
+              2,
+              3,
+              10,
+              15,
+              17,
+              19
+            ],
+            "bodies": 13,
+            "cumulative_matches": 83,
+            "execution_seconds": 0.000427083,
+            "graph": {
+              "eclasses": 71,
+              "enodes": 122,
+              "rss_bytes": 49283072
+            },
+            "learning_seconds": 0.106402333,
+            "library_bytes": 22017,
+            "macro_matches": 51,
+            "matches": 63,
+            "packing": {
+              "processed_instance_packets": 51,
+              "virtual_rows": 77
+            },
+            "packing_seconds": 0.000268042,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 12
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 163,
+            "execution_seconds": 0.000850583,
+            "graph": {
+              "eclasses": 118,
+              "enodes": 259,
+              "rss_bytes": 49315840
+            },
+            "learning_seconds": 0.106403124,
+            "library_bytes": 22017,
+            "macro_matches": 77,
+            "matches": 80,
+            "packing": {
+              "processed_instance_packets": 77,
+              "virtual_rows": 223
+            },
+            "packing_seconds": 0.000538292,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 3
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.120104833,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 600,
+          "binding_payload_bytes": 1376,
+          "tables": [
+            {
+              "dense_equivalent_bytes": 400,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 424,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Diff",
+              "tombstones": 0,
+              "virtual_rows": 17
+            },
+            {
+              "dense_equivalent_bytes": 300,
+              "descriptor_bytes": 192,
+              "direct_base_rows": 6,
+              "direct_bytes": 240,
+              "local_header_bytes": 392,
+              "metadata_bytes": 16,
+              "overlay_rows": 6,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Integral",
+              "tombstones": 0,
+              "virtual_rows": 3
+            },
+            {
+              "dense_equivalent_bytes": 1900,
+              "descriptor_bytes": 1536,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 904,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Add",
+              "tombstones": 0,
+              "virtual_rows": 95
+            },
+            {
+              "dense_equivalent_bytes": 200,
+              "descriptor_bytes": 192,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 424,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sub",
+              "tombstones": 0,
+              "virtual_rows": 7
+            },
+            {
+              "dense_equivalent_bytes": 2060,
+              "descriptor_bytes": 1536,
+              "direct_base_rows": 6,
+              "direct_bytes": 120,
+              "local_header_bytes": 968,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Mul",
+              "tombstones": 1,
+              "virtual_rows": 96
+            },
+            {
+              "dense_equivalent_bytes": 40,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 1,
+              "direct_bytes": 20,
+              "local_header_bytes": 328,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Pow",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 32,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sin",
+              "tombstones": 1,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 16,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Cos",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 80,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 3,
+              "direct_bytes": 48,
+              "local_header_bytes": 328,
+              "metadata_bytes": 16,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Const",
+              "tombstones": 0,
+              "virtual_rows": 2
+            }
+          ],
+          "template_header_bytes": 3040,
+          "template_payload_bytes": 2304,
+          "unique_binding_matrices": 15,
+          "unique_templates": 15
+        }
+      },
+      "mode": "adaptive",
+      "repetition": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "frozen",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/frozen-0",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-0/bake_lib_round2.json"
+      ],
+      "process_wall_seconds": 0.01,
+      "peak_rss_bytes": 10633216,
+      "observed_wall_seconds": 0.040713374968618155,
+      "result": {
+        "execution_seconds": 0.001177792,
+        "final": {
+          "eclasses": 137,
+          "enodes": 347,
+          "rss_bytes": 10321920
+        },
+        "learning_seconds": 1.25e-07,
+        "matches": 211,
+        "mode": "frozen",
+        "samples": [
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.000137916,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 81,
+              "rss_bytes": 8880128
+            },
+            "learning_seconds": 4.2e-08,
+            "library_bytes": 22017,
+            "macro_matches": 19,
+            "matches": 20,
+            "packing": {
+              "processed_instance_packets": 19,
+              "virtual_rows": 60
+            },
+            "packing_seconds": 0.000170292,
+            "rejected": [],
+            "round": 1,
+            "source_matches": 1
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 82,
+            "execution_seconds": 0.000562333,
+            "graph": {
+              "eclasses": 75,
+              "enodes": 151,
+              "rss_bytes": 9601024
+            },
+            "learning_seconds": 8.3e-08,
+            "library_bytes": 22017,
+            "macro_matches": 60,
+            "matches": 62,
+            "packing": {
+              "processed_instance_packets": 60,
+              "virtual_rows": 126
+            },
+            "packing_seconds": 0.000388625,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 2
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 211,
+            "execution_seconds": 0.001177792,
+            "graph": {
+              "eclasses": 137,
+              "enodes": 347,
+              "rss_bytes": 10174464
+            },
+            "learning_seconds": 1.25e-07,
+            "library_bytes": 22017,
+            "macro_matches": 126,
+            "matches": 129,
+            "packing": {
+              "processed_instance_packets": 126,
+              "virtual_rows": 311
+            },
+            "packing_seconds": 0.000715333,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 3
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.014342167,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 840,
+          "binding_payload_bytes": 1516,
+          "tables": [
+            {
+              "dense_equivalent_bytes": 400,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 456,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Diff",
+              "tombstones": 0,
+              "virtual_rows": 17
+            },
+            {
+              "dense_equivalent_bytes": 300,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 3,
+              "direct_bytes": 240,
+              "local_header_bytes": 328,
+              "metadata_bytes": 16,
+              "overlay_rows": 9,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Integral",
+              "tombstones": 0,
+              "virtual_rows": 3
+            },
+            {
+              "dense_equivalent_bytes": 3900,
+              "descriptor_bytes": 3072,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 904,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 8,
+              "rebuild_rows_examined": 8,
+              "table": "Add",
+              "tombstones": 12,
+              "virtual_rows": 183
+            },
+            {
+              "dense_equivalent_bytes": 200,
+              "descriptor_bytes": 192,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 424,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sub",
+              "tombstones": 0,
+              "virtual_rows": 7
+            },
+            {
+              "dense_equivalent_bytes": 2080,
+              "descriptor_bytes": 1536,
+              "direct_base_rows": 6,
+              "direct_bytes": 120,
+              "local_header_bytes": 1032,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 2,
+              "rebuild_rows_examined": 2,
+              "table": "Mul",
+              "tombstones": 2,
+              "virtual_rows": 96
+            },
+            {
+              "dense_equivalent_bytes": 40,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 1,
+              "direct_bytes": 20,
+              "local_header_bytes": 328,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Pow",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 32,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sin",
+              "tombstones": 1,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 16,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Cos",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 80,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 3,
+              "direct_bytes": 48,
+              "local_header_bytes": 328,
+              "metadata_bytes": 16,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Const",
+              "tombstones": 0,
+              "virtual_rows": 2
+            }
+          ],
+          "template_header_bytes": 4704,
+          "template_payload_bytes": 3688,
+          "unique_binding_matrices": 21,
+          "unique_templates": 21
+        }
+      },
+      "mode": "frozen",
+      "repetition": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "adaptive",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/warm-0",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-0/bake_lib_round2.json"
+      ],
+      "process_wall_seconds": 0.01,
+      "peak_rss_bytes": 10436608,
+      "observed_wall_seconds": 0.023290666984394193,
+      "result": {
+        "execution_seconds": 0.0012460000000000001,
+        "final": {
+          "eclasses": 137,
+          "enodes": 347,
+          "rss_bytes": 10223616
+        },
+        "learning_seconds": 2.666e-06,
+        "matches": 211,
+        "mode": "adaptive",
+        "samples": [
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.000141791,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 81,
+              "rss_bytes": 8880128
+            },
+            "learning_seconds": 8.75e-07,
+            "library_bytes": 22017,
+            "macro_matches": 19,
+            "matches": 20,
+            "packing": {
+              "processed_instance_packets": 19,
+              "virtual_rows": 60
+            },
+            "packing_seconds": 0.000179166,
+            "rejected": [],
+            "round": 1,
+            "source_matches": 1
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 82,
+            "execution_seconds": 0.0005870000000000001,
+            "graph": {
+              "eclasses": 75,
+              "enodes": 151,
+              "rss_bytes": 9633792
+            },
+            "learning_seconds": 1.833e-06,
+            "library_bytes": 22017,
+            "macro_matches": 60,
+            "matches": 62,
+            "packing": {
+              "processed_instance_packets": 60,
+              "virtual_rows": 126
+            },
+            "packing_seconds": 0.0004135,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 2
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 211,
+            "execution_seconds": 0.0012460000000000001,
+            "graph": {
+              "eclasses": 137,
+              "enodes": 347,
+              "rss_bytes": 10190848
+            },
+            "learning_seconds": 2.666e-06,
+            "library_bytes": 22017,
+            "macro_matches": 126,
+            "matches": 129,
+            "packing": {
+              "processed_instance_packets": 126,
+              "virtual_rows": 311
+            },
+            "packing_seconds": 0.000758875,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 3
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.014286416,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 840,
+          "binding_payload_bytes": 1516,
+          "tables": [
+            {
+              "dense_equivalent_bytes": 400,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 456,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Diff",
+              "tombstones": 0,
+              "virtual_rows": 17
+            },
+            {
+              "dense_equivalent_bytes": 300,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 3,
+              "direct_bytes": 240,
+              "local_header_bytes": 328,
+              "metadata_bytes": 16,
+              "overlay_rows": 9,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Integral",
+              "tombstones": 0,
+              "virtual_rows": 3
+            },
+            {
+              "dense_equivalent_bytes": 3900,
+              "descriptor_bytes": 3072,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 904,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 8,
+              "rebuild_rows_examined": 8,
+              "table": "Add",
+              "tombstones": 12,
+              "virtual_rows": 183
+            },
+            {
+              "dense_equivalent_bytes": 200,
+              "descriptor_bytes": 192,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 424,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sub",
+              "tombstones": 0,
+              "virtual_rows": 7
+            },
+            {
+              "dense_equivalent_bytes": 2080,
+              "descriptor_bytes": 1536,
+              "direct_base_rows": 6,
+              "direct_bytes": 120,
+              "local_header_bytes": 1032,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 2,
+              "rebuild_rows_examined": 2,
+              "table": "Mul",
+              "tombstones": 2,
+              "virtual_rows": 96
+            },
+            {
+              "dense_equivalent_bytes": 40,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 1,
+              "direct_bytes": 20,
+              "local_header_bytes": 328,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Pow",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 32,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sin",
+              "tombstones": 1,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 16,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Cos",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 80,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 3,
+              "direct_bytes": 48,
+              "local_header_bytes": 328,
+              "metadata_bytes": 16,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Const",
+              "tombstones": 0,
+              "virtual_rows": 2
+            }
+          ],
+          "template_header_bytes": 4704,
+          "template_payload_bytes": 3688,
+          "unique_binding_matrices": 21,
+          "unique_templates": 21
+        }
+      },
+      "mode": "warm",
+      "repetition": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "native",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/native-1"
+      ],
+      "process_wall_seconds": 0.01,
+      "peak_rss_bytes": 7897088,
+      "observed_wall_seconds": 0.023882083012722433,
+      "result": {
+        "execution_seconds": 0.0005885840000000001,
+        "final": {
+          "eclasses": 116,
+          "enodes": 208,
+          "rss_bytes": 7815168
+        },
+        "learning_seconds": 0.0,
+        "matches": 129,
+        "mode": "native",
+        "samples": [
+          {
+            "admitted": [],
+            "bodies": 0,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.00010025,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 69,
+              "rss_bytes": 7077888
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 1622,
+            "macro_matches": 0,
+            "matches": 20,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 4.58e-07,
+            "rejected": [],
+            "round": 1,
+            "source_matches": 20
+          },
+          {
+            "admitted": [],
+            "bodies": 0,
+            "cumulative_matches": 64,
+            "execution_seconds": 0.000312417,
+            "graph": {
+              "eclasses": 71,
+              "enodes": 118,
+              "rss_bytes": 7421952
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 1622,
+            "macro_matches": 0,
+            "matches": 44,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 1.67e-07,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 44
+          },
+          {
+            "admitted": [],
+            "bodies": 0,
+            "cumulative_matches": 129,
+            "execution_seconds": 0.0005885840000000001,
+            "graph": {
+              "eclasses": 116,
+              "enodes": 208,
+              "rss_bytes": 7782400
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 1622,
+            "macro_matches": 0,
+            "matches": 65,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 2.5e-07,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 65
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.010464125,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 0,
+          "binding_payload_bytes": 0,
+          "tables": [],
+          "template_header_bytes": 0,
+          "template_payload_bytes": 0,
+          "unique_binding_matrices": 0,
+          "unique_templates": 0
+        }
+      },
+      "mode": "native",
+      "repetition": 1
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "adaptive",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-1"
+      ],
+      "process_wall_seconds": 0.12,
+      "peak_rss_bytes": 54886400,
+      "observed_wall_seconds": 0.1327508749673143,
+      "result": {
+        "execution_seconds": 0.0009544169999999999,
+        "final": {
+          "eclasses": 118,
+          "enodes": 259,
+          "rss_bytes": 54853632
+        },
+        "learning_seconds": 0.108432665,
+        "matches": 163,
+        "mode": "adaptive",
+        "samples": [
+          {
+            "admitted": [
+              0,
+              1,
+              4,
+              9,
+              13,
+              14,
+              21
+            ],
+            "bodies": 7,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.00010525,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 69,
+              "rss_bytes": 50610176
+            },
+            "learning_seconds": 0.089027583,
+            "library_bytes": 10585,
+            "macro_matches": 0,
+            "matches": 20,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 9.59e-07,
+            "rejected": [
+              {
+                "reason": "unfinished RipSat; not admitted",
+                "rule": 23
+              }
+            ],
+            "round": 1,
+            "source_matches": 20
+          },
+          {
+            "admitted": [
+              2,
+              3,
+              10,
+              15,
+              17,
+              19
+            ],
+            "bodies": 13,
+            "cumulative_matches": 83,
+            "execution_seconds": 0.000476917,
+            "graph": {
+              "eclasses": 71,
+              "enodes": 122,
+              "rss_bytes": 54820864
+            },
+            "learning_seconds": 0.108431874,
+            "library_bytes": 22017,
+            "macro_matches": 51,
+            "matches": 63,
+            "packing": {
+              "processed_instance_packets": 51,
+              "virtual_rows": 77
+            },
+            "packing_seconds": 0.000274792,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 12
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 163,
+            "execution_seconds": 0.0009544169999999999,
+            "graph": {
+              "eclasses": 118,
+              "enodes": 259,
+              "rss_bytes": 54837248
+            },
+            "learning_seconds": 0.108432665,
+            "library_bytes": 22017,
+            "macro_matches": 77,
+            "matches": 80,
+            "packing": {
+              "processed_instance_packets": 77,
+              "virtual_rows": 223
+            },
+            "packing_seconds": 0.00059225,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 3
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.122242625,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 600,
+          "binding_payload_bytes": 1376,
+          "tables": [
+            {
+              "dense_equivalent_bytes": 400,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 424,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Diff",
+              "tombstones": 0,
+              "virtual_rows": 17
+            },
+            {
+              "dense_equivalent_bytes": 300,
+              "descriptor_bytes": 192,
+              "direct_base_rows": 6,
+              "direct_bytes": 240,
+              "local_header_bytes": 392,
+              "metadata_bytes": 16,
+              "overlay_rows": 6,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Integral",
+              "tombstones": 0,
+              "virtual_rows": 3
+            },
+            {
+              "dense_equivalent_bytes": 1900,
+              "descriptor_bytes": 1536,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 904,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Add",
+              "tombstones": 0,
+              "virtual_rows": 95
+            },
+            {
+              "dense_equivalent_bytes": 200,
+              "descriptor_bytes": 192,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 424,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sub",
+              "tombstones": 0,
+              "virtual_rows": 7
+            },
+            {
+              "dense_equivalent_bytes": 2060,
+              "descriptor_bytes": 1536,
+              "direct_base_rows": 6,
+              "direct_bytes": 120,
+              "local_header_bytes": 968,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Mul",
+              "tombstones": 1,
+              "virtual_rows": 96
+            },
+            {
+              "dense_equivalent_bytes": 40,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 1,
+              "direct_bytes": 20,
+              "local_header_bytes": 328,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Pow",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 32,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sin",
+              "tombstones": 1,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 16,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Cos",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 80,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 3,
+              "direct_bytes": 48,
+              "local_header_bytes": 328,
+              "metadata_bytes": 16,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Const",
+              "tombstones": 0,
+              "virtual_rows": 2
+            }
+          ],
+          "template_header_bytes": 3040,
+          "template_payload_bytes": 2304,
+          "unique_binding_matrices": 15,
+          "unique_templates": 15
+        }
+      },
+      "mode": "adaptive",
+      "repetition": 1
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "frozen",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/frozen-1",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-0/bake_lib_round2.json"
+      ],
+      "process_wall_seconds": 0.02,
+      "peak_rss_bytes": 10715136,
+      "observed_wall_seconds": 0.038348249974660575,
+      "result": {
+        "execution_seconds": 0.0013825,
+        "final": {
+          "eclasses": 137,
+          "enodes": 347,
+          "rss_bytes": 10534912
+        },
+        "learning_seconds": 8.3e-08,
+        "matches": 211,
+        "mode": "frozen",
+        "samples": [
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.000148625,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 81,
+              "rss_bytes": 9142272
+            },
+            "learning_seconds": 4.2e-08,
+            "library_bytes": 22017,
+            "macro_matches": 19,
+            "matches": 20,
+            "packing": {
+              "processed_instance_packets": 19,
+              "virtual_rows": 60
+            },
+            "packing_seconds": 0.000182416,
+            "rejected": [],
+            "round": 1,
+            "source_matches": 1
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 82,
+            "execution_seconds": 0.00068675,
+            "graph": {
+              "eclasses": 75,
+              "enodes": 151,
+              "rss_bytes": 9879552
+            },
+            "learning_seconds": 4.2e-08,
+            "library_bytes": 22017,
+            "macro_matches": 60,
+            "matches": 62,
+            "packing": {
+              "processed_instance_packets": 60,
+              "virtual_rows": 126
+            },
+            "packing_seconds": 0.000454709,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 2
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 211,
+            "execution_seconds": 0.0013825,
+            "graph": {
+              "eclasses": 137,
+              "enodes": 347,
+              "rss_bytes": 10502144
+            },
+            "learning_seconds": 8.3e-08,
+            "library_bytes": 22017,
+            "macro_matches": 126,
+            "matches": 129,
+            "packing": {
+              "processed_instance_packets": 126,
+              "virtual_rows": 311
+            },
+            "packing_seconds": 0.000762,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 3
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.016151916,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 840,
+          "binding_payload_bytes": 1516,
+          "tables": [
+            {
+              "dense_equivalent_bytes": 400,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 456,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Diff",
+              "tombstones": 0,
+              "virtual_rows": 17
+            },
+            {
+              "dense_equivalent_bytes": 300,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 3,
+              "direct_bytes": 240,
+              "local_header_bytes": 328,
+              "metadata_bytes": 16,
+              "overlay_rows": 9,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Integral",
+              "tombstones": 0,
+              "virtual_rows": 3
+            },
+            {
+              "dense_equivalent_bytes": 3900,
+              "descriptor_bytes": 3072,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 904,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 8,
+              "rebuild_rows_examined": 8,
+              "table": "Add",
+              "tombstones": 12,
+              "virtual_rows": 183
+            },
+            {
+              "dense_equivalent_bytes": 200,
+              "descriptor_bytes": 192,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 424,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sub",
+              "tombstones": 0,
+              "virtual_rows": 7
+            },
+            {
+              "dense_equivalent_bytes": 2080,
+              "descriptor_bytes": 1536,
+              "direct_base_rows": 6,
+              "direct_bytes": 120,
+              "local_header_bytes": 1032,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 2,
+              "rebuild_rows_examined": 2,
+              "table": "Mul",
+              "tombstones": 2,
+              "virtual_rows": 96
+            },
+            {
+              "dense_equivalent_bytes": 40,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 1,
+              "direct_bytes": 20,
+              "local_header_bytes": 328,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Pow",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 32,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sin",
+              "tombstones": 1,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 16,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Cos",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 80,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 3,
+              "direct_bytes": 48,
+              "local_header_bytes": 328,
+              "metadata_bytes": 16,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Const",
+              "tombstones": 0,
+              "virtual_rows": 2
+            }
+          ],
+          "template_header_bytes": 4704,
+          "template_payload_bytes": 3688,
+          "unique_binding_matrices": 21,
+          "unique_templates": 21
+        }
+      },
+      "mode": "frozen",
+      "repetition": 1
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "adaptive",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/warm-1",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-0/bake_lib_round2.json"
+      ],
+      "process_wall_seconds": 0.02,
+      "peak_rss_bytes": 10518528,
+      "observed_wall_seconds": 0.039685499970801175,
+      "result": {
+        "execution_seconds": 0.001295709,
+        "final": {
+          "eclasses": 137,
+          "enodes": 347,
+          "rss_bytes": 10240000
+        },
+        "learning_seconds": 2.666e-06,
+        "matches": 211,
+        "mode": "adaptive",
+        "samples": [
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.000159542,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 81,
+              "rss_bytes": 8912896
+            },
+            "learning_seconds": 1e-06,
+            "library_bytes": 22017,
+            "macro_matches": 19,
+            "matches": 20,
+            "packing": {
+              "processed_instance_packets": 19,
+              "virtual_rows": 60
+            },
+            "packing_seconds": 0.000179709,
+            "rejected": [],
+            "round": 1,
+            "source_matches": 1
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 82,
+            "execution_seconds": 0.0006130420000000001,
+            "graph": {
+              "eclasses": 75,
+              "enodes": 151,
+              "rss_bytes": 9519104
+            },
+            "learning_seconds": 1.75e-06,
+            "library_bytes": 22017,
+            "macro_matches": 60,
+            "matches": 62,
+            "packing": {
+              "processed_instance_packets": 60,
+              "virtual_rows": 126
+            },
+            "packing_seconds": 0.000424792,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 2
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 211,
+            "execution_seconds": 0.001295709,
+            "graph": {
+              "eclasses": 137,
+              "enodes": 347,
+              "rss_bytes": 10207232
+            },
+            "learning_seconds": 2.666e-06,
+            "library_bytes": 22017,
+            "macro_matches": 126,
+            "matches": 129,
+            "packing": {
+              "processed_instance_packets": 126,
+              "virtual_rows": 311
+            },
+            "packing_seconds": 0.000739875,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 3
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.015032792,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 840,
+          "binding_payload_bytes": 1516,
+          "tables": [
+            {
+              "dense_equivalent_bytes": 400,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 456,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Diff",
+              "tombstones": 0,
+              "virtual_rows": 17
+            },
+            {
+              "dense_equivalent_bytes": 300,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 3,
+              "direct_bytes": 240,
+              "local_header_bytes": 328,
+              "metadata_bytes": 16,
+              "overlay_rows": 9,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Integral",
+              "tombstones": 0,
+              "virtual_rows": 3
+            },
+            {
+              "dense_equivalent_bytes": 3900,
+              "descriptor_bytes": 3072,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 904,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 8,
+              "rebuild_rows_examined": 8,
+              "table": "Add",
+              "tombstones": 12,
+              "virtual_rows": 183
+            },
+            {
+              "dense_equivalent_bytes": 200,
+              "descriptor_bytes": 192,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 424,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sub",
+              "tombstones": 0,
+              "virtual_rows": 7
+            },
+            {
+              "dense_equivalent_bytes": 2080,
+              "descriptor_bytes": 1536,
+              "direct_base_rows": 6,
+              "direct_bytes": 120,
+              "local_header_bytes": 1032,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 2,
+              "rebuild_rows_examined": 2,
+              "table": "Mul",
+              "tombstones": 2,
+              "virtual_rows": 96
+            },
+            {
+              "dense_equivalent_bytes": 40,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 1,
+              "direct_bytes": 20,
+              "local_header_bytes": 328,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Pow",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 32,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sin",
+              "tombstones": 1,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 16,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Cos",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 80,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 3,
+              "direct_bytes": 48,
+              "local_header_bytes": 328,
+              "metadata_bytes": 16,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Const",
+              "tombstones": 0,
+              "virtual_rows": 2
+            }
+          ],
+          "template_header_bytes": 4704,
+          "template_payload_bytes": 3688,
+          "unique_binding_matrices": 21,
+          "unique_templates": 21
+        }
+      },
+      "mode": "warm",
+      "repetition": 1
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "native",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/native-2"
+      ],
+      "process_wall_seconds": 0.01,
+      "peak_rss_bytes": 7946240,
+      "observed_wall_seconds": 0.02305354201234877,
+      "result": {
+        "execution_seconds": 0.000672416,
+        "final": {
+          "eclasses": 116,
+          "enodes": 208,
+          "rss_bytes": 7782400
+        },
+        "learning_seconds": 4.2e-08,
+        "matches": 129,
+        "mode": "native",
+        "samples": [
+          {
+            "admitted": [],
+            "bodies": 0,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.00010175,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 69,
+              "rss_bytes": 7028736
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 1622,
+            "macro_matches": 0,
+            "matches": 20,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 5.41e-07,
+            "rejected": [],
+            "round": 1,
+            "source_matches": 20
+          },
+          {
+            "admitted": [],
+            "bodies": 0,
+            "cumulative_matches": 64,
+            "execution_seconds": 0.000365458,
+            "graph": {
+              "eclasses": 71,
+              "enodes": 118,
+              "rss_bytes": 7438336
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 1622,
+            "macro_matches": 0,
+            "matches": 44,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 1.67e-07,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 44
+          },
+          {
+            "admitted": [],
+            "bodies": 0,
+            "cumulative_matches": 129,
+            "execution_seconds": 0.000672416,
+            "graph": {
+              "eclasses": 116,
+              "enodes": 208,
+              "rss_bytes": 7749632
+            },
+            "learning_seconds": 4.2e-08,
+            "library_bytes": 1622,
+            "macro_matches": 0,
+            "matches": 65,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 2.92e-07,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 65
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.010660625,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 0,
+          "binding_payload_bytes": 0,
+          "tables": [],
+          "template_header_bytes": 0,
+          "template_payload_bytes": 0,
+          "unique_binding_matrices": 0,
+          "unique_templates": 0
+        }
+      },
+      "mode": "native",
+      "repetition": 2
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "adaptive",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-2"
+      ],
+      "process_wall_seconds": 0.14,
+      "peak_rss_bytes": 56934400,
+      "observed_wall_seconds": 0.15681591699831188,
+      "result": {
+        "execution_seconds": 0.0008482920000000001,
+        "final": {
+          "eclasses": 118,
+          "enodes": 259,
+          "rss_bytes": 56918016
+        },
+        "learning_seconds": 0.12917224900000002,
+        "matches": 163,
+        "mode": "adaptive",
+        "samples": [
+          {
+            "admitted": [
+              0,
+              1,
+              4,
+              9,
+              13,
+              14,
+              21
+            ],
+            "bodies": 7,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.000104167,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 69,
+              "rss_bytes": 54263808
+            },
+            "learning_seconds": 0.104746416,
+            "library_bytes": 10585,
+            "macro_matches": 0,
+            "matches": 20,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 1.208e-06,
+            "rejected": [
+              {
+                "reason": "unfinished RipSat; not admitted",
+                "rule": 23
+              }
+            ],
+            "round": 1,
+            "source_matches": 20
+          },
+          {
+            "admitted": [
+              2,
+              3,
+              10,
+              15,
+              17,
+              19
+            ],
+            "bodies": 13,
+            "cumulative_matches": 83,
+            "execution_seconds": 0.000438334,
+            "graph": {
+              "eclasses": 71,
+              "enodes": 122,
+              "rss_bytes": 56901632
+            },
+            "learning_seconds": 0.129171374,
+            "library_bytes": 22017,
+            "macro_matches": 51,
+            "matches": 63,
+            "packing": {
+              "processed_instance_packets": 51,
+              "virtual_rows": 77
+            },
+            "packing_seconds": 0.000236292,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 12
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 163,
+            "execution_seconds": 0.0008482920000000001,
+            "graph": {
+              "eclasses": 118,
+              "enodes": 259,
+              "rss_bytes": 56901632
+            },
+            "learning_seconds": 0.12917224900000002,
+            "library_bytes": 22017,
+            "macro_matches": 77,
+            "matches": 80,
+            "packing": {
+              "processed_instance_packets": 77,
+              "virtual_rows": 223
+            },
+            "packing_seconds": 0.000513333,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 3
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.141909041,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 600,
+          "binding_payload_bytes": 1376,
+          "tables": [
+            {
+              "dense_equivalent_bytes": 400,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 424,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Diff",
+              "tombstones": 0,
+              "virtual_rows": 17
+            },
+            {
+              "dense_equivalent_bytes": 300,
+              "descriptor_bytes": 192,
+              "direct_base_rows": 6,
+              "direct_bytes": 240,
+              "local_header_bytes": 392,
+              "metadata_bytes": 16,
+              "overlay_rows": 6,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Integral",
+              "tombstones": 0,
+              "virtual_rows": 3
+            },
+            {
+              "dense_equivalent_bytes": 1900,
+              "descriptor_bytes": 1536,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 904,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Add",
+              "tombstones": 0,
+              "virtual_rows": 95
+            },
+            {
+              "dense_equivalent_bytes": 200,
+              "descriptor_bytes": 192,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 424,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sub",
+              "tombstones": 0,
+              "virtual_rows": 7
+            },
+            {
+              "dense_equivalent_bytes": 2060,
+              "descriptor_bytes": 1536,
+              "direct_base_rows": 6,
+              "direct_bytes": 120,
+              "local_header_bytes": 968,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Mul",
+              "tombstones": 1,
+              "virtual_rows": 96
+            },
+            {
+              "dense_equivalent_bytes": 40,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 1,
+              "direct_bytes": 20,
+              "local_header_bytes": 328,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Pow",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 32,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sin",
+              "tombstones": 1,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 16,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Cos",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 80,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 3,
+              "direct_bytes": 48,
+              "local_header_bytes": 328,
+              "metadata_bytes": 16,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Const",
+              "tombstones": 0,
+              "virtual_rows": 2
+            }
+          ],
+          "template_header_bytes": 3040,
+          "template_payload_bytes": 2304,
+          "unique_binding_matrices": 15,
+          "unique_templates": 15
+        }
+      },
+      "mode": "adaptive",
+      "repetition": 2
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "frozen",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/frozen-2",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-0/bake_lib_round2.json"
+      ],
+      "process_wall_seconds": 0.02,
+      "peak_rss_bytes": 10436608,
+      "observed_wall_seconds": 0.023155540926381946,
+      "result": {
+        "execution_seconds": 0.001480458,
+        "final": {
+          "eclasses": 137,
+          "enodes": 347,
+          "rss_bytes": 10190848
+        },
+        "learning_seconds": 0.0,
+        "matches": 211,
+        "mode": "frozen",
+        "samples": [
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.000134333,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 81,
+              "rss_bytes": 8765440
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 22017,
+            "macro_matches": 19,
+            "matches": 20,
+            "packing": {
+              "processed_instance_packets": 19,
+              "virtual_rows": 60
+            },
+            "packing_seconds": 0.000166958,
+            "rejected": [],
+            "round": 1,
+            "source_matches": 1
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 82,
+            "execution_seconds": 0.000791541,
+            "graph": {
+              "eclasses": 75,
+              "enodes": 151,
+              "rss_bytes": 9502720
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 22017,
+            "macro_matches": 60,
+            "matches": 62,
+            "packing": {
+              "processed_instance_packets": 60,
+              "virtual_rows": 126
+            },
+            "packing_seconds": 0.000453,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 2
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 211,
+            "execution_seconds": 0.001480458,
+            "graph": {
+              "eclasses": 137,
+              "enodes": 347,
+              "rss_bytes": 10059776
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 22017,
+            "macro_matches": 126,
+            "matches": 129,
+            "packing": {
+              "processed_instance_packets": 126,
+              "virtual_rows": 311
+            },
+            "packing_seconds": 0.000739542,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 3
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.014737875,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 840,
+          "binding_payload_bytes": 1516,
+          "tables": [
+            {
+              "dense_equivalent_bytes": 400,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 456,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Diff",
+              "tombstones": 0,
+              "virtual_rows": 17
+            },
+            {
+              "dense_equivalent_bytes": 300,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 3,
+              "direct_bytes": 240,
+              "local_header_bytes": 328,
+              "metadata_bytes": 16,
+              "overlay_rows": 9,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Integral",
+              "tombstones": 0,
+              "virtual_rows": 3
+            },
+            {
+              "dense_equivalent_bytes": 3900,
+              "descriptor_bytes": 3072,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 904,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 8,
+              "rebuild_rows_examined": 8,
+              "table": "Add",
+              "tombstones": 12,
+              "virtual_rows": 183
+            },
+            {
+              "dense_equivalent_bytes": 200,
+              "descriptor_bytes": 192,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 424,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sub",
+              "tombstones": 0,
+              "virtual_rows": 7
+            },
+            {
+              "dense_equivalent_bytes": 2080,
+              "descriptor_bytes": 1536,
+              "direct_base_rows": 6,
+              "direct_bytes": 120,
+              "local_header_bytes": 1032,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 2,
+              "rebuild_rows_examined": 2,
+              "table": "Mul",
+              "tombstones": 2,
+              "virtual_rows": 96
+            },
+            {
+              "dense_equivalent_bytes": 40,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 1,
+              "direct_bytes": 20,
+              "local_header_bytes": 328,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Pow",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 32,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sin",
+              "tombstones": 1,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 16,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Cos",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 80,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 3,
+              "direct_bytes": 48,
+              "local_header_bytes": 328,
+              "metadata_bytes": 16,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Const",
+              "tombstones": 0,
+              "virtual_rows": 2
+            }
+          ],
+          "template_header_bytes": 4704,
+          "template_payload_bytes": 3688,
+          "unique_binding_matrices": 21,
+          "unique_templates": 21
+        }
+      },
+      "mode": "frozen",
+      "repetition": 2
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "adaptive",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/warm-2",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-0/bake_lib_round2.json"
+      ],
+      "process_wall_seconds": 0.02,
+      "peak_rss_bytes": 10452992,
+      "observed_wall_seconds": 0.04485537495929748,
+      "result": {
+        "execution_seconds": 0.001305124,
+        "final": {
+          "eclasses": 137,
+          "enodes": 347,
+          "rss_bytes": 10272768
+        },
+        "learning_seconds": 2.833e-06,
+        "matches": 211,
+        "mode": "adaptive",
+        "samples": [
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.000157541,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 81,
+              "rss_bytes": 8945664
+            },
+            "learning_seconds": 1e-06,
+            "library_bytes": 22017,
+            "macro_matches": 19,
+            "matches": 20,
+            "packing": {
+              "processed_instance_packets": 19,
+              "virtual_rows": 60
+            },
+            "packing_seconds": 0.000180958,
+            "rejected": [],
+            "round": 1,
+            "source_matches": 1
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 82,
+            "execution_seconds": 0.000612124,
+            "graph": {
+              "eclasses": 75,
+              "enodes": 151,
+              "rss_bytes": 9551872
+            },
+            "learning_seconds": 1.9579999999999997e-06,
+            "library_bytes": 22017,
+            "macro_matches": 60,
+            "matches": 62,
+            "packing": {
+              "processed_instance_packets": 60,
+              "virtual_rows": 126
+            },
+            "packing_seconds": 0.000423459,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 2
+          },
+          {
+            "admitted": [],
+            "bodies": 13,
+            "cumulative_matches": 211,
+            "execution_seconds": 0.001305124,
+            "graph": {
+              "eclasses": 137,
+              "enodes": 347,
+              "rss_bytes": 10240000
+            },
+            "learning_seconds": 2.833e-06,
+            "library_bytes": 22017,
+            "macro_matches": 126,
+            "matches": 129,
+            "packing": {
+              "processed_instance_packets": 126,
+              "virtual_rows": 311
+            },
+            "packing_seconds": 0.000743208,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 3
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.015214792,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 840,
+          "binding_payload_bytes": 1516,
+          "tables": [
+            {
+              "dense_equivalent_bytes": 400,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 456,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Diff",
+              "tombstones": 0,
+              "virtual_rows": 17
+            },
+            {
+              "dense_equivalent_bytes": 300,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 3,
+              "direct_bytes": 240,
+              "local_header_bytes": 328,
+              "metadata_bytes": 16,
+              "overlay_rows": 9,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Integral",
+              "tombstones": 0,
+              "virtual_rows": 3
+            },
+            {
+              "dense_equivalent_bytes": 3900,
+              "descriptor_bytes": 3072,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 904,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 8,
+              "rebuild_rows_examined": 8,
+              "table": "Add",
+              "tombstones": 12,
+              "virtual_rows": 183
+            },
+            {
+              "dense_equivalent_bytes": 200,
+              "descriptor_bytes": 192,
+              "direct_base_rows": 3,
+              "direct_bytes": 60,
+              "local_header_bytes": 424,
+              "metadata_bytes": 40,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sub",
+              "tombstones": 0,
+              "virtual_rows": 7
+            },
+            {
+              "dense_equivalent_bytes": 2080,
+              "descriptor_bytes": 1536,
+              "direct_base_rows": 6,
+              "direct_bytes": 120,
+              "local_header_bytes": 1032,
+              "metadata_bytes": 56,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 2,
+              "rebuild_rows_examined": 2,
+              "table": "Mul",
+              "tombstones": 2,
+              "virtual_rows": 96
+            },
+            {
+              "dense_equivalent_bytes": 40,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 1,
+              "direct_bytes": 20,
+              "local_header_bytes": 328,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Pow",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 32,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Sin",
+              "tombstones": 1,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 16,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 0,
+              "direct_bytes": 0,
+              "local_header_bytes": 264,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Cos",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 80,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 3,
+              "direct_bytes": 48,
+              "local_header_bytes": 328,
+              "metadata_bytes": 16,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Const",
+              "tombstones": 0,
+              "virtual_rows": 2
+            }
+          ],
+          "template_header_bytes": 4704,
+          "template_payload_bytes": 3688,
+          "unique_binding_matrices": 21,
+          "unique_templates": 21
+        }
+      },
+      "mode": "warm",
+      "repetition": 2
+    }
+  ],
+  "full": [
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "native",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/full-native"
+      ],
+      "process_wall_seconds": 0.57,
+      "peak_rss_bytes": 513720320,
+      "observed_wall_seconds": 0.5828067499678582,
+      "result": {
+        "execution_seconds": 0.338268,
+        "final": {
+          "eclasses": 443832,
+          "enodes": 1047896,
+          "rss_bytes": 513720320
+        },
+        "learning_seconds": 2.08e-07,
+        "matches": 944254,
+        "mode": "native",
+        "samples": [
+          {
+            "admitted": [],
+            "bodies": 0,
+            "cumulative_matches": 20,
+            "execution_seconds": 0.000102667,
+            "graph": {
+              "eclasses": 50,
+              "enodes": 69,
+              "rss_bytes": 6930432
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 1622,
+            "macro_matches": 0,
+            "matches": 20,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 6.66e-07,
+            "rejected": [],
+            "round": 1,
+            "source_matches": 20
+          },
+          {
+            "admitted": [],
+            "bodies": 0,
+            "cumulative_matches": 64,
+            "execution_seconds": 0.00033533399999999996,
+            "graph": {
+              "eclasses": 71,
+              "enodes": 118,
+              "rss_bytes": 7274496
+            },
+            "learning_seconds": 0.0,
+            "library_bytes": 1622,
+            "macro_matches": 0,
+            "matches": 44,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 1.25e-07,
+            "rejected": [],
+            "round": 2,
+            "source_matches": 44
+          },
+          {
+            "admitted": [],
+            "bodies": 0,
+            "cumulative_matches": 129,
+            "execution_seconds": 0.000636167,
+            "graph": {
+              "eclasses": 116,
+              "enodes": 208,
+              "rss_bytes": 7602176
+            },
+            "learning_seconds": 4.2e-08,
+            "library_bytes": 1622,
+            "macro_matches": 0,
+            "matches": 65,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 2.5e-07,
+            "rejected": [],
+            "round": 3,
+            "source_matches": 65
+          },
+          {
+            "admitted": [],
+            "bodies": 0,
+            "cumulative_matches": 268,
+            "execution_seconds": 0.001038209,
+            "graph": {
+              "eclasses": 197,
+              "enodes": 389,
+              "rss_bytes": 7716864
+            },
+            "learning_seconds": 8.3e-08,
+            "library_bytes": 1622,
+            "macro_matches": 0,
+            "matches": 139,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 2.09e-07,
+            "rejected": [],
+            "round": 4,
+            "source_matches": 139
+          },
+          {
+            "admitted": [],
+            "bodies": 0,
+            "cumulative_matches": 636,
+            "execution_seconds": 0.001760834,
+            "graph": {
+              "eclasses": 361,
+              "enodes": 784,
+              "rss_bytes": 8011776
+            },
+            "learning_seconds": 1.25e-07,
+            "library_bytes": 1622,
+            "macro_matches": 0,
+            "matches": 368,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 2.5e-07,
+            "rejected": [],
+            "round": 5,
+            "source_matches": 368
+          },
+          {
+            "admitted": [],
+            "bodies": 0,
+            "cumulative_matches": 1529,
+            "execution_seconds": 0.003126251,
+            "graph": {
+              "eclasses": 666,
+              "enodes": 1576,
+              "rss_bytes": 8503296
+            },
+            "learning_seconds": 1.66e-07,
+            "library_bytes": 1622,
+            "macro_matches": 0,
+            "matches": 893,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 2.09e-07,
+            "rejected": [],
+            "round": 6,
+            "source_matches": 893
+          },
+          {
+            "admitted": [],
+            "bodies": 0,
+            "cumulative_matches": 3723,
+            "execution_seconds": 0.005558251,
+            "graph": {
+              "eclasses": 1347,
+              "enodes": 3160,
+              "rss_bytes": 9224192
+            },
+            "learning_seconds": 2.08e-07,
+            "library_bytes": 1622,
+            "macro_matches": 0,
+            "matches": 2194,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 2.5e-07,
+            "rejected": [],
+            "round": 7,
+            "source_matches": 2194
+          },
+          {
+            "admitted": [],
+            "bodies": 0,
+            "cumulative_matches": 8544,
+            "execution_seconds": 0.010045001000000001,
+            "graph": {
+              "eclasses": 3576,
+              "enodes": 8113,
+              "rss_bytes": 10469376
+            },
+            "learning_seconds": 2.08e-07,
+            "library_bytes": 1622,
+            "macro_matches": 0,
+            "matches": 4821,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 1.25e-07,
+            "rejected": [],
+            "round": 8,
+            "source_matches": 4821
+          },
+          {
+            "admitted": [],
+            "bodies": 0,
+            "cumulative_matches": 25210,
+            "execution_seconds": 0.024240709,
+            "graph": {
+              "eclasses": 12445,
+              "enodes": 28303,
+              "rss_bytes": 16728064
+            },
+            "learning_seconds": 2.08e-07,
+            "library_bytes": 1622,
+            "macro_matches": 0,
+            "matches": 16666,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 4.17e-07,
+            "rejected": [],
+            "round": 9,
+            "source_matches": 16666
+          },
+          {
+            "admitted": [],
+            "bodies": 0,
+            "cumulative_matches": 121207,
+            "execution_seconds": 0.095947417,
+            "graph": {
+              "eclasses": 58464,
+              "enodes": 136446,
+              "rss_bytes": 201998336
+            },
+            "learning_seconds": 2.08e-07,
+            "library_bytes": 1622,
+            "macro_matches": 0,
+            "matches": 95997,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 6.25e-07,
+            "rejected": [],
+            "round": 10,
+            "source_matches": 95997
+          },
+          {
+            "admitted": [],
+            "bodies": 0,
+            "cumulative_matches": 944254,
+            "execution_seconds": 0.338268,
+            "graph": {
+              "eclasses": 443832,
+              "enodes": 1047896,
+              "rss_bytes": 513687552
+            },
+            "learning_seconds": 2.08e-07,
+            "library_bytes": 1622,
+            "macro_matches": 0,
+            "matches": 823047,
+            "packing": {
+              "processed_instance_packets": 0,
+              "virtual_rows": 0
+            },
+            "packing_seconds": 7.08e-07,
+            "rejected": [],
+            "round": 11,
+            "source_matches": 823047
+          }
+        ],
+        "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+        "seconds": 0.462866417,
+        "storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 0,
+          "binding_payload_bytes": 0,
+          "tables": [],
+          "template_header_bytes": 0,
+          "template_payload_bytes": 0,
+          "unique_binding_matrices": 0,
+          "unique_templates": 0
+        }
+      },
+      "mode": "native"
+    },
+    {
+      "external_guard_stop": "external benchmark guard: elapsed=10.740s, observed_group_rss=4346626048 bytes, limits=30s/4GiB: [PosixPath('/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math'), 'adaptive', PosixPath('/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg'), PosixPath('/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/full-adaptive')]",
+      "progress": [
+        {
+          "admitted": [
+            0,
+            1,
+            4,
+            9,
+            13,
+            14,
+            21
+          ],
+          "bodies": 7,
+          "cumulative_matches": 20,
+          "execution_seconds": 0.000101791,
+          "graph": {
+            "eclasses": 50,
+            "enodes": 69,
+            "rss_bytes": 50642944
+          },
+          "learning_seconds": 0.099840709,
+          "library_bytes": 10585,
+          "macro_matches": 0,
+          "matches": 20,
+          "packing": {
+            "processed_instance_packets": 0,
+            "virtual_rows": 0
+          },
+          "packing_seconds": 8.75e-07,
+          "rejected": [
+            {
+              "reason": "unfinished RipSat; not admitted",
+              "rule": 23
+            }
+          ],
+          "round": 1,
+          "source_matches": 20
+        },
+        {
+          "admitted": [
+            2,
+            3,
+            10,
+            15,
+            17,
+            19
+          ],
+          "bodies": 13,
+          "cumulative_matches": 83,
+          "execution_seconds": 0.000437541,
+          "graph": {
+            "eclasses": 71,
+            "enodes": 122,
+            "rss_bytes": 52674560
+          },
+          "learning_seconds": 0.117850042,
+          "library_bytes": 22017,
+          "macro_matches": 51,
+          "matches": 63,
+          "packing": {
+            "processed_instance_packets": 51,
+            "virtual_rows": 77
+          },
+          "packing_seconds": 0.00026175,
+          "rejected": [],
+          "round": 2,
+          "source_matches": 12
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cumulative_matches": 163,
+          "execution_seconds": 0.000852333,
+          "graph": {
+            "eclasses": 118,
+            "enodes": 259,
+            "rss_bytes": 52674560
+          },
+          "learning_seconds": 0.117850959,
+          "library_bytes": 22017,
+          "macro_matches": 77,
+          "matches": 80,
+          "packing": {
+            "processed_instance_packets": 77,
+            "virtual_rows": 223
+          },
+          "packing_seconds": 0.000538208,
+          "rejected": [],
+          "round": 3,
+          "source_matches": 3
+        },
+        {
+          "admitted": [
+            16,
+            20
+          ],
+          "bodies": 15,
+          "cumulative_matches": 442,
+          "execution_seconds": 0.002158375,
+          "graph": {
+            "eclasses": 229,
+            "enodes": 605,
+            "rss_bytes": 52985856
+          },
+          "learning_seconds": 0.12396154200000001,
+          "library_bytes": 24197,
+          "macro_matches": 266,
+          "matches": 279,
+          "packing": {
+            "processed_instance_packets": 262,
+            "virtual_rows": 521
+          },
+          "packing_seconds": 0.001488625,
+          "rejected": [],
+          "round": 4,
+          "source_matches": 13
+        },
+        {
+          "admitted": [],
+          "bodies": 15,
+          "cumulative_matches": 1282,
+          "execution_seconds": 0.0053594590000000004,
+          "graph": {
+            "eclasses": 372,
+            "enodes": 1203,
+            "rss_bytes": 83197952
+          },
+          "learning_seconds": 0.20917795900000002,
+          "library_bytes": 24242,
+          "macro_matches": 817,
+          "matches": 840,
+          "packing": {
+            "processed_instance_packets": 809,
+            "virtual_rows": 1063
+          },
+          "packing_seconds": 0.0049005,
+          "rejected": [
+            {
+              "reason": "unfinished RipSat; not admitted",
+              "rule": 22
+            }
+          ],
+          "round": 5,
+          "source_matches": 23
+        },
+        {
+          "admitted": [],
+          "bodies": 15,
+          "cumulative_matches": 3089,
+          "execution_seconds": 0.011142001,
+          "graph": {
+            "eclasses": 748,
+            "enodes": 2167,
+            "rss_bytes": 83673088
+          },
+          "learning_seconds": 0.20917987600000001,
+          "library_bytes": 24242,
+          "macro_matches": 1733,
+          "matches": 1807,
+          "packing": {
+            "processed_instance_packets": 1709,
+            "virtual_rows": 1783
+          },
+          "packing_seconds": 0.008246208,
+          "rejected": [],
+          "round": 6,
+          "source_matches": 74
+        },
+        {
+          "admitted": [],
+          "bodies": 15,
+          "cumulative_matches": 5611,
+          "execution_seconds": 0.017980876,
+          "graph": {
+            "eclasses": 1686,
+            "enodes": 4839,
+            "rss_bytes": 84443136
+          },
+          "learning_seconds": 0.20918195900000003,
+          "library_bytes": 24242,
+          "macro_matches": 2366,
+          "matches": 2522,
+          "packing": {
+            "processed_instance_packets": 2312,
+            "virtual_rows": 4091
+          },
+          "packing_seconds": 0.014839417,
+          "rejected": [],
+          "round": 7,
+          "source_matches": 156
+        },
+        {
+          "admitted": [],
+          "bodies": 15,
+          "cumulative_matches": 13226,
+          "execution_seconds": 0.037652418,
+          "graph": {
+            "eclasses": 5150,
+            "enodes": 15493,
+            "rss_bytes": 86147072
+          },
+          "learning_seconds": 0.20918350000000002,
+          "library_bytes": 24242,
+          "macro_matches": 7138,
+          "matches": 7615,
+          "packing": {
+            "processed_instance_packets": 6916,
+            "virtual_rows": 13495
+          },
+          "packing_seconds": 0.046587416,
+          "rejected": [],
+          "round": 8,
+          "source_matches": 477
+        },
+        {
+          "admitted": [],
+          "bodies": 15,
+          "cumulative_matches": 58060,
+          "execution_seconds": 0.11103046,
+          "graph": {
+            "eclasses": 23663,
+            "enodes": 83434,
+            "rss_bytes": 127877120
+          },
+          "learning_seconds": 0.20918508300000002,
+          "library_bytes": 24242,
+          "macro_matches": 43354,
+          "matches": 44834,
+          "packing": {
+            "processed_instance_packets": 41162,
+            "virtual_rows": 77647
+          },
+          "packing_seconds": 0.339417875,
+          "rejected": [],
+          "round": 9,
+          "source_matches": 1480
+        },
+        {
+          "admitted": [],
+          "bodies": 15,
+          "cumulative_matches": 563274,
+          "execution_seconds": 0.8337747929999999,
+          "graph": {
+            "eclasses": 198463,
+            "enodes": 853396,
+            "rss_bytes": 1001062400
+          },
+          "learning_seconds": 0.20918745800000002,
+          "library_bytes": 24242,
+          "macro_matches": 499380,
+          "matches": 505214,
+          "packing": {
+            "processed_instance_packets": 442867,
+            "virtual_rows": 832794
+          },
+          "packing_seconds": 6.426174417,
+          "rejected": [],
+          "round": 10,
+          "source_matches": 5834
+        }
+      ],
+      "mode": "adaptive"
+    },
+    {
+      "external_guard_stop": "external benchmark guard: elapsed=9.165s, observed_group_rss=4689215488 bytes, limits=30s/4GiB: [PosixPath('/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math'), 'frozen', PosixPath('/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg'), PosixPath('/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/full-frozen'), PosixPath('/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-0/bake_lib_round2.json')]",
+      "progress": [
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cumulative_matches": 20,
+          "execution_seconds": 0.000161666,
+          "graph": {
+            "eclasses": 50,
+            "enodes": 81,
+            "rss_bytes": 8880128
+          },
+          "learning_seconds": 0.0,
+          "library_bytes": 22017,
+          "macro_matches": 19,
+          "matches": 20,
+          "packing": {
+            "processed_instance_packets": 19,
+            "virtual_rows": 60
+          },
+          "packing_seconds": 0.000173333,
+          "rejected": [],
+          "round": 1,
+          "source_matches": 1
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cumulative_matches": 82,
+          "execution_seconds": 0.000660749,
+          "graph": {
+            "eclasses": 75,
+            "enodes": 151,
+            "rss_bytes": 9617408
+          },
+          "learning_seconds": 4.2e-08,
+          "library_bytes": 22017,
+          "macro_matches": 60,
+          "matches": 62,
+          "packing": {
+            "processed_instance_packets": 60,
+            "virtual_rows": 126
+          },
+          "packing_seconds": 0.000425417,
+          "rejected": [],
+          "round": 2,
+          "source_matches": 2
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cumulative_matches": 211,
+          "execution_seconds": 0.001691499,
+          "graph": {
+            "eclasses": 137,
+            "enodes": 347,
+            "rss_bytes": 10649600
+          },
+          "learning_seconds": 8.4e-08,
+          "library_bytes": 22017,
+          "macro_matches": 126,
+          "matches": 129,
+          "packing": {
+            "processed_instance_packets": 126,
+            "virtual_rows": 311
+          },
+          "packing_seconds": 0.000831916,
+          "rejected": [],
+          "round": 3,
+          "source_matches": 3
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cumulative_matches": 677,
+          "execution_seconds": 0.003425791,
+          "graph": {
+            "eclasses": 244,
+            "enodes": 759,
+            "rss_bytes": 11665408
+          },
+          "learning_seconds": 8.4e-08,
+          "library_bytes": 22017,
+          "macro_matches": 453,
+          "matches": 466,
+          "packing": {
+            "processed_instance_packets": 445,
+            "virtual_rows": 674
+          },
+          "packing_seconds": 0.00248175,
+          "rejected": [],
+          "round": 4,
+          "source_matches": 13
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cumulative_matches": 1916,
+          "execution_seconds": 0.008359541,
+          "graph": {
+            "eclasses": 364,
+            "enodes": 1211,
+            "rss_bytes": 12992512
+          },
+          "learning_seconds": 1.25e-07,
+          "library_bytes": 22017,
+          "macro_matches": 1214,
+          "matches": 1239,
+          "packing": {
+            "processed_instance_packets": 1182,
+            "virtual_rows": 1070
+          },
+          "packing_seconds": 0.005619167,
+          "rejected": [],
+          "round": 5,
+          "source_matches": 25
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cumulative_matches": 3368,
+          "execution_seconds": 0.012592790999999999,
+          "graph": {
+            "eclasses": 748,
+            "enodes": 2167,
+            "rss_bytes": 14073856
+          },
+          "learning_seconds": 1.67e-07,
+          "library_bytes": 22017,
+          "macro_matches": 1378,
+          "matches": 1452,
+          "packing": {
+            "processed_instance_packets": 1378,
+            "virtual_rows": 1782
+          },
+          "packing_seconds": 0.006606416,
+          "rejected": [],
+          "round": 6,
+          "source_matches": 74
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cumulative_matches": 5592,
+          "execution_seconds": 0.018874625,
+          "graph": {
+            "eclasses": 1686,
+            "enodes": 4839,
+            "rss_bytes": 16465920
+          },
+          "learning_seconds": 1.67e-07,
+          "library_bytes": 22017,
+          "macro_matches": 2068,
+          "matches": 2224,
+          "packing": {
+            "processed_instance_packets": 2014,
+            "virtual_rows": 4090
+          },
+          "packing_seconds": 0.012663792,
+          "rejected": [],
+          "round": 7,
+          "source_matches": 156
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cumulative_matches": 13205,
+          "execution_seconds": 0.038108167,
+          "graph": {
+            "eclasses": 5150,
+            "enodes": 15493,
+            "rss_bytes": 26279936
+          },
+          "learning_seconds": 2.09e-07,
+          "library_bytes": 22017,
+          "macro_matches": 7136,
+          "matches": 7613,
+          "packing": {
+            "processed_instance_packets": 6914,
+            "virtual_rows": 13494
+          },
+          "packing_seconds": 0.045373417,
+          "rejected": [],
+          "round": 8,
+          "source_matches": 477
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cumulative_matches": 58039,
+          "execution_seconds": 0.09632199999999999,
+          "graph": {
+            "eclasses": 23663,
+            "enodes": 83434,
+            "rss_bytes": 91193344
+          },
+          "learning_seconds": 2.09e-07,
+          "library_bytes": 22017,
+          "macro_matches": 43356,
+          "matches": 44834,
+          "packing": {
+            "processed_instance_packets": 41164,
+            "virtual_rows": 77647
+          },
+          "packing_seconds": 0.339990917,
+          "rejected": [],
+          "round": 9,
+          "source_matches": 1478
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cumulative_matches": 563268,
+          "execution_seconds": 0.826871125,
+          "graph": {
+            "eclasses": 198463,
+            "enodes": 853396,
+            "rss_bytes": 938508288
+          },
+          "learning_seconds": 2.51e-07,
+          "library_bytes": 22017,
+          "macro_matches": 499395,
+          "matches": 505229,
+          "packing": {
+            "processed_instance_packets": 442838,
+            "virtual_rows": 832794
+          },
+          "packing_seconds": 6.4010672920000005,
+          "rejected": [],
+          "round": 10,
+          "source_matches": 5834
+        }
+      ],
+      "mode": "frozen"
+    },
+    {
+      "external_guard_stop": "external benchmark guard: elapsed=9.402s, observed_group_rss=4364402688 bytes, limits=30s/4GiB: [PosixPath('/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math'), 'adaptive', PosixPath('/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg'), PosixPath('/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/full-warm'), PosixPath('/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-0/bake_lib_round2.json')]",
+      "progress": [
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cumulative_matches": 20,
+          "execution_seconds": 0.000158291,
+          "graph": {
+            "eclasses": 50,
+            "enodes": 81,
+            "rss_bytes": 8896512
+          },
+          "learning_seconds": 1.125e-06,
+          "library_bytes": 22017,
+          "macro_matches": 19,
+          "matches": 20,
+          "packing": {
+            "processed_instance_packets": 19,
+            "virtual_rows": 60
+          },
+          "packing_seconds": 0.000180792,
+          "rejected": [],
+          "round": 1,
+          "source_matches": 1
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cumulative_matches": 82,
+          "execution_seconds": 0.00062575,
+          "graph": {
+            "eclasses": 75,
+            "enodes": 151,
+            "rss_bytes": 9617408
+          },
+          "learning_seconds": 2.042e-06,
+          "library_bytes": 22017,
+          "macro_matches": 60,
+          "matches": 62,
+          "packing": {
+            "processed_instance_packets": 60,
+            "virtual_rows": 126
+          },
+          "packing_seconds": 0.000405833,
+          "rejected": [],
+          "round": 2,
+          "source_matches": 2
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cumulative_matches": 211,
+          "execution_seconds": 0.001259375,
+          "graph": {
+            "eclasses": 137,
+            "enodes": 347,
+            "rss_bytes": 10190848
+          },
+          "learning_seconds": 2.8340000000000003e-06,
+          "library_bytes": 22017,
+          "macro_matches": 126,
+          "matches": 129,
+          "packing": {
+            "processed_instance_packets": 126,
+            "virtual_rows": 311
+          },
+          "packing_seconds": 0.000730042,
+          "rejected": [],
+          "round": 3,
+          "source_matches": 3
+        },
+        {
+          "admitted": [
+            16,
+            20
+          ],
+          "bodies": 15,
+          "cumulative_matches": 677,
+          "execution_seconds": 0.003066458,
+          "graph": {
+            "eclasses": 244,
+            "enodes": 759,
+            "rss_bytes": 14893056
+          },
+          "learning_seconds": 0.005681001,
+          "library_bytes": 24197,
+          "macro_matches": 453,
+          "matches": 466,
+          "packing": {
+            "processed_instance_packets": 445,
+            "virtual_rows": 674
+          },
+          "packing_seconds": 0.002554166,
+          "rejected": [],
+          "round": 4,
+          "source_matches": 13
+        },
+        {
+          "admitted": [],
+          "bodies": 15,
+          "cumulative_matches": 1916,
+          "execution_seconds": 0.007286333,
+          "graph": {
+            "eclasses": 364,
+            "enodes": 1211,
+            "rss_bytes": 68108288
+          },
+          "learning_seconds": 0.10634887600000001,
+          "library_bytes": 24242,
+          "macro_matches": 1216,
+          "matches": 1239,
+          "packing": {
+            "processed_instance_packets": 1184,
+            "virtual_rows": 1071
+          },
+          "packing_seconds": 0.005368334,
+          "rejected": [
+            {
+              "reason": "unfinished RipSat; not admitted",
+              "rule": 22
+            }
+          ],
+          "round": 5,
+          "source_matches": 23
+        },
+        {
+          "admitted": [],
+          "bodies": 15,
+          "cumulative_matches": 3368,
+          "execution_seconds": 0.011721541,
+          "graph": {
+            "eclasses": 748,
+            "enodes": 2167,
+            "rss_bytes": 68452352
+          },
+          "learning_seconds": 0.10635021000000001,
+          "library_bytes": 24242,
+          "macro_matches": 1378,
+          "matches": 1452,
+          "packing": {
+            "processed_instance_packets": 1378,
+            "virtual_rows": 1783
+          },
+          "packing_seconds": 0.00647,
+          "rejected": [],
+          "round": 6,
+          "source_matches": 74
+        },
+        {
+          "admitted": [],
+          "bodies": 15,
+          "cumulative_matches": 5592,
+          "execution_seconds": 0.017994583,
+          "graph": {
+            "eclasses": 1686,
+            "enodes": 4839,
+            "rss_bytes": 69222400
+          },
+          "learning_seconds": 0.10635158500000001,
+          "library_bytes": 24242,
+          "macro_matches": 2068,
+          "matches": 2224,
+          "packing": {
+            "processed_instance_packets": 2014,
+            "virtual_rows": 4091
+          },
+          "packing_seconds": 0.012846416,
+          "rejected": [],
+          "round": 7,
+          "source_matches": 156
+        },
+        {
+          "admitted": [],
+          "bodies": 15,
+          "cumulative_matches": 13205,
+          "execution_seconds": 0.046340458,
+          "graph": {
+            "eclasses": 5150,
+            "enodes": 15493,
+            "rss_bytes": 72859648
+          },
+          "learning_seconds": 0.10635325200000001,
+          "library_bytes": 24242,
+          "macro_matches": 7136,
+          "matches": 7613,
+          "packing": {
+            "processed_instance_packets": 6914,
+            "virtual_rows": 13495
+          },
+          "packing_seconds": 0.044671125,
+          "rejected": [],
+          "round": 8,
+          "source_matches": 477
+        },
+        {
+          "admitted": [],
+          "bodies": 15,
+          "cumulative_matches": 58039,
+          "execution_seconds": 0.151198417,
+          "graph": {
+            "eclasses": 23663,
+            "enodes": 83434,
+            "rss_bytes": 121765888
+          },
+          "learning_seconds": 0.10635846100000002,
+          "library_bytes": 24242,
+          "macro_matches": 43356,
+          "matches": 44834,
+          "packing": {
+            "processed_instance_packets": 41164,
+            "virtual_rows": 77647
+          },
+          "packing_seconds": 0.337002333,
+          "rejected": [],
+          "round": 9,
+          "source_matches": 1478
+        },
+        {
+          "admitted": [],
+          "bodies": 15,
+          "cumulative_matches": 563138,
+          "execution_seconds": 0.860233625,
+          "graph": {
+            "eclasses": 198463,
+            "enodes": 853396,
+            "rss_bytes": 926171136
+          },
+          "learning_seconds": 0.10636046100000002,
+          "library_bytes": 24242,
+          "macro_matches": 499265,
+          "matches": 505099,
+          "packing": {
+            "processed_instance_packets": 442738,
+            "virtual_rows": 832794
+          },
+          "packing_seconds": 6.53608325,
+          "rejected": [],
+          "round": 10,
+          "source_matches": 5834
+        }
+      ],
+      "mode": "warm"
+    }
+  ],
+  "library_bytes": 22017,
+  "library": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/adaptive-ripsat-runtime/adaptive-0/bake_lib_round2.json",
+  "medians": {
+    "native": {
+      "process_wall_seconds": 0.01,
+      "peak_rss_bytes": 7946240
+    },
+    "adaptive": {
+      "process_wall_seconds": 0.12,
+      "peak_rss_bytes": 54886400
+    },
+    "frozen": {
+      "process_wall_seconds": 0.02,
+      "peak_rss_bytes": 10633216
+    },
+    "warm": {
+      "process_wall_seconds": 0.02,
+      "peak_rss_bytes": 10452992
+    }
+  },
+  "source_sha256": "ac498b753752adb472a536f01a1f8411fc193a982516513c90eefb4585194015",
+  "full_source_sha256": "aaa8942131b4db57e76710486718790e1d7f2cb9288aeb702c0c17019439cf16",
+  "measured_parent_commit": "342378a39f23a140660d3a0aacc3ec2a202ae436",
+  "working_tree_dirty": true
+}

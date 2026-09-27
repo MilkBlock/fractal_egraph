@@ -239,3 +239,11 @@ The adjacent `.recipes.json` is a portable replay recipe, not an executable
 `bake_lib_round2` and not serialized native query cursors. Restoring it requires
 rebaking. Automatic tier0 placement, binding transport, dynamic library admission
 and end-to-end internal Join suppression are **not connected** by this primitive.
+
+## Executable RipSat runtime and refreshed benchmark
+
+See [adaptive_runtime/README.md](adaptive_runtime/README.md) for the actual tier0
+macro/virtual-storage loop, round-2 executable library, positive-rewrite correctness
+boundary and four-mode benchmark. The full 11-round adaptive modes hit the external
+memory guard; this is not a successful acceleration result. The complete raw data
+and readable library are committed there.
