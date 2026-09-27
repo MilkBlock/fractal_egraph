@@ -410,7 +410,7 @@ pub fn export_math(eg: &EGraph) -> Value {
     let mut rows = vec![];
     for op in eg.get_function_names() {
         let f = eg.get_function(&op).unwrap();
-        if f.is_let_binding() || f.schema().output.name() != "Math" {
+        if (op.starts_with("adaptive_cell_view_") && !f.is_constructor()) || f.is_let_binding() || f.schema().output.name() != "Math" {
             continue;
         }
         eg.function_for_each(&op,|r|{

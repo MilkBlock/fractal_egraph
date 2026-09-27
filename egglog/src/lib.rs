@@ -325,6 +325,11 @@ impl Function {
         &self.schema
     }
 
+    /// Whether rows represent constructors rather than custom-function metadata.
+    pub fn is_constructor(&self) -> bool {
+        self.decl.subtype == FunctionSubtype::Constructor
+    }
+
     /// Whether this function supports subsumption.
     pub fn can_subsume(&self) -> bool {
         self.can_subsume
@@ -960,6 +965,23 @@ impl EGraph {
         }
 
         Ok(report)
+    }
+
+    /// A trusted optimizer hook for complete positive, functional-pattern views.
+    /// Entries are (builder rule, unique anchor constructor, coverage relation).
+    /// The optimizer proves that a covered key has exactly the already-materialized
+    /// query result. This does not authorize hiding arbitrary overlapping facts.
+    pub fn step_rules_with_key_coverage(&mut self, ruleset:&str,
+        entries:Vec<(String,String,String)>) -> Result<RunReport,Error> {
+        let entries=entries.into_iter().map(|(r,a,c)| {
+            let a=self.functions.get(&a).ok_or_else(||Error::BackendError("unknown coverage anchor".into()))?.backend_id;
+            let c=self.functions.get(&c).ok_or_else(||Error::BackendError("unknown coverage relation".into()))?.backend_id;
+            Ok((r,a,c))
+        }).collect::<Result<Vec<_>,Error>>()?;
+        self.backend.set_key_coverage(entries);
+        let result=self.step_rules(ruleset);
+        self.backend.set_key_coverage(Vec::new());
+        result
     }
 
     /// Run one step with trusted redundant root certificates; does not enable tracing.

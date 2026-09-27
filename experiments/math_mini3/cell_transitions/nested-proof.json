@@ -1,0 +1,38 @@
+[
+  {
+    "anchor": "N3",
+    "coverage": "adaptive_cell_cover_0",
+    "internal_atoms": 4,
+    "internal_pattern": "(N0 (N1 (N2 (N3 x))))",
+    "original_lhs_atoms": 6,
+    "residual": "(= adaptive_root (Pair adaptive_cell_cut_0 (Flag y))) (= adaptive_cell_cut_0 (adaptive_cell_view_0 x))",
+    "residual_lhs_atoms": 3,
+    "scope": "positive constructor functions; all pattern variables determined by unique anchor keys; metadata is maintained by native union/rebuild",
+    "source_cell": 0,
+    "spec": {
+      "anchor_path": [
+        0,
+        0,
+        0
+      ],
+      "consumer_rule": 1,
+      "cut_path": [
+        0
+      ],
+      "source_rule": 0
+    },
+    "symbolic_binding_rows": [
+      [
+        [
+          0,
+          1
+        ],
+        [
+          0
+        ]
+      ]
+    ],
+    "target_cell": 1,
+    "view": "adaptive_cell_view_0"
+  }
+]

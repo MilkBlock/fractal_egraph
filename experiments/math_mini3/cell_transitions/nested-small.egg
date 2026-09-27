@@ -1,0 +1,8 @@
+(datatype Math (V i64) (A Math) (Flag Math) (Pair Math Math) (Done Math Math) (N0 Math) (N1 Math) (N2 Math) (N3 Math))
+(rewrite (A x) (N0 (N1 (N2 (N3 x)))))
+(rewrite (Pair (N0 (N1 (N2 (N3 x)))) (Flag y)) (Done x y))
+(let seed (A (V 0)))
+(run 2)
+(Pair seed (Flag (V 1)))
+(run 2)
+(check (= (Pair seed (Flag (V 1))) (Done (V 0) (V 1))))

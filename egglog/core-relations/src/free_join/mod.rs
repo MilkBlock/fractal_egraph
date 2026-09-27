@@ -288,6 +288,7 @@ impl Counters {
 /// A database also owns the memory pools used by its tables.
 #[derive(Default)]
 pub struct Database {
+    pub(crate) key_coverage: std::collections::BTreeMap<String, (TableId,TableId)>,
     pub(crate) excluded_roots: std::collections::BTreeMap<String, (String, std::collections::BTreeSet<Value>)>,
     #[cfg(feature = "table-read-profile")]
     read_profiling: bool,
@@ -315,6 +316,11 @@ pub struct Database {
 }
 
 impl Database {
+    /// Trusted positive-view proof: covered anchor keys already have their full
+    /// functional-pattern result in a persistent summary relation.
+    pub fn set_key_coverage(&mut self, entries: Vec<(String,TableId,TableId)>) {
+        self.key_coverage=entries.into_iter().map(|(r,a,c)|(r,(a,c))).collect();
+    }
     /// Trusted per-query proof: every match at one of these tree-root output values is redundant.
     /// The caller must refresh this certificate after any mutation. Clones discard it.
     pub fn set_excluded_roots(&mut self, entries: Vec<(String, String, Vec<Value>)>) {
@@ -376,6 +382,7 @@ impl Clone for Database {
     fn clone(&self) -> Self {
         Self {
             excluded_roots: Default::default(),
+            key_coverage: Default::default(),
             #[cfg(feature = "table-read-profile")]
             read_profiling: self.read_profiling,
             tables: self.tables.clone(),

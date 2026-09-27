@@ -18,7 +18,7 @@ use std::{
 pub mod evolution;
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct Macro {
+pub struct RipSatCell {
     pub rule: usize,
     pub actions: String,
     pub rows: usize,
@@ -27,6 +27,11 @@ pub struct Macro {
     pub slots: Vec<(String, String)>,
     pub template: Vec<(String, Vec<usize>)>,
 }
+/// Compatibility name for existing v2 Bake files and downstream code.
+pub type Macro = RipSatCell;
+#[path = "reuse_cell_transitions.rs"]
+pub mod transitions;
+
 #[derive(Default, Serialize, Deserialize)]
 pub struct Bake {
     pub schema: String,
@@ -234,39 +239,22 @@ fn learn(environment: &[String], rule: &Rule, id: usize) -> Result<Macro> {
         template,
     })
 }
-fn install(eg: &mut EGraph, id: usize, r: &Rule, m: Option<&Macro>) -> Result<String> {
-    let set = format!(
-        "adaptive_{}_{}",
-        if m.is_some() { "baked" } else { "source" },
-        id
-    );
-    let mut actions = m
-        .map(|m| m.actions.clone())
-        .unwrap_or_else(|| format!("(union adaptive_root {})", r.rhs));
-    if let Some(m) = m {
-        let relation = format!("adaptive_instance_{id}");
-        eg.parse_and_run_program(
-            None,
-            &format!(
-                "(relation {relation} ({}))",
-                m.slots
-                    .iter()
-                    .map(|s| s.1.as_str())
-                    .collect::<Vec<_>>()
-                    .join(" ")
-            ),
-        )?;
-        actions += &format!(
-            "\n({relation} {})",
-            m.slots
-                .iter()
-                .map(|s| s.0.as_str())
-                .collect::<Vec<_>>()
-                .join(" ")
-        );
+fn rule_program(id:usize,r:&Rule,m:Option<&RipSatCell>,plans:&[transitions::Compiled])->(String,String) {
+    let set=format!("adaptive_{}_{}",if m.is_some(){"baked"}else{"source"},id);
+    let mut declarations=String::new();
+    let mut actions=m.map(|m|m.actions.clone()).unwrap_or_else(||format!("(union adaptive_root {})",r.rhs));
+    if let Some(m)=m {
+        let relation=format!("adaptive_instance_{id}");
+        declarations=format!("(relation {relation} ({}))\n",m.slots.iter().map(|s|s.1.as_str()).collect::<Vec<_>>().join(" "));
+        actions+=&format!("\n({relation} {})",m.slots.iter().map(|s|s.0.as_str()).collect::<Vec<_>>().join(" "));
     }
-    eg.parse_and_run_program(None,&format!("(ruleset {set}) (rule ((= adaptive_root {})) ({actions}) :ruleset {set} :name \"{set}\")",r.lhs))?;
-    Ok(set)
+    for p in plans.iter().filter(|p|p.spec.source_rule==id) {actions+=&format!("\n{}",p.projections);}
+    let lhs=plans.iter().find(|p|p.spec.consumer_rule==id).map(|p|p.residual.clone()).unwrap_or_else(||format!("(= adaptive_root {})",r.lhs));
+    let program=format!("{declarations}(ruleset {set}) (rule ({lhs}) ({actions}) :ruleset {set} :name \"{set}\")\n");
+    (set,program)
+}
+fn install(eg:&mut EGraph,id:usize,r:&Rule,m:Option<&RipSatCell>,plans:&[transitions::Compiled])->Result<String> {
+    let (set,program)=rule_program(id,r,m,plans);eg.parse_and_run_program(None,&program)?;Ok(set)
 }
 // Instance rows are emitted by macro actions. No saturated-body query/rematching:
 // each row is the binding matrix required by native storage validation.
@@ -348,7 +336,7 @@ fn counts(eg: &EGraph) -> Value {
     let mut nodes = 0;
     for op in eg.get_function_names() {
         let f = eg.get_function(&op).unwrap();
-        if f.is_let_binding() || f.schema().output.name() != "Math" {
+        if (op.starts_with("adaptive_cell_view_") && !f.is_constructor()) || f.is_let_binding() || f.schema().output.name() != "Math" {
             continue;
         }
         eg.function_for_each(&op, |r| {
@@ -378,6 +366,7 @@ pub fn run(source: &str, input: Option<&Path>, out: &Path, mode: &str) -> Result
     if min_reuse == 0 {
         return Err("minimum template reuse must be positive".into());
     }
+    let transition_specs=std::env::var("EGG_LAYOUT_CELL_TRANSITIONS").ok().map(|p|->Result<Vec<transitions::Spec>> {Ok(serde_json::from_slice(&std::fs::read(p)?)?)}).transpose()?;
     run_impl(
         source,
         input,
@@ -389,6 +378,7 @@ pub fn run(source: &str, input: Option<&Path>, out: &Path, mode: &str) -> Result
         std::env::var("EGG_LAYOUT_SKIP_INTERNAL_RHS").is_ok_and(|s| s == "1"),
         std::env::var("EGG_LAYOUT_PRUNE_INTERNAL_JOIN").is_ok_and(|s| s == "1"),
         std::env::var("EGG_LAYOUT_CELL_EVOLUTION").is_ok_and(|s| s == "1"),
+        transition_specs.as_deref(),
     )
 }
 /// Explicit policy for reproducible ablations; 1 restores unrestricted admission.
@@ -399,7 +389,7 @@ pub fn run_with_min_reuse(
     mode: &str,
     min_reuse: usize,
 ) -> Result<Value> {
-    run_impl(source, input, out, mode, min_reuse, false, false, false, false)
+    run_impl(source, input, out, mode, min_reuse, false, false, false, false, None)
 }
 pub fn run_audit(
     source: &str,
@@ -408,7 +398,7 @@ pub fn run_audit(
     mode: &str,
     min_reuse: usize,
 ) -> Result<Value> {
-    run_impl(source, input, out, mode, min_reuse, true, false, false, false)
+    run_impl(source, input, out, mode, min_reuse, true, false, false, false, None)
 }
 pub fn run_audit_with_rhs_skip(
     source: &str,
@@ -417,17 +407,20 @@ pub fn run_audit_with_rhs_skip(
     mode: &str,
     min_reuse: usize,
 ) -> Result<Value> {
-    run_impl(source, input, out, mode, min_reuse, true, true, false, false)
+    run_impl(source, input, out, mode, min_reuse, true, true, false, false, None)
 }
 /// Root-slice pruning before native Join, without diagnostic tracing.
 pub fn run_with_join_pruning(source: &str, input: Option<&Path>, out: &Path,
     mode: &str, min_reuse: usize) -> Result<Value> {
-    run_impl(source, input, out, mode, min_reuse, false, false, true, false)
+    run_impl(source, input, out, mode, min_reuse, false, false, true, false, None)
 }
 /// Observe boundary-to-cell transitions without changing source execution.
 pub fn run_with_evolution(source: &str, input: Option<&Path>, out: &Path,
     mode: &str, min_reuse: usize) -> Result<Value> {
-    run_impl(source, input, out, mode, min_reuse, false, false, false, true)
+    run_impl(source, input, out, mode, min_reuse, false, false, false, true, None)
+}
+pub fn run_with_transitions(source:&str, library:&Path, out:&Path, specs:&[transitions::Spec], min_reuse:usize)->Result<Value> {
+    run_impl(source,Some(library),out,"frozen",min_reuse,false,false,false,false,Some(specs))
 }
 fn run_impl(
     source: &str,
@@ -439,7 +432,9 @@ fn run_impl(
     skip_rhs: bool,
     prune_join: bool,
     evolution_enabled: bool,
+    transition_specs: Option<&[transitions::Spec]>,
 ) -> Result<Value> {
+    if transition_specs.is_some() && (mode!="frozen" || input.is_none() || audit_enabled || skip_rhs || prune_join || evolution_enabled) {return Err("residual transitions require a frozen library and untraced execution".into());}
     if evolution_enabled && (skip_rhs || prune_join) {return Err("cell evolution observes unpruned execution; disable join/RHS skipping".into());}
     if min_reuse == 0 {
         return Err("minimum template reuse must be positive".into());
@@ -492,6 +487,15 @@ fn run_impl(
             return Err("reserved adaptive_ variable".into());
         }
     }
+    let plans=transitions::compile(&mut eg,&rules,&bake,transition_specs.unwrap_or(&[]))?;
+    if !plans.is_empty() {
+        std::fs::write(out.join("cell-transitions.json"),serde_json::to_vec_pretty(&plans.iter().map(|p|&p.proof).collect::<Vec<_>>())?)?;
+        let mut generated=commands.iter().filter(|c|matches!(c,Command::Datatype{..})).map(ToString::to_string).collect::<Vec<_>>().join("\n");
+        generated+="\n";
+        for p in &plans {generated+=&p.definitions;}
+        for (id,r) in rules.iter().enumerate() {generated+=&rule_program(id,r,bake.macros.get(&id),&plans).1;}
+        std::fs::write(out.join("cell-transitions.egg"),generated)?;
+    }
     let mut selected = vec![];
     for (id, r) in rules.iter().enumerate() {
         selected.push(install(
@@ -503,11 +507,14 @@ fn run_impl(
             } else {
                 bake.macros.get(&id)
             },
+            &plans,
         )?);
     }
     let mut audit = (audit_enabled || prune_join).then(super::enclosure_audit::Audit::default);
     let trace = (audit_enabled || evolution_enabled).then(egglog::TraceSession::with_dependencies);
     let mut evolution = evolution_enabled.then(evolution::Evolution::default);
+    #[cfg(feature="native-read-profile")]
+    eg.reset_join_read_profile(std::env::var("EGG_LAYOUT_JOIN_READ_PROFILE").is_ok_and(|v|v=="1"));
     let mut samples = vec![];
     let mut round = 0;
     let mut total = 0;
@@ -529,6 +536,9 @@ fn run_impl(
                         &format!("(unstable-combined-ruleset {set} {})", selected.join(" ")),
                     )?;
                     let t = Instant::now();
+                    let prepare_start=Instant::now();
+                    let transition_work=if plans.is_empty() {Value::Null} else {transitions::prepare(&mut eg,&plans)?};
+                    let prepare_seconds=prepare_start.elapsed().as_secs_f64();
                     let union_before = eg.native_union_count();
                     if let Some(e)=evolution.as_mut() {e.begin(&eg);}
                     let (report, mut audit_report) = if prune_join {
@@ -593,7 +603,7 @@ fn run_impl(
                             }
                             match learn(&environment, r, id) {
                                 Ok(m) => {
-                                    selected[id] = install(&mut eg, id, r, Some(&m))?;
+                                    selected[id] = install(&mut eg, id, r, Some(&m), &plans)?;
                                     admitted.push(id);
                                     bake.macros.insert(id, m);
                                 }
@@ -608,7 +618,7 @@ fn run_impl(
                     learning_seconds += t.elapsed().as_secs_f64();
                     let library_bytes =
                         save_bake(out, &format!("bake_lib_round{round}"), &bake, &rules)?;
-                    samples.push(json!({"round":round,"enclosure_audit":audit_report,"matches":matches,"macro_matches":macro_matches,"source_matches":source_matches,"cumulative_matches":total,"graph":counts(&eg),"packing":packing,"packing_seconds":packing_seconds,"admitted":admitted,"rejected":rejected,"library_bytes":library_bytes,"bodies":bake.macros.len(),"execution_seconds":execution_seconds,"learning_seconds":learning_seconds}));
+                    samples.push(json!({"cell_transition":transition_work,"transition_prepare_seconds":prepare_seconds,"round":round,"enclosure_audit":audit_report,"matches":matches,"macro_matches":macro_matches,"source_matches":source_matches,"cumulative_matches":total,"graph":counts(&eg),"packing":packing,"packing_seconds":packing_seconds,"admitted":admitted,"rejected":rejected,"library_bytes":library_bytes,"bodies":bake.macros.len(),"execution_seconds":execution_seconds,"learning_seconds":learning_seconds}));
                     std::fs::write(
                         out.join("progress.json"),
                         serde_json::to_vec_pretty(&samples)?,
@@ -637,7 +647,7 @@ fn run_impl(
         serde_json::to_writer_pretty(file,&full)?;
         Some(full.as_object().unwrap().iter().filter(|(k,_)|!["patterns","families","rounds","rule_environment"].contains(&k.as_str())).map(|(k,v)|(k.clone(),v.clone())).collect::<serde_json::Map<_,_>>())
     } else {None};
-    let report = json!({"cell_evolution":evolution_report,"mode":mode,"rhs_skip_enabled":skip_rhs,"join_pruning_enabled":prune_join,"min_template_reuse":min_reuse,"seconds":started.elapsed().as_secs_f64(),"execution_seconds":execution_seconds,"learning_seconds":learning_seconds,"matches":total,"samples":samples,"final":counts(&eg),"storage":crate::reuse_graph::native_storage::storage_report(&eg),"scope":"actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed"});
+    let report = json!({"cell_transitions_enabled":!plans.is_empty(),"join_reads":transitions::read_profile(&eg),"cell_evolution":evolution_report,"mode":mode,"rhs_skip_enabled":skip_rhs,"join_pruning_enabled":prune_join,"min_template_reuse":min_reuse,"seconds":started.elapsed().as_secs_f64(),"execution_seconds":execution_seconds,"learning_seconds":learning_seconds,"matches":total,"samples":samples,"final":counts(&eg),"storage":crate::reuse_graph::native_storage::storage_report(&eg),"scope":"actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed"});
     std::fs::write(out.join("report.json"), serde_json::to_vec_pretty(&report)?)?;
     Ok(report)
 }

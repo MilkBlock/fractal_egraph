@@ -1,0 +1,2584 @@
+{
+  "scope": "Actual native runtime, identical frozen library and source, no logical tracing. Both timers include installation, coverage preparation and packing. Profile counters include helper tables. Math snapshots exclude optimizer-owned functions, which are metadata not constructors.",
+  "binary_sha256": "ee2d8de489d1d3d58c6bb9059670d7cc15e8cf02b7f966708dec2b76abbf5a61",
+  "profile": false,
+  "threads": "1",
+  "cases": {
+    "one_atom": {
+      "library_bytes": 1833,
+      "compiled_plan_bytes": 807,
+      "generated_program_bytes": 1204,
+      "source_sha256": "91c001ac0fd6f28ba0a70da83d2ca9aed368627f17077fdea35482b6528b77c3",
+      "library_sha256": "0c892b6f8770bbcdd4af72bf0771e481aa95ea9df99dfa1d92a798bdbebf78a4",
+      "verification": {
+        "exact_equal": true,
+        "enodes": 4352,
+        "eclasses": 2240
+      },
+      "runs": [
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/control-0",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.06,
+          "peak_rss_bytes": 12779520,
+          "user_seconds": 0.05,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.076628917013295,
+          "result": {
+            "seconds": 0.062524958,
+            "execution_seconds": 0.002080167,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2240,
+              "enodes": 4352,
+              "rss_bytes": 12664832
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [],
+            "prepare_seconds": 2.5e-07
+          },
+          "mode": "control",
+          "repeat": 0
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/residual-0",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.06,
+          "peak_rss_bytes": 13533184,
+          "user_seconds": 0.05,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.07747041701804847,
+          "result": {
+            "seconds": 0.058946791,
+            "execution_seconds": 0.00196829,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2240,
+              "enodes": 4352,
+              "rss_bytes": 13500416
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 0,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 0
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              }
+            ],
+            "prepare_seconds": 3.7874e-05
+          },
+          "mode": "residual",
+          "repeat": 0
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/residual-1",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.06,
+          "peak_rss_bytes": 14499840,
+          "user_seconds": 0.05,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.07760700001381338,
+          "result": {
+            "seconds": 0.057732208,
+            "execution_seconds": 0.0019319169999999998,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2240,
+              "enodes": 4352,
+              "rss_bytes": 14483456
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 0,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 0
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              }
+            ],
+            "prepare_seconds": 4.0417e-05
+          },
+          "mode": "residual",
+          "repeat": 1
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/control-1",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.06,
+          "peak_rss_bytes": 13434880,
+          "user_seconds": 0.05,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.07398241700138897,
+          "result": {
+            "seconds": 0.058654667,
+            "execution_seconds": 0.002002457,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2240,
+              "enodes": 4352,
+              "rss_bytes": 13418496
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [],
+            "prepare_seconds": 1.24e-07
+          },
+          "mode": "control",
+          "repeat": 1
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/control-2",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.07,
+          "peak_rss_bytes": 14499840,
+          "user_seconds": 0.06,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.07747258397284895,
+          "result": {
+            "seconds": 0.066641875,
+            "execution_seconds": 0.0020732510000000003,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2240,
+              "enodes": 4352,
+              "rss_bytes": 14483456
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [],
+            "prepare_seconds": 4.17e-07
+          },
+          "mode": "control",
+          "repeat": 2
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/residual-2",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.06,
+          "peak_rss_bytes": 13549568,
+          "user_seconds": 0.05,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.07752058294136077,
+          "result": {
+            "seconds": 0.063552625,
+            "execution_seconds": 0.002062125,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2240,
+              "enodes": 4352,
+              "rss_bytes": 13533184
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 0,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 0
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              }
+            ],
+            "prepare_seconds": 3.6084e-05
+          },
+          "mode": "residual",
+          "repeat": 2
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/residual-3",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.06,
+          "peak_rss_bytes": 13516800,
+          "user_seconds": 0.05,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.07754920900333673,
+          "result": {
+            "seconds": 0.060259625,
+            "execution_seconds": 0.0019785,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2240,
+              "enodes": 4352,
+              "rss_bytes": 13500416
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 0,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 0
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              }
+            ],
+            "prepare_seconds": 3.8917e-05
+          },
+          "mode": "residual",
+          "repeat": 3
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/control-3",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.06,
+          "peak_rss_bytes": 13860864,
+          "user_seconds": 0.05,
+          "system_seconds": 0.01,
+          "observed_wall_seconds": 0.07507658400572836,
+          "result": {
+            "seconds": 0.063195209,
+            "execution_seconds": 0.002067875,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2240,
+              "enodes": 4352,
+              "rss_bytes": 13844480
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [],
+            "prepare_seconds": 2.49e-07
+          },
+          "mode": "control",
+          "repeat": 3
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/control-4",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.06,
+          "peak_rss_bytes": 12992512,
+          "user_seconds": 0.05,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.07486012496519834,
+          "result": {
+            "seconds": 0.061968458,
+            "execution_seconds": 0.0021805839999999997,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2240,
+              "enodes": 4352,
+              "rss_bytes": 12943360
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [],
+            "prepare_seconds": 1.25e-07
+          },
+          "mode": "control",
+          "repeat": 4
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/residual-4",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.06,
+          "peak_rss_bytes": 12681216,
+          "user_seconds": 0.05,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.07489712489768863,
+          "result": {
+            "seconds": 0.06106275,
+            "execution_seconds": 0.002015875,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2240,
+              "enodes": 4352,
+              "rss_bytes": 12648448
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 0,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 0
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              }
+            ],
+            "prepare_seconds": 3.5791e-05
+          },
+          "mode": "residual",
+          "repeat": 4
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/residual-5",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.06,
+          "peak_rss_bytes": 14073856,
+          "user_seconds": 0.05,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.07747620798181742,
+          "result": {
+            "seconds": 0.060523375,
+            "execution_seconds": 0.001995041,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2240,
+              "enodes": 4352,
+              "rss_bytes": 14041088
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 0,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 0
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              }
+            ],
+            "prepare_seconds": 3.7666e-05
+          },
+          "mode": "residual",
+          "repeat": 5
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/control-5",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.07,
+          "peak_rss_bytes": 13287424,
+          "user_seconds": 0.05,
+          "system_seconds": 0.01,
+          "observed_wall_seconds": 0.07762749993707985,
+          "result": {
+            "seconds": 0.065177625,
+            "execution_seconds": 0.002197626,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2240,
+              "enodes": 4352,
+              "rss_bytes": 13189120
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [],
+            "prepare_seconds": 2.49e-07
+          },
+          "mode": "control",
+          "repeat": 5
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/control-6",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.07,
+          "peak_rss_bytes": 14630912,
+          "user_seconds": 0.05,
+          "system_seconds": 0.01,
+          "observed_wall_seconds": 0.10215349995996803,
+          "result": {
+            "seconds": 0.064596833,
+            "execution_seconds": 0.0021307089999999997,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2240,
+              "enodes": 4352,
+              "rss_bytes": 14565376
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [],
+            "prepare_seconds": 1.67e-07
+          },
+          "mode": "control",
+          "repeat": 6
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/residual-6",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/one_atom/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.06,
+          "peak_rss_bytes": 12632064,
+          "user_seconds": 0.05,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.07527833408676088,
+          "result": {
+            "seconds": 0.062899291,
+            "execution_seconds": 0.002109833,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2240,
+              "enodes": 4352,
+              "rss_bytes": 12615680
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 0,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 0
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              }
+            ],
+            "prepare_seconds": 3.7084e-05
+          },
+          "mode": "residual",
+          "repeat": 6
+        }
+      ],
+      "medians": {
+        "control": {
+          "seconds": 0.063195209,
+          "execution_seconds": 0.002080167,
+          "matches": 2112,
+          "fallback_matches": 0,
+          "prepare_seconds": 2.49e-07,
+          "peak_rss_bytes": 13434880
+        },
+        "residual": {
+          "seconds": 0.060523375,
+          "execution_seconds": 0.001995041,
+          "matches": 2112,
+          "fallback_matches": 0,
+          "prepare_seconds": 3.7666e-05,
+          "peak_rss_bytes": 13533184
+        }
+      },
+      "proof": [
+        {
+          "anchor": "N0",
+          "coverage": "adaptive_cell_cover_0",
+          "internal_atoms": 1,
+          "internal_pattern": "(N0 x)",
+          "original_lhs_atoms": 3,
+          "residual": "(= adaptive_root (Pair adaptive_cell_cut_0 (Flag y))) (= adaptive_cell_cut_0 (adaptive_cell_view_0 x))",
+          "residual_lhs_atoms": 3,
+          "scope": "positive constructor functions; all pattern variables determined by unique anchor keys; metadata is maintained by native union/rebuild",
+          "source_cell": 0,
+          "spec": {
+            "anchor_path": [],
+            "consumer_rule": 1,
+            "cut_path": [
+              0
+            ],
+            "source_rule": 0
+          },
+          "symbolic_binding_rows": [
+            [
+              [
+                0,
+                1
+              ],
+              [
+                0
+              ]
+            ]
+          ],
+          "target_cell": 1,
+          "view": "adaptive_cell_view_0"
+        }
+      ]
+    },
+    "nested": {
+      "library_bytes": 3117,
+      "compiled_plan_bytes": 861,
+      "generated_program_bytes": 1651,
+      "source_sha256": "f2812d92380dc813cc15af69326a137362bacbbd95740fc6e549fa3910ddf0fa",
+      "library_sha256": "38e5c80e2fb456968d511796bd3127dd86b40c8bb63d249ce8e919aa0486da65",
+      "verification": {
+        "exact_equal": true,
+        "enodes": 4544,
+        "eclasses": 2432
+      },
+      "runs": [
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/control-0",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.07,
+          "peak_rss_bytes": 12812288,
+          "user_seconds": 0.06,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.07665708404965699,
+          "result": {
+            "seconds": 0.066608458,
+            "execution_seconds": 0.004361958,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2432,
+              "enodes": 4544,
+              "rss_bytes": 12795904
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [],
+            "prepare_seconds": 3.32e-07
+          },
+          "mode": "control",
+          "repeat": 0
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/residual-0",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.07,
+          "peak_rss_bytes": 12926976,
+          "user_seconds": 0.06,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.07717208308167756,
+          "result": {
+            "seconds": 0.065583,
+            "execution_seconds": 0.0022510839999999996,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2432,
+              "enodes": 4544,
+              "rss_bytes": 12894208
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 0,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 0
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              }
+            ],
+            "prepare_seconds": 4.775e-05
+          },
+          "mode": "residual",
+          "repeat": 0
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/residual-1",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.07,
+          "peak_rss_bytes": 14794752,
+          "user_seconds": 0.06,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.1058692920487374,
+          "result": {
+            "seconds": 0.064599166,
+            "execution_seconds": 0.0022782500000000003,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2432,
+              "enodes": 4544,
+              "rss_bytes": 14778368
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 0,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 0
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              }
+            ],
+            "prepare_seconds": 0.000171167
+          },
+          "mode": "residual",
+          "repeat": 1
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/control-1",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.07,
+          "peak_rss_bytes": 14729216,
+          "user_seconds": 0.06,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.07745712506584823,
+          "result": {
+            "seconds": 0.067174625,
+            "execution_seconds": 0.004185626,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2432,
+              "enodes": 4544,
+              "rss_bytes": 14696448
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [],
+            "prepare_seconds": 1.25e-07
+          },
+          "mode": "control",
+          "repeat": 1
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/control-2",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.06,
+          "peak_rss_bytes": 14696448,
+          "user_seconds": 0.06,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.07728095795027912,
+          "result": {
+            "seconds": 0.064432792,
+            "execution_seconds": 0.004141125,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2432,
+              "enodes": 4544,
+              "rss_bytes": 14680064
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [],
+            "prepare_seconds": 2.5e-07
+          },
+          "mode": "control",
+          "repeat": 2
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/residual-2",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.06,
+          "peak_rss_bytes": 12943360,
+          "user_seconds": 0.06,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.07562937494367361,
+          "result": {
+            "seconds": 0.064599375,
+            "execution_seconds": 0.002050583,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2432,
+              "enodes": 4544,
+              "rss_bytes": 12910592
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 0,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 0
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              }
+            ],
+            "prepare_seconds": 4.4498999999999995e-05
+          },
+          "mode": "residual",
+          "repeat": 2
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/residual-3",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.06,
+          "peak_rss_bytes": 14286848,
+          "user_seconds": 0.05,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.072733458946459,
+          "result": {
+            "seconds": 0.06114325,
+            "execution_seconds": 0.002206709,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2432,
+              "enodes": 4544,
+              "rss_bytes": 14270464
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 0,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 0
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              }
+            ],
+            "prepare_seconds": 0.000178459
+          },
+          "mode": "residual",
+          "repeat": 3
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/control-3",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.07,
+          "peak_rss_bytes": 14286848,
+          "user_seconds": 0.06,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.10671700001694262,
+          "result": {
+            "seconds": 0.065709417,
+            "execution_seconds": 0.004415206999999999,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2432,
+              "enodes": 4544,
+              "rss_bytes": 14270464
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [],
+            "prepare_seconds": 2.49e-07
+          },
+          "mode": "control",
+          "repeat": 3
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/control-4",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.07,
+          "peak_rss_bytes": 14729216,
+          "user_seconds": 0.06,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.07613266597036272,
+          "result": {
+            "seconds": 0.066425875,
+            "execution_seconds": 0.004119918,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2432,
+              "enodes": 4544,
+              "rss_bytes": 14680064
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [],
+            "prepare_seconds": 2.93e-07
+          },
+          "mode": "control",
+          "repeat": 4
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/residual-4",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.07,
+          "peak_rss_bytes": 14778368,
+          "user_seconds": 0.05,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.07483258401043713,
+          "result": {
+            "seconds": 0.064385375,
+            "execution_seconds": 0.002252708,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2432,
+              "enodes": 4544,
+              "rss_bytes": 14761984
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 0,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 0
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              }
+            ],
+            "prepare_seconds": 0.000179709
+          },
+          "mode": "residual",
+          "repeat": 4
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/residual-5",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.07,
+          "peak_rss_bytes": 14237696,
+          "user_seconds": 0.05,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.10684116696938872,
+          "result": {
+            "seconds": 0.067080542,
+            "execution_seconds": 0.002167125,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2432,
+              "enodes": 4544,
+              "rss_bytes": 14204928
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 0,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 0
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              }
+            ],
+            "prepare_seconds": 4.4417e-05
+          },
+          "mode": "residual",
+          "repeat": 5
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/control-5",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.07,
+          "peak_rss_bytes": 13795328,
+          "user_seconds": 0.06,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.10689812491182238,
+          "result": {
+            "seconds": 0.065500208,
+            "execution_seconds": 0.004476416,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2432,
+              "enodes": 4544,
+              "rss_bytes": 13778944
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [],
+            "prepare_seconds": 2.5e-07
+          },
+          "mode": "control",
+          "repeat": 5
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/control-6",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.07,
+          "peak_rss_bytes": 14680064,
+          "user_seconds": 0.06,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.07752379192970693,
+          "result": {
+            "seconds": 0.067223125,
+            "execution_seconds": 0.0044935,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2432,
+              "enodes": 4544,
+              "rss_bytes": 14663680
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [],
+            "prepare_seconds": 1.26e-07
+          },
+          "mode": "control",
+          "repeat": 6
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/residual-6",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/nested/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.07,
+          "peak_rss_bytes": 14270464,
+          "user_seconds": 0.06,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.07731175003573298,
+          "result": {
+            "seconds": 0.064865083,
+            "execution_seconds": 0.0021054589999999996,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2432,
+              "enodes": 4544,
+              "rss_bytes": 14204928
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 0,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 0
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              }
+            ],
+            "prepare_seconds": 4.0959e-05
+          },
+          "mode": "residual",
+          "repeat": 6
+        }
+      ],
+      "medians": {
+        "control": {
+          "seconds": 0.066425875,
+          "execution_seconds": 0.004361958,
+          "matches": 2112,
+          "fallback_matches": 0,
+          "prepare_seconds": 2.5e-07,
+          "peak_rss_bytes": 14680064
+        },
+        "residual": {
+          "seconds": 0.064599375,
+          "execution_seconds": 0.002206709,
+          "matches": 2112,
+          "fallback_matches": 0,
+          "prepare_seconds": 4.775e-05,
+          "peak_rss_bytes": 14270464
+        }
+      },
+      "proof": [
+        {
+          "anchor": "N3",
+          "coverage": "adaptive_cell_cover_0",
+          "internal_atoms": 4,
+          "internal_pattern": "(N0 (N1 (N2 (N3 x))))",
+          "original_lhs_atoms": 6,
+          "residual": "(= adaptive_root (Pair adaptive_cell_cut_0 (Flag y))) (= adaptive_cell_cut_0 (adaptive_cell_view_0 x))",
+          "residual_lhs_atoms": 3,
+          "scope": "positive constructor functions; all pattern variables determined by unique anchor keys; metadata is maintained by native union/rebuild",
+          "source_cell": 0,
+          "spec": {
+            "anchor_path": [
+              0,
+              0,
+              0
+            ],
+            "consumer_rule": 1,
+            "cut_path": [
+              0
+            ],
+            "source_rule": 0
+          },
+          "symbolic_binding_rows": [
+            [
+              [
+                0,
+                1
+              ],
+              [
+                0
+              ]
+            ]
+          ],
+          "target_cell": 1,
+          "view": "adaptive_cell_view_0"
+        }
+      ]
+    },
+    "math6": {
+      "library_bytes": 22017,
+      "compiled_plan_bytes": 952,
+      "generated_program_bytes": 9951,
+      "source_sha256": "bcfe73904adb5f373e4dda48b794d22a3d808621ea6b34dcb91accb88605fd0f",
+      "library_sha256": "d10af32600b178515ed204758229ce189b6e8641a98d6547967362c5da0d0e2c",
+      "verification": {
+        "exact_equal": true,
+        "enodes": 2167,
+        "eclasses": 748
+      },
+      "runs": [
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/control-0",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+          ],
+          "process_wall_seconds": 0.04,
+          "peak_rss_bytes": 9814016,
+          "user_seconds": 0.03,
+          "system_seconds": 0.01,
+          "observed_wall_seconds": 0.07616654108278453,
+          "result": {
+            "seconds": 0.041761792,
+            "execution_seconds": 0.008313000000000001,
+            "matches": 3376,
+            "final": {
+              "eclasses": 748,
+              "enodes": 2167,
+              "rss_bytes": 9764864
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [],
+            "prepare_seconds": 2.92e-07
+          },
+          "mode": "control",
+          "repeat": 0
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/residual-0",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+          ],
+          "process_wall_seconds": 0.04,
+          "peak_rss_bytes": 10272768,
+          "user_seconds": 0.03,
+          "system_seconds": 0.01,
+          "observed_wall_seconds": 0.07761808391660452,
+          "result": {
+            "seconds": 0.042490458,
+            "execution_seconds": 0.0086585,
+            "matches": 3376,
+            "final": {
+              "eclasses": 748,
+              "enodes": 2167,
+              "rss_bytes": 10190848
+            },
+            "join_reads": null,
+            "fallback_matches": 606,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 7,
+                "plans": [
+                  {
+                    "covered_keys": 7,
+                    "fallback_matches": 7,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 7
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 14,
+                "plans": [
+                  {
+                    "covered_keys": 27,
+                    "fallback_matches": 14,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 27
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 31,
+                "plans": [
+                  {
+                    "covered_keys": 58,
+                    "fallback_matches": 31,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 58
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 125,
+                "plans": [
+                  {
+                    "covered_keys": 183,
+                    "fallback_matches": 125,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 183
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 261,
+                "plans": [
+                  {
+                    "covered_keys": 440,
+                    "fallback_matches": 261,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 440
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 168,
+                "plans": [
+                  {
+                    "covered_keys": 592,
+                    "fallback_matches": 168,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 592
+                  }
+                ]
+              }
+            ],
+            "prepare_seconds": 0.000323376
+          },
+          "mode": "residual",
+          "repeat": 0
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/residual-1",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+          ],
+          "process_wall_seconds": 0.04,
+          "peak_rss_bytes": 10633216,
+          "user_seconds": 0.03,
+          "system_seconds": 0.01,
+          "observed_wall_seconds": 0.07588033296633512,
+          "result": {
+            "seconds": 0.042829833,
+            "execution_seconds": 0.008658166,
+            "matches": 3376,
+            "final": {
+              "eclasses": 748,
+              "enodes": 2167,
+              "rss_bytes": 10584064
+            },
+            "join_reads": null,
+            "fallback_matches": 606,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 7,
+                "plans": [
+                  {
+                    "covered_keys": 7,
+                    "fallback_matches": 7,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 7
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 14,
+                "plans": [
+                  {
+                    "covered_keys": 27,
+                    "fallback_matches": 14,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 27
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 31,
+                "plans": [
+                  {
+                    "covered_keys": 58,
+                    "fallback_matches": 31,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 58
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 125,
+                "plans": [
+                  {
+                    "covered_keys": 183,
+                    "fallback_matches": 125,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 183
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 261,
+                "plans": [
+                  {
+                    "covered_keys": 440,
+                    "fallback_matches": 261,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 440
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 168,
+                "plans": [
+                  {
+                    "covered_keys": 592,
+                    "fallback_matches": 168,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 592
+                  }
+                ]
+              }
+            ],
+            "prepare_seconds": 0.000325541
+          },
+          "mode": "residual",
+          "repeat": 1
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/control-1",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+          ],
+          "process_wall_seconds": 0.04,
+          "peak_rss_bytes": 9633792,
+          "user_seconds": 0.03,
+          "system_seconds": 0.01,
+          "observed_wall_seconds": 0.07407995907124132,
+          "result": {
+            "seconds": 0.042446542,
+            "execution_seconds": 0.008424416,
+            "matches": 3376,
+            "final": {
+              "eclasses": 748,
+              "enodes": 2167,
+              "rss_bytes": 9584640
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [],
+            "prepare_seconds": 1.24e-07
+          },
+          "mode": "control",
+          "repeat": 1
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/control-2",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+          ],
+          "process_wall_seconds": 0.04,
+          "peak_rss_bytes": 9830400,
+          "user_seconds": 0.03,
+          "system_seconds": 0.01,
+          "observed_wall_seconds": 0.07168470800388604,
+          "result": {
+            "seconds": 0.041327125,
+            "execution_seconds": 0.008232876,
+            "matches": 3376,
+            "final": {
+              "eclasses": 748,
+              "enodes": 2167,
+              "rss_bytes": 9781248
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [],
+            "prepare_seconds": 1.24e-07
+          },
+          "mode": "control",
+          "repeat": 2
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/residual-2",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+          ],
+          "process_wall_seconds": 0.04,
+          "peak_rss_bytes": 9748480,
+          "user_seconds": 0.03,
+          "system_seconds": 0.01,
+          "observed_wall_seconds": 0.0755656249821186,
+          "result": {
+            "seconds": 0.043232459,
+            "execution_seconds": 0.008859374,
+            "matches": 3376,
+            "final": {
+              "eclasses": 748,
+              "enodes": 2167,
+              "rss_bytes": 9633792
+            },
+            "join_reads": null,
+            "fallback_matches": 606,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 7,
+                "plans": [
+                  {
+                    "covered_keys": 7,
+                    "fallback_matches": 7,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 7
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 14,
+                "plans": [
+                  {
+                    "covered_keys": 27,
+                    "fallback_matches": 14,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 27
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 31,
+                "plans": [
+                  {
+                    "covered_keys": 58,
+                    "fallback_matches": 31,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 58
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 125,
+                "plans": [
+                  {
+                    "covered_keys": 183,
+                    "fallback_matches": 125,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 183
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 261,
+                "plans": [
+                  {
+                    "covered_keys": 440,
+                    "fallback_matches": 261,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 440
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 168,
+                "plans": [
+                  {
+                    "covered_keys": 592,
+                    "fallback_matches": 168,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 592
+                  }
+                ]
+              }
+            ],
+            "prepare_seconds": 0.00033345900000000003
+          },
+          "mode": "residual",
+          "repeat": 2
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/residual-3",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+          ],
+          "process_wall_seconds": 0.04,
+          "peak_rss_bytes": 9945088,
+          "user_seconds": 0.03,
+          "system_seconds": 0.01,
+          "observed_wall_seconds": 0.07538008305709809,
+          "result": {
+            "seconds": 0.043007167,
+            "execution_seconds": 0.008726709,
+            "matches": 3376,
+            "final": {
+              "eclasses": 748,
+              "enodes": 2167,
+              "rss_bytes": 9830400
+            },
+            "join_reads": null,
+            "fallback_matches": 606,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 7,
+                "plans": [
+                  {
+                    "covered_keys": 7,
+                    "fallback_matches": 7,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 7
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 14,
+                "plans": [
+                  {
+                    "covered_keys": 27,
+                    "fallback_matches": 14,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 27
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 31,
+                "plans": [
+                  {
+                    "covered_keys": 58,
+                    "fallback_matches": 31,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 58
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 125,
+                "plans": [
+                  {
+                    "covered_keys": 183,
+                    "fallback_matches": 125,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 183
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 261,
+                "plans": [
+                  {
+                    "covered_keys": 440,
+                    "fallback_matches": 261,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 440
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 168,
+                "plans": [
+                  {
+                    "covered_keys": 592,
+                    "fallback_matches": 168,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 592
+                  }
+                ]
+              }
+            ],
+            "prepare_seconds": 0.000359749
+          },
+          "mode": "residual",
+          "repeat": 3
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/control-3",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+          ],
+          "process_wall_seconds": 0.04,
+          "peak_rss_bytes": 9830400,
+          "user_seconds": 0.03,
+          "system_seconds": 0.01,
+          "observed_wall_seconds": 0.0745492500718683,
+          "result": {
+            "seconds": 0.042243125,
+            "execution_seconds": 0.008469499,
+            "matches": 3376,
+            "final": {
+              "eclasses": 748,
+              "enodes": 2167,
+              "rss_bytes": 9764864
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [],
+            "prepare_seconds": 2.51e-07
+          },
+          "mode": "control",
+          "repeat": 3
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/control-4",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+          ],
+          "process_wall_seconds": 0.04,
+          "peak_rss_bytes": 9601024,
+          "user_seconds": 0.03,
+          "system_seconds": 0.01,
+          "observed_wall_seconds": 0.07379508402664214,
+          "result": {
+            "seconds": 0.042068667,
+            "execution_seconds": 0.008509333000000001,
+            "matches": 3376,
+            "final": {
+              "eclasses": 748,
+              "enodes": 2167,
+              "rss_bytes": 9535488
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [],
+            "prepare_seconds": 8.3e-08
+          },
+          "mode": "control",
+          "repeat": 4
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/residual-4",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+          ],
+          "process_wall_seconds": 0.04,
+          "peak_rss_bytes": 10190848,
+          "user_seconds": 0.03,
+          "system_seconds": 0.01,
+          "observed_wall_seconds": 0.07479616708587855,
+          "result": {
+            "seconds": 0.043067166,
+            "execution_seconds": 0.008788166,
+            "matches": 3376,
+            "final": {
+              "eclasses": 748,
+              "enodes": 2167,
+              "rss_bytes": 10125312
+            },
+            "join_reads": null,
+            "fallback_matches": 606,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 7,
+                "plans": [
+                  {
+                    "covered_keys": 7,
+                    "fallback_matches": 7,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 7
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 14,
+                "plans": [
+                  {
+                    "covered_keys": 27,
+                    "fallback_matches": 14,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 27
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 31,
+                "plans": [
+                  {
+                    "covered_keys": 58,
+                    "fallback_matches": 31,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 58
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 125,
+                "plans": [
+                  {
+                    "covered_keys": 183,
+                    "fallback_matches": 125,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 183
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 261,
+                "plans": [
+                  {
+                    "covered_keys": 440,
+                    "fallback_matches": 261,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 440
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 168,
+                "plans": [
+                  {
+                    "covered_keys": 592,
+                    "fallback_matches": 168,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 592
+                  }
+                ]
+              }
+            ],
+            "prepare_seconds": 0.000323376
+          },
+          "mode": "residual",
+          "repeat": 4
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/residual-5",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+          ],
+          "process_wall_seconds": 0.04,
+          "peak_rss_bytes": 10305536,
+          "user_seconds": 0.03,
+          "system_seconds": 0.01,
+          "observed_wall_seconds": 0.07481820893008262,
+          "result": {
+            "seconds": 0.043288667,
+            "execution_seconds": 0.008576666,
+            "matches": 3376,
+            "final": {
+              "eclasses": 748,
+              "enodes": 2167,
+              "rss_bytes": 10108928
+            },
+            "join_reads": null,
+            "fallback_matches": 606,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 7,
+                "plans": [
+                  {
+                    "covered_keys": 7,
+                    "fallback_matches": 7,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 7
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 14,
+                "plans": [
+                  {
+                    "covered_keys": 27,
+                    "fallback_matches": 14,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 27
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 31,
+                "plans": [
+                  {
+                    "covered_keys": 58,
+                    "fallback_matches": 31,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 58
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 125,
+                "plans": [
+                  {
+                    "covered_keys": 183,
+                    "fallback_matches": 125,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 183
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 261,
+                "plans": [
+                  {
+                    "covered_keys": 440,
+                    "fallback_matches": 261,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 440
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 168,
+                "plans": [
+                  {
+                    "covered_keys": 592,
+                    "fallback_matches": 168,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 592
+                  }
+                ]
+              }
+            ],
+            "prepare_seconds": 0.000334041
+          },
+          "mode": "residual",
+          "repeat": 5
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/control-5",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+          ],
+          "process_wall_seconds": 0.04,
+          "peak_rss_bytes": 9945088,
+          "user_seconds": 0.03,
+          "system_seconds": 0.01,
+          "observed_wall_seconds": 0.07778520800638944,
+          "result": {
+            "seconds": 0.04201175,
+            "execution_seconds": 0.008461081,
+            "matches": 3376,
+            "final": {
+              "eclasses": 748,
+              "enodes": 2167,
+              "rss_bytes": 9846784
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [],
+            "prepare_seconds": 1.24e-07
+          },
+          "mode": "control",
+          "repeat": 5
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/control-6",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+          ],
+          "process_wall_seconds": 0.04,
+          "peak_rss_bytes": 9699328,
+          "user_seconds": 0.03,
+          "system_seconds": 0.01,
+          "observed_wall_seconds": 0.07695750007405877,
+          "result": {
+            "seconds": 0.041565208,
+            "execution_seconds": 0.008244251,
+            "matches": 3376,
+            "final": {
+              "eclasses": 748,
+              "enodes": 2167,
+              "rss_bytes": 9601024
+            },
+            "join_reads": null,
+            "fallback_matches": 0,
+            "interface_snapshots": [],
+            "prepare_seconds": 1.67e-07
+          },
+          "mode": "control",
+          "repeat": 6
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/plain-final",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-final/math6/residual-6",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+          ],
+          "process_wall_seconds": 0.04,
+          "peak_rss_bytes": 10125312,
+          "user_seconds": 0.03,
+          "system_seconds": 0.01,
+          "observed_wall_seconds": 0.07672187499701977,
+          "result": {
+            "seconds": 0.043205583,
+            "execution_seconds": 0.008803624999999999,
+            "matches": 3376,
+            "final": {
+              "eclasses": 748,
+              "enodes": 2167,
+              "rss_bytes": 10059776
+            },
+            "join_reads": null,
+            "fallback_matches": 606,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 7,
+                "plans": [
+                  {
+                    "covered_keys": 7,
+                    "fallback_matches": 7,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 7
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 14,
+                "plans": [
+                  {
+                    "covered_keys": 27,
+                    "fallback_matches": 14,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 27
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 31,
+                "plans": [
+                  {
+                    "covered_keys": 58,
+                    "fallback_matches": 31,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 58
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 125,
+                "plans": [
+                  {
+                    "covered_keys": 183,
+                    "fallback_matches": 125,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 183
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 261,
+                "plans": [
+                  {
+                    "covered_keys": 440,
+                    "fallback_matches": 261,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 440
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 168,
+                "plans": [
+                  {
+                    "covered_keys": 592,
+                    "fallback_matches": 168,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 592
+                  }
+                ]
+              }
+            ],
+            "prepare_seconds": 0.000353126
+          },
+          "mode": "residual",
+          "repeat": 6
+        }
+      ],
+      "medians": {
+        "control": {
+          "seconds": 0.04201175,
+          "execution_seconds": 0.008424416,
+          "matches": 3376,
+          "fallback_matches": 0,
+          "prepare_seconds": 1.24e-07,
+          "peak_rss_bytes": 9814016
+        },
+        "residual": {
+          "seconds": 0.043067166,
+          "execution_seconds": 0.008726709,
+          "matches": 3376,
+          "fallback_matches": 606,
+          "prepare_seconds": 0.00033345900000000003,
+          "peak_rss_bytes": 10190848
+        }
+      },
+      "proof": [
+        {
+          "anchor": "Add",
+          "coverage": "adaptive_cell_cover_0",
+          "internal_atoms": 1,
+          "internal_pattern": "(Add b c)",
+          "original_lhs_atoms": 2,
+          "residual": "(= adaptive_root (Add a adaptive_cell_cut_0)) (= adaptive_cell_cut_0 (adaptive_cell_view_0 b c))",
+          "residual_lhs_atoms": 2,
+          "scope": "positive constructor functions; all pattern variables determined by unique anchor keys; metadata is maintained by native union/rebuild",
+          "source_cell": 0,
+          "spec": {
+            "anchor_path": [],
+            "consumer_rule": 2,
+            "cut_path": [
+              1
+            ],
+            "source_rule": 0
+          },
+          "symbolic_binding_rows": [
+            [
+              [
+                0,
+                1,
+                2
+              ],
+              [
+                0,
+                1
+              ]
+            ],
+            [
+              [
+                1,
+                0,
+                2
+              ],
+              [
+                1,
+                0
+              ]
+            ]
+          ],
+          "target_cell": 2,
+          "view": "adaptive_cell_view_0"
+        }
+      ]
+    }
+  },
+  "parent_commit": "ff59399d616a5438ac5360f1b3dacd98ba4b2f5f",
+  "working_tree_dirty": true
+}

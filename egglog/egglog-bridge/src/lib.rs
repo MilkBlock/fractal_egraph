@@ -408,6 +408,9 @@ impl EGraph {
     pub fn virtualize_function_rows(&mut self,func:FunctionId,rows:&[core_relations::VirtualRowRequest])->std::result::Result<(),String> {
         self.db.get_table_mut(self.funcs[func].table).virtualize_existing_rows(rows)
     }
+    pub fn set_key_coverage(&mut self, entries:Vec<(String,FunctionId,FunctionId)>) {
+        self.db.set_key_coverage(entries.into_iter().map(|(r,a,c)|(r,self.funcs[a].table,self.funcs[c].table)).collect());
+    }
     pub fn set_excluded_roots(&mut self, entries: Vec<(String,String,Vec<Value>)>) {
         self.db.set_excluded_roots(entries);
     }

@@ -1,0 +1,6 @@
+(datatype Math (V i64) (A Math) (Flag Math) (Pair Math Math) (Done Math Math) (N0 Math) (N1 Math) (N2 Math) (N3 Math))
+(rewrite (A x) (N0 (N1 (N2 (N3 x)))))
+(rewrite (Pair (N0 (N1 (N2 (N3 x)))) (Flag y)) (Done x y))
+(A (V 99999))
+(Pair (N0 (N1 (N2 (N3 (V 99999))))) (Flag (V 99998)))
+(run 2)

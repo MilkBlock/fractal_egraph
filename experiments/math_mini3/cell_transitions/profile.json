@@ -1,0 +1,3074 @@
+{
+  "scope": "Actual native runtime, identical frozen library and source, no logical tracing. Both timers include installation, coverage preparation and packing. Profile counters include helper tables. Math snapshots exclude optimizer-owned functions, which are metadata not constructors.",
+  "binary_sha256": "51bc772b2d7bb466fa5f1ab6660e4366af5f3e8466062c4804f948567f8d539c",
+  "profile": true,
+  "threads": "1",
+  "cases": {
+    "one_atom": {
+      "source_sha256": "91c001ac0fd6f28ba0a70da83d2ca9aed368627f17077fdea35482b6528b77c3",
+      "library_sha256": "0c892b6f8770bbcdd4af72bf0771e481aa95ea9df99dfa1d92a798bdbebf78a4",
+      "verification": {
+        "exact_equal": true,
+        "enodes": 4352,
+        "eclasses": 2240
+      },
+      "runs": [
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/profile",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-profile/one_atom/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-profile/one_atom/control-0",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-profile/one_atom/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.06,
+          "peak_rss_bytes": 12582912,
+          "user_seconds": 0.05,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.07764012506231666,
+          "result": {
+            "seconds": 0.0634435,
+            "execution_seconds": 0.002132751,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2240,
+              "enodes": 4352,
+              "rss_bytes": 12533760
+            },
+            "join_reads": {
+              "scope": "native search/apply row work, includes coverage probes and summary relations; not an abstract Join operator count",
+              "tables": [
+                {
+                  "table": "$uf",
+                  "unavailable": true
+                },
+                {
+                  "key_lookups": 2112,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "V"
+                },
+                {
+                  "key_lookups": 64,
+                  "refine_rows": 0,
+                  "scan_calls": 1,
+                  "scan_rows": 64,
+                  "table": "A"
+                },
+                {
+                  "key_lookups": 4096,
+                  "refine_rows": 0,
+                  "scan_calls": 33,
+                  "scan_rows": 64,
+                  "table": "Flag"
+                },
+                {
+                  "key_lookups": 2048,
+                  "refine_rows": 0,
+                  "scan_calls": 2082,
+                  "scan_rows": 6144,
+                  "table": "Pair"
+                },
+                {
+                  "key_lookups": 0,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "Done"
+                },
+                {
+                  "key_lookups": 2048,
+                  "refine_rows": 0,
+                  "scan_calls": 2049,
+                  "scan_rows": 2112,
+                  "table": "N0"
+                },
+                {
+                  "key_lookups": 64,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_0"
+                },
+                {
+                  "key_lookups": 2048,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_1"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed0"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed1"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed2"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed3"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed4"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed5"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed6"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed7"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed8"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed9"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed10"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed11"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed12"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed13"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed14"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed15"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed16"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed17"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed18"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed19"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed20"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed21"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed22"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed23"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed24"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed25"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed26"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed27"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed28"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed29"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed30"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed31"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed32"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed33"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed34"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed35"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed36"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed37"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed38"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed39"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed40"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed41"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed42"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed43"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed44"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed45"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed46"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed47"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed48"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed49"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed50"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed51"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed52"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed53"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed54"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed55"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed56"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed57"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed58"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed59"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed60"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed61"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed62"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed63"
+                }
+              ]
+            },
+            "fallback_matches": 0,
+            "prepare_seconds": 4.2e-08,
+            "interface_snapshots": []
+          },
+          "mode": "control",
+          "repeat": 0
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/profile",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-profile/one_atom/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-profile/one_atom/residual-0",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-profile/one_atom/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.06,
+          "peak_rss_bytes": 13500416,
+          "user_seconds": 0.05,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.07438929204363376,
+          "result": {
+            "seconds": 0.0602785,
+            "execution_seconds": 0.00194096,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2240,
+              "enodes": 4352,
+              "rss_bytes": 13467648
+            },
+            "join_reads": {
+              "scope": "native search/apply row work, includes coverage probes and summary relations; not an abstract Join operator count",
+              "tables": [
+                {
+                  "table": "$uf",
+                  "unavailable": true
+                },
+                {
+                  "key_lookups": 2112,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "V"
+                },
+                {
+                  "key_lookups": 64,
+                  "refine_rows": 0,
+                  "scan_calls": 1,
+                  "scan_rows": 64,
+                  "table": "A"
+                },
+                {
+                  "key_lookups": 4096,
+                  "refine_rows": 0,
+                  "scan_calls": 33,
+                  "scan_rows": 64,
+                  "table": "Flag"
+                },
+                {
+                  "key_lookups": 2048,
+                  "refine_rows": 0,
+                  "scan_calls": 2082,
+                  "scan_rows": 6144,
+                  "table": "Pair"
+                },
+                {
+                  "key_lookups": 0,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "Done"
+                },
+                {
+                  "key_lookups": 2048,
+                  "refine_rows": 0,
+                  "scan_calls": 1,
+                  "scan_rows": 64,
+                  "table": "N0"
+                },
+                {
+                  "key_lookups": 0,
+                  "refine_rows": 0,
+                  "scan_calls": 2049,
+                  "scan_rows": 2112,
+                  "table": "adaptive_cell_view_0"
+                },
+                {
+                  "key_lookups": 128,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_cell_cover_0"
+                },
+                {
+                  "key_lookups": 64,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_0"
+                },
+                {
+                  "key_lookups": 2048,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_1"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed0"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed1"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed2"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed3"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed4"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed5"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed6"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed7"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed8"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed9"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed10"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed11"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed12"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed13"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed14"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed15"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed16"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed17"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed18"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed19"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed20"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed21"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed22"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed23"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed24"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed25"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed26"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed27"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed28"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed29"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed30"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed31"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed32"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed33"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed34"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed35"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed36"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed37"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed38"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed39"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed40"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed41"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed42"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed43"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed44"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed45"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed46"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed47"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed48"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed49"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed50"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed51"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed52"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed53"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed54"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed55"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed56"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed57"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed58"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed59"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed60"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed61"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed62"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed63"
+                }
+              ]
+            },
+            "fallback_matches": 0,
+            "prepare_seconds": 3.5793e-05,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 0,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 0
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              }
+            ]
+          },
+          "mode": "residual",
+          "repeat": 0
+        }
+      ],
+      "medians": {
+        "control": {
+          "seconds": 0.0634435,
+          "execution_seconds": 0.002132751,
+          "matches": 2112,
+          "fallback_matches": 0,
+          "prepare_seconds": 4.2e-08,
+          "peak_rss_bytes": 12582912
+        },
+        "residual": {
+          "seconds": 0.0602785,
+          "execution_seconds": 0.00194096,
+          "matches": 2112,
+          "fallback_matches": 0,
+          "prepare_seconds": 3.5793e-05,
+          "peak_rss_bytes": 13500416
+        }
+      },
+      "proof": [
+        {
+          "anchor": "N0",
+          "coverage": "adaptive_cell_cover_0",
+          "internal_atoms": 1,
+          "internal_pattern": "(N0 x)",
+          "original_lhs_atoms": 3,
+          "residual": "(= adaptive_root (Pair adaptive_cell_cut_0 (Flag y))) (= adaptive_cell_cut_0 (adaptive_cell_view_0 x))",
+          "residual_lhs_atoms": 3,
+          "scope": "positive constructor functions; all pattern variables determined by unique anchor keys; metadata is maintained by native union/rebuild",
+          "source_cell": 0,
+          "spec": {
+            "anchor_path": [],
+            "consumer_rule": 1,
+            "cut_path": [
+              0
+            ],
+            "source_rule": 0
+          },
+          "symbolic_binding_rows": [
+            [
+              [
+                0,
+                1
+              ],
+              [
+                0
+              ]
+            ]
+          ],
+          "target_cell": 1,
+          "view": "adaptive_cell_view_0"
+        }
+      ],
+      "compiled_plan_bytes": 807,
+      "generated_program_bytes": 1204,
+      "library_bytes": 1833
+    },
+    "nested": {
+      "source_sha256": "f2812d92380dc813cc15af69326a137362bacbbd95740fc6e549fa3910ddf0fa",
+      "library_sha256": "38e5c80e2fb456968d511796bd3127dd86b40c8bb63d249ce8e919aa0486da65",
+      "verification": {
+        "exact_equal": true,
+        "enodes": 4544,
+        "eclasses": 2432
+      },
+      "runs": [
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/profile",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-profile/nested/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-profile/nested/control-0",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-profile/nested/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.07,
+          "peak_rss_bytes": 12828672,
+          "user_seconds": 0.06,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.10691616602707654,
+          "result": {
+            "seconds": 0.068250167,
+            "execution_seconds": 0.004323042,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2432,
+              "enodes": 4544,
+              "rss_bytes": 12795904
+            },
+            "join_reads": {
+              "scope": "native search/apply row work, includes coverage probes and summary relations; not an abstract Join operator count",
+              "tables": [
+                {
+                  "table": "$uf",
+                  "unavailable": true
+                },
+                {
+                  "key_lookups": 2112,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "V"
+                },
+                {
+                  "key_lookups": 64,
+                  "refine_rows": 0,
+                  "scan_calls": 1,
+                  "scan_rows": 64,
+                  "table": "A"
+                },
+                {
+                  "key_lookups": 4096,
+                  "refine_rows": 0,
+                  "scan_calls": 33,
+                  "scan_rows": 64,
+                  "table": "Flag"
+                },
+                {
+                  "key_lookups": 2048,
+                  "refine_rows": 0,
+                  "scan_calls": 2082,
+                  "scan_rows": 6144,
+                  "table": "Pair"
+                },
+                {
+                  "key_lookups": 0,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "Done"
+                },
+                {
+                  "key_lookups": 2048,
+                  "refine_rows": 0,
+                  "scan_calls": 2049,
+                  "scan_rows": 2112,
+                  "table": "N0"
+                },
+                {
+                  "key_lookups": 2112,
+                  "refine_rows": 0,
+                  "scan_calls": 2049,
+                  "scan_rows": 2112,
+                  "table": "N1"
+                },
+                {
+                  "key_lookups": 2112,
+                  "refine_rows": 0,
+                  "scan_calls": 2049,
+                  "scan_rows": 2112,
+                  "table": "N2"
+                },
+                {
+                  "key_lookups": 2112,
+                  "refine_rows": 0,
+                  "scan_calls": 2049,
+                  "scan_rows": 2112,
+                  "table": "N3"
+                },
+                {
+                  "key_lookups": 64,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_0"
+                },
+                {
+                  "key_lookups": 2048,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_1"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed0"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed1"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed2"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed3"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed4"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed5"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed6"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed7"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed8"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed9"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed10"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed11"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed12"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed13"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed14"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed15"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed16"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed17"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed18"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed19"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed20"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed21"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed22"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed23"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed24"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed25"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed26"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed27"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed28"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed29"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed30"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed31"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed32"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed33"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed34"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed35"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed36"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed37"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed38"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed39"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed40"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed41"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed42"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed43"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed44"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed45"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed46"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed47"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed48"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed49"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed50"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed51"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed52"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed53"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed54"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed55"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed56"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed57"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed58"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed59"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed60"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed61"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed62"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed63"
+                }
+              ]
+            },
+            "fallback_matches": 0,
+            "prepare_seconds": 2.08e-07,
+            "interface_snapshots": []
+          },
+          "mode": "control",
+          "repeat": 0
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/profile",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-profile/nested/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-profile/nested/residual-0",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-profile/nested/bake/bake_lib_round1.json"
+          ],
+          "process_wall_seconds": 0.07,
+          "peak_rss_bytes": 14778368,
+          "user_seconds": 0.06,
+          "system_seconds": 0.0,
+          "observed_wall_seconds": 0.10649379203096032,
+          "result": {
+            "seconds": 0.065014125,
+            "execution_seconds": 0.0023366249999999997,
+            "matches": 2112,
+            "final": {
+              "eclasses": 2432,
+              "enodes": 4544,
+              "rss_bytes": 14745600
+            },
+            "join_reads": {
+              "scope": "native search/apply row work, includes coverage probes and summary relations; not an abstract Join operator count",
+              "tables": [
+                {
+                  "table": "$uf",
+                  "unavailable": true
+                },
+                {
+                  "key_lookups": 2112,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "V"
+                },
+                {
+                  "key_lookups": 64,
+                  "refine_rows": 0,
+                  "scan_calls": 1,
+                  "scan_rows": 64,
+                  "table": "A"
+                },
+                {
+                  "key_lookups": 4096,
+                  "refine_rows": 0,
+                  "scan_calls": 33,
+                  "scan_rows": 64,
+                  "table": "Flag"
+                },
+                {
+                  "key_lookups": 2048,
+                  "refine_rows": 0,
+                  "scan_calls": 2082,
+                  "scan_rows": 6144,
+                  "table": "Pair"
+                },
+                {
+                  "key_lookups": 0,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "Done"
+                },
+                {
+                  "key_lookups": 2048,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "N0"
+                },
+                {
+                  "key_lookups": 2112,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "N1"
+                },
+                {
+                  "key_lookups": 2112,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "N2"
+                },
+                {
+                  "key_lookups": 2112,
+                  "refine_rows": 0,
+                  "scan_calls": 1,
+                  "scan_rows": 64,
+                  "table": "N3"
+                },
+                {
+                  "key_lookups": 0,
+                  "refine_rows": 0,
+                  "scan_calls": 2049,
+                  "scan_rows": 2112,
+                  "table": "adaptive_cell_view_0"
+                },
+                {
+                  "key_lookups": 128,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_cell_cover_0"
+                },
+                {
+                  "key_lookups": 64,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_0"
+                },
+                {
+                  "key_lookups": 2048,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_1"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed0"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed1"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed2"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed3"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed4"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed5"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed6"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed7"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed8"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed9"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed10"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed11"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed12"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed13"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed14"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed15"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed16"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed17"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed18"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed19"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed20"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed21"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed22"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed23"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed24"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed25"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed26"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed27"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed28"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed29"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed30"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed31"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed32"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed33"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed34"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed35"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed36"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed37"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed38"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed39"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed40"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed41"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed42"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed43"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed44"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed45"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed46"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed47"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed48"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed49"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed50"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed51"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed52"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed53"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed54"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed55"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed56"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed57"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed58"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed59"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed60"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed61"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed62"
+                },
+                {
+                  "key_lookups": 32,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "seed63"
+                }
+              ]
+            },
+            "fallback_matches": 0,
+            "prepare_seconds": 0.000185834,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 0,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 0
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 0,
+                "plans": [
+                  {
+                    "covered_keys": 64,
+                    "fallback_matches": 0,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 64
+                  }
+                ]
+              }
+            ]
+          },
+          "mode": "residual",
+          "repeat": 0
+        }
+      ],
+      "medians": {
+        "control": {
+          "seconds": 0.068250167,
+          "execution_seconds": 0.004323042,
+          "matches": 2112,
+          "fallback_matches": 0,
+          "prepare_seconds": 2.08e-07,
+          "peak_rss_bytes": 12828672
+        },
+        "residual": {
+          "seconds": 0.065014125,
+          "execution_seconds": 0.0023366249999999997,
+          "matches": 2112,
+          "fallback_matches": 0,
+          "prepare_seconds": 0.000185834,
+          "peak_rss_bytes": 14778368
+        }
+      },
+      "proof": [
+        {
+          "anchor": "N3",
+          "coverage": "adaptive_cell_cover_0",
+          "internal_atoms": 4,
+          "internal_pattern": "(N0 (N1 (N2 (N3 x))))",
+          "original_lhs_atoms": 6,
+          "residual": "(= adaptive_root (Pair adaptive_cell_cut_0 (Flag y))) (= adaptive_cell_cut_0 (adaptive_cell_view_0 x))",
+          "residual_lhs_atoms": 3,
+          "scope": "positive constructor functions; all pattern variables determined by unique anchor keys; metadata is maintained by native union/rebuild",
+          "source_cell": 0,
+          "spec": {
+            "anchor_path": [
+              0,
+              0,
+              0
+            ],
+            "consumer_rule": 1,
+            "cut_path": [
+              0
+            ],
+            "source_rule": 0
+          },
+          "symbolic_binding_rows": [
+            [
+              [
+                0,
+                1
+              ],
+              [
+                0
+              ]
+            ]
+          ],
+          "target_cell": 1,
+          "view": "adaptive_cell_view_0"
+        }
+      ],
+      "compiled_plan_bytes": 861,
+      "generated_program_bytes": 1651,
+      "library_bytes": 3117
+    },
+    "math6": {
+      "source_sha256": "bcfe73904adb5f373e4dda48b794d22a3d808621ea6b34dcb91accb88605fd0f",
+      "library_sha256": "d10af32600b178515ed204758229ce189b6e8641a98d6547967362c5da0d0e2c",
+      "verification": {
+        "exact_equal": true,
+        "enodes": 2167,
+        "eclasses": 748
+      },
+      "runs": [
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/profile",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-profile/math6/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-profile/math6/control-0",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+          ],
+          "process_wall_seconds": 0.04,
+          "peak_rss_bytes": 9797632,
+          "user_seconds": 0.03,
+          "system_seconds": 0.01,
+          "observed_wall_seconds": 0.077674041967839,
+          "result": {
+            "seconds": 0.04242225,
+            "execution_seconds": 0.008294876,
+            "matches": 3376,
+            "final": {
+              "eclasses": 748,
+              "enodes": 2167,
+              "rss_bytes": 9715712
+            },
+            "join_reads": {
+              "scope": "native search/apply row work, includes coverage probes and summary relations; not an abstract Join operator count",
+              "tables": [
+                {
+                  "table": "$uf",
+                  "unavailable": true
+                },
+                {
+                  "key_lookups": 238,
+                  "refine_rows": 0,
+                  "scan_calls": 72,
+                  "scan_rows": 461,
+                  "table": "Diff"
+                },
+                {
+                  "key_lookups": 365,
+                  "refine_rows": 0,
+                  "scan_calls": 147,
+                  "scan_rows": 1014,
+                  "table": "Integral"
+                },
+                {
+                  "key_lookups": 4777,
+                  "refine_rows": 0,
+                  "scan_calls": 1586,
+                  "scan_rows": 12968,
+                  "table": "Add"
+                },
+                {
+                  "key_lookups": 4,
+                  "refine_rows": 0,
+                  "scan_calls": 30,
+                  "scan_rows": 198,
+                  "table": "Sub"
+                },
+                {
+                  "key_lookups": 1693,
+                  "refine_rows": 0,
+                  "scan_calls": 1935,
+                  "scan_rows": 13211,
+                  "table": "Mul"
+                },
+                {
+                  "key_lookups": 3,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "Div"
+                },
+                {
+                  "key_lookups": 2,
+                  "refine_rows": 0,
+                  "scan_calls": 29,
+                  "scan_rows": 53,
+                  "table": "Pow"
+                },
+                {
+                  "key_lookups": 1,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "Ln"
+                },
+                {
+                  "key_lookups": 2,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "Sqrt"
+                },
+                {
+                  "key_lookups": 1,
+                  "refine_rows": 0,
+                  "scan_calls": 16,
+                  "scan_rows": 16,
+                  "table": "Sin"
+                },
+                {
+                  "key_lookups": 6,
+                  "refine_rows": 0,
+                  "scan_calls": 24,
+                  "scan_rows": 24,
+                  "table": "Cos"
+                },
+                {
+                  "key_lookups": 58,
+                  "refine_rows": 0,
+                  "scan_calls": 14,
+                  "scan_rows": 14,
+                  "table": "Const"
+                },
+                {
+                  "key_lookups": 21,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "Var"
+                },
+                {
+                  "key_lookups": 662,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_0"
+                },
+                {
+                  "key_lookups": 454,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_1"
+                },
+                {
+                  "key_lookups": 1505,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_2"
+                },
+                {
+                  "key_lookups": 291,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_3"
+                },
+                {
+                  "key_lookups": 43,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_4"
+                },
+                {
+                  "key_lookups": 123,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_9"
+                },
+                {
+                  "key_lookups": 94,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_10"
+                },
+                {
+                  "key_lookups": 1,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_13"
+                },
+                {
+                  "key_lookups": 22,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_14"
+                },
+                {
+                  "key_lookups": 45,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_15"
+                },
+                {
+                  "key_lookups": 1,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_17"
+                },
+                {
+                  "key_lookups": 1,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_19"
+                },
+                {
+                  "key_lookups": 16,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_21"
+                }
+              ]
+            },
+            "fallback_matches": 0,
+            "prepare_seconds": 2.08e-07,
+            "interface_snapshots": []
+          },
+          "mode": "control",
+          "repeat": 0
+        },
+        {
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-binaries/profile",
+            "frozen",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-profile/math6/source.egg",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-transitions-profile/math6/residual-0",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+          ],
+          "process_wall_seconds": 0.05,
+          "peak_rss_bytes": 10452992,
+          "user_seconds": 0.03,
+          "system_seconds": 0.01,
+          "observed_wall_seconds": 0.07346183294430375,
+          "result": {
+            "seconds": 0.04469675,
+            "execution_seconds": 0.008645333,
+            "matches": 3376,
+            "final": {
+              "eclasses": 748,
+              "enodes": 2167,
+              "rss_bytes": 10371072
+            },
+            "join_reads": {
+              "scope": "native search/apply row work, includes coverage probes and summary relations; not an abstract Join operator count",
+              "tables": [
+                {
+                  "table": "$uf",
+                  "unavailable": true
+                },
+                {
+                  "key_lookups": 238,
+                  "refine_rows": 0,
+                  "scan_calls": 72,
+                  "scan_rows": 461,
+                  "table": "Diff"
+                },
+                {
+                  "key_lookups": 365,
+                  "refine_rows": 1,
+                  "scan_calls": 146,
+                  "scan_rows": 995,
+                  "table": "Integral"
+                },
+                {
+                  "key_lookups": 4777,
+                  "refine_rows": 0,
+                  "scan_calls": 1056,
+                  "scan_rows": 12744,
+                  "table": "Add"
+                },
+                {
+                  "key_lookups": 4,
+                  "refine_rows": 0,
+                  "scan_calls": 30,
+                  "scan_rows": 198,
+                  "table": "Sub"
+                },
+                {
+                  "key_lookups": 1693,
+                  "refine_rows": 0,
+                  "scan_calls": 1935,
+                  "scan_rows": 13211,
+                  "table": "Mul"
+                },
+                {
+                  "key_lookups": 3,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "Div"
+                },
+                {
+                  "key_lookups": 2,
+                  "refine_rows": 0,
+                  "scan_calls": 29,
+                  "scan_rows": 53,
+                  "table": "Pow"
+                },
+                {
+                  "key_lookups": 1,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "Ln"
+                },
+                {
+                  "key_lookups": 2,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "Sqrt"
+                },
+                {
+                  "key_lookups": 1,
+                  "refine_rows": 0,
+                  "scan_calls": 16,
+                  "scan_rows": 16,
+                  "table": "Sin"
+                },
+                {
+                  "key_lookups": 6,
+                  "refine_rows": 0,
+                  "scan_calls": 24,
+                  "scan_rows": 24,
+                  "table": "Cos"
+                },
+                {
+                  "key_lookups": 58,
+                  "refine_rows": 0,
+                  "scan_calls": 14,
+                  "scan_rows": 14,
+                  "table": "Const"
+                },
+                {
+                  "key_lookups": 21,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "Var"
+                },
+                {
+                  "key_lookups": 0,
+                  "refine_rows": 473,
+                  "scan_calls": 407,
+                  "scan_rows": 2338,
+                  "table": "adaptive_cell_view_0"
+                },
+                {
+                  "key_lookups": 2592,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_cell_cover_0"
+                },
+                {
+                  "key_lookups": 662,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_0"
+                },
+                {
+                  "key_lookups": 454,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_1"
+                },
+                {
+                  "key_lookups": 1505,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_2"
+                },
+                {
+                  "key_lookups": 291,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_3"
+                },
+                {
+                  "key_lookups": 43,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_4"
+                },
+                {
+                  "key_lookups": 123,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_9"
+                },
+                {
+                  "key_lookups": 94,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_10"
+                },
+                {
+                  "key_lookups": 1,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_13"
+                },
+                {
+                  "key_lookups": 22,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_14"
+                },
+                {
+                  "key_lookups": 45,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_15"
+                },
+                {
+                  "key_lookups": 1,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_17"
+                },
+                {
+                  "key_lookups": 1,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_19"
+                },
+                {
+                  "key_lookups": 16,
+                  "refine_rows": 0,
+                  "scan_calls": 0,
+                  "scan_rows": 0,
+                  "table": "adaptive_instance_21"
+                }
+              ]
+            },
+            "fallback_matches": 606,
+            "prepare_seconds": 0.000349166,
+            "interface_snapshots": [
+              {
+                "fallback_matches": 7,
+                "plans": [
+                  {
+                    "covered_keys": 7,
+                    "fallback_matches": 7,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 7
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 14,
+                "plans": [
+                  {
+                    "covered_keys": 27,
+                    "fallback_matches": 14,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 27
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 31,
+                "plans": [
+                  {
+                    "covered_keys": 58,
+                    "fallback_matches": 31,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 58
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 125,
+                "plans": [
+                  {
+                    "covered_keys": 183,
+                    "fallback_matches": 125,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 183
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 261,
+                "plans": [
+                  {
+                    "covered_keys": 440,
+                    "fallback_matches": 261,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 440
+                  }
+                ]
+              },
+              {
+                "fallback_matches": 168,
+                "plans": [
+                  {
+                    "covered_keys": 592,
+                    "fallback_matches": 168,
+                    "view": "adaptive_cell_view_0",
+                    "view_rows": 592
+                  }
+                ]
+              }
+            ]
+          },
+          "mode": "residual",
+          "repeat": 0
+        }
+      ],
+      "medians": {
+        "control": {
+          "seconds": 0.04242225,
+          "execution_seconds": 0.008294876,
+          "matches": 3376,
+          "fallback_matches": 0,
+          "prepare_seconds": 2.08e-07,
+          "peak_rss_bytes": 9797632
+        },
+        "residual": {
+          "seconds": 0.04469675,
+          "execution_seconds": 0.008645333,
+          "matches": 3376,
+          "fallback_matches": 606,
+          "prepare_seconds": 0.000349166,
+          "peak_rss_bytes": 10452992
+        }
+      },
+      "proof": [
+        {
+          "anchor": "Add",
+          "coverage": "adaptive_cell_cover_0",
+          "internal_atoms": 1,
+          "internal_pattern": "(Add b c)",
+          "original_lhs_atoms": 2,
+          "residual": "(= adaptive_root (Add a adaptive_cell_cut_0)) (= adaptive_cell_cut_0 (adaptive_cell_view_0 b c))",
+          "residual_lhs_atoms": 2,
+          "scope": "positive constructor functions; all pattern variables determined by unique anchor keys; metadata is maintained by native union/rebuild",
+          "source_cell": 0,
+          "spec": {
+            "anchor_path": [],
+            "consumer_rule": 2,
+            "cut_path": [
+              1
+            ],
+            "source_rule": 0
+          },
+          "symbolic_binding_rows": [
+            [
+              [
+                0,
+                1,
+                2
+              ],
+              [
+                0,
+                1
+              ]
+            ],
+            [
+              [
+                1,
+                0,
+                2
+              ],
+              [
+                1,
+                0
+              ]
+            ]
+          ],
+          "target_cell": 2,
+          "view": "adaptive_cell_view_0"
+        }
+      ],
+      "compiled_plan_bytes": 952,
+      "generated_program_bytes": 9951,
+      "library_bytes": 22017
+    }
+  },
+  "parent_commit": "ff59399d616a5438ac5360f1b3dacd98ba4b2f5f",
+  "working_tree_dirty": true
+}

@@ -858,6 +858,29 @@ impl<'a> JoinState<'a> {
         for (id, atom) in plan.atoms().iter() {
             bindings.insert_subset(id, self.db.get_table(atom.table).all());
         }
+        if let Some((anchor, coverage)) = self.db.key_coverage.get(rule) {
+            let plan_atoms=plan.atoms();
+            let atoms=plan_atoms.iter().filter(|(_,a)|a.table==*anchor).collect::<Vec<_>>();
+            if let [(id, atom)] = atoms.as_slice() {
+                let n=self.db.get_table_info(*anchor).spec.n_keys;
+                if n>0 && n==self.db.get_table_info(*coverage).spec.n_keys {
+                    struct Uncovered<'a> { covered: &'a crate::table_spec::WrappedTable, rows: Pooled<SortedOffsetVector> }
+                    impl crate::row_buffer::RowSink for Uncovered<'_> {
+                        fn add_row(&mut self,id:RowId,row:&[Value]) {
+                            if self.covered.get_row(row).is_none() {self.rows.push(id);}
+                        }
+                    }
+                    let table=self.db.get_table(atom.table);
+                    let mut subset=table.all();
+                    for h in plan.header().iter().filter(|h|h.atom==*id) {subset.intersect(h.subset.as_ref(),&self.pool);}
+                    let cols=(0..n).map(ColumnId::from_usize).collect::<Vec<_>>();
+                    let mut sink=Uncovered{covered:self.db.get_table(*coverage),rows:with_pool_set(|ps|ps.get())};
+                    let mut offset=Offset::new(0);
+                    while let Some(next)=table.scan_project(subset.as_ref(),&cols,offset,usize::MAX,&[],&mut sink) {offset=next;}
+                    bindings.insert_subset(*id,Subset::Sparse(sink.rows));
+                }
+            }
+        }
         let Some((root_table, excluded)) = self.db.excluded_roots.get(rule) else { return bindings; };
         // Frontend normalization renames variables. Select the unique tree root
         // structurally: its result is not used as another atom's key.
