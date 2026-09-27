@@ -1,0 +1,200 @@
+--- a/dag_in_context/src/tiger/main.cpp
++++ a/dag_in_context/src/tiger/main.cpp
+@@ -5,6 +5,7 @@
+ #include<stdexcept>
+ 
+ #include "main.h"
++#include "prof.h"
+ #include "json2egraphin.h"
+ #include "regionalize.h"
+ #include "toegglog.h"
+\ No newline at end of file
+@@ -93,7 +94,9 @@
+     // When --time-ilp is combined with --ilp-solver cbc, skip the Gurobi run so timing
+     // works on machines without gurobi_cl. CBC is always timed.
+     g_config.time_ilp_run_gurobi = use_gurobi_solver;
++    prof_begin();
+     pair<EGraph, vector<EClassId> > res = parse_egglog_json();
++    prof_end("1_parse_egglog_json");
+     EGraph &g = res.first;
+     vector<EClassId> &roots = res.second;
+     if (g_config.time_ilp && g_config.extract_region_timings_path.empty()) {
+\ No newline at end of file
+@@ -105,7 +108,9 @@
+     if (g_config.ilp_mode) {
+         extractions = extractAllILP(g, roots, use_gurobi_solver);
+     } else {
++        prof_begin();
+         extractions = extract_all_fun_roots_tiger(g, roots);
++        prof_end("2_extract_all_fun_roots");
+     }
+ 
+     if (g_config.time_ilp) {
+\ No newline at end of file
+@@ -116,6 +121,9 @@
+         }
+     }
+ 
++    prof_begin();
+     output_egglog(g, extractions);
++    prof_end("3_output_egglog");
++    prof_dump();
+     return 0;
+ }
+\ No newline at end of file
+--- a/dag_in_context/src/tiger/regionalize.cpp
++++ a/dag_in_context/src/tiger/regionalize.cpp
+@@ -4,6 +4,7 @@
+ #include "tiger.h"
+ 
+ #include "debug.h"
++#include "prof.h"
+ 
+ using namespace std;
+ 
+@@ -14,6 +15,7 @@
+ vector<EClassId> region_eclass_inv;
+ 
+ pair<EGraph, pair<EClassId, EGraphMapping> > construct_regionalized_egraph(const EGraph &g, const EClassId root) {
++    prof_begin();
+     region_vis.resize(g.neclasses(), 0);
+     region_eclass_inv.resize(g.neclasses());
+     ++timestamp;
+@@ -99,6 +101,7 @@
+         grp2gr.eclassidmp[i] = gr2g[grp2gr.eclassidmp[i]];        
+     }
+     DEBUG_ASSERT(is_valid_egraph_mapping(grp2gr, grp, g, false, true, false, false));
++    prof_end("2a_construct_regionalized");
+     return make_pair(grp, make_pair(nroot, grp2gr));
+ }
+ 
+@@ -108,6 +111,7 @@
+         return region_extraction_cache[rid].second;
+     }
+     if (region_extraction_cache[rid].first.size() == 0) {
++        prof_begin();
+         // if has not been computed yet
+         pair<EGraph, pair<EClassId, EGraphMapping> > res = construct_regionalized_egraph(g, root);
+         const EGraph &gr = res.first;
+@@ -115,8 +119,10 @@
+         const EGraphMapping &gr2g = res.second.second;
+         Extraction tmpe = extract_regionalized_egraph_tiger(gr, nroot, project_statewalk_cost(gr2g, statewalk_cost), true, true);
+         region_extraction_cache[rid].first = project_extraction(gr2g, tmpe);
++        prof_end("2b_region_tiger_compute");
+     }
+ 
++    prof_begin();
+     vector<ExtractionENodeId> subregions;
+     for (ExtractionENodeId i = 0; i < (ExtractionENodeId)region_extraction_cache[rid].first.size(); ++i) {
+         ExtractionENode &en = region_extraction_cache[rid].first[i];
+@@ -156,7 +162,7 @@
+             }
+         }
+     }
+-    return region_extraction_cache[rid].second = e.size() - 1;
++    { ExtractionENodeId _r = e.size() - 1; region_extraction_cache[rid].second = _r; prof_end("2c_region_splice"); return _r; }
+ }
+ 
+ vector<EClassId> find_all_region_roots(const EGraph &g, const vector<EClassId> &fun_roots) {
+@@ -192,20 +198,26 @@
+             }
+         }
+     }
++    prof_end("2d_extract_regions_loop");
+     return ret;
+ }
+ 
+ vector<Extraction> extract_all_fun_roots_tiger(const EGraph &g, const vector<EClassId> &fun_roots) {
+ 
++    prof_begin();
+     vector<EClassId> region_roots = find_all_region_roots(g, fun_roots);
++    prof_end("1a_find_all_region_roots");
+     
+     vector<RegionId> region_root_id(g.neclasses(), -1);
+     for (size_t i = 0; i < region_roots.size(); ++i) {
+         region_root_id[region_roots[i]] = i;
+     }
+ 
++    prof_begin();
+     vector<vector<Cost> > statewalk_cost = compute_statewalk_cost(g);
++    prof_end("1b_compute_statewalk_cost");
+ 
++    prof_begin();
+     vector<pair<Extraction, ExtractionENodeId> > region_extraction_cache(region_roots.size());    
+     vector<Extraction> ret(fun_roots.size());
+     for (size_t i = 0; i < fun_roots.size(); ++i) {
+--- a/dag_in_context/src/tiger/tiger.cpp
++++ a/dag_in_context/src/tiger/tiger.cpp
+@@ -2,6 +2,7 @@
+ #include "statewalkdp.h"
+ #include "greedy.h"
+ #include "debug.h"
++#include "prof.h"
+ 
+ pair<EGraph, EGraphMapping> rebuild_egraph_statewalk(const EGraph &g, const Statewalk &sw) {
+     EGraph gp;
+\ No newline at end of file
+@@ -57,17 +58,25 @@
+                                              const vector<vector<Cost> > &statewalk_cost,
+                                              bool use_liveness,
+                                              bool use_satellite_opt) {
++    prof_begin();
+     Statewalk sw = statewalkDP(g, root, statewalk_cost, use_liveness, use_satellite_opt, nullptr);
++    prof_end("2b_i_statewalkDP");
+ 
++    prof_begin();
+     pair<EGraph, EGraphMapping> res = rebuild_egraph_statewalk(g, sw);
++    prof_end("2b_ii_rebuild");
+     const EGraph &gp = res.first;
+     const EGraphMapping &gp2g = res.second;
++    prof_begin();
+    	pair<EGraph, EGraphMapping> res2 = prune_unextractable_enodes(gp, root);
++    prof_end("2b_iii_prune_rebuilt");
+     const EGraph &gpp = res2.first;
+     const EGraphMapping &gp2gpp = res2.second;
+     // root eclass id is unchanged from g to gp
+     const EClassId nroot = gp2gpp.eclassidmp[root];
++    prof_begin();
+     Extraction e = project_extraction(gp2g, project_extraction(inverse_egraph_mapping(gpp, gp2gpp), statewalk_greedy_extraction(gpp, nroot)));
++    prof_end("2b_iv_greedy_extract");
+     DEBUG_ASSERT(is_effect_safe_extraction(g, root, e));
+     return e;
+ }
+\ No newline at end of file
+--- a/dag_in_context/src/tiger/json2egraphin.cpp
++++ a/dag_in_context/src/tiger/json2egraphin.cpp
+@@ -8,6 +8,7 @@
+ #include "debug.h"
+ 
+ #include "json2egraphin.h"
++#include "prof.h"
+ 
+ using namespace std;
+ 
+@@ -500,18 +501,20 @@
+ }
+ 
+ pair<EGraph, vector<EClassId> > parse_egglog_json() {
+-	read_nodes();
+-	propagate_effectful_types();
+-	mark_effectful_exprs();
+-	vector<EClassId> roots = find_function_roots();
++	prof_begin(); read_nodes(); prof_end("1a_read_nodes");
++	prof_begin(); propagate_effectful_types(); prof_end("1b_propagate_effectful");
++	prof_begin(); mark_effectful_exprs(); prof_end("1c_mark_effectful");
++	prof_begin(); vector<EClassId> roots = find_function_roots(); prof_end("1d_find_function_roots");
+ 	reachable = vector<bool>(raw_egraph.size(), false);
+ 	necessary_types = vector<bool>(raw_egraph.size(), false);	
++	prof_begin();
+ 	for (int i = 0; i < (int)roots.size(); ++i) {
+ 		mark_reachable(roots[i]);
+ 	}
+-	EGraph g = build_simple_egraph();
++	prof_end("1e_mark_reachable");
++	prof_begin(); EGraph g = build_simple_egraph(); prof_end("1f_build_simple_egraph");
+ 	DEBUG_ASSERT(is_wellformed_egraph(g, true, true));
+-	pair<EGraph, EGraphMapping> p = prune_unextractable_enodes(g);
++	prof_begin(); pair<EGraph, EGraphMapping> p = prune_unextractable_enodes(g); prof_end("1g_prune_top");
+     vector<EClassId> new_roots(roots.size());
+     for (size_t i = 0; i < roots.size(); ++i) {
+ 		DEBUG_ASSERT(new_eclassidmp.count(roots[i]));

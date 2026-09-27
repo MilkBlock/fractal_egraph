@@ -1,0 +1,165 @@
+{
+  "source": "check_statewalk@ae80f82a dag_in_context/src/tiger",
+  "benchmark": "benchmarks/passing/raytrace/raytrace.rs",
+  "tiger_build": "g++ -std=c++17 -O3 -Wno-unused-result (same flags as dag_in_context/build.rs)",
+  "profiler": "macOS sample(1ms) + phase timers (rdtsc-free steady_clock)",
+  "eggcc_reported": {
+    "wall_s": 53.724,
+    "eggcc_compile_s": 52.944,
+    "eggcc_extraction_s": 7.925,
+    "eggcc_serialization_s": 1.874
+  },
+  "dumps": {
+    "1": {
+      "bytes": 72797320,
+      "nodes": 247299,
+      "real_warm_s": 0.91,
+      "phase_s": {
+        "parse_egglog_json": 0.4968,
+        "read_nodes": 0.4557,
+        "build_simple_egraph": 0.0131,
+        "prune_top": 0.0074,
+        "mark_reachable": 0.0059,
+        "propagate_effectful": 0.005,
+        "mark_effectful": 0.0038,
+        "find_function_roots": 0.0018,
+        "extract_all_fun_roots": 0.3183,
+        "compute_statewalk_cost": 0.2229,
+        "construct_regionalized": 0.0221,
+        "region_tiger_compute": 0.092,
+        "statewalkDP": 0.0111,
+        "greedy_extract": 0.0335,
+        "prune_rebuilt": 0.0083,
+        "rebuild_statewalk": 0.0059,
+        "output_egglog": 0.0021
+      }
+    },
+    "2": {
+      "bytes": 189148980,
+      "nodes": 653093,
+      "real_warm_s": 2.86,
+      "phase_s": {
+        "parse_egglog_json": 1.5022,
+        "read_nodes": 1.3337,
+        "build_simple_egraph": 0.0585,
+        "prune_top": 0.029,
+        "mark_reachable": 0.0341,
+        "propagate_effectful": 0.0151,
+        "mark_effectful": 0.0115,
+        "find_function_roots": 0.005,
+        "extract_all_fun_roots": 1.0809,
+        "compute_statewalk_cost": 0.816,
+        "construct_regionalized": 0.037,
+        "region_tiger_compute": 0.2594,
+        "statewalkDP": 0.0177,
+        "greedy_extract": 0.1645,
+        "prune_rebuilt": 0.013,
+        "rebuild_statewalk": 0.0095,
+        "output_egglog": 0.0026
+      }
+    },
+    "3": {
+      "bytes": 212395955,
+      "nodes": 716893,
+      "real_warm_s": 2.71,
+      "phase_s": {
+        "parse_egglog_json": 1.5611,
+        "read_nodes": 1.4674,
+        "build_simple_egraph": 0.0268,
+        "prune_top": 0.0138,
+        "mark_reachable": 0.0141,
+        "propagate_effectful": 0.0153,
+        "mark_effectful": 0.0117,
+        "find_function_roots": 0.0057,
+        "extract_all_fun_roots": 0.9206,
+        "compute_statewalk_cost": 0.7031,
+        "construct_regionalized": 0.0332,
+        "region_tiger_compute": 0.2112,
+        "statewalkDP": 0.0464,
+        "greedy_extract": 0.0912,
+        "prune_rebuilt": 0.0149,
+        "rebuild_statewalk": 0.009,
+        "output_egglog": 0.0048
+      }
+    }
+  },
+  "totals_3pass": {
+    "parse_egglog_json": 3.5601,
+    "read_nodes": 3.2568,
+    "build_simple_egraph": 0.0984,
+    "prune_top": 0.0502,
+    "mark_reachable": 0.0541,
+    "propagate_effectful": 0.0354,
+    "mark_effectful": 0.027,
+    "find_function_roots": 0.0125,
+    "extract_all_fun_roots": 2.3198,
+    "compute_statewalk_cost": 1.742,
+    "construct_regionalized": 0.0923,
+    "region_tiger_compute": 0.5626,
+    "statewalkDP": 0.0752,
+    "greedy_extract": 0.2892,
+    "prune_rebuilt": 0.0362,
+    "rebuild_statewalk": 0.0244,
+    "output_egglog": 0.0095,
+    "real_warm_s": 6.48
+  },
+  "shares_pct_of_tiger_wall": {
+    "parse_egglog_json": 54.9,
+    "read_nodes": 50.3,
+    "build_simple_egraph": 1.5,
+    "prune_top": 0.8,
+    "mark_reachable": 0.8,
+    "propagate_effectful": 0.5,
+    "mark_effectful": 0.4,
+    "find_function_roots": 0.2,
+    "extract_all_fun_roots": 35.8,
+    "compute_statewalk_cost": 26.9,
+    "construct_regionalized": 1.4,
+    "region_tiger_compute": 8.7,
+    "statewalkDP": 1.2,
+    "greedy_extract": 4.5,
+    "prune_rebuilt": 0.6,
+    "rebuild_statewalk": 0.4,
+    "output_egglog": 0.1
+  },
+  "sample_top_self_time": {
+    "dump3": {
+      "__svfscanf_l": 300,
+      "tiny_free_no_lock": 208,
+      "raw_eclassidmp rehash": 175,
+      "free_tiny": 152,
+      "tiny_malloc_from_free_list": 119,
+      "string->double emplace": 105,
+      "platform_memmove": 78,
+      "read_next_token": 70,
+      "statewalkDP": 13,
+      "greedy_extract_compute_eclasses_pick": 6
+    },
+    "thread_total_samples": {
+      "dump2": 2660,
+      "dump3": 2593
+    }
+  },
+  "sample_inclusive": {
+    "dump2": {
+      "parse_egglog_json": 1083,
+      "read_nodes": 1003,
+      "extract_all_fun_roots_tiger": 802,
+      "compute_statewalk_cost": 800,
+      "greedy_extract_compute_eclasses_pick": 186,
+      "extract_regionalized_egraph_tiger": 9,
+      "output_egglog": 3,
+      "thread_total": 2660
+    },
+    "dump3": {
+      "parse_egglog_json": 1333,
+      "read_nodes": 1252,
+      "extract_all_fun_roots_tiger": 671,
+      "compute_statewalk_cost": 670,
+      "greedy_extract_compute_eclasses_pick": 158,
+      "extract_regionalized_egraph_tiger": 21,
+      "output_egglog": 4,
+      "thread_total": 2593
+    }
+  }
+}
