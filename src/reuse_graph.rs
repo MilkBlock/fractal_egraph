@@ -480,3 +480,5 @@ pub mod native_storage;
 pub mod ripsat_runtime;
 #[path = "reuse_adaptive.rs"]
 pub mod adaptive;
+#[path = "reuse_enclosure_audit.rs"]
+pub mod enclosure_audit;

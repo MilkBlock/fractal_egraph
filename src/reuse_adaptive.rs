@@ -267,7 +267,12 @@ fn install(eg: &mut EGraph, id: usize, r: &Rule, m: Option<&Macro>) -> Result<St
 }
 // Instance rows are emitted by macro actions. No saturated-body query/rematching:
 // each row is the binding matrix required by native storage validation.
-fn pack_instances(eg: &mut EGraph, bake: &Bake, min_reuse: usize) -> Result<Value> {
+fn pack_instances(
+    eg: &mut EGraph,
+    bake: &Bake,
+    min_reuse: usize,
+    audit: &mut Option<super::enclosure_audit::Audit>,
+) -> Result<Value> {
     let mut instances = 0;
     let mut templates = vec![];
     for (id, m) in &bake.macros {
@@ -276,6 +281,9 @@ fn pack_instances(eg: &mut EGraph, bake: &Bake, min_reuse: usize) -> Result<Valu
             continue;
         }
         let bindings = eg.drain_notification_relation(&name)?;
+        if let Some(a) = audit.as_mut() {
+            a.observe(eg, m, &bindings)?;
+        }
         instances += bindings.len();
         if bindings.len() < min_reuse {
             templates.push(json!({"rule":id,"instances":bindings.len(),"packed":false,"reason":"insufficient distinct instances in this batch"}));
@@ -367,7 +375,14 @@ pub fn run(source: &str, input: Option<&Path>, out: &Path, mode: &str) -> Result
     if min_reuse == 0 {
         return Err("minimum template reuse must be positive".into());
     }
-    run_with_min_reuse(source, input, out, mode, min_reuse)
+    run_impl(
+        source,
+        input,
+        out,
+        mode,
+        min_reuse,
+        std::env::var("EGG_LAYOUT_AUDIT_ENCLOSURES").is_ok_and(|s| s == "1"),
+    )
 }
 /// Explicit policy for reproducible ablations; 1 restores unrestricted admission.
 pub fn run_with_min_reuse(
@@ -376,6 +391,25 @@ pub fn run_with_min_reuse(
     out: &Path,
     mode: &str,
     min_reuse: usize,
+) -> Result<Value> {
+    run_impl(source, input, out, mode, min_reuse, false)
+}
+pub fn run_audit(
+    source: &str,
+    input: Option<&Path>,
+    out: &Path,
+    mode: &str,
+    min_reuse: usize,
+) -> Result<Value> {
+    run_impl(source, input, out, mode, min_reuse, true)
+}
+fn run_impl(
+    source: &str,
+    input: Option<&Path>,
+    out: &Path,
+    mode: &str,
+    min_reuse: usize,
+    audit_enabled: bool,
 ) -> Result<Value> {
     if min_reuse == 0 {
         return Err("minimum template reuse must be positive".into());
@@ -441,6 +475,8 @@ pub fn run_with_min_reuse(
             },
         )?);
     }
+    let mut audit = audit_enabled.then(super::enclosure_audit::Audit::default);
+    let trace = audit_enabled.then(egglog::TraceSession::with_dependencies);
     let mut samples = vec![];
     let mut round = 0;
     let mut total = 0;
@@ -462,7 +498,15 @@ pub fn run_with_min_reuse(
                         &format!("(unstable-combined-ruleset {set} {})", selected.join(" ")),
                     )?;
                     let t = Instant::now();
-                    let report = eg.step_rules(&set)?;
+                    let (report, audit_report) = if let Some(a) = audit.as_mut() {
+                        let trace = trace.as_ref().unwrap();
+                        a.begin(&eg);
+                        let report = eg.step_rules_with_trace(&set, trace)?;
+                        let stats = a.finish(&eg, trace, trace.drain_completed());
+                        (report, stats)
+                    } else {
+                        (eg.step_rules(&set)?, Value::Null)
+                    };
                     execution_seconds += t.elapsed().as_secs_f64();
                     let matches = report.num_matches_per_rule.values().sum::<usize>();
                     total += matches;
@@ -475,7 +519,7 @@ pub fn run_with_min_reuse(
                     let source_matches = matches - macro_matches;
                     let t = Instant::now();
                     let packing = if mode != "native" {
-                        pack_instances(&mut eg, &bake, min_reuse)?
+                        pack_instances(&mut eg, &bake, min_reuse, &mut audit)?
                     } else {
                         json!({"processed_instance_packets":0,"virtual_rows":0})
                     };
@@ -513,7 +557,7 @@ pub fn run_with_min_reuse(
                     learning_seconds += t.elapsed().as_secs_f64();
                     let library_bytes =
                         save_bake(out, &format!("bake_lib_round{round}"), &bake, &rules)?;
-                    samples.push(json!({"round":round,"matches":matches,"macro_matches":macro_matches,"source_matches":source_matches,"cumulative_matches":total,"graph":counts(&eg),"packing":packing,"packing_seconds":packing_seconds,"admitted":admitted,"rejected":rejected,"library_bytes":library_bytes,"bodies":bake.macros.len(),"execution_seconds":execution_seconds,"learning_seconds":learning_seconds}));
+                    samples.push(json!({"round":round,"enclosure_audit":audit_report,"matches":matches,"macro_matches":macro_matches,"source_matches":source_matches,"cumulative_matches":total,"graph":counts(&eg),"packing":packing,"packing_seconds":packing_seconds,"admitted":admitted,"rejected":rejected,"library_bytes":library_bytes,"bodies":bake.macros.len(),"execution_seconds":execution_seconds,"learning_seconds":learning_seconds}));
                     std::fs::write(
                         out.join("progress.json"),
                         serde_json::to_vec_pretty(&samples)?,
@@ -530,6 +574,12 @@ pub fn run_with_min_reuse(
         }
     }
     save_bake(out, "bake_lib", &bake, &rules)?;
+    if std::env::var("EGG_LAYOUT_AUDIT_VERIFY").is_ok_and(|s| s == "1") {
+        std::fs::write(
+            out.join("verification-graph.json"),
+            serde_json::to_vec(&super::enclosure_audit::export_math(&eg))?,
+        )?;
+    }
     let report = json!({"mode":mode,"min_template_reuse":min_reuse,"seconds":started.elapsed().as_secs_f64(),"execution_seconds":execution_seconds,"learning_seconds":learning_seconds,"matches":total,"samples":samples,"final":counts(&eg),"storage":crate::reuse_graph::native_storage::storage_report(&eg),"scope":"actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed"});
     std::fs::write(out.join("report.json"), serde_json::to_vec_pretty(&report)?)?;
     Ok(report)
