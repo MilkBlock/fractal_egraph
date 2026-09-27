@@ -90,3 +90,60 @@ All 79 completed states have the same structure as the pre-change baseline, and 
 Local ripen history now defaults to committed-effect summaries. `EGG_LAYOUT_RIPEN_HISTORY=1` restores full local binding/layer diagnostics. `EGG_LAYOUT_FULL_TRACE=1` separately restores exhaustive weak-query binding lists; default lists are explicitly marked as existence/freshness witnesses. The proposed local provenance template feedback to tier0 is **not implemented**.
 
 Discarded experiments: alternate MinCover/PureSize planners triggered kernel assertions; vectorized effect actions changed fixed-budget branching histories; neither is retained. Parallel mutation initially exposed the shared database notification queue and was retained only after fixing clone isolation. Full LTO did not outperform ThinLTO here and was not retained. Larger thread counts and sweep sizes did not establish a stable win and did not replace defaults.
+
+## Native virtual facts comparison (2026-09-27)
+
+Measured the actual patched egglog runtime, using the same binary and the same
+`source.egg` (three rounds). This is not a standalone storage simulation. Native
+means no tracing, Bake library or virtualization; it is not a build of the pristine
+`egglog-baseline` tag. Measurements were taken on dirty HEAD `19de2fd`; source and
+binary hashes, individual samples and commands are in `virtual_facts.json`.
+
+| Mode | Worker time, median | Peak RSS, median |
+|---|---:|---:|
+| Native egglog | 3.591 ms | 7.281 MiB |
+| Library matching only | 10.337 ms | 10.188 MiB |
+| Library matching + virtual storage | 10.170 ms | 9.891 MiB |
+
+Three independent processes per mode, rotated execution order. Worker time includes
+source parsing, library loading, matching/packing, execution, report construction,
+and engine/library destruction; it excludes process startup and final stdout
+serialization. macOS `/usr/bin/time -l` supplies process peak RSS; its wall clock
+resolution is too coarse for these runs. Compilation and separate exact verification
+are excluded. This small sample does not establish a significant difference between
+matching-only and virtual storage.
+
+The library is built offline from round 1 only (343,263 bytes). Earlier preparation
+measurements were 0.62 s for capture and 0.01 s for library construction, excluded
+from runtime. Loading the library is included: virtual median 6.208 ms. Matching
+and packing together cost 0.382 ms. After round 1, only 25 unique existing native
+rows are virtualized: Add 13, Mul 10, Pow 1, Const 1, using three templates/binding
+matrices. Rounds 2–3 run normally; new rows remain in the dense overlay, without
+continuous repacking. Global native hash/provenance indexes are retained.
+
+Exact final graph comparison in separate processes passes for both matching-only
+and virtual modes: 208 rows and 124 typed values, including literals (not 124
+eclasses). The check compares facts, equality and visibility. Native virtual-fact
+regressions also cover union/rebuild, function merge, subsume/delete, producer
+certificates, cached joins, clone isolation and materialization.
+
+**No speed or memory benefit on mini3:** virtual worker time is approximately
+2.83 times native and peak RSS is 35.8% higher. Library loading dominates runtime;
+25 packed rows do not amortize library, template and index overhead. Row-payload
+accounting is not a substitute for process RSS.
+
+Separately, the full analysis pipeline (history, CS, ripen, equivalence and weak
+dominate; graph output disabled) took 1.54 s and 639.41 MiB peak RSS in one run.
+It performs additional work and is not a like-for-like native execution comparison.
+Time-limited unfinished ripen work can vary between runs.
+
+Reproduce (new output directory required):
+
+```sh
+cargo build --release --offline --bin egg_layout --example virtual_math_bench
+python3 tools/bench/math_virtual.py --output out/math-virtual-new
+```
+
+`--library path/to/library.json` reuses an existing library; `--runs 3` controls
+repetitions and `--skip-analysis` omits the separate analysis measurement. External
+30-second/4-GiB process guards protect the experiment, not the inference algorithm.

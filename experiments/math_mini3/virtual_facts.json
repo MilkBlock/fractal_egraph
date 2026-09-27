@@ -1,0 +1,1905 @@
+{
+  "schema": "math-virtual-bench/v1",
+  "commit": "19de2fd53485a91e8f38de57c092411be7d1c5c2",
+  "working_tree_dirty": true,
+  "source": "experiments/math_mini3/source.egg",
+  "source_sha256": "ac498b753752adb472a536f01a1f8411fc193a982516513c90eefb4585194015",
+  "runtime_binary_sha256": "70a5383801f7d210e4ebcf2442a2fe27ccb0afe61ee1052dd41273bf1bdf52fd",
+  "external_guard": {
+    "seconds": 30,
+    "process_group_rss_bytes": 4294967296
+  },
+  "notes": [
+    "same mini3 source and three rounds",
+    "virtual intervention after round 1",
+    "internal time includes source parsing, library loading, matching and packing",
+    "worker time additionally includes report construction and engine/library drop; final stdout serialization excluded",
+    "native means the same current kernel with no trace/Bake/virtualization; not the pristine egglog-baseline tag",
+    "process RSS includes runtime/library/report allocations, excludes offline Bake and verification",
+    "macOS time -l reports RSS in bytes; process wall clock has coarse resolution",
+    "analysis workload includes trace/ripen and is not a native speedup comparison"
+  ],
+  "runs": [
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/virtual_math_bench",
+        "native",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-virtual-mini3-20260927/library.json"
+      ],
+      "process_wall_seconds": 0.0,
+      "peak_rss_bytes": 7553024,
+      "observed_wall_seconds": 0.010512250009924173,
+      "result": {
+        "boundary_tables": {
+          "Add": 20,
+          "Const": 5,
+          "Cos": 1,
+          "Diff": 5,
+          "Div": 3,
+          "Integral": 6,
+          "Ln": 1,
+          "Mul": 17,
+          "Pow": 2,
+          "Sin": 0,
+          "Sqrt": 1,
+          "Sub": 5,
+          "Var": 3
+        },
+        "final_storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 0,
+          "binding_payload_bytes": 0,
+          "tables": [],
+          "template_header_bytes": 0,
+          "template_payload_bytes": 0,
+          "unique_binding_matrices": 0,
+          "unique_templates": 0
+        },
+        "internal_seconds": 0.003019417,
+        "intervention": null,
+        "library_load_seconds": 4.2e-08,
+        "match_and_pack_seconds": 0.0,
+        "mode": "native",
+        "round_seconds": [
+          0.000103333,
+          0.0002015,
+          0.0002375
+        ],
+        "rounds": 3,
+        "tables": {
+          "Add": 69,
+          "Const": 5,
+          "Cos": 1,
+          "Diff": 20,
+          "Div": 3,
+          "Integral": 15,
+          "Ln": 1,
+          "Mul": 77,
+          "Pow": 2,
+          "Sin": 1,
+          "Sqrt": 1,
+          "Sub": 10,
+          "Var": 3
+        },
+        "worker_seconds_including_drop": 0.00348575
+      },
+      "mode": "native",
+      "repetition": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/virtual_math_bench",
+        "match",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-virtual-mini3-20260927/library.json"
+      ],
+      "process_wall_seconds": 0.01,
+      "peak_rss_bytes": 10682368,
+      "observed_wall_seconds": 0.020388000062666833,
+      "result": {
+        "boundary_tables": {
+          "Add": 20,
+          "Const": 5,
+          "Cos": 1,
+          "Diff": 5,
+          "Div": 3,
+          "Integral": 6,
+          "Ln": 1,
+          "Mul": 17,
+          "Pow": 2,
+          "Sin": 0,
+          "Sqrt": 1,
+          "Sub": 5,
+          "Var": 3
+        },
+        "final_storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 0,
+          "binding_payload_bytes": 0,
+          "tables": [],
+          "template_header_bytes": 0,
+          "template_payload_bytes": 0,
+          "unique_binding_matrices": 0,
+          "unique_templates": 0
+        },
+        "internal_seconds": 0.00965425,
+        "intervention": {
+          "admissions": [
+            {
+              "matched_instances": 0,
+              "packing": false,
+              "pattern": 0
+            },
+            {
+              "matched_instances": 0,
+              "packing": false,
+              "pattern": 1
+            },
+            {
+              "matched_instances": 0,
+              "packing": false,
+              "pattern": 2
+            },
+            {
+              "matched_instances": 0,
+              "packing": false,
+              "pattern": 3
+            },
+            {
+              "matched_instances": 13,
+              "packing": false,
+              "pattern": 4
+            },
+            {
+              "matched_instances": 10,
+              "packing": false,
+              "pattern": 5
+            },
+            {
+              "matched_instances": 1,
+              "packing": false,
+              "pattern": 6
+            },
+            {
+              "matched_instances": 1,
+              "packing": false,
+              "pattern": 7
+            }
+          ],
+          "scope": "exact packing of already committed native facts; no inferred facts, approximate match or candidate budget",
+          "storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 0,
+            "binding_payload_bytes": 0,
+            "tables": [],
+            "template_header_bytes": 0,
+            "template_payload_bytes": 0,
+            "unique_binding_matrices": 0,
+            "unique_templates": 0
+          }
+        },
+        "library_load_seconds": 0.006486375,
+        "match_and_pack_seconds": 0.000300375,
+        "mode": "match",
+        "round_seconds": [
+          0.000113083,
+          0.000164667,
+          0.000246458
+        ],
+        "rounds": 3,
+        "tables": {
+          "Add": 69,
+          "Const": 5,
+          "Cos": 1,
+          "Diff": 20,
+          "Div": 3,
+          "Integral": 15,
+          "Ln": 1,
+          "Mul": 77,
+          "Pow": 2,
+          "Sin": 1,
+          "Sqrt": 1,
+          "Sub": 10,
+          "Var": 3
+        },
+        "worker_seconds_including_drop": 0.010337042
+      },
+      "mode": "match",
+      "repetition": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/virtual_math_bench",
+        "virtual",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-virtual-mini3-20260927/library.json"
+      ],
+      "process_wall_seconds": 0.01,
+      "peak_rss_bytes": 10371072,
+      "observed_wall_seconds": 0.019681625068187714,
+      "result": {
+        "boundary_tables": {
+          "Add": 20,
+          "Const": 5,
+          "Cos": 1,
+          "Diff": 5,
+          "Div": 3,
+          "Integral": 6,
+          "Ln": 1,
+          "Mul": 17,
+          "Pow": 2,
+          "Sin": 0,
+          "Sqrt": 1,
+          "Sub": 5,
+          "Var": 3
+        },
+        "final_storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 120,
+          "binding_payload_bytes": 172,
+          "tables": [
+            {
+              "dense_equivalent_bytes": 1380,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 7,
+              "direct_bytes": 1120,
+              "local_header_bytes": 488,
+              "metadata_bytes": 40,
+              "overlay_rows": 49,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Add",
+              "tombstones": 0,
+              "virtual_rows": 13
+            },
+            {
+              "dense_equivalent_bytes": 1560,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 7,
+              "direct_bytes": 1360,
+              "local_header_bytes": 488,
+              "metadata_bytes": 40,
+              "overlay_rows": 60,
+              "rebuild_rows_changed": 1,
+              "rebuild_rows_examined": 1,
+              "table": "Mul",
+              "tombstones": 1,
+              "virtual_rows": 10
+            },
+            {
+              "dense_equivalent_bytes": 40,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 1,
+              "direct_bytes": 20,
+              "local_header_bytes": 328,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Pow",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 80,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 4,
+              "direct_bytes": 64,
+              "local_header_bytes": 328,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Const",
+              "tombstones": 0,
+              "virtual_rows": 1
+            }
+          ],
+          "template_header_bytes": 304,
+          "template_payload_bytes": 160,
+          "unique_binding_matrices": 3,
+          "unique_templates": 3
+        },
+        "internal_seconds": 0.009513958,
+        "intervention": {
+          "admissions": [
+            {
+              "matched_instances": 0,
+              "pattern": 0
+            },
+            {
+              "matched_instances": 0,
+              "pattern": 1
+            },
+            {
+              "matched_instances": 0,
+              "pattern": 2
+            },
+            {
+              "matched_instances": 0,
+              "pattern": 3
+            },
+            {
+              "distinct_native_rows": 13,
+              "matched_instances": 13,
+              "pattern": 4,
+              "requested_rows": 26
+            },
+            {
+              "distinct_native_rows": 10,
+              "matched_instances": 10,
+              "pattern": 5,
+              "requested_rows": 20
+            },
+            {
+              "distinct_native_rows": 1,
+              "matched_instances": 1,
+              "pattern": 6,
+              "requested_rows": 1
+            },
+            {
+              "distinct_native_rows": 3,
+              "matched_instances": 1,
+              "pattern": 7,
+              "requested_rows": 3
+            }
+          ],
+          "scope": "exact packing of already committed native facts; no inferred facts, approximate match or candidate budget",
+          "storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 120,
+            "binding_payload_bytes": 172,
+            "tables": [
+              {
+                "dense_equivalent_bytes": 400,
+                "descriptor_bytes": 384,
+                "direct_base_rows": 7,
+                "direct_bytes": 140,
+                "local_header_bytes": 488,
+                "metadata_bytes": 40,
+                "overlay_rows": 0,
+                "rebuild_rows_changed": 0,
+                "rebuild_rows_examined": 0,
+                "table": "Add",
+                "tombstones": 0,
+                "virtual_rows": 13
+              },
+              {
+                "dense_equivalent_bytes": 340,
+                "descriptor_bytes": 384,
+                "direct_base_rows": 7,
+                "direct_bytes": 140,
+                "local_header_bytes": 488,
+                "metadata_bytes": 40,
+                "overlay_rows": 0,
+                "rebuild_rows_changed": 0,
+                "rebuild_rows_examined": 0,
+                "table": "Mul",
+                "tombstones": 0,
+                "virtual_rows": 10
+              },
+              {
+                "dense_equivalent_bytes": 40,
+                "descriptor_bytes": 48,
+                "direct_base_rows": 1,
+                "direct_bytes": 20,
+                "local_header_bytes": 328,
+                "metadata_bytes": 8,
+                "overlay_rows": 0,
+                "rebuild_rows_changed": 0,
+                "rebuild_rows_examined": 0,
+                "table": "Pow",
+                "tombstones": 0,
+                "virtual_rows": 1
+              },
+              {
+                "dense_equivalent_bytes": 80,
+                "descriptor_bytes": 96,
+                "direct_base_rows": 4,
+                "direct_bytes": 64,
+                "local_header_bytes": 328,
+                "metadata_bytes": 8,
+                "overlay_rows": 0,
+                "rebuild_rows_changed": 0,
+                "rebuild_rows_examined": 0,
+                "table": "Const",
+                "tombstones": 0,
+                "virtual_rows": 1
+              }
+            ],
+            "template_header_bytes": 304,
+            "template_payload_bytes": 160,
+            "unique_binding_matrices": 3,
+            "unique_templates": 3
+          }
+        },
+        "library_load_seconds": 0.006259625,
+        "match_and_pack_seconds": 0.000385541,
+        "mode": "virtual",
+        "round_seconds": [
+          0.000115625,
+          0.000214625,
+          0.000258416
+        ],
+        "rounds": 3,
+        "tables": {
+          "Add": 69,
+          "Const": 5,
+          "Cos": 1,
+          "Diff": 20,
+          "Div": 3,
+          "Integral": 15,
+          "Ln": 1,
+          "Mul": 77,
+          "Pow": 2,
+          "Sin": 1,
+          "Sqrt": 1,
+          "Sub": 10,
+          "Var": 3
+        },
+        "worker_seconds_including_drop": 0.010286
+      },
+      "mode": "virtual",
+      "repetition": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/virtual_math_bench",
+        "match",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-virtual-mini3-20260927/library.json"
+      ],
+      "process_wall_seconds": 0.01,
+      "peak_rss_bytes": 10502144,
+      "observed_wall_seconds": 0.020287792081944644,
+      "result": {
+        "boundary_tables": {
+          "Add": 20,
+          "Const": 5,
+          "Cos": 1,
+          "Diff": 5,
+          "Div": 3,
+          "Integral": 6,
+          "Ln": 1,
+          "Mul": 17,
+          "Pow": 2,
+          "Sin": 0,
+          "Sqrt": 1,
+          "Sub": 5,
+          "Var": 3
+        },
+        "final_storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 0,
+          "binding_payload_bytes": 0,
+          "tables": [],
+          "template_header_bytes": 0,
+          "template_payload_bytes": 0,
+          "unique_binding_matrices": 0,
+          "unique_templates": 0
+        },
+        "internal_seconds": 0.009318834,
+        "intervention": {
+          "admissions": [
+            {
+              "matched_instances": 0,
+              "packing": false,
+              "pattern": 0
+            },
+            {
+              "matched_instances": 0,
+              "packing": false,
+              "pattern": 1
+            },
+            {
+              "matched_instances": 0,
+              "packing": false,
+              "pattern": 2
+            },
+            {
+              "matched_instances": 0,
+              "packing": false,
+              "pattern": 3
+            },
+            {
+              "matched_instances": 13,
+              "packing": false,
+              "pattern": 4
+            },
+            {
+              "matched_instances": 10,
+              "packing": false,
+              "pattern": 5
+            },
+            {
+              "matched_instances": 1,
+              "packing": false,
+              "pattern": 6
+            },
+            {
+              "matched_instances": 1,
+              "packing": false,
+              "pattern": 7
+            }
+          ],
+          "scope": "exact packing of already committed native facts; no inferred facts, approximate match or candidate budget",
+          "storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 0,
+            "binding_payload_bytes": 0,
+            "tables": [],
+            "template_header_bytes": 0,
+            "template_payload_bytes": 0,
+            "unique_binding_matrices": 0,
+            "unique_templates": 0
+          }
+        },
+        "library_load_seconds": 0.006301291,
+        "match_and_pack_seconds": 0.00027375,
+        "mode": "match",
+        "round_seconds": [
+          0.000104625,
+          0.000154709,
+          0.000238209
+        ],
+        "rounds": 3,
+        "tables": {
+          "Add": 69,
+          "Const": 5,
+          "Cos": 1,
+          "Diff": 20,
+          "Div": 3,
+          "Integral": 15,
+          "Ln": 1,
+          "Mul": 77,
+          "Pow": 2,
+          "Sin": 1,
+          "Sqrt": 1,
+          "Sub": 10,
+          "Var": 3
+        },
+        "worker_seconds_including_drop": 0.010030875
+      },
+      "mode": "match",
+      "repetition": 1
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/virtual_math_bench",
+        "virtual",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-virtual-mini3-20260927/library.json"
+      ],
+      "process_wall_seconds": 0.01,
+      "peak_rss_bytes": 10665984,
+      "observed_wall_seconds": 0.018380458001047373,
+      "result": {
+        "boundary_tables": {
+          "Add": 20,
+          "Const": 5,
+          "Cos": 1,
+          "Diff": 5,
+          "Div": 3,
+          "Integral": 6,
+          "Ln": 1,
+          "Mul": 17,
+          "Pow": 2,
+          "Sin": 0,
+          "Sqrt": 1,
+          "Sub": 5,
+          "Var": 3
+        },
+        "final_storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 120,
+          "binding_payload_bytes": 172,
+          "tables": [
+            {
+              "dense_equivalent_bytes": 1380,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 7,
+              "direct_bytes": 1120,
+              "local_header_bytes": 488,
+              "metadata_bytes": 40,
+              "overlay_rows": 49,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Add",
+              "tombstones": 0,
+              "virtual_rows": 13
+            },
+            {
+              "dense_equivalent_bytes": 1560,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 7,
+              "direct_bytes": 1360,
+              "local_header_bytes": 488,
+              "metadata_bytes": 40,
+              "overlay_rows": 60,
+              "rebuild_rows_changed": 1,
+              "rebuild_rows_examined": 1,
+              "table": "Mul",
+              "tombstones": 1,
+              "virtual_rows": 10
+            },
+            {
+              "dense_equivalent_bytes": 40,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 1,
+              "direct_bytes": 20,
+              "local_header_bytes": 328,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Pow",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 80,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 4,
+              "direct_bytes": 64,
+              "local_header_bytes": 328,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Const",
+              "tombstones": 0,
+              "virtual_rows": 1
+            }
+          ],
+          "template_header_bytes": 304,
+          "template_payload_bytes": 160,
+          "unique_binding_matrices": 3,
+          "unique_templates": 3
+        },
+        "internal_seconds": 0.00943275,
+        "intervention": {
+          "admissions": [
+            {
+              "matched_instances": 0,
+              "pattern": 0
+            },
+            {
+              "matched_instances": 0,
+              "pattern": 1
+            },
+            {
+              "matched_instances": 0,
+              "pattern": 2
+            },
+            {
+              "matched_instances": 0,
+              "pattern": 3
+            },
+            {
+              "distinct_native_rows": 13,
+              "matched_instances": 13,
+              "pattern": 4,
+              "requested_rows": 26
+            },
+            {
+              "distinct_native_rows": 10,
+              "matched_instances": 10,
+              "pattern": 5,
+              "requested_rows": 20
+            },
+            {
+              "distinct_native_rows": 1,
+              "matched_instances": 1,
+              "pattern": 6,
+              "requested_rows": 1
+            },
+            {
+              "distinct_native_rows": 3,
+              "matched_instances": 1,
+              "pattern": 7,
+              "requested_rows": 3
+            }
+          ],
+          "scope": "exact packing of already committed native facts; no inferred facts, approximate match or candidate budget",
+          "storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 120,
+            "binding_payload_bytes": 172,
+            "tables": [
+              {
+                "dense_equivalent_bytes": 400,
+                "descriptor_bytes": 384,
+                "direct_base_rows": 7,
+                "direct_bytes": 140,
+                "local_header_bytes": 488,
+                "metadata_bytes": 40,
+                "overlay_rows": 0,
+                "rebuild_rows_changed": 0,
+                "rebuild_rows_examined": 0,
+                "table": "Add",
+                "tombstones": 0,
+                "virtual_rows": 13
+              },
+              {
+                "dense_equivalent_bytes": 340,
+                "descriptor_bytes": 384,
+                "direct_base_rows": 7,
+                "direct_bytes": 140,
+                "local_header_bytes": 488,
+                "metadata_bytes": 40,
+                "overlay_rows": 0,
+                "rebuild_rows_changed": 0,
+                "rebuild_rows_examined": 0,
+                "table": "Mul",
+                "tombstones": 0,
+                "virtual_rows": 10
+              },
+              {
+                "dense_equivalent_bytes": 40,
+                "descriptor_bytes": 48,
+                "direct_base_rows": 1,
+                "direct_bytes": 20,
+                "local_header_bytes": 328,
+                "metadata_bytes": 8,
+                "overlay_rows": 0,
+                "rebuild_rows_changed": 0,
+                "rebuild_rows_examined": 0,
+                "table": "Pow",
+                "tombstones": 0,
+                "virtual_rows": 1
+              },
+              {
+                "dense_equivalent_bytes": 80,
+                "descriptor_bytes": 96,
+                "direct_base_rows": 4,
+                "direct_bytes": 64,
+                "local_header_bytes": 328,
+                "metadata_bytes": 8,
+                "overlay_rows": 0,
+                "rebuild_rows_changed": 0,
+                "rebuild_rows_examined": 0,
+                "table": "Const",
+                "tombstones": 0,
+                "virtual_rows": 1
+              }
+            ],
+            "template_header_bytes": 304,
+            "template_payload_bytes": 160,
+            "unique_binding_matrices": 3,
+            "unique_templates": 3
+          }
+        },
+        "library_load_seconds": 0.006207917,
+        "match_and_pack_seconds": 0.000365,
+        "mode": "virtual",
+        "round_seconds": [
+          0.000106666,
+          0.000200667,
+          0.000262333
+        ],
+        "rounds": 3,
+        "tables": {
+          "Add": 69,
+          "Const": 5,
+          "Cos": 1,
+          "Diff": 20,
+          "Div": 3,
+          "Integral": 15,
+          "Ln": 1,
+          "Mul": 77,
+          "Pow": 2,
+          "Sin": 1,
+          "Sqrt": 1,
+          "Sub": 10,
+          "Var": 3
+        },
+        "worker_seconds_including_drop": 0.010170125
+      },
+      "mode": "virtual",
+      "repetition": 1
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/virtual_math_bench",
+        "native",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-virtual-mini3-20260927/library.json"
+      ],
+      "process_wall_seconds": 0.0,
+      "peak_rss_bytes": 7716864,
+      "observed_wall_seconds": 0.0104812498902902,
+      "result": {
+        "boundary_tables": {
+          "Add": 20,
+          "Const": 5,
+          "Cos": 1,
+          "Diff": 5,
+          "Div": 3,
+          "Integral": 6,
+          "Ln": 1,
+          "Mul": 17,
+          "Pow": 2,
+          "Sin": 0,
+          "Sqrt": 1,
+          "Sub": 5,
+          "Var": 3
+        },
+        "final_storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 0,
+          "binding_payload_bytes": 0,
+          "tables": [],
+          "template_header_bytes": 0,
+          "template_payload_bytes": 0,
+          "unique_binding_matrices": 0,
+          "unique_templates": 0
+        },
+        "internal_seconds": 0.0031315,
+        "intervention": null,
+        "library_load_seconds": 4.2e-08,
+        "match_and_pack_seconds": 0.0,
+        "mode": "native",
+        "round_seconds": [
+          0.000103042,
+          0.00017725,
+          0.0002395
+        ],
+        "rounds": 3,
+        "tables": {
+          "Add": 69,
+          "Const": 5,
+          "Cos": 1,
+          "Diff": 20,
+          "Div": 3,
+          "Integral": 15,
+          "Ln": 1,
+          "Mul": 77,
+          "Pow": 2,
+          "Sin": 1,
+          "Sqrt": 1,
+          "Sub": 10,
+          "Var": 3
+        },
+        "worker_seconds_including_drop": 0.003668
+      },
+      "mode": "native",
+      "repetition": 1
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/virtual_math_bench",
+        "virtual",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-virtual-mini3-20260927/library.json"
+      ],
+      "process_wall_seconds": 0.01,
+      "peak_rss_bytes": 10256384,
+      "observed_wall_seconds": 0.02026487502735108,
+      "result": {
+        "boundary_tables": {
+          "Add": 20,
+          "Const": 5,
+          "Cos": 1,
+          "Diff": 5,
+          "Div": 3,
+          "Integral": 6,
+          "Ln": 1,
+          "Mul": 17,
+          "Pow": 2,
+          "Sin": 0,
+          "Sqrt": 1,
+          "Sub": 5,
+          "Var": 3
+        },
+        "final_storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 120,
+          "binding_payload_bytes": 172,
+          "tables": [
+            {
+              "dense_equivalent_bytes": 1380,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 7,
+              "direct_bytes": 1120,
+              "local_header_bytes": 488,
+              "metadata_bytes": 40,
+              "overlay_rows": 49,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Add",
+              "tombstones": 0,
+              "virtual_rows": 13
+            },
+            {
+              "dense_equivalent_bytes": 1560,
+              "descriptor_bytes": 384,
+              "direct_base_rows": 7,
+              "direct_bytes": 1360,
+              "local_header_bytes": 488,
+              "metadata_bytes": 40,
+              "overlay_rows": 60,
+              "rebuild_rows_changed": 1,
+              "rebuild_rows_examined": 1,
+              "table": "Mul",
+              "tombstones": 1,
+              "virtual_rows": 10
+            },
+            {
+              "dense_equivalent_bytes": 40,
+              "descriptor_bytes": 48,
+              "direct_base_rows": 1,
+              "direct_bytes": 20,
+              "local_header_bytes": 328,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Pow",
+              "tombstones": 0,
+              "virtual_rows": 1
+            },
+            {
+              "dense_equivalent_bytes": 80,
+              "descriptor_bytes": 96,
+              "direct_base_rows": 4,
+              "direct_bytes": 64,
+              "local_header_bytes": 328,
+              "metadata_bytes": 8,
+              "overlay_rows": 0,
+              "rebuild_rows_changed": 0,
+              "rebuild_rows_examined": 0,
+              "table": "Const",
+              "tombstones": 0,
+              "virtual_rows": 1
+            }
+          ],
+          "template_header_bytes": 304,
+          "template_payload_bytes": 160,
+          "unique_binding_matrices": 3,
+          "unique_templates": 3
+        },
+        "internal_seconds": 0.009161958,
+        "intervention": {
+          "admissions": [
+            {
+              "matched_instances": 0,
+              "pattern": 0
+            },
+            {
+              "matched_instances": 0,
+              "pattern": 1
+            },
+            {
+              "matched_instances": 0,
+              "pattern": 2
+            },
+            {
+              "matched_instances": 0,
+              "pattern": 3
+            },
+            {
+              "distinct_native_rows": 13,
+              "matched_instances": 13,
+              "pattern": 4,
+              "requested_rows": 26
+            },
+            {
+              "distinct_native_rows": 10,
+              "matched_instances": 10,
+              "pattern": 5,
+              "requested_rows": 20
+            },
+            {
+              "distinct_native_rows": 1,
+              "matched_instances": 1,
+              "pattern": 6,
+              "requested_rows": 1
+            },
+            {
+              "distinct_native_rows": 3,
+              "matched_instances": 1,
+              "pattern": 7,
+              "requested_rows": 3
+            }
+          ],
+          "scope": "exact packing of already committed native facts; no inferred facts, approximate match or candidate budget",
+          "storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 120,
+            "binding_payload_bytes": 172,
+            "tables": [
+              {
+                "dense_equivalent_bytes": 400,
+                "descriptor_bytes": 384,
+                "direct_base_rows": 7,
+                "direct_bytes": 140,
+                "local_header_bytes": 488,
+                "metadata_bytes": 40,
+                "overlay_rows": 0,
+                "rebuild_rows_changed": 0,
+                "rebuild_rows_examined": 0,
+                "table": "Add",
+                "tombstones": 0,
+                "virtual_rows": 13
+              },
+              {
+                "dense_equivalent_bytes": 340,
+                "descriptor_bytes": 384,
+                "direct_base_rows": 7,
+                "direct_bytes": 140,
+                "local_header_bytes": 488,
+                "metadata_bytes": 40,
+                "overlay_rows": 0,
+                "rebuild_rows_changed": 0,
+                "rebuild_rows_examined": 0,
+                "table": "Mul",
+                "tombstones": 0,
+                "virtual_rows": 10
+              },
+              {
+                "dense_equivalent_bytes": 40,
+                "descriptor_bytes": 48,
+                "direct_base_rows": 1,
+                "direct_bytes": 20,
+                "local_header_bytes": 328,
+                "metadata_bytes": 8,
+                "overlay_rows": 0,
+                "rebuild_rows_changed": 0,
+                "rebuild_rows_examined": 0,
+                "table": "Pow",
+                "tombstones": 0,
+                "virtual_rows": 1
+              },
+              {
+                "dense_equivalent_bytes": 80,
+                "descriptor_bytes": 96,
+                "direct_base_rows": 4,
+                "direct_bytes": 64,
+                "local_header_bytes": 328,
+                "metadata_bytes": 8,
+                "overlay_rows": 0,
+                "rebuild_rows_changed": 0,
+                "rebuild_rows_examined": 0,
+                "table": "Const",
+                "tombstones": 0,
+                "virtual_rows": 1
+              }
+            ],
+            "template_header_bytes": 304,
+            "template_payload_bytes": 160,
+            "unique_binding_matrices": 3,
+            "unique_templates": 3
+          }
+        },
+        "library_load_seconds": 0.005872583,
+        "match_and_pack_seconds": 0.000382083,
+        "mode": "virtual",
+        "round_seconds": [
+          0.000109917,
+          0.000217708,
+          0.000264708
+        ],
+        "rounds": 3,
+        "tables": {
+          "Add": 69,
+          "Const": 5,
+          "Cos": 1,
+          "Diff": 20,
+          "Div": 3,
+          "Integral": 15,
+          "Ln": 1,
+          "Mul": 77,
+          "Pow": 2,
+          "Sin": 1,
+          "Sqrt": 1,
+          "Sub": 10,
+          "Var": 3
+        },
+        "worker_seconds_including_drop": 0.009904667
+      },
+      "mode": "virtual",
+      "repetition": 2
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/virtual_math_bench",
+        "native",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-virtual-mini3-20260927/library.json"
+      ],
+      "process_wall_seconds": 0.0,
+      "peak_rss_bytes": 7634944,
+      "observed_wall_seconds": 0.010320749948732555,
+      "result": {
+        "boundary_tables": {
+          "Add": 20,
+          "Const": 5,
+          "Cos": 1,
+          "Diff": 5,
+          "Div": 3,
+          "Integral": 6,
+          "Ln": 1,
+          "Mul": 17,
+          "Pow": 2,
+          "Sin": 0,
+          "Sqrt": 1,
+          "Sub": 5,
+          "Var": 3
+        },
+        "final_storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 0,
+          "binding_payload_bytes": 0,
+          "tables": [],
+          "template_header_bytes": 0,
+          "template_payload_bytes": 0,
+          "unique_binding_matrices": 0,
+          "unique_templates": 0
+        },
+        "internal_seconds": 0.003138916,
+        "intervention": null,
+        "library_load_seconds": 0.0,
+        "match_and_pack_seconds": 0.0,
+        "mode": "native",
+        "round_seconds": [
+          0.000119125,
+          0.000193334,
+          0.000252667
+        ],
+        "rounds": 3,
+        "tables": {
+          "Add": 69,
+          "Const": 5,
+          "Cos": 1,
+          "Diff": 20,
+          "Div": 3,
+          "Integral": 15,
+          "Ln": 1,
+          "Mul": 77,
+          "Pow": 2,
+          "Sin": 1,
+          "Sqrt": 1,
+          "Sub": 10,
+          "Var": 3
+        },
+        "worker_seconds_including_drop": 0.003591166
+      },
+      "mode": "native",
+      "repetition": 2
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/virtual_math_bench",
+        "match",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-virtual-mini3-20260927/library.json"
+      ],
+      "process_wall_seconds": 0.01,
+      "peak_rss_bytes": 10895360,
+      "observed_wall_seconds": 0.02063399995677173,
+      "result": {
+        "boundary_tables": {
+          "Add": 20,
+          "Const": 5,
+          "Cos": 1,
+          "Diff": 5,
+          "Div": 3,
+          "Integral": 6,
+          "Ln": 1,
+          "Mul": 17,
+          "Pow": 2,
+          "Sin": 0,
+          "Sqrt": 1,
+          "Sub": 5,
+          "Var": 3
+        },
+        "final_storage": {
+          "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+          "binding_header_bytes": 0,
+          "binding_payload_bytes": 0,
+          "tables": [],
+          "template_header_bytes": 0,
+          "template_payload_bytes": 0,
+          "unique_binding_matrices": 0,
+          "unique_templates": 0
+        },
+        "internal_seconds": 0.009883709,
+        "intervention": {
+          "admissions": [
+            {
+              "matched_instances": 0,
+              "packing": false,
+              "pattern": 0
+            },
+            {
+              "matched_instances": 0,
+              "packing": false,
+              "pattern": 1
+            },
+            {
+              "matched_instances": 0,
+              "packing": false,
+              "pattern": 2
+            },
+            {
+              "matched_instances": 0,
+              "packing": false,
+              "pattern": 3
+            },
+            {
+              "matched_instances": 13,
+              "packing": false,
+              "pattern": 4
+            },
+            {
+              "matched_instances": 10,
+              "packing": false,
+              "pattern": 5
+            },
+            {
+              "matched_instances": 1,
+              "packing": false,
+              "pattern": 6
+            },
+            {
+              "matched_instances": 1,
+              "packing": false,
+              "pattern": 7
+            }
+          ],
+          "scope": "exact packing of already committed native facts; no inferred facts, approximate match or candidate budget",
+          "storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 0,
+            "binding_payload_bytes": 0,
+            "tables": [],
+            "template_header_bytes": 0,
+            "template_payload_bytes": 0,
+            "unique_binding_matrices": 0,
+            "unique_templates": 0
+          }
+        },
+        "library_load_seconds": 0.006628583,
+        "match_and_pack_seconds": 0.000301834,
+        "mode": "match",
+        "round_seconds": [
+          0.000119666,
+          0.000165459,
+          0.000244584
+        ],
+        "rounds": 3,
+        "tables": {
+          "Add": 69,
+          "Const": 5,
+          "Cos": 1,
+          "Diff": 20,
+          "Div": 3,
+          "Integral": 15,
+          "Ln": 1,
+          "Mul": 77,
+          "Pow": 2,
+          "Sin": 1,
+          "Sqrt": 1,
+          "Sub": 10,
+          "Var": 3
+        },
+        "worker_seconds_including_drop": 0.010889041
+      },
+      "mode": "match",
+      "repetition": 2
+    }
+  ],
+  "library_sha256": "e148a3bf88f50f68165f681ccf61c99bfb8843898e5f87754e54232d7ef4482d",
+  "library_bytes": 343263,
+  "verification": {
+    "command": [
+      "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/virtual_math_bench",
+      "verify",
+      "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+      "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-virtual-mini3-20260927/library.json"
+    ],
+    "process_wall_seconds": 0.39,
+    "peak_rss_bytes": 16859136,
+    "observed_wall_seconds": 0.40195762494113296,
+    "result": {
+      "scope": "all final table rows, literals, equality and visibility; verification excluded from timing/RSS runs",
+      "verification": [
+        {
+          "comparison": {
+            "states": 124,
+            "status": "equivalent",
+            "value_map": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34,
+              35,
+              36,
+              37,
+              38,
+              39,
+              40,
+              41,
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61,
+              62,
+              63,
+              64,
+              65,
+              66,
+              67,
+              68,
+              69,
+              70,
+              71,
+              72,
+              73,
+              74,
+              75,
+              76,
+              77,
+              78,
+              79,
+              80,
+              81,
+              82,
+              83,
+              84,
+              85,
+              86,
+              87,
+              88,
+              89,
+              90,
+              91,
+              92,
+              93,
+              94,
+              95,
+              96,
+              97,
+              98,
+              99,
+              100,
+              101,
+              102,
+              103,
+              104,
+              105,
+              106,
+              107,
+              108,
+              109,
+              110,
+              111,
+              112,
+              113,
+              114,
+              115,
+              116,
+              117,
+              118,
+              119,
+              120,
+              121,
+              122,
+              123
+            ]
+          },
+          "final_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 0,
+            "binding_payload_bytes": 0,
+            "tables": [],
+            "template_header_bytes": 0,
+            "template_payload_bytes": 0,
+            "unique_binding_matrices": 0,
+            "unique_templates": 0
+          },
+          "intervention": {
+            "admissions": [
+              {
+                "matched_instances": 0,
+                "packing": false,
+                "pattern": 0
+              },
+              {
+                "matched_instances": 0,
+                "packing": false,
+                "pattern": 1
+              },
+              {
+                "matched_instances": 0,
+                "packing": false,
+                "pattern": 2
+              },
+              {
+                "matched_instances": 0,
+                "packing": false,
+                "pattern": 3
+              },
+              {
+                "matched_instances": 13,
+                "packing": false,
+                "pattern": 4
+              },
+              {
+                "matched_instances": 10,
+                "packing": false,
+                "pattern": 5
+              },
+              {
+                "matched_instances": 1,
+                "packing": false,
+                "pattern": 6
+              },
+              {
+                "matched_instances": 1,
+                "packing": false,
+                "pattern": 7
+              }
+            ],
+            "scope": "exact packing of already committed native facts; no inferred facts, approximate match or candidate budget",
+            "storage": {
+              "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+              "binding_header_bytes": 0,
+              "binding_payload_bytes": 0,
+              "tables": [],
+              "template_header_bytes": 0,
+              "template_payload_bytes": 0,
+              "unique_binding_matrices": 0,
+              "unique_templates": 0
+            }
+          },
+          "mode": "match",
+          "rows": 208,
+          "values": 124
+        },
+        {
+          "comparison": {
+            "states": 124,
+            "status": "equivalent",
+            "value_map": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34,
+              35,
+              36,
+              37,
+              38,
+              39,
+              40,
+              41,
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61,
+              62,
+              63,
+              64,
+              65,
+              66,
+              67,
+              68,
+              69,
+              70,
+              71,
+              72,
+              73,
+              74,
+              75,
+              76,
+              77,
+              78,
+              79,
+              80,
+              81,
+              82,
+              83,
+              84,
+              85,
+              86,
+              87,
+              88,
+              89,
+              90,
+              91,
+              92,
+              93,
+              94,
+              95,
+              96,
+              97,
+              98,
+              99,
+              100,
+              101,
+              102,
+              103,
+              104,
+              105,
+              106,
+              107,
+              108,
+              109,
+              110,
+              111,
+              112,
+              113,
+              114,
+              115,
+              116,
+              117,
+              118,
+              119,
+              120,
+              121,
+              122,
+              123
+            ]
+          },
+          "final_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 120,
+            "binding_payload_bytes": 172,
+            "tables": [
+              {
+                "dense_equivalent_bytes": 1380,
+                "descriptor_bytes": 384,
+                "direct_base_rows": 7,
+                "direct_bytes": 1120,
+                "local_header_bytes": 488,
+                "metadata_bytes": 40,
+                "overlay_rows": 49,
+                "rebuild_rows_changed": 0,
+                "rebuild_rows_examined": 0,
+                "table": "Add",
+                "tombstones": 0,
+                "virtual_rows": 13
+              },
+              {
+                "dense_equivalent_bytes": 1560,
+                "descriptor_bytes": 384,
+                "direct_base_rows": 7,
+                "direct_bytes": 1360,
+                "local_header_bytes": 488,
+                "metadata_bytes": 40,
+                "overlay_rows": 60,
+                "rebuild_rows_changed": 1,
+                "rebuild_rows_examined": 1,
+                "table": "Mul",
+                "tombstones": 1,
+                "virtual_rows": 10
+              },
+              {
+                "dense_equivalent_bytes": 40,
+                "descriptor_bytes": 48,
+                "direct_base_rows": 1,
+                "direct_bytes": 20,
+                "local_header_bytes": 328,
+                "metadata_bytes": 8,
+                "overlay_rows": 0,
+                "rebuild_rows_changed": 0,
+                "rebuild_rows_examined": 0,
+                "table": "Pow",
+                "tombstones": 0,
+                "virtual_rows": 1
+              },
+              {
+                "dense_equivalent_bytes": 80,
+                "descriptor_bytes": 96,
+                "direct_base_rows": 4,
+                "direct_bytes": 64,
+                "local_header_bytes": 328,
+                "metadata_bytes": 8,
+                "overlay_rows": 0,
+                "rebuild_rows_changed": 0,
+                "rebuild_rows_examined": 0,
+                "table": "Const",
+                "tombstones": 0,
+                "virtual_rows": 1
+              }
+            ],
+            "template_header_bytes": 304,
+            "template_payload_bytes": 160,
+            "unique_binding_matrices": 3,
+            "unique_templates": 3
+          },
+          "intervention": {
+            "admissions": [
+              {
+                "matched_instances": 0,
+                "pattern": 0
+              },
+              {
+                "matched_instances": 0,
+                "pattern": 1
+              },
+              {
+                "matched_instances": 0,
+                "pattern": 2
+              },
+              {
+                "matched_instances": 0,
+                "pattern": 3
+              },
+              {
+                "distinct_native_rows": 13,
+                "matched_instances": 13,
+                "pattern": 4,
+                "requested_rows": 26
+              },
+              {
+                "distinct_native_rows": 10,
+                "matched_instances": 10,
+                "pattern": 5,
+                "requested_rows": 20
+              },
+              {
+                "distinct_native_rows": 1,
+                "matched_instances": 1,
+                "pattern": 6,
+                "requested_rows": 1
+              },
+              {
+                "distinct_native_rows": 3,
+                "matched_instances": 1,
+                "pattern": 7,
+                "requested_rows": 3
+              }
+            ],
+            "scope": "exact packing of already committed native facts; no inferred facts, approximate match or candidate budget",
+            "storage": {
+              "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+              "binding_header_bytes": 120,
+              "binding_payload_bytes": 172,
+              "tables": [
+                {
+                  "dense_equivalent_bytes": 400,
+                  "descriptor_bytes": 384,
+                  "direct_base_rows": 7,
+                  "direct_bytes": 140,
+                  "local_header_bytes": 488,
+                  "metadata_bytes": 40,
+                  "overlay_rows": 0,
+                  "rebuild_rows_changed": 0,
+                  "rebuild_rows_examined": 0,
+                  "table": "Add",
+                  "tombstones": 0,
+                  "virtual_rows": 13
+                },
+                {
+                  "dense_equivalent_bytes": 340,
+                  "descriptor_bytes": 384,
+                  "direct_base_rows": 7,
+                  "direct_bytes": 140,
+                  "local_header_bytes": 488,
+                  "metadata_bytes": 40,
+                  "overlay_rows": 0,
+                  "rebuild_rows_changed": 0,
+                  "rebuild_rows_examined": 0,
+                  "table": "Mul",
+                  "tombstones": 0,
+                  "virtual_rows": 10
+                },
+                {
+                  "dense_equivalent_bytes": 40,
+                  "descriptor_bytes": 48,
+                  "direct_base_rows": 1,
+                  "direct_bytes": 20,
+                  "local_header_bytes": 328,
+                  "metadata_bytes": 8,
+                  "overlay_rows": 0,
+                  "rebuild_rows_changed": 0,
+                  "rebuild_rows_examined": 0,
+                  "table": "Pow",
+                  "tombstones": 0,
+                  "virtual_rows": 1
+                },
+                {
+                  "dense_equivalent_bytes": 80,
+                  "descriptor_bytes": 96,
+                  "direct_base_rows": 4,
+                  "direct_bytes": 64,
+                  "local_header_bytes": 328,
+                  "metadata_bytes": 8,
+                  "overlay_rows": 0,
+                  "rebuild_rows_changed": 0,
+                  "rebuild_rows_examined": 0,
+                  "table": "Const",
+                  "tombstones": 0,
+                  "virtual_rows": 1
+                }
+              ],
+              "template_header_bytes": 304,
+              "template_payload_bytes": 160,
+              "unique_binding_matrices": 3,
+              "unique_templates": 3
+            }
+          },
+          "mode": "virtual",
+          "rows": 208,
+          "values": 124
+        }
+      ]
+    }
+  },
+  "medians": {
+    "native": {
+      "worker_seconds_including_drop": 0.003591166,
+      "internal_seconds": 0.0031315,
+      "process_wall_seconds": 0.0,
+      "peak_rss_bytes": 7634944,
+      "library_load_seconds": 4.2e-08,
+      "match_and_pack_seconds": 0.0
+    },
+    "match": {
+      "worker_seconds_including_drop": 0.010337042,
+      "internal_seconds": 0.00965425,
+      "process_wall_seconds": 0.01,
+      "peak_rss_bytes": 10682368,
+      "library_load_seconds": 0.006486375,
+      "match_and_pack_seconds": 0.000300375
+    },
+    "virtual": {
+      "worker_seconds_including_drop": 0.010170125,
+      "internal_seconds": 0.00943275,
+      "process_wall_seconds": 0.01,
+      "peak_rss_bytes": 10371072,
+      "library_load_seconds": 0.006207917,
+      "match_and_pack_seconds": 0.000382083
+    }
+  },
+  "analysis": {
+    "command": [
+      "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+      "analyze",
+      "--source",
+      "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+      "--output",
+      "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-virtual-mini3-final/analysis"
+    ],
+    "process_wall_seconds": 1.54,
+    "peak_rss_bytes": 670466048,
+    "observed_wall_seconds": 1.5666385410586372,
+    "result": {
+      "applications": 129,
+      "excluded": 0,
+      "logical_matches": 129,
+      "scope": "native history -> CS -> ripen -> equivalence -> weak dominate"
+    }
+  },
+  "offline_preparation_from_initial_run": {
+    "offline_capture": {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+        "analyze",
+        "--source",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/source.egg",
+        "--rounds",
+        "1",
+        "--output",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-virtual-mini3-20260927/bake-run"
+      ],
+      "process_wall_seconds": 0.62,
+      "peak_rss_bytes": 109871104,
+      "observed_wall_seconds": 0.6492276249919087,
+      "result": {
+        "applications": 20,
+        "excluded": 0,
+        "logical_matches": 20,
+        "scope": "native history -> CS -> ripen -> equivalence -> weak dominate"
+      }
+    },
+    "offline_bake": {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+        "reuse-bake",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-virtual-mini3-20260927/library.json",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-virtual-mini3-20260927/bake-run"
+      ],
+      "process_wall_seconds": 0.01,
+      "peak_rss_bytes": 9355264,
+      "observed_wall_seconds": 0.04175299999769777,
+      "result": null
+    }
+  }
+}
