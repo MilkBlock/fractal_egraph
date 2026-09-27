@@ -147,3 +147,28 @@ python3 tools/bench/math_virtual.py --output out/math-virtual-new
 `--library path/to/library.json` reuses an existing library; `--runs 3` controls
 repetitions and `--skip-analysis` omits the separate analysis measurement. External
 30-second/4-GiB process guards protect the experiment, not the inference algorithm.
+
+### Expanded graph and library accounting
+
+Additional untimed verification is saved in `virtual_facts_structure.json`.
+Native, matching-only and virtual storage all have **208 unique logical Math
+e-nodes, 116 canonical Math e-classes, 1.7931 e-nodes/class**; all 208 are visible.
+These counts scan `function_for_each`, decode virtual storage recipes and deduplicate
+canonical constructor rows. E-classes count canonical Math result IDs; primitive
+values are excluded. This is the finite e-graph, not recursive tree unfolding
+(which could be infinite). No template-size multiplication or instance double count.
+
+The library is **343,263 bytes (335.22 KiB)**: eight shared bodies (seven full,
+one delta), thirteen enclosures and nineteen entries. Compact-JSON section sizes
+are bodies 31,838 B, enclosures 10,365 B and entries 192,435 B; these exclude original
+pretty-print whitespace and are not heap sizes. Entry provenance/recipes account
+for much of the serialization. The benchmark's three physical row templates are
+not the same count as the library's eight semantic bodies. Library retained heap
+has not been isolated; peak process RSS includes it, but cannot attribute it exactly.
+
+`external_overlay_joins_virtual_body_and_writes_new_native_facts` packs A/B rows,
+then inserts an External relation and executes a Join across two virtual atoms and
+that external fact. The expected Out row appears, the unmatched instance does not,
+and virtual rows remain virtual. The existing displaced-boundary regression verifies
+union enables a previously unavailable Join. All twelve virtual fact tests pass.
+These are concrete boundary correctness checks, not proof of every possible rule.

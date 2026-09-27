@@ -466,3 +466,18 @@ fn repeated_registration_does_not_accumulate_bindings_and_materialization_is_not
     )
     .unwrap();
 }
+
+#[test]
+fn external_overlay_joins_virtual_body_and_writes_new_native_facts() {
+    let mut eg = EGraph::default();
+    eg.parse_and_run_program(None, source()).unwrap();
+    let mut reference = eg.clone();
+    pack(&mut eg);
+    // Two virtual atoms plus an external relation inserted only AFTER packing.
+    let program = "(relation External (E)) (relation Out (E)) (rule ((= a (A x)) (= b (B a)) (External x)) ((Out b))) (External (V 1)) (run 1) (check (Out (B (A (V 1))))) (fail (check (Out (B (A (V 2))))))";
+    eg.parse_and_run_program(None, program).unwrap();
+    reference.parse_and_run_program(None, program).unwrap();
+    assert_eq!(eg.get_size("Out"), reference.get_size("Out"));
+    assert_eq!(eg.get_size("Out"), 1);
+    for (_, s) in eg.virtual_fact_stats() { assert_eq!(s.virtual_rows, 2); }
+}

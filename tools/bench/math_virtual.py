@@ -51,6 +51,18 @@ def measure(command, prefix, timeout=30):
                 result=payload)
 
 
+def library_inventory(path):
+    raw = path.read_bytes()
+    data = json.loads(raw)
+    return dict(file_bytes=len(raw), bodies=len(data['bodies']),
+                full_bodies=sum('Full' in b['storage'] for b in data['bodies']),
+                delta_bodies=sum('Delta' in b['storage'] for b in data['bodies']),
+                enclosures=len(data['enclosures']), entries=len(data['entries']),
+                section_compact_json_bytes={k:len(json.dumps(v, separators=(',', ':'), ensure_ascii=False).encode())
+                                            for k,v in data.items()},
+                note='Serialized library size, not retained heap bytes. Includes provenance and rule environment. Section sizes use compact JSON, not original file formatting.')
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--output', required=True)
@@ -91,6 +103,7 @@ def main():
         save()
     report['library_sha256'] = hashlib.sha256(library.read_bytes()).hexdigest()
     report['library_bytes'] = library.stat().st_size
+    report['library_inventory'] = library_inventory(library)
     report['verification'] = measure([RUNNER, 'verify', SOURCE, library], out / 'verification')
     save()
     modes = ['native', 'match', 'virtual']

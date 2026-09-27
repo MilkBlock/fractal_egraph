@@ -140,6 +140,23 @@ fn snapshot(eg: &EGraph) -> Result<SaturatedRuleComposition> {
         ports: BTreeMap::new(),
     })
 }
+// Verification-only accounting: scan the native logical row interface, which
+// decodes virtual rows and excludes stale storage recipes. Never count literals as classes.
+fn graph_counts(s: &SaturatedRuleComposition) -> Value {
+    let mut classes = std::collections::BTreeSet::new();
+    let mut nodes = std::collections::BTreeSet::new();
+    let mut visible = std::collections::BTreeSet::new();
+    for (i, r) in s.rows.iter().enumerate() {
+        if s.values[r.result].sort != "Math" { continue; }
+        classes.insert(r.result);
+        let key = (r.op.clone(), r.args.clone(), r.result);
+        nodes.insert(key.clone());
+        if !s.subsumed_rows.contains(&i) { visible.insert(key); }
+    }
+    json!({"expanded_unique_enodes":nodes.len(), "expanded_eclasses":classes.len(),
+        "visible_unique_enodes":visible.len(), "enodes_per_eclass":nodes.len() as f64 / classes.len() as f64,
+        "scope":"mini3 Math constructor rows, canonical typed IDs; includes subsumed rows in total; primitive values excluded"})
+}
 fn main() -> Result {
     let args = std::env::args().skip(1).collect::<Vec<_>>();
     if args.len() != 3 || !["native", "match", "virtual", "verify"].contains(&args[0].as_str()) {
@@ -156,11 +173,11 @@ fn main() -> Result {
             if !matches!(comparison, state::Comparison::Equivalent { .. }) {
                 return Err(format!("{mode} differs from native: {comparison:?}").into());
             }
-            results.push(json!({"mode":mode,"comparison":comparison,"rows":b.rows.len(),"values":b.values.len(),"intervention":report["intervention"],"final_storage":report["final_storage"]}));
+            results.push(json!({"mode":mode,"comparison":comparison,"rows":b.rows.len(),"values":b.values.len(),"graph_counts":graph_counts(&b),"intervention":report["intervention"],"final_storage":report["final_storage"]}));
         }
         println!(
             "{}",
-            json!({"verification":results,"scope":"all final table rows, literals, equality and visibility; verification excluded from timing/RSS runs"})
+            json!({"native_graph_counts":graph_counts(&a),"verification":results,"scope":"all final table rows, literals, equality and visibility; verification excluded from timing/RSS runs"})
         );
     } else {
         let tick = Instant::now();
