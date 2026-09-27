@@ -172,3 +172,42 @@ that external fact. The expected Out row appears, the unmatched instance does no
 and virtual rows remain virtual. The existing displaced-boundary regression verifies
 union enables a previously unavailable Join. All twelve virtual fact tests pass.
 These are concrete boundary correctness checks, not proof of every possible rule.
+
+## Full math microbenchmark growth curves (11 rounds)
+
+`growth11.json` and `growth11.csv` record a single native and virtual run of the
+original `egglog/tests/math-microbenchmark.egg` with its `(run 11)`. The standalone
+HTML has three plots against cumulative native match count: resident memory,
+expanded unique Math e-nodes, and canonical Math e-classes, plus per-round data,
+linear/logarithmic x-axis and point tooltips. No complete match history is captured.
+
+```sh
+cargo build --release --offline --example math_growth
+python3 tools/bench/math_growth.py \
+  --library out/math-virtual-mini3-20260927/library.json --output out/math-growth-new
+# Open out/math-growth-new/index.html
+```
+
+To create a fresh library first, use the preceding `math_virtual.py` command;
+pass the resulting `library.json`. `--source` accepts a mini3 source instead.
+This driver supports simple `(run N)` schedules and the Math datatype workload.
+
+Round 11: 944,254 cumulative matches, 1,047,896 expanded e-nodes and 443,832
+e-classes. Every round's counts agree across native/virtual modes. RSS at the final
+boundary is 482.625 MiB native and 493.891 MiB virtual. The library remains
+343,263 bytes and only 25 existing rows were virtualized after round 1. This does
+not measure continuous template discovery/repacking or demonstrate a compression
+benefit at later rounds.
+
+RSS is read with `ps` immediately before a diagnostic row scan, not peak RSS.
+Earlier scans and allocator retention can affect later samples; this is an
+instrumented growth experiment, not the uninstrumented speed benchmark. Native
+match totals are not committed write counts or distinct bindings across all rounds.
+Points are sampled at round boundaries; connecting lines are interpolation only.
+Native tables after rebuild already deduplicate row keys; virtual rows are decoded
+through the same iterator. Math result IDs are canonicalized, excluding primitive
+values. Counts are finite graph sizes, not recursive tree unfolding. Counts agreeing
+is weaker than exact graph equality (mini3 has a separate exact verification).
+
+The generated HTML passed JavaScript syntax checking; browser visual verification
+was blocked by the browser tool's local-file URL policy.

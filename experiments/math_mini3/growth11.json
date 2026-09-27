@@ -1,0 +1,314 @@
+{
+  "source": "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg",
+  "source_sha256": "aaa8942131b4db57e76710486718790e1d7f2cb9288aeb702c0c17019439cf16",
+  "library": {
+    "file_bytes": 343263,
+    "bodies": 8,
+    "full_bodies": 7,
+    "delta_bodies": 1,
+    "enclosures": 13,
+    "entries": 19,
+    "section_compact_json_bytes": {
+      "bodies": 31838,
+      "enclosures": 10365,
+      "entries": 192435,
+      "observed_grafts": 2,
+      "schema": 20
+    },
+    "note": "Serialized library size, not retained heap bytes. Includes provenance and rule environment. Section sizes use compact JSON, not original file formatting."
+  },
+  "runs": {
+    "native": {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/math_growth",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg",
+        "native",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-virtual-mini3-20260927/library.json"
+      ],
+      "process_wall_seconds": 0.94,
+      "peak_rss_bytes": 507199488,
+      "observed_wall_seconds": 0.9515201670583338,
+      "result": {
+        "cumulative_matches": 944254,
+        "execution_seconds": 0.393362125,
+        "expanded_eclasses": 443832,
+        "expanded_enodes": 1047896,
+        "mode": "native",
+        "round": 11,
+        "rss_bytes": 506068992,
+        "virtual_rows": 0
+      }
+    },
+    "virtual": {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/math_growth",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg",
+        "virtual",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/math-virtual-mini3-20260927/library.json"
+      ],
+      "process_wall_seconds": 0.73,
+      "peak_rss_bytes": 518127616,
+      "observed_wall_seconds": 0.739100290928036,
+      "result": {
+        "cumulative_matches": 944254,
+        "execution_seconds": 0.556782376,
+        "expanded_eclasses": 443832,
+        "expanded_enodes": 1047896,
+        "mode": "virtual",
+        "round": 11,
+        "rss_bytes": 517881856,
+        "virtual_rows": 25
+      }
+    }
+  },
+  "samples": [
+    {
+      "cumulative_matches": 0,
+      "execution_seconds": 0.0,
+      "expanded_eclasses": 35,
+      "expanded_enodes": 35,
+      "mode": "native",
+      "round": 0,
+      "rss_bytes": 6389760,
+      "virtual_rows": 0
+    },
+    {
+      "cumulative_matches": 20,
+      "execution_seconds": 0.000239375,
+      "expanded_eclasses": 50,
+      "expanded_enodes": 69,
+      "mode": "native",
+      "round": 1,
+      "rss_bytes": 6733824,
+      "virtual_rows": 0
+    },
+    {
+      "cumulative_matches": 64,
+      "execution_seconds": 0.00052025,
+      "expanded_eclasses": 71,
+      "expanded_enodes": 118,
+      "mode": "native",
+      "round": 2,
+      "rss_bytes": 7176192,
+      "virtual_rows": 0
+    },
+    {
+      "cumulative_matches": 129,
+      "execution_seconds": 0.0009528329999999999,
+      "expanded_eclasses": 116,
+      "expanded_enodes": 208,
+      "mode": "native",
+      "round": 3,
+      "rss_bytes": 7405568,
+      "virtual_rows": 0
+    },
+    {
+      "cumulative_matches": 268,
+      "execution_seconds": 0.001489958,
+      "expanded_eclasses": 197,
+      "expanded_enodes": 389,
+      "mode": "native",
+      "round": 4,
+      "rss_bytes": 7569408,
+      "virtual_rows": 0
+    },
+    {
+      "cumulative_matches": 636,
+      "execution_seconds": 0.002428708,
+      "expanded_eclasses": 361,
+      "expanded_enodes": 784,
+      "mode": "native",
+      "round": 5,
+      "rss_bytes": 7946240,
+      "virtual_rows": 0
+    },
+    {
+      "cumulative_matches": 1529,
+      "execution_seconds": 0.003957083,
+      "expanded_eclasses": 666,
+      "expanded_enodes": 1576,
+      "mode": "native",
+      "round": 6,
+      "rss_bytes": 8470528,
+      "virtual_rows": 0
+    },
+    {
+      "cumulative_matches": 3723,
+      "execution_seconds": 0.00681375,
+      "expanded_eclasses": 1347,
+      "expanded_enodes": 3160,
+      "mode": "native",
+      "round": 7,
+      "rss_bytes": 9273344,
+      "virtual_rows": 0
+    },
+    {
+      "cumulative_matches": 8544,
+      "execution_seconds": 0.011931625000000001,
+      "expanded_eclasses": 3576,
+      "expanded_enodes": 8113,
+      "mode": "native",
+      "round": 8,
+      "rss_bytes": 11108352,
+      "virtual_rows": 0
+    },
+    {
+      "cumulative_matches": 25210,
+      "execution_seconds": 0.027821416,
+      "expanded_eclasses": 12445,
+      "expanded_enodes": 28303,
+      "mode": "native",
+      "round": 9,
+      "rss_bytes": 18513920,
+      "virtual_rows": 0
+    },
+    {
+      "cumulative_matches": 121207,
+      "execution_seconds": 0.07239358300000001,
+      "expanded_eclasses": 58464,
+      "expanded_enodes": 136446,
+      "mode": "native",
+      "round": 10,
+      "rss_bytes": 203374592,
+      "virtual_rows": 0
+    },
+    {
+      "cumulative_matches": 944254,
+      "execution_seconds": 0.393362125,
+      "expanded_eclasses": 443832,
+      "expanded_enodes": 1047896,
+      "mode": "native",
+      "round": 11,
+      "rss_bytes": 506068992,
+      "virtual_rows": 0
+    },
+    {
+      "cumulative_matches": 0,
+      "execution_seconds": 0.0,
+      "expanded_eclasses": 35,
+      "expanded_enodes": 35,
+      "mode": "virtual",
+      "round": 0,
+      "rss_bytes": 9453568,
+      "virtual_rows": 0
+    },
+    {
+      "cumulative_matches": 20,
+      "execution_seconds": 0.000667209,
+      "expanded_eclasses": 50,
+      "expanded_enodes": 69,
+      "mode": "virtual",
+      "round": 1,
+      "rss_bytes": 9912320,
+      "virtual_rows": 25
+    },
+    {
+      "cumulative_matches": 64,
+      "execution_seconds": 0.000982209,
+      "expanded_eclasses": 71,
+      "expanded_enodes": 118,
+      "mode": "virtual",
+      "round": 2,
+      "rss_bytes": 10125312,
+      "virtual_rows": 25
+    },
+    {
+      "cumulative_matches": 129,
+      "execution_seconds": 0.001319043,
+      "expanded_eclasses": 116,
+      "expanded_enodes": 208,
+      "mode": "virtual",
+      "round": 3,
+      "rss_bytes": 10305536,
+      "virtual_rows": 25
+    },
+    {
+      "cumulative_matches": 268,
+      "execution_seconds": 0.001922085,
+      "expanded_eclasses": 197,
+      "expanded_enodes": 389,
+      "mode": "virtual",
+      "round": 4,
+      "rss_bytes": 10502144,
+      "virtual_rows": 25
+    },
+    {
+      "cumulative_matches": 636,
+      "execution_seconds": 0.002820501,
+      "expanded_eclasses": 361,
+      "expanded_enodes": 784,
+      "mode": "virtual",
+      "round": 5,
+      "rss_bytes": 10682368,
+      "virtual_rows": 25
+    },
+    {
+      "cumulative_matches": 1529,
+      "execution_seconds": 0.004516168,
+      "expanded_eclasses": 666,
+      "expanded_enodes": 1576,
+      "mode": "virtual",
+      "round": 6,
+      "rss_bytes": 11173888,
+      "virtual_rows": 25
+    },
+    {
+      "cumulative_matches": 3723,
+      "execution_seconds": 0.0077487089999999995,
+      "expanded_eclasses": 1347,
+      "expanded_enodes": 3160,
+      "mode": "virtual",
+      "round": 7,
+      "rss_bytes": 12025856,
+      "virtual_rows": 25
+    },
+    {
+      "cumulative_matches": 8544,
+      "execution_seconds": 0.013691168,
+      "expanded_eclasses": 3576,
+      "expanded_enodes": 8113,
+      "mode": "virtual",
+      "round": 8,
+      "rss_bytes": 13467648,
+      "virtual_rows": 25
+    },
+    {
+      "cumulative_matches": 25210,
+      "execution_seconds": 0.030061626,
+      "expanded_eclasses": 12445,
+      "expanded_enodes": 28303,
+      "mode": "virtual",
+      "round": 9,
+      "rss_bytes": 20398080,
+      "virtual_rows": 25
+    },
+    {
+      "cumulative_matches": 121207,
+      "execution_seconds": 0.076118168,
+      "expanded_eclasses": 58464,
+      "expanded_enodes": 136446,
+      "mode": "virtual",
+      "round": 10,
+      "rss_bytes": 68517888,
+      "virtual_rows": 25
+    },
+    {
+      "cumulative_matches": 944254,
+      "execution_seconds": 0.556782376,
+      "expanded_eclasses": 443832,
+      "expanded_enodes": 1047896,
+      "mode": "virtual",
+      "round": 11,
+      "rss_bytes": 517881856,
+      "virtual_rows": 25
+    }
+  ],
+  "notes": [
+    "Round-boundary samples, not per-match snapshots. Lines interpolate sampled points.",
+    "Matches are native RunReport match counts; not distinct matches or committed writes.",
+    "RSS sampled by ps before each graph scan; includes library and diagnostics. Not peak RSS.",
+    "Expanded enodes are unique live native Math constructor rows including subsumed; eclasses are canonical Math result IDs, excluding primitives.",
+    "Virtual mode packs existing rows after round 1 only, then runs normally. Offline Bake excluded.",
+    "Matching counts and graph counts agree across modes; count agreement alone is not graph isomorphism."
+  ]
+}
