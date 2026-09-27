@@ -14,6 +14,9 @@ use std::{
     time::Instant,
 };
 
+#[path = "reuse_evolution.rs"]
+pub mod evolution;
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Macro {
     pub rule: usize,
@@ -385,6 +388,7 @@ pub fn run(source: &str, input: Option<&Path>, out: &Path, mode: &str) -> Result
             || std::env::var("EGG_LAYOUT_SKIP_INTERNAL_RHS").is_ok_and(|s| s == "1"),
         std::env::var("EGG_LAYOUT_SKIP_INTERNAL_RHS").is_ok_and(|s| s == "1"),
         std::env::var("EGG_LAYOUT_PRUNE_INTERNAL_JOIN").is_ok_and(|s| s == "1"),
+        std::env::var("EGG_LAYOUT_CELL_EVOLUTION").is_ok_and(|s| s == "1"),
     )
 }
 /// Explicit policy for reproducible ablations; 1 restores unrestricted admission.
@@ -395,7 +399,7 @@ pub fn run_with_min_reuse(
     mode: &str,
     min_reuse: usize,
 ) -> Result<Value> {
-    run_impl(source, input, out, mode, min_reuse, false, false, false)
+    run_impl(source, input, out, mode, min_reuse, false, false, false, false)
 }
 pub fn run_audit(
     source: &str,
@@ -404,7 +408,7 @@ pub fn run_audit(
     mode: &str,
     min_reuse: usize,
 ) -> Result<Value> {
-    run_impl(source, input, out, mode, min_reuse, true, false, false)
+    run_impl(source, input, out, mode, min_reuse, true, false, false, false)
 }
 pub fn run_audit_with_rhs_skip(
     source: &str,
@@ -413,12 +417,17 @@ pub fn run_audit_with_rhs_skip(
     mode: &str,
     min_reuse: usize,
 ) -> Result<Value> {
-    run_impl(source, input, out, mode, min_reuse, true, true, false)
+    run_impl(source, input, out, mode, min_reuse, true, true, false, false)
 }
 /// Root-slice pruning before native Join, without diagnostic tracing.
 pub fn run_with_join_pruning(source: &str, input: Option<&Path>, out: &Path,
     mode: &str, min_reuse: usize) -> Result<Value> {
-    run_impl(source, input, out, mode, min_reuse, false, false, true)
+    run_impl(source, input, out, mode, min_reuse, false, false, true, false)
+}
+/// Observe boundary-to-cell transitions without changing source execution.
+pub fn run_with_evolution(source: &str, input: Option<&Path>, out: &Path,
+    mode: &str, min_reuse: usize) -> Result<Value> {
+    run_impl(source, input, out, mode, min_reuse, false, false, false, true)
 }
 fn run_impl(
     source: &str,
@@ -429,7 +438,9 @@ fn run_impl(
     audit_enabled: bool,
     skip_rhs: bool,
     prune_join: bool,
+    evolution_enabled: bool,
 ) -> Result<Value> {
+    if evolution_enabled && (skip_rhs || prune_join) {return Err("cell evolution observes unpruned execution; disable join/RHS skipping".into());}
     if min_reuse == 0 {
         return Err("minimum template reuse must be positive".into());
     }
@@ -495,7 +506,8 @@ fn run_impl(
         )?);
     }
     let mut audit = (audit_enabled || prune_join).then(super::enclosure_audit::Audit::default);
-    let trace = audit_enabled.then(egglog::TraceSession::with_dependencies);
+    let trace = (audit_enabled || evolution_enabled).then(egglog::TraceSession::with_dependencies);
+    let mut evolution = evolution_enabled.then(evolution::Evolution::default);
     let mut samples = vec![];
     let mut round = 0;
     let mut total = 0;
@@ -518,6 +530,7 @@ fn run_impl(
                     )?;
                     let t = Instant::now();
                     let union_before = eg.native_union_count();
+                    if let Some(e)=evolution.as_mut() {e.begin(&eg);}
                     let (report, mut audit_report) = if prune_join {
                         let a = audit.as_mut().unwrap();
                         a.begin_join(&eg);
@@ -528,14 +541,15 @@ fn run_impl(
                         let certificate_seconds = t.elapsed().as_secs_f64();
                         let report = eg.step_rules_excluding_proven_roots(&set, entries)?;
                         (report, json!({"certified_rule_roots":certified,"certificate_seconds":certificate_seconds}))
-                    } else if let Some(a) = audit.as_mut() {
-                        let trace = trace.as_ref().unwrap();
-                        a.begin(&eg);
-                        if skip_rhs {
-                            trace.set_proven_redundant_rhs_filter(Some(a.rhs_filter(&eg)));
+                    } else if let Some(trace) = trace.as_ref() {
+                        if let Some(a)=audit.as_mut() {
+                            a.begin(&eg);
+                            if skip_rhs {trace.set_proven_redundant_rhs_filter(Some(a.rhs_filter(&eg)));}
                         }
                         let report = eg.step_rules_with_trace(&set, trace)?;
-                        let stats = a.finish(&eg, trace, trace.drain_completed());
+                        let batch=trace.drain_completed();
+                        if let Some(e)=evolution.as_mut() {e.finish(&eg,trace,&batch,&bake.macros,round,eg.native_union_count().saturating_sub(union_before));}
+                        let stats=if let Some(a)=audit.as_mut() {a.finish(&eg,trace,batch)} else {Value::Null};
                         (report, stats)
                     } else {
                         (eg.step_rules(&set)?, Value::Null)
@@ -617,7 +631,13 @@ fn run_impl(
             serde_json::to_vec(&super::enclosure_audit::export_math(&eg))?,
         )?;
     }
-    let report = json!({"mode":mode,"rhs_skip_enabled":skip_rhs,"join_pruning_enabled":prune_join,"min_template_reuse":min_reuse,"seconds":started.elapsed().as_secs_f64(),"execution_seconds":execution_seconds,"learning_seconds":learning_seconds,"matches":total,"samples":samples,"final":counts(&eg),"storage":crate::reuse_graph::native_storage::storage_report(&eg),"scope":"actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed"});
+    let evolution_report=if let Some(e)=evolution.as_ref() {
+        let mut full=e.report();full["rule_environment"]=json!(environment);
+        let file=std::io::BufWriter::new(std::fs::File::create(out.join("cell-evolution.json"))?);
+        serde_json::to_writer_pretty(file,&full)?;
+        Some(full.as_object().unwrap().iter().filter(|(k,_)|!["patterns","families","rounds","rule_environment"].contains(&k.as_str())).map(|(k,v)|(k.clone(),v.clone())).collect::<serde_json::Map<_,_>>())
+    } else {None};
+    let report = json!({"cell_evolution":evolution_report,"mode":mode,"rhs_skip_enabled":skip_rhs,"join_pruning_enabled":prune_join,"min_template_reuse":min_reuse,"seconds":started.elapsed().as_secs_f64(),"execution_seconds":execution_seconds,"learning_seconds":learning_seconds,"matches":total,"samples":samples,"final":counts(&eg),"storage":crate::reuse_graph::native_storage::storage_report(&eg),"scope":"actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed"});
     std::fs::write(out.join("report.json"), serde_json::to_vec_pretty(&report)?)?;
     Ok(report)
 }

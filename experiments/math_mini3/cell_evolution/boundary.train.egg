@@ -1,0 +1,5 @@
+(datatype Math (V i64) (A Math) (B Math) (Flag Math) (Pair Math Math) (Done Math))
+(rewrite (A x) (B x))
+(rewrite (Pair (B x) (Flag x)) (Done x))
+(A (V 99)) (Pair (B (V 99)) (Flag (V 99)))
+(run 2)

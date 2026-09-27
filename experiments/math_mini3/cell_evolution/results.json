@@ -1,0 +1,3110 @@
+{
+  "schema": "cell-evolution-experiment/v1",
+  "parent_commit": "ed06696bce42175a3d82ccb2568702ff237594fc",
+  "observer_source_sha256": "f059062a99479f899d3bbd4c1423db13398db8ca4e506ee56ac8975204296ea7",
+  "binary_sha256": "cec9d11c1abbecea0aa8d34ec3deaf3e035b49f6349d3457ab1a08e00117637f",
+  "threads": "1",
+  "cases": {
+    "boundary": {
+      "boundary_events": 12,
+      "boundary_linked_births": 12,
+      "boundary_matches_in_repeated_patterns": 12,
+      "canonical_instances": 24,
+      "coalesced_cells": 0,
+      "incomplete_matches": 0,
+      "limitations": [
+        "Only macro notification instances are cells; source-only effects without a notification are not assigned a new cell.",
+        "Within-step newly born cells are not used as parents; evidence is from the read-only matching boundary.",
+        "Input refinement is an observed external constructor on a lower slot, not proof that it was newly created or solely responsible.",
+        "Primitive constants, read occurrence order and source family slot numbering are retained; no graph-isomorphism or guard minimization is claimed.",
+        "Implicit union provenance is incomplete; alias partitions report observed equalities, not a complete union proof.",
+        "Patterns are anchored projections, not multi-parent graph isomorphism; example support_ports retains the other families and their shared slot mappings."
+      ],
+      "logical_matches": 24,
+      "loose_interface_contacts_not_expanded": 0,
+      "multi_support_events": 0,
+      "observed_instance_births": 24,
+      "observed_slot_partition_changes": 0,
+      "patterns_repeated_across_instances": 1,
+      "schema": "cell-evolution/v1",
+      "scope": "observed anchored transition patterns in one exact rule environment; not an executable state machine or proven minimal guards",
+      "transition_patterns": 1,
+      "read_shapes_with_multiple_observed_outcomes": 0,
+      "max_observed_outcomes_per_read_shape": 1,
+      "family_dictionary": [
+        {
+          "id": 0,
+          "origin_rule": 0,
+          "rows": [
+            [
+              "A",
+              [
+                0,
+                1
+              ]
+            ],
+            [
+              "B",
+              [
+                0,
+                1
+              ]
+            ]
+          ],
+          "slots": [
+            [
+              "x",
+              "Math"
+            ],
+            [
+              "adaptive_root",
+              "Math"
+            ]
+          ]
+        },
+        {
+          "id": 1,
+          "origin_rule": 1,
+          "rows": [
+            [
+              "B",
+              [
+                0,
+                1
+              ]
+            ],
+            [
+              "Done",
+              [
+                0,
+                2
+              ]
+            ],
+            [
+              "Flag",
+              [
+                0,
+                3
+              ]
+            ],
+            [
+              "Pair",
+              [
+                1,
+                3,
+                2
+              ]
+            ]
+          ],
+          "slots": [
+            [
+              "x",
+              "Math"
+            ],
+            [
+              "adaptive_local_2",
+              "Math"
+            ],
+            [
+              "adaptive_root",
+              "Math"
+            ],
+            [
+              "adaptive_local_3",
+              "Math"
+            ]
+          ]
+        }
+      ],
+      "rule_environment": [
+        "(datatype Math (V i64) (A Math) (B Math) (Flag Math) (Pair Math Math) (Done Math))",
+        "(rewrite (A x) (B x))",
+        "(rewrite (Pair (B x) (Flag x)) (Done x))"
+      ],
+      "family_rule_edges": 1,
+      "observed_read_shapes": 1,
+      "families": 2,
+      "source_sha256": "0ab52b8ade2caa81cfe1478e9c5d543b22a72bf29faf79e41b0326d8a5198854",
+      "library_sha256": "9688ae064faea3dd83822638d98e1ae89d0397c9d17a4a370fff3c9cbc3f73ea",
+      "verification": {
+        "exact_equal": true,
+        "enodes": 72,
+        "eclasses": 48
+      },
+      "control_matches": 24,
+      "observed_matches": 24,
+      "repeated_pattern_occurrences": 12,
+      "anchored_occurrences": 12,
+      "input_refinement_patterns": 0,
+      "examples": [
+        {
+          "distinct_matches": 12,
+          "distinct_source_cells": 12,
+          "distinct_target_cells": 12,
+          "example": {
+            "match_event_id": 84,
+            "new_instance": true,
+            "round": 3,
+            "source_cell": 0,
+            "support_cells": [
+              0
+            ],
+            "support_ports": [
+              {
+                "cell": 0,
+                "family": 0,
+                "known_slots": [
+                  [
+                    0,
+                    "port_0"
+                  ],
+                  [
+                    1,
+                    "port_1"
+                  ]
+                ]
+              }
+            ],
+            "target_cell": 12
+          },
+          "id": 0,
+          "new_target_occurrences": 12,
+          "occurrences": 12,
+          "rounds": [
+            3
+          ],
+          "transition": {
+            "after_aliases": [
+              0,
+              1
+            ],
+            "before_aliases": [
+              0,
+              1
+            ],
+            "committed_math_rows_postcanonical": [
+              {
+                "outcome": "inserted",
+                "target_row": 1
+              }
+            ],
+            "input_refinement": false,
+            "read_guard": [
+              {
+                "fact": {
+                  "columns": [
+                    {
+                      "pre": "port_0"
+                    },
+                    {
+                      "pre": "port_1"
+                    }
+                  ],
+                  "op": "B"
+                },
+                "location": "body_fact"
+              },
+              {
+                "fact": {
+                  "columns": [
+                    {
+                      "pre": "port_0"
+                    },
+                    {
+                      "pre": "external_0"
+                    }
+                  ],
+                  "op": "Flag"
+                },
+                "location": "external_fact"
+              },
+              {
+                "fact": {
+                  "columns": [
+                    {
+                      "pre": "port_1"
+                    },
+                    {
+                      "pre": "external_0"
+                    },
+                    {
+                      "pre": "external_1"
+                    }
+                  ],
+                  "op": "Pair"
+                },
+                "location": "external_fact"
+              }
+            ],
+            "rule": "adaptive_baked_1",
+            "source_family": 0,
+            "source_support": "body_read",
+            "target_binding": [
+              {
+                "post_of": [
+                  "port_0"
+                ]
+              },
+              {
+                "post_of": [
+                  "port_1"
+                ]
+              },
+              {
+                "post_of": [
+                  "external_1"
+                ]
+              },
+              {
+                "post_of": [
+                  "external_0"
+                ]
+              }
+            ],
+            "target_family": 1,
+            "touched_slots": [
+              0,
+              1
+            ],
+            "traced_read_value_unions": []
+          }
+        }
+      ],
+      "catalog": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-evolution-complete/boundary-observe/cell-evolution.json"
+    },
+    "refinement": {
+      "boundary_events": 12,
+      "boundary_linked_births": 12,
+      "boundary_matches_in_repeated_patterns": 12,
+      "canonical_instances": 24,
+      "coalesced_cells": 0,
+      "incomplete_matches": 0,
+      "limitations": [
+        "Only macro notification instances are cells; source-only effects without a notification are not assigned a new cell.",
+        "Within-step newly born cells are not used as parents; evidence is from the read-only matching boundary.",
+        "Input refinement is an observed external constructor on a lower slot, not proof that it was newly created or solely responsible.",
+        "Primitive constants, read occurrence order and source family slot numbering are retained; no graph-isomorphism or guard minimization is claimed.",
+        "Implicit union provenance is incomplete; alias partitions report observed equalities, not a complete union proof.",
+        "Patterns are anchored projections, not multi-parent graph isomorphism; example support_ports retains the other families and their shared slot mappings."
+      ],
+      "logical_matches": 24,
+      "loose_interface_contacts_not_expanded": 0,
+      "multi_support_events": 0,
+      "observed_instance_births": 24,
+      "observed_slot_partition_changes": 0,
+      "patterns_repeated_across_instances": 1,
+      "schema": "cell-evolution/v1",
+      "scope": "observed anchored transition patterns in one exact rule environment; not an executable state machine or proven minimal guards",
+      "transition_patterns": 1,
+      "read_shapes_with_multiple_observed_outcomes": 0,
+      "max_observed_outcomes_per_read_shape": 1,
+      "family_dictionary": [
+        {
+          "id": 0,
+          "origin_rule": 0,
+          "rows": [
+            [
+              "A",
+              [
+                0,
+                1
+              ]
+            ],
+            [
+              "B",
+              [
+                0,
+                1
+              ]
+            ]
+          ],
+          "slots": [
+            [
+              "x",
+              "Math"
+            ],
+            [
+              "adaptive_root",
+              "Math"
+            ]
+          ]
+        },
+        {
+          "id": 1,
+          "origin_rule": 1,
+          "rows": [
+            [
+              "B",
+              [
+                0,
+                1
+              ]
+            ],
+            [
+              "C",
+              [
+                2,
+                0
+              ]
+            ],
+            [
+              "Done",
+              [
+                2,
+                1
+              ]
+            ]
+          ],
+          "slots": [
+            [
+              "adaptive_local_2",
+              "Math"
+            ],
+            [
+              "adaptive_root",
+              "Math"
+            ],
+            [
+              "x",
+              "Math"
+            ]
+          ]
+        }
+      ],
+      "rule_environment": [
+        "(datatype Math (V i64) (A Math) (B Math) (C Math) (Done Math))",
+        "(rewrite (A x) (B x))",
+        "(rewrite (B (C x)) (Done x))"
+      ],
+      "family_rule_edges": 1,
+      "observed_read_shapes": 1,
+      "families": 2,
+      "source_sha256": "3c621c583f13f77294d6776649333caac8e391b81075d81ab865b5b8a06ec8dd",
+      "library_sha256": "dfa12e43a86763dbfa9edb2502e4abec8a048c53a6c6d1f922f10f56e950a6a8",
+      "verification": {
+        "exact_equal": true,
+        "enodes": 72,
+        "eclasses": 36
+      },
+      "control_matches": 24,
+      "observed_matches": 24,
+      "repeated_pattern_occurrences": 12,
+      "anchored_occurrences": 12,
+      "input_refinement_patterns": 1,
+      "examples": [
+        {
+          "distinct_matches": 12,
+          "distinct_source_cells": 12,
+          "distinct_target_cells": 12,
+          "example": {
+            "match_event_id": 84,
+            "new_instance": true,
+            "round": 3,
+            "source_cell": 0,
+            "support_cells": [
+              0
+            ],
+            "support_ports": [
+              {
+                "cell": 0,
+                "family": 0,
+                "known_slots": [
+                  [
+                    0,
+                    "port_0"
+                  ],
+                  [
+                    1,
+                    "port_1"
+                  ]
+                ]
+              }
+            ],
+            "target_cell": 12
+          },
+          "id": 0,
+          "new_target_occurrences": 12,
+          "occurrences": 12,
+          "rounds": [
+            3
+          ],
+          "transition": {
+            "after_aliases": [
+              0,
+              1
+            ],
+            "before_aliases": [
+              0,
+              1
+            ],
+            "committed_math_rows_postcanonical": [
+              {
+                "outcome": "inserted",
+                "target_row": 2
+              }
+            ],
+            "input_refinement": true,
+            "read_guard": [
+              {
+                "fact": {
+                  "columns": [
+                    {
+                      "pre": "external_0"
+                    },
+                    {
+                      "pre": "port_0"
+                    }
+                  ],
+                  "op": "C"
+                },
+                "location": "external_fact"
+              },
+              {
+                "fact": {
+                  "columns": [
+                    {
+                      "pre": "port_0"
+                    },
+                    {
+                      "pre": "port_1"
+                    }
+                  ],
+                  "op": "B"
+                },
+                "location": "body_fact"
+              }
+            ],
+            "rule": "adaptive_baked_1",
+            "source_family": 0,
+            "source_support": "body_read",
+            "target_binding": [
+              {
+                "post_of": [
+                  "port_0"
+                ]
+              },
+              {
+                "post_of": [
+                  "port_1"
+                ]
+              },
+              {
+                "post_of": [
+                  "external_0"
+                ]
+              }
+            ],
+            "target_family": 1,
+            "touched_slots": [
+              0
+            ],
+            "traced_read_value_unions": []
+          }
+        }
+      ],
+      "catalog": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-evolution-complete/refinement-observe/cell-evolution.json"
+    },
+    "multi_parent": {
+      "boundary_events": 6,
+      "boundary_linked_births": 6,
+      "boundary_matches_in_repeated_patterns": 6,
+      "canonical_instances": 18,
+      "coalesced_cells": 0,
+      "incomplete_matches": 0,
+      "limitations": [
+        "Only macro notification instances are cells; source-only effects without a notification are not assigned a new cell.",
+        "Within-step newly born cells are not used as parents; evidence is from the read-only matching boundary.",
+        "Input refinement is an observed external constructor on a lower slot, not proof that it was newly created or solely responsible.",
+        "Primitive constants, read occurrence order and source family slot numbering are retained; no graph-isomorphism or guard minimization is claimed.",
+        "Implicit union provenance is incomplete; alias partitions report observed equalities, not a complete union proof.",
+        "Patterns are anchored projections, not multi-parent graph isomorphism; example support_ports retains the other families and their shared slot mappings."
+      ],
+      "logical_matches": 18,
+      "loose_interface_contacts_not_expanded": 0,
+      "multi_support_events": 6,
+      "observed_instance_births": 18,
+      "observed_slot_partition_changes": 0,
+      "patterns_repeated_across_instances": 2,
+      "schema": "cell-evolution/v1",
+      "scope": "observed anchored transition patterns in one exact rule environment; not an executable state machine or proven minimal guards",
+      "transition_patterns": 2,
+      "read_shapes_with_multiple_observed_outcomes": 0,
+      "max_observed_outcomes_per_read_shape": 1,
+      "family_dictionary": [
+        {
+          "id": 0,
+          "origin_rule": 0,
+          "rows": [
+            [
+              "A",
+              [
+                0,
+                1
+              ]
+            ],
+            [
+              "B",
+              [
+                0,
+                1
+              ]
+            ]
+          ],
+          "slots": [
+            [
+              "x",
+              "Math"
+            ],
+            [
+              "adaptive_root",
+              "Math"
+            ]
+          ]
+        },
+        {
+          "id": 1,
+          "origin_rule": 1,
+          "rows": [
+            [
+              "B",
+              [
+                0,
+                1
+              ]
+            ],
+            [
+              "B",
+              [
+                2,
+                3
+              ]
+            ],
+            [
+              "Done",
+              [
+                0,
+                2,
+                4
+              ]
+            ],
+            [
+              "Pair",
+              [
+                1,
+                3,
+                4
+              ]
+            ]
+          ],
+          "slots": [
+            [
+              "x",
+              "Math"
+            ],
+            [
+              "adaptive_local_3",
+              "Math"
+            ],
+            [
+              "y",
+              "Math"
+            ],
+            [
+              "adaptive_local_4",
+              "Math"
+            ],
+            [
+              "adaptive_root",
+              "Math"
+            ]
+          ]
+        }
+      ],
+      "rule_environment": [
+        "(datatype Math (V i64) (A Math) (B Math) (Pair Math Math) (Done Math Math))",
+        "(rewrite (A x) (B x))",
+        "(rewrite (Pair (B x) (B y)) (Done x y))"
+      ],
+      "family_rule_edges": 1,
+      "observed_read_shapes": 2,
+      "families": 2,
+      "source_sha256": "0ca48f1beca68c65d50b2830d88d04217cc983c96d427c57388a2c149554e52a",
+      "library_sha256": "70d02f21039adb931ecd56d2c3a8085354aa25433c7e01ae9b947195e624b4f4",
+      "verification": {
+        "exact_equal": true,
+        "enodes": 48,
+        "eclasses": 30
+      },
+      "control_matches": 18,
+      "observed_matches": 18,
+      "repeated_pattern_occurrences": 12,
+      "anchored_occurrences": 12,
+      "input_refinement_patterns": 0,
+      "examples": [
+        {
+          "distinct_matches": 6,
+          "distinct_source_cells": 6,
+          "distinct_target_cells": 6,
+          "example": {
+            "match_event_id": 84,
+            "new_instance": true,
+            "round": 3,
+            "source_cell": 1,
+            "support_cells": [
+              0,
+              1
+            ],
+            "support_ports": [
+              {
+                "cell": 0,
+                "family": 0,
+                "known_slots": [
+                  [
+                    0,
+                    "external_0"
+                  ],
+                  [
+                    1,
+                    "external_1"
+                  ]
+                ]
+              },
+              {
+                "cell": 1,
+                "family": 0,
+                "known_slots": [
+                  [
+                    0,
+                    "port_0"
+                  ],
+                  [
+                    1,
+                    "port_1"
+                  ]
+                ]
+              }
+            ],
+            "target_cell": 12
+          },
+          "id": 0,
+          "new_target_occurrences": 6,
+          "occurrences": 6,
+          "rounds": [
+            3
+          ],
+          "transition": {
+            "after_aliases": [
+              0,
+              1
+            ],
+            "before_aliases": [
+              0,
+              1
+            ],
+            "committed_math_rows_postcanonical": [
+              {
+                "outcome": "inserted",
+                "target_row": 2
+              }
+            ],
+            "input_refinement": false,
+            "read_guard": [
+              {
+                "fact": {
+                  "columns": [
+                    {
+                      "pre": "external_0"
+                    },
+                    {
+                      "pre": "external_1"
+                    }
+                  ],
+                  "op": "B"
+                },
+                "location": "external_fact"
+              },
+              {
+                "fact": {
+                  "columns": [
+                    {
+                      "pre": "port_0"
+                    },
+                    {
+                      "pre": "port_1"
+                    }
+                  ],
+                  "op": "B"
+                },
+                "location": "body_fact"
+              },
+              {
+                "fact": {
+                  "columns": [
+                    {
+                      "pre": "external_1"
+                    },
+                    {
+                      "pre": "port_1"
+                    },
+                    {
+                      "pre": "external_2"
+                    }
+                  ],
+                  "op": "Pair"
+                },
+                "location": "external_fact"
+              }
+            ],
+            "rule": "adaptive_baked_1",
+            "source_family": 0,
+            "source_support": "body_read",
+            "target_binding": [
+              {
+                "post_of": [
+                  "external_0"
+                ]
+              },
+              {
+                "post_of": [
+                  "external_1"
+                ]
+              },
+              {
+                "post_of": [
+                  "port_0"
+                ]
+              },
+              {
+                "post_of": [
+                  "port_1"
+                ]
+              },
+              {
+                "post_of": [
+                  "external_2"
+                ]
+              }
+            ],
+            "target_family": 1,
+            "touched_slots": [
+              1
+            ],
+            "traced_read_value_unions": []
+          }
+        },
+        {
+          "distinct_matches": 6,
+          "distinct_source_cells": 6,
+          "distinct_target_cells": 6,
+          "example": {
+            "match_event_id": 84,
+            "new_instance": true,
+            "round": 3,
+            "source_cell": 0,
+            "support_cells": [
+              0,
+              1
+            ],
+            "support_ports": [
+              {
+                "cell": 0,
+                "family": 0,
+                "known_slots": [
+                  [
+                    0,
+                    "port_0"
+                  ],
+                  [
+                    1,
+                    "port_1"
+                  ]
+                ]
+              },
+              {
+                "cell": 1,
+                "family": 0,
+                "known_slots": [
+                  [
+                    0,
+                    "external_0"
+                  ],
+                  [
+                    1,
+                    "external_1"
+                  ]
+                ]
+              }
+            ],
+            "target_cell": 12
+          },
+          "id": 1,
+          "new_target_occurrences": 6,
+          "occurrences": 6,
+          "rounds": [
+            3
+          ],
+          "transition": {
+            "after_aliases": [
+              0,
+              1
+            ],
+            "before_aliases": [
+              0,
+              1
+            ],
+            "committed_math_rows_postcanonical": [
+              {
+                "outcome": "inserted",
+                "target_row": 2
+              }
+            ],
+            "input_refinement": false,
+            "read_guard": [
+              {
+                "fact": {
+                  "columns": [
+                    {
+                      "pre": "port_0"
+                    },
+                    {
+                      "pre": "port_1"
+                    }
+                  ],
+                  "op": "B"
+                },
+                "location": "body_fact"
+              },
+              {
+                "fact": {
+                  "columns": [
+                    {
+                      "pre": "external_0"
+                    },
+                    {
+                      "pre": "external_1"
+                    }
+                  ],
+                  "op": "B"
+                },
+                "location": "external_fact"
+              },
+              {
+                "fact": {
+                  "columns": [
+                    {
+                      "pre": "port_1"
+                    },
+                    {
+                      "pre": "external_1"
+                    },
+                    {
+                      "pre": "external_2"
+                    }
+                  ],
+                  "op": "Pair"
+                },
+                "location": "external_fact"
+              }
+            ],
+            "rule": "adaptive_baked_1",
+            "source_family": 0,
+            "source_support": "body_read",
+            "target_binding": [
+              {
+                "post_of": [
+                  "port_0"
+                ]
+              },
+              {
+                "post_of": [
+                  "port_1"
+                ]
+              },
+              {
+                "post_of": [
+                  "external_0"
+                ]
+              },
+              {
+                "post_of": [
+                  "external_1"
+                ]
+              },
+              {
+                "post_of": [
+                  "external_2"
+                ]
+              }
+            ],
+            "target_family": 1,
+            "touched_slots": [
+              1
+            ],
+            "traced_read_value_unions": []
+          }
+        }
+      ],
+      "catalog": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-evolution-complete/multi_parent-observe/cell-evolution.json"
+    },
+    "unrelated": {
+      "boundary_events": 0,
+      "boundary_linked_births": 0,
+      "boundary_matches_in_repeated_patterns": 0,
+      "canonical_instances": 2,
+      "coalesced_cells": 0,
+      "incomplete_matches": 0,
+      "limitations": [
+        "Only macro notification instances are cells; source-only effects without a notification are not assigned a new cell.",
+        "Within-step newly born cells are not used as parents; evidence is from the read-only matching boundary.",
+        "Input refinement is an observed external constructor on a lower slot, not proof that it was newly created or solely responsible.",
+        "Primitive constants, read occurrence order and source family slot numbering are retained; no graph-isomorphism or guard minimization is claimed.",
+        "Implicit union provenance is incomplete; alias partitions report observed equalities, not a complete union proof.",
+        "Patterns are anchored projections, not multi-parent graph isomorphism; example support_ports retains the other families and their shared slot mappings."
+      ],
+      "logical_matches": 2,
+      "loose_interface_contacts_not_expanded": 1,
+      "multi_support_events": 0,
+      "observed_instance_births": 2,
+      "observed_slot_partition_changes": 0,
+      "patterns_repeated_across_instances": 0,
+      "schema": "cell-evolution/v1",
+      "scope": "observed anchored transition patterns in one exact rule environment; not an executable state machine or proven minimal guards",
+      "transition_patterns": 0,
+      "read_shapes_with_multiple_observed_outcomes": 0,
+      "max_observed_outcomes_per_read_shape": 0,
+      "family_dictionary": [
+        {
+          "id": 0,
+          "origin_rule": 0,
+          "rows": [
+            [
+              "A",
+              [
+                0,
+                1
+              ]
+            ],
+            [
+              "B",
+              [
+                0,
+                1
+              ]
+            ]
+          ],
+          "slots": [
+            [
+              "x",
+              "Math"
+            ],
+            [
+              "adaptive_root",
+              "Math"
+            ]
+          ]
+        },
+        {
+          "id": 1,
+          "origin_rule": 1,
+          "rows": [
+            [
+              "C",
+              [
+                0,
+                1
+              ]
+            ],
+            [
+              "D",
+              [
+                0,
+                1
+              ]
+            ]
+          ],
+          "slots": [
+            [
+              "x",
+              "Math"
+            ],
+            [
+              "adaptive_root",
+              "Math"
+            ]
+          ]
+        }
+      ],
+      "rule_environment": [
+        "(datatype Math (V i64) (A Math) (B Math) (C Math) (D Math))",
+        "(rewrite (A x) (B x))",
+        "(rewrite (C x) (D x))"
+      ],
+      "family_rule_edges": 0,
+      "observed_read_shapes": 0,
+      "families": 2,
+      "source_sha256": "bc9fc8394c57d6549d9e83b35ac67959f792b91b16a163e7d20511158413ff94",
+      "library_sha256": "063e99e830e43c8d81d92a242c2e8a62e57583e877ace4cd59dfd18b504d0840",
+      "verification": {
+        "exact_equal": true,
+        "enodes": 5,
+        "eclasses": 3
+      },
+      "control_matches": 2,
+      "observed_matches": 2,
+      "repeated_pattern_occurrences": 0,
+      "anchored_occurrences": 0,
+      "input_refinement_patterns": 0,
+      "examples": [],
+      "catalog": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-evolution-complete/unrelated-observe/cell-evolution.json"
+    },
+    "math": {
+      "boundary_events": 2631,
+      "boundary_linked_births": 2394,
+      "boundary_matches_in_repeated_patterns": 2606,
+      "canonical_instances": 3016,
+      "coalesced_cells": 0,
+      "incomplete_matches": 0,
+      "limitations": [
+        "Only macro notification instances are cells; source-only effects without a notification are not assigned a new cell.",
+        "Within-step newly born cells are not used as parents; evidence is from the read-only matching boundary.",
+        "Input refinement is an observed external constructor on a lower slot, not proof that it was newly created or solely responsible.",
+        "Primitive constants, read occurrence order and source family slot numbering are retained; no graph-isomorphism or guard minimization is claimed.",
+        "Implicit union provenance is incomplete; alias partitions report observed equalities, not a complete union proof.",
+        "Patterns are anchored projections, not multi-parent graph isomorphism; example support_ports retains the other families and their shared slot mappings."
+      ],
+      "logical_matches": 3380,
+      "loose_interface_contacts_not_expanded": 826555,
+      "multi_support_events": 3051,
+      "observed_instance_births": 3016,
+      "observed_slot_partition_changes": 0,
+      "patterns_repeated_across_instances": 2124,
+      "schema": "cell-evolution/v1",
+      "scope": "observed anchored transition patterns in one exact rule environment; not an executable state machine or proven minimal guards",
+      "transition_patterns": 3211,
+      "read_shapes_with_multiple_observed_outcomes": 675,
+      "max_observed_outcomes_per_read_shape": 26,
+      "family_dictionary": [
+        {
+          "id": 0,
+          "origin_rule": 0,
+          "rows": [
+            [
+              "Add",
+              [
+                0,
+                1,
+                2
+              ]
+            ],
+            [
+              "Add",
+              [
+                1,
+                0,
+                2
+              ]
+            ]
+          ],
+          "slots": [
+            [
+              "a",
+              "Math"
+            ],
+            [
+              "b",
+              "Math"
+            ],
+            [
+              "adaptive_root",
+              "Math"
+            ]
+          ]
+        },
+        {
+          "id": 1,
+          "origin_rule": 1,
+          "rows": [
+            [
+              "Mul",
+              [
+                0,
+                1,
+                2
+              ]
+            ],
+            [
+              "Mul",
+              [
+                1,
+                0,
+                2
+              ]
+            ]
+          ],
+          "slots": [
+            [
+              "a",
+              "Math"
+            ],
+            [
+              "b",
+              "Math"
+            ],
+            [
+              "adaptive_root",
+              "Math"
+            ]
+          ]
+        },
+        {
+          "id": 2,
+          "origin_rule": 2,
+          "rows": [
+            [
+              "Add",
+              [
+                0,
+                1,
+                2
+              ]
+            ],
+            [
+              "Add",
+              [
+                3,
+                4,
+                1
+              ]
+            ],
+            [
+              "Add",
+              [
+                4,
+                3,
+                1
+              ]
+            ],
+            [
+              "Add",
+              [
+                1,
+                0,
+                2
+              ]
+            ],
+            [
+              "Add",
+              [
+                0,
+                3,
+                5
+              ]
+            ],
+            [
+              "Add",
+              [
+                5,
+                4,
+                2
+              ]
+            ],
+            [
+              "Add",
+              [
+                3,
+                0,
+                5
+              ]
+            ],
+            [
+              "Add",
+              [
+                4,
+                5,
+                2
+              ]
+            ],
+            [
+              "Add",
+              [
+                0,
+                4,
+                6
+              ]
+            ],
+            [
+              "Add",
+              [
+                6,
+                3,
+                2
+              ]
+            ],
+            [
+              "Add",
+              [
+                3,
+                6,
+                2
+              ]
+            ],
+            [
+              "Add",
+              [
+                4,
+                0,
+                6
+              ]
+            ]
+          ],
+          "slots": [
+            [
+              "a",
+              "Math"
+            ],
+            [
+              "adaptive_local_4",
+              "Math"
+            ],
+            [
+              "adaptive_root",
+              "Math"
+            ],
+            [
+              "b",
+              "Math"
+            ],
+            [
+              "c",
+              "Math"
+            ],
+            [
+              "adaptive_local_5",
+              "Math"
+            ],
+            [
+              "adaptive_local_6",
+              "Math"
+            ]
+          ]
+        },
+        {
+          "id": 3,
+          "origin_rule": 3,
+          "rows": [
+            [
+              "Mul",
+              [
+                0,
+                1,
+                2
+              ]
+            ],
+            [
+              "Mul",
+              [
+                3,
+                4,
+                1
+              ]
+            ],
+            [
+              "Mul",
+              [
+                4,
+                3,
+                1
+              ]
+            ],
+            [
+              "Mul",
+              [
+                1,
+                0,
+                2
+              ]
+            ],
+            [
+              "Mul",
+              [
+                0,
+                3,
+                5
+              ]
+            ],
+            [
+              "Mul",
+              [
+                5,
+                4,
+                2
+              ]
+            ],
+            [
+              "Mul",
+              [
+                3,
+                0,
+                5
+              ]
+            ],
+            [
+              "Mul",
+              [
+                4,
+                5,
+                2
+              ]
+            ],
+            [
+              "Mul",
+              [
+                0,
+                4,
+                6
+              ]
+            ],
+            [
+              "Mul",
+              [
+                6,
+                3,
+                2
+              ]
+            ],
+            [
+              "Mul",
+              [
+                3,
+                6,
+                2
+              ]
+            ],
+            [
+              "Mul",
+              [
+                4,
+                0,
+                6
+              ]
+            ]
+          ],
+          "slots": [
+            [
+              "a",
+              "Math"
+            ],
+            [
+              "adaptive_local_4",
+              "Math"
+            ],
+            [
+              "adaptive_root",
+              "Math"
+            ],
+            [
+              "b",
+              "Math"
+            ],
+            [
+              "c",
+              "Math"
+            ],
+            [
+              "adaptive_local_5",
+              "Math"
+            ],
+            [
+              "adaptive_local_6",
+              "Math"
+            ]
+          ]
+        },
+        {
+          "id": 4,
+          "origin_rule": 4,
+          "rows": [
+            [
+              "Add",
+              [
+                0,
+                1,
+                2
+              ]
+            ],
+            [
+              "Add",
+              [
+                1,
+                0,
+                2
+              ]
+            ],
+            [
+              "Const",
+              [
+                3,
+                4
+              ]
+            ],
+            [
+              "Mul",
+              [
+                4,
+                5,
+                1
+              ]
+            ],
+            [
+              "Mul",
+              [
+                5,
+                4,
+                1
+              ]
+            ],
+            [
+              "Sub",
+              [
+                0,
+                5,
+                2
+              ]
+            ]
+          ],
+          "slots": [
+            [
+              "a",
+              "Math"
+            ],
+            [
+              "adaptive_local_4",
+              "Math"
+            ],
+            [
+              "adaptive_root",
+              "Math"
+            ],
+            [
+              "-1",
+              "i64"
+            ],
+            [
+              "adaptive_local_3",
+              "Math"
+            ],
+            [
+              "b",
+              "Math"
+            ]
+          ]
+        },
+        {
+          "id": 5,
+          "origin_rule": 9,
+          "rows": [
+            [
+              "Add",
+              [
+                0,
+                1,
+                2
+              ]
+            ],
+            [
+              "Add",
+              [
+                1,
+                0,
+                2
+              ]
+            ],
+            [
+              "Add",
+              [
+                3,
+                4,
+                5
+              ]
+            ],
+            [
+              "Add",
+              [
+                4,
+                3,
+                5
+              ]
+            ],
+            [
+              "Mul",
+              [
+                6,
+                2,
+                5
+              ]
+            ],
+            [
+              "Mul",
+              [
+                2,
+                6,
+                5
+              ]
+            ],
+            [
+              "Mul",
+              [
+                6,
+                0,
+                3
+              ]
+            ],
+            [
+              "Mul",
+              [
+                6,
+                1,
+                4
+              ]
+            ],
+            [
+              "Mul",
+              [
+                0,
+                6,
+                3
+              ]
+            ],
+            [
+              "Mul",
+              [
+                1,
+                6,
+                4
+              ]
+            ]
+          ],
+          "slots": [
+            [
+              "b",
+              "Math"
+            ],
+            [
+              "c",
+              "Math"
+            ],
+            [
+              "adaptive_local_4",
+              "Math"
+            ],
+            [
+              "adaptive_local_5",
+              "Math"
+            ],
+            [
+              "adaptive_local_6",
+              "Math"
+            ],
+            [
+              "adaptive_root",
+              "Math"
+            ],
+            [
+              "a",
+              "Math"
+            ]
+          ]
+        },
+        {
+          "id": 6,
+          "origin_rule": 10,
+          "rows": [
+            [
+              "Add",
+              [
+                0,
+                1,
+                2
+              ]
+            ],
+            [
+              "Add",
+              [
+                3,
+                4,
+                5
+              ]
+            ],
+            [
+              "Add",
+              [
+                1,
+                0,
+                2
+              ]
+            ],
+            [
+              "Add",
+              [
+                4,
+                3,
+                5
+              ]
+            ],
+            [
+              "Mul",
+              [
+                6,
+                3,
+                0
+              ]
+            ],
+            [
+              "Mul",
+              [
+                6,
+                4,
+                1
+              ]
+            ],
+            [
+              "Mul",
+              [
+                6,
+                5,
+                2
+              ]
+            ],
+            [
+              "Mul",
+              [
+                3,
+                6,
+                0
+              ]
+            ],
+            [
+              "Mul",
+              [
+                4,
+                6,
+                1
+              ]
+            ],
+            [
+              "Mul",
+              [
+                5,
+                6,
+                2
+              ]
+            ]
+          ],
+          "slots": [
+            [
+              "adaptive_local_5",
+              "Math"
+            ],
+            [
+              "adaptive_local_6",
+              "Math"
+            ],
+            [
+              "adaptive_root",
+              "Math"
+            ],
+            [
+              "b",
+              "Math"
+            ],
+            [
+              "c",
+              "Math"
+            ],
+            [
+              "adaptive_local_4",
+              "Math"
+            ],
+            [
+              "a",
+              "Math"
+            ]
+          ]
+        },
+        {
+          "id": 7,
+          "origin_rule": 13,
+          "rows": [
+            [
+              "Const",
+              [
+                0,
+                1
+              ]
+            ],
+            [
+              "Mul",
+              [
+                2,
+                2,
+                3
+              ]
+            ],
+            [
+              "Pow",
+              [
+                2,
+                1,
+                3
+              ]
+            ]
+          ],
+          "slots": [
+            [
+              "2",
+              "i64"
+            ],
+            [
+              "adaptive_local_2",
+              "Math"
+            ],
+            [
+              "x",
+              "Math"
+            ],
+            [
+              "adaptive_root",
+              "Math"
+            ]
+          ]
+        },
+        {
+          "id": 8,
+          "origin_rule": 14,
+          "rows": [
+            [
+              "Add",
+              [
+                0,
+                1,
+                2
+              ]
+            ],
+            [
+              "Add",
+              [
+                3,
+                4,
+                5
+              ]
+            ],
+            [
+              "Add",
+              [
+                1,
+                0,
+                2
+              ]
+            ],
+            [
+              "Add",
+              [
+                4,
+                3,
+                5
+              ]
+            ],
+            [
+              "Diff",
+              [
+                6,
+                2,
+                5
+              ]
+            ],
+            [
+              "Diff",
+              [
+                6,
+                1,
+                4
+              ]
+            ],
+            [
+              "Diff",
+              [
+                6,
+                0,
+                3
+              ]
+            ]
+          ],
+          "slots": [
+            [
+              "a",
+              "Math"
+            ],
+            [
+              "b",
+              "Math"
+            ],
+            [
+              "adaptive_local_4",
+              "Math"
+            ],
+            [
+              "adaptive_local_6",
+              "Math"
+            ],
+            [
+              "adaptive_local_5",
+              "Math"
+            ],
+            [
+              "adaptive_root",
+              "Math"
+            ],
+            [
+              "x",
+              "Math"
+            ]
+          ]
+        },
+        {
+          "id": 9,
+          "origin_rule": 15,
+          "rows": [
+            [
+              "Add",
+              [
+                0,
+                1,
+                2
+              ]
+            ],
+            [
+              "Add",
+              [
+                1,
+                0,
+                2
+              ]
+            ],
+            [
+              "Diff",
+              [
+                3,
+                4,
+                2
+              ]
+            ],
+            [
+              "Diff",
+              [
+                3,
+                5,
+                6
+              ]
+            ],
+            [
+              "Diff",
+              [
+                3,
+                7,
+                8
+              ]
+            ],
+            [
+              "Mul",
+              [
+                7,
+                5,
+                4
+              ]
+            ],
+            [
+              "Mul",
+              [
+                5,
+                7,
+                4
+              ]
+            ],
+            [
+              "Mul",
+              [
+                7,
+                6,
+                0
+              ]
+            ],
+            [
+              "Mul",
+              [
+                5,
+                8,
+                1
+              ]
+            ],
+            [
+              "Mul",
+              [
+                6,
+                7,
+                0
+              ]
+            ],
+            [
+              "Mul",
+              [
+                8,
+                5,
+                1
+              ]
+            ]
+          ],
+          "slots": [
+            [
+              "adaptive_local_7",
+              "Math"
+            ],
+            [
+              "adaptive_local_8",
+              "Math"
+            ],
+            [
+              "adaptive_root",
+              "Math"
+            ],
+            [
+              "x",
+              "Math"
+            ],
+            [
+              "adaptive_local_6",
+              "Math"
+            ],
+            [
+              "b",
+              "Math"
+            ],
+            [
+              "adaptive_local_4",
+              "Math"
+            ],
+            [
+              "a",
+              "Math"
+            ],
+            [
+              "adaptive_local_5",
+              "Math"
+            ]
+          ]
+        },
+        {
+          "id": 10,
+          "origin_rule": 17,
+          "rows": [
+            [
+              "Const",
+              [
+                0,
+                1
+              ]
+            ],
+            [
+              "Cos",
+              [
+                2,
+                3
+              ]
+            ],
+            [
+              "Diff",
+              [
+                2,
+                3,
+                4
+              ]
+            ],
+            [
+              "Mul",
+              [
+                1,
+                5,
+                4
+              ]
+            ],
+            [
+              "Mul",
+              [
+                5,
+                1,
+                4
+              ]
+            ],
+            [
+              "Sin",
+              [
+                2,
+                5
+              ]
+            ]
+          ],
+          "slots": [
+            [
+              "-1",
+              "i64"
+            ],
+            [
+              "adaptive_local_2",
+              "Math"
+            ],
+            [
+              "x",
+              "Math"
+            ],
+            [
+              "adaptive_local_3",
+              "Math"
+            ],
+            [
+              "adaptive_root",
+              "Math"
+            ],
+            [
+              "adaptive_local_4",
+              "Math"
+            ]
+          ]
+        },
+        {
+          "id": 11,
+          "origin_rule": 19,
+          "rows": [
+            [
+              "Cos",
+              [
+                0,
+                1
+              ]
+            ],
+            [
+              "Integral",
+              [
+                1,
+                0,
+                2
+              ]
+            ],
+            [
+              "Sin",
+              [
+                0,
+                2
+              ]
+            ]
+          ],
+          "slots": [
+            [
+              "x",
+              "Math"
+            ],
+            [
+              "adaptive_local_2",
+              "Math"
+            ],
+            [
+              "adaptive_root",
+              "Math"
+            ]
+          ]
+        },
+        {
+          "id": 12,
+          "origin_rule": 21,
+          "rows": [
+            [
+              "Add",
+              [
+                0,
+                1,
+                2
+              ]
+            ],
+            [
+              "Add",
+              [
+                3,
+                4,
+                5
+              ]
+            ],
+            [
+              "Add",
+              [
+                1,
+                0,
+                2
+              ]
+            ],
+            [
+              "Add",
+              [
+                4,
+                3,
+                5
+              ]
+            ],
+            [
+              "Integral",
+              [
+                2,
+                6,
+                5
+              ]
+            ],
+            [
+              "Integral",
+              [
+                1,
+                6,
+                4
+              ]
+            ],
+            [
+              "Integral",
+              [
+                0,
+                6,
+                3
+              ]
+            ]
+          ],
+          "slots": [
+            [
+              "f",
+              "Math"
+            ],
+            [
+              "g",
+              "Math"
+            ],
+            [
+              "adaptive_local_4",
+              "Math"
+            ],
+            [
+              "adaptive_local_6",
+              "Math"
+            ],
+            [
+              "adaptive_local_5",
+              "Math"
+            ],
+            [
+              "adaptive_root",
+              "Math"
+            ],
+            [
+              "x",
+              "Math"
+            ]
+          ]
+        }
+      ],
+      "rule_environment": [
+        "(datatype Math (Diff Math Math) (Integral Math Math) (Add Math Math) (Sub Math Math) (Mul Math Math) (Div Math Math) (Pow Math Math) (Ln Math) (Sqrt Math) (Sin Math) (Cos Math) (Const i64) (Var String))",
+        "(rewrite (Add a b) (Add b a))",
+        "(rewrite (Mul a b) (Mul b a))",
+        "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
+        "(rewrite (Mul a (Mul b c)) (Mul (Mul a b) c))",
+        "(rewrite (Sub a b) (Add a (Mul (Const -1) b)))",
+        "(rewrite (Add a (Const 0)) a)",
+        "(rewrite (Mul a (Const 0)) (Const 0))",
+        "(rewrite (Mul a (Const 1)) a)",
+        "(rewrite (Sub a a) (Const 0))",
+        "(rewrite (Mul a (Add b c)) (Add (Mul a b) (Mul a c)))",
+        "(rewrite (Add (Mul a b) (Mul a c)) (Mul a (Add b c)))",
+        "(rewrite (Mul (Pow a b) (Pow a c)) (Pow a (Add b c)))",
+        "(rewrite (Pow x (Const 1)) x)",
+        "(rewrite (Pow x (Const 2)) (Mul x x))",
+        "(rewrite (Diff x (Add a b)) (Add (Diff x a) (Diff x b)))",
+        "(rewrite (Diff x (Mul a b)) (Add (Mul a (Diff x b)) (Mul b (Diff x a))))",
+        "(rewrite (Diff x (Sin x)) (Cos x))",
+        "(rewrite (Diff x (Cos x)) (Mul (Const -1) (Sin x)))",
+        "(rewrite (Integral (Const 1) x) x)",
+        "(rewrite (Integral (Cos x) x) (Sin x))",
+        "(rewrite (Integral (Sin x) x) (Mul (Const -1) (Cos x)))",
+        "(rewrite (Integral (Add f g) x) (Add (Integral f x) (Integral g x)))",
+        "(rewrite (Integral (Sub f g) x) (Sub (Integral f x) (Integral g x)))",
+        "(rewrite (Integral (Mul a b) x) (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x)))"
+      ],
+      "family_rule_edges": 90,
+      "observed_read_shapes": 1618,
+      "families": 13,
+      "source_sha256": "bcfe73904adb5f373e4dda48b794d22a3d808621ea6b34dcb91accb88605fd0f",
+      "library_sha256": "d10af32600b178515ed204758229ce189b6e8641a98d6547967362c5da0d0e2c",
+      "verification": {
+        "exact_equal": true,
+        "enodes": 2167,
+        "eclasses": 748
+      },
+      "control_matches": 3376,
+      "observed_matches": 3380,
+      "repeated_pattern_occurrences": 66182,
+      "anchored_occurrences": 67732,
+      "input_refinement_patterns": 1943,
+      "examples": [
+        {
+          "distinct_matches": 690,
+          "distinct_source_cells": 496,
+          "distinct_target_cells": 645,
+          "example": {
+            "match_event_id": 2602,
+            "new_instance": true,
+            "round": 4,
+            "source_cell": 169,
+            "support_cells": [
+              88,
+              90,
+              169,
+              171,
+              173,
+              175
+            ],
+            "support_ports": [
+              {
+                "cell": 88,
+                "family": 0,
+                "known_slots": [
+                  [
+                    0,
+                    "external_1"
+                  ],
+                  [
+                    1,
+                    "port_4"
+                  ]
+                ]
+              },
+              {
+                "cell": 90,
+                "family": 0,
+                "known_slots": [
+                  [
+                    0,
+                    "port_4"
+                  ],
+                  [
+                    1,
+                    "external_1"
+                  ]
+                ]
+              },
+              {
+                "cell": 169,
+                "family": 2,
+                "known_slots": [
+                  [
+                    0,
+                    "port_0"
+                  ],
+                  [
+                    1,
+                    "port_1"
+                  ],
+                  [
+                    2,
+                    "port_2"
+                  ],
+                  [
+                    3,
+                    "port_3"
+                  ],
+                  [
+                    4,
+                    "port_4"
+                  ],
+                  [
+                    5,
+                    "port_5"
+                  ],
+                  [
+                    6,
+                    "port_6"
+                  ]
+                ]
+              },
+              {
+                "cell": 171,
+                "family": 2,
+                "known_slots": [
+                  [
+                    0,
+                    "port_0"
+                  ],
+                  [
+                    1,
+                    "port_1"
+                  ],
+                  [
+                    2,
+                    "port_2"
+                  ],
+                  [
+                    3,
+                    "port_4"
+                  ],
+                  [
+                    4,
+                    "port_3"
+                  ],
+                  [
+                    5,
+                    "port_6"
+                  ],
+                  [
+                    6,
+                    "port_5"
+                  ]
+                ]
+              },
+              {
+                "cell": 173,
+                "family": 2,
+                "known_slots": [
+                  [
+                    0,
+                    "port_3"
+                  ],
+                  [
+                    2,
+                    "external_1"
+                  ],
+                  [
+                    3,
+                    "port_0"
+                  ],
+                  [
+                    4,
+                    "external_0"
+                  ],
+                  [
+                    5,
+                    "port_5"
+                  ]
+                ]
+              },
+              {
+                "cell": 175,
+                "family": 2,
+                "known_slots": [
+                  [
+                    0,
+                    "port_3"
+                  ],
+                  [
+                    2,
+                    "external_1"
+                  ],
+                  [
+                    3,
+                    "external_0"
+                  ],
+                  [
+                    4,
+                    "port_0"
+                  ],
+                  [
+                    6,
+                    "port_5"
+                  ]
+                ]
+              }
+            ],
+            "target_cell": 383
+          },
+          "id": 0,
+          "new_target_occurrences": 1738,
+          "occurrences": 2192,
+          "rounds": [
+            4,
+            5,
+            6
+          ],
+          "transition": {
+            "after_aliases": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "before_aliases": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "committed_math_rows_postcanonical": [],
+            "input_refinement": false,
+            "read_guard": [
+              {
+                "fact": {
+                  "columns": [
+                    {
+                      "pre": "port_0"
+                    },
+                    {
+                      "pre": "port_3"
+                    },
+                    {
+                      "pre": "port_5"
+                    }
+                  ],
+                  "op": "Add"
+                },
+                "location": "body_fact"
+              },
+              {
+                "fact": {
+                  "columns": [
+                    {
+                      "pre": "external_0"
+                    },
+                    {
+                      "pre": "port_5"
+                    },
+                    {
+                      "pre": "external_1"
+                    }
+                  ],
+                  "op": "Add"
+                },
+                "location": "external_fact"
+              }
+            ],
+            "rule": "adaptive_baked_2",
+            "source_family": 2,
+            "source_support": "body_read",
+            "target_binding": [
+              {
+                "post_of": [
+                  "external_0"
+                ]
+              },
+              {
+                "post_of": [
+                  "port_5"
+                ]
+              },
+              {
+                "post_of": [
+                  "external_1"
+                ]
+              },
+              {
+                "post_of": [
+                  "port_0"
+                ]
+              },
+              {
+                "post_of": [
+                  "port_3"
+                ]
+              },
+              {
+                "new": 0
+              },
+              {
+                "new": 1
+              }
+            ],
+            "target_family": 2,
+            "touched_slots": [
+              5
+            ],
+            "traced_read_value_unions": []
+          }
+        },
+        {
+          "distinct_matches": 690,
+          "distinct_source_cells": 496,
+          "distinct_target_cells": 645,
+          "example": {
+            "match_event_id": 2602,
+            "new_instance": true,
+            "round": 4,
+            "source_cell": 171,
+            "support_cells": [
+              88,
+              90,
+              169,
+              171,
+              173,
+              175
+            ],
+            "support_ports": [
+              {
+                "cell": 88,
+                "family": 0,
+                "known_slots": [
+                  [
+                    0,
+                    "external_1"
+                  ],
+                  [
+                    1,
+                    "port_3"
+                  ]
+                ]
+              },
+              {
+                "cell": 90,
+                "family": 0,
+                "known_slots": [
+                  [
+                    0,
+                    "port_3"
+                  ],
+                  [
+                    1,
+                    "external_1"
+                  ]
+                ]
+              },
+              {
+                "cell": 169,
+                "family": 2,
+                "known_slots": [
+                  [
+                    0,
+                    "port_0"
+                  ],
+                  [
+                    1,
+                    "port_1"
+                  ],
+                  [
+                    2,
+                    "port_2"
+                  ],
+                  [
+                    3,
+                    "port_4"
+                  ],
+                  [
+                    4,
+                    "port_3"
+                  ],
+                  [
+                    5,
+                    "port_6"
+                  ],
+                  [
+                    6,
+                    "port_5"
+                  ]
+                ]
+              },
+              {
+                "cell": 171,
+                "family": 2,
+                "known_slots": [
+                  [
+                    0,
+                    "port_0"
+                  ],
+                  [
+                    1,
+                    "port_1"
+                  ],
+                  [
+                    2,
+                    "port_2"
+                  ],
+                  [
+                    3,
+                    "port_3"
+                  ],
+                  [
+                    4,
+                    "port_4"
+                  ],
+                  [
+                    5,
+                    "port_5"
+                  ],
+                  [
+                    6,
+                    "port_6"
+                  ]
+                ]
+              },
+              {
+                "cell": 173,
+                "family": 2,
+                "known_slots": [
+                  [
+                    0,
+                    "port_4"
+                  ],
+                  [
+                    2,
+                    "external_1"
+                  ],
+                  [
+                    3,
+                    "port_0"
+                  ],
+                  [
+                    4,
+                    "external_0"
+                  ],
+                  [
+                    5,
+                    "port_6"
+                  ]
+                ]
+              },
+              {
+                "cell": 175,
+                "family": 2,
+                "known_slots": [
+                  [
+                    0,
+                    "port_4"
+                  ],
+                  [
+                    2,
+                    "external_1"
+                  ],
+                  [
+                    3,
+                    "external_0"
+                  ],
+                  [
+                    4,
+                    "port_0"
+                  ],
+                  [
+                    6,
+                    "port_6"
+                  ]
+                ]
+              }
+            ],
+            "target_cell": 383
+          },
+          "id": 1,
+          "new_target_occurrences": 1738,
+          "occurrences": 2192,
+          "rounds": [
+            4,
+            5,
+            6
+          ],
+          "transition": {
+            "after_aliases": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "before_aliases": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "committed_math_rows_postcanonical": [],
+            "input_refinement": false,
+            "read_guard": [
+              {
+                "fact": {
+                  "columns": [
+                    {
+                      "pre": "port_0"
+                    },
+                    {
+                      "pre": "port_4"
+                    },
+                    {
+                      "pre": "port_6"
+                    }
+                  ],
+                  "op": "Add"
+                },
+                "location": "body_fact"
+              },
+              {
+                "fact": {
+                  "columns": [
+                    {
+                      "pre": "external_0"
+                    },
+                    {
+                      "pre": "port_6"
+                    },
+                    {
+                      "pre": "external_1"
+                    }
+                  ],
+                  "op": "Add"
+                },
+                "location": "external_fact"
+              }
+            ],
+            "rule": "adaptive_baked_2",
+            "source_family": 2,
+            "source_support": "body_read",
+            "target_binding": [
+              {
+                "post_of": [
+                  "external_0"
+                ]
+              },
+              {
+                "post_of": [
+                  "port_6"
+                ]
+              },
+              {
+                "post_of": [
+                  "external_1"
+                ]
+              },
+              {
+                "post_of": [
+                  "port_0"
+                ]
+              },
+              {
+                "post_of": [
+                  "port_4"
+                ]
+              },
+              {
+                "new": 0
+              },
+              {
+                "new": 1
+              }
+            ],
+            "target_family": 2,
+            "touched_slots": [
+              6
+            ],
+            "traced_read_value_unions": []
+          }
+        },
+        {
+          "distinct_matches": 682,
+          "distinct_source_cells": 496,
+          "distinct_target_cells": 637,
+          "example": {
+            "match_event_id": 2599,
+            "new_instance": true,
+            "round": 4,
+            "source_cell": 173,
+            "support_cells": [
+              80,
+              82,
+              161,
+              169,
+              171,
+              173,
+              175
+            ],
+            "support_ports": [
+              {
+                "cell": 80,
+                "family": 0,
+                "known_slots": [
+                  [
+                    0,
+                    "external_1"
+                  ],
+                  [
+                    1,
+                    "port_4"
+                  ]
+                ]
+              },
+              {
+                "cell": 82,
+                "family": 0,
+                "known_slots": [
+                  [
+                    0,
+                    "port_4"
+                  ],
+                  [
+                    1,
+                    "external_1"
+                  ]
+                ]
+              },
+              {
+                "cell": 161,
+                "family": 2,
+                "known_slots": [
+                  [
+                    0,
+                    "external_1"
+                  ],
+                  [
+                    1,
+                    "port_4"
+                  ]
+                ]
+              },
+              {
+                "cell": 169,
+                "family": 2,
+                "known_slots": [
+                  [
+                    0,
+                    "port_3"
+                  ],
+                  [
+                    2,
+                    "external_1"
+                  ],
+                  [
+                    3,
+                    "port_0"
+                  ],
+                  [
+                    4,
+                    "external_0"
+                  ],
+                  [
+                    5,
+                    "port_5"
+                  ]
+                ]
+              },
+              {
+                "cell": 171,
+                "family": 2,
+                "known_slots": [
+                  [
+                    0,
+                    "port_3"
+                  ],
+                  [
+                    2,
+                    "external_1"
+                  ],
+                  [
+                    3,
+                    "external_0"
+                  ],
+                  [
+                    4,
+                    "port_0"
+                  ],
+                  [
+                    6,
+                    "port_5"
+                  ]
+                ]
+              },
+              {
+                "cell": 173,
+                "family": 2,
+                "known_slots": [
+                  [
+                    0,
+                    "port_0"
+                  ],
+                  [
+                    1,
+                    "port_1"
+                  ],
+                  [
+                    2,
+                    "port_2"
+                  ],
+                  [
+                    3,
+                    "port_3"
+                  ],
+                  [
+                    4,
+                    "port_4"
+                  ],
+                  [
+                    5,
+                    "port_5"
+                  ],
+                  [
+                    6,
+                    "port_6"
+                  ]
+                ]
+              },
+              {
+                "cell": 175,
+                "family": 2,
+                "known_slots": [
+                  [
+                    0,
+                    "port_0"
+                  ],
+                  [
+                    1,
+                    "port_1"
+                  ],
+                  [
+                    2,
+                    "port_2"
+                  ],
+                  [
+                    3,
+                    "port_4"
+                  ],
+                  [
+                    4,
+                    "port_3"
+                  ],
+                  [
+                    5,
+                    "port_6"
+                  ],
+                  [
+                    6,
+                    "port_5"
+                  ]
+                ]
+              }
+            ],
+            "target_cell": 382
+          },
+          "id": 2,
+          "new_target_occurrences": 1738,
+          "occurrences": 2192,
+          "rounds": [
+            4,
+            5,
+            6
+          ],
+          "transition": {
+            "after_aliases": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "before_aliases": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "committed_math_rows_postcanonical": [],
+            "input_refinement": false,
+            "read_guard": [
+              {
+                "fact": {
+                  "columns": [
+                    {
+                      "pre": "port_3"
+                    },
+                    {
+                      "pre": "port_0"
+                    },
+                    {
+                      "pre": "port_5"
+                    }
+                  ],
+                  "op": "Add"
+                },
+                "location": "body_fact"
+              },
+              {
+                "fact": {
+                  "columns": [
+                    {
+                      "pre": "external_0"
+                    },
+                    {
+                      "pre": "port_5"
+                    },
+                    {
+                      "pre": "external_1"
+                    }
+                  ],
+                  "op": "Add"
+                },
+                "location": "external_fact"
+              }
+            ],
+            "rule": "adaptive_baked_2",
+            "source_family": 2,
+            "source_support": "body_read",
+            "target_binding": [
+              {
+                "post_of": [
+                  "external_0"
+                ]
+              },
+              {
+                "post_of": [
+                  "port_5"
+                ]
+              },
+              {
+                "post_of": [
+                  "external_1"
+                ]
+              },
+              {
+                "post_of": [
+                  "port_3"
+                ]
+              },
+              {
+                "post_of": [
+                  "port_0"
+                ]
+              },
+              {
+                "new": 0
+              },
+              {
+                "new": 1
+              }
+            ],
+            "target_family": 2,
+            "touched_slots": [
+              5
+            ],
+            "traced_read_value_unions": []
+          }
+        }
+      ],
+      "catalog": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-evolution-complete/math-observe/cell-evolution.json"
+    }
+  }
+}

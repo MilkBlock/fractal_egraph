@@ -1,0 +1,18 @@
+{
+  "scope": "Rejected broad-incidence pilot: all Math port contacts were expanded. This overstates causal support. Retained as a negative control, not the final method.",
+  "binary_sha256": "d76a5c801b32d4207d09bd934be9cb46e56862c987dea0f8ed3ceaf97aca1f8b",
+  "math6": {
+    "logical_matches": 3380,
+    "transition_patterns": 14567,
+    "patterns_repeated_across_instances": 8765,
+    "boundary_events": 3216,
+    "observed_instance_births": 3016,
+    "anchored_occurrences": 894287,
+    "repeated_pattern_occurrences": 871678,
+    "verification": {
+      "exact_equal": true,
+      "enodes": 2167,
+      "eclasses": 748
+    }
+  }
+}

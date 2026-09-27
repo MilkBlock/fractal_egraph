@@ -1,0 +1,8 @@
+digraph evolution {
+rankdir=LR;
+label="Observed anchored projections (not a proven state machine)";
+node [shape=box];
+t0 [label="T0 / A,B"];
+t1 [label="T1 / B,Done,Pair"];
+t0 -> t1 [label="2 patterns / 12 anchored observations"];
+}

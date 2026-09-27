@@ -1,0 +1,7 @@
+(datatype Math (V i64) (A Math) (B Math) (C Math) (D Math))
+(rewrite (A x) (B x))
+(rewrite (C x) (D x))
+(A (V 0))
+(run 2)
+(C (V 0))
+(run 3)
