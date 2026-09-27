@@ -38,6 +38,8 @@ use crate::{
 };
 
 mod rebuild;
+pub mod virtual_rows;
+use virtual_rows::{NativeVirtualStats,VirtualRowRequest,VirtualRows};
 mod sharded_hash_table;
 #[cfg(test)]
 mod tests;
@@ -196,6 +198,7 @@ pub struct SortedWritesTable {
     read_profile: Option<Arc<crate::read_profile::JoinReadCounters>>,
     generation: Generation,
     data: NativeRows,
+    virtual_rows: Option<VirtualRows>,
     hash: ShardedHashTable<TableEntry>,
 
     n_keys: usize,
@@ -221,6 +224,7 @@ impl Clone for SortedWritesTable {
                 .map(|_| Arc::new(Default::default())),
             generation: self.generation,
             data: self.data.clone(),
+            virtual_rows:self.virtual_rows.clone(),
             hash: self.hash.clone(),
             n_keys: self.n_keys,
             n_columns: self.n_columns,
@@ -400,6 +404,10 @@ impl Drop for Buffer {
 }
 
 impl Table for SortedWritesTable {
+    fn virtualize_existing_rows(&mut self,requests:&[VirtualRowRequest])->Result<(),String>{self.pack_rows(requests)}
+    fn virtual_row_stats(&self)->Option<NativeVirtualStats>{self.virtual_stats()}
+    fn row_is_virtual(&self,key:&[Value])->bool{self.is_virtual_key(key)}
+    fn materialize_virtual_rows(&mut self)->bool{self.materialize_virtual()}
     fn supports_row_provenance(&self) -> bool {
         true
     }
@@ -448,9 +456,8 @@ impl Table for SortedWritesTable {
     }
     fn clear(&mut self) {
         self.pending_state.clear();
-        if self.data.data.len() == 0 {
-            return;
-        }
+        if self.physical_len() == 0 {return;}
+        self.virtual_rows=None;
         self.offsets.clear();
         self.data.clear();
         self.hash.clear();
@@ -473,7 +480,7 @@ impl Table for SortedWritesTable {
         next_ts: Value,
         exec_state: &mut ExecutionState,
     ) -> bool {
-        self.do_rebuild(table_id, table, next_ts, exec_state)
+        if self.virtual_rows.is_some(){self.rebuild_virtual(table_id,table,next_ts,exec_state)}else{self.do_rebuild(table_id, table, next_ts, exec_state)}
     }
 
     fn refresh_rows_for_values(&mut self, dirty_ids: &[Value], next_ts: Value) -> bool {
@@ -483,27 +490,27 @@ impl Table for SortedWritesTable {
     fn version(&self) -> TableVersion {
         TableVersion {
             major: self.generation,
-            minor: Offset::from_usize(self.data.next_row().index()),
+            minor: Offset::from_usize(self.next_row_id().index()),
         }
     }
 
     fn updates_since(&self, offset: Offset) -> Subset {
         Subset::Dense(OffsetRange::new(
             RowId::from_usize(offset.index()),
-            self.data.next_row(),
+            self.next_row_id(),
         ))
     }
 
     fn all(&self) -> Subset {
-        Subset::Dense(OffsetRange::new(RowId::new(0), self.data.next_row()))
+        Subset::Dense(OffsetRange::new(RowId::new(0), self.next_row_id()))
     }
 
     fn has_stale_rows(&self) -> bool {
-        self.data.stale_rows > 0
+        self.stale_count() > 0
     }
 
     fn len(&self) -> usize {
-        self.data.data.len() - self.data.stale_rows
+        self.physical_len() - self.stale_count()
     }
 
     fn scan_generic(&self, subset: SubsetRef, mut f: impl FnMut(RowId, &[Value]))
@@ -515,16 +522,20 @@ impl Table for SortedWritesTable {
             return;
         };
         assert!(
-            hi.index() <= self.data.data.len(),
+            hi.index() <= self.physical_len(),
             "{} vs. {}",
             hi.index(),
-            self.data.data.len()
+            self.physical_len()
         );
         #[cfg(feature = "table-read-profile")]
         if let Some(profile) = &self.read_profile {
             profile.scan(subset.size());
         }
-        if self.data.stale_rows == 0 {
+        if self.virtual_rows.is_some(){
+            let mut values=with_pool_set(|ps|ps.get::<Vec<Value>>());
+            subset.offsets(|row|{if self.copy_virtual_row(row,&mut values){f(row,&values);}});return;
+        }
+        if self.stale_count() == 0 {
             // Fast path: no stale rows, skip is_stale check per row.
             // SAFETY: subsets are sorted, low must be at most hi, and hi is less
             // than the length of the table.
@@ -557,10 +568,10 @@ impl Table for SortedWritesTable {
             return None;
         };
         assert!(
-            hi.index() <= self.data.data.len(),
+            hi.index() <= self.physical_len(),
             "{} vs. {}",
             hi.index(),
-            self.data.data.len()
+            self.physical_len()
         );
         #[cfg(feature = "table-read-profile")]
         if let Some(profile) = &self.read_profile {
@@ -568,8 +579,14 @@ impl Table for SortedWritesTable {
             // of stale rows and predicate results (including sparse subsets).
             profile.scan(subset.size().saturating_sub(start.index()).min(n));
         }
+        if self.virtual_rows.is_some(){
+            let mut values=with_pool_set(|ps|ps.get::<Vec<Value>>());
+            return subset.iter_bounded(start.index(),start.index()+n,|row|{
+                if self.copy_virtual_row(row,&mut values)&&Self::eval_constraints(cs,&values){f(row,&values);}
+            }).map(Offset::from_usize);
+        }
         if cs.is_empty() {
-            if self.data.stale_rows == 0 {
+            if self.stale_count() == 0 {
                 // Fast path: no stale rows, skip bounds check and is_stale check.
                 // SAFETY: all row IDs are in-bounds.
                 subset
@@ -632,10 +649,10 @@ impl Table for SortedWritesTable {
                 if col == &sort_by {
                     match self.binary_search_sort_val(*val) {
                         Ok((_, bound)) => {
-                            Some(Subset::Dense(OffsetRange::new(bound, self.data.next_row())))
+                            Some(Subset::Dense(OffsetRange::new(bound, self.next_row_id())))
                         }
                         Err(next) => {
-                            Some(Subset::Dense(OffsetRange::new(next, self.data.next_row())))
+                            Some(Subset::Dense(OffsetRange::new(next, self.next_row_id())))
                         }
                     }
                 } else {
@@ -658,10 +675,10 @@ impl Table for SortedWritesTable {
                 if col == &sort_by {
                     match self.binary_search_sort_val(*val) {
                         Ok((found, _)) => {
-                            Some(Subset::Dense(OffsetRange::new(found, self.data.next_row())))
+                            Some(Subset::Dense(OffsetRange::new(found, self.next_row_id())))
                         }
                         Err(next) => {
-                            Some(Subset::Dense(OffsetRange::new(next, self.data.next_row())))
+                            Some(Subset::Dense(OffsetRange::new(next, self.next_row_id())))
                         }
                     }
                 } else {
@@ -695,6 +712,7 @@ impl Table for SortedWritesTable {
     }
 
     fn merge(&mut self, exec_state: &mut ExecutionState) -> TableChange {
+        if self.virtual_rows.is_some(){return self.merge_virtual(exec_state);}
         let removed = self.do_delete();
         let added = self.do_insert(exec_state);
         self.maybe_rehash();
@@ -706,11 +724,11 @@ impl Table for SortedWritesTable {
         if let Some(profile) = &self.read_profile {
             profile.lookup();
         }
-        let id = get_entry(key, self.n_keys, &self.hash, |row| {
-            &self.data.get_row(row).unwrap()[0..self.n_keys] == key
-        })?;
+        let id=if self.virtual_rows.is_some(){
+            get_entry(key,self.n_keys,&self.hash,|row|self.virtual_key_matches(row,key))
+        }else{get_entry(key,self.n_keys,&self.hash,|row|&self.data.get_row(row).unwrap()[..self.n_keys]==key)}?;
         let mut vals = with_pool_set(|ps| ps.get::<Vec<Value>>());
-        vals.extend_from_slice(self.data.get_row(id).unwrap());
+        if self.virtual_rows.is_some(){assert!(self.copy_virtual_row(id,&mut vals));}else{vals.extend_from_slice(self.data.get_row(id).unwrap());}
         Some(Row { id, vals })
     }
 
@@ -719,10 +737,10 @@ impl Table for SortedWritesTable {
         if let Some(profile) = &self.read_profile {
             profile.lookup();
         }
-        let id = get_entry(key, self.n_keys, &self.hash, |row| {
-            &self.data.get_row(row).unwrap()[0..self.n_keys] == key
-        })?;
-        Some(self.data.get_row(id).unwrap()[col.index()])
+        let id=if self.virtual_rows.is_some(){
+            get_entry(key,self.n_keys,&self.hash,|row|self.virtual_key_matches(row,key))
+        }else{get_entry(key,self.n_keys,&self.hash,|row|&self.data.get_row(row).unwrap()[..self.n_keys]==key)}?;
+        if self.virtual_rows.is_some(){self.row_value(id,col.index())}else{Some(self.data.get_row(id).unwrap()[col.index()])}
     }
 }
 
@@ -753,6 +771,7 @@ impl SortedWritesTable {
             read_profile: None,
             generation: Generation::new(0),
             data: NativeRows::Owned(Rows::new(RowBuffer::new(n_columns))),
+            virtual_rows:None,
             hash,
             n_keys,
             n_columns,
@@ -1226,17 +1245,17 @@ impl SortedWritesTable {
                 self.offsets
                     .get(got + 1)
                     .map(|(_, r)| *r)
-                    .unwrap_or(self.data.next_row()),
+                    .unwrap_or(self.next_row_id()),
             )),
             Err(next) => Err(self
                 .offsets
                 .get(next)
                 .map(|(_, id)| *id)
-                .unwrap_or(self.data.next_row())),
+                .unwrap_or(self.next_row_id())),
         }
     }
     fn eval(&self, cs: &[Constraint], row: RowId) -> bool {
-        self.get_if(cs, row).is_some()
+        if self.virtual_rows.is_some(){self.row_values(row).is_some_and(|r|Self::eval_constraints(cs,&r))}else{self.get_if(cs, row).is_some()}
     }
 
     fn eval_constraints(cs: &[Constraint], row: &[Value]) -> bool {

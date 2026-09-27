@@ -474,3 +474,5 @@ pub mod library;
 pub mod planner;
 #[path = "reuse_storage.rs"]
 pub mod storage;
+#[path = "reuse_virtual.rs"]
+pub mod native_storage;

@@ -147,6 +147,12 @@ pub trait Table: Any + Send + Sync {
     /// A variant of clone that returns a boxed trait object; this trait object
     /// must contain all of the data associated with the current table.
     fn dyn_clone(&self) -> Box<dyn Table>;
+    /// Verified representation change for existing facts only; not an insertion.
+    fn virtualize_existing_rows(&mut self,_requests:&[crate::VirtualRowRequest])->Result<(),String>{Err("table does not support virtual storage".into())}
+    fn virtual_row_stats(&self)->Option<crate::NativeVirtualStats>{None}
+    fn row_is_virtual(&self,_key:&[Value])->bool{false}
+    fn materialize_virtual_rows(&mut self)->bool{false}
+
     /// Opt-in native snapshot sharing. Default tables retain ordinary deep clone.
     fn freeze_rows(&mut self) -> usize {
         0

@@ -19,6 +19,9 @@ mod core;
 mod exec_state;
 pub mod extract;
 mod ground_import;
+mod virtual_facts;
+pub use virtual_facts::{VirtualFactRow,VirtualFactTemplate,VirtualizeReport};
+pub use core_relations::NativeVirtualStats;
 pub mod prelude;
 mod proofs;
 

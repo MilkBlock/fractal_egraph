@@ -34,9 +34,9 @@ macro_rules! insert_row {
 }
 
 impl SortedWritesTable {
-    fn rebuild_origin(&self, row_id: RowId, after: &[Value]) -> Option<crate::trace::TraceCause> {
-        let before = self.data.get_row(row_id)?;
-        let mut origin = self.row_producer(&before[..self.n_keys], before)?;
+    pub(super) fn rebuild_origin(&self, row_id: RowId, after: &[Value]) -> Option<crate::trace::TraceCause> {
+        let before = self.row_values(row_id)?;
+        let mut origin = self.row_producer(&before[..self.n_keys], &before)?;
         let source = origin.commit_event_id?;
         let mut equalities = std::collections::BTreeSet::new();
         for (i, (&old, &new)) in before.iter().zip(after).enumerate() {
@@ -53,7 +53,7 @@ impl SortedWritesTable {
         Some(origin)
     }
 
-    fn refresh_rebuild_index(&mut self) {
+    pub(super) fn refresh_rebuild_index(&mut self) {
         let mut index = mem::replace(
             &mut self.rebuild_index,
             Index::new(vec![], ColumnIndex::new()),
@@ -122,14 +122,14 @@ impl SortedWritesTable {
         let mut mutation_buf = self.new_buffer();
         let mut refreshed_row = Vec::<Value>::with_capacity(self.n_columns);
         for row_id in candidate_rows {
-            let Some(current_row) = self.data.get_row(row_id) else {
+            let Some(current_row) = self.row_values(row_id) else {
                 continue;
             };
             // Preserve the logical row and only advance its sort/timestamp
             // column, so seminaive treats this as a fresh parent-row delta.
             mutation_buf.stage_remove(&current_row[0..self.n_keys]);
             refreshed_row.clear();
-            refreshed_row.extend_from_slice(current_row);
+            refreshed_row.extend_from_slice(&current_row);
             if let Some(sort_by) = self.sort_by {
                 refreshed_row[sort_by.index()] = next_ts;
             }

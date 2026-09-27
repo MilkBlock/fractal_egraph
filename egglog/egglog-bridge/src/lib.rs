@@ -399,6 +399,14 @@ impl EGraph {
     }
 
     /// Freeze supported native row buffers before an explicit shared fork.
+    pub fn virtualize_function_rows(&mut self,func:FunctionId,rows:&[core_relations::VirtualRowRequest])->std::result::Result<(),String> {
+        self.db.get_table_mut(self.funcs[func].table).virtualize_existing_rows(rows)
+    }
+    pub fn function_row_is_virtual(&self,func:FunctionId,key:&[Value])->bool {self.db.get_table(self.funcs[func].table).row_is_virtual(key)}
+    pub fn materialize_function_rows(&mut self,func:FunctionId)->bool {self.db.materialize_virtual_table(self.funcs[func].table)}
+    pub fn virtual_function_stats(&self,func:FunctionId)->Option<core_relations::NativeVirtualStats> {
+        self.db.get_table(self.funcs[func].table).virtual_row_stats()
+    }
     pub fn freeze_snapshot_rows(&mut self) -> usize {
         self.db.freeze_snapshot_rows()
     }

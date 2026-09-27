@@ -39,3 +39,7 @@ native-read-profile = ["egglog/table-read-profile"]
 [[bench]]
 name = "reuse_features"
 harness = false
+
+[[bench]]
+name = "native_virtual_facts"
+harness = false

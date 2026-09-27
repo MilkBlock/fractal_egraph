@@ -859,6 +859,15 @@ impl Database {
     ///
     /// **NOTE:** See the warning around staging updates to handles returned through this method in
     /// the documentation for [`Database::get_table`].
+    /// Storage-only compaction outside the merge loop must invalidate physical
+    /// index caches, but must not announce a logical insertion or advance time.
+    pub fn materialize_virtual_table(&mut self,id:TableId)->bool {
+        let info=self.tables.get_mut(id).expect("known table");
+        if !info.table.materialize_virtual_rows(){return false;}
+        info.column_indexes.update(|_,index|Arc::get_mut(index).unwrap().reset());
+        info.indexes.update(|_,index|Arc::get_mut(index).unwrap().reset());
+        true
+    }
     pub fn get_table_mut(&mut self, id: TableId) -> &mut dyn Table {
         &mut *self
             .tables
