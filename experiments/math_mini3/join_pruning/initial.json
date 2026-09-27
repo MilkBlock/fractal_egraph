@@ -1,0 +1,628 @@
+{
+  "binary_sha256": "0136b8ef3e981d57cea1bec90fde5f54a7ee11c4ec59132f3d11fe56c68d0d32",
+  "source_sha256": "38dafd8041d9431499f2464db71b57491cc71a96b30060a94187992afc935f50",
+  "library_sha256": "d10af32600b178515ed204758229ce189b6e8641a98d6547967362c5da0d0e2c",
+  "threads": "1",
+  "runs": [
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "frozen",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/join-prune8/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/join-prune8/normal-0",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+      ],
+      "process_wall_seconds": 0.13,
+      "peak_rss_bytes": 18202624,
+      "user_seconds": 0.11,
+      "system_seconds": 0.01,
+      "observed_wall_seconds": 0.14395462500397116,
+      "result": {
+        "seconds": 0.1287035,
+        "execution_seconds": 0.029738958000000003,
+        "matches": 13213,
+        "final": {
+          "eclasses": 5150,
+          "enodes": 15493,
+          "rss_bytes": 18153472
+        },
+        "samples": [
+          {
+            "cumulative_matches": 20,
+            "enclosure_audit": null,
+            "macro_matches": 19,
+            "round": 1,
+            "source_matches": 1
+          },
+          {
+            "cumulative_matches": 82,
+            "enclosure_audit": null,
+            "macro_matches": 60,
+            "round": 2,
+            "source_matches": 2
+          },
+          {
+            "cumulative_matches": 211,
+            "enclosure_audit": null,
+            "macro_matches": 126,
+            "round": 3,
+            "source_matches": 3
+          },
+          {
+            "cumulative_matches": 677,
+            "enclosure_audit": null,
+            "macro_matches": 453,
+            "round": 4,
+            "source_matches": 13
+          },
+          {
+            "cumulative_matches": 1916,
+            "enclosure_audit": null,
+            "macro_matches": 1214,
+            "round": 5,
+            "source_matches": 25
+          },
+          {
+            "cumulative_matches": 3376,
+            "enclosure_audit": null,
+            "macro_matches": 1386,
+            "round": 6,
+            "source_matches": 74
+          },
+          {
+            "cumulative_matches": 5600,
+            "enclosure_audit": null,
+            "macro_matches": 2068,
+            "round": 7,
+            "source_matches": 156
+          },
+          {
+            "cumulative_matches": 13213,
+            "enclosure_audit": null,
+            "macro_matches": 7136,
+            "round": 8,
+            "source_matches": 477
+          }
+        ]
+      },
+      "mode": "normal",
+      "repeat": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "frozen",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/join-prune8/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/join-prune8/prune-0",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+      ],
+      "process_wall_seconds": 0.18,
+      "peak_rss_bytes": 26148864,
+      "user_seconds": 0.16,
+      "system_seconds": 0.01,
+      "observed_wall_seconds": 0.2027923329733312,
+      "result": {
+        "seconds": 0.174962,
+        "execution_seconds": 0.05667074800000001,
+        "matches": 10580,
+        "final": {
+          "eclasses": 5150,
+          "enodes": 15493,
+          "rss_bytes": 26132480
+        },
+        "samples": [
+          {
+            "cumulative_matches": 20,
+            "enclosure_audit": {
+              "certificate_seconds": 3.2958e-05,
+              "certified_rule_roots": 0,
+              "native_union_merges_total": 0
+            },
+            "macro_matches": 19,
+            "round": 1,
+            "source_matches": 1
+          },
+          {
+            "cumulative_matches": 52,
+            "enclosure_audit": {
+              "certificate_seconds": 0.000144292,
+              "certified_rule_roots": 102,
+              "native_union_merges_total": 1
+            },
+            "macro_matches": 30,
+            "round": 2,
+            "source_matches": 2
+          },
+          {
+            "cumulative_matches": 147,
+            "enclosure_audit": {
+              "certificate_seconds": 0.000253667,
+              "certified_rule_roots": 172,
+              "native_union_merges_total": 4
+            },
+            "macro_matches": 92,
+            "round": 3,
+            "source_matches": 3
+          },
+          {
+            "cumulative_matches": 523,
+            "enclosure_audit": {
+              "certificate_seconds": 0.000624667,
+              "certified_rule_roots": 328,
+              "native_union_merges_total": 69
+            },
+            "macro_matches": 363,
+            "round": 4,
+            "source_matches": 13
+          },
+          {
+            "cumulative_matches": 1558,
+            "enclosure_audit": {
+              "certificate_seconds": 0.0017705,
+              "certified_rule_roots": 527,
+              "native_union_merges_total": 157
+            },
+            "macro_matches": 1010,
+            "round": 5,
+            "source_matches": 25
+          },
+          {
+            "cumulative_matches": 2717,
+            "enclosure_audit": {
+              "certificate_seconds": 0.003682791,
+              "certified_rule_roots": 957,
+              "native_union_merges_total": 41
+            },
+            "macro_matches": 1085,
+            "round": 6,
+            "source_matches": 74
+          },
+          {
+            "cumulative_matches": 4477,
+            "enclosure_audit": {
+              "certificate_seconds": 0.006466958,
+              "certified_rule_roots": 1791,
+              "native_union_merges_total": 218
+            },
+            "macro_matches": 1604,
+            "round": 7,
+            "source_matches": 156
+          },
+          {
+            "cumulative_matches": 10580,
+            "enclosure_audit": {
+              "certificate_seconds": 0.014056083,
+              "certified_rule_roots": 4674,
+              "native_union_merges_total": 1040
+            },
+            "macro_matches": 5626,
+            "round": 8,
+            "source_matches": 477
+          }
+        ]
+      },
+      "mode": "prune",
+      "repeat": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "frozen",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/join-prune8/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/join-prune8/prune-1",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+      ],
+      "process_wall_seconds": 0.18,
+      "peak_rss_bytes": 28819456,
+      "user_seconds": 0.15,
+      "system_seconds": 0.01,
+      "observed_wall_seconds": 0.21160858310759068,
+      "result": {
+        "seconds": 0.171001125,
+        "execution_seconds": 0.054626747,
+        "matches": 10580,
+        "final": {
+          "eclasses": 5150,
+          "enodes": 15493,
+          "rss_bytes": 28786688
+        },
+        "samples": [
+          {
+            "cumulative_matches": 20,
+            "enclosure_audit": {
+              "certificate_seconds": 3.1667e-05,
+              "certified_rule_roots": 0,
+              "native_union_merges_total": 0
+            },
+            "macro_matches": 19,
+            "round": 1,
+            "source_matches": 1
+          },
+          {
+            "cumulative_matches": 52,
+            "enclosure_audit": {
+              "certificate_seconds": 0.000130708,
+              "certified_rule_roots": 102,
+              "native_union_merges_total": 1
+            },
+            "macro_matches": 30,
+            "round": 2,
+            "source_matches": 2
+          },
+          {
+            "cumulative_matches": 147,
+            "enclosure_audit": {
+              "certificate_seconds": 0.000247833,
+              "certified_rule_roots": 172,
+              "native_union_merges_total": 4
+            },
+            "macro_matches": 92,
+            "round": 3,
+            "source_matches": 3
+          },
+          {
+            "cumulative_matches": 523,
+            "enclosure_audit": {
+              "certificate_seconds": 0.0006325,
+              "certified_rule_roots": 328,
+              "native_union_merges_total": 69
+            },
+            "macro_matches": 363,
+            "round": 4,
+            "source_matches": 13
+          },
+          {
+            "cumulative_matches": 1558,
+            "enclosure_audit": {
+              "certificate_seconds": 0.001649,
+              "certified_rule_roots": 527,
+              "native_union_merges_total": 157
+            },
+            "macro_matches": 1010,
+            "round": 5,
+            "source_matches": 25
+          },
+          {
+            "cumulative_matches": 2717,
+            "enclosure_audit": {
+              "certificate_seconds": 0.003613625,
+              "certified_rule_roots": 957,
+              "native_union_merges_total": 41
+            },
+            "macro_matches": 1085,
+            "round": 6,
+            "source_matches": 74
+          },
+          {
+            "cumulative_matches": 4477,
+            "enclosure_audit": {
+              "certificate_seconds": 0.006130625,
+              "certified_rule_roots": 1791,
+              "native_union_merges_total": 218
+            },
+            "macro_matches": 1604,
+            "round": 7,
+            "source_matches": 156
+          },
+          {
+            "cumulative_matches": 10580,
+            "enclosure_audit": {
+              "certificate_seconds": 0.013954833,
+              "certified_rule_roots": 4674,
+              "native_union_merges_total": 1040
+            },
+            "macro_matches": 5626,
+            "round": 8,
+            "source_matches": 477
+          }
+        ]
+      },
+      "mode": "prune",
+      "repeat": 1
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "frozen",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/join-prune8/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/join-prune8/normal-1",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+      ],
+      "process_wall_seconds": 0.13,
+      "peak_rss_bytes": 20480000,
+      "user_seconds": 0.11,
+      "system_seconds": 0.01,
+      "observed_wall_seconds": 0.1415528750512749,
+      "result": {
+        "seconds": 0.130638541,
+        "execution_seconds": 0.030014833999999997,
+        "matches": 13213,
+        "final": {
+          "eclasses": 5150,
+          "enodes": 15493,
+          "rss_bytes": 20447232
+        },
+        "samples": [
+          {
+            "cumulative_matches": 20,
+            "enclosure_audit": null,
+            "macro_matches": 19,
+            "round": 1,
+            "source_matches": 1
+          },
+          {
+            "cumulative_matches": 82,
+            "enclosure_audit": null,
+            "macro_matches": 60,
+            "round": 2,
+            "source_matches": 2
+          },
+          {
+            "cumulative_matches": 211,
+            "enclosure_audit": null,
+            "macro_matches": 126,
+            "round": 3,
+            "source_matches": 3
+          },
+          {
+            "cumulative_matches": 677,
+            "enclosure_audit": null,
+            "macro_matches": 453,
+            "round": 4,
+            "source_matches": 13
+          },
+          {
+            "cumulative_matches": 1916,
+            "enclosure_audit": null,
+            "macro_matches": 1214,
+            "round": 5,
+            "source_matches": 25
+          },
+          {
+            "cumulative_matches": 3376,
+            "enclosure_audit": null,
+            "macro_matches": 1386,
+            "round": 6,
+            "source_matches": 74
+          },
+          {
+            "cumulative_matches": 5600,
+            "enclosure_audit": null,
+            "macro_matches": 2068,
+            "round": 7,
+            "source_matches": 156
+          },
+          {
+            "cumulative_matches": 13213,
+            "enclosure_audit": null,
+            "macro_matches": 7136,
+            "round": 8,
+            "source_matches": 477
+          }
+        ]
+      },
+      "mode": "normal",
+      "repeat": 1
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "frozen",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/join-prune8/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/join-prune8/normal-2",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+      ],
+      "process_wall_seconds": 0.13,
+      "peak_rss_bytes": 19660800,
+      "user_seconds": 0.11,
+      "system_seconds": 0.01,
+      "observed_wall_seconds": 0.14013504097238183,
+      "result": {
+        "seconds": 0.127053583,
+        "execution_seconds": 0.029006874000000002,
+        "matches": 13213,
+        "final": {
+          "eclasses": 5150,
+          "enodes": 15493,
+          "rss_bytes": 19611648
+        },
+        "samples": [
+          {
+            "cumulative_matches": 20,
+            "enclosure_audit": null,
+            "macro_matches": 19,
+            "round": 1,
+            "source_matches": 1
+          },
+          {
+            "cumulative_matches": 82,
+            "enclosure_audit": null,
+            "macro_matches": 60,
+            "round": 2,
+            "source_matches": 2
+          },
+          {
+            "cumulative_matches": 211,
+            "enclosure_audit": null,
+            "macro_matches": 126,
+            "round": 3,
+            "source_matches": 3
+          },
+          {
+            "cumulative_matches": 677,
+            "enclosure_audit": null,
+            "macro_matches": 453,
+            "round": 4,
+            "source_matches": 13
+          },
+          {
+            "cumulative_matches": 1916,
+            "enclosure_audit": null,
+            "macro_matches": 1214,
+            "round": 5,
+            "source_matches": 25
+          },
+          {
+            "cumulative_matches": 3376,
+            "enclosure_audit": null,
+            "macro_matches": 1386,
+            "round": 6,
+            "source_matches": 74
+          },
+          {
+            "cumulative_matches": 5600,
+            "enclosure_audit": null,
+            "macro_matches": 2068,
+            "round": 7,
+            "source_matches": 156
+          },
+          {
+            "cumulative_matches": 13213,
+            "enclosure_audit": null,
+            "macro_matches": 7136,
+            "round": 8,
+            "source_matches": 477
+          }
+        ]
+      },
+      "mode": "normal",
+      "repeat": 2
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/adaptive_math",
+        "frozen",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/join-prune8/source.egg",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/join-prune8/prune-2",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+      ],
+      "process_wall_seconds": 0.17,
+      "peak_rss_bytes": 22839296,
+      "user_seconds": 0.15,
+      "system_seconds": 0.01,
+      "observed_wall_seconds": 0.20676804101094604,
+      "result": {
+        "seconds": 0.165992375,
+        "execution_seconds": 0.053666624999999996,
+        "matches": 10580,
+        "final": {
+          "eclasses": 5150,
+          "enodes": 15493,
+          "rss_bytes": 22822912
+        },
+        "samples": [
+          {
+            "cumulative_matches": 20,
+            "enclosure_audit": {
+              "certificate_seconds": 2.7125e-05,
+              "certified_rule_roots": 0,
+              "native_union_merges_total": 0
+            },
+            "macro_matches": 19,
+            "round": 1,
+            "source_matches": 1
+          },
+          {
+            "cumulative_matches": 52,
+            "enclosure_audit": {
+              "certificate_seconds": 0.000127542,
+              "certified_rule_roots": 102,
+              "native_union_merges_total": 1
+            },
+            "macro_matches": 30,
+            "round": 2,
+            "source_matches": 2
+          },
+          {
+            "cumulative_matches": 147,
+            "enclosure_audit": {
+              "certificate_seconds": 0.000248375,
+              "certified_rule_roots": 172,
+              "native_union_merges_total": 4
+            },
+            "macro_matches": 92,
+            "round": 3,
+            "source_matches": 3
+          },
+          {
+            "cumulative_matches": 523,
+            "enclosure_audit": {
+              "certificate_seconds": 0.000630083,
+              "certified_rule_roots": 328,
+              "native_union_merges_total": 69
+            },
+            "macro_matches": 363,
+            "round": 4,
+            "source_matches": 13
+          },
+          {
+            "cumulative_matches": 1558,
+            "enclosure_audit": {
+              "certificate_seconds": 0.001735709,
+              "certified_rule_roots": 527,
+              "native_union_merges_total": 157
+            },
+            "macro_matches": 1010,
+            "round": 5,
+            "source_matches": 25
+          },
+          {
+            "cumulative_matches": 2717,
+            "enclosure_audit": {
+              "certificate_seconds": 0.003614459,
+              "certified_rule_roots": 957,
+              "native_union_merges_total": 41
+            },
+            "macro_matches": 1085,
+            "round": 6,
+            "source_matches": 74
+          },
+          {
+            "cumulative_matches": 4477,
+            "enclosure_audit": {
+              "certificate_seconds": 0.00605225,
+              "certified_rule_roots": 1791,
+              "native_union_merges_total": 218
+            },
+            "macro_matches": 1604,
+            "round": 7,
+            "source_matches": 156
+          },
+          {
+            "cumulative_matches": 10580,
+            "enclosure_audit": {
+              "certificate_seconds": 0.013386333,
+              "certified_rule_roots": 4674,
+              "native_union_merges_total": 1040
+            },
+            "macro_matches": 5626,
+            "round": 8,
+            "source_matches": 477
+          }
+        ]
+      },
+      "mode": "prune",
+      "repeat": 2
+    }
+  ],
+  "scope": "Same frozen library; normal and prune both untraced, with all certificate preparation included. Not a pristine egglog comparison.",
+  "verification": {
+    "exact_equal": true,
+    "enodes": 15493,
+    "eclasses": 5150
+  },
+  "medians": {
+    "normal": {
+      "driver_ms": 128.7035,
+      "execution_ms": 29.738958000000004,
+      "matches": 13213,
+      "peak_rss_bytes": 19660800
+    },
+    "prune": {
+      "driver_ms": 171.001125,
+      "execution_ms": 54.626747,
+      "matches": 10580,
+      "peak_rss_bytes": 26148864
+    }
+  }
+}

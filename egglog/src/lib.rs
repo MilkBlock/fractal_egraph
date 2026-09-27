@@ -962,6 +962,18 @@ impl EGraph {
         Ok(report)
     }
 
+    /// Run one step with trusted redundant root certificates; does not enable tracing.
+    /// The caller proves that all matches of each named rule with the specified
+    /// root output values have no required effect; each entry names a unique
+    /// tree-pattern root table. Certificates are cleared on return.
+    pub fn step_rules_excluding_proven_roots(&mut self, ruleset: &str,
+        entries: Vec<(String,String,Vec<Value>)>) -> Result<RunReport, Error> {
+        self.backend.set_excluded_roots(entries);
+        let result = self.step_rules(ruleset);
+        self.backend.set_excluded_roots(Vec::new());
+        result
+    }
+
     /// Runs a ruleset for an iteration.
     ///
     /// This applies every match it finds (under semi-naive).

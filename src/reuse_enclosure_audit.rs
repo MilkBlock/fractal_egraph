@@ -138,6 +138,30 @@ impl Audit {
             common.is_some_and(|s| !s.is_empty())
         })
     }
+    /// Prove a whole root slice redundant before Join. Check every possible
+    /// constructor alternative, not just the previously observed successful match.
+    /// Repeated-variable/literal tests are deliberately ignored here: this only
+    /// enlarges the checked neighborhood, so it can reject reuse, never hide work.
+    pub fn closed_roots(&self, eg: &EGraph, pattern: &egglog::ast::Expr) -> Vec<Native> {
+        use egglog::ast::Expr;
+        fn covered(a: &Audit, eg: &EGraph, p: &Expr, value: Native, owner: usize) -> bool {
+            let Expr::Call(_, op, args) = p else { return true; };
+            let Some(rows) = a.pre_graph.get(&value) else { return true; };
+            rows.iter().filter(|(name,_)| name == op).all(|fact| {
+                a.owners.get(fact).is_some_and(|ids| ids.contains(&owner)) &&
+                args.iter().zip(&eg.get_function(op).unwrap().schema().input).zip(&fact.1)
+                    .all(|((child, sort), value)| sort.name() != "Math" || covered(a, eg, child, *value, owner))
+            })
+        }
+        let Expr::Call(_, op, _) = pattern else { return vec![]; };
+        self.pre_graph.iter().filter_map(|(root, rows)| {
+            let first = rows.iter().find(|(name,_)| name == op)?;
+            let owners = self.owners.get(first)?;
+            owners.iter().any(|id| !self.aliases.contains(id) && !self.rekeyed.contains(id)
+                && covered(self, eg, pattern, *root, *id)).then_some(*root)
+        }).collect()
+    }
+
     pub fn observe(&mut self, eg: &EGraph, m: &Macro, bindings: &[Vec<Native>]) -> Result<()> {
         for binding in bindings {
             let mut body = m
@@ -173,6 +197,20 @@ impl Audit {
         }
         Ok(())
     }
+    /// Minimal pre-Join proof snapshot: no effect attribution or boundary history.
+    /// A changed binding invalidates its old proof; a later observed instance may
+    /// supply a fresh one. Discarding a proof only restores ordinary matching.
+    pub fn begin_join(&mut self, eg: &EGraph) {
+        self.pre_graph = graph(eg);
+        self.bodies.retain(|body, alias| !*alias && body.iter().all(|f| canonical(eg,f) == *f));
+        self.owners.clear();
+        self.aliases.clear();
+        self.rekeyed.clear();
+        for (id, body) in self.bodies.keys().enumerate() {
+            for fact in body { self.owners.entry(fact.clone()).or_default().insert(id); }
+        }
+    }
+
     pub fn begin(&mut self, eg: &EGraph) {
         self.pre_graph = graph(eg);
         let external = grew(eg, &self.last_graph, &self.pre_graph);

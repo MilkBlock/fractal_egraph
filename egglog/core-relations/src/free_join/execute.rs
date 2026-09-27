@@ -419,11 +419,7 @@ impl Database {
                     let match_counter = match_counter.clone();
                     scope.spawn(move |rule_scope| {
                         let join_state = JoinState::new(db, exec_state.clone(), trace, query_stop);
-                        let mut binding_info = BindingInfo::default();
-                        for (id, info) in plan.atoms().iter() {
-                            let table = join_state.db.get_table(info.table);
-                            binding_info.insert_subset(id, table.all());
-                        }
+                        let mut binding_info = join_state.initial_bindings(plan, &desc, symbol_map);
                         let mut action_buf = ScopedActionBuffer::new(
                             rule_scope,
                             rule_set,
@@ -563,12 +559,7 @@ impl Database {
                         Some(plan.to_report(symbol_map))
                     }
                 };
-                let mut binding_info = BindingInfo::default();
-
-                for (id, info) in plan.atoms().iter() {
-                    let table = join_state.db.get_table(info.table);
-                    binding_info.insert_subset(id, table.all());
-                }
+                let mut binding_info = join_state.initial_bindings(plan, &desc, symbol_map);
 
                 let search_and_apply_timer = Instant::now();
                 'eval: {
@@ -862,6 +853,48 @@ impl BindingInfo {
 }
 
 impl<'a> JoinState<'a> {
+    fn initial_bindings(&self, plan: &Plan, rule: &str, names: &crate::query::SymbolMap) -> BindingInfo {
+        let mut bindings = BindingInfo::default();
+        for (id, atom) in plan.atoms().iter() {
+            bindings.insert_subset(id, self.db.get_table(atom.table).all());
+        }
+        let Some((root_table, excluded)) = self.db.excluded_roots.get(rule) else { return bindings; };
+        // Frontend normalization renames variables. Select the unique tree root
+        // structurally: its result is not used as another atom's key.
+        let roots = plan.atoms().iter().filter_map(|(id, atom)| {
+            if names.atoms.get(&id).is_none_or(|n| n.as_ref() != root_table) { return None; }
+            let column = ColumnId::from_usize(self.db.get_table_info(atom.table).spec.n_keys);
+            let result = atom.get_var(column)?;
+            let consumed = plan.atoms().iter().any(|(_, other)| other.var_columns.iter().any(|(c,v)|
+                v == result && c.index() < self.db.get_table_info(other.table).spec.n_keys));
+            (!consumed).then_some((id, column))
+        }).collect::<Vec<_>>();
+        let [(id, column)] = roots.as_slice() else { return bindings; };
+        struct KeepRows<'a> {
+            excluded: &'a std::collections::BTreeSet<Value>,
+            rows: Pooled<SortedOffsetVector>,
+        }
+        impl crate::row_buffer::RowSink for KeepRows<'_> {
+            fn add_row(&mut self, id: RowId, row: &[Value]) {
+                if !self.excluded.contains(&row[0]) { self.rows.push(id); }
+            }
+        }
+        let table = self.db.get_table(plan.atoms()[*id].table);
+        let mut subset = table.all();
+        // Apply semi-naive ranges and constant filters before scanning the root
+        // column. Do not copy whole rows, or enumerate any descendant matches.
+        for header in plan.header().iter().filter(|h| h.atom == *id) {
+            subset.intersect(header.subset.as_ref(), &self.pool);
+        }
+        let mut sink = KeepRows { excluded, rows: with_pool_set(|ps| ps.get()) };
+        let mut offset = Offset::new(0);
+        while let Some(next) = table.scan_project(subset.as_ref(), &[*column], offset, usize::MAX, &[], &mut sink) {
+            offset = next;
+        }
+        bindings.insert_subset(*id, Subset::Sparse(sink.rows));
+        bindings
+    }
+
     fn stopped(&self) -> bool {
         self.control.as_ref().is_some_and(|c| c.should_stop())
             || self

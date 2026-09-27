@@ -288,6 +288,7 @@ impl Counters {
 /// A database also owns the memory pools used by its tables.
 #[derive(Default)]
 pub struct Database {
+    pub(crate) excluded_roots: std::collections::BTreeMap<String, (String, std::collections::BTreeSet<Value>)>,
     #[cfg(feature = "table-read-profile")]
     read_profiling: bool,
     // NB: some fields are pub(crate) to allow some internal modules to avoid
@@ -314,6 +315,12 @@ pub struct Database {
 }
 
 impl Database {
+    /// Trusted per-query proof: every match at one of these tree-root output values is redundant.
+    /// The caller must refresh this certificate after any mutation. Clones discard it.
+    pub fn set_excluded_roots(&mut self, entries: Vec<(String, String, Vec<Value>)>) {
+        self.excluded_roots = entries.into_iter().map(|(rule,table,values)| (rule,(table,values.into_iter().collect()))).collect();
+    }
+
     #[cfg(feature = "table-read-profile")]
     pub fn reset_join_read_profile(&mut self, enabled: bool) {
         self.read_profiling = enabled;
@@ -368,6 +375,7 @@ impl Database {
 impl Clone for Database {
     fn clone(&self) -> Self {
         Self {
+            excluded_roots: Default::default(),
             #[cfg(feature = "table-read-profile")]
             read_profiling: self.read_profiling,
             tables: self.tables.clone(),
