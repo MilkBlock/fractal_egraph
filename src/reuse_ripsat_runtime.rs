@@ -96,7 +96,7 @@ impl RipSatRuntime {
 }
 
 // Reuse the project's existing limits; incomplete states are never admitted.
-fn saturate(eg: &mut EGraph) -> Result<usize> {
+pub(crate) fn saturate(eg: &mut EGraph) -> Result<usize> {
     let limits = crate::ripen_observation::Limits::from_env()?;
     let start = std::time::Instant::now();
     let trace = egglog::TraceSession::with_effects();

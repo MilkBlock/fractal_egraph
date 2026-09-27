@@ -478,3 +478,5 @@ pub mod storage;
 pub mod native_storage;
 #[path = "reuse_ripsat_runtime.rs"]
 pub mod ripsat_runtime;
+#[path = "reuse_adaptive.rs"]
+pub mod adaptive;

@@ -5,7 +5,7 @@ fn main() -> Result {
     match args.first().map(String::as_str) {
         None | Some("--help" | "help" | "-h") => {
             println!(
-                "egg_layout: reuse-virtualize SOURCE.egg LIBRARY.json [AFTER.egg]\n  reuse-bake OUTPUT.json RUN_DIR...\n  reuse-library-check LIBRARY.json\n  reuse-query SOURCE.egg LIBRARY.json QUERY.json\n  reuse-run SOURCE.egg LIBRARY.json [--learn-grafts OUTPUT.json] [--read-profile]\n  reuse-cycle SOURCE.egg LIBRARY.json OUTPUT_DIR\n  analyze --source FILE --output DIR [--rounds N] [--save-history]\n  analyze --replay-history FILE --output DIR\n  cc-merge --rules FILE --seeds FILE --output DIR [--generations N]\n  debug-stream FILE\n  debug-patterns FILE\n  parse-check FILE\n  ripen FILE DIR\n  saturated-rule-composition-compare A.json B.json\n  saturated-rule-composition-catalog DIR RIPEN_DIR...\n  ripen-diff A.json B.json REPORT.json [ANCHORS.json]\nOptional analyze flags: --reuse-library FILE [--reuse-plan]; --ripen-sweep-steps N (default 4), --ripen-observe-ms N / --ripen-observe-facts N. Defaults: 50 ms / 200000 facts; native admission pauses unfinished tasks."
+                "egg_layout: reuse-adaptive MODE SOURCE.egg OUTPUT_DIR [LIBRARY.json]\n  reuse-virtualize SOURCE.egg LIBRARY.json [AFTER.egg]\n  reuse-bake OUTPUT.json RUN_DIR...\n  reuse-library-check LIBRARY.json\n  reuse-query SOURCE.egg LIBRARY.json QUERY.json\n  reuse-run SOURCE.egg LIBRARY.json [--learn-grafts OUTPUT.json] [--read-profile]\n  reuse-cycle SOURCE.egg LIBRARY.json OUTPUT_DIR\n  analyze --source FILE --output DIR [--rounds N] [--save-history]\n  analyze --replay-history FILE --output DIR\n  cc-merge --rules FILE --seeds FILE --output DIR [--generations N]\n  debug-stream FILE\n  debug-patterns FILE\n  parse-check FILE\n  ripen FILE DIR\n  saturated-rule-composition-compare A.json B.json\n  saturated-rule-composition-catalog DIR RIPEN_DIR...\n  ripen-diff A.json B.json REPORT.json [ANCHORS.json]\nOptional analyze flags: --reuse-library FILE [--reuse-plan]; --ripen-sweep-steps N (default 4), --ripen-observe-ms N / --ripen-observe-facts N. Defaults: 50 ms / 200000 facts; native admission pauses unfinished tasks."
             );
             Ok(())
         }
@@ -16,6 +16,11 @@ fn main() -> Result {
             let packed=egg_layout::reuse_graph::native_storage::pack_library(&mut eg,&library)?;
             if let Some(after)=args.get(3){eg.parse_and_run_program(Some(after.clone()),&std::fs::read_to_string(after)?)?;}
             println!("{}",serde_json::to_string_pretty(&serde_json::json!({"packed":packed,"after":egg_layout::reuse_graph::native_storage::storage_report(&eg)}))?);Ok(())
+        }
+        Some("reuse-adaptive") => {
+            if args.len()<4 || args.len()>5 {return Err("usage: reuse-adaptive MODE SOURCE.egg OUTPUT_DIR [LIBRARY.json]".into());}
+            let report=egg_layout::reuse_graph::adaptive::run(&std::fs::read_to_string(&args[2])?,args.get(4).map(Path::new),Path::new(&args[3]),&args[1])?;
+            println!("{}",serde_json::to_string_pretty(&report)?);Ok(())
         }
         Some("reuse-cycle") => {
             if args.len()!=4 {return Err("usage: reuse-cycle SOURCE.egg LIBRARY.json OUTPUT_DIR".into());}

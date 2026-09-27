@@ -21,6 +21,38 @@ pub struct VirtualizeReport {
     pub tables: Vec<(String, NativeVirtualStats)>,
 }
 impl EGraph {
+    /// Consume a caller-owned notification relation through native
+    /// deletion. This must not be used for semantic input relations: subscribers
+    /// would observe removal. Constructor facts and their versions are untouched.
+    pub fn drain_notification_relation(&mut self, name: &str) -> Result<Vec<Vec<Value>>, Error> {
+        let f = self
+            .functions
+            .get(name)
+            .ok_or_else(|| Error::BackendError("unknown notification relation".into()))?;
+        if f.schema.output.name() != "Unit"
+            && !(f.schema.output.name().starts_with('@')
+                && !self.type_info.is_sort_unionable(&f.schema.output))
+        {
+            return Err(Error::BackendError(
+                "expected a Unit or internal non-unionable relation output".into(),
+            ));
+        }
+        let arity = f.schema.input.len();
+        let id = f.backend_id;
+        let mut rows = vec![];
+        self.backend
+            .for_each(id, |r| rows.push(r.vals[..arity].to_vec()));
+        if !rows.is_empty() {
+            let action = egglog_bridge::TableAction::new(&self.backend, id);
+            self.backend.with_execution_state(|state| {
+                for row in &rows {
+                    action.remove(state, row);
+                }
+            });
+            self.backend.flush_updates();
+        }
+        Ok(rows)
+    }
     /// Every logical column (arguments and result) names a typed binding slot.
     /// Constants can be represented by slots bound to their actual native Value.
     pub fn virtual_fact_template(
