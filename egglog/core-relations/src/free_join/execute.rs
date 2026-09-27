@@ -1845,8 +1845,6 @@ impl<'a, 'outer: 'a> ActionBuffer<'a, ActionId> for InPlaceActionBuffer<'outer> 
             return;
         }
         let action_state = self.batches.get_or_default(action);
-        action_state.n_runs += 1;
-        action_state.len += 1;
         let action_info = &self.rule_set.actions[action];
         if let Some(trace) = self.trace {
             let match_event_id = trace.record_match(
@@ -1855,7 +1853,7 @@ impl<'a, 'outer: 'a> ActionBuffer<'a, ActionId> for InPlaceActionBuffer<'outer> 
                 bindings,
             );
             if trace.records_dependencies() {
-                to_exec_state().record_lhs_reads(
+                let skip = to_exec_state().record_lhs_reads(
                     trace,
                     match_event_id,
                     &action_info.trace_rule,
@@ -1863,9 +1861,15 @@ impl<'a, 'outer: 'a> ActionBuffer<'a, ActionId> for InPlaceActionBuffer<'outer> 
                     &action_info.trace_atoms,
                     bindings,
                 );
+                if skip {
+                    trace.record_skipped_rhs(match_event_id);
+                    return;
+                }
             }
             action_state.trace_match_ids.push(match_event_id);
         }
+        action_state.n_runs += 1;
+        action_state.len += 1;
         // SAFETY: `used_vars` is a constant per-rule. This module only ever calls it with
         // `bindings` produced by the same join.
         unsafe {
@@ -1960,8 +1964,6 @@ impl<'scope> ActionBuffer<'scope, ActionId> for ScopedActionBuffer<'_, 'scope> {
             return;
         }
         let action_state = self.batches.get_or_default(action);
-        action_state.n_runs += 1;
-        action_state.len += 1;
         let action_info = &self.rule_set.actions[action];
         if let Some(trace) = self.trace {
             let match_event_id = trace.record_match(
@@ -1970,7 +1972,7 @@ impl<'scope> ActionBuffer<'scope, ActionId> for ScopedActionBuffer<'_, 'scope> {
                 bindings,
             );
             if trace.records_dependencies() {
-                to_exec_state().record_lhs_reads(
+                let skip = to_exec_state().record_lhs_reads(
                     trace,
                     match_event_id,
                     &action_info.trace_rule,
@@ -1978,9 +1980,15 @@ impl<'scope> ActionBuffer<'scope, ActionId> for ScopedActionBuffer<'_, 'scope> {
                     &action_info.trace_atoms,
                     bindings,
                 );
+                if skip {
+                    trace.record_skipped_rhs(match_event_id);
+                    return;
+                }
             }
             action_state.trace_match_ids.push(match_event_id);
         }
+        action_state.n_runs += 1;
+        action_state.len += 1;
         // SAFETY: `used_vars` is a constant per-rule. This module only ever calls it with
         // `bindings` produced by the same join.
         unsafe {

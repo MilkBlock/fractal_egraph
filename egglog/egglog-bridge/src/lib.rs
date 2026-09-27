@@ -299,6 +299,12 @@ impl EGraph {
         Value::from_usize(self.db.inc_counter(self.id_counter))
     }
 
+    /// Current displaced roots: counts successful UF merges, including merge
+    /// callbacks and rebuild. Monotone within a branch, but rollback may reduce it.
+    pub fn native_union_count(&self) -> usize {
+        self.db.get_table(self.uf_table).len()
+    }
+
     /// Look up the canonical value for `val` in the union-find.
     ///
     /// If the value has never been inserted into the union-find, `val` is returned.

@@ -625,9 +625,9 @@ impl ExecutionState<'_> {
         names: &crate::query::SymbolMap,
         atoms: &[crate::trace::TraceAtom],
         bindings: &DenseIdMap<Variable, Value>,
-    ) {
+    ) -> bool {
         if !trace.records_dependencies() {
-            return;
+            return false;
         }
         let mut reads = Vec::new();
         let mut complete = true;
@@ -711,7 +711,9 @@ impl ExecutionState<'_> {
                 });
             }
         }
+        let skip = trace.proven_redundant_rhs(rule, &reads, complete);
         trace.record_reads(event, reads, complete);
+        skip
     }
     /// Returns the number of matches that make it to the end of the instructions
     pub(crate) fn run_instrs(&mut self, instrs: &[Instr], bindings: &mut Bindings) -> usize {

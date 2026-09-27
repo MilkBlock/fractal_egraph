@@ -1963,6 +1963,12 @@ impl EGraph {
         self.backend.join_read_profile()
     }
 
+    /// Successful native UF merges in this branch, including internal metadata
+    /// and congruence merges. Not a count of requested `union` statements.
+    pub fn native_union_count(&self) -> usize {
+        self.backend.native_union_count()
+    }
+
     /// Fork this native engine with immutable row allocations shared until a
     /// branch writes. Values and row IDs retain normal engine-local identity;
     /// this does not substitute parameterized templates or share mutation queues.

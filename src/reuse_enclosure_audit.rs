@@ -81,6 +81,63 @@ fn region(eg: &EGraph, body: &Body) -> (BTreeSet<Native>, BTreeSet<Native>) {
     (outputs, inputs)
 }
 impl Audit {
+    /// Immutable proof index for one read-only matching boundary. This is sound
+    /// only for this runtime's positive constructor/equality rule environment.
+    pub fn rhs_filter(
+        &self,
+        eg: &EGraph,
+    ) -> std::sync::Arc<dyn Fn(&str, &[(&str, &[Native])]) -> bool + Send + Sync> {
+        let bad = self
+            .aliases
+            .union(&self.rekeyed)
+            .copied()
+            .collect::<BTreeSet<_>>();
+        let owners = self
+            .owners
+            .iter()
+            .map(|(f, ids)| {
+                (
+                    f.clone(),
+                    ids.difference(&bad).copied().collect::<BTreeSet<_>>(),
+                )
+            })
+            .collect::<BTreeMap<_, _>>();
+        let arities = eg
+            .get_function_names()
+            .into_iter()
+            .filter_map(|n| {
+                let f = eg.get_function(&n).unwrap();
+                (f.schema().output.name() == "Math").then_some((n, f.schema().input.len() + 1))
+            })
+            .collect::<BTreeMap<_, _>>();
+        std::sync::Arc::new(move |rule, reads| {
+            if reads.is_empty()
+                || !(rule.starts_with("adaptive_source_") || rule.starts_with("adaptive_baked_"))
+            {
+                return false;
+            }
+            let mut common: Option<BTreeSet<usize>> = None;
+            for (op, row) in reads {
+                let Some(n) = arities.get(*op) else {
+                    return false;
+                };
+                if row.len() < *n {
+                    return false;
+                }
+                let Some(ids) = owners.get(&(op.to_string(), row[..*n].to_vec())) else {
+                    return false;
+                };
+                common = Some(match common {
+                    None => ids.clone(),
+                    Some(old) => old.intersection(ids).copied().collect(),
+                });
+                if common.as_ref().unwrap().is_empty() {
+                    return false;
+                }
+            }
+            common.is_some_and(|s| !s.is_empty())
+        })
+    }
     pub fn observe(&mut self, eg: &EGraph, m: &Macro, bindings: &[Vec<Native>]) -> Result<()> {
         for binding in bindings {
             let mut body = m
@@ -192,11 +249,15 @@ impl Audit {
             }
         }
         let mut effectful = BTreeSet::new();
+        let mut write_events = BTreeMap::<String, usize>::new();
         for w in &batch.writes {
             let math = names
                 .get(&w.table)
                 .and_then(|n| eg.get_function(n))
                 .is_some_and(|f| f.schema().output.name() == "Math");
+            if math {
+                *write_events.entry(format!("{:?}", w.outcome)).or_default() += 1;
+            }
             if math && matches!(w.outcome, WriteOutcome::Inserted | WriteOutcome::Updated) {
                 effectful.insert(w.match_event_id);
             }
@@ -286,7 +347,7 @@ impl Audit {
             .map(|m| m.event_id)
             .collect::<BTreeSet<_>>();
         let unassigned = effectful.difference(&matched_ids).count();
-        let result = json!({"known_bodies_before_step":self.before,"aliased_bindings":self.aliases.len(),"rekeyed_since_last_step":self.rekeyed.len(),"matches":counts,"committed_effectful_matches":effects,"boundary_participating_bodies":touched.len(),"productive_boundary_participating_bodies":productive.len(),"internally_effectful_bodies":internal_changed.len(),"internally_effectful_alias_or_rekeyed":internal_changed.iter().filter(|i|self.aliases.contains(i)||self.rekeyed.contains(i)).count(),"clean_bodies":self.before-self.aliases.union(&self.rekeyed).count(),"productive_boundary_clean_bodies":productive.iter().filter(|i|!self.aliases.contains(i)&&!self.rekeyed.contains(i)).count(),"body_output_regions_changed":output_changed.len(),"lower_input_regions_changed":input_changed.len(),"any_region_changed":output_changed.union(&input_changed).count(),"body_output_changed_between_steps":self.between_output.len(),"effectful_source_ids_not_in_batch":unassigned,"per_rule":by_rule,"effectful_per_rule":effect_by_rule,"scope":"pre-step unique instantiated fact sets; complete keyed LHS witnesses; committed Math inserts/updates or nonredundant unions; notifications excluded; overlapping owners are all counted, not a minimum reopen set"});
+        let result = json!({"rhs_skipped":batch.skipped_rhs.len(),"candidate_matches":counts.values().sum::<usize>(),"math_write_events":write_events,"nonredundant_unions":batch.unions.iter().filter(|u|u.displaced.is_some()).count(),"known_bodies_before_step":self.before,"aliased_bindings":self.aliases.len(),"rekeyed_since_last_step":self.rekeyed.len(),"matches":counts,"committed_effectful_matches":effects,"boundary_participating_bodies":touched.len(),"productive_boundary_participating_bodies":productive.len(),"internally_effectful_bodies":internal_changed.len(),"internally_effectful_alias_or_rekeyed":internal_changed.iter().filter(|i|self.aliases.contains(i)||self.rekeyed.contains(i)).count(),"clean_bodies":self.before-self.aliases.union(&self.rekeyed).count(),"productive_boundary_clean_bodies":productive.iter().filter(|i|!self.aliases.contains(i)&&!self.rekeyed.contains(i)).count(),"body_output_regions_changed":output_changed.len(),"lower_input_regions_changed":input_changed.len(),"any_region_changed":output_changed.union(&input_changed).count(),"body_output_changed_between_steps":self.between_output.len(),"effectful_source_ids_not_in_batch":unassigned,"per_rule":by_rule,"effectful_per_rule":effect_by_rule,"scope":"pre-step unique instantiated fact sets; complete keyed LHS witnesses; committed Math inserts/updates or nonredundant unions; notifications excluded; overlapping owners are all counted, not a minimum reopen set"});
         let mut rebased = BTreeMap::new();
         for (body, alias) in std::mem::take(&mut self.bodies) {
             let mut key = body.iter().map(|r| canonical(eg, r)).collect::<Vec<_>>();

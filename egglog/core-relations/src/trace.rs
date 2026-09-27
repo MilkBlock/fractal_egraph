@@ -77,6 +77,8 @@ pub struct RuleMatchEvent {
 pub enum RuleActionOutcome {
     Survived,
     Filtered,
+    /// Trusted optimizer certified the RHS redundant before execution.
+    SkippedRedundant,
 }
 
 /// The action-program outcome corresponding to one [`RuleMatchEvent`].
@@ -137,8 +139,15 @@ impl ExecutionControl {
         true
     }
 }
+/// Trusted pre-RHS filter. True certifies that all semantic effects already hold.
+/// Only called with complete keyed reads. The caller is responsible for validity
+/// in this engine, rule environment and execution boundary. No default filtering.
+pub type RedundantRhsFilter = Arc<dyn Fn(&str, &[(&str, &[Value])]) -> bool + Send + Sync>;
+
 #[derive(Default)]
 struct TraceState {
+    rhs_filter: Mutex<Option<RedundantRhsFilter>>,
+    skipped_rhs: Mutex<Vec<u64>>,
     next_event_id: AtomicU64,
     control: Mutex<Option<Arc<ExecutionControl>>>,
     scope_resets: Mutex<Vec<u64>>,
@@ -173,6 +182,7 @@ pub struct TraceSession {
 /// raw bindings, rows and action records. Session identity and row origins survive.
 #[derive(Default)]
 pub struct TraceBatch {
+    pub skipped_rhs: Vec<u64>,
     pub matches: Vec<RuleMatchEvent>,
     pub actions: Vec<RuleActionOutcomeEvent>,
     pub writes: Vec<WriteEvent>,
@@ -194,6 +204,43 @@ impl TraceBatch {
     }
 }
 impl TraceSession {
+    pub fn set_proven_redundant_rhs_filter(&self, filter: Option<RedundantRhsFilter>) {
+        *self.state.rhs_filter.lock().unwrap() = filter;
+    }
+    pub(crate) fn proven_redundant_rhs(
+        &self,
+        rule: &str,
+        reads: &[RowWitness],
+        complete: bool,
+    ) -> bool {
+        if !complete || reads.is_empty() {
+            return false;
+        }
+        let filter = self.state.rhs_filter.lock().unwrap().clone();
+        let Some(filter) = filter else { return false };
+        let rows: Option<Vec<_>> = reads
+            .iter()
+            .map(|r| {
+                r.table_name
+                    .as_ref()
+                    .map(|n| (n.as_ref(), r.row.as_slice()))
+            })
+            .collect();
+        rows.is_some_and(|rows| filter(rule, &rows))
+    }
+    pub(crate) fn record_skipped_rhs(&self, id: u64) {
+        self.state.skipped_rhs.lock().unwrap().push(id);
+        self.state
+            .action_outcomes
+            .lock()
+            .unwrap()
+            .push(RuleActionOutcomeEvent {
+                event_id: self.state.next_event_id.fetch_add(1, Ordering::Relaxed),
+                match_event_id: id,
+                outcome: RuleActionOutcome::SkippedRedundant,
+            });
+    }
+
     /// Register before execution; table IDs belong to the compiling engine.
     pub fn set_source_reads(&self, rule: Arc<str>, plan: SourceReadPlan) {
         self.state
@@ -283,6 +330,7 @@ impl TraceSession {
         );
         edges.retain(|(id, _, _)| reset.is_none_or(|r| *id > r));
         TraceBatch {
+            skipped_rhs: std::mem::take(&mut *self.state.skipped_rhs.lock().unwrap()),
             matches: self.drain_matches(),
             actions: self.drain_action_outcomes(),
             unions,
@@ -326,6 +374,7 @@ impl TraceSession {
     /// Record a successful scope rollback. Earlier block certificates need
     /// revalidation even when restored rows still carry historical origins.
     pub fn record_scope_reset(&self) {
+        *self.state.rhs_filter.lock().unwrap() = None;
         self.state.read_plans.lock().unwrap().clear();
         self.state.has_read_plans.store(false, Ordering::Release);
         let id = self.state.next_event_id.fetch_add(1, Ordering::Relaxed);
