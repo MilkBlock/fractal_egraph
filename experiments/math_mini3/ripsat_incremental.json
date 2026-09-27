@@ -1,0 +1,17 @@
+{
+  "cached_transition_seconds": 0.00001725,
+  "check": "passed",
+  "first": {
+    "native_matches": 2,
+    "snapshot_reused": false,
+    "state": 1
+  },
+  "fresh_compile_and_saturate_seconds": 0.003114709,
+  "hit": {
+    "native_matches": 0,
+    "snapshot_reused": true,
+    "state": 1
+  },
+  "incremental_seconds": 0.000406083,
+  "scope": "one completed math library entry, one same-binding external graft; not full math benchmark or automatic tier0 placement"
+}

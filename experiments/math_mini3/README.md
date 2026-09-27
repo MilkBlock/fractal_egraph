@@ -211,3 +211,31 @@ is weaker than exact graph equality (mini3 has a separate exact verification).
 
 The generated HTML passed JavaScript syntax checking; browser visual verification
 was blocked by the browser tool's local-file URL policy.
+
+## Incremental native RipSat snapshot primitive
+
+`reuse_graph::ripsat_runtime::RipSatRuntime` retains compiled native engines and
+semi-naive frontiers. A graft forks shared immutable storage, applies native
+actions, and saturates only the incremental work. A repeated exact `(state ID,
+normalized action text)` transition returns the existing state without invoking
+rules. Default-ruleset sources only; changing rules/declarations via graft is
+rejected. Existing 50 ms / 200K observation limits apply and unfinished children
+are not admitted. This API does not infer parametric binding correspondence.
+
+`ripsat_incremental.json` is a **local microbenchmark**, taking the first completed
+Add composition from the round-1 math library and grafting an Add with a new Var:
+0.406 ms incremental graft (2 native matches), 0.017 ms cached transition (0
+matches), 3.115 ms fresh compilation and saturation. Single samples, not a full
+math-microbenchmark result or confidence interval. The commuted result check
+passes. Two regressions additionally cover external relation activation, union
+activation and parent snapshot isolation.
+
+```sh
+cargo run --release --offline --example ripsat_incremental -- \
+  out/math-virtual-mini3-20260927/library.json out/ripsat-incremental.json
+```
+
+The adjacent `.recipes.json` is a portable replay recipe, not an executable
+`bake_lib_round2` and not serialized native query cursors. Restoring it requires
+rebaking. Automatic tier0 placement, binding transport, dynamic library admission
+and end-to-end internal Join suppression are **not connected** by this primitive.
