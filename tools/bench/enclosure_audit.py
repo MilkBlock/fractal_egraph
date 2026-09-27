@@ -14,27 +14,10 @@ os.environ['EGG_LAYOUT_AUDIT_VERIFY']='1'
 for label,enabled in [('audit','1'),('control','0')]:
  os.environ['EGG_LAYOUT_AUDIT_ENCLOSURES']=enabled
  report[label]=measure([binary,'frozen',src,out/label,lib],out/(label+'-process'))
-# Constructor hashcons makes the mapping deterministic once children are mapped.
-# Ground reachability is required; unmapped cycles are rejected, never guessed.
-left=json.loads((out/'audit/verification-graph.json').read_text())
-right=json.loads((out/'control/verification-graph.json').read_text())
-index={(r['op'],tuple(map(tuple,r['args']))):r['result'] for r in right}
-assert len(index)==len(right)==len(left)
-mapping={};inverse={};pending=left[:]
-while pending:
- later=[]
- for r in pending:
-  if any(t=='Math' and v not in mapping for t,v in r['args']):later.append(r);continue
-  key=(r['op'],tuple((t,mapping[v] if t=='Math' else v) for t,v in r['args']))
-  assert key in index,'missing constructor fact';target=index[key];source_id=r['result']
-  assert source_id not in mapping or mapping[source_id]==target,'different equivalence'
-  assert target not in inverse or inverse[target]==source_id,'non-bijective class map'
-  mapping[source_id]=target;inverse[target]=source_id
- assert len(later)<len(pending),'unmapped cycle or ungrounded class'
- pending=later
-assert len(inverse)==len({r['result'] for r in right})
-report['final_graph_exact_equal']=True
-report['verified_enodes']=len(left);report['verified_eclasses']=len(mapping)
+from math_graph_equal import verify
+verified=verify(out/'audit/verification-graph.json',out/'control/verification-graph.json')
+report['final_graph_exact_equal']=verified['exact_equal']
+report['verified_enodes']=verified['enodes'];report['verified_eclasses']=verified['eclasses']
 rows=[]
 for s,t in zip(report['audit']['result']['samples'],report['control']['result']['samples']):
  assert (s['graph']['enodes'],s['graph']['eclasses'])==(t['graph']['enodes'],t['graph']['eclasses']), 'graph size mismatch'

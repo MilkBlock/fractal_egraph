@@ -4,11 +4,21 @@ Measured the current fixed 13-trigger executable library on an **eight-round mat
 prefix**. This is a diagnostic run, not a speed benchmark. The ordinary execution
 path does not collect this audit unless `EGG_LAYOUT_AUDIT_ENCLOSURES=1`.
 
+## Follow-up qualification
+
+The RHS-skip experiment found that implicit merges from `union_to_set`/merge
+callbacks are not all attributed in `UnionEvent`. The effect counts below therefore
+mean **recorded** effects, not complete semantic-change attribution. In particular,
+99.865% recorded-effect-free is not a proof that all those RHSs are redundant.
+Region-content comparisons remain independent of this event attribution. See
+[the RHS test](../rhs_skip/README.md) for native UF counts and independent exact
+verification of certificate-based skipping.
+
 ## Observations
 
 Excluding the first round (no prior instances), **5,936 matches** read facts wholly
 contained in one previously instantiated body. Only **8** were associated with a
-committed Math insert/update or nonredundant union: **99.865% had no such effect**.
+committed Math insert/update or nonredundant union: **99.865% had no such recorded effect**.
 All eight were in the factorization macro (`adaptive_baked_10`), and all their
 containing bodies carried an alias/rekey tag. This is an association, not a complete
 causal explanation of each match. There were zero incomplete keyed witnesses and

@@ -44,10 +44,11 @@ def measure(command, prefix, timeout=30):
     wall = re.search(r'([\d.]+)\s+real\s+', text)
     if code or not peak or not wall:
         raise RuntimeError(f'failed measurement: {command}\n{text[-2000:]}')
+    cpu = re.search(r'([\d.]+)\s+real\s+([\d.]+)\s+user\s+([\d.]+)\s+sys', text)
     lines = stdout.read_text().splitlines()
     payload = json.loads(lines[-1]) if lines and lines[-1].startswith('{') else None
     return dict(command=list(map(str, command)), process_wall_seconds=float(wall[1]),
-                peak_rss_bytes=int(peak[1]), observed_wall_seconds=time.monotonic()-begin,
+                peak_rss_bytes=int(peak[1]), user_seconds=float(cpu[2]) if cpu else None, system_seconds=float(cpu[3]) if cpu else None, observed_wall_seconds=time.monotonic()-begin,
                 result=payload)
 
 
