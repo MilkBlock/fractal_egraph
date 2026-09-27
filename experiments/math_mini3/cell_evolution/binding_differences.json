@@ -1,0 +1,2459 @@
+{
+  "schema": "cell-binding-differences/v1",
+  "groups": [
+    {
+      "group": 0,
+      "rule": "adaptive_baked_2",
+      "source_family": 2,
+      "target_family": 2,
+      "pattern_ids": [
+        0,
+        180,
+        223,
+        389,
+        487,
+        1043,
+        1410,
+        1756,
+        2000,
+        2044,
+        2293,
+        2301
+      ],
+      "binding_variants": 2,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 2,
+          "term": "adaptive_root",
+          "sort": "Math",
+          "construction": null,
+          "alternatives": [
+            {
+              "post_of": [
+                "external_1"
+              ]
+            },
+            {
+              "post_of": [
+                "external_1",
+                "port_6"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": false,
+          "additional_pre_value_equality": true
+        },
+        {
+          "slot": 6,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Add a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "post_of": [
+                "port_4"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 1,
+      "rule": "adaptive_baked_2",
+      "source_family": 2,
+      "target_family": 2,
+      "pattern_ids": [
+        1,
+        181,
+        224,
+        390,
+        488,
+        1044,
+        1411,
+        1761,
+        2001,
+        2045,
+        2294,
+        2302
+      ],
+      "binding_variants": 2,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 2,
+          "term": "adaptive_root",
+          "sort": "Math",
+          "construction": null,
+          "alternatives": [
+            {
+              "post_of": [
+                "external_1"
+              ]
+            },
+            {
+              "post_of": [
+                "external_1",
+                "port_5"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": false,
+          "additional_pre_value_equality": true
+        },
+        {
+          "slot": 6,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Add a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "post_of": [
+                "port_3"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 2,
+      "rule": "adaptive_baked_2",
+      "source_family": 2,
+      "target_family": 2,
+      "pattern_ids": [
+        2,
+        196,
+        300,
+        431,
+        580,
+        831,
+        899,
+        984,
+        1564,
+        1958,
+        2295,
+        2303
+      ],
+      "binding_variants": 2,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 2,
+          "term": "adaptive_root",
+          "sort": "Math",
+          "construction": null,
+          "alternatives": [
+            {
+              "post_of": [
+                "external_1"
+              ]
+            },
+            {
+              "post_of": [
+                "external_1",
+                "port_6"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": false,
+          "additional_pre_value_equality": true
+        },
+        {
+          "slot": 5,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Add a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_4"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 6,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Add a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "new": 0
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": false,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 3,
+      "rule": "adaptive_baked_2",
+      "source_family": 2,
+      "target_family": 2,
+      "pattern_ids": [
+        3,
+        197,
+        301,
+        432,
+        581,
+        832,
+        900,
+        988,
+        1565,
+        1961,
+        2297,
+        2305
+      ],
+      "binding_variants": 2,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 2,
+          "term": "adaptive_root",
+          "sort": "Math",
+          "construction": null,
+          "alternatives": [
+            {
+              "post_of": [
+                "external_1"
+              ]
+            },
+            {
+              "post_of": [
+                "external_1",
+                "port_5"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": false,
+          "additional_pre_value_equality": true
+        },
+        {
+          "slot": 5,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Add a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_3"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 6,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Add a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "new": 0
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": false,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 4,
+      "rule": "adaptive_baked_2",
+      "source_family": 2,
+      "target_family": 2,
+      "pattern_ids": [
+        13,
+        116,
+        117,
+        124,
+        125,
+        129,
+        199,
+        203,
+        270,
+        271,
+        333,
+        349,
+        350,
+        447,
+        448,
+        449,
+        450,
+        525,
+        570,
+        658,
+        779,
+        1055,
+        1059,
+        1149,
+        1221,
+        3007
+      ],
+      "binding_variants": 13,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 5,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Add a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_6"
+              ]
+            },
+            {
+              "post_of": [
+                "port_4"
+              ]
+            },
+            {
+              "post_of": [
+                "port_5"
+              ]
+            },
+            {
+              "post_of": [
+                "port_1"
+              ]
+            },
+            {
+              "post_of": [
+                "port_0"
+              ]
+            },
+            {
+              "post_of": [
+                "port_2"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 6,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Add a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "post_of": [
+                "port_6"
+              ]
+            },
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_4"
+              ]
+            },
+            {
+              "post_of": [
+                "port_5"
+              ]
+            },
+            {
+              "post_of": [
+                "port_1"
+              ]
+            },
+            {
+              "post_of": [
+                "port_0"
+              ]
+            },
+            {
+              "post_of": [
+                "port_2"
+              ]
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 5,
+      "rule": "adaptive_baked_2",
+      "source_family": 2,
+      "target_family": 2,
+      "pattern_ids": [
+        14,
+        118,
+        119,
+        126,
+        127,
+        130,
+        200,
+        204,
+        272,
+        273,
+        334,
+        351,
+        352,
+        451,
+        452,
+        453,
+        454,
+        526,
+        571,
+        659,
+        780,
+        1056,
+        1062,
+        1150,
+        1222,
+        3009
+      ],
+      "binding_variants": 13,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 5,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Add a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_5"
+              ]
+            },
+            {
+              "post_of": [
+                "port_3"
+              ]
+            },
+            {
+              "post_of": [
+                "port_6"
+              ]
+            },
+            {
+              "post_of": [
+                "port_1"
+              ]
+            },
+            {
+              "post_of": [
+                "port_0"
+              ]
+            },
+            {
+              "post_of": [
+                "port_2"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 6,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Add a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "post_of": [
+                "port_5"
+              ]
+            },
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_3"
+              ]
+            },
+            {
+              "post_of": [
+                "port_6"
+              ]
+            },
+            {
+              "post_of": [
+                "port_1"
+              ]
+            },
+            {
+              "post_of": [
+                "port_0"
+              ]
+            },
+            {
+              "post_of": [
+                "port_2"
+              ]
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 6,
+      "rule": "adaptive_baked_2",
+      "source_family": 2,
+      "target_family": 2,
+      "pattern_ids": [
+        15,
+        98,
+        136,
+        137,
+        250,
+        268,
+        269,
+        543,
+        544,
+        545,
+        546,
+        663,
+        688,
+        689,
+        690,
+        691,
+        916,
+        923,
+        1034,
+        1496
+      ],
+      "binding_variants": 13,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 5,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Add a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_2"
+              ]
+            },
+            {
+              "post_of": [
+                "port_1"
+              ]
+            },
+            {
+              "post_of": [
+                "port_5"
+              ]
+            },
+            {
+              "post_of": [
+                "port_6"
+              ]
+            },
+            {
+              "post_of": [
+                "port_3"
+              ]
+            },
+            {
+              "post_of": [
+                "port_4"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 6,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Add a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "post_of": [
+                "port_2"
+              ]
+            },
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_1"
+              ]
+            },
+            {
+              "post_of": [
+                "port_5"
+              ]
+            },
+            {
+              "post_of": [
+                "port_6"
+              ]
+            },
+            {
+              "post_of": [
+                "port_3"
+              ]
+            },
+            {
+              "post_of": [
+                "port_4"
+              ]
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 7,
+      "rule": "adaptive_baked_2",
+      "source_family": 0,
+      "target_family": 2,
+      "pattern_ids": [
+        18,
+        144,
+        161,
+        217,
+        218,
+        278,
+        290,
+        320,
+        371,
+        372,
+        584,
+        653,
+        666,
+        862,
+        1115,
+        1237,
+        1613,
+        2115,
+        2166
+      ],
+      "binding_variants": 5,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 5,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Add a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_1"
+              ]
+            },
+            {
+              "post_of": [
+                "port_2"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 6,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Add a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "post_of": [
+                "port_1"
+              ]
+            },
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_2"
+              ]
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 8,
+      "rule": "adaptive_baked_2",
+      "source_family": 0,
+      "target_family": 2,
+      "pattern_ids": [
+        19,
+        145,
+        162,
+        219,
+        220,
+        279,
+        291,
+        321,
+        373,
+        374,
+        585,
+        654,
+        667,
+        863,
+        1116,
+        1238,
+        1614,
+        2116,
+        2167
+      ],
+      "binding_variants": 5,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 5,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Add a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_0"
+              ]
+            },
+            {
+              "post_of": [
+                "port_2"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 6,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Add a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "post_of": [
+                "port_0"
+              ]
+            },
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_2"
+              ]
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 9,
+      "rule": "adaptive_baked_3",
+      "source_family": 3,
+      "target_family": 3,
+      "pattern_ids": [
+        59,
+        365,
+        369,
+        460,
+        649,
+        1379,
+        1407,
+        2707,
+        2708,
+        2966
+      ],
+      "binding_variants": 3,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 2,
+          "term": "adaptive_root",
+          "sort": "Math",
+          "construction": null,
+          "alternatives": [
+            {
+              "post_of": [
+                "external_1"
+              ]
+            },
+            {
+              "post_of": [
+                "external_1",
+                "port_5"
+              ]
+            },
+            {
+              "post_of": [
+                "external_1",
+                "port_6"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": false,
+          "additional_pre_value_equality": true
+        },
+        {
+          "slot": 5,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Mul a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_0"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 6,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Mul a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "post_of": [
+                "port_0"
+              ]
+            },
+            {
+              "new": 0
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 10,
+      "rule": "adaptive_baked_3",
+      "source_family": 3,
+      "target_family": 3,
+      "pattern_ids": [
+        60,
+        366,
+        370,
+        461,
+        651,
+        1381,
+        1409,
+        2718,
+        2719,
+        2968
+      ],
+      "binding_variants": 3,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 2,
+          "term": "adaptive_root",
+          "sort": "Math",
+          "construction": null,
+          "alternatives": [
+            {
+              "post_of": [
+                "external_1"
+              ]
+            },
+            {
+              "post_of": [
+                "external_1",
+                "port_5"
+              ]
+            },
+            {
+              "post_of": [
+                "external_1",
+                "port_6"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": false,
+          "additional_pre_value_equality": true
+        },
+        {
+          "slot": 5,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Mul a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_0"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 6,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Mul a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_0"
+              ]
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 11,
+      "rule": "adaptive_baked_3",
+      "source_family": 1,
+      "target_family": 3,
+      "pattern_ids": [
+        101,
+        298,
+        378,
+        387,
+        530,
+        1107,
+        1108,
+        1453,
+        1469,
+        2091,
+        2092,
+        3176
+      ],
+      "binding_variants": 5,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 5,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Mul a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_0"
+              ]
+            },
+            {
+              "post_of": [
+                "port_2"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 6,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Mul a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "post_of": [
+                "port_0"
+              ]
+            },
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_2"
+              ]
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 12,
+      "rule": "adaptive_baked_3",
+      "source_family": 1,
+      "target_family": 3,
+      "pattern_ids": [
+        112,
+        377,
+        391,
+        529,
+        534,
+        1103,
+        1428,
+        1452,
+        1468,
+        2087,
+        2088,
+        3174,
+        3175
+      ],
+      "binding_variants": 5,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 5,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Mul a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_1"
+              ]
+            },
+            {
+              "post_of": [
+                "port_2"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 6,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Mul a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_1"
+              ]
+            },
+            {
+              "post_of": [
+                "port_2"
+              ]
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 13,
+      "rule": "adaptive_baked_9",
+      "source_family": 0,
+      "target_family": 5,
+      "pattern_ids": [
+        138,
+        578,
+        1094,
+        1213,
+        1241,
+        1470,
+        2349,
+        3062
+      ],
+      "binding_variants": 3,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 3,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Mul a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_1"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 4,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Mul a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "post_of": [
+                "port_1"
+              ]
+            },
+            {
+              "new": 0
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 14,
+      "rule": "adaptive_baked_9",
+      "source_family": 0,
+      "target_family": 5,
+      "pattern_ids": [
+        139,
+        579,
+        1095,
+        1214,
+        1242,
+        1471,
+        2350,
+        3063
+      ],
+      "binding_variants": 3,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 3,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Mul a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_0"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 4,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Mul a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "post_of": [
+                "port_0"
+              ]
+            },
+            {
+              "new": 0
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 15,
+      "rule": "adaptive_baked_9",
+      "source_family": 2,
+      "target_family": 5,
+      "pattern_ids": [
+        163,
+        612,
+        686,
+        1201,
+        1227,
+        1818,
+        1819,
+        2162,
+        3011
+      ],
+      "binding_variants": 5,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 3,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Mul a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_4"
+              ]
+            },
+            {
+              "post_of": [
+                "port_0"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 4,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Mul a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "post_of": [
+                "port_4"
+              ]
+            },
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_0"
+              ]
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 16,
+      "rule": "adaptive_baked_9",
+      "source_family": 2,
+      "target_family": 5,
+      "pattern_ids": [
+        164,
+        613,
+        687,
+        1202,
+        1228,
+        1820,
+        1821,
+        2163,
+        3012
+      ],
+      "binding_variants": 5,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 3,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Mul a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_3"
+              ]
+            },
+            {
+              "post_of": [
+                "port_0"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 4,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Mul a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "post_of": [
+                "port_3"
+              ]
+            },
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_0"
+              ]
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 17,
+      "rule": "adaptive_baked_9",
+      "source_family": 2,
+      "target_family": 5,
+      "pattern_ids": [
+        292,
+        1812,
+        1813,
+        1814,
+        1815
+      ],
+      "binding_variants": 5,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 3,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Mul a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_3"
+              ]
+            },
+            {
+              "post_of": [
+                "port_4"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 4,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Mul a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "post_of": [
+                "port_3"
+              ]
+            },
+            {
+              "post_of": [
+                "port_4"
+              ]
+            },
+            {
+              "new": 0
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": false,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 18,
+      "rule": "adaptive_baked_4",
+      "source_family": 1,
+      "target_family": 4,
+      "pattern_ids": [
+        478,
+        582
+      ],
+      "binding_variants": 2,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 4,
+          "term": "adaptive_local_3",
+          "sort": "Math",
+          "construction": "(let adaptive_local_3 (Const -1))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "post_of": [
+                "port_0"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": false,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 19,
+      "rule": "adaptive_baked_9",
+      "source_family": 2,
+      "target_family": 5,
+      "pattern_ids": [
+        751,
+        2747,
+        2748
+      ],
+      "binding_variants": 3,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 3,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Mul a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_4"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 4,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Mul a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "post_of": [
+                "port_4"
+              ]
+            },
+            {
+              "new": 0
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": false,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 20,
+      "rule": "adaptive_baked_9",
+      "source_family": 2,
+      "target_family": 5,
+      "pattern_ids": [
+        752,
+        2749,
+        2750
+      ],
+      "binding_variants": 3,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 3,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Mul a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_3"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 4,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Mul a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "post_of": [
+                "port_3"
+              ]
+            },
+            {
+              "new": 0
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": false,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 21,
+      "rule": "adaptive_baked_9",
+      "source_family": 2,
+      "target_family": 5,
+      "pattern_ids": [
+        753,
+        2751,
+        2752
+      ],
+      "binding_variants": 3,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 3,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Mul a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_4"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 4,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Mul a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "post_of": [
+                "port_4"
+              ]
+            },
+            {
+              "new": 0
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": false,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 22,
+      "rule": "adaptive_baked_9",
+      "source_family": 2,
+      "target_family": 5,
+      "pattern_ids": [
+        754,
+        2753,
+        2754
+      ],
+      "binding_variants": 3,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 3,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Mul a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_3"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 4,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Mul a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "post_of": [
+                "port_3"
+              ]
+            },
+            {
+              "new": 0
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": false,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 23,
+      "rule": "adaptive_baked_3",
+      "source_family": 9,
+      "target_family": 3,
+      "pattern_ids": [
+        882,
+        2643
+      ],
+      "binding_variants": 2,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 5,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Mul a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_7"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 6,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Mul a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "new": 0
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": false,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": false,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 24,
+      "rule": "adaptive_baked_3",
+      "source_family": 9,
+      "target_family": 3,
+      "pattern_ids": [
+        883,
+        2646
+      ],
+      "binding_variants": 2,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 5,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Mul a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_5"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 6,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Mul a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "new": 0
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": false,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": false,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 25,
+      "rule": "adaptive_baked_3",
+      "source_family": 9,
+      "target_family": 3,
+      "pattern_ids": [
+        974,
+        1540,
+        1727,
+        2637
+      ],
+      "binding_variants": 2,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 6,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Mul a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "post_of": [
+                "port_7"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 26,
+      "rule": "adaptive_baked_3",
+      "source_family": 9,
+      "target_family": 3,
+      "pattern_ids": [
+        975,
+        1541,
+        1728,
+        2639
+      ],
+      "binding_variants": 2,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 6,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Mul a c))",
+          "alternatives": [
+            {
+              "new": 1
+            },
+            {
+              "post_of": [
+                "port_5"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 27,
+      "rule": "adaptive_baked_9",
+      "source_family": 9,
+      "target_family": 5,
+      "pattern_ids": [
+        1258,
+        1268,
+        2245,
+        2252
+      ],
+      "binding_variants": 3,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 3,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Mul a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_0"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 4,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Mul a c))",
+          "alternatives": [
+            {
+              "post_of": [
+                "port_0"
+              ]
+            },
+            {
+              "new": 0
+            },
+            {
+              "new": 1
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 28,
+      "rule": "adaptive_baked_9",
+      "source_family": 9,
+      "target_family": 5,
+      "pattern_ids": [
+        1270,
+        1280,
+        2264,
+        2271
+      ],
+      "binding_variants": 3,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 3,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Mul a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_1"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 4,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Mul a c))",
+          "alternatives": [
+            {
+              "post_of": [
+                "port_1"
+              ]
+            },
+            {
+              "new": 0
+            },
+            {
+              "new": 1
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 29,
+      "rule": "adaptive_baked_9",
+      "source_family": 5,
+      "target_family": 5,
+      "pattern_ids": [
+        1816,
+        2055,
+        2272,
+        2309
+      ],
+      "binding_variants": 3,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 3,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Mul a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_1"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 4,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Mul a c))",
+          "alternatives": [
+            {
+              "post_of": [
+                "port_1"
+              ]
+            },
+            {
+              "new": 0
+            },
+            {
+              "new": 1
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 30,
+      "rule": "adaptive_baked_9",
+      "source_family": 5,
+      "target_family": 5,
+      "pattern_ids": [
+        1817,
+        2056,
+        2273,
+        2310
+      ],
+      "binding_variants": 3,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 3,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Mul a b))",
+          "alternatives": [
+            {
+              "new": 0
+            },
+            {
+              "post_of": [
+                "port_0"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        },
+        {
+          "slot": 4,
+          "term": "adaptive_local_6",
+          "sort": "Math",
+          "construction": "(let adaptive_local_6 (Mul a c))",
+          "alternatives": [
+            {
+              "post_of": [
+                "port_0"
+              ]
+            },
+            {
+              "new": 0
+            },
+            {
+              "new": 1
+            }
+          ],
+          "local_renumbering": true,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 31,
+      "rule": "adaptive_baked_15",
+      "source_family": 9,
+      "target_family": 9,
+      "pattern_ids": [
+        2622,
+        2623
+      ],
+      "binding_variants": 2,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 8,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Diff x a))",
+          "alternatives": [
+            {
+              "new": 2
+            },
+            {
+              "post_of": [
+                "port_4"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": false,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 32,
+      "rule": "adaptive_baked_15",
+      "source_family": 9,
+      "target_family": 9,
+      "pattern_ids": [
+        2630,
+        2631
+      ],
+      "binding_variants": 2,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 8,
+          "term": "adaptive_local_5",
+          "sort": "Math",
+          "construction": "(let adaptive_local_5 (Diff x a))",
+          "alternatives": [
+            {
+              "new": 2
+            },
+            {
+              "post_of": [
+                "port_4"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": false,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 33,
+      "rule": "adaptive_baked_15",
+      "source_family": 9,
+      "target_family": 9,
+      "pattern_ids": [
+        2649,
+        2651
+      ],
+      "binding_variants": 2,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 6,
+          "term": "adaptive_local_4",
+          "sort": "Math",
+          "construction": "(let adaptive_local_4 (Diff x b))",
+          "alternatives": [
+            {
+              "new": 2
+            },
+            {
+              "post_of": [
+                "port_4"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    },
+    {
+      "group": 34,
+      "rule": "adaptive_baked_15",
+      "source_family": 9,
+      "target_family": 9,
+      "pattern_ids": [
+        2650,
+        2652
+      ],
+      "binding_variants": 2,
+      "input_mapping_invariant": true,
+      "target_alias_partition_invariant": true,
+      "source_alias_partition_invariant": true,
+      "differing_slots": [
+        {
+          "slot": 6,
+          "term": "adaptive_local_4",
+          "sort": "Math",
+          "construction": "(let adaptive_local_4 (Diff x b))",
+          "alternatives": [
+            {
+              "new": 2
+            },
+            {
+              "post_of": [
+                "port_4"
+              ]
+            }
+          ],
+          "local_renumbering": false,
+          "old_port_reuse": true,
+          "additional_pre_value_equality": false
+        }
+      ],
+      "write_records_also_differ": true,
+      "recorded_union_lists_vary": false
+    }
+  ],
+  "summary": {
+    "groups": 35,
+    "input_mapping_invariant": 35,
+    "target_alias_partition_changes": 0,
+    "source_alias_partition_changes": 0,
+    "groups_with_old_port_reuse": 35,
+    "groups_with_additional_pre_value_equalities": 6,
+    "groups_with_incidental_local_renumbering": 26,
+    "groups_with_write_differences": 25,
+    "by_rule": {
+      "adaptive_baked_2": 9,
+      "adaptive_baked_3": 8,
+      "adaptive_baked_9": 13,
+      "adaptive_baked_4": 1,
+      "adaptive_baked_15": 4
+    }
+  },
+  "scope": "Existing observed catalog only. post_of records post-step canonical correspondence; it does not identify the responsible union or establish pre-match existence of an unreferenced result. new labels are local symbols, not allocation events. No runtime pruning or pattern merging is performed.",
+  "catalog_sha256": "6285abd3b3650a51e1f5e6d7b7548911e6d831432ffb9fac4a847b806779128a",
+  "library_sha256": "d10af32600b178515ed204758229ce189b6e8641a98d6547967362c5da0d0e2c",
+  "catalog": "out/cell-evolution-complete/math-observe/cell-evolution.json"
+}
