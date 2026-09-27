@@ -1,0 +1,733 @@
+{
+  "schema": "ripsat-cell-machine-bench/v1",
+  "commit": "13c4d19ef98169bd40f12c2c4d54804e31864d37",
+  "dirty": true,
+  "binary_sha256": "a0178e6ab2dce49a7f2810ad86623938cae53c27612f21928435c059849f9c23",
+  "library": {
+    "path": "experiments/math_mini3/adaptive_runtime/bake_lib_round2.json",
+    "bytes": 22017,
+    "sha256": "d10af32600b178515ed204758229ce189b6e8641a98d6547967362c5da0d0e2c"
+  },
+  "notes": [
+    "actual egglog runtime, frozen positive-constructor Bake; not a standalone simulation",
+    "one Rayon thread; same reporting mode and source in every variant",
+    "staged/queued are promises, not committed effects",
+    "native reference may reach a smaller graph in the same number of rounds",
+    "verification runs separate; offline Bake and compilation excluded",
+    "internal seconds include source parsing/library loading, installation, queries, packing; final stdout serialization/drop excluded",
+    "process timing/RSS additionally includes reporting and teardown; macOS wall time has 0.01s resolution",
+    "external measurement guard only: 30 seconds or 4 GiB per process"
+  ],
+  "cases": [
+    {
+      "rounds": 6,
+      "checks": {
+        "frozen": {
+          "exact_equal": true,
+          "enodes": 2167,
+          "eclasses": 748
+        },
+        "batch": {
+          "exact_equal": true,
+          "enodes": 2167,
+          "eclasses": 748
+        },
+        "committed": {
+          "exact_equal": true,
+          "enodes": 2167,
+          "eclasses": 748
+        },
+        "staged": {
+          "exact_equal": true,
+          "enodes": 2167,
+          "eclasses": 748
+        },
+        "expanded_machine": {
+          "exact_equal": true,
+          "enodes": 2167,
+          "eclasses": 748
+        },
+        "machine": {
+          "exact_equal": true,
+          "enodes": 2167,
+          "eclasses": 748
+        }
+      },
+      "medians": {
+        "frozen": {
+          "seconds": 0.030242416,
+          "setup_seconds": 0.004046167,
+          "execution_seconds": 0.008681957,
+          "packing_seconds": 0.016545415,
+          "matches": 3376,
+          "peak_rss_bytes": 9207808,
+          "process_wall_seconds": 0.03,
+          "final": {
+            "eclasses": 748,
+            "enodes": 2167,
+            "rss_bytes": 9027584
+          },
+          "stored_state_rows": 0,
+          "completed_prefixes": 0,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "unresolved_completion_plans": 0,
+          "shared_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 1760,
+            "binding_payload_bytes": 11372,
+            "template_header_bytes": 10144,
+            "template_payload_bytes": 8072,
+            "unique_binding_matrices": 44,
+            "unique_templates": 44
+          }
+        },
+        "batch": {
+          "seconds": 0.016511125,
+          "setup_seconds": 0.004008583,
+          "execution_seconds": 0.008565418,
+          "packing_seconds": 0.002848834,
+          "matches": 3376,
+          "peak_rss_bytes": 9388032,
+          "process_wall_seconds": 0.02,
+          "final": {
+            "eclasses": 748,
+            "enodes": 2167,
+            "rss_bytes": 9306112
+          },
+          "stored_state_rows": 0,
+          "completed_prefixes": 0,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "unresolved_completion_plans": 0,
+          "shared_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 1760,
+            "binding_payload_bytes": 11372,
+            "template_header_bytes": 10144,
+            "template_payload_bytes": 8072,
+            "unique_binding_matrices": 44,
+            "unique_templates": 44
+          }
+        },
+        "committed": {
+          "seconds": 0.017112083,
+          "setup_seconds": 0.006211542,
+          "execution_seconds": 0.007706666,
+          "packing_seconds": 0.002178291,
+          "matches": 1377,
+          "peak_rss_bytes": 10600448,
+          "process_wall_seconds": 0.02,
+          "final": {
+            "eclasses": 748,
+            "enodes": 2167,
+            "rss_bytes": 10485760
+          },
+          "stored_state_rows": 3949,
+          "completed_prefixes": 2011,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "unresolved_completion_plans": 0,
+          "shared_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 1520,
+            "binding_payload_bytes": 11192,
+            "template_header_bytes": 9184,
+            "template_payload_bytes": 7400,
+            "unique_binding_matrices": 38,
+            "unique_templates": 38
+          }
+        },
+        "staged": {
+          "seconds": 0.017122209,
+          "setup_seconds": 0.006259584,
+          "execution_seconds": 0.007611457,
+          "packing_seconds": 0.002297042,
+          "matches": 1264,
+          "peak_rss_bytes": 10534912,
+          "process_wall_seconds": 0.02,
+          "final": {
+            "eclasses": 748,
+            "enodes": 2167,
+            "rss_bytes": 10371072
+          },
+          "stored_state_rows": 3949,
+          "completed_prefixes": 2011,
+          "promised_prefixes": 113,
+          "queued_prefixes": 0,
+          "unresolved_completion_plans": 0,
+          "shared_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 1520,
+            "binding_payload_bytes": 11192,
+            "template_header_bytes": 9184,
+            "template_payload_bytes": 7400,
+            "unique_binding_matrices": 38,
+            "unique_templates": 38
+          }
+        },
+        "expanded_machine": {
+          "seconds": 0.016087875,
+          "setup_seconds": 0.006415333,
+          "execution_seconds": 0.006555709,
+          "packing_seconds": 0.001960541,
+          "matches": 726,
+          "peak_rss_bytes": 10731520,
+          "process_wall_seconds": 0.02,
+          "final": {
+            "eclasses": 748,
+            "enodes": 2167,
+            "rss_bytes": 11419648
+          },
+          "stored_state_rows": 3949,
+          "completed_prefixes": 2007,
+          "promised_prefixes": 0,
+          "queued_prefixes": 651,
+          "unresolved_completion_plans": 0,
+          "shared_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 1320,
+            "binding_payload_bytes": 11072,
+            "template_header_bytes": 7968,
+            "template_payload_bytes": 6392,
+            "unique_binding_matrices": 33,
+            "unique_templates": 33
+          }
+        },
+        "machine": {
+          "seconds": 0.014665,
+          "setup_seconds": 0.005994666,
+          "execution_seconds": 0.0057357499999999995,
+          "packing_seconds": 0.001990418,
+          "matches": 726,
+          "peak_rss_bytes": 9928704,
+          "process_wall_seconds": 0.02,
+          "final": {
+            "eclasses": 748,
+            "enodes": 2167,
+            "rss_bytes": 9797632
+          },
+          "stored_state_rows": 1806,
+          "completed_prefixes": 2009,
+          "promised_prefixes": 0,
+          "queued_prefixes": 651,
+          "unresolved_completion_plans": 0,
+          "shared_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 1320,
+            "binding_payload_bytes": 11044,
+            "template_header_bytes": 7968,
+            "template_payload_bytes": 6392,
+            "unique_binding_matrices": 33,
+            "unique_templates": 33
+          }
+        },
+        "native": {
+          "seconds": 0.004782333,
+          "setup_seconds": 0.002124792,
+          "execution_seconds": 0.0019033740000000002,
+          "packing_seconds": 2.7490000000000007e-06,
+          "matches": 1531,
+          "peak_rss_bytes": 6406144,
+          "process_wall_seconds": 0.0,
+          "final": {
+            "eclasses": 666,
+            "enodes": 1576,
+            "rss_bytes": 6258688
+          },
+          "stored_state_rows": 0,
+          "completed_prefixes": 0,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "unresolved_completion_plans": 0,
+          "shared_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 0,
+            "binding_payload_bytes": 0,
+            "template_header_bytes": 0,
+            "template_payload_bytes": 0,
+            "unique_binding_matrices": 0,
+            "unique_templates": 0
+          }
+        }
+      }
+    },
+    {
+      "rounds": 8,
+      "checks": {
+        "frozen": {
+          "exact_equal": true,
+          "enodes": 15493,
+          "eclasses": 5150
+        },
+        "batch": {
+          "exact_equal": true,
+          "enodes": 15493,
+          "eclasses": 5150
+        },
+        "committed": {
+          "exact_equal": true,
+          "enodes": 15493,
+          "eclasses": 5150
+        },
+        "staged": {
+          "exact_equal": true,
+          "enodes": 15493,
+          "eclasses": 5150
+        },
+        "expanded_machine": {
+          "exact_equal": true,
+          "enodes": 15493,
+          "eclasses": 5150
+        },
+        "machine": {
+          "exact_equal": true,
+          "enodes": 15493,
+          "eclasses": 5150
+        }
+      },
+      "medians": {
+        "frozen": {
+          "seconds": 0.108208042,
+          "setup_seconds": 0.00397225,
+          "execution_seconds": 0.030480833,
+          "packing_seconds": 0.072519917,
+          "matches": 13213,
+          "peak_rss_bytes": 17793024,
+          "process_wall_seconds": 0.11,
+          "final": {
+            "eclasses": 5150,
+            "enodes": 15493,
+            "rss_bytes": 16482304
+          },
+          "stored_state_rows": 0,
+          "completed_prefixes": 0,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "unresolved_completion_plans": 0,
+          "shared_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 2560,
+            "binding_payload_bytes": 76816,
+            "template_header_bytes": 14848,
+            "template_payload_bytes": 11848,
+            "unique_binding_matrices": 64,
+            "unique_templates": 64
+          }
+        },
+        "batch": {
+          "seconds": 0.050124917,
+          "setup_seconds": 0.004084792,
+          "execution_seconds": 0.031022041,
+          "packing_seconds": 0.014014499,
+          "matches": 13213,
+          "peak_rss_bytes": 16957440,
+          "process_wall_seconds": 0.05,
+          "final": {
+            "eclasses": 5150,
+            "enodes": 15493,
+            "rss_bytes": 16826368
+          },
+          "stored_state_rows": 0,
+          "completed_prefixes": 0,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "unresolved_completion_plans": 0,
+          "shared_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 2560,
+            "binding_payload_bytes": 76816,
+            "template_header_bytes": 14848,
+            "template_payload_bytes": 11848,
+            "unique_binding_matrices": 64,
+            "unique_templates": 64
+          }
+        },
+        "committed": {
+          "seconds": 0.052227875,
+          "setup_seconds": 0.006404417,
+          "execution_seconds": 0.033394543,
+          "packing_seconds": 0.011341375,
+          "matches": 7279,
+          "peak_rss_bytes": 22790144,
+          "process_wall_seconds": 0.05,
+          "final": {
+            "eclasses": 5150,
+            "enodes": 15493,
+            "rss_bytes": 22544384
+          },
+          "stored_state_rows": 24530,
+          "completed_prefixes": 5950,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "unresolved_completion_plans": 0,
+          "shared_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 2240,
+            "binding_payload_bytes": 76128,
+            "template_header_bytes": 13696,
+            "template_payload_bytes": 11080,
+            "unique_binding_matrices": 56,
+            "unique_templates": 56
+          }
+        },
+        "staged": {
+          "seconds": 0.051941875,
+          "setup_seconds": 0.006221916,
+          "execution_seconds": 0.033328543,
+          "packing_seconds": 0.011303206,
+          "matches": 6921,
+          "peak_rss_bytes": 21331968,
+          "process_wall_seconds": 0.05,
+          "final": {
+            "eclasses": 5150,
+            "enodes": 15493,
+            "rss_bytes": 21200896
+          },
+          "stored_state_rows": 24530,
+          "completed_prefixes": 5950,
+          "promised_prefixes": 358,
+          "queued_prefixes": 0,
+          "unresolved_completion_plans": 0,
+          "shared_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 2240,
+            "binding_payload_bytes": 76184,
+            "template_header_bytes": 13696,
+            "template_payload_bytes": 11080,
+            "unique_binding_matrices": 56,
+            "unique_templates": 56
+          }
+        },
+        "expanded_machine": {
+          "seconds": 0.045253625,
+          "setup_seconds": 0.006361542,
+          "execution_seconds": 0.027856082,
+          "packing_seconds": 0.009954834000000001,
+          "matches": 4176,
+          "peak_rss_bytes": 22642688,
+          "process_wall_seconds": 0.05,
+          "final": {
+            "eclasses": 5150,
+            "enodes": 15493,
+            "rss_bytes": 22495232
+          },
+          "stored_state_rows": 24530,
+          "completed_prefixes": 5946,
+          "promised_prefixes": 79,
+          "queued_prefixes": 3024,
+          "unresolved_completion_plans": 0,
+          "shared_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 2040,
+            "binding_payload_bytes": 76120,
+            "template_header_bytes": 12480,
+            "template_payload_bytes": 10072,
+            "unique_binding_matrices": 51,
+            "unique_templates": 51
+          }
+        },
+        "machine": {
+          "seconds": 0.040451541,
+          "setup_seconds": 0.006007792,
+          "execution_seconds": 0.023227584,
+          "packing_seconds": 0.009969583,
+          "matches": 4173,
+          "peak_rss_bytes": 18219008,
+          "process_wall_seconds": 0.04,
+          "final": {
+            "eclasses": 5150,
+            "enodes": 15493,
+            "rss_bytes": 17711104
+          },
+          "stored_state_rows": 11701,
+          "completed_prefixes": 5948,
+          "promised_prefixes": 120,
+          "queued_prefixes": 2986,
+          "unresolved_completion_plans": 0,
+          "shared_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 2040,
+            "binding_payload_bytes": 76036,
+            "template_header_bytes": 12480,
+            "template_payload_bytes": 10072,
+            "unique_binding_matrices": 51,
+            "unique_templates": 51
+          }
+        },
+        "native": {
+          "seconds": 0.009747959,
+          "setup_seconds": 0.002078875,
+          "execution_seconds": 0.006855333,
+          "packing_seconds": 2.7929999999999998e-06,
+          "matches": 8546,
+          "peak_rss_bytes": 8077312,
+          "process_wall_seconds": 0.01,
+          "final": {
+            "eclasses": 3576,
+            "enodes": 8113,
+            "rss_bytes": 8011776
+          },
+          "stored_state_rows": 0,
+          "completed_prefixes": 0,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "unresolved_completion_plans": 0,
+          "shared_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 0,
+            "binding_payload_bytes": 0,
+            "template_header_bytes": 0,
+            "template_payload_bytes": 0,
+            "unique_binding_matrices": 0,
+            "unique_templates": 0
+          }
+        }
+      }
+    },
+    {
+      "rounds": 10,
+      "checks": {
+        "frozen": {
+          "exact_equal": true,
+          "enodes": 853396,
+          "eclasses": 198463
+        },
+        "batch": {
+          "exact_equal": true,
+          "enodes": 853396,
+          "eclasses": 198463
+        },
+        "committed": {
+          "exact_equal": true,
+          "enodes": 853396,
+          "eclasses": 198463
+        },
+        "staged": {
+          "exact_equal": true,
+          "enodes": 853396,
+          "eclasses": 198463
+        },
+        "expanded_machine": {
+          "exact_equal": true,
+          "enodes": 853396,
+          "eclasses": 198463
+        },
+        "machine": {
+          "exact_equal": true,
+          "enodes": 853396,
+          "eclasses": 198463
+        }
+      },
+      "medians": {
+        "frozen": {
+          "seconds": 6.235449417,
+          "setup_seconds": 0.004022417,
+          "execution_seconds": 1.410155042,
+          "packing_seconds": 4.820646708,
+          "matches": 563474,
+          "peak_rss_bytes": 706412544,
+          "process_wall_seconds": 6.33,
+          "final": {
+            "eclasses": 198463,
+            "enodes": 853396,
+            "rss_bytes": 655310848
+          },
+          "stored_state_rows": 0,
+          "completed_prefixes": 0,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "unresolved_completion_plans": 0,
+          "shared_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 3360,
+            "binding_payload_bytes": 4683624,
+            "template_header_bytes": 19552,
+            "template_payload_bytes": 15624,
+            "unique_binding_matrices": 84,
+            "unique_templates": 84
+          }
+        },
+        "batch": {
+          "seconds": 2.306973875,
+          "setup_seconds": 0.004007917,
+          "execution_seconds": 1.4180142070000001,
+          "packing_seconds": 0.883749208,
+          "matches": 563474,
+          "peak_rss_bytes": 675790848,
+          "process_wall_seconds": 2.4,
+          "final": {
+            "eclasses": 198463,
+            "enodes": 853396,
+            "rss_bytes": 627802112
+          },
+          "stored_state_rows": 0,
+          "completed_prefixes": 0,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "unresolved_completion_plans": 0,
+          "shared_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 3360,
+            "binding_payload_bytes": 4683624,
+            "template_header_bytes": 19552,
+            "template_payload_bytes": 15624,
+            "unique_binding_matrices": 84,
+            "unique_templates": 84
+          }
+        },
+        "committed": {
+          "seconds": 3.083908333,
+          "setup_seconds": 0.006653583,
+          "execution_seconds": 2.2308274999999997,
+          "packing_seconds": 0.845748913,
+          "matches": 444584,
+          "peak_rss_bytes": 982892544,
+          "process_wall_seconds": 3.18,
+          "final": {
+            "eclasses": 198463,
+            "enodes": 853396,
+            "rss_bytes": 923041792
+          },
+          "stored_state_rows": 1705267,
+          "completed_prefixes": 118750,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "unresolved_completion_plans": 0,
+          "shared_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 2960,
+            "binding_payload_bytes": 4660908,
+            "template_header_bytes": 18208,
+            "template_payload_bytes": 14760,
+            "unique_binding_matrices": 74,
+            "unique_templates": 74
+          }
+        },
+        "staged": {
+          "seconds": 3.206429917,
+          "setup_seconds": 0.006517583,
+          "execution_seconds": 2.36981021,
+          "packing_seconds": 0.845316374,
+          "matches": 393638,
+          "peak_rss_bytes": 1191608320,
+          "process_wall_seconds": 3.32,
+          "final": {
+            "eclasses": 198463,
+            "enodes": 853396,
+            "rss_bytes": 1141538816
+          },
+          "stored_state_rows": 1705267,
+          "completed_prefixes": 118799,
+          "promised_prefixes": 50943,
+          "queued_prefixes": 0,
+          "unresolved_completion_plans": 0,
+          "shared_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 2960,
+            "binding_payload_bytes": 4658472,
+            "template_header_bytes": 18208,
+            "template_payload_bytes": 14760,
+            "unique_binding_matrices": 74,
+            "unique_templates": 74
+          }
+        },
+        "expanded_machine": {
+          "seconds": 2.738649541,
+          "setup_seconds": 0.006392916,
+          "execution_seconds": 1.991668707,
+          "packing_seconds": 0.743087169,
+          "matches": 222756,
+          "peak_rss_bytes": 1031340032,
+          "process_wall_seconds": 2.85,
+          "final": {
+            "eclasses": 198463,
+            "enodes": 853396,
+            "rss_bytes": 958971904
+          },
+          "stored_state_rows": 1705267,
+          "completed_prefixes": 118681,
+          "promised_prefixes": 38605,
+          "queued_prefixes": 183221,
+          "unresolved_completion_plans": 0,
+          "shared_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 2760,
+            "binding_payload_bytes": 4663896,
+            "template_header_bytes": 16992,
+            "template_payload_bytes": 13752,
+            "unique_binding_matrices": 69,
+            "unique_templates": 69
+          }
+        },
+        "machine": {
+          "seconds": 2.085556625,
+          "setup_seconds": 0.006607292,
+          "execution_seconds": 1.3125382490000002,
+          "packing_seconds": 0.753427586,
+          "matches": 222763,
+          "peak_rss_bytes": 726269952,
+          "process_wall_seconds": 2.19,
+          "final": {
+            "eclasses": 198463,
+            "enodes": 853396,
+            "rss_bytes": 662192128
+          },
+          "stored_state_rows": 719435,
+          "completed_prefixes": 118824,
+          "promised_prefixes": 40089,
+          "queued_prefixes": 181732,
+          "unresolved_completion_plans": 0,
+          "shared_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 2760,
+            "binding_payload_bytes": 4662048,
+            "template_header_bytes": 16992,
+            "template_payload_bytes": 13752,
+            "unique_binding_matrices": 69,
+            "unique_templates": 69
+          }
+        },
+        "native": {
+          "seconds": 0.074997542,
+          "setup_seconds": 0.002103917,
+          "execution_seconds": 0.071948877,
+          "packing_seconds": 3.832000000000001e-06,
+          "matches": 121118,
+          "peak_rss_bytes": 38518784,
+          "process_wall_seconds": 0.08,
+          "final": {
+            "eclasses": 58464,
+            "enodes": 136446,
+            "rss_bytes": 38420480
+          },
+          "stored_state_rows": 0,
+          "completed_prefixes": 0,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "unresolved_completion_plans": 0,
+          "shared_storage": {
+            "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+            "binding_header_bytes": 0,
+            "binding_payload_bytes": 0,
+            "template_header_bytes": 0,
+            "template_payload_bytes": 0,
+            "unique_binding_matrices": 0,
+            "unique_templates": 0
+          }
+        }
+      }
+    }
+  ],
+  "parallel_verification": {
+    "exact_equal": true,
+    "enodes": 15493,
+    "eclasses": 5150,
+    "threads": 4
+  },
+  "tests": {
+    "passed": 56,
+    "failed": 0,
+    "log": "/tmp/cell-machine-final-tests.log"
+  }
+}

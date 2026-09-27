@@ -288,6 +288,15 @@ impl Counters {
 /// A database also owns the memory pools used by its tables.
 #[derive(Default)]
 pub struct Database {
+    pub(crate) queued_cells: std::sync::OnceLock<crate::common::DashMap<(TableId,smallvec::SmallVec<[Value;3]>),()>>,
+    pub(crate) queued_prefixes: std::sync::atomic::AtomicUsize,
+    pub(crate) cell_symmetries: std::collections::BTreeMap<String,Vec<Vec<usize>>>,
+    pub(crate) promised_cells: std::sync::OnceLock<crate::common::DashMap<(TableId,smallvec::SmallVec<[Value;3]>),()>>,
+    pub(crate) promise_tables: std::collections::BTreeSet<TableId>,
+    pub(crate) promised_prefixes: std::sync::atomic::AtomicUsize,
+    pub(crate) completed_cells: std::collections::BTreeMap<String,(TableId,Vec<String>)>,
+    pub(crate) completed_prefixes: std::sync::atomic::AtomicUsize,
+    pub(crate) unresolved_completions: std::sync::atomic::AtomicUsize,
     pub(crate) key_coverage: std::collections::BTreeMap<String, (TableId,TableId)>,
     pub(crate) excluded_roots: std::collections::BTreeMap<String, (String, std::collections::BTreeSet<Value>)>,
     #[cfg(feature = "table-read-profile")]
@@ -316,6 +325,24 @@ pub struct Database {
 }
 
 impl Database {
+    pub fn set_completed_cells(&mut self, entries:Vec<(String,TableId,Vec<String>)>, staged:bool) {
+        if let Some(m)=self.promised_cells.get(){m.clear();}
+        if let Some(m)=self.queued_cells.get(){m.clear();}
+        if staged && !entries.is_empty() {
+            self.promised_cells.get_or_init(Default::default);
+            self.queued_cells.get_or_init(Default::default);
+        }
+        self.cell_symmetries.clear();
+        self.promise_tables=if staged {entries.iter().map(|(_,t,_)|*t).collect()}else{Default::default()};
+        self.completed_cells=entries.into_iter().map(|(r,t,n)|(r,(t,n))).collect();
+    }
+    pub fn set_cell_symmetries(&mut self, p:std::collections::BTreeMap<String,Vec<Vec<usize>>>) {self.cell_symmetries=p;}
+    pub fn queued_cell_prefixes(&self)->usize {self.queued_prefixes.load(std::sync::atomic::Ordering::Relaxed)}
+    pub fn promised_cell_prefixes(&self)->usize {self.promised_prefixes.load(std::sync::atomic::Ordering::Relaxed)}
+    pub fn completed_cell_counts(&self)->(usize,usize) {
+        (self.completed_prefixes.load(std::sync::atomic::Ordering::Relaxed),self.unresolved_completions.load(std::sync::atomic::Ordering::Relaxed))
+    }
+
     /// Trusted positive-view proof: covered anchor keys already have their full
     /// functional-pattern result in a persistent summary relation.
     pub fn set_key_coverage(&mut self, entries: Vec<(String,TableId,TableId)>) {
@@ -383,6 +410,15 @@ impl Clone for Database {
         Self {
             excluded_roots: Default::default(),
             key_coverage: Default::default(),
+            queued_cells: Default::default(),
+            queued_prefixes: Default::default(),
+            cell_symmetries: Default::default(),
+            promised_cells: Default::default(),
+            promise_tables: Default::default(),
+            promised_prefixes: Default::default(),
+            completed_cells: Default::default(),
+            completed_prefixes: Default::default(),
+            unresolved_completions: Default::default(),
             #[cfg(feature = "table-read-profile")]
             read_profiling: self.read_profiling,
             tables: self.tables.clone(),
@@ -555,6 +591,8 @@ impl Database {
 
     pub(crate) fn read_only_view(&self) -> DbView<'_> {
         DbView {
+            promised_cells: self.promised_cells.get(),
+            promise_tables: &self.promise_tables,
             table_info: &self.tables,
             counters: &self.counters,
             external_funcs: &self.external_functions,

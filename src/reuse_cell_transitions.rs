@@ -27,6 +27,7 @@ pub(super) struct Compiled {
     pub residual: String,
     pub definitions: String,
     pub projections: String,
+    pub rows: Vec<(Vec<usize>,Vec<usize>)>,
     pub proof: Value,
 }
 fn at<'a>(mut e: &'a Expr, path: &[usize]) -> Result<&'a Expr> {
@@ -38,7 +39,7 @@ fn at<'a>(mut e: &'a Expr, path: &[usize]) -> Result<&'a Expr> {
     }
     Ok(e)
 }
-fn vars(e: &Expr) -> BTreeSet<String> {
+pub(super) fn vars(e: &Expr) -> BTreeSet<String> {
     match e {
         Expr::Var(_, n) => BTreeSet::from([n.clone()]),
         Expr::Lit(..) => BTreeSet::new(),
@@ -76,9 +77,9 @@ fn replace(e: &Expr, path: &[usize], hole: &str) -> Result<String> {
     }
     Ok(format!("({op} {})", parts.join(" ")))
 }
-type Binding = BTreeMap<String, usize>;
-type FactIndex = BTreeMap<(String, Vec<usize>), usize>;
-fn evaluate(e: &Expr, vars: &Binding, literals: &Binding, facts: &FactIndex) -> Option<usize> {
+pub(super) type Binding = BTreeMap<String, usize>;
+pub(super) type FactIndex = BTreeMap<(String, Vec<usize>), usize>;
+pub(super) fn evaluate(e: &Expr, vars: &Binding, literals: &Binding, facts: &FactIndex) -> Option<usize> {
     match e {
         Expr::Var(_, name) => vars.get(name).copied(),
         Expr::Lit(_, v) => literals.get(&v.to_string()).copied(),
@@ -232,6 +233,7 @@ pub(super) fn compile(
             residual,
             definitions,
             projections,
+            rows: rows.into_iter().collect(),
             proof,
         });
     }

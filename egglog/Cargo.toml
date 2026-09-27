@@ -133,6 +133,7 @@ graphviz = ["egraph-serialize/graphviz"]
 table-read-profile = ["egglog-core-relations/table-read-profile", "egglog-bridge/table-read-profile"]
 
 [dependencies]
+smallvec.workspace = true
 clap = { workspace = true, features = ["derive"], optional = true }
 egraph-serialize = { workspace = true}
 env_logger = { workspace = true, optional = true }

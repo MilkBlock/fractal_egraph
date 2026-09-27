@@ -408,6 +408,13 @@ impl EGraph {
     pub fn virtualize_function_rows(&mut self,func:FunctionId,rows:&[core_relations::VirtualRowRequest])->std::result::Result<(),String> {
         self.db.get_table_mut(self.funcs[func].table).virtualize_existing_rows(rows)
     }
+    pub fn set_completed_cells(&mut self, entries:Vec<(String,FunctionId,Vec<String>)>, staged:bool) {
+        self.db.set_completed_cells(entries.into_iter().map(|(r,f,n)|(r,self.funcs[f].table,n)).collect(),staged);
+    }
+    pub fn set_cell_symmetries(&mut self,p:std::collections::BTreeMap<String,Vec<Vec<usize>>>) {self.db.set_cell_symmetries(p);}
+    pub fn queued_cell_prefixes(&self)->usize {self.db.queued_cell_prefixes()}
+    pub fn promised_cell_prefixes(&self)->usize {self.db.promised_cell_prefixes()}
+    pub fn completed_cell_counts(&self)->(usize,usize) {self.db.completed_cell_counts()}
     pub fn set_key_coverage(&mut self, entries:Vec<(String,FunctionId,FunctionId)>) {
         self.db.set_key_coverage(entries.into_iter().map(|(r,a,c)|(r,self.funcs[a].table,self.funcs[c].table)).collect());
     }

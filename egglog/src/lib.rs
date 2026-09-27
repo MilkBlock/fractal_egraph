@@ -20,7 +20,7 @@ mod exec_state;
 pub mod extract;
 mod ground_import;
 mod virtual_facts;
-pub use virtual_facts::{VirtualFactRow,VirtualFactTemplate,VirtualizeReport};
+pub use virtual_facts::{VirtualFactRow,VirtualFactTemplate,VirtualizeReport,VirtualizeBatchReport};
 pub use core_relations::NativeVirtualStats;
 pub mod prelude;
 mod proofs;
@@ -966,6 +966,43 @@ impl EGraph {
 
         Ok(report)
     }
+
+    /// Trusted positive-cell completion certificates. Each table key is the
+    /// complete original rule parameter tuple; its presence proves all effects
+    /// already hold. This does not suppress other parameter bindings.
+    pub fn step_rules_with_completed_cells(&mut self,ruleset:&str,entries:Vec<(String,String,Vec<String>)>)->Result<RunReport,Error> {
+        self.step_cells_impl(ruleset,entries,false,Default::default())
+    }
+    /// Positive total recipes only: markers must follow all semantic actions.
+    /// Uses fully staged completion promises within a step, not committed facts.
+    /// On execution failure the caller must discard the failed run.
+    pub fn step_rules_with_cell_promises(&mut self,ruleset:&str,entries:Vec<(String,String,Vec<String>)>)->Result<RunReport,Error> {
+        self.step_cells_impl(ruleset,entries,true,Default::default())
+    }
+    /// The supplied permutations and their inverses must be proved to preserve
+    /// the entire positive cell recipe. No empirical similarity is sufficient.
+    pub fn step_rules_with_cell_machine(&mut self,ruleset:&str,entries:Vec<(String,String,Vec<String>)>,symmetries:std::collections::BTreeMap<String,Vec<Vec<usize>>>)->Result<RunReport,Error> {
+        for (r,_,params) in &entries {
+            if let Some(perms)=symmetries.get(r) {for perm in perms {
+                if perm.len()!=params.len() || perm.iter().copied().collect::<std::collections::BTreeSet<_>>().into_iter().ne(0..params.len()) {
+                    return Err(Error::BackendError("invalid cell parameter permutation".into()));
+                }
+            }}
+        }
+        self.step_cells_impl(ruleset,entries,true,symmetries)
+    }
+    fn step_cells_impl(&mut self,ruleset:&str,entries:Vec<(String,String,Vec<String>)>,staged:bool,symmetries:std::collections::BTreeMap<String,Vec<Vec<usize>>>)->Result<RunReport,Error> {
+        let entries=entries.into_iter().map(|(r,f,n)| {
+            Ok((r,self.functions.get(&f).ok_or_else(||Error::BackendError("unknown cell state".into()))?.backend_id,n))
+        }).collect::<Result<Vec<_>,Error>>()?;
+        self.backend.set_completed_cells(entries,staged);
+        self.backend.set_cell_symmetries(symmetries);
+        let result=self.step_rules(ruleset);
+        self.backend.set_completed_cells(Vec::new(),false);result
+    }
+    pub fn queued_cell_prefixes(&self)->usize {self.backend.queued_cell_prefixes()}
+    pub fn promised_cell_prefixes(&self)->usize {self.backend.promised_cell_prefixes()}
+    pub fn completed_cell_counts(&self)->(usize,usize) {self.backend.completed_cell_counts()}
 
     /// A trusted optimizer hook for complete positive, functional-pattern views.
     /// Entries are (builder rule, unique anchor constructor, coverage relation).

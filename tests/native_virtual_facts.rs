@@ -481,3 +481,23 @@ fn external_overlay_joins_virtual_body_and_writes_new_native_facts() {
     assert_eq!(eg.get_size("Out"), 1);
     for (_, s) in eg.virtual_fact_stats() { assert_eq!(s.virtual_rows, 2); }
 }
+
+#[test]
+fn cell_wave_validates_residuals_atomically_and_reuses_existing_owners() {
+    let mut eg=EGraph::default();eg.parse_and_run_program(None,source()).unwrap();
+    let a=eg.virtual_fact_template(vec![VirtualFactRow{function:"A".into(),columns:vec![0,1]}]).unwrap();
+    let b=eg.virtual_fact_template(vec![VirtualFactRow{function:"B".into(),columns:vec![0,1]}]).unwrap();
+    let x=value(&mut eg,"(V 1)");let av=value(&mut eg,"(A (V 1))");let bv=value(&mut eg,"(B (A (V 1)))");
+    let ab=vec![vec![x,av]];let bad=vec![vec![av,x]];
+    assert!(eg.virtualize_existing_facts_batch(&[(&a,&ab),(&b,&bad)]).is_err());
+    assert!(eg.virtual_fact_stats().is_empty());
+    let bb=vec![vec![av,bv]];
+    let result=eg.virtualize_existing_facts_batch(&[(&a,&ab),(&b,&bb),(&a,&ab)]).unwrap();
+    assert_eq!(result.requested_rows,3);assert_eq!(result.new_virtual_rows,2);assert_eq!(result.affected_tables,2);
+    let result=eg.virtualize_unshared_facts_batch(&[(&a,&ab),(&b,&bb)]).unwrap();
+    assert_eq!(result.shared_rows_reused,2);assert_eq!(result.new_virtual_rows,0);assert_eq!(result.affected_tables,0);
+    // Strict API still rejects wrong payloads, even for shared rows.
+    let bad_shared=vec![vec![x,bv]];
+    assert!(eg.virtualize_existing_facts_batch(&[(&a,&bad_shared)]).is_err());
+    eg.parse_and_run_program(None,"(union (V 1) (V 2)) (run 1) (check (= (B (A (V 1))) (B (A (V 2)))))").unwrap();
+}

@@ -324,6 +324,8 @@ impl PredictedVals {
 
 #[derive(Copy, Clone)]
 pub(crate) struct DbView<'a> {
+    pub(crate) promised_cells: Option<&'a crate::common::DashMap<(TableId,SmallVec<[Value;3]>),()>>,
+    pub(crate) promise_tables: &'a std::collections::BTreeSet<TableId>,
     pub(crate) table_info: &'a DenseIdMap<TableId, TableInfo>,
     pub(crate) counters: &'a Counters,
     pub(crate) external_funcs: &'a ExternalFunctions,
@@ -463,6 +465,10 @@ impl<'a> ExecutionState<'a> {
         self.buffers
             .lazy_init(table, || self.db.table_info[table].table.new_buffer());
         self.buffers.stage_insert(table, row);
+        if self.db.promise_tables.contains(&table) {
+            let keys=self.db.table_info[table].spec.n_keys;
+            self.db.promised_cells.expect("configured completion promises").insert((table,SmallVec::from_slice(&row[..keys])),());
+        }
         self.changed = true;
     }
 
@@ -852,6 +858,7 @@ impl ExecutionState<'_> {
                         let ctrs = &self.db.counters;
                         let bindings = &bindings;
                         let pool = pool.clone();
+                        let promises=self.db.promised_cells.filter(|_|self.db.promise_tables.contains(table_id));
                         let row =
                             self.predicted
                                 .data
@@ -876,6 +883,12 @@ impl ExecutionState<'_> {
                                     }
                                     // Insert it into the table.
                                     buffers.stage_insert(*table_id, &row);
+                                    // Only trusted generated completion markers use this.
+                                    // Their semantic recipe has finished staging before
+                                    // the marker. The promise lasts for this rule step.
+                                    if let Some(promises)=promises {
+                                        promises.insert((*table_id,SmallVec::from_slice(key.as_slice())),());
+                                    }
                                     row
                                 });
                         row[dst_col.index()]

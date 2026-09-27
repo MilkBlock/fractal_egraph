@@ -31,6 +31,8 @@ pub struct RipSatCell {
 pub type Macro = RipSatCell;
 #[path = "reuse_cell_transitions.rs"]
 pub mod transitions;
+#[path = "reuse_cell_machine.rs"]
+mod cell_machine;
 
 #[derive(Default, Serialize, Deserialize)]
 pub struct Bake {
@@ -239,7 +241,7 @@ fn learn(environment: &[String], rule: &Rule, id: usize) -> Result<Macro> {
         template,
     })
 }
-fn rule_program(id:usize,r:&Rule,m:Option<&RipSatCell>,plans:&[transitions::Compiled])->(String,String) {
+fn rule_program(id:usize,r:&Rule,m:Option<&RipSatCell>,plans:&[transitions::Compiled],machine:Option<&cell_machine::Machine>)->(String,String) {
     let set=format!("adaptive_{}_{}",if m.is_some(){"baked"}else{"source"},id);
     let mut declarations=String::new();
     let mut actions=m.map(|m|m.actions.clone()).unwrap_or_else(||format!("(union adaptive_root {})",r.rhs));
@@ -249,12 +251,13 @@ fn rule_program(id:usize,r:&Rule,m:Option<&RipSatCell>,plans:&[transitions::Comp
         actions+=&format!("\n({relation} {})",m.slots.iter().map(|s|s.0.as_str()).collect::<Vec<_>>().join(" "));
     }
     for p in plans.iter().filter(|p|p.spec.source_rule==id) {actions+=&format!("\n{}",p.projections);}
+    if let Some(machine)=machine {if let Some(registrations)=machine.actions.get(&id) {actions+=&format!("\n{registrations}");}}
     let lhs=plans.iter().find(|p|p.spec.consumer_rule==id).map(|p|p.residual.clone()).unwrap_or_else(||format!("(= adaptive_root {})",r.lhs));
     let program=format!("{declarations}(ruleset {set}) (rule ({lhs}) ({actions}) :ruleset {set} :name \"{set}\")\n");
     (set,program)
 }
-fn install(eg:&mut EGraph,id:usize,r:&Rule,m:Option<&RipSatCell>,plans:&[transitions::Compiled])->Result<String> {
-    let (set,program)=rule_program(id,r,m,plans);eg.parse_and_run_program(None,&program)?;Ok(set)
+fn install(eg:&mut EGraph,id:usize,r:&Rule,m:Option<&RipSatCell>,plans:&[transitions::Compiled],machine:Option<&cell_machine::Machine>)->Result<String> {
+    let (set,program)=rule_program(id,r,m,plans,machine);eg.parse_and_run_program(None,&program)?;Ok(set)
 }
 // Instance rows are emitted by macro actions. No saturated-body query/rematching:
 // each row is the binding matrix required by native storage validation.
@@ -264,6 +267,9 @@ fn pack_instances(
     min_reuse: usize,
     audit: &mut Option<super::enclosure_audit::Audit>,
 ) -> Result<Value> {
+    if !std::env::var("EGG_LAYOUT_BATCH_CELLS").is_ok_and(|v|v=="0") {
+        return pack_cell_wave(eg,bake,min_reuse,audit);
+    }
     let mut instances = 0;
     let mut templates = vec![];
     for (id, m) in &bake.macros {
@@ -306,6 +312,30 @@ fn pack_instances(
         json!({"min_reuse":min_reuse,"templates":templates,"processed_instance_packets":instances,"virtual_rows":eg.virtual_fact_stats().iter().map(|(_,s)|s.virtual_rows).sum::<usize>()}),
     )
 }
+fn pack_cell_wave(eg:&mut EGraph,bake:&Bake,min_reuse:usize,audit:&mut Option<super::enclosure_audit::Audit>)->Result<Value> {
+    let t=Instant::now();
+    let names=bake.macros.keys().map(|id|format!("adaptive_instance_{id}")).filter(|n|eg.get_function(n).is_some()).collect::<Vec<_>>();
+    let mut notifications=eg.drain_notification_relations(&names)?;
+    let mut batches=vec![];let mut templates=vec![];let mut instances=0;
+    for (id,m) in &bake.macros {
+        let name=format!("adaptive_instance_{id}");if eg.get_function(&name).is_none(){continue;}
+        let bindings=notifications.remove(&name).unwrap_or_default();
+        if let Some(a)=audit.as_mut(){a.observe(eg,m,&bindings)?;}
+        instances+=bindings.len();
+        let admitted=bindings.len()>=min_reuse;
+        templates.push(json!({"rule":id,"instances":bindings.len(),"packed":admitted}));
+        if admitted {
+            let template=eg.virtual_fact_template(m.template.iter().map(|(f,c)|egglog::VirtualFactRow{function:f.clone(),columns:c.clone()}).collect())?;
+            batches.push((template,bindings));
+        }
+    }
+    let drain_seconds=t.elapsed().as_secs_f64();
+    let refs=batches.iter().map(|(t,b)|(t,b.as_slice())).collect::<Vec<_>>();
+    let r=eg.virtualize_unshared_facts_batch(&refs)?;
+    let st=Instant::now();let virtual_rows=eg.virtual_fact_stats().iter().map(|(_,s)|s.virtual_rows).sum::<usize>();
+    Ok(json!({"drain_seconds":drain_seconds,"validation_seconds":r.validation_seconds,"encoding_seconds":r.encoding_seconds,"statistics_seconds":st.elapsed().as_secs_f64(),"batched":true,"templates":templates,"processed_instance_packets":instances,"shared_rows_reused":r.shared_rows_reused,"requested_rows":r.requested_rows,"distinct_native_rows":r.distinct_native_rows,"new_virtual_rows_net":r.new_virtual_rows,"encoded_tables":r.affected_tables,"virtual_rows":virtual_rows}))
+}
+
 fn save_bake(out: &Path, name: &str, bake: &Bake, rules: &[Rule]) -> Result<usize> {
     let bytes = serde_json::to_vec_pretty(bake)?;
     std::fs::write(out.join(format!("{name}.json")), &bytes)?;
@@ -379,6 +409,7 @@ pub fn run(source: &str, input: Option<&Path>, out: &Path, mode: &str) -> Result
         std::env::var("EGG_LAYOUT_PRUNE_INTERNAL_JOIN").is_ok_and(|s| s == "1"),
         std::env::var("EGG_LAYOUT_CELL_EVOLUTION").is_ok_and(|s| s == "1"),
         transition_specs.as_deref(),
+        std::env::var("EGG_LAYOUT_CELL_MACHINE").is_ok_and(|v|v=="1"),
     )
 }
 /// Explicit policy for reproducible ablations; 1 restores unrestricted admission.
@@ -389,7 +420,7 @@ pub fn run_with_min_reuse(
     mode: &str,
     min_reuse: usize,
 ) -> Result<Value> {
-    run_impl(source, input, out, mode, min_reuse, false, false, false, false, None)
+    run_impl(source, input, out, mode, min_reuse, false, false, false, false, None, false)
 }
 pub fn run_audit(
     source: &str,
@@ -398,7 +429,7 @@ pub fn run_audit(
     mode: &str,
     min_reuse: usize,
 ) -> Result<Value> {
-    run_impl(source, input, out, mode, min_reuse, true, false, false, false, None)
+    run_impl(source, input, out, mode, min_reuse, true, false, false, false, None, false)
 }
 pub fn run_audit_with_rhs_skip(
     source: &str,
@@ -407,20 +438,23 @@ pub fn run_audit_with_rhs_skip(
     mode: &str,
     min_reuse: usize,
 ) -> Result<Value> {
-    run_impl(source, input, out, mode, min_reuse, true, true, false, false, None)
+    run_impl(source, input, out, mode, min_reuse, true, true, false, false, None, false)
 }
 /// Root-slice pruning before native Join, without diagnostic tracing.
 pub fn run_with_join_pruning(source: &str, input: Option<&Path>, out: &Path,
     mode: &str, min_reuse: usize) -> Result<Value> {
-    run_impl(source, input, out, mode, min_reuse, false, false, true, false, None)
+    run_impl(source, input, out, mode, min_reuse, false, false, true, false, None, false)
 }
 /// Observe boundary-to-cell transitions without changing source execution.
 pub fn run_with_evolution(source: &str, input: Option<&Path>, out: &Path,
     mode: &str, min_reuse: usize) -> Result<Value> {
-    run_impl(source, input, out, mode, min_reuse, false, false, false, true, None)
+    run_impl(source, input, out, mode, min_reuse, false, false, false, true, None, false)
 }
 pub fn run_with_transitions(source:&str, library:&Path, out:&Path, specs:&[transitions::Spec], min_reuse:usize)->Result<Value> {
-    run_impl(source,Some(library),out,"frozen",min_reuse,false,false,false,false,Some(specs))
+    run_impl(source,Some(library),out,"frozen",min_reuse,false,false,false,false,Some(specs),false)
+}
+pub fn run_cell_machine(source:&str,library:&Path,out:&Path,specs:&[transitions::Spec],min_reuse:usize)->Result<Value> {
+    run_impl(source,Some(library),out,"frozen",min_reuse,false,false,false,false,Some(specs),true)
 }
 fn run_impl(
     source: &str,
@@ -433,8 +467,9 @@ fn run_impl(
     prune_join: bool,
     evolution_enabled: bool,
     transition_specs: Option<&[transitions::Spec]>,
+    machine_enabled: bool,
 ) -> Result<Value> {
-    if transition_specs.is_some() && (mode!="frozen" || input.is_none() || audit_enabled || skip_rhs || prune_join || evolution_enabled) {return Err("residual transitions require a frozen library and untraced execution".into());}
+    if (transition_specs.is_some() || machine_enabled) && (mode!="frozen" || input.is_none() || audit_enabled || skip_rhs || prune_join || evolution_enabled) {return Err("residual transitions require a frozen library and untraced execution".into());}
     if evolution_enabled && (skip_rhs || prune_join) {return Err("cell evolution observes unpruned execution; disable join/RHS skipping".into());}
     if min_reuse == 0 {
         return Err("minimum template reuse must be positive".into());
@@ -488,12 +523,15 @@ fn run_impl(
         }
     }
     let plans=transitions::compile(&mut eg,&rules,&bake,transition_specs.unwrap_or(&[]))?;
-    if !plans.is_empty() {
+    let machine=if machine_enabled {Some(cell_machine::compile(&mut eg,&bake,&rules,&plans)?)}else{None};
+    if let Some(machine)=&machine {std::fs::write(out.join("cell-machine.json"),serde_json::to_vec_pretty(&machine.proof)?)?;}
+    if !plans.is_empty() || machine.is_some() {
         std::fs::write(out.join("cell-transitions.json"),serde_json::to_vec_pretty(&plans.iter().map(|p|&p.proof).collect::<Vec<_>>())?)?;
         let mut generated=commands.iter().filter(|c|matches!(c,Command::Datatype{..})).map(ToString::to_string).collect::<Vec<_>>().join("\n");
         generated+="\n";
         for p in &plans {generated+=&p.definitions;}
-        for (id,r) in rules.iter().enumerate() {generated+=&rule_program(id,r,bake.macros.get(&id),&plans).1;}
+        if let Some(machine)=&machine {generated+=&machine.definitions;}
+        for (id,r) in rules.iter().enumerate() {generated+=&rule_program(id,r,bake.macros.get(&id),&plans,machine.as_ref()).1;}
         std::fs::write(out.join("cell-transitions.egg"),generated)?;
     }
     let mut selected = vec![];
@@ -508,6 +546,7 @@ fn run_impl(
                 bake.macros.get(&id)
             },
             &plans,
+            machine.as_ref(),
         )?);
     }
     let mut audit = (audit_enabled || prune_join).then(super::enclosure_audit::Audit::default);
@@ -515,6 +554,9 @@ fn run_impl(
     let mut evolution = evolution_enabled.then(evolution::Evolution::default);
     #[cfg(feature="native-read-profile")]
     eg.reset_join_read_profile(std::env::var("EGG_LAYOUT_JOIN_READ_PROFILE").is_ok_and(|v|v=="1"));
+    let lean=std::env::var("EGG_LAYOUT_RUNTIME_SUMMARY").is_ok_and(|v|v=="1");
+    let setup_seconds=started.elapsed().as_secs_f64();
+    let mut input_seconds=0.;let mut packing_total=0.;
     let mut samples = vec![];
     let mut round = 0;
     let mut total = 0;
@@ -541,7 +583,12 @@ fn run_impl(
                     let prepare_seconds=prepare_start.elapsed().as_secs_f64();
                     let union_before = eg.native_union_count();
                     if let Some(e)=evolution.as_mut() {e.begin(&eg);}
-                    let (report, mut audit_report) = if prune_join {
+                    let completed_before=eg.completed_cell_counts();
+                    let promised_before=eg.promised_cell_prefixes();
+                    let queued_before=eg.queued_cell_prefixes();
+                    let (report, mut audit_report) = if let Some(machine)=&machine {
+                        (if std::env::var("EGG_LAYOUT_CELL_PROMISES").is_ok_and(|v|v=="0") {eg.step_rules_with_completed_cells(&set,machine.completion.clone())?} else {if std::env::var("EGG_LAYOUT_CELL_ORBITS").is_ok_and(|v|v=="0") {eg.step_rules_with_cell_promises(&set,machine.completion.clone())?} else {eg.step_rules_with_cell_machine(&set,machine.completion.clone(),machine.symmetries.clone())?}},Value::Null)
+                    } else if prune_join {
                         let a = audit.as_mut().unwrap();
                         a.begin_join(&eg);
                         let entries = rules.iter().enumerate().map(|(id, r)|
@@ -584,7 +631,7 @@ fn run_impl(
                     } else {
                         json!({"processed_instance_packets":0,"virtual_rows":0})
                     };
-                    let packing_seconds = t.elapsed().as_secs_f64();
+                    let packing_seconds = t.elapsed().as_secs_f64();packing_total+=packing_seconds;
                     let mut admitted = vec![];
                     let mut rejected = vec![];
                     let t = Instant::now();
@@ -603,7 +650,7 @@ fn run_impl(
                             }
                             match learn(&environment, r, id) {
                                 Ok(m) => {
-                                    selected[id] = install(&mut eg, id, r, Some(&m), &plans)?;
+                                    selected[id] = install(&mut eg, id, r, Some(&m), &plans,machine.as_ref())?;
                                     admitted.push(id);
                                     bake.macros.insert(id, m);
                                 }
@@ -617,12 +664,9 @@ fn run_impl(
                     }
                     learning_seconds += t.elapsed().as_secs_f64();
                     let library_bytes =
-                        save_bake(out, &format!("bake_lib_round{round}"), &bake, &rules)?;
-                    samples.push(json!({"cell_transition":transition_work,"transition_prepare_seconds":prepare_seconds,"round":round,"enclosure_audit":audit_report,"matches":matches,"macro_matches":macro_matches,"source_matches":source_matches,"cumulative_matches":total,"graph":counts(&eg),"packing":packing,"packing_seconds":packing_seconds,"admitted":admitted,"rejected":rejected,"library_bytes":library_bytes,"bodies":bake.macros.len(),"execution_seconds":execution_seconds,"learning_seconds":learning_seconds}));
-                    std::fs::write(
-                        out.join("progress.json"),
-                        serde_json::to_vec_pretty(&samples)?,
-                    )?;
+                        if lean {0} else {save_bake(out, &format!("bake_lib_round{round}"), &bake, &rules)?};
+                    samples.push(json!({"cell_states":machine.as_ref().map(|m|m.counts(&eg)),"queued_prefixes":eg.queued_cell_prefixes().saturating_sub(queued_before),"promised_prefixes":eg.promised_cell_prefixes().saturating_sub(promised_before),"completed_prefixes":eg.completed_cell_counts().0.saturating_sub(completed_before.0),"unresolved_completion_plans":eg.completed_cell_counts().1.saturating_sub(completed_before.1),"cell_transition":transition_work,"transition_prepare_seconds":prepare_seconds,"round":round,"enclosure_audit":audit_report,"matches":matches,"macro_matches":macro_matches,"source_matches":source_matches,"cumulative_matches":total,"graph":if lean {Value::Null}else{counts(&eg)},"packing":packing,"packing_seconds":packing_seconds,"admitted":admitted,"rejected":rejected,"library_bytes":library_bytes,"bodies":bake.macros.len(),"execution_seconds":execution_seconds,"learning_seconds":learning_seconds}));
+                    if !lean {std::fs::write(out.join("progress.json"),serde_json::to_vec_pretty(&samples)?)?;}
                     if report.can_stop {
                         break;
                     }
@@ -630,7 +674,7 @@ fn run_impl(
             }
             Command::RunSchedule(..) => return Err("simple (run N) required".into()),
             other => {
-                eg.run_program(vec![other])?;
+                let t=Instant::now();eg.run_program(vec![other])?;input_seconds+=t.elapsed().as_secs_f64();
             }
         }
     }
@@ -647,7 +691,7 @@ fn run_impl(
         serde_json::to_writer_pretty(file,&full)?;
         Some(full.as_object().unwrap().iter().filter(|(k,_)|!["patterns","families","rounds","rule_environment"].contains(&k.as_str())).map(|(k,v)|(k.clone(),v.clone())).collect::<serde_json::Map<_,_>>())
     } else {None};
-    let report = json!({"cell_transitions_enabled":!plans.is_empty(),"join_reads":transitions::read_profile(&eg),"cell_evolution":evolution_report,"mode":mode,"rhs_skip_enabled":skip_rhs,"join_pruning_enabled":prune_join,"min_template_reuse":min_reuse,"seconds":started.elapsed().as_secs_f64(),"execution_seconds":execution_seconds,"learning_seconds":learning_seconds,"matches":total,"samples":samples,"final":counts(&eg),"storage":crate::reuse_graph::native_storage::storage_report(&eg),"scope":"actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed"});
+    let report = json!({"summary_only":lean,"setup_seconds":setup_seconds,"input_seconds":input_seconds,"packing_seconds":packing_total,"cell_machine_enabled":machine.is_some(),"cell_states":machine.as_ref().map(|m|m.counts(&eg)),"cell_transitions_enabled":!plans.is_empty(),"join_reads":transitions::read_profile(&eg),"cell_evolution":evolution_report,"mode":mode,"rhs_skip_enabled":skip_rhs,"join_pruning_enabled":prune_join,"min_template_reuse":min_reuse,"seconds":started.elapsed().as_secs_f64(),"execution_seconds":execution_seconds,"learning_seconds":learning_seconds,"matches":total,"samples":samples,"final":counts(&eg),"storage":crate::reuse_graph::native_storage::storage_report(&eg),"scope":"actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed"});
     std::fs::write(out.join("report.json"), serde_json::to_vec_pretty(&report)?)?;
     Ok(report)
 }

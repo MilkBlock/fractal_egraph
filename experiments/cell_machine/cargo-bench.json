@@ -1,0 +1,23 @@
+{
+  "batch_seconds": 0.0489021875,
+  "eclasses": 5150,
+  "enodes": 15493,
+  "machine_seconds": 0.040553729,
+  "reporting_summary": "1",
+  "samples_seconds": [
+    [
+      0.048191667,
+      0.048293,
+      0.049511375,
+      0.049730584
+    ],
+    [
+      0.040063958,
+      0.040227042,
+      0.040880416,
+      0.041506583
+    ]
+  ],
+  "scope": "actual native math8; same frozen library; existing batch packing in both cases; full graph equality verified separately by experiments/cell_machine/bench.py",
+  "speedup": 1.2058616730412142
+}

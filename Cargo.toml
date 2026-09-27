@@ -43,3 +43,7 @@ harness = false
 [[bench]]
 name = "native_virtual_facts"
 harness = false
+
+[[bench]]
+name = "cell_machine"
+harness = false

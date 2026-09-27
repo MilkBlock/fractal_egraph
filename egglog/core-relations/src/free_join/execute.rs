@@ -808,8 +808,30 @@ impl FrameUpdates {
     }
 }
 
+// Depth marks prevent stale bindings from a previous join branch being used
+// as a completed-cell key. Tracking is disabled entirely without a certificate.
+#[derive(Clone)]
+struct CompletionCursor {
+    table: crate::TableId,
+    permutations: Arc<Vec<Vec<usize>>>,
+    variables: SmallVec<[(Variable,Option<usize>);8]>,
+    checked_at: Option<usize>,
+}
+impl CompletionCursor {
+    fn enter(&mut self, depth:usize) {
+        for (_,defined) in &mut self.variables {
+            if defined.is_some_and(|d|d>=depth) {*defined=None;}
+        }
+        if self.checked_at.is_some_and(|d|d>=depth) {self.checked_at=None;}
+    }
+    fn bind(&mut self,var:Variable,depth:usize) {
+        for (v,defined) in &mut self.variables {if *v==var {*defined=Some(depth);self.checked_at=None;}}
+    }
+}
+
 #[derive(Default, Clone)]
 struct BindingInfo {
+    completion: Option<Box<CompletionCursor>>,
     bindings: DenseIdMap<Variable, Value>,
     subsets: DenseIdMap<AtomId, Arc<TrieNode>>,
     materializations: DenseIdMap<MatId, Arc<HashMap<Vec<Value>, RowBuffer>>>,
@@ -855,6 +877,13 @@ impl BindingInfo {
 impl<'a> JoinState<'a> {
     fn initial_bindings(&self, plan: &Plan, rule: &str, names: &crate::query::SymbolMap) -> BindingInfo {
         let mut bindings = BindingInfo::default();
+        if let Some((table,params))=self.db.completed_cells.get(rule) {
+            let variables=params.iter().map(|n| names.vars.iter().find(|(_,v)|v.as_ref()==n).map(|(v,_)|(*v,None))).collect::<Option<SmallVec<[_;8]>>>();
+            if matches!(plan,Plan::SinglePlan(_)) && self.db.get_table_info(*table).spec.n_keys==params.len() && variables.is_some() {
+                bindings.completion=Some(Box::new(CompletionCursor{table:*table,permutations:Arc::new(self.db.cell_symmetries.get(rule).cloned().unwrap_or_else(||vec![(0..params.len()).collect()])),variables:variables.unwrap(),checked_at:None}));
+            } else {self.db.unresolved_completions.fetch_add(1,std::sync::atomic::Ordering::Relaxed);}
+        }
+
         for (id, atom) in plan.atoms().iter() {
             bindings.insert_subset(id, self.db.get_table(atom.table).all());
         }
@@ -916,6 +945,47 @@ impl<'a> JoinState<'a> {
         }
         bindings.insert_subset(*id, Subset::Sparse(sink.rows));
         bindings
+    }
+
+    fn completed(&self, info: &mut BindingInfo, depth: usize) -> bool {
+        let Some(c) = info.completion.as_mut() else { return false; };
+        if c.variables.iter().any(|(_, d)| d.is_none()) { return false; }
+        let values = c.variables.iter().map(|(v, _)| info.bindings[*v]).collect::<SmallVec<[Value; 8]>>();
+        for permutation in c.permutations.iter() {
+            let key = permutation.iter().map(|i| values[*i]).collect::<SmallVec<[Value; 8]>>();
+            if c.checked_at.is_none() && self.db.get_table(c.table).get_row_column(&key, ColumnId::from_usize(key.len())).is_some() {
+                self.db.completed_prefixes.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                return true;
+            }
+            if !self.db.promise_tables.is_empty() && self.db.promised_cells.get().expect("configured completion promises").contains_key(&(c.table, SmallVec::from_slice(&key))) {
+                self.db.promised_prefixes.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                return true;
+            }
+        }
+        if c.checked_at.is_none() { c.checked_at = Some(depth); }
+        false
+    }
+
+    fn orbit_key(&self, c:&CompletionCursor, info:&BindingInfo)->SmallVec<[Value;3]> {
+        let values=c.variables.iter().map(|(v,_)|info.bindings[*v]).collect::<SmallVec<[Value;3]>>();
+        c.permutations.iter().map(|p|p.iter().map(|i|values[*i]).collect::<SmallVec<[Value;3]>>()).min().unwrap_or(values)
+    }
+    fn already_queued(&self, info:&BindingInfo)->bool {
+        let Some(c)=info.completion.as_ref() else {return false;};
+        if self.db.promise_tables.is_empty() || c.variables.iter().any(|(_,d)|d.is_none()) {return false;}
+        if self.db.queued_cells.get().expect("configured completion queue").contains_key(&(c.table,self.orbit_key(c,info))) {
+            self.db.queued_prefixes.fetch_add(1,std::sync::atomic::Ordering::Relaxed);true
+        } else {false}
+    }
+    // Only called after the full query succeeds. A queued total positive recipe
+    // will establish every equivalent state before this rule step commits.
+    fn claim_cell(&self,info:&BindingInfo)->bool {
+        let Some(c)=info.completion.as_ref() else {return false;};
+        if self.db.promise_tables.is_empty() || c.variables.iter().any(|(_,d)|d.is_none()) {return false;}
+        match self.db.queued_cells.get().expect("configured completion queue").entry((c.table,self.orbit_key(c,info))) {
+            Entry::Occupied(_)=>{self.db.queued_prefixes.fetch_add(1,std::sync::atomic::Ordering::Relaxed);true},
+            Entry::Vacant(v)=>{v.insert(());false},
+        }
     }
 
     fn stopped(&self) -> bool {
@@ -1081,7 +1151,11 @@ impl<'a> JoinState<'a> {
             return;
         }
 
+        if let Some(c)=binding_info.completion.as_mut() {c.enter(cur);}
+        if self.completed(binding_info,cur) || self.already_queued(binding_info) {return;}
+
         if cur >= instr_order.len() {
+            if self.claim_cell(binding_info) {return;}
             action_buf.push_bindings(action, &binding_info.bindings, || self.exec_state.clone());
             return;
         }
@@ -1109,6 +1183,7 @@ impl<'a> JoinState<'a> {
                     $updates.drain(|update| match update {
                         UpdateInstr::PushBinding(var, val) => {
                             binding_info.bindings.insert(var, val);
+                            if let Some(c)=binding_info.completion.as_mut() {c.bind(var,cur);}
                         }
                         UpdateInstr::RefineAtom(atom, subset) => {
                             binding_info.insert_node(atom, subset);
@@ -1123,6 +1198,7 @@ impl<'a> JoinState<'a> {
                             // a recursive run_plan call, avoiding function call
                             // overhead + an extra should_stop() check.
                             if cur + 1 >= instr_order.len() {
+                                if self.completed(binding_info,cur+1) || self.claim_cell(binding_info) {return;}
                                 action_buf.push_bindings(action, &binding_info.bindings, || {
                                     self.exec_state.clone()
                                 });
@@ -1168,6 +1244,7 @@ impl<'a> JoinState<'a> {
                         updates.drain(|update| match update {
                             UpdateInstr::PushBinding(var, val) => {
                                 binding_info.bindings.insert(var, val);
+                            if let Some(c)=binding_info.completion.as_mut() {c.bind(var,cur);}
                             }
                             UpdateInstr::RefineAtom(atom, subset) => {
                                 binding_info.insert_node(atom, subset);
