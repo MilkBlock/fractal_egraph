@@ -438,6 +438,10 @@ impl EGraph {
     }
 
     /// Exact current physical row for diagnostic version validation.
+    /// Backend table of a function, so a recorded write can be matched to it.
+    pub fn function_table(&self, func: FunctionId) -> usize {
+        self.funcs[func].table.index()
+    }
     /// Retained producer of one committed row, when provenance was recorded.
     pub fn row_producer(
         &self,

@@ -676,6 +676,14 @@ pub struct WriteEvent {
     pub actual: Vec<Value>,
     pub outcome: WriteOutcome,
 }
+impl WriteEvent {
+    /// Backend table id of the write, for attributing it without naming the type.
+    pub fn table_id(&self) -> usize {
+        use crate::numeric_id::NumericId;
+        self.table.index()
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct RowReadEvent {
     /// Planner-only summary witness; source analyses should use expanded reads.

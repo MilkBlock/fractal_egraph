@@ -2109,6 +2109,21 @@ impl EGraph {
     }
 
     /// Read a physical row, including version metadata, without creating it.
+    /// Backend table id of a function, for matching recorded writes to it.
+    pub fn function_table_id(&self, name: &str) -> Option<usize> {
+        let func = self.functions.get(name)?;
+        Some(self.backend.function_table(func.backend_id))
+    }
+
+    /// Backend table ids of every constructor function.
+    pub fn constructor_table_ids(&self) -> Vec<usize> {
+        self.functions
+            .iter()
+            .filter(|(_, f)| f.is_constructor())
+            .map(|(_, f)| self.backend.function_table(f.backend_id))
+            .collect()
+    }
+
     /// The retained producer of one committed row, when the run recorded
     /// provenance: `(match event id, committed write event id)`. `None` means the
     /// row is not attributed (an input, a rebuilt row, or provenance was off).

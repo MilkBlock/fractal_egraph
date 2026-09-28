@@ -6,247 +6,229 @@
   "rounds": 1,
   "runs": {
     "pristine": {
-      "seconds": 0.008793832967057824,
-      "peak_rss_bytes": 7192576,
+      "seconds": 0.025717458105646074,
+      "peak_rss_bytes": 7258112,
       "exit_code": 0
     },
     "native": {
-      "seconds": 0.00823904201388359,
-      "peak_rss_bytes": 7684096,
+      "seconds": 0.23171337496023625,
+      "peak_rss_bytes": 7569408,
       "exit_code": 0
     },
     "fragment_pack": {
-      "seconds": 0.017254582955501974,
-      "peak_rss_bytes": 10797056,
+      "seconds": 0.06387554202228785,
+      "peak_rss_bytes": 11239424,
       "exit_code": 0
     },
     "ripsat_off": {
-      "seconds": 0.016184000065550208,
-      "peak_rss_bytes": 9175040,
+      "seconds": 0.5359966669930145,
+      "peak_rss_bytes": 8716288,
       "exit_code": 0,
       "mode": "native",
       "node_origin": {
         "by_function": [
           {
             "function": "Add",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 69,
-            "unattributed": 69
+            "live": 69
           },
           {
             "function": "Const",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 5,
-            "unattributed": 5
+            "live": 5
           },
           {
             "function": "Cos",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 1,
-            "unattributed": 1
+            "live": 1
           },
           {
             "function": "Diff",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 20,
-            "unattributed": 20
+            "live": 20
           },
           {
             "function": "Div",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 3,
-            "unattributed": 3
+            "live": 3
           },
           {
             "function": "Integral",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 15,
-            "unattributed": 15
+            "live": 15
           },
           {
             "function": "Ln",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 1,
-            "unattributed": 1
+            "live": 1
           },
           {
             "function": "Mul",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 77,
-            "unattributed": 77
+            "live": 77
           },
           {
             "function": "Pow",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 2,
-            "unattributed": 2
+            "live": 2
           },
           {
             "function": "Sin",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 1,
-            "unattributed": 1
+            "live": 1
           },
           {
             "function": "Sqrt",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 1,
-            "unattributed": 1
+            "live": 1
           },
           {
             "function": "Sub",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 10,
-            "unattributed": 10
+            "live": 10
           },
           {
             "function": "Var",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 3,
-            "unattributed": 3
+            "live": 3
           }
         ],
-        "constructors": 13,
-        "no_producer": 208,
-        "provenance": "per live row, by producing rule name",
-        "ripsat": 0,
-        "rules_known": 129,
-        "scope": "live rows only, so rows removed by merge are never counted; unattributed covers inputs, rebuilt rows and rows whose producer is not in the trace",
-        "seminaive": 0,
-        "total": 208,
-        "unattributed": 208,
-        "union_events": 1,
-        "unknown_match": 0
+        "constructor_writes": 211,
+        "deduplicated": {
+          "ripsat": 0,
+          "seminaive": 37,
+          "total": 37,
+          "unknown": 0
+        },
+        "inputs": 35,
+        "inserted": {
+          "ripsat": 0,
+          "seminaive": 173,
+          "total": 173,
+          "unknown": 0
+        },
+        "live_total": 208,
+        "other_writes": 0,
+        "rebuild_writes": {
+          "ripsat": 0,
+          "seminaive": 0,
+          "total": 0,
+          "unknown": 0
+        },
+        "reconciliation": {
+          "deduplicated_and_updated": 38,
+          "identity": "live_total = inputs + inserted - removed_or_merged",
+          "note": "removed_or_merged is measured; deduplicated/updated are write outcomes. They are two views and are not asserted equal.",
+          "removed_or_merged": 0
+        },
+        "scope": "committed writes to constructor tables, bucketed by producing rule name; live rows measured in the final graph",
+        "unsupported": {
+          "ripsat": 0,
+          "seminaive": 0,
+          "total": 0,
+          "unknown": 0
+        },
+        "updated": {
+          "ripsat": 0,
+          "seminaive": 1,
+          "total": 1,
+          "unknown": 0
+        }
       }
     },
     "ripsat_on": {
-      "seconds": 0.021512874984182417,
-      "peak_rss_bytes": 12386304,
+      "seconds": 0.06365550006739795,
+      "peak_rss_bytes": 12255232,
       "exit_code": 0,
       "mode": "frozen",
       "node_origin": {
         "by_function": [
           {
             "function": "Add",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 183,
-            "unattributed": 183
+            "live": 183
           },
           {
             "function": "Const",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 5,
-            "unattributed": 5
+            "live": 5
           },
           {
             "function": "Cos",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 1,
-            "unattributed": 1
+            "live": 1
           },
           {
             "function": "Diff",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 20,
-            "unattributed": 20
+            "live": 20
           },
           {
             "function": "Div",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 3,
-            "unattributed": 3
+            "live": 3
           },
           {
             "function": "Integral",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 15,
-            "unattributed": 15
+            "live": 15
           },
           {
             "function": "Ln",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 1,
-            "unattributed": 1
+            "live": 1
           },
           {
             "function": "Mul",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 102,
-            "unattributed": 102
+            "live": 102
           },
           {
             "function": "Pow",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 2,
-            "unattributed": 2
+            "live": 2
           },
           {
             "function": "Sin",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 1,
-            "unattributed": 1
+            "live": 1
           },
           {
             "function": "Sqrt",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 1,
-            "unattributed": 1
+            "live": 1
           },
           {
             "function": "Sub",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 10,
-            "unattributed": 10
+            "live": 10
           },
           {
             "function": "Var",
-            "ripsat": 0,
-            "seminaive": 0,
-            "total": 3,
-            "unattributed": 3
+            "live": 3
           }
         ],
-        "constructors": 26,
-        "no_producer": 347,
-        "provenance": "per live row, by producing rule name",
-        "ripsat": 0,
-        "rules_known": 211,
-        "scope": "live rows only, so rows removed by merge are never counted; unattributed covers inputs, rebuilt rows and rows whose producer is not in the trace",
-        "seminaive": 0,
-        "total": 347,
-        "unattributed": 347,
-        "union_events": 5,
-        "unknown_match": 0
+        "constructor_writes": 1278,
+        "deduplicated": {
+          "ripsat": 760,
+          "seminaive": 0,
+          "total": 760,
+          "unknown": 0
+        },
+        "inputs": 35,
+        "inserted": {
+          "ripsat": 484,
+          "seminaive": 33,
+          "total": 517,
+          "unknown": 0
+        },
+        "live_total": 347,
+        "other_writes": 0,
+        "rebuild_writes": {
+          "ripsat": 0,
+          "seminaive": 0,
+          "total": 0,
+          "unknown": 0
+        },
+        "reconciliation": {
+          "deduplicated_and_updated": 761,
+          "identity": "live_total = inputs + inserted - removed_or_merged",
+          "note": "removed_or_merged is measured; deduplicated/updated are write outcomes. They are two views and are not asserted equal.",
+          "removed_or_merged": 205
+        },
+        "scope": "committed writes to constructor tables, bucketed by producing rule name; live rows measured in the final graph",
+        "unsupported": {
+          "ripsat": 0,
+          "seminaive": 0,
+          "total": 0,
+          "unknown": 0
+        },
+        "updated": {
+          "ripsat": 1,
+          "seminaive": 0,
+          "total": 1,
+          "unknown": 0
+        }
       }
     },
     "recognition": {
-      "seconds": 0.22056066698860377,
-      "peak_rss_bytes": 103923712,
+      "seconds": 0.23967154091224074,
+      "peak_rss_bytes": 102547456,
       "exit_code": 0,
       "fragment_queries": 0,
       "plans": 8,
