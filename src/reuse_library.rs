@@ -224,6 +224,55 @@ impl Library {
     pub fn counts(&self) -> Value {
         json!({"bodies":self.bodies.len(),"enclosures":self.enclosures.len(),"entries":self.entries.len()})
     }
+    /// Read-only recognition adapter. The stored format is unchanged: every body
+    /// is reported with its value slots, visible rows, and all legal origin
+    /// recipes that reach it.
+    pub fn recognition_bodies(&self) -> Result<Vec<crate::reuse_cell_recognition::LibraryBody>> {
+        let mut out: Vec<crate::reuse_cell_recognition::LibraryBody> = self
+            .bodies
+            .iter()
+            .enumerate()
+            .map(|(i, b)| crate::reuse_cell_recognition::LibraryBody {
+                body: i,
+                values: b
+                    .graph
+                    .values
+                    .iter()
+                    .map(|v| (v.sort.clone(), v.literal.clone()))
+                    .collect(),
+                rows: b
+                    .graph
+                    .rows
+                    .iter()
+                    .enumerate()
+                    .filter(|(i, _)| !b.graph.subsumed_rows.contains(i))
+                    .map(|(_, r)| {
+                        (
+                            r.op.clone(),
+                            r.args.iter().copied().chain([r.result]).collect(),
+                        )
+                    })
+                    .collect(),
+                sources: vec![],
+            })
+            .collect();
+        for e in &self.entries {
+            let d = &self.enclosures[e.enclosure.0];
+            let body = d.body.0;
+            out[body].sources.push(crate::reuse_cell_recognition::LibraryCellSource {
+                enclosure: e.enclosure.0,
+                interface: d
+                    .interface
+                    .upper
+                    .iter()
+                    .chain(&d.interface.lower)
+                    .copied()
+                    .collect(),
+                recipe: serde_json::from_value(e.origin["reuse_recipe"].clone())?,
+            });
+        }
+        Ok(out)
+    }
     /// Import completed cells only. Caller reports unfinished/unsupported cells explicitly.
     fn import_cell(&mut self, graph: &mut ReuseGraph, path: &Path) -> Result<()> {
         let report: Value = serde_json::from_slice(&std::fs::read(path.join("ripen.json"))?)?;

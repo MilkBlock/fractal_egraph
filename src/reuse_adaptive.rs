@@ -41,6 +41,21 @@ pub struct Bake {
     pub macros: BTreeMap<usize, Macro>,
     pub unfinished: BTreeMap<usize, String>,
 }
+impl Bake {
+    /// Read-only recognition adapter. The Bake format is unchanged: each macro
+    /// contributes its slots and body template to a recognition plan.
+    pub fn recognition_cells(&self) -> Vec<crate::reuse_cell_recognition::BakeCell> {
+        self.macros
+            .iter()
+            .map(|(id, m)| crate::reuse_cell_recognition::BakeCell {
+                rule: *id,
+                environment: self.environment.clone(),
+                slots: m.slots.clone(),
+                template: m.template.clone(),
+            })
+            .collect()
+    }
+}
 struct Rule {
     lhs: Expr,
     rhs: Expr,
