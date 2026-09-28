@@ -1,0 +1,34 @@
+{
+  "baseline_commit": "c7553a6c2b16c529c13f3eb7eecd742495b992d3",
+  "current_base_commit": "f8d547e2d219a72ab4e440ad83fa84ff0bd2dd6b",
+  "current_dirty": true,
+  "instrumentation": "same read-only measurement API in exported source snapshots; originals untouched",
+  "instrument_sha256": "b90dbefe2d7c5d35e924d69554ca2d365230117e0852fcbf81a9258efe8910aa",
+  "harness_sha256": "52044c615ba3a2622f82635d96608666c6c39bbb40957714b11fb025be12f7cc",
+  "rustc": "rustc 1.94.0 (4a4ef493e 2026-03-02)\nbinary: rustc\ncommit-hash: 4a4ef493e3a1488c6e321570238084b38948f6db\ncommit-date: 2026-03-02\nhost: aarch64-apple-darwin\nrelease: 1.94.0\nLLVM version: 21.1.8\n",
+  "source_sha256": "aaa8942131b4db57e76710486718790e1d7f2cb9288aeb702c0c17019439cf16",
+  "threads": "default native parallelism",
+  "allocator": "System",
+  "snapshots": {
+    "pristine": {
+      "instrumented_source_sha256": "a388b2c6edd064318613dc052ea77c1a414ff990191b3ded8f3fd2eeb9954816",
+      "binary_sha256": "69874c489518067c1bbbd96ea08f3f283090bb9a53d85bc2a7a67b89726884e0"
+    },
+    "current": {
+      "instrumented_source_sha256": "827d3cbfba70b444e8d522e3239493159f48d0164fa8011f27b4dd2c64d67a9a",
+      "binary_sha256": "6d168a6b4c8cc7a7c67024e3ecd0e049c651611f129408b084f2b87ea9063367"
+    }
+  },
+  "library_bytes": {
+    "full": 342370,
+    "r6": 2735359
+  },
+  "validation": {
+    "pristine_before_after_identical": true,
+    "all_math_table_visible_counts_equal": true,
+    "uninspected_shared_indexes": 0,
+    "full_library_matched_instances": 280817,
+    "rich_library_matched_instances": 498217,
+    "matched_instances_equal_uninstrumented_report": true
+  }
+}

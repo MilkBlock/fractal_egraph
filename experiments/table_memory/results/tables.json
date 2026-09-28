@@ -1,0 +1,2442 @@
+{
+  "snapshots": {
+    "pristine": {
+      "local_known_bytes": 134236448,
+      "math_eclasses": 443832,
+      "math_enodes": 1047896,
+      "shared_pool_bytes": {},
+      "tables": [
+        {
+          "inclusive_known_bytes": 13107304,
+          "local_known_bytes": 13107304,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "displaced_rows_bytes": 4194304,
+            "index_catalog_bytes": 0,
+            "live_rows": 337815,
+            "supported": 1,
+            "table_struct_bytes": 96,
+            "tuple_indexes_bytes": 0,
+            "uf_lookup_bytes": 4718600,
+            "uf_parents_bytes": 4194304,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "$uf",
+          "schema": null,
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 1873576,
+          "local_known_bytes": 1873576,
+          "metrics": {
+            "column_indexes_bytes": 117096,
+            "hashcons_bytes": 523520,
+            "index_catalog_bytes": 64,
+            "live_rows": 13504,
+            "offsets_bytes": 128,
+            "physical_columns": 5,
+            "physical_rows": 16406,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 874172,
+            "row_buffer_bytes": 358260,
+            "stale_rows": 2902,
+            "supported": 1,
+            "table_struct_bytes": 320,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Diff",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 13504
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 5762928,
+          "local_known_bytes": 5762928,
+          "metrics": {
+            "column_indexes_bytes": 148516,
+            "hashcons_bytes": 1115392,
+            "index_catalog_bytes": 64,
+            "live_rows": 32434,
+            "offsets_bytes": 256,
+            "physical_columns": 5,
+            "physical_rows": 39776,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 2835164,
+            "row_buffer_bytes": 1663200,
+            "stale_rows": 7342,
+            "supported": 1,
+            "table_struct_bytes": 320,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Integral",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 32434
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 71766372,
+          "local_known_bytes": 71766372,
+          "metrics": {
+            "column_indexes_bytes": 1162536,
+            "hashcons_bytes": 18941184,
+            "index_catalog_bytes": 64,
+            "live_rows": 641743,
+            "offsets_bytes": 256,
+            "physical_columns": 5,
+            "physical_rows": 643729,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 25922236,
+            "row_buffer_bytes": 25739760,
+            "stale_rows": 1986,
+            "supported": 1,
+            "table_struct_bytes": 320,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Add",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 641743
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 2662688,
+          "local_known_bytes": 2662688,
+          "metrics": {
+            "column_indexes_bytes": 123364,
+            "hashcons_bytes": 558336,
+            "index_catalog_bytes": 64,
+            "live_rows": 15123,
+            "offsets_bytes": 256,
+            "physical_columns": 5,
+            "physical_rows": 20473,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 1274732,
+            "row_buffer_bytes": 705600,
+            "stale_rows": 5350,
+            "supported": 1,
+            "table_struct_bytes": 320,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Sub",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 15123
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 38706476,
+          "local_known_bytes": 38706476,
+          "metrics": {
+            "column_indexes_bytes": 633004,
+            "hashcons_bytes": 8914176,
+            "index_catalog_bytes": 64,
+            "live_rows": 345075,
+            "offsets_bytes": 256,
+            "physical_columns": 5,
+            "physical_rows": 510742,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 16953340,
+            "row_buffer_bytes": 12205300,
+            "stale_rows": 165667,
+            "supported": 1,
+            "table_struct_bytes": 320,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Mul",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 345075
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 28060,
+          "local_known_bytes": 28060,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "hashcons_bytes": 1252,
+            "index_catalog_bytes": 0,
+            "live_rows": 3,
+            "offsets_bytes": 32,
+            "physical_columns": 5,
+            "physical_rows": 3,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26380,
+            "row_buffer_bytes": 60,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 320,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Div",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 3
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 54572,
+          "local_known_bytes": 54572,
+          "metrics": {
+            "column_indexes_bytes": 26544,
+            "hashcons_bytes": 1176,
+            "index_catalog_bytes": 64,
+            "live_rows": 2,
+            "offsets_bytes": 32,
+            "physical_columns": 5,
+            "physical_rows": 2,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26380,
+            "row_buffer_bytes": 40,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 320,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Pow",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 2
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 27860,
+          "local_known_bytes": 27860,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "hashcons_bytes": 1100,
+            "index_catalog_bytes": 0,
+            "live_rows": 1,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 1,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26376,
+            "row_buffer_bytes": 16,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 320,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Ln",
+          "schema": {
+            "input_sorts": [
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 1
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 27860,
+          "local_known_bytes": 27860,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "hashcons_bytes": 1100,
+            "index_catalog_bytes": 0,
+            "live_rows": 1,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 1,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26376,
+            "row_buffer_bytes": 16,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 320,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Sqrt",
+          "schema": {
+            "input_sorts": [
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 1
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 54484,
+          "local_known_bytes": 54484,
+          "metrics": {
+            "column_indexes_bytes": 26544,
+            "hashcons_bytes": 1100,
+            "index_catalog_bytes": 64,
+            "live_rows": 1,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 2,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26376,
+            "row_buffer_bytes": 32,
+            "stale_rows": 1,
+            "supported": 1,
+            "table_struct_bytes": 320,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Sin",
+          "schema": {
+            "input_sorts": [
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 1
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 54484,
+          "local_known_bytes": 54484,
+          "metrics": {
+            "column_indexes_bytes": 26544,
+            "hashcons_bytes": 1100,
+            "index_catalog_bytes": 64,
+            "live_rows": 1,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 1,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26376,
+            "row_buffer_bytes": 32,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 320,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Cos",
+          "schema": {
+            "input_sorts": [
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 1
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 81728,
+          "local_known_bytes": 81728,
+          "metrics": {
+            "column_indexes_bytes": 53392,
+            "hashcons_bytes": 1404,
+            "index_catalog_bytes": 64,
+            "live_rows": 5,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 5,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26372,
+            "row_buffer_bytes": 128,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 320,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Const",
+          "schema": {
+            "input_sorts": [
+              "i64"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 5
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 28056,
+          "local_known_bytes": 28056,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "hashcons_bytes": 1252,
+            "index_catalog_bytes": 0,
+            "live_rows": 3,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 3,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26372,
+            "row_buffer_bytes": 64,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 320,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Var",
+          "schema": {
+            "input_sorts": [
+              "String"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 3
+          },
+          "shared_referenced_bytes": 0
+        }
+      ],
+      "total_known_unique_bytes": 134236448,
+      "unmapped_functions": []
+    },
+    "current_native": {
+      "local_known_bytes": 133004812,
+      "math_eclasses": 443832,
+      "math_enodes": 1047896,
+      "shared_pool_bytes": {},
+      "tables": [
+        {
+          "inclusive_known_bytes": 13107304,
+          "local_known_bytes": 13107304,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "displaced_rows_bytes": 4194304,
+            "index_catalog_bytes": 0,
+            "live_rows": 338185,
+            "supported": 1,
+            "table_struct_bytes": 96,
+            "tuple_indexes_bytes": 0,
+            "uf_lookup_bytes": 4718600,
+            "uf_parents_bytes": 4194304,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "$uf",
+          "schema": null,
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 1882516,
+          "local_known_bytes": 1882516,
+          "metrics": {
+            "column_indexes_bytes": 117096,
+            "hashcons_bytes": 532224,
+            "index_catalog_bytes": 64,
+            "live_rows": 13504,
+            "offsets_bytes": 128,
+            "physical_columns": 5,
+            "physical_rows": 16415,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 874172,
+            "row_buffer_bytes": 358440,
+            "stale_rows": 2911,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Diff",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 13504
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 5759800,
+          "local_known_bytes": 5759800,
+          "metrics": {
+            "column_indexes_bytes": 148516,
+            "hashcons_bytes": 1115392,
+            "index_catalog_bytes": 64,
+            "live_rows": 32434,
+            "offsets_bytes": 256,
+            "physical_columns": 5,
+            "physical_rows": 39490,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 2835180,
+            "row_buffer_bytes": 1660000,
+            "stale_rows": 7056,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Integral",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 32434
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 70654876,
+          "local_known_bytes": 70654876,
+          "metrics": {
+            "column_indexes_bytes": 1162536,
+            "hashcons_bytes": 17827072,
+            "index_catalog_bytes": 64,
+            "live_rows": 641743,
+            "offsets_bytes": 256,
+            "physical_columns": 5,
+            "physical_rows": 643719,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 25924796,
+            "row_buffer_bytes": 25739760,
+            "stale_rows": 1976,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Add",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 641743
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 2662568,
+          "local_known_bytes": 2662568,
+          "metrics": {
+            "column_indexes_bytes": 123364,
+            "hashcons_bytes": 558336,
+            "index_catalog_bytes": 64,
+            "live_rows": 15123,
+            "offsets_bytes": 256,
+            "physical_columns": 5,
+            "physical_rows": 21589,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 1274556,
+            "row_buffer_bytes": 705600,
+            "stale_rows": 6466,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Sub",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 15123
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 38580196,
+          "local_known_bytes": 38580196,
+          "metrics": {
+            "column_indexes_bytes": 633004,
+            "hashcons_bytes": 8914176,
+            "index_catalog_bytes": 64,
+            "live_rows": 345075,
+            "offsets_bytes": 256,
+            "physical_columns": 5,
+            "physical_rows": 508884,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 16822044,
+            "row_buffer_bytes": 12210260,
+            "stale_rows": 163809,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Mul",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 345075
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 28116,
+          "local_known_bytes": 28116,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "hashcons_bytes": 1252,
+            "index_catalog_bytes": 0,
+            "live_rows": 3,
+            "offsets_bytes": 32,
+            "physical_columns": 5,
+            "physical_rows": 3,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26380,
+            "row_buffer_bytes": 60,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Div",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 3
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 54628,
+          "local_known_bytes": 54628,
+          "metrics": {
+            "column_indexes_bytes": 26544,
+            "hashcons_bytes": 1176,
+            "index_catalog_bytes": 64,
+            "live_rows": 2,
+            "offsets_bytes": 32,
+            "physical_columns": 5,
+            "physical_rows": 2,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26380,
+            "row_buffer_bytes": 40,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Pow",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 2
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 27916,
+          "local_known_bytes": 27916,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "hashcons_bytes": 1100,
+            "index_catalog_bytes": 0,
+            "live_rows": 1,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 1,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26376,
+            "row_buffer_bytes": 16,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Ln",
+          "schema": {
+            "input_sorts": [
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 1
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 27916,
+          "local_known_bytes": 27916,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "hashcons_bytes": 1100,
+            "index_catalog_bytes": 0,
+            "live_rows": 1,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 1,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26376,
+            "row_buffer_bytes": 16,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Sqrt",
+          "schema": {
+            "input_sorts": [
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 1
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 54540,
+          "local_known_bytes": 54540,
+          "metrics": {
+            "column_indexes_bytes": 26544,
+            "hashcons_bytes": 1100,
+            "index_catalog_bytes": 64,
+            "live_rows": 1,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 2,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26376,
+            "row_buffer_bytes": 32,
+            "stale_rows": 1,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Sin",
+          "schema": {
+            "input_sorts": [
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 1
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 54540,
+          "local_known_bytes": 54540,
+          "metrics": {
+            "column_indexes_bytes": 26544,
+            "hashcons_bytes": 1100,
+            "index_catalog_bytes": 64,
+            "live_rows": 1,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 1,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26376,
+            "row_buffer_bytes": 32,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Cos",
+          "schema": {
+            "input_sorts": [
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 1
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 81784,
+          "local_known_bytes": 81784,
+          "metrics": {
+            "column_indexes_bytes": 53392,
+            "hashcons_bytes": 1404,
+            "index_catalog_bytes": 64,
+            "live_rows": 5,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 5,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26372,
+            "row_buffer_bytes": 128,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Const",
+          "schema": {
+            "input_sorts": [
+              "i64"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 5
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 28112,
+          "local_known_bytes": 28112,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "hashcons_bytes": 1252,
+            "index_catalog_bytes": 0,
+            "live_rows": 3,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 3,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26372,
+            "row_buffer_bytes": 64,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Var",
+          "schema": {
+            "input_sorts": [
+              "String"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 3
+          },
+          "shared_referenced_bytes": 0
+        }
+      ],
+      "total_known_unique_bytes": 133004812,
+      "unmapped_functions": []
+    },
+    "current_round1": {
+      "local_known_bytes": 128684820,
+      "math_eclasses": 443832,
+      "math_enodes": 1047896,
+      "shared_pool_bytes": {
+        "bindings": 1660252,
+        "templates": 2016
+      },
+      "tables": [
+        {
+          "inclusive_known_bytes": 13107304,
+          "local_known_bytes": 13107304,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "displaced_rows_bytes": 4194304,
+            "index_catalog_bytes": 0,
+            "live_rows": 338185,
+            "supported": 1,
+            "table_struct_bytes": 96,
+            "tuple_indexes_bytes": 0,
+            "uf_lookup_bytes": 4718600,
+            "uf_parents_bytes": 4194304,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "$uf",
+          "schema": null,
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 2059852,
+          "local_known_bytes": 1955304,
+          "metrics": {
+            "column_indexes_bytes": 215432,
+            "direct_base_rows": 8623,
+            "hashcons_bytes": 532224,
+            "index_catalog_bytes": 64,
+            "live_rows": 13504,
+            "offsets_bytes": 128,
+            "physical_columns": 5,
+            "physical_rows": 16415,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 874172,
+            "row_buffer_bytes": 2048,
+            "stale_rows": 2911,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0,
+            "virtual_descriptors_bytes": 58572,
+            "virtual_direct_bytes": 230680,
+            "virtual_headers_bytes": 41480,
+            "virtual_metadata_bytes": 112,
+            "virtual_rows": 4881
+          },
+          "name": "Diff",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 13504
+          },
+          "shared_referenced_bytes": 104548
+        },
+        {
+          "inclusive_known_bytes": 5370944,
+          "local_known_bytes": 5370504,
+          "metrics": {
+            "column_indexes_bytes": 607316,
+            "direct_base_rows": 32431,
+            "hashcons_bytes": 1115392,
+            "index_catalog_bytes": 64,
+            "live_rows": 32434,
+            "offsets_bytes": 256,
+            "physical_columns": 5,
+            "physical_rows": 39490,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 2835180,
+            "row_buffer_bytes": 2048,
+            "stale_rows": 7056,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0,
+            "virtual_descriptors_bytes": 36,
+            "virtual_direct_bytes": 789740,
+            "virtual_headers_bytes": 20064,
+            "virtual_metadata_bytes": 16,
+            "virtual_rows": 3
+          },
+          "name": "Integral",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 32434
+          },
+          "shared_referenced_bytes": 440
+        },
+        {
+          "inclusive_known_bytes": 66187816,
+          "local_known_bytes": 65007512,
+          "metrics": {
+            "column_indexes_bytes": 8502616,
+            "direct_base_rows": 453018,
+            "hashcons_bytes": 17827072,
+            "index_catalog_bytes": 64,
+            "live_rows": 641743,
+            "offsets_bytes": 256,
+            "physical_columns": 5,
+            "physical_rows": 643719,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 25924796,
+            "row_buffer_bytes": 16384,
+            "stale_rows": 1976,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0,
+            "virtual_descriptors_bytes": 2264700,
+            "virtual_direct_bytes": 9099880,
+            "virtual_headers_bytes": 1371160,
+            "virtual_metadata_bytes": 192,
+            "virtual_rows": 188725
+          },
+          "name": "Add",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 641743
+          },
+          "shared_referenced_bytes": 1180304
+        },
+        {
+          "inclusive_known_bytes": 2505748,
+          "local_known_bytes": 2473916,
+          "metrics": {
+            "column_indexes_bytes": 188916,
+            "direct_base_rows": 13812,
+            "hashcons_bytes": 558336,
+            "index_catalog_bytes": 64,
+            "live_rows": 15123,
+            "offsets_bytes": 256,
+            "physical_columns": 5,
+            "physical_rows": 21589,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 1274556,
+            "row_buffer_bytes": 2048,
+            "stale_rows": 6466,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0,
+            "virtual_descriptors_bytes": 15732,
+            "virtual_direct_bytes": 405560,
+            "virtual_headers_bytes": 27920,
+            "virtual_metadata_bytes": 136,
+            "virtual_rows": 1311
+          },
+          "name": "Sub",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 15123
+          },
+          "shared_referenced_bytes": 31832
+        },
+        {
+          "inclusive_known_bytes": 40856580,
+          "local_known_bytes": 40342432,
+          "metrics": {
+            "column_indexes_bytes": 4303068,
+            "direct_base_rows": 262195,
+            "hashcons_bytes": 8914176,
+            "index_catalog_bytes": 64,
+            "live_rows": 345075,
+            "offsets_bytes": 256,
+            "physical_columns": 5,
+            "physical_rows": 508884,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 16822044,
+            "row_buffer_bytes": 8192,
+            "stale_rows": 163809,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0,
+            "virtual_descriptors_bytes": 994560,
+            "virtual_direct_bytes": 8520080,
+            "virtual_headers_bytes": 779416,
+            "virtual_metadata_bytes": 184,
+            "virtual_rows": 82880
+          },
+          "name": "Mul",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 345075
+          },
+          "shared_referenced_bytes": 514148
+        },
+        {
+          "inclusive_known_bytes": 28116,
+          "local_known_bytes": 28116,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "hashcons_bytes": 1252,
+            "index_catalog_bytes": 0,
+            "live_rows": 3,
+            "offsets_bytes": 32,
+            "physical_columns": 5,
+            "physical_rows": 3,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26380,
+            "row_buffer_bytes": 60,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Div",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 3
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 59308,
+          "local_known_bytes": 59076,
+          "metrics": {
+            "column_indexes_bytes": 26544,
+            "direct_base_rows": 1,
+            "hashcons_bytes": 1176,
+            "index_catalog_bytes": 64,
+            "live_rows": 2,
+            "offsets_bytes": 32,
+            "physical_columns": 5,
+            "physical_rows": 2,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26380,
+            "row_buffer_bytes": 4096,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0,
+            "virtual_descriptors_bytes": 12,
+            "virtual_direct_bytes": 20,
+            "virtual_headers_bytes": 352,
+            "virtual_metadata_bytes": 8,
+            "virtual_rows": 1
+          },
+          "name": "Pow",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 2
+          },
+          "shared_referenced_bytes": 232
+        },
+        {
+          "inclusive_known_bytes": 27916,
+          "local_known_bytes": 27916,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "hashcons_bytes": 1100,
+            "index_catalog_bytes": 0,
+            "live_rows": 1,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 1,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26376,
+            "row_buffer_bytes": 16,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Ln",
+          "schema": {
+            "input_sorts": [
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 1
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 27916,
+          "local_known_bytes": 27916,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "hashcons_bytes": 1100,
+            "index_catalog_bytes": 0,
+            "live_rows": 1,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 1,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26376,
+            "row_buffer_bytes": 16,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Sqrt",
+          "schema": {
+            "input_sorts": [
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 1
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 54540,
+          "local_known_bytes": 54540,
+          "metrics": {
+            "column_indexes_bytes": 26544,
+            "hashcons_bytes": 1100,
+            "index_catalog_bytes": 64,
+            "live_rows": 1,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 2,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26376,
+            "row_buffer_bytes": 32,
+            "stale_rows": 1,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Sin",
+          "schema": {
+            "input_sorts": [
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 1
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 54540,
+          "local_known_bytes": 54540,
+          "metrics": {
+            "column_indexes_bytes": 26544,
+            "hashcons_bytes": 1100,
+            "index_catalog_bytes": 64,
+            "live_rows": 1,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 1,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26376,
+            "row_buffer_bytes": 32,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Cos",
+          "schema": {
+            "input_sorts": [
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 1
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 179696,
+          "local_known_bytes": 147632,
+          "metrics": {
+            "column_indexes_bytes": 53392,
+            "direct_base_rows": 3,
+            "hashcons_bytes": 1404,
+            "index_catalog_bytes": 64,
+            "live_rows": 5,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 5,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26372,
+            "row_buffer_bytes": 65536,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0,
+            "virtual_descriptors_bytes": 24,
+            "virtual_direct_bytes": 48,
+            "virtual_headers_bytes": 352,
+            "virtual_metadata_bytes": 16,
+            "virtual_rows": 2
+          },
+          "name": "Const",
+          "schema": {
+            "input_sorts": [
+              "i64"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 5
+          },
+          "shared_referenced_bytes": 32064
+        },
+        {
+          "inclusive_known_bytes": 28112,
+          "local_known_bytes": 28112,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "hashcons_bytes": 1252,
+            "index_catalog_bytes": 0,
+            "live_rows": 3,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 3,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26372,
+            "row_buffer_bytes": 64,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Var",
+          "schema": {
+            "input_sorts": [
+              "String"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 3
+          },
+          "shared_referenced_bytes": 0
+        }
+      ],
+      "total_known_unique_bytes": 130347088,
+      "unmapped_functions": []
+    },
+    "current_rich_native": {
+      "local_known_bytes": 134753960,
+      "math_eclasses": 443832,
+      "math_enodes": 1047896,
+      "shared_pool_bytes": {},
+      "tables": [
+        {
+          "inclusive_known_bytes": 13107304,
+          "local_known_bytes": 13107304,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "displaced_rows_bytes": 4194304,
+            "index_catalog_bytes": 0,
+            "live_rows": 337560,
+            "supported": 1,
+            "table_struct_bytes": 96,
+            "tuple_indexes_bytes": 0,
+            "uf_lookup_bytes": 4718600,
+            "uf_parents_bytes": 4194304,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "$uf",
+          "schema": null,
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 1882556,
+          "local_known_bytes": 1882556,
+          "metrics": {
+            "column_indexes_bytes": 117096,
+            "hashcons_bytes": 532224,
+            "index_catalog_bytes": 64,
+            "live_rows": 13504,
+            "offsets_bytes": 128,
+            "physical_columns": 5,
+            "physical_rows": 16453,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 874172,
+            "row_buffer_bytes": 358480,
+            "stale_rows": 2949,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Diff",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 13504
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 5726328,
+          "local_known_bytes": 5726328,
+          "metrics": {
+            "column_indexes_bytes": 148516,
+            "hashcons_bytes": 1115392,
+            "index_catalog_bytes": 64,
+            "live_rows": 32434,
+            "offsets_bytes": 256,
+            "physical_columns": 5,
+            "physical_rows": 39845,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 2800348,
+            "row_buffer_bytes": 1661360,
+            "stale_rows": 7411,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Integral",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 32434
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 72326956,
+          "local_known_bytes": 72326956,
+          "metrics": {
+            "column_indexes_bytes": 1162536,
+            "hashcons_bytes": 19498240,
+            "index_catalog_bytes": 64,
+            "live_rows": 641743,
+            "offsets_bytes": 256,
+            "physical_columns": 5,
+            "physical_rows": 643721,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 25925708,
+            "row_buffer_bytes": 25739760,
+            "stale_rows": 1978,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Add",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 641743
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 2645240,
+          "local_known_bytes": 2645240,
+          "metrics": {
+            "column_indexes_bytes": 123364,
+            "hashcons_bytes": 558336,
+            "index_catalog_bytes": 64,
+            "live_rows": 15123,
+            "offsets_bytes": 256,
+            "physical_columns": 5,
+            "physical_rows": 20313,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 1257228,
+            "row_buffer_bytes": 705600,
+            "stale_rows": 5190,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Sub",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 15123
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 38708024,
+          "local_known_bytes": 38708024,
+          "metrics": {
+            "column_indexes_bytes": 633004,
+            "hashcons_bytes": 8914176,
+            "index_catalog_bytes": 64,
+            "live_rows": 345075,
+            "offsets_bytes": 256,
+            "physical_columns": 5,
+            "physical_rows": 512558,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 16952972,
+            "row_buffer_bytes": 12207160,
+            "stale_rows": 167483,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Mul",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 345075
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 28116,
+          "local_known_bytes": 28116,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "hashcons_bytes": 1252,
+            "index_catalog_bytes": 0,
+            "live_rows": 3,
+            "offsets_bytes": 32,
+            "physical_columns": 5,
+            "physical_rows": 3,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26380,
+            "row_buffer_bytes": 60,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Div",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 3
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 54628,
+          "local_known_bytes": 54628,
+          "metrics": {
+            "column_indexes_bytes": 26544,
+            "hashcons_bytes": 1176,
+            "index_catalog_bytes": 64,
+            "live_rows": 2,
+            "offsets_bytes": 32,
+            "physical_columns": 5,
+            "physical_rows": 2,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26380,
+            "row_buffer_bytes": 40,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Pow",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 2
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 27916,
+          "local_known_bytes": 27916,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "hashcons_bytes": 1100,
+            "index_catalog_bytes": 0,
+            "live_rows": 1,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 1,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26376,
+            "row_buffer_bytes": 16,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Ln",
+          "schema": {
+            "input_sorts": [
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 1
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 27916,
+          "local_known_bytes": 27916,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "hashcons_bytes": 1100,
+            "index_catalog_bytes": 0,
+            "live_rows": 1,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 1,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26376,
+            "row_buffer_bytes": 16,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Sqrt",
+          "schema": {
+            "input_sorts": [
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 1
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 54540,
+          "local_known_bytes": 54540,
+          "metrics": {
+            "column_indexes_bytes": 26544,
+            "hashcons_bytes": 1100,
+            "index_catalog_bytes": 64,
+            "live_rows": 1,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 2,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26376,
+            "row_buffer_bytes": 32,
+            "stale_rows": 1,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Sin",
+          "schema": {
+            "input_sorts": [
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 1
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 54540,
+          "local_known_bytes": 54540,
+          "metrics": {
+            "column_indexes_bytes": 26544,
+            "hashcons_bytes": 1100,
+            "index_catalog_bytes": 64,
+            "live_rows": 1,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 1,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26376,
+            "row_buffer_bytes": 32,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Cos",
+          "schema": {
+            "input_sorts": [
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 1
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 81784,
+          "local_known_bytes": 81784,
+          "metrics": {
+            "column_indexes_bytes": 53392,
+            "hashcons_bytes": 1404,
+            "index_catalog_bytes": 64,
+            "live_rows": 5,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 5,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26372,
+            "row_buffer_bytes": 128,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Const",
+          "schema": {
+            "input_sorts": [
+              "i64"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 5
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 28112,
+          "local_known_bytes": 28112,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "hashcons_bytes": 1252,
+            "index_catalog_bytes": 0,
+            "live_rows": 3,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 3,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26372,
+            "row_buffer_bytes": 64,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Var",
+          "schema": {
+            "input_sorts": [
+              "String"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 3
+          },
+          "shared_referenced_bytes": 0
+        }
+      ],
+      "total_known_unique_bytes": 134753960,
+      "unmapped_functions": []
+    },
+    "current_rich": {
+      "local_known_bytes": 130347832,
+      "math_eclasses": 443832,
+      "math_enodes": 1047896,
+      "shared_pool_bytes": {
+        "bindings": 1613116,
+        "templates": 28912
+      },
+      "tables": [
+        {
+          "inclusive_known_bytes": 13107304,
+          "local_known_bytes": 13107304,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "displaced_rows_bytes": 4194304,
+            "index_catalog_bytes": 0,
+            "live_rows": 337560,
+            "supported": 1,
+            "table_struct_bytes": 96,
+            "tuple_indexes_bytes": 0,
+            "uf_lookup_bytes": 4718600,
+            "uf_parents_bytes": 4194304,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "$uf",
+          "schema": null,
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 2158116,
+          "local_known_bytes": 2035352,
+          "metrics": {
+            "column_indexes_bytes": 215432,
+            "direct_base_rows": 8545,
+            "hashcons_bytes": 532224,
+            "index_catalog_bytes": 64,
+            "live_rows": 13504,
+            "offsets_bytes": 128,
+            "physical_columns": 5,
+            "physical_rows": 16453,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 874172,
+            "row_buffer_bytes": 81920,
+            "stale_rows": 2949,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0,
+            "virtual_descriptors_bytes": 59508,
+            "virtual_direct_bytes": 229880,
+            "virtual_headers_bytes": 41512,
+            "virtual_metadata_bytes": 120,
+            "virtual_rows": 4959
+          },
+          "name": "Diff",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 13504
+          },
+          "shared_referenced_bytes": 122764
+        },
+        {
+          "inclusive_known_bytes": 5349956,
+          "local_known_bytes": 5349060,
+          "metrics": {
+            "column_indexes_bytes": 607316,
+            "direct_base_rows": 32430,
+            "hashcons_bytes": 1115392,
+            "index_catalog_bytes": 64,
+            "live_rows": 32434,
+            "offsets_bytes": 256,
+            "physical_columns": 5,
+            "physical_rows": 39845,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 2800348,
+            "row_buffer_bytes": 8192,
+            "stale_rows": 7411,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0,
+            "virtual_descriptors_bytes": 48,
+            "virtual_direct_bytes": 796820,
+            "virtual_headers_bytes": 20208,
+            "virtual_metadata_bytes": 24,
+            "virtual_rows": 4
+          },
+          "name": "Integral",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 32434
+          },
+          "shared_referenced_bytes": 896
+        },
+        {
+          "inclusive_known_bytes": 68212836,
+          "local_known_bytes": 66679696,
+          "metrics": {
+            "column_indexes_bytes": 8502616,
+            "direct_base_rows": 453018,
+            "hashcons_bytes": 19498240,
+            "index_catalog_bytes": 64,
+            "live_rows": 641743,
+            "offsets_bytes": 256,
+            "physical_columns": 5,
+            "physical_rows": 643721,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 25925708,
+            "row_buffer_bytes": 16384,
+            "stale_rows": 1978,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0,
+            "virtual_descriptors_bytes": 2264700,
+            "virtual_direct_bytes": 9099920,
+            "virtual_headers_bytes": 1371224,
+            "virtual_metadata_bytes": 192,
+            "virtual_rows": 188725
+          },
+          "name": "Add",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 641743
+          },
+          "shared_referenced_bytes": 1533140
+        },
+        {
+          "inclusive_known_bytes": 2494388,
+          "local_known_bytes": 2432508,
+          "metrics": {
+            "column_indexes_bytes": 188916,
+            "direct_base_rows": 13812,
+            "hashcons_bytes": 558336,
+            "index_catalog_bytes": 64,
+            "live_rows": 15123,
+            "offsets_bytes": 256,
+            "physical_columns": 5,
+            "physical_rows": 20313,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 1257228,
+            "row_buffer_bytes": 4096,
+            "stale_rows": 5190,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0,
+            "virtual_descriptors_bytes": 15732,
+            "virtual_direct_bytes": 380040,
+            "virtual_headers_bytes": 27312,
+            "virtual_metadata_bytes": 136,
+            "virtual_rows": 1311
+          },
+          "name": "Sub",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 15123
+          },
+          "shared_referenced_bytes": 61880
+        },
+        {
+          "inclusive_known_bytes": 41151024,
+          "local_known_bytes": 40360416,
+          "metrics": {
+            "column_indexes_bytes": 4303068,
+            "direct_base_rows": 262195,
+            "hashcons_bytes": 8914176,
+            "index_catalog_bytes": 64,
+            "live_rows": 345075,
+            "offsets_bytes": 256,
+            "physical_columns": 5,
+            "physical_rows": 512558,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 16952972,
+            "row_buffer_bytes": 81920,
+            "stale_rows": 167483,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0,
+            "virtual_descriptors_bytes": 994560,
+            "virtual_direct_bytes": 8593560,
+            "virtual_headers_bytes": 519264,
+            "virtual_metadata_bytes": 184,
+            "virtual_rows": 82880
+          },
+          "name": "Mul",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 345075
+          },
+          "shared_referenced_bytes": 790608
+        },
+        {
+          "inclusive_known_bytes": 28116,
+          "local_known_bytes": 28116,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "hashcons_bytes": 1252,
+            "index_catalog_bytes": 0,
+            "live_rows": 3,
+            "offsets_bytes": 32,
+            "physical_columns": 5,
+            "physical_rows": 3,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26380,
+            "row_buffer_bytes": 60,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Div",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 3
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 60980,
+          "local_known_bytes": 59076,
+          "metrics": {
+            "column_indexes_bytes": 26544,
+            "direct_base_rows": 1,
+            "hashcons_bytes": 1176,
+            "index_catalog_bytes": 64,
+            "live_rows": 2,
+            "offsets_bytes": 32,
+            "physical_columns": 5,
+            "physical_rows": 2,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26380,
+            "row_buffer_bytes": 4096,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0,
+            "virtual_descriptors_bytes": 12,
+            "virtual_direct_bytes": 20,
+            "virtual_headers_bytes": 352,
+            "virtual_metadata_bytes": 8,
+            "virtual_rows": 1
+          },
+          "name": "Pow",
+          "schema": {
+            "input_sorts": [
+              "Math",
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 2
+          },
+          "shared_referenced_bytes": 1904
+        },
+        {
+          "inclusive_known_bytes": 27916,
+          "local_known_bytes": 27916,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "hashcons_bytes": 1100,
+            "index_catalog_bytes": 0,
+            "live_rows": 1,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 1,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26376,
+            "row_buffer_bytes": 16,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Ln",
+          "schema": {
+            "input_sorts": [
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 1
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 27916,
+          "local_known_bytes": 27916,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "hashcons_bytes": 1100,
+            "index_catalog_bytes": 0,
+            "live_rows": 1,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 1,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26376,
+            "row_buffer_bytes": 16,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Sqrt",
+          "schema": {
+            "input_sorts": [
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 1
+          },
+          "shared_referenced_bytes": 0
+        },
+        {
+          "inclusive_known_bytes": 60268,
+          "local_known_bytes": 56952,
+          "metrics": {
+            "column_indexes_bytes": 26544,
+            "direct_base_rows": 0,
+            "hashcons_bytes": 1100,
+            "index_catalog_bytes": 64,
+            "live_rows": 1,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 2,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26376,
+            "row_buffer_bytes": 2048,
+            "stale_rows": 1,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0,
+            "virtual_descriptors_bytes": 12,
+            "virtual_direct_bytes": 16,
+            "virtual_headers_bytes": 360,
+            "virtual_metadata_bytes": 8,
+            "virtual_rows": 1
+          },
+          "name": "Sin",
+          "schema": {
+            "input_sorts": [
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 1
+          },
+          "shared_referenced_bytes": 3316
+        },
+        {
+          "inclusive_known_bytes": 60244,
+          "local_known_bytes": 56928,
+          "metrics": {
+            "column_indexes_bytes": 26544,
+            "direct_base_rows": 0,
+            "hashcons_bytes": 1100,
+            "index_catalog_bytes": 64,
+            "live_rows": 1,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 1,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26376,
+            "row_buffer_bytes": 2048,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0,
+            "virtual_descriptors_bytes": 12,
+            "virtual_direct_bytes": 0,
+            "virtual_headers_bytes": 352,
+            "virtual_metadata_bytes": 8,
+            "virtual_rows": 1
+          },
+          "name": "Cos",
+          "schema": {
+            "input_sorts": [
+              "Math"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 1
+          },
+          "shared_referenced_bytes": 3316
+        },
+        {
+          "inclusive_known_bytes": 106224,
+          "local_known_bytes": 98480,
+          "metrics": {
+            "column_indexes_bytes": 53392,
+            "direct_base_rows": 3,
+            "hashcons_bytes": 1404,
+            "index_catalog_bytes": 64,
+            "live_rows": 5,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 5,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26372,
+            "row_buffer_bytes": 16384,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0,
+            "virtual_descriptors_bytes": 24,
+            "virtual_direct_bytes": 48,
+            "virtual_headers_bytes": 352,
+            "virtual_metadata_bytes": 16,
+            "virtual_rows": 2
+          },
+          "name": "Const",
+          "schema": {
+            "input_sorts": [
+              "i64"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 5
+          },
+          "shared_referenced_bytes": 7744
+        },
+        {
+          "inclusive_known_bytes": 28112,
+          "local_known_bytes": 28112,
+          "metrics": {
+            "column_indexes_bytes": 0,
+            "hashcons_bytes": 1252,
+            "index_catalog_bytes": 0,
+            "live_rows": 3,
+            "offsets_bytes": 32,
+            "physical_columns": 4,
+            "physical_rows": 3,
+            "rebuild_columns_bytes": 16,
+            "rebuild_index_bytes": 26372,
+            "row_buffer_bytes": 64,
+            "stale_rows": 0,
+            "supported": 1,
+            "table_struct_bytes": 376,
+            "tuple_indexes_bytes": 0,
+            "uninspected_shared_indexes": 0
+          },
+          "name": "Var",
+          "schema": {
+            "input_sorts": [
+              "String"
+            ],
+            "output_sort": "Math",
+            "visible_rows": 3
+          },
+          "shared_referenced_bytes": 0
+        }
+      ],
+      "total_known_unique_bytes": 131989860,
+      "unmapped_functions": []
+    }
+  },
+  "packing": {
+    "full": [
+      {
+        "matches": 7393,
+        "pattern": 0
+      },
+      {
+        "matches": 1,
+        "pattern": 1
+      },
+      {
+        "matches": 3,
+        "pattern": 2
+      },
+      {
+        "matches": 1311,
+        "pattern": 3
+      },
+      {
+        "matches": 188725,
+        "pattern": 4
+      },
+      {
+        "matches": 82880,
+        "pattern": 5
+      },
+      {
+        "matches": 503,
+        "pattern": 6
+      },
+      {
+        "matches": 1,
+        "pattern": 7
+      }
+    ],
+    "r6": [
+      {
+        "matches": 36,
+        "pattern": 0
+      },
+      {
+        "matches": 4,
+        "pattern": 1
+      },
+      {
+        "matches": 17032,
+        "pattern": 2
+      },
+      {
+        "matches": 1038,
+        "pattern": 3
+      },
+      {
+        "matches": 17032,
+        "pattern": 4
+      },
+      {
+        "matches": 2,
+        "pattern": 5
+      },
+      {
+        "matches": 2,
+        "pattern": 6
+      },
+      {
+        "matches": 26,
+        "pattern": 7
+      },
+      {
+        "matches": 11,
+        "pattern": 8
+      },
+      {
+        "matches": 1,
+        "pattern": 9
+      },
+      {
+        "matches": 75,
+        "pattern": 10
+      },
+      {
+        "matches": 1484,
+        "pattern": 11
+      },
+      {
+        "matches": 8,
+        "pattern": 12
+      },
+      {
+        "matches": 431,
+        "pattern": 13
+      },
+      {
+        "matches": 527,
+        "pattern": 14
+      },
+      {
+        "matches": 527,
+        "pattern": 15
+      },
+      {
+        "matches": 68188,
+        "pattern": 16
+      },
+      {
+        "matches": 7393,
+        "pattern": 17
+      },
+      {
+        "matches": 68411,
+        "pattern": 18
+      },
+      {
+        "matches": 40393,
+        "pattern": 19
+      },
+      {
+        "matches": 214,
+        "pattern": 20
+      },
+      {
+        "matches": 1,
+        "pattern": 21
+      },
+      {
+        "matches": 1,
+        "pattern": 22
+      },
+      {
+        "matches": 1,
+        "pattern": 23
+      },
+      {
+        "matches": 3,
+        "pattern": 24
+      },
+      {
+        "matches": 3,
+        "pattern": 25
+      },
+      {
+        "matches": 1873,
+        "pattern": 26
+      },
+      {
+        "matches": 1,
+        "pattern": 27
+      },
+      {
+        "matches": 30,
+        "pattern": 28
+      },
+      {
+        "matches": 30,
+        "pattern": 29
+      },
+      {
+        "matches": 1311,
+        "pattern": 30
+      },
+      {
+        "matches": 1,
+        "pattern": 31
+      },
+      {
+        "matches": 1,
+        "pattern": 32
+      },
+      {
+        "matches": 1,
+        "pattern": 33
+      },
+      {
+        "matches": 188725,
+        "pattern": 34
+      },
+      {
+        "matches": 82880,
+        "pattern": 35
+      },
+      {
+        "matches": 503,
+        "pattern": 36
+      },
+      {
+        "matches": 1,
+        "pattern": 37
+      },
+      {
+        "matches": 1,
+        "pattern": 38
+      },
+      {
+        "matches": 6,
+        "pattern": 39
+      },
+      {
+        "matches": 8,
+        "pattern": 40
+      },
+      {
+        "matches": 1,
+        "pattern": 41
+      }
+    ]
+  }
+}
