@@ -66,18 +66,36 @@ pub fn recognise_library(
     library: &Library,
     rounds: Option<usize>,
 ) -> Result<Value> {
-    let plans = library.recognition_plans(crate::reuse_cell_recognition::EnvironmentId::UNKNOWN)?;
+    let bodies = library.recognition_bodies()?;
+    let mapped_boundary_ports: usize = bodies
+        .iter()
+        .flat_map(|b| b.sources.iter())
+        .map(|s| s.boundary_body_values.len())
+        .sum();
+    let plans = crate::reuse_cell_recognition::compile_library(
+        crate::reuse_cell_recognition::EnvironmentId::UNKNOWN,
+        &bodies,
+    )?;
     let slot_space = plans
         .iter()
         .filter(|p| p.slots.boundary_space == crate::reuse_cell_recognition::BoundarySpace::Slots)
         .count();
     let plan_count = plans.len();
+    let rejected_sources = plans
+        .iter()
+        .flat_map(|p| {
+            p.rejected_sources
+                .iter()
+                .map(|(index, reason)| json!({"cell":p.cell,"source":index,"reason":reason}))
+        })
+        .collect::<Vec<_>>();
     let mut recognizer = crate::reuse_cell_online::CellRecognizer::new(plans);
     let report = crate::native_analyze::run_with_cell_recognition(source, out, rounds, &mut recognizer)?;
     let counts = recognizer.counts();
     Ok(json!({
         "recognition":{"matched_applications":recognizer.matched_applications(),"located":counts.located,"complete":counts.complete,"packed":counts.packed,"unsupported_sources":counts.unsupported_sources,"pending_subscriptions":recognizer.pending_subscriptions()},
         "plans":plan_count,"slot_space_plans":slot_space,"recognition_only_plans":plan_count-slot_space,
+        "rejected_sources":rejected_sources,"mapped_boundary_ports":mapped_boundary_ports,
         "unsupported":recognizer.unsupported_sources().iter().map(|(plan,source,reason)|json!({"plan":plan,"source":source,"reason":reason})).collect::<Vec<_>>(),
         "fragment_queries":0,
         "analysis_status":report["status"],

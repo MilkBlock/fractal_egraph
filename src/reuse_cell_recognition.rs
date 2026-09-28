@@ -318,6 +318,10 @@ pub struct CellRecognitionPlan {
     pub graph: RecognitionGraph,
     pub sources: Vec<RecognitionSource>,
     pub slots: SlotMapping,
+    /// Sources this plan could not express in its boundary space, with the
+    /// reason. Reported rather than silently dropped.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub rejected_sources: Vec<(usize, String)>,
 }
 
 impl CellRecognitionPlan {
@@ -473,9 +477,9 @@ fn derive_external_slots(
             };
             let position = match port_position {
                 // The recorded terms fix this port's slot-space position.
-                Some(map) => *map
-                    .get(&port)
-                    .ok_or("boundary port has no recorded term to map to a slot")?,
+                Some(map) => *map.get(&port).ok_or_else(|| {
+                    format!("boundary port {port} has no recorded stored body value")
+                })?,
                 None => {
                     let next = positions.len();
                     *positions.entry(port).or_insert_with(|| {
@@ -517,66 +521,76 @@ pub fn compile_library(
                 columns: columns.clone(),
             })
             .collect();
-        // When every source records which stored body value each boundary port
-        // denotes, the boundary is a storage-slot space: library cells then
-        // confirm and compact through the same path as adaptive ones. Otherwise
-        // it stays recognition-only and confirmation stays closed.
+        // A port with a recorded body value can join the storage-slot space. A
+        // port without one cannot, and only the sources that use mapped ports can
+        // use that space. Sources that cannot are reported, never guessed; the
+        // plan falls back to the recognition-only boundary only when no source
+        // can use the slot space at all.
         let mut port_position: BTreeMap<usize, usize> = BTreeMap::new();
         let mut boundary_values: Vec<usize> = vec![];
-        if body
-            .sources
-            .iter()
-            .all(|s| !s.boundary_body_values.is_empty())
-        {
-            for source in &body.sources {
-                for (port, value) in &source.boundary_body_values {
-                    if !port_position.contains_key(port) {
-                        port_position.insert(*port, boundary_values.len());
-                        boundary_values.push(*value);
-                    }
+        for source in &body.sources {
+            for (port, value) in &source.boundary_body_values {
+                if !port_position.contains_key(port) {
+                    port_position.insert(*port, boundary_values.len());
+                    boundary_values.push(*value);
                 }
             }
         }
         let mut graph = RecognitionGraph::default();
+        let mut rejected: Vec<(usize, String)> = vec![];
         let mut slot_space = (!port_position.is_empty()).then_some(port_position.clone());
         let (sources, slot_space) = loop {
-            let attempt = body
-                .sources
-                .iter()
-                .map(|source| {
-                    let recipe = canonical_recipe(&source.recipe);
-                    let steps = recipe
-                        .iter()
-                        .map(|comb| {
-                            RecognitionStep::from_comb(
-                                RuleIdentity {
-                                    environment,
-                                    rule: comb.rule.clone(),
-                                },
-                                comb,
-                            )
-                        })
-                        .collect::<Vec<_>>();
-                    let external_slots =
-                        derive_external_slots(source, &steps, slot_space.as_ref())?;
-                    compile_source(
+            let mut built = vec![];
+            let mut attempt_rejected = vec![];
+            let mut failure = None;
+            for (index, source) in body.sources.iter().enumerate() {
+                let recipe = canonical_recipe(&source.recipe);
+                let steps = recipe
+                    .iter()
+                    .map(|comb| {
+                        RecognitionStep::from_comb(
+                            RuleIdentity {
+                                environment,
+                                rule: comb.rule.clone(),
+                            },
+                            comb,
+                        )
+                    })
+                    .collect::<Vec<_>>();
+                match derive_external_slots(source, &steps, slot_space.as_ref()) {
+                    Ok(external_slots) => match compile_source(
                         &mut graph,
                         SourceProvenance::LibraryEnclosure(source.enclosure),
                         steps,
                         external_slots,
-                    )
-                })
-                .collect::<Result<Vec<_>>>();
-            match attempt {
-                Ok(sources) => break (sources, slot_space),
-                // A port with no recorded term cannot join the slot space; fall
-                // back to the recognition-only boundary rather than guessing.
-                Err(_) if slot_space.is_some() => {
-                    slot_space = None;
-                    graph = RecognitionGraph::default();
+                    ) {
+                        Ok(built_source) => built.push(built_source),
+                        Err(e) => {
+                            failure = Some(e);
+                            break;
+                        }
+                    },
+                    Err(e) if slot_space.is_some() => attempt_rejected.push((index, e.to_string())),
+                    Err(e) => {
+                        failure = Some(e);
+                        break;
+                    }
                 }
-                Err(e) => return Err(e),
             }
+            if let Some(e) = failure {
+                return Err(e);
+            }
+            // Keep the reasons even when the plan falls back: they are the
+            // answer to "why is confirmation closed for this cell".
+            rejected.extend(attempt_rejected);
+            if slot_space.is_some() && built.is_empty() {
+                // No source can use the slot space: retry the recognition-only
+                // boundary for the whole plan rather than emit an empty one.
+                slot_space = None;
+                graph = RecognitionGraph::default();
+                continue;
+            }
+            break (built, slot_space);
         };
         let (boundary, boundary_space) = match &slot_space {
             Some(_) => (boundary_values, BoundarySpace::Slots),
@@ -618,8 +632,7 @@ pub fn compile_library(
                 term: literal.clone(),
             })
             .collect();
-        // One boundary list for the whole body: every source positions its
-        // external ports in the same canonical order.
+        let template = template;
         let mapping = SlotMapping {
             boundary,
             boundary_space,
@@ -633,6 +646,7 @@ pub fn compile_library(
             graph,
             sources,
             slots: mapping,
+            rejected_sources: rejected,
         });
     }
     Ok(plans)
@@ -748,6 +762,7 @@ pub fn compile_bake(cells: &[BakeCell]) -> Result<Vec<CellRecognitionPlan>> {
             graph,
             sources: vec![source],
             slots: mapping,
+            rejected_sources: vec![],
         });
     }
     Ok(plans)
