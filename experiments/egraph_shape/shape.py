@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
-"""Draw the e-class shape of an e-graph as a 3D statistical figure.
+"""E-graph shape as a 2D heatmap (with marginals), or the older violin view.
 
 For every e-class we compute
-  * `root distance` -- shortest number of constructor steps from the top e-class
-    (roots are classes nobody points at); this is the x axis the user asked for,
+  * `root distance` -- shortest number of constructor steps from a top e-class
+    (roots are classes nobody points at); the x axis of the original request,
   * `leaf height`   -- shortest term height above the leaves (0 = a class that has
-    an e-node with no Math arguments); this is the dual x axis,
-  * e-nodes per e-class (the z axis, plotted as log2),
-  * e-classes per level (the y axis, plotted as log10).
+    an e-node with no Math arguments); the dual x axis,
+  * e-nodes per e-class, which is the second axis (log2 bins).
 
-Each violin is drawn in the (x, z) plane and placed at depth y = log10(#classes),
-so a single panel shows a distribution (z) per level (x) at its class count (y).
+Default `heatmap` mode draws, for each level (x) and each log2 bin of e-nodes per
+class (y), the number of e-classes in that cell as a colour on a log10 scale. The
+top marginal is log10(#eclasses) per level -- the y value of the original request
+-- and the right marginal is the pooled distribution over e-node counts.
+`violin` mode keeps the earlier per-level distribution view.
 
-Input is the constructor-row export used elsewhere in this repository:
-a list of {"op", "args": [[sort, value], ...], "result"} rows.
+Input is the constructor-row export used elsewhere in this repository
+(`[{"op", "args": [["Math", v], ...], "result"}]`) or a directory tree of
+`SaturatedRuleComposition` cell exports.
 """
 import argparse
 import collections
@@ -26,10 +29,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 INK = "#162b3a"
-GRID = "#dbe3ea"
+MUTED = "#5b6b7a"
+GRID = "#dfe6ec"
 BLUE = "#2678a9"
 ORANGE = "#d77819"
-TEAL = "#2a9d8f"
+
+RAMP = ["#eef5fa", "#cfe3f1", "#9ec9e2", "#f2c14e", "#e08a1e", "#b8530c", "#8c2f06"]
 
 
 def norm(v):
@@ -53,7 +58,7 @@ def index_rows(rows):
 
 
 def load_graph(path):
-    return index_rows(json.loads(Path(path).read_text()))
+    return json.loads(Path(path).read_text())
 
 
 def composition_rows(path):
@@ -110,7 +115,7 @@ def leaf_height(classes, enodes):
 
 
 def levels(values, dist):
-    """Group e-node counts (in log2 space) by level."""
+    """Group e-node counts (kept in log2 space) by level."""
     buckets = collections.defaultdict(list)
     for c, level in dist.items():
         if level is None:
@@ -137,10 +142,6 @@ def levels(values, dist):
     return out
 
 
-def describe(path, label):
-    return describe_rows(load_graph(path), label, str(path))
-
-
 def describe_rows(rows, label, path=""):
     enodes, children, parents, classes = index_rows(rows)
     counts = {c: len(v) for c, v in enodes.items()}
@@ -159,13 +160,16 @@ def describe_rows(rows, label, path=""):
     }
 
 
+def describe(path, label):
+    return describe_rows(load_graph(path), label, str(path))
+
+
 def describe_pool(paths, label):
     """Pool the interiors of many exported cells into one shape description."""
     values, root_level, leaf_level = {}, {}, {}
     per_cell = []
     for i, path in enumerate(paths):
-        rows = composition_rows(path)
-        enodes, children, parents, classes = index_rows(rows)
+        enodes, children, parents, classes = index_rows(composition_rows(path))
         counts = {c: len(v) for c, v in enodes.items()}
         rd, _roots = root_distance(classes, children, parents)
         lh = leaf_height(classes, enodes)
@@ -192,187 +196,229 @@ def describe_pool(paths, label):
         "roots": None,
         "root_distance": levels(values, root_level),
         "leaf_height": levels(values, leaf_level),
-        "cyclic_classes": sum(1 for v in values if leaf_level.get((0, 0)) is None) * 0,
+        "cyclic_classes": 0,
         "per_cell": per_cell,
     }
 
 
-def kde(samples, points, bandwidth=0.22):
-    if not samples:
-        return [0.0] * len(points)
-    norm_factor = 1.0 / (len(samples) * bandwidth * math.sqrt(2 * math.pi))
-    out = []
-    for p in points:
-        total = 0.0
-        for s in samples:
-            d = (p - s) / bandwidth
-            total += math.exp(-0.5 * d * d)
-        out.append(total * norm_factor)
-    return out
+# --------------------------------------------------------------------------- #
+# heatmap rendering
+# --------------------------------------------------------------------------- #
 
 
-class Panel:
-    """Isometric projection: x = level, y = depth (log10 classes), z = log2 e-nodes."""
-
-    def __init__(self, ox, oy, width, height, x_steps, y_max, z_max):
-        self.ox, self.oy, self.w, self.h = ox, oy, width, height
-        self.x_steps = max(1, x_steps)
-        self.y_max = max(1.0, y_max)
-        self.z_max = max(4.0, z_max)
-        plot_w = width - 190
-        depth_budget = 0.30 * plot_w
-        self.sy = depth_budget / (0.52 * self.y_max)
-        self.sx = (plot_w - depth_budget) / (self.x_steps + 0.9)
-        self.sz = (height - 150) / self.z_max
-
-    def project(self, level, log_classes, log2_enodes):
-        return (
-            self.ox + 110 + level * self.sx + 0.52 * log_classes * self.sy,
-            self.oy + self.h - 66 - 0.30 * log_classes * self.sy - log2_enodes * self.sz,
-        )
+def histogram(rows):
+    """counts per (level, log2 e-node bin); bin b covers [2^b, 2^(b+1))."""
+    max_log = max(r["log2_max"] for r in rows)
+    nbins = int(math.floor(max_log)) + 1
+    grid = [[0] * nbins for _ in rows]
+    for i, r in enumerate(rows):
+        for s in r["log2_samples"]:
+            b = min(nbins - 1, max(0, int(math.floor(s))))
+            grid[i][b] += 1
+    return nbins, grid
 
 
-def fmt(value):
-    if value >= 1000:
-        return f"{value / 1000:.1f}k"
-    return str(value)
-
-
-def draw_panel(rows, x_key, title, note, panel, accent):
-    parts = []
-    ox, oy = panel.ox, panel.oy
-    max_level = max(r["level"] for r in rows) if rows else 0
-    y_max = max(math.log10(max(1, r["classes"])) for r in rows) if rows else 1.0
-    z_max = max(r["log2_max"] for r in rows) + 0.8 if rows else 4.0
-
-    for r in rows:
-        x0, y0 = panel.project(r["level"], 0, 0)
-        x1, y1 = panel.project(r["level"], 0, z_max)
-        parts.append(f'<line x1="{x0:.1f}" y1="{y0:.1f}" x2="{x1:.1f}" y2="{y1:.1f}" stroke="{GRID}" stroke-width="1"/>')
-    spine = " ".join(
-        "%.1f,%.1f" % panel.project(r["level"], math.log10(max(1, r["classes"])), 0) for r in rows
+def ramp(t):
+    t = max(0.0, min(1.0, t))
+    pos = t * (len(RAMP) - 1)
+    i = min(len(RAMP) - 2, int(pos))
+    f = pos - i
+    a, b = RAMP[i].lstrip("#"), RAMP[i + 1].lstrip("#")
+    return "#%02x%02x%02x" % tuple(
+        int(round(int(a[2 * k : 2 * k + 2], 16) + (int(b[2 * k : 2 * k + 2], 16) - int(a[2 * k : 2 * k + 2], 16)) * f))
+        for k in range(3)
     )
-    parts.append(f'<polyline points="{spine}" fill="none" stroke="{accent}" stroke-width="2.4"/>')
 
-    spacing = panel.sx
-    for r in rows:
-        y = math.log10(max(1, r["classes"]))
-        lo = max(0.0, r["log2_min"] - 0.8)
-        hi = r["log2_max"] + 0.8
-        points = [lo + (hi - lo) * i / 48 for i in range(49)]
-        dens = kde(r["log2_samples"], points)
-        peak = max(dens) or 1.0
-        half = 0.40 * spacing
-        left, right = [], []
-        for p, d in zip(points, dens):
-            x, yy = panel.project(r["level"], y, p)
-            w = half * (d / peak)
-            left.append((x - w, yy))
-            right.append((x + w, yy))
-        polygon = left + list(reversed(right))
-        pts = " ".join(f"{x:.1f},{y:.1f}" for x, y in polygon)
-        shade = 0.30 + 0.42 * min(1.0, y / 3.0)
-        parts.append(
-            f'<polygon points="{pts}" fill="{accent}" fill-opacity="{shade:.2f}" '
-            f'stroke="{INK}" stroke-width="0.9"/>'
-        )
-        for value, weight in ((r["log2_min"], 1.0), (r["log2_max"], 1.0), (math.log2(r["enodes_median"]), 2.2)):
-            x, yy = panel.project(r["level"], y, value)
-            parts.append(f'<line x1="{x - half * 0.5:.1f}" y1="{yy:.1f}" x2="{x + half * 0.5:.1f}" y2="{yy:.1f}" '
-                         f'stroke="{INK}" stroke-width="{weight}"/>')
-        bx, by = panel.project(r["level"], y, -0.30)
-        parts.append(
-            f'<text x="{bx:.1f}" y="{by + 14:.1f}" text-anchor="middle" font-size="12" fill="{INK}">'
-            f'{r["classes"]}</text>'
-        )
-        lx, ly = panel.project(r["level"], y, -1.35)
-        parts.append(
-            f'<text x="{lx:.1f}" y="{ly + 14:.1f}" text-anchor="middle" font-size="13" fill="{INK}" '
-            f'font-weight="600">{r["level"]}</text>'
-        )
 
-    # x axis
-    x0, y0 = panel.project(0, 0, 0)
-    x1, y1 = panel.project(max_level, 0, 0)
-    parts.append(f'<line x1="{x0:.1f}" y1="{y0:.1f}" x2="{x1:.1f}" y2="{y1:.1f}" stroke="{INK}" stroke-width="1.6"/>')
-    parts.append(f'<text x="{(x0 + x1) / 2:.1f}" y="{max(y0, y1) + 46:.1f}" text-anchor="middle" '
-                 f'font-size="14" fill="{INK}">{x_key}</text>')
-    # z axis
-    zx0, zy0 = panel.project(0, 0, 0)
-    zx1, zy1 = panel.project(0, 0, z_max)
-    parts.append(f'<line x1="{zx0:.1f}" y1="{zy0:.1f}" x2="{zx1:.1f}" y2="{zy1:.1f}" stroke="{INK}" stroke-width="1.6"/>')
-    for tick in range(0, int(z_max) + 1):
-        x, y = panel.project(0, 0, tick)
-        parts.append(f'<line x1="{x:.1f}" y1="{y:.1f}" x2="{x - 6:.1f}" y2="{y:.1f}" stroke="{INK}" stroke-width="1"/>')
-        parts.append(f'<text x="{x - 10:.1f}" y="{y + 4:.1f}" text-anchor="end" font-size="11" fill="{INK}">'
-                     f'{fmt(2 ** tick)}</text>')
-    parts.append(f'<text x="{zx0 - 84:.1f}" y="{zy1 - 12:.1f}" font-size="13" fill="{INK}">e-nodes/class (log2)</text>')
-    # depth axis (log10 class count)
-    dx0, dy0 = panel.project(max_level, 0, 0)
-    dx1, dy1 = panel.project(max_level, y_max, 0)
-    parts.append(f'<line x1="{dx0:.1f}" y1="{dy0:.1f}" x2="{dx1:.1f}" y2="{dy1:.1f}" stroke="{INK}" stroke-width="1.6"/>')
-    for lc in range(0, int(y_max) + 1):
-        x, y = panel.project(max_level, lc, 0)
-        parts.append(f'<line x1="{x:.1f}" y1="{y:.1f}" x2="{x + 5:.1f}" y2="{y - 3:.1f}" stroke="{INK}" stroke-width="1"/>')
-        parts.append(f'<text x="{x + 9:.1f}" y="{y + 5:.1f}" font-size="11" fill="{INK}">{fmt(10 ** lc)}</text>')
-    lx, ly = panel.project(max_level, y_max, 0)
-    parts.append(f'<text x="{lx + 8:.1f}" y="{ly - 20:.1f}" font-size="13" fill="{INK}">#eclasses (log10)</text>')
-    parts.append(f'<text x="{ox + 16:.1f}" y="{oy + 26:.1f}" font-size="17" fill="{INK}" font-weight="600">{title}</text>')
-    parts.append(f'<text x="{ox + 16:.1f}" y="{oy + 45:.1f}" font-size="12" fill="#5b6b7a">{note}</text>')
+def heatmap_panel(rows, x_label, title, note, ox, oy, w, h):
+    parts = []
+    nbins, grid = histogram(rows)
+    n_x = len(rows)
+    total = sum(sum(r) for r in grid)
+    peak = max(max(r) for r in grid) or 1
+    norm_max = math.log10(1 + peak)
+
+    left = ox + 104
+    top = oy + 92
+    plot_w = w - 104 - 104
+    plot_h = h - 92 - 112
+    cw, ch = plot_w / n_x, plot_h / nbins
+
+    # cells
+    for i in range(n_x):
+        for b in range(nbins):
+            count = grid[i][b]
+            cx = left + i * cw
+            cy = top + plot_h - (b + 1) * ch
+            colour = ramp(math.log10(1 + count) / norm_max) if count else "#f7f9fb"
+            parts.append(f'<rect x="{cx:.1f}" y="{cy:.1f}" width="{cw:.1f}" height="{ch:.1f}" '
+                         f'fill="{colour}" stroke="{GRID}" stroke-width="0.7"/>')
+            if count and cw > 30 and ch > 15:
+                dark = math.log10(1 + count) / norm_max > 0.55
+                parts.append(f'<text x="{cx + cw / 2:.1f}" y="{cy + ch / 2 + 4:.1f}" text-anchor="middle" '
+                             f'font-size="11" fill="{"#ffffff" if dark else INK}">{count}</text>')
+
+    # y axis: log2 bins
+    for b in range(nbins):
+        cy = top + plot_h - (b + 0.5) * ch
+        parts.append(f'<text x="{left - 10:.1f}" y="{cy + 4:.1f}" text-anchor="end" font-size="11" '
+                     f'fill="{INK}">{2 ** b}</text>')
+    parts.append(f'<text x="{left - 78:.1f}" y="{top - 10:.1f}" font-size="12" fill="{INK}">'
+                 f'e-nodes/class</text>')
+    parts.append(f'<text x="{left - 78:.1f}" y="{top + 6:.1f}" font-size="11" fill="{MUTED}">(log2 bin)</text>')
+
+    # x axis: levels
+    for i, r in enumerate(rows):
+        cx = left + (i + 0.5) * cw
+        parts.append(f'<text x="{cx:.1f}" y="{top + plot_h + 20:.1f}" text-anchor="middle" font-size="13" '
+                     f'font-weight="600" fill="{INK}">{r["level"]}</text>')
+        parts.append(f'<text x="{cx:.1f}" y="{top + plot_h + 35:.1f}" text-anchor="middle" font-size="10" '
+                     f'fill="{MUTED}">{r["classes"]}</text>')
+    parts.append(f'<text x="{left:.1f}" y="{top + plot_h + 58:.1f}" font-size="14" fill="{INK}">{x_label}'
+                 f' (0 = closest to root / to the leaves)</text>')
+
+    # top marginal: log10(#eclasses) per level
+    mh = 52
+    mmax = max(math.log10(max(1, r["classes"])) for r in rows) or 1.0
+    for i, r in enumerate(rows):
+        bar = mh * math.log10(max(1, r["classes"])) / mmax
+        cx = left + i * cw + cw * 0.15
+        parts.append(f'<rect x="{cx:.1f}" y="{top - bar - 6:.1f}" width="{cw * 0.7:.1f}" height="{bar:.1f}" '
+                     f'fill="{ORANGE}" fill-opacity="0.55"/>')
+    parts.append(f'<line x1="{left:.1f}" y1="{top - 6:.1f}" x2="{left + plot_w:.1f}" y2="{top - 6:.1f}" '
+                 f'stroke="{INK}" stroke-width="1"/>')
+    parts.append(f'<text x="{left:.1f}" y="{top - mh - 14:.1f}" font-size="11" fill="{ORANGE}">'
+                 f'top: log10(#eclasses) per level (max {10 ** mmax:.0f})</text>')
+
+    # right marginal: pooled e-node distribution
+    mw = 72
+    bin_counts = [sum(grid[i][b] for i in range(n_x)) for b in range(nbins)]
+    bmax = max(bin_counts) or 1
+    for b in range(nbins):
+        width = mw * bin_counts[b] / bmax
+        cy = top + plot_h - (b + 1) * ch
+        parts.append(f'<rect x="{left + plot_w + 6:.1f}" y="{cy + 1:.1f}" width="{width:.1f}" '
+                     f'height="{ch - 2:.1f}" fill="{BLUE}" fill-opacity="0.55"/>')
+        if bin_counts[b]:
+            parts.append(f'<text x="{left + plot_w + 10 + width:.1f}" y="{cy + ch / 2 + 4:.1f}" font-size="10" '
+                         f'fill="{MUTED}">{bin_counts[b]}</text>')
+    parts.append(f'<text x="{left + plot_w + 6:.1f}" y="{top - 14:.1f}" font-size="11" fill="{BLUE}">'
+                 f'size marginal</text>')
+
+    # colour legend
+    lx, ly, lw, lh = left + plot_w - 190, oy + h - 44, 150, 12
+    for k in range(60):
+        parts.append(f'<rect x="{lx + lw * k / 60:.1f}" y="{ly:.1f}" width="{lw / 60 + 0.6:.1f}" '
+                     f'height="{lh}" fill="{ramp(k / 59)}"/>')
+    for tick in range(0, int(math.ceil(norm_max)) + 1):
+        tx = lx + lw * tick / norm_max
+        parts.append(f'<text x="{tx:.1f}" y="{ly + lh + 12:.1f}" text-anchor="middle" font-size="10" '
+                     f'fill="{MUTED}">{10 ** tick}</text>')
+    parts.append(f'<text x="{lx + lw + 14:.1f}" y="{ly + 10:.1f}" font-size="11" fill="{MUTED}">'
+                 f'#eclasses per cell ({n_x}×{nbins} cells, {total} classes)</text>')
+
+    parts.append(f'<text x="{ox + 16:.1f}" y="{oy + 26:.1f}" font-size="17" fill="{INK}" '
+                 f'font-weight="600">{title}</text>')
+    parts.append(f'<text x="{ox + 16:.1f}" y="{oy + 45:.1f}" font-size="12" fill="{MUTED}">{note}</text>')
     return parts
 
 
-def note_for(key, rows, desc):
+def note_for(key, rows):
     if not rows:
         return "no classes"
     if key == "root_distance" and len(rows) <= 2:
         return "degenerate at the root: one top e-class, every other class is its direct child"
     if key == "leaf_height":
         top = rows[-1]
-        return (f"highest level holds {top['classes']} class(es) with up to "
-                f"{fmt(top['enodes_max'])} e-nodes each")
-    return "violin width = density of e-nodes/class at that level; label at the base = #eclasses"
+        return (f"highest level: {top['classes']} class(es), up to {top['enodes_max']} e-nodes each; "
+                f"cell text = #eclasses")
+    return "cell text = #eclasses in that (level, size) bin"
 
 
-def render(descriptions, out, width=1760):
-    panels = []
-    row_h = 580
+def kde(samples, points, bandwidth=0.22):
+    if not samples:
+        return [0.0] * len(points)
+    factor = 1.0 / (len(samples) * bandwidth * math.sqrt(2 * math.pi))
+    out = []
+    for p in points:
+        total = 0.0
+        for s in samples:
+            d = (p - s) / bandwidth
+            total += math.exp(-0.5 * d * d)
+        out.append(total * factor)
+    return out
+
+
+def violin_panel(rows, x_label, title, note, ox, oy, w, h):
+    """The earlier per-level distribution view, for comparison."""
+    parts = []
+    n = max(1, len(rows) - 1)
+    y_max = max((math.log10(max(1, r["classes"])) for r in rows), default=1.0)
+    plot_w = w - 260
+    sy = 0.30 * plot_w / (0.52 * max(1.0, y_max))
+    sx = (plot_w - 0.30 * plot_w) / n
+    sz = (h - 170) / 11.0
+    accent = BLUE if x_label == "root distance" else ORANGE
+
+    def point(level, log_classes, log2_enodes):
+        return (ox + 150 + level * sx + 0.52 * log_classes * sy,
+                oy + h - 80 - 0.30 * log_classes * sy - log2_enodes * sz)
+
+    floor_y = max(point(r["level"], 0, 0)[1] for r in rows)
+    for r in rows:
+        y = math.log10(max(1, r["classes"]))
+        lo, hi = max(0.0, r["log2_min"] - 0.8), r["log2_max"] + 0.8
+        pts = [lo + (hi - lo) * k / 48 for k in range(49)]
+        dens = kde(r["log2_samples"], pts)
+        peak = max(dens) or 1.0
+        half = 0.40 * sx
+        left, right = [], []
+        for p, d in zip(pts, dens):
+            x, yy = point(r["level"], y, p)
+            left.append((x - half * d / peak, yy))
+            right.append((x + half * d / peak, yy))
+        polygon = " ".join(f"{x:.1f},{y:.1f}" for x, y in left + list(reversed(right)))
+        parts.append(f'<polygon points="{polygon}" fill="{accent}" fill-opacity="0.45" '
+                     f'stroke="{INK}" stroke-width="0.9"/>')
+        base = point(r["level"], y, 0)
+        parts.append(f'<text x="{base[0]:.1f}" y="{base[1] + 16:.1f}" text-anchor="middle" font-size="11" '
+                     f'fill="{INK}">{r["classes"]}</text>')
+        lvl = point(r["level"], y, -1.3)
+        parts.append(f'<text x="{lvl[0]:.1f}" y="{lvl[1] + 14:.1f}" text-anchor="middle" font-size="12" '
+                     f'font-weight="600" fill="{INK}">{r["level"]}</text>')
+    parts.append(f'<line x1="{point(0, 0, 0)[0]:.1f}" y1="{point(0, 0, 0)[1]:.1f}" '
+                 f'x2="{point(n, 0, 0)[0]:.1f}" y2="{point(n, 0, 0)[1]:.1f}" stroke="{INK}" stroke-width="1.4"/>')
+    parts.append(f'<text x="{ox + w / 2:.1f}" y="{floor_y + 40:.1f}" text-anchor="middle" font-size="13" '
+                 f'fill="{INK}">{x_label} (violin = e-nodes/class distribution)</text>')
+    parts.append(f'<text x="{ox + 16:.1f}" y="{oy + 26:.1f}" font-size="17" fill="{INK}" '
+                 f'font-weight="600">{title}</text>')
+    parts.append(f'<text x="{ox + 16:.1f}" y="{oy + 45:.1f}" font-size="12" fill="{MUTED}">{note}</text>')
+    return parts
+
+
+def render(descriptions, out, mode, width=1760):
+    row_h = 560
+    height = 70 + row_h * len(descriptions) + 30
+    body = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" width="{width}" '
+            f'height="{height}" role="img" aria-label="e-graph shape heatmap">',
+            f'<rect width="{width}" height="{height}" fill="#ffffff"/>',
+            f'<text x="40" y="38" font-size="22" fill="{INK}" font-weight="700">'
+            f'e-graph shape: level × log2(e-nodes per e-class) × log10(#eclasses)</text>']
     for i, desc in enumerate(descriptions):
         for j, key in enumerate(("root_distance", "leaf_height")):
             rows = desc[key]
             ox = 40 + j * (width // 2)
             oy = 70 + i * row_h
-            y_max = max((math.log10(max(1, r["classes"])) for r in rows), default=1.0)
-            z_max = max((r["log2_max"] + 0.8 for r in rows), default=4.0)
-            panel = Panel(ox, oy, width // 2 - 60, row_h - 90, len(rows) - 1, y_max, z_max)
-            title = (
-                f'{desc["label"]} — x = distance from root e-class'
-                if key == "root_distance"
-                else f'{desc["label"]} — x = height above leaves'
-            )
-            accent = BLUE if key == "root_distance" else ORANGE
-            panels.append(
-                (
-                    title,
-                    rows,
-                    "root distance" if key == "root_distance" else "leaf height",
-                    note_for(key, rows, desc),
-                    panel,
-                    accent,
-                )
-            )
-
-    height = 70 + row_h * len(descriptions) + 40
-    body = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" '
-            f'width="{width}" height="{height}" role="img" '
-            f'aria-label="e-class shape: level vs class count vs e-nodes per class">',
-            f'<rect width="{width}" height="{height}" fill="#ffffff"/>',
-            f'<text x="40" y="38" font-size="22" fill="{INK}" font-weight="700">'
-            f'e-graph shape: level × log10(#eclasses) × distribution of e-nodes per e-class</text>']
-    for title, rows, x_key, note, panel, accent in panels:
-        body.append('<g>')
-        body.extend(draw_panel(rows, x_key, title, note, panel, accent))
-        body.append("</g>")
+            x_label = "root distance" if key == "root_distance" else "leaf height"
+            title = (f'{desc["label"]} — x = distance from root e-class' if key == "root_distance"
+                     else f'{desc["label"]} — x = height above leaves')
+            note = note_for(key, rows)
+            body.append("<g>")
+            if mode == "heatmap":
+                body.extend(heatmap_panel(rows, x_label, title, note, ox, oy, width // 2 - 60, row_h - 60))
+            else:
+                body.extend(violin_panel(rows, x_label, title, note, ox, oy, width // 2 - 60, row_h - 40))
+            body.append("</g>")
     body.append("</svg>")
     Path(out).write_text("\n".join(body) + "\n")
 
@@ -380,24 +426,28 @@ def render(descriptions, out, width=1760):
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--graph", action="append", help="path[:label]")
-    p.add_argument("--out", type=Path, default=ROOT / "out/egraph-shape/shape.svg")
-    p.add_argument("--data", type=Path, default=None, help="also write the level statistics as JSON")
     p.add_argument("--cells", type=Path, default=None,
                    help="directory tree of */saturated-rule-composition.json cell exports to pool")
+    p.add_argument("--mode", choices=("heatmap", "violin"), default="heatmap")
+    p.add_argument("--out", type=Path, default=ROOT / "out/egraph-shape/shape.svg")
+    p.add_argument("--data", type=Path, default=None, help="also write the level statistics as JSON")
     a = p.parse_args()
     descriptions = []
     if a.cells:
         paths = sorted(globmod.glob(str(a.cells / "*/saturated-rule-composition.json")))
         if not paths:
             raise SystemExit(f"no cell exports under {a.cells}")
-        descriptions.append(describe_pool([Path(x) for x in paths], f"ripened cell interiors ({len(paths)} exports)"))
+        descriptions.append(describe_pool([Path(x) for x in paths],
+                                          f"ripened cell interiors ({len(paths)} exports)"))
     for spec in (a.graph or []):
         path, _, label = spec.partition(":")
-        descriptions.append(describe(ROOT / path if not Path(path).is_absolute() else Path(path), label or Path(path).stem))
+        full = Path(path) if Path(path).is_absolute() else ROOT / path
+        descriptions.append(describe(full, label or Path(path).stem))
+    if not descriptions:
+        raise SystemExit("nothing to draw: pass --graph and/or --cells")
     a.out.parent.mkdir(parents=True, exist_ok=True)
-    render(descriptions, a.out)
+    render(descriptions, a.out, a.mode)
     if a.data:
-        # the raw per-class log2 samples are only needed for drawing; keep the summary
         trimmed = json.loads(json.dumps(descriptions))
         for desc in trimmed:
             for key in ("root_distance", "leaf_height"):
@@ -407,7 +457,7 @@ def main():
     for d in descriptions:
         print(f'{d["label"]}: classes={d["classes"]} enodes={d["enodes"]} roots={d["roots"]} '
               f'root-levels={len(d["root_distance"])} leaf-levels={len(d["leaf_height"])}')
-    print(f"wrote {a.out}" + (f" and {a.data}" if a.data else ""))
+    print(f"wrote {a.out} ({a.mode})" + (f" and {a.data}" if a.data else ""))
 
 
 if __name__ == "__main__":
