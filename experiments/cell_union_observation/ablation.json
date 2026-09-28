@@ -1,0 +1,32 @@
+{
+  "egg": "out/cell-evolution-complete/math.egg",
+  "source": "experiments/math_mini3/source.egg with (run 3)->(run 6)",
+  "library": "experiments/math_mini3/adaptive_runtime/bake_lib_round2.json",
+  "note": "AUDIT_ENCLOSURES and CELL_EVOLUTION both enable TraceSession::with_dependencies (src/reuse_adaptive.rs:737)",
+  "runs": [
+    {
+      "config": "base",
+      "execution_seconds": 0.010468042,
+      "matches": 3368,
+      "peak_rss_bytes": 14221312,
+      "enodes": 2167,
+      "eclasses": 748
+    },
+    {
+      "config": "audit",
+      "execution_seconds": 0.034112834,
+      "matches": 3368,
+      "peak_rss_bytes": 25657344,
+      "enodes": 2167,
+      "eclasses": 748
+    },
+    {
+      "config": "evolution",
+      "execution_seconds": 2.0662165,
+      "matches": 3368,
+      "peak_rss_bytes": 931528704,
+      "enodes": 2167,
+      "eclasses": 748
+    }
+  ]
+}

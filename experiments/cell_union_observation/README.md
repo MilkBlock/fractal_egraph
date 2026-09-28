@@ -41,8 +41,34 @@
 **F7 分支比 < 1。** births per occurrence 全局 **0.797**（body_read 0.780 / input_refinement 0.819）；
 四个玩具 fixture 恰好是 **1.0**（12 事件→12 个新 cell）。6 轮的 math 运行是次临界的。
 
-**F8 类型恒定、实例爆炸。** 6 轮里 `families`（cell 类型）**恒为 13**，而 e-class 从 50 涨到 748，
-每 match 引擎时间从 **0.026 ms 涨到 1.41 ms（55×）**。飙血发生在实例层，不在类型层。
+**F8 少数类型、大量实例 —— 但引擎没有变慢，慢和涨内存的是观测器（本节曾写错，已更正）。**
+
+* `families` = cell **模板**数：`Evolution::family`（`src/reuse_evolution.rs:71`）用
+  「template 行 + slot sorts + `adaptive_root` 槽位索引」做 key，`families: Vec<Macro>`。
+  这次 math 运行恒为 **13**（= `bake.macros.len()`，progress 里的 `bodies`）。
+  实例是 `(family, canonical binding)`，共 **3,016** 个（`observed_instance_births`）。
+  所以是**少数类型 × 大量实例**（平均每模板实例化 232 次）——不是「模板重用多、cell 少」。
+* 原来那句「每 match 时间 0.026 → 1.41 ms（55×）」有两处错：`execution_seconds` 是**累计**值
+  （`reuse_adaptive.rs:751/862` 逐轮累加），我当成了单轮；而且**那根本不是引擎的时间**。
+  同一份 `out/cell-evolution-complete/math.egg`（`experiments/math_mini3/source.egg` 的
+  `(run 3)`→`(run 6)`）、同一 `frozen` 库、同一二进制，只切 trace / observer：
+
+| 配置 | matches | `execution_seconds` | 峰值 RSS | 输出目录 |
+|---|---:|---:|---:|---|
+| base（无 trace） | 3,368 | **0.0105** | **13.6 MiB** | `out/cell-union-observation/ablation-base` |
+| trace + enclosure audit | 3,368 | 0.0341 | 24.5 MiB | `ablation-audit` |
+| trace + Evolution observer | 3,368 | **2.066** | **888 MiB** | `ablation-evolution` |
+
+  依赖 trace 本身只贵 3.3× / 1.8×；**Evolution observer 贵 ~200× / 65×**。引擎每个 match
+  2–5 µs 且六轮不增长（对照 `math-control` 的逐轮差分）。
+* **内存不是虚拟存储**：storage 报告里 `virtual_rows` 合计约 1.8k、模板 48 个、payload 都是 KB 级；
+  `loose_contacts` 是个 `usize` 计数器（`reuse_evolution.rs:264`），826k 次接触不落存储。
+  888 MiB 来自 observer 把每个 transition descriptor 存成 `serde_json::Value`（外加一份字符串 key
+  做 map key），最后 `e.report()` 再把整份 catalog 物化成一个大 `Value` 树——写出的
+  `cell-evolution.json` 本身就有 **76.8 MiB**。
+* observer 的每 match 成本随 fan-out 增长：每个 match 要把读到的每个 Math 值的 owner 集合并起来
+  （`support` / `contacts`），图越稠密、hub 值 owner 越多越贵。这就是 F4 的重尾在这里的代价。
+
 
 ## 可以利用的特征（假设，未验证）
 
@@ -61,6 +87,25 @@
   `trace.rs:779` / `uf/mod.rs:459`。没有它，回答不了「哪种扰动更贵」。
 * **全量 per-event log**：现在每个 pattern 只留一个 `example`，其余聚合成计数，所以 826k 条 loose contact
   只有总数、没有边，无法做度分布/连通性分析。
+
+## 复现 F8 的消融
+
+同一 egg / 库 / 二进制，只切 trace 与 observer：
+
+```sh
+for cfg in "base 0 0" "audit 1 0" "evolution 0 1"; do set -- $cfg
+  env EGG_LAYOUT_GRAPHS=0 EGG_LAYOUT_EAGER_SVG=0 EGG_LAYOUT_PRUNE_INTERNAL_JOIN=0 \
+      EGG_LAYOUT_SKIP_INTERNAL_RHS=0 EGG_LAYOUT_AUDIT_ENCLOSURES=$2 EGG_LAYOUT_MIN_TEMPLATE_REUSE=1 \
+      EGG_LAYOUT_CELL_EVOLUTION=$3 EGG_LAYOUT_AUDIT_VERIFY=0 \
+      /usr/bin/time -l target/release/examples/adaptive_math frozen \
+        out/cell-evolution-complete/math.egg out/cell-union-observation/ablation-$1 \
+        experiments/math_mini3/adaptive_runtime/bake_lib_round2.json
+done
+```
+
+`out/cell-evolution-complete/math.egg` = `experiments/math_mini3/source.egg` 把 `(run 3)` 换成 `(run 6)`；
+`bake_lib_round2.json` 是 13 个 cell 模板的固定库。`AUDIT_ENCLOSURES` 与 `CELL_EVOLUTION` 都会打开
+`TraceSession::with_dependencies`（`src/reuse_adaptive.rs:737`），所以 `audit` 一列就是「trace 但无 Evolution」。
 
 ## 边界
 
