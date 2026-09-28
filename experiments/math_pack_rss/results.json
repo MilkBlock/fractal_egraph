@@ -1,0 +1,73 @@
+{
+  "scope": "egg_layout virtual fact packing vs native egglog on egglog/tests/math-microbenchmark.egg (run 11). Same process, same graph; RSS read with ps before and after library application. Not peak RSS.",
+  "graph": {
+    "math_enodes": 1047896,
+    "math_eclasses": 443832,
+    "source": "egglog/tests/math-microbenchmark.egg"
+  },
+  "native_peak_rss_bytes": 359989248,
+  "virtual_pack_after_round1_peak_rss_bytes": 354500608,
+  "growth_round11": {
+    "native_rss_bytes": 350076928,
+    "virtual_rss_bytes": 347717632,
+    "native_over_virtual": 1.0068,
+    "virtual_rows": 25
+  },
+  "steady_state_pack": {
+    "match-full": {
+      "library": "out/math-lib-full/library.json",
+      "library_file_bytes": 342370,
+      "apply_seconds": 0.504,
+      "rss_before_bytes": 360243200,
+      "rss_after_bytes": 445644800,
+      "native_over_egg_layout": 0.8086,
+      "virtual_rows": 0
+    },
+    "pack-full": {
+      "library": "out/math-lib-full/library.json",
+      "library_file_bytes": 342370,
+      "templates": 7,
+      "apply_seconds": 1.885,
+      "rss_before_bytes": 355270656,
+      "rss_after_bytes": 507248640,
+      "native_over_egg_layout": 0.7005,
+      "virtual_rows": 277803,
+      "virtual_fraction_of_rows": 0.2651,
+      "logical_dense_equivalent_bytes": 24631240,
+      "logical_descriptor_bytes": 20447376,
+      "logical_descriptor_reduction": 0.1696,
+      "logical_direct_bytes": 15401648
+    },
+    "match-r6": {
+      "library": "out/math-lib-r6/library.json",
+      "library_file_bytes": 2735359,
+      "apply_seconds": 12.113,
+      "rss_before_bytes": 357748736,
+      "rss_after_bytes": 3052359680,
+      "native_over_egg_layout": 0.1172,
+      "virtual_rows": 0
+    },
+    "pack-r6": {
+      "library": "out/math-lib-r6/library.json",
+      "library_file_bytes": 2735359,
+      "templates": 23,
+      "apply_seconds": 21.159,
+      "rss_before_bytes": 360185856,
+      "rss_after_bytes": 2927104000,
+      "native_over_egg_layout": 0.1231,
+      "virtual_rows": 277884,
+      "virtual_fraction_of_rows": 0.2652,
+      "logical_dense_equivalent_bytes": 24616788,
+      "logical_descriptor_bytes": 20447472,
+      "logical_descriptor_reduction": 0.1694,
+      "logical_direct_bytes": 15400068
+    }
+  },
+  "notes": [
+    "native/egg_layout below 1 means egg_layout uses more RSS at the same e-node/e-class scale.",
+    "The match control runs the same library fragment queries without packing; it shows nearly the same RSS growth, so the growth is dominated by fragment query/materialization, not by virtual descriptors.",
+    "Coverage saturates: 7 templates cover 277803 rows, 23 templates cover 277884 (+81).",
+    "math-lib-full is baked from a round-1 analyze of the full source; math-lib-r6 from a partial analyze that aborted at round 5, so it is not a complete discovered library.",
+    "analyze --rounds 6 on the full source aborted with a stack overflow at round 5 (peak group RSS 1.78 GiB). An earlier full analyze was killed at boundary 9 with 6.7 GiB."
+  ]
+}
