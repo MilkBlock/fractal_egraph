@@ -76,11 +76,14 @@ pub fn recognise_library(
         crate::reuse_cell_recognition::EnvironmentId::UNKNOWN,
         &bodies,
     )?;
-    let slot_space = plans
-        .iter()
-        .filter(|p| p.slots.boundary_space == crate::reuse_cell_recognition::BoundarySpace::Slots)
-        .count();
     let plan_count = plans.len();
+    let source_count: usize = plans.iter().map(|p| p.sources.len()).sum();
+    let slot_sources: usize = plans
+        .iter()
+        .flat_map(|p| p.sources.iter())
+        .filter(|s| s.boundary.iter().any(|b| b.is_some()))
+        .count();
+    let recognition_only_sources = source_count - slot_sources;
     let rejected_sources = plans
         .iter()
         .flat_map(|p| {
@@ -94,7 +97,7 @@ pub fn recognise_library(
     let counts = recognizer.counts();
     Ok(json!({
         "recognition":{"matched_applications":recognizer.matched_applications(),"located":counts.located,"complete":counts.complete,"packed":counts.packed,"unsupported_sources":counts.unsupported_sources,"pending_subscriptions":recognizer.pending_subscriptions()},
-        "plans":plan_count,"slot_space_plans":slot_space,"recognition_only_plans":plan_count-slot_space,
+        "plans":plan_count,"sources":source_count,"slot_boundary_sources":slot_sources,"recognition_only_sources":recognition_only_sources,
         "rejected_sources":rejected_sources,"mapped_boundary_ports":mapped_boundary_ports,
         "unsupported":recognizer.unsupported_sources().iter().map(|(plan,source,reason)|json!({"plan":plan,"source":source,"reason":reason})).collect::<Vec<_>>(),
         "fragment_queries":0,

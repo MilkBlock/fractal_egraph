@@ -25,8 +25,8 @@ use crate::{
     coarse_smooth::RelativeBinding,
     pipeline::Result,
     reuse_cell_recognition::{
-        BodyRow, BoundarySpace, CellId, CellRecognitionPlan, RecognitionSource, RecognitionStep,
-        RuleIdentity, SlotOrigin,
+        BodyRow, CellId, CellRecognitionPlan, RecognitionSource, RecognitionStep, RuleIdentity,
+        SlotOrigin,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -189,8 +189,8 @@ impl CellRecognizer {
         let mut steps_by_rule: BTreeMap<RuleIdentity, Vec<StepRef>> = BTreeMap::new();
         let mut unsupported = vec![];
         for (plan_index, plan) in plans.iter().enumerate() {
-            let boundary_len = plan.slots.boundary.len();
             for (source_index, source) in plan.sources.iter().enumerate() {
+                let boundary_len = source.boundary.len();
                 // Every step must declare, for each of its external ordinals, one
                 // instance boundary position; and every declared position must be
                 // used, or two different instances could share a key. A source
@@ -205,10 +205,9 @@ impl CellRecognizer {
                     .external_slots
                     .iter()
                     .flatten()
-                    .filter(|p| **p != usize::MAX)
-                    .any(|p| *p >= boundary_len)
+                    .any(|p| *p != usize::MAX && *p >= boundary_len)
                 {
-                    Some("a step external maps outside the declared boundary".to_string())
+                    Some("a step external maps outside the source boundary".to_string())
                 } else {
                     // A source need not use every declared position: the plan
                     // boundary is shared by all its sources. An unused position
@@ -417,7 +416,7 @@ impl CellRecognizer {
             };
             for id in accepted {
                 self.bind_outputs(id, &step_ref, &outputs);
-                self.subscribe(id, step_ref.plan);
+                self.subscribe(id, step_ref.plan, step_ref.source);
             }
         }
         Ok(())
@@ -431,7 +430,11 @@ impl CellRecognizer {
         slots: &[usize],
         wanted: &[ValueId],
     ) -> Option<usize> {
-        let mut boundary = vec![None; self.plans[step_ref.plan].slots.boundary.len()];
+        let boundary_len = self.plans[step_ref.plan]
+            .sources
+            .get(step_ref.source)
+            .map_or(0, |s| s.boundary.len());
+        let mut boundary = vec![None; boundary_len];
         for (input, binding) in step_ref.step.binding.iter().enumerate() {
             if let RelativeBinding::External { slot } = binding {
                 let boundary_slot = *slots.get(*slot)?;
@@ -515,7 +518,7 @@ impl CellRecognizer {
 
     /// Subscribe one instance to the template rows whose keys are already fixed
     /// by its boundary binding. Derived rows are resolved at confirmation time.
-    fn subscribe(&mut self, id: usize, plan_index: usize) {
+    fn subscribe(&mut self, id: usize, plan_index: usize, source_index: usize) {
         let plan = &self.plans[plan_index];
         let mut pending = vec![];
         for row in &plan.slots.template {
@@ -524,19 +527,14 @@ impl CellRecognizer {
             for column in row.columns.iter().take(row.columns.len().saturating_sub(1)) {
                 match plan.slots.slots[*column].origin {
                     SlotOrigin::Boundary => {
-                        // A library recipe's boundary positions are recognition
-                        // only; a body-value column is never resolved from them.
-                        if plan.slots.boundary_space != BoundarySpace::Slots {
-                            known = false;
-                            break;
-                        }
+                        // A body-value column resolves only from a boundary
+                        // position that names that slot. A recognition-only
+                        // position never stands in for a stored body value.
                         let position = plan
-                            .slots
-                            .boundary
-                            .iter()
-                            .position(|s| s == column)
-                            .unwrap_or(usize::MAX);
-                        match self.instances[id].boundary.get(position).copied().flatten() {
+                            .sources
+                            .get(source_index)
+                            .and_then(|s| s.boundary.iter().position(|b| *b == Some(*column)));
+                        match position.and_then(|p| self.instances[id].boundary.get(p).copied().flatten()) {
                             Some(v) => key.push(v),
                             None => {
                                 known = false;
@@ -706,17 +704,11 @@ impl CellRecognizer {
                 .enumerate()
                 .map(|(i, slot)| match slot.origin {
                     SlotOrigin::Literal => Some(u64::MAX),
-                    SlotOrigin::Boundary => {
-                        if plan.slots.boundary_space != BoundarySpace::Slots {
-                            None
-                        } else {
-                            plan.slots
-                                .boundary
-                                .iter()
-                                .position(|s| *s == i)
-                                .and_then(|p| instance.boundary.get(p).copied().flatten())
-                        }
-                    }
+                    SlotOrigin::Boundary => plan
+                        .sources
+                        .get(instance.key.source)
+                        .and_then(|s| s.boundary.iter().position(|b| *b == Some(i)))
+                        .and_then(|p| instance.boundary.get(p).copied().flatten()),
                     SlotOrigin::Derived => None,
                 })
                 .collect();
@@ -1197,11 +1189,9 @@ mod tests {
     #[test]
     fn a_recorded_boundary_term_lets_a_library_cell_confirm() {
         let plan = wired_library_plan();
-        assert_eq!(
-            plan.slots.boundary_space,
-            crate::reuse_cell_recognition::BoundarySpace::Slots
-        );
-        assert_eq!(plan.slots.boundary, vec![0]);
+        // Port 7 records body value 0, so this source's one boundary position
+        // also names a storage slot.
+        assert_eq!(plan.sources[0].boundary, vec![Some(0)]);
         let environment = plan.environment;
         let mut recogniser = CellRecognizer::new(vec![plan]);
         let step0 = RuleIdentity {
@@ -1252,7 +1242,11 @@ mod tests {
             vec!["x", "y", "adaptive_local_0"],
         );
         let mut plan = plan;
-        plan.slots.boundary.pop();
+        // Drop a declared boundary slot: the trigger's externals no longer line
+        // up with the source boundary, so the source must be reported.
+        if let Some(source) = plan.sources.first_mut() {
+            source.boundary.pop();
+        }
         let recogniser = CellRecognizer::new(vec![plan]);
         assert_eq!(recogniser.unsupported_sources().len(), 1);
         assert_eq!(recogniser.counts().unsupported_sources, 1);
