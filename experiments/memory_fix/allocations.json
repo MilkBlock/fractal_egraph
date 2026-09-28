@@ -1,0 +1,1284 @@
+{
+  "scope": "instrumented allocation diagnostics, not production timings",
+  "pack_live_delta_bytes": -4687012,
+  "pack_samples": [
+    {
+      "allocator": {
+        "blocks": 1134,
+        "live_bytes": 162848,
+        "reserved_bytes": 9437184
+      },
+      "pattern": null,
+      "rows": 0,
+      "rss_bytes": 2572288,
+      "rust_live_bytes": 141795,
+      "rust_peak_bytes": 141795,
+      "stage": "empty"
+    },
+    {
+      "allocator": {
+        "blocks": 65661,
+        "live_bytes": 216133680,
+        "reserved_bytes": 233062400
+      },
+      "pattern": null,
+      "rows": 1047896,
+      "rss_bytes": 269189120,
+      "rust_live_bytes": 195838944,
+      "rust_peak_bytes": 200736483,
+      "stage": "native"
+    },
+    {
+      "allocator": {
+        "blocks": 70635,
+        "live_bytes": 174153808,
+        "reserved_bytes": 233062400
+      },
+      "pattern": null,
+      "rows": 0,
+      "rss_bytes": 270778368,
+      "rust_live_bytes": 158459453,
+      "rust_peak_bytes": 200736483,
+      "stage": "library_loaded"
+    },
+    {
+      "cached_subset_bytes": [
+        10696120,
+        10696120
+      ],
+      "pattern": 0,
+      "unique_subset_bytes": 2687840
+    },
+    {
+      "allocator": {
+        "blocks": 70953,
+        "live_bytes": 184358448,
+        "reserved_bytes": 233062400
+      },
+      "pattern": 0,
+      "rows": 0,
+      "rss_bytes": 274186240,
+      "rust_live_bytes": 168612371,
+      "rust_peak_bytes": 200736483,
+      "stage": "compiled"
+    },
+    {
+      "allocator": {
+        "blocks": 90140,
+        "live_bytes": 199736096,
+        "reserved_bytes": 236208128
+      },
+      "pattern": 0,
+      "rows": 7393,
+      "rss_bytes": 314654720,
+      "rust_live_bytes": 180002079,
+      "rust_peak_bytes": 210986635,
+      "stage": "query_results"
+    },
+    {
+      "allocator": {
+        "blocks": 90029,
+        "live_bytes": 199722480,
+        "reserved_bytes": 236208128
+      },
+      "pattern": 0,
+      "rows": 7393,
+      "rss_bytes": 314654720,
+      "rust_live_bytes": 177359909,
+      "rust_peak_bytes": 210986635,
+      "stage": "query_freed"
+    },
+    {
+      "allocator": {
+        "blocks": 90704,
+        "live_bytes": 197169872,
+        "reserved_bytes": 236208128
+      },
+      "pattern": 0,
+      "rows": 7393,
+      "rss_bytes": 314654720,
+      "rust_live_bytes": 177357869,
+      "rust_peak_bytes": 210986635,
+      "stage": "deduplicated"
+    },
+    {
+      "atoms": 7,
+      "matched_instances": 7393,
+      "pattern": 0,
+      "slots": 7
+    },
+    {
+      "allocator": {
+        "blocks": 90068,
+        "live_bytes": 197191344,
+        "reserved_bytes": 236208128
+      },
+      "pattern": 0,
+      "rows": 7393,
+      "rss_bytes": 314654720,
+      "rust_live_bytes": 177361249,
+      "rust_peak_bytes": 210986635,
+      "stage": "packing_inputs"
+    },
+    {
+      "allocator": {
+        "blocks": 98175,
+        "live_bytes": 177410640,
+        "reserved_bytes": 205307904
+      },
+      "pattern": 0,
+      "rows": 7393,
+      "rss_bytes": 307216384,
+      "rust_live_bytes": 161073065,
+      "rust_peak_bytes": 210986635,
+      "stage": "packed"
+    },
+    {
+      "allocator": {
+        "blocks": 90758,
+        "live_bytes": 175603216,
+        "reserved_bytes": 205307904
+      },
+      "pattern": 0,
+      "rows": 0,
+      "rss_bytes": 307216384,
+      "rust_live_bytes": 160668489,
+      "rust_peak_bytes": 210986635,
+      "stage": "pattern_temporaries_dropped"
+    },
+    {
+      "cached_subset_bytes": [
+        10925008,
+        10925008
+      ],
+      "pattern": 1,
+      "unique_subset_bytes": 2764136
+    },
+    {
+      "allocator": {
+        "blocks": 90800,
+        "live_bytes": 178326096,
+        "reserved_bytes": 205307904
+      },
+      "pattern": 1,
+      "rows": 0,
+      "rss_bytes": 309854208,
+      "rust_live_bytes": 163731312,
+      "rust_peak_bytes": 210986635,
+      "stage": "compiled"
+    },
+    {
+      "allocator": {
+        "blocks": 90795,
+        "live_bytes": 183834176,
+        "reserved_bytes": 205307904
+      },
+      "pattern": 1,
+      "rows": 1,
+      "rss_bytes": 314343424,
+      "rust_live_bytes": 166151348,
+      "rust_peak_bytes": 210986635,
+      "stage": "query_results"
+    },
+    {
+      "allocator": {
+        "blocks": 90682,
+        "live_bytes": 181162496,
+        "reserved_bytes": 205307904
+      },
+      "pattern": 1,
+      "rows": 1,
+      "rss_bytes": 314343424,
+      "rust_live_bytes": 163508994,
+      "rust_peak_bytes": 210986635,
+      "stage": "query_freed"
+    },
+    {
+      "allocator": {
+        "blocks": 90683,
+        "live_bytes": 181162720,
+        "reserved_bytes": 205307904
+      },
+      "pattern": 1,
+      "rows": 1,
+      "rss_bytes": 314343424,
+      "rust_live_bytes": 163509178,
+      "rust_peak_bytes": 210986635,
+      "stage": "deduplicated"
+    },
+    {
+      "atoms": 7,
+      "matched_instances": 1,
+      "pattern": 1,
+      "slots": 6
+    },
+    {
+      "allocator": {
+        "blocks": 90716,
+        "live_bytes": 181164128,
+        "reserved_bytes": 205307904
+      },
+      "pattern": 1,
+      "rows": 1,
+      "rss_bytes": 314343424,
+      "rust_live_bytes": 163510318,
+      "rust_peak_bytes": 210986635,
+      "stage": "packing_inputs"
+    },
+    {
+      "allocator": {
+        "blocks": 99293,
+        "live_bytes": 183063424,
+        "reserved_bytes": 221036544
+      },
+      "pattern": 1,
+      "rows": 1,
+      "rss_bytes": 335855616,
+      "rust_live_bytes": 164313986,
+      "rust_peak_bytes": 210986635,
+      "stage": "packed"
+    },
+    {
+      "allocator": {
+        "blocks": 99269,
+        "live_bytes": 183065280,
+        "reserved_bytes": 221036544
+      },
+      "pattern": 1,
+      "rows": 0,
+      "rss_bytes": 335855616,
+      "rust_live_bytes": 164312918,
+      "rust_peak_bytes": 210986635,
+      "stage": "pattern_temporaries_dropped"
+    },
+    {
+      "cached_subset_bytes": [
+        17618380,
+        17618380
+      ],
+      "pattern": 2,
+      "unique_subset_bytes": 4050196
+    },
+    {
+      "allocator": {
+        "blocks": 99328,
+        "live_bytes": 188572768,
+        "reserved_bytes": 221036544
+      },
+      "pattern": 2,
+      "rows": 0,
+      "rss_bytes": 335921152,
+      "rust_live_bytes": 171646016,
+      "rust_peak_bytes": 210986635,
+      "stage": "compiled"
+    },
+    {
+      "allocator": {
+        "blocks": 100438,
+        "live_bytes": 203117568,
+        "reserved_bytes": 223133696
+      },
+      "pattern": 2,
+      "rows": 3,
+      "rss_bytes": 358301696,
+      "rust_live_bytes": 176123352,
+      "rust_peak_bytes": 210986635,
+      "stage": "query_results"
+    },
+    {
+      "allocator": {
+        "blocks": 100303,
+        "live_bytes": 199397984,
+        "reserved_bytes": 223133696
+      },
+      "pattern": 2,
+      "rows": 3,
+      "rss_bytes": 358301696,
+      "rust_live_bytes": 172059710,
+      "rust_peak_bytes": 210986635,
+      "stage": "query_freed"
+    },
+    {
+      "allocator": {
+        "blocks": 100304,
+        "live_bytes": 199401280,
+        "reserved_bytes": 223133696
+      },
+      "pattern": 2,
+      "rows": 3,
+      "rss_bytes": 358301696,
+      "rust_live_bytes": 172059894,
+      "rust_peak_bytes": 210986635,
+      "stage": "deduplicated"
+    },
+    {
+      "atoms": 9,
+      "matched_instances": 3,
+      "pattern": 2,
+      "slots": 6
+    },
+    {
+      "allocator": {
+        "blocks": 100342,
+        "live_bytes": 199405344,
+        "reserved_bytes": 223133696
+      },
+      "pattern": 2,
+      "rows": 3,
+      "rss_bytes": 358301696,
+      "rust_live_bytes": 172061553,
+      "rust_peak_bytes": 210986635,
+      "stage": "packing_inputs"
+    },
+    {
+      "allocator": {
+        "blocks": 111500,
+        "live_bytes": 207748368,
+        "reserved_bytes": 231522304
+      },
+      "pattern": 2,
+      "rows": 3,
+      "rss_bytes": 367443968,
+      "rust_live_bytes": 181375893,
+      "rust_peak_bytes": 210986635,
+      "stage": "packed"
+    },
+    {
+      "allocator": {
+        "blocks": 111470,
+        "live_bytes": 207748656,
+        "reserved_bytes": 231522304
+      },
+      "pattern": 2,
+      "rows": 0,
+      "rss_bytes": 367443968,
+      "rust_live_bytes": 181374354,
+      "rust_peak_bytes": 210986635,
+      "stage": "pattern_temporaries_dropped"
+    },
+    {
+      "cached_subset_bytes": [
+        8162860,
+        8162860
+      ],
+      "pattern": 3,
+      "unique_subset_bytes": 4112664
+    },
+    {
+      "allocator": {
+        "blocks": 111508,
+        "live_bytes": 211979728,
+        "reserved_bytes": 231522304
+      },
+      "pattern": 3,
+      "rows": 0,
+      "rss_bytes": 367788032,
+      "rust_live_bytes": 185556058,
+      "rust_peak_bytes": 210986635,
+      "stage": "compiled"
+    },
+    {
+      "allocator": {
+        "blocks": 111899,
+        "live_bytes": 215952240,
+        "reserved_bytes": 232570880
+      },
+      "pattern": 3,
+      "rows": 1311,
+      "rss_bytes": 395919360,
+      "rust_live_bytes": 185642486,
+      "rust_peak_bytes": 218920014,
+      "stage": "query_results"
+    },
+    {
+      "allocator": {
+        "blocks": 111799,
+        "live_bytes": 211782912,
+        "reserved_bytes": 232570880
+      },
+      "pattern": 3,
+      "rows": 1311,
+      "rss_bytes": 395919360,
+      "rust_live_bytes": 181520826,
+      "rust_peak_bytes": 218920014,
+      "stage": "query_freed"
+    },
+    {
+      "allocator": {
+        "blocks": 111921,
+        "live_bytes": 211780416,
+        "reserved_bytes": 232570880
+      },
+      "pattern": 3,
+      "rows": 1311,
+      "rss_bytes": 395919360,
+      "rust_live_bytes": 181506610,
+      "rust_peak_bytes": 218920014,
+      "stage": "deduplicated"
+    },
+    {
+      "atoms": 6,
+      "matched_instances": 1311,
+      "pattern": 3,
+      "slots": 6
+    },
+    {
+      "allocator": {
+        "blocks": 111836,
+        "live_bytes": 211738976,
+        "reserved_bytes": 232570880
+      },
+      "pattern": 3,
+      "rows": 1311,
+      "rss_bytes": 395919360,
+      "rust_live_bytes": 181522053,
+      "rust_peak_bytes": 218920014,
+      "stage": "packing_inputs"
+    },
+    {
+      "allocator": {
+        "blocks": 123559,
+        "live_bytes": 211166752,
+        "reserved_bytes": 258785280
+      },
+      "pattern": 3,
+      "rows": 1311,
+      "rss_bytes": 411156480,
+      "rust_live_bytes": 182018005,
+      "rust_peak_bytes": 218920014,
+      "stage": "packed"
+    },
+    {
+      "allocator": {
+        "blocks": 122227,
+        "live_bytes": 211061120,
+        "reserved_bytes": 258785280
+      },
+      "pattern": 3,
+      "rows": 0,
+      "rss_bytes": 411156480,
+      "rust_live_bytes": 181936490,
+      "rust_peak_bytes": 218920014,
+      "stage": "pattern_temporaries_dropped"
+    },
+    {
+      "cached_subset_bytes": [
+        5265200,
+        5265200
+      ],
+      "pattern": 4,
+      "unique_subset_bytes": 2632600
+    },
+    {
+      "allocator": {
+        "blocks": 122242,
+        "live_bytes": 213716544,
+        "reserved_bytes": 258785280
+      },
+      "pattern": 4,
+      "rows": 0,
+      "rss_bytes": 411156480,
+      "rust_live_bytes": 184570606,
+      "rust_peak_bytes": 218920014,
+      "stage": "compiled"
+    },
+    {
+      "allocator": {
+        "blocks": 325898,
+        "live_bytes": 217051360,
+        "reserved_bytes": 261931008
+      },
+      "pattern": 4,
+      "rows": 188725,
+      "rss_bytes": 419774464,
+      "rust_live_bytes": 199499814,
+      "rust_peak_bytes": 247001654,
+      "stage": "query_results"
+    },
+    {
+      "allocator": {
+        "blocks": 325841,
+        "live_bytes": 214394304,
+        "reserved_bytes": 261931008
+      },
+      "pattern": 4,
+      "rows": 188725,
+      "rss_bytes": 419774464,
+      "rust_live_bytes": 196862630,
+      "rust_peak_bytes": 247001654,
+      "stage": "query_freed"
+    },
+    {
+      "allocator": {
+        "blocks": 343001,
+        "live_bytes": 221276080,
+        "reserved_bytes": 261931008
+      },
+      "pattern": 4,
+      "rows": 188725,
+      "rss_bytes": 419987456,
+      "rust_live_bytes": 195513446,
+      "rust_peak_bytes": 247001654,
+      "stage": "deduplicated"
+    },
+    {
+      "atoms": 2,
+      "matched_instances": 188725,
+      "pattern": 4,
+      "slots": 3
+    },
+    {
+      "allocator": {
+        "blocks": 325862,
+        "live_bytes": 222448336,
+        "reserved_bytes": 261931008
+      },
+      "pattern": 4,
+      "rows": 188725,
+      "rss_bytes": 419987456,
+      "rust_live_bytes": 196863296,
+      "rust_peak_bytes": 247001654,
+      "stage": "packing_inputs"
+    },
+    {
+      "allocator": {
+        "blocks": 335094,
+        "live_bytes": 223271200,
+        "reserved_bytes": 284999680
+      },
+      "pattern": 4,
+      "rows": 188725,
+      "rss_bytes": 437190656,
+      "rust_live_bytes": 197502252,
+      "rust_peak_bytes": 264695678,
+      "stage": "packed"
+    },
+    {
+      "allocator": {
+        "blocks": 146360,
+        "live_bytes": 219988496,
+        "reserved_bytes": 284999680
+      },
+      "pattern": 4,
+      "rows": 0,
+      "rss_bytes": 437190656,
+      "rust_live_bytes": 188945574,
+      "rust_peak_bytes": 264695678,
+      "stage": "pattern_temporaries_dropped"
+    },
+    {
+      "cached_subset_bytes": [
+        2835192,
+        2835192
+      ],
+      "pattern": 5,
+      "unique_subset_bytes": 1417596
+    },
+    {
+      "allocator": {
+        "blocks": 146390,
+        "live_bytes": 221433248,
+        "reserved_bytes": 284999680
+      },
+      "pattern": 5,
+      "rows": 0,
+      "rss_bytes": 437190656,
+      "rust_live_bytes": 190365988,
+      "rust_peak_bytes": 264695678,
+      "stage": "compiled"
+    },
+    {
+      "allocator": {
+        "blocks": 228376,
+        "live_bytes": 223280288,
+        "reserved_bytes": 284999680
+      },
+      "pattern": 5,
+      "rows": 82880,
+      "rss_bytes": 454557696,
+      "rust_live_bytes": 194413868,
+      "rust_peak_bytes": 264695678,
+      "stage": "query_results"
+    },
+    {
+      "allocator": {
+        "blocks": 228321,
+        "live_bytes": 221836688,
+        "reserved_bytes": 284999680
+      },
+      "pattern": 5,
+      "rows": 82880,
+      "rss_bytes": 454557696,
+      "rust_live_bytes": 192991688,
+      "rust_peak_bytes": 264695678,
+      "stage": "query_freed"
+    },
+    {
+      "allocator": {
+        "blocks": 235857,
+        "live_bytes": 218332992,
+        "reserved_bytes": 284999680
+      },
+      "pattern": 5,
+      "rows": 82880,
+      "rss_bytes": 454557696,
+      "rust_live_bytes": 192016424,
+      "rust_peak_bytes": 264695678,
+      "stage": "deduplicated"
+    },
+    {
+      "atoms": 2,
+      "matched_instances": 82880,
+      "pattern": 5,
+      "slots": 3
+    },
+    {
+      "allocator": {
+        "blocks": 228341,
+        "live_bytes": 218058512,
+        "reserved_bytes": 284999680
+      },
+      "pattern": 5,
+      "rows": 82880,
+      "rss_bytes": 454557696,
+      "rust_live_bytes": 192992354,
+      "rust_peak_bytes": 264695678,
+      "stage": "packing_inputs"
+    },
+    {
+      "allocator": {
+        "blocks": 231854,
+        "live_bytes": 222444896,
+        "reserved_bytes": 286048256
+      },
+      "pattern": 5,
+      "rows": 82880,
+      "rss_bytes": 456146944,
+      "rust_live_bytes": 193340198,
+      "rust_peak_bytes": 264695678,
+      "stage": "packed"
+    },
+    {
+      "allocator": {
+        "blocks": 148965,
+        "live_bytes": 221052336,
+        "reserved_bytes": 286048256
+      },
+      "pattern": 5,
+      "rows": 0,
+      "rss_bytes": 456146944,
+      "rust_live_bytes": 189199388,
+      "rust_peak_bytes": 264695678,
+      "stage": "pattern_temporaries_dropped"
+    },
+    {
+      "cached_subset_bytes": [
+        2632600,
+        2632600
+      ],
+      "pattern": 6,
+      "unique_subset_bytes": 2632600
+    },
+    {
+      "allocator": {
+        "blocks": 148991,
+        "live_bytes": 223708608,
+        "reserved_bytes": 286048256
+      },
+      "pattern": 6,
+      "rows": 0,
+      "rss_bytes": 456146944,
+      "rust_live_bytes": 191834193,
+      "rust_peak_bytes": 264695678,
+      "stage": "compiled"
+    },
+    {
+      "allocator": {
+        "blocks": 149494,
+        "live_bytes": 226343552,
+        "reserved_bytes": 286048256
+      },
+      "pattern": 6,
+      "rows": 503,
+      "rss_bytes": 456146944,
+      "rust_live_bytes": 191848861,
+      "rust_peak_bytes": 264695678,
+      "stage": "query_results"
+    },
+    {
+      "allocator": {
+        "blocks": 149447,
+        "live_bytes": 221099376,
+        "reserved_bytes": 286048256
+      },
+      "pattern": 6,
+      "rows": 503,
+      "rss_bytes": 456146944,
+      "rust_live_bytes": 189212191,
+      "rust_peak_bytes": 264695678,
+      "stage": "query_freed"
+    },
+    {
+      "allocator": {
+        "blocks": 149496,
+        "live_bytes": 221088272,
+        "reserved_bytes": 286048256
+      },
+      "pattern": 6,
+      "rows": 503,
+      "rss_bytes": 456146944,
+      "rust_live_bytes": 189213543,
+      "rust_peak_bytes": 264695678,
+      "stage": "deduplicated"
+    },
+    {
+      "atoms": 1,
+      "matched_instances": 503,
+      "pattern": 6,
+      "slots": 2
+    },
+    {
+      "allocator": {
+        "blocks": 149464,
+        "live_bytes": 221076576,
+        "reserved_bytes": 286048256
+      },
+      "pattern": 6,
+      "rows": 503,
+      "rss_bytes": 456146944,
+      "rust_live_bytes": 189212746,
+      "rust_peak_bytes": 264695678,
+      "stage": "packing_inputs"
+    },
+    {
+      "allocator": {
+        "blocks": 149466,
+        "live_bytes": 221079536,
+        "reserved_bytes": 286048256
+      },
+      "pattern": 6,
+      "rows": 503,
+      "rss_bytes": 456146944,
+      "rust_live_bytes": 189212746,
+      "rust_peak_bytes": 264695678,
+      "stage": "packed"
+    },
+    {
+      "allocator": {
+        "blocks": 148954,
+        "live_bytes": 221066336,
+        "reserved_bytes": 286048256
+      },
+      "pattern": 6,
+      "rows": 0,
+      "rss_bytes": 456146944,
+      "rust_live_bytes": 189195879,
+      "rust_peak_bytes": 264695678,
+      "stage": "pattern_temporaries_dropped"
+    },
+    {
+      "cached_subset_bytes": [
+        1417596,
+        1417596
+      ],
+      "pattern": 7,
+      "unique_subset_bytes": 1417596
+    },
+    {
+      "allocator": {
+        "blocks": 149008,
+        "live_bytes": 222501616,
+        "reserved_bytes": 286048256
+      },
+      "pattern": 7,
+      "rows": 0,
+      "rss_bytes": 456146944,
+      "rust_live_bytes": 190614977,
+      "rust_peak_bytes": 264695678,
+      "stage": "compiled"
+    },
+    {
+      "allocator": {
+        "blocks": 149011,
+        "live_bytes": 223532768,
+        "reserved_bytes": 286048256
+      },
+      "pattern": 7,
+      "rows": 1,
+      "rss_bytes": 456146944,
+      "rust_live_bytes": 190613925,
+      "rust_peak_bytes": 264695678,
+      "stage": "query_results"
+    },
+    {
+      "allocator": {
+        "blocks": 148946,
+        "live_bytes": 222072128,
+        "reserved_bytes": 286048256
+      },
+      "pattern": 7,
+      "rows": 1,
+      "rss_bytes": 456146944,
+      "rust_live_bytes": 189191263,
+      "rust_peak_bytes": 264695678,
+      "stage": "query_freed"
+    },
+    {
+      "allocator": {
+        "blocks": 148947,
+        "live_bytes": 222072320,
+        "reserved_bytes": 286048256
+      },
+      "pattern": 7,
+      "rows": 1,
+      "rss_bytes": 456146944,
+      "rust_live_bytes": 189191447,
+      "rust_peak_bytes": 264695678,
+      "stage": "deduplicated"
+    },
+    {
+      "atoms": 3,
+      "matched_instances": 1,
+      "pattern": 7,
+      "slots": 4
+    },
+    {
+      "allocator": {
+        "blocks": 148966,
+        "live_bytes": 222072512,
+        "reserved_bytes": 286048256
+      },
+      "pattern": 7,
+      "rows": 1,
+      "rss_bytes": 456146944,
+      "rust_live_bytes": 189192009,
+      "rust_peak_bytes": 264695678,
+      "stage": "packing_inputs"
+    },
+    {
+      "allocator": {
+        "blocks": 148980,
+        "live_bytes": 222075104,
+        "reserved_bytes": 286048256
+      },
+      "pattern": 7,
+      "rows": 1,
+      "rss_bytes": 456146944,
+      "rust_live_bytes": 189192421,
+      "rust_peak_bytes": 264695678,
+      "stage": "packed"
+    },
+    {
+      "allocator": {
+        "blocks": 148966,
+        "live_bytes": 222074416,
+        "reserved_bytes": 286048256
+      },
+      "pattern": 7,
+      "rows": 0,
+      "rss_bytes": 456146944,
+      "rust_live_bytes": 189191739,
+      "rust_peak_bytes": 264695678,
+      "stage": "pattern_temporaries_dropped"
+    },
+    {
+      "allocator": {
+        "blocks": 148943,
+        "live_bytes": 222074560,
+        "reserved_bytes": 286048256
+      },
+      "pattern": null,
+      "rows": 1047896,
+      "rss_bytes": 456146944,
+      "rust_live_bytes": 189191369,
+      "rust_peak_bytes": 264695678,
+      "stage": "all_patterns"
+    },
+    {
+      "shape": [
+        1047896,
+        443832
+      ],
+      "storage": {
+        "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+        "binding_header_bytes": 280,
+        "binding_payload_bytes": 1659972,
+        "tables": [
+          {
+            "dense_equivalent_bytes": 320980,
+            "descriptor_bytes": 58572,
+            "direct_base_rows": 8623,
+            "direct_bytes": 223360,
+            "local_header_bytes": 41184,
+            "metadata_bytes": 112,
+            "overlay_rows": 0,
+            "rebuild_rows_changed": 0,
+            "rebuild_rows_examined": 0,
+            "table": "Diff",
+            "tombstones": 2545,
+            "virtual_rows": 4881
+          },
+          {
+            "dense_equivalent_bytes": 780500,
+            "descriptor_bytes": 36,
+            "direct_base_rows": 32431,
+            "direct_bytes": 780440,
+            "local_header_bytes": 19776,
+            "metadata_bytes": 16,
+            "overlay_rows": 0,
+            "rebuild_rows_changed": 0,
+            "rebuild_rows_examined": 0,
+            "table": "Integral",
+            "tombstones": 6591,
+            "virtual_rows": 3
+          },
+          {
+            "dense_equivalent_bytes": 24017760,
+            "descriptor_bytes": 2264700,
+            "direct_base_rows": 453018,
+            "direct_bytes": 20243260,
+            "local_header_bytes": 1649688,
+            "metadata_bytes": 192,
+            "overlay_rows": 0,
+            "rebuild_rows_changed": 0,
+            "rebuild_rows_examined": 0,
+            "table": "Add",
+            "tombstones": 559145,
+            "virtual_rows": 188725
+          },
+          {
+            "dense_equivalent_bytes": 433780,
+            "descriptor_bytes": 15732,
+            "direct_base_rows": 13812,
+            "direct_bytes": 407560,
+            "local_header_bytes": 27928,
+            "metadata_bytes": 136,
+            "overlay_rows": 0,
+            "rebuild_rows_changed": 0,
+            "rebuild_rows_examined": 0,
+            "table": "Sub",
+            "tombstones": 6566,
+            "virtual_rows": 1311
+          },
+          {
+            "dense_equivalent_bytes": 9078140,
+            "descriptor_bytes": 994560,
+            "direct_base_rows": 262195,
+            "direct_bytes": 7420540,
+            "local_header_bytes": 751952,
+            "metadata_bytes": 168,
+            "overlay_rows": 0,
+            "rebuild_rows_changed": 0,
+            "rebuild_rows_examined": 0,
+            "table": "Mul",
+            "tombstones": 108832,
+            "virtual_rows": 82880
+          },
+          {
+            "dense_equivalent_bytes": 40,
+            "descriptor_bytes": 12,
+            "direct_base_rows": 1,
+            "direct_bytes": 20,
+            "local_header_bytes": 352,
+            "metadata_bytes": 8,
+            "overlay_rows": 0,
+            "rebuild_rows_changed": 0,
+            "rebuild_rows_examined": 0,
+            "table": "Pow",
+            "tombstones": 0,
+            "virtual_rows": 1
+          },
+          {
+            "dense_equivalent_bytes": 80,
+            "descriptor_bytes": 24,
+            "direct_base_rows": 3,
+            "direct_bytes": 48,
+            "local_header_bytes": 352,
+            "metadata_bytes": 16,
+            "overlay_rows": 0,
+            "rebuild_rows_changed": 0,
+            "rebuild_rows_examined": 0,
+            "table": "Const",
+            "tombstones": 0,
+            "virtual_rows": 2
+          }
+        ],
+        "template_header_bytes": 1168,
+        "template_payload_bytes": 848,
+        "unique_binding_matrices": 7,
+        "unique_templates": 7
+      }
+    },
+    {
+      "allocator": {
+        "blocks": 142494,
+        "live_bytes": 221111744,
+        "reserved_bytes": 286048256
+      },
+      "pattern": null,
+      "rows": 0,
+      "rss_bytes": 456146944,
+      "rust_live_bytes": 188294336,
+      "rust_peak_bytes": 264695678,
+      "stage": "library_dropped"
+    },
+    {
+      "pressure_relief_bytes": 0
+    },
+    {
+      "allocator": {
+        "blocks": 98265,
+        "live_bytes": 221114192,
+        "reserved_bytes": 286048256
+      },
+      "pattern": null,
+      "rows": 0,
+      "rss_bytes": 437977088,
+      "rust_live_bytes": 188294336,
+      "rust_peak_bytes": 264695678,
+      "stage": "engine_alive_after_relief"
+    },
+    {
+      "allocator": {
+        "blocks": 77445,
+        "live_bytes": 73389536,
+        "reserved_bytes": 194248704
+      },
+      "pattern": null,
+      "rows": 0,
+      "rss_bytes": 401276928,
+      "rust_live_bytes": 46422310,
+      "rust_peak_bytes": 264695678,
+      "stage": "engine_dropped"
+    },
+    {
+      "pressure_relief_bytes": 0
+    },
+    {
+      "allocator": {
+        "blocks": 77420,
+        "live_bytes": 73390544,
+        "reserved_bytes": 194248704
+      },
+      "pattern": null,
+      "rows": 0,
+      "rss_bytes": 347734016,
+      "rust_live_bytes": 46422310,
+      "rust_peak_bytes": 264695678,
+      "stage": "engine_dropped_after_relief"
+    }
+  ],
+  "query_samples": [
+    {
+      "allocator": {
+        "blocks": 1134,
+        "live_bytes": 162848,
+        "reserved_bytes": 9437184
+      },
+      "pattern": null,
+      "rows": 0,
+      "rss_bytes": 2555904,
+      "rust_live_bytes": 141794,
+      "rust_peak_bytes": 141794,
+      "stage": "empty"
+    },
+    {
+      "allocator": {
+        "blocks": 65798,
+        "live_bytes": 216567040,
+        "reserved_bytes": 232013824
+      },
+      "pattern": null,
+      "rows": 1047896,
+      "rss_bytes": 286195712,
+      "rust_live_bytes": 195838943,
+      "rust_peak_bytes": 200736482,
+      "stage": "native"
+    },
+    {
+      "allocator": {
+        "blocks": 124948,
+        "live_bytes": 175884448,
+        "reserved_bytes": 241451008
+      },
+      "pattern": null,
+      "rows": 0,
+      "rss_bytes": 298188800,
+      "rust_live_bytes": 165128438,
+      "rust_peak_bytes": 209158930,
+      "stage": "library_loaded"
+    },
+    {
+      "cached_subset_bytes": [
+        221232568,
+        221232568
+      ],
+      "pattern": 0,
+      "unique_subset_bytes": 4105436
+    },
+    {
+      "allocator": {
+        "blocks": 128833,
+        "live_bytes": 194527184,
+        "reserved_bytes": 241451008
+      },
+      "pattern": 0,
+      "rows": 0,
+      "rss_bytes": 298762240,
+      "rust_live_bytes": 180694831,
+      "rust_peak_bytes": 209158930,
+      "stage": "compiled"
+    },
+    {
+      "allocator": {
+        "blocks": 217648,
+        "live_bytes": 210064016,
+        "reserved_bytes": 254033920
+      },
+      "pattern": 0,
+      "rows": 36,
+      "rss_bytes": 363806720,
+      "rust_live_bytes": 198669627,
+      "rust_peak_bytes": 273235787,
+      "stage": "query_results"
+    },
+    {
+      "allocator": {
+        "blocks": 216477,
+        "live_bytes": 206526496,
+        "reserved_bytes": 254033920
+      },
+      "pattern": 0,
+      "rows": 36,
+      "rss_bytes": 363806720,
+      "rust_live_bytes": 194350336,
+      "rust_peak_bytes": 273235787,
+      "stage": "query_freed"
+    },
+    {
+      "allocator": {
+        "blocks": 216483,
+        "live_bytes": 206525488,
+        "reserved_bytes": 254033920
+      },
+      "pattern": 0,
+      "rows": 36,
+      "rss_bytes": 363806720,
+      "rust_live_bytes": 194350296,
+      "rust_peak_bytes": 273235787,
+      "stage": "deduplicated"
+    },
+    {
+      "atoms": 115,
+      "matched_instances": 36,
+      "pattern": 0,
+      "slots": 37
+    },
+    {
+      "allocator": {
+        "blocks": 216443,
+        "live_bytes": 206518288,
+        "reserved_bytes": 254033920
+      },
+      "pattern": 0,
+      "rows": 0,
+      "rss_bytes": 363806720,
+      "rust_live_bytes": 194343472,
+      "rust_peak_bytes": 273235787,
+      "stage": "pattern_temporaries_dropped"
+    },
+    {
+      "allocator": {
+        "blocks": 213905,
+        "live_bytes": 206369552,
+        "reserved_bytes": 254033920
+      },
+      "pattern": null,
+      "rows": 1047896,
+      "rss_bytes": 363806720,
+      "rust_live_bytes": 194213162,
+      "rust_peak_bytes": 273235787,
+      "stage": "all_patterns"
+    },
+    {
+      "shape": [
+        1047896,
+        443832
+      ],
+      "storage": {
+        "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+        "binding_header_bytes": 0,
+        "binding_payload_bytes": 0,
+        "tables": [],
+        "template_header_bytes": 0,
+        "template_payload_bytes": 0,
+        "unique_binding_matrices": 0,
+        "unique_templates": 0
+      }
+    },
+    {
+      "allocator": {
+        "blocks": 159763,
+        "live_bytes": 198310000,
+        "reserved_bytes": 254033920
+      },
+      "pattern": null,
+      "rows": 0,
+      "rss_bytes": 363806720,
+      "rust_live_bytes": 186647143,
+      "rust_peak_bytes": 273235787,
+      "stage": "library_dropped"
+    },
+    {
+      "pressure_relief_bytes": 0
+    },
+    {
+      "allocator": {
+        "blocks": 131508,
+        "live_bytes": 198310000,
+        "reserved_bytes": 254033920
+      },
+      "pattern": null,
+      "rows": 0,
+      "rss_bytes": 345571328,
+      "rust_live_bytes": 186647143,
+      "rust_peak_bytes": 273235787,
+      "stage": "engine_alive_after_relief"
+    },
+    {
+      "allocator": {
+        "blocks": 102138,
+        "live_bytes": 55297152,
+        "reserved_bytes": 136577024
+      },
+      "pattern": null,
+      "rows": 0,
+      "rss_bytes": 303251456,
+      "rust_live_bytes": 45889829,
+      "rust_peak_bytes": 273235787,
+      "stage": "engine_dropped"
+    },
+    {
+      "pressure_relief_bytes": 0
+    },
+    {
+      "allocator": {
+        "blocks": 102119,
+        "live_bytes": 55300048,
+        "reserved_bytes": 136577024
+      },
+      "pattern": null,
+      "rows": 0,
+      "rss_bytes": 249708544,
+      "rust_live_bytes": 45889829,
+      "rust_peak_bytes": 273235787,
+      "stage": "engine_dropped_after_relief"
+    }
+  ],
+  "tests": {
+    "core_passed": 56,
+    "integration_passed": 40,
+    "ignored_timing_test": 1
+  },
+  "query_match_counts_equal_historical_r6": 498217
+}

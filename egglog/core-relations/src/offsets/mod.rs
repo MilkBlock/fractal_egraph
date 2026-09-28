@@ -55,9 +55,24 @@ impl OffsetRange {
 }
 
 #[derive(Default, Clone, PartialEq, Eq, Debug, Hash)]
-pub struct SortedOffsetVector(Vec<RowId>);
+pub struct SortedOffsetVector(SharedRowIds);
+
+/// Immutable candidate sets share storage; destructive intersections detach.
+#[derive(Default, Clone, PartialEq, Eq, Debug, Hash)]
+struct SharedRowIds(std::sync::Arc<Vec<RowId>>);
+impl std::ops::Deref for SharedRowIds {
+    type Target = Vec<RowId>;
+    fn deref(&self) -> &Self::Target { &self.0 }
+}
+impl std::ops::DerefMut for SharedRowIds {
+    fn deref_mut(&mut self) -> &mut Self::Target { std::sync::Arc::make_mut(&mut self.0) }
+}
 
 impl SortedOffsetVector {
+    pub(crate) fn allocation(&self) -> (usize, usize) {
+        (self.0.as_ptr() as usize, self.0.capacity() * std::mem::size_of::<RowId>())
+    }
+
     pub(crate) fn slice(&self) -> &SortedOffsetSlice {
         // SAFETY: self.0 is sorted.
         unsafe { SortedOffsetSlice::new_unchecked(&self.0) }
@@ -104,7 +119,7 @@ impl Clear for SortedOffsetVector {
         self.0.clear()
     }
     fn reuse(&self) -> bool {
-        self.0.capacity() > 0
+        std::sync::Arc::strong_count(&self.0.0) == 1 && self.0.capacity() > 0
     }
     fn bytes(&self) -> usize {
         self.0.capacity() * mem::size_of::<RowId>()
@@ -361,9 +376,24 @@ impl Clone for Subset {
     }
 }
 
-// TODO: consider making Subset::Sparse an Rc, so copies are shallow?
+// Sparse clones share their row-ID buffer; mutations use copy-on-write.
 
 impl Subset {
+    pub(crate) fn storage_key(&self) -> (usize, usize, usize) {
+        match self {
+            Self::Dense(r) => (0, r.start.index(), r.end.index()),
+            Self::Sparse(v) => (1, v.0.as_ptr() as usize, v.0.len()),
+        }
+    }
+    pub(crate) fn intersect_shared(&mut self, other: &Self, pool: &Pool<SortedOffsetVector>) {
+        if let Self::Dense(range) = self {
+            if let Some((start, end)) = other.bounds() {
+                if range.start <= start && range.end >= end { *self = other.clone(); return; }
+            }
+        }
+        self.intersect(other.as_ref(), pool);
+    }
+
     /// The size of the subset.
     pub fn size(&self) -> usize {
         match self {
@@ -433,6 +463,7 @@ impl Subset {
                 // Binary search for both bounds; avoid copy_within if no prefix to remove.
                 let l = sparse.slice().binary_search_by_id(dense.start);
                 let r = sparse.slice().binary_search_from(l, dense.end);
+                if l == 0 && r == sparse.0.len() { return; }
                 if l == 0 {
                     sparse.0.truncate(r);
                 } else {
@@ -441,6 +472,7 @@ impl Subset {
                 }
             }
             (Subset::Sparse(cur), SubsetRef::Sparse(other)) => {
+                if cur.slice().inner().as_ptr() == other.inner().as_ptr() && cur.0.len() == other.inner().len() { return; }
                 let cur_len = cur.0.len();
                 let other_inner = other.inner();
                 let other_len = other_inner.len();

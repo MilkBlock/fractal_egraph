@@ -1,0 +1,228 @@
+{
+  "schema": "memory-fix/v1",
+  "source_sha256": "aaa8942131b4db57e76710486718790e1d7f2cb9288aeb702c0c17019439cf16",
+  "baseline_commit": "c7553a6c2b16c529c13f3eb7eecd742495b992d3",
+  "base_commit": "249bb5b45379b4cb6449188ee37b14d0194873e5",
+  "dirty": true,
+  "threads": "auto",
+  "allocator": "System",
+  "binary_sha256": {
+    "pristine": "33d3de0f31b6ae5b36cd40a2565ebce8dc88f7990eee236a82c30c46bdd6ae4b",
+    "current": "c9b1ae38f1597d569e2915255b40ec9c58141ba4e5ad53361e8e962bf7c4e60d"
+  },
+  "libraries": {
+    "full": {
+      "path": "out/math-lib-full/library.json",
+      "bytes": 342370,
+      "sha256": "59a21281cf330c063015d87ebd0a5c83a9906f3ffb3be20c7928e3f8b2fb53a4"
+    },
+    "r6": {
+      "path": "out/math-lib-r6/library.json",
+      "bytes": 2735359,
+      "sha256": "e5d3272e7973f259e79eaac61edbcd3b63ce59ef7bf5ae81ba41b27d78c4dbdb"
+    }
+  },
+  "verification": {
+    "pristine": {
+      "exact_equal": true,
+      "enodes": 1047896,
+      "eclasses": 443832
+    },
+    "native": {
+      "exact_equal": true,
+      "enodes": 1047896,
+      "eclasses": 443832
+    },
+    "pack-full": {
+      "exact_equal": true,
+      "enodes": 1047896,
+      "eclasses": 443832
+    },
+    "pack-r6": {
+      "exact_equal": true,
+      "enodes": 1047896,
+      "eclasses": 443832
+    }
+  },
+  "runs": [
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.31,
+      "peak_rss_bytes": 516308992,
+      "user_seconds": 2.34,
+      "system_seconds": 1.01,
+      "observed_wall_seconds": 0.32913145900238305,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.293527,
+        "through_drop_seconds": 0.304259791,
+        "verification": false
+      },
+      "variant": "pristine",
+      "repetition": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/post_pack_bench",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.28,
+      "peak_rss_bytes": 380977152,
+      "user_seconds": 2.28,
+      "system_seconds": 0.78,
+      "observed_wall_seconds": 0.2974800410447642,
+      "result": {
+        "matches": 944254,
+        "native_seconds": 0.267229,
+        "pack_seconds": 1.125e-06,
+        "seconds": 0.267230208,
+        "through_drop_seconds": 0.283238208,
+        "verification": false
+      },
+      "variant": "native",
+      "repetition": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/post_pack_bench",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.75,
+      "peak_rss_bytes": 555614208,
+      "user_seconds": 4.24,
+      "system_seconds": 2.46,
+      "observed_wall_seconds": 0.7912622910225764,
+      "result": {
+        "matches": 944254,
+        "native_seconds": 0.262992375,
+        "pack_seconds": 0.401094583,
+        "seconds": 0.664087,
+        "through_drop_seconds": 0.7477545,
+        "verification": false
+      },
+      "variant": "match-full",
+      "repetition": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/post_pack_bench",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 1.58,
+      "peak_rss_bytes": 585908224,
+      "user_seconds": 5.04,
+      "system_seconds": 2.17,
+      "observed_wall_seconds": 1.5974021670408547,
+      "result": {
+        "matches": 944254,
+        "native_seconds": 0.270189209,
+        "pack_seconds": 1.242289625,
+        "seconds": 1.512478959,
+        "through_drop_seconds": 1.576714417,
+        "verification": false
+      },
+      "variant": "pack-full",
+      "repetition": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/post_pack_bench",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 5.31,
+      "peak_rss_bytes": 1608368128,
+      "user_seconds": 32.14,
+      "system_seconds": 13.55,
+      "observed_wall_seconds": 5.355529374908656,
+      "result": {
+        "matches": 944254,
+        "native_seconds": 0.263274625,
+        "pack_seconds": 4.799298042,
+        "seconds": 5.06257275,
+        "through_drop_seconds": 5.30369475,
+        "verification": false
+      },
+      "variant": "match-r6",
+      "repetition": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/post_pack_bench",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 9.23,
+      "peak_rss_bytes": 1574060032,
+      "user_seconds": 38.17,
+      "system_seconds": 14.1,
+      "observed_wall_seconds": 9.267605624976568,
+      "result": {
+        "matches": 944254,
+        "native_seconds": 0.271619209,
+        "pack_seconds": 8.7044215,
+        "seconds": 8.976040792,
+        "through_drop_seconds": 9.218507209,
+        "verification": false
+      },
+      "variant": "pack-r6",
+      "repetition": 0
+    }
+  ],
+  "notes": [
+    "Actual native execution of unchanged 11-round source; frozen-closure rewriting is not enabled.",
+    "Pristine binary is hash-verified against the recorded clean immutable-tag build; both System allocator and ThinLTO/codegen-units=1.",
+    "Current harness mirrors native_compare, adding optional measured library load/query/packing. No allocator instrumentation or graph scan during timed runs.",
+    "Separate exports verify all constructor facts and equivalence classes modulo IDs.",
+    "Pack times include discovery, loading and packing, not offline Bake. Native baseline has no library.",
+    "No candidate budgets or early exit: external process guard only (90s / 4GiB).",
+    "The richer library is from a previously interrupted capture; not a complete discovered library.",
+    "Final screening is one repetition, explicitly not a stable speedup claim.",
+    "Unrelated pre-existing working-tree changes are preserved and not included in the repair commit. Measurements describe the tested working tree.",
+    "A serial collector experiment regressed and was reverted; normal parallel execution policy is preserved."
+  ],
+  "medians": {
+    "pristine": {
+      "seconds": 0.293527,
+      "through_drop_seconds": 0.304259791,
+      "process_wall_seconds": 0.31,
+      "peak_rss_bytes": 516308992
+    },
+    "native": {
+      "seconds": 0.267230208,
+      "through_drop_seconds": 0.283238208,
+      "process_wall_seconds": 0.28,
+      "peak_rss_bytes": 380977152
+    },
+    "match-full": {
+      "seconds": 0.664087,
+      "through_drop_seconds": 0.7477545,
+      "process_wall_seconds": 0.75,
+      "peak_rss_bytes": 555614208
+    },
+    "pack-full": {
+      "seconds": 1.512478959,
+      "through_drop_seconds": 1.576714417,
+      "process_wall_seconds": 1.58,
+      "peak_rss_bytes": 585908224
+    },
+    "match-r6": {
+      "seconds": 5.06257275,
+      "through_drop_seconds": 5.30369475,
+      "process_wall_seconds": 5.31,
+      "peak_rss_bytes": 1608368128
+    },
+    "pack-r6": {
+      "seconds": 8.976040792,
+      "through_drop_seconds": 9.218507209,
+      "process_wall_seconds": 9.23,
+      "peak_rss_bytes": 1574060032
+    }
+  },
+  "net_rss_acceptance": {
+    "pack-full": false,
+    "pack-r6": false
+  },
+  "rustc": "rustc 1.94.0 (4a4ef493e 2026-03-02)\nbinary: rustc\ncommit-hash: 4a4ef493e3a1488c6e321570238084b38948f6db\ncommit-date: 2026-03-02\nhost: aarch64-apple-darwin\nrelease: 1.94.0\nLLVM version: 21.1.8\n"
+}

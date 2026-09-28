@@ -157,7 +157,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         };
         println!(
             "{}",
-            json!({"pattern":id,"cached_subset_bytes":eg.fact_query_subset_bytes(&query)})
+            json!({"pattern":id,"cached_subset_bytes":eg.fact_query_subset_bytes(&query),"unique_subset_bytes":eg.fact_query_unique_subset_bytes(&query)})
         );
         point("compiled", Some(id), 0);
         let found = eg.run_fact_query(&query)?;

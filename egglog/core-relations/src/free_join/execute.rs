@@ -436,13 +436,14 @@ impl Database {
                                 let mut cur =
                                     Arc::try_unwrap(binding_info.unwrap_val(*atom)).unwrap();
                                 debug_assert!(cur.cached_subsets.get().is_none());
-                                cur.subset.intersect(subset.as_ref(), &join_state.pool);
+                                cur.subset.intersect_shared(subset, &join_state.pool);
                                 if cur.subset.is_empty() {
                                     break 'eval;
                                 }
                                 binding_info.move_back_node(*atom, Arc::new(cur));
                             }
 
+                            binding_info.share_unfiltered_roots(&plan.atoms());
                             match plan {
                                 Plan::SinglePlan(plan) => {
                                     join_state.run_join_stages(
@@ -571,12 +572,13 @@ impl Database {
                         // Trie nodes are only shared once we start running the query.
                         let mut cur = Arc::try_unwrap(binding_info.unwrap_val(*atom)).unwrap();
                         debug_assert!(cur.cached_subsets.get().is_none());
-                        cur.subset.intersect(subset.as_ref(), &join_state.pool);
+                        cur.subset.intersect_shared(subset, &join_state.pool);
                         if cur.subset.is_empty() {
                             break 'eval;
                         }
                         binding_info.move_back_node(*atom, Arc::new(cur));
                     }
+                    binding_info.share_unfiltered_roots(&plan.atoms());
                     match plan {
                         Plan::SinglePlan(plan) => {
                             join_state.run_join_stages(
@@ -726,6 +728,7 @@ pub(crate) struct TrieNode {
     subset: Subset,
     /// Any cached indexes on this subset.
     cached_subsets: OnceLock<Pooled<ColumnIndexes>>,
+    shared_indexes: Option<Arc<OnceLock<Pooled<ColumnIndexes>>>>,
     /// Cached child trie nodes, keyed by value. In practice each TrieNode is
     /// only ever probed with a single column, so we store one (col, map) pair
     /// instead of an IdVec across all columns.
@@ -745,6 +748,7 @@ impl TrieNode {
         Self {
             subset,
             cached_subsets: Default::default(),
+            shared_indexes: None,
             cached_children: Default::default(),
         }
     }
@@ -753,7 +757,7 @@ impl TrieNode {
         self.subset.size()
     }
     fn get_cached_index(&self, col: ColumnId, info: &TableInfo) -> Arc<ColumnIndex> {
-        self.cached_subsets.get_or_init(|| {
+        self.shared_indexes.as_deref().unwrap_or(&self.cached_subsets).get_or_init(|| {
             // Pre-size the vector so we do not need to borrow it mutably to initialize the index.
             let mut vec: Pooled<ColumnIndexes> = with_pool_set(|ps| ps.get());
             vec.resize_with(info.spec.arity(), OnceLock::new);
@@ -838,12 +842,32 @@ struct BindingInfo {
 }
 
 impl BindingInfo {
+    /// Share immutable column indexes for identical physical subsets. Only
+    /// unfiltered atoms also share child caches: slow/alias predicates can be
+    /// placed at different stages and must not borrow another atom's children.
+    fn share_unfiltered_roots(&mut self, atoms: &DenseIdMap<AtomId, Atom>) {
+        if atoms.iter().count() <= 1 { return; }
+        let mut roots: HashMap<_, (Arc<OnceLock<Pooled<ColumnIndexes>>>, Option<Arc<TrieNode>>)> = HashMap::default();
+        for (id, atom) in atoms.iter() {
+            let mut node = self.subsets.unwrap_val(id);
+            let key = (atom.table, node.subset.storage_key());
+            let (indexes, unfiltered) = roots.entry(key).or_insert_with(|| (Arc::new(OnceLock::new()), None));
+            if atom.constraints.slow.is_empty() && unfiltered.is_some() {
+                self.subsets.insert(id, unfiltered.as_ref().unwrap().clone());
+                continue;
+            }
+            Arc::get_mut(&mut node).expect("root is private before execution").shared_indexes = Some(indexes.clone());
+            if atom.constraints.slow.is_empty() { *unfiltered = Some(node.clone()); }
+            self.subsets.insert(id, node);
+        }
+    }
     /// Initializes the atom-related metadata in the [`BindingInfo`].    
     fn insert_subset(&mut self, atom: AtomId, subset: Subset) {
         if let Some(slot) = self.subsets.get_mut(atom)
             && let Some(node) = Arc::get_mut(slot)
         {
             node.cached_subsets.take();
+            node.shared_indexes = None;
             node.cached_children.take();
             node.subset = subset;
             return;

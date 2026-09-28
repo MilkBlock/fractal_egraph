@@ -5,7 +5,7 @@ use super::*;
 use crate::WrappedTable;
 use std::{
     borrow::Cow,
-    collections::{BTreeMap, BTreeSet, HashMap, HashSet},
+    collections::{BTreeMap, BTreeSet, HashMap},
 };
 
 #[derive(Debug)]
@@ -126,15 +126,63 @@ struct BindingRef {
     matrix: u32,
     index: u32,
 }
+// Fixed physical addressing granule, not a search or admission budget.
+const PAGE_ROWS: usize = 256;
+#[derive(Default)]
+struct Page {
+    // Dense pages need no per-row descriptors. Mixed pages preserve row IDs.
+    recipes: Vec<Recipe>,
+    virtual_bits: [u64; PAGE_ROWS / 64],
+    virtual_prefix: [u16; PAGE_ROWS / 64],
+    direct: Vec<Value>,
+    len: usize,
+}
 #[derive(Default)]
 struct Base {
-    rows: Vec<Recipe>,
+    pages: Vec<Page>,
+    len: usize,
+    width: usize,
     instances: Vec<BindingRef>,
     matrices: Vec<Arc<BindingMatrix>>,
-    direct: Vec<Box<[Value]>>,
     tails: Vec<Box<[Value]>>,
 }
 impl Base {
+    fn recipe(&self, n: usize) -> Recipe {
+        let page = &self.pages[n / PAGE_ROWS];
+        let offset = n % PAGE_ROWS;
+        if page.recipes.is_empty() { return Recipe { instance: DIRECT, row: offset as u32, tail: 0 }; }
+        let word = offset / 64;
+        let bit = offset % 64;
+        let rank = page.virtual_prefix[word] as usize
+            + (page.virtual_bits[word] & ((1u64 << bit) - 1)).count_ones() as usize;
+        if page.virtual_bits[word] & (1u64 << bit) != 0 { page.recipes[rank] }
+        else { Recipe { instance: DIRECT, row: (offset - rank) as u32, tail: 0 } }
+    }
+    fn direct_row(&self, n: usize, offset: u32) -> &[Value] {
+        let start = offset as usize * self.width;
+        &self.pages[n / PAGE_ROWS].direct[start..start + self.width]
+    }
+    fn push(&mut self, recipe: Option<Recipe>, values: Option<&[Value]>) {
+        if self.len % PAGE_ROWS == 0 { self.pages.push(Page::default()); }
+        let page = self.pages.last_mut().unwrap();
+        if page.len % 64 == 0 { page.virtual_prefix[page.len / 64] = page.recipes.len() as u16; }
+        if let Some(r) = recipe {
+            page.virtual_bits[page.len / 64] |= 1u64 << (page.len % 64);
+            page.recipes.push(r);
+        } else {
+            if let Some(values) = values { page.direct.extend_from_slice(values); }
+            else { page.direct.resize(page.direct.len() + self.width, Value::new_const(0)); }
+        }
+        page.len += 1;
+        self.len += 1;
+    }
+    fn finish(&mut self) {
+        for page in &mut self.pages {
+            page.direct.shrink_to_fit();
+            page.recipes.shrink_to_fit();
+        }
+        self.pages.shrink_to_fit();
+    }
     fn view(&self, id: u32) -> (&NativeRowTemplate, &[Value]) {
         let r = self.instances[id as usize];
         let m = &self.matrices[r.matrix as usize];
@@ -149,24 +197,35 @@ impl Base {
         }
     }
 }
+#[derive(Clone, Default)]
+struct DeadRows { bits: fixedbitset::FixedBitSet, count: usize }
+impl DeadRows {
+    fn contains(&self, row: &RowId) -> bool { self.bits.contains(row.index()) }
+    fn insert(&mut self, row: RowId) {
+        if row.index() >= self.bits.len() { self.bits.grow(row.index() + 1); }
+        if !self.bits.contains(row.index()) { self.bits.insert(row.index()); self.count += 1; }
+    }
+    fn len(&self) -> usize { self.count }
+}
 #[derive(Clone)]
 pub(super) struct VirtualRows {
     base: Arc<Base>,
-    dead: HashSet<RowId>,
+    dead: DeadRows,
     rebuild_rows_examined: usize,
     rebuild_rows_changed: usize,
 }
 impl VirtualRows {
     fn prefix(&self) -> usize {
-        self.base.rows.len()
+        self.base.len
     }
     fn value(&self, row: RowId, col: usize) -> Option<Value> {
         if self.dead.contains(&row) {
             return None;
         }
-        let r = self.base.rows.get(row.index())?;
+        if row.index() >= self.base.len { return None; }
+        let r = self.base.recipe(row.index());
         if r.instance == DIRECT {
-            return self.base.direct.get(r.row as usize)?.get(col).copied();
+            return self.base.direct_row(row.index(), r.row).get(col).copied();
         }
         let (template, binding) = self.base.view(r.instance);
         let pattern = &template.rows[r.row as usize];
@@ -182,9 +241,10 @@ impl VirtualRows {
         if self.dead.contains(&row) {
             return None;
         }
-        let r = self.base.rows.get(row.index())?;
+        if row.index() >= self.base.len { return None; }
+        let r = self.base.recipe(row.index());
         if r.instance == DIRECT {
-            return Some(Cow::Borrowed(&self.base.direct[r.row as usize]));
+            return Some(Cow::Borrowed(self.base.direct_row(row.index(), r.row)));
         }
         let (template, binding) = self.base.view(r.instance);
         let mut values = template.rows[r.row as usize]
@@ -236,9 +296,9 @@ impl SortedWritesTable {
         if v.dead.contains(&row) {
             return false;
         }
-        let r = v.base.rows[row.index()];
+        let r = v.base.recipe(row.index());
         if r.instance == DIRECT {
-            return &v.base.direct[r.row as usize][..key.len()] == key;
+            return &v.base.direct_row(row.index(), r.row)[..key.len()] == key;
         }
         let (template, binding) = v.base.view(r.instance);
         template.rows[r.row as usize][..key.len()]
@@ -262,9 +322,9 @@ impl SortedWritesTable {
         if v.dead.contains(&row) {
             return false;
         }
-        let r = v.base.rows[row.index()];
+        let r = v.base.recipe(row.index());
         if r.instance == DIRECT {
-            out.extend_from_slice(&v.base.direct[r.row as usize]);
+            out.extend_from_slice(v.base.direct_row(row.index(), r.row));
             return true;
         }
         let (template, binding) = v.base.view(r.instance);
@@ -298,7 +358,7 @@ impl SortedWritesTable {
         get_entry(key, self.n_keys, &self.hash, |id| {
             self.virtual_key_matches(id, key)
         })
-        .is_some_and(|id| id.index() < v.prefix() && v.base.rows[id.index()].instance != DIRECT)
+        .is_some_and(|id| id.index() < v.prefix() && v.base.recipe(id.index()).instance != DIRECT)
     }
     pub(super) fn pack_rows(&mut self, requests: &[VirtualRowRequest]) -> Result<(), String> {
         // Validate the entire request before changing any storage.
@@ -340,8 +400,8 @@ impl SortedWritesTable {
         selected: &BTreeMap<RowId, &VirtualRowRequest>,
         compact: bool,
     ) -> Result<VirtualRows, String> {
-        let mut base = Base::default();
-        let mut dead = HashSet::new();
+        let mut base = Base { width: self.n_columns, ..Default::default() };
+        let mut dead = DeadRows::default();
         let mut instances = HashMap::new();
         let mut matrices = HashMap::new();
         let mut tails = BTreeMap::new();
@@ -350,11 +410,7 @@ impl SortedWritesTable {
             let Some(actual) = self.row_values(id) else {
                 if !compact {
                     dead.insert(id);
-                    base.rows.push(Recipe {
-                        instance: DIRECT,
-                        row: 0,
-                        tail: 0,
-                    });
+                    base.push(None, None);
                 }
                 continue;
             };
@@ -365,7 +421,7 @@ impl SortedWritesTable {
                 .as_ref()
                 .filter(|v| n < v.prefix())
                 .and_then(|v| {
-                    let r = v.base.rows[n];
+                    let r = v.base.recipe(n);
                     (r.instance != DIRECT).then(|| (v.base.instance(r.instance), r.row as usize))
                 });
             let recipe = old.or_else(|| {
@@ -398,21 +454,16 @@ impl SortedWritesTable {
                     base.tails.push(suffix.into_boxed_slice());
                     next
                 });
-                base.rows.push(Recipe {
+                base.push(Some(Recipe {
                     instance: instance_id,
                     row: row.try_into().map_err(|_| "template row exceeds u32")?,
                     tail,
-                });
+                }), None);
             } else {
-                let row = base.direct.len() as u32;
-                base.direct.push(actual.into_owned().into_boxed_slice());
-                base.rows.push(Recipe {
-                    instance: DIRECT,
-                    row,
-                    tail: 0,
-                });
+                base.push(None, Some(&actual));
             }
         }
+        base.finish();
         Ok(VirtualRows {
             base: Arc::new(base),
             dead,
@@ -521,13 +572,7 @@ impl SortedWritesTable {
                     .sum(),
             );
         }
-        let virtual_rows = v
-            .base
-            .rows
-            .iter()
-            .enumerate()
-            .filter(|(i, r)| r.instance != DIRECT && !v.dead.contains(&RowId::from_usize(*i)))
-            .count();
+        let virtual_rows = (0..v.prefix()).filter(|i| v.base.recipe(*i).instance != DIRECT && !v.dead.contains(&RowId::from_usize(*i))).count();
         Some(NativeVirtualStats {
             virtual_rows,
             direct_base_rows: v.prefix() - v.dead.len() - virtual_rows,
@@ -538,21 +583,16 @@ impl SortedWritesTable {
             dense_equivalent_bytes: self.physical_len()
                 * self.n_columns
                 * std::mem::size_of::<Value>(),
-            descriptor_bytes: v.base.rows.capacity() * std::mem::size_of::<Recipe>(),
+            descriptor_bytes: v.base.pages.iter().map(|p| p.recipes.capacity() * std::mem::size_of::<Recipe>()).sum(),
             local_header_bytes: std::mem::size_of::<Base>()
                 + 2 * std::mem::size_of::<usize>()
                 + v.base.instances.capacity() * std::mem::size_of::<BindingRef>()
                 + v.base.matrices.capacity() * std::mem::size_of::<Arc<BindingMatrix>>()
-                + v.base.direct.capacity() * std::mem::size_of::<Box<[Value]>>()
+                + v.base.pages.capacity() * std::mem::size_of::<Page>() + v.dead.bits.as_slice().len() * std::mem::size_of::<usize>()
                 + v.base.tails.capacity() * std::mem::size_of::<Box<[Value]>>(),
             binding_headers: binding_headers.into_iter().collect(),
             template_headers: template_headers.into_iter().collect(),
-            direct_bytes: v
-                .base
-                .direct
-                .iter()
-                .map(|r| r.len() * std::mem::size_of::<Value>())
-                .sum::<usize>()
+            direct_bytes: v.base.pages.iter().map(|p| p.direct.capacity() * std::mem::size_of::<Value>()).sum::<usize>()
                 + self.data.data.len() * self.n_columns * std::mem::size_of::<Value>(),
             metadata_bytes: v
                 .base

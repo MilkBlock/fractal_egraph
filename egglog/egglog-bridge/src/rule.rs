@@ -153,6 +153,10 @@ impl EGraph {
         }
     }
 
+    pub fn rule_unique_subset_bytes(&self, id: RuleId) -> Option<usize> {
+        self.rules[id].cached_plan.as_ref().map(|c| c.plan.unique_subset_bytes())
+    }
+
     /// Cached query row-ID payloads, excluding all other plan allocations.
     pub fn rule_subset_bytes(&self, id: RuleId) -> Option<[usize; 2]> {
         self.rules[id].cached_plan.as_ref().map(|c| c.plan.retained_subset_bytes())

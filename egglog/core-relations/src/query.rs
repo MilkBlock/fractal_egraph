@@ -41,6 +41,18 @@ pub struct CachedPlan {
 }
 
 impl CachedPlan {
+    /// Deduplicated sparse row-ID allocation capacities across headers and atoms.
+    pub fn unique_subset_bytes(&self) -> usize {
+        let mut seen = std::collections::BTreeMap::new();
+        for subset in self.plan.header().iter().map(|h| &h.subset)
+            .chain(self.plan.atoms().iter().map(|(_, a)| &a.constraints.subset)) {
+            if let crate::offsets::Subset::Sparse(v) = subset {
+                let (id, bytes) = v.allocation(); seen.insert(id, bytes);
+            }
+        }
+        seen.values().sum()
+    }
+
     /// Allocated sparse row-ID buffers retained in headers and atoms, separately.
     /// These are query-state payload bytes, not total plan heap size or RSS.
     pub fn retained_subset_bytes(&self) -> [usize; 2] {
@@ -110,6 +122,8 @@ impl RuleSet {
 ///
 /// See [`Database::new_rule_set`] for more information.
 pub struct RuleSetBuilder<'outer> {
+    // This builder borrows the database exclusively; discard on each new snapshot.
+    constraint_cache: std::cell::RefCell<HashMap<(TableId, Vec<Constraint>), ProcessedConstraints>>,
     retain_witnesses: bool,
     rule_set: RuleSet,
     db: &'outer mut Database,
@@ -118,10 +132,16 @@ pub struct RuleSetBuilder<'outer> {
 impl<'outer> RuleSetBuilder<'outer> {
     pub fn new(db: &'outer mut Database) -> Self {
         Self {
+            constraint_cache: Default::default(),
             retain_witnesses: false,
             rule_set: Default::default(),
             db,
         }
+    }
+
+    fn shared_constraints(&self, table: TableId, cs: &[Constraint]) -> ProcessedConstraints {
+        self.constraint_cache.borrow_mut().entry((table, cs.to_vec()))
+            .or_insert_with(|| self.db.process_constraints(table, cs)).clone()
     }
 
     /// Retain LHS bindings for complete diagnostic row witnesses.
@@ -162,7 +182,7 @@ impl<'outer> RuleSetBuilder<'outer> {
         atom: AtomId,
         constraints: &[Constraint],
     ) -> Option<JoinHeader> {
-        let processed = self.db.process_constraints(table, constraints);
+        let processed = self.shared_constraints(table, constraints);
         if !processed.slow.is_empty() {
             panic!(
                 "Cached plans only support constraints with a fast pushdown. \
@@ -428,7 +448,7 @@ impl<'outer, 'a> QueryBuilder<'outer, 'a> {
                 })),
         );
         cs.iter().try_fold((), |_, c| check_constraint(c))?;
-        let processed = self.rsb.db.process_constraints(table_id, &cs);
+        let processed = self.rsb.shared_constraints(table_id, &cs);
         let mut atom = Atom {
             table: table_id,
             var_columns: Default::default(),

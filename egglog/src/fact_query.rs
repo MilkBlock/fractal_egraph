@@ -180,6 +180,10 @@ impl EGraph {
         Ok((rows.matched, rows.fresh))
     }
 
+    pub fn fact_query_unique_subset_bytes(&self, query: &CompiledFactQuery) -> Option<usize> {
+        self.backend.rule_unique_subset_bytes(query.rule)
+    }
+
     /// Diagnostic row-ID buffer capacities: [headers, atoms]. Not total heap/RSS.
     pub fn fact_query_subset_bytes(&self, query: &CompiledFactQuery) -> Option<[usize; 2]> {
         self.backend.rule_subset_bytes(query.rule)

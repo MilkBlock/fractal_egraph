@@ -1,5 +1,8 @@
 # Why post-saturation packing uses more memory
 
+The defects documented here describe the pre-repair implementation. See
+[the repair and still-failing net-RSS acceptance](../memory_fix/README.md) for current results.
+
 This is a source-backed allocation diagnosis of the actual local egglog runtime.
 No packing semantics were changed. The probe adds a counting System allocator,
 phase samples, and a read-only cached-query subset-capacity API. It does not measure
