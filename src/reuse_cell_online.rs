@@ -25,8 +25,8 @@ use crate::{
     coarse_smooth::RelativeBinding,
     pipeline::Result,
     reuse_cell_recognition::{
-        BodyRow, CellId, CellRecognitionPlan, RecognitionSource, RecognitionStep, RuleIdentity,
-        SlotOrigin,
+        BodyRow, BoundarySpace, CellId, CellRecognitionPlan, RecognitionSource, RecognitionStep,
+        RuleIdentity, SlotOrigin,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -158,6 +158,8 @@ pub struct RecognitionCounts {
 struct StepRef {
     plan: usize,
     source: usize,
+    /// Index of this step inside its source, for the per-step boundary map.
+    position: usize,
     node: usize,
     step: RecognitionStep,
 }
@@ -167,7 +169,6 @@ pub struct CellRecognizer {
     plans: Vec<CellRecognitionPlan>,
     steps_by_rule: BTreeMap<RuleIdentity, Vec<StepRef>>,
     /// (plan, source) -> plan boundary slot per step-external ordinal.
-    external_slots: BTreeMap<(usize, usize), Vec<usize>>,
     unsupported: Vec<(usize, usize, String)>,
     instances: Vec<Instance>,
     by_key: BTreeMap<InstanceKey, usize>,
@@ -182,41 +183,46 @@ pub struct CellRecognizer {
 impl CellRecognizer {
     pub fn new(plans: Vec<CellRecognitionPlan>) -> Self {
         let mut steps_by_rule: BTreeMap<RuleIdentity, Vec<StepRef>> = BTreeMap::new();
-        let mut external_slots = BTreeMap::new();
         let mut unsupported = vec![];
         for (plan_index, plan) in plans.iter().enumerate() {
+            let boundary_len = plan.slots.boundary.len();
             for (source_index, source) in plan.sources.iter().enumerate() {
-                // Enumerate the step-external ordinals a source actually uses,
-                // in order of first use, and require a positional contract with
-                // the plan's declared boundary. A source that does not line up
-                // is reported, never guessed.
-                let mut seen = BTreeSet::new();
-                let mut order = 0usize;
-                for node in &source.steps {
-                    let Some(step) = plan.graph.node(*node) else {
-                        continue;
-                    };
-                    for binding in &step.step.binding {
-                        if let RelativeBinding::External { slot } = binding
-                            && seen.insert(*slot)
-                        {
-                            order += 1;
-                        }
-                    }
-                }
-                if order != plan.slots.boundary.len() {
-                    unsupported.push((
-                        plan_index,
-                        source_index,
-                        format!(
-                            "source uses {order} step externals but the plan declares {} boundary slots",
-                            plan.slots.boundary.len()
-                        ),
-                    ));
+                // Every step must declare, for each of its external ordinals, one
+                // instance boundary position; and every declared position must be
+                // used, or two different instances could share a key. A source
+                // that does not satisfy this is reported, never guessed.
+                let problem = if source.external_slots.len() != source.steps.len() {
+                    Some(format!(
+                        "source has {} steps but {} boundary maps",
+                        source.steps.len(),
+                        source.external_slots.len()
+                    ))
+                } else if source
+                    .external_slots
+                    .iter()
+                    .flatten()
+                    .filter(|p| **p != usize::MAX)
+                    .any(|p| *p >= boundary_len)
+                {
+                    Some("a step external maps outside the declared boundary".to_string())
+                } else {
+                    // `usize::MAX` marks an ordinal the recipe binding never
+                    // references; it needs no boundary position.
+                    let used: BTreeSet<usize> = source
+                        .external_slots
+                        .iter()
+                        .flatten()
+                        .copied()
+                        .filter(|p| *p != usize::MAX)
+                        .collect();
+                    (used.len() != boundary_len)
+                        .then(|| format!("the source uses {} of {boundary_len} boundary positions", used.len()))
+                };
+                if let Some(reason) = problem {
+                    unsupported.push((plan_index, source_index, reason));
                     continue;
                 }
-                external_slots.insert((plan_index, source_index), plan.slots.boundary.clone());
-                for node in &source.steps {
+                for (position, node) in source.steps.iter().enumerate() {
                     let Some(step) = plan.graph.node(*node) else {
                         continue;
                     };
@@ -226,6 +232,7 @@ impl CellRecognizer {
                         .push(StepRef {
                             plan: plan_index,
                             source: source_index,
+                            position,
                             node: *node,
                             step: step.step.clone(),
                         });
@@ -235,7 +242,6 @@ impl CellRecognizer {
         Self {
             plans,
             steps_by_rule,
-            external_slots,
             unsupported,
             instances: vec![],
             by_key: BTreeMap::new(),
@@ -344,9 +350,10 @@ impl CellRecognizer {
         let wanted: Vec<ValueId> = wanted.iter().map(|v| self.canonical(*v)).collect();
         let outputs: Vec<ValueId> = outputs.iter().map(|v| self.canonical(*v)).collect();
         for step_ref in steps {
-            let Some(slots) = self
-                .external_slots
-                .get(&(step_ref.plan, step_ref.source))
+            let Some(slots) = self.plans[step_ref.plan]
+                .sources
+                .get(step_ref.source)
+                .and_then(|s| s.external_slots.get(step_ref.position))
                 .cloned()
             else {
                 continue;
@@ -495,6 +502,12 @@ impl CellRecognizer {
             for column in row.columns.iter().take(row.columns.len().saturating_sub(1)) {
                 match plan.slots.slots[*column].origin {
                     SlotOrigin::Boundary => {
+                        // A library recipe's boundary positions are recognition
+                        // only; a body-value column is never resolved from them.
+                        if plan.slots.boundary_space != BoundarySpace::Slots {
+                            known = false;
+                            break;
+                        }
                         let position = plan
                             .slots
                             .boundary
@@ -671,12 +684,17 @@ impl CellRecognizer {
                 .enumerate()
                 .map(|(i, slot)| match slot.origin {
                     SlotOrigin::Literal => Some(u64::MAX),
-                    SlotOrigin::Boundary => plan
-                        .slots
-                        .boundary
-                        .iter()
-                        .position(|s| *s == i)
-                        .and_then(|p| instance.boundary.get(p).copied().flatten()),
+                    SlotOrigin::Boundary => {
+                        if plan.slots.boundary_space != BoundarySpace::Slots {
+                            None
+                        } else {
+                            plan.slots
+                                .boundary
+                                .iter()
+                                .position(|s| *s == i)
+                                .and_then(|p| instance.boundary.get(p).copied().flatten())
+                        }
+                    }
                     SlotOrigin::Derived => None,
                 })
                 .collect();
@@ -1032,6 +1050,7 @@ mod tests {
                         }],
                     ),
                 ],
+                wiring: vec![],
             }],
         };
         compile_library(EnvironmentId::from_text(&["(env)".into()]), &[body])
@@ -1085,10 +1104,22 @@ mod tests {
                 external: &[],
             })
             .unwrap();
-        assert_eq!(recogniser.confirm(&facts), 1);
-        let cells = recogniser.complete(&facts);
-        assert_eq!(cells.len(), 1);
-        assert_eq!(cells[0].rows, vec![vec![10, 20]]);
+        assert!(
+            recogniser.unsupported_sources().is_empty(),
+            "{:?}",
+            recogniser.unsupported_sources()
+        );
+        assert_eq!(
+            recogniser.counts().located,
+            1,
+            "both applications are evidenced"
+        );
+        // A library recipe is recognised from its steps, but its compact template
+        // still cannot be confirmed: the artifacts do not record how recipe
+        // symbols map onto stored body values, so confirmation stays closed
+        // rather than resolving a body column from a recognition position.
+        assert_eq!(recogniser.confirm(&facts), 0);
+        assert!(recogniser.complete(&facts).is_empty());
     }
 
     #[test]

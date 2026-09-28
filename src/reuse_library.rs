@@ -269,6 +269,27 @@ impl Library {
                     .copied()
                     .collect(),
                 recipe: serde_json::from_value(e.origin["reuse_recipe"].clone())?,
+                // Recorded per-member wiring: for each step and input, the
+                // canonical boundary port or a local parent. Absent in older
+                // artifacts, in which case per-step externals stay distinct.
+                wiring: e.origin["comb_members"]
+                    .as_array()
+                    .map(|members| {
+                        members
+                            .iter()
+                            .map(|m| {
+                                m["binding"]
+                                    .as_array()
+                                    .map(|b| {
+                                        b.iter()
+                                            .map(|w| w["Input"].as_u64().map(|p| p as usize))
+                                            .collect()
+                                    })
+                                    .unwrap_or_default()
+                            })
+                            .collect()
+                    })
+                    .unwrap_or_default(),
             });
         }
         Ok(out)

@@ -193,6 +193,12 @@ pub struct RecognitionSource {
     pub provenance: SourceProvenance,
     /// Node ids in topological order. `steps[i]`'s parents are earlier nodes.
     pub steps: Vec<usize>,
+    /// For each step (aligned with `steps`), the instance boundary position of
+    /// every step-external ordinal. Library recipes number externals per step;
+    /// the recorded `comb_members` wiring collapses equal boundary values onto
+    /// one position, so two steps that consume the same external share it.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub external_slots: Vec<Vec<usize>>,
 }
 
 impl RecognitionSource {
@@ -238,14 +244,31 @@ pub struct BodyRow {
     pub columns: Vec<usize>,
 }
 
+/// Which index space the recognition boundary lives in.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub enum BoundarySpace {
+    /// Boundary positions index `slots` directly, so a template column is also
+    /// a boundary position. This is the adaptive macro shape, where the trigger
+    /// binds the same slots the storage template uses.
+    Slots,
+    /// Boundary positions are recognition-only. Library recipes number their
+    /// step externals per step, while the storage template indexes body values;
+    /// the two spaces are not interchangeable and a template column is never
+    /// resolved from a boundary position.
+    Recognition,
+}
+
 /// How a source composition maps onto the compact storage unit.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct SlotMapping {
     pub slots: Vec<PlanSlot>,
     /// Storage template: which slots each body row is built from.
     pub template: Vec<BodyRow>,
-    /// Slots the recogniser must obtain from events, in slot order.
+    /// The recognition boundary, in position order. For [`BoundarySpace::Slots`]
+    /// these are slot indices; for [`BoundarySpace::Recognition`] they are the
+    /// source's canonical external positions.
     pub boundary: Vec<usize>,
+    pub boundary_space: BoundarySpace,
 }
 
 impl SlotMapping {
@@ -261,18 +284,27 @@ impl SlotMapping {
         {
             return Err("cell template references an unknown slot".into());
         }
-        if self.boundary.iter().any(|s| *s >= slots) {
-            return Err("cell boundary references an unknown slot".into());
-        }
         if self.boundary.iter().collect::<BTreeSet<_>>().len() != self.boundary.len() {
-            return Err("cell boundary repeats a slot".into());
+            return Err("cell boundary repeats a position".into());
         }
-        if self
-            .boundary
-            .iter()
-            .any(|s| self.slots[*s].origin != SlotOrigin::Boundary)
-        {
-            return Err("cell boundary contains a slot that is not a boundary".into());
+        match self.boundary_space {
+            BoundarySpace::Slots => {
+                if self.boundary.iter().any(|s| *s >= slots) {
+                    return Err("cell boundary references an unknown slot".into());
+                }
+                if self
+                    .boundary
+                    .iter()
+                    .any(|s| self.slots[*s].origin != SlotOrigin::Boundary)
+                {
+                    return Err("cell boundary contains a slot that is not a boundary".into());
+                }
+            }
+            BoundarySpace::Recognition => {
+                if self.boundary.iter().any(|s| *s >= self.boundary.len()) {
+                    return Err("recognition boundary is not position ordered".into());
+                }
+            }
         }
         Ok(())
     }
@@ -341,9 +373,13 @@ fn compile_source(
     graph: &mut RecognitionGraph,
     provenance: SourceProvenance,
     steps: Vec<RecognitionStep>,
+    external_slots: Vec<Vec<usize>>,
 ) -> Result<RecognitionSource> {
     if steps.is_empty() {
         return Err("recognition source has no steps".into());
+    }
+    if external_slots.len() != steps.len() {
+        return Err("recognition source external map does not match its steps".into());
     }
     let mut ids = Vec::with_capacity(steps.len());
     for (i, step) in steps.iter().enumerate() {
@@ -367,6 +403,7 @@ fn compile_source(
     Ok(RecognitionSource {
         provenance,
         steps: ids,
+        external_slots,
     })
 }
 
@@ -388,6 +425,57 @@ pub struct LibraryCellSource {
     pub interface: Vec<usize>,
     /// Stored origin recipe, in any symbol numbering.
     pub recipe: Vec<Comb>,
+    /// Recorded `comb_members` wiring, aligned with `recipe`: for each step and
+    /// each recorded input, the canonical boundary port, or `None` when the
+    /// input is satisfied by a local parent. Empty when the artifact does not
+    /// carry it.
+    pub wiring: Vec<Vec<Option<usize>>>,
+}
+
+/// Derive the instance boundary and per-step external mapping of one source.
+///
+/// Library recipes number externals *per step*, so ordinal `s` of step 0 and
+/// ordinal `s` of step 1 denote different values. The recorded `comb_members`
+/// wiring collapses equal boundary values onto one canonical port, which is what
+/// makes two steps that consume the same external share one boundary position.
+/// Without wiring each `(step, ordinal)` pair gets its own position: a finer key
+/// than necessary, but never a guessed correspondence.
+fn derive_external_slots(
+    source: &LibraryCellSource,
+    steps: &[RecognitionStep],
+) -> Result<Vec<Vec<usize>>> {
+    let mut positions: BTreeMap<usize, usize> = BTreeMap::new();
+    let mut boundary = vec![];
+    let mut per_step = Vec::with_capacity(steps.len());
+    for (i, step) in steps.iter().enumerate() {
+        let mut slots = vec![usize::MAX; step.external_count];
+        for (input, binding) in step.binding.iter().enumerate() {
+            let RelativeBinding::External { slot } = binding else {
+                continue;
+            };
+            if *slot >= step.external_count {
+                return Err("recipe binding references an unknown external ordinal".into());
+            }
+            let port = match source.wiring.get(i).and_then(|w| w.get(input)) {
+                Some(Some(port)) => *port,
+                // A wired input that the recipe treats as external must be a
+                // boundary port; otherwise the artifact contradicts itself.
+                Some(None) => return Err("recorded wiring calls a step external a local port".into()),
+                // No wiring recorded: keep each step-external distinct.
+                None => (i << 32) | *slot,
+            };
+            let next = positions.len();
+            let position = *positions.entry(port).or_insert_with(|| {
+                boundary.push(next);
+                next
+            });
+            slots[*slot] = position;
+        }
+        // An ordinal the binding never references needs no position: the binding
+        // is the authority on which step inputs are boundary values.
+        per_step.push(slots);
+    }
+    Ok(per_step)
 }
 
 /// Compile library bodies into recognition plans. `environment` is the single
@@ -435,14 +523,9 @@ pub fn compile_library(
                 columns: columns.clone(),
             })
             .collect();
-        let mapping = SlotMapping {
-            boundary: boundary.iter().copied().collect(),
-            slots,
-            template,
-        };
-        mapping.validate()?;
         let mut graph = RecognitionGraph::default();
         let mut sources = Vec::with_capacity(body.sources.len());
+        let mut boundary_len = 0usize;
         for source in &body.sources {
             let recipe = canonical_recipe(&source.recipe);
             let steps = recipe
@@ -457,12 +540,32 @@ pub fn compile_library(
                     )
                 })
                 .collect::<Vec<_>>();
+            let external_slots = derive_external_slots(source, &steps)?;
+            boundary_len = boundary_len.max(
+                external_slots
+                    .iter()
+                    .flatten()
+                    .copied()
+                    .filter(|p| *p != usize::MAX)
+                    .max()
+                    .map_or(0, |m| m + 1),
+            );
             sources.push(compile_source(
                 &mut graph,
                 SourceProvenance::LibraryEnclosure(source.enclosure),
                 steps,
+                external_slots,
             )?);
         }
+        // One boundary list for the whole body: every source positions its
+        // external ports in the same canonical order.
+        let mapping = SlotMapping {
+            boundary: (0..boundary_len).collect(),
+            boundary_space: BoundarySpace::Recognition,
+            slots,
+            template,
+        };
+        mapping.validate()?;
         plans.push(CellRecognitionPlan {
             cell: CellId::LibraryBody(body.body),
             environment,
@@ -526,6 +629,7 @@ pub fn compile_bake(cells: &[BakeCell]) -> Result<Vec<CellRecognitionPlan>> {
             .collect();
         let mapping = SlotMapping {
             boundary,
+            boundary_space: BoundarySpace::Slots,
             slots,
             template: cell
                 .template
@@ -568,6 +672,7 @@ pub fn compile_bake(cells: &[BakeCell]) -> Result<Vec<CellRecognitionPlan>> {
             &mut graph,
             SourceProvenance::AdaptiveMacro(cell.rule),
             vec![trigger],
+            vec![(0..mapping.boundary.len()).collect()],
         )?;
         plans.push(CellRecognitionPlan {
             cell: CellId::AdaptiveMacro(cell.rule),
@@ -643,11 +748,13 @@ mod tests {
                     enclosure: 0,
                     interface: vec![0, 1],
                     recipe: recipe_a,
+                    wiring: vec![],
                 },
                 LibraryCellSource {
                     enclosure: 1,
                     interface: vec![1],
                     recipe: recipe_b,
+                    wiring: vec![],
                 },
             ],
         }
@@ -689,7 +796,10 @@ mod tests {
         let env = EnvironmentId::from_text(&["(rule r)".into()]);
         let body = library_body(vec![step("r", vec![], 1, 1)], vec![step("r", vec![], 1, 1)]);
         let plan = &compile_library(env, &[body]).unwrap()[0];
-        assert_eq!(plan.slots.boundary, vec![0, 1]);
+        // A library recipe's boundary is a recognition space, not a slot space.
+        assert_eq!(plan.slots.boundary, vec![0]);
+        assert_eq!(plan.slots.boundary_space, BoundarySpace::Recognition);
+        assert_eq!(plan.sources[0].external_slots, vec![vec![0]]);
         assert_eq!(plan.slots.slots[0].origin, SlotOrigin::Boundary);
         assert_eq!(plan.slots.slots[1].origin, SlotOrigin::Boundary);
         assert_eq!(plan.slots.slots[2].origin, SlotOrigin::Literal);
@@ -732,6 +842,7 @@ mod tests {
                     enclosure: 0,
                     interface: vec![0],
                     recipe: vec![step("r", vec![], 1, 1)],
+                    wiring: vec![],
                 }],
             },
         ];
@@ -756,8 +867,37 @@ mod tests {
                 enclosure: 0,
                 interface: vec![0],
                 recipe: vec![recipe_step],
+                wiring: vec![],
             }],
         }
+    }
+
+    #[test]
+    fn recorded_wiring_shares_one_boundary_position_across_steps() {
+        let env = EnvironmentId::from_text(&["(rule r)".into()]);
+        let body = |wiring: Vec<Vec<Option<usize>>>| LibraryBody {
+            body: 3,
+            values: vec![("Math".into(), None), ("Math".into(), None)],
+            rows: vec![("A".into(), vec![0, 1])],
+            sources: vec![LibraryCellSource {
+                enclosure: 0,
+                interface: vec![0],
+                recipe: vec![step("r0", vec![], 1, 1), step("r1", vec![0], 1, 1)],
+                wiring,
+            }],
+        };
+        // Recorded wiring: both steps consume the same canonical port 7, so the
+        // instance boundary has exactly one position.
+        let shared = &compile_library(env, &[body(vec![vec![Some(7)], vec![Some(7)]])]).unwrap()[0];
+        assert_eq!(shared.slots.boundary, vec![0]);
+        assert_eq!(shared.sources[0].external_slots, vec![vec![0], vec![0]]);
+        // Without wiring the per-step ordinals stay distinct: a finer key than
+        // necessary, but never a guessed correspondence.
+        let split = &compile_library(env, &[body(vec![])]).unwrap()[0];
+        assert_eq!(split.slots.boundary, vec![0, 1]);
+        assert_eq!(split.sources[0].external_slots, vec![vec![0], vec![1]]);
+        // Contradictory wiring is rejected outright.
+        assert!(compile_library(env, &[body(vec![vec![None], vec![Some(7)]])]).is_err());
     }
 
     #[test]
