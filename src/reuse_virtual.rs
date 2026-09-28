@@ -99,6 +99,7 @@ pub fn recognise_library(
         "recognition":{"matched_applications":recognizer.matched_applications(),"located":counts.located,"complete":counts.complete,"packed":counts.packed,"unsupported_sources":counts.unsupported_sources,"pending_subscriptions":recognizer.pending_subscriptions()},
         "plans":plan_count,"sources":source_count,"slot_boundary_sources":slot_sources,"recognition_only_sources":recognition_only_sources,
         "rejected_sources":rejected_sources,"mapped_boundary_ports":mapped_boundary_ports,
+        "failures":recognizer.failures().classes,"failure_samples":recognizer.failures().samples,
         "unsupported":recognizer.unsupported_sources().iter().map(|(plan,source,reason)|json!({"plan":plan,"source":source,"reason":reason})).collect::<Vec<_>>(),
         "fragment_queries":0,
         "analysis_status":report["status"],

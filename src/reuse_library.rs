@@ -236,6 +236,18 @@ impl Library {
     /// is reported with its value slots, visible rows, and all legal origin
     /// recipes that reach it.
     pub fn recognition_bodies(&self) -> Result<Vec<crate::reuse_cell_recognition::LibraryBody>> {
+        // Marker/boundary constructors are not native tables, and a row whose key
+        // column is a fixed literal cannot be confirmed by a keyed lookup. Both
+        // are excluded from the template, matching the fragment catalog's marker
+        // filter; the remaining rows are what a recogniser must confirm.
+        let mut markers: Vec<BTreeSet<String>> = vec![BTreeSet::new(); self.bodies.len()];
+        for e in &self.entries {
+            if let Some(marker) = e.origin["parameter_marker"].as_str()
+                && let Some(body) = self.enclosures.get(e.enclosure.0).map(|d| d.body.0)
+            {
+                markers[body].insert(marker.to_string());
+            }
+        }
         let mut out: Vec<crate::reuse_cell_recognition::LibraryBody> = self
             .bodies
             .iter()
@@ -254,6 +266,12 @@ impl Library {
                     .iter()
                     .enumerate()
                     .filter(|(i, _)| !b.graph.subsumed_rows.contains(i))
+                    .filter(|(_, r)| !markers[i].contains(&r.op))
+                    .filter(|(_, r)| {
+                        r.args
+                            .iter()
+                            .all(|c| b.graph.values[*c].literal.is_none())
+                    })
                     .map(|(_, r)| {
                         (
                             r.op.clone(),

@@ -182,6 +182,27 @@ pub struct CellRecognizer {
     /// counts recognition input, not recognised instances: a matching rule can
     /// still fail the step's arity or binding checks.
     matched_applications: usize,
+    failures: ConfirmFailures,
+}
+
+/// Why instances did not reach `Complete`.
+#[derive(Clone, Debug, Default)]
+pub struct ConfirmFailures {
+    /// Cause bucket -> how many instances hit it.
+    pub classes: BTreeMap<String, usize>,
+    /// Full messages, bounded, for the first few instances of each cause.
+    pub samples: Vec<String>,
+}
+
+impl ConfirmFailures {
+    fn record(&mut self, reason: &str) {
+        // Bucket by the leading phrase so the class count stays small.
+        let class = reason.split(';').next().unwrap_or(reason).to_string();
+        *self.classes.entry(class).or_default() += 1;
+        if self.samples.len() < 8 && !self.samples.iter().any(|s| s == reason) {
+            self.samples.push(reason.to_string());
+        }
+    }
 }
 
 impl CellRecognizer {
@@ -246,6 +267,7 @@ impl CellRecognizer {
             value_index: BTreeMap::new(),
             parent: BTreeMap::new(),
             matched_applications: 0,
+            failures: ConfirmFailures::default(),
         }
     }
 
@@ -256,6 +278,11 @@ impl CellRecognizer {
 
     pub fn unsupported_sources(&self) -> &[(usize, usize, String)] {
         &self.unsupported
+    }
+
+    /// Why confirmation closed, bucketed by cause, with a few full samples.
+    pub fn failures(&self) -> &ConfirmFailures {
+        &self.failures
     }
 
     /// The single rule environment shared by every plan, when there is one. A
@@ -684,9 +711,12 @@ impl CellRecognizer {
             if !self.instances[id].is_located(&source) {
                 continue;
             }
-            if self.rows_for(id, oracle).is_some() {
-                self.instances[id].state = InstanceState::Complete;
-                promoted += 1;
+            match self.rows_for(id, oracle) {
+                Ok(_) => {
+                    self.instances[id].state = InstanceState::Complete;
+                    promoted += 1;
+                }
+                Err(reason) => self.failures.record(&reason),
             }
         }
         promoted
@@ -694,7 +724,11 @@ impl CellRecognizer {
 
     /// Resolve every template row of one instance in dependency order, using
     /// only keyed lookups. `None` when some row is missing or unresolvable.
-    fn rows_for(&self, id: usize, oracle: &impl FactOracle) -> Option<Vec<Vec<ValueId>>> {
+    fn rows_for(
+        &self,
+        id: usize,
+        oracle: &impl FactOracle,
+    ) -> std::result::Result<Vec<Vec<ValueId>>, String> {
         let instance = &self.instances[id];
         let plan = &self.plans[instance.key.plan];
         let mut slot_values: Vec<Option<ValueId>> =
@@ -722,19 +756,27 @@ impl CellRecognizer {
                 let result = row.columns.last().copied();
                 // A row whose key is not fixed yet waits for another row to
                 // resolve it, so template order need not be topological.
-                let Some(key) = row.columns[..row.columns.len().saturating_sub(1)]
+                let key = row.columns[..row.columns.len().saturating_sub(1)]
                     .iter()
                     .map(|c| slot_values[*c])
-                    .collect::<Option<Vec<_>>>()
-                else {
+                    .collect::<Option<Vec<_>>>();
+                let Some(key) = key else {
                     later.push(row_index);
                     continue;
                 };
                 let Some(full) = oracle.lookup(&row.function, &key) else {
-                    return None;
+                    return Err(format!(
+                        "row {row_index} ({}) key {key:?} is not a committed fact",
+                        row.function
+                    ));
                 };
                 if full.len() < row.columns.len() {
-                    return None;
+                    return Err(format!(
+                        "row {row_index} ({}) returned {} columns for {} template columns",
+                        row.function,
+                        full.len(),
+                        row.columns.len()
+                    ));
                 }
                 let logical = full[..row.columns.len()].to_vec();
                 if let Some(result) = result {
@@ -744,11 +786,26 @@ impl CellRecognizer {
                 progressed = true;
             }
             if !progressed {
-                return None;
+                let unresolvable = later
+                    .iter()
+                    .map(|i| {
+                        let row = &plan.slots.template[*i];
+                        let unknown: Vec<usize> = row.columns[..row.columns.len().saturating_sub(1)]
+                            .iter()
+                            .copied()
+                            .filter(|c| slot_values[*c].is_none())
+                            .collect();
+                        format!("{}:{unknown:?}", row.function)
+                    })
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                return Err(format!(
+                    "no resolvable row left; unresolved columns at {unresolvable}"
+                ));
             }
             pending = later;
         }
-        rows.into_iter().collect()
+        Ok(rows.into_iter().flatten().collect())
     }
 
     /// Instances ready for compact storage, deduplicated by owned row so that
@@ -760,7 +817,7 @@ impl CellRecognizer {
             if instance.state != InstanceState::Complete || instance.retired {
                 continue;
             }
-            let Some(rows) = self.rows_for(id, oracle) else {
+            let Ok(rows) = self.rows_for(id, oracle) else {
                 continue;
             };
             let plan = &self.plans[instance.key.plan];
