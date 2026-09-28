@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Saturation check for associativity + commutativity on n distinct atoms.
 
-Runs the chain shape to saturation for small n and compares the observed
-e-class count against 2^n - 1. At saturation every non-empty subset of the n
-leaves is an e-class, so for n = 300 the e-class count alone is 2^300 - 1.
+Runs the chain shape to saturation for small n and compares the observed counts
+against `e-classes = 2^n - 1` and `Add e-nodes = 3^n - 2^(n+1) + 1`. At
+saturation every non-empty subset of the n leaves is an e-class, so for n = 300
+the e-class count alone is 2^300 - 1.
 """
 import argparse
 import json
@@ -39,11 +40,20 @@ def main():
                 "observed_eclasses": len(classes),
                 "predicted_eclasses": 2**n - 1,
                 "observed_add_enodes": summary["enodes"] - n,
+                "predicted_add_enodes": 3**n - 2 ** (n + 1) + 1,
                 "matches": summary["matches"],
+                "seconds": summary["seconds"],
             }
         )
-        ok = rows[-1]["observed_eclasses"] == rows[-1]["predicted_eclasses"]
-        print(f"n={n}: eclasses={len(classes)} predicted=2^n-1={2**n - 1} {'OK' if ok else 'MISMATCH'}")
+        ok = (
+            rows[-1]["observed_eclasses"] == rows[-1]["predicted_eclasses"]
+            and rows[-1]["observed_add_enodes"] == rows[-1]["predicted_add_enodes"]
+        )
+        print(
+            f"n={n}: eclasses={len(classes)} (2^n-1={2**n - 1}) "
+            f"Add={summary['enodes'] - n} (3^n-2^(n+1)+1={3**n - 2 ** (n + 1) + 1}) "
+            f"{'OK' if ok else 'MISMATCH'} [{summary['seconds']:.3f}s]"
+        )
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps({"shape": "chain", "rules": "ac", "rows": rows}, indent=2) + "\n")
     print(f"wrote {a.out}")

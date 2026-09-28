@@ -7,49 +7,81 @@
       "observed_eclasses": 3,
       "predicted_eclasses": 3,
       "observed_add_enodes": 2,
-      "matches": 2
+      "predicted_add_enodes": 2,
+      "matches": 2,
+      "seconds": 0.000693959
     },
     {
       "n": 3,
       "observed_eclasses": 7,
       "predicted_eclasses": 7,
       "observed_add_enodes": 12,
-      "matches": 18
+      "predicted_add_enodes": 12,
+      "matches": 18,
+      "seconds": 0.000735125
     },
     {
       "n": 4,
       "observed_eclasses": 15,
       "predicted_eclasses": 15,
       "observed_add_enodes": 50,
-      "matches": 120
+      "predicted_add_enodes": 50,
+      "matches": 120,
+      "seconds": 0.00096825
     },
     {
       "n": 5,
       "observed_eclasses": 31,
       "predicted_eclasses": 31,
       "observed_add_enodes": 180,
-      "matches": 663
+      "predicted_add_enodes": 180,
+      "matches": 663,
+      "seconds": 0.001351875
     },
     {
       "n": 6,
       "observed_eclasses": 63,
       "predicted_eclasses": 63,
       "observed_add_enodes": 602,
-      "matches": 3335
+      "predicted_add_enodes": 602,
+      "matches": 3335,
+      "seconds": 0.002654167
     },
     {
       "n": 7,
       "observed_eclasses": 127,
       "predicted_eclasses": 127,
       "observed_add_enodes": 1932,
-      "matches": 15438
+      "predicted_add_enodes": 1932,
+      "matches": 15438,
+      "seconds": 0.006458708
     },
     {
       "n": 8,
       "observed_eclasses": 255,
       "predicted_eclasses": 255,
       "observed_add_enodes": 6050,
-      "matches": 68116
+      "predicted_add_enodes": 6050,
+      "matches": 68116,
+      "seconds": 0.019897625
+    },
+    {
+      "n": 9,
+      "observed_eclasses": 511,
+      "predicted_eclasses": 511,
+      "observed_add_enodes": 18660,
+      "predicted_add_enodes": 18660,
+      "matches": 294231,
+      "seconds": 0.043102875
+    },
+    {
+      "n": 10,
+      "observed_eclasses": 1023,
+      "predicted_eclasses": 1023,
+      "observed_add_enodes": 57002,
+      "predicted_add_enodes": 57002,
+      "matches": 1245568,
+      "seconds": 0.114413375
     }
   ]
 }

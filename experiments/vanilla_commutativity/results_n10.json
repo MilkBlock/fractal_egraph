@@ -1,0 +1,202 @@
+{
+  "n": 10,
+  "engine": "egglog-baseline c7553a6 (upstream ebba7bb), standalone public-API harness",
+  "guard": {
+    "seconds_per_step": 300.0,
+    "node_ceiling": 3000000
+  },
+  "comm": [
+    {
+      "n": 10,
+      "shape": "chain",
+      "rules": "comm",
+      "seconds": 0.000716916,
+      "matches": 18,
+      "enodes": 28,
+      "eclasses": 19,
+      "ops": {
+        "Num": 10,
+        "Add": 18
+      },
+      "distinct_results": 19,
+      "wall_seconds": 0.021298249950632453
+    },
+    {
+      "n": 10,
+      "shape": "balanced",
+      "rules": "comm",
+      "seconds": 0.000786709,
+      "matches": 18,
+      "enodes": 28,
+      "eclasses": 19,
+      "ops": {
+        "Num": 10,
+        "Add": 18
+      },
+      "distinct_results": 19,
+      "wall_seconds": 0.004106167005375028
+    }
+  ],
+  "ac": [
+    {
+      "n": 10,
+      "shape": "chain",
+      "rules": "ac",
+      "steps": [
+        {
+          "run": 1,
+          "add_enodes": 34,
+          "num_enodes": 10,
+          "total_math_enodes": 44,
+          "wall_seconds": 0.02105891692917794,
+          "peak_rss_bytes": 5193728
+        },
+        {
+          "run": 2,
+          "add_enodes": 120,
+          "num_enodes": 10,
+          "total_math_enodes": 130,
+          "wall_seconds": 0.005100582959130406,
+          "peak_rss_bytes": 5210112
+        },
+        {
+          "run": 3,
+          "add_enodes": 588,
+          "num_enodes": 10,
+          "total_math_enodes": 598,
+          "wall_seconds": 0.005917667062021792,
+          "peak_rss_bytes": 5373952
+        },
+        {
+          "run": 4,
+          "add_enodes": 3345,
+          "num_enodes": 10,
+          "total_math_enodes": 3355,
+          "wall_seconds": 0.007131582940928638,
+          "peak_rss_bytes": 6176768
+        },
+        {
+          "run": 5,
+          "add_enodes": 15492,
+          "num_enodes": 10,
+          "total_math_enodes": 15502,
+          "wall_seconds": 0.02372487506363541,
+          "peak_rss_bytes": 147210240
+        },
+        {
+          "run": 6,
+          "add_enodes": 40732,
+          "num_enodes": 10,
+          "total_math_enodes": 40742,
+          "wall_seconds": 0.038541542016901076,
+          "peak_rss_bytes": 185368576
+        },
+        {
+          "run": 7,
+          "add_enodes": 59446,
+          "num_enodes": 10,
+          "total_math_enodes": 59456,
+          "wall_seconds": 0.07302979193627834,
+          "peak_rss_bytes": 225181696
+        },
+        {
+          "run": 8,
+          "add_enodes": 57026,
+          "num_enodes": 10,
+          "total_math_enodes": 57036,
+          "wall_seconds": 0.11215349996928126,
+          "peak_rss_bytes": 251559936
+        },
+        {
+          "run": 9,
+          "add_enodes": 57002,
+          "num_enodes": 10,
+          "total_math_enodes": 57012,
+          "wall_seconds": 0.12408208299893886,
+          "peak_rss_bytes": 252493824
+        }
+      ],
+      "stopped": null
+    },
+    {
+      "n": 10,
+      "shape": "balanced",
+      "rules": "ac",
+      "steps": [
+        {
+          "run": 1,
+          "add_enodes": 26,
+          "num_enodes": 10,
+          "total_math_enodes": 36,
+          "wall_seconds": 0.004872374935075641,
+          "peak_rss_bytes": 5292032
+        },
+        {
+          "run": 2,
+          "add_enodes": 72,
+          "num_enodes": 10,
+          "total_math_enodes": 82,
+          "wall_seconds": 0.0049786659656092525,
+          "peak_rss_bytes": 5210112
+        },
+        {
+          "run": 3,
+          "add_enodes": 270,
+          "num_enodes": 10,
+          "total_math_enodes": 280,
+          "wall_seconds": 0.0050674170488491654,
+          "peak_rss_bytes": 5259264
+        },
+        {
+          "run": 4,
+          "add_enodes": 1161,
+          "num_enodes": 10,
+          "total_math_enodes": 1171,
+          "wall_seconds": 0.004858417087234557,
+          "peak_rss_bytes": 5521408
+        },
+        {
+          "run": 5,
+          "add_enodes": 5768,
+          "num_enodes": 10,
+          "total_math_enodes": 5778,
+          "wall_seconds": 0.007715541985817254,
+          "peak_rss_bytes": 6766592
+        },
+        {
+          "run": 6,
+          "add_enodes": 21634,
+          "num_enodes": 10,
+          "total_math_enodes": 21644,
+          "wall_seconds": 0.0300257500493899,
+          "peak_rss_bytes": 161742848
+        },
+        {
+          "run": 7,
+          "add_enodes": 47686,
+          "num_enodes": 10,
+          "total_math_enodes": 47696,
+          "wall_seconds": 0.05019383295439184,
+          "peak_rss_bytes": 194789376
+        },
+        {
+          "run": 8,
+          "add_enodes": 58639,
+          "num_enodes": 10,
+          "total_math_enodes": 58649,
+          "wall_seconds": 0.09222608292475343,
+          "peak_rss_bytes": 239026176
+        },
+        {
+          "run": 9,
+          "add_enodes": 57002,
+          "num_enodes": 10,
+          "total_math_enodes": 57012,
+          "wall_seconds": 0.12120162497740239,
+          "peak_rss_bytes": 253132800
+        }
+      ],
+      "stopped": null
+    }
+  ]
+}

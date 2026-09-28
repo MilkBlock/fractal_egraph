@@ -38,18 +38,43 @@ e-class 为 `2n-1`。形状不影响结果。
 
 饱和目标（`saturation_check.py`，n=2…8 实测）：
 
-| n | e-class 实测 | 预测 `2^n − 1` | 饱和 Add e-node |
-|---:|---:|---:|---:|
-| 2 | 3 | 3 | 2 |
-| 3 | 7 | 7 | 12 |
-| 4 | 15 | 15 | 50 |
-| 5 | 31 | 31 | 180 |
-| 6 | 63 | 63 | 602 |
-| 7 | 127 | 127 | 1,932 |
-| 8 | 255 | 255 | 6,050 |
+饱和目标（`saturation_check.py`，n=2…10 实测，chain 形状）：
+
+| n | e-class 实测 | 预测 `2^n − 1` | Add e-node 实测 | 预测 `3^n − 2^(n+1) + 1` | 饱和用时 |
+|---:|---:|---:|---:|---:|---:|
+| 2 | 3 | 3 | 2 | 2 | 0.001 s |
+| 3 | 7 | 7 | 12 | 12 | 0.001 s |
+| 4 | 15 | 15 | 50 | 50 | 0.001 s |
+| 5 | 31 | 31 | 180 | 180 | 0.001 s |
+| 6 | 63 | 63 | 602 | 602 | 0.003 s |
+| 7 | 127 | 127 | 1,932 | 1,932 | 0.006 s |
+| 8 | 255 | 255 | 6,050 | 6,050 | 0.020 s |
+| 9 | 511 | 511 | 18,660 | 18,660 | 0.043 s |
+| 10 | 1,023 | 1,023 | **57,002** | 57,002 | 0.114 s |
 
 饱和时每个非空叶子子集都是一个 e-class，所以 n=300 时仅 e-class 就有
-`2^300 − 1 ≈ 2.0 × 10^90` 个；Add e-node 更多。这个数只能写出表达式，不能枚举。
+`2^300 − 1 ≈ 2.0 × 10^90` 个；Add e-node 有 `3^300 − 2^301 + 1 ≈ 1.4 × 10^143` 个。
+这两个数只能写表达式，不能枚举；n=10 的 57,002 个则可以完整跑完。
+
+### n=10 的逐步增长（AC，chain）
+
+| 迭代 | Add e-node | e-class | 说明 |
+|---:|---:|---:|---|
+| 1 | 34 | 27 | |
+| 2 | 120 | 62 | |
+| 3 | 588 | 245 | |
+| 4 | 3,345 | 1,154 | |
+| 5 | 15,492 | 3,763 | |
+| 6 | 40,732 | 5,984 | e-class 过冲峰值 |
+| 7 | 59,446 | 4,199 | Add 节点过冲峰值 |
+| 8 | 57,026 | 1,028 | |
+| 9 | **57,002** | **1,023** | 饱和（`3^10−2^11+1` / `2^10−1`） |
+
+饱和过程不是单调的：union 会把已建节点并掉，所以 e-class 在第 6 轮冲到 5,984 后回落
+到 1,023，Add 节点在第 7 轮冲到 59,446 后回落到 57,002。总匹配约 1.25 M 次，
+最后一轮用时约 0.12–0.15 s，峰值 RSS 约 241 MiB（含 graph export）。
+`balanced` 形状同样在第 9 轮落到 57,002 / 1,023，只是前几轮更慢。
+
 
 ## 复现
 
@@ -59,12 +84,14 @@ e-class 为 `2n-1`。形状不影响结果。
 BASELINE=/Users/mineralsteins/.codex/worktrees/native-baseline/egg_layout
 python3 experiments/vanilla_commutativity/build.py --baseline "$BASELINE"
 python3 experiments/vanilla_commutativity/bench.py --n 300 --ac-steps 6 --node-ceiling 3000000
-python3 experiments/vanilla_commutativity/saturation_check.py
+python3 experiments/vanilla_commutativity/bench.py --n 10 --ac-steps 9 --out out/vanilla-commutativity/n10
+python3 experiments/vanilla_commutativity/saturation_check.py --max-n 10
 ```
 
-原始数字：`results.json`、`saturation.json`（本目录，同上表来源；运行时脚本也会写到
-被忽略的 `out/vanilla-commutativity/`）。每步用时是单次进程测量，不是多次基准的平均值；
-峰值 RSS 来自 `/usr/bin/time -l`，区分单进程；结果与机器相关。`n` 是参数，换 `--n` 即换元素个数。
+原始数字：`results.json`（n=300）、`results_n10.json`（n=10 逐步）、`saturation.json`
+（n=2…10 饱和）；本目录里的副本即上表来源，运行时脚本也会写到被忽略的
+`out/vanilla-commutativity/`。每步用时是单次进程测量，不是多次基准的平均值；
+峰值 RSS 来自 `/usr/bin/time -l`，区分单进程；结果与机器相关。`--n` 是参数。
 
 ## 边界
 
