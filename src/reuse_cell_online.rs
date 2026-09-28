@@ -249,6 +249,20 @@ impl CellRecognizer {
         &self.unsupported
     }
 
+    /// The single rule environment shared by every plan, when there is one. A
+    /// seam that feeds live events uses this so rule identities line up.
+    pub fn environment(&self) -> Option<crate::reuse_cell_recognition::EnvironmentId> {
+        let mut environment = None;
+        for plan in &self.plans {
+            match environment {
+                None => environment = Some(plan.environment),
+                Some(e) if e == plan.environment => {}
+                Some(_) => return None,
+            }
+        }
+        environment
+    }
+
     fn canonical(&mut self, value: ValueId) -> ValueId {
         let mut root = value;
         while let Some(next) = self.parent.get(&root) {
@@ -352,8 +366,11 @@ impl CellRecognizer {
             else {
                 continue;
             };
+            // A synthesized trigger records no output roles, so observed outputs
+            // carry no role information for it; only its input arity is binding.
             if step_ref.step.input_count != wanted.len()
-                || step_ref.step.output_count != outputs.len()
+                || (step_ref.step.aliases.is_some()
+                    && step_ref.step.output_count != outputs.len())
             {
                 continue;
             }
@@ -808,6 +825,7 @@ mod tests {
     fn bake_plan(template: Vec<(&str, Vec<usize>)>, terms: Vec<&str>) -> CellRecognitionPlan {
         compile_bake(&[crate::reuse_cell_recognition::BakeCell {
             rule: 1,
+            rule_text: None,
             environment: vec!["(rule r)".into()],
             slots: terms
                 .into_iter()

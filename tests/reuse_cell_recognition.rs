@@ -68,6 +68,7 @@ fn graph(seeds: usize) -> EGraph {
 fn plan() -> egg_layout::reuse_cell_recognition::CellRecognitionPlan {
     compile_bake(&[BakeCell {
         rule: 0,
+        rule_text: None,
         environment: environment(),
         slots: vec![
             ("x".into(), "E".into()),
@@ -194,4 +195,60 @@ fn a_union_after_packing_keeps_the_graph_consistent() {
         before.len(),
         after.len()
     );
+}
+
+#[test]
+fn the_analysis_seam_recognises_and_installs_from_committed_applications() {
+    // Discover the exact rule text the analyser reports for rule "a".
+    let mut program = environment().join("\n");
+    for i in 0..16 {
+        program += &format!("(Seed (V {i}))");
+    }
+    program += "(run make 2)";
+    let rule_text = {
+        let mut probe = EGraph::default();
+        probe
+            .parse_program(None, &program)
+            .unwrap()
+            .into_iter()
+            .find_map(|command| match command {
+                egglog::ast::Command::Rule { rule, .. } if rule.name == "a" => {
+                    Some(rule.to_string())
+                }
+                _ => None,
+            })
+            .expect("named rule a")
+    };
+    let plan = compile_bake(&[BakeCell {
+        rule: 0,
+        rule_text: Some(rule_text),
+        environment: environment(),
+        slots: vec![
+            ("x".into(), "E".into()),
+            ("adaptive_local_0".into(), "E".into()),
+        ],
+        template: vec![("A".into(), vec![0, 1])],
+    }])
+    .unwrap()
+    .remove(0);
+    let mut recogniser = CellRecognizer::new(vec![plan]);
+    let root = std::path::PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("cell-seam");
+    if root.exists() {
+        std::fs::remove_dir_all(&root).unwrap();
+    }
+    std::fs::create_dir_all(&root).unwrap();
+    let source = root.join("program.egg");
+    std::fs::write(&source, &program).unwrap();
+    let report =
+        egg_layout::native_analyze::run_with_cell_recognition(&source, &root.join("out"), None, &mut recogniser)
+            .unwrap();
+    assert!(report.is_object());
+    // The seam saw the committed `A` applications, confirmed them against the
+    // live graph and installed their cells: every instance ends up Packed rather
+    // than merely Located.
+    let counts = recogniser.counts();
+    assert_eq!(counts.packed, 16, "{counts:?}");
+    assert_eq!(counts.located, 0);
+    assert_eq!(counts.complete, 0);
+    assert!(recogniser.unsupported_sources().is_empty());
 }

@@ -49,6 +49,9 @@ impl Bake {
             .iter()
             .map(|(id, m)| crate::reuse_cell_recognition::BakeCell {
                 rule: *id,
+                // A Bake stores no rule text; callers that know the source rule
+                // replace this through their own adapter.
+                rule_text: None,
                 environment: self.environment.clone(),
                 slots: m.slots.clone(),
                 template: m.template.clone(),

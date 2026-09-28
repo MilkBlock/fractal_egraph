@@ -190,11 +190,12 @@ fn capture_text_with_sink(
     rounds: Option<usize>,
     sink: Option<&mut dyn FnMut(&mut Captured) -> Result>,
 ) -> Result<Captured> {
-    capture_text_with_planner(name,text,rounds,sink,None)
+    capture_text_with_planner(name,text,rounds,sink,None,None)
 }
 fn capture_text_with_planner(
     name:&str,text:&str,rounds:Option<usize>,mut sink:Option<&mut dyn FnMut(&mut Captured)->Result>,
     library:Option<&crate::reuse_graph::library::Library>,
+    mut recognizer:Option<&mut crate::reuse_cell_online::CellRecognizer>,
 )->Result<Captured> {
     let started = Instant::now();
     let mut eg = EGraph::default();
@@ -313,7 +314,7 @@ fn capture_text_with_planner(
                     let tier0_seconds = round_start.elapsed().as_secs_f64();
                     let collect_start = Instant::now();
                     count += 1;
-                    collect_with_planner(&eg, &trace, &mut c, &mut producers,planner.as_mut())?;
+                    collect_with_planner(&eg, &trace, &mut c, &mut producers,planner.as_mut(),recognizer.as_deref_mut())?;
                     c.boundaries.push(CaptureBoundary {
                         ripen: None,
                         kind: if known { "round" } else { "execution-boundary" }.into(),
@@ -376,7 +377,7 @@ fn capture_text_with_planner(
             });
         }
         if schedule {
-            collect_with_planner(&eg, &trace, &mut c, &mut producers,planner.as_mut())?;
+            collect_with_planner(&eg, &trace, &mut c, &mut producers,planner.as_mut(),recognizer.as_deref_mut())?;
             c.boundaries.push(CaptureBoundary {
                 ripen: None,
                 kind: "execution-boundary".into(),
@@ -388,7 +389,7 @@ fn capture_text_with_planner(
             }
         }
     }
-    collect_with_planner(&eg, &trace, &mut c, &mut producers,planner.as_mut())?;
+    collect_with_planner(&eg, &trace, &mut c, &mut producers,planner.as_mut(),recognizer.as_deref_mut())?;
     if c.boundaries.last().is_none_or(|b| b.end != c.records.len())
         || c.changes
             .last()
@@ -406,7 +407,54 @@ fn capture_text_with_planner(
     }
     c.rounds = known.then_some(count);
     c.trace_seconds = started.elapsed().as_secs_f64();
+    if let Some(recognizer) = recognizer.as_deref_mut() {
+        install_located_cells(&mut eg, recognizer)?;
+    }
     Ok(c)
+}
+
+/// Confirm and install everything the recogniser located, on the live graph.
+///
+/// This runs once, after the last batch, which is a safe boundary: no query is
+/// executing, so compacting a table cannot invalidate a plan in flight. The
+/// recogniser only observes committed applications; the point oracle answers
+/// from the same committed storage that installation then re-validates.
+fn install_located_cells(
+    eg: &mut EGraph,
+    recognizer: &mut crate::reuse_cell_online::CellRecognizer,
+) -> Result {
+    use crate::reuse_cell_online::{FactOracle, ValueId};
+    struct Oracle<'a> {
+        eg: &'a EGraph,
+    }
+    impl FactOracle for Oracle<'_> {
+        fn lookup(&self, function: &str, key: &[ValueId]) -> Option<Vec<ValueId>> {
+            let key: Vec<Value> = key.iter().map(|v| Value::new_const(*v as u32)).collect();
+            self.eg.lookup_function_row(function, &key).map(|row| {
+                row.iter()
+                    .map(|v| {
+                        format!("{v:?}")
+                            .trim_start_matches("Value(")
+                            .trim_end_matches(')')
+                            .parse()
+                            .unwrap_or(u64::MAX)
+                    })
+                    .collect()
+            })
+        }
+    }
+    let cells = {
+        let oracle = Oracle { eg };
+        recognizer.confirm(&oracle);
+        recognizer.complete(&oracle)
+    };
+    if cells.is_empty() {
+        return Ok(());
+    }
+    let keys = cells.iter().map(|c| c.key.clone()).collect::<Vec<_>>();
+    crate::reuse_graph::native_storage::install_recognised_cells(eg, &cells)?;
+    recognizer.mark_packed(&keys);
+    Ok(())
 }
 
 // Only direct committed producer certificates survive a batch, not WriteEvents.
@@ -422,9 +470,10 @@ fn collect(
     c: &mut Captured,
     producers: &mut BTreeMap<u64, Producer>,
 ) -> Result {
-    collect_with_planner(eg,trace,c,producers,None)
+    collect_with_planner(eg,trace,c,producers,None,None)
 }
-fn collect_with_planner(eg:&EGraph,trace:&TraceSession,c:&mut Captured,producers:&mut BTreeMap<u64,Producer>,planner:Option<&mut crate::reuse_graph::planner::rule_runner::SourcePlanner>)->Result {
+fn collect_with_planner(eg:&EGraph,trace:&TraceSession,c:&mut Captured,producers:&mut BTreeMap<u64,Producer>,planner:Option<&mut crate::reuse_graph::planner::rule_runner::SourcePlanner>,mut recognizer:Option<&mut crate::reuse_cell_online::CellRecognizer>)->Result {
+    let first_new = c.records.len();
     let prior_scope = c.last_scope;
     let rules = &c.rules;
     let names: BTreeMap<_, _> = rules
@@ -830,6 +879,71 @@ fn collect_with_planner(eg:&EGraph,trace:&TraceSession,c:&mut Captured,producers
     );
     c.rejected = events - records.len();
     c.events = events;
+    if let Some(recognizer) = recognizer.as_deref_mut() {
+        feed_recognition(c, first_new, recognizer)?;
+    }
+    Ok(())
+}
+
+/// Feed the committed applications of one drained batch to an online recogniser.
+///
+/// Only committed evidence is emitted: `Captured::records` holds exactly the rule
+/// applications that survived with a complete witness and a committed effect or a
+/// displaced union. Value identity is the native value, so confirmation can use
+/// the live graph through a point oracle.
+fn feed_recognition(
+    c: &Captured,
+    first_new: usize,
+    recognizer: &mut crate::reuse_cell_online::CellRecognizer,
+) -> Result {
+    use crate::reuse_cell_online::{CommittedEvent, ValueId};
+    let Some(environment) = recognizer.environment() else {
+        return Ok(());
+    };
+    let native = |token: usize| -> Option<egglog::Value> {
+        match &c.pool.values[token].key {
+            Key::Value(_, value) => Some(*value),
+            _ => None,
+        }
+    };
+    let id = |value: egglog::Value| -> ValueId {
+        format!("{value:?}")
+            .trim_start_matches("Value(")
+            .trim_end_matches(')')
+            .parse()
+            .unwrap_or(u64::MAX)
+    };
+    // A recorded role may hold a fact token instead of a value; such a role has
+    // no native value and is dropped rather than bound to the wrong thing.
+    let ids = |tokens: &[usize]| -> Vec<ValueId> {
+        tokens
+            .iter()
+            .filter_map(|t| native(*t))
+            .map(id)
+            .collect()
+    };
+    for r in c.records.iter().skip(first_new) {
+        let rule = crate::reuse_cell_recognition::RuleIdentity {
+            environment,
+            rule: c.rules[r.rule].rule.to_string(),
+        };
+        let (wanted, outputs, external) = (ids(&r.wanted), ids(&r.values), ids(&r.external));
+        recognizer.observe(CommittedEvent::Apply {
+            event: r.id,
+            rule: &rule,
+            wanted: &wanted,
+            outputs: &outputs,
+            external: &external,
+        })?;
+        for (lhs, rhs) in &r.unions {
+            if let (Some(lhs), Some(rhs)) = (native(*lhs), native(*rhs)) {
+                recognizer.observe(CommittedEvent::Union {
+                    lhs: id(lhs),
+                    rhs: id(rhs),
+                })?;
+            }
+        }
+    }
     Ok(())
 }
 
@@ -935,6 +1049,7 @@ fn execute(
     emit: &mut dyn FnMut(Json) -> Result,
     reuse_library:Option<&Path>,
     optimize:bool,
+    recognizer:Option<&mut crate::reuse_cell_online::CellRecognizer>,
 ) -> Result<Json> {
     std::fs::create_dir_all(out)?;
     let render_batch = crate::graph_render::Batch::start()?;
@@ -998,7 +1113,9 @@ fn execute(
         c
     } else {
         let library=if optimize {Some(crate::reuse_graph::library::Library::load(reuse_library.ok_or("optimization requires a reuse library")?)?)}else{None};
-        if let Some(library)=&library {capture_text_with_planner(name,text,rounds,Some(&mut boundary_emit),Some(library))?} else {capture_text_with_sink(name,text,rounds,Some(&mut boundary_emit))?}
+        if let Some(library)=&library {capture_text_with_planner(name,text,rounds,Some(&mut boundary_emit),Some(library),recognizer)?}
+        else if recognizer.is_some() {capture_text_with_planner(name,text,rounds,Some(&mut boundary_emit),None,recognizer)?}
+        else {capture_text_with_sink(name,text,rounds,Some(&mut boundary_emit))?}
     };
     drop(boundary_emit);
     if save_history {
@@ -1144,6 +1261,37 @@ pub fn run_configured(source:&Path,out:&Path,rounds:Option<usize>,replay:Option<
         &mut |_| Ok(()),
         reuse_library,
         optimize,
+        None,
+    )
+}
+
+/// Run an analysis while feeding committed rule applications to an online cell
+/// recogniser. The recogniser only observes; installation happens after the run,
+/// at a safe batch boundary, through `native_storage::install_recognised_cells`.
+pub fn run_with_cell_recognition(
+    source: &Path,
+    out: &Path,
+    rounds: Option<usize>,
+    recognizer: &mut crate::reuse_cell_online::CellRecognizer,
+) -> Result<Json> {
+    if out.exists() {
+        return Err("analysis output already exists".into());
+    }
+    let text = std::fs::read_to_string(source)?;
+    execute(
+        &source.to_string_lossy(),
+        &text,
+        rounds,
+        out,
+        None,
+        false,
+        crate::graph_render::graphs_enabled(),
+        false,
+        crate::ripen_observation::Limits::from_env()?,
+        &mut |_| Ok(()),
+        None,
+        false,
+        Some(recognizer),
     )
 }
 

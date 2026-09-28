@@ -643,6 +643,10 @@ pub struct BakeCell {
     pub rule: usize,
     /// Command text of the rule environment this macro was learned in.
     pub environment: Vec<String>,
+    /// Rule text of the source rule, when the caller can supply it. A Bake stores
+    /// only the rule id, so without this the trigger can only match a synthetic
+    /// `#<id>` identity.
+    pub rule_text: Option<String>,
     /// Macro slots: stored term and sort.
     pub slots: Vec<(String, String)>,
     /// Macro template: function and slot columns (arguments then result).
@@ -710,7 +714,10 @@ pub fn compile_bake(cells: &[BakeCell]) -> Result<Vec<CellRecognitionPlan>> {
         let trigger = RecognitionStep {
             rule: RuleIdentity {
                 environment,
-                rule: format!("#{}", cell.rule),
+                rule: cell
+                    .rule_text
+                    .clone()
+                    .unwrap_or_else(|| format!("#{}", cell.rule)),
             },
             kind: CombKind::CoarseRuleComposition,
             parents: vec![],
@@ -970,6 +977,7 @@ mod tests {
     fn bake_plans_separate_boundary_derived_and_literal_slots() {
         let cells = vec![BakeCell {
             rule: 4,
+            rule_text: None,
             environment: vec!["(datatype Math)".into()],
             slots: vec![
                 ("x".into(), "Math".into()),
@@ -1001,12 +1009,14 @@ mod tests {
     fn bake_environment_separates_equal_rule_ids() {
         let mut cells = vec![BakeCell {
             rule: 4,
+            rule_text: None,
             environment: vec!["(rule a)".into()],
             slots: vec![("x".into(), "Math".into())],
             template: vec![("A".into(), vec![0])],
         }];
         cells.push(BakeCell {
             rule: 4,
+            rule_text: None,
             environment: vec!["(rule b)".into()],
             slots: vec![("x".into(), "Math".into())],
             template: vec![("A".into(), vec![0])],

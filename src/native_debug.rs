@@ -177,6 +177,7 @@ pub fn stream_source(
         emit,
         None,
         false,
+        None,
     )?;
     emit(json!({"kind":"complete","analysis_status":report["status"]}))
 }
