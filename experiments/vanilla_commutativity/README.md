@@ -75,6 +75,42 @@ e-class 为 `2n-1`。形状不影响结果。
 最后一轮用时约 0.12–0.15 s，峰值 RSS 约 241 MiB（含 graph export）。
 `balanced` 形状同样在第 9 轮落到 57,002 / 1,023，只是前几轮更慢。
 
+## 三元素：把「所有组合」写成一条 rule
+
+种子 `Add (Num 0) (Add (Num 1) (Num 2))`。四种写法，都在 vanilla egglog 上跑到饱和，
+`matches` 都是 6：
+
+| 编码 | Add e-node | e-class | 是否等于 AC 闭包 |
+|---|---:|---:|---|
+| 通用两条 rewrite（assoc + comm） | 12 | 7 | 基准 |
+| 一条 rule，head 罗列 12 种写法，叶子用 `(Num x)` 限定 | 18 | 10 | 否 |
+| 一条 rule，模式变量自由 `a/b/c` | 18 | 10 | 否 |
+| 一条 rule，叶子限定 + 同时 union 三个二元子和（`three_elements.egg`） | **12** | **7** | **是** |
+
+AC 闭包的结构是：3 个二元类各 2 个节点（`x+y` 与 `y+x`）+ 1 个三元类 6 个节点
+（3 种切分 × 2 种顺序），加 3 个 `Num` → 12 个 Add e-node / 7 个 e-class。最后一行与
+通用规则跑出来的 constructor 节点多重集**逐节点一致**（用 `term` 归一化后比较，
+不是只比数量）。
+
+两个反例的原因不同：
+
+* **只在 head 罗列 12 种写法**：`(Add (Num x) (Num y))` 这类二元子和被建出来了，
+  但没有被 union 成同一个类。于是 6 个二元节点各占一个类，三元节点有 12 个
+  （每种切分两种顺序用到了不同的二元类）→ 18 / 10。「写出所有项」不等于「断言它们相等」。
+* **模式变量不限定叶子**：第一轮是对的，但 root 所在 e-class 已经把所有项合并；
+  之后 body 会用这个整体类去绑定 `c`（只要求第二操作数是 `Add`），head 造出
+  `0+(1+(0+1+2))`、`(0+(0+1+2))+2` 这类原本不属于三元素和的新项并继续扩散
+  → 同样 18 / 10，但多余节点是全新的和，不是漏 union。seed 换成 `0+(1+2)` 时不
+  容易看出来，因为两种机制的数量恰好撞在一起。
+
+文件：`three_elements.egg`（正确版）、`three_elements_unguarded.egg`（自由变量反例）。
+直接跑：
+
+```sh
+out/vanilla-commutativity/bin/probe experiments/vanilla_commutativity/three_elements.egg
+# ((Add 12) (Num 3))
+```
+
 
 ## 复现
 

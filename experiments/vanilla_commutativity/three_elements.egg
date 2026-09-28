@@ -1,0 +1,35 @@
+; 三个元素加法的全部组合写成一条 rule —— 与通用 AC 规则闭包完全一致。
+;
+; 种子 0+(1+2)。这一条 rule 的 head 同时做两件事：
+;   1. 把三个二元子和的两种顺序 union 到一起（x+y 与 y+x）；
+;   2. 把 root 与三种切分 x2 的两种写法 union 到一起。
+; 只跑这一条 rule 就饱和到 12 个 Add e-node / 7 个 e-class，和
+; `(rewrite (Add a b) (Add b a))` + `(rewrite (Add a (Add b c)) (Add (Add a b) c))`
+; 在 n=3 上跑饱和的结果逐节点相同（3 个二元类各 2 个节点 + 三元类 6 个节点）。
+;
+; 两个容易踩的坑（都能跑，但结果不是 AC 闭包）：
+;   * 模式变量不限定叶子（自由的 a/b/c）：body 会用已经合并的整体类去绑定 c，
+;     造出 0+(1+(0+1+2)) 这类新项 —— 18 个 Add e-node / 10 个 e-class，
+;     见 three_elements_unguarded.egg。
+;   * 限定叶子但只在 head 里罗列 12 种写法、不 union 二元子和：12 个三元节点
+;     配 6 个互不相等的二元节点 —— 也是 18 个 Add e-node / 10 个 e-class。
+;     「写出所有项」不等于「断言它们相等」。
+
+(datatype Math
+    (Num i64)
+    (Add Math Math))
+
+(rule ((= root (Add (Num x) (Add (Num y) (Num z)))))
+      ((union (Add (Num x) (Num y)) (Add (Num y) (Num x)))
+       (union (Add (Num x) (Num z)) (Add (Num z) (Num x)))
+       (union (Add (Num y) (Num z)) (Add (Num z) (Num y)))
+       (union root (Add (Add (Num x) (Num y)) (Num z)))
+       (union root (Add (Num z) (Add (Num x) (Num y))))
+       (union root (Add (Add (Num x) (Num z)) (Num y)))
+       (union root (Add (Num y) (Add (Num x) (Num z))))
+       (union root (Add (Add (Num y) (Num z)) (Num x)))
+       (union root (Add (Num x) (Add (Num y) (Num z))))))
+
+(Add (Num 0) (Add (Num 1) (Num 2)))
+(run 100)
+(print-size)

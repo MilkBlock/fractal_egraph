@@ -1,0 +1,28 @@
+; 反例：同一条 rule，但模式变量不限定成叶子。
+;
+; body 写成自由的 a/b/c。第一轮确实造出 12 个三元素项，但 root 所在的
+; e-class 已经把它们全部合并成一个类；此后 body 会用这个「整体类」去绑定
+; c（第二操作数只要是 Add 即可），head 于是造出 0+(1+(0+1+2))、
+; (0+(0+1+2))+2 这类原本不属于三元素和的新项，并且继续扩散。
+; 实测饱和到 18 个 Add e-node / 10 个 e-class，比通用 AC 规则的 12 / 7 多。
+
+(datatype Math
+    (Num i64)
+    (Add Math Math))
+
+(rule ((= root (Add a (Add b c))))
+      ((union root (Add a (Add c b)))
+       (union root (Add b (Add a c)))
+       (union root (Add b (Add c a)))
+       (union root (Add c (Add a b)))
+       (union root (Add c (Add b a)))
+       (union root (Add (Add a b) c))
+       (union root (Add (Add b a) c))
+       (union root (Add (Add a c) b))
+       (union root (Add (Add c a) b))
+       (union root (Add (Add b c) a))
+       (union root (Add (Add c b) a))))
+
+(Add (Num 0) (Add (Num 1) (Num 2)))
+(run 100)
+(print-size)
