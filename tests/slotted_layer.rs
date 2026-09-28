@@ -38,3 +38,41 @@ fn mainline_analysis_emits_upstream_slotted_layers_and_graft_dsl() {
     assert_eq!(analysis["slotted_canon"]["schema"], "slotted-layer/v2");
     fs::remove_dir_all(root).unwrap();
 }
+
+#[test]
+fn slotted_layer_report_preserves_apply_class_membership_index() {
+    let root = std::env::temp_dir().join(format!("mainline-slotted-index-{}", std::process::id()));
+    fs::create_dir_all(&root).unwrap();
+    let out = root.join("out");
+    let p = Command::new(env!("CARGO_BIN_EXE_egg_layout"))
+        .args([
+            "analyze",
+            "--source",
+            "experiments/math_mini3/source.egg",
+            "--rounds",
+            "1",
+            "--output",
+            out.to_str().unwrap(),
+            "--ripen-observe-ms",
+            "1",
+            "--ripen-observe-facts",
+            "1",
+        ])
+        .env("EGG_LAYOUT_ANALYSIS_THREADS", "1")
+        .env("EGG_LAYOUT_EAGER_SVG", "0")
+        .output()
+        .unwrap();
+    assert!(p.status.success(), "{}", String::from_utf8_lossy(&p.stderr));
+    let report = json(out.join("slotted-canon.json"));
+    let applications = report["applications"].as_u64().unwrap() as usize;
+    let classes = report["groups"].as_array().unwrap();
+    assert_eq!(
+        applications,
+        classes
+            .iter()
+            .map(|g| g["members"].as_array().unwrap().len())
+            .sum::<usize>()
+    );
+    assert!(applications > 0);
+    fs::remove_dir_all(root).unwrap();
+}

@@ -221,6 +221,37 @@ impl LayerCanon {
     pub fn report(&self) -> &Value {
         &self.report
     }
+
+    /// Return the canonical slotted class for each observed Apply occurrence.
+    ///
+    /// The vector is indexed by the Apply occurrence ID used by `LayerStore`.
+    /// It is derived from the egraph's actual roots, so callers do not need to
+    /// scrape the debug JSON or infer class membership from rendered output.
+    pub fn apply_classes(&self) -> Vec<usize> {
+        self.roots.iter().map(|root| root.id.0).collect()
+    }
+
+    /// Return the canonical slotted class for one observed Apply occurrence.
+    pub fn class_for_apply(&self, apply: usize) -> Option<usize> {
+        self.roots.get(apply).map(|root| root.id.0)
+    }
+
+    /// Return the concrete Apply occurrence IDs currently represented by a
+    /// slotted class. The result is stable because report groups use the
+    /// original topological occurrence order.
+    pub fn applies_for_class(&self, class: usize) -> Vec<usize> {
+        self.report["groups"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .find(|group| group["class"].as_u64() == Some(class as u64))
+            .and_then(|group| group["members"].as_array())
+            .into_iter()
+            .flatten()
+            .filter_map(|member| member["apply"].as_u64().map(|id| id as usize))
+            .collect()
+    }
+
     /// Compact semantic-free view. Each Apply template is a slotted e-class;
     /// the full list/effect encoding is available in slotted-egraph.dot.
     pub fn to_dot(&self) -> String {
