@@ -1,0 +1,138 @@
+{
+  "n": 300,
+  "engine": "egglog-baseline c7553a6 (upstream ebba7bb), standalone public-API harness",
+  "guard": {
+    "seconds_per_step": 120.0,
+    "node_ceiling": 3000000
+  },
+  "comm": [
+    {
+      "n": 300,
+      "shape": "chain",
+      "rules": "comm",
+      "seconds": 0.043610667,
+      "matches": 598,
+      "enodes": 898,
+      "eclasses": 599,
+      "ops": {
+        "Num": 300,
+        "Add": 598
+      },
+      "distinct_results": 599,
+      "wall_seconds": 0.0686219580238685
+    },
+    {
+      "n": 300,
+      "shape": "balanced",
+      "rules": "comm",
+      "seconds": 0.008493167,
+      "matches": 598,
+      "enodes": 898,
+      "eclasses": 599,
+      "ops": {
+        "Num": 300,
+        "Add": 598
+      },
+      "distinct_results": 599,
+      "wall_seconds": 0.0339142499724403
+    }
+  ],
+  "ac": [
+    {
+      "n": 300,
+      "shape": "chain",
+      "rules": "ac",
+      "steps": [
+        {
+          "run": 1,
+          "add_enodes": 1194,
+          "num_enodes": 300,
+          "total_math_enodes": 1494,
+          "wall_seconds": 0.02024729095865041,
+          "peak_rss_bytes": 8208384
+        },
+        {
+          "run": 2,
+          "add_enodes": 4760,
+          "num_enodes": 300,
+          "total_math_enodes": 5060,
+          "wall_seconds": 0.027047374984249473,
+          "peak_rss_bytes": 10010624
+        },
+        {
+          "run": 3,
+          "add_enodes": 31618,
+          "num_enodes": 300,
+          "total_math_enodes": 31918,
+          "wall_seconds": 0.053002625005319715,
+          "peak_rss_bytes": 154501120
+        },
+        {
+          "run": 4,
+          "add_enodes": 438077,
+          "num_enodes": 300,
+          "total_math_enodes": 438377,
+          "wall_seconds": 0.2740832909476012,
+          "peak_rss_bytes": 289800192
+        },
+        {
+          "run": 5,
+          "add_enodes": 16738660,
+          "num_enodes": 300,
+          "total_math_enodes": 16738960,
+          "wall_seconds": 9.57824350008741,
+          "peak_rss_bytes": 4985110528
+        }
+      ],
+      "stopped": "node_ceiling(3000000)"
+    },
+    {
+      "n": 300,
+      "shape": "balanced",
+      "rules": "ac",
+      "steps": [
+        {
+          "run": 1,
+          "add_enodes": 896,
+          "num_enodes": 300,
+          "total_math_enodes": 1196,
+          "wall_seconds": 0.018197624944150448,
+          "peak_rss_bytes": 8273920
+        },
+        {
+          "run": 2,
+          "add_enodes": 3120,
+          "num_enodes": 300,
+          "total_math_enodes": 3420,
+          "wall_seconds": 0.02576262503862381,
+          "peak_rss_bytes": 7897088
+        },
+        {
+          "run": 3,
+          "add_enodes": 18180,
+          "num_enodes": 300,
+          "total_math_enodes": 18480,
+          "wall_seconds": 0.03736462502274662,
+          "peak_rss_bytes": 12484608
+        },
+        {
+          "run": 4,
+          "add_enodes": 204468,
+          "num_enodes": 300,
+          "total_math_enodes": 204768,
+          "wall_seconds": 0.1027985840337351,
+          "peak_rss_bytes": 205914112
+        },
+        {
+          "run": 5,
+          "add_enodes": 5517289,
+          "num_enodes": 300,
+          "total_math_enodes": 5517589,
+          "wall_seconds": 1.7896925419336185,
+          "peak_rss_bytes": 1733230592
+        }
+      ],
+      "stopped": "node_ceiling(3000000)"
+    }
+  ]
+}

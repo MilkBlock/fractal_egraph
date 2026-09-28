@@ -1,0 +1,55 @@
+{
+  "shape": "chain",
+  "rules": "ac",
+  "rows": [
+    {
+      "n": 2,
+      "observed_eclasses": 3,
+      "predicted_eclasses": 3,
+      "observed_add_enodes": 2,
+      "matches": 2
+    },
+    {
+      "n": 3,
+      "observed_eclasses": 7,
+      "predicted_eclasses": 7,
+      "observed_add_enodes": 12,
+      "matches": 18
+    },
+    {
+      "n": 4,
+      "observed_eclasses": 15,
+      "predicted_eclasses": 15,
+      "observed_add_enodes": 50,
+      "matches": 120
+    },
+    {
+      "n": 5,
+      "observed_eclasses": 31,
+      "predicted_eclasses": 31,
+      "observed_add_enodes": 180,
+      "matches": 663
+    },
+    {
+      "n": 6,
+      "observed_eclasses": 63,
+      "predicted_eclasses": 63,
+      "observed_add_enodes": 602,
+      "matches": 3335
+    },
+    {
+      "n": 7,
+      "observed_eclasses": 127,
+      "predicted_eclasses": 127,
+      "observed_add_enodes": 1932,
+      "matches": 15438
+    },
+    {
+      "n": 8,
+      "observed_eclasses": 255,
+      "predicted_eclasses": 255,
+      "observed_add_enodes": 6050,
+      "matches": 68116
+    }
+  ]
+}
