@@ -378,6 +378,14 @@ pub trait Table: Any + Send + Sync {
     fn row_producer(&self, _key: &[Value], _row: &[Value]) -> Option<crate::trace::TraceCause> {
         None
     }
+    /// The same provenance in a plain view: no trace session is cloned.
+    fn row_producer_info(
+        &self,
+        _key: &[Value],
+        _row: &[Value],
+    ) -> Option<crate::trace::RowProducer> {
+        None
+    }
 
     /// Look up the given column of single row by the given key values, if it is
     /// in the table.

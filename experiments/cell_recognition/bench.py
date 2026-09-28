@@ -47,14 +47,17 @@ def measure(command, out_prefix, env=None):
 
 
 def recognition_report(stdout):
-    """The command logs first and prints one JSON report last."""
-    start = stdout.find("{\n")
-    if start < 0:
-        return None
-    try:
-        return json.loads(stdout[start:])
-    except json.JSONDecodeError:
-        return None
+    """The commands log first and print one JSON report last; it may be pretty
+    printed (`recognize-cells`) or compact (`adaptive_math`)."""
+    lines = stdout.splitlines()
+    for i in range(len(lines) - 1, -1, -1):
+        if not lines[i].lstrip().startswith("{"):
+            continue
+        try:
+            return json.JSONDecoder().raw_decode("\n".join(lines[i:]))[0]
+        except json.JSONDecodeError:
+            continue
+    return None
 
 
 def main():
@@ -101,6 +104,41 @@ def main():
             "exit_code": run["exit_code"],
         }
         print(variant, round(run["seconds"], 3), run["peak_rss_bytes"], flush=True)
+
+    # RipSat variants: the adaptive runner executes under a trace when the audit
+    # enclosure audit is on (EGG_LAYOUT_AUDIT_ENCLOSURES), which is what attaches a\    # trace to the round execution and makes per-row provenance available. `native` runs
+    # the source rules only; `frozen` replays the baked closures instead of the
+    # source RHSs, so the two rows differ exactly by which rules produced nodes.
+    adaptive = target / "release/examples/adaptive_math"
+    bake = ROOT / "experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+    for variant, mode, extra in [
+        ("ripsat_off", "native", []),
+        ("ripsat_on", "frozen", [bake]),
+    ]:
+        run_out = out / variant
+        if run_out.exists():
+            import shutil
+
+            shutil.rmtree(run_out)
+        run = measure(
+            [adaptive, mode, source, run_out, *extra],
+            out / variant,
+            {"EGG_LAYOUT_AUDIT_ENCLOSURES": "1"},
+        )
+        parsed = recognition_report(run["stdout"]) or {}
+        report["runs"][variant] = {
+            "seconds": run["seconds"],
+            "peak_rss_bytes": run["peak_rss_bytes"],
+            "exit_code": run["exit_code"],
+            "mode": mode,
+            "node_origin": parsed.get("node_origin"),
+        }
+        print(
+            variant,
+            round(run["seconds"], 3),
+            (parsed.get("node_origin") or {}).get("total"),
+            flush=True,
+        )
 
     cell_out = out / "recognition-out"
     if cell_out.exists():

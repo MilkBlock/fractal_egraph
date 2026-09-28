@@ -2109,6 +2109,20 @@ impl EGraph {
     }
 
     /// Read a physical row, including version metadata, without creating it.
+    /// The retained producer of one committed row, when the run recorded
+    /// provenance: `(match event id, committed write event id)`. `None` means the
+    /// row is not attributed (an input, a rebuilt row, or provenance was off).
+    pub fn row_producer_row(
+        &self,
+        name: &str,
+        key: &[Value],
+        row: &[Value],
+    ) -> Option<(u64, Option<u64>)> {
+        let func = self.functions.get(name)?;
+        self.backend
+            .row_producer(func.backend_id, key, row)
+            .map(|p| (p.match_event_id, p.commit_event_id))
+    }
     pub fn lookup_function_row(&self, name: &str, key: &[Value]) -> Option<Vec<Value>> {
         self.backend
             .lookup_row(self.functions.get(name)?.backend_id, key)

@@ -443,6 +443,17 @@ impl Table for SortedWritesTable {
             .filter(|(stored, _)| stored.as_slice() == row)
             .map(|(_, cause)| cause.clone())
     }
+    fn row_producer_info(
+        &self,
+        key: &[Value],
+        row: &[Value],
+    ) -> Option<crate::trace::RowProducer> {
+        self.row_producer(key, row)
+            .map(|cause| crate::trace::RowProducer {
+                match_event_id: cause.match_event_id,
+                commit_event_id: cause.commit_event_id,
+            })
+    }
     fn dyn_clone(&self) -> Box<dyn Table> {
         Box::new(self.clone())
     }

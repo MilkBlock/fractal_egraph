@@ -47,7 +47,7 @@ pub use table_spec::{
     TableVersion, WrappedTable,
 };
 pub use trace::{
-    OriginInvalidation, OriginInvalidationReason, RowReadEvent, RuleActionOutcome,
+    OriginInvalidation, OriginInvalidationReason, RowProducer, RowReadEvent, RuleActionOutcome,
     RuleActionOutcomeEvent, RuleMatchBinding, RuleMatchEvent, TraceCause, TraceSession, TraceBatch, WriteEvent,
     WriteOutcome,
 };

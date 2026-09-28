@@ -693,6 +693,15 @@ pub struct RowReadEvent {
     pub producer_write_event_id: Option<u64>,
 }
 /// Origin attached to a staged write, never reconstructed from a snapshot delta.
+/// Public view of a row's retained producer, without the trace session.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct RowProducer {
+    /// The rule application that produced the row.
+    pub match_event_id: u64,
+    /// The committed write event, when the row came from a write.
+    pub commit_event_id: Option<u64>,
+}
+
 #[derive(Clone)]
 pub struct TraceCause {
     pub(crate) source_span: Option<Arc<str>>,

@@ -1,85 +1,80 @@
-# Event recognition vs whole-fragment discovery
+# Event recognition vs whole-fragment discovery, with node attribution
 
-Compares four variants on the same source and schedule:
+Compares six variants on the same source and schedule:
 
 | variant | what it does |
 |---|---|
 | `pristine` | the recorded baseline binary runs the program |
 | `native` | this kernel runs the program, no library |
 | `fragment_pack` | this kernel plus whole-fragment discovery, then packs every match |
+| `ripsat_off` | the adaptive runner in `native` mode: source rules only, audit trace on |
+| `ripsat_on` | the adaptive runner in `frozen` mode: baked closures replace the source RHSs, audit trace on |
 | `recognition` | this kernel plus event recognition, then installs recognised cells |
 
 The point of the change is the last row's `fragment_queries`: the default
 known-instance path must issue **none**. The harness fails when it is not zero.
 
+## Node attribution
+
+`node_origin::attribute` walks every **live** constructor row and asks the runtime
+which rule application produced it (`EGraph::row_producer_row`). Counting live
+rows, not write events, is what makes merge deduplication implicit: a row a union
+merged away is not live, so it cannot be counted twice. Rows are bucketed by rule
+name, and the adaptive runtime names every generated rule
+`adaptive_{baked|source}_{id}`, so:
+
+- `seminaive` — produced by an original source rule;
+- `ripsat` — produced by a RipSat closure rule;
+- `unattributed` — no retained producer, split into `no_producer` (the runtime kept
+  none for this row) and `unknown_match` (a producer exists but its match is not in
+  the retained rule map).
+
 ## Reproduce
 
 ```sh
-# one library per workload; both formats are unchanged by this work
 EGG_LAYOUT_GRAPHS=0 egg_layout analyze --source experiments/math_mini3/source.egg \
   --rounds 1 --output out/mini-seed
 egg_layout reuse-bake out/mini-lib.json out/mini-seed
-
-cargo build --release --offline --example post_pack_bench
+cargo build --release --offline --examples
 python3 experiments/cell_recognition/bench.py \
   --source experiments/math_mini3/source.egg --library out/mini-lib.json \
   --output out/cell-bench-mini --rounds 1
 ```
 
-`bench.py` honours `CARGO_TARGET_DIR`, writes `<output>/results.json`, and exits
-non-zero if the recognition variant reports a fragment query.
-
 ## Measured (math mini3, one round, one pass)
 
-| variant | wall | peak RSS |
-|---|---:|---:|
-| pristine | 0.009 s | 7.1 MB |
-| native | 0.449 s | 7.5 MB |
-| fragment_pack | 0.032 s | 11.9 MB |
-| recognition | 0.233 s | 99.0 MB |
+| variant | wall | peak RSS | total nodes | seminaive | ripsat | unattributed |
+|---|---:|---:|---:|---:|---:|---:|
+| pristine | 0.009 s | 7.2 MB | — | — | — | — |
+| native | 0.008 s | 7.7 MB | — | — | — | — |
+| fragment_pack | 0.017 s | 10.8 MB | — | — | — | — |
+| ripsat_off | 0.016 s | 8.2 MB | 208 | **0** | **0** | 208 |
+| ripsat_on | 0.020 s | 11.6 MB | 347 | **0** | **0** | 347 |
+| recognition | 0.221 s | 103.9 MB | — | — | — | — |
 
-**These timings are not a speed comparison and must not be read as one.** On this
-workload the measurements are unstable: `native` (0.449 s) and `fragment_pack`
-(0.032 s) run the same program, and the difference is run-to-run variance at
-millisecond scale, not a library effect. The recognition row additionally loads a
-library, compiles 8 plans and keeps 129 outstanding row subscriptions, which is
-why its RSS is an order of magnitude larger.
+**Timings are not a speed comparison**: one pass at millisecond scale, and
+`native` (0.008 s) and `native` at 0.257 s in the previous pass are the same
+command. The scenario row above is the stable part: `ripsat_on` holds 347 live
+constructor nodes against `ripsat_off`'s 208, i.e. the baked closures produce 139
+more nodes in this run.
 
-What the run does establish, stably:
+**The seminaive/ripsat split is not yet populated, and this is the current
+blocker.** With the audit trace on, the rule map is populated (`rules_known` 129
+for `ripsat_off`, 211 for `ripsat_on`), but every row reports `no_producer`: the
+runtime retained no per-row producer for these tables, so `unknown_match` is 0 and
+`unattributed` equals `total`. The attribution code and the runtime accessor are in
+place and exercised; what is missing is provenance retention on this runner's write
+path. The diagnostic fields exist precisely so that this is distinguishable from
+"the split is 0".
 
-| quantity | value |
-|---|---:|
-| fragment queries on the default path | **0** |
-| plans / sources | 8 / 19 |
-| sources with a slot boundary | 19 |
-| matched committed applications | 19 |
-| located / complete / packed | 14 / 42 / 11 |
-| unsupported sources | 0 |
+Two further limits: `pristine`, `native`, `fragment_pack` and `recognition` do not
+attach a trace, so they report `node_origin: null` rather than a fabricated zero;
+and per-stage timings and unfinished-instance retained memory are still not
+measured (`pending_subscriptions` is the only proxy).
 
-Remaining failures are evidence gaps, not structural ones: 11 instances report
-`no resolvable row left` and 3 name a specific row whose key is not a committed
-fact (`row 3 (Add) key [43, 42] ...`) because this short run never executed that
-step.
+## Verified elsewhere
 
-## Scope and limits
-
-- One screening pass per variant, one round, one machine; no repetition, no
-  median, no warmup. The earlier experiments in this repository (`math_pack_rss`,
-  `compact_cells`, `memory_fix`) established that peak-RSS comparisons on this
-  system need repetitions and a recorded pristine hash; this harness does neither
-  yet.
-- Timing, recognition time and install time are not reported separately: the
-  recognition variant prints one total, and the kernel does not yet expose install
-  duration. Per-stage timings are a missing measurement, not a passing one.
-- Unfinished instances' retained memory is not measured. `pending_subscriptions`
-  (129) is the only proxy reported.
-- The four variants do not all do equal work: `fragment_pack` and `recognition`
-  load a library; `native` and `pristine` do not. That is the subject of the
-  comparison, but it also means wall time is not an equal-work speed ratio.
-- The recognition path's logical result was verified elsewhere: `recognize-cells`
-  installs through `compact_cell_facts`, which re-validates every row against
-  committed storage, and `tests/reuse_cell_recognition.rs` checks that the graph
-  is unchanged by installation.
-
-A repeated, equal-work benchmark on the full math workload — with per-stage
-timings, a hash-verified pristine binary and medians — remains to be done.
+`recognize-cells` installs through `compact_cell_facts`, which re-validates every
+row against committed storage, and `tests/reuse_cell_recognition.rs` checks that
+installation leaves the graph's rows unchanged. A repeated, equal-work benchmark on
+the full math workload remains to be done.

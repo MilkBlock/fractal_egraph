@@ -573,6 +573,9 @@ fn run_impl(
     }
     let mut audit = (audit_enabled || prune_join).then(super::enclosure_audit::Audit::default);
     let trace = (audit_enabled || evolution_enabled).then(egglog::TraceSession::with_dependencies);
+    // The trace is drained every round, so match id -> rule name must be kept as
+    // the rounds go for node attribution to name producers afterwards.
+    let mut rule_by_match: BTreeMap<u64, String> = BTreeMap::new();
     let mut evolution = evolution_enabled.then(evolution::Evolution::default);
     #[cfg(feature="native-read-profile")]
     eg.reset_join_read_profile(std::env::var("EGG_LAYOUT_JOIN_READ_PROFILE").is_ok_and(|v|v=="1"));
@@ -627,6 +630,7 @@ fn run_impl(
                         }
                         let report = eg.step_rules_with_trace(&set, trace)?;
                         let batch=trace.drain_completed();
+                        rule_by_match.extend(batch.matches.iter().map(|m| (m.event_id, m.rule.to_string())));
                         if let Some(e)=evolution.as_mut() {e.finish(&eg,trace,&batch,&bake.macros,round,eg.native_union_count().saturating_sub(union_before));}
                         let stats=if let Some(a)=audit.as_mut() {a.finish(&eg,trace,batch)} else {Value::Null};
                         (report, stats)
@@ -713,7 +717,8 @@ fn run_impl(
         serde_json::to_writer_pretty(file,&full)?;
         Some(full.as_object().unwrap().iter().filter(|(k,_)|!["patterns","families","rounds","rule_environment"].contains(&k.as_str())).map(|(k,v)|(k.clone(),v.clone())).collect::<serde_json::Map<_,_>>())
     } else {None};
-    let report = json!({"summary_only":lean,"setup_seconds":setup_seconds,"input_seconds":input_seconds,"packing_seconds":packing_total,"cell_machine_enabled":machine.is_some(),"cell_states":machine.as_ref().map(|m|m.counts(&eg)),"cell_transitions_enabled":!plans.is_empty(),"join_reads":transitions::read_profile(&eg),"cell_evolution":evolution_report,"mode":mode,"rhs_skip_enabled":skip_rhs,"join_pruning_enabled":prune_join,"min_template_reuse":min_reuse,"seconds":started.elapsed().as_secs_f64(),"execution_seconds":execution_seconds,"learning_seconds":learning_seconds,"matches":total,"samples":samples,"final":counts(&eg),"storage":crate::reuse_graph::native_storage::storage_report(&eg),"scope":"actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed"});
+    let node_origin = crate::node_origin::attribute(&eg, &rule_by_match)?;
+    let report = json!({"node_origin":node_origin,"summary_only":lean,"setup_seconds":setup_seconds,"input_seconds":input_seconds,"packing_seconds":packing_total,"cell_machine_enabled":machine.is_some(),"cell_states":machine.as_ref().map(|m|m.counts(&eg)),"cell_transitions_enabled":!plans.is_empty(),"join_reads":transitions::read_profile(&eg),"cell_evolution":evolution_report,"mode":mode,"rhs_skip_enabled":skip_rhs,"join_pruning_enabled":prune_join,"min_template_reuse":min_reuse,"seconds":started.elapsed().as_secs_f64(),"execution_seconds":execution_seconds,"learning_seconds":learning_seconds,"matches":total,"samples":samples,"final":counts(&eg),"storage":crate::reuse_graph::native_storage::storage_report(&eg),"scope":"actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed"});
     std::fs::write(out.join("report.json"), serde_json::to_vec_pretty(&report)?)?;
     Ok(report)
 }

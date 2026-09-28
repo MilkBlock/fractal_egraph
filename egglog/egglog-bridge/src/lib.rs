@@ -438,6 +438,17 @@ impl EGraph {
     }
 
     /// Exact current physical row for diagnostic version validation.
+    /// Retained producer of one committed row, when provenance was recorded.
+    pub fn row_producer(
+        &self,
+        func: FunctionId,
+        key: &[Value],
+        row: &[Value],
+    ) -> Option<core_relations::RowProducer> {
+        self.db
+            .get_table(self.funcs[func].table)
+            .row_producer_info(key, row)
+    }
     pub fn lookup_row(&self, func: FunctionId, key: &[Value]) -> Option<Vec<Value>> {
         self.db
             .get_table(self.funcs[func].table)
