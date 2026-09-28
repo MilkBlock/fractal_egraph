@@ -178,6 +178,10 @@ pub struct CellRecognizer {
     value_index: BTreeMap<ValueId, BTreeSet<usize>>,
     /// Union-find over observed values, for canonical identity after a union.
     parent: BTreeMap<ValueId, ValueId>,
+    /// Committed applications whose rule identity matched a plan step. This
+    /// counts recognition input, not recognised instances: a matching rule can
+    /// still fail the step's arity or binding checks.
+    matched_applications: usize,
 }
 
 impl CellRecognizer {
@@ -242,7 +246,13 @@ impl CellRecognizer {
             waiting: BTreeMap::new(),
             value_index: BTreeMap::new(),
             parent: BTreeMap::new(),
+            matched_applications: 0,
         }
+    }
+
+    /// How many committed applications matched a plan's rule identity.
+    pub fn matched_applications(&self) -> usize {
+        self.matched_applications
     }
 
     pub fn unsupported_sources(&self) -> &[(usize, usize, String)] {
@@ -353,6 +363,7 @@ impl CellRecognizer {
             Some(s) => s.clone(),
             None => return Ok(()),
         };
+        self.matched_applications += 1;
         // Canonicalise every observed value once, so equality after a union is
         // decided in one namespace for the whole event.
         let wanted: Vec<ValueId> = wanted.iter().map(|v| self.canonical(*v)).collect();

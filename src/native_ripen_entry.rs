@@ -612,6 +612,35 @@ fn extract(
         .iter()
         .map(|(token, port)| json!([port, values.get(token).map(ToString::to_string)]))
         .collect();
+    // Link each boundary port to the interface term it came from. The interface is
+    // resolved against the stored body when the library is loaded, so this is what
+    // lets a recognition plan turn a boundary port into a stored body value.
+    // Match ports to interface terms by token, in the same filtered order the
+    // term lists use, so the link never depends on rendering a term twice.
+    let upper_tokens: Vec<usize> = c.records[root_member]
+        .values
+        .iter()
+        .filter(|v| c.pool.values[**v].sort.as_ref() == c.datatype_name)
+        .filter(|v| values.get(v).is_some())
+        .copied()
+        .collect();
+    let lower_tokens: Vec<usize> = parameters
+        .iter()
+        .filter_map(|p| p["token"].as_u64())
+        .map(|v| v as usize)
+        .collect();
+    let external_interfaces: Vec<_> = port_tokens
+        .iter()
+        .filter_map(|(token, port)| {
+            if let Some(index) = lower_tokens.iter().position(|t| t == *token) {
+                return Some(json!([port, "lower", index]));
+            }
+            upper_tokens
+                .iter()
+                .position(|t| t == *token)
+                .map(|index| json!([port, "upper", index]))
+        })
+        .collect();
     let provenance = json!({"reuse_recipe":recipe,"reuse_interface_terms":{"upper":upper_terms,"lower":lower_terms},"kind":"symbolic_cs_interface","template":null,"members":member_ids,"root_member":root_member,"comb_members":comb_members,"kind_scope":"use_kind is relative to directly recorded dependencies inside this CS entry; source_kind is the original layer classification; neither minimizes alternate proof requirements",
         "events":stages.iter().map(|(i,e,n,_,_)|json!({"record":i,"event":e,"precondition_checks":n})).collect::<Vec<_>>(),
         "initial_tables":initial_tables,"original_use_tables":original_tables,"parameter_marker":hole,
@@ -619,7 +648,7 @@ fn extract(
         // Canonical boundary port -> recorded term. A recognition plan needs this
         // to connect a recipe external to a stored body value; without it a
         // library cell can be recognised but never confirmed or compacted.
-        "external_terms":external_terms,
+        "external_terms":external_terms,"external_interfaces":external_interfaces,
         "parameters":parameters,"all_source_rules":c.rules.len(),"validation":"all original LHS checks and recorded output aliases passed before/after the corresponding ground actions",
         "staged_injections":injections,"initial_source":seed_text,"concrete_boundary_structure_recovered":false,
         "saturated_scope":"extracted interface only; not the complete original tier0 neighborhood"});

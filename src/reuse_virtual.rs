@@ -67,11 +67,17 @@ pub fn recognise_library(
     rounds: Option<usize>,
 ) -> Result<Value> {
     let plans = library.recognition_plans(crate::reuse_cell_recognition::EnvironmentId::UNKNOWN)?;
+    let slot_space = plans
+        .iter()
+        .filter(|p| p.slots.boundary_space == crate::reuse_cell_recognition::BoundarySpace::Slots)
+        .count();
+    let plan_count = plans.len();
     let mut recognizer = crate::reuse_cell_online::CellRecognizer::new(plans);
     let report = crate::native_analyze::run_with_cell_recognition(source, out, rounds, &mut recognizer)?;
     let counts = recognizer.counts();
     Ok(json!({
-        "recognition":{"located":counts.located,"complete":counts.complete,"packed":counts.packed,"unsupported_sources":counts.unsupported_sources,"pending_subscriptions":recognizer.pending_subscriptions()},
+        "recognition":{"matched_applications":recognizer.matched_applications(),"located":counts.located,"complete":counts.complete,"packed":counts.packed,"unsupported_sources":counts.unsupported_sources,"pending_subscriptions":recognizer.pending_subscriptions()},
+        "plans":plan_count,"slot_space_plans":slot_space,"recognition_only_plans":plan_count-slot_space,
         "unsupported":recognizer.unsupported_sources().iter().map(|(plan,source,reason)|json!({"plan":plan,"source":source,"reason":reason})).collect::<Vec<_>>(),
         "fragment_queries":0,
         "analysis_status":report["status"],

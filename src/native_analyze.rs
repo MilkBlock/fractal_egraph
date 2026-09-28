@@ -913,15 +913,18 @@ fn feed_recognition(
             .parse()
             .unwrap_or(u64::MAX)
     };
-    // A recorded role may hold a fact token instead of a value; such a role has
-    // no native value and is dropped rather than bound to the wrong thing.
-    let ids = |tokens: &[usize]| -> Vec<ValueId> {
-        tokens
-            .iter()
-            .filter_map(|t| native(*t))
-            .map(id)
-            .collect()
+    // A recorded role may hold a fact token instead of a native value. Such a
+    // token keeps its own identity in a separate id band, so the recorded role
+    // arity is preserved and distinct tokens stay distinct; it can unify with
+    // itself, but it can never be resolved as a fact key.
+    const NON_VALUE_TAG: ValueId = 1 << 63;
+    let value_id = |token: usize| -> ValueId {
+        match native(token) {
+            Some(value) => id(value),
+            None => NON_VALUE_TAG | token as u64,
+        }
     };
+    let ids = |tokens: &[usize]| -> Vec<ValueId> { tokens.iter().map(|t| value_id(*t)).collect() };
     for r in c.records.iter().skip(first_new) {
         let rule = crate::reuse_cell_recognition::RuleIdentity {
             environment,
@@ -936,12 +939,10 @@ fn feed_recognition(
             external: &external,
         })?;
         for (lhs, rhs) in &r.unions {
-            if let (Some(lhs), Some(rhs)) = (native(*lhs), native(*rhs)) {
-                recognizer.observe(CommittedEvent::Union {
-                    lhs: id(lhs),
-                    rhs: id(rhs),
-                })?;
-            }
+            recognizer.observe(CommittedEvent::Union {
+                lhs: value_id(*lhs),
+                rhs: value_id(*rhs),
+            })?;
         }
     }
     Ok(())

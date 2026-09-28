@@ -270,19 +270,41 @@ impl Library {
             let state = &self.bodies[body].graph;
             // Recorded boundary terms, resolved to stored body values. Older
             // artifacts carry no terms, leaving the correspondence unknown.
-            let boundary_body_values = e.origin["external_terms"]
-                .as_array()
-                .map(|entries| {
-                    entries
-                        .iter()
-                        .filter_map(|entry| {
-                            let port = entry.get(0)?.as_u64()? as usize;
-                            let term = entry.get(1)?.as_str()?;
-                            resolve_term(term, state).ok().map(|value| (port, value))
-                        })
-                        .collect()
-                })
-                .unwrap_or_default();
+            // Prefer the recorded link to the interface, which the library
+            // already resolved and validated against this body. Fall back to
+            // resolving a recorded term directly when no link was stored.
+            let boundary_body_values: Vec<(usize, usize)> = if e.origin["external_interfaces"].is_array() {
+                e.origin["external_interfaces"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .filter_map(|entry| {
+                        let port = entry.get(0)?.as_u64()? as usize;
+                        let side = entry.get(1)?.as_str()?;
+                        let index = entry.get(2)?.as_u64()? as usize;
+                        let ports = if side == "upper" {
+                            &d.interface.upper
+                        } else {
+                            &d.interface.lower
+                        };
+                        ports.get(index).map(|value| (port, *value))
+                    })
+                    .collect()
+            } else {
+                e.origin["external_terms"]
+                    .as_array()
+                    .map(|entries| {
+                        entries
+                            .iter()
+                            .filter_map(|entry| {
+                                let port = entry.get(0)?.as_u64()? as usize;
+                                let term = entry.get(1)?.as_str()?;
+                                resolve_term(term, state).ok().map(|value| (port, value))
+                            })
+                            .collect()
+                    })
+                    .unwrap_or_default()
+            };
             out[body].sources.push(crate::reuse_cell_recognition::LibraryCellSource {
                 enclosure: e.enclosure.0,
                 interface: d
