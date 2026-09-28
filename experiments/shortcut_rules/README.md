@@ -47,6 +47,36 @@
   523,250。也就是说 shortcut 消掉了中间过冲，但峰值内存反而更高——高内存来自单轮的
   写入/union 缓冲，不是节点过冲。
 
+## 瓶颈在哪（引擎自带的分阶段计时）
+
+用 `profile_probe.rs` 把程序写成 `(run 1)` 序列，逐轮读取 egglog 自己的 `RunReport`
+（默认 `ReportLevel::TimeOnly`）：`search+apply`（跑 query plan + 实例化 action）、
+`merge`（把产生的 tuple 灌进表、去重，并沿依赖表传播）、`rebuild`（有新 union 时重建 id）。
+
+| n | 写法 | search+apply | merge | rebuild |
+|---:|---|---:|---:|---:|
+| 8 | generic | 45% | 37% | 18% |
+| 8 | shortcut | 50% | 42% | 8% |
+| 10 | generic | 38% | 43% | 19% |
+| 10 | shortcut | 60% | 31% | 9% |
+| 12 | generic | 21% (**0.59 s**) | 71% (**1.94 s**) | 8% (0.22 s) |
+| 12 | shortcut | 45% (1.95 s) | 48% (2.06 s) | 7% (0.31 s) |
+
+n 越大，generic 的瓶颈越明确地落在 **merge**：37% → 43% → 71%。join 本身（per-rule
+计时）在 n=12 只有 0.138 s，其中结合律规则 20,406,196 次匹配、交换律 866,614 次。
+
+量级对比：n=12 最终只有 **523,250** 个 Add e-node，却发生 **21,270,810** 次逻辑匹配 ——
+**约 40 次候选节点求值，才留下 1 个节点**。所以时间不是花在「找匹配」上，而是花在
+把 2000 多万个候选 e-node 灌进表、去重、传播（merge）以及它们引起的 union 之后的重建上。
+换句话说：**瓶颈是冗余的节点物化（materialization），不是搜索轮数**。
+
+shortcut 没有减少这个量：matches 只降 19%，但每条匹配的 action 从 1 个变成 14 个
+（3 个二元子和 union + 11 个 root union），于是 `search+apply` 每匹配代价涨约 3×，
+整体时间反而更差；n=12 峰值 RSS 也从 1.27 GiB 涨到 5.26 GiB。
+
+推论：想提速要减少**被反复求值/去重的候选节点数**（更早去重、避免重复推导），
+而不是减少饱和轮数——这正是 shortcut 思路的反面。
+
 ## shortcut_naive 为什么不作数
 
 它 sound 但不去重：n=4 时 Add=92 / e-class=21（generic 50/15），n=12 时 661,256/4,161
@@ -58,11 +88,15 @@
 ```sh
 BASELINE=/Users/mineralsteins/.codex/worktrees/native-baseline/egg_layout
 python3 experiments/vanilla_commutativity/build.py --baseline "$BASELINE"
+python3 experiments/shortcut_rules/build_profile.py --baseline "$BASELINE"
 python3 experiments/shortcut_rules/shortcut_bench.py --n 4 6 8 10 12 --repeat 5
+python3 experiments/shortcut_rules/profile_phases.py --n 8 10 12
 ```
 
-原始数字：`results.json`（结构、等价性、逐步曲线、重复计时）、`rss_n12.json`；
-运行时脚本也会写到被忽略的 `out/shortcut-rules/`。
+原始数字：`results.json`（结构、等价性、逐步曲线、重复计时）、`rss_n12.json`、
+`phases.json`（分阶段计时）；运行时脚本也会写到被忽略的 `out/shortcut-rules/`。
+`phases.json` 的总时间是带计时的 `(run 1)` 序列，与 `results.json` 的整段 `(run 200)`
+略有差异，百分比趋势一致。
 
 ## 边界
 
