@@ -1,0 +1,49 @@
+{
+  "scope": "same source and schedule; one screening pass per variant; not a speed claim",
+  "source": "experiments/math_mini3/source.egg",
+  "source_sha256": "ac498b753752adb472a536f01a1f8411fc193a982516513c90eefb4585194015",
+  "library": "target/mini-lib.json",
+  "rounds": 1,
+  "runs": {
+    "pristine": {
+      "seconds": 0.008750124950893223,
+      "peak_rss_bytes": 7143424,
+      "exit_code": 0
+    },
+    "native": {
+      "seconds": 0.4492415420245379,
+      "peak_rss_bytes": 7487488,
+      "exit_code": 0
+    },
+    "fragment_pack": {
+      "seconds": 0.031838083057664335,
+      "peak_rss_bytes": 11911168,
+      "exit_code": 0
+    },
+    "recognition": {
+      "seconds": 0.2332296670647338,
+      "peak_rss_bytes": 99041280,
+      "exit_code": 0,
+      "fragment_queries": 0,
+      "plans": 8,
+      "sources": 19,
+      "slot_boundary_sources": 19,
+      "recognition": {
+        "complete": 42,
+        "located": 14,
+        "matched_applications": 19,
+        "packed": 11,
+        "pending_subscriptions": 129,
+        "unsupported_sources": 0
+      },
+      "failures": {
+        "no resolvable row left": 11,
+        "row 3 (Add) key [43, 42] is not a committed fact": 1,
+        "row 3 (Add) key [45, 44] is not a committed fact": 1,
+        "row 4 (Mul) key [0, 20] is not a committed fact": 1
+      },
+      "analysis_status": "observed_unfinished"
+    }
+  },
+  "default_path_fragment_queries": 0
+}
