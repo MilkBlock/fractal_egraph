@@ -1,0 +1,668 @@
+[
+  {
+    "label": "ripened cell interiors (79 exports)",
+    "path": "79 cell exports",
+    "classes": 770,
+    "enodes": 1852,
+    "roots": null,
+    "root_distance": [
+      {
+        "level": 0,
+        "classes": 79,
+        "enodes_min": 1,
+        "enodes_p25": 3,
+        "enodes_median": 4,
+        "enodes_p75": 7,
+        "enodes_max": 15,
+        "log2_min": 0.0,
+        "log2_max": 3.9068905956085187
+      },
+      {
+        "level": 1,
+        "classes": 448,
+        "enodes_min": 1,
+        "enodes_p25": 1,
+        "enodes_median": 2.0,
+        "enodes_p75": 2,
+        "enodes_max": 10,
+        "log2_min": 0.0,
+        "log2_max": 3.321928094887362
+      },
+      {
+        "level": 2,
+        "classes": 241,
+        "enodes_min": 1,
+        "enodes_p25": 1,
+        "enodes_median": 1,
+        "enodes_p75": 2,
+        "enodes_max": 6,
+        "log2_min": 0.0,
+        "log2_max": 2.584962500721156
+      },
+      {
+        "level": 3,
+        "classes": 2,
+        "enodes_min": 1,
+        "enodes_p25": 1,
+        "enodes_median": 1.0,
+        "enodes_p75": 1,
+        "enodes_max": 1,
+        "log2_min": 0.0,
+        "log2_max": 0.0
+      }
+    ],
+    "leaf_height": [
+      {
+        "level": 0,
+        "classes": 259,
+        "enodes_min": 1,
+        "enodes_p25": 1,
+        "enodes_median": 1,
+        "enodes_p75": 1,
+        "enodes_max": 6,
+        "log2_min": 0.0,
+        "log2_max": 2.584962500721156
+      },
+      {
+        "level": 1,
+        "classes": 265,
+        "enodes_min": 1,
+        "enodes_p25": 1,
+        "enodes_median": 2,
+        "enodes_p75": 2,
+        "enodes_max": 10,
+        "log2_min": 0.0,
+        "log2_max": 3.321928094887362
+      },
+      {
+        "level": 2,
+        "classes": 179,
+        "enodes_min": 2,
+        "enodes_p25": 2,
+        "enodes_median": 3,
+        "enodes_p75": 6,
+        "enodes_max": 14,
+        "log2_min": 1.0,
+        "log2_max": 3.807354922057604
+      },
+      {
+        "level": 3,
+        "classes": 53,
+        "enodes_min": 2,
+        "enodes_p25": 2,
+        "enodes_median": 2,
+        "enodes_p75": 4,
+        "enodes_max": 15,
+        "log2_min": 1.0,
+        "log2_max": 3.9068905956085187
+      },
+      {
+        "level": 4,
+        "classes": 14,
+        "enodes_min": 6,
+        "enodes_p25": 6,
+        "enodes_median": 6.0,
+        "enodes_p75": 6,
+        "enodes_max": 15,
+        "log2_min": 2.584962500721156,
+        "log2_max": 3.9068905956085187
+      }
+    ],
+    "cyclic_classes": 0,
+    "per_cell": [
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000000/saturated-rule-composition.json",
+        "enodes": 4,
+        "classes": 3,
+        "root_depth": 1,
+        "leaf_height": 1
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000001/saturated-rule-composition.json",
+        "enodes": 4,
+        "classes": 3,
+        "root_depth": 1,
+        "leaf_height": 1
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000002/saturated-rule-composition.json",
+        "enodes": 2,
+        "classes": 2,
+        "root_depth": 1,
+        "leaf_height": 1
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000003/saturated-rule-composition.json",
+        "enodes": 4,
+        "classes": 3,
+        "root_depth": 1,
+        "leaf_height": 1
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000004/saturated-rule-composition.json",
+        "enodes": 4,
+        "classes": 3,
+        "root_depth": 1,
+        "leaf_height": 1
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000005/saturated-rule-composition.json",
+        "enodes": 4,
+        "classes": 3,
+        "root_depth": 1,
+        "leaf_height": 1
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000006/saturated-rule-composition.json",
+        "enodes": 4,
+        "classes": 3,
+        "root_depth": 1,
+        "leaf_height": 1
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000007/saturated-rule-composition.json",
+        "enodes": 4,
+        "classes": 3,
+        "root_depth": 1,
+        "leaf_height": 1
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000008/saturated-rule-composition.json",
+        "enodes": 4,
+        "classes": 3,
+        "root_depth": 1,
+        "leaf_height": 1
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000009/saturated-rule-composition.json",
+        "enodes": 4,
+        "classes": 3,
+        "root_depth": 1,
+        "leaf_height": 1
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000010/saturated-rule-composition.json",
+        "enodes": 4,
+        "classes": 3,
+        "root_depth": 1,
+        "leaf_height": 1
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000011/saturated-rule-composition.json",
+        "enodes": 8,
+        "classes": 5,
+        "root_depth": 2,
+        "leaf_height": 1
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000012/saturated-rule-composition.json",
+        "enodes": 8,
+        "classes": 5,
+        "root_depth": 2,
+        "leaf_height": 1
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000013/saturated-rule-composition.json",
+        "enodes": 8,
+        "classes": 5,
+        "root_depth": 2,
+        "leaf_height": 1
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000014/saturated-rule-composition.json",
+        "enodes": 8,
+        "classes": 5,
+        "root_depth": 2,
+        "leaf_height": 1
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000015/saturated-rule-composition.json",
+        "enodes": 11,
+        "classes": 6,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000016/saturated-rule-composition.json",
+        "enodes": 4,
+        "classes": 3,
+        "root_depth": 1,
+        "leaf_height": 1
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000017/saturated-rule-composition.json",
+        "enodes": 10,
+        "classes": 7,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000018/saturated-rule-composition.json",
+        "enodes": 9,
+        "classes": 6,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000020/saturated-rule-composition.json",
+        "enodes": 15,
+        "classes": 7,
+        "root_depth": 1,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000021/saturated-rule-composition.json",
+        "enodes": 23,
+        "classes": 10,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000022/saturated-rule-composition.json",
+        "enodes": 19,
+        "classes": 9,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000023/saturated-rule-composition.json",
+        "enodes": 9,
+        "classes": 5,
+        "root_depth": 1,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000024/saturated-rule-composition.json",
+        "enodes": 15,
+        "classes": 7,
+        "root_depth": 1,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000025/saturated-rule-composition.json",
+        "enodes": 11,
+        "classes": 6,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000026/saturated-rule-composition.json",
+        "enodes": 11,
+        "classes": 6,
+        "root_depth": 1,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000027/saturated-rule-composition.json",
+        "enodes": 10,
+        "classes": 7,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000028/saturated-rule-composition.json",
+        "enodes": 10,
+        "classes": 7,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000029/saturated-rule-composition.json",
+        "enodes": 28,
+        "classes": 14,
+        "root_depth": 2,
+        "leaf_height": 3
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000030/saturated-rule-composition.json",
+        "enodes": 13,
+        "classes": 8,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000031/saturated-rule-composition.json",
+        "enodes": 7,
+        "classes": 5,
+        "root_depth": 1,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000032/saturated-rule-composition.json",
+        "enodes": 4,
+        "classes": 3,
+        "root_depth": 1,
+        "leaf_height": 1
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000033/saturated-rule-composition.json",
+        "enodes": 9,
+        "classes": 6,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000035/saturated-rule-composition.json",
+        "enodes": 19,
+        "classes": 9,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000036/saturated-rule-composition.json",
+        "enodes": 23,
+        "classes": 10,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000037/saturated-rule-composition.json",
+        "enodes": 19,
+        "classes": 9,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000038/saturated-rule-composition.json",
+        "enodes": 11,
+        "classes": 6,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000039/saturated-rule-composition.json",
+        "enodes": 20,
+        "classes": 9,
+        "root_depth": 2,
+        "leaf_height": 1
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000040/saturated-rule-composition.json",
+        "enodes": 11,
+        "classes": 6,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000041/saturated-rule-composition.json",
+        "enodes": 20,
+        "classes": 9,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000042/saturated-rule-composition.json",
+        "enodes": 10,
+        "classes": 7,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000043/saturated-rule-composition.json",
+        "enodes": 30,
+        "classes": 15,
+        "root_depth": 2,
+        "leaf_height": 3
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000044/saturated-rule-composition.json",
+        "enodes": 28,
+        "classes": 14,
+        "root_depth": 2,
+        "leaf_height": 3
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000045/saturated-rule-composition.json",
+        "enodes": 29,
+        "classes": 14,
+        "root_depth": 2,
+        "leaf_height": 3
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000047/saturated-rule-composition.json",
+        "enodes": 11,
+        "classes": 6,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000048/saturated-rule-composition.json",
+        "enodes": 9,
+        "classes": 6,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000050/saturated-rule-composition.json",
+        "enodes": 4,
+        "classes": 3,
+        "root_depth": 1,
+        "leaf_height": 1
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000051/saturated-rule-composition.json",
+        "enodes": 15,
+        "classes": 7,
+        "root_depth": 1,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000052/saturated-rule-composition.json",
+        "enodes": 44,
+        "classes": 15,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000053/saturated-rule-composition.json",
+        "enodes": 15,
+        "classes": 7,
+        "root_depth": 1,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000054/saturated-rule-composition.json",
+        "enodes": 19,
+        "classes": 9,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000055/saturated-rule-composition.json",
+        "enodes": 15,
+        "classes": 7,
+        "root_depth": 1,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000056/saturated-rule-composition.json",
+        "enodes": 54,
+        "classes": 15,
+        "root_depth": 1,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000057/saturated-rule-composition.json",
+        "enodes": 15,
+        "classes": 7,
+        "root_depth": 1,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000058/saturated-rule-composition.json",
+        "enodes": 39,
+        "classes": 13,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000059/saturated-rule-composition.json",
+        "enodes": 36,
+        "classes": 12,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000060/saturated-rule-composition.json",
+        "enodes": 41,
+        "classes": 14,
+        "root_depth": 3,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000061/saturated-rule-composition.json",
+        "enodes": 10,
+        "classes": 7,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000062/saturated-rule-composition.json",
+        "enodes": 14,
+        "classes": 9,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000063/saturated-rule-composition.json",
+        "enodes": 120,
+        "classes": 37,
+        "root_depth": 2,
+        "leaf_height": 4
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000064/saturated-rule-composition.json",
+        "enodes": 121,
+        "classes": 37,
+        "root_depth": 2,
+        "leaf_height": 4
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000065/saturated-rule-composition.json",
+        "enodes": 19,
+        "classes": 9,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000066/saturated-rule-composition.json",
+        "enodes": 20,
+        "classes": 9,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000067/saturated-rule-composition.json",
+        "enodes": 44,
+        "classes": 15,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000068/saturated-rule-composition.json",
+        "enodes": 28,
+        "classes": 14,
+        "root_depth": 2,
+        "leaf_height": 3
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000069/saturated-rule-composition.json",
+        "enodes": 29,
+        "classes": 14,
+        "root_depth": 2,
+        "leaf_height": 3
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000070/saturated-rule-composition.json",
+        "enodes": 23,
+        "classes": 10,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000071/saturated-rule-composition.json",
+        "enodes": 20,
+        "classes": 9,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000072/saturated-rule-composition.json",
+        "enodes": 19,
+        "classes": 9,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000073/saturated-rule-composition.json",
+        "enodes": 55,
+        "classes": 15,
+        "root_depth": 1,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000074/saturated-rule-composition.json",
+        "enodes": 54,
+        "classes": 15,
+        "root_depth": 1,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000076/saturated-rule-composition.json",
+        "enodes": 39,
+        "classes": 13,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000077/saturated-rule-composition.json",
+        "enodes": 36,
+        "classes": 12,
+        "root_depth": 2,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000078/saturated-rule-composition.json",
+        "enodes": 41,
+        "classes": 14,
+        "root_depth": 3,
+        "leaf_height": 2
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000079/saturated-rule-composition.json",
+        "enodes": 30,
+        "classes": 15,
+        "root_depth": 2,
+        "leaf_height": 3
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000081/saturated-rule-composition.json",
+        "enodes": 30,
+        "classes": 15,
+        "root_depth": 2,
+        "leaf_height": 3
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000082/saturated-rule-composition.json",
+        "enodes": 120,
+        "classes": 37,
+        "root_depth": 2,
+        "leaf_height": 4
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000083/saturated-rule-composition.json",
+        "enodes": 121,
+        "classes": 37,
+        "root_depth": 2,
+        "leaf_height": 4
+      },
+      {
+        "path": "out/aggregate-effects-direct-2/saturated-rule-composition/cells/CSUnit-000084/saturated-rule-composition.json",
+        "enodes": 30,
+        "classes": 15,
+        "root_depth": 2,
+        "leaf_height": 3
+      }
+    ]
+  }
+]

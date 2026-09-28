@@ -1,0 +1,401 @@
+[
+  {
+    "label": "vanilla egglog AC  n=10",
+    "path": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/egraph-shape/vanilla-ac-n10.json",
+    "classes": 1023,
+    "enodes": 57012,
+    "roots": 1,
+    "root_distance": [
+      {
+        "level": 0,
+        "classes": 1,
+        "enodes_min": 1022,
+        "enodes_p25": 1022,
+        "enodes_median": 1022,
+        "enodes_p75": 1022,
+        "enodes_max": 1022,
+        "log2_min": 9.997179480937621,
+        "log2_max": 9.997179480937621
+      },
+      {
+        "level": 1,
+        "classes": 1022,
+        "enodes_min": 1,
+        "enodes_p25": 14,
+        "enodes_median": 30.0,
+        "enodes_p75": 62,
+        "enodes_max": 510,
+        "log2_min": 0.0,
+        "log2_max": 8.994353436858859
+      }
+    ],
+    "leaf_height": [
+      {
+        "level": 0,
+        "classes": 10,
+        "enodes_min": 1,
+        "enodes_p25": 1,
+        "enodes_median": 1.0,
+        "enodes_p75": 1,
+        "enodes_max": 1,
+        "log2_min": 0.0,
+        "log2_max": 0.0
+      },
+      {
+        "level": 1,
+        "classes": 45,
+        "enodes_min": 2,
+        "enodes_p25": 2,
+        "enodes_median": 2,
+        "enodes_p75": 2,
+        "enodes_max": 2,
+        "log2_min": 1.0,
+        "log2_max": 1.0
+      },
+      {
+        "level": 2,
+        "classes": 330,
+        "enodes_min": 6,
+        "enodes_p25": 6,
+        "enodes_median": 14.0,
+        "enodes_p75": 14,
+        "enodes_max": 14,
+        "log2_min": 2.584962500721156,
+        "log2_max": 3.807354922057604
+      },
+      {
+        "level": 3,
+        "classes": 627,
+        "enodes_min": 30,
+        "enodes_p25": 30,
+        "enodes_median": 62,
+        "enodes_p75": 126,
+        "enodes_max": 254,
+        "log2_min": 4.906890595608519,
+        "log2_max": 7.9886846867721655
+      },
+      {
+        "level": 4,
+        "classes": 11,
+        "enodes_min": 510,
+        "enodes_p25": 510,
+        "enodes_median": 510,
+        "enodes_p75": 510,
+        "enodes_max": 1022,
+        "log2_min": 8.994353436858859,
+        "log2_max": 9.997179480937621
+      }
+    ],
+    "cyclic_classes": 0
+  },
+  {
+    "label": "vanilla egglog AC  n=12",
+    "path": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/egraph-shape/vanilla-ac-n12.json",
+    "classes": 4095,
+    "enodes": 523262,
+    "roots": 1,
+    "root_distance": [
+      {
+        "level": 0,
+        "classes": 1,
+        "enodes_min": 4094,
+        "enodes_p25": 4094,
+        "enodes_median": 4094,
+        "enodes_p75": 4094,
+        "enodes_max": 4094,
+        "log2_min": 11.99929538702341,
+        "log2_max": 11.99929538702341
+      },
+      {
+        "level": 1,
+        "classes": 4094,
+        "enodes_min": 1,
+        "enodes_p25": 30,
+        "enodes_median": 62.0,
+        "enodes_p75": 126,
+        "enodes_max": 2046,
+        "log2_min": 0.0,
+        "log2_max": 10.99859042974533
+      }
+    ],
+    "leaf_height": [
+      {
+        "level": 0,
+        "classes": 12,
+        "enodes_min": 1,
+        "enodes_p25": 1,
+        "enodes_median": 1.0,
+        "enodes_p75": 1,
+        "enodes_max": 1,
+        "log2_min": 0.0,
+        "log2_max": 0.0
+      },
+      {
+        "level": 1,
+        "classes": 66,
+        "enodes_min": 2,
+        "enodes_p25": 2,
+        "enodes_median": 2.0,
+        "enodes_p75": 2,
+        "enodes_max": 2,
+        "log2_min": 1.0,
+        "log2_max": 1.0
+      },
+      {
+        "level": 2,
+        "classes": 715,
+        "enodes_min": 6,
+        "enodes_p25": 6,
+        "enodes_median": 14,
+        "enodes_p75": 14,
+        "enodes_max": 14,
+        "log2_min": 2.584962500721156,
+        "log2_max": 3.807354922057604
+      },
+      {
+        "level": 3,
+        "classes": 3003,
+        "enodes_min": 30,
+        "enodes_p25": 30,
+        "enodes_median": 62,
+        "enodes_p75": 126,
+        "enodes_max": 254,
+        "log2_min": 4.906890595608519,
+        "log2_max": 7.9886846867721655
+      },
+      {
+        "level": 4,
+        "classes": 299,
+        "enodes_min": 510,
+        "enodes_p25": 510,
+        "enodes_median": 510,
+        "enodes_p75": 1022,
+        "enodes_max": 4094,
+        "log2_min": 8.994353436858859,
+        "log2_max": 11.99929538702341
+      }
+    ],
+    "cyclic_classes": 0
+  },
+  {
+    "label": "math mini3, 6 rounds",
+    "path": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-evolution-complete/math-observe/verification-graph.json",
+    "classes": 748,
+    "enodes": 2167,
+    "roots": 7,
+    "root_distance": [
+      {
+        "level": 0,
+        "classes": 7,
+        "enodes_min": 1,
+        "enodes_p25": 1,
+        "enodes_median": 7,
+        "enodes_p75": 33,
+        "enodes_max": 46,
+        "log2_min": 0.0,
+        "log2_max": 5.523561956057013
+      },
+      {
+        "level": 1,
+        "classes": 106,
+        "enodes_min": 1,
+        "enodes_p25": 2,
+        "enodes_median": 4.0,
+        "enodes_p75": 10,
+        "enodes_max": 33,
+        "log2_min": 0.0,
+        "log2_max": 5.044394119358453
+      },
+      {
+        "level": 2,
+        "classes": 135,
+        "enodes_min": 1,
+        "enodes_p25": 2,
+        "enodes_median": 2,
+        "enodes_p75": 4,
+        "enodes_max": 17,
+        "log2_min": 0.0,
+        "log2_max": 4.087462841250339
+      },
+      {
+        "level": 3,
+        "classes": 113,
+        "enodes_min": 1,
+        "enodes_p25": 2,
+        "enodes_median": 2,
+        "enodes_p75": 2,
+        "enodes_max": 9,
+        "log2_min": 0.0,
+        "log2_max": 3.169925001442312
+      },
+      {
+        "level": 4,
+        "classes": 148,
+        "enodes_min": 1,
+        "enodes_p25": 1,
+        "enodes_median": 1.0,
+        "enodes_p75": 2,
+        "enodes_max": 11,
+        "log2_min": 0.0,
+        "log2_max": 3.4594316186372973
+      },
+      {
+        "level": 5,
+        "classes": 129,
+        "enodes_min": 1,
+        "enodes_p25": 1,
+        "enodes_median": 1,
+        "enodes_p75": 2,
+        "enodes_max": 11,
+        "log2_min": 0.0,
+        "log2_max": 3.4594316186372973
+      },
+      {
+        "level": 6,
+        "classes": 87,
+        "enodes_min": 1,
+        "enodes_p25": 1,
+        "enodes_median": 1,
+        "enodes_p75": 1,
+        "enodes_max": 3,
+        "log2_min": 0.0,
+        "log2_max": 1.584962500721156
+      },
+      {
+        "level": 7,
+        "classes": 18,
+        "enodes_min": 1,
+        "enodes_p25": 1,
+        "enodes_median": 1.0,
+        "enodes_p75": 1,
+        "enodes_max": 3,
+        "log2_min": 0.0,
+        "log2_max": 1.584962500721156
+      },
+      {
+        "level": 8,
+        "classes": 5,
+        "enodes_min": 1,
+        "enodes_p25": 1,
+        "enodes_median": 1,
+        "enodes_p75": 1,
+        "enodes_max": 1,
+        "log2_min": 0.0,
+        "log2_max": 0.0
+      }
+    ],
+    "leaf_height": [
+      {
+        "level": 0,
+        "classes": 8,
+        "enodes_min": 1,
+        "enodes_p25": 1,
+        "enodes_median": 1.0,
+        "enodes_p75": 1,
+        "enodes_max": 1,
+        "log2_min": 0.0,
+        "log2_max": 0.0
+      },
+      {
+        "level": 1,
+        "classes": 26,
+        "enodes_min": 1,
+        "enodes_p25": 1,
+        "enodes_median": 1.0,
+        "enodes_p75": 2,
+        "enodes_max": 2,
+        "log2_min": 0.0,
+        "log2_max": 1.0
+      },
+      {
+        "level": 2,
+        "classes": 82,
+        "enodes_min": 1,
+        "enodes_p25": 2,
+        "enodes_median": 2.0,
+        "enodes_p75": 4,
+        "enodes_max": 11,
+        "log2_min": 0.0,
+        "log2_max": 3.4594316186372973
+      },
+      {
+        "level": 3,
+        "classes": 146,
+        "enodes_min": 1,
+        "enodes_p25": 1,
+        "enodes_median": 3.0,
+        "enodes_p75": 6,
+        "enodes_max": 46,
+        "log2_min": 0.0,
+        "log2_max": 5.523561956057013
+      },
+      {
+        "level": 4,
+        "classes": 167,
+        "enodes_min": 1,
+        "enodes_p25": 1,
+        "enodes_median": 2,
+        "enodes_p75": 3,
+        "enodes_max": 33,
+        "log2_min": 0.0,
+        "log2_max": 5.044394119358453
+      },
+      {
+        "level": 5,
+        "classes": 161,
+        "enodes_min": 1,
+        "enodes_p25": 1,
+        "enodes_median": 1,
+        "enodes_p75": 2,
+        "enodes_max": 16,
+        "log2_min": 0.0,
+        "log2_max": 4.0
+      },
+      {
+        "level": 6,
+        "classes": 91,
+        "enodes_min": 1,
+        "enodes_p25": 1,
+        "enodes_median": 1,
+        "enodes_p75": 2,
+        "enodes_max": 14,
+        "log2_min": 0.0,
+        "log2_max": 3.807354922057604
+      },
+      {
+        "level": 7,
+        "classes": 44,
+        "enodes_min": 1,
+        "enodes_p25": 1,
+        "enodes_median": 1.5,
+        "enodes_p75": 2,
+        "enodes_max": 5,
+        "log2_min": 0.0,
+        "log2_max": 2.321928094887362
+      },
+      {
+        "level": 8,
+        "classes": 20,
+        "enodes_min": 1,
+        "enodes_p25": 2,
+        "enodes_median": 2.0,
+        "enodes_p75": 2,
+        "enodes_max": 2,
+        "log2_min": 0.0,
+        "log2_max": 1.0
+      },
+      {
+        "level": 9,
+        "classes": 3,
+        "enodes_min": 1,
+        "enodes_p25": 1,
+        "enodes_median": 2,
+        "enodes_p75": 2,
+        "enodes_max": 2,
+        "log2_min": 0.0,
+        "log2_max": 1.0
+      }
+    ],
+    "cyclic_classes": 0
+  }
+]
