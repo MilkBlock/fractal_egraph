@@ -144,6 +144,13 @@ pub struct Row {
 
 /// An interface for a table.
 pub trait Table: Any + Send + Sync {
+    fn row_is_compact_id(&self,_id:crate::RowId)->bool {false}
+    fn row_is_compact_cell(&self,_key:&[crate::Value])->bool {false}
+    fn validate_compact_cells(&self,_table:crate::TableId,_cells:&[std::sync::Arc<crate::NativeCellBatch>])->Result<(),String>{Err("unsupported cell table".into())}
+    fn supports_compact_cells(&self)->bool {false}
+    fn install_compact_cells(&mut self,_table:crate::TableId,_cells:&[std::sync::Arc<crate::NativeCellBatch>])->Result<(),String>{Err("table does not support compact cells".into())}
+    fn compact_cell_stats(&self)->Option<crate::NativeCellStats>{None}
+
     /// A variant of clone that returns a boxed trait object; this trait object
     /// must contain all of the data associated with the current table.
     fn dyn_clone(&self) -> Box<dyn Table>;

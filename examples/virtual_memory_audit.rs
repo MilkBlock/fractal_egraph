@@ -116,7 +116,7 @@ fn shape(eg: &EGraph) -> (usize, usize) {
 }
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let a = std::env::args().skip(1).collect::<Vec<_>>();
-    if a.len() != 3 || !["match", "pack"].contains(&a[2].as_str()) {
+    if a.len() != 3 || !["match", "pack", "cell"].contains(&a[2].as_str()) {
         return Err("virtual_memory_audit SOURCE LIBRARY match|pack".into());
     }
     let mut eg = EGraph::default();
@@ -170,7 +170,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "{}",
             json!({"pattern":id,"atoms":q.atoms.len(),"slots":q.projection.len(),"matched_instances":found.len()})
         );
-        if a[2] == "pack" && !found.is_empty() {
+        if a[2] != "match" && !found.is_empty() {
             let slots = q
                 .projection
                 .iter()
@@ -202,7 +202,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 bindings.push(b);
             }
             point("packing_inputs", Some(id), bindings.len());
-            eg.virtualize_existing_facts(&template, &bindings)?;
+            if a[2]=="cell" {eg.compact_cell_facts(&[(&template,&bindings)])?;}
+            else {eg.virtualize_existing_facts(&template, &bindings)?;}
             point("packed", Some(id), bindings.len());
             drop(bindings);
             drop(template);
@@ -216,7 +217,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     point("all_patterns", None, after.0);
     println!(
         "{}",
-        json!({"shape":after,"storage":native_storage::storage_report(&eg)})
+        json!({"shape":after,"storage":native_storage::storage_report(&eg),"compact":native_storage::compact_report(&eg)})
     );
     drop(lib);
     point("library_dropped", None, 0);

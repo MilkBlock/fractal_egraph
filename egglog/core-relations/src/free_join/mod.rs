@@ -988,3 +988,21 @@ fn get_column_index_from_tableinfo(table_info: &TableInfo, col: ColumnId) -> Has
     );
     index
 }
+
+impl Database {
+    pub fn install_compact_cells(&mut self, batches:&[Arc<crate::NativeCellBatch>])->Result<(),String>{
+        let ids=batches.iter().flat_map(|b|b.rows.iter().map(|r|r.table)).collect::<std::collections::BTreeSet<_>>();
+        // Validate the complete cross-table change before mutating any table.
+        for id in &ids {self.get_table(*id).validate_compact_cells(*id,batches)?;}
+        let mut seen=std::collections::BTreeSet::new();
+        for b in batches {for (r,spec) in b.rows.iter().enumerate(){
+            let table=self.get_table(spec.table);if !table.supports_compact_cells(){return Err("unsupported cell table".into());}
+            let n=table.spec().n_keys;
+            for i in 0..b.count(){let row=b.row(i,r);if row.len()!=table.spec().arity(){return Err("cell row schema mismatch".into());}let key=&row[..n];
+                if !seen.insert((spec.table,key.to_vec())) || table.get_row(key).is_none_or(|old|old.vals.as_slice()!=row.as_slice()){return Err("compact cell facts are not uniquely committed".into());}
+            }
+        }}
+        for id in ids {let info=self.tables.get_mut(id).unwrap();info.table.install_compact_cells(id,batches)?;info.spec=info.table.spec();info.indexes=IndexCatalog::new();info.column_indexes=IndexCatalog::new();}
+        Ok(())
+    }
+}

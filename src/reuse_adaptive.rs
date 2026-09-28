@@ -331,6 +331,10 @@ fn pack_cell_wave(eg:&mut EGraph,bake:&Bake,min_reuse:usize,audit:&mut Option<su
     }
     let drain_seconds=t.elapsed().as_secs_f64();
     let refs=batches.iter().map(|(t,b)|(t,b.as_slice())).collect::<Vec<_>>();
+    if std::env::var("EGG_LAYOUT_COMPACT_CELLS").is_ok_and(|v| v == "1") {
+        let r = eg.compact_cell_facts(&refs)?;
+        return Ok(json!({"compact":true,"cell_batches":r.cell_batches,"cell_instances":r.cell_instances,"owned_rows":r.owned_rows,"existing_cell_rows":r.existing_cell_rows,"storage":crate::reuse_graph::native_storage::compact_report(eg)}));
+    }
     let r=eg.virtualize_unshared_facts_batch(&refs)?;
     let st=Instant::now();let virtual_rows=eg.virtual_fact_stats().iter().map(|(_,s)|s.virtual_rows).sum::<usize>();
     Ok(json!({"drain_seconds":drain_seconds,"validation_seconds":r.validation_seconds,"encoding_seconds":r.encoding_seconds,"statistics_seconds":st.elapsed().as_secs_f64(),"batched":true,"templates":templates,"processed_instance_packets":instances,"shared_rows_reused":r.shared_rows_reused,"requested_rows":r.requested_rows,"distinct_native_rows":r.distinct_native_rows,"new_virtual_rows_net":r.new_virtual_rows,"encoded_tables":r.affected_tables,"virtual_rows":virtual_rows}))

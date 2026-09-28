@@ -1,0 +1,391 @@
+{
+  "scope": "native unchanged Math source, existing committed facts; no accelerated RHS or tracing",
+  "base_commit": "b7732d826d13797de53e7d479d0be2b7bbe4a922",
+  "dirty": true,
+  "pristine_sha256": "33d3de0f31b6ae5b36cd40a2565ebce8dc88f7990eee236a82c30c46bdd6ae4b",
+  "current_sha256": "ee4c229d038ace9cb7f0132f2f0ec756e2019f0b29105965395cf5f9d1e71ecf",
+  "source_sha256": "aaa8942131b4db57e76710486718790e1d7f2cb9288aeb702c0c17019439cf16",
+  "library_sha256": "59a21281cf330c063015d87ebd0a5c83a9906f3ffb3be20c7928e3f8b2fb53a4",
+  "library_bytes": 342370,
+  "runs": [
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.3,
+      "peak_rss_bytes": 497188864,
+      "user_seconds": 2.35,
+      "system_seconds": 0.9,
+      "observed_wall_seconds": 0.31499154202174395,
+      "result": {
+        "matches": 944254,
+        "seconds": 0.277525917,
+        "through_drop_seconds": 0.293631292,
+        "verification": false
+      },
+      "mode": "pristine",
+      "repetition": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/post_pack_bench",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 0.29,
+      "peak_rss_bytes": 371195904,
+      "user_seconds": 2.39,
+      "system_seconds": 0.91,
+      "observed_wall_seconds": 0.3052992499433458,
+      "result": {
+        "matches": 944254,
+        "native_seconds": 0.271035125,
+        "pack_seconds": 1.541e-06,
+        "seconds": 0.271036708,
+        "through_drop_seconds": 0.29056675,
+        "verification": false
+      },
+      "mode": "native",
+      "repetition": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/post_pack_bench",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 1.68,
+      "peak_rss_bytes": 575504384,
+      "user_seconds": 5.14,
+      "system_seconds": 2.41,
+      "observed_wall_seconds": 1.718328250106424,
+      "result": {
+        "matches": 944254,
+        "native_seconds": 0.275642834,
+        "pack_seconds": 1.3207740000000001,
+        "seconds": 1.596416875,
+        "through_drop_seconds": 1.674320084,
+        "verification": false
+      },
+      "mode": "row",
+      "repetition": 0
+    },
+    {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/post_pack_bench",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg"
+      ],
+      "process_wall_seconds": 1.7,
+      "peak_rss_bytes": 595296256,
+      "user_seconds": 5.03,
+      "system_seconds": 2.22,
+      "observed_wall_seconds": 1.740793083095923,
+      "result": {
+        "matches": 944254,
+        "native_seconds": 0.264377333,
+        "pack_seconds": 1.366737875,
+        "seconds": 1.6311152500000001,
+        "through_drop_seconds": 1.6950095410000001,
+        "verification": false
+      },
+      "mode": "cell",
+      "repetition": 0
+    }
+  ],
+  "verification": {
+    "pristine": {
+      "exact_equal": true,
+      "enodes": 1047896,
+      "eclasses": 443832
+    },
+    "native": {
+      "exact_equal": true,
+      "enodes": 1047896,
+      "eclasses": 443832
+    },
+    "row": {
+      "exact_equal": true,
+      "enodes": 1047896,
+      "eclasses": 443832
+    },
+    "cell": {
+      "exact_equal": true,
+      "enodes": 1047896,
+      "eclasses": 443832
+    }
+  },
+  "medians": {
+    "pristine": {
+      "seconds": 0.277525917,
+      "through_drop_seconds": 0.293631292,
+      "peak_rss_bytes": 497188864
+    },
+    "native": {
+      "seconds": 0.271036708,
+      "through_drop_seconds": 0.29056675,
+      "peak_rss_bytes": 371195904
+    },
+    "row": {
+      "seconds": 1.596416875,
+      "through_drop_seconds": 1.674320084,
+      "peak_rss_bytes": 575504384
+    },
+    "cell": {
+      "seconds": 1.6311152500000001,
+      "through_drop_seconds": 1.6950095410000001,
+      "peak_rss_bytes": 595296256
+    }
+  },
+  "cell_storage": {
+    "admissions": [
+      {
+        "cell_batches": 438,
+        "cell_instances": 3719,
+        "existing_cell_rows": 0,
+        "matched_instances": 7393,
+        "owned_rows": 18120,
+        "pattern": 0
+      },
+      {
+        "cell_batches": 1,
+        "cell_instances": 1,
+        "existing_cell_rows": 0,
+        "matched_instances": 1,
+        "owned_rows": 7,
+        "pattern": 1
+      },
+      {
+        "cell_batches": 3,
+        "cell_instances": 3,
+        "existing_cell_rows": 4,
+        "matched_instances": 3,
+        "owned_rows": 17,
+        "pattern": 2
+      },
+      {
+        "cell_batches": 28,
+        "cell_instances": 1311,
+        "existing_cell_rows": 508,
+        "matched_instances": 1311,
+        "owned_rows": 6048,
+        "pattern": 3
+      },
+      {
+        "cell_batches": 69,
+        "cell_instances": 86893,
+        "existing_cell_rows": 30726,
+        "matched_instances": 188725,
+        "owned_rows": 173362,
+        "pattern": 4
+      },
+      {
+        "cell_batches": 51,
+        "cell_instances": 40129,
+        "existing_cell_rows": 5266,
+        "matched_instances": 82880,
+        "owned_rows": 80247,
+        "pattern": 5
+      },
+      {
+        "cell_batches": 0,
+        "cell_instances": 0,
+        "existing_cell_rows": 503,
+        "matched_instances": 503,
+        "owned_rows": 0,
+        "pattern": 6
+      },
+      {
+        "cell_batches": 1,
+        "cell_instances": 1,
+        "existing_cell_rows": 1,
+        "matched_instances": 1,
+        "owned_rows": 2,
+        "pattern": 7
+      }
+    ],
+    "compact_cells": {
+      "binding_index_bytes": 759900,
+      "bindings_bytes": 920840,
+      "cell_code_bytes": 2272,
+      "cell_headers_bytes": 361696,
+      "scope": "whole-cell bodies shared across operator tables; derived row positions, no native hash entry per compact fact; existing eclass identities retained in bindings",
+      "tables": [
+        {
+          "cell_instances_referenced": 2828,
+          "cell_rows": 4881,
+          "materialized_fallbacks": 0,
+          "native_hash_rows": 8623,
+          "projection_bytes": 46552,
+          "projections": 694,
+          "table": "Diff"
+        },
+        {
+          "cell_instances_referenced": 1,
+          "cell_rows": 3,
+          "materialized_fallbacks": 0,
+          "native_hash_rows": 32431,
+          "projection_bytes": 1480,
+          "projections": 20,
+          "table": "Integral"
+        },
+        {
+          "cell_instances_referenced": 91673,
+          "cell_rows": 188725,
+          "materialized_fallbacks": 0,
+          "native_hash_rows": 453018,
+          "projection_bytes": 95560,
+          "projections": 1700,
+          "table": "Add"
+        },
+        {
+          "cell_instances_referenced": 1311,
+          "cell_rows": 1311,
+          "materialized_fallbacks": 0,
+          "native_hash_rows": 13812,
+          "projection_bytes": 2872,
+          "projections": 34,
+          "table": "Sub"
+        },
+        {
+          "cell_instances_referenced": 41443,
+          "cell_rows": 82880,
+          "materialized_fallbacks": 0,
+          "native_hash_rows": 262195,
+          "projection_bytes": 11616,
+          "projections": 167,
+          "table": "Mul"
+        },
+        {
+          "cell_instances_referenced": 1,
+          "cell_rows": 1,
+          "materialized_fallbacks": 0,
+          "native_hash_rows": 1,
+          "projection_bytes": 216,
+          "projections": 2,
+          "table": "Pow"
+        },
+        {
+          "cell_instances_referenced": 2,
+          "cell_rows": 2,
+          "materialized_fallbacks": 0,
+          "native_hash_rows": 3,
+          "projection_bytes": 224,
+          "projections": 4,
+          "table": "Const"
+        }
+      ],
+      "unique_cell_batches": 591
+    },
+    "scope": "exact packing of already committed native facts; no inferred facts, approximate match or candidate budget",
+    "storage": {
+      "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+      "binding_header_bytes": 361696,
+      "binding_payload_bytes": 920840,
+      "shared_binding_index_bytes": 759900,
+      "tables": [
+        {
+          "dense_equivalent_bytes": 270080,
+          "descriptor_bytes": 46552,
+          "direct_base_rows": 8623,
+          "direct_bytes": 172460,
+          "local_header_bytes": 192,
+          "metadata_bytes": 0,
+          "overlay_rows": 0,
+          "rebuild_rows_changed": 0,
+          "rebuild_rows_examined": 0,
+          "table": "Diff",
+          "tombstones": 0,
+          "virtual_rows": 4881
+        },
+        {
+          "dense_equivalent_bytes": 648680,
+          "descriptor_bytes": 1480,
+          "direct_base_rows": 32431,
+          "direct_bytes": 648620,
+          "local_header_bytes": 192,
+          "metadata_bytes": 0,
+          "overlay_rows": 0,
+          "rebuild_rows_changed": 0,
+          "rebuild_rows_examined": 0,
+          "table": "Integral",
+          "tombstones": 0,
+          "virtual_rows": 3
+        },
+        {
+          "dense_equivalent_bytes": 12834860,
+          "descriptor_bytes": 95560,
+          "direct_base_rows": 453018,
+          "direct_bytes": 9060360,
+          "local_header_bytes": 192,
+          "metadata_bytes": 0,
+          "overlay_rows": 0,
+          "rebuild_rows_changed": 0,
+          "rebuild_rows_examined": 0,
+          "table": "Add",
+          "tombstones": 0,
+          "virtual_rows": 188725
+        },
+        {
+          "dense_equivalent_bytes": 302460,
+          "descriptor_bytes": 2872,
+          "direct_base_rows": 13812,
+          "direct_bytes": 276240,
+          "local_header_bytes": 192,
+          "metadata_bytes": 0,
+          "overlay_rows": 0,
+          "rebuild_rows_changed": 0,
+          "rebuild_rows_examined": 0,
+          "table": "Sub",
+          "tombstones": 0,
+          "virtual_rows": 1311
+        },
+        {
+          "dense_equivalent_bytes": 6901500,
+          "descriptor_bytes": 11616,
+          "direct_base_rows": 262195,
+          "direct_bytes": 5243900,
+          "local_header_bytes": 192,
+          "metadata_bytes": 0,
+          "overlay_rows": 0,
+          "rebuild_rows_changed": 0,
+          "rebuild_rows_examined": 0,
+          "table": "Mul",
+          "tombstones": 0,
+          "virtual_rows": 82880
+        },
+        {
+          "dense_equivalent_bytes": 40,
+          "descriptor_bytes": 216,
+          "direct_base_rows": 1,
+          "direct_bytes": 20,
+          "local_header_bytes": 192,
+          "metadata_bytes": 0,
+          "overlay_rows": 0,
+          "rebuild_rows_changed": 0,
+          "rebuild_rows_examined": 0,
+          "table": "Pow",
+          "tombstones": 0,
+          "virtual_rows": 1
+        },
+        {
+          "dense_equivalent_bytes": 80,
+          "descriptor_bytes": 224,
+          "direct_base_rows": 3,
+          "direct_bytes": 48,
+          "local_header_bytes": 192,
+          "metadata_bytes": 0,
+          "overlay_rows": 0,
+          "rebuild_rows_changed": 0,
+          "rebuild_rows_examined": 0,
+          "table": "Const",
+          "tombstones": 0,
+          "virtual_rows": 2
+        }
+      ],
+      "template_header_bytes": 1168,
+      "template_payload_bytes": 1104,
+      "unique_binding_matrices": 591,
+      "unique_templates": 14
+    }
+  },
+  "net_peak_rss_pass": false
+}

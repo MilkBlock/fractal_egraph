@@ -39,7 +39,8 @@ use crate::{
 
 mod rebuild;
 pub mod virtual_rows;
-use virtual_rows::{NativeVirtualStats,VirtualRowRequest,VirtualRows};
+pub mod cell_rows;
+use virtual_rows::{NativeVirtualStats, VirtualRowRequest, VirtualRows};
 mod sharded_hash_table;
 #[cfg(test)]
 mod tests;
@@ -199,6 +200,8 @@ pub struct SortedWritesTable {
     generation: Generation,
     data: NativeRows,
     virtual_rows: Option<VirtualRows>,
+    cell_mode: bool,
+    cell_fallbacks: usize,
     hash: ShardedHashTable<TableEntry>,
 
     n_keys: usize,
@@ -224,7 +227,9 @@ impl Clone for SortedWritesTable {
                 .map(|_| Arc::new(Default::default())),
             generation: self.generation,
             data: self.data.clone(),
-            virtual_rows:self.virtual_rows.clone(),
+            virtual_rows: self.virtual_rows.clone(),
+            cell_mode: self.cell_mode,
+            cell_fallbacks: self.cell_fallbacks,
             hash: self.hash.clone(),
             n_keys: self.n_keys,
             n_columns: self.n_columns,
@@ -404,10 +409,25 @@ impl Drop for Buffer {
 }
 
 impl Table for SortedWritesTable {
-    fn virtualize_existing_rows(&mut self,requests:&[VirtualRowRequest])->Result<(),String>{self.pack_rows(requests)}
-    fn virtual_row_stats(&self)->Option<NativeVirtualStats>{self.virtual_stats()}
-    fn row_is_virtual(&self,key:&[Value])->bool{self.is_virtual_key(key)}
-    fn materialize_virtual_rows(&mut self)->bool{self.materialize_virtual()}
+    fn row_is_compact_id(&self,id:RowId)->bool {self.is_cell_row(id)}
+    fn row_is_compact_cell(&self,key:&[Value])->bool {self.storage_lookup(key).is_some_and(|id|self.is_cell_row(id))}
+    fn validate_compact_cells(&self,table:TableId,cells:&[Arc<crate::NativeCellBatch>])->Result<(),String>{self.validate_cells(table,cells)}
+    fn supports_compact_cells(&self)->bool {true}
+    fn install_compact_cells(&mut self,table:TableId,cells:&[Arc<crate::NativeCellBatch>])->Result<(),String>{self.install_cells(table,cells)}
+    fn compact_cell_stats(&self)->Option<crate::NativeCellStats>{self.cell_stats()}
+
+    fn virtualize_existing_rows(&mut self, requests: &[VirtualRowRequest]) -> Result<(), String> {
+        self.pack_rows(requests)
+    }
+    fn virtual_row_stats(&self) -> Option<NativeVirtualStats> {
+        self.virtual_stats()
+    }
+    fn row_is_virtual(&self, key: &[Value]) -> bool {
+        self.is_virtual_key(key)
+    }
+    fn materialize_virtual_rows(&mut self) -> bool {
+        self.materialize_virtual()
+    }
     fn supports_row_provenance(&self) -> bool {
         true
     }
@@ -465,10 +485,12 @@ impl Table for SortedWritesTable {
     }
 
     fn spec(&self) -> TableSpec {
+        let mut uncacheable: DenseIdMap<ColumnId,bool>=Default::default();
+        if self.cell_mode { for i in 0..self.n_columns { uncacheable.insert(ColumnId::from_usize(i),true); } }
         TableSpec {
             n_keys: self.n_keys,
             n_vals: self.n_columns - self.n_keys,
-            uncacheable_columns: Default::default(),
+            uncacheable_columns: uncacheable,
             allows_delete: true,
         }
     }
@@ -620,6 +642,7 @@ impl Table for SortedWritesTable {
     }
 
     fn fast_subset(&self, constraint: &Constraint) -> Option<Subset> {
+        if self.cell_mode && !match constraint { Constraint::Eq{..}=>false, Constraint::EqConst{col,..}|Constraint::LtConst{col,..}|Constraint::LeConst{col,..}|Constraint::GtConst{col,..}|Constraint::GeConst{col,..}=>self.sort_by==Some(*col) } { return Some(self.cell_constraint(constraint)); }
         let sort_by = self.sort_by?;
         match constraint {
             Constraint::Eq { .. } => None,
@@ -724,9 +747,13 @@ impl Table for SortedWritesTable {
         if let Some(profile) = &self.read_profile {
             profile.lookup();
         }
-        let id=if self.virtual_rows.is_some(){
-            get_entry(key,self.n_keys,&self.hash,|row|self.virtual_key_matches(row,key))
-        }else{get_entry(key,self.n_keys,&self.hash,|row|&self.data.get_row(row).unwrap()[..self.n_keys]==key)}?;
+        let id = if self.virtual_rows.is_some() {
+            self.storage_lookup(key)
+        } else {
+            get_entry(key, self.n_keys, &self.hash, |row| {
+                &self.data.get_row(row).unwrap()[..self.n_keys] == key
+            })
+        }?;
         let mut vals = with_pool_set(|ps| ps.get::<Vec<Value>>());
         if self.virtual_rows.is_some(){assert!(self.copy_virtual_row(id,&mut vals));}else{vals.extend_from_slice(self.data.get_row(id).unwrap());}
         Some(Row { id, vals })
@@ -737,10 +764,18 @@ impl Table for SortedWritesTable {
         if let Some(profile) = &self.read_profile {
             profile.lookup();
         }
-        let id=if self.virtual_rows.is_some(){
-            get_entry(key,self.n_keys,&self.hash,|row|self.virtual_key_matches(row,key))
-        }else{get_entry(key,self.n_keys,&self.hash,|row|&self.data.get_row(row).unwrap()[..self.n_keys]==key)}?;
-        if self.virtual_rows.is_some(){self.row_value(id,col.index())}else{Some(self.data.get_row(id).unwrap()[col.index()])}
+        let id = if self.virtual_rows.is_some() {
+            self.storage_lookup(key)
+        } else {
+            get_entry(key, self.n_keys, &self.hash, |row| {
+                &self.data.get_row(row).unwrap()[..self.n_keys] == key
+            })
+        }?;
+        if self.virtual_rows.is_some() {
+            self.row_value(id, col.index())
+        } else {
+            Some(self.data.get_row(id).unwrap()[col.index()])
+        }
     }
 }
 
@@ -771,7 +806,9 @@ impl SortedWritesTable {
             read_profile: None,
             generation: Generation::new(0),
             data: NativeRows::Owned(Rows::new(RowBuffer::new(n_columns))),
-            virtual_rows:None,
+            virtual_rows: None,
+            cell_mode: false,
+            cell_fallbacks: 0,
             hash,
             n_keys,
             n_columns,

@@ -3,6 +3,7 @@
 //! ordinary dense append-only overlay plus tombstones.
 use super::*;
 use crate::WrappedTable;
+use super::cell_rows::{CellRows, CellSegment, NativeCellBatch, NativeCellStats};
 use std::{
     borrow::Cow,
     collections::{BTreeMap, BTreeSet, HashMap},
@@ -27,6 +28,7 @@ impl NativeRowTemplate {
             slots: used.len(),
         }))
     }
+    pub fn row_slots(&self,row:usize)->&[usize]{&self.rows[row]}
     pub fn slots(&self) -> usize {
         self.slots
     }
@@ -97,6 +99,7 @@ pub struct VirtualRowRequest {
 }
 #[derive(Clone, Debug, Default)]
 pub struct NativeVirtualStats {
+    pub shared_index_bytes: Vec<(usize, usize)>,
     pub virtual_rows: usize,
     pub direct_base_rows: usize,
     pub overlay_rows: usize,
@@ -139,6 +142,7 @@ struct Page {
 }
 #[derive(Default)]
 struct Base {
+    cells: Option<CellRows>,
     pages: Vec<Page>,
     len: usize,
     width: usize,
@@ -223,6 +227,7 @@ impl VirtualRows {
             return None;
         }
         if row.index() >= self.base.len { return None; }
+        if let Some(c)=&self.base.cells { return c.value(row.index(),col); }
         let r = self.base.recipe(row.index());
         if r.instance == DIRECT {
             return self.base.direct_row(row.index(), r.row).get(col).copied();
@@ -242,6 +247,7 @@ impl VirtualRows {
             return None;
         }
         if row.index() >= self.base.len { return None; }
+        if let Some(c)=&self.base.cells { return Some(c.row(row.index())); }
         let r = self.base.recipe(row.index());
         if r.instance == DIRECT {
             return Some(Cow::Borrowed(self.base.direct_row(row.index(), r.row)));
@@ -296,6 +302,7 @@ impl SortedWritesTable {
         if v.dead.contains(&row) {
             return false;
         }
+        if v.base.cells.is_some() { return self.row_values(row).is_some_and(|r|r[..key.len()]==*key); }
         let r = v.base.recipe(row.index());
         if r.instance == DIRECT {
             return &v.base.direct_row(row.index(), r.row)[..key.len()] == key;
@@ -322,6 +329,7 @@ impl SortedWritesTable {
         if v.dead.contains(&row) {
             return false;
         }
+        if let Some(c)=&v.base.cells { c.copy_row(row.index(),out); return true; }
         let r = v.base.recipe(row.index());
         if r.instance == DIRECT {
             out.extend_from_slice(v.base.direct_row(row.index(), r.row));
@@ -351,16 +359,18 @@ impl SortedWritesTable {
                 .set_stale(RowId::from_usize(row.index() - v.prefix()));
         }
     }
-    pub(super) fn is_virtual_key(&self, key: &[Value]) -> bool {
-        let Some(v) = &self.virtual_rows else {
-            return false;
-        };
-        get_entry(key, self.n_keys, &self.hash, |id| {
-            self.virtual_key_matches(id, key)
-        })
-        .is_some_and(|id| id.index() < v.prefix() && v.base.recipe(id.index()).instance != DIRECT)
+    pub(super) fn storage_lookup(&self,key:&[Value])->Option<RowId> {
+        let direct=get_entry(key,self.n_keys,&self.hash,|r|if self.virtual_rows.is_some(){self.virtual_key_matches(r,key)}else{self.data.get_row(r).is_some_and(|v|v[..self.n_keys]==*key)});
+        direct.or_else(|| self.virtual_rows.as_ref().and_then(|v|v.base.cells.as_ref().and_then(|c|c.lookup(key,|n|!v.dead.contains(&RowId::from_usize(n))).map(RowId::from_usize))))
+    }
+    pub(super) fn is_cell_row(&self,id:RowId)->bool {
+        self.virtual_rows.as_ref().is_some_and(|v|id.index()<v.prefix() && v.base.cells.as_ref().is_some_and(|c|c.is_cell(id.index())))
+    }
+    pub(super) fn is_virtual_key(&self,key:&[Value])->bool {
+        self.storage_lookup(key).is_some_and(|id|self.virtual_rows.as_ref().is_some_and(|v|id.index()<v.prefix() && (v.base.cells.as_ref().map_or_else(||v.base.recipe(id.index()).instance!=DIRECT,|c|c.is_cell(id.index())))))
     }
     pub(super) fn pack_rows(&mut self, requests: &[VirtualRowRequest]) -> Result<(), String> {
+        if self.cell_mode { return Err("use cell compaction for a compact-cell table".into()); }
         // Validate the entire request before changing any storage.
         let mut selected = BTreeMap::new();
         for request in requests {
@@ -478,6 +488,7 @@ impl SortedWritesTable {
         })
     }
     fn compact_virtual(&mut self) {
+        if self.virtual_rows.as_ref().is_some_and(|v|v.base.cells.is_some()) { self.materialize_virtual(); return; }
         let data = self
             .encode_virtual_base(&BTreeMap::new(), true)
             .expect("previously validated virtual rows");
@@ -510,12 +521,11 @@ impl SortedWritesTable {
         if self.virtual_rows.is_none() {
             return false;
         }
-        let mut data = Rows::new(RowBuffer::new(self.n_columns));
-        for i in 0..self.physical_len() {
-            if let Some(row) = self.row_values(RowId::from_usize(i)) {
-                data.add_row(&row);
-            }
-        }
+        if self.virtual_rows.as_ref().is_some_and(|v|v.base.cells.is_some()){self.cell_fallbacks+=1;}
+        let mut rows=(0..self.physical_len()).filter_map(|i|self.row_values(RowId::from_usize(i)).map(|r|r.into_owned())).collect::<Vec<_>>();
+        if let Some(col)=self.sort_by {rows.sort_by_key(|r|r[col.index()]);}
+        let mut data=Rows::new(RowBuffer::new(self.n_columns));
+        for row in rows {data.add_row(&row);}
         self.virtual_rows = None;
         self.data = NativeRows::Owned(data);
         self.hash.clear();
@@ -544,6 +554,7 @@ impl SortedWritesTable {
     }
     pub(super) fn virtual_stats(&self) -> Option<NativeVirtualStats> {
         let v = self.virtual_rows.as_ref()?;
+        if v.base.cells.is_some() { return Some(self.cell_virtual_stats()); }
         let mut instances = BTreeMap::new();
         let mut templates = BTreeMap::new();
         let mut binding_headers = BTreeMap::new();
@@ -574,6 +585,7 @@ impl SortedWritesTable {
         }
         let virtual_rows = (0..v.prefix()).filter(|i| v.base.recipe(*i).instance != DIRECT && !v.dead.contains(&RowId::from_usize(*i))).count();
         Some(NativeVirtualStats {
+            shared_index_bytes: vec![],
             virtual_rows,
             direct_base_rows: v.prefix() - v.dead.len() - virtual_rows,
             overlay_rows: self.data.data.len() - self.data.stale_rows,
@@ -616,15 +628,11 @@ impl SortedWritesTable {
         for batch in removals {
             batch.for_each(|key| {
                 let (shard, hc) = hash_code(self.hash.shard_data(), key, self.n_keys);
-                let id = get_entry(key, self.n_keys, &self.hash, |r| {
-                    self.row_values(r)
-                        .is_some_and(|row| &row[..self.n_keys] == key)
-                });
+                let id = self.storage_lookup(key);
                 if let Some(id) = id {
-                    self.hash.mut_shards()[shard.index()]
-                        .find_entry(hc, |e| e.row == id)
-                        .unwrap()
-                        .remove();
+                    if !self.is_cell_row(id) {
+                        self.hash.mut_shards()[shard.index()].find_entry(hc,|e|e.row==id).unwrap().remove();
+                    }
                     self.pending_state.invalidate_origin(
                         key,
                         crate::trace::OriginInvalidationReason::RemovedOrRebuilt,
@@ -646,10 +654,7 @@ impl SortedWritesTable {
         for batch in batches {
             for (incoming, cause) in batch.traced_rows() {
                 let key = &incoming[..self.n_keys];
-                let old = get_entry(key, self.n_keys, &self.hash, |r| {
-                    self.row_values(r)
-                        .is_some_and(|row| &row[..self.n_keys] == key)
-                });
+                let old = self.storage_lookup(key);
                 let outcome;
                 let row = if let Some(id) = old {
                     let current = self.row_values(id).unwrap().into_owned();
@@ -681,13 +686,14 @@ impl SortedWritesTable {
                     }
                 }
                 let (shard, hc) = hash_code(self.hash.shard_data(), key, self.n_keys);
-                if let Some(old) = old {
+                if let Some(old) = old.filter(|id|!self.is_cell_row(*id)) {
                     self.virtual_remove(old);
                     self.hash.mut_shards()[shard.index()]
                         .find_mut(hc, |e| e.row == old)
                         .unwrap()
                         .row = id;
                 } else {
+                    if let Some(old)=old {self.virtual_remove(old);}
                     self.hash.mut_shards()[shard.index()].insert_unique(
                         hc,
                         TableEntry {
@@ -722,29 +728,14 @@ impl SortedWritesTable {
         let Some(rebuilder) = table.rebuilder(&self.to_rebuild) else {
             return false;
         };
-        self.refresh_rebuild_index();
         let mut selected = BTreeSet::new();
-        if let Some(col) = rebuilder.hint_col() {
-            let recent = self.subset_tracker.recent_updates(table_id, table);
-            let mut dirty = crate::TaggedRowBuffer::new(1);
-            table.scan_project(
-                recent.as_ref(),
-                &[col],
-                Offset::new(0),
-                usize::MAX,
-                &[],
-                &mut dirty,
-            );
-            for (_, row) in dirty.iter() {
-                if let Some(rows) = self.rebuild_index.get_subset(&row[0]) {
-                    rows.offsets(|id| {
-                        selected.insert(id);
-                    });
-                }
-            }
-        } else {
-            selected.extend((0..self.physical_len()).map(RowId::from_usize));
-        }
+        if let Some(col)=rebuilder.hint_col(){
+            let recent=self.subset_tracker.recent_updates(table_id,table);let mut rows=crate::TaggedRowBuffer::new(1);
+            table.scan_project(recent.as_ref(),&[col],Offset::new(0),usize::MAX,&[],&mut rows);
+            let dirty=rows.iter().map(|(_,r)|r[0]).collect::<BTreeSet<_>>();
+            if let Some(candidates)=self.compact_affected(&dirty){selected.extend(candidates);}
+            else {self.refresh_rebuild_index();for value in dirty{if let Some(rows)=self.rebuild_index.get_subset(&value){rows.offsets(|id|{selected.insert(id);});}}}
+        } else {selected.extend((0..self.physical_len()).map(RowId::from_usize));}
         let mut buffer = self.new_buffer();
         let mut changed = false;
         let mut examined = 0;
@@ -777,5 +768,109 @@ impl SortedWritesTable {
         stats.rebuild_rows_examined += examined;
         stats.rebuild_rows_changed += rewritten;
         changed
+    }
+}
+
+impl SortedWritesTable {
+    pub(super) fn install_cells(&mut self, table:TableId, batches:&[Arc<NativeCellBatch>])->Result<(),String> {
+        let mut selected=BTreeSet::new();let mut segments=vec![];
+        for batch in batches {
+            for (row,spec) in batch.rows.iter().enumerate().filter(|(_,r)|r.table==table) {
+                let width=batch.template.row_slots(spec.template_row).len();
+                if width+spec.tail.len()!=self.n_columns || self.sort_by.is_some_and(|c|c.index()<width) {return Err("cell metadata does not describe a native row".into());}
+                for i in 0..batch.count(){
+                    let expected=batch.row(i,row);let found=self.storage_lookup(&expected[..self.n_keys]).ok_or("cell fact missing")?;
+                    if self.is_cell_row(found) || self.row_values(found).as_deref()!=Some(expected.as_slice()) || !selected.insert(found) {return Err("cell fact changed or multiple owners".into());}
+                }
+                segments.push(CellSegment::Cell{batch:batch.clone(),row,hidden:vec![]});
+            }
+        }
+        if selected.is_empty(){return Ok(());}
+        if let Some(v)=&self.virtual_rows {if let Some(c)=&v.base.cells {
+            for (p,s) in c.segments.iter().enumerate(){if let CellSegment::Cell{batch,row,..}=s {
+                let hidden=(0..s.len()).filter(|i|v.dead.contains(&RowId::from_usize(c.starts[p]+i))).map(|i|i as u32).collect::<Vec<_>>();
+                if hidden.len()<s.len(){segments.push(CellSegment::Cell{batch:batch.clone(),row:*row,hidden});}
+            }}
+        }}
+        let mut direct=BTreeMap::<Value,Vec<Value>>::new();
+        for i in 0..self.physical_len(){let id=RowId::from_usize(i);
+            if selected.contains(&id)||self.is_cell_row(id){continue;}
+            if let Some(row)=self.row_values(id){let stamp=self.sort_by.map_or(Value::new_const(0),|c|row[c.index()]);direct.entry(stamp).or_default().extend_from_slice(&row);}
+        }
+        for (_,rows) in direct {segments.push(CellSegment::Direct{values:rows.into_boxed_slice(),width:self.n_columns});}
+        if let Some(c)=self.sort_by{segments.sort_by_key(|s|s.value(0,c.index()).unwrap());}
+        let mut cells=CellRows::new(segments)?;
+        let mut uniforms=vec![None;self.n_columns];let mut first=true;
+        for i in 0..self.physical_len(){if let Some(row)=self.row_values(RowId::from_usize(i)){
+            for (c,v) in row.iter().enumerate(){if first{uniforms[c]=Some(*v);}else if uniforms[c]!=Some(*v){uniforms[c]=None;}}
+            first=false;
+        }}cells.uniforms=uniforms;
+        let mut dead=DeadRows::default();self.offsets.clear();
+        let mut hash=ShardedHashTable::with_shards(self.hash.shard_data().n_shards());
+        for (p,s) in cells.segments.iter().enumerate(){
+            if let CellSegment::Cell{hidden,..}=s {for i in hidden{dead.insert(RowId::from_usize(cells.starts[p]+*i as usize));}}
+            else {for i in 0..s.len(){let r=s.row(i);let id=RowId::from_usize(cells.starts[p]+i);let(shard,hc)=hash_code(hash.shard_data(),&r,self.n_keys);hash.mut_shards()[shard.index()].insert_unique(hc,TableEntry{hashcode:hc,row:id},TableEntry::hashcode);}}
+            if let Some(col)=self.sort_by{let stamp=s.value(0,col.index()).unwrap();if self.offsets.last().is_none_or(|(v,_)|*v!=stamp){self.offsets.push((stamp,RowId::from_usize(cells.starts[p])));}}
+        }
+        let len=cells.len;
+        self.virtual_rows=Some(VirtualRows{base:Arc::new(Base{cells:Some(cells),len,width:self.n_columns,..Default::default()}),dead,rebuild_rows_examined:0,rebuild_rows_changed:0});
+        self.cell_mode=true;self.hash=hash;self.data=NativeRows::Owned(Rows::new(RowBuffer::new_empty(self.n_columns)));
+        self.rebuild_index=Index::new(self.to_rebuild.clone(),ColumnIndex::new());
+        self.generation=self.generation.inc();Ok(())
+    }
+    pub(super) fn cell_constraint(&self,c:&Constraint)->Subset {
+        if let Constraint::EqConst{col,val}=c {if let Some(cells)=self.virtual_rows.as_ref().and_then(|v|v.base.cells.as_ref()) {
+            if cells.uniforms.get(col.index())==Some(&Some(*val)) && (0..self.data.data.len()).all(|i|self.data.get_row(RowId::from_usize(i)).is_none_or(|r|r[col.index()]==*val)) {return self.all();}
+        }}
+        let mut result=Subset::empty();
+        for i in 0..self.physical_len(){let id=RowId::from_usize(i);let Some(row)=self.row_values(id) else{continue};
+            let keep=match c {
+                Constraint::Eq{l_col,r_col}=>row[l_col.index()]==row[r_col.index()],
+                Constraint::EqConst{col,val}=>row[col.index()]==*val,
+                Constraint::LtConst{col,val}=>row[col.index()]<*val,
+                Constraint::LeConst{col,val}=>row[col.index()]<=*val,
+                Constraint::GtConst{col,val}=>row[col.index()]>*val,
+                Constraint::GeConst{col,val}=>row[col.index()]>=*val,
+            };if keep{result.add_row_sorted(id);}
+        }result
+    }
+    pub(super) fn cell_stats(&self)->Option<NativeCellStats>{
+        let Some(v)=self.virtual_rows.as_ref().filter(|v|v.base.cells.is_some()) else {return self.cell_mode.then(||NativeCellStats{materialized_fallbacks:self.cell_fallbacks,native_hash_rows:self.hash.entry_count(),..Default::default()});};let c=v.base.cells.as_ref().unwrap();
+        let mut groups=BTreeMap::new();let mut rows=0;
+        for (p,s) in c.segments.iter().enumerate(){if let CellSegment::Cell{batch,..}=s{
+            groups.insert(Arc::as_ptr(batch) as usize,batch);
+            rows+=(0..s.len()).filter(|i|!v.dead.contains(&RowId::from_usize(c.starts[p]+i))).count();
+        }}
+        Some(NativeCellStats{materialized_fallbacks:self.cell_fallbacks,cells:groups.values().map(|b|b.count()).sum(),projections:c.segments.len(),rows,native_hash_rows:self.hash.entry_count(),projection_bytes:c.segments.capacity()*std::mem::size_of::<CellSegment>()+c.starts.capacity()*std::mem::size_of::<usize>()+c.uniforms.capacity()*std::mem::size_of::<Option<Value>>()+c.segments.iter().map(|s|match s{CellSegment::Cell{hidden,..}=>hidden.capacity()*std::mem::size_of::<u32>(),_=>0}).sum::<usize>(),bindings:groups.iter().map(|(id,b)|(*id,b.binding_bytes())).collect(),binding_indexes:groups.iter().map(|(id,b)|(*id,b.index_bytes())).collect(),bodies:groups.iter().map(|(id,b)|(*id,b.header_bytes())).collect(),codes:groups.values().flat_map(|b|[(Arc::as_ptr(&b.full_tables) as *const TableId as usize,b.full_tables.len()*std::mem::size_of::<TableId>()+2*std::mem::size_of::<usize>()),(Arc::as_ptr(&b.template) as usize,std::mem::size_of::<NativeRowTemplate>()+2*std::mem::size_of::<usize>()+b.template.rows.capacity()*std::mem::size_of::<Box<[usize]>>()+b.template.rows.iter().map(|r|r.len()*std::mem::size_of::<usize>()).sum::<usize>())]).collect()})
+    }
+    fn cell_virtual_stats(&self)->NativeVirtualStats{
+        let v=self.virtual_rows.as_ref().unwrap();let c=v.base.cells.as_ref().unwrap();let stats=self.cell_stats().unwrap();
+        let mut templates=BTreeMap::new();
+        for (id,bytes) in &stats.codes {templates.insert(*id,*bytes);}
+        for s in &c.segments {if let CellSegment::Cell{batch,..}=s{templates.insert(Arc::as_ptr(&batch.template) as usize,batch.template.rows.iter().map(|r|r.len()*std::mem::size_of::<usize>()).sum());}}
+        let mut template_headers=BTreeMap::new();for seg in &c.segments {if let CellSegment::Cell{batch,..}=seg {template_headers.insert(Arc::as_ptr(&batch.template) as usize,std::mem::size_of::<NativeRowTemplate>()+2*std::mem::size_of::<usize>()+batch.template.rows.capacity()*std::mem::size_of::<Box<[usize]>>());}}
+        NativeVirtualStats{shared_index_bytes:stats.binding_indexes,virtual_rows:stats.rows,direct_base_rows:v.prefix()-v.dead.len()-stats.rows,overlay_rows:self.data.data.len()-self.data.stale_rows,tombstones:self.stale_count(),rebuild_rows_examined:v.rebuild_rows_examined,rebuild_rows_changed:v.rebuild_rows_changed,dense_equivalent_bytes:self.physical_len()*self.n_columns*std::mem::size_of::<Value>(),descriptor_bytes:stats.projection_bytes,local_header_bytes:std::mem::size_of::<Base>()+v.dead.bits.as_slice().len()*std::mem::size_of::<usize>(),direct_bytes:c.segments.iter().map(|s|match s{CellSegment::Direct{values,..}=>values.len()*std::mem::size_of::<Value>(),_=>0}).sum::<usize>()+self.data.data.len()*self.n_columns*std::mem::size_of::<Value>(),metadata_bytes:0,instances:stats.bindings,templates:templates.into_iter().collect(),binding_headers:stats.bodies,template_headers:template_headers.into_iter().collect()}
+    }
+}
+
+impl SortedWritesTable {
+    pub(super) fn compact_affected(&self,dirty:&BTreeSet<Value>)->Option<Vec<RowId>> {
+        let v=self.virtual_rows.as_ref()?;let c=v.base.cells.as_ref()?;
+        let mut rows=c.affected(&self.to_rebuild,dirty);
+        for i in 0..self.data.data.len(){if self.data.get_row(RowId::from_usize(i)).is_some_and(|r|self.to_rebuild.iter().any(|col|dirty.contains(&r[col.index()]))) {rows.push(RowId::from_usize(v.prefix()+i));}}
+        Some(rows)
+    }
+}
+
+impl SortedWritesTable {
+    pub(super) fn validate_cells(&self,table:TableId,cells:&[Arc<NativeCellBatch>])->Result<(),String>{
+        let mut seen=BTreeSet::new();
+        for b in cells {for (i,r) in b.rows.iter().enumerate().filter(|(_,r)|r.table==table) {
+            let w=b.template.row_slots(r.template_row).len();
+            if w+r.tail.len()!=self.n_columns||w<self.n_keys||self.sort_by.is_some_and(|c|c.index()<w){return Err("unsupported compact-cell row layout".into());}
+            for n in 0..b.count(){let row=b.row(n,i);let key=&row[..self.n_keys];let id=self.storage_lookup(key).ok_or("cell fact missing")?;
+                if self.is_cell_row(id)||!seen.insert(id)||self.row_values(id).as_deref()!=Some(row.as_slice()){return Err("cell fact is not uniquely owned".into());}
+            }
+        }}Ok(())
     }
 }

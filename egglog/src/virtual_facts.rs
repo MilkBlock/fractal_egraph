@@ -342,3 +342,54 @@ impl EGraph {
             .collect()
     }
 }
+
+/// Exact storage compaction of complete, already committed cell instances.
+#[derive(Debug,Default)]
+pub struct CompactCellsReport {
+    pub cell_batches: usize,
+    pub cell_instances: usize,
+    pub owned_rows: usize,
+    pub existing_cell_rows: usize,
+}
+impl EGraph {
+    pub fn compact_cell_facts(&mut self,batches:&[(&VirtualFactTemplate,&[Vec<Value>])])->Result<CompactCellsReport,Error>{
+        let error=|s:&str|Error::BackendError(s.into());
+        let mut seen=HashMap::default();let mut cells=vec![];let mut report=CompactCellsReport::default();
+        for (template,bindings) in batches {
+            let sorts=template.sorts.iter().map(|s|self.type_info.get_sort_by_name(s).ok_or_else(||error("missing cell slot sort"))).collect::<Result<Vec<_>,_>>()?;
+            let full_tables:Arc<[core_relations::TableId]>=template.rows.iter().map(|r|{
+                let f=self.functions.get(&r.function).ok_or_else(||error("unknown cell function"))?;
+                let types=f.schema.input.iter().chain([&f.schema.output]).collect::<Vec<_>>();
+                if types.len()!=r.columns.len()||types.iter().zip(&r.columns).any(|(s,i)|s.name()!=template.sorts[*i]){return Err(error("cell schema changed"));}
+                Ok(self.backend.compact_cell_table(f.backend_id))
+            }).collect::<Result<Vec<_>,Error>>()?.into();
+            let mut groups=BTreeMap::<Vec<core_relations::NativeCellRow>,Vec<Vec<Value>>>::new();
+            for b in *bindings {
+                if b.len()!=sorts.len(){return Err(error("cell binding arity mismatch"));}
+                let binding=b.iter().zip(&sorts).map(|(v,s)|self.get_canonical_value(*v,s)).collect::<Vec<_>>();let mut owned=vec![];
+                for (i,spec) in template.rows.iter().enumerate(){
+                    let f=self.functions.get(&spec.function).ok_or_else(||error("unknown cell function"))?;
+                    let values=spec.columns.iter().map(|i|binding[*i]).collect::<Vec<_>>();
+                    let n=f.schema.input.len();if values.len()!=n+1{return Err(error("cell row arity mismatch"));}
+                    let key=&values[..n];let table=self.backend.compact_cell_table(f.backend_id);
+                    let identity=(table,key.iter().copied().collect::<smallvec::SmallVec<[Value;2]>>());
+                    if let Some((out,existing))=seen.get(&identity) {
+                        if *out!=values[n]{return Err(error("cell payload differs from committed fact"));}
+                        if *existing {report.existing_cell_rows+=1;}continue;
+                    }
+                    let (row,existing)=self.backend.lookup_cell_fact(f.backend_id,key).ok_or_else(||error("cell fact does not exist"))?;
+                    if row.len()<values.len()||row[..values.len()]!=values{return Err(error("cell payload differs from committed fact"));}
+                    seen.insert(identity,(values[n],existing));
+                    if existing {report.existing_cell_rows+=1;continue;}
+                    owned.push(core_relations::NativeCellRow{table,template_row:i,tail:row[values.len()..].to_vec()});report.owned_rows+=1;
+                }
+                if !owned.is_empty(){groups.entry(owned).or_default().push(binding);report.cell_instances+=1;}
+            }
+            for (rows,bindings) in groups{cells.push(core_relations::NativeCellBatch::new(template.core.clone(),full_tables.clone(),rows,bindings).map_err(|e|error(&e))?);}
+        }
+        report.cell_batches=cells.len();self.backend.compact_cells(&cells).map_err(|e|error(&e))?;Ok(report)
+    }
+    pub fn compact_cell_storage(&self)->Vec<(String,core_relations::NativeCellStats)>{
+        self.functions.iter().filter_map(|(name,f)|self.backend.compact_cell_stats(f.backend_id).map(|s|(name.clone(),s))).collect()
+    }
+}

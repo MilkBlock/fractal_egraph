@@ -23,6 +23,8 @@ impl<T> Default for ShardedHashTable<T> {
 }
 
 impl<T> ShardedHashTable<T> {
+    pub(crate) fn entry_count(&self)->usize{self.shards.iter().map(|s|s.len()).sum()}
+
     pub(crate) fn clear(&mut self) {
         self.shards.iter_mut().for_each(|s| s.clear());
     }

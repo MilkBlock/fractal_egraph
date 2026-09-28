@@ -1794,3 +1794,11 @@ impl<T, A: smallvec::Array<Item = T>> HasResizeWith<T> for SmallVec<A> {
         self.resize_with(new_size, f);
     }
 }
+
+impl EGraph {
+    pub fn function_row_is_compact_cell(&self,f:FunctionId,key:&[Value])->bool{self.db.get_table(self.funcs[f].table).row_is_compact_cell(key)}
+    pub fn lookup_cell_fact(&self,f:FunctionId,key:&[Value])->Option<(Vec<Value>,bool)>{let t=self.db.get_table(self.funcs[f].table);let row=t.get_row(key)?;let compact=t.row_is_compact_id(row.id);Some((row.vals.to_vec(),compact))}
+    pub fn compact_cell_table(&self,f:FunctionId)->TableId{self.funcs[f].table}
+    pub fn compact_cells(&mut self,batches:&[Arc<core_relations::NativeCellBatch>])->std::result::Result<(),String>{self.db.install_compact_cells(batches)}
+    pub fn compact_cell_stats(&self,f:FunctionId)->Option<core_relations::NativeCellStats>{self.db.get_table(self.funcs[f].table).compact_cell_stats()}
+}

@@ -55,3 +55,5 @@ pub use uf::DisplacedTable;
 
 use egglog_numeric_id as numeric_id;
 use egglog_union_find as union_find;
+
+pub use table::cell_rows::{NativeCellBatch, NativeCellRow, NativeCellStats};

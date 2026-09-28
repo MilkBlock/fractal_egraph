@@ -20,7 +20,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let pack_start = Instant::now();
     if let Ok(path) = std::env::var("MEMORY_FIX_LIBRARY") {
         let lib = egg_layout::reuse_graph::library::Library::load(std::path::Path::new(&path))?;
-        if std::env::var("MEMORY_FIX_MODE").is_ok_and(|s| s == "match") {
+        if std::env::var("MEMORY_FIX_MODE").is_ok_and(|s| s == "cell") {
+            let report=egg_layout::reuse_graph::native_storage::compact_library(&mut eg,&lib)?;
+            if let Ok(path)=std::env::var("CELL_STORAGE_REPORT") {std::fs::write(path,serde_json::to_vec_pretty(&report)?)?;}
+        } else if std::env::var("MEMORY_FIX_MODE").is_ok_and(|s| s == "match") {
             egg_layout::reuse_graph::native_storage::match_library(&mut eg, &lib)?;
         } else {
             egg_layout::reuse_graph::native_storage::pack_library(&mut eg, &lib)?;

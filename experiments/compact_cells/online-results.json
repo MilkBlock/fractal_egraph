@@ -1,0 +1,1426 @@
+{
+  "scope": "same frozen RHS recipes; not equal-round pristine comparison",
+  "rounds": 6,
+  "row": {
+    "command": [
+      "target/release/examples/adaptive_math",
+      "frozen",
+      "/Users/mineralsteins/Repos/egg_related/egg_layout/out/compact-cells/online-final/source.egg",
+      "/Users/mineralsteins/Repos/egg_related/egg_layout/out/compact-cells/online-final/row",
+      "experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+    ],
+    "process_wall_seconds": 0.02,
+    "peak_rss_bytes": 9994240,
+    "user_seconds": 0.01,
+    "system_seconds": 0.0,
+    "observed_wall_seconds": 0.040666457964107394,
+    "result": {
+      "cell_evolution": null,
+      "cell_machine_enabled": false,
+      "cell_states": null,
+      "cell_transitions_enabled": false,
+      "execution_seconds": 0.007400706,
+      "final": {
+        "eclasses": 748,
+        "enodes": 2167,
+        "rss_bytes": 9846784
+      },
+      "input_seconds": 0.0005556669999999999,
+      "join_pruning_enabled": false,
+      "join_reads": null,
+      "learning_seconds": 1.67e-07,
+      "matches": 3376,
+      "min_template_reuse": 2,
+      "mode": "frozen",
+      "packing_seconds": 0.002905584,
+      "rhs_skip_enabled": false,
+      "samples": [
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cell_states": null,
+          "cell_transition": null,
+          "completed_prefixes": 0,
+          "cumulative_matches": 20,
+          "enclosure_audit": null,
+          "execution_seconds": 0.000154666,
+          "graph": null,
+          "learning_seconds": 4.2e-08,
+          "library_bytes": 0,
+          "macro_matches": 19,
+          "matches": 20,
+          "packing": {
+            "batched": true,
+            "distinct_native_rows": 42,
+            "drain_seconds": 3.5625e-05,
+            "encoded_tables": 4,
+            "encoding_seconds": 2.2042e-05,
+            "new_virtual_rows_net": 42,
+            "processed_instance_packets": 19,
+            "requested_rows": 46,
+            "shared_rows_reused": 0,
+            "statistics_seconds": 5.792e-06,
+            "templates": [
+              {
+                "instances": 7,
+                "packed": true,
+                "rule": 0
+              },
+              {
+                "instances": 4,
+                "packed": true,
+                "rule": 1
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 2
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 3
+              },
+              {
+                "instances": 4,
+                "packed": true,
+                "rule": 4
+              },
+              {
+                "instances": 1,
+                "packed": false,
+                "rule": 9
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 10
+              },
+              {
+                "instances": 1,
+                "packed": false,
+                "rule": 13
+              },
+              {
+                "instances": 1,
+                "packed": false,
+                "rule": 14
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 15
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 17
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 19
+              },
+              {
+                "instances": 1,
+                "packed": false,
+                "rule": 21
+              }
+            ],
+            "validation_seconds": 2.2042e-05,
+            "virtual_rows": 42
+          },
+          "packing_seconds": 0.000100167,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "rejected": [],
+          "round": 1,
+          "source_matches": 1,
+          "transition_prepare_seconds": 4.1e-08,
+          "unresolved_completion_plans": 0
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cell_states": null,
+          "cell_transition": null,
+          "completed_prefixes": 0,
+          "cumulative_matches": 82,
+          "enclosure_audit": null,
+          "execution_seconds": 0.000464749,
+          "graph": null,
+          "learning_seconds": 8.4e-08,
+          "library_bytes": 0,
+          "macro_matches": 60,
+          "matches": 62,
+          "packing": {
+            "batched": true,
+            "distinct_native_rows": 69,
+            "drain_seconds": 5.9958e-05,
+            "encoded_tables": 3,
+            "encoding_seconds": 3.4541e-05,
+            "new_virtual_rows_net": 69,
+            "processed_instance_packets": 60,
+            "requested_rows": 267,
+            "shared_rows_reused": 108,
+            "statistics_seconds": 5.625e-06,
+            "templates": [
+              {
+                "instances": 20,
+                "packed": true,
+                "rule": 0
+              },
+              {
+                "instances": 18,
+                "packed": true,
+                "rule": 1
+              },
+              {
+                "instances": 6,
+                "packed": true,
+                "rule": 2
+              },
+              {
+                "instances": 3,
+                "packed": true,
+                "rule": 3
+              },
+              {
+                "instances": 1,
+                "packed": false,
+                "rule": 4
+              },
+              {
+                "instances": 2,
+                "packed": true,
+                "rule": 9
+              },
+              {
+                "instances": 2,
+                "packed": true,
+                "rule": 10
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 13
+              },
+              {
+                "instances": 3,
+                "packed": true,
+                "rule": 14
+              },
+              {
+                "instances": 2,
+                "packed": true,
+                "rule": 15
+              },
+              {
+                "instances": 1,
+                "packed": false,
+                "rule": 17
+              },
+              {
+                "instances": 1,
+                "packed": false,
+                "rule": 19
+              },
+              {
+                "instances": 1,
+                "packed": false,
+                "rule": 21
+              }
+            ],
+            "validation_seconds": 3.1125e-05,
+            "virtual_rows": 111
+          },
+          "packing_seconds": 0.000148708,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "rejected": [],
+          "round": 2,
+          "source_matches": 2,
+          "transition_prepare_seconds": 4.2e-08,
+          "unresolved_completion_plans": 0
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cell_states": null,
+          "cell_transition": null,
+          "completed_prefixes": 0,
+          "cumulative_matches": 211,
+          "enclosure_audit": null,
+          "execution_seconds": 0.000947207,
+          "graph": null,
+          "learning_seconds": 1.25e-07,
+          "library_bytes": 0,
+          "macro_matches": 126,
+          "matches": 129,
+          "packing": {
+            "batched": true,
+            "distinct_native_rows": 191,
+            "drain_seconds": 6.8625e-05,
+            "encoded_tables": 4,
+            "encoding_seconds": 8.9583e-05,
+            "new_virtual_rows_net": 191,
+            "processed_instance_packets": 126,
+            "requested_rows": 898,
+            "shared_rows_reused": 502,
+            "statistics_seconds": 8.5e-06,
+            "templates": [
+              {
+                "instances": 31,
+                "packed": true,
+                "rule": 0
+              },
+              {
+                "instances": 28,
+                "packed": true,
+                "rule": 1
+              },
+              {
+                "instances": 43,
+                "packed": true,
+                "rule": 2
+              },
+              {
+                "instances": 12,
+                "packed": true,
+                "rule": 3
+              },
+              {
+                "instances": 2,
+                "packed": true,
+                "rule": 4
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 9
+              },
+              {
+                "instances": 2,
+                "packed": true,
+                "rule": 10
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 13
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 14
+              },
+              {
+                "instances": 8,
+                "packed": true,
+                "rule": 15
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 17
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 19
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 21
+              }
+            ],
+            "validation_seconds": 7.2958e-05,
+            "virtual_rows": 302
+          },
+          "packing_seconds": 0.000258959,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "rejected": [],
+          "round": 3,
+          "source_matches": 3,
+          "transition_prepare_seconds": 0.0,
+          "unresolved_completion_plans": 0
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cell_states": null,
+          "cell_transition": null,
+          "completed_prefixes": 0,
+          "cumulative_matches": 677,
+          "enclosure_audit": null,
+          "execution_seconds": 0.002122415,
+          "graph": null,
+          "learning_seconds": 1.25e-07,
+          "library_bytes": 0,
+          "macro_matches": 453,
+          "matches": 466,
+          "packing": {
+            "batched": true,
+            "distinct_native_rows": 378,
+            "drain_seconds": 7.7167e-05,
+            "encoded_tables": 4,
+            "encoding_seconds": 0.000173083,
+            "new_virtual_rows_net": 378,
+            "processed_instance_packets": 445,
+            "requested_rows": 3573,
+            "shared_rows_reused": 2460,
+            "statistics_seconds": 1.225e-05,
+            "templates": [
+              {
+                "instances": 121,
+                "packed": true,
+                "rule": 0
+              },
+              {
+                "instances": 50,
+                "packed": true,
+                "rule": 1
+              },
+              {
+                "instances": 214,
+                "packed": true,
+                "rule": 2
+              },
+              {
+                "instances": 33,
+                "packed": true,
+                "rule": 3
+              },
+              {
+                "instances": 3,
+                "packed": true,
+                "rule": 4
+              },
+              {
+                "instances": 5,
+                "packed": true,
+                "rule": 9
+              },
+              {
+                "instances": 2,
+                "packed": true,
+                "rule": 10
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 13
+              },
+              {
+                "instances": 2,
+                "packed": true,
+                "rule": 14
+              },
+              {
+                "instances": 15,
+                "packed": true,
+                "rule": 15
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 17
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 19
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 21
+              }
+            ],
+            "validation_seconds": 0.000178708,
+            "virtual_rows": 665
+          },
+          "packing_seconds": 0.000466375,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "rejected": [],
+          "round": 4,
+          "source_matches": 13,
+          "transition_prepare_seconds": 0.0,
+          "unresolved_completion_plans": 0
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cell_states": null,
+          "cell_transition": null,
+          "completed_prefixes": 0,
+          "cumulative_matches": 1916,
+          "enclosure_audit": null,
+          "execution_seconds": 0.0046355400000000005,
+          "graph": null,
+          "learning_seconds": 1.67e-07,
+          "library_bytes": 0,
+          "macro_matches": 1214,
+          "matches": 1239,
+          "packing": {
+            "batched": true,
+            "distinct_native_rows": 459,
+            "drain_seconds": 0.000145875,
+            "encoded_tables": 5,
+            "encoding_seconds": 0.00025375,
+            "new_virtual_rows_net": 459,
+            "processed_instance_packets": 1182,
+            "requested_rows": 10286,
+            "shared_rows_reused": 7841,
+            "statistics_seconds": 1.4584e-05,
+            "templates": [
+              {
+                "instances": 249,
+                "packed": true,
+                "rule": 0
+              },
+              {
+                "instances": 122,
+                "packed": true,
+                "rule": 1
+              },
+              {
+                "instances": 655,
+                "packed": true,
+                "rule": 2
+              },
+              {
+                "instances": 84,
+                "packed": true,
+                "rule": 3
+              },
+              {
+                "instances": 11,
+                "packed": true,
+                "rule": 4
+              },
+              {
+                "instances": 27,
+                "packed": true,
+                "rule": 9
+              },
+              {
+                "instances": 10,
+                "packed": true,
+                "rule": 10
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 13
+              },
+              {
+                "instances": 2,
+                "packed": true,
+                "rule": 14
+              },
+              {
+                "instances": 18,
+                "packed": true,
+                "rule": 15
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 17
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 19
+              },
+              {
+                "instances": 4,
+                "packed": true,
+                "rule": 21
+              }
+            ],
+            "validation_seconds": 0.00037725,
+            "virtual_rows": 1062
+          },
+          "packing_seconds": 0.000832875,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "rejected": [],
+          "round": 5,
+          "source_matches": 25,
+          "transition_prepare_seconds": 0.0,
+          "unresolved_completion_plans": 0
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cell_states": null,
+          "cell_transition": null,
+          "completed_prefixes": 0,
+          "cumulative_matches": 3376,
+          "enclosure_audit": null,
+          "execution_seconds": 0.007400706,
+          "graph": null,
+          "learning_seconds": 1.67e-07,
+          "library_bytes": 0,
+          "macro_matches": 1386,
+          "matches": 1460,
+          "packing": {
+            "batched": true,
+            "distinct_native_rows": 712,
+            "drain_seconds": 0.000163084,
+            "encoded_tables": 5,
+            "encoding_seconds": 0.000434333,
+            "new_virtual_rows_net": 712,
+            "processed_instance_packets": 1386,
+            "requested_rows": 11608,
+            "shared_rows_reused": 10200,
+            "statistics_seconds": 2.2292e-05,
+            "templates": [
+              {
+                "instances": 214,
+                "packed": true,
+                "rule": 0
+              },
+              {
+                "instances": 230,
+                "packed": true,
+                "rule": 1
+              },
+              {
+                "instances": 571,
+                "packed": true,
+                "rule": 2
+              },
+              {
+                "instances": 159,
+                "packed": true,
+                "rule": 3
+              },
+              {
+                "instances": 22,
+                "packed": true,
+                "rule": 4
+              },
+              {
+                "instances": 88,
+                "packed": true,
+                "rule": 9
+              },
+              {
+                "instances": 78,
+                "packed": true,
+                "rule": 10
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 13
+              },
+              {
+                "instances": 14,
+                "packed": true,
+                "rule": 14
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 15
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 17
+              },
+              {
+                "instances": 0,
+                "packed": false,
+                "rule": 19
+              },
+              {
+                "instances": 10,
+                "packed": true,
+                "rule": 21
+              }
+            ],
+            "validation_seconds": 0.00043225,
+            "virtual_rows": 1774
+          },
+          "packing_seconds": 0.0010985,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "rejected": [],
+          "round": 6,
+          "source_matches": 74,
+          "transition_prepare_seconds": 4.1e-08,
+          "unresolved_completion_plans": 0
+        }
+      ],
+      "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+      "seconds": 0.015671833,
+      "setup_seconds": 0.004363041,
+      "storage": {
+        "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+        "binding_header_bytes": 1760,
+        "binding_payload_bytes": 11372,
+        "shared_binding_index_bytes": 0,
+        "tables": [
+          {
+            "dense_equivalent_bytes": 1680,
+            "descriptor_bytes": 564,
+            "direct_base_rows": 35,
+            "direct_bytes": 740,
+            "local_header_bytes": 760,
+            "metadata_bytes": 64,
+            "overlay_rows": 0,
+            "rebuild_rows_changed": 2,
+            "rebuild_rows_examined": 2,
+            "table": "Diff",
+            "tombstones": 2,
+            "virtual_rows": 47
+          },
+          {
+            "dense_equivalent_bytes": 3700,
+            "descriptor_bytes": 240,
+            "direct_base_rows": 160,
+            "direct_bytes": 3300,
+            "local_header_bytes": 544,
+            "metadata_bytes": 48,
+            "overlay_rows": 0,
+            "rebuild_rows_changed": 1,
+            "rebuild_rows_examined": 1,
+            "table": "Integral",
+            "tombstones": 5,
+            "virtual_rows": 20
+          },
+          {
+            "dense_equivalent_bytes": 19060,
+            "descriptor_bytes": 10524,
+            "direct_base_rows": 0,
+            "direct_bytes": 1520,
+            "local_header_bytes": 5576,
+            "metadata_bytes": 80,
+            "overlay_rows": 0,
+            "rebuild_rows_changed": 485,
+            "rebuild_rows_examined": 485,
+            "table": "Add",
+            "tombstones": 76,
+            "virtual_rows": 877
+          },
+          {
+            "dense_equivalent_bytes": 2420,
+            "descriptor_bytes": 504,
+            "direct_base_rows": 75,
+            "direct_bytes": 1580,
+            "local_header_bytes": 1024,
+            "metadata_bytes": 64,
+            "overlay_rows": 0,
+            "rebuild_rows_changed": 4,
+            "rebuild_rows_examined": 4,
+            "table": "Sub",
+            "tombstones": 4,
+            "virtual_rows": 42
+          },
+          {
+            "dense_equivalent_bytes": 20220,
+            "descriptor_bytes": 9444,
+            "direct_base_rows": 107,
+            "direct_bytes": 4480,
+            "local_header_bytes": 5312,
+            "metadata_bytes": 88,
+            "overlay_rows": 0,
+            "rebuild_rows_changed": 85,
+            "rebuild_rows_examined": 85,
+            "table": "Mul",
+            "tombstones": 117,
+            "virtual_rows": 787
+          },
+          {
+            "dense_equivalent_bytes": 80,
+            "descriptor_bytes": 12,
+            "direct_base_rows": 4,
+            "direct_bytes": 64,
+            "local_header_bytes": 432,
+            "metadata_bytes": 8,
+            "overlay_rows": 0,
+            "rebuild_rows_changed": 0,
+            "rebuild_rows_examined": 0,
+            "table": "Const",
+            "tombstones": 0,
+            "virtual_rows": 1
+          }
+        ],
+        "template_header_bytes": 10144,
+        "template_payload_bytes": 8072,
+        "unique_binding_matrices": 44,
+        "unique_templates": 44
+      },
+      "summary_only": true
+    }
+  },
+  "cell": {
+    "command": [
+      "target/release/examples/adaptive_math",
+      "frozen",
+      "/Users/mineralsteins/Repos/egg_related/egg_layout/out/compact-cells/online-final/source.egg",
+      "/Users/mineralsteins/Repos/egg_related/egg_layout/out/compact-cells/online-final/cell",
+      "experiments/math_mini3/adaptive_runtime/bake_lib_round2.json"
+    ],
+    "process_wall_seconds": 0.03,
+    "peak_rss_bytes": 9797632,
+    "user_seconds": 0.02,
+    "system_seconds": 0.0,
+    "observed_wall_seconds": 0.03949304099660367,
+    "result": {
+      "cell_evolution": null,
+      "cell_machine_enabled": false,
+      "cell_states": null,
+      "cell_transitions_enabled": false,
+      "execution_seconds": 0.015944418000000002,
+      "final": {
+        "eclasses": 748,
+        "enodes": 2167,
+        "rss_bytes": 9633792
+      },
+      "input_seconds": 0.000483377,
+      "join_pruning_enabled": false,
+      "join_reads": null,
+      "learning_seconds": 4.2e-08,
+      "matches": 3376,
+      "min_template_reuse": 2,
+      "mode": "frozen",
+      "packing_seconds": 0.004759083,
+      "rhs_skip_enabled": false,
+      "samples": [
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cell_states": null,
+          "cell_transition": null,
+          "completed_prefixes": 0,
+          "cumulative_matches": 20,
+          "enclosure_audit": null,
+          "execution_seconds": 0.000133959,
+          "graph": null,
+          "learning_seconds": 0.0,
+          "library_bytes": 0,
+          "macro_matches": 19,
+          "matches": 20,
+          "packing": {
+            "cell_batches": 12,
+            "cell_instances": 15,
+            "compact": true,
+            "existing_cell_rows": 0,
+            "owned_rows": 42,
+            "storage": {
+              "binding_index_bytes": 0,
+              "bindings_bytes": 228,
+              "cell_code_bytes": 704,
+              "cell_headers_bytes": 5736,
+              "scope": "whole-cell bodies shared across operator tables; derived row positions, no native hash entry per compact fact; existing eclass identities retained in bindings",
+              "tables": [
+                {
+                  "cell_instances_referenced": 11,
+                  "cell_rows": 21,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 6,
+                  "projection_bytes": 808,
+                  "projections": 16,
+                  "table": "Add"
+                },
+                {
+                  "cell_instances_referenced": 4,
+                  "cell_rows": 4,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 1,
+                  "projection_bytes": 232,
+                  "projections": 4,
+                  "table": "Sub"
+                },
+                {
+                  "cell_instances_referenced": 8,
+                  "cell_rows": 16,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 6,
+                  "projection_bytes": 800,
+                  "projections": 15,
+                  "table": "Mul"
+                },
+                {
+                  "cell_instances_referenced": 1,
+                  "cell_rows": 1,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 4,
+                  "projection_bytes": 216,
+                  "projections": 3,
+                  "table": "Const"
+                }
+              ],
+              "unique_cell_batches": 12
+            }
+          },
+          "packing_seconds": 0.000145791,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "rejected": [],
+          "round": 1,
+          "source_matches": 1,
+          "transition_prepare_seconds": 4.2e-08,
+          "unresolved_completion_plans": 0
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cell_states": null,
+          "cell_transition": null,
+          "completed_prefixes": 0,
+          "cumulative_matches": 82,
+          "enclosure_audit": null,
+          "execution_seconds": 0.000440126,
+          "graph": null,
+          "learning_seconds": 0.0,
+          "library_bytes": 0,
+          "macro_matches": 60,
+          "matches": 62,
+          "packing": {
+            "cell_batches": 11,
+            "cell_instances": 17,
+            "compact": true,
+            "existing_cell_rows": 108,
+            "owned_rows": 69,
+            "storage": {
+              "binding_index_bytes": 216,
+              "bindings_bytes": 584,
+              "cell_code_bytes": 4048,
+              "cell_headers_bytes": 12016,
+              "scope": "whole-cell bodies shared across operator tables; derived row positions, no native hash entry per compact fact; existing eclass identities retained in bindings",
+              "tables": [
+                {
+                  "cell_instances_referenced": 3,
+                  "cell_rows": 8,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 2,
+                  "projection_bytes": 760,
+                  "projections": 10,
+                  "table": "Diff"
+                },
+                {
+                  "cell_instances_referenced": 20,
+                  "cell_rows": 56,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 2,
+                  "projection_bytes": 1568,
+                  "projections": 31,
+                  "table": "Add"
+                },
+                {
+                  "cell_instances_referenced": 4,
+                  "cell_rows": 4,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 3,
+                  "projection_bytes": 232,
+                  "projections": 4,
+                  "table": "Sub"
+                },
+                {
+                  "cell_instances_referenced": 17,
+                  "cell_rows": 42,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 8,
+                  "projection_bytes": 2904,
+                  "projections": 38,
+                  "table": "Mul"
+                },
+                {
+                  "cell_instances_referenced": 1,
+                  "cell_rows": 1,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 4,
+                  "projection_bytes": 216,
+                  "projections": 3,
+                  "table": "Const"
+                }
+              ],
+              "unique_cell_batches": 23
+            }
+          },
+          "packing_seconds": 0.000191959,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "rejected": [],
+          "round": 2,
+          "source_matches": 2,
+          "transition_prepare_seconds": 0.0,
+          "unresolved_completion_plans": 0
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cell_states": null,
+          "cell_transition": null,
+          "completed_prefixes": 0,
+          "cumulative_matches": 211,
+          "enclosure_audit": null,
+          "execution_seconds": 0.0009251260000000001,
+          "graph": null,
+          "learning_seconds": 0.0,
+          "library_bytes": 0,
+          "macro_matches": 126,
+          "matches": 129,
+          "packing": {
+            "cell_batches": 15,
+            "cell_instances": 36,
+            "compact": true,
+            "existing_cell_rows": 502,
+            "owned_rows": 191,
+            "storage": {
+              "binding_index_bytes": 536,
+              "bindings_bytes": 1504,
+              "cell_code_bytes": 7340,
+              "cell_headers_bytes": 21624,
+              "scope": "whole-cell bodies shared across operator tables; derived row positions, no native hash entry per compact fact; existing eclass identities retained in bindings",
+              "tables": [
+                {
+                  "cell_instances_referenced": 7,
+                  "cell_rows": 16,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 4,
+                  "projection_bytes": 808,
+                  "projections": 16,
+                  "table": "Diff"
+                },
+                {
+                  "cell_instances_referenced": 46,
+                  "cell_rows": 183,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 0,
+                  "projection_bytes": 3056,
+                  "projections": 57,
+                  "table": "Add"
+                },
+                {
+                  "cell_instances_referenced": 6,
+                  "cell_rows": 6,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 4,
+                  "projection_bytes": 408,
+                  "projections": 6,
+                  "table": "Sub"
+                },
+                {
+                  "cell_instances_referenced": 34,
+                  "cell_rows": 96,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 6,
+                  "projection_bytes": 5784,
+                  "projections": 78,
+                  "table": "Mul"
+                },
+                {
+                  "cell_instances_referenced": 1,
+                  "cell_rows": 1,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 4,
+                  "projection_bytes": 216,
+                  "projections": 3,
+                  "table": "Const"
+                }
+              ],
+              "unique_cell_batches": 38
+            }
+          },
+          "packing_seconds": 0.000334292,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "rejected": [],
+          "round": 3,
+          "source_matches": 3,
+          "transition_prepare_seconds": 4.2e-08,
+          "unresolved_completion_plans": 0
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cell_states": null,
+          "cell_transition": null,
+          "completed_prefixes": 0,
+          "cumulative_matches": 677,
+          "enclosure_audit": null,
+          "execution_seconds": 0.002763168,
+          "graph": null,
+          "learning_seconds": 4.2e-08,
+          "library_bytes": 0,
+          "macro_matches": 453,
+          "matches": 466,
+          "packing": {
+            "cell_batches": 23,
+            "cell_instances": 87,
+            "compact": true,
+            "existing_cell_rows": 2460,
+            "owned_rows": 378,
+            "storage": {
+              "binding_index_bytes": 1272,
+              "bindings_bytes": 3804,
+              "cell_code_bytes": 11636,
+              "cell_headers_bytes": 35208,
+              "scope": "whole-cell bodies shared across operator tables; derived row positions, no native hash entry per compact fact; existing eclass identities retained in bindings",
+              "tables": [
+                {
+                  "cell_instances_referenced": 10,
+                  "cell_rows": 21,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 10,
+                  "projection_bytes": 1496,
+                  "projections": 22,
+                  "table": "Diff"
+                },
+                {
+                  "cell_instances_referenced": 117,
+                  "cell_rows": 440,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 0,
+                  "projection_bytes": 6152,
+                  "projections": 108,
+                  "table": "Add"
+                },
+                {
+                  "cell_instances_referenced": 9,
+                  "cell_rows": 9,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 12,
+                  "projection_bytes": 416,
+                  "projections": 7,
+                  "table": "Sub"
+                },
+                {
+                  "cell_instances_referenced": 60,
+                  "cell_rows": 194,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 22,
+                  "projection_bytes": 6080,
+                  "projections": 115,
+                  "table": "Mul"
+                },
+                {
+                  "cell_instances_referenced": 1,
+                  "cell_rows": 1,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 4,
+                  "projection_bytes": 216,
+                  "projections": 3,
+                  "table": "Const"
+                }
+              ],
+              "unique_cell_batches": 60
+            }
+          },
+          "packing_seconds": 0.000736416,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "rejected": [],
+          "round": 4,
+          "source_matches": 13,
+          "transition_prepare_seconds": 4.2e-08,
+          "unresolved_completion_plans": 0
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cell_states": null,
+          "cell_transition": null,
+          "completed_prefixes": 0,
+          "cumulative_matches": 1916,
+          "enclosure_audit": null,
+          "execution_seconds": 0.00839696,
+          "graph": null,
+          "learning_seconds": 4.2e-08,
+          "library_bytes": 0,
+          "macro_matches": 1214,
+          "matches": 1239,
+          "packing": {
+            "cell_batches": 31,
+            "cell_instances": 143,
+            "compact": true,
+            "existing_cell_rows": 7841,
+            "owned_rows": 459,
+            "storage": {
+              "binding_index_bytes": 2856,
+              "bindings_bytes": 6812,
+              "cell_code_bytes": 16352,
+              "cell_headers_bytes": 53584,
+              "scope": "whole-cell bodies shared across operator tables; derived row positions, no native hash entry per compact fact; existing eclass identities retained in bindings",
+              "tables": [
+                {
+                  "cell_instances_referenced": 15,
+                  "cell_rows": 30,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 12,
+                  "projection_bytes": 1568,
+                  "projections": 31,
+                  "table": "Diff"
+                },
+                {
+                  "cell_instances_referenced": 2,
+                  "cell_rows": 6,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 65,
+                  "projection_bytes": 800,
+                  "projections": 15,
+                  "table": "Integral"
+                },
+                {
+                  "cell_instances_referenced": 211,
+                  "cell_rows": 592,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 0,
+                  "projection_bytes": 11992,
+                  "projections": 154,
+                  "table": "Add"
+                },
+                {
+                  "cell_instances_referenced": 20,
+                  "cell_rows": 20,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 23,
+                  "projection_bytes": 424,
+                  "projections": 8,
+                  "table": "Sub"
+                },
+                {
+                  "cell_instances_referenced": 128,
+                  "cell_rows": 413,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 33,
+                  "projection_bytes": 11648,
+                  "projections": 171,
+                  "table": "Mul"
+                },
+                {
+                  "cell_instances_referenced": 1,
+                  "cell_rows": 1,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 4,
+                  "projection_bytes": 216,
+                  "projections": 3,
+                  "table": "Const"
+                }
+              ],
+              "unique_cell_batches": 90
+            }
+          },
+          "packing_seconds": 0.001375292,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "rejected": [],
+          "round": 5,
+          "source_matches": 25,
+          "transition_prepare_seconds": 0.0,
+          "unresolved_completion_plans": 0
+        },
+        {
+          "admitted": [],
+          "bodies": 13,
+          "cell_states": null,
+          "cell_transition": null,
+          "completed_prefixes": 0,
+          "cumulative_matches": 3376,
+          "enclosure_audit": null,
+          "execution_seconds": 0.015944418000000002,
+          "graph": null,
+          "learning_seconds": 4.2e-08,
+          "library_bytes": 0,
+          "macro_matches": 1386,
+          "matches": 1460,
+          "packing": {
+            "cell_batches": 31,
+            "cell_instances": 173,
+            "compact": true,
+            "existing_cell_rows": 10200,
+            "owned_rows": 712,
+            "storage": {
+              "binding_index_bytes": 5124,
+              "bindings_bytes": 10572,
+              "cell_code_bytes": 20272,
+              "cell_headers_bytes": 72320,
+              "scope": "whole-cell bodies shared across operator tables; derived row positions, no native hash entry per compact fact; existing eclass identities retained in bindings",
+              "tables": [
+                {
+                  "cell_instances_referenced": 22,
+                  "cell_rows": 47,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 35,
+                  "projection_bytes": 2904,
+                  "projections": 38,
+                  "table": "Diff"
+                },
+                {
+                  "cell_instances_referenced": 7,
+                  "cell_rows": 20,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 160,
+                  "projection_bytes": 1560,
+                  "projections": 30,
+                  "table": "Integral"
+                },
+                {
+                  "cell_instances_referenced": 317,
+                  "cell_rows": 877,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 0,
+                  "projection_bytes": 12432,
+                  "projections": 209,
+                  "table": "Add"
+                },
+                {
+                  "cell_instances_referenced": 42,
+                  "cell_rows": 42,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 75,
+                  "projection_bytes": 760,
+                  "projections": 10,
+                  "table": "Sub"
+                },
+                {
+                  "cell_instances_referenced": 263,
+                  "cell_rows": 787,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 107,
+                  "projection_bytes": 12048,
+                  "projections": 221,
+                  "table": "Mul"
+                },
+                {
+                  "cell_instances_referenced": 1,
+                  "cell_rows": 1,
+                  "materialized_fallbacks": 0,
+                  "native_hash_rows": 4,
+                  "projection_bytes": 216,
+                  "projections": 3,
+                  "table": "Const"
+                }
+              ],
+              "unique_cell_batches": 121
+            }
+          },
+          "packing_seconds": 0.001975333,
+          "promised_prefixes": 0,
+          "queued_prefixes": 0,
+          "rejected": [],
+          "round": 6,
+          "source_matches": 74,
+          "transition_prepare_seconds": 0.0,
+          "unresolved_completion_plans": 0
+        }
+      ],
+      "scope": "actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed",
+      "seconds": 0.025963208,
+      "setup_seconds": 0.004358542,
+      "storage": {
+        "accounting": "row descriptors include capacity; matrix/template payload and known headers are deduplicated; excludes native hash/provenance indexes, tombstone hash allocation, pool/spare dense capacity and allocator overhead; not RSS or net compression",
+        "binding_header_bytes": 72320,
+        "binding_payload_bytes": 10572,
+        "shared_binding_index_bytes": 5124,
+        "tables": [
+          {
+            "dense_equivalent_bytes": 1640,
+            "descriptor_bytes": 2904,
+            "direct_base_rows": 35,
+            "direct_bytes": 700,
+            "local_header_bytes": 192,
+            "metadata_bytes": 0,
+            "overlay_rows": 0,
+            "rebuild_rows_changed": 0,
+            "rebuild_rows_examined": 0,
+            "table": "Diff",
+            "tombstones": 0,
+            "virtual_rows": 47
+          },
+          {
+            "dense_equivalent_bytes": 3600,
+            "descriptor_bytes": 1560,
+            "direct_base_rows": 160,
+            "direct_bytes": 3200,
+            "local_header_bytes": 192,
+            "metadata_bytes": 0,
+            "overlay_rows": 0,
+            "rebuild_rows_changed": 0,
+            "rebuild_rows_examined": 0,
+            "table": "Integral",
+            "tombstones": 0,
+            "virtual_rows": 20
+          },
+          {
+            "dense_equivalent_bytes": 18780,
+            "descriptor_bytes": 12432,
+            "direct_base_rows": 0,
+            "direct_bytes": 0,
+            "local_header_bytes": 240,
+            "metadata_bytes": 0,
+            "overlay_rows": 0,
+            "rebuild_rows_changed": 0,
+            "rebuild_rows_examined": 0,
+            "table": "Add",
+            "tombstones": 62,
+            "virtual_rows": 877
+          },
+          {
+            "dense_equivalent_bytes": 2340,
+            "descriptor_bytes": 760,
+            "direct_base_rows": 75,
+            "direct_bytes": 1500,
+            "local_header_bytes": 192,
+            "metadata_bytes": 0,
+            "overlay_rows": 0,
+            "rebuild_rows_changed": 0,
+            "rebuild_rows_examined": 0,
+            "table": "Sub",
+            "tombstones": 0,
+            "virtual_rows": 42
+          },
+          {
+            "dense_equivalent_bytes": 17880,
+            "descriptor_bytes": 12048,
+            "direct_base_rows": 107,
+            "direct_bytes": 2140,
+            "local_header_bytes": 192,
+            "metadata_bytes": 0,
+            "overlay_rows": 0,
+            "rebuild_rows_changed": 0,
+            "rebuild_rows_examined": 0,
+            "table": "Mul",
+            "tombstones": 0,
+            "virtual_rows": 787
+          },
+          {
+            "dense_equivalent_bytes": 80,
+            "descriptor_bytes": 216,
+            "direct_base_rows": 4,
+            "direct_bytes": 64,
+            "local_header_bytes": 192,
+            "metadata_bytes": 0,
+            "overlay_rows": 0,
+            "rebuild_rows_changed": 0,
+            "rebuild_rows_examined": 0,
+            "table": "Const",
+            "tombstones": 0,
+            "virtual_rows": 1
+          }
+        ],
+        "template_header_bytes": 10144,
+        "template_payload_bytes": 10128,
+        "unique_binding_matrices": 121,
+        "unique_templates": 88
+      },
+      "summary_only": true
+    }
+  },
+  "exact_graph": {
+    "exact_equal": true,
+    "enodes": 2167,
+    "eclasses": 748
+  }
+}

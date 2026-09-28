@@ -102,16 +102,12 @@ impl SortedWritesTable {
         }
         // Reuse the rebuild index to find rows whose rebuildable columns mention
         // one of the same-id dirty container ids.
-        self.refresh_rebuild_index();
-
         let mut candidate_rows = HashSet::<RowId>::default();
-        for value in dirty_ids {
-            let Some(subset) = self.rebuild_index.get_subset(value) else {
-                continue;
-            };
-            subset.offsets(|row_id| {
-                candidate_rows.insert(row_id);
-            });
+        let dirty=dirty_ids.iter().copied().collect();
+        if let Some(rows)=self.compact_affected(&dirty){candidate_rows.extend(rows);}
+        else {
+            self.refresh_rebuild_index();
+            for value in dirty_ids {if let Some(subset)=self.rebuild_index.get_subset(value){subset.offsets(|row_id|{candidate_rows.insert(row_id);});}}
         }
 
         if candidate_rows.is_empty() {

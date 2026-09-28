@@ -2730,3 +2730,5 @@ mod tests {
 
 mod fact_query;
 pub use fact_query::{CompiledCheck, CompiledFactQuery};
+
+pub use virtual_facts::CompactCellsReport;

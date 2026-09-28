@@ -241,6 +241,8 @@ impl<V: ValueVec> RowBuffer<V> {
 
 // Methods specific to the pool-backed RowBuffer.
 impl RowBuffer {
+    pub(crate) fn new_empty(n_columns:usize)->Self { Self {n_columns,total_rows:0,data:Pooled::new(Vec::new())} }
+
     /// Create a new RowBuffer with the given arity.
     pub(crate) fn new(n_columns: usize) -> RowBuffer {
         assert_ne!(
