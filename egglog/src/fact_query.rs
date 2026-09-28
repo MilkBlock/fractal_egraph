@@ -180,6 +180,11 @@ impl EGraph {
         Ok((rows.matched, rows.fresh))
     }
 
+    /// Diagnostic row-ID buffer capacities: [headers, atoms]. Not total heap/RSS.
+    pub fn fact_query_subset_bytes(&self, query: &CompiledFactQuery) -> Option<[usize; 2]> {
+        self.backend.rule_subset_bytes(query.rule)
+    }
+
     pub fn free_fact_query(&mut self, query: CompiledFactQuery) {
         self.backend.free_rule(query.rule);
         self.backend.free_external_func(query.callback);

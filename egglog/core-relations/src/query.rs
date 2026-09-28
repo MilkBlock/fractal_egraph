@@ -40,6 +40,21 @@ pub struct CachedPlan {
     actions: ActionInfo,
 }
 
+impl CachedPlan {
+    /// Allocated sparse row-ID buffers retained in headers and atoms, separately.
+    /// These are query-state payload bytes, not total plan heap size or RSS.
+    pub fn retained_subset_bytes(&self) -> [usize; 2] {
+        fn bytes(s: &crate::offsets::Subset) -> usize {
+            match s {
+                crate::offsets::Subset::Sparse(v) => crate::pool::Clear::bytes(&**v),
+                crate::offsets::Subset::Dense(_) => 0,
+            }
+        }
+        [self.plan.header().iter().map(|h| bytes(&h.subset)).sum(),
+         self.plan.atoms().iter().map(|(_, a)| bytes(&a.constraints.subset)).sum()]
+    }
+}
+
 #[derive(Debug, Clone)]
 pub(crate) struct ActionInfo {
     pub(crate) used_vars: SmallVec<[Variable; 4]>,

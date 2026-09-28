@@ -153,6 +153,11 @@ impl EGraph {
         }
     }
 
+    /// Cached query row-ID payloads, excluding all other plan allocations.
+    pub fn rule_subset_bytes(&self, id: RuleId) -> Option<[usize; 2]> {
+        self.rules[id].cached_plan.as_ref().map(|c| c.plan.retained_subset_bytes())
+    }
+
     /// Remove a rewrite rule from this [`EGraph`].
     pub fn free_rule(&mut self, id: RuleId) {
         self.rules.take(id);
