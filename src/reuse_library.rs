@@ -224,6 +224,14 @@ impl Library {
     pub fn counts(&self) -> Value {
         json!({"bodies":self.bodies.len(),"enclosures":self.enclosures.len(),"entries":self.entries.len()})
     }
+    /// Compile this library's stored compositions into recognition plans. The
+    /// known-instance path uses these instead of searching for fragments.
+    pub fn recognition_plans(
+        &self,
+        environment: crate::reuse_cell_recognition::EnvironmentId,
+    ) -> Result<Vec<crate::reuse_cell_recognition::CellRecognitionPlan>> {
+        crate::reuse_cell_recognition::compile_library(environment, &self.recognition_bodies()?)
+    }
     /// Read-only recognition adapter. The stored format is unchanged: every body
     /// is reported with its value slots, visible rows, and all legal origin
     /// recipes that reach it.

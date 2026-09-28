@@ -57,6 +57,28 @@ fn contiguous_slots(
     (remap, rows)
 }
 
+/// Recognise and install cells from committed events, using a validated library
+/// as the plan source. This is the known-instance path: it issues no fragment
+/// query at all. [`pack_library`] remains the explicit comparison tool.
+pub fn recognise_library(
+    source: &std::path::Path,
+    out: &std::path::Path,
+    library: &Library,
+    rounds: Option<usize>,
+) -> Result<Value> {
+    let plans = library.recognition_plans(crate::reuse_cell_recognition::EnvironmentId::UNKNOWN)?;
+    let mut recognizer = crate::reuse_cell_online::CellRecognizer::new(plans);
+    let report = crate::native_analyze::run_with_cell_recognition(source, out, rounds, &mut recognizer)?;
+    let counts = recognizer.counts();
+    Ok(json!({
+        "recognition":{"located":counts.located,"complete":counts.complete,"packed":counts.packed,"unsupported_sources":counts.unsupported_sources,"pending_subscriptions":recognizer.pending_subscriptions()},
+        "unsupported":recognizer.unsupported_sources().iter().map(|(plan,source,reason)|json!({"plan":plan,"source":source,"reason":reason})).collect::<Vec<_>>(),
+        "fragment_queries":0,
+        "analysis_status":report["status"],
+        "scope":"known-instance recognition over committed events; no whole-fragment query is issued",
+    }))
+}
+
 /// Install recognised complete cells. A cell's slot values come from the
 /// committed rows the recogniser confirmed; installation still re-validates
 /// every row, so recognition cannot smuggle in an uncommitted fact.

@@ -17,6 +17,12 @@ fn main() -> Result {
             if let Some(after)=args.get(3){eg.parse_and_run_program(Some(after.clone()),&std::fs::read_to_string(after)?)?;}
             println!("{}",serde_json::to_string_pretty(&serde_json::json!({"packed":packed,"after":egg_layout::reuse_graph::native_storage::storage_report(&eg)}))?);Ok(())
         }
+        Some("recognize-cells") if args.len()==4 || args.len()==5 => {
+            let library=egg_layout::reuse_graph::library::Library::load(Path::new(&args[2]))?;
+            let rounds=args.get(4).map(|s|s.parse::<usize>()).transpose()?;
+            let report=egg_layout::reuse_graph::native_storage::recognise_library(Path::new(&args[1]),Path::new(&args[3]),&library,rounds)?;
+            println!("{}",serde_json::to_string_pretty(&report)?);Ok(())
+        }
         Some("reuse-adaptive") => {
             if args.len()<4 || args.len()>5 {return Err("usage: reuse-adaptive MODE SOURCE.egg OUTPUT_DIR [LIBRARY.json]".into());}
             let report=egg_layout::reuse_graph::adaptive::run(&std::fs::read_to_string(&args[2])?,args.get(4).map(Path::new),Path::new(&args[3]),&args[1])?;
