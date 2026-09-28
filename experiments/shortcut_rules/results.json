@@ -1,0 +1,1036 @@
+{
+  "engine": {
+    "baseline_commit": "c7553a6c2b16c529c13f3eb7eecd742495b992d3",
+    "harness": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/vanilla-commutativity/bin/pristine",
+    "probe": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/vanilla-commutativity/bin/probe"
+  },
+  "runs": [
+    {
+      "n": 4,
+      "variant": "generic",
+      "matches": 120,
+      "seconds": 0.000933542,
+      "wall_seconds": 0.004264207906089723,
+      "enodes": 54,
+      "add_enodes": 50,
+      "eclasses": 15,
+      "structure": "bde9f893a10855d0"
+    },
+    {
+      "n": 4,
+      "variant": "shortcut",
+      "matches": 68,
+      "seconds": 0.001101416,
+      "wall_seconds": 0.0038095000199973583,
+      "enodes": 54,
+      "add_enodes": 50,
+      "eclasses": 15,
+      "structure": "bde9f893a10855d0"
+    },
+    {
+      "n": 4,
+      "variant": "shortcut_naive",
+      "matches": 117,
+      "seconds": 0.001127125,
+      "wall_seconds": 0.004241416929289699,
+      "enodes": 96,
+      "add_enodes": 92,
+      "eclasses": 21,
+      "structure": "20cbf0041b8ed810"
+    },
+    {
+      "n": 6,
+      "variant": "generic",
+      "matches": 3335,
+      "seconds": 0.002476667,
+      "wall_seconds": 0.00577916600741446,
+      "enodes": 608,
+      "add_enodes": 602,
+      "eclasses": 63,
+      "structure": "749039c6f4aab662"
+    },
+    {
+      "n": 6,
+      "variant": "shortcut",
+      "matches": 2572,
+      "seconds": 0.003969958,
+      "wall_seconds": 0.007915540947578847,
+      "enodes": 608,
+      "add_enodes": 602,
+      "eclasses": 63,
+      "structure": "2feb3f39bbf40df3"
+    },
+    {
+      "n": 6,
+      "variant": "shortcut_naive",
+      "matches": 8037,
+      "seconds": 0.01263725,
+      "wall_seconds": 0.018521917052567005,
+      "enodes": 1148,
+      "add_enodes": 1142,
+      "eclasses": 78,
+      "structure": "f110b530c5d6e8e5"
+    },
+    {
+      "n": 8,
+      "variant": "generic",
+      "matches": 68116,
+      "seconds": 0.018981875,
+      "wall_seconds": 0.029474457958713174,
+      "enodes": 6058,
+      "add_enodes": 6050,
+      "eclasses": 255,
+      "structure": "0e7a65decc12e4ed"
+    },
+    {
+      "n": 8,
+      "variant": "shortcut",
+      "matches": 56908,
+      "seconds": 0.028852666,
+      "wall_seconds": 0.05221262504346669,
+      "enodes": 6058,
+      "add_enodes": 6050,
+      "eclasses": 255,
+      "structure": "d388db9e078ee13c"
+    },
+    {
+      "n": 8,
+      "variant": "shortcut_naive",
+      "matches": 191318,
+      "seconds": 0.053730709,
+      "wall_seconds": 0.07161995791830122,
+      "enodes": 10006,
+      "add_enodes": 9998,
+      "eclasses": 283,
+      "structure": "ee6cef3d3ae072b7"
+    },
+    {
+      "n": 10,
+      "variant": "generic",
+      "matches": 1245807,
+      "seconds": 0.117357041,
+      "wall_seconds": 0.17189654102548957,
+      "enodes": 57012,
+      "add_enodes": 57002,
+      "eclasses": 1023,
+      "structure": "2fdbf576309e23d5"
+    },
+    {
+      "n": 10,
+      "variant": "shortcut",
+      "matches": 1049470,
+      "seconds": 0.20649825,
+      "wall_seconds": 0.30134324997197837,
+      "enodes": 57012,
+      "add_enodes": 57002,
+      "eclasses": 1023,
+      "structure": "305ae833b6db4d47"
+    },
+    {
+      "n": 10,
+      "variant": "shortcut_naive",
+      "matches": 3158474,
+      "seconds": 0.660036042,
+      "wall_seconds": 0.8454471250297502,
+      "enodes": 81222,
+      "add_enodes": 81212,
+      "eclasses": 1068,
+      "structure": "e06bb5302e2488f9"
+    },
+    {
+      "n": 12,
+      "variant": "generic",
+      "matches": 21271073,
+      "seconds": 2.8039755,
+      "wall_seconds": 3.331410082988441,
+      "enodes": 523262,
+      "add_enodes": 523250,
+      "eclasses": 4095,
+      "structure": "b4f0fc01ec9de7c3"
+    },
+    {
+      "n": 12,
+      "variant": "shortcut",
+      "matches": 17282098,
+      "seconds": 3.822056625,
+      "wall_seconds": 4.628130082972348,
+      "enodes": 523262,
+      "add_enodes": 523250,
+      "eclasses": 4095,
+      "structure": "e2902e0f5ed03fd3"
+    },
+    {
+      "n": 12,
+      "variant": "shortcut_naive",
+      "matches": 39539994,
+      "seconds": 10.539476333,
+      "wall_seconds": 11.541841249912977,
+      "enodes": 661268,
+      "add_enodes": 661256,
+      "eclasses": 4161,
+      "structure": "54cf48a646740c8f"
+    }
+  ],
+  "equivalence": [
+    {
+      "n": 4,
+      "shortcut": true
+    },
+    {
+      "n": 4,
+      "shortcut_naive": false
+    },
+    {
+      "n": 6,
+      "shortcut": true
+    },
+    {
+      "n": 6,
+      "shortcut_naive": false
+    },
+    {
+      "n": 8,
+      "shortcut": true
+    },
+    {
+      "n": 8,
+      "shortcut_naive": false
+    },
+    {
+      "n": 10,
+      "shortcut": true
+    },
+    {
+      "n": 10,
+      "shortcut_naive": false
+    },
+    {
+      "n": 12,
+      "shortcut": true
+    },
+    {
+      "n": 12,
+      "shortcut_naive": false
+    }
+  ],
+  "stepwise": [
+    {
+      "curve": [
+        {
+          "iteration": 1,
+          "add_enodes": 10
+        },
+        {
+          "iteration": 2,
+          "add_enodes": 24
+        },
+        {
+          "iteration": 3,
+          "add_enodes": 40
+        },
+        {
+          "iteration": 4,
+          "add_enodes": 50
+        },
+        {
+          "iteration": 5,
+          "add_enodes": 50
+        },
+        {
+          "iteration": 6,
+          "add_enodes": 50
+        },
+        {
+          "iteration": 7,
+          "add_enodes": 50
+        },
+        {
+          "iteration": 8,
+          "add_enodes": 50
+        },
+        {
+          "iteration": 9,
+          "add_enodes": 50
+        },
+        {
+          "iteration": 10,
+          "add_enodes": 50
+        }
+      ],
+      "saturated_at_iteration": 4,
+      "n": 4,
+      "variant": "generic"
+    },
+    {
+      "curve": [
+        {
+          "iteration": 1,
+          "add_enodes": 22
+        },
+        {
+          "iteration": 2,
+          "add_enodes": 50
+        },
+        {
+          "iteration": 3,
+          "add_enodes": 50
+        },
+        {
+          "iteration": 4,
+          "add_enodes": 50
+        },
+        {
+          "iteration": 5,
+          "add_enodes": 50
+        },
+        {
+          "iteration": 6,
+          "add_enodes": 50
+        },
+        {
+          "iteration": 7,
+          "add_enodes": 50
+        },
+        {
+          "iteration": 8,
+          "add_enodes": 50
+        },
+        {
+          "iteration": 9,
+          "add_enodes": 50
+        },
+        {
+          "iteration": 10,
+          "add_enodes": 50
+        }
+      ],
+      "saturated_at_iteration": 2,
+      "n": 4,
+      "variant": "shortcut"
+    },
+    {
+      "curve": [
+        {
+          "iteration": 1,
+          "add_enodes": 18
+        },
+        {
+          "iteration": 2,
+          "add_enodes": 56
+        },
+        {
+          "iteration": 3,
+          "add_enodes": 172
+        },
+        {
+          "iteration": 4,
+          "add_enodes": 387
+        },
+        {
+          "iteration": 5,
+          "add_enodes": 593
+        },
+        {
+          "iteration": 6,
+          "add_enodes": 605
+        },
+        {
+          "iteration": 7,
+          "add_enodes": 602
+        },
+        {
+          "iteration": 8,
+          "add_enodes": 602
+        },
+        {
+          "iteration": 9,
+          "add_enodes": 602
+        },
+        {
+          "iteration": 10,
+          "add_enodes": 602
+        },
+        {
+          "iteration": 11,
+          "add_enodes": 602
+        },
+        {
+          "iteration": 12,
+          "add_enodes": 602
+        }
+      ],
+      "saturated_at_iteration": 7,
+      "n": 6,
+      "variant": "generic"
+    },
+    {
+      "curve": [
+        {
+          "iteration": 1,
+          "add_enodes": 42
+        },
+        {
+          "iteration": 2,
+          "add_enodes": 190
+        },
+        {
+          "iteration": 3,
+          "add_enodes": 566
+        },
+        {
+          "iteration": 4,
+          "add_enodes": 602
+        },
+        {
+          "iteration": 5,
+          "add_enodes": 602
+        },
+        {
+          "iteration": 6,
+          "add_enodes": 602
+        },
+        {
+          "iteration": 7,
+          "add_enodes": 602
+        },
+        {
+          "iteration": 8,
+          "add_enodes": 602
+        },
+        {
+          "iteration": 9,
+          "add_enodes": 602
+        },
+        {
+          "iteration": 10,
+          "add_enodes": 602
+        },
+        {
+          "iteration": 11,
+          "add_enodes": 602
+        },
+        {
+          "iteration": 12,
+          "add_enodes": 602
+        }
+      ],
+      "saturated_at_iteration": 4,
+      "n": 6,
+      "variant": "shortcut"
+    },
+    {
+      "curve": [
+        {
+          "iteration": 1,
+          "add_enodes": 26
+        },
+        {
+          "iteration": 2,
+          "add_enodes": 88
+        },
+        {
+          "iteration": 3,
+          "add_enodes": 374
+        },
+        {
+          "iteration": 4,
+          "add_enodes": 1426
+        },
+        {
+          "iteration": 5,
+          "add_enodes": 3921
+        },
+        {
+          "iteration": 6,
+          "add_enodes": 5863
+        },
+        {
+          "iteration": 7,
+          "add_enodes": 6082
+        },
+        {
+          "iteration": 8,
+          "add_enodes": 6050
+        },
+        {
+          "iteration": 9,
+          "add_enodes": 6050
+        },
+        {
+          "iteration": 10,
+          "add_enodes": 6050
+        },
+        {
+          "iteration": 11,
+          "add_enodes": 6050
+        },
+        {
+          "iteration": 12,
+          "add_enodes": 6050
+        },
+        {
+          "iteration": 13,
+          "add_enodes": 6050
+        },
+        {
+          "iteration": 14,
+          "add_enodes": 6050
+        }
+      ],
+      "saturated_at_iteration": 8,
+      "n": 8,
+      "variant": "generic"
+    },
+    {
+      "curve": [
+        {
+          "iteration": 1,
+          "add_enodes": 62
+        },
+        {
+          "iteration": 2,
+          "add_enodes": 330
+        },
+        {
+          "iteration": 3,
+          "add_enodes": 2250
+        },
+        {
+          "iteration": 4,
+          "add_enodes": 6062
+        },
+        {
+          "iteration": 5,
+          "add_enodes": 6050
+        },
+        {
+          "iteration": 6,
+          "add_enodes": 6050
+        },
+        {
+          "iteration": 7,
+          "add_enodes": 6050
+        },
+        {
+          "iteration": 8,
+          "add_enodes": 6050
+        },
+        {
+          "iteration": 9,
+          "add_enodes": 6050
+        },
+        {
+          "iteration": 10,
+          "add_enodes": 6050
+        },
+        {
+          "iteration": 11,
+          "add_enodes": 6050
+        },
+        {
+          "iteration": 12,
+          "add_enodes": 6050
+        },
+        {
+          "iteration": 13,
+          "add_enodes": 6050
+        },
+        {
+          "iteration": 14,
+          "add_enodes": 6050
+        }
+      ],
+      "saturated_at_iteration": 5,
+      "n": 8,
+      "variant": "shortcut"
+    },
+    {
+      "curve": [
+        {
+          "iteration": 1,
+          "add_enodes": 34
+        },
+        {
+          "iteration": 2,
+          "add_enodes": 120
+        },
+        {
+          "iteration": 3,
+          "add_enodes": 588
+        },
+        {
+          "iteration": 4,
+          "add_enodes": 3345
+        },
+        {
+          "iteration": 5,
+          "add_enodes": 15492
+        },
+        {
+          "iteration": 6,
+          "add_enodes": 40732
+        },
+        {
+          "iteration": 7,
+          "add_enodes": 59446
+        },
+        {
+          "iteration": 8,
+          "add_enodes": 57026
+        },
+        {
+          "iteration": 9,
+          "add_enodes": 57002
+        },
+        {
+          "iteration": 10,
+          "add_enodes": 57002
+        },
+        {
+          "iteration": 11,
+          "add_enodes": 57002
+        },
+        {
+          "iteration": 12,
+          "add_enodes": 57002
+        },
+        {
+          "iteration": 13,
+          "add_enodes": 57002
+        },
+        {
+          "iteration": 14,
+          "add_enodes": 57002
+        },
+        {
+          "iteration": 15,
+          "add_enodes": 57002
+        },
+        {
+          "iteration": 16,
+          "add_enodes": 57002
+        }
+      ],
+      "saturated_at_iteration": 9,
+      "n": 10,
+      "variant": "generic"
+    },
+    {
+      "curve": [
+        {
+          "iteration": 1,
+          "add_enodes": 82
+        },
+        {
+          "iteration": 2,
+          "add_enodes": 470
+        },
+        {
+          "iteration": 3,
+          "add_enodes": 4430
+        },
+        {
+          "iteration": 4,
+          "add_enodes": 34866
+        },
+        {
+          "iteration": 5,
+          "add_enodes": 57234
+        },
+        {
+          "iteration": 6,
+          "add_enodes": 57002
+        },
+        {
+          "iteration": 7,
+          "add_enodes": 57002
+        },
+        {
+          "iteration": 8,
+          "add_enodes": 57002
+        },
+        {
+          "iteration": 9,
+          "add_enodes": 57002
+        },
+        {
+          "iteration": 10,
+          "add_enodes": 57002
+        },
+        {
+          "iteration": 11,
+          "add_enodes": 57002
+        },
+        {
+          "iteration": 12,
+          "add_enodes": 57002
+        },
+        {
+          "iteration": 13,
+          "add_enodes": 57002
+        },
+        {
+          "iteration": 14,
+          "add_enodes": 57002
+        },
+        {
+          "iteration": 15,
+          "add_enodes": 57002
+        },
+        {
+          "iteration": 16,
+          "add_enodes": 57002
+        }
+      ],
+      "saturated_at_iteration": 6,
+      "n": 10,
+      "variant": "shortcut"
+    },
+    {
+      "curve": [
+        {
+          "iteration": 1,
+          "add_enodes": 42
+        },
+        {
+          "iteration": 2,
+          "add_enodes": 152
+        },
+        {
+          "iteration": 3,
+          "add_enodes": 802
+        },
+        {
+          "iteration": 4,
+          "add_enodes": 5911
+        },
+        {
+          "iteration": 5,
+          "add_enodes": 42543
+        },
+        {
+          "iteration": 6,
+          "add_enodes": 193270
+        },
+        {
+          "iteration": 7,
+          "add_enodes": 473459
+        },
+        {
+          "iteration": 8,
+          "add_enodes": 556781
+        },
+        {
+          "iteration": 9,
+          "add_enodes": 523250
+        },
+        {
+          "iteration": 10,
+          "add_enodes": 523250
+        },
+        {
+          "iteration": 11,
+          "add_enodes": 523250
+        },
+        {
+          "iteration": 12,
+          "add_enodes": 523250
+        },
+        {
+          "iteration": 13,
+          "add_enodes": 523250
+        },
+        {
+          "iteration": 14,
+          "add_enodes": 523250
+        },
+        {
+          "iteration": 15,
+          "add_enodes": 523250
+        },
+        {
+          "iteration": 16,
+          "add_enodes": 523250
+        },
+        {
+          "iteration": 17,
+          "add_enodes": 523250
+        },
+        {
+          "iteration": 18,
+          "add_enodes": 523250
+        }
+      ],
+      "saturated_at_iteration": 9,
+      "n": 12,
+      "variant": "generic"
+    },
+    {
+      "curve": [
+        {
+          "iteration": 1,
+          "add_enodes": 102
+        },
+        {
+          "iteration": 2,
+          "add_enodes": 610
+        },
+        {
+          "iteration": 3,
+          "add_enodes": 6610
+        },
+        {
+          "iteration": 4,
+          "add_enodes": 104406
+        },
+        {
+          "iteration": 5,
+          "add_enodes": 450806
+        },
+        {
+          "iteration": 6,
+          "add_enodes": 523250
+        },
+        {
+          "iteration": 7,
+          "add_enodes": 523250
+        },
+        {
+          "iteration": 8,
+          "add_enodes": 523250
+        },
+        {
+          "iteration": 9,
+          "add_enodes": 523250
+        },
+        {
+          "iteration": 10,
+          "add_enodes": 523250
+        },
+        {
+          "iteration": 11,
+          "add_enodes": 523250
+        },
+        {
+          "iteration": 12,
+          "add_enodes": 523250
+        },
+        {
+          "iteration": 13,
+          "add_enodes": 523250
+        },
+        {
+          "iteration": 14,
+          "add_enodes": 523250
+        },
+        {
+          "iteration": 15,
+          "add_enodes": 523250
+        },
+        {
+          "iteration": 16,
+          "add_enodes": 523250
+        },
+        {
+          "iteration": 17,
+          "add_enodes": 523250
+        },
+        {
+          "iteration": 18,
+          "add_enodes": 523250
+        }
+      ],
+      "saturated_at_iteration": 6,
+      "n": 12,
+      "variant": "shortcut"
+    }
+  ],
+  "timing": [
+    {
+      "n": 4,
+      "variants": {
+        "generic": {
+          "seconds": [
+            0.000914375,
+            0.000929292,
+            0.000954458,
+            0.0009935,
+            0.001034042
+          ],
+          "median_seconds": 0.000954458,
+          "min_seconds": 0.000914375,
+          "max_seconds": 0.001034042,
+          "matches": [
+            120
+          ]
+        },
+        "shortcut": {
+          "seconds": [
+            0.001076542,
+            0.001080833,
+            0.001115458,
+            0.00112775,
+            0.001158625
+          ],
+          "median_seconds": 0.001115458,
+          "min_seconds": 0.001076542,
+          "max_seconds": 0.001158625,
+          "matches": [
+            68
+          ]
+        }
+      }
+    },
+    {
+      "n": 6,
+      "variants": {
+        "generic": {
+          "seconds": [
+            0.002417875,
+            0.002424625,
+            0.002471166,
+            0.002477666,
+            0.002491792
+          ],
+          "median_seconds": 0.002471166,
+          "min_seconds": 0.002417875,
+          "max_seconds": 0.002491792,
+          "matches": [
+            3335
+          ]
+        },
+        "shortcut": {
+          "seconds": [
+            0.004051375,
+            0.00405625,
+            0.00409975,
+            0.004114583,
+            0.004137708
+          ],
+          "median_seconds": 0.00409975,
+          "min_seconds": 0.004051375,
+          "max_seconds": 0.004137708,
+          "matches": [
+            2572
+          ]
+        }
+      }
+    },
+    {
+      "n": 8,
+      "variants": {
+        "generic": {
+          "seconds": [
+            0.019727916,
+            0.020127083,
+            0.020140958,
+            0.022093417,
+            0.022990542
+          ],
+          "median_seconds": 0.020140958,
+          "min_seconds": 0.019727916,
+          "max_seconds": 0.022990542,
+          "matches": [
+            68116
+          ]
+        },
+        "shortcut": {
+          "seconds": [
+            0.028766583,
+            0.028848416,
+            0.029225458,
+            0.031246834,
+            0.031443458
+          ],
+          "median_seconds": 0.029225458,
+          "min_seconds": 0.028766583,
+          "max_seconds": 0.031443458,
+          "matches": [
+            56908
+          ]
+        }
+      }
+    },
+    {
+      "n": 10,
+      "variants": {
+        "generic": {
+          "seconds": [
+            0.128097209,
+            0.132832708,
+            0.135431584,
+            0.142160584,
+            0.153980541
+          ],
+          "median_seconds": 0.135431584,
+          "min_seconds": 0.128097209,
+          "max_seconds": 0.153980541,
+          "matches": [
+            1245490,
+            1245552,
+            1245740,
+            1245847
+          ]
+        },
+        "shortcut": {
+          "seconds": [
+            0.213516291,
+            0.216753333,
+            0.217466708,
+            0.217975959,
+            0.221096833
+          ],
+          "median_seconds": 0.217466708,
+          "min_seconds": 0.213516291,
+          "max_seconds": 0.221096833,
+          "matches": [
+            1049470
+          ]
+        }
+      }
+    },
+    {
+      "n": 12,
+      "variants": {
+        "generic": {
+          "seconds": [
+            2.720022084,
+            2.744715584,
+            2.744728792,
+            2.747930083,
+            2.78226675
+          ],
+          "median_seconds": 2.744728792,
+          "min_seconds": 2.720022084,
+          "max_seconds": 2.78226675,
+          "matches": [
+            21273913,
+            21275147,
+            21275436,
+            21275888,
+            21277114
+          ]
+        },
+        "shortcut": {
+          "seconds": [
+            3.466060708,
+            3.5194161250000002,
+            3.606681417,
+            3.637192709,
+            3.769677875
+          ],
+          "median_seconds": 3.606681417,
+          "min_seconds": 3.466060708,
+          "max_seconds": 3.769677875,
+          "matches": [
+            17270836,
+            17279502,
+            17281434,
+            17285532,
+            17294108
+          ]
+        }
+      }
+    }
+  ]
+}

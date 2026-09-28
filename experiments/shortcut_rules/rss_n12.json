@@ -1,0 +1,22 @@
+{
+  "n": 12,
+  "command": "/usr/bin/time -l out/vanilla-commutativity/bin/pristine <program>",
+  "runs": {
+    "generic": {
+      "peak_rss_bytes": [
+        1330069504,
+        1361985536,
+        1343520768
+      ],
+      "median_peak_rss_bytes": 1343520768
+    },
+    "shortcut": {
+      "peak_rss_bytes": [
+        5513691136,
+        5523013632,
+        5519032320
+      ],
+      "median_peak_rss_bytes": 5519032320
+    }
+  }
+}
