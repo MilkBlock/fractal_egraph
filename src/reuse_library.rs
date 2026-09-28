@@ -259,6 +259,22 @@ impl Library {
         for e in &self.entries {
             let d = &self.enclosures[e.enclosure.0];
             let body = d.body.0;
+            let state = &self.bodies[body].graph;
+            // Recorded boundary terms, resolved to stored body values. Older
+            // artifacts carry no terms, leaving the correspondence unknown.
+            let boundary_body_values = e.origin["external_terms"]
+                .as_array()
+                .map(|entries| {
+                    entries
+                        .iter()
+                        .filter_map(|entry| {
+                            let port = entry.get(0)?.as_u64()? as usize;
+                            let term = entry.get(1)?.as_str()?;
+                            resolve_term(term, state).ok().map(|value| (port, value))
+                        })
+                        .collect()
+                })
+                .unwrap_or_default();
             out[body].sources.push(crate::reuse_cell_recognition::LibraryCellSource {
                 enclosure: e.enclosure.0,
                 interface: d
@@ -290,6 +306,7 @@ impl Library {
                             .collect()
                     })
                     .unwrap_or_default(),
+                boundary_body_values,
             });
         }
         Ok(out)
@@ -396,6 +413,15 @@ fn resolve_interface(terms: &Value, state: &SaturatedRuleComposition) -> Result<
         upper: ports("upper")?,
         lower: ports("lower")?,
     })
+}
+/// Resolve one recorded boundary term to its stored body value.
+fn resolve_term(term: &str, state: &SaturatedRuleComposition) -> Result<usize> {
+    let mut parser = egglog::EGraph::default();
+    let cmds = parser.parse_program(None, &format!("(let reuse_port {term})"))?;
+    let [Command::Action(Action::Let(_, _, expr))] = cmds.as_slice() else {
+        return Err("invalid boundary term".into());
+    };
+    resolve(expr, state)
 }
 fn resolve(expr: &Expr, state: &SaturatedRuleComposition) -> Result<usize> {
     let candidates: BTreeSet<_> = match expr {

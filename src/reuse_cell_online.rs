@@ -206,17 +206,11 @@ impl CellRecognizer {
                 {
                     Some("a step external maps outside the declared boundary".to_string())
                 } else {
-                    // `usize::MAX` marks an ordinal the recipe binding never
-                    // references; it needs no boundary position.
-                    let used: BTreeSet<usize> = source
-                        .external_slots
-                        .iter()
-                        .flatten()
-                        .copied()
-                        .filter(|p| *p != usize::MAX)
-                        .collect();
-                    (used.len() != boundary_len)
-                        .then(|| format!("the source uses {} of {boundary_len} boundary positions", used.len()))
+                    // A source need not use every declared position: the plan
+                    // boundary is shared by all its sources. An unused position
+                    // stays unbound and can never distinguish two instances of
+                    // this source, because nothing binds it.
+                    None
                 };
                 if let Some(reason) = problem {
                     unsupported.push((plan_index, source_index, reason));
@@ -1051,6 +1045,7 @@ mod tests {
                     ),
                 ],
                 wiring: vec![],
+                boundary_body_values: vec![],
             }],
         };
         compile_library(EnvironmentId::from_text(&["(env)".into()]), &[body])
@@ -1120,6 +1115,105 @@ mod tests {
         // rather than resolving a body column from a recognition position.
         assert_eq!(recogniser.confirm(&facts), 0);
         assert!(recogniser.complete(&facts).is_empty());
+    }
+
+    /// A two-step library source whose boundary terms are recorded, so the
+    /// boundary is a storage-slot space and both steps share one boundary port.
+    fn wired_library_plan() -> CellRecognitionPlan {
+        use crate::coarse_smooth::{Comb, CombKind, Effect, RelativeBinding};
+        let step = |rule: &str, parents: Vec<usize>, binding: Vec<RelativeBinding>| Comb {
+            kind: if parents.is_empty() {
+                CombKind::CoarseRuleComposition
+            } else {
+                CombKind::SmoothRuleComposition
+            },
+            rule: rule.into(),
+            input_roles: vec!["var:x".into()],
+            output_roles: vec!["var:y".into()],
+            parents,
+            binding,
+            aliases: vec![0, 1, 2],
+            input_count: 1,
+            output_count: 1,
+            external_count: 1,
+            requirements: vec![],
+            effects: vec![Effect::RowFact(0)],
+            external_facts: vec![],
+        };
+        let body = LibraryBody {
+            body: 1,
+            values: vec![
+                ("Math".into(), None),
+                ("Math".into(), None),
+                ("Math".into(), None),
+            ],
+            rows: vec![("A".into(), vec![0, 1]), ("B".into(), vec![1, 0, 2])],
+            sources: vec![LibraryCellSource {
+                enclosure: 0,
+                interface: vec![0],
+                recipe: vec![
+                    step("r0", vec![], vec![RelativeBinding::External { slot: 0 }]),
+                    step("r1", vec![0], vec![RelativeBinding::External { slot: 0 }]),
+                ],
+                // Both steps consume canonical port 7, which denotes body value 0.
+                wiring: vec![vec![Some(7)], vec![Some(7)]],
+                boundary_body_values: vec![(7, 0)],
+            }],
+        };
+        compile_library(EnvironmentId::from_text(&["(env)".into()]), &[body])
+            .unwrap()
+            .remove(0)
+    }
+
+    #[test]
+    fn a_recorded_boundary_term_lets_a_library_cell_confirm() {
+        let plan = wired_library_plan();
+        assert_eq!(
+            plan.slots.boundary_space,
+            crate::reuse_cell_recognition::BoundarySpace::Slots
+        );
+        assert_eq!(plan.slots.boundary, vec![0]);
+        let environment = plan.environment;
+        let mut recogniser = CellRecognizer::new(vec![plan]);
+        let step0 = RuleIdentity {
+            environment,
+            rule: "r0".into(),
+        };
+        let step1 = RuleIdentity {
+            environment,
+            rule: "r1".into(),
+        };
+        recogniser
+            .observe(CommittedEvent::Apply {
+                event: 1,
+                rule: &step0,
+                wanted: &[10],
+                outputs: &[20],
+                external: &[10],
+            })
+            .unwrap();
+        // The second step consumes the same boundary value, so it extends the
+        // same instance rather than creating a second one.
+        recogniser
+            .observe(CommittedEvent::Apply {
+                event: 2,
+                rule: &step1,
+                wanted: &[10],
+                outputs: &[30],
+                external: &[10],
+            })
+            .unwrap();
+        assert_eq!(recogniser.counts().located, 1);
+        assert!(
+            recogniser.unsupported_sources().is_empty(),
+            "{:?}",
+            recogniser.unsupported_sources()
+        );
+        let facts = oracle(&[("A", vec![10, 20]), ("B", vec![20, 10, 30])]);
+        assert_eq!(recogniser.confirm(&facts), 1);
+        let cells = recogniser.complete(&facts);
+        assert_eq!(cells.len(), 1);
+        assert_eq!(cells[0].rows, vec![vec![10, 20], vec![20, 10, 30]]);
     }
 
     #[test]

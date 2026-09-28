@@ -430,6 +430,10 @@ pub struct LibraryCellSource {
     /// input is satisfied by a local parent. Empty when the artifact does not
     /// carry it.
     pub wiring: Vec<Vec<Option<usize>>>,
+    /// Recorded boundary port -> stored body value. When every source carries
+    /// this, the instance boundary is a storage-slot space and a library cell
+    /// can be confirmed and compacted exactly like an adaptive one.
+    pub boundary_body_values: Vec<(usize, usize)>,
 }
 
 /// Derive the instance boundary and per-step external mapping of one source.
@@ -443,6 +447,7 @@ pub struct LibraryCellSource {
 fn derive_external_slots(
     source: &LibraryCellSource,
     steps: &[RecognitionStep],
+    port_position: Option<&BTreeMap<usize, usize>>,
 ) -> Result<Vec<Vec<usize>>> {
     let mut positions: BTreeMap<usize, usize> = BTreeMap::new();
     let mut boundary = vec![];
@@ -460,15 +465,25 @@ fn derive_external_slots(
                 Some(Some(port)) => *port,
                 // A wired input that the recipe treats as external must be a
                 // boundary port; otherwise the artifact contradicts itself.
-                Some(None) => return Err("recorded wiring calls a step external a local port".into()),
+                Some(None) => {
+                    return Err("recorded wiring calls a step external a local port".into());
+                }
                 // No wiring recorded: keep each step-external distinct.
                 None => (i << 32) | *slot,
             };
-            let next = positions.len();
-            let position = *positions.entry(port).or_insert_with(|| {
-                boundary.push(next);
-                next
-            });
+            let position = match port_position {
+                // The recorded terms fix this port's slot-space position.
+                Some(map) => *map
+                    .get(&port)
+                    .ok_or("boundary port has no recorded term to map to a slot")?,
+                None => {
+                    let next = positions.len();
+                    *positions.entry(port).or_insert_with(|| {
+                        boundary.push(next);
+                        next
+                    })
+                }
+            };
             slots[*slot] = position;
         }
         // An ordinal the binding never references needs no position: the binding
@@ -494,27 +509,6 @@ pub fn compile_library(
         if body.sources.is_empty() {
             return Err("library body has no legal source composition".into());
         }
-        let boundary: BTreeSet<usize> = body
-            .sources
-            .iter()
-            .flat_map(|s| s.interface.iter().copied())
-            .collect();
-        let slots: Vec<PlanSlot> = body
-            .values
-            .iter()
-            .enumerate()
-            .map(|(i, (sort, literal))| PlanSlot {
-                sort: sort.clone(),
-                origin: if literal.is_some() {
-                    SlotOrigin::Literal
-                } else if boundary.contains(&i) {
-                    SlotOrigin::Boundary
-                } else {
-                    SlotOrigin::Derived
-                },
-                term: literal.clone(),
-            })
-            .collect();
         let template: Vec<BodyRow> = body
             .rows
             .iter()
@@ -523,45 +517,112 @@ pub fn compile_library(
                 columns: columns.clone(),
             })
             .collect();
+        // When every source records which stored body value each boundary port
+        // denotes, the boundary is a storage-slot space: library cells then
+        // confirm and compact through the same path as adaptive ones. Otherwise
+        // it stays recognition-only and confirmation stays closed.
+        let mut port_position: BTreeMap<usize, usize> = BTreeMap::new();
+        let mut boundary_values: Vec<usize> = vec![];
+        if body
+            .sources
+            .iter()
+            .all(|s| !s.boundary_body_values.is_empty())
+        {
+            for source in &body.sources {
+                for (port, value) in &source.boundary_body_values {
+                    if !port_position.contains_key(port) {
+                        port_position.insert(*port, boundary_values.len());
+                        boundary_values.push(*value);
+                    }
+                }
+            }
+        }
         let mut graph = RecognitionGraph::default();
-        let mut sources = Vec::with_capacity(body.sources.len());
-        let mut boundary_len = 0usize;
-        for source in &body.sources {
-            let recipe = canonical_recipe(&source.recipe);
-            let steps = recipe
+        let mut slot_space = (!port_position.is_empty()).then_some(port_position.clone());
+        let (sources, slot_space) = loop {
+            let attempt = body
+                .sources
                 .iter()
-                .map(|comb| {
-                    RecognitionStep::from_comb(
-                        RuleIdentity {
-                            environment,
-                            rule: comb.rule.clone(),
-                        },
-                        comb,
+                .map(|source| {
+                    let recipe = canonical_recipe(&source.recipe);
+                    let steps = recipe
+                        .iter()
+                        .map(|comb| {
+                            RecognitionStep::from_comb(
+                                RuleIdentity {
+                                    environment,
+                                    rule: comb.rule.clone(),
+                                },
+                                comb,
+                            )
+                        })
+                        .collect::<Vec<_>>();
+                    let external_slots =
+                        derive_external_slots(source, &steps, slot_space.as_ref())?;
+                    compile_source(
+                        &mut graph,
+                        SourceProvenance::LibraryEnclosure(source.enclosure),
+                        steps,
+                        external_slots,
                     )
                 })
-                .collect::<Vec<_>>();
-            let external_slots = derive_external_slots(source, &steps)?;
-            boundary_len = boundary_len.max(
-                external_slots
+                .collect::<Result<Vec<_>>>();
+            match attempt {
+                Ok(sources) => break (sources, slot_space),
+                // A port with no recorded term cannot join the slot space; fall
+                // back to the recognition-only boundary rather than guessing.
+                Err(_) if slot_space.is_some() => {
+                    slot_space = None;
+                    graph = RecognitionGraph::default();
+                }
+                Err(e) => return Err(e),
+            }
+        };
+        let (boundary, boundary_space) = match &slot_space {
+            Some(_) => (boundary_values, BoundarySpace::Slots),
+            None => {
+                let len = sources
                     .iter()
-                    .flatten()
-                    .copied()
+                    .flat_map(|s| s.external_slots.iter().flatten().copied())
                     .filter(|p| *p != usize::MAX)
                     .max()
-                    .map_or(0, |m| m + 1),
-            );
-            sources.push(compile_source(
-                &mut graph,
-                SourceProvenance::LibraryEnclosure(source.enclosure),
-                steps,
-                external_slots,
-            )?);
-        }
+                    .map_or(0, |m| m + 1);
+                ((0..len).collect(), BoundarySpace::Recognition)
+            }
+        };
+        // Slot origins describe the storage template. In slot space the boundary
+        // names stored body values directly; in recognition space the declared
+        // interface is the best available statement of which values come from
+        // outside, and a recognition position is never read as a body value.
+        let slot_boundary: BTreeSet<usize> = match boundary_space {
+            BoundarySpace::Slots => boundary.iter().copied().collect(),
+            BoundarySpace::Recognition => body
+                .sources
+                .iter()
+                .flat_map(|s| s.interface.iter().copied())
+                .collect(),
+        };
+        let slots: Vec<PlanSlot> = body
+            .values
+            .iter()
+            .enumerate()
+            .map(|(i, (sort, literal))| PlanSlot {
+                sort: sort.clone(),
+                origin: if literal.is_some() {
+                    SlotOrigin::Literal
+                } else if slot_boundary.contains(&i) {
+                    SlotOrigin::Boundary
+                } else {
+                    SlotOrigin::Derived
+                },
+                term: literal.clone(),
+            })
+            .collect();
         // One boundary list for the whole body: every source positions its
         // external ports in the same canonical order.
         let mapping = SlotMapping {
-            boundary: (0..boundary_len).collect(),
-            boundary_space: BoundarySpace::Recognition,
+            boundary,
+            boundary_space,
             slots,
             template,
         };
@@ -749,12 +810,14 @@ mod tests {
                     interface: vec![0, 1],
                     recipe: recipe_a,
                     wiring: vec![],
+                    boundary_body_values: vec![],
                 },
                 LibraryCellSource {
                     enclosure: 1,
                     interface: vec![1],
                     recipe: recipe_b,
                     wiring: vec![],
+                    boundary_body_values: vec![],
                 },
             ],
         }
@@ -843,6 +906,7 @@ mod tests {
                     interface: vec![0],
                     recipe: vec![step("r", vec![], 1, 1)],
                     wiring: vec![],
+                    boundary_body_values: vec![],
                 }],
             },
         ];
@@ -868,6 +932,7 @@ mod tests {
                 interface: vec![0],
                 recipe: vec![recipe_step],
                 wiring: vec![],
+                boundary_body_values: vec![],
             }],
         }
     }
@@ -884,6 +949,7 @@ mod tests {
                 interface: vec![0],
                 recipe: vec![step("r0", vec![], 1, 1), step("r1", vec![0], 1, 1)],
                 wiring,
+                boundary_body_values: vec![],
             }],
         };
         // Recorded wiring: both steps consume the same canonical port 7, so the

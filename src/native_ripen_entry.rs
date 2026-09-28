@@ -603,10 +603,23 @@ fn extract(
         .filter_map(|v| values.get(v).map(ToString::to_string)).collect();
     let lower_terms: Vec<_> = parameters.iter().filter_map(|p| p["token"].as_u64())
         .map(|v| values[&(v as usize)].to_string()).collect();
+    // Canonical boundary port -> recorded term. A recognition plan needs this to
+    // connect a recipe external to a stored body value; without it a library cell
+    // can be recognised but never confirmed or compacted.
+    let mut port_tokens: Vec<_> = boundary_ports.iter().collect();
+    port_tokens.sort_by_key(|(_, port)| **port);
+    let external_terms: Vec<_> = port_tokens
+        .iter()
+        .map(|(token, port)| json!([port, values.get(token).map(ToString::to_string)]))
+        .collect();
     let provenance = json!({"reuse_recipe":recipe,"reuse_interface_terms":{"upper":upper_terms,"lower":lower_terms},"kind":"symbolic_cs_interface","template":null,"members":member_ids,"root_member":root_member,"comb_members":comb_members,"kind_scope":"use_kind is relative to directly recorded dependencies inside this CS entry; source_kind is the original layer classification; neither minimizes alternate proof requirements",
         "events":stages.iter().map(|(i,e,n,_,_)|json!({"record":i,"event":e,"precondition_checks":n})).collect::<Vec<_>>(),
         "initial_tables":initial_tables,"original_use_tables":original_tables,"parameter_marker":hole,
         "symbolic_values":values.iter().map(|(token,term)|json!({"token":token,"term":term.to_string(),"sort":c.pool.values[*token].sort})).collect::<Vec<_>>(),
+        // Canonical boundary port -> recorded term. A recognition plan needs this
+        // to connect a recipe external to a stored body value; without it a
+        // library cell can be recognised but never confirmed or compacted.
+        "external_terms":external_terms,
         "parameters":parameters,"all_source_rules":c.rules.len(),"validation":"all original LHS checks and recorded output aliases passed before/after the corresponding ground actions",
         "staged_injections":injections,"initial_source":seed_text,"concrete_boundary_structure_recovered":false,
         "saturated_scope":"extracted interface only; not the complete original tier0 neighborhood"});
