@@ -1,0 +1,431 @@
+{
+  "cases_root": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-evolution-complete",
+  "per_case": {
+    "boundary": {
+      "logical_matches": 24,
+      "boundary_events": 12,
+      "boundary_linked_births": 12,
+      "observed_instance_births": 24,
+      "canonical_instances": 24,
+      "coalesced_cells": 0,
+      "observed_slot_partition_changes": 0,
+      "multi_support_events": 0,
+      "loose_interface_contacts_not_expanded": 0,
+      "incomplete_matches": 0,
+      "transition_patterns": 1,
+      "patterns_repeated_across_instances": 1,
+      "families": 2,
+      "rounds": [
+        {
+          "round": 1,
+          "matches": 12,
+          "enodes": 36,
+          "eclasses": 24,
+          "seconds": 0.000152584,
+          "us_per_match": 12.715333333333332
+        },
+        {
+          "round": 2,
+          "matches": 0,
+          "enodes": 36,
+          "eclasses": 24,
+          "seconds": 0.000187709,
+          "us_per_match": null
+        },
+        {
+          "round": 3,
+          "matches": 12,
+          "enodes": 72,
+          "eclasses": 48,
+          "seconds": 0.0006211669999999999,
+          "us_per_match": 51.76391666666666
+        },
+        {
+          "round": 4,
+          "matches": 0,
+          "enodes": 72,
+          "eclasses": 48,
+          "seconds": 0.0006864999999999999,
+          "us_per_match": null
+        }
+      ]
+    },
+    "refinement": {
+      "logical_matches": 24,
+      "boundary_events": 12,
+      "boundary_linked_births": 12,
+      "observed_instance_births": 24,
+      "canonical_instances": 24,
+      "coalesced_cells": 0,
+      "observed_slot_partition_changes": 0,
+      "multi_support_events": 0,
+      "loose_interface_contacts_not_expanded": 0,
+      "incomplete_matches": 0,
+      "transition_patterns": 1,
+      "patterns_repeated_across_instances": 1,
+      "families": 2,
+      "rounds": [
+        {
+          "round": 1,
+          "matches": 12,
+          "enodes": 36,
+          "eclasses": 24,
+          "seconds": 0.000119,
+          "us_per_match": 9.916666666666666
+        },
+        {
+          "round": 2,
+          "matches": 0,
+          "enodes": 36,
+          "eclasses": 24,
+          "seconds": 0.000151583,
+          "us_per_match": null
+        },
+        {
+          "round": 3,
+          "matches": 12,
+          "enodes": 72,
+          "eclasses": 36,
+          "seconds": 0.0005084169999999999,
+          "us_per_match": 42.368083333333324
+        },
+        {
+          "round": 4,
+          "matches": 0,
+          "enodes": 72,
+          "eclasses": 36,
+          "seconds": 0.0005725419999999999,
+          "us_per_match": null
+        }
+      ]
+    },
+    "multi_parent": {
+      "logical_matches": 18,
+      "boundary_events": 6,
+      "boundary_linked_births": 6,
+      "observed_instance_births": 18,
+      "canonical_instances": 18,
+      "coalesced_cells": 0,
+      "observed_slot_partition_changes": 0,
+      "multi_support_events": 6,
+      "loose_interface_contacts_not_expanded": 0,
+      "incomplete_matches": 0,
+      "transition_patterns": 2,
+      "patterns_repeated_across_instances": 2,
+      "families": 2,
+      "rounds": [
+        {
+          "round": 1,
+          "matches": 12,
+          "enodes": 36,
+          "eclasses": 24,
+          "seconds": 0.000126334,
+          "us_per_match": 10.527833333333334
+        },
+        {
+          "round": 2,
+          "matches": 0,
+          "enodes": 36,
+          "eclasses": 24,
+          "seconds": 0.000167709,
+          "us_per_match": null
+        },
+        {
+          "round": 3,
+          "matches": 6,
+          "enodes": 48,
+          "eclasses": 30,
+          "seconds": 0.0005532499999999999,
+          "us_per_match": 92.20833333333331
+        },
+        {
+          "round": 4,
+          "matches": 0,
+          "enodes": 48,
+          "eclasses": 30,
+          "seconds": 0.0006134999999999999,
+          "us_per_match": null
+        }
+      ]
+    },
+    "unrelated": {
+      "logical_matches": 2,
+      "boundary_events": 0,
+      "boundary_linked_births": 0,
+      "observed_instance_births": 2,
+      "canonical_instances": 2,
+      "coalesced_cells": 0,
+      "observed_slot_partition_changes": 0,
+      "multi_support_events": 0,
+      "loose_interface_contacts_not_expanded": 1,
+      "incomplete_matches": 0,
+      "transition_patterns": 0,
+      "patterns_repeated_across_instances": 0,
+      "families": 2,
+      "rounds": [
+        {
+          "round": 1,
+          "matches": 1,
+          "enodes": 3,
+          "eclasses": 2,
+          "seconds": 6.9666e-05,
+          "us_per_match": 69.666
+        },
+        {
+          "round": 2,
+          "matches": 0,
+          "enodes": 3,
+          "eclasses": 2,
+          "seconds": 8.149999999999999e-05,
+          "us_per_match": null
+        },
+        {
+          "round": 3,
+          "matches": 1,
+          "enodes": 5,
+          "eclasses": 3,
+          "seconds": 0.00010795799999999999,
+          "us_per_match": 107.95799999999998
+        },
+        {
+          "round": 4,
+          "matches": 0,
+          "enodes": 5,
+          "eclasses": 3,
+          "seconds": 0.00011887499999999999,
+          "us_per_match": null
+        }
+      ]
+    },
+    "math": {
+      "logical_matches": 3380,
+      "boundary_events": 2631,
+      "boundary_linked_births": 2394,
+      "observed_instance_births": 3016,
+      "canonical_instances": 3016,
+      "coalesced_cells": 0,
+      "observed_slot_partition_changes": 0,
+      "multi_support_events": 3051,
+      "loose_interface_contacts_not_expanded": 826555,
+      "incomplete_matches": 0,
+      "transition_patterns": 3211,
+      "patterns_repeated_across_instances": 2124,
+      "families": 13,
+      "rounds": [
+        {
+          "round": 1,
+          "matches": 20,
+          "enodes": 81,
+          "eclasses": 50,
+          "seconds": 0.000515375,
+          "us_per_match": 25.76875
+        },
+        {
+          "round": 2,
+          "matches": 62,
+          "enodes": 151,
+          "eclasses": 75,
+          "seconds": 0.002943375,
+          "us_per_match": 47.47379032258065
+        },
+        {
+          "round": 3,
+          "matches": 129,
+          "enodes": 347,
+          "eclasses": 137,
+          "seconds": 0.019048791000000002,
+          "us_per_match": 147.6650465116279
+        },
+        {
+          "round": 4,
+          "matches": 466,
+          "enodes": 759,
+          "eclasses": 244,
+          "seconds": 0.1379865,
+          "us_per_match": 296.10836909871244
+        },
+        {
+          "round": 5,
+          "matches": 1239,
+          "enodes": 1211,
+          "eclasses": 364,
+          "seconds": 0.7233423330000001,
+          "us_per_match": 583.8114067796611
+        },
+        {
+          "round": 6,
+          "matches": 1464,
+          "enodes": 2167,
+          "eclasses": 748,
+          "seconds": 2.05873725,
+          "us_per_match": 1406.2412909836066
+        }
+      ]
+    }
+  },
+  "math": {
+    "patterns": 3211,
+    "occurrences": 67732,
+    "new_target_occurrences": 53979,
+    "births_per_occurrence": 0.7969497431051792,
+    "touched_slots": {
+      "1": 1783,
+      "2": 1220,
+      "3": 168,
+      "4": 40
+    },
+    "traced_read_value_unions_total": 0,
+    "patterns_with_alias_change": 0,
+    "channels": {
+      "body_read": {
+        "patterns": 1810,
+        "occurrences": 38311,
+        "new_target_occurrences": 29879,
+        "births_per_occurrence": 0.7799065542533477,
+        "median_external_reads": 1.0,
+        "median_body_reads": 1.0,
+        "median_support_cells": 16.0,
+        "median_touched_slots": 1.0,
+        "patterns_committing_an_update": 187,
+        "committed_rows": {
+          "inserted": 3666,
+          "updated": 493
+        }
+      },
+      "input_refinement": {
+        "patterns": 1401,
+        "occurrences": 29421,
+        "new_target_occurrences": 24100,
+        "births_per_occurrence": 0.8191427891642025,
+        "median_external_reads": 2,
+        "median_body_reads": 0,
+        "median_support_cells": 23,
+        "median_touched_slots": 1,
+        "patterns_committing_an_update": 85,
+        "committed_rows": {
+          "inserted": 2428,
+          "updated": 218
+        }
+      }
+    },
+    "fan_in": {
+      "patterns_with_other_cells": 3208,
+      "other_cells": {
+        "min": 1,
+        "p25": 10,
+        "median": 17.0,
+        "p75": 42,
+        "p90": 144,
+        "max": 578
+      },
+      "top_fan_in": {
+        "min": 1,
+        "p25": 9,
+        "median": 15.0,
+        "p75": 37,
+        "p90": 153,
+        "max": 524
+      },
+      "patterns_with_one_value_shared_by_more_than_200_cells": 218,
+      "max_examples": [
+        {
+          "other_cells": 578,
+          "top_symbol": "external_3",
+          "top_fan_in": 524,
+          "refs": 1391
+        },
+        {
+          "other_cells": 578,
+          "top_symbol": "external_3",
+          "top_fan_in": 524,
+          "refs": 1391
+        },
+        {
+          "other_cells": 578,
+          "top_symbol": "external_3",
+          "top_fan_in": 524,
+          "refs": 1429
+        }
+      ]
+    },
+    "fanout_buckets": [
+      {
+        "support_cells_at_most": 1,
+        "patterns": 3,
+        "occurrences": 33,
+        "births": 33,
+        "occurrence_share": 0.00048721431524242605
+      },
+      {
+        "support_cells_at_most": 2,
+        "patterns": 33,
+        "occurrences": 2183,
+        "births": 1684,
+        "occurrence_share": 0.032229965156794424
+      },
+      {
+        "support_cells_at_most": 4,
+        "patterns": 69,
+        "occurrences": 2322,
+        "births": 1993,
+        "occurrence_share": 0.034282170908876156
+      },
+      {
+        "support_cells_at_most": 8,
+        "patterns": 404,
+        "occurrences": 21112,
+        "births": 16535,
+        "occurrence_share": 0.31169904919388175
+      },
+      {
+        "support_cells_at_most": 16,
+        "patterns": 1012,
+        "occurrences": 16437,
+        "births": 12867,
+        "occurrence_share": 0.24267702120120474
+      },
+      {
+        "support_cells_at_most": 32,
+        "patterns": 713,
+        "occurrences": 16197,
+        "births": 13293,
+        "occurrence_share": 0.23913364436307802
+      },
+      {
+        "support_cells_at_most": 64,
+        "patterns": 344,
+        "occurrences": 4021,
+        "births": 2915,
+        "occurrence_share": 0.05936632610878167
+      },
+      {
+        "support_cells_at_most": 128,
+        "patterns": 203,
+        "occurrences": 1642,
+        "births": 1298,
+        "occurrence_share": 0.02424260320085041
+      },
+      {
+        "support_cells_at_most": 256,
+        "patterns": 212,
+        "occurrences": 1744,
+        "births": 1320,
+        "occurrence_share": 0.025748538357054273
+      },
+      {
+        "support_cells_at_most": 512,
+        "patterns": 56,
+        "occurrences": 568,
+        "births": 568,
+        "occurrence_share": 0.008385991850233272
+      },
+      {
+        "support_cells_at_most": 1024,
+        "patterns": 162,
+        "occurrences": 1473,
+        "births": 1473,
+        "occurrence_share": 0.021747475344002835
+      }
+    ]
+  }
+}
