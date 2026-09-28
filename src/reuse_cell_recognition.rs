@@ -554,11 +554,11 @@ pub fn compile_bake(cells: &[BakeCell]) -> Result<Vec<CellRecognitionPlan>> {
                 .collect(),
             aliases: None,
             input_roles: mapping.boundary.iter().map(|s| format!("slot:{s}")).collect(),
-            output_roles: (0..mapping.template.len())
-                .map(|r| format!("row:{r}"))
-                .collect(),
+            // A macro stores no rule output roles. Body rows are obligations
+            // (effects), not ports, so the trigger declares no outputs.
+            output_roles: vec![],
             input_count: mapping.boundary.len(),
-            output_count: mapping.template.len(),
+            output_count: 0,
             external_count: mapping.boundary.len(),
             requirements: vec![],
             effects: (0..mapping.template.len()).map(Effect::RowFact).collect(),

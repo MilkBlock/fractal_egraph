@@ -347,8 +347,8 @@ fn pack_cell_wave(eg:&mut EGraph,bake:&Bake,min_reuse:usize,audit:&mut Option<su
     let drain_seconds=t.elapsed().as_secs_f64();
     let refs=batches.iter().map(|(t,b)|(t,b.as_slice())).collect::<Vec<_>>();
     if std::env::var("EGG_LAYOUT_COMPACT_CELLS").is_ok_and(|v| v == "1") {
-        let r = eg.compact_cell_facts(&refs)?;
-        return Ok(json!({"compact":true,"cell_batches":r.cell_batches,"cell_instances":r.cell_instances,"owned_rows":r.owned_rows,"existing_cell_rows":r.existing_cell_rows,"storage":crate::reuse_graph::native_storage::compact_report(eg)}));
+        let installed = crate::reuse_graph::native_storage::install_cell_instances(eg, &refs)?;
+        return Ok(json!({"compact":true,"installed":installed,"storage":crate::reuse_graph::native_storage::compact_report(eg)}));
     }
     let r=eg.virtualize_unshared_facts_batch(&refs)?;
     let st=Instant::now();let virtual_rows=eg.virtual_fact_stats().iter().map(|(_,s)|s.virtual_rows).sum::<usize>();

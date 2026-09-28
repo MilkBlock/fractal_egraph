@@ -1,12 +1,106 @@
 //! Opt-in exact native storage packing from baked row patterns. This validates
 //! existing tuples; it does not execute a baked rewrite or assume trigger truth.
-use crate::{pipeline::Result, reuse_graph::library::Library};
+use crate::{pipeline::Result, reuse_cell_online::CompleteCell, reuse_graph::library::Library};
 use egglog::{
     EGraph, VirtualFactRow,
     ast::{Expr, Parser},
 };
 use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
+
+/// The single validated installation entry shared by every recognition path.
+/// `EGraph::compact_cell_facts` re-validates every row against committed native
+/// storage before any representation changes, so a caller cannot install an
+/// uncommitted or mismatched fact, and overlapping cells keep one physical
+/// owner per fact.
+pub fn install_cell_instances(
+    eg: &mut EGraph,
+    batches: &[(&egglog::VirtualFactTemplate, &[Vec<egglog::Value>])],
+) -> Result<Value> {
+    let mut cell_batches = 0usize;
+    let mut cell_instances = 0usize;
+    let mut owned_rows = 0usize;
+    let mut existing_cell_rows = 0usize;
+    let mut encoded_templates = 0usize;
+    for (template, bindings) in batches {
+        if bindings.is_empty() {
+            continue;
+        }
+        let report = eg.compact_cell_facts(&[(template, bindings)])?;
+        cell_batches += report.cell_batches;
+        cell_instances += report.cell_instances;
+        owned_rows += report.owned_rows;
+        existing_cell_rows += report.existing_cell_rows;
+        encoded_templates += 1;
+    }
+    Ok(json!({"cell_batches":cell_batches,"cell_instances":cell_instances,"owned_rows":owned_rows,"existing_cell_rows":existing_cell_rows,"encoded_templates":encoded_templates}))
+}
+
+/// Remap a template's plan slots to the contiguous index space that
+/// `virtual_fact_template` requires, in order of first use.
+fn contiguous_slots(
+    signature: &[(String, Vec<usize>)],
+) -> (BTreeMap<usize, usize>, Vec<VirtualFactRow>) {
+    let mut remap = BTreeMap::new();
+    let mut rows = vec![];
+    for (function, columns) in signature {
+        let mut mapped = Vec::with_capacity(columns.len());
+        for column in columns {
+            let next = remap.len();
+            mapped.push(*remap.entry(*column).or_insert(next));
+        }
+        rows.push(VirtualFactRow {
+            function: function.clone(),
+            columns: mapped,
+        });
+    }
+    (remap, rows)
+}
+
+/// Install recognised complete cells. A cell's slot values come from the
+/// committed rows the recogniser confirmed; installation still re-validates
+/// every row, so recognition cannot smuggle in an uncommitted fact.
+pub fn install_recognised_cells(eg: &mut EGraph, cells: &[CompleteCell]) -> Result<Value> {
+    let mut groups: BTreeMap<Vec<(String, Vec<usize>)>, Vec<Vec<egglog::Value>>> = BTreeMap::new();
+    let mut unresolved = 0usize;
+    for cell in cells {
+        let signature: Vec<(String, Vec<usize>)> = cell
+            .template
+            .iter()
+            .map(|r| (r.function.clone(), r.columns.clone()))
+            .collect();
+        let (remap, _) = contiguous_slots(&signature);
+        let mut binding = vec![None; remap.len()];
+        for (row, spec) in cell.rows.iter().zip(&cell.template) {
+            for (value, column) in row.iter().zip(&spec.columns) {
+                binding[remap[column]] = Some(egglog::Value::new_const(*value as u32));
+            }
+        }
+        match binding.into_iter().collect::<Option<Vec<_>>>() {
+            Some(binding) => groups.entry(signature).or_default().push(binding),
+            None => unresolved += 1,
+        }
+    }
+    let mut owners: Vec<(egglog::VirtualFactTemplate, Vec<Vec<egglog::Value>>)> = vec![];
+    for (signature, bindings) in groups {
+        let (_, rows) = contiguous_slots(&signature);
+        owners.push((eg.virtual_fact_template(rows)?, bindings));
+    }
+    let refs: Vec<(&egglog::VirtualFactTemplate, &[Vec<egglog::Value>])> = owners
+        .iter()
+        .map(|(template, bindings)| (template, bindings.as_slice()))
+        .collect();
+    let mut report = install_cell_instances(eg, &refs)?;
+    if let Some(object) = report.as_object_mut() {
+        object.insert("recognised_cells".into(), json!(cells.len()));
+        object.insert("unresolved_cells".into(), json!(unresolved));
+        object.insert(
+            "scope".into(),
+            json!("exact compaction of cells recognised from committed events; every row re-validated against committed native facts"),
+        );
+    }
+    Ok(report)
+}
 
 pub fn pack_library(eg: &mut EGraph, library: &Library) -> Result<Value> {
     visit_library(eg, library, true, false)
