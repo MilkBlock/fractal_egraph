@@ -22,6 +22,21 @@ sys.path.insert(0, str(ROOT / "experiments/shortcut_rules"))
 import shortcut_bench as sb  # noqa: E402
 
 PROFILE = ROOT / "out/shortcut-rules/bin/profile"
+PROBE = sb.bench.PROBE
+
+
+def node_curve(n, variant, iterations, timeout):
+    """Add e-node count after each `(run 1)`, from `(print-size)`."""
+    body = [sb.bench.HEADER, *sb.VARIANTS[variant], sb.bench.chain(n)]
+    for _ in range(iterations):
+        body += ["(run 1)", "(print-size)"]
+    with tempfile.TemporaryDirectory() as td:
+        egg = Path(td) / "p.egg"
+        egg.write_text("\n".join(body) + "\n")
+        proc = subprocess.run([str(PROBE), str(egg)], capture_output=True, text=True, timeout=timeout)
+        if proc.returncode != 0:
+            raise SystemExit(proc.stderr[-500:])
+    return [adds for adds, _nums in sb.bench.parse_sizes(proc.stdout)]
 
 
 def phases(n, variant, iterations, timeout):
@@ -41,6 +56,24 @@ def phases(n, variant, iterations, timeout):
         for rule in it["rules"]:
             per_rule[rule["rule"]]["search_apply_s"] += rule["search_apply_s"]
             per_rule[rule["rule"]]["matches"] += rule["matches"]
+
+    curve = node_curve(n, variant, iterations, timeout)
+    duplication, previous = [], 0
+    for it in iters:
+        i = it["iteration"]
+        matches = sum(r["matches"] for r in it["rules"])
+        nodes = curve[i - 1] if i - 1 < len(curve) else curve[-1]
+        new = nodes - previous
+        previous = nodes
+        duplication.append(
+            {
+                "iteration": i,
+                "matches": matches,
+                "add_enodes": nodes,
+                "net_new_add_enodes": new,
+                "matches_per_net_new_node": (matches / new) if new > 0 else None,
+            }
+        )
     return {
         "n": n,
         "variant": variant,
@@ -49,6 +82,7 @@ def phases(n, variant, iterations, timeout):
         "total_s": grand,
         "shares": {k: (v / grand if grand else 0.0) for k, v in total.items()},
         "per_rule": dict(per_rule),
+        "duplication": duplication,
     }
 
 
@@ -78,6 +112,18 @@ def main():
             for name, stats in sorted(rec["per_rule"].items(), key=lambda kv: -kv[1]["matches"]):
                 label = " ".join(name.split())[:70]
                 print(f"      {label:<70} matches={stats['matches']:>12,}", flush=True)
+            for row in rec["duplication"]:
+                if row["matches"] == 0 and row["net_new_add_enodes"] == 0:
+                    break
+                per = row["matches_per_net_new_node"]
+                print(
+                    f"      it{row['iteration']:>2} matches={row['matches']:>11,} "
+                    f"net_new={row['net_new_add_enodes']:>9,} "
+                    f"matches/new={per:>8.1f}" if per is not None else
+                    f"      it{row['iteration']:>2} matches={row['matches']:>11,} "
+                    f"net_new={row['net_new_add_enodes']:>9,} matches/new=       -",
+                    flush=True,
+                )
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(report, indent=2) + "\n")
     print(f"wrote {a.out}")

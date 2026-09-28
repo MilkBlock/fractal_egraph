@@ -9,18 +9,18 @@
           "iteration": 1,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 2.2125e-05,
-          "merge_s": 2.125e-06,
+          "search_apply_s": 0.000243833,
+          "merge_s": 2.541e-06,
           "rebuild_s": 0.0,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 9.916e-06,
+              "search_apply_s": 0.000220792,
               "matches": 6
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 3.834e-06,
+              "search_apply_s": 1.3208e-05,
               "matches": 7
             }
           ]
@@ -29,18 +29,18 @@
           "iteration": 2,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 4.4458e-05,
-          "merge_s": 4.791e-06,
+          "search_apply_s": 5.75e-05,
+          "merge_s": 4.792e-06,
           "rebuild_s": 0.0,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 2.6625e-05,
+              "search_apply_s": 3.5084e-05,
               "matches": 25
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 2.125e-06,
+              "search_apply_s": 1.917e-06,
               "matches": 19
             }
           ]
@@ -49,18 +49,18 @@
           "iteration": 3,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.0001155,
-          "merge_s": 1.9166e-05,
-          "rebuild_s": 3.7458e-05,
+          "search_apply_s": 0.00013125,
+          "merge_s": 2.6125e-05,
+          "rebuild_s": 4.05e-05,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 4.8583e-05,
+              "search_apply_s": 5.9624e-05,
               "matches": 194
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 4.708e-06,
+              "search_apply_s": 3.333e-06,
               "matches": 62
             }
           ]
@@ -69,18 +69,18 @@
           "iteration": 4,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.000484125,
-          "merge_s": 9.7042e-05,
-          "rebuild_s": 0.000163417,
+          "search_apply_s": 0.00050225,
+          "merge_s": 9.4375e-05,
+          "rebuild_s": 0.000176125,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.000383042,
+              "search_apply_s": 0.000397542,
               "matches": 945
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 3.25e-05,
+              "search_apply_s": 3.3875e-05,
               "matches": 296
             }
           ]
@@ -89,18 +89,18 @@
           "iteration": 5,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.001536666,
-          "merge_s": 0.00038525,
-          "rebuild_s": 0.000539666,
+          "search_apply_s": 0.001587958,
+          "merge_s": 0.00034675,
+          "rebuild_s": 0.000552791,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.001363083,
+              "search_apply_s": 0.00142575,
               "matches": 4410
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 0.000111916,
+              "search_apply_s": 0.000104958,
               "matches": 1130
             }
           ]
@@ -109,18 +109,18 @@
           "iteration": 6,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.004043666,
-          "merge_s": 0.004150167,
-          "rebuild_s": 0.001707584,
+          "search_apply_s": 0.004338625,
+          "merge_s": 0.00472825,
+          "rebuild_s": 0.001093416,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.003719083,
+              "search_apply_s": 0.003998417,
               "matches": 15874
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 0.000281625,
+              "search_apply_s": 0.0002985,
               "matches": 2903
             }
           ]
@@ -129,18 +129,18 @@
           "iteration": 7,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.001637,
-          "merge_s": 0.001846125,
-          "rebuild_s": 0.000928333,
+          "search_apply_s": 0.0019715,
+          "merge_s": 0.001371584,
+          "rebuild_s": 0.000846792,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.000350418,
+              "search_apply_s": 0.000677292,
               "matches": 25758
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 0.000106792,
+              "search_apply_s": 0.000274875,
               "matches": 3186
             }
           ]
@@ -149,18 +149,18 @@
           "iteration": 8,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.000780459,
-          "merge_s": 0.000789334,
-          "rebuild_s": 0.0001245,
+          "search_apply_s": 0.000734375,
+          "merge_s": 0.00092025,
+          "rebuild_s": 0.000165791,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.000333,
+              "search_apply_s": 0.000276709,
               "matches": 11890
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 4.3459e-05,
+              "search_apply_s": 4.1417e-05,
               "matches": 1099
             }
           ]
@@ -169,18 +169,18 @@
           "iteration": 9,
           "updated": false,
           "can_stop": true,
-          "search_apply_s": 0.000228709,
-          "merge_s": 3.2292e-05,
+          "search_apply_s": 0.00025175,
+          "merge_s": 2.8333e-05,
           "rebuild_s": 0.0,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.000195917,
+              "search_apply_s": 0.000184916,
               "matches": 287
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 6.166e-06,
+              "search_apply_s": 4.583e-06,
               "matches": 25
             }
           ]
@@ -232,26 +232,126 @@
         }
       ],
       "totals": {
-        "search_apply_s": 0.008892708,
-        "merge_s": 0.007326292,
-        "rebuild_s": 0.003500958
+        "search_apply_s": 0.009819041,
+        "merge_s": 0.007522999999999999,
+        "rebuild_s": 0.002875415
       },
-      "total_s": 0.019719958,
+      "total_s": 0.020217456,
       "shares": {
-        "search_apply_s": 0.4509496419819961,
-        "merge_s": 0.3715166127635769,
-        "rebuild_s": 0.17753374525442703
+        "search_apply_s": 0.4856714415503118,
+        "merge_s": 0.37210418561069203,
+        "rebuild_s": 0.14222437283899617
       },
       "per_rule": {
         "(rewrite (Add a (Add b c)) (Add (Add a b) c))": {
-          "search_apply_s": 0.006429667,
+          "search_apply_s": 0.007276126,
           "matches": 59389
         },
         "(rewrite (Add a b) (Add b a))": {
-          "search_apply_s": 0.000593125,
+          "search_apply_s": 0.000776666,
           "matches": 8727
         }
-      }
+      },
+      "duplication": [
+        {
+          "iteration": 1,
+          "matches": 13,
+          "add_enodes": 26,
+          "net_new_add_enodes": 26,
+          "matches_per_net_new_node": 0.5
+        },
+        {
+          "iteration": 2,
+          "matches": 44,
+          "add_enodes": 88,
+          "net_new_add_enodes": 62,
+          "matches_per_net_new_node": 0.7096774193548387
+        },
+        {
+          "iteration": 3,
+          "matches": 256,
+          "add_enodes": 374,
+          "net_new_add_enodes": 286,
+          "matches_per_net_new_node": 0.8951048951048951
+        },
+        {
+          "iteration": 4,
+          "matches": 1241,
+          "add_enodes": 1426,
+          "net_new_add_enodes": 1052,
+          "matches_per_net_new_node": 1.179657794676806
+        },
+        {
+          "iteration": 5,
+          "matches": 5540,
+          "add_enodes": 3921,
+          "net_new_add_enodes": 2495,
+          "matches_per_net_new_node": 2.220440881763527
+        },
+        {
+          "iteration": 6,
+          "matches": 18777,
+          "add_enodes": 5863,
+          "net_new_add_enodes": 1942,
+          "matches_per_net_new_node": 9.668898043254377
+        },
+        {
+          "iteration": 7,
+          "matches": 28944,
+          "add_enodes": 6082,
+          "net_new_add_enodes": 219,
+          "matches_per_net_new_node": 132.16438356164383
+        },
+        {
+          "iteration": 8,
+          "matches": 12989,
+          "add_enodes": 6050,
+          "net_new_add_enodes": -32,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 9,
+          "matches": 312,
+          "add_enodes": 6050,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 10,
+          "matches": 0,
+          "add_enodes": 6050,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 11,
+          "matches": 0,
+          "add_enodes": 6050,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 12,
+          "matches": 0,
+          "add_enodes": 6050,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 13,
+          "matches": 0,
+          "add_enodes": 6050,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 14,
+          "matches": 0,
+          "add_enodes": 6050,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        }
+      ]
     },
     {
       "n": 8,
@@ -261,13 +361,13 @@
           "iteration": 1,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 4.1375e-05,
-          "merge_s": 9.459e-06,
-          "rebuild_s": 2.3209e-05,
+          "search_apply_s": 5.0416e-05,
+          "merge_s": 8.958e-06,
+          "rebuild_s": 2.175e-05,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 1.1667e-05,
+              "search_apply_s": 1.1542e-05,
               "matches": 6
             }
           ]
@@ -276,13 +376,13 @@
           "iteration": 2,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.000195459,
-          "merge_s": 2.7834e-05,
-          "rebuild_s": 3.5958e-05,
+          "search_apply_s": 0.000195083,
+          "merge_s": 2.875e-05,
+          "rebuild_s": 3.6084e-05,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 5.3334e-05,
+              "search_apply_s": 5.4291e-05,
               "matches": 102
             }
           ]
@@ -291,13 +391,13 @@
           "iteration": 3,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.001304375,
-          "merge_s": 0.000312875,
-          "rebuild_s": 0.000370292,
+          "search_apply_s": 0.001339375,
+          "merge_s": 0.000321125,
+          "rebuild_s": 0.000381083,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 0.001203875,
+              "search_apply_s": 0.001231208,
               "matches": 1084
             }
           ]
@@ -306,13 +406,13 @@
           "iteration": 4,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.008417708,
-          "merge_s": 0.009587458,
-          "rebuild_s": 0.001405958,
+          "search_apply_s": 0.008928958,
+          "merge_s": 0.005422458,
+          "rebuild_s": 0.001400125,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 0.008240166,
+              "search_apply_s": 0.008732541,
               "matches": 8980
             }
           ]
@@ -321,13 +421,13 @@
           "iteration": 5,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.006174959,
-          "merge_s": 0.003896125,
-          "rebuild_s": 0.001035459,
+          "search_apply_s": 0.003810875,
+          "merge_s": 0.003590625,
+          "rebuild_s": 0.000828791,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 0.002876542,
+              "search_apply_s": 0.000642875,
               "matches": 32528
             }
           ]
@@ -336,13 +436,13 @@
           "iteration": 6,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.00196825,
-          "merge_s": 0.001543375,
+          "search_apply_s": 0.001778333,
+          "merge_s": 0.00135575,
           "rebuild_s": 0.0,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 0.001616084,
+              "search_apply_s": 0.000514709,
               "matches": 14208
             }
           ]
@@ -351,13 +451,13 @@
           "iteration": 7,
           "updated": false,
           "can_stop": true,
-          "search_apply_s": 5.1e-05,
-          "merge_s": 9.16e-07,
+          "search_apply_s": 3.1458e-05,
+          "merge_s": 1.041e-06,
           "rebuild_s": 0.0,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 1.042e-06,
+              "search_apply_s": 1.208e-06,
               "matches": 0
             }
           ]
@@ -427,22 +527,122 @@
         }
       ],
       "totals": {
-        "search_apply_s": 0.018153126,
-        "merge_s": 0.015378042,
-        "rebuild_s": 0.002870876
+        "search_apply_s": 0.016134498,
+        "merge_s": 0.010728707,
+        "rebuild_s": 0.0026678329999999997
       },
-      "total_s": 0.036402044,
+      "total_s": 0.029531038000000003,
       "shares": {
-        "search_apply_s": 0.4986842497086152,
-        "merge_s": 0.4224499591286687,
-        "rebuild_s": 0.07886579116271603
+        "search_apply_s": 0.5463572936379683,
+        "merge_s": 0.36330273930770735,
+        "rebuild_s": 0.09033996705432432
       },
       "per_rule": {
         "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )": {
-          "search_apply_s": 0.014002710000000002,
+          "search_apply_s": 0.011188374000000001,
           "matches": 56908
         }
-      }
+      },
+      "duplication": [
+        {
+          "iteration": 1,
+          "matches": 6,
+          "add_enodes": 62,
+          "net_new_add_enodes": 62,
+          "matches_per_net_new_node": 0.0967741935483871
+        },
+        {
+          "iteration": 2,
+          "matches": 102,
+          "add_enodes": 330,
+          "net_new_add_enodes": 268,
+          "matches_per_net_new_node": 0.3805970149253731
+        },
+        {
+          "iteration": 3,
+          "matches": 1084,
+          "add_enodes": 2250,
+          "net_new_add_enodes": 1920,
+          "matches_per_net_new_node": 0.5645833333333333
+        },
+        {
+          "iteration": 4,
+          "matches": 8980,
+          "add_enodes": 6062,
+          "net_new_add_enodes": 3812,
+          "matches_per_net_new_node": 2.3557187827911856
+        },
+        {
+          "iteration": 5,
+          "matches": 32528,
+          "add_enodes": 6050,
+          "net_new_add_enodes": -12,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 6,
+          "matches": 14208,
+          "add_enodes": 6050,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 7,
+          "matches": 0,
+          "add_enodes": 6050,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 8,
+          "matches": 0,
+          "add_enodes": 6050,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 9,
+          "matches": 0,
+          "add_enodes": 6050,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 10,
+          "matches": 0,
+          "add_enodes": 6050,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 11,
+          "matches": 0,
+          "add_enodes": 6050,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 12,
+          "matches": 0,
+          "add_enodes": 6050,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 13,
+          "matches": 0,
+          "add_enodes": 6050,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 14,
+          "matches": 0,
+          "add_enodes": 6050,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        }
+      ]
     },
     {
       "n": 10,
@@ -452,18 +652,18 @@
           "iteration": 1,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 3.3542e-05,
-          "merge_s": 2.625e-06,
+          "search_apply_s": 3.3583e-05,
+          "merge_s": 2.709e-06,
           "rebuild_s": 0.0,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 1.9834e-05,
+              "search_apply_s": 1.9e-05,
               "matches": 8
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 4.709e-06,
+              "search_apply_s": 4.416e-06,
               "matches": 9
             }
           ]
@@ -472,18 +672,18 @@
           "iteration": 2,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 5.3e-05,
-          "merge_s": 6.209e-06,
+          "search_apply_s": 5.6625e-05,
+          "merge_s": 6.25e-06,
           "rebuild_s": 0.0,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 2.8916e-05,
+              "search_apply_s": 2.8833e-05,
               "matches": 35
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 3.291e-06,
+              "search_apply_s": 2.292e-06,
               "matches": 25
             }
           ]
@@ -492,18 +692,18 @@
           "iteration": 3,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.000176584,
-          "merge_s": 3.0666e-05,
-          "rebuild_s": 6.175e-05,
+          "search_apply_s": 0.000166791,
+          "merge_s": 2.9e-05,
+          "rebuild_s": 6.2666e-05,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.000110208,
+              "search_apply_s": 0.000103834,
               "matches": 320
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 4.291e-06,
+              "search_apply_s": 4.208e-06,
               "matches": 86
             }
           ]
@@ -512,18 +712,18 @@
           "iteration": 4,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.00112,
-          "merge_s": 0.000227167,
-          "rebuild_s": 0.000394667,
+          "search_apply_s": 0.001021667,
+          "merge_s": 0.000212625,
+          "rebuild_s": 0.000398042,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.000995208,
+              "search_apply_s": 0.000895167,
               "matches": 2468
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 4.4958e-05,
+              "search_apply_s": 5.0292e-05,
               "matches": 482
             }
           ]
@@ -532,18 +732,18 @@
           "iteration": 5,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.005041416,
-          "merge_s": 0.004594208,
-          "rebuild_s": 0.003749875,
+          "search_apply_s": 0.005354125,
+          "merge_s": 0.014770416,
+          "rebuild_s": 0.003071458,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.004704708,
+              "search_apply_s": 0.005006417,
               "matches": 16652
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 0.000285875,
+              "search_apply_s": 0.000289292,
               "matches": 2887
             }
           ]
@@ -552,18 +752,18 @@
           "iteration": 6,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.006308334,
-          "merge_s": 0.005432083,
-          "rebuild_s": 0.006463833,
+          "search_apply_s": 0.005439167,
+          "merge_s": 0.004645875,
+          "rebuild_s": 0.005898958,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.000822917,
+              "search_apply_s": 0.000898541,
               "matches": 102033
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 0.000635625,
+              "search_apply_s": 0.000497125,
               "matches": 13277
             }
           ]
@@ -572,18 +772,18 @@
           "iteration": 7,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.014476917,
-          "merge_s": 0.016297708,
-          "rebuild_s": 0.006917334,
+          "search_apply_s": 0.013202916,
+          "merge_s": 0.016509209,
+          "rebuild_s": 0.007129875,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.003648208,
+              "search_apply_s": 0.003581666,
               "matches": 349390
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 0.001239875,
+              "search_apply_s": 0.001077625,
               "matches": 32146
             }
           ]
@@ -592,19 +792,19 @@
           "iteration": 8,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.015324583,
-          "merge_s": 0.022376083,
-          "rebuild_s": 0.005633333,
+          "search_apply_s": 0.015195334,
+          "merge_s": 0.029163083,
+          "rebuild_s": 0.011262333,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.002119042,
-              "matches": 526848
+              "search_apply_s": 0.003331416,
+              "matches": 526825
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 0.00141025,
-              "matches": 32563
+              "search_apply_s": 0.0017225,
+              "matches": 32560
             }
           ]
         },
@@ -612,18 +812,18 @@
           "iteration": 9,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.004582417,
-          "merge_s": 0.003838875,
-          "rebuild_s": 0.000386833,
+          "search_apply_s": 0.004423625,
+          "merge_s": 0.004286292,
+          "rebuild_s": 0.000661833,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.001707666,
+              "search_apply_s": 0.002164459,
               "matches": 159016
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 0.000284834,
+              "search_apply_s": 0.000242792,
               "matches": 7396
             }
           ]
@@ -632,13 +832,13 @@
           "iteration": 10,
           "updated": false,
           "can_stop": true,
-          "search_apply_s": 0.000663709,
-          "merge_s": 0.000132125,
+          "search_apply_s": 0.000645084,
+          "merge_s": 0.00016425,
           "rebuild_s": 0.0,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.001053625,
+              "search_apply_s": 0.001003834,
               "matches": 142
             },
             {
@@ -686,26 +886,126 @@
         }
       ],
       "totals": {
-        "search_apply_s": 0.047780502,
-        "merge_s": 0.052937749,
-        "rebuild_s": 0.023607625
+        "search_apply_s": 0.045538917,
+        "merge_s": 0.069789709,
+        "rebuild_s": 0.028485165
       },
-      "total_s": 0.124325876,
+      "total_s": 0.143813791,
       "shares": {
-        "search_apply_s": 0.3843166325246725,
-        "merge_s": 0.4257983189275899,
-        "rebuild_s": 0.18988504854773755
+        "search_apply_s": 0.31665194751732817,
+        "merge_s": 0.48527827904905174,
+        "rebuild_s": 0.19806977343362014
       },
       "per_rule": {
         "(rewrite (Add a (Add b c)) (Add (Add a b) c))": {
-          "search_apply_s": 0.015210332,
-          "matches": 1156912
+          "search_apply_s": 0.017033167,
+          "matches": 1156889
         },
         "(rewrite (Add a b) (Add b a))": {
-          "search_apply_s": 0.003917833,
-          "matches": 88877
+          "search_apply_s": 0.0038946669999999997,
+          "matches": 88874
         }
-      }
+      },
+      "duplication": [
+        {
+          "iteration": 1,
+          "matches": 17,
+          "add_enodes": 34,
+          "net_new_add_enodes": 34,
+          "matches_per_net_new_node": 0.5
+        },
+        {
+          "iteration": 2,
+          "matches": 60,
+          "add_enodes": 120,
+          "net_new_add_enodes": 86,
+          "matches_per_net_new_node": 0.6976744186046512
+        },
+        {
+          "iteration": 3,
+          "matches": 406,
+          "add_enodes": 588,
+          "net_new_add_enodes": 468,
+          "matches_per_net_new_node": 0.8675213675213675
+        },
+        {
+          "iteration": 4,
+          "matches": 2950,
+          "add_enodes": 3345,
+          "net_new_add_enodes": 2757,
+          "matches_per_net_new_node": 1.0700036271309394
+        },
+        {
+          "iteration": 5,
+          "matches": 19539,
+          "add_enodes": 15492,
+          "net_new_add_enodes": 12147,
+          "matches_per_net_new_node": 1.6085453198320574
+        },
+        {
+          "iteration": 6,
+          "matches": 115310,
+          "add_enodes": 40732,
+          "net_new_add_enodes": 25240,
+          "matches_per_net_new_node": 4.568541996830428
+        },
+        {
+          "iteration": 7,
+          "matches": 381536,
+          "add_enodes": 59446,
+          "net_new_add_enodes": 18714,
+          "matches_per_net_new_node": 20.387731110398633
+        },
+        {
+          "iteration": 8,
+          "matches": 559385,
+          "add_enodes": 57026,
+          "net_new_add_enodes": -2420,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 9,
+          "matches": 166412,
+          "add_enodes": 57002,
+          "net_new_add_enodes": -24,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 10,
+          "matches": 148,
+          "add_enodes": 57002,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 11,
+          "matches": 0,
+          "add_enodes": 57002,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 12,
+          "matches": 0,
+          "add_enodes": 57002,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 13,
+          "matches": 0,
+          "add_enodes": 57002,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 14,
+          "matches": 0,
+          "add_enodes": 57002,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        }
+      ]
     },
     {
       "n": 10,
@@ -715,13 +1015,13 @@
           "iteration": 1,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 5.25e-05,
-          "merge_s": 9.916e-06,
-          "rebuild_s": 2.875e-05,
+          "search_apply_s": 5.4541e-05,
+          "merge_s": 1.0209e-05,
+          "rebuild_s": 2.5208e-05,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 1.9625e-05,
+              "search_apply_s": 2.125e-05,
               "matches": 8
             }
           ]
@@ -730,13 +1030,13 @@
           "iteration": 2,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.000283708,
-          "merge_s": 5.525e-05,
-          "rebuild_s": 6.2167e-05,
+          "search_apply_s": 0.000282292,
+          "merge_s": 5.9541e-05,
+          "rebuild_s": 6.3375e-05,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 0.00022775,
+              "search_apply_s": 0.000223792,
               "matches": 144
             }
           ]
@@ -745,13 +1045,13 @@
           "iteration": 3,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.002313333,
-          "merge_s": 0.003933875,
-          "rebuild_s": 0.000613125,
+          "search_apply_s": 0.002323125,
+          "merge_s": 0.003853917,
+          "rebuild_s": 0.000732917,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 0.002109333,
+              "search_apply_s": 0.002107208,
               "matches": 1976
             }
           ]
@@ -760,13 +1060,13 @@
           "iteration": 4,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.033674542,
-          "merge_s": 0.004751125,
-          "rebuild_s": 0.004166125,
+          "search_apply_s": 0.033912292,
+          "merge_s": 0.003919209,
+          "rebuild_s": 0.004541125,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 0.0334725,
+              "search_apply_s": 0.033704209,
               "matches": 31484
             }
           ]
@@ -775,13 +1075,13 @@
           "iteration": 5,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.037071,
-          "merge_s": 0.027990333,
-          "rebuild_s": 0.012291542,
+          "search_apply_s": 0.035377959,
+          "merge_s": 0.02898425,
+          "rebuild_s": 0.010490292,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 0.002257709,
+              "search_apply_s": 0.002702541,
               "matches": 287942
             }
           ]
@@ -790,13 +1090,13 @@
           "iteration": 6,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.059110041,
-          "merge_s": 0.031076542,
-          "rebuild_s": 0.003944833,
+          "search_apply_s": 0.044059083,
+          "merge_s": 0.027698458,
+          "rebuild_s": 0.003727,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 0.002775625,
+              "search_apply_s": 0.002677041,
               "matches": 655188
             }
           ]
@@ -805,13 +1105,13 @@
           "iteration": 7,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.005889833,
-          "merge_s": 0.002578625,
+          "search_apply_s": 0.004740042,
+          "merge_s": 0.00252175,
           "rebuild_s": 0.0,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 0.004703833,
+              "search_apply_s": 0.001353125,
               "matches": 72728
             }
           ]
@@ -820,13 +1120,13 @@
           "iteration": 8,
           "updated": false,
           "can_stop": true,
-          "search_apply_s": 7.6e-05,
-          "merge_s": 5.83e-07,
+          "search_apply_s": 8.3209e-05,
+          "merge_s": 2.91e-07,
           "rebuild_s": 0.0,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 2.0291e-05,
+              "search_apply_s": 2.3458e-05,
               "matches": 0
             }
           ]
@@ -887,22 +1187,122 @@
         }
       ],
       "totals": {
-        "search_apply_s": 0.138470957,
-        "merge_s": 0.070396249,
-        "rebuild_s": 0.021106542
+        "search_apply_s": 0.120832543,
+        "merge_s": 0.067047625,
+        "rebuild_s": 0.019579917
       },
-      "total_s": 0.229973748,
+      "total_s": 0.207460085,
       "shares": {
-        "search_apply_s": 0.6021163641686615,
-        "merge_s": 0.30610558645154573,
-        "rebuild_s": 0.09177804937979268
+        "search_apply_s": 0.5824375469623471,
+        "merge_s": 0.3231832523350215,
+        "rebuild_s": 0.09437920070263155
       },
       "per_rule": {
         "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )": {
-          "search_apply_s": 0.04558666599999999,
+          "search_apply_s": 0.042812623999999994,
           "matches": 1049470
         }
-      }
+      },
+      "duplication": [
+        {
+          "iteration": 1,
+          "matches": 8,
+          "add_enodes": 82,
+          "net_new_add_enodes": 82,
+          "matches_per_net_new_node": 0.0975609756097561
+        },
+        {
+          "iteration": 2,
+          "matches": 144,
+          "add_enodes": 470,
+          "net_new_add_enodes": 388,
+          "matches_per_net_new_node": 0.3711340206185567
+        },
+        {
+          "iteration": 3,
+          "matches": 1976,
+          "add_enodes": 4430,
+          "net_new_add_enodes": 3960,
+          "matches_per_net_new_node": 0.498989898989899
+        },
+        {
+          "iteration": 4,
+          "matches": 31484,
+          "add_enodes": 34866,
+          "net_new_add_enodes": 30436,
+          "matches_per_net_new_node": 1.0344329083979498
+        },
+        {
+          "iteration": 5,
+          "matches": 287942,
+          "add_enodes": 57234,
+          "net_new_add_enodes": 22368,
+          "matches_per_net_new_node": 12.872943490701001
+        },
+        {
+          "iteration": 6,
+          "matches": 655188,
+          "add_enodes": 57002,
+          "net_new_add_enodes": -232,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 7,
+          "matches": 72728,
+          "add_enodes": 57002,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 8,
+          "matches": 0,
+          "add_enodes": 57002,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 9,
+          "matches": 0,
+          "add_enodes": 57002,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 10,
+          "matches": 0,
+          "add_enodes": 57002,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 11,
+          "matches": 0,
+          "add_enodes": 57002,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 12,
+          "matches": 0,
+          "add_enodes": 57002,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 13,
+          "matches": 0,
+          "add_enodes": 57002,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 14,
+          "matches": 0,
+          "add_enodes": 57002,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        }
+      ]
     },
     {
       "n": 12,
@@ -912,18 +1312,18 @@
           "iteration": 1,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 3.6916e-05,
-          "merge_s": 2.833e-06,
+          "search_apply_s": 3.4666e-05,
+          "merge_s": 3.208e-06,
           "rebuild_s": 0.0,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 2.1959e-05,
+              "search_apply_s": 1.9334e-05,
               "matches": 10
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 4.208e-06,
+              "search_apply_s": 4.458e-06,
               "matches": 11
             }
           ]
@@ -932,18 +1332,18 @@
           "iteration": 2,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 6.8e-05,
-          "merge_s": 6.916e-06,
+          "search_apply_s": 6.3708e-05,
+          "merge_s": 7.083e-06,
           "rebuild_s": 0.0,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 4.0582e-05,
+              "search_apply_s": 3.25e-05,
               "matches": 45
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 2.375e-06,
+              "search_apply_s": 2.666e-06,
               "matches": 31
             }
           ]
@@ -952,18 +1352,18 @@
           "iteration": 3,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.000250875,
-          "merge_s": 4.7042e-05,
-          "rebuild_s": 9.0292e-05,
+          "search_apply_s": 0.000252875,
+          "merge_s": 4.8875e-05,
+          "rebuild_s": 9.0375e-05,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.000208292,
+              "search_apply_s": 0.000211334,
               "matches": 446
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 5.958e-06,
+              "search_apply_s": 5.833e-06,
               "matches": 110
             }
           ]
@@ -972,18 +1372,18 @@
           "iteration": 4,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.001933375,
-          "merge_s": 0.000397708,
-          "rebuild_s": 0.001148,
+          "search_apply_s": 0.001772125,
+          "merge_s": 0.000364334,
+          "rebuild_s": 0.00107075,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.001801834,
+              "search_apply_s": 0.001649875,
               "matches": 4753
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 7.1667e-05,
+              "search_apply_s": 7.125e-05,
               "matches": 668
             }
           ]
@@ -992,18 +1392,18 @@
           "iteration": 5,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.013007166,
-          "merge_s": 0.008104667,
-          "rebuild_s": 0.004193959,
+          "search_apply_s": 0.013357542,
+          "merge_s": 0.010791083,
+          "rebuild_s": 0.004602083,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.012427749,
+              "search_apply_s": 0.012756917,
               "matches": 45403
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 0.000520334,
+              "search_apply_s": 0.000546167,
               "matches": 5291
             }
           ]
@@ -1012,18 +1412,18 @@
           "iteration": 6,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.023195458,
-          "merge_s": 0.025658125,
-          "rebuild_s": 0.024119334,
+          "search_apply_s": 0.021297875,
+          "merge_s": 0.025533458,
+          "rebuild_s": 0.031690166,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.001913333,
+              "search_apply_s": 0.003155,
               "matches": 432306
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 0.001328333,
+              "search_apply_s": 0.001349125,
               "matches": 38765
             }
           ]
@@ -1032,18 +1432,18 @@
           "iteration": 7,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.0997135,
-          "merge_s": 0.251471625,
-          "rebuild_s": 0.064019958,
+          "search_apply_s": 0.093922709,
+          "merge_s": 0.254322958,
+          "rebuild_s": 0.076348917,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.008523709,
+              "search_apply_s": 0.011655417,
               "matches": 2537844
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 0.010252292,
+              "search_apply_s": 0.006746042,
               "matches": 172810
             }
           ]
@@ -1052,19 +1452,19 @@
           "iteration": 8,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.238547792,
-          "merge_s": 0.850096375,
-          "rebuild_s": 0.108845208,
+          "search_apply_s": 0.213930833,
+          "merge_s": 0.847279958,
+          "rebuild_s": 0.191006833,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.025503458,
-              "matches": 8173671
+              "search_apply_s": 0.026478583,
+              "matches": 8176296
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 0.022878833,
-              "matches": 374861
+              "search_apply_s": 0.023206584,
+              "matches": 374921
             }
           ]
         },
@@ -1072,18 +1472,18 @@
           "iteration": 9,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.190831625,
-          "merge_s": 0.795329208,
-          "rebuild_s": 0.022512833,
+          "search_apply_s": 0.221253791,
+          "merge_s": 0.795791208,
+          "rebuild_s": 0.023697,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.031623167,
+              "search_apply_s": 0.034172417,
               "matches": 8538988
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 0.007824875,
+              "search_apply_s": 0.009218084,
               "matches": 257461
             }
           ]
@@ -1092,18 +1492,18 @@
           "iteration": 10,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.019804125,
-          "merge_s": 0.012492084,
+          "search_apply_s": 0.019837292,
+          "merge_s": 0.013058458,
           "rebuild_s": 0.0,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.013956001,
+              "search_apply_s": 0.013943041,
               "matches": 672730
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 0.001059875,
+              "search_apply_s": 0.001056416,
               "matches": 16606
             }
           ]
@@ -1112,18 +1512,18 @@
           "iteration": 11,
           "updated": false,
           "can_stop": true,
-          "search_apply_s": 0.000178666,
-          "merge_s": 5e-07,
+          "search_apply_s": 0.00017825,
+          "merge_s": 1.208e-06,
           "rebuild_s": 0.0,
           "rules": [
             {
               "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
-              "search_apply_s": 0.000155333,
+              "search_apply_s": 0.000126417,
               "matches": 0
             },
             {
               "rule": "(rewrite (Add a b) (Add b a))",
-              "search_apply_s": 1.5e-06,
+              "search_apply_s": 2.25e-06,
               "matches": 0
             }
           ]
@@ -1157,26 +1557,126 @@
         }
       ],
       "totals": {
-        "search_apply_s": 0.587567498,
-        "merge_s": 1.9436070829999998,
-        "rebuild_s": 0.224929584
+        "search_apply_s": 0.5859016659999999,
+        "merge_s": 1.947201831,
+        "rebuild_s": 0.328506124
       },
-      "total_s": 2.756104165,
+      "total_s": 2.861609621,
       "shares": {
-        "search_apply_s": 0.21318769640914495,
-        "merge_s": 0.705200880170652,
-        "rebuild_s": 0.08161142342020299
+        "search_apply_s": 0.20474549068480363,
+        "merge_s": 0.6804568368481874,
+        "rebuild_s": 0.11479767246700909
       },
       "per_rule": {
         "(rewrite (Add a (Add b c)) (Add (Add a b) c))": {
-          "search_apply_s": 0.096175417,
-          "matches": 20406196
+          "search_apply_s": 0.104200835,
+          "matches": 20408821
         },
         "(rewrite (Add a b) (Add b a))": {
-          "search_apply_s": 0.04395025,
-          "matches": 866614
+          "search_apply_s": 0.042208875,
+          "matches": 866674
         }
-      }
+      },
+      "duplication": [
+        {
+          "iteration": 1,
+          "matches": 21,
+          "add_enodes": 42,
+          "net_new_add_enodes": 42,
+          "matches_per_net_new_node": 0.5
+        },
+        {
+          "iteration": 2,
+          "matches": 76,
+          "add_enodes": 152,
+          "net_new_add_enodes": 110,
+          "matches_per_net_new_node": 0.6909090909090909
+        },
+        {
+          "iteration": 3,
+          "matches": 556,
+          "add_enodes": 802,
+          "net_new_add_enodes": 650,
+          "matches_per_net_new_node": 0.8553846153846154
+        },
+        {
+          "iteration": 4,
+          "matches": 5421,
+          "add_enodes": 5911,
+          "net_new_add_enodes": 5109,
+          "matches_per_net_new_node": 1.0610687022900764
+        },
+        {
+          "iteration": 5,
+          "matches": 50694,
+          "add_enodes": 42543,
+          "net_new_add_enodes": 36632,
+          "matches_per_net_new_node": 1.3838720244594889
+        },
+        {
+          "iteration": 6,
+          "matches": 471071,
+          "add_enodes": 193270,
+          "net_new_add_enodes": 150727,
+          "matches_per_net_new_node": 3.1253259203725943
+        },
+        {
+          "iteration": 7,
+          "matches": 2710654,
+          "add_enodes": 473459,
+          "net_new_add_enodes": 280189,
+          "matches_per_net_new_node": 9.674376938423707
+        },
+        {
+          "iteration": 8,
+          "matches": 8551217,
+          "add_enodes": 556781,
+          "net_new_add_enodes": 83322,
+          "matches_per_net_new_node": 102.62856148436187
+        },
+        {
+          "iteration": 9,
+          "matches": 8796449,
+          "add_enodes": 523250,
+          "net_new_add_enodes": -33531,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 10,
+          "matches": 689336,
+          "add_enodes": 523250,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 11,
+          "matches": 0,
+          "add_enodes": 523250,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 12,
+          "matches": 0,
+          "add_enodes": 523250,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 13,
+          "matches": 0,
+          "add_enodes": 523250,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 14,
+          "matches": 0,
+          "add_enodes": 523250,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        }
+      ]
     },
     {
       "n": 12,
@@ -1186,13 +1686,13 @@
           "iteration": 1,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 6.1125e-05,
-          "merge_s": 1.2125e-05,
-          "rebuild_s": 3.3333e-05,
+          "search_apply_s": 8.9875e-05,
+          "merge_s": 1.2792e-05,
+          "rebuild_s": 2.9375e-05,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 2.1166e-05,
+              "search_apply_s": 2.25e-05,
               "matches": 10
             }
           ]
@@ -1201,13 +1701,13 @@
           "iteration": 2,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.000355375,
-          "merge_s": 6.9375e-05,
-          "rebuild_s": 6.6333e-05,
+          "search_apply_s": 0.000344875,
+          "merge_s": 7.0166e-05,
+          "rebuild_s": 6.3667e-05,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 0.000240458,
+              "search_apply_s": 0.00023475,
               "matches": 186
             }
           ]
@@ -1216,13 +1716,13 @@
           "iteration": 3,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.00344825,
-          "merge_s": 0.003187959,
-          "rebuild_s": 0.000970292,
+          "search_apply_s": 0.003414458,
+          "merge_s": 0.013267875,
+          "rebuild_s": 0.00094025,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 0.003340667,
+              "search_apply_s": 0.0033065,
               "matches": 2868
             }
           ]
@@ -1231,13 +1731,13 @@
           "iteration": 4,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.011953458,
-          "merge_s": 0.008972958,
-          "rebuild_s": 0.009355209,
+          "search_apply_s": 0.012368542,
+          "merge_s": 0.009833917,
+          "rebuild_s": 0.020814958,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 0.000553167,
+              "search_apply_s": 0.0023515,
               "matches": 77380
             }
           ]
@@ -1246,13 +1746,13 @@
           "iteration": 5,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.180601875,
-          "merge_s": 0.209040666,
-          "rebuild_s": 0.109602417,
+          "search_apply_s": 0.270181167,
+          "merge_s": 0.317640542,
+          "rebuild_s": 0.254070208,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 0.013112208,
+              "search_apply_s": 0.014494125,
               "matches": 1364024
             }
           ]
@@ -1261,14 +1761,14 @@
           "iteration": 6,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.991153875,
-          "merge_s": 1.256364084,
-          "rebuild_s": 0.193502542,
+          "search_apply_s": 1.1919515,
+          "merge_s": 1.309693542,
+          "rebuild_s": 0.152400291,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 0.032317583,
-              "matches": 8982460
+              "search_apply_s": 0.04135375,
+              "matches": 8985190
             }
           ]
         },
@@ -1276,14 +1776,14 @@
           "iteration": 7,
           "updated": true,
           "can_stop": false,
-          "search_apply_s": 0.764484791,
-          "merge_s": 0.58614075,
+          "search_apply_s": 0.635703958,
+          "merge_s": 0.542742959,
           "rebuild_s": 0.0,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 0.025748125,
-              "matches": 6853448
+              "search_apply_s": 0.019787042,
+              "matches": 6853192
             }
           ]
         },
@@ -1291,13 +1791,13 @@
           "iteration": 8,
           "updated": false,
           "can_stop": true,
-          "search_apply_s": 0.000235875,
-          "merge_s": 1.375e-06,
+          "search_apply_s": 0.000193875,
+          "merge_s": 1.25e-06,
           "rebuild_s": 0.0,
           "rules": [
             {
               "rule": "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )",
-              "search_apply_s": 0.000189374,
+              "search_apply_s": 0.000169416,
               "matches": 0
             }
           ]
@@ -1358,22 +1858,122 @@
         }
       ],
       "totals": {
-        "search_apply_s": 1.9522946239999999,
-        "merge_s": 2.063789292,
-        "rebuild_s": 0.313530126
+        "search_apply_s": 2.11424825,
+        "merge_s": 2.193263043,
+        "rebuild_s": 0.428318749
       },
-      "total_s": 4.329614042,
+      "total_s": 4.735830042,
       "shares": {
-        "search_apply_s": 0.4509165493878911,
-        "merge_s": 0.4766681907393906,
-        "rebuild_s": 0.07241525987271824
+        "search_apply_s": 0.44643668190151664,
+        "merge_s": 0.4631211474121562,
+        "rebuild_s": 0.09044217068632718
       },
       "per_rule": {
         "(rule ((= root (Add a (Add b c))))\n      ((union (Add a b) (Add b a))\n       (union (Add a c) (Add c a))\n       (union (Add b c) (Add c b))\n       (union root (Add (Add a b) c))\n       (union root (Add (Add b a) c))\n       (union root (Add (Add a c) b))\n       (union root (Add (Add c a) b))\n       (union root (Add (Add b c) a))\n       (union root (Add (Add c b) a))\n       (union root (Add a (Add c b)))\n       (union root (Add b (Add a c)))\n       (union root (Add b (Add c a)))\n       (union root (Add c (Add a b)))\n       (union root (Add c (Add b a))))\n         )": {
-          "search_apply_s": 0.075522748,
-          "matches": 17280376
+          "search_apply_s": 0.08171958300000001,
+          "matches": 17282850
         }
-      }
+      },
+      "duplication": [
+        {
+          "iteration": 1,
+          "matches": 10,
+          "add_enodes": 102,
+          "net_new_add_enodes": 102,
+          "matches_per_net_new_node": 0.09803921568627451
+        },
+        {
+          "iteration": 2,
+          "matches": 186,
+          "add_enodes": 610,
+          "net_new_add_enodes": 508,
+          "matches_per_net_new_node": 0.3661417322834646
+        },
+        {
+          "iteration": 3,
+          "matches": 2868,
+          "add_enodes": 6610,
+          "net_new_add_enodes": 6000,
+          "matches_per_net_new_node": 0.478
+        },
+        {
+          "iteration": 4,
+          "matches": 77380,
+          "add_enodes": 104406,
+          "net_new_add_enodes": 97796,
+          "matches_per_net_new_node": 0.7912389054767066
+        },
+        {
+          "iteration": 5,
+          "matches": 1364024,
+          "add_enodes": 450806,
+          "net_new_add_enodes": 346400,
+          "matches_per_net_new_node": 3.937713625866051
+        },
+        {
+          "iteration": 6,
+          "matches": 8985190,
+          "add_enodes": 523250,
+          "net_new_add_enodes": 72444,
+          "matches_per_net_new_node": 124.02945723593396
+        },
+        {
+          "iteration": 7,
+          "matches": 6853192,
+          "add_enodes": 523250,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 8,
+          "matches": 0,
+          "add_enodes": 523250,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 9,
+          "matches": 0,
+          "add_enodes": 523250,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 10,
+          "matches": 0,
+          "add_enodes": 523250,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 11,
+          "matches": 0,
+          "add_enodes": 523250,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 12,
+          "matches": 0,
+          "add_enodes": 523250,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 13,
+          "matches": 0,
+          "add_enodes": 523250,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        },
+        {
+          "iteration": 14,
+          "matches": 0,
+          "add_enodes": 523250,
+          "net_new_add_enodes": 0,
+          "matches_per_net_new_node": null
+        }
+      ]
     }
   ]
 }
