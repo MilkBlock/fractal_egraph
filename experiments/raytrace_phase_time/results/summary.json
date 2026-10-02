@@ -1,0 +1,52 @@
+{
+  "passes": [
+    {
+      "pass_": 0,
+      "wall": 4.538,
+      "search_apply": 3.607,
+      "merge": 0.055,
+      "rebuild": 0.588,
+      "iters": 5092,
+      "tuples_before": 0,
+      "tuples": 245442,
+      "matches": 924153
+    },
+    {
+      "pass_": 1,
+      "wall": 11.999,
+      "search_apply": 10.054,
+      "merge": 0.073,
+      "rebuild": 1.476,
+      "iters": 7804,
+      "tuples_before": 0,
+      "tuples": 649252,
+      "matches": 1767688
+    },
+    {
+      "pass_": 2,
+      "wall": 22.546,
+      "search_apply": 18.07,
+      "merge": 0.249,
+      "rebuild": 3.596,
+      "iters": 10482,
+      "tuples_before": 0,
+      "tuples": 697997,
+      "matches": 3093789
+    }
+  ],
+  "totals": {
+    "wall": 39.083,
+    "search_apply": 31.731,
+    "merge": 0.377,
+    "rebuild": 5.66,
+    "iters": 23378,
+    "matches": 5785630,
+    "us_per_match": 5.484450267300191,
+    "us_per_committed_row": 0.5401169346000054,
+    "unaccounted": 1.932
+  },
+  "extraction": 6.848,
+  "serialization": 1.717,
+  "process_real": 49.58,
+  "peak_rss_bytes": 1962917888
+}

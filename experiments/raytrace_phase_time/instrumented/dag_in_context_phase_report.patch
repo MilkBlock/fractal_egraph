@@ -1,0 +1,68 @@
+diff --git a/dag_in_context/src/lib.rs b/dag_in_context/src/lib.rs
+index 12cac244..3399e412 100644
+--- a/dag_in_context/src/lib.rs
++++ b/dag_in_context/src/lib.rs
+@@ -972,7 +972,33 @@ pub fn optimize(
+ 
+             log::info!("Running egglog program...");
+             let mut egraph = new_single_threaded_egraph();
++            let tuples_before = egraph.num_tuples();
++            let egglog_wall = Instant::now();
+             egraph.parse_and_run_program(None, &egglog_prog)?;
++            let egglog_wall = egglog_wall.elapsed();
++            if std::env::var_os("EGGCC_PHASE_REPORT").is_some() {
++                let report = egraph.get_overall_run_report();
++                let (mut search, mut merge, mut rebuild) = (0.0f64, 0.0f64, 0.0f64);
++                for (_, v) in &report.search_and_apply_time_per_ruleset {
++                    search += v.as_secs_f64();
++                }
++                for (_, v) in &report.merge_time_per_ruleset {
++                    merge += v.as_secs_f64();
++                }
++                for (_, v) in &report.rebuild_time_per_ruleset {
++                    rebuild += v.as_secs_f64();
++                }
++                eprintln!(
++                    "EGGCC_PHASE pass={i} wall={:.3}s search_apply={search:.3}s merge={merge:.3}s rebuild={rebuild:.3}s iters={} tuples_before={tuples_before} tuples={} matches={}",
++                    egglog_wall.as_secs_f64(),
++                    report.iterations.len(),
++                    egraph.num_tuples(),
++                    report.num_matches_per_rule.values().sum::<usize>(),
++                );
++                if std::env::var_os("EGGCC_PHASE_RULES").is_some() {
++                    eprintln!("{report}");
++                }
++            }
+ 
+             let serialization_start = Instant::now();
+             let serialized = serialized_egraph(egraph);
+@@ -1017,6 +1043,14 @@ pub fn optimize(
+ 
+             if has_debug_exprs {
+                 log::info!("Program has debug expressions, stopping pass {}.", i);
++                if std::env::var_os("EGGCC_PHASE_REPORT").is_some() {
++                    eprintln!(
++                        "EGGCC_STATS extraction={:.3}s serialization={:.3}s regions={}",
++                        eggcc_extraction_time.as_secs_f64(),
++                        eggcc_serialization_time.as_secs_f64(),
++                        extract_region_timings.len(),
++                    );
++                }
+                 return Ok((
+                     res,
+                     EggccTimeStatistics {
+@@ -1028,6 +1062,14 @@ pub fn optimize(
+             }
+         }
+     }
++    if std::env::var_os("EGGCC_PHASE_REPORT").is_some() {
++        eprintln!(
++            "EGGCC_STATS extraction={:.3}s serialization={:.3}s regions={}",
++            eggcc_extraction_time.as_secs_f64(),
++            eggcc_serialization_time.as_secs_f64(),
++            extract_region_timings.len(),
++        );
++    }
+     Ok((
+         res,
+         EggccTimeStatistics {
