@@ -1,0 +1,39 @@
+diff --git a/src/rvsdg/mod.rs b/src/rvsdg/mod.rs
+index cf6d8e49..f1f1fc36 100644
+--- a/src/rvsdg/mod.rs
++++ b/src/rvsdg/mod.rs
+@@ -241,6 +241,22 @@ pub struct RvsdgProgram {
+     pub(crate) functions: Vec<RvsdgFunction>,
+ }
+ 
++impl RvsdgProgram {
++    /// Local debugging helper: dump the real RVSDG IR as text.
++    pub fn debug_dump(&self) -> String {
++        use std::fmt::Write;
++        let mut out = String::new();
++        for f in &self.functions {
++            let _ = writeln!(out, "function {} args={:?}", f.name, f.args);
++            for (i, node) in f.nodes.iter().enumerate() {
++                let _ = writeln!(out, "  [{i}] {node:?}");
++            }
++            let _ = writeln!(out, "  results={:?}", f.results);
++        }
++        out
++    }
++}
++
+ pub(crate) fn cfg_to_rvsdg(
+     cfg: &SimpleCfgProgram,
+ ) -> std::result::Result<RvsdgProgram, EggCCError> {
+diff --git a/src/util.rs b/src/util.rs
+index 359802f5..f497e620 100644
+--- a/src/util.rs
++++ b/src/util.rs
+@@ -646,6 +646,7 @@ impl Run {
+             RunMode::RvsdgConversion => {
+                 let rvsdg = Optimizer::program_to_rvsdg(&self.prog_with_args.program)?;
+                 let svg = rvsdg.to_svg();
++                eprint!("{}", rvsdg.debug_dump());
+                 (
+                     vec![Visualization {
+                         result: svg,

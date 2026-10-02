@@ -1,0 +1,16 @@
+function main args=[Bril(Int), PrintState]
+  [0] BasicOp(Const(Const, Int(1), Int))
+  [1] BasicOp(Const(Const, Int(0), Int))
+  [2] BasicOp(Const(Const, Bool(false), Bool))
+  [3] BasicOp(Op(Lt, [Arg(1), Arg(3)], Bool))
+  [4] BasicOp(Const(Const, Bool(false), Bool))
+  [5] BasicOp(Const(Const, Bool(false), Bool))
+  [6] BasicOp(Op(Add, [Arg(1), Arg(2)], Int))
+  [7] BasicOp(Const(Const, Int(1), Int))
+  [8] BasicOp(Const(Const, Bool(false), Bool))
+  [9] BasicOp(Const(Const, Bool(true), Bool))
+  [10] If { pred: Project(0, 3), inputs: [Arg(0), Arg(1), Arg(2), Arg(3)], then_branch: [Arg(0), Project(0, 6), Project(0, 9), Arg(2), Arg(3)], else_branch: [Arg(0), Arg(1), Project(0, 5), Arg(2), Arg(3)] }
+  [11] Theta { pred: Project(2, 10), inputs: [Arg(1), Project(0, 1), Project(0, 0), Arg(0)], outputs: [Project(0, 10), Project(1, 10), Project(3, 10), Project(4, 10)] }
+  [12] BasicOp(Const(Const, Int(1), Int))
+  [13] BasicOp(Effect(Print, [Project(1, 11), Project(0, 11)]))
+  results=[(PrintState, Project(0, 13))]

@@ -1,0 +1,8 @@
+function main args=[Bril(Int), PrintState]
+  [0] BasicOp(Op(Lt, [Arg(0), Arg(0)], Bool))
+  [1] BasicOp(Const(Const, Int(2), Int))
+  [2] BasicOp(Effect(Print, [Project(0, 1), Arg(0)]))
+  [3] BasicOp(Const(Const, Int(1), Int))
+  [4] BasicOp(Effect(Print, [Project(0, 3), Arg(0)]))
+  [5] If { pred: Project(0, 0), inputs: [Arg(1)], then_branch: [Project(0, 4)], else_branch: [Project(0, 2)] }
+  results=[(PrintState, Project(0, 5))]
