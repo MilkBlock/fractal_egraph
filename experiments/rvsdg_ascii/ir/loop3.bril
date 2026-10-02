@@ -1,0 +1,13 @@
+@main(input: int) {
+  i: int = const 0;
+  j: int = const 5;
+.loop:
+  cond: bool = lt i input;
+  br cond .body .done;
+.body:
+  i: int = add i j;
+  print j;
+  jmp .loop;
+.done:
+  print j;
+}

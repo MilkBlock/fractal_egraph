@@ -41,8 +41,18 @@ stdout = SVG（可视化），stderr = 真实 IR（本文的原始数据）。
      节点输出口数 = `then_branch.len()`，第 k 口 = branch 的 `dst k`。
    - `Theta{inputs}`：节点输入口 = `inputs`；loop body 区域 `srcs` = `inputs`，
      区域 `dsts` = `[pred] ++ outputs`，所以**节点输出口 p = 区域 dst p+1**。
-     约定：loop 的 `in0` 是 state（SVG 把 loop 的第一入口画成黑点，`rvsdg2svg.rs:563`）。
-6. 只有被 results 可达的节点才画出来。`fib_shape` 的 14 个节点里有 5 个（2,4,7,8,12）是死 const，
+6. **state 永远是 region 入口的第 0 个**（不是"约定"，是必然）：
+   - `inputs` 来自分支块 / 循环头的 **live-out 集合**（`from_cfg.rs:419-425`），
+     而 `VarSet::iter()` = `FixedBitSet::ones()`，按 **VarId 递增**遍历（`live_variables.rs:190-191`）；
+   - `LiveVariableAnalysis::default()` 在任何程序变量之前就把 `state_id()` intern 成 `VarId(0)`
+     （`live_variables.rs:305`），且 state 在 entry/exit 被 `gen`（`live_variables.rs:41,49`），
+     所以它一定在 live 集合里、且一定排第一 ⇒ `Arg(0)` 在 branch / loop body 里就是 state。
+   - 因此 `Gamma/If/Theta` **必然**把 `PrintState` 当参数收进来、再当返回值送出去；
+     `state` 不是隐藏的全局副作用，而是一条普通的 `PrintState` 类型值边。
+   - SVG 把 loop 的第 0 个入口画成黑点（`rvsdg2svg.rs:563`）就是吃这条性质。
+   - 其余入口的顺序只是 interning 顺序，**和源码里的变量顺序无关**。
+   - 区域输出口 i ↔ 该区域 merge 的第 i 个 live 变量（`from_cfg.rs:502-503`）。
+7. 只有被 results 可达的节点才画出来。`fib_shape` 的 14 个节点里有 5 个（2,4,7,8,12）是死 const，
    所以 SVG 只出现 7 个 node 方块 —— dump 里有，图里没有，这不是丢失。
 
 ## 3. `add.bril`（最小例子：state 是 effect 的最后一个输入）
@@ -226,6 +236,32 @@ out4 = input   : 两边都原样返回 src3
    这也正是 `Theta.outputs = [Project(0,10), Project(1,10), Project(3,10), Project(4,10)]` 里
    端口号从 0,1 直接跳到 3,4 的原因。
 
+## 5.1 `loop3.bril`（验证 state 恒定占 region 第 0 个入口）
+
+`fib_shape` 的 loop 只有 4 个入口，不足以区分"state 排第一"和"恰好排第一"。补一个
+循环体里有 2 个活变量、并且循环体内有 `print` 的例子（`ir/loop3.bril`）：
+
+```bril
+@main(input: int) { i = const 0; j = const 5;
+  .loop: cond = lt i input; br cond .body .done;
+  .body: i = add i j; print j; jmp .loop;
+  .done: print j; }
+```
+
+```
+  [3] BasicOp(Op(Lt,  [Arg(2), Arg(3)], Bool))          -> lt(i, input)
+  [6] BasicOp(Op(Add, [Arg(2), Arg(1)], Int))           -> add(i, j)
+  [7] BasicOp(Effect(Print, [Arg(1), Arg(0)]))          -> print(j), state = Arg(0)
+  [10] If { pred: Project(0,3), inputs: [Arg(0), Arg(1), Arg(2), Arg(3)], ... }
+  [11] Theta { pred: Project(2,10), inputs: [Arg(1), Project(0,1), Project(0,0), Arg(0)],
+               outputs: [Project(0,10), Project(1,10), Project(3,10), Project(4,10)] }
+```
+
+`Theta.inputs` 解析出来是 `[s, j(5), i(0), input]` —— **state 是第 0 个**，
+而另外三个的顺序（`j` 在 `i` 前面）已经不是源码顺序了，正好说明第 0 位是结构保证、
+其余位置只是 interning 顺序。循环体内 `Arg(2) = i`、`Arg(1) = j`、`Arg(0) = s`，
+和源码 `lt i input` / `add i j` / `print j` 完全对得上。
+
 ## 6. 和 `statewalkdp` 的 region 是两回事
 
 * 上面这些 `Gamma`/`Theta` 是**语法结构化**的结果：CFG restructure 之后按支配关系切的。
@@ -243,6 +279,7 @@ out4 = input   : 两边都原样返回 src3
 | `ir/add.ir.txt` | `add.bril` 的真实 IR dump |
 | `ir/diamond.ir.txt` | `diamond.bril` 的真实 IR dump |
 | `ir/fib_shape.ir.txt` | `fib_shape.bril` 的真实 IR dump |
+| `ir/loop3.bril` / `ir/loop3.ir.txt` | 循环体含 `print`、2 个活变量的例子，验证 state 占 region 入口 0 |
 
 `check_statewalk` 的工作树在生成这些文件后已 `git checkout` 回 `ae80f82a` 的干净状态；
 所有改动只以 patch 形式保存在本目录。
