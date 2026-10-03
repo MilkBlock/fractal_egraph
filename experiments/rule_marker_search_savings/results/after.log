@@ -1,0 +1,1108 @@
+EGGCC_PHASE pass=0 wall=4.261s search_apply=3.408s merge=0.049s rebuild=0.561s iters=5092 tuples_before=0 tuples=245442 matches=924160
+Rule (rule ((TNil ))       ((PureTypeList (TNil )))         :ruleset type-analysis ): search and apply 0.000s, num matches 1
+Rule (rule ()       ((set (TypeList-length (TNil )) 0))         :ruleset type-helpers...: search and apply 0.000s, num matches 1
+Rule (rule ((TypeListRemoveAt (TNil ) _idx))       ((panic 'Index out of bounds for T...: search and apply 0.000s, num matches 0
+Rule (rule ()       ((let __tmp0 (FloatT ))        (let __tmp1 (StateT ))        (let...: search and apply 0.000s, num matches 1
+Rule (rewrite (bound-min (IntB x) (IntB y)) (IntB (min x y)) :ruleset interval-analys...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Uop (Abs ) e)))       ((ExpectType e (Base (IntT )) '(Abs)'))    ...: search and apply 0.000s, num matches 0
+Rule (rule ((= f (Base (PointerT ty))))       ((PointerishType f))         :ruleset a...: search and apply 0.000s, num matches 5
+Rule (rule ((= lhs (Uop (Neg ) e)))       ((ExpectType e (Base (IntT )) '(Neg)'))    ...: search and apply 0.000s, num matches 2
+Rule (rule ((DoWhile _in _pred-and-output))       ((BodyContainsExpr _pred-and-output...: search and apply 0.000s, num matches 41
+Rule (rewrite (bound-max (IntB x) (IntB y)) (IntB (max x y)) :ruleset interval-analys...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (DoWhile a b)))       ((Not-Just-Concat lhs))         :ruleset alw...: search and apply 0.000s, num matches 41
+Rule (rule ((= lhs (Top (Select ) pred v1 v2)))       ((ExpectType pred (Base (BoolT ...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Empty _ty _ctx)))       ((ExprIsResolved lhs))         :ruleset i...: search and apply 0.000s, num matches 15
+Rule (rule ((DoWhile inputs outputs))       ((set (LoopNumItersGuess inputs outputs) ...: search and apply 0.000s, num matches 41
+Rule (rule ((Empty _ty _ctx))       ((ExprIsPure (Empty _ty _ctx)))         :ruleset ...: search and apply 0.000s, num matches 15
+Rule (rule ((= lhs (DoWhile inp pred-body)))       ((ExpectType (Get pred-body 0) (Ba...: search and apply 0.000s, num matches 41
+Rule (rule ((Function _name _tyin _tyout _out))       ((BodyContainsExpr _out _out)) ...: search and apply 0.000s, num matches 30
+Rule (rule ((= e (DoWhile inputs pred_out)))       ((leading-Expr e)        (leading-...: search and apply 0.000s, num matches 41
+Rule (rule ((Base ty)        (PureBaseType ty))       ((PureType (Base ty)))         ...: search and apply 0.000s, num matches 2
+Rule (rule ((= lhs (Function name in-ty out-ty body)))       ((HasArgType body in-ty)...: search and apply 0.000s, num matches 30
+Rule (rule ((= lhs (Empty ty ctx)))       ((HasType lhs (TupleT (TNil )))        (Has...: search and apply 0.000s, num matches 15
+Rule (rewrite (Bop (Mul ) x y) (Bop (Mul ) y x) :ruleset canon): search and apply 0.000s, num matches 0
+Rule (rewrite (bound-min (BoolB x) (BoolB y)) (BoolB (and x y)) :ruleset interval-ana...: search and apply 0.000s, num matches 4
+Rule (rewrite (Bop (Or ) x y) (Bop (Or ) y x) :ruleset canon): search and apply 0.000s, num matches 4
+Rule (rewrite (Bop (Eq ) x y) (Bop (Eq ) y x) :ruleset canon): search and apply 0.000s, num matches 4
+Rule (rule ((= lhs (Alloc _id amt state ty)))       ((ExpectType amt (Base (IntT )) '...: search and apply 0.000s, num matches 45
+Rule (rewrite (Bop (GreaterThan ) x y) (Bop (LessThan ) y x) :ruleset canon): search and apply 0.000s, num matches 6
+Rule (rewrite (bound-max (BoolB x) (BoolB y)) (BoolB (or x y)) :ruleset interval-anal...: search and apply 0.000s, num matches 4
+Rule (rule ((Arg ty ctx))       ((ContextOf (Arg ty ctx) ctx))         :ruleset alway...: search and apply 0.000s, num matches 74
+Rule (rule ((= expr (Arg ty assum)))       ((set (Expr-size expr) 1))         :rulese...: search and apply 0.000s, num matches 74
+Rule (rule ((= lhs (Arg a b)))       ((Not-Just-Concat lhs))         :ruleset always-...: search and apply 0.000s, num matches 74
+Rule (rule ((= e (Arg t a)))       ((leading-Expr e))         :ruleset always-run ): search and apply 0.000s, num matches 74
+Rule (rewrite (Bop (And ) x y) (Bop (And ) y x) :ruleset canon): search and apply 0.000s, num matches 8
+Rule (rule ((= lhs (Arg ty ass)))       ((PotentialExtractedExpr lhs (TCPair (TermArg...: search and apply 0.000s, num matches 74
+Rule (rule ((Arg ty ctx))       ((HasType (Arg ty ctx) ty)        (HasArgType (Arg ty...: search and apply 0.000s, num matches 74
+Rule (rule ((= lhs (Arg _ty _ctx)))       ((ExprIsResolved lhs))         :ruleset is-...: search and apply 0.000s, num matches 74
+Rule (rule ((ExprIsResolved (DropAt newctx idx in)))       ((subsume (DropAt newctx i...: search and apply 0.000s, num matches 8
+Rule (rule ((Empty ty ctx))       ((ContextOf (Empty ty ctx) ctx))         :ruleset a...: search and apply 0.000s, num matches 15
+Rule (rule ((DelayedDropUnion lhs rhs))       ((subsume (DelayedDropUnion lhs rhs))) ...: search and apply 0.000s, num matches 88
+Rule (rule ((= lhs (Const (Bool b) ty ctx)))       ((HasType lhs (Base (BoolT )))    ...: search and apply 0.000s, num matches 102
+Rule (rule ((= lhs (Call a b)))       ((Not-Just-Concat lhs))         :ruleset always...: search and apply 0.000s, num matches 105
+Rule (rule ((Empty ty assum))       ((set (Expr-size (Empty ty assum)) 0))         :r...: search and apply 0.000s, num matches 15
+Rule (rule ((= lhs (Const (Bool x) ty ctx)))       ((set (lo-bound lhs) (BoolB x))   ...: search and apply 0.000s, num matches 102
+Rule (rule ((= lhs (Uop a b)))       ((Not-Just-Concat lhs))         :ruleset always-...: search and apply 0.000s, num matches 117
+Rule (rule ((= lhs (If pred inputs then else)))       ((union lhs (If (Uop (Not ) pre...: search and apply 0.000s, num matches 122
+Rule (rule ((= lhs (Bop (Mul ) x y))        (= (IntB lo-x) (lo-bound x))        (= (I...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Bop (Mul ) x y))        (= (IntB hi-x) (hi-bound x))        (= (I...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Bop (Mul ) x y))        (= (IntB lo-x) (lo-bound x))        (= (I...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Bop (Mul ) x y))        (= (IntB hi-x) (hi-bound x))        (= (I...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Bop (Mul ) x y))        (= (IntB hi-x) (hi-bound x))        (= (I...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Uop (Not ) e)))       ((ExpectType e (Base (BoolT )) '(Not)'))   ...: search and apply 0.000s, num matches 115
+Rule (rule ((= lhs (Bop (Mul ) x y))        (= (IntB hi-x) (hi-bound x))        (= (I...: search and apply 0.000s, num matches 0
+Rule (rule ((DelayedDropUnion lhs rhs))       ((union lhs rhs))         :ruleset appl...: search and apply 0.000s, num matches 191
+Rule (rule ((= write (Top (Write ) addr write-val state))        (= load (Bop (Load )...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Bop (Sub ) a b))        (= (IntB ha) (hi-bound a))        (= (Int...: search and apply 0.000s, num matches 0
+Rule (rule ((= first-write (Top (Write ) addr shadowed-val state))        (= second-w...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Empty oldty oldctx))))       ((D...: search and apply 0.000s, num matches 6
+Rule (rule ((= lhs (Bop pred e1 e2))        (bpred-of-type pred ty)        (bop->stri...: search and apply 0.000s, num matches 81
+Rule (rule ((= lhs (Top a b c d)))       ((Not-Just-Concat lhs))         :ruleset alw...: search and apply 0.000s, num matches 147
+Rule (rule ((= lhs (Bop (Sub ) a b))        (= (IntB la) (lo-bound a))        (= (Int...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (DoWhile in out)))        (ExprIs...: search and apply 0.000s, num matches 0
+Rule (rewrite (Bop (Add ) x y) (Bop (Add ) y x) :ruleset canon): search and apply 0.000s, num matches 122
+Rule (rewrite (DropAtInternal newty newctx idx (Function name inty outty body)) (Func...: search and apply 0.000s, num matches 0
+Rule (rule ((ExprIsResolved (DropAtInternal newty newctx idx in)))       ((subsume (D...: search and apply 0.000s, num matches 47
+Rule (rule ((= lhs (Call name arg))        (FunctionHasType name in-ty out-ty))      ...: search and apply 0.000s, num matches 105
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Top op c1 c2 c3)))        (ExprI...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Call name c1)))        (ExprIsRe...: search and apply 0.000s, num matches 2
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Alloc id c1 c2 ty)))        (Exp...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Uop op c1)))        (ExprIsResol...: search and apply 0.000s, num matches 4
+Rule (rule ((= lhs (If cond inputs thn els))        (= hi-thn (hi-bound thn))        ...: search and apply 0.000s, num matches 0
+Rule (rule ((NoAlias x y))       ((NoAlias y x))         :ruleset mem-simple ): search and apply 0.000s, num matches 310
+Rule (rule ((= (BoolB true) (lo-bound expr))        (= (BoolB false) (hi-bound expr))...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (If pred inputs then else)))       ((ExpectType pred (Base (BoolT ...: search and apply 0.000s, num matches 334
+Rule (rule ((= lhs (Bop (LessThan ) a b))        (= (IntB la) (lo-bound a))        (=...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Const (Int x) ty ctx)))       ((set (lo-bound lhs) (IntB x))     ...: search and apply 0.000s, num matches 213
+Rule (rule ((= lhs (Bop (Mul ) a b))        (= (IntB x) (lo-bound a))        (= (IntB...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Bop (LessThan ) a b))        (= (IntB ha) (hi-bound a))        (=...: search and apply 0.000s, num matches 0
+Rule (rewrite (TypeListRemoveAt (TCons x xs) idx) (TCons x (TypeListRemoveAt xs (- id...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Bop (LessEq ) x y))        (HasArgType y ty)        (ContextOf lh...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Top (Select ) pred v1 v2))        (HasType v1 ty1)        (HasTyp...: search and apply 0.000s, num matches 0
+Rule (rewrite (TypeListRemoveAt (TCons x xs) 0) xs :ruleset type-helpers): search and apply 0.000s, num matches 6
+Rule (rule ((= first-write (Top (Write ) addr write-val state))        (= second-writ...: search and apply 0.000s, num matches 0
+Rule (rule ((If _pred _input _then _else))       ((BodyContainsExpr _then _then)     ...: search and apply 0.000s, num matches 334
+Rule (rule ((= lhs (If cond inputs thn els))        (= lo-thn (lo-bound thn))        ...: search and apply 0.000s, num matches 0
+Rule (rule ((= expr (Const n ty assum)))       ((set (Expr-size expr) 1))         :ru...: search and apply 0.000s, num matches 595
+Rule (rule ((= lhs (Const (Float b) ty ctx)))       ((HasType lhs (Base (FloatT )))  ...: search and apply 0.000s, num matches 280
+Rule (rule ((= lhs (DoWhile inputs body))        (= size (tuple-length lhs)))       (...: search and apply 0.000s, num matches 41
+Rule (rule ((= lhs (Const (Int i) ty ctx)))       ((HasType lhs (Base (IntT )))      ...: search and apply 0.000s, num matches 213
+Rule (rule ((= lhs (If a b c d)))       ((Not-Just-Concat lhs))         :ruleset alwa...: search and apply 0.000s, num matches 334
+Rule (rule ((NoAlias write-addr load-addr)        (= write (Top (Write ) write-addr w...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Arg ty ctx))        (= size (tuple-length lhs)))       ((union lh...: search and apply 0.000s, num matches 74
+Rule (rule ((= lhs (Bop (Add ) a b))        (= (IntB ha) (hi-bound a))        (= (Int...: search and apply 0.000s, num matches 0
+Rule (rule ((TupleT tylist)        (PureTypeList tylist))       ((PureType (TupleT ty...: search and apply 0.000s, num matches 6
+Rule (rule ((ToSubsumeIf a b c d)        (If a b c d))       ((subsume (If a b c d)))...: search and apply 0.000s, num matches 51
+Rule (rule ((= lhs (Bop (GreaterEq ) x y))        (HasArgType x ty)        (ContextOf...: search and apply 0.000s, num matches 0
+Rule (rule ((= first-load (Bop (Load ) addr state))        (= second-load (Bop (Load ...: search and apply 0.000s, num matches 0
+Rule (rule ((Const _n _ty _ctx))       ((ExprIsPure (Const _n _ty _ctx)))         :ru...: search and apply 0.000s, num matches 595
+Rule (rule ((Const c ty ctx))       ((ContextOf (Const c ty ctx) ctx))         :rules...: search and apply 0.000s, num matches 595
+Rule (rule ((= lhs (If pred inputs then else))        (= (tuple-length then) 2)      ...: search and apply 0.000s, num matches 12
+Rule (rule ((= f (TCons (PointerT ty) tl)))       ((PointerishTypeList f))         :r...: search and apply 0.000s, num matches 575
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (If pred inputs c1 c2)))        (...: search and apply 0.000s, num matches 10
+Rule (rule ((= lhs (Const _n _ty _ctx)))       ((ExprIsResolved lhs))         :rulese...: search and apply 0.000s, num matches 595
+Rule (rule ((= lhs (Bop (Add ) a b))        (= (IntB la) (lo-bound a))        (= (Int...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Bop op c1 c2)))        (ExprIsRe...: search and apply 0.000s, num matches 24
+Rule (rule ((= e (If cond inputs thn els)))       ((leading-Expr e)        (leading-E...: search and apply 0.000s, num matches 334
+Rule (rule ((TCons hd tl)        (PureBaseType hd)        (PureTypeList tl))       ((...: search and apply 0.000s, num matches 5
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Const c oldty oldctx))))       (...: search and apply 0.000s, num matches 12
+Rule (rule ((TupleRemoveAt tuple idx)        (= len (tuple-length tuple))        (>= ...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Bop op e1 e2))        (bop-of-type op ty)        (bop->string op ...: search and apply 0.000s, num matches 213
+Rule (rule ((Bop (PtrAdd ) e i)        (= (hi-bound i) (IntB hi))        (< hi 0))   ...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Const c ty ass)))       ((PotentialExtractedExpr lhs (TCPair (Ter...: search and apply 0.000s, num matches 595
+Rule (rule ((= lhs (Bop a b c)))       ((Not-Just-Concat lhs))         :ruleset alway...: search and apply 0.000s, num matches 962
+Rule (rule ((Bop (PtrAdd ) e i)        (= (lo-bound i) (IntB lo))        (> lo 0))   ...: search and apply 0.000s, num matches 151
+Rule (rule ((= lhs (If pred inputs thn els))        (= size (tuple-length lhs)))     ...: search and apply 0.000s, num matches 272
+Rule (rule ((= (IntB lo) (lo-bound expr))        (= (IntB hi) (hi-bound expr))       ...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Alloc _id e state @_7))        (HasArgType e ty))       ((HasArgT...: search and apply 0.000s, num matches 45
+Rule (rule ((= lhs (DoWhile ins body))        (HasArgType ins ty))       ((HasArgType...: search and apply 0.000s, num matches 41
+Rule (rule ((= (Const c1 ty1 ctx1) (Const c2 ty2 ctx2))        (= ctx1 (InFunc name))...: search and apply 0.000s, num matches 0
+Rule (rewrite (TupleRemoveAt tuple idx) (Concat (SubTuple tuple 0 idx) (SubTuple tupl...: search and apply 0.000s, num matches 248
+Rule (rule ((= loop (DoWhile inputs outputs))        (= (Const (Bool false) ty ctx) (...: search and apply 0.000s, num matches 0
+Rule (rule ((Function _name _tyin _tyout _out)        (ExprIsPure _out))       ((Expr...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (DoWhile inp pred-body))        (HasType pred-body (Base (PointerT...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (DoWhile inp pred-body))        (HasType inp (Base (PointerT ty)))...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Uop (Abs ) e))        (HasType e (Base (IntT ))))       ((HasType...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Top @_5 a b c))        (HasArgType c ty))       ((HasArgType lhs ...: search and apply 0.000s, num matches 147
+Rule (rule ((= lhs (Top @_4 a b c))        (HasArgType b ty))       ((HasArgType lhs ...: search and apply 0.000s, num matches 147
+Rule (rule ((= lhs (Top @_3 a b c))        (HasArgType a ty))       ((HasArgType lhs ...: search and apply 0.000s, num matches 147
+Rule (rule ((= lhs (DoWhile inp pred-body))        (HasType pred-body (Base ty)))    ...: search and apply 0.000s, num matches 0
+Rule (rule ((Function name in out body)        (= body (If pred always-runs (Call nam...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (DoWhile inp pred-body))        (HasType inp (Base ty)))       ((p...: search and apply 0.000s, num matches 0
+Rule (rule ((HasArgType (Arg t1 ctx) t2)        (!= t1 t2))       ((panic 'arg type m...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Uop _op _x))        (ExprIsResolved _x))       ((ExprIsResolved l...: search and apply 0.000s, num matches 115
+Rule (rule ((= p1 (Bop (PtrAdd ) p i))        (= p2 (Bop (PtrAdd ) p (Bop (Sub ) i di...: search and apply 0.000s, num matches 0
+Rule (rule ((= p1 (Bop (PtrAdd ) p i))        (= p2 (Bop (PtrAdd ) p (Bop (Sub ) i di...: search and apply 0.000s, num matches 0
+Rule (rule ((= p1 (Bop (PtrAdd ) p i))        (= p2 (Bop (PtrAdd ) p (Bop (Add ) i di...: search and apply 0.000s, num matches 0
+Rule (rule ((Uop _op _x)        (UnaryOpIsPure _op)        (ExprIsPure _x))       ((E...: search and apply 0.000s, num matches 84
+Rule (rewrite (TLConcat (TNil ) r) r :ruleset type-helpers): search and apply 0.000s, num matches 1890
+Rule (rule ((Alloc amt e state ty)        (ContextOf e ctx))       ((ContextOf (Alloc...: search and apply 0.000s, num matches 45
+Rule (rule ((DoWhile in pred-and-output)        (ContextOf in ctx))       ((ContextOf...: search and apply 0.000s, num matches 41
+Rule (rule ((= lhs (Call @_8 e))        (HasArgType e ty))       ((HasArgType lhs ty)...: search and apply 0.000s, num matches 105
+Rule (rule ((= lhs (Bop (Print ) e state))        (HasType e _ty))       ((HasType lh...: search and apply 0.000s, num matches 1
+Rule (rewrite (Concat x (Empty ty ctx)) x :ruleset always-run): search and apply 0.000s, num matches 392
+Rule (rule ((Alloc amt e state ty)        (ContextOf state ctx))       ((ContextOf (A...: search and apply 0.000s, num matches 45
+Rule (rule ((= f (TCons hd tl))        (PointerishTypeList tl))       ((PointerishTyp...: search and apply 0.000s, num matches 1002
+Rule (rule ((= p1 (Bop (PtrAdd ) p i))        (= p2 (Bop (PtrAdd ) p (Bop (Add ) i di...: search and apply 0.000s, num matches 4
+Rule (rewrite (Concat (Empty ty ctx) x) x :ruleset always-run): search and apply 0.000s, num matches 124
+Rule (rule ((leading-Expr tuple)        (> (tuple-length tuple) 0))       ((Get tuple...: search and apply 0.000s, num matches 570
+Rule (rule ((= lhs (Uop (Neg ) e))        (HasType e (Base (IntT ))))       ((HasType...: search and apply 0.000s, num matches 2
+Rule (rule ((= f (TupleT l))        (PointerishTypeList l))       ((PointerishType f)...: search and apply 0.000s, num matches 1039
+Rule (rule ((Top op x y z)        (ContextOf z ctx))       ((ContextOf (Top op x y z)...: search and apply 0.000s, num matches 147
+Rule (rule ((= lhs (Function _name _tyin _tyout _out))        (ExprIsResolved _out)) ...: search and apply 0.000s, num matches 29
+Rule (rule ((= lhs (Bop (Load ) e state))        (HasType e ty)        (= ty (Base (I...: search and apply 0.000s, num matches 0
+Rule (rule ((Top op x y z)        (ContextOf y ctx))       ((ContextOf (Top op x y z)...: search and apply 0.000s, num matches 148
+Rule (rule ((DoWhile _in _pred-and-output)        (ExprIsPure _in)        (ExprIsPure...: search and apply 0.000s, num matches 0
+Rule (rule ((Single expr))       ((union (Get (Single expr) 0) expr))         :rulese...: search and apply 0.000s, num matches 6304
+Rule (rule ((Top op x y z)        (ContextOf x ctx))       ((ContextOf (Top op x y z)...: search and apply 0.000s, num matches 147
+Rule (rule ((= lhs (Alloc _id amt state ty))        (HasType amt (Base (IntT ))))    ...: search and apply 0.000s, num matches 45
+Rule (rule ((= lhs (Call _func _arg))        (ExprIsResolved _arg))       ((ExprIsRes...: search and apply 0.000s, num matches 93
+Rule (rule ((Top _op _x _y _z)        (TernaryOpIsPure _op)        (ExprIsPure _x)   ...: search and apply 0.000s, num matches 0
+Rule (rule ((Call func arg)        (ContextOf arg ctx))       ((ContextOf (Call func ...: search and apply 0.001s, num matches 95
+Rule (rule ((= lhs (Bop (Free ) e s))        (HasType e (Base (IntT ))))       ((pani...: search and apply 0.001s, num matches 0
+Rule (rule ((= lhs (Top (Write ) ptr val state))        (HasType ptr (Base (PointerT ...: search and apply 0.001s, num matches 147
+Rule (rule ((Uop op x)        (ContextOf x ctx))       ((ContextOf (Uop op x) ctx))  ...: search and apply 0.001s, num matches 117
+Rule (rule ((= lhs (Uop @_ e))        (HasArgType e ty))       ((HasArgType lhs ty)) ...: search and apply 0.001s, num matches 117
+Rule (rule ((= lhs (DropAt ctx idx in))        (HasArgType in (TupleT oldty)))       ...: search and apply 0.001s, num matches 10
+Rule (rule ((PotentialExtractedExpr expr termandcost))       ((set (ExtractedExpr exp...: search and apply 0.001s, num matches 9651
+Rule (rule ((= lhs (Bop (Print ) e state))        (HasType e (TupleT ty)))       ((pa...: search and apply 0.001s, num matches 0
+Rule (rule ((= lhs (Uop o e1))        (= (TCPair t1 c1) (ExtractedExpr e1)))       ((...: search and apply 0.001s, num matches 94
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Single c1)))        (ExprIsResol...: search and apply 0.001s, num matches 42
+Rule (rule ((= lhs (Alloc _id _e _state _ty))        (ExprIsResolved _e)        (Expr...: search and apply 0.001s, num matches 45
+Rule (rule ((= lhs (DoWhile _in _pred-and-output))        (ExprIsResolved _in)       ...: search and apply 0.001s, num matches 41
+Rule (rule ((= lst (TCons hd tl))        (= len (TypeList-length tl)))       ((set (T...: search and apply 0.001s, num matches 1081
+Rule (rule ((= lhs (Uop (Not ) e))        (HasType e (Base (BoolT ))))       ((HasTyp...: search and apply 0.001s, num matches 113
+Rule (rule ((= lhs (Bop (Load ) e state))        (HasType e ty)        (= ty (TupleT ...: search and apply 0.001s, num matches 0
+Rule (rule ((Function name in out body)        (= body (If pred always-runs then-case...: search and apply 0.001s, num matches 0
+Rule (rule ((Call _f _arg)        (ExprIsPure _arg)        (ExprIsPure (Function _f i...: search and apply 0.001s, num matches 0
+Rule (rule ((BodyContainsExpr body (DoWhile _in _pred-and-output)))       ((BodyConta...: search and apply 0.001s, num matches 97
+Rule (rule ((= lhs (Bop (Free ) e s))        (HasType e (TupleT _ty)))       ((panic ...: search and apply 0.001s, num matches 0
+Rule (rewrite (SubTuple expr x 1) (Single (Get expr x)) :ruleset always-run): search and apply 0.001s, num matches 13873
+Rule (rule ((= lhs (Bop @_2 a b))        (HasArgType b ty))       ((HasArgType lhs ty...: search and apply 0.001s, num matches 962
+Rule (rule ((= lhs (Call name arg))        (FunctionHasType name in-ty out-ty)       ...: search and apply 0.001s, num matches 104
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.001s, num matches 0
+Rule (rule ((BodyContainsExpr body (Alloc _id _e _state _ty)))       ((BodyContainsEx...: search and apply 0.001s, num matches 115
+Rule (rule ((= if (If pred inputs then_ else_))        (= (Get then_ i) (Const (Bool ...: search and apply 0.001s, num matches 0
+Rule (rule ((Bop op x y)        (ContextOf y ctx))       ((ContextOf (Bop op x y) ctx...: search and apply 0.001s, num matches 963
+Rule (rule ((= lhs (Bop (Free ) e s))        (HasType e (Base (PointerT _ty))))      ...: search and apply 0.001s, num matches 86
+Rule (rule ((= lhs (Bop @_1 a b))        (HasArgType a ty))       ((HasArgType lhs ty...: search and apply 0.001s, num matches 966
+Rule (rule ((Bop op x y)        (ContextOf x ctx))       ((ContextOf (Bop op x y) ctx...: search and apply 0.001s, num matches 968
+Rule (rule ((Get x i))       ((Add-Gets x x 0))         :ruleset always-run ): search and apply 0.001s, num matches 17026
+Rule (rule ((ExpectType e expected msg)        (HasType e actual)        (!= expected...: search and apply 0.001s, num matches 0
+Rule (rule ((= lhs (Bop _op _x _y))        (ExprIsResolved _x)        (ExprIsResolved...: search and apply 0.001s, num matches 959
+Rule (rule ((= if (If pred inputs then_ else_))        (= (Get then_ i) (Const (Bool ...: search and apply 0.001s, num matches 46
+Rule (rule ((BodyContainsExpr body (Top _op _x _y _z)))       ((BodyContainsExpr body...: search and apply 0.001s, num matches 482
+Rule (rule ((BodyContainsExpr body (Call _func _arg)))       ((BodyContainsExpr body ...: search and apply 0.001s, num matches 180
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.001s, num matches 7
+Rule (rewrite (TLConcat (TCons hd tl) r) (TCons hd (TLConcat tl r)) :ruleset type-hel...: search and apply 0.002s, num matches 2130
+Rule (rule ((Add-All-Gets orig something offset pos)        (< pos (tuple-length some...: search and apply 0.002s, num matches 3768
+Rule (rewrite (SubTuple expr 0 len) expr :when ((= len (tuple-length expr))) :ruleset...: search and apply 0.002s, num matches 3638
+Rule (rule ((HasType expr (TupleT tl))        (= len (TypeList-length tl)))       ((s...: search and apply 0.002s, num matches 8280
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Concat c1 c2)))        (ExprIsRe...: search and apply 0.002s, num matches 87
+Rule (rule ((= lhs (Bop (Load ) e state))        (HasType e (Base (PointerT ty))))   ...: search and apply 0.002s, num matches 266
+Rule (rule ((= lhs (Top _op _x _y _z))        (ExprIsResolved _x)        (ExprIsResol...: search and apply 0.002s, num matches 147
+Rule (rule ((BodyContainsExpr body (Uop _op _x)))       ((BodyContainsExpr body _x)) ...: search and apply 0.002s, num matches 449
+Rule (rule ((= lhs (If c i t e))        (HasArgType c ty))       ((HasArgType lhs ty)...: search and apply 0.002s, num matches 333
+Rule (rule ((= lhs (Get (Arg (TupleT tylist) _ctx) i))        (!= (TypeList-ith tylis...: search and apply 0.002s, num matches 685
+Rule (rule ((Bop _op _x _y)        (BinaryOpIsPure _op)        (ExprIsPure _x)       ...: search and apply 0.002s, num matches 262
+Rule (rewrite (TypeList-ith (TCons hd tl) 0) hd :ruleset type-helpers): search and apply 0.002s, num matches 1744
+Rule (rewrite (SubTuple expr a b) (Concat (Single (Get expr a)) (SubTuple expr (+ a 1...: search and apply 0.002s, num matches 8736
+Rule (rule ((Get expr i))       ((union (Single (Get expr i)) (SubTuple expr i 1)))  ...: search and apply 0.002s, num matches 17026
+Rule (rule ((= lhs (Single e))        (HasType e (TupleT tylist)))       ((panic 'don...: search and apply 0.002s, num matches 0
+Rule (rule ((= lhs (Function name in out body))        (HasArgType body ty)        (H...: search and apply 0.002s, num matches 0
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Get c1 index)))        (ExprIsRe...: search and apply 0.002s, num matches 176
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Get (Arg oldty oldctx) i)))     ...: search and apply 0.002s, num matches 0
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Get (Arg oldty oldctx) i)))     ...: search and apply 0.002s, num matches 14
+Rule (rule ((= (BoolB false) (hi-bound expr))        (HasArgType expr ty)        (Con...: search and apply 0.002s, num matches 52
+Rule (rule ((= (BoolB true) (lo-bound expr))        (HasArgType expr ty)        (Cont...: search and apply 0.003s, num matches 50
+Rule (rule ((TypeList-ith list i)        (= (TypeList-length list) n)        (>= i n)...: search and apply 0.003s, num matches 0
+Rule (rule ((= lhs (If _pred _input _then _else))        (ExprIsResolved _pred)      ...: search and apply 0.003s, num matches 227
+Rule (rule ((= lhs (If c i t e))        (HasType i ty)        (HasArgType e ty2)     ...: search and apply 0.003s, num matches 0
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.003s, num matches 151
+Rule (rule ((= lhs (If c i t e))        (HasType i ty)        (HasArgType t ty2)     ...: search and apply 0.003s, num matches 0
+Rule (rewrite (TypeList-ith (TCons hd tl) i) (TypeList-ith tl (- i 1)) :when ((> i 0)...: search and apply 0.003s, num matches 15953
+Rule (rule ((= lhs (Single e))        (HasArgType e ty))       ((HasArgType lhs ty)) ...: search and apply 0.003s, num matches 3146
+Rule (rule ((is-inv-Expr body expr)        (DoWhile inputs body)        (HasType expr...: search and apply 0.004s, num matches 479
+Rule (rule ((= expr (Uop op x))        (= sum (Expr-size x)))       ((set (Expr-size ...: search and apply 0.004s, num matches 115
+Rule (rule ((= expr (Alloc id e state ty))        (= sum (Expr-size e)))       ((set ...: search and apply 0.004s, num matches 45
+Rule (rule ((= (TCPair t1 c1) (ExtractedExpr e1))        (ContextOf e1 ctx1))       (...: search and apply 0.004s, num matches 6211
+Rule (rule ((= lhs (Single e))        (HasType e (Base basety)))       ((HasType lhs ...: search and apply 0.004s, num matches 3125
+Rule (rule ((= lhs (DoWhile inp pred-body))        (HasType inp (TupleT in-tys))     ...: search and apply 0.004s, num matches 0
+Rule (rule ((is-inv-Expr body expr)        (DoWhile inputs body)        (HasType expr...: search and apply 0.004s, num matches 418
+Rule (rule ((BodyContainsExpr body (Bop _op _x _y)))       ((BodyContainsExpr body _x...: search and apply 0.004s, num matches 2995
+Rule (rule ((= (IntB x) (lo-bound expr))        (= (IntB x) (hi-bound expr))        (...: search and apply 0.004s, num matches 213
+Rule (rule ((HasType (Get expr i) (TupleT tl))        (= (TypeList-length tl) len)   ...: search and apply 0.004s, num matches 0
+Rule (rule ((= lhs (If pred inputs thn els))        (= lo-thn (lo-bound (Get thn i)))...: search and apply 0.004s, num matches 64
+Rule (rule ((= lhs (If cond inputs thn els))        (= hi-thn (hi-bound (Get thn i)))...: search and apply 0.004s, num matches 64
+Rule (rule ((= expr (Call func arg))        (= sum (Expr-size arg)))       ((set (Exp...: search and apply 0.004s, num matches 846
+Rule (rule ((If _pred _input _then _else)        (ExprIsPure _pred)        (ExprIsPur...: search and apply 0.004s, num matches 9
+Rule (rule ((HasType (Get expr i) (TupleT tl))        (= (TypeList-length tl) len)   ...: search and apply 0.004s, num matches 0
+Rule (rule ((= expr (Function name tyin tyout out))        (= sum (Expr-size out)))  ...: search and apply 0.005s, num matches 701
+Rule (rule ((ContextOf x ctx1)        (ContextOf x ctx2)        (!= ctx1 ctx2))      ...: search and apply 0.005s, num matches 0
+Rule (rule ((= lhs (Concat e1 e2))        (HasArgType e2 ty))       ((HasArgType lhs ...: search and apply 0.005s, num matches 6609
+Rule (rule ((= (BoolB x) (lo-bound expr))        (= (BoolB x) (hi-bound expr))       ...: search and apply 0.005s, num matches 102
+Rule (rule ((= lhs (Concat e1 e2))        (HasArgType e1 ty))       ((HasArgType lhs ...: search and apply 0.005s, num matches 6637
+Rule (rule ((Single _x)        (ExprIsPure _x))       ((ExprIsPure (Single _x)))     ...: search and apply 0.005s, num matches 957
+Rule (rule ((Add-Gets orig something n)        (Not-Just-Concat something))       ((A...: search and apply 0.006s, num matches 636
+Rule (rule ((If pred inputs then else)        (ContextOf pred ctx))       ((ContextOf...: search and apply 0.006s, num matches 327
+Rule (rule ((If pred inputs then else)        (ContextOf inputs ctx))       ((Context...: search and apply 0.006s, num matches 323
+Rule (rule ((= lhs (Get e @_6))        (HasArgType e ty))       ((HasArgType lhs ty))...: search and apply 0.007s, num matches 10690
+Rule (rule ((= lhs (Top (Select ) pred v1 v2))        (HasType v1 ty)        (HasType...: search and apply 0.008s, num matches 0
+Rule (rule ((leading-Expr tuple)        (= len (tuple-length tuple))        (= ith (G...: search and apply 0.008s, num matches 10198
+Rule (rule ((= lhs (Get loop i))        (= loop (DoWhile inputs pred-outputs))       ...: search and apply 0.008s, num matches 147
+Rule (rule ((= lhs (DoWhile inputs outputs))        (= pred (Get outputs 0))        (...: search and apply 0.008s, num matches 0
+Rule (rule ((= lhs (If pred inputs then else))        (HasType pred (Base (BoolT ))) ...: search and apply 0.009s, num matches 0
+Rule (rule ((= if (If pred inputs then_ else_))        (= then-branch (Get then_ i)) ...: search and apply 0.009s, num matches 714
+Rule (rule ((= lhs (Top (Write ) ptr val state))        (HasType ptr (Base (PointerT ...: search and apply 0.009s, num matches 147
+Rule (rule ((= lhs (DoWhile inp pred-body))        (HasType inp (TupleT tylist)))    ...: search and apply 0.010s, num matches 41
+Rule (rule ((= outputs (If pred inputs then_ else_))        (= (Get then_ i) (Get (Ar...: search and apply 0.010s, num matches 7
+Rule (rule ((= lhs (DoWhile inputs outputs))        (= pred (Get outputs 0))        (...: search and apply 0.010s, num matches 0
+Rule (rule ((= lhs (Top o e1 e2 e3))        (= (TCPair t1 c1) (ExtractedExpr e1))    ...: search and apply 0.011s, num matches 139
+Rule (rewrite (Concat (Concat a b) c) (Concat a (Concat b c)) :ruleset always-run): search and apply 0.012s, num matches 2695
+Rule (rule ((= expr (DoWhile in pred-and-output))        (= sum (+ (Expr-size pred-an...: search and apply 0.012s, num matches 4104
+Rule (rule ((BodyContainsExpr body (If _pred _input _then _else)))       ((BodyContai...: search and apply 0.013s, num matches 969
+Rule (rule ((= lhs (Single _x))        (ExprIsResolved _x))       ((ExprIsResolved lh...: search and apply 0.014s, num matches 3125
+Rule (rewrite (SubTuple expr x 0) (Empty ty ctx) :when ((HasArgType expr ty) (Context...: search and apply 0.014s, num matches 60
+Rule (rule ((Single x)        (ContextOf x ctx))       ((ContextOf (Single x) ctx))  ...: search and apply 0.014s, num matches 5742
+Rule (rule ((Get _tup _i)        (ExprIsPure _tup))       ((ExprIsPure (Get _tup _i))...: search and apply 0.015s, num matches 992
+Rule (rule ((= lhs (Single e1))        (= (TCPair t1 c1) (ExtractedExpr e1)))       (...: search and apply 0.017s, num matches 2778
+Rule (rule ((= lhs (Bop o e1 e2))        (= (TCPair t1 c1) (ExtractedExpr e1))       ...: search and apply 0.018s, num matches 1050
+Rule (rule ((Add-Gets orig (Single e) n))       ((union (Get orig n) e))         :rul...: search and apply 0.019s, num matches 10108
+Rule (rule ((Concat x y)        (ContextOf y ctx))       ((ContextOf (Concat x y) ctx...: search and apply 0.022s, num matches 8845
+Rule (rule ((Concat x y)        (ContextOf x ctx))       ((ContextOf (Concat x y) ctx...: search and apply 0.023s, num matches 9312
+Rule (rule ((Concat _x _y)        (ExprIsPure _x)        (ExprIsPure _y))       ((Exp...: search and apply 0.023s, num matches 2443
+Rule (rule ((= lhs (Get e i))        (HasType e (TupleT tylist)))       ((HasType lhs...: search and apply 0.024s, num matches 10628
+Rule (rule ((= expr (Bop op x y))        (= sum (+ (Expr-size y) (Expr-size x))))    ...: search and apply 0.028s, num matches 14682
+Rule (rule ((Add-Gets orig (Concat left right) n)        (= len (tuple-length left)))...: search and apply 0.030s, num matches 10887
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.032s, num matches 2
+Rule (rule ((Get tup i)        (ContextOf tup ctx))       ((ContextOf (Get tup i) ctx...: search and apply 0.034s, num matches 16091
+Rule (rule ((BodyContainsExpr body (Single _x)))       ((BodyContainsExpr body _x))  ...: search and apply 0.034s, num matches 10211
+Rule (rule ((= lhs (Get _tup _i))        (ExprIsResolved _tup))       ((ExprIsResolve...: search and apply 0.039s, num matches 10556
+Rule (rule ((= lhs (Get tup i))        (= (TCPair t1 c1) (ExtractedExpr tup)))       ...: search and apply 0.040s, num matches 4168
+Rule (rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))        (> cost1 cos...: search and apply 0.040s, num matches 5320
+Rule (rule ((= lhs (Concat _x _y))        (ExprIsResolved _x)        (ExprIsResolved ...: search and apply 0.040s, num matches 6468
+Rule (rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))        (<= cost1 co...: search and apply 0.040s, num matches 1552
+Rule (rule ((= expr (Top op x y z))        (= sum (+ (Expr-size z) (+ (Expr-size y) (...: search and apply 0.042s, num matches 1231
+Rule (rule ((= expr (If pred inputs then else))        (= sum (+ (Expr-size inputs) (...: search and apply 0.043s, num matches 2408
+Rule (rule ((= expr (Single x))        (= sum (Expr-size x)))       ((set (Expr-size ...: search and apply 0.047s, num matches 73520
+Rule (rule ((= lhs (Concat e1 e2))        (= (TCPair t1 c1) (ExtractedExpr e1))      ...: search and apply 0.047s, num matches 2878
+Rule (rule ((= lhs (Bop pred e1 e2))        (bpred-of-type pred ty)        (HasType e...: search and apply 0.054s, num matches 78
+Rule (rule ((= lhs (Bop op e1 e2))        (bop-of-type op ty)        (HasType e1 ty) ...: search and apply 0.055s, num matches 213
+Rule (rule ((BodyContainsExpr body (Concat _x _y)))       ((BodyContainsExpr body _x)...: search and apply 0.057s, num matches 30086
+Rule (rule ((= loop (DoWhile inputs pred-and-body))        (ContextOf inputs loop-inp...: search and apply 0.059s, num matches 24149
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.059s, num matches 433
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.060s, num matches 7
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.061s, num matches 0
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.061s, num matches 0
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.064s, num matches 0
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.080s, num matches 0
+Rule (rule ((BodyContainsExpr body (Get _tup _i)))       ((BodyContainsExpr body _tup...: search and apply 0.081s, num matches 39855
+Rule (rule ((= lhs (DoWhile inp pred-body))        (HasType inp (TupleT tylist))     ...: search and apply 0.082s, num matches 41
+Rule (rule ((PotentialExtractedExpr expr (TCPair term cost))        (= (ExtractedExpr...: search and apply 0.089s, num matches 6225
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.104s, num matches 433
+Rule (rule ((= lhs (Bop (PtrAdd ) ptr n))        (HasType ptr (Base (PointerT ty)))  ...: search and apply 0.110s, num matches 315
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.113s, num matches 285
+Rule (rule ((= expr (Get tup i))        (= sum (Expr-size tup)))       ((set (Expr-si...: search and apply 0.131s, num matches 238825
+Rule (rule ((= lhs (If pred inputs then else))        (HasType pred (Base (BoolT ))) ...: search and apply 0.136s, num matches 272
+Rule (rewrite (Concat (SubTuple expr a b) (SubTuple expr (+ a b) c)) (SubTuple expr a...: search and apply 0.143s, num matches 10735
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.195s, num matches 319
+Rule (rule ((= expr (Concat x y))        (= sum (+ (Expr-size y) (Expr-size x))))    ...: search and apply 0.213s, num matches 150519
+Rule (rule ((= lhs (Concat e1 e2))        (HasType e1 (TupleT tylist1))        (HasTy...: search and apply 0.232s, num matches 6582
+Ruleset loop-iters-analysis: search 0.019s, merge 0.000s, rebuild 0.000s
+Ruleset type-helpers: search 0.012s, merge 0.002s, rebuild 0.176s
+Ruleset subst: search 0.000s, merge 0.000s, rebuild 0.000s
+Ruleset initialization: search 0.002s, merge 0.000s, rebuild 0.000s
+Ruleset terms: search 0.137s, merge 0.001s, rebuild 0.005s
+Ruleset terms-helpers: search 0.090s, merge 0.002s, rebuild 0.001s
+Ruleset terms-helpers-helpers: search 0.082s, merge 0.001s, rebuild 0.134s
+Ruleset canon: search 0.000s, merge 0.000s, rebuild 0.000s
+Ruleset boundary-analysis-prep: search 0.004s, merge 0.000s, rebuild 0.000s
+Ruleset boundary-analysis: search 0.004s, merge 0.000s, rebuild 0.000s
+Ruleset interval-analysis: search 0.023s, merge 0.000s, rebuild 0.002s
+Ruleset cicm-index: search 0.004s, merge 0.000s, rebuild 0.000s
+Ruleset term-subst: search 0.000s, merge 0.000s, rebuild 0.000s
+Ruleset always-run: search 2.071s, merge 0.039s, rebuild 0.221s
+Ruleset is-resolved: search 0.105s, merge 0.001s, rebuild 0.000s
+Ruleset state-edge-passthrough: search 0.010s, merge 0.000s, rebuild 0.002s
+Ruleset subsume-after-helpers: search 0.000s, merge 0.000s, rebuild 0.000s
+Ruleset passthrough: search 0.020s, merge 0.000s, rebuild 0.013s
+Ruleset apply-subst-unions: search 0.000s, merge 0.000s, rebuild 0.000s
+Ruleset rec-to-loop: search 0.001s, merge 0.000s, rebuild 0.000s
+Ruleset context: search 0.000s, merge 0.000s, rebuild 0.000s
+Ruleset error-checking: search 0.043s, merge 0.000s, rebuild 0.000s
+Ruleset cleanup-drop: search 0.000s, merge 0.000s, rebuild 0.000s
+Ruleset drop: search 0.011s, merge 0.000s, rebuild 0.001s
+Ruleset mem-simple: search 0.002s, merge 0.000s, rebuild 0.000s
+Ruleset apply-drop-unions: search 0.000s, merge 0.000s, rebuild 0.002s
+Ruleset type-analysis: search 0.768s, merge 0.002s, rebuild 0.003s
+Ruleset swap-if: search 0.000s, merge 0.000s, rebuild 0.001s
+
+EGGCC_PHASE pass=1 wall=11.105s search_apply=9.232s merge=0.068s rebuild=1.442s iters=7804 tuples_before=0 tuples=649268 matches=1767729
+Rule (rule ()       ((set (TypeList-length (TNil )) 0))         :ruleset type-helpers...: search and apply 0.000s, num matches 1
+Rule (rule ((TNil ))       ((PureTypeList (TNil )))         :ruleset type-analysis ): search and apply 0.000s, num matches 1
+Rule (rule ((= lhs (Uop (Abs ) e)))       ((ExpectType e (Base (IntT )) '(Abs)'))    ...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Uop a b)))       ((Not-Just-Concat lhs))         :ruleset always-...: search and apply 0.000s, num matches 4
+Rule (rule ()       ((let __tmp0 (FloatT ))        (let __tmp1 (StateT ))        (let...: search and apply 0.000s, num matches 1
+Rule (rule ((= lhs (Uop (Not ) e)))       ((ExpectType e (Base (BoolT )) '(Not)'))   ...: search and apply 0.000s, num matches 1
+Rule (rule ((= f (Base (PointerT ty))))       ((PointerishType f))         :ruleset a...: search and apply 0.000s, num matches 5
+Rule (rule ((Function _name _tyin _tyout _out))       ((BodyContainsExpr _out _out)) ...: search and apply 0.000s, num matches 29
+Rule (rule ((= lhs (Uop (Neg ) e)))       ((ExpectType e (Base (IntT )) '(Neg)'))    ...: search and apply 0.000s, num matches 3
+Rule (rule ((= lhs (Function name in-ty out-ty body)))       ((HasArgType body in-ty)...: search and apply 0.000s, num matches 29
+Rule (rule ((Base ty)        (PureBaseType ty))       ((PureType (Base ty)))         ...: search and apply 0.000s, num matches 2
+Rule (rule ((Empty ty ctx))       ((ContextOf (Empty ty ctx) ctx))         :ruleset a...: search and apply 0.000s, num matches 55
+Rule (rule ((= lhs (Empty _ty _ctx)))       ((ExprIsResolved lhs))         :ruleset i...: search and apply 0.000s, num matches 55
+Rule (rule ((Empty ty assum))       ((set (Expr-size (Empty ty assum)) 0))         :r...: search and apply 0.000s, num matches 55
+Rule (rule ((DoWhile inpW outW))       ((IVTNewInputsAnalysisDemand outW))         :r...: search and apply 0.000s, num matches 81
+Rule (rule ((Empty _ty _ctx))       ((ExprIsPure (Empty _ty _ctx)))         :ruleset ...: search and apply 0.000s, num matches 55
+Rule (rule ((DoWhile inputs outputs))       ((set (LoopNumItersGuess inputs outputs) ...: search and apply 0.000s, num matches 81
+Rule (rule ((Arg ty ctx))       ((HasType (Arg ty ctx) ty)        (HasArgType (Arg ty...: search and apply 0.000s, num matches 111
+Rule (rule ((DoWhile _in _pred-and-output))       ((BodyContainsExpr _pred-and-output...: search and apply 0.000s, num matches 121
+Rule (rule ((= e (Arg t a)))       ((leading-Expr e))         :ruleset always-run ): search and apply 0.000s, num matches 111
+Rule (rule ((= lhs (Arg a b)))       ((Not-Just-Concat lhs))         :ruleset always-...: search and apply 0.000s, num matches 111
+Rule (rule ((= lhs (Empty ty ctx)))       ((HasType lhs (TupleT (TNil )))        (Has...: search and apply 0.000s, num matches 55
+Rule (rule ((= lhs (Arg _ty _ctx)))       ((ExprIsResolved lhs))         :ruleset is-...: search and apply 0.000s, num matches 111
+Rule (rule ((= expr (Arg ty assum)))       ((set (Expr-size expr) 1))         :rulese...: search and apply 0.000s, num matches 111
+Rule (rule ((= lhs (Arg ty ass)))       ((PotentialExtractedExpr lhs (TCPair (TermArg...: search and apply 0.000s, num matches 111
+Rule (rule ((Arg ty ctx))       ((ContextOf (Arg ty ctx) ctx))         :ruleset alway...: search and apply 0.000s, num matches 111
+Rule (rule ((= lhs (DoWhile a b)))       ((Not-Just-Concat lhs))         :ruleset alw...: search and apply 0.000s, num matches 121
+Rule (rule ((= lhs (DoWhile inp pred-body)))       ((ExpectType (Get pred-body 0) (Ba...: search and apply 0.000s, num matches 121
+Rule (rule ((= lhs (Call a b)))       ((Not-Just-Concat lhs))         :ruleset always...: search and apply 0.000s, num matches 137
+Rule (rule ((= e (DoWhile inputs pred_out)))       ((leading-Expr e)        (leading-...: search and apply 0.000s, num matches 121
+Rule (rule ((= lhs (Const (Bool x) ty ctx)))       ((set (lo-bound lhs) (BoolB x))   ...: search and apply 0.000s, num matches 36
+Rule (rule ((= lhs (Top (Select ) pred v1 v2)))       ((ExpectType pred (Base (BoolT ...: search and apply 0.000s, num matches 0
+Rule (rewrite (Bop (Or ) x y) (Bop (Or ) y x) :ruleset canon): search and apply 0.000s, num matches 4
+Rule (rule ((= lhs (Const (Bool b) ty ctx)))       ((HasType lhs (Base (BoolT )))    ...: search and apply 0.000s, num matches 36
+Rule (rewrite (Bop (Mul ) x y) (Bop (Mul ) y x) :ruleset canon): search and apply 0.000s, num matches 0
+Rule (rewrite (Bop (Eq ) x y) (Bop (Eq ) y x) :ruleset canon): search and apply 0.000s, num matches 4
+Rule (rewrite (Bop (GreaterThan ) x y) (Bop (LessThan ) y x) :ruleset canon): search and apply 0.000s, num matches 4
+Rule (rewrite (Bop (And ) x y) (Bop (And ) y x) :ruleset canon): search and apply 0.000s, num matches 6
+Rule (rule ((= lhs (Alloc _id amt state ty)))       ((ExpectType amt (Base (IntT )) '...: search and apply 0.000s, num matches 119
+Rule (rule ((= (BoolB true) (lo-bound expr))        (= (BoolB false) (hi-bound expr))...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (If cond inputs thn els))        (= hi-thn (hi-bound thn))        ...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (IVTMin (IVTAnalysisRes _a _b _c len1) (IVTAnalysisRes _d _e _f le...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Call name arg))        (FunctionHasType name in-ty out-ty))      ...: search and apply 0.000s, num matches 137
+Rule (rule ((If _pred _input _then _else))       ((BodyContainsExpr _then _then)     ...: search and apply 0.000s, num matches 391
+Rule (rule ((= lhs (If a b c d)))       ((Not-Just-Concat lhs))         :ruleset alwa...: search and apply 0.000s, num matches 391
+Rule (rule ((= e (If cond inputs thn els)))       ((leading-Expr e)        (leading-E...: search and apply 0.000s, num matches 391
+Rule (rule ((= lhs (If cond inputs thn els))        (= lo-thn (lo-bound thn))        ...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (If pred inputs then else)))       ((ExpectType pred (Base (BoolT ...: search and apply 0.000s, num matches 399
+Rule (rewrite (Bop (Add ) x y) (Bop (Add ) y x) :ruleset canon): search and apply 0.000s, num matches 333
+Rule (rule ((= lhs (IVTMin (IVTAnalysisRes _a _b _c len1) (IVTAnalysisRes _d _e _f le...: search and apply 0.000s, num matches 2
+Rule (rule ((= lhs (Bop pred e1 e2))        (bpred-of-type pred ty)        (bop->stri...: search and apply 0.000s, num matches 177
+Rule (rule ((= lhs (Top a b c d)))       ((Not-Just-Concat lhs))         :ruleset alw...: search and apply 0.000s, num matches 411
+Rule (rule ((= lhs (Const (Int x) ty ctx)))       ((set (lo-bound lhs) (IntB x))     ...: search and apply 0.000s, num matches 445
+Rule (rule ((= expr (Const n ty assum)))       ((set (Expr-size expr) 1))         :ru...: search and apply 0.000s, num matches 954
+Rule (rule ((= lhs (Bop (Mul ) x y))        (= (IntB hi-x) (hi-bound x))        (= (I...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Bop (Mul ) x y))        (= (IntB lo-x) (lo-bound x))        (= (I...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Bop (Mul ) x y))        (= (IntB hi-x) (hi-bound x))        (= (I...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Bop (Mul ) x y))        (= (IntB hi-x) (hi-bound x))        (= (I...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Bop (Mul ) x y))        (= (IntB hi-x) (hi-bound x))        (= (I...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Bop (Mul ) x y))        (= (IntB lo-x) (lo-bound x))        (= (I...: search and apply 0.000s, num matches 0
+Rule (rule ((NoAlias x y))       ((NoAlias y x))         :ruleset mem-simple ): search and apply 0.000s, num matches 890
+Rule (rule ((TupleT tylist)        (PureTypeList tylist))       ((PureType (TupleT ty...: search and apply 0.000s, num matches 5
+Rule (rule ((= lhs (Bop (LessEq ) x y))        (HasArgType y ty)        (ContextOf lh...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Bop (Sub ) a b))        (= (IntB ha) (hi-bound a))        (= (Int...: search and apply 0.000s, num matches 4
+Rule (rule ((= lhs (Bop (Sub ) a b))        (= (IntB la) (lo-bound a))        (= (Int...: search and apply 0.000s, num matches 4
+Rule (rule ((= lhs (Const (Int i) ty ctx)))       ((HasType lhs (Base (IntT )))      ...: search and apply 0.000s, num matches 445
+Rule (rule ((= first-write (Top (Write ) addr shadowed-val state))        (= second-w...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Const (Float b) ty ctx)))       ((HasType lhs (Base (FloatT )))  ...: search and apply 0.000s, num matches 473
+Rule (rule ((= lhs (Bop (GreaterEq ) x y))        (HasArgType x ty)        (ContextOf...: search and apply 0.000s, num matches 0
+Rule (rule ((TCons hd tl)        (PureBaseType hd)        (PureTypeList tl))       ((...: search and apply 0.000s, num matches 4
+Rule (rule ((= lhs (Const _n _ty _ctx)))       ((ExprIsResolved lhs))         :rulese...: search and apply 0.000s, num matches 954
+Rule (rule ((= lhs (Bop (LessThan ) a b))        (= (IntB la) (lo-bound a))        (=...: search and apply 0.000s, num matches 32
+Rule (rule ((= lhs (Top (Select ) pred v1 v2))        (HasType v1 ty1)        (HasTyp...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Bop (LessThan ) a b))        (= (IntB ha) (hi-bound a))        (=...: search and apply 0.000s, num matches 32
+Rule (rule ((Const _n _ty _ctx))       ((ExprIsPure (Const _n _ty _ctx)))         :ru...: search and apply 0.000s, num matches 954
+Rule (rule ((= lhs (Arg ty ctx))        (= size (tuple-length lhs)))       ((union lh...: search and apply 0.000s, num matches 110
+Rule (rule ((Const c ty ctx))       ((ContextOf (Const c ty ctx) ctx))         :rules...: search and apply 0.000s, num matches 954
+Rule (rule ((= f (TCons (PointerT ty) tl)))       ((PointerishTypeList f))         :r...: search and apply 0.000s, num matches 965
+Rule (rule ((= lhs (Bop (Mul ) a b))        (= (IntB x) (lo-bound a))        (= (IntB...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Bop op e1 e2))        (bop-of-type op ty)        (bop->string op ...: search and apply 0.000s, num matches 453
+Rule (rule ((= write (Top (Write ) addr write-val state))        (= load (Bop (Load )...: search and apply 0.000s, num matches 0
+Rule (rule ((= first-write (Top (Write ) addr write-val state))        (= second-writ...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (DoWhile inputs body))        (= size (tuple-length lhs)))       (...: search and apply 0.000s, num matches 72
+Rule (rule ((= lhs (Const c ty ass)))       ((PotentialExtractedExpr lhs (TCPair (Ter...: search and apply 0.000s, num matches 954
+Rule (rule ((= lhs (Bop (Add ) a b))        (= (IntB ha) (hi-bound a))        (= (Int...: search and apply 0.000s, num matches 62
+Rule (rule ((= (IntB lo) (lo-bound expr))        (= (IntB hi) (hi-bound expr))       ...: search and apply 0.000s, num matches 0
+Rule (rule ((= first-load (Bop (Load ) addr state))        (= second-load (Bop (Load ...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Bop (Add ) a b))        (= (IntB la) (lo-bound a))        (= (Int...: search and apply 0.000s, num matches 62
+Rule (rule ((= lhs (If pred inputs thn els))        (= size (tuple-length lhs)))     ...: search and apply 0.000s, num matches 298
+Rule (rule ((Bop (PtrAdd ) e i)        (= (hi-bound i) (IntB hi))        (< hi 0))   ...: search and apply 0.000s, num matches 0
+Rule (rule ((Function _name _tyin _tyout _out)        (ExprIsPure _out))       ((Expr...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Bop a b c)))       ((Not-Just-Concat lhs))         :ruleset alway...: search and apply 0.000s, num matches 2158
+Rule (rule ((= (Const c1 ty1 ctx1) (Const c2 ty2 ctx2))        (= ctx1 (InFunc name))...: search and apply 0.000s, num matches 0
+Rule (rule ((Bop (PtrAdd ) e i)        (= (lo-bound i) (IntB lo))        (> lo 0))   ...: search and apply 0.000s, num matches 379
+Rule (rule ((Uop _op _x)        (UnaryOpIsPure _op)        (ExprIsPure _x))       ((E...: search and apply 0.000s, num matches 3
+Rule (rule ((= lhs (Uop (Abs ) e))        (HasType e (Base (IntT ))))       ((HasType...: search and apply 0.000s, num matches 0
+Rule (rule ((NoAlias write-addr load-addr)        (= write (Top (Write ) write-addr w...: search and apply 0.000s, num matches 0
+Rule (rule ((= f (TCons hd tl))        (PointerishTypeList tl))       ((PointerishTyp...: search and apply 0.000s, num matches 1772
+Rule (rule ((HasArgType (Arg t1 ctx) t2)        (!= t1 t2))       ((panic 'arg type m...: search and apply 0.001s, num matches 0
+Rule (rule ((= loop (DoWhile inputs outputs))        (= (Const (Bool false) ty ctx) (...: search and apply 0.001s, num matches 0
+Rule (rule ((= lhs (DoWhile inp pred-body))        (HasType pred-body (Base (PointerT...: search and apply 0.001s, num matches 0
+Rule (rule ((= lhs (DoWhile ins body))        (HasArgType ins ty))       ((HasArgType...: search and apply 0.001s, num matches 121
+Rule (rule ((= lhs (DoWhile inp pred-body))        (HasType inp (Base (PointerT ty)))...: search and apply 0.001s, num matches 0
+Rule (rule ((leading-Expr tuple)        (> (tuple-length tuple) 0))       ((Get tuple...: search and apply 0.001s, num matches 578
+Rule (rule ((Uop op x)        (ContextOf x ctx))       ((ContextOf (Uop op x) ctx))  ...: search and apply 0.001s, num matches 4
+Rule (rule ((= lhs (Uop _op _x))        (ExprIsResolved _x))       ((ExprIsResolved l...: search and apply 0.001s, num matches 4
+Rule (rule ((Single expr))       ((union (Get (Single expr) 0) expr))         :rulese...: search and apply 0.001s, num matches 10389
+Rule (rule ((= lhs (DoWhile inp pred-body))        (HasType pred-body (Base ty)))    ...: search and apply 0.001s, num matches 0
+Rule (rule ((= expr (Uop op x))        (= sum (Expr-size x)))       ((set (Expr-size ...: search and apply 0.001s, num matches 4
+Rule (rule ((= f (TupleT l))        (PointerishTypeList l))       ((PointerishType f)...: search and apply 0.001s, num matches 1811
+Rule (rule ((= lhs (DoWhile inp pred-body))        (HasType inp (Base ty)))       ((p...: search and apply 0.001s, num matches 0
+Rule (rule ((= lhs (Bop (Free ) e s))        (HasType e (Base (IntT ))))       ((pani...: search and apply 0.001s, num matches 0
+Rule (rewrite (TLConcat (TNil ) r) r :ruleset type-helpers): search and apply 0.001s, num matches 3582
+Rule (rule ((= lhs (Function _name _tyin _tyout _out))        (ExprIsResolved _out)) ...: search and apply 0.001s, num matches 29
+Rule (rule ((= p1 (Bop (PtrAdd ) p i))        (= p2 (Bop (PtrAdd ) p (Bop (Sub ) i di...: search and apply 0.001s, num matches 0
+Rule (rule ((Call func arg)        (ContextOf arg ctx))       ((ContextOf (Call func ...: search and apply 0.001s, num matches 137
+Rule (rule ((= p1 (Bop (PtrAdd ) p i))        (= p2 (Bop (PtrAdd ) p (Bop (Sub ) i di...: search and apply 0.001s, num matches 9
+Rule (rule ((= lhs (Subst assum to e))        (= e (Arg _ty _oldctx)))       ((Delaye...: search and apply 0.001s, num matches 201
+Rule (rule ((= expr (Function name tyin tyout out))        (= sum (Expr-size out)))  ...: search and apply 0.001s, num matches 29
+Rule (rule ((= e (Uop op c1))        (= lhs (Subst assum to e))        (ExprIsResolve...: search and apply 0.001s, num matches 4
+Rule (rule ((= p1 (Bop (PtrAdd ) p i))        (= p2 (Bop (PtrAdd ) p (Bop (Add ) i di...: search and apply 0.001s, num matches 0
+Rule (rewrite (Subst assum to (Function name inty outty body)) (Function name inty ou...: search and apply 0.001s, num matches 0
+Rule (rule ((= lhs (Uop (Not ) e))        (HasType e (Base (BoolT ))))       ((HasTyp...: search and apply 0.001s, num matches 1
+Rule (rule ((= lhs (Uop (Neg ) e))        (HasType e (Base (IntT ))))       ((HasType...: search and apply 0.001s, num matches 3
+Rule (rule ((Top _op _x _y _z)        (TernaryOpIsPure _op)        (ExprIsPure _x)   ...: search and apply 0.001s, num matches 0
+Rule (rule ((= e (DoWhile in out))        (= lhs (Subst assum to e))        (ExprIsRe...: search and apply 0.001s, num matches 0
+Rule (rule ((DoWhile in pred-and-output)        (ContextOf in ctx))       ((ContextOf...: search and apply 0.001s, num matches 121
+Rule (rule ((= p1 (Bop (PtrAdd ) p i))        (= p2 (Bop (PtrAdd ) p (Bop (Add ) i di...: search and apply 0.001s, num matches 60
+Rule (rule ((= e (Alloc id c1 c2 ty))        (= lhs (Subst assum to e))        (ExprI...: search and apply 0.001s, num matches 35
+Rule (rule ((= lhs (AddContext ctx (Empty ty oldctx))))       ((union lhs (Empty ty c...: search and apply 0.001s, num matches 98
+Rule (rewrite (Concat (Empty ty ctx) x) x :ruleset always-run): search and apply 0.001s, num matches 1102
+Rule (rule ((= lhs (Bop (Print ) e state))        (HasType e (TupleT ty)))       ((pa...: search and apply 0.001s, num matches 0
+Rule (rule ((= lhs (AddContext ctx (DoWhile inputs outputs))))       ((union lhs (DoW...: search and apply 0.001s, num matches 0
+Rule (rule ((= e (Call name c1))        (= lhs (Subst assum to e))        (ExprIsReso...: search and apply 0.001s, num matches 36
+Rule (rule ((= lhs (Bop (Load ) e state))        (HasType e ty)        (= ty (Base (I...: search and apply 0.001s, num matches 0
+Rule (rule ((= lhs (Call _func _arg))        (ExprIsResolved _arg))       ((ExprIsRes...: search and apply 0.001s, num matches 122
+Rule (rule ((= expr (Call func arg))        (= sum (Expr-size arg)))       ((set (Exp...: search and apply 0.001s, num matches 122
+Rule (rule ((= lhs (Subst assum to inner))        (= inner (If pred inputs c1 c2))   ...: search and apply 0.001s, num matches 84
+Rule (rewrite (Concat x (Empty ty ctx)) x :ruleset always-run): search and apply 0.001s, num matches 3687
+Rule (rewrite (AddContext ctx (Uop op c1)) (Uop op (AddContext ctx c1)) :ruleset cont...: search and apply 0.001s, num matches 7
+Rule (rule ((= lhs (Call @_8 e))        (HasArgType e ty))       ((HasArgType lhs ty)...: search and apply 0.001s, num matches 137
+Rule (rule ((BodyContainsExpr body (Uop _op _x)))       ((BodyContainsExpr body _x)) ...: search and apply 0.001s, num matches 11
+Rule (rule ((Alloc amt e state ty)        (ContextOf e ctx))       ((ContextOf (Alloc...: search and apply 0.001s, num matches 119
+Rule (rule ((Alloc amt e state ty)        (ContextOf state ctx))       ((ContextOf (A...: search and apply 0.001s, num matches 119
+Rule (rule ((= expr (Alloc id e state ty))        (= sum (Expr-size e)))       ((set ...: search and apply 0.001s, num matches 119
+Rule (rule ((= lhs (AddContext ctx (Arg ty oldctx))))       ((union lhs (Arg ty ctx))...: search and apply 0.002s, num matches 106
+Rule (rule ((= lhs (Uop @_ e))        (HasArgType e ty))       ((HasArgType lhs ty)) ...: search and apply 0.002s, num matches 4
+Rule (rule ((= lhs (Alloc _id amt state ty))        (HasType amt (Base (IntT ))))    ...: search and apply 0.002s, num matches 119
+Rule (rule ((Top op x y z)        (ContextOf z ctx))       ((ContextOf (Top op x y z)...: search and apply 0.002s, num matches 411
+Rule (rule ((= lhs (Bop (Free ) e s))        (HasType e (TupleT _ty)))       ((panic ...: search and apply 0.002s, num matches 0
+Rule (rewrite (SubTuple expr x 1) (Single (Get expr x)) :ruleset always-run): search and apply 0.002s, num matches 24132
+Rule (rule ((BodyContainsExpr body (Call _func _arg)))       ((BodyContainsExpr body ...: search and apply 0.002s, num matches 237
+Rule (rule ((Top op x y z)        (ContextOf y ctx))       ((ContextOf (Top op x y z)...: search and apply 0.002s, num matches 414
+Rule (rule ((Top op x y z)        (ContextOf x ctx))       ((ContextOf (Top op x y z)...: search and apply 0.002s, num matches 411
+Rule (rewrite (TypeList-ith (TCons hd tl) 0) hd :ruleset type-helpers): search and apply 0.002s, num matches 1094
+Rule (rule ((BodyContainsExpr body (DoWhile _in _pred-and-output)))       ((BodyConta...: search and apply 0.002s, num matches 143
+Rule (rule ((ExpectType e expected msg)        (HasType e actual)        (!= expected...: search and apply 0.002s, num matches 0
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.002s, num matches 0
+Rule (rule ((= lhs (AddContext ctx (Const c ty oldctx))))       ((union lhs (Const c ...: search and apply 0.002s, num matches 276
+Rule (rule ((= lhs (DoWhile _in _pred-and-output))        (ExprIsResolved _in)       ...: search and apply 0.002s, num matches 72
+Rule (rule ((= lst (TCons hd tl))        (= len (TypeList-length tl)))       ((set (T...: search and apply 0.002s, num matches 1883
+Rule (rule ((= lhs (Alloc _id e state @_7))        (HasArgType e ty))       ((HasArgT...: search and apply 0.002s, num matches 119
+Rule (rule ((= lhs (Call name arg))        (FunctionHasType name in-ty out-ty)       ...: search and apply 0.002s, num matches 122
+Rule (rule ((= lhs (Bop (Load ) e state))        (HasType e ty)        (= ty (TupleT ...: search and apply 0.002s, num matches 0
+Rule (rule ((Get x i))       ((Add-Gets x x 0))         :ruleset always-run ): search and apply 0.002s, num matches 25462
+Rule (rule ((= lhs (Uop o e1))        (= (TCPair t1 c1) (ExtractedExpr e1)))       ((...: search and apply 0.002s, num matches 10
+Rule (rule ((= e (Top op c1 c2 c3))        (= lhs (Subst assum to e))        (ExprIsR...: search and apply 0.002s, num matches 211
+Rule (rule ((PotentialExtractedExpr expr termandcost))       ((set (ExtractedExpr exp...: search and apply 0.003s, num matches 36835
+Rule (rule ((DoWhile _in _pred-and-output)        (ExprIsPure _in)        (ExprIsPure...: search and apply 0.003s, num matches 0
+Rule (rule ((= expr (DoWhile in pred-and-output))        (= sum (+ (Expr-size pred-an...: search and apply 0.003s, num matches 72
+Rule (rule ((BodyContainsExpr body (Alloc _id _e _state _ty)))       ((BodyContainsEx...: search and apply 0.003s, num matches 229
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.003s, num matches 80
+Rule (rule ((= lhs (Bop (Print ) e state))        (HasType e _ty))       ((HasType lh...: search and apply 0.003s, num matches 1
+Rule (rule ((= lhs (Top @_5 a b c))        (HasArgType c ty))       ((HasArgType lhs ...: search and apply 0.003s, num matches 411
+Rule (rule ((If pred inputs then else)        (ContextOf pred ctx))       ((ContextOf...: search and apply 0.003s, num matches 330
+Rule (rule ((Add-Gets orig something n)        (Not-Just-Concat something))       ((A...: search and apply 0.003s, num matches 1181
+Rule (rule ((If pred inputs then else)        (ContextOf inputs ctx))       ((Context...: search and apply 0.003s, num matches 330
+Rule (rule ((= lhs (Alloc _id _e _state _ty))        (ExprIsResolved _e)        (Expr...: search and apply 0.003s, num matches 58
+Rule (rule ((Add-All-Gets orig something offset pos)        (< pos (tuple-length some...: search and apply 0.003s, num matches 7083
+Rule (rule ((= lhs (Top @_4 a b c))        (HasArgType b ty))       ((HasArgType lhs ...: search and apply 0.003s, num matches 411
+Rule (rule ((is-inv-Expr body expr)        (DoWhile inputs body)        (HasType expr...: search and apply 0.003s, num matches 347
+Rule (rule ((Call _f _arg)        (ExprIsPure _arg)        (ExprIsPure (Function _f i...: search and apply 0.003s, num matches 0
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.003s, num matches 95
+Rule (rule ((is-inv-Expr body expr)        (DoWhile inputs body)        (HasType expr...: search and apply 0.003s, num matches 420
+Rule (rule ((= lhs (Top @_3 a b c))        (HasArgType a ty))       ((HasArgType lhs ...: search and apply 0.003s, num matches 411
+Rule (rule ((= lhs (Get (Arg (TupleT tylist) _ctx) i))        (!= (TypeList-ith tylis...: search and apply 0.003s, num matches 1152
+Rule (rule ((BodyContainsExpr body (Top _op _x _y _z)))       ((BodyContainsExpr body...: search and apply 0.004s, num matches 916
+Rule (rule ((DelayedSubstUnion lhs rhs))       ((union lhs rhs))         :ruleset app...: search and apply 0.004s, num matches 74488
+Rule (rewrite (SubTuple expr 0 len) expr :when ((= len (tuple-length expr))) :ruleset...: search and apply 0.004s, num matches 7259
+Rule (rule ((= lhs (Top (Write ) ptr val state))        (HasType ptr (Base (PointerT ...: search and apply 0.004s, num matches 390
+Rule (rule ((Get expr i))       ((union (Single (Get expr i)) (SubTuple expr i 1)))  ...: search and apply 0.004s, num matches 25462
+Rule (rule ((HasType expr (TupleT tl))        (= len (TypeList-length tl)))       ((s...: search and apply 0.004s, num matches 19157
+Rule (rule ((= (BoolB false) (hi-bound expr))        (HasArgType expr ty)        (Con...: search and apply 0.004s, num matches 19
+Rule (rule ((Bop op x y)        (ContextOf y ctx))       ((ContextOf (Bop op x y) ctx...: search and apply 0.004s, num matches 2159
+Rule (rule ((= lhs (Bop (Free ) e s))        (HasType e (Base (PointerT _ty))))      ...: search and apply 0.004s, num matches 136
+Rule (rule ((Bop op x y)        (ContextOf x ctx))       ((ContextOf (Bop op x y) ctx...: search and apply 0.004s, num matches 2160
+Rule (rule ((= lhs (If c i t e))        (HasArgType c ty))       ((HasArgType lhs ty)...: search and apply 0.005s, num matches 378
+Rule (rule ((= loop (DoWhile inpW outW))        (= (IVTNewInputsAnalysis outW ifnode)...: search and apply 0.005s, num matches 40
+Rule (rule ((BodyContainsExpr body (If _pred _input _then _else)))       ((BodyContai...: search and apply 0.005s, num matches 305
+Rule (rule ((= lhs (If c i t e))        (HasType i ty)        (HasArgType e ty2)     ...: search and apply 0.005s, num matches 0
+Rule (rewrite (SubTuple expr a b) (Concat (Single (Get expr a)) (SubTuple expr (+ a 1...: search and apply 0.005s, num matches 23116
+Rule (rule ((= lhs (If c i t e))        (HasType i ty)        (HasArgType t ty2)     ...: search and apply 0.005s, num matches 0
+Rule (rule ((= (BoolB true) (lo-bound expr))        (HasArgType expr ty)        (Cont...: search and apply 0.005s, num matches 33
+Rule (rewrite (AddContext ctx (Alloc id c1 state ty)) (Alloc id (AddContext ctx c1) (...: search and apply 0.005s, num matches 250
+Rule (rule ((= lhs (Single e))        (HasType e (TupleT tylist)))       ((panic 'don...: search and apply 0.005s, num matches 0
+Rule (rule ((= lhs (If pred inputs thn els))        (= lo-thn (lo-bound (Get thn i)))...: search and apply 0.005s, num matches 0
+Rule (rule ((= lhs (If cond inputs thn els))        (= hi-thn (hi-bound (Get thn i)))...: search and apply 0.005s, num matches 0
+Rule (rule ((Bop _op _x _y)        (BinaryOpIsPure _op)        (ExprIsPure _x)       ...: search and apply 0.006s, num matches 654
+Rule (rule ((leading-Expr tuple)        (= len (tuple-length tuple))        (= ith (G...: search and apply 0.006s, num matches 8471
+Rule (rule ((= lhs (Function name in out body))        (HasArgType body ty)        (H...: search and apply 0.006s, num matches 0
+Rule (rule ((= lhs (Bop @_2 a b))        (HasArgType b ty))       ((HasArgType lhs ty...: search and apply 0.006s, num matches 2157
+Rule (rule ((TypeList-ith list i)        (= (TypeList-length list) n)        (>= i n)...: search and apply 0.006s, num matches 0
+Rule (rule ((= lhs (Bop @_1 a b))        (HasArgType a ty))       ((HasArgType lhs ty...: search and apply 0.006s, num matches 2155
+Rule (rewrite (TLConcat (TCons hd tl) r) (TCons hd (TLConcat tl r)) :ruleset type-hel...: search and apply 0.006s, num matches 24050
+Rule (rule ((= lhs (AddContext ctx (If pred inputs c1 c2))))       ((union lhs (If (A...: search and apply 0.007s, num matches 412
+Rule (rule ((= lhs (Bop (Load ) e state))        (HasType e (Base (PointerT ty))))   ...: search and apply 0.007s, num matches 557
+Rule (rewrite (AddContext ctx (Call name c1)) (Call name (AddContext ctx c1)) :rulese...: search and apply 0.007s, num matches 184
+Rule (rule ((= lhs (DoWhile inp pred-body))        (HasType inp (TupleT in-tys))     ...: search and apply 0.008s, num matches 0
+Rule (rule ((HasType (Get expr i) (TupleT tl))        (= (TypeList-length tl) len)   ...: search and apply 0.008s, num matches 0
+Rule (rule ((= lhs (DoWhile inp pred-body))        (HasType inp (TupleT tylist)))    ...: search and apply 0.008s, num matches 121
+Rule (rule ((= e (Bop op c1 c2))        (= lhs (Subst assum to e))        (ExprIsReso...: search and apply 0.008s, num matches 1116
+Rule (rule ((= (TCPair t1 c1) (ExtractedExpr e1))        (ContextOf e1 ctx1))       (...: search and apply 0.008s, num matches 12306
+Rule (rule ((HasType (Get expr i) (TupleT tl))        (= (TypeList-length tl) len)   ...: search and apply 0.009s, num matches 0
+Rule (rule ((If _pred _input _then _else)        (ExprIsPure _pred)        (ExprIsPur...: search and apply 0.009s, num matches 3
+Rule (rule ((= expr (If pred inputs then else))        (= sum (+ (Expr-size inputs) (...: search and apply 0.009s, num matches 176
+Rule (rule ((= (BoolB x) (lo-bound expr))        (= (BoolB x) (hi-bound expr))       ...: search and apply 0.009s, num matches 52
+Rule (rule ((= lhs (Top _op _x _y _z))        (ExprIsResolved _x)        (ExprIsResol...: search and apply 0.010s, num matches 321
+Rule (rule ((= (IntB x) (lo-bound expr))        (= (IntB x) (hi-bound expr))        (...: search and apply 0.010s, num matches 462
+Rule (rule ((BodyContainsExpr body (Bop _op _x _y)))       ((BodyContainsExpr body _x...: search and apply 0.010s, num matches 4613
+Rule (rule ((= lhs (If _pred _input _then _else))        (ExprIsResolved _pred)      ...: search and apply 0.011s, num matches 218
+Rule (rule ((ContextOf x ctx1)        (ContextOf x ctx2)        (!= ctx1 ctx2))      ...: search and apply 0.011s, num matches 0
+Rule (rule ((= expr (Top op x y z))        (= sum (+ (Expr-size z) (+ (Expr-size y) (...: search and apply 0.011s, num matches 595
+Rule (rule ((= lhs (DoWhile inputs outputs))        (= pred (Get outputs 0))        (...: search and apply 0.011s, num matches 0
+Rule (rule ((Single _x)        (ExprIsPure _x))       ((ExprIsPure (Single _x)))     ...: search and apply 0.011s, num matches 1598
+Rule (rule ((= lhs (Single e))        (HasArgType e ty))       ((HasArgType lhs ty)) ...: search and apply 0.012s, num matches 8166
+Rule (rewrite (TypeList-ith (TCons hd tl) i) (TypeList-ith tl (- i 1)) :when ((> i 0)...: search and apply 0.012s, num matches 9774
+Rule (rule ((= (IVTNewInputsAnalysisImpl loop-body (Single last) ifnode) (IVTAnalysis...: search and apply 0.012s, num matches 40
+Rule (rule ((= lhs (DoWhile inputs outputs))        (= pred (Get outputs 0))        (...: search and apply 0.013s, num matches 0
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.015s, num matches 3
+Rule (rule ((= lhs (If pred inputs then else))        (HasType pred (Base (BoolT ))) ...: search and apply 0.016s, num matches 0
+Rule (rule ((= lhs (Get e @_6))        (HasArgType e ty))       ((HasArgType lhs ty))...: search and apply 0.021s, num matches 22222
+Rule (rule ((IVTNewInputsAnalysisDemand loop-body)        (= loop-body (Concat (Singl...: search and apply 0.022s, num matches 523
+Rule (rule ((Get _tup _i)        (ExprIsPure _tup))       ((ExprIsPure (Get _tup _i))...: search and apply 0.023s, num matches 1594
+Rule (rule ((= (IVTNewInputsAnalysisImpl loop-body curr ifnode) (IVTAnalysisRes perm ...: search and apply 0.024s, num matches 519
+Rule (rule ((= expr (Bop op x y))        (= sum (+ (Expr-size y) (Expr-size x))))    ...: search and apply 0.025s, num matches 2829
+Rule (rule ((= lhs (Concat e1 e2))        (HasArgType e2 ty))       ((HasArgType lhs ...: search and apply 0.025s, num matches 45761
+Rule (rule ((= lhs (Top (Select ) pred v1 v2))        (HasType v1 ty)        (HasType...: search and apply 0.025s, num matches 0
+Rule (rewrite (SubTuple expr x 0) (Empty ty ctx) :when ((HasArgType expr ty) (Context...: search and apply 0.026s, num matches 140
+Rule (rule ((= e (Single c1))        (= lhs (Subst assum to e))        (ExprIsResolve...: search and apply 0.026s, num matches 4900
+Rule (rule ((= lhs (Concat e1 e2))        (HasArgType e1 ty))       ((HasArgType lhs ...: search and apply 0.026s, num matches 45817
+Rule (rule ((= lhs (Single e))        (HasType e (Base basety)))       ((HasType lhs ...: search and apply 0.026s, num matches 6523
+Rule (rule ((= lhs (Bop _op _x _y))        (ExprIsResolved _x)        (ExprIsResolved...: search and apply 0.027s, num matches 1929
+Rule (rule ((Single x)        (ContextOf x ctx))       ((ContextOf (Single x) ctx))  ...: search and apply 0.030s, num matches 10095
+Rule (rewrite (AddContext ctx (Top op c1 c2 c3)) (Top op (AddContext ctx c1) (AddCont...: search and apply 0.031s, num matches 1035
+Rule (rule ((= lhs (Top (Write ) ptr val state))        (HasType ptr (Base (PointerT ...: search and apply 0.031s, num matches 354
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.033s, num matches 0
+Rule (rule ((= (IVTNewInputsAnalysisImpl loop-body curr ifnode) (IVTAnalysisRes perm ...: search and apply 0.037s, num matches 0
+Rule (rule ((Add-Gets orig (Single e) n))       ((union (Get orig n) e))         :rul...: search and apply 0.037s, num matches 17585
+Rule (rule ((= lhs (Subst assum to e))        (= e (Empty _ty _oldctx))        (HasAr...: search and apply 0.039s, num matches 92
+Rule (rule ((= (IVTNewInputsAnalysisImpl loop-body curr ifnode) (IVTAnalysisRes perm ...: search and apply 0.040s, num matches 0
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.043s, num matches 12
+Rule (rule ((Get tup i)        (ContextOf tup ctx))       ((ContextOf (Get tup i) ctx...: search and apply 0.044s, num matches 24818
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.047s, num matches 0
+Rule (rule ((Concat x y)        (ContextOf y ctx))       ((ContextOf (Concat x y) ctx...: search and apply 0.048s, num matches 48189
+Rule (rewrite (Concat (Concat a b) c) (Concat a (Concat b c)) :ruleset always-run): search and apply 0.048s, num matches 168022
+Rule (rule ((Concat x y)        (ContextOf x ctx))       ((ContextOf (Concat x y) ctx...: search and apply 0.048s, num matches 50627
+Rule (rule ((= expr (Single x))        (= sum (Expr-size x)))       ((set (Expr-size ...: search and apply 0.048s, num matches 7402
+Rule (rule ((Concat _x _y)        (ExprIsPure _x)        (ExprIsPure _y))       ((Exp...: search and apply 0.050s, num matches 16300
+Rule (rule ((BodyContainsExpr body (Single _x)))       ((BodyContainsExpr body _x))  ...: search and apply 0.053s, num matches 15679
+Rule (rule ((= lhs (Single _x))        (ExprIsResolved _x))       ((ExprIsResolved lh...: search and apply 0.054s, num matches 6110
+Rule (rule ((= lhs (Subst assum to e))        (= e (Const c _ty _oldctx))        (Has...: search and apply 0.054s, num matches 148
+Rule (rule ((= lhs (Subst assum to in))        (HasArgType to ty))       ((HasArgType...: search and apply 0.059s, num matches 21654
+Rule (rewrite (AddContext ctx (Bop op c1 c2)) (Bop op (AddContext ctx c1) (AddContext...: search and apply 0.061s, num matches 4323
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.064s, num matches 0
+Rule (rule ((= e (Get c1 index))        (= lhs (Subst assum to e))        (ExprIsReso...: search and apply 0.065s, num matches 12546
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.066s, num matches 0
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.070s, num matches 355
+Rule (rule ((= e (Concat c1 c2))        (= lhs (Subst assum to e))        (ExprIsReso...: search and apply 0.078s, num matches 36572
+Rule (rewrite (AddContext ctx (Single c1)) (Single (AddContext ctx c1)) :ruleset cont...: search and apply 0.080s, num matches 14621
+Rule (rule ((= lhs (Get e i))        (HasType e (TupleT tylist)))       ((HasType lhs...: search and apply 0.081s, num matches 17415
+Rule (rule ((= lhs (DoWhile inp pred-body))        (HasType inp (TupleT tylist))     ...: search and apply 0.085s, num matches 72
+Rule (rule ((= loop (DoWhile inputs pred-and-body))        (ContextOf inputs loop-inp...: search and apply 0.088s, num matches 38685
+Rule (rule ((Add-Gets orig (Concat left right) n)        (= len (tuple-length left)))...: search and apply 0.090s, num matches 65138
+Rule (rule ((BodyContainsExpr body (Get _tup _i)))       ((BodyContainsExpr body _tup...: search and apply 0.091s, num matches 44404
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.102s, num matches 355
+Rule (rule ((BodyContainsExpr body (Concat _x _y)))       ((BodyContainsExpr body _x)...: search and apply 0.114s, num matches 115203
+Rule (rule ((= lhs (Single e1))        (= (TCPair t1 c1) (ExtractedExpr e1)))       (...: search and apply 0.120s, num matches 5297
+Rule (rule ((= expr (Get tup i))        (= sum (Expr-size tup)))       ((set (Expr-si...: search and apply 0.125s, num matches 19830
+Rule (rule ((Subst assum to in)        (HasArgType in ty)        (HasType to ty2)    ...: search and apply 0.128s, num matches 0
+Rule (rewrite (AddContext ctx (Concat c1 c2)) (Concat (AddContext ctx c1) (AddContext...: search and apply 0.130s, num matches 93615
+Rule (rewrite (AddContext ctx (Get c1 index)) (Get (AddContext ctx c1) index) :rulese...: search and apply 0.130s, num matches 36367
+Rule (rule ((= lhs (Bop pred e1 e2))        (bpred-of-type pred ty)        (HasType e...: search and apply 0.136s, num matches 173
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.138s, num matches 4037
+Rule (rule ((= lhs (Bop op e1 e2))        (bop-of-type op ty)        (HasType e1 ty) ...: search and apply 0.138s, num matches 434
+Rule (rule ((= lhs (Get _tup _i))        (ExprIsResolved _tup))       ((ExprIsResolve...: search and apply 0.147s, num matches 16310
+Rule (rule ((= lhs (Top o e1 e2 e3))        (= (TCPair t1 c1) (ExtractedExpr e1))    ...: search and apply 0.152s, num matches 568
+Rule (rule ((= lhs (AddContext ctx inner))        (= inner (AddContext ctx expr)))   ...: search and apply 0.177s, num matches 38147
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.196s, num matches 314
+Rule (rewrite (Concat (SubTuple expr a b) (SubTuple expr (+ a b) c)) (SubTuple expr a...: search and apply 0.206s, num matches 74388
+Rule (rule ((= lhs (Bop o e1 e2))        (= (TCPair t1 c1) (ExtractedExpr e1))       ...: search and apply 0.234s, num matches 3000
+Rule (rule ((= lhs (Get tup i))        (= (TCPair t1 c1) (ExtractedExpr tup)))       ...: search and apply 0.235s, num matches 9407
+Rule (rule ((= lhs (Bop (PtrAdd ) ptr n))        (HasType ptr (Base (PointerT ty)))  ...: search and apply 0.271s, num matches 722
+Rule (rule ((= lhs (If pred inputs then else))        (HasType pred (Base (BoolT ))) ...: search and apply 0.335s, num matches 337
+Rule (rule ((= expr (Concat x y))        (= sum (+ (Expr-size y) (Expr-size x))))    ...: search and apply 0.348s, num matches 45919
+Rule (rule ((= lhs (Concat _x _y))        (ExprIsResolved _x)        (ExprIsResolved ...: search and apply 0.353s, num matches 41427
+Rule (rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))        (> cost1 cos...: search and apply 0.414s, num matches 14758
+Rule (rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))        (<= cost1 co...: search and apply 0.417s, num matches 17616
+Rule (rule ((= lhs (Concat e1 e2))        (HasType e1 (TupleT tylist1))        (HasTy...: search and apply 0.453s, num matches 40338
+Rule (rule ((= lhs (Concat e1 e2))        (= (TCPair t1 c1) (ExtractedExpr e1))      ...: search and apply 0.588s, num matches 32190
+Rule (rule ((PotentialExtractedExpr expr (TCPair term cost))        (= (ExtractedExpr...: search and apply 0.701s, num matches 21748
+Ruleset loop-iters-analysis: search 0.025s, merge 0.000s, rebuild 0.000s
+Ruleset type-helpers: search 0.031s, merge 0.002s, rebuild 0.196s
+Ruleset subst: search 0.478s, merge 0.007s, rebuild 0.027s
+Ruleset initialization: search 0.001s, merge 0.000s, rebuild 0.000s
+Ruleset terms: search 1.344s, merge 0.005s, rebuild 0.013s
+Ruleset terms-helpers: search 0.707s, merge 0.010s, rebuild 0.000s
+Ruleset terms-helpers-helpers: search 0.836s, merge 0.005s, rebuild 0.357s
+Ruleset canon: search 0.000s, merge 0.000s, rebuild 0.000s
+Ruleset boundary-analysis-prep: search 0.003s, merge 0.000s, rebuild 0.000s
+Ruleset loop-inversion: search 0.005s, merge 0.000s, rebuild 0.001s
+Ruleset boundary-analysis: search 0.003s, merge 0.000s, rebuild 0.000s
+Ruleset interval-analysis: search 0.041s, merge 0.000s, rebuild 0.003s
+Ruleset cicm-index: search 0.008s, merge 0.000s, rebuild 0.000s
+Ruleset term-subst: search 0.000s, merge 0.000s, rebuild 0.000s
+Ruleset always-run: search 2.507s, merge 0.023s, rebuild 0.111s
+Ruleset is-resolved: search 0.618s, merge 0.003s, rebuild 0.009s
+Ruleset subsume-after-helpers: search 0.000s, merge 0.000s, rebuild 0.000s
+Ruleset apply-subst-unions: search 0.004s, merge 0.002s, rebuild 0.108s
+Ruleset context: search 0.644s, merge 0.008s, rebuild 0.594s
+Ruleset error-checking: search 0.086s, merge 0.000s, rebuild 0.000s
+Ruleset cleanup-drop: search 0.000s, merge 0.000s, rebuild 0.000s
+Ruleset drop: search 0.000s, merge 0.000s, rebuild 0.000s
+Ruleset mem-simple: search 0.005s, merge 0.000s, rebuild 0.000s
+Ruleset apply-drop-unions: search 0.000s, merge 0.000s, rebuild 0.000s
+Ruleset type-analysis: search 1.749s, merge 0.005s, rebuild 0.020s
+Ruleset ivt-analysis: search 0.137s, merge 0.000s, rebuild 0.004s
+
+EGGCC_PHASE pass=2 wall=19.756s search_apply=15.535s merge=0.211s rebuild=3.483s iters=10484 tuples_before=0 tuples=697944 matches=3093715
+Rule (rule ()       ((set (TypeList-length (TNil )) 0))         :ruleset type-helpers...: search and apply 0.000s, num matches 1
+Rule (rule ((TNil ))       ((PureTypeList (TNil )))         :ruleset type-analysis ): search and apply 0.000s, num matches 1
+Rule (rule ((TypeListRemoveAt (TNil ) _idx))       ((panic 'Index out of bounds for T...: search and apply 0.000s, num matches 0
+Rule (rule ()       ((let __tmp0 (FloatT ))        (let __tmp1 (StateT ))        (let...: search and apply 0.000s, num matches 1
+Rule (rule ((= lhs (Uop a b)))       ((Not-Just-Concat lhs))         :ruleset always-...: search and apply 0.000s, num matches 3
+Rule (rule ((= lhs (Uop (Abs ) e)))       ((ExpectType e (Base (IntT )) '(Abs)'))    ...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Uop (Neg ) e)))       ((ExpectType e (Base (IntT )) '(Neg)'))    ...: search and apply 0.000s, num matches 2
+Rule (rule ((= lhs (Uop (Not ) e)))       ((ExpectType e (Base (BoolT )) '(Not)'))   ...: search and apply 0.000s, num matches 1
+Rule (rule ((= lhs (Empty _ty _ctx)))       ((ExprIsResolved lhs))         :ruleset i...: search and apply 0.000s, num matches 5
+Rule (rule ((Empty _ty _ctx))       ((ExprIsPure (Empty _ty _ctx)))         :ruleset ...: search and apply 0.000s, num matches 5
+Rule (rule ((Empty ty ctx))       ((ContextOf (Empty ty ctx) ctx))         :ruleset a...: search and apply 0.000s, num matches 5
+Rule (rule ((Empty ty assum))       ((set (Expr-size (Empty ty assum)) 0))         :r...: search and apply 0.000s, num matches 5
+Rule (rule ((= lhs (Empty ty ctx)))       ((HasType lhs (TupleT (TNil )))        (Has...: search and apply 0.000s, num matches 5
+Rule (rule ((Base ty)        (PureBaseType ty))       ((PureType (Base ty)))         ...: search and apply 0.000s, num matches 2
+Rule (rule ((Function _name _tyin _tyout _out))       ((BodyContainsExpr _out _out)) ...: search and apply 0.000s, num matches 29
+Rule (rule ((= f (Base (PointerT ty))))       ((PointerishType f))         :ruleset a...: search and apply 0.000s, num matches 5
+Rule (rule ((= lhs (Function name in-ty out-ty body)))       ((HasArgType body in-ty)...: search and apply 0.000s, num matches 29
+Rule (rule ((DelayedDropUnion lhs rhs))       ((subsume (DelayedDropUnion lhs rhs))) ...: search and apply 0.000s, num matches 29
+Rule (rule ((DelayedDropUnion lhs rhs))       ((union lhs rhs))         :ruleset appl...: search and apply 0.000s, num matches 53
+Rule (rule ((= lhs (Arg ty ass)))       ((PotentialExtractedExpr lhs (TCPair (TermArg...: search and apply 0.000s, num matches 77
+Rule (rule ((= pred (Const (Bool false) _ty ctx))        (= if_e (If pred inputs thn ...: search and apply 0.000s, num matches 0
+Rule (rule ((DoWhile _in _pred-and-output))       ((BodyContainsExpr _pred-and-output...: search and apply 0.000s, num matches 84
+Rule (rule ((= lhs (DoWhile a b)))       ((Not-Just-Concat lhs))         :ruleset alw...: search and apply 0.000s, num matches 84
+Rule (rule ((= lhs (Call a b)))       ((Not-Just-Concat lhs))         :ruleset always...: search and apply 0.000s, num matches 121
+Rule (rule ((= lhs (Arg a b)))       ((Not-Just-Concat lhs))         :ruleset always-...: search and apply 0.000s, num matches 77
+Rule (rule ((ToSubsumeIf a b c d)        (If a b c d))       ((subsume (If a b c d)))...: search and apply 0.000s, num matches 4
+Rule (rule ((DoWhile inputs outputs))       ((set (LoopNumItersGuess inputs outputs) ...: search and apply 0.000s, num matches 84
+Rule (rule ((= lhs (Subst assum to e))        (= e (Empty _ty _oldctx))        (HasAr...: search and apply 0.000s, num matches 0
+Rule (rule ((Arg ty ctx))       ((ContextOf (Arg ty ctx) ctx))         :ruleset alway...: search and apply 0.000s, num matches 77
+Rule (rule ((= expr (Arg ty assum)))       ((set (Expr-size expr) 1))         :rulese...: search and apply 0.000s, num matches 77
+Rule (rule ((= lhs (Arg _ty _ctx)))       ((ExprIsResolved lhs))         :ruleset is-...: search and apply 0.000s, num matches 77
+Rule (rule ((= lhs (DoWhile inp pred-body)))       ((ExpectType (Get pred-body 0) (Ba...: search and apply 0.000s, num matches 84
+Rule (rule ((Arg ty ctx))       ((HasType (Arg ty ctx) ty)        (HasArgType (Arg ty...: search and apply 0.000s, num matches 77
+Rule (rule ((= e (DoWhile inputs pred_out)))       ((leading-Expr e)        (leading-...: search and apply 0.000s, num matches 84
+Rule (rule ((= lhs (Uop (Abs ) x))        (= (IntB lx) (lo-bound x))        (>= lx 0)...: search and apply 0.000s, num matches 0
+Rule (rule ((TupleRemoveAt tuple idx)        (= len (tuple-length tuple))        (>= ...: search and apply 0.000s, num matches 0
+Rule (rule ((= pred (Const (Bool true) _ty ctx))        (= if_e (If pred inputs thn e...: search and apply 0.000s, num matches 25
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Empty oldty oldctx))))       ((D...: search and apply 0.000s, num matches 2
+Rule (rule ((= e (Arg t a)))       ((leading-Expr e))         :ruleset always-run ): search and apply 0.000s, num matches 77
+Rule (rule ((= lhs (Const (Bool x) ty ctx)))       ((set (lo-bound lhs) (BoolB x))   ...: search and apply 0.000s, num matches 84
+Rule (rule ((= lhs (Call name arg))        (FunctionHasType name in-ty out-ty))      ...: search and apply 0.000s, num matches 121
+Rule (rule ((= lhs (Const (Bool b) ty ctx)))       ((HasType lhs (Base (BoolT )))    ...: search and apply 0.000s, num matches 84
+Rule (rule ((= lhs (TermSubst ctx e (TermUop op t1))))       ((union lhs (Uop op (Ter...: search and apply 0.000s, num matches 0
+Rule (rewrite (TupleRemoveAt tuple idx) (Concat (SubTuple tuple 0 idx) (SubTuple tupl...: search and apply 0.000s, num matches 20
+Rule (rewrite (TypeListRemoveAt (TCons x xs) idx) (TCons x (TypeListRemoveAt xs (- id...: search and apply 0.000s, num matches 0
+Rule (rewrite (TypeListRemoveAt (TCons x xs) 0) xs :ruleset type-helpers): search and apply 0.000s, num matches 2
+Rule (rule ((= lhs (If a b c d)))       ((Not-Just-Concat lhs))         :ruleset alwa...: search and apply 0.000s, num matches 200
+Rule (rule ((= lhs (Alloc _id amt state ty)))       ((ExpectType amt (Base (IntT )) '...: search and apply 0.000s, num matches 233
+Rule (rule ((If _pred _input _then _else))       ((BodyContainsExpr _then _then)     ...: search and apply 0.000s, num matches 200
+Rule (rule ((= lhs (If pred inputs then else)))       ((ExpectType pred (Base (BoolT ...: search and apply 0.000s, num matches 200
+Rule (rewrite (Top (Select ) pred x x) x :ruleset peepholes): search and apply 0.000s, num matches 282
+Rule (rule ((= lhs (TermSubst ctx e (TermArg ))))       ((union lhs (AddContext ctx e...: search and apply 0.000s, num matches 231
+Rule (rule ((= e (If cond inputs thn els)))       ((leading-Expr e)        (leading-E...: search and apply 0.000s, num matches 200
+Rule (rewrite (Bop (GreaterThan ) x y) (Bop (LessThan ) y x) :ruleset canon): search and apply 0.000s, num matches 4
+Rule (rewrite (Bop (Or ) x y) (Bop (Or ) y x) :ruleset canon): search and apply 0.000s, num matches 8
+Rule (rewrite (Bop (Eq ) x y) (Bop (Eq ) y x) :ruleset canon): search and apply 0.000s, num matches 10
+Rule (rule ((TupleT tylist)        (PureTypeList tylist))       ((PureType (TupleT ty...: search and apply 0.000s, num matches 5
+Rule (rewrite (Bop (And ) x y) (Bop (And ) y x) :ruleset canon): search and apply 0.000s, num matches 24
+Rule (rule ((= (BoolB true) (lo-bound expr))        (= (BoolB false) (hi-bound expr))...: search and apply 0.000s, num matches 0
+Rule (rewrite (Bop (Mul ) x y) (Bop (Mul ) y x) :ruleset canon): search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Top (Select ) pred v1 v2)))       ((ExpectType pred (Base (BoolT ...: search and apply 0.000s, num matches 256
+Rule (rule ((= f (TCons (PointerT ty) tl)))       ((PointerishTypeList f))         :r...: search and apply 0.000s, num matches 502
+Rule (rule ((= lhs (If cond inputs thn els))        (ContextOf lhs if_ctx)        (= ...: search and apply 0.000s, num matches 0
+Rule (rule ((= load (Bop (Load ) load-addr state)))       ((union (Get load 1) state)...: search and apply 0.000s, num matches 1269
+Rule (rule ((= lhs (If cond inputs thn els))        (= hi-thn (hi-bound thn))        ...: search and apply 0.000s, num matches 0
+Rule (rule ((TCons hd tl)        (PureBaseType hd)        (PureTypeList tl))       ((...: search and apply 0.000s, num matches 4
+Rule (rewrite (Bop (Add ) x y) (Bop (Add ) y x) :ruleset canon): search and apply 0.000s, num matches 504
+Rule (rule ((= lhs (If cond inputs thn els))        (= lo-thn (lo-bound thn))        ...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Bop pred e1 e2))        (bpred-of-type pred ty)        (bop->stri...: search and apply 0.000s, num matches 307
+Rule (rule ((= lhs (TermSubst ctx e (TermTop op t1 t2 t3))))       ((union lhs (Top o...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Const (Float b) ty ctx)))       ((HasType lhs (Base (FloatT )))  ...: search and apply 0.000s, num matches 665
+Rule (rule ((= expr (Const n ty assum)))       ((set (Expr-size expr) 1))         :ru...: search and apply 0.000s, num matches 1550
+Rule (rule ((NoAlias x y))       ((NoAlias y x))         :ruleset mem-simple ): search and apply 0.000s, num matches 1702
+Rule (rule ((= lhs (Const (Int x) ty ctx)))       ((set (lo-bound lhs) (IntB x))     ...: search and apply 0.000s, num matches 801
+Rule (rule ((= lhs (TermSubst ctx e (TermConcat t1 t2))))       ((union lhs (Concat (...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (DoWhile inputs body))        (= size (tuple-length lhs)))       (...: search and apply 0.000s, num matches 84
+Rule (rule ((= lhs (Arg ty ctx))        (= size (tuple-length lhs)))       ((union lh...: search and apply 0.000s, num matches 77
+Rule (rule ((= lhs (Const _n _ty _ctx)))       ((ExprIsResolved lhs))         :rulese...: search and apply 0.000s, num matches 1550
+Rule (rule ((= lhs (Const (Int i) ty ctx)))       ((HasType lhs (Base (IntT )))      ...: search and apply 0.000s, num matches 801
+Rule (rewrite (Bop (Mul ) e (Const (Int 1) ty ctx)) e :ruleset peepholes): search and apply 0.000s, num matches 0
+Rule (rewrite (Bop (Or ) e (Const (Bool true) ty ctx)) (Const (Bool true) ty ctx) :ru...: search and apply 0.000s, num matches 0
+Rule (rewrite (Bop (Or ) (Const (Bool true) ty ctx) e) (Const (Bool true) ty ctx) :ru...: search and apply 0.000s, num matches 0
+Rule (rewrite (Bop (Mul ) e (Const (Int 0) ty ctx)) (Const (Int 0) ty ctx) :ruleset p...: search and apply 0.000s, num matches 0
+Rule (rewrite (Bop (Mul ) (Const (Int 1) ty ctx) e) e :ruleset peepholes): search and apply 0.000s, num matches 0
+Rule (rewrite (Bop (Or ) e (Const (Bool false) ty ctx)) e :ruleset peepholes): search and apply 0.000s, num matches 0
+Rule (rule ((Const _n _ty _ctx))       ((ExprIsPure (Const _n _ty _ctx)))         :ru...: search and apply 0.000s, num matches 1550
+Rule (rewrite (Bop (Or ) (Const (Bool false) ty ctx) e) e :ruleset peepholes): search and apply 0.000s, num matches 0
+Rule (rewrite (Bop (And ) e (Const (Bool false) ty ctx)) (Const (Bool false) ty ctx) ...: search and apply 0.000s, num matches 0
+Rule (rewrite (Bop (Mul ) (Const (Int 0) ty ctx) e) (Const (Int 0) ty ctx) :ruleset p...: search and apply 0.000s, num matches 0
+Rule (rewrite (Bop (And ) e (Const (Bool true) ty ctx)) e :ruleset peepholes): search and apply 0.000s, num matches 0
+Rule (rewrite (Bop (And ) (Const (Bool false) ty ctx) e) (Const (Bool false) ty ctx) ...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Const c oldty oldctx))))       (...: search and apply 0.000s, num matches 4
+Rule (rewrite (Bop (And ) (Const (Bool true) ty ctx) e) e :ruleset peepholes): search and apply 0.000s, num matches 0
+Rule (rule ((Uop _op _x)        (UnaryOpIsPure _op)        (ExprIsPure _x))       ((E...: search and apply 0.000s, num matches 2
+Rule (rule ((Const c ty ctx))       ((ContextOf (Const c ty ctx) ctx))         :rules...: search and apply 0.000s, num matches 1550
+Rule (rule ((Function _name _tyin _tyout _out)        (ExprIsPure _out))       ((Expr...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (If pred inputs thn els))        (= size (tuple-length lhs)))     ...: search and apply 0.000s, num matches 190
+Rule (rule ((= lhs (Top a b c d)))       ((Not-Just-Concat lhs))         :ruleset alw...: search and apply 0.000s, num matches 1588
+Rule (rule ((= f (TupleT l))        (PointerishTypeList l))       ((PointerishType f)...: search and apply 0.000s, num matches 873
+Rule (rule ((ExprIsResolved (DropAt newctx idx in)))       ((subsume (DropAt newctx i...: search and apply 0.000s, num matches 0
+Rule (rewrite (Concat x (Empty ty ctx)) x :ruleset always-run): search and apply 0.000s, num matches 23
+Rule (rule ((= lhs (Const c ty ass)))       ((PotentialExtractedExpr lhs (TCPair (Ter...: search and apply 0.000s, num matches 1550
+Rule (rewrite (Concat (Empty ty ctx) x) x :ruleset always-run): search and apply 0.000s, num matches 66
+Rule (rule ((= lhs (Subst assum to e))        (= e (Arg _ty _oldctx)))       ((Delaye...: search and apply 0.000s, num matches 29
+Rule (rule ((= lhs (Bop op e1 e2))        (bop-of-type op ty)        (bop->string op ...: search and apply 0.000s, num matches 1229
+Rule (rule ((= lhs (Uop (Abs ) e))        (HasType e (Base (IntT ))))       ((HasType...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (TermSubst ctx e (TermSingle t))))       ((union lhs (Single (Term...: search and apply 0.000s, num matches 0
+Rule (rewrite (DropAtInternal newty newctx idx (Function name inty outty body)) (Func...: search and apply 0.000s, num matches 0
+Rule (rule ((= f (TCons hd tl))        (PointerishTypeList tl))       ((PointerishTyp...: search and apply 0.000s, num matches 841
+Rule (rewrite (TLConcat (TNil ) r) r :ruleset type-helpers): search and apply 0.000s, num matches 1534
+Rule (rule ((= lhs (TermSubst ctx e (TermBop op t1 t2))))       ((union lhs (Bop op (...: search and apply 0.000s, num matches 83
+Rule (rule ((= lhs (AddContext ctx (Empty ty oldctx))))       ((union lhs (Empty ty c...: search and apply 0.000s, num matches 6
+Rule (rewrite (Subst assum to (Function name inty outty body)) (Function name inty ou...: search and apply 0.000s, num matches 0
+Rule (rule ((leading-Expr tuple)        (> (tuple-length tuple) 0))       ((Get tuple...: search and apply 0.000s, num matches 569
+Rule (rule ((= lhs (Uop _op _x))        (ExprIsResolved _x))       ((ExprIsResolved l...: search and apply 0.000s, num matches 3
+Rule (rewrite (Bop (PtrAdd ) (Bop (PtrAdd ) p x) y) (Bop (PtrAdd ) p (Bop (Add ) x y)...: search and apply 0.000s, num matches 0
+Rule (rule ((= first-write (Top (Write ) addr shadowed-val state))        (= second-w...: search and apply 0.000s, num matches 0
+Rule (rule ((= lhs (Bop (LessEq ) x y))        (HasArgType y ty)        (ContextOf lh...: search and apply 0.000s, num matches 0
+Rule (rule ((= (IntB lo) (lo-bound expr))        (= (IntB hi) (hi-bound expr))       ...: search and apply 0.000s, num matches 0
+Rule (rewrite (Bop (Mul ) (Const (Int j) ty ctx) (Const (Int i) ty ctx)) (Const (Int ...: search and apply 0.000s, num matches 0
+Rule (rule ((= first-write (Top (Write ) addr write-val state))        (= second-writ...: search and apply 0.001s, num matches 0
+Rule (rule ((= lhs (Bop (GreaterEq ) x y))        (HasArgType x ty)        (ContextOf...: search and apply 0.001s, num matches 0
+Rule (rule ((= lhs (Uop (Neg ) e))        (HasType e (Base (IntT ))))       ((HasType...: search and apply 0.001s, num matches 2
+Rule (rule ((= lhs (Bop a b c)))       ((Not-Just-Concat lhs))         :ruleset alway...: search and apply 0.001s, num matches 6184
+Rule (rule ((ExprIsResolved (DropAtInternal newty newctx idx in)))       ((subsume (D...: search and apply 0.001s, num matches 13
+Rule (rewrite (Bop (Add ) e (Const (Int 0) ty ctx)) e :ruleset peepholes): search and apply 0.001s, num matches 29
+Rule (rule ((Uop op x)        (ContextOf x ctx))       ((ContextOf (Uop op x) ctx))  ...: search and apply 0.001s, num matches 3
+Rule (rewrite (Bop (Add ) (Const (Int 0) ty ctx) e) e :ruleset peepholes): search and apply 0.001s, num matches 29
+Rule (rule ((= lhs (Call @_8 e))        (HasArgType e ty))       ((HasArgType lhs ty)...: search and apply 0.001s, num matches 121
+Rule (rule ((= (Const c1 ty1 ctx1) (Const c2 ty2 ctx2))        (= ctx1 (InFunc name))...: search and apply 0.001s, num matches 0
+Rule (rule ((= lhs (DropAt ctx idx in))        (HasArgType in (TupleT oldty)))       ...: search and apply 0.001s, num matches 2
+Rule (rule ((Single expr))       ((union (Get (Single expr) 0) expr))         :rulese...: search and apply 0.001s, num matches 9229
+Rule (rule ((= lhs (Uop (Not ) e))        (HasType e (Base (BoolT ))))       ((HasTyp...: search and apply 0.001s, num matches 1
+Rule (rule ((= lhs (Uop @_ e))        (HasArgType e ty))       ((HasArgType lhs ty)) ...: search and apply 0.001s, num matches 3
+Rule (rule ((= lhs (DoWhile inputs outputs))        (ContextOf lhs ctx)        (HasTy...: search and apply 0.001s, num matches 1
+Rule (rule ((= lhs (Bop (Mul ) x y))        (= (IntB hi-x) (hi-bound x))        (= (I...: search and apply 0.001s, num matches 0
+Rule (rule ((= lhs (Bop (Mul ) x y))        (= (IntB hi-x) (hi-bound x))        (= (I...: search and apply 0.001s, num matches 0
+Rule (rule ((= lhs (Bop (Mul ) x y))        (= (IntB hi-x) (hi-bound x))        (= (I...: search and apply 0.001s, num matches 0
+Rule (rule ((= lhs (Bop (Mul ) x y))        (= (IntB hi-x) (hi-bound x))        (= (I...: search and apply 0.001s, num matches 0
+Rule (rule ((= lhs (Bop (Mul ) x y))        (= (IntB lo-x) (lo-bound x))        (= (I...: search and apply 0.001s, num matches 0
+Rule (rule ((= lhs (Bop (Mul ) x y))        (= (IntB lo-x) (lo-bound x))        (= (I...: search and apply 0.001s, num matches 0
+Rule (rule ((DelayedSubstUnion lhs rhs))       ((union lhs rhs))         :ruleset app...: search and apply 0.001s, num matches 14577
+Rule (rewrite (Bop (Sub ) (Bop (Add ) a b) c) (Bop (Add ) a (Bop (Sub ) b c)) :rulese...: search and apply 0.001s, num matches 122
+Rule (rule ((= lhs (Function _name _tyin _tyout _out))        (ExprIsResolved _out)) ...: search and apply 0.001s, num matches 29
+Rule (rewrite (AddContext ctx (Uop op c1)) (Uop op (AddContext ctx c1)) :ruleset cont...: search and apply 0.001s, num matches 5
+Rule (rule ((Call func arg)        (ContextOf arg ctx))       ((ContextOf (Call func ...: search and apply 0.001s, num matches 121
+Rule (rule ((= lhs (TermSubst ctx e (TermGet t idx))))       ((union lhs (Get (TermSu...: search and apply 0.001s, num matches 931
+Rule (rule ((= lhs (If cond inputs thn els))        (ContextOf lhs if_ctx)        (= ...: search and apply 0.001s, num matches 26
+Rule (rule ((= loop (DoWhile inputs outputs))        (= (Const (Bool false) ty ctx) (...: search and apply 0.001s, num matches 0
+Rule (rewrite (Bop (Add ) (Bop (Sub ) x y) z) (Bop (Add ) x (Bop (Sub ) z y)) :rulese...: search and apply 0.001s, num matches 111
+Rule (rule ((= lhs (Bop (Sub ) a b))        (= (IntB ha) (hi-bound a))        (= (Int...: search and apply 0.001s, num matches 48
+Rule (rule ((= lhs (Bop (LessThan ) a b))        (= (IntB la) (lo-bound a))        (=...: search and apply 0.001s, num matches 46
+Rule (rule ((= lhs (Bop (LessThan ) a b))        (= (IntB ha) (hi-bound a))        (=...: search and apply 0.001s, num matches 46
+Rule (rule ((= lhs (Bop (Sub ) a b))        (= (IntB la) (lo-bound a))        (= (Int...: search and apply 0.001s, num matches 48
+Rule (rule ((= lhs (Call _func _arg))        (ExprIsResolved _arg))       ((ExprIsRes...: search and apply 0.001s, num matches 121
+Rule (rule ((= lhs (Alloc _id e state @_7))        (HasArgType e ty))       ((HasArgT...: search and apply 0.001s, num matches 233
+Rule (rule ((= lp (DoWhile inputs pred_outputs))        (LoopIsFinite inputs pred_out...: search and apply 0.001s, num matches 0
+Rule (rule ((DoWhile _in _pred-and-output)        (ExprIsPure _in)        (ExprIsPure...: search and apply 0.001s, num matches 0
+Rule (rule ((= write (Top (Write ) addr write-val state))        (= load (Bop (Load )...: search and apply 0.001s, num matches 95
+Rule (rule ((= first-load (Bop (Load ) addr state))        (= second-load (Bop (Load ...: search and apply 0.001s, num matches 0
+Rule (rule ((= lhs (AddContext ctx (Arg ty oldctx))))       ((union lhs (Arg ty ctx))...: search and apply 0.001s, num matches 80
+Rule (rule ((= lst (TCons hd tl))        (= len (TypeList-length tl)))       ((set (T...: search and apply 0.001s, num matches 902
+Rule (rule ((TypeList-ith list i)        (= (TypeList-length list) n)        (>= i n)...: search and apply 0.001s, num matches 0
+Rule (rule ((Bop (PtrAdd ) e i)        (= (hi-bound i) (IntB hi))        (< hi 0))   ...: search and apply 0.001s, num matches 0
+Rule (rule ((= lhs (Bop (Add ) a b))        (= (IntB ha) (hi-bound a))        (= (Int...: search and apply 0.001s, num matches 286
+Rule (rule ((= lhs (DoWhile ins body))        (HasArgType ins ty))       ((HasArgType...: search and apply 0.001s, num matches 84
+Rule (rule ((= lhs (DoWhile inp pred-body))        (HasType pred-body (Base (PointerT...: search and apply 0.002s, num matches 0
+Rule (rule ((= lhs (DoWhile inp pred-body))        (HasType inp (Base (PointerT ty)))...: search and apply 0.002s, num matches 0
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.002s, num matches 4
+Rule (rule ((HasArgType (Arg t1 ctx) t2)        (!= t1 t2))       ((panic 'arg type m...: search and apply 0.002s, num matches 0
+Rule (rule ((= two (Const (Int 2) _ty _ctx))        (= e (Bop (Eq ) x (Bop (Mul ) (Bo...: search and apply 0.002s, num matches 0
+Rule (rule ((Bop (PtrAdd ) e i)        (= (lo-bound i) (IntB lo))        (> lo 0))   ...: search and apply 0.002s, num matches 677
+Rule (rule ((DoWhile in pred-and-output)        (ContextOf in ctx))       ((ContextOf...: search and apply 0.002s, num matches 84
+Rule (rule ((= lhs (Alloc _id amt state ty))        (HasType amt (Base (IntT ))))    ...: search and apply 0.002s, num matches 233
+Rule (rewrite (Bop (Add ) (Const (Int j) ty ctx) (Const (Int i) ty ctx)) (Const (Int ...: search and apply 0.002s, num matches 123
+Rule (rule ((= lhs (Bop (Add ) a b))        (= (IntB la) (lo-bound a))        (= (Int...: search and apply 0.002s, num matches 286
+Rule (rule ((= lhs (Bop (Mul ) a b))        (= (IntB x) (lo-bound a))        (= (IntB...: search and apply 0.002s, num matches 0
+Rule (rewrite (SubTuple expr x 1) (Single (Get expr x)) :ruleset always-run): search and apply 0.002s, num matches 20486
+Rule (rule ((Alloc amt e state ty)        (ContextOf state ctx))       ((ContextOf (A...: search and apply 0.002s, num matches 212
+Rule (rule ((= if (If pred inputs then_ else_))        (= then-branch (Get then_ i)) ...: search and apply 0.002s, num matches 318
+Rule (rule ((= lhs (DoWhile inp pred-body))        (HasType pred-body (Base ty)))    ...: search and apply 0.002s, num matches 0
+Rule (rule ((= lhs (Call name arg))        (FunctionHasType name in-ty out-ty)       ...: search and apply 0.002s, num matches 121
+Rule (rule ((BodyContainsExpr body (Uop _op _x)))       ((BodyContainsExpr body _x)) ...: search and apply 0.002s, num matches 8
+Rule (rule ((= lhs (If (Bop (And ) a b) ins X Y))        (HasType ins (TupleT ins_ty)...: search and apply 0.002s, num matches 8
+Rule (rule ((Call _f _arg)        (ExprIsPure _arg)        (ExprIsPure (Function _f i...: search and apply 0.002s, num matches 0
+Rule (rewrite (TypeList-ith (TCons hd tl) 0) hd :ruleset type-helpers): search and apply 0.002s, num matches 1098
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Get (Arg oldty oldctx) i)))     ...: search and apply 0.002s, num matches 6
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Get (Arg oldty oldctx) i)))     ...: search and apply 0.002s, num matches 0
+Rule (rule ((Alloc amt e state ty)        (ContextOf e ctx))       ((ContextOf (Alloc...: search and apply 0.002s, num matches 230
+Rule (rule ((= lhs (DoWhile inp pred-body))        (HasType inp (Base ty)))       ((p...: search and apply 0.002s, num matches 0
+Rule (rule ((Get x i))       ((Add-Gets x x 0))         :ruleset always-run ): search and apply 0.002s, num matches 22659
+Rule (rule ((= lhs (TermSubst ctx e (TermConst c)))        (HasArgType e newty))     ...: search and apply 0.002s, num matches 54
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (DoWhile in out)))        (ExprIs...: search and apply 0.002s, num matches 0
+Rule (rule ((= lhs (Bop (Free ) e s))        (HasType e (Base (IntT ))))       ((pani...: search and apply 0.002s, num matches 0
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Call name c1)))        (ExprIsRe...: search and apply 0.002s, num matches 0
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (If pred inputs c1 c2)))        (...: search and apply 0.002s, num matches 0
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Alloc id c1 c2 ty)))        (Exp...: search and apply 0.002s, num matches 0
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Uop op c1)))        (ExprIsResol...: search and apply 0.002s, num matches 0
+Rule (rewrite (TypeList-ith (TCons hd tl) i) (TypeList-ith tl (- i 1)) :when ((> i 0)...: search and apply 0.002s, num matches 9771
+Rule (rule ((BodyContainsExpr body (Call _func _arg)))       ((BodyContainsExpr body ...: search and apply 0.002s, num matches 403
+Rule (rule ((= lhs (If (Bop (Or ) a b) ins X Y))        (HasType ins (TupleT ins_ty))...: search and apply 0.002s, num matches 0
+Rule (rule ((NoAlias write-addr load-addr)        (= write (Top (Write ) write-addr w...: search and apply 0.002s, num matches 104
+Rule (rule ((= outputs (If pred inputs then_ else_))        (= (Get then_ i) (Get (Ar...: search and apply 0.002s, num matches 0
+Rule (rewrite (SubTuple expr a b) (Concat (Single (Get expr a)) (SubTuple expr (+ a 1...: search and apply 0.003s, num matches 8113
+Rule (rule ((= if (If pred inputs then_ else_))        (= (Get then_ i) (Const (Bool ...: search and apply 0.003s, num matches 0
+Rule (rule ((= lhs (If c i t e))        (HasArgType c ty))       ((HasArgType lhs ty)...: search and apply 0.003s, num matches 200
+Rule (rule ((= lhs (Bop (Print ) e state))        (HasType e (TupleT ty)))       ((pa...: search and apply 0.003s, num matches 0
+Rule (rule ((= if (If pred inputs then_ else_))        (= (Get then_ i) (Const (Bool ...: search and apply 0.003s, num matches 0
+Rule (rule ((If pred inputs then else)        (ContextOf pred ctx))       ((ContextOf...: search and apply 0.003s, num matches 187
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Top op c1 c2 c3)))        (ExprI...: search and apply 0.003s, num matches 0
+Rule (rule ((If pred inputs then else)        (ContextOf inputs ctx))       ((Context...: search and apply 0.003s, num matches 185
+Rule (rule ((= lhs (AddContext ctx (Const c ty oldctx))))       ((union lhs (Const c ...: search and apply 0.003s, num matches 424
+Rule (rule ((= lhs (AddContext ctx (If pred inputs c1 c2))))       ((union lhs (If (A...: search and apply 0.003s, num matches 526
+Rule (rule ((HasType expr (TupleT tl))        (= len (TypeList-length tl)))       ((s...: search and apply 0.003s, num matches 14168
+Rule (rule ((= lhs (Get (Arg (TupleT tylist) _ctx) i))        (!= (TypeList-ith tylis...: search and apply 0.003s, num matches 726
+Rule (rule ((= lhs (TermSubst ctx e1 term))        (HasArgType e1 ty))       ((HasArg...: search and apply 0.003s, num matches 1297
+Rule (rule ((= lhs (Uop o e1))        (= (TCPair t1 c1) (ExtractedExpr e1)))       ((...: search and apply 0.003s, num matches 9
+Rule (rule ((Get expr i))       ((union (Single (Get expr i)) (SubTuple expr i 1)))  ...: search and apply 0.003s, num matches 22659
+Rule (rule ((BodyContainsExpr body (Alloc _id _e _state _ty)))       ((BodyContainsEx...: search and apply 0.003s, num matches 576
+Rule (rule ((= lhs (AddContext ctx (DoWhile inputs outputs))))       ((union lhs (DoW...: search and apply 0.004s, num matches 172
+Rule (rule ((= lhs (Bop (Print ) e state))        (HasType e _ty))       ((HasType lh...: search and apply 0.004s, num matches 1
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Bop op c1 c2)))        (ExprIsRe...: search and apply 0.004s, num matches 18
+Rule (rule ((= lhs (Top (Select ) pred v1 v2))        (HasType v1 ty1)        (HasTyp...: search and apply 0.004s, num matches 0
+Rule (rule ((BodyContainsExpr body (DoWhile _in _pred-and-output)))       ((BodyConta...: search and apply 0.004s, num matches 205
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Single c1)))        (ExprIsResol...: search and apply 0.004s, num matches 16
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.004s, num matches 0
+Rule (rule ((= lhs (Bop (Free ) e s))        (HasType e (TupleT _ty)))       ((panic ...: search and apply 0.004s, num matches 0
+Rule (rule ((Add-All-Gets orig something offset pos)        (< pos (tuple-length some...: search and apply 0.004s, num matches 5983
+Rule (rewrite (AddContext ctx (Call name c1)) (Call name (AddContext ctx c1)) :rulese...: search and apply 0.004s, num matches 412
+Rule (rule ((= lhs (Top @_5 a b c))        (HasArgType c ty))       ((HasArgType lhs ...: search and apply 0.004s, num matches 1096
+Rule (rule ((= lhs (Bop (Load ) e state))        (HasType e ty)        (= ty (Base (I...: search and apply 0.004s, num matches 0
+Rule (rewrite (SubTuple expr 0 len) expr :when ((= len (tuple-length expr))) :ruleset...: search and apply 0.005s, num matches 7263
+Rule (rule ((= lhs (Top @_4 a b c))        (HasArgType b ty))       ((HasArgType lhs ...: search and apply 0.005s, num matches 1142
+Rule (rewrite (TLConcat (TCons hd tl) r) (TCons hd (TLConcat tl r)) :ruleset type-hel...: search and apply 0.005s, num matches 3467
+Rule (rule ((PotentialExtractedExpr expr termandcost))       ((set (ExtractedExpr exp...: search and apply 0.005s, num matches 71204
+Rule (rule ((= lhs (Top @_3 a b c))        (HasArgType a ty))       ((HasArgType lhs ...: search and apply 0.005s, num matches 1653
+Rule (rewrite (Bop (Add ) (Bop (Add ) x (Const (Int i) ty ctx)) (Const (Int j) ty ctx...: search and apply 0.005s, num matches 536
+Rule (rewrite (SubTuple expr x 0) (Empty ty ctx) :when ((HasArgType expr ty) (Context...: search and apply 0.005s, num matches 16
+Rule (rule ((= lhs (Alloc _id _e _state _ty))        (ExprIsResolved _e)        (Expr...: search and apply 0.005s, num matches 211
+Rule (rule ((= lhs (DoWhile _in _pred-and-output))        (ExprIsResolved _in)       ...: search and apply 0.005s, num matches 84
+Rule (rule ((= lhs (If c i t e))        (HasType i ty)        (HasArgType t ty2)     ...: search and apply 0.005s, num matches 0
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Concat c1 c2)))        (ExprIsRe...: search and apply 0.005s, num matches 20
+Rule (rule ((= lhs (If c i t e))        (HasType i ty)        (HasArgType e ty2)     ...: search and apply 0.005s, num matches 0
+Rule (rule ((Top op x y z)        (ContextOf z ctx))       ((ContextOf (Top op x y z)...: search and apply 0.005s, num matches 1160
+Rule (rule ((= lhs (DropAtInternal newty newctx idx (Get c1 index)))        (ExprIsRe...: search and apply 0.006s, num matches 40
+Rule (rule ((If _pred _input _then _else)        (ExprIsPure _pred)        (ExprIsPur...: search and apply 0.006s, num matches 8
+Rule (rule ((ExpectType e expected msg)        (HasType e actual)        (!= expected...: search and apply 0.006s, num matches 0
+Rule (rule ((Top op x y z)        (ContextOf y ctx))       ((ContextOf (Top op x y z)...: search and apply 0.006s, num matches 1193
+Rule (rule ((= lhs (Top (Write ) ptr val state))        (HasType ptr (Base (PointerT ...: search and apply 0.006s, num matches 759
+Rule (rewrite (AddContext ctx (Alloc id c1 state ty)) (Alloc id (AddContext ctx c1) (...: search and apply 0.006s, num matches 507
+Rule (rule ((Top op x y z)        (ContextOf x ctx))       ((ContextOf (Top op x y z)...: search and apply 0.006s, num matches 1578
+Rule (rule ((Top _op _x _y _z)        (TernaryOpIsPure _op)        (ExprIsPure _x)   ...: search and apply 0.006s, num matches 168
+Rule (rule ((Add-Gets orig something n)        (Not-Just-Concat something))       ((A...: search and apply 0.006s, num matches 2011
+Rule (rule ((= lhs (Bop (Free ) e s))        (HasType e (Base (PointerT _ty))))      ...: search and apply 0.007s, num matches 325
+Rule (rule ((= lhs (Bop (Load ) e state))        (HasType e ty)        (= ty (TupleT ...: search and apply 0.007s, num matches 0
+Rule (rule ((BodyContainsExpr body (If _pred _input _then _else)))       ((BodyContai...: search and apply 0.007s, num matches 546
+Rule (rule ((= lhs (Single e))        (HasType e (TupleT tylist)))       ((panic 'don...: search and apply 0.007s, num matches 0
+Rule (rule ((leading-Expr tuple)        (= len (tuple-length tuple))        (= ith (G...: search and apply 0.008s, num matches 6660
+Rule (rule ((= expr (Bop (Sub ) x x))        (HasArgType expr ty)        (ContextOf e...: search and apply 0.009s, num matches 3
+Rule (rule ((= lhs (If cond inputs thn els))        (= hi-thn (hi-bound (Get thn i)))...: search and apply 0.009s, num matches 0
+Rule (rule ((= e (Call name c1))        (= lhs (Subst assum to e))        (ExprIsReso...: search and apply 0.009s, num matches 36
+Rule (rule ((= e (Alloc id c1 c2 ty))        (= lhs (Subst assum to e))        (ExprI...: search and apply 0.009s, num matches 6
+Rule (rule ((= lhs (If pred inputs thn els))        (= lo-thn (lo-bound (Get thn i)))...: search and apply 0.009s, num matches 0
+Rule (rule ((= lhs (Subst assum to inner))        (= inner (If pred inputs c1 c2))   ...: search and apply 0.009s, num matches 20
+Rule (rule ((= p1 (Bop (PtrAdd ) p i))        (= p2 (Bop (PtrAdd ) p (Bop (Sub ) i di...: search and apply 0.010s, num matches 0
+Rule (rule ((= p1 (Bop (PtrAdd ) p i))        (= p2 (Bop (PtrAdd ) p (Bop (Sub ) i di...: search and apply 0.010s, num matches 67
+Rule (rule ((= lhs (Bop @_2 a b))        (HasArgType b ty))       ((HasArgType lhs ty...: search and apply 0.010s, num matches 6183
+Rule (rule ((= e (Uop op c1))        (= lhs (Subst assum to e))        (ExprIsResolve...: search and apply 0.010s, num matches 0
+Rule (rule ((= p1 (Bop (PtrAdd ) p i))        (= p2 (Bop (PtrAdd ) p (Bop (Add ) i di...: search and apply 0.010s, num matches 97
+Rule (rule ((= (BoolB false) (hi-bound expr))        (HasArgType expr ty)        (Con...: search and apply 0.010s, num matches 43
+Rule (rule ((= lhs (Bop @_1 a b))        (HasArgType a ty))       ((HasArgType lhs ty...: search and apply 0.011s, num matches 6113
+Rule (rule ((= p1 (Bop (PtrAdd ) p i))        (= p2 (Bop (PtrAdd ) p (Bop (Add ) i di...: search and apply 0.011s, num matches 111
+Rule (rule ((= lhs (Single e))        (HasArgType e ty))       ((HasArgType lhs ty)) ...: search and apply 0.011s, num matches 6776
+Rule (rule ((= (BoolB true) (lo-bound expr))        (HasArgType expr ty)        (Cont...: search and apply 0.011s, num matches 57
+Rule (rule ((= lhs (DoWhile inp pred-body))        (HasType inp (TupleT in-tys))     ...: search and apply 0.011s, num matches 0
+Rule (rule ((= e (DoWhile in out))        (= lhs (Subst assum to e))        (ExprIsRe...: search and apply 0.012s, num matches 30
+Rule (rule ((HasType (Get expr i) (TupleT tl))        (= (TypeList-length tl) len)   ...: search and apply 0.012s, num matches 0
+Rule (rule ((= lhs (Uop (Abs ) x))        (= (IntB hx) (hi-bound x))        (<= hx 0)...: search and apply 0.013s, num matches 0
+Rule (rule ((= expr (Uop op x))        (= sum (Expr-size x)))       ((set (Expr-size ...: search and apply 0.013s, num matches 4
+Rule (rule ((= lhs (DoWhile inp pred-body))        (HasType inp (TupleT tylist)))    ...: search and apply 0.013s, num matches 84
+Rule (rule ((= e (Top op c1 c2 c3))        (= lhs (Subst assum to e))        (ExprIsR...: search and apply 0.013s, num matches 123
+Rule (rule ((Single _x)        (ExprIsPure _x))       ((ExprIsPure (Single _x)))     ...: search and apply 0.013s, num matches 1029
+Rule (rule ((HasType (Get expr i) (TupleT tl))        (= (TypeList-length tl) len)   ...: search and apply 0.013s, num matches 0
+Rule (rule ((= lhs (Function name in out body))        (HasArgType body ty)        (H...: search and apply 0.013s, num matches 0
+Rule (rule ((= lhs (Bop (Load ) e state))        (HasType e (Base (PointerT ty))))   ...: search and apply 0.013s, num matches 2552
+Rule (rule ((= lhs (DoWhile inputs outputs))        (= num-inputs (tuple-length input...: search and apply 0.013s, num matches 0
+Rule (rule ((Bop op x y)        (ContextOf y ctx))       ((ContextOf (Bop op x y) ctx...: search and apply 0.013s, num matches 5593
+Rule (rule ((= lhs (Concat e1 e2))        (HasArgType e2 ty))       ((HasArgType lhs ...: search and apply 0.013s, num matches 9307
+Rule (rule ((Bop op x y)        (ContextOf x ctx))       ((ContextOf (Bop op x y) ctx...: search and apply 0.013s, num matches 5566
+Rule (rule ((ContextOf x ctx1)        (ContextOf x ctx2)        (!= ctx1 ctx2))      ...: search and apply 0.014s, num matches 0
+Rule (rule ((is-inv-Expr body expr)        (DoWhile inputs body)        (HasType expr...: search and apply 0.014s, num matches 915
+Rule (rule ((= lhs (If _pred _input _then _else))        (ExprIsResolved _pred)      ...: search and apply 0.014s, num matches 173
+Rule (rule ((BodyContainsExpr body (Top _op _x _y _z)))       ((BodyContainsExpr body...: search and apply 0.014s, num matches 4810
+Rule (rule ((is-inv-Expr body expr)        (DoWhile inputs body)        (HasType expr...: search and apply 0.014s, num matches 689
+Rule (rule ((= expr (Function name tyin tyout out))        (= sum (Expr-size out)))  ...: search and apply 0.014s, num matches 1458
+Rule (rule ((= lhs (Concat e1 e2))        (HasArgType e1 ty))       ((HasArgType lhs ...: search and apply 0.014s, num matches 9321
+Rule (rule ((= if_e (If pred inputs thn els))        (ExprIsPure (Get thn i))        ...: search and apply 0.014s, num matches 440
+Rule (rule ((= old-loop (DoWhile inputs pred-and-outputs))        (ContextOf pred-and...: search and apply 0.015s, num matches 0
+Rule (rule ((Bop _op _x _y)        (BinaryOpIsPure _op)        (ExprIsPure _x)       ...: search and apply 0.016s, num matches 729
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.016s, num matches 209
+Rule (rule ((= (BoolB x) (lo-bound expr))        (= (BoolB x) (hi-bound expr))       ...: search and apply 0.017s, num matches 100
+Rule (rule ((= expr (Alloc id e state ty))        (= sum (Expr-size e)))       ((set ...: search and apply 0.018s, num matches 230
+Rule (rule ((= expr (Call func arg))        (= sum (Expr-size arg)))       ((set (Exp...: search and apply 0.018s, num matches 6909
+Rule (rewrite (Concat (Concat a b) c) (Concat a (Concat b c)) :ruleset always-run): search and apply 0.018s, num matches 5771
+Rule (rule ((= lhs (Single e))        (HasType e (Base basety)))       ((HasType lhs ...: search and apply 0.019s, num matches 6846
+Rule (rule ((= (TCPair t1 c1) (ExtractedExpr e1))        (ContextOf e1 ctx1))       (...: search and apply 0.020s, num matches 10021
+Rule (rule ((= if (If pred inputs then_ else_))        (= then-branch (Get then_ i)) ...: search and apply 0.020s, num matches 351
+Rule (rule ((= expr (Bop (Add ) (Bop (Mul ) a x) a))        (HasArgType expr ty)     ...: search and apply 0.021s, num matches 0
+Rule (rule ((= lhs (Get e @_6))        (HasArgType e ty))       ((HasArgType lhs ty))...: search and apply 0.022s, num matches 18434
+Rule (rule ((= e (Bop op c1 c2))        (= lhs (Subst assum to e))        (ExprIsReso...: search and apply 0.024s, num matches 811
+Rule (rule ((= lhs (Get loop i))        (= loop (DoWhile inputs pred-outputs))       ...: search and apply 0.024s, num matches 267
+Rule (rewrite (AddContext ctx (Top op c1 c2 c3)) (Top op (AddContext ctx c1) (AddCont...: search and apply 0.026s, num matches 3187
+Rule (rule ((= lhs (Top _op _x _y _z))        (ExprIsResolved _x)        (ExprIsResol...: search and apply 0.026s, num matches 1120
+Rule (rule ((= (IntB x) (lo-bound expr))        (= (IntB x) (hi-bound expr))        (...: search and apply 0.027s, num matches 840
+Rule (rule ((Get _tup _i)        (ExprIsPure _tup))       ((ExprIsPure (Get _tup _i))...: search and apply 0.030s, num matches 1111
+Rule (rule ((= outputs (If pred inputs then_ else_))        (= (Get then_ i) (Get (Ar...: search and apply 0.031s, num matches 4
+Rule (rule ((BodyContainsExpr body (Bop _op _x _y)))       ((BodyContainsExpr body _x...: search and apply 0.031s, num matches 13651
+Rule (rule ((Single x)        (ContextOf x ctx))       ((ContextOf (Single x) ctx))  ...: search and apply 0.034s, num matches 8198
+Rule (rewrite (AddContext ctx (Bop op c1 c2)) (Bop op (AddContext ctx c1) (AddContext...: search and apply 0.034s, num matches 11665
+Rule (rewrite (AddContext ctx (Concat c1 c2)) (Concat (AddContext ctx c1) (AddContext...: search and apply 0.035s, num matches 25912
+Rule (rule ((= lhs (If pred inputs then else))        (HasType pred (Base (BoolT ))) ...: search and apply 0.036s, num matches 0
+Rule (rule ((= lhs (Subst assum to e))        (= e (Const c _ty _oldctx))        (Has...: search and apply 0.036s, num matches 34
+Rule (rule ((Concat x y)        (ContextOf y ctx))       ((ContextOf (Concat x y) ctx...: search and apply 0.037s, num matches 9190
+Rule (rule ((= e (Single c1))        (= lhs (Subst assum to e))        (ExprIsResolve...: search and apply 0.037s, num matches 1565
+Rule (rule ((= lhs (Subst assum to in))        (HasArgType to ty))       ((HasArgType...: search and apply 0.037s, num matches 5717
+Rule (rule ((Concat x y)        (ContextOf x ctx))       ((ContextOf (Concat x y) ctx...: search and apply 0.037s, num matches 9575
+Rule (rewrite (AddContext ctx (Single c1)) (Single (AddContext ctx c1)) :ruleset cont...: search and apply 0.038s, num matches 13388
+Rule (rule ((Add-Gets orig (Single e) n))       ((union (Get orig n) e))         :rul...: search and apply 0.040s, num matches 14175
+Rule (rule ((Concat _x _y)        (ExprIsPure _x)        (ExprIsPure _y))       ((Exp...: search and apply 0.040s, num matches 3024
+Rule (rule ((= expr (DoWhile in pred-and-output))        (= sum (+ (Expr-size pred-an...: search and apply 0.044s, num matches 7179
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.044s, num matches 2
+Rule (rule ((Add-Gets orig (Concat left right) n)        (= len (tuple-length left)))...: search and apply 0.044s, num matches 10663
+Rule (rule ((= e (Concat c1 c2))        (= lhs (Subst assum to e))        (ExprIsReso...: search and apply 0.045s, num matches 2888
+Rule (rule ((= lhs (Top (Write ) ptr val state))        (HasType ptr (Base (PointerT ...: search and apply 0.047s, num matches 760
+Rule (rule ((= lhs (Top (Select ) pred v1 v2))        (HasType v1 ty)        (HasType...: search and apply 0.049s, num matches 334
+Rule (rule ((= lhs (Single _x))        (ExprIsResolved _x))       ((ExprIsResolved lh...: search and apply 0.051s, num matches 6430
+Rule (rule ((= e (Get c1 index))        (= lhs (Subst assum to e))        (ExprIsReso...: search and apply 0.058s, num matches 3761
+Rule (rule ((Get tup i)        (ContextOf tup ctx))       ((ContextOf (Get tup i) ctx...: search and apply 0.059s, num matches 20532
+Rule (rewrite (AddContext ctx (Get c1 index)) (Get (AddContext ctx c1) index) :rulese...: search and apply 0.059s, num matches 39398
+Rule (rule ((= lhs (Bop _op _x _y))        (ExprIsResolved _x)        (ExprIsResolved...: search and apply 0.063s, num matches 5010
+Rule (rule ((= lhs (Get e i))        (HasType e (TupleT tylist)))       ((HasType lhs...: search and apply 0.063s, num matches 18578
+Rule (rule ((= lhs (DoWhile inputs outputs))        (= pred (Get outputs 0))        (...: search and apply 0.068s, num matches 3
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.071s, num matches 0
+Rule (rule ((BodyContainsExpr body (Single _x)))       ((BodyContainsExpr body _x))  ...: search and apply 0.085s, num matches 17486
+Rule (rule ((= lhs (AddContext ctx inner))        (= inner (AddContext ctx expr)))   ...: search and apply 0.086s, num matches 34862
+Rule (rule ((BodyContainsExpr body (Concat _x _y)))       ((BodyContainsExpr body _x)...: search and apply 0.090s, num matches 26936
+Rule (rule ((= lhs (DoWhile inputs outputs))        (= pred (Get outputs 0))        (...: search and apply 0.096s, num matches 0
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.102s, num matches 299
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.109s, num matches 35
+Rule (rule ((= lhs (DoWhile inp pred-body))        (HasType inp (TupleT tylist))     ...: search and apply 0.111s, num matches 84
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.122s, num matches 694
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.125s, num matches 0
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.128s, num matches 0
+Rule (rule ((= lhs (Get _tup _i))        (ExprIsResolved _tup))       ((ExprIsResolve...: search and apply 0.137s, num matches 17688
+Rule (rule ((BodyContainsExpr body (Get _tup _i)))       ((BodyContainsExpr body _tup...: search and apply 0.144s, num matches 50156
+Rule (rule ((= lhs (Bop pred e1 e2))        (bpred-of-type pred ty)        (HasType e...: search and apply 0.144s, num matches 314
+Rule (rule ((= lhs (Bop op e1 e2))        (bop-of-type op ty)        (HasType e1 ty) ...: search and apply 0.148s, num matches 1273
+Rule (rule ((= lhs (Concat _x _y))        (ExprIsResolved _x)        (ExprIsResolved ...: search and apply 0.149s, num matches 9001
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.164s, num matches 1388
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.173s, num matches 700
+Rule (rule ((= expr (Single x))        (= sum (Expr-size x)))       ((set (Expr-size ...: search and apply 0.178s, num matches 302586
+Rule (rule ((= loop (DoWhile inputs pred-and-body))        (ContextOf inputs loop-inp...: search and apply 0.179s, num matches 123418
+Rule (rule ((= expr (If pred inputs then else))        (= sum (+ (Expr-size inputs) (...: search and apply 0.187s, num matches 12946
+Rule (rewrite (Concat (SubTuple expr a b) (SubTuple expr (+ a b) c)) (SubTuple expr a...: search and apply 0.194s, num matches 12131
+Rule (rule ((= lhs (Single e1))        (= (TCPair t1 c1) (ExtractedExpr e1)))       (...: search and apply 0.206s, num matches 14707
+Rule (rule ((= expr (Top op x y z))        (= sum (+ (Expr-size z) (+ (Expr-size y) (...: search and apply 0.293s, num matches 79484
+Rule (rule ((= lhs (Concat e1 e2))        (HasType e1 (TupleT tylist1))        (HasTy...: search and apply 0.304s, num matches 9335
+Rule (rule ((= expr (Bop op x y))        (= sum (+ (Expr-size y) (Expr-size x))))    ...: search and apply 0.315s, num matches 218792
+Rule (rule ((BodyContainsExpr body expr)        (= loop (DoWhile in body))        (= ...: search and apply 0.323s, num matches 604
+Rule (rule ((= lhs (Get tup i))        (= (TCPair t1 c1) (ExtractedExpr tup)))       ...: search and apply 0.324s, num matches 33806
+Rule (rule ((= lhs (If pred inputs then else))        (HasType pred (Base (BoolT ))) ...: search and apply 0.338s, num matches 192
+Rule (rule ((= lhs (Bop (PtrAdd ) ptr n))        (HasType ptr (Base (PointerT ty)))  ...: search and apply 0.348s, num matches 1696
+Rule (rule ((= expr (Get tup i))        (= sum (Expr-size tup)))       ((set (Expr-si...: search and apply 0.454s, num matches 956220
+Rule (rule ((= lhs (Top o e1 e2 e3))        (= (TCPair t1 c1) (ExtractedExpr e1))    ...: search and apply 0.556s, num matches 4070
+Rule (rule ((= expr (Concat x y))        (= sum (+ (Expr-size y) (Expr-size x))))    ...: search and apply 0.583s, num matches 329668
+Rule (rule ((= lhs (Concat e1 e2))        (= (TCPair t1 c1) (ExtractedExpr e1))      ...: search and apply 0.642s, num matches 6160
+Rule (rule ((= lhs (Bop o e1 e2))        (= (TCPair t1 c1) (ExtractedExpr e1))       ...: search and apply 0.758s, num matches 16742
+Rule (rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))        (> cost1 cos...: search and apply 1.467s, num matches 75552
+Rule (rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))        (<= cost1 co...: search and apply 1.511s, num matches 68900
+Rule (rule ((PotentialExtractedExpr expr (TCPair term cost))        (= (ExtractedExpr...: search and apply 1.588s, num matches 42713
+Ruleset loop-iters-analysis: search 0.166s, merge 0.000s, rebuild 0.000s
+Ruleset type-helpers: search 0.013s, merge 0.001s, rebuild 0.126s
+Ruleset boundary-analysis-prep: search 0.014s, merge 0.000s, rebuild 0.000s
+Ruleset initialization: search 0.003s, merge 0.000s, rebuild 0.000s
+Ruleset terms-helpers: search 1.599s, merge 0.023s, rebuild 0.001s
+Ruleset all-optimizations: search 0.062s, merge 0.000s, rebuild 0.004s
+Ruleset add-to-debug-expr: search 0.000s, merge 0.000s, rebuild 0.000s
+Ruleset boundary-analysis: search 0.014s, merge 0.000s, rebuild 0.000s
+Ruleset interval-analysis: search 0.098s, merge 0.000s, rebuild 0.016s
+Ruleset cicm-index: search 0.020s, merge 0.000s, rebuild 0.000s
+Ruleset always-run: search 4.846s, merge 0.153s, rebuild 0.188s
+Ruleset passthrough: search 0.049s, merge 0.000s, rebuild 0.019s
+Ruleset cheap-optimizations: search 0.043s, merge 0.000s, rebuild 0.003s
+Ruleset drop: search 0.037s, merge 0.000s, rebuild 0.000s
+Ruleset subst: search 0.306s, merge 0.002s, rebuild 0.007s
+Ruleset terms: search 2.515s, merge 0.008s, rebuild 0.016s
+Ruleset terms-helpers-helpers: search 2.988s, merge 0.013s, rebuild 1.476s
+Ruleset canon: search 0.001s, merge 0.000s, rebuild 0.000s
+Ruleset term-subst: search 0.007s, merge 0.000s, rebuild 0.007s
+Ruleset is-resolved: search 0.461s, merge 0.002s, rebuild 0.004s
+Ruleset state-edge-passthrough: search 0.031s, merge 0.000s, rebuild 0.002s
+Ruleset subsume-after-helpers: search 0.000s, merge 0.000s, rebuild 0.000s
+Ruleset apply-subst-unions: search 0.001s, merge 0.000s, rebuild 0.025s
+Ruleset context: search 0.307s, merge 0.005s, rebuild 1.549s
+Ruleset error-checking: search 0.157s, merge 0.000s, rebuild 0.000s
+Ruleset cleanup-drop: search 0.001s, merge 0.000s, rebuild 0.000s
+Ruleset mem-simple: search 0.050s, merge 0.000s, rebuild 0.012s
+Ruleset apply-drop-unions: search 0.000s, merge 0.000s, rebuild 0.001s
+Ruleset type-analysis: search 1.742s, merge 0.003s, rebuild 0.009s
+Ruleset non-weakly-linear: search 0.006s, merge 0.000s, rebuild 0.019s
+
+EGGCC_STATS extraction=6.584s serialization=1.582s regions=0
+       45.27 real        43.46 user         0.84 sys
+          1984380928  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+              210958  page reclaims
+                 235  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                 942  voluntary context switches
+                3575  involuntary context switches
+        614939683964  instructions retired
+        143401231144  cycles elapsed
+          1569002944  peak memory footprint
