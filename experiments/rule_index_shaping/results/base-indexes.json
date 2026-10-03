@@ -1,0 +1,6 @@
+{
+  "column_index_count": 0,
+  "scope": "materialized join indexes observed after execution; the observer never creates an index",
+  "tables": [],
+  "tuple_index_count": 0
+}
