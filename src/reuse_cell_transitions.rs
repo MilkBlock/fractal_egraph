@@ -18,6 +18,7 @@ pub struct Spec {
     /// contain every variable of the subtree (other keys may be literals).
     pub anchor_path: Vec<usize>,
 }
+#[derive(Clone)]
 pub(super) struct Compiled {
     pub spec: Spec,
     pub relation: String,

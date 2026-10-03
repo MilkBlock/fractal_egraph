@@ -3,8 +3,9 @@
 This changes the actual `reuse-adaptive frozen` execution path. Frozen mode
 now defaults to the cell machine when no tracing/audit override is requested.
 It does not change ordinary `analyze`, and is limited to the existing positive
-Math constructor runtime. The analysis Cell-egraph catalog and the adaptive Bake
-still have different schemas; this change is not an automatic bridge between them.
+Math constructor runtime. The analysis catalog and adaptive Bake use different file schemas. The runtime
+now bridges their positive symbolic closures by exact graph isomorphism and
+retains the full local-slot to shared-slot correspondence.
 
 ## Execution
 
@@ -77,3 +78,52 @@ stage differences or the cold/warm process wall times. Math3 admitted 65
 instances but no state revisions, so it does not demonstrate transition reuse.
 The automatic T->U->V regression admitted 3 instances with 2 state revisions
 and no unresolved bindings; final graph counts matched the frozen control.
+
+
+## Analysis catalog drives runtime identity and transition reuse
+
+```sh
+EGG_LAYOUT_CELL_CATALOG=ANALYSIS_OUTPUT/catalog \
+  cargo run --offline --release -- reuse-adaptive frozen SOURCE.egg OUTPUT LIBRARY.json
+```
+
+At startup `reuse_runtime_catalog.rs` checks rule/constructor environments,
+imports only complete positive symbolic states with supported interfaces, and
+compares them with the complete Bake templates using the same exact comparator
+as analysis. Opaque marker rows become fixed input ports; their unused integer
+labels are removed, while real primitive literals remain. Named-global interfaces,
+visibility effects and incompatible environments are currently rejected and
+reported in `cell-equivalences.json`, not silently treated as equal.
+
+Runtime instance identity is now `(semantic eclass, canonical full binding)`.
+The exact slot bijection transports bindings and compiled outgoing view rows
+between equivalent recipes. This creates executable transition adapters, not
+just report aliases. Packed certificates use the same semantic identity, and
+native union rekeys/coalesces previously separate instances and their edges.
+Equivalent adapters share a transition ID rather than creating duplicate grafts.
+Without an external directory, the same exact comparison builds a local catalog
+from Bake; distinct rule names alone never establish equivalence.
+
+Regression `runtime_catalog_bridge` runs real analysis, permutes one Bake
+recipe's slot order, then invokes the production runtime with that directory.
+It verifies maps `[0,1,2]` and `[2,1,0]`, transfer of an explicitly A-only plan to
+B, distinct concrete bindings staying distinct, and coalescence only after an
+explicit native union. A native result check passes after the transferred graft.
+
+```sh
+cargo test --offline --test runtime_catalog_bridge
+python3 experiments/dynamic_instances/catalog_bench.py out/my-catalog-bench ANALYSIS_OUTPUT/catalog
+```
+
+Math mini3 screen: 38 analysis states imported, 10/13 Bake recipes linked to
+analysis states, no rejected imported states. Rules 9 and 10 share a semantic
+class even when their bodies are not present in that analysis snapshot. Complete
+final graphs are equal with/without importing the directory: 347 enodes and 137
+eclasses. Setup was 27.06/34.84 ms, execution 1.425/1.359 ms; one run per variant,
+not a speedup claim. Details: `catalog-math3-results.json`.
+
+The directory is a startup snapshot, not a live file watcher. This does not
+synthesize recipes for unknown coarse compositions, prove unfinished closures,
+or certify that an entire dynamic frontier is saturated. Those continue through
+the existing native fallback. The admitted equivalences actively drive existing
+runtime instances and compiled transitions.

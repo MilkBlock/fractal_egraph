@@ -1,0 +1,377 @@
+{
+  "runs": [
+    {
+      "variant": "local",
+      "wall_seconds": 0.5108541660010815,
+      "setup_seconds": 0.02706125,
+      "execution_seconds": 0.0014252919999999999,
+      "graph": {
+        "eclasses": 137,
+        "enodes": 347,
+        "rss_bytes": 23085056
+      },
+      "imported_states": 0,
+      "skipped_states": [],
+      "matched_analysis_rules": 0,
+      "entries": [
+        {
+          "analysis_state": null,
+          "eclass": 0,
+          "rule": 0,
+          "slot_map": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "analysis_state": null,
+          "eclass": 1,
+          "rule": 1,
+          "slot_map": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "analysis_state": null,
+          "eclass": 2,
+          "rule": 2,
+          "slot_map": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "analysis_state": null,
+          "eclass": 3,
+          "rule": 3,
+          "slot_map": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "analysis_state": null,
+          "eclass": 4,
+          "rule": 4,
+          "slot_map": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "analysis_state": null,
+          "eclass": 5,
+          "rule": 9,
+          "slot_map": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "analysis_state": null,
+          "eclass": 5,
+          "rule": 10,
+          "slot_map": [
+            3,
+            4,
+            5,
+            0,
+            1,
+            2,
+            6
+          ]
+        },
+        {
+          "analysis_state": null,
+          "eclass": 6,
+          "rule": 13,
+          "slot_map": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "analysis_state": null,
+          "eclass": 7,
+          "rule": 14,
+          "slot_map": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "analysis_state": null,
+          "eclass": 8,
+          "rule": 15,
+          "slot_map": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "analysis_state": null,
+          "eclass": 9,
+          "rule": 17,
+          "slot_map": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "analysis_state": null,
+          "eclass": 10,
+          "rule": 19,
+          "slot_map": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "analysis_state": null,
+          "eclass": 11,
+          "rule": 21,
+          "slot_map": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      ],
+      "runtime_instances": 65
+    },
+    {
+      "variant": "analysis",
+      "wall_seconds": 0.07474325015209615,
+      "setup_seconds": 0.034843,
+      "execution_seconds": 0.001358958,
+      "graph": {
+        "eclasses": 137,
+        "enodes": 347,
+        "rss_bytes": 21413888
+      },
+      "imported_states": 38,
+      "skipped_states": [],
+      "matched_analysis_rules": 10,
+      "entries": [
+        {
+          "analysis_state": 0,
+          "eclass": 0,
+          "rule": 0,
+          "slot_map": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "analysis_state": 2,
+          "eclass": 2,
+          "rule": 1,
+          "slot_map": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "analysis_state": 8,
+          "eclass": 8,
+          "rule": 2,
+          "slot_map": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "analysis_state": 12,
+          "eclass": 12,
+          "rule": 3,
+          "slot_map": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "analysis_state": 3,
+          "eclass": 3,
+          "rule": 4,
+          "slot_map": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "analysis_state": null,
+          "eclass": 38,
+          "rule": 9,
+          "slot_map": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "analysis_state": null,
+          "eclass": 38,
+          "rule": 10,
+          "slot_map": [
+            3,
+            4,
+            5,
+            0,
+            1,
+            2,
+            6
+          ]
+        },
+        {
+          "analysis_state": 5,
+          "eclass": 5,
+          "rule": 13,
+          "slot_map": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "analysis_state": 6,
+          "eclass": 6,
+          "rule": 14,
+          "slot_map": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "analysis_state": 28,
+          "eclass": 28,
+          "rule": 15,
+          "slot_map": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "analysis_state": 16,
+          "eclass": 16,
+          "rule": 17,
+          "slot_map": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "analysis_state": 17,
+          "eclass": 17,
+          "rule": 19,
+          "slot_map": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "analysis_state": null,
+          "eclass": 39,
+          "rule": 21,
+          "slot_map": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      ],
+      "runtime_instances": 65
+    }
+  ],
+  "equality": {
+    "exact_equal": true,
+    "enodes": 347,
+    "eclasses": 137
+  }
+}

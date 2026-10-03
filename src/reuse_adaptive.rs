@@ -29,6 +29,8 @@ pub struct RipSatCell {
 }
 /// Compatibility name for existing v2 Bake files and downstream code.
 pub type Macro = RipSatCell;
+#[path = "reuse_runtime_catalog.rs"]
+mod runtime_catalog;
 #[path = "reuse_dynamic_instances.rs"]
 mod dynamic_instances;
 #[path = "reuse_cell_transitions.rs"]
@@ -593,7 +595,14 @@ fn run_impl(
     let specs = if machine_enabled && transition_specs.is_none_or(|s|s.is_empty()) {
         discovered=transitions::discover(&mut eg,&rules,&bake); discovered.as_slice()
     } else {transition_specs.unwrap_or(&[])};
-    let plans = transitions::compile(&mut eg, &rules, &bake, specs)?;
+    let mut plans = transitions::compile(&mut eg, &rules, &bake, specs)?;
+    let catalog = if machine_enabled {
+        let path=std::env::var_os("EGG_LAYOUT_CELL_CATALOG").map(std::path::PathBuf::from);
+        let catalog=runtime_catalog::compile(&bake,&rules,path.as_deref())?;
+        catalog.expand(&mut plans,&bake);
+        std::fs::write(out.join("cell-equivalences.json"),serde_json::to_vec_pretty(&catalog.report)?)?;
+        Some(catalog)
+    } else {None};
     let machine = if machine_enabled {
         Some(cell_machine::compile(&mut eg, &bake, &rules, &plans)?)
     } else {
@@ -639,7 +648,7 @@ fn run_impl(
             machine.as_ref(),
         )?);
     }
-    let mut dynamic = machine.as_ref().filter(|m|m.dynamic).map(|_|dynamic_instances::Runtime::default());
+    let mut dynamic = machine.as_ref().filter(|m|m.dynamic).map(|_|dynamic_instances::Runtime::with_catalog(catalog.clone().unwrap_or_default()));
     if dynamic.is_some() {
         eg.parse_and_run_program(None, &std::fs::read_to_string(out.join("dynamic-dispatch.egg"))?)?;
     }
