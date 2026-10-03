@@ -71,6 +71,15 @@ impl Session {
         Self::new_impl(source, out, None, None)
     }
     pub(super) fn new_cached(source: &Path, out: &Path, cache: &PreparationCache) -> Result<Self> {
+        if let Some(reason) = cache
+            .environment
+            .as_ref()
+            .and_then(|e| e.export_error.as_ref())
+        {
+            return Err(
+                format!("automatic ripen cannot export its trigger state: {reason}").into(),
+            );
+        }
         Self::new_impl(
             source,
             out,
@@ -128,6 +137,7 @@ impl Session {
             }
             Command::AddRuleset(..) | Command::Relation {..} | Command::Function{..} => {}
             Command::Action(a) if supported_action(a) => {}
+            Command::Fail(_,inner) if matches!(inner.as_ref(),Command::Check(..)|Command::Fail(..)) => {}
             Command::Check(..) => { checks.push(command); continue; }
             _ => return Err(format!("unsupported ripen command: {command}; use an explicit entry file without run/include/function/deletion commands").into()),
         }
@@ -144,7 +154,7 @@ impl Session {
         if let Some(environment) = environment {
             let code = setup
                 .iter()
-                .filter(|c| !matches!(c, Command::Action(_)))
+                .filter(|c| !matches!(c, Command::Action(_) | Command::Fail(..)))
                 .map(ToString::to_string)
                 .collect::<Vec<_>>()
                 .join("\n");
@@ -155,7 +165,7 @@ impl Session {
             eg.run_program(
                 setup
                     .iter()
-                    .filter(|c| matches!(c, Command::Action(_)))
+                    .filter(|c| matches!(c, Command::Action(_) | Command::Fail(..)))
                     .cloned()
                     .collect(),
             )?;
@@ -205,9 +215,19 @@ impl Session {
         if let Some(state) = &initial {
             crate::pipeline::write_json(&out.join("initial-state.json"), state)?;
         }
-        let trigger = initial
-            .clone()
-            .or_else(|| export_state(&eg, &c, &port_values, true, out, true).ok());
+        let trigger = if let Some(state) = &initial {
+            Some(state.clone())
+        } else {
+            match export_state(&eg, &c, &port_values, true, out, true) {
+                Ok(state) => Some(state),
+                Err(error) if environment.is_some() => {
+                    return Err(
+                        format!("automatic ripen cannot export its trigger state: {error}").into(),
+                    );
+                }
+                Err(_) => None,
+            }
+        };
         if let Some(state) = &trigger {
             crate::pipeline::write_json(&out.join("trigger-state.json"), state)?;
         }
@@ -437,17 +457,13 @@ fn write_native_graph(eg: &EGraph, out: &Path, stem: &str) -> Result<()> {
     Ok(())
 }
 
-fn export_state(
-    eg: &EGraph,
-    c: &Captured,
-    ports: &[(String, egglog::ArcSort, Value)],
-    symbolic: bool,
-    out: &Path,
-    observation_only: bool,
-) -> Result<crate::saturated_rule_composition::SaturatedRuleComposition> {
-    use crate::saturated_rule_composition::{Row, SaturatedRuleComposition, Vertex};
+struct ExportSchema {
+    declarations: Vec<Command>,
+    constructors: Vec<(String, egglog::ast::Variant)>,
+    tables: Vec<(String, Vec<String>, String)>,
+}
+fn export_schema(c: &Captured, observation_only: bool) -> Result<ExportSchema> {
     let names = &c.datatype_names;
-    let name = names.iter().next().map(String::as_str).unwrap_or("Unit");
     fn constructor_expr(e: &Expr, ops: &BTreeSet<&str>) -> bool {
         match e {
             Expr::Call(_, op, args) => {
@@ -464,7 +480,6 @@ fn export_state(
     if constructors
         .iter()
         .any(|(_, v)| v.types.iter().any(|t| !allowed(t)))
-        || ports.iter().any(|(_, s, _)| !allowed(s.name()))
     {
         return Err("unsupported container/table field sort in state export".into());
     }
@@ -522,6 +537,35 @@ fn export_state(
         if !observation_only && (!body || !head) {
             return Err("SaturatedRuleComposition sharing currently certifies positive constructor/equality rules only; primitive guards/actions require an explicit semantics contract".into());
         }
+    }
+    Ok(ExportSchema {
+        declarations,
+        constructors,
+        tables,
+    })
+}
+
+fn export_state(
+    eg: &EGraph,
+    c: &Captured,
+    ports: &[(String, egglog::ArcSort, Value)],
+    symbolic: bool,
+    out: &Path,
+    observation_only: bool,
+) -> Result<crate::saturated_rule_composition::SaturatedRuleComposition> {
+    use crate::saturated_rule_composition::{Row, SaturatedRuleComposition, Vertex};
+    let names = &c.datatype_names;
+    let name = names.iter().next().map(String::as_str).unwrap_or("Unit");
+    let ExportSchema {
+        declarations,
+        constructors,
+        tables,
+    } = export_schema(c, observation_only)?;
+    if ports.iter().any(|(_, sort, _)| {
+        !names.contains(sort.name())
+            && !matches!(sort.name(), "i64" | "String" | "bool" | "f64" | "Unit")
+    }) {
+        return Err("unsupported port sort in state export".into());
     }
     if crate::graph_render::graphs_enabled() {
         write_native_graph(eg, out, "native-egraph")?;

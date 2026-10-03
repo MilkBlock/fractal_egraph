@@ -509,6 +509,7 @@ impl TraceSession {
         proposed: &[Value],
         actual: &[Value],
         outcome: WriteOutcome,
+        before: Option<Option<&[Value]>>,
     ) -> u64 {
         let event_id = self.state.next_event_id.fetch_add(1, Ordering::Relaxed);
         if self.state.effects_only {
@@ -524,6 +525,7 @@ impl TraceSession {
             event_id,
             match_event_id: cause.match_event_id,
             table: cause.table,
+            before: before.map(|row| row.map(<[Value]>::to_vec)),
             proposed: proposed.to_vec(),
             actual: actual.to_vec(),
             outcome,
@@ -672,6 +674,8 @@ pub struct WriteEvent {
     pub event_id: u64,
     pub match_event_id: u64,
     pub table: crate::TableId,
+    /// None: unsupported/unknown; Some(None): absent; Some(Some(row)): committed old row.
+    pub before: Option<Option<Vec<Value>>>,
     pub proposed: Vec<Value>,
     pub actual: Vec<Value>,
     pub outcome: WriteOutcome,
@@ -704,13 +708,27 @@ pub struct TraceCause {
     pub(crate) commit_event_id: Option<u64>,
 }
 impl TraceCause {
+    pub(crate) fn effects_only(&self) -> bool {
+        self.trace.state.effects_only
+    }
+    pub(crate) fn finish_with_before(
+        &self,
+        proposed: &[Value],
+        actual: &[Value],
+        outcome: WriteOutcome,
+        before: Option<&[Value]>,
+    ) -> u64 {
+        self.trace
+            .record_write(self, proposed, actual, outcome, Some(before))
+    }
     pub(crate) fn finish(
         &self,
         proposed: &[Value],
         actual: &[Value],
         outcome: WriteOutcome,
     ) -> u64 {
-        self.trace.record_write(self, proposed, actual, outcome)
+        self.trace
+            .record_write(self, proposed, actual, outcome, None)
     }
 }
 pub(crate) struct RowWitness {

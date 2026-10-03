@@ -655,6 +655,7 @@ impl SortedWritesTable {
             for (incoming, cause) in batch.traced_rows() {
                 let key = &incoming[..self.n_keys];
                 let old = self.storage_lookup(key);
+                let before = cause.filter(|c| !c.effects_only()).and_then(|_| old.map(|id| self.row_values(id).unwrap().into_owned()));
                 let outcome;
                 let row = if let Some(id) = old {
                     let current = self.row_values(id).unwrap().into_owned();
@@ -665,6 +666,7 @@ impl SortedWritesTable {
                             incoming,
                             &current,
                             crate::trace::WriteOutcome::Deduplicated,
+                            Some(&current),
                             self.n_keys,
                         );
                         continue;
@@ -704,7 +706,7 @@ impl SortedWritesTable {
                     );
                 }
                 self.pending_state
-                    .finish(cause, incoming, row, outcome, self.n_keys);
+                    .finish(cause, incoming, row, outcome, before.as_deref(), self.n_keys);
                 added = true;
             }
         }

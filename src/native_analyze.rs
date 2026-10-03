@@ -109,8 +109,57 @@ pub struct RuleInfo {
     pub rule: Rule,
     pub calls: BTreeMap<Arc<str>, (String, Expr)>,
 }
+#[derive(Clone, Default, Debug, serde::Serialize, serde::Deserialize)]
+enum PreviousRow {
+    #[default]
+    Unknown,
+    Absent,
+    Present(Vec<usize>),
+}
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+struct SetWitness {
+    commit: u64,
+    path: String,
+    table: String,
+    before: PreviousRow,
+    proposed: Vec<usize>,
+    after: Vec<usize>,
+}
+fn observed_value(
+    pool: &mut Pool,
+    eg: &EGraph,
+    sort: Arc<str>,
+    scope: usize,
+    value: Value,
+) -> Result<usize> {
+    let literal = match sort.as_ref() {
+        "i64" => Some(eg.value_to_base::<i64>(value).to_string()),
+        "String" => Some(serde_json::to_string(
+            &eg.value_to_base::<egglog::sort::S>(value).to_string(),
+        )?),
+        "bool" => Some(eg.value_to_base::<bool>(value).to_string()),
+        "f64" => Some(
+            Expr::Lit(
+                sp(),
+                egglog::ast::Literal::Float(eg.value_to_base::<egglog::sort::F>(value).0),
+            )
+            .to_string(),
+        ),
+        _ => None,
+    };
+    let id = pool.intern(Token {
+        sort,
+        key: Key::Value(scope, value),
+    });
+    if let Some(literal) = literal {
+        pool.literals.insert(id, literal);
+    }
+    Ok(id)
+}
 #[derive(Clone, serde::Serialize, serde::Deserialize)]
 pub struct Record {
+    #[serde(default)]
+    sets: Vec<SetWitness>,
     pub id: u64,
     pub rule: usize,
     pub parents: Vec<usize>,
@@ -697,22 +746,14 @@ fn collect_with_planner(
         let mut parents = BTreeSet::new();
         for r in rs.iter() {
             read_results.push(
-                schemas
-                    .get(&format!("{:?}", r.table))
-                    .and_then(|(_, arity, sorts)| {
-                        (c.datatype_names.contains(sorts[*arity].as_ref()))
-                            .then(|| r.row.get(*arity))
-                            .flatten()
-                    })
-                    .map(|v| {
-                        let sort = schemas[&format!("{:?}", r.table)].2
-                            [schemas[&format!("{:?}", r.table)].1]
-                            .clone();
-                        pool.intern(Token {
-                            sort,
-                            key: Key::Value(s, *v),
-                        })
-                    }),
+                if let Some((_, arity, types)) = schemas.get(&format!("{:?}", r.table)) {
+                    r.row
+                        .get(*arity)
+                        .map(|v| observed_value(pool, eg, types[*arity].clone(), s, *v))
+                        .transpose()?
+                } else {
+                    None
+                },
             );
             let valid = r
                 .producer_match_event_id
@@ -779,6 +820,47 @@ fn collect_with_planner(
                 ports.push(Port::External(j));
             }
         }
+        let mut sets = vec![];
+        for w in ws.iter() {
+            if w.rebuild_of.is_some() || w.outcome == WriteOutcome::Unsupported {
+                continue;
+            }
+            let Some((path, _)) = w
+                .source_span
+                .as_ref()
+                .and_then(|span| rules[rule].calls.get(span))
+            else {
+                continue;
+            };
+            if !path.ends_with("/set/0") {
+                continue;
+            }
+            let Some((name, arity, types)) = schemas.get(&format!("{:?}", w.table)) else {
+                continue;
+            };
+            let mut tokens = |row: &[Value]| -> Result<Vec<usize>> {
+                if row.len() < arity + 1 {
+                    return Err("incomplete set row witness".into());
+                }
+                row.iter()
+                    .zip(types)
+                    .map(|(v, ty)| observed_value(pool, eg, ty.clone(), s, *v))
+                    .collect()
+            };
+            sets.push(SetWitness {
+                commit: w.event_id,
+                path: path.clone(),
+                table: name.to_string(),
+                before: match &w.before {
+                    None => PreviousRow::Unknown,
+                    Some(None) => PreviousRow::Absent,
+                    Some(Some(row)) => PreviousRow::Present(tokens(row)?),
+                },
+                proposed: tokens(&w.proposed)?,
+                after: tokens(&w.actual)?,
+            });
+        }
+        sets.sort_by_key(|w| w.commit);
         let union_tokens = unions
             .remove(&m.event_id)
             .unwrap_or_default()
@@ -800,6 +882,7 @@ fn collect_with_planner(
         let coarse = parents.is_empty() || ports.iter().any(|p| matches!(p, Port::External(_)));
         imported.insert(m.event_id, records.len());
         records.push(Record {
+            sets,
             id: m.event_id,
             rule,
             parents,

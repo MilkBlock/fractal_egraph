@@ -22,6 +22,23 @@ fn check(f: Fact) -> Command {
 fn eq(a: Expr, b: Expr) -> Command {
     check(Fact::Eq(sp(), a, b))
 }
+// Double fail runs a positive check at this exact stage; one fail tests absence.
+fn immediate(command: Command) -> Command {
+    Command::Fail(sp(), Box::new(Command::Fail(sp(), Box::new(command))))
+}
+fn literal(c: &Captured, id: usize) -> Result<Expr> {
+    let text = c
+        .pool
+        .literals
+        .get(&id)
+        .ok_or("set witness needs a scalar literal or an existing symbolic binding")?;
+    let mut eg = super::measured_engine();
+    let commands = eg.parse_program(None, &format!("(let __old_value {text})"))?;
+    let [Command::Action(Action::Let(_, _, value @ Expr::Lit(..)))] = commands.as_slice() else {
+        return Err("invalid set witness literal".into());
+    };
+    Ok(value.clone())
+}
 fn outside(r: &Record, p: &Port, members: &BTreeSet<usize>) -> bool {
     match p {
         Port::External(_) => true,
@@ -31,6 +48,7 @@ fn outside(r: &Record, p: &Port, members: &BTreeSet<usize>) -> bool {
 
 pub(super) struct Environment {
     pub base: EGraph,
+    pub export_error: Option<String>,
     pub rules: Vec<RuleInfo>,
     pub code: String,
     source: String,
@@ -85,6 +103,7 @@ impl Environment {
         let mut base = super::measured_engine();
         base.run_program(entry.clone())?;
         Ok(Self {
+            export_error: super::export_schema(c, true).err().map(|e| e.to_string()),
             base,
             rules: c.rules.clone(),
             code,
@@ -178,6 +197,9 @@ fn extract(
     let mut stages = vec![];
     let mut final_checks = vec![];
     let mut injections = vec![];
+    let mut written = BTreeSet::new();
+    let mut last_commit = 0;
+    let mut update_evidence = vec![];
     for i in &members {
         let r = &c.records[*i];
         let rule = &c.rules[r.rule];
@@ -280,7 +302,37 @@ fn extract(
                         &rule.calls.get(span).ok_or("missing read expression")?.1,
                         &env,
                     )?;
-                    seeds.insert(expr.to_string(), Command::Action(Action::Expr(sp(), expr)));
+                    let Expr::Call(_, op, args) = &expr else {
+                        return Err("external read is not a table call".into());
+                    };
+                    let seed =
+                        if environment.base.get_function(op).is_some_and(|f| {
+                            !f.is_constructor() && f.schema().output.name() != "Unit"
+                        }) {
+                            let index = r
+                                .inputs
+                                .iter()
+                                .filter(|i| matches!(i, Input::Read(_)))
+                                .position(|i| matches!(i,Input::Read(s) if s==span))
+                                .ok_or("missing read index")?;
+                            let id = r
+                                .read_results
+                                .get(index)
+                                .copied()
+                                .flatten()
+                                .ok_or("missing function read result")?;
+                            let value = values
+                                .get(&id)
+                                .cloned()
+                                .map(Ok)
+                                .unwrap_or_else(|| literal(c, id))?;
+                            Command::Action(Action::Set(sp(), op.clone(), args.clone(), value))
+                        } else {
+                            Command::Action(Action::Expr(sp(), expr.clone()))
+                        };
+                    if !written.contains(&expr.to_string()) {
+                        seeds.insert(expr.to_string(), seed);
+                    }
                 }
             }
         }
@@ -303,6 +355,9 @@ fn extract(
             let Some(id) = r.read_results.get(read).copied().flatten() else {
                 continue;
             };
+            if !c.datatype_names.contains(c.pool.values[id].sort.as_ref()) {
+                continue;
+            }
             let term = subst(&rule.calls[span].1, &env)?;
             if let Some(previous) = values.get(&id) {
                 if previous != &term {
@@ -337,9 +392,93 @@ fn extract(
                 }
             }
         }
+        let mut set_guards = BTreeMap::new();
+        let mut guard_env = env.clone();
+        for (action_index, action) in rule.rule.head.0.iter().enumerate() {
+            if let Action::Let(_, name, expr) = action {
+                guard_env.insert(name.clone(), subst(expr, &guard_env)?);
+            }
+            let Action::Set(_, op, args, _) = action else {
+                continue;
+            };
+            let path = format!("head/{action_index}/set/0");
+            let mut witnesses = r.sets.iter().filter(|w| w.path == path);
+            let w = witnesses
+                .next()
+                .ok_or("set requires a committed before/after witness; recapture old history")?;
+            if witnesses.next().is_some() {
+                return Err(
+                    "multiple commits for one set action require finer stage replay".into(),
+                );
+            }
+            if w.commit <= last_commit {
+                return Err(
+                    "set commits interleave match order; stage replay cannot reorder them".into(),
+                );
+            }
+            last_commit = w.commit;
+            if w.table != *op
+                || w.after.len() != args.len() + 1
+                || w.proposed.len() != args.len() + 1
+            {
+                return Err("set witness schema mismatch".into());
+            }
+            let args = args
+                .iter()
+                .map(|a| subst(a, &guard_env))
+                .collect::<Result<Vec<_>>>()?;
+            let target = call(op, args.clone());
+            let key = target.to_string();
+            let after = values
+                .get(w.after.last().unwrap())
+                .cloned()
+                .map(Ok)
+                .unwrap_or_else(|| literal(c, *w.after.last().unwrap()))?;
+            let before = match &w.before {
+                PreviousRow::Unknown => {
+                    return Err("unknown pre-update row; recapture with commit witnesses".into());
+                }
+                PreviousRow::Absent => {
+                    Command::Fail(sp(), Box::new(eq(target.clone(), target.clone())))
+                }
+                PreviousRow::Present(row) => {
+                    let old = values
+                        .get(row.last().ok_or("empty old row")?)
+                        .cloned()
+                        .map(Ok)
+                        .unwrap_or_else(|| literal(c, *row.last().unwrap()))?;
+                    if !written.contains(&key) && !seeds.contains_key(&key) {
+                        seeds.insert(
+                            key.clone(),
+                            Command::Action(Action::Set(
+                                sp(),
+                                op.clone(),
+                                args.clone(),
+                                old.clone(),
+                            )),
+                        );
+                    }
+                    immediate(eq(target.clone(), old))
+                }
+            };
+            update_evidence.push(json!({"record":i,"action":action_index,"before":w.before,"commit":w.commit,"table":op}));
+            written.insert(key);
+            set_guards.insert(action_index, (before, immediate(eq(target, after))));
+        }
         let mut commands = requirements.into_values().collect::<Vec<_>>();
         let injection_start = commands.len();
-        let facts = seeds.into_values().collect::<Vec<_>>();
+        let facts = seeds
+            .into_values()
+            .flat_map(|seed| {
+                let mut commands = vec![];
+                if let Command::Action(Action::Set(_, op, args, _)) = &seed {
+                    let target = call(op, args.clone());
+                    commands.push(Command::Fail(sp(), Box::new(eq(target.clone(), target))));
+                }
+                commands.push(seed);
+                commands
+            })
+            .collect::<Vec<_>>();
         if !facts.is_empty() {
             injections.push(json!({"before_record":i,"requires":commands.iter().map(ToString::to_string).collect::<Vec<_>>(),"facts":facts.iter().map(ToString::to_string).collect::<Vec<_>>()}));
         }
@@ -352,7 +491,7 @@ fn extract(
             }));
         }
         let preconditions = commands.len();
-        for action in &rule.rule.head.0 {
+        for (action_index, action) in rule.rule.head.0.iter().enumerate() {
             let action = match action {
                 Action::Let(_, n, e) => {
                     let v = subst(e, &env)?;
@@ -380,7 +519,13 @@ fn extract(
                 }
                 _ => unreachable!(),
             });
+            if let Some((before, _)) = set_guards.get(&action_index) {
+                commands.push(before.clone());
+            }
             commands.push(Command::Action(action));
+            if let Some((_, after)) = set_guards.get(&action_index) {
+                commands.push(after.clone());
+            }
         }
         let alias_start = commands.len();
         for (output, v) in r.outputs.iter().zip(&r.values) {
@@ -391,18 +536,32 @@ fn extract(
                     let Expr::Call(_, _, args) = e else {
                         return Err("output is not a constructor call".into());
                     };
-                    subst(
-                        if *column == args.len() {
-                            e
-                        } else {
-                            args.get(*column).ok_or("invalid output column")?
-                        },
-                        &env,
-                    )?
+                    // A set result is a value at its commit, not a lookup of
+                    // the mutable function after subsequent actions. The exact
+                    // after-value was already checked next to that set above.
+                    if rule.calls[span].0.ends_with("/set/0")
+                        && *column == args.len()
+                        && c.pool.literals.contains_key(v)
+                    {
+                        literal(c, *v)?
+                    } else {
+                        subst(
+                            if *column == args.len() {
+                                e
+                            } else {
+                                args.get(*column).ok_or("invalid output column")?
+                            },
+                            &env,
+                        )?
+                    }
                 }
                 Output::Row(_) => continue,
             };
-            if let Some(old) = values.get(v) {
+            if c.pool.literals.contains_key(v) {
+                let value = literal(c, *v)?;
+                commands.push(eq(value.clone(), term));
+                values.insert(*v, value);
+            } else if let Some(old) = values.get(v) {
                 // Check recorded aliases; never manufacture the missing union.
                 commands.push(eq(old.clone(), term));
             } else {
@@ -555,7 +714,13 @@ fn extract(
     let output_tick = std::time::Instant::now();
     let seed_text = encode(&entry);
     for (_, _, _, commands, _) in &stages {
-        entry.extend(commands.clone());
+        entry.extend(commands.iter().cloned().map(|c| {
+            if matches!(c, Command::Check(..)) {
+                immediate(c)
+            } else {
+                c
+            }
+        }));
     }
     entry.extend(final_checks);
     let text = format!(
@@ -613,7 +778,7 @@ fn extract(
         "initial_tables":initial_tables,"original_use_tables":original_tables,"parameter_marker":hole,"parameter_markers":environment.holes,
         "symbolic_values":values.iter().map(|(token,term)|json!({"token":token,"term":term.to_string(),"sort":c.pool.values[*token].sort})).collect::<Vec<_>>(),
         "parameters":parameters,"all_source_rules":c.rules.len(),"validation":"all original LHS checks and recorded output aliases passed before/after the corresponding ground actions",
-        "staged_injections":injections,"initial_source":seed_text,"concrete_boundary_structure_recovered":false,
+        "set_update_witnesses":update_evidence,"staged_injections":injections,"initial_source":seed_text,"concrete_boundary_structure_recovered":false,
         "saturated_scope":"extracted interface only; not the complete original tier0 neighborhood"});
     elapsed!("encode_result_provenance", output_tick);
     Ok((text, validation, provenance))
@@ -621,27 +786,6 @@ fn extract(
 
 fn audit(c: &Captured) -> Result {
     let mut parser = super::measured_engine();
-    let declarations = parser.parse_program(None, &c.datatype)?;
-    let merged: BTreeSet<_> = declarations
-        .iter()
-        .filter_map(|d| match d {
-            Command::Function {
-                name,
-                merge: Some(_),
-                ..
-            } => Some(name.as_str()),
-            _ => None,
-        })
-        .collect();
-    if c.rules.iter().any(|r| {
-        r.rule
-            .head
-            .0
-            .iter()
-            .any(|a| matches!(a,Action::Set(_,op,_,_) if merged.contains(op.as_str())))
-    }) {
-        return Err("automatic merge update needs a pre-update table-state witness; explicit ripen remains supported".into());
-    }
     let mut declared = vec![];
     for cmd in crate::visual_rule::surface_program(parser.parse_program(None, &c.preview_source)?) {
         if matches!(
@@ -684,6 +828,83 @@ mod tests {
         let mut c = capture_text_with_sink("staged.egg", source, None, None).unwrap();
         update_layers(&mut c).unwrap();
         c
+    }
+    #[test]
+    fn two_sets_in_one_apply_keep_each_committed_scalar_snapshot() {
+        let c = captured(
+            r#"
+            (datatype E (V i64))
+            (function Count (E) i64 :merge (+ old new))
+            (rule ((= x (V 0))) ((set (Count x) 1) (set (Count x) 2)))
+            (set (Count (V 0)) 10) (run 1)
+        "#,
+        );
+        assert_eq!(c.records[0].sets.len(), 2);
+        let (entry, _, _) = prepare_members(&c, &[0]).unwrap();
+        let mut eg = EGraph::default();
+        eg.parse_and_run_program(None, &entry).unwrap();
+    }
+    #[test]
+    fn set_replay_preserves_absence_old_values_and_stage_order() {
+        for initial in ["", "(set (Cost (V 0)) 10)", "(set (Cost (V 0)) 3)"] {
+            let mut c = captured(&format!(
+                r#"
+                (datatype E (V i64))
+                (function Cost (E) i64 :merge (min old new))
+                (ruleset first)
+                (rule ((= x (V 0))) ((set (Cost x) 7)) :ruleset first)
+                (V 0) {initial} (run first 1)
+            "#
+            ));
+            assert_eq!(c.records.len(), 1);
+            let w = &c.records[0].sets[0];
+            assert_eq!(matches!(w.before, PreviousRow::Absent), initial.is_empty());
+            let expected = if initial.ends_with("3)") { "3" } else { "7" };
+            assert_eq!(c.pool.literals[w.after.last().unwrap()], expected);
+            let (entry, _, _) = prepare_members(&c, &[0]).unwrap();
+            let mut eg = EGraph::default();
+            eg.parse_and_run_program(None, &entry).unwrap();
+            if initial.ends_with("10)") {
+                let PreviousRow::Present(old) = &c.records[0].sets[0].before else {
+                    panic!("old row missing");
+                };
+                let incorrect = *old.last().unwrap();
+                *c.records[0].sets[0].after.last_mut().unwrap() = incorrect;
+                assert!(
+                    prepare_members(&c, &[0]).is_err(),
+                    "incorrect committed result was accepted"
+                );
+            }
+        }
+        let c = captured(
+            r#"
+            (datatype E (V i64))
+            (function Cost (E) i64 :merge (min old new))
+            (ruleset first) (ruleset second)
+            (rule ((= x (V 0))) ((set (Cost x) 7)) :ruleset first)
+            (rule ((= x (V 0)) (= (Cost x) 7)) ((set (Cost x) 5)) :ruleset second)
+            (set (Cost (V 0)) 10) (run first 1) (run second 1)
+        "#,
+        );
+        assert_eq!(c.records.len(), 2);
+        let (entry, _, origin) = prepare_members(&c, &[0, 1]).unwrap();
+        assert_eq!(origin["set_update_witnesses"].as_array().unwrap().len(), 2);
+        let mut eg = EGraph::default();
+        eg.parse_and_run_program(None, &entry).unwrap();
+        let path = std::env::temp_dir().join(format!("set-history-{}.json", std::process::id()));
+        history::save(&path, Path::new("set.egg"), &c).unwrap();
+        let mut replay = history::read(&path).unwrap();
+        update_layers(&mut replay).unwrap();
+        assert_eq!(prepare_members(&replay, &[0, 1]).unwrap().0, entry);
+        // Old histories do not carry before-state evidence; they must not guess it.
+        replay.records[0].sets.clear();
+        assert!(
+            prepare_members(&replay, &[0])
+                .unwrap_err()
+                .to_string()
+                .contains("recapture")
+        );
+        std::fs::remove_file(path).unwrap();
     }
     #[test]
     fn subsume_receipts_have_replayable_source_positions() {

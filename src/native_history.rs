@@ -216,6 +216,26 @@ pub(super) fn read(path: &Path) -> Result<Captured> {
         {
             return Err(format!("invalid history record {i}").into());
         }
+        for w in &r.sets {
+            let before = match &w.before {
+                PreviousRow::Present(row) => row.as_slice(),
+                _ => &[],
+            };
+            if w.proposed.is_empty()
+                || w.proposed.len() != w.after.len()
+                || (!before.is_empty() && before.len() != w.after.len())
+                || w.proposed
+                    .iter()
+                    .chain(&w.after)
+                    .chain(before)
+                    .any(|v| *v >= pool.values.len())
+                || !rules[r.rule].calls.values().any(|(path, expr)| {
+                    path == &w.path && matches!(expr,Expr::Call(_,op,_) if op==&w.table)
+                })
+            {
+                return Err(format!("invalid set witness in history record {i}").into());
+            }
+        }
         for p in &r.ports {
             match p {
                 Port::Parent(k, j)

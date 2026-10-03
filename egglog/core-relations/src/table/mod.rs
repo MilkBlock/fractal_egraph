@@ -975,6 +975,7 @@ impl SortedWritesTable {
                                 .data
                                 .get_row(*row)
                                 .expect("table should not point to stale entry");
+                            let before = cause.filter(|c| !c.effects_only()).map(|_| cur.to_vec());
                             if (self.merge)(exec_state, cur, query, &mut scratch) {
                                 let sort_val = query[sort_by.index()];
                                 let new = self.data.add_row(&scratch);
@@ -997,6 +998,7 @@ impl SortedWritesTable {
                                     query,
                                     &scratch,
                                     crate::trace::WriteOutcome::Updated,
+                                    before.as_deref(),
                                     n_keys,
                                 );
                             } else {
@@ -1005,6 +1007,7 @@ impl SortedWritesTable {
                                     query,
                                     cur,
                                     crate::trace::WriteOutcome::Deduplicated,
+                                    Some(cur),
                                     n_keys,
                                 );
                             }
@@ -1040,6 +1043,7 @@ impl SortedWritesTable {
                                 query,
                                 query,
                                 crate::trace::WriteOutcome::Inserted,
+                                None,
                                 n_keys,
                             );
                         }
@@ -1062,6 +1066,7 @@ impl SortedWritesTable {
                                 .data
                                 .get_row(*row)
                                 .expect("table should not point to stale entry");
+                            let before = cause.filter(|c| !c.effects_only()).map(|_| cur.to_vec());
                             if (self.merge)(exec_state, cur, query, &mut scratch) {
                                 let new = self.data.add_row(&scratch);
                                 self.data.set_stale(*row);
@@ -1072,6 +1077,7 @@ impl SortedWritesTable {
                                     query,
                                     &scratch,
                                     crate::trace::WriteOutcome::Updated,
+                                    before.as_deref(),
                                     n_keys,
                                 );
                             } else {
@@ -1080,6 +1086,7 @@ impl SortedWritesTable {
                                     query,
                                     cur,
                                     crate::trace::WriteOutcome::Deduplicated,
+                                    Some(cur),
                                     n_keys,
                                 );
                             }
@@ -1103,6 +1110,7 @@ impl SortedWritesTable {
                                 query,
                                 query,
                                 crate::trace::WriteOutcome::Inserted,
+                                None,
                                 n_keys,
                             );
                         }
@@ -1624,10 +1632,11 @@ impl PendingState {
         proposed: &[Value],
         actual: &[Value],
         outcome: crate::trace::WriteOutcome,
+        before: Option<&[Value]>,
         n_keys: usize,
     ) {
         use crate::trace::WriteOutcome;
-        let commit_event = cause.map(|cause| cause.finish(proposed, actual, outcome));
+        let commit_event = cause.map(|cause| cause.finish_with_before(proposed, actual, outcome, before));
         if !self.has_provenance.load(Ordering::Relaxed) {
             return;
         }

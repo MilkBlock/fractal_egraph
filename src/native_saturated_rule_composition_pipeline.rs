@@ -180,12 +180,10 @@ impl Pipeline {
                     .map_err(|e| e.to_string()),
             )
         };
-        let prepared: Vec<_> = if crate::graph_render::graphs_enabled() {
-            pending.iter().map(prepare).collect()
-        } else {
-            self.worker_pool
-                .install(|| pending.par_iter().with_max_len(1).map(prepare).collect())
-        };
+        // Native initialization can broadcast to Rayon. Running it as many
+        // stealable Rayon jobs recursively nests constructors on worker stacks.
+        // Initialize in source order; the subsequent sweeps remain parallel.
+        let prepared: Vec<_> = pending.iter().map(prepare).collect();
         for (id, key, result) in prepared {
             if let Some(&owner) = self.owners.get(&key) {
                 self.aliases.insert(id, owner);

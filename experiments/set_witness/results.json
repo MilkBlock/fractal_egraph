@@ -1,0 +1,28 @@
+{
+  "scope": "Actual eggcc fact.bril one-pass export; native release execution and saved-history replay. Concrete preparation success is not a saturation certificate.",
+  "source_sha256": "7747960d4e1aefb1bb904d67472c02927be555f5a030ca09e42e43e668deaaad",
+  "eggcc_commit": "ae80f82a403c1209fb084b115ee89470c7e66d0e",
+  "source_lines": 5695,
+  "logical_matches": 4664,
+  "applications": 2777,
+  "excluded": 1887,
+  "composition_jobs": 2060,
+  "prepared_jobs": 620,
+  "prepared_jobs_with_set": 110,
+  "unique_validated_compositions": 550,
+  "set_commit_witnesses": 616,
+  "before_absent": 313,
+  "before_present": 303,
+  "certified_saturated_cells": 0,
+  "rejections": {
+    "automatic ripen cannot export its trigger state: unsupported container/table field sort in state export": 620,
+    "recorded output alias failed": 87,
+    "set commits interleave match order; stage replay cannot reorder them": 1194,
+    "set witness needs a scalar literal or an existing symbolic binding": 110,
+    "external fact injection failed": 40,
+    "unresolved binding inner": 9
+  },
+  "online_replay_summary_and_counts_agree": true,
+  "online_seconds": 112.49200087506324,
+  "replay_seconds": 77.56302908412181
+}
