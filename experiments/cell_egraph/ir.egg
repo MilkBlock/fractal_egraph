@@ -1,0 +1,7 @@
+; Every Cell graph has one fixed rule environment.
+; Ports refer to a common, fixed interface, never history event positions.
+(datatype Ports (PNil) (Port i64 Ports))
+(datatype Binding (Bind Ports Ports)) ; connections, external obligation identities
+(datatype Cell
+  (Empty)
+  (CoarseApply Cell String Binding))
