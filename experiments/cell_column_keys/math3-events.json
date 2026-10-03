@@ -1,0 +1,148 @@
+{
+  "run": "/private/tmp/abl-e50",
+  "jobs": 92,
+  "states": {
+    "Saturated": 70,
+    "ObservedUnfinished": 22
+  },
+  "boundary_ports": 792,
+  "boundary_probe_ranking": [
+    {
+      "role": "var:a",
+      "occurrences": 198,
+      "distinct_keys": 4,
+      "hit_multiplicity": 49.5,
+      "bare_boundary_share": 0.6767676767676768
+    },
+    {
+      "role": "var:b",
+      "occurrences": 193,
+      "distinct_keys": 6,
+      "hit_multiplicity": 32.166666666666664,
+      "bare_boundary_share": 0.2849740932642487
+    },
+    {
+      "role": "read:body/0/expr/1",
+      "occurrences": 221,
+      "distinct_keys": 7,
+      "hit_multiplicity": 31.571428571428573,
+      "bare_boundary_share": 0.22624434389140272
+    },
+    {
+      "role": "var:x",
+      "occurrences": 54,
+      "distinct_keys": 5,
+      "hit_multiplicity": 10.8,
+      "bare_boundary_share": 0.5555555555555556
+    },
+    {
+      "role": "read:body/0/expr/1/args/0",
+      "occurrences": 29,
+      "distinct_keys": 3,
+      "hit_multiplicity": 9.666666666666666,
+      "bare_boundary_share": 0.3793103448275862
+    },
+    {
+      "role": "read:body/0/expr/1/args/1",
+      "occurrences": 51,
+      "distinct_keys": 7,
+      "hit_multiplicity": 7.285714285714286,
+      "bare_boundary_share": 0.19607843137254902
+    },
+    {
+      "role": "var:f",
+      "occurrences": 7,
+      "distinct_keys": 1,
+      "hit_multiplicity": 7.0,
+      "bare_boundary_share": 1.0
+    },
+    {
+      "role": "var:g",
+      "occurrences": 7,
+      "distinct_keys": 1,
+      "hit_multiplicity": 7.0,
+      "bare_boundary_share": 1.0
+    },
+    {
+      "role": "var:c",
+      "occurrences": 32,
+      "distinct_keys": 5,
+      "hit_multiplicity": 6.4,
+      "bare_boundary_share": 0.0625
+    }
+  ],
+  "cell_extent_by_state": {
+    "Saturated": {
+      "n": 70,
+      "min": 1,
+      "median": 3.0,
+      "max": 10
+    },
+    "ObservedUnfinished": {
+      "n": 22,
+      "min": 1,
+      "median": 4.0,
+      "max": 8
+    }
+  },
+  "closure_facts_by_state": {
+    "ObservedUnfinished": {
+      "n": 22,
+      "min": 14151,
+      "median": 18457.0,
+      "max": 32097
+    }
+  },
+  "deepest_cells": [
+    {
+      "members": 10,
+      "state": "Saturated",
+      "after_facts": null
+    },
+    {
+      "members": 10,
+      "state": "Saturated",
+      "after_facts": null
+    },
+    {
+      "members": 10,
+      "state": "Saturated",
+      "after_facts": null
+    },
+    {
+      "members": 10,
+      "state": "Saturated",
+      "after_facts": null
+    },
+    {
+      "members": 9,
+      "state": "Saturated",
+      "after_facts": null
+    },
+    {
+      "members": 9,
+      "state": "Saturated",
+      "after_facts": null
+    },
+    {
+      "members": 8,
+      "state": "Saturated",
+      "after_facts": null
+    },
+    {
+      "members": 8,
+      "state": "Saturated",
+      "after_facts": null
+    },
+    {
+      "members": 8,
+      "state": "Saturated",
+      "after_facts": null
+    },
+    {
+      "members": 8,
+      "state": "ObservedUnfinished",
+      "after_facts": 30119
+    }
+  ]
+}
