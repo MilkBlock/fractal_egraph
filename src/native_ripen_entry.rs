@@ -150,7 +150,7 @@ impl PreparationCache {
             self.environments += 1;
         }
         let tick = std::time::Instant::now();
-        let result = extract(c, members, members.len() - 1, self);
+        let result = extract(c, members, *members.last().unwrap(), self);
         *self.timings.entry("prepare_total").or_default() += tick.elapsed().as_secs_f64();
         result
     }
@@ -459,7 +459,7 @@ fn extract(
             Port::Parent(parent,output) if slots.contains_key(&r.parents[*parent]) => json!(["local",slots[&r.parents[*parent]],output]),
             _=>json!(["external",sym(*v)]),
         }).collect();
-        let apply=&c.layers.occurrences[*i].apply;
+        let apply=&c.applies[*i];
         json!({"rule":r.rule,"input_roles":apply.input_roles,"output_roles":apply.output_roles,"wiring":wiring,"inputs":r.wanted.iter().map(|v|sym(*v)).collect::<Vec<_>>(),"outputs":r.values.iter().map(|v|sym(*v)).collect::<Vec<_>>(),"read_results":r.read_results.iter().map(|v|v.map(&mut sym)).collect::<Vec<_>>(),"unions":r.unions.iter().map(|(a,b)|json!([sym(*a),sym(*b)])).collect::<Vec<_>>()})
     }).collect();
     let key = serde_json::to_string(&(signature, &validation))?;
@@ -578,7 +578,7 @@ fn extract(
         .collect();
     let mut boundary_ports = BTreeMap::new();
     let comb_members:Vec<_>=member_ids.iter().enumerate().map(|(slot,i)|{
-        let o=&c.layers.occurrences[*i];let a=&o.apply;let r=&c.records[*i];
+        let o=c.layers.occurrences.get(*i);let a=&c.applies[*i];let r=&c.records[*i];
         let external_parents:Vec<_>=a.parents.iter().filter(|p|!slots.contains_key(p)).copied().collect();
         let coarse=a.parents.is_empty()||!external_parents.is_empty()||!a.external_facts.is_empty()||a.binding.iter().any(|p|matches!(p,crate::coarse_smooth::RelativeBinding::External{..}));
         let (wiring,aliases)={
@@ -591,14 +591,23 @@ fn extract(
             (json!(wiring),json!(aliases))
         };
         json!({"slot":slot,"record":i,"event":r.id,"rule_name":c.rules[r.rule].rule.name,"rule":c.rules[r.rule].rule.to_string(),
-            "use_kind":if coarse{"CoarseRuleComposition"}else{"SmoothRuleComposition"},"source_kind":format!("{:?}",c.layers.combs[o.comb].kind),
+            "use_kind":if coarse{"CoarseRuleComposition"}else{"SmoothRuleComposition"},"source_kind":o.map(|o|format!("{:?}",c.layers.combs[o.comb].kind)).unwrap_or_else(||"ObservedApply".into()),
             "parents":a.parents.iter().filter_map(|p|slots.get(p).copied()).collect::<BTreeSet<_>>(),"external_parents":external_parents,
-            "binding":wiring,"aliases":aliases,"input_roles":a.input_roles,"output_roles":a.output_roles,"source_coarse_layer":o.coarse_layer,"source_smooth_layer":o.smooth_layer})
+            "binding":wiring,"aliases":aliases,"input_roles":a.input_roles,"output_roles":a.output_roles,"source_coarse_layer":o.map(|o|o.coarse_layer),"source_smooth_layer":o.and_then(|o|o.smooth_layer)})
     }).collect();
     // Typed recipe uses occurrence-local parents, retaining effects and external obligations.
-    let selected: Vec<_> = member_ids.iter().map(|i| c.layers.occurrences[*i].apply.clone()).collect();
+    let selected: Vec<_> = member_ids
+        .iter()
+        .map(|i| c.applies[*i].clone())
+        .collect();
     let recipe = crate::reuse_graph::library::local_recipe(&selected, member_ids)?;
-    let upper_terms: Vec<_> = c.records[root_member].values.iter()
+    let upper_terms: Vec<_> = c.records[root_member]
+        .values
+        .iter()
+        .zip(&c.records[root_member].outputs)
+        // Public interface roles must not depend on which RHS rows happened
+        // to be newly inserted; inner column ports remain in symbolic_values.
+        .filter_map(|(v,role)|matches!(role,Output::Var(_)).then_some(v))
         .filter(|v| c.pool.values[**v].sort.as_ref() == c.datatype_name)
         .filter_map(|v| values.get(v).map(ToString::to_string)).collect();
     let lower_terms: Vec<_> = parameters.iter().filter_map(|p| p["token"].as_u64())
@@ -833,13 +842,13 @@ mod tests {
             for (_, id) in store.discover(c, &c.layers, boundary)? {
                 let u = &store.units[id];
                 let result = if use_cache {
-                    cache.prepare(c, &u.members())
+                    cache.prepare(c, &store.members(id))
                 } else {
-                    prepare_members(c, &u.members())
+                    prepare_members(c, &store.members(id))
                 };
                 jobs.push(match result {
-                    Ok((_,_,origin)) => json!({"unit":id,"members":u.members(),"composite":u.source_composition.is_some(),"prepared":true,"injection_stages":origin["staged_injections"].as_array().unwrap().len()}),
-                    Err(e) => json!({"unit":id,"members":u.members(),"composite":u.source_composition.is_some(),"prepared":false,"reason":e.to_string()}),
+                    Ok((_,_,origin)) => json!({"unit":id,"members":store.members(id),"composite":u.source_composition.is_some(),"prepared":true,"injection_stages":origin["staged_injections"].as_array().unwrap().len()}),
+                    Err(e) => json!({"unit":id,"members":store.members(id),"composite":u.source_composition.is_some(),"prepared":false,"reason":e.to_string()}),
                 });
             }
             Ok(())

@@ -124,6 +124,8 @@ pub struct Record {
     required: Vec<usize>,
     produced: Vec<usize>,
     unions: Vec<(usize, usize)>,
+    #[serde(default)]
+    pub updated_rows: bool,
     pub coarse: bool,
     #[serde(skip)]
     pub comb: Option<Value>,
@@ -147,6 +149,7 @@ struct Captured {
     preview_source: String,
     boundaries: Vec<CaptureBoundary>,
     layers: crate::coarse_smooth::LayerStore,
+    applies: Vec<crate::coarse_smooth::Apply>,
     datatype: String,
     datatype_name: String,
     rules: Vec<RuleInfo>,
@@ -277,6 +280,7 @@ fn capture_text_with_planner(
         preview_source: text.to_owned(),
         boundaries: vec![],
         layers: Default::default(),
+        applies: vec![],
         datatype,
         datatype_name,
         rules,
@@ -733,6 +737,7 @@ fn collect_with_planner(eg:&EGraph,trace:&TraceSession,c:&mut Captured,producers
             required,
             produced,
             unions: union_tokens,
+            updated_rows: ws.iter().any(|w| w.outcome == WriteOutcome::Updated && w.rebuild_of.is_none()),
             coarse,
             comb: None,
             instance: None,
@@ -833,11 +838,10 @@ fn collect_with_planner(eg:&EGraph,trace:&TraceSession,c:&mut Captured,producers
     Ok(())
 }
 
-fn update_layers(c: &mut Captured) -> Result {
-    c.layers.ripen = c.boundaries.last().and_then(|b| b.ripen.clone());
+fn update_applies(c: &mut Captured) -> Result {
     use crate::coarse_smooth::{Apply, Effect, RelativeBinding};
     let rule_text: Vec<_> = c.rules.iter().map(|r| r.rule.to_string()).collect();
-    for r in c.records.iter().skip(c.layers.occurrences.len()) {
+    for r in c.records.iter().skip(c.applies.len()) {
         let apply = Apply {
             event: r.id,
             rule: rule_text[r.rule].clone(),
@@ -915,9 +919,19 @@ fn update_layers(c: &mut Captured) -> Result {
                 .chain(r.unions.iter().map(|(a, b)| Effect::Equal(*a, *b)))
                 .collect(),
         };
-        c.layers
-            .push(apply)
-            .map_err(|e| -> Box<dyn std::error::Error> { e.into() })?;
+        c.applies.push(apply);
+    }
+    Ok(())
+}
+
+fn update_layers(c: &mut Captured) -> Result {
+    update_applies(c)?;
+    c.layers.ripen = c.boundaries.last().and_then(|b| b.ripen.clone());
+    if !crate::graph_render::graphs_enabled()
+        && std::env::var("EGG_LAYOUT_COMPOSITION_DISCOVERY").as_deref()!=Ok("layers")
+        && std::env::var("EGG_LAYOUT_LAYER_VIEW").as_deref()!=Ok("1") {return Ok(());}
+    for apply in &c.applies[c.layers.occurrences.len()..] {
+        c.layers.push(apply.clone()).map_err(|e|->Box<dyn std::error::Error>{e.into()})?;
     }
     Ok(())
 }
@@ -994,7 +1008,18 @@ fn execute(
     };
     let c = if let Some(path) = replay {
         let mut c = history::read(path)?;
-        boundary_emit(&mut c)?;
+        let boundaries=std::mem::take(&mut c.boundaries);
+        if boundaries.is_empty() {boundary_emit(&mut c)?;} else {
+            let mut records=std::mem::take(&mut c.records).into_iter();
+            let mut changes=std::mem::take(&mut c.changes).into_iter().peekable();
+            for (index,boundary) in boundaries.into_iter().enumerate() {
+                while c.records.len()<boundary.end {c.records.push(records.next().ok_or("incomplete replay boundary")?);}
+                while changes.peek().is_some_and(|change|change.boundary<=index+1) {c.changes.push(changes.next().unwrap());}
+                c.boundaries.push(boundary);
+                boundary_emit(&mut c)?;
+            }
+            c.changes.extend(changes);
+        }
         c
     } else {
         let library=if optimize {Some(crate::reuse_graph::library::Library::load(reuse_library.ok_or("optimization requires a reuse library")?)?)}else{None};

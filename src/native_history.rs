@@ -272,6 +272,7 @@ pub(super) fn read(path: &Path) -> Result<Captured> {
         preview_source,
         boundaries: h.boundaries,
         layers: Default::default(),
+        applies: vec![],
         datatype: h.datatype,
         datatype_name,
         rules,

@@ -23,9 +23,16 @@ use std::{
 pub(super) struct Catalog {
     // rule -> (semantic eclass, local slot -> shared slot)
     maps: BTreeMap<usize, (usize, Vec<usize>)>,
+    reads: BTreeMap<usize, Vec<usize>>,
     pub report: Value,
 }
 impl Catalog {
+    pub fn shared_slot(&self, rule: usize, slot: usize) -> usize {
+        self.maps.get(&rule).map(|(_, m)| m[slot]).unwrap_or(slot)
+    }
+    pub fn read_slots(&self, rule: usize) -> &[usize] {
+        self.reads.get(&rule).map(Vec::as_slice).unwrap_or(&[])
+    }
     pub fn key(&self, rule: usize, binding: &[egglog::Value]) -> (usize, Vec<egglog::Value>) {
         let Some((class, map)) = self.maps.get(&rule) else {
             return (rule, binding.to_vec());
@@ -149,7 +156,12 @@ fn environment(bake: &Bake) -> Result<Value> {
     rules.dedup();
     Ok(json!({"datatype":"Math","constructors":constructors,"rules":rules}))
 }
-fn runtime_graph(bake: &Bake, rule: &Rule, id: usize, scope: &Value) -> Result<Graph> {
+fn runtime_graph(
+    bake: &Bake,
+    rule: &Rule,
+    id: usize,
+    scope: &Value,
+) -> Result<(Graph, Vec<usize>)> {
     let cell = &bake.macros[&id];
     let values = cell
         .slots
@@ -218,15 +230,39 @@ fn runtime_graph(bake: &Bake, rule: &Rule, id: usize, scope: &Value) -> Result<G
             *bindings.get(name).ok_or("missing interface alias")?,
         );
     }
-    Ok(Graph {
-        version: 2,
-        local_ids: vec![],
-        scope: scope.clone(),
-        values,
-        rows,
-        subsumed_rows: vec![],
-        ports,
-    })
+    fn collect(
+        e: &Expr,
+        bindings: &Binding,
+        literals: &Binding,
+        facts: &FactIndex,
+        reads: &mut BTreeSet<usize>,
+    ) {
+        if let Expr::Call(_, _, args) = e {
+            if let Some(slot) = transitions::evaluate(e, bindings, literals, facts) {
+                reads.insert(slot);
+            }
+            for a in args {
+                collect(a, bindings, literals, facts, reads);
+            }
+        }
+    }
+    let mut reads = BTreeSet::new();
+    collect(&rule.lhs, &bindings, &literals, &facts, &mut reads);
+    if let Some(root) = transitions::evaluate(&rule.lhs, &bindings, &literals, &facts) {
+        reads.insert(root);
+    }
+    Ok((
+        Graph {
+            version: 2,
+            local_ids: vec![],
+            scope: scope.clone(),
+            values,
+            rows,
+            subsumed_rows: vec![],
+            ports,
+        },
+        reads.into_iter().collect(),
+    ))
 }
 fn imported(mut graph: Graph, marker: &str, expected: &Value) -> Result<Graph> {
     if graph.scope["semantics"] != "positive-constructor-equality/v1"
@@ -314,7 +350,8 @@ pub(super) fn compile(bake: &Bake, rules: &[Rule], directory: Option<&Path>) -> 
     let mut catalog = Catalog::default();
     let mut entries = vec![];
     for (&id, cell) in &bake.macros {
-        let graph = runtime_graph(bake, &rules[id], id, &scope)?;
+        let (graph, reads) = runtime_graph(bake, &rules[id], id, &scope)?;
+        catalog.reads.insert(id, reads);
         let mut found = None;
         for (q, (_, known)) in representatives.iter().enumerate() {
             if let Comparison::Equivalent { value_map, .. } = states::compare(&graph, known)? {

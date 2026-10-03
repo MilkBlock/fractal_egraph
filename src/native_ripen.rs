@@ -192,6 +192,7 @@ impl Session {
             preview_source: text.clone(),
             boundaries: vec![],
             layers: Default::default(),
+            applies: vec![],
             datatype,
             datatype_name,
             rules,

@@ -7,7 +7,7 @@ fn read(path: impl AsRef<Path>) -> Value {
 fn run(args: &[&str]) -> Value {
     let p = Command::new(env!("CARGO_BIN_EXE_egg_layout"))
         .args(args)
-        .env("EGG_LAYOUT_GRAPHS", "0")
+        .env("EGG_LAYOUT_GRAPHS", "0").env("EGG_LAYOUT_LAYER_VIEW", "1")
         .env("EGG_LAYOUT_RIPEN_OBSERVE_MS", "60000")
         .output()
         .unwrap();

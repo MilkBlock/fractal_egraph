@@ -17,8 +17,9 @@ retains the full local-slot to shared-slot correspondence.
 2. Native rules emit complete-cell binding notifications after their positive
    recipe actions. Staged/queued promises are not committed receipts.
 3. After native commit/rebuild, receipts admit or update dynamic instances.
-   Proved cut keys identify compatible source/target connections; these are
-   possible valid transitions, not a claim of unique historical causation.
+   Actual LHS read slots discover compatible source/target contexts independently
+   of compiled cuts. Binding matrices are shared by exact pattern identity.
+   These are possible context grafts, not unique historical causation.
 4. Publish outgoing query views from committed notification relations in the
    `adaptive_state_dispatch` ruleset. The next step uses those views in residual
    native joins; uncovered keys continue to use the existing native builder.
@@ -127,3 +128,8 @@ synthesize recipes for unknown coarse compositions, prove unfinished closures,
 or certify that an entire dynamic frontier is saturated. Those continue through
 the existing native fallback. The admitted equivalences actively drive existing
 runtime instances and compiled transitions.
+
+
+Event-driven discovery is now independent of query cuts; see
+`../observed_transitions/README.md` for the current architecture and ablation.
+The older math3 screen above predates that change.

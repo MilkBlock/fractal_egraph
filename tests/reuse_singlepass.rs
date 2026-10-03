@@ -23,7 +23,7 @@ fn analyze(source: &Path, out: &Path, library: Option<&Path>, planned: bool) {
     if planned {
         cmd.arg("--reuse-plan");
     }
-    let result = cmd.env("EGG_LAYOUT_GRAPHS", "0").output().unwrap();
+    let result = cmd.env("EGG_LAYOUT_GRAPHS", "0").env("EGG_LAYOUT_LAYER_VIEW", "1").output().unwrap();
     assert!(
         result.status.success(),
         "{}",
@@ -128,7 +128,7 @@ fn planned_singlepass_retains_source_layers_and_native_reentry() {
                 previous.to_str().unwrap(),
                 out.to_str().unwrap(),
             ])
-            .env("EGG_LAYOUT_GRAPHS", "0")
+            .env("EGG_LAYOUT_GRAPHS", "0").env("EGG_LAYOUT_LAYER_VIEW", "1")
             .env("EGG_LAYOUT_RIPEN_OBSERVE_MS", "60000")
             .output()
             .unwrap();

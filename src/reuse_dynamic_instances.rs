@@ -3,12 +3,25 @@
 use super::{Bake, transitions::Compiled};
 use egglog::{EGraph, Value as Native};
 use serde_json::{Value, json};
-use std::collections::{BTreeMap, BTreeSet};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    sync::Arc,
+};
+
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, serde::Serialize)]
+struct GraftBinding {
+    rule: usize,
+    parent_classes: Vec<usize>,
+    parent_slots: Vec<Vec<(usize, usize)>>,
+    target_class: usize,
+    target_slots: Vec<(usize, usize, bool)>,
+}
 
 #[derive(Default)]
 pub(super) struct Runtime {
     cells: Vec<(usize, Vec<Native>)>,
     catalog: super::runtime_catalog::Catalog,
+    observe: bool,
     identities: BTreeMap<(usize, Vec<Native>), usize>,
     aliases: BTreeMap<usize, usize>,
     views: BTreeMap<(usize, Vec<Native>), BTreeSet<usize>>,
@@ -20,10 +33,15 @@ pub(super) struct Runtime {
     reused_receipts: usize,
     packed: BTreeSet<(usize, Vec<Native>)>,
     packed_semantic: BTreeSet<(usize, Vec<Native>)>,
+    port_frontiers: BTreeMap<Native, BTreeSet<usize>>,
+    observed_grafts: BTreeMap<(Vec<usize>, usize, usize), usize>,
+    graft_bindings: Vec<Arc<GraftBinding>>,
+    binding_index: BTreeMap<Arc<GraftBinding>, usize>,
 }
 impl Runtime {
     pub fn with_catalog(catalog: super::runtime_catalog::Catalog) -> Self {
         Self {
+            observe: std::env::var("EGG_LAYOUT_OBSERVED_GRAFTS").as_deref() != Ok("0"),
             catalog,
             ..Self::default()
         }
@@ -102,6 +120,18 @@ impl Runtime {
             .iter()
             .map(|(r, b)| self.catalog.key(*r, b))
             .collect();
+        let mut ports = BTreeMap::<Native, BTreeSet<usize>>::new();
+        let sort = eg.get_arcsort_by(|s| s.name() == "Math");
+        for (port, ids) in std::mem::take(&mut self.port_frontiers) {
+            ports
+                .entry(eg.get_canonical_value(port, &sort))
+                .or_default()
+                .extend(
+                    ids.into_iter()
+                        .map(|i| self.aliases.get(&i).copied().unwrap_or(i)),
+                );
+        }
+        self.port_frontiers = ports;
         self.rebuild_views(plans);
     }
     pub fn mark_packed(&mut self, fresh: &BTreeSet<(usize, Vec<Native>)>, minimum: usize) {
@@ -135,6 +165,7 @@ impl Runtime {
         // the whole batch, independent of rule enumeration order.
         let first_new = self.cells.len();
         let mut targets = BTreeSet::new();
+        let mut receipts = vec![];
         for (&rule, rows) in packets {
             for row in rows {
                 let mut binding = row.clone();
@@ -148,12 +179,112 @@ impl Runtime {
                     *id
                 } else {
                     let id = self.cells.len();
-                    self.cells.push((rule, binding));
+                    self.cells.push((rule, binding.clone()));
                     self.identities.insert(key, id);
                     self.current.insert(id, BTreeSet::from([id]));
                     id
                 };
+                receipts.push((id, rule, binding));
                 targets.insert(id);
+            }
+        }
+        // Discovery uses actual committed bindings and LHS read positions, not
+        // admission to the residual-query compiler. Same-batch peers consult the
+        // previous frontier; no arbitrary total order is imposed on them.
+        if self.observe {
+            let mut pending = BTreeMap::<Native, BTreeSet<usize>>::new();
+            for (target, rule, binding) in receipts {
+                let parents: Vec<_> = self
+                    .catalog
+                    .read_slots(rule)
+                    .iter()
+                    .flat_map(|slot| {
+                        self.port_frontiers
+                            .get(&binding[*slot])
+                            .into_iter()
+                            .flatten()
+                            .copied()
+                    })
+                    .filter(|id| *id != target)
+                    .collect::<BTreeSet<_>>()
+                    .into_iter()
+                    .collect();
+                let key = (parents.clone(), target, rule);
+                if !parents.is_empty() && !self.observed_grafts.contains_key(&key) {
+                    let mut symbols = BTreeMap::new();
+                    let mut rows = vec![];
+                    let mut parent_classes = vec![];
+                    for parent in &parents {
+                        let (family, values) = &self.cells[*parent];
+                        let mut ports: Vec<_> = values
+                            .iter()
+                            .zip(&bake.macros[family].slots)
+                            .enumerate()
+                            .filter(|(_, (_, (_, sort)))| sort == "Math")
+                            .map(|(slot, (v, _))| (self.catalog.shared_slot(*family, slot), *v))
+                            .collect();
+                        ports.sort_by_key(|(slot, _)| *slot);
+                        let mut row = vec![];
+                        for (slot, value) in ports {
+                            let next = symbols.len();
+                            let symbol = *symbols.entry(value).or_insert(next);
+                            row.push((slot, symbol));
+                        }
+                        parent_classes.push(self.catalog.key(*family, values).0);
+                        rows.push(row);
+                    }
+                    let mut ports: Vec<_> = binding
+                        .iter()
+                        .zip(&bake.macros[&rule].slots)
+                        .enumerate()
+                        .filter(|(_, (_, (_, sort)))| sort == "Math")
+                        .map(|(slot, (v, _))| {
+                            (
+                                self.catalog.shared_slot(rule, slot),
+                                *v,
+                                self.catalog.read_slots(rule).contains(&slot),
+                            )
+                        })
+                        .collect();
+                    ports.sort_by_key(|(slot, _, _)| *slot);
+                    let mut target_slots = vec![];
+                    for (slot, value, read) in ports {
+                        let next = symbols.len();
+                        let symbol = *symbols.entry(value).or_insert(next);
+                        target_slots.push((slot, symbol, read));
+                    }
+                    let shape = Arc::new(GraftBinding {
+                        rule,
+                        parent_classes,
+                        parent_slots: rows,
+                        target_class: self.catalog.key(rule, &binding).0,
+                        target_slots,
+                    });
+                    let pattern = if let Some(id) = self.binding_index.get(&shape) {
+                        *id
+                    } else {
+                        let id = self.graft_bindings.len();
+                        self.graft_bindings.push(shape.clone());
+                        self.binding_index.insert(shape, id);
+                        id
+                    };
+                    self.observed_grafts.insert(key, pattern);
+                    for parent in parents {
+                        if self.current.entry(parent).or_default().insert(target) {
+                            self.revisions += 1;
+                        }
+                    }
+                }
+                for (value, (_, sort)) in binding.iter().zip(&bake.macros[&rule].slots) {
+                    if sort == "Math" {
+                        pending.entry(*value).or_default().insert(target);
+                    }
+                }
+            }
+            // A target receipt certifies its own body, not the union of all source
+            // bodies. Keep their certificates available until actual equality coalesces them.
+            for (port, ids) in pending {
+                self.port_frontiers.entry(port).or_default().extend(ids);
             }
         }
         for id in first_new..self.cells.len() {
@@ -198,8 +329,9 @@ impl Runtime {
                             })
                             .unwrap_or(p);
                         if self.edges.insert((*source, target, canonical_plan)) {
-                            self.current.entry(*source).or_default().insert(target);
-                            self.revisions += 1;
+                            if self.current.entry(*source).or_default().insert(target) {
+                                self.revisions += 1;
+                            }
                         }
                     }
                 }
@@ -208,7 +340,7 @@ impl Runtime {
         fresh
     }
     pub fn report(&self) -> Value {
-        json!({"equivalence_catalog":self.catalog.report,"semantic_instances":self.cells.iter().enumerate().map(|(id,(r,b))|json!({"instance":id,"canonical_instance":self.aliases.get(&id).copied().unwrap_or(id),"eclass":self.catalog.key(*r,b).0})).collect::<Vec<_>>(),"instances":self.identities.len(),"instance_handles":self.cells.len(),"reused_committed_receipts":self.reused_receipts,"state_revisions":self.revisions,"unresolved_bindings":self.unresolved,
+        json!({"observed_discovery_enabled":self.observe,"observed_grafts":self.observed_grafts.iter().map(|((parents,target,rule),binding)|json!({"parents":parents,"target_cell":target,"rule":rule,"relative_binding_pattern":binding})).collect::<Vec<_>>(),"observed_graft_count":self.observed_grafts.len(),"graft_binding_patterns":self.graft_bindings,"graft_binding_pattern_count":self.graft_bindings.len(),"compiled_link_count":self.edges.len(),"discovery_scope":"committed recipe receipts and concrete LHS read slots; port-context compatibility, not unique causal provenance or proof of new row mutation","equivalence_catalog":self.catalog.report,"semantic_instances":self.cells.iter().enumerate().map(|(id,(r,b))|json!({"instance":id,"canonical_instance":self.aliases.get(&id).copied().unwrap_or(id),"eclass":self.catalog.key(*r,b).0})).collect::<Vec<_>>(),"instances":self.identities.len(),"instance_handles":self.cells.len(),"reused_committed_receipts":self.reused_receipts,"state_revisions":self.revisions,"unresolved_bindings":self.unresolved,
             "transitions":self.edges.iter().map(|(s,t,p)|json!({"source":s,"target":t,"plan":p})).collect::<Vec<_>>(),
             "current":self.current.iter().map(|(i,s)|json!({"instance":i,"certified_cells":s})).collect::<Vec<_>>(),
             "scope":"committed receipt frontiers and proved cut-compatible transitions; not a whole-frontier saturation certificate or unique causal provenance"})

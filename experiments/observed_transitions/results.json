@@ -1,0 +1,73 @@
+{
+  "runs": [
+    {
+      "variant": "layers",
+      "seconds": 1.9209598328452557,
+      "applications": 129,
+      "states": 85,
+      "connections": 35,
+      "cross_rule_connections": null,
+      "coarse": 0,
+      "smooth": 0,
+      "confirmations": 0,
+      "legacy_layers": 53,
+      "ripen_counts": {
+        "ObservedUnfinished": 6,
+        "Saturated": 79
+      }
+    },
+    {
+      "variant": "events",
+      "seconds": 3.8824067909736186,
+      "applications": 129,
+      "states": 92,
+      "connections": 92,
+      "cross_rule_connections": 70,
+      "coarse": 26,
+      "smooth": 66,
+      "confirmations": 37,
+      "legacy_layers": 0,
+      "ripen_counts": {
+        "ObservedUnfinished": 22,
+        "Saturated": 70
+      }
+    },
+    {
+      "variant": "compiled-only",
+      "seconds": 0.6742693749256432,
+      "execution_seconds": 0.001465042,
+      "state_seconds": 0.000206708,
+      "observed_grafts": 0,
+      "binding_patterns": 0,
+      "compiled_links": 0,
+      "state_revisions": 0,
+      "source_matches_without_cell_receipts": 6,
+      "graph": {
+        "eclasses": 137,
+        "enodes": 347,
+        "rss_bytes": 19562496
+      }
+    },
+    {
+      "variant": "observed",
+      "seconds": 0.040254666935652494,
+      "execution_seconds": 0.001309792,
+      "state_seconds": 0.000357832,
+      "observed_grafts": 39,
+      "binding_patterns": 39,
+      "compiled_links": 0,
+      "state_revisions": 145,
+      "source_matches_without_cell_receipts": 6,
+      "graph": {
+        "eclasses": 137,
+        "enodes": 347,
+        "rss_bytes": 17956864
+      }
+    }
+  ],
+  "equality": {
+    "exact_equal": true,
+    "enodes": 347,
+    "eclasses": 137
+  }
+}

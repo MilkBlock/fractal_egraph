@@ -114,18 +114,18 @@ impl Pipeline {
             std::fs::write(self.out.join("source.egg"), &c.preview_source)?;
         }
         let mut pending = vec![];
-        for (_, unit) in self.cs.discover(c, layers, boundary)? {
+        for (kind, unit) in self.cs.discover(c, layers, boundary)? {
             let id = self.jobs.len();
             let u = &self.cs.units[unit];
-            let members = u.members();
-            let mut job = json!({"candidate_kind":"CSUnit","candidate_id":unit,"state":"Running","discovered_boundary":boundary});
+            let members = self.cs.members(unit);
+            let mut job = json!({"candidate_kind":kind.clone(),"candidate_id":unit,"state":"Running","discovered_boundary":boundary});
             let folder = self
                 .out
                 .join("saturated-rule-composition/cells")
                 .join(format!("CSUnit-{unit:06}"));
             let prepared = (|| -> Result<()> {
                 let (source, validation, mut origin) = self.preparation.prepare(c, &members)?;
-                origin["candidate_kind"] = json!("CSUnit");
+                origin["candidate_kind"] = json!(kind);
                 origin["candidate_id"] = json!(unit);
                 origin["history"] = json!(self.source);
                 if let Some(comp) = u.source_composition {
@@ -378,6 +378,21 @@ impl Pipeline {
             );
         }
         crate::pipeline::write_json(&self.out.join("cell-egraph.json"), &self.cells.report())?;
+        // Discovery evidence is exported independently of query-plan admission.
+        let cell_report=self.cells.report();
+        let classes:BTreeMap<usize,Json>=cell_report["units"].as_array().into_iter().flatten()
+            .filter_map(|u|u["unit"].as_u64().map(|id|(id as usize,u["eclass"].clone()))).collect();
+        let targets:BTreeMap<_,_>=self.cs.units.iter().enumerate().filter_map(|(id,u)|u.source_composition.map(|comp|(comp,id))).collect();
+        let observed:Vec<_>=self.cs.compositions.iter().enumerate().filter(|(_,comp)|comp.boundary.is_some()).map(|(id,comp)| {
+            let target=targets[&id];
+            let record=&c.records[comp.consumer];
+            json!({"state":target,"parents":comp.parts,"producer_states":comp.producer_parts,"context_states":comp.context_parts,
+                "event":record.id,"boundary":comp.boundary,"rule":comp.rule,"rule_name":c.rules[record.rule].rule.name,"ruleset":c.rules[record.rule].rule.ruleset,"kind":comp.kind,
+                "binding":record.ports,"inputs":record.wanted,"external_facts":comp.external_facts,
+                "inserted_facts":record.produced,"union_effects":comp.union_effects,"updated_rows":comp.updated_rows,
+                "eclass":classes.get(&target),"query_compilation":"independent; not a discovery gate"})
+        }).collect();
+        crate::pipeline::write_json(&self.out.join("observed-transitions.json"),&json!({"transitions":observed,"count":observed.len(),"scope":"committed applies with versioned producer witnesses and previous-boundary bound-port context; not all edges are causal producer edges"}))?;
         mark("exact_catalog");
         // Necessary operator conditions are an exact inverted index, not Top-K.
         let mut bodies = BTreeMap::<String, BTreeSet<usize>>::new();
@@ -601,8 +616,10 @@ impl Pipeline {
                 .or_default() += 1;
         }
         mark("weak_queries_and_evidence");
-        self.report = json!({"analysis_threads":self.worker_pool.current_num_threads(),"weak_query_cache":{"result_cache_hits":self.work.iter().flat_map(|w|w.session.weak_queries.values()).map(|q|q.cache_hits).sum::<usize>(),"compiled_pairs":self.work.iter().map(|w|w.session.weak_queries.len()).sum::<usize>(),"current_scans":self.work.iter().flat_map(|w|w.session.weak_queries.values()).map(|q|q.executions).sum::<usize>()},"step_seconds":timings,"preparation_cache":self.preparation.stats(),"kind":"saturated_rule_composition_snapshot","boundary":boundary,"jobs":self.jobs,"cs":self.cs.report(),"cell_egraph":self.cells.report(),"weak_dominate":weak,"observation_limits":self.observation,"bucket_trigger_matches":self.bucket_matches.values().map(|(_,r)|r).collect::<Vec<_>>(),"reentry_buckets":self.reentry.report(),"structural_reentry":self.structural_reentry,"weak_unresolved":unresolved,"counts":counts,"not_queued":0,"limits":null,"scope":"all observed CS entries; fair resumable sweeps; no heuristic selection, live tier0 substitution or termination guess","catalog":self.catalog});
-        if let Some(learner)=&self.learner {self.report["reuse_learning"]=learner.report();}
+        self.report = json!({"analysis_threads":self.worker_pool.current_num_threads(),"weak_query_cache":{"result_cache_hits":self.work.iter().flat_map(|w|w.session.weak_queries.values()).map(|q|q.cache_hits).sum::<usize>(),"compiled_pairs":self.work.iter().map(|w|w.session.weak_queries.len()).sum::<usize>(),"current_scans":self.work.iter().flat_map(|w|w.session.weak_queries.values()).map(|q|q.executions).sum::<usize>()},"step_seconds":timings,"preparation_cache":self.preparation.stats(),"kind":"saturated_rule_composition_snapshot","boundary":boundary,"jobs":self.jobs,"cs":self.cs.report(),"cell_egraph":self.cells.report(),"weak_dominate":weak,"observation_limits":self.observation,"bucket_trigger_matches":self.bucket_matches.values().map(|(_,r)|r).collect::<Vec<_>>(),"reentry_buckets":self.reentry.report(),"structural_reentry":self.structural_reentry,"weak_unresolved":unresolved,"counts":counts,"not_queued":0,"limits":null,"scope":"observed state entries (legacy layers optional); fair resumable sweeps; no heuristic selection, live tier0 substitution or termination guess","catalog":self.catalog});
+        if let Some(learner) = &self.learner {
+            self.report["reuse_learning"] = learner.report();
+        }
         crate::pipeline::write_json(
             &self.out.join("saturated-rule-composition/queue.json"),
             &self.report,
