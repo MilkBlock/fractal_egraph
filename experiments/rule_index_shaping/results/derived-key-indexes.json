@@ -1,0 +1,53 @@
+{
+  "column_index_count": 4,
+  "scope": "materialized join indexes observed after execution; the observer never creates an index",
+  "tables": [
+    {
+      "column_indexes": [],
+      "table": "$uf",
+      "tuple_indexes": []
+    },
+    {
+      "column_indexes": [
+        [
+          4
+        ]
+      ],
+      "table": "Pair",
+      "tuple_indexes": []
+    },
+    {
+      "column_indexes": [
+        [
+          3
+        ]
+      ],
+      "table": "Pair-2nd",
+      "tuple_indexes": []
+    },
+    {
+      "column_indexes": [
+        [
+          0
+        ]
+      ],
+      "table": "RipenInput",
+      "tuple_indexes": []
+    },
+    {
+      "column_indexes": [
+        [
+          4
+        ]
+      ],
+      "table": "Tag",
+      "tuple_indexes": []
+    },
+    {
+      "column_indexes": [],
+      "table": "V",
+      "tuple_indexes": []
+    }
+  ],
+  "tuple_index_count": 0
+}

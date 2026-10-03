@@ -93,6 +93,101 @@ dirty 改动（我的 diff 与它们混在工作树里）。要提交需要先�
    在 egglog 里表现为**把最窄的 fact 写在 body 最前面**——这是可以纯 rule 做的，
    但效果取决于 plan 是否尊重书写顺序（需要单独验证 `Query::build_cached_plan`）。
 
+## 你的提议：派生更窄的驱动键 + `:unextractable`（机制上成立）
+
+结论：**做法可行，而且我已经实测到引擎真的会为派生键建单列索引**。
+这比我上面那条"rot/row 改写"的路子干净得多，因为 `unextractable` 消除了我踩的类型/解析坑。
+
+### 为什么 `:unextractable` 是关键
+
+`unextractable` **只影响 extraction**（`src/extract.rs:148-150`「constructor marked as
+unextractable will not be used during extraction」；parser 见 `src/ast/mod.rs:620-634`）。
+它**不影响规则的匹配/连接语义**。所以你提议的形态没有任何类型或语义代价：
+
+```egglog
+(sort <关键实体>Sort)
+(constructor <KeyRel> (<列类型>...) <关键实体>Sort :unextractable)
+
+(rule ((= e (Original a b)) (= k (Project e i)))    ; 从已有事实投影
+      ((KeyRel k)) :ruleset build)                  ; 物化一把窄键
+
+(rule ((KeyRel k) (Other o ...))                    ; 用窄键驱动原来的 join
+      ((...)) :ruleset probe)
+```
+
+### 为什么它真的更窄：planner 按**表规模**选驱动表
+
+`free_join/plan.rs:1365-1401` 的 `plan_free_join`：
+
+```rust
+size_info.push((atom, *size));      // 每个 atom 的当前规模
+...
+size_info.sort_by_key(|(_, size)| *size);   // 按规模升序
+```
+
+**驱动表 = 最小的那个 atom**，然后依次 probe 其余。所以：
+
+- 原来的 `(Pair a b)` 若被 join 在**第 2 列**上，probe 的是 `Pair` 表的第 2 列；
+- 投影出的 `(Pair-2nd b)` 是**单列表**，规模小得多，
+  于是 planner 会选它当 cover，probe 的是**第 0 列**（`plan.rs:1455` 的 `cover_col`）。
+
+### 实测（`results/derived-key.egg` + 观察器）
+
+```egglog
+(rule ((= p (Pair a b)) (= q (Pair a b))) ((Tag p q)) :ruleset probe)   ; 原形：join 在第 2 列
+(relation Pair-2nd (Math))
+(rule ((= p (Pair a b))) ((Pair-2nd b)) :ruleset build)                 ; 派生窄键
+(rule ((Pair-2nd b)) ((Tag (Pair (V 0) b) (Pair (V 1) b))) :ruleset probe2)
+```
+
+引擎实际物化的索引：
+
+```json
+{"column_index_count": 4, "tuple_index_count": 0, "tables": [
+  {"table": "Pair",     "column_indexes": [[4]]},
+  {"table": "Pair-2nd", "column_indexes": [[3]]},
+  {"table": "Tag",      "column_indexes": [[4]]},
+  {"table": "V",        "column_indexes": []}
+]}
+```
+
+对比 base（真实 eggcc pass）：`column_index_count = 0`。
+**派生键把"零索引"变成了"派生表第 0 列有索引"**，正是你要的形态。
+
+### 但有两个必须验证的前提（我还没有数据）
+
+1. **`ColumnId` 是含时间戳的，所以列号是 4 / 3 而不是 1 / 0。**
+   `Pair` 的列 4 = 用户第 2 列，`Pair-2nd` 的列 3 = 用户第 0 列。
+   因此"窄键"必须真的落在**用户第 0 列**才会命中 `CachedColumn` 那条路径
+   （`execute.rs:1252`），否则仍走 dynamic。派生表是单列的，天然满足。
+2. **收益是"探针变窄 + 命中缓存索引"，不是"少建一张表"。**
+   我没有量到实际搜索时间的下降。上面的证据只证明"索引被物化了、驱动表换了"，
+   **不证明更快**。要证明必须跑对照计时。
+
+### 对 eggcc 的注意点
+
+在 eggcc 上落地时，派生键的价值取决于它是否**真的比原表小**。
+eggcc 的热规则里 `probe` 列往往不是"窄"列：
+
+- `(Get expr i)` 的 `i` 常常是字面量（`0`、`1`），派生出的一列表会很小 → 有希望；
+- `PotentialExtractedExpr expr` / `ContextOf e ctx` 的列与主表**一一对应**，
+  派生表规模 ≈ 原表 → **没有收益**，只是多一张表。
+
+所以不能对所有规则无脑加键；应当先用 `observed-transitions.json` 里
+每列的**取值去重率**挑出真正窄的列（这是我现在能立刻算的）。
+
+## 建议（按此提议更新）
+
+1. **先挑列**：对真实 trace 统计每条热规则各 reader slot 的取值重复率，
+   只给"去重后远小于行数"的列建派生键。这一步纯分析，我今天就能出数。
+2. **再验驱动表**：用 `EGG_LAYOUT_INDEX_REPORT=1` 确认派生键真的被选中当 cover
+   （如上，观察器已经能做这件事）。
+3. **最后计时**：同程序 `base` vs `derived-key` 两个变体跑 raytrace 的 phase report，
+   看 `Smaller`/`Expr-size` 那几条的 µs/match 是否下降。
+   如果第 1 步筛出来没有足够窄的列，这条路就该停在分析阶段。
+
+产物：`results/derived-key.egg`、`results/derived-key-indexes.json`、`results/derived-key-analysis.json`。
+
 ## 产物
 
 | 文件 | 内容 |

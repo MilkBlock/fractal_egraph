@@ -1,0 +1,15 @@
+(datatype Math (V i64) (Pair Math Math) (Tag Math Math))
+(ruleset probe)
+(ruleset probe2)
+(ruleset build)
+(rewrite (Pair a b) (Tag a b))
+;; original shape: joins Pair on its SECOND column
+(rule ((= p (Pair a b)) (= q (Pair a b))) ((Tag p q)) :ruleset probe)
+;; derived key: a 1-column table holding exactly the key that is joined on
+(relation Pair-2nd (Math))
+(rule ((= p (Pair a b))) ((Pair-2nd b)) :ruleset build)
+(rule ((Pair-2nd b)) ((Tag (Pair (V 0) b) (Pair (V 1) b))) :ruleset probe2)
+(Pair (V 1) (V 2))
+(Pair (V 3) (V 2))
+(Pair (V 4) (V 5))
+(run 3)
