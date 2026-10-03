@@ -4,6 +4,8 @@ use super::*;
 use crate::coarse_smooth::LayerStore;
 use rayon::prelude::*;
 use std::path::PathBuf;
+#[path = "native_cell_egraph.rs"]
+mod cell_egraph;
 struct Work {
     id: usize,
     session: ripen::Session,
@@ -15,6 +17,7 @@ pub(super) struct Pipeline {
     out: PathBuf,
     source: String,
     cs: cs::Store,
+    cells: cell_egraph::Registry,
     jobs: Vec<Json>,
     work: Vec<Work>,
     owners: BTreeMap<String, usize>,
@@ -53,6 +56,7 @@ impl Pipeline {
             out: out.into(),
             source,
             cs: Default::default(),
+            cells: cell_egraph::Registry::new()?,
             jobs: vec![],
             work: vec![],
             owners: BTreeMap::new(),
@@ -128,6 +132,14 @@ impl Pipeline {
                     origin["composition"] = json!(self.cs.compositions[comp]);
                     origin["composition_id"] = json!(comp);
                 }
+                let parents = u.source_composition
+                    .map(|comp| self.cs.compositions[comp].parts.clone())
+                    .unwrap_or_default();
+                // A rejected parent cannot supply a certified coordinate contract.
+                // Retain this valid composition as a standalone root in that case.
+                let parents: Vec<_> = parents.into_iter().filter(|p| self.cells.contains(*p)).collect();
+                self.cells.register(unit, &parents, &origin, &source, &validation)?;
+                job["cell_unit"] = json!(unit);
                 let key = serde_json::to_string(&(&source, &validation))?;
                 job["origin"] = origin;
                 std::fs::create_dir_all(&folder)?;
@@ -353,6 +365,7 @@ impl Pipeline {
         if changed {
             let dir = self.out.join("catalog");
             let cat = crate::saturated_rule_composition::refresh_catalog(&self.completed, &dir)?;
+            self.cells.admit_catalog(&cat)?;
             let states = (0..cat["saturated_rule_compositions"].as_u64().unwrap())
                 .map(|i| -> Result<Json> {
                     Ok(serde_json::from_slice(&std::fs::read(
@@ -364,6 +377,7 @@ impl Pipeline {
                 json!({"catalog":cat,"states":states,"dot":if crate::graph_render::graphs_enabled() {Some(std::fs::read_to_string(dir.join("catalog.dot"))?)} else {None}}),
             );
         }
+        crate::pipeline::write_json(&self.out.join("cell-egraph.json"), &self.cells.report())?;
         mark("exact_catalog");
         // Necessary operator conditions are an exact inverted index, not Top-K.
         let mut bodies = BTreeMap::<String, BTreeSet<usize>>::new();
@@ -587,7 +601,7 @@ impl Pipeline {
                 .or_default() += 1;
         }
         mark("weak_queries_and_evidence");
-        self.report = json!({"analysis_threads":self.worker_pool.current_num_threads(),"weak_query_cache":{"result_cache_hits":self.work.iter().flat_map(|w|w.session.weak_queries.values()).map(|q|q.cache_hits).sum::<usize>(),"compiled_pairs":self.work.iter().map(|w|w.session.weak_queries.len()).sum::<usize>(),"current_scans":self.work.iter().flat_map(|w|w.session.weak_queries.values()).map(|q|q.executions).sum::<usize>()},"step_seconds":timings,"preparation_cache":self.preparation.stats(),"kind":"saturated_rule_composition_snapshot","boundary":boundary,"jobs":self.jobs,"cs":self.cs.report(),"weak_dominate":weak,"observation_limits":self.observation,"bucket_trigger_matches":self.bucket_matches.values().map(|(_,r)|r).collect::<Vec<_>>(),"reentry_buckets":self.reentry.report(),"structural_reentry":self.structural_reentry,"weak_unresolved":unresolved,"counts":counts,"not_queued":0,"limits":null,"scope":"all observed CS entries; fair resumable sweeps; no heuristic selection, live tier0 substitution or termination guess","catalog":self.catalog});
+        self.report = json!({"analysis_threads":self.worker_pool.current_num_threads(),"weak_query_cache":{"result_cache_hits":self.work.iter().flat_map(|w|w.session.weak_queries.values()).map(|q|q.cache_hits).sum::<usize>(),"compiled_pairs":self.work.iter().map(|w|w.session.weak_queries.len()).sum::<usize>(),"current_scans":self.work.iter().flat_map(|w|w.session.weak_queries.values()).map(|q|q.executions).sum::<usize>()},"step_seconds":timings,"preparation_cache":self.preparation.stats(),"kind":"saturated_rule_composition_snapshot","boundary":boundary,"jobs":self.jobs,"cs":self.cs.report(),"cell_egraph":self.cells.report(),"weak_dominate":weak,"observation_limits":self.observation,"bucket_trigger_matches":self.bucket_matches.values().map(|(_,r)|r).collect::<Vec<_>>(),"reentry_buckets":self.reentry.report(),"structural_reentry":self.structural_reentry,"weak_unresolved":unresolved,"counts":counts,"not_queued":0,"limits":null,"scope":"all observed CS entries; fair resumable sweeps; no heuristic selection, live tier0 substitution or termination guess","catalog":self.catalog});
         if let Some(learner)=&self.learner {self.report["reuse_learning"]=learner.report();}
         crate::pipeline::write_json(
             &self.out.join("saturated-rule-composition/queue.json"),
