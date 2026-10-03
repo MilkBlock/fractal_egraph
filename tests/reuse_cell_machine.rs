@@ -57,6 +57,12 @@ fn t_to_u_to_v_registers_states_and_chains_without_extra_math_rounds() {
     assert_eq!(count(&r, 0, 1), 0);
     assert_eq!(count(&r, 0, 2), 0);
     assert_eq!(count(&r, 1, 1), 1);
+    assert!(r["dynamic_instances"]["state_revisions"].as_u64().unwrap() >= 2, "{r:#}");
+    assert_eq!(r["dynamic_instances"]["unresolved_bindings"], 0);
+    let automatic = adaptive::run_cell_machine(&source, &lib, &dir("auto-machine"), &[], 1).unwrap();
+    assert!(automatic["dynamic_instances"]["state_revisions"].as_u64().unwrap() >= 2, "{automatic:#}");
+    assert_eq!(automatic["final"]["enodes"], r["final"]["enodes"]);
+    assert_eq!(automatic["final"]["eclasses"], r["final"]["eclasses"]);
     assert_eq!(count(&r, 1, 2), 0);
     assert_eq!(count(&r, 2, 2), 1);
     for k in ["enodes", "eclasses"] {

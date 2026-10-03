@@ -29,6 +29,8 @@ pub struct RipSatCell {
 }
 /// Compatibility name for existing v2 Bake files and downstream code.
 pub type Macro = RipSatCell;
+#[path = "reuse_dynamic_instances.rs"]
+mod dynamic_instances;
 #[path = "reuse_cell_transitions.rs"]
 pub mod transitions;
 #[path = "reuse_cell_machine.rs"]
@@ -241,20 +243,58 @@ fn learn(environment: &[String], rule: &Rule, id: usize) -> Result<Macro> {
         template,
     })
 }
-fn rule_program(id:usize,r:&Rule,m:Option<&RipSatCell>,plans:&[transitions::Compiled],machine:Option<&cell_machine::Machine>)->(String,String) {
-    let set=format!("adaptive_{}_{}",if m.is_some(){"baked"}else{"source"},id);
-    let mut declarations=String::new();
-    let mut actions=m.map(|m|m.actions.clone()).unwrap_or_else(||format!("(union adaptive_root {})",r.rhs));
-    if let Some(m)=m {
-        let relation=format!("adaptive_instance_{id}");
-        declarations=format!("(relation {relation} ({}))\n",m.slots.iter().map(|s|s.1.as_str()).collect::<Vec<_>>().join(" "));
-        actions+=&format!("\n({relation} {})",m.slots.iter().map(|s|s.0.as_str()).collect::<Vec<_>>().join(" "));
+fn rule_program(
+    id: usize,
+    r: &Rule,
+    m: Option<&RipSatCell>,
+    plans: &[transitions::Compiled],
+    machine: Option<&cell_machine::Machine>,
+) -> (String, String) {
+    let set = format!(
+        "adaptive_{}_{}",
+        if m.is_some() { "baked" } else { "source" },
+        id
+    );
+    let mut declarations = String::new();
+    let mut actions = m
+        .map(|m| m.actions.clone())
+        .unwrap_or_else(|| format!("(union adaptive_root {})", r.rhs));
+    if let Some(m) = m {
+        let relation = format!("adaptive_instance_{id}");
+        declarations = format!(
+            "(relation {relation} ({}))\n",
+            m.slots
+                .iter()
+                .map(|s| s.1.as_str())
+                .collect::<Vec<_>>()
+                .join(" ")
+        );
+        actions += &format!(
+            "\n({relation} {})",
+            m.slots
+                .iter()
+                .map(|s| s.0.as_str())
+                .collect::<Vec<_>>()
+                .join(" ")
+        );
     }
-    for p in plans.iter().filter(|p|p.spec.source_rule==id) {actions+=&format!("\n{}",p.projections);}
-    if let Some(machine)=machine {if let Some(registrations)=machine.actions.get(&id) {actions+=&format!("\n{registrations}");}}
-    let lhs=plans.iter().find(|p|p.spec.consumer_rule==id).map(|p|p.residual.clone()).unwrap_or_else(||format!("(= adaptive_root {})",r.lhs));
-    let program=format!("{declarations}(ruleset {set}) (rule ({lhs}) ({actions}) :ruleset {set} :name \"{set}\")\n");
-    (set,program)
+    for p in plans.iter().filter(|p| p.spec.source_rule == id && !machine.is_some_and(|m|m.dynamic)) {
+        actions += &format!("\n{}", p.projections);
+    }
+    if let Some(machine) = machine {
+        if let Some(registrations) = machine.actions.get(&id) {
+            actions += &format!("\n{registrations}");
+        }
+    }
+    let lhs = plans
+        .iter()
+        .find(|p| p.spec.consumer_rule == id)
+        .map(|p| p.residual.clone())
+        .unwrap_or_else(|| format!("(= adaptive_root {})", r.lhs));
+    let program = format!(
+        "{declarations}(ruleset {set}) (rule ({lhs}) ({actions}) :ruleset {set} :name \"{set}\")\n"
+    );
+    (set, program)
 }
 fn install(eg:&mut EGraph,id:usize,r:&Rule,m:Option<&RipSatCell>,plans:&[transitions::Compiled],machine:Option<&cell_machine::Machine>)->Result<String> {
     let (set,program)=rule_program(id,r,m,plans,machine);eg.parse_and_run_program(None,&program)?;Ok(set)
@@ -266,9 +306,10 @@ fn pack_instances(
     bake: &Bake,
     min_reuse: usize,
     audit: &mut Option<super::enclosure_audit::Audit>,
+    fresh: Option<&BTreeSet<(usize, Vec<Native>)>>,
 ) -> Result<Value> {
-    if !std::env::var("EGG_LAYOUT_BATCH_CELLS").is_ok_and(|v|v=="0") {
-        return pack_cell_wave(eg,bake,min_reuse,audit);
+    if !std::env::var("EGG_LAYOUT_BATCH_CELLS").is_ok_and(|v| v == "0") {
+        return pack_cell_wave(eg, bake, min_reuse, audit, fresh);
     }
     let mut instances = 0;
     let mut templates = vec![];
@@ -278,6 +319,7 @@ fn pack_instances(
             continue;
         }
         let bindings = eg.drain_notification_relation(&name)?;
+        let bindings: Vec<_> = bindings.into_iter().filter(|b|fresh.is_none_or(|f|f.contains(&(*id,b.clone())))).collect();
         if let Some(a) = audit.as_mut() {
             a.observe(eg, m, &bindings)?;
         }
@@ -312,17 +354,36 @@ fn pack_instances(
         json!({"min_reuse":min_reuse,"templates":templates,"processed_instance_packets":instances,"virtual_rows":eg.virtual_fact_stats().iter().map(|(_,s)|s.virtual_rows).sum::<usize>()}),
     )
 }
-fn pack_cell_wave(eg:&mut EGraph,bake:&Bake,min_reuse:usize,audit:&mut Option<super::enclosure_audit::Audit>)->Result<Value> {
-    let t=Instant::now();
-    let names=bake.macros.keys().map(|id|format!("adaptive_instance_{id}")).filter(|n|eg.get_function(n).is_some()).collect::<Vec<_>>();
-    let mut notifications=eg.drain_notification_relations(&names)?;
-    let mut batches=vec![];let mut templates=vec![];let mut instances=0;
-    for (id,m) in &bake.macros {
-        let name=format!("adaptive_instance_{id}");if eg.get_function(&name).is_none(){continue;}
-        let bindings=notifications.remove(&name).unwrap_or_default();
-        if let Some(a)=audit.as_mut(){a.observe(eg,m,&bindings)?;}
-        instances+=bindings.len();
-        let admitted=bindings.len()>=min_reuse;
+fn pack_cell_wave(
+    eg: &mut EGraph,
+    bake: &Bake,
+    min_reuse: usize,
+    audit: &mut Option<super::enclosure_audit::Audit>,
+    fresh: Option<&BTreeSet<(usize, Vec<Native>)>>,
+) -> Result<Value> {
+    let t = Instant::now();
+    let names = bake
+        .macros
+        .keys()
+        .map(|id| format!("adaptive_instance_{id}"))
+        .filter(|n| eg.get_function(n).is_some())
+        .collect::<Vec<_>>();
+    let mut notifications = eg.drain_notification_relations(&names)?;
+    let mut batches = vec![];
+    let mut templates = vec![];
+    let mut instances = 0;
+    for (id, m) in &bake.macros {
+        let name = format!("adaptive_instance_{id}");
+        if eg.get_function(&name).is_none() {
+            continue;
+        }
+        let bindings = notifications.remove(&name).unwrap_or_default();
+        let bindings: Vec<_> = bindings.into_iter().filter(|b|fresh.is_none_or(|f|f.contains(&(*id,b.clone())))).collect();
+        if let Some(a) = audit.as_mut() {
+            a.observe(eg, m, &bindings)?;
+        }
+        instances += bindings.len();
+        let admitted = bindings.len() >= min_reuse;
         templates.push(json!({"rule":id,"instances":bindings.len(),"packed":admitted}));
         if admitted {
             let template=eg.virtual_fact_template(m.template.iter().map(|(f,c)|egglog::VirtualFactRow{function:f.clone(),columns:c.clone()}).collect())?;
@@ -413,7 +474,9 @@ pub fn run(source: &str, input: Option<&Path>, out: &Path, mode: &str) -> Result
         std::env::var("EGG_LAYOUT_PRUNE_INTERNAL_JOIN").is_ok_and(|s| s == "1"),
         std::env::var("EGG_LAYOUT_CELL_EVOLUTION").is_ok_and(|s| s == "1"),
         transition_specs.as_deref(),
-        std::env::var("EGG_LAYOUT_CELL_MACHINE").is_ok_and(|v|v=="1"),
+        std::env::var("EGG_LAYOUT_CELL_MACHINE").map(|v|v=="1").unwrap_or_else(|_| {
+            mode=="frozen" && input.is_some() && !["EGG_LAYOUT_AUDIT_ENCLOSURES", "EGG_LAYOUT_SKIP_INTERNAL_RHS", "EGG_LAYOUT_PRUNE_INTERNAL_JOIN", "EGG_LAYOUT_CELL_EVOLUTION"].iter().any(|key|std::env::var(key).is_ok_and(|v|v=="1"))
+        }),
     )
 }
 /// Explicit policy for reproducible ablations; 1 restores unrestricted admission.
@@ -526,9 +589,32 @@ fn run_impl(
             return Err("reserved adaptive_ variable".into());
         }
     }
-    let plans=transitions::compile(&mut eg,&rules,&bake,transition_specs.unwrap_or(&[]))?;
-    let machine=if machine_enabled {Some(cell_machine::compile(&mut eg,&bake,&rules,&plans)?)}else{None};
-    if let Some(machine)=&machine {std::fs::write(out.join("cell-machine.json"),serde_json::to_vec_pretty(&machine.proof)?)?;}
+    let discovered;
+    let specs = if machine_enabled && transition_specs.is_none_or(|s|s.is_empty()) {
+        discovered=transitions::discover(&mut eg,&rules,&bake); discovered.as_slice()
+    } else {transition_specs.unwrap_or(&[])};
+    let plans = transitions::compile(&mut eg, &rules, &bake, specs)?;
+    let machine = if machine_enabled {
+        Some(cell_machine::compile(&mut eg, &bake, &rules, &plans)?)
+    } else {
+        None
+    };
+    if machine.as_ref().is_some_and(|m|m.dynamic) {
+        let mut dispatch = String::from("(ruleset adaptive_state_dispatch)\n");
+        for (&id, cell) in &bake.macros {
+            let outgoing = plans.iter().filter(|p|p.spec.source_rule==id).map(|p|p.projections.as_str()).collect::<Vec<_>>().join("\n");
+            if outgoing.is_empty() { continue; }
+            // Notification relations are declared by install below; compile after installation.
+            dispatch += &format!("(rule ((adaptive_instance_{id} {})) ({outgoing}) :ruleset adaptive_state_dispatch :name \"dispatch_{id}\")\n",cell.slots.iter().map(|s|s.0.as_str()).collect::<Vec<_>>().join(" "));
+        }
+        std::fs::write(out.join("dynamic-dispatch.egg"),dispatch)?;
+    }
+    if let Some(machine) = &machine {
+        std::fs::write(
+            out.join("cell-machine.json"),
+            serde_json::to_vec_pretty(&machine.proof)?,
+        )?;
+    }
     if !plans.is_empty() || machine.is_some() {
         std::fs::write(out.join("cell-transitions.json"),serde_json::to_vec_pretty(&plans.iter().map(|p|&p.proof).collect::<Vec<_>>())?)?;
         let mut generated=commands.iter().filter(|c|matches!(c,Command::Datatype{..})).map(ToString::to_string).collect::<Vec<_>>().join("\n");
@@ -553,14 +639,22 @@ fn run_impl(
             machine.as_ref(),
         )?);
     }
+    let mut dynamic = machine.as_ref().filter(|m|m.dynamic).map(|_|dynamic_instances::Runtime::default());
+    if dynamic.is_some() {
+        eg.parse_and_run_program(None, &std::fs::read_to_string(out.join("dynamic-dispatch.egg"))?)?;
+    }
     let mut audit = (audit_enabled || prune_join).then(super::enclosure_audit::Audit::default);
     let trace = (audit_enabled || evolution_enabled).then(egglog::TraceSession::with_dependencies);
     let mut evolution = evolution_enabled.then(evolution::Evolution::default);
-    #[cfg(feature="native-read-profile")]
-    eg.reset_join_read_profile(std::env::var("EGG_LAYOUT_JOIN_READ_PROFILE").is_ok_and(|v|v=="1"));
-    let lean=std::env::var("EGG_LAYOUT_RUNTIME_SUMMARY").is_ok_and(|v|v=="1");
-    let setup_seconds=started.elapsed().as_secs_f64();
-    let mut input_seconds=0.;let mut packing_total=0.;
+    #[cfg(feature = "native-read-profile")]
+    eg.reset_join_read_profile(
+        std::env::var("EGG_LAYOUT_JOIN_READ_PROFILE").is_ok_and(|v| v == "1"),
+    );
+    let lean = std::env::var("EGG_LAYOUT_RUNTIME_SUMMARY").is_ok_and(|v| v == "1");
+    let setup_seconds = started.elapsed().as_secs_f64();
+    let mut input_seconds = 0.;
+    let mut packing_total = 0.;
+    let mut dynamic_total = 0.;
     let mut samples = vec![];
     let mut round = 0;
     let mut total = 0;
@@ -582,9 +676,14 @@ fn run_impl(
                         &format!("(unstable-combined-ruleset {set} {})", selected.join(" ")),
                     )?;
                     let t = Instant::now();
-                    let prepare_start=Instant::now();
-                    let transition_work=if plans.is_empty() {Value::Null} else {transitions::prepare(&mut eg,&plans)?};
-                    let prepare_seconds=prepare_start.elapsed().as_secs_f64();
+                    let prepare_start = Instant::now();
+                    if let Some(runtime) = dynamic.as_mut() { runtime.begin(&eg,&bake,&plans); }
+                    let transition_work = if plans.is_empty() {
+                        Value::Null
+                    } else {
+                        transitions::prepare(&mut eg, &plans)?
+                    };
+                    let prepare_seconds = prepare_start.elapsed().as_secs_f64();
                     let union_before = eg.native_union_count();
                     if let Some(e)=evolution.as_mut() {e.begin(&eg);}
                     let completed_before=eg.completed_cell_counts();
@@ -630,12 +729,28 @@ fn run_impl(
                         .sum::<usize>();
                     let source_matches = matches - macro_matches;
                     let t = Instant::now();
+                    let mut fresh_packets = None;
+                    if let Some(runtime) = dynamic.as_mut() {
+                        let mut packets = BTreeMap::new();
+                        for (&id,cell) in &bake.macros {
+                            let mut rows=vec![];
+                            eg.function_for_each(&format!("adaptive_instance_{id}"), |row| rows.push(row.vals[..cell.slots.len()].to_vec()))?;
+                            packets.insert(id,rows);
+                        }
+                        fresh_packets = Some(runtime.commit(&eg,&bake,&plans,&packets));
+                        eg.step_rules("adaptive_state_dispatch")?;
+                    }
+                    let dynamic_seconds = t.elapsed().as_secs_f64();
+                    dynamic_total += dynamic_seconds;
+                    let t = Instant::now();
                     let packing = if mode != "native" {
-                        pack_instances(&mut eg, &bake, min_reuse, &mut audit)?
+                        pack_instances(&mut eg, &bake, min_reuse, &mut audit, fresh_packets.as_ref())?
                     } else {
                         json!({"processed_instance_packets":0,"virtual_rows":0})
                     };
-                    let packing_seconds = t.elapsed().as_secs_f64();packing_total+=packing_seconds;
+                    if let (Some(runtime),Some(fresh)) = (dynamic.as_mut(),fresh_packets.as_ref()) { runtime.mark_packed(fresh,min_reuse); }
+                    let packing_seconds = t.elapsed().as_secs_f64();
+                    packing_total += packing_seconds;
                     let mut admitted = vec![];
                     let mut rejected = vec![];
                     let t = Instant::now();
@@ -667,10 +782,18 @@ fn run_impl(
                         }
                     }
                     learning_seconds += t.elapsed().as_secs_f64();
-                    let library_bytes =
-                        if lean {0} else {save_bake(out, &format!("bake_lib_round{round}"), &bake, &rules)?};
-                    samples.push(json!({"cell_states":machine.as_ref().map(|m|m.counts(&eg)),"queued_prefixes":eg.queued_cell_prefixes().saturating_sub(queued_before),"promised_prefixes":eg.promised_cell_prefixes().saturating_sub(promised_before),"completed_prefixes":eg.completed_cell_counts().0.saturating_sub(completed_before.0),"unresolved_completion_plans":eg.completed_cell_counts().1.saturating_sub(completed_before.1),"cell_transition":transition_work,"transition_prepare_seconds":prepare_seconds,"round":round,"enclosure_audit":audit_report,"matches":matches,"macro_matches":macro_matches,"source_matches":source_matches,"cumulative_matches":total,"graph":if lean {Value::Null}else{counts(&eg)},"packing":packing,"packing_seconds":packing_seconds,"admitted":admitted,"rejected":rejected,"library_bytes":library_bytes,"bodies":bake.macros.len(),"execution_seconds":execution_seconds,"learning_seconds":learning_seconds}));
-                    if !lean {std::fs::write(out.join("progress.json"),serde_json::to_vec_pretty(&samples)?)?;}
+                    let library_bytes = if lean {
+                        0
+                    } else {
+                        save_bake(out, &format!("bake_lib_round{round}"), &bake, &rules)?
+                    };
+                    samples.push(json!({"cell_states":machine.as_ref().map(|m|m.counts(&eg)),"queued_prefixes":eg.queued_cell_prefixes().saturating_sub(queued_before),"promised_prefixes":eg.promised_cell_prefixes().saturating_sub(promised_before),"completed_prefixes":eg.completed_cell_counts().0.saturating_sub(completed_before.0),"unresolved_completion_plans":eg.completed_cell_counts().1.saturating_sub(completed_before.1),"cell_transition":transition_work,"transition_prepare_seconds":prepare_seconds,"round":round,"enclosure_audit":audit_report,"matches":matches,"macro_matches":macro_matches,"source_matches":source_matches,"cumulative_matches":total,"graph":if lean {Value::Null}else{counts(&eg)},"packing":packing,"packing_seconds":packing_seconds,"state_transition_seconds":dynamic_seconds,"admitted":admitted,"rejected":rejected,"library_bytes":library_bytes,"bodies":bake.macros.len(),"execution_seconds":execution_seconds,"learning_seconds":learning_seconds}));
+                    if !lean {
+                        std::fs::write(
+                            out.join("progress.json"),
+                            serde_json::to_vec_pretty(&samples)?,
+                        )?;
+                    }
                     if report.can_stop {
                         break;
                     }
@@ -689,13 +812,25 @@ fn run_impl(
             serde_json::to_vec(&super::enclosure_audit::export_math(&eg))?,
         )?;
     }
-    let evolution_report=if let Some(e)=evolution.as_ref() {
-        let mut full=e.report();full["rule_environment"]=json!(environment);
-        let file=std::io::BufWriter::new(std::fs::File::create(out.join("cell-evolution.json"))?);
-        serde_json::to_writer_pretty(file,&full)?;
-        Some(full.as_object().unwrap().iter().filter(|(k,_)|!["patterns","families","rounds","rule_environment"].contains(&k.as_str())).map(|(k,v)|(k.clone(),v.clone())).collect::<serde_json::Map<_,_>>())
-    } else {None};
-    let report = json!({"summary_only":lean,"setup_seconds":setup_seconds,"input_seconds":input_seconds,"packing_seconds":packing_total,"cell_machine_enabled":machine.is_some(),"cell_states":machine.as_ref().map(|m|m.counts(&eg)),"cell_transitions_enabled":!plans.is_empty(),"join_reads":transitions::read_profile(&eg),"cell_evolution":evolution_report,"mode":mode,"rhs_skip_enabled":skip_rhs,"join_pruning_enabled":prune_join,"min_template_reuse":min_reuse,"seconds":started.elapsed().as_secs_f64(),"execution_seconds":execution_seconds,"learning_seconds":learning_seconds,"matches":total,"samples":samples,"final":counts(&eg),"storage":crate::reuse_graph::native_storage::storage_report(&eg),"scope":"actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed"});
+    let evolution_report = if let Some(e) = evolution.as_ref() {
+        let mut full = e.report();
+        full["rule_environment"] = json!(environment);
+        let file = std::io::BufWriter::new(std::fs::File::create(out.join("cell-evolution.json"))?);
+        serde_json::to_writer_pretty(file, &full)?;
+        Some(
+            full.as_object()
+                .unwrap()
+                .iter()
+                .filter(|(k, _)| {
+                    !["patterns", "families", "rounds", "rule_environment"].contains(&k.as_str())
+                })
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect::<serde_json::Map<_, _>>(),
+        )
+    } else {
+        None
+    };
+    let report = json!({"summary_only":lean,"setup_seconds":setup_seconds,"input_seconds":input_seconds,"packing_seconds":packing_total,"state_transition_seconds":dynamic_total,"cell_machine_enabled":machine.is_some(),"dynamic_instances":dynamic.as_ref().map(|d|d.report()),"cell_states":machine.as_ref().map(|m|m.counts(&eg)),"cell_transitions_enabled":!plans.is_empty(),"join_reads":transitions::read_profile(&eg),"cell_evolution":evolution_report,"mode":mode,"rhs_skip_enabled":skip_rhs,"join_pruning_enabled":prune_join,"min_template_reuse":min_reuse,"seconds":started.elapsed().as_secs_f64(),"execution_seconds":execution_seconds,"learning_seconds":learning_seconds,"matches":total,"samples":samples,"final":counts(&eg),"storage":crate::reuse_graph::native_storage::storage_report(&eg),"scope":"actual native tier0; source RHS replaced by certified symbolic saturated closure, one native trigger query per invocation; original source rule disabled for replaced RHS; boundary matching retained; no claim all internal joins suppressed"});
     std::fs::write(out.join("report.json"), serde_json::to_vec_pretty(&report)?)?;
     Ok(report)
 }

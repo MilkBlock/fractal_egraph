@@ -98,12 +98,15 @@ pub(super) fn compile(
     bake: &Bake,
     specs: &[Spec],
 ) -> Result<Vec<Compiled>> {
-    let mut consumers = BTreeSet::new();
+    let mut consumers = BTreeMap::new();
     let mut compiled = vec![];
     for (id, spec) in specs.iter().enumerate() {
-        if !consumers.insert(spec.consumer_rule) {
-            return Err("one proved cut per consumer in the first residual compiler".into());
-        }
+        let (shared_id, first) = if let Some((cut,anchor,shared))=consumers.get(&spec.consumer_rule) {
+            if cut!=&spec.cut_path || anchor!=&spec.anchor_path { return Err("one proved cut per consumer; different cuts require explicit planning".into()); }
+            (*shared,false)
+        } else {
+            consumers.insert(spec.consumer_rule,(spec.cut_path.clone(),spec.anchor_path.clone(),id)); (id,true)
+        };
         let cell = bake
             .macros
             .get(&spec.source_rule)
@@ -175,9 +178,9 @@ pub(super) fn compile(
                 "the selected RipSatCell contains no proof of the requested subtree".into(),
             );
         }
-        let relation = format!("adaptive_cell_view_{id}");
-        let cover = format!("adaptive_cell_cover_{id}");
-        let builder = format!("adaptive_cell_build_{id}");
+        let relation = format!("adaptive_cell_view_{shared_id}");
+        let cover = format!("adaptive_cell_cover_{shared_id}");
+        let builder = format!("adaptive_cell_build_{shared_id}");
         let schema = eg
             .get_function(anchor)
             .ok_or("missing anchor constructor")?
@@ -194,12 +197,12 @@ pub(super) fn compile(
             .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(" ");
-        let definitions = format!(
+        let mut definitions = format!(
             "(function {relation} ({}) Math :merge old)\n(relation {cover} ({cover_sorts}))\n(ruleset {builder})\n(rule ((= adaptive_cell_subroot {cut})) ((set ({relation} {fields}) adaptive_cell_subroot) ({cover} {anchor_fields})) :ruleset {builder} :name \"{builder}\")\n",
             vec!["Math"; names.len()].join(" ")
         );
-        eg.parse_and_run_program(None, &definitions)?;
-        let hole = format!("adaptive_cell_cut_{id}");
+        if first { eg.parse_and_run_program(None, &definitions)?; } else { definitions.clear(); }
+        let hole = format!("adaptive_cell_cut_{shared_id}");
         let residual = format!(
             "(= adaptive_root {}) (= {hole} ({relation} {}))",
             replace(&rule.lhs, &spec.cut_path, &hole)?,
@@ -223,7 +226,7 @@ pub(super) fn compile(
             })
             .collect::<Vec<_>>()
             .join("\n");
-        let proof = json!({"spec":spec,"source_cell":spec.source_rule,"target_cell":bake.macros.contains_key(&spec.consumer_rule).then_some(spec.consumer_rule),"internal_atoms":atoms(cut),"original_lhs_atoms":atoms(&rule.lhs),"residual_lhs_atoms":atoms(&rule.lhs)-atoms(cut)+1,"symbolic_binding_rows":rows,"anchor":anchor,"internal_pattern":cut.to_string(),"view":relation,"coverage":cover,"residual":residual,"scope":"positive constructor functions; all pattern variables determined by unique anchor keys; metadata is maintained by native union/rebuild"});
+        let proof = json!({"spec":spec,"source_cell":spec.source_rule,"target_cell":bake.macros.contains_key(&spec.consumer_rule).then_some(spec.consumer_rule),"internal_atoms":atoms(cut),"original_lhs_atoms":atoms(&rule.lhs),"residual_lhs_atoms":atoms(&rule.lhs)-atoms(cut)+1,"symbolic_binding_rows":rows,"binding_variables":names,"anchor":anchor,"internal_pattern":cut.to_string(),"view":relation,"coverage":cover,"residual":residual,"scope":"positive constructor functions; all pattern variables determined by unique anchor keys; metadata is maintained by native union/rebuild"});
         compiled.push(Compiled {
             spec: spec.clone(),
             relation,
@@ -243,7 +246,9 @@ pub(super) fn compile(
 pub(super) fn prepare(eg: &mut EGraph, plans: &[Compiled]) -> Result<Value> {
     let mut matches = 0;
     let mut per_plan = vec![];
+    let mut visited=BTreeSet::new();
     for p in plans {
+        if !visited.insert(&p.builder) {continue;}
         let report = eg.step_rules_with_key_coverage(
             &p.builder,
             vec![(p.builder.clone(), p.anchor.clone(), p.cover.clone())],
@@ -269,4 +274,37 @@ pub(super) fn read_profile(eg: &EGraph) -> Value {
         let _ = eg;
         Value::Null
     }
+}
+
+/// Discover only an unambiguous structural cut; no Top-K or guessed graph match.
+/// All source cells proving that cut share its view. Ambiguous cuts stay native.
+pub(super) fn discover(eg: &mut EGraph, rules: &[Rule], bake: &Bake) -> Vec<Spec> {
+    fn paths(e: &Expr, prefix: Vec<usize>, out: &mut Vec<Vec<usize>>) {
+        if let Expr::Call(_,_,args)=e {
+            out.push(prefix.clone());
+            for (i,a) in args.iter().enumerate() { let mut p=prefix.clone();p.push(i);paths(a,p,out); }
+        }
+    }
+    let mut specs=vec![];
+    for (consumer,rule) in rules.iter().enumerate() {
+        let mut cuts=vec![];paths(&rule.lhs,vec![],&mut cuts);
+        let mut supported=vec![];
+        for cut_path in cuts {
+            let cut=at(&rule.lhs,&cut_path).unwrap();
+            if atoms(cut)<2 {continue;}
+            let mut anchors=vec![];paths(cut,vec![],&mut anchors);
+            for anchor_path in anchors {
+                let Expr::Call(_,anchor,keys)=at(cut,&anchor_path).unwrap() else {continue;};
+                if keys.is_empty() || keys.iter().any(|a|!matches!(a,Expr::Var(..)|Expr::Lit(..))) || vars(at(cut,&anchor_path).unwrap())!=vars(cut) || occurrences(cut,anchor)!=1 {continue;}
+                let mut sources=vec![];
+                for source in bake.macros.keys() {
+                    let spec=Spec{source_rule:*source,consumer_rule:consumer,cut_path:cut_path.clone(),anchor_path:anchor_path.clone()};
+                    if compile(&mut eg.fork_shared(),rules,bake,std::slice::from_ref(&spec)).is_ok() {sources.push(spec);}
+                }
+                if !sources.is_empty() {supported.push(sources);}
+            }
+        }
+        if supported.len()==1 {specs.extend(supported.pop().unwrap());}
+    }
+    specs
 }

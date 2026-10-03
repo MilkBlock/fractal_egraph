@@ -14,6 +14,7 @@ use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
 
 pub(super) struct Machine {
+    pub dynamic: bool,
     pub definitions: String,
     pub actions: BTreeMap<usize, String>,
     pub completion: Vec<(String, String, Vec<String>)>,
@@ -265,6 +266,7 @@ pub(super) fn compile(
     }
     let proof = json!({"schema":"cell-machine/v1","compact_state_orbits":compact,"proved_parameter_permutations":symmetries,"states":completion.iter().map(|(rule,name,params)|json!({"rule":rule,"table":name,"parameters":params})).collect::<Vec<_>>(),"completion_seeds":proofs,"transitions":plans.iter().map(|p|&p.proof).collect::<Vec<_>>(),"scope":"positive constructor cells, complete symbolic facts and union checks; state identity is cell type plus canonical original parameters; no concrete global-state enumeration"});
     Ok(Machine {
+        dynamic: std::env::var("EGG_LAYOUT_DYNAMIC_INSTANCES").as_deref() != Ok("0"),
         definitions,
         actions,
         completion,

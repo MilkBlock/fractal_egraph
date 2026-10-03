@@ -1,0 +1,434 @@
+{
+  "runs": [
+    {
+      "variant": "legacy",
+      "wall_seconds": 0.565274375025183,
+      "execution_seconds": 0.001352542,
+      "packing_seconds": 0.000397791,
+      "state_transition_seconds": 8.3e-08,
+      "graph": {
+        "eclasses": 137,
+        "enodes": 347,
+        "rss_bytes": 21397504
+      },
+      "dynamic_instances": null
+    },
+    {
+      "variant": "dynamic",
+      "wall_seconds": 0.03931016591377556,
+      "execution_seconds": 0.0013030420000000001,
+      "packing_seconds": 0.000347083,
+      "state_transition_seconds": 0.000137208,
+      "graph": {
+        "eclasses": 137,
+        "enodes": 347,
+        "rss_bytes": 19120128
+      },
+      "dynamic_instances": {
+        "current": [
+          {
+            "certified_cells": [
+              0
+            ],
+            "instance": 0
+          },
+          {
+            "certified_cells": [
+              1
+            ],
+            "instance": 1
+          },
+          {
+            "certified_cells": [
+              2
+            ],
+            "instance": 2
+          },
+          {
+            "certified_cells": [
+              3
+            ],
+            "instance": 3
+          },
+          {
+            "certified_cells": [
+              4
+            ],
+            "instance": 4
+          },
+          {
+            "certified_cells": [
+              5
+            ],
+            "instance": 5
+          },
+          {
+            "certified_cells": [
+              6
+            ],
+            "instance": 6
+          },
+          {
+            "certified_cells": [
+              7
+            ],
+            "instance": 7
+          },
+          {
+            "certified_cells": [
+              8
+            ],
+            "instance": 8
+          },
+          {
+            "certified_cells": [
+              9
+            ],
+            "instance": 9
+          },
+          {
+            "certified_cells": [
+              10
+            ],
+            "instance": 10
+          },
+          {
+            "certified_cells": [
+              11
+            ],
+            "instance": 11
+          },
+          {
+            "certified_cells": [
+              12
+            ],
+            "instance": 12
+          },
+          {
+            "certified_cells": [
+              13
+            ],
+            "instance": 13
+          },
+          {
+            "certified_cells": [
+              14
+            ],
+            "instance": 14
+          },
+          {
+            "certified_cells": [
+              15
+            ],
+            "instance": 15
+          },
+          {
+            "certified_cells": [
+              16
+            ],
+            "instance": 16
+          },
+          {
+            "certified_cells": [
+              17
+            ],
+            "instance": 17
+          },
+          {
+            "certified_cells": [
+              18
+            ],
+            "instance": 18
+          },
+          {
+            "certified_cells": [
+              19
+            ],
+            "instance": 19
+          },
+          {
+            "certified_cells": [
+              20
+            ],
+            "instance": 20
+          },
+          {
+            "certified_cells": [
+              21
+            ],
+            "instance": 21
+          },
+          {
+            "certified_cells": [
+              22
+            ],
+            "instance": 22
+          },
+          {
+            "certified_cells": [
+              23
+            ],
+            "instance": 23
+          },
+          {
+            "certified_cells": [
+              24
+            ],
+            "instance": 24
+          },
+          {
+            "certified_cells": [
+              25
+            ],
+            "instance": 25
+          },
+          {
+            "certified_cells": [
+              26
+            ],
+            "instance": 26
+          },
+          {
+            "certified_cells": [
+              27
+            ],
+            "instance": 27
+          },
+          {
+            "certified_cells": [
+              28
+            ],
+            "instance": 28
+          },
+          {
+            "certified_cells": [
+              29
+            ],
+            "instance": 29
+          },
+          {
+            "certified_cells": [
+              30
+            ],
+            "instance": 30
+          },
+          {
+            "certified_cells": [
+              31
+            ],
+            "instance": 31
+          },
+          {
+            "certified_cells": [
+              32
+            ],
+            "instance": 32
+          },
+          {
+            "certified_cells": [
+              33
+            ],
+            "instance": 33
+          },
+          {
+            "certified_cells": [
+              34
+            ],
+            "instance": 34
+          },
+          {
+            "certified_cells": [
+              35
+            ],
+            "instance": 35
+          },
+          {
+            "certified_cells": [
+              36
+            ],
+            "instance": 36
+          },
+          {
+            "certified_cells": [
+              37
+            ],
+            "instance": 37
+          },
+          {
+            "certified_cells": [
+              38
+            ],
+            "instance": 38
+          },
+          {
+            "certified_cells": [
+              39
+            ],
+            "instance": 39
+          },
+          {
+            "certified_cells": [
+              40
+            ],
+            "instance": 40
+          },
+          {
+            "certified_cells": [
+              41
+            ],
+            "instance": 41
+          },
+          {
+            "certified_cells": [
+              42
+            ],
+            "instance": 42
+          },
+          {
+            "certified_cells": [
+              43
+            ],
+            "instance": 43
+          },
+          {
+            "certified_cells": [
+              44
+            ],
+            "instance": 44
+          },
+          {
+            "certified_cells": [
+              45
+            ],
+            "instance": 45
+          },
+          {
+            "certified_cells": [
+              46
+            ],
+            "instance": 46
+          },
+          {
+            "certified_cells": [
+              47
+            ],
+            "instance": 47
+          },
+          {
+            "certified_cells": [
+              48
+            ],
+            "instance": 48
+          },
+          {
+            "certified_cells": [
+              49
+            ],
+            "instance": 49
+          },
+          {
+            "certified_cells": [
+              50
+            ],
+            "instance": 50
+          },
+          {
+            "certified_cells": [
+              51
+            ],
+            "instance": 51
+          },
+          {
+            "certified_cells": [
+              52
+            ],
+            "instance": 52
+          },
+          {
+            "certified_cells": [
+              53
+            ],
+            "instance": 53
+          },
+          {
+            "certified_cells": [
+              54
+            ],
+            "instance": 54
+          },
+          {
+            "certified_cells": [
+              55
+            ],
+            "instance": 55
+          },
+          {
+            "certified_cells": [
+              56
+            ],
+            "instance": 56
+          },
+          {
+            "certified_cells": [
+              57
+            ],
+            "instance": 57
+          },
+          {
+            "certified_cells": [
+              58
+            ],
+            "instance": 58
+          },
+          {
+            "certified_cells": [
+              59
+            ],
+            "instance": 59
+          },
+          {
+            "certified_cells": [
+              60
+            ],
+            "instance": 60
+          },
+          {
+            "certified_cells": [
+              61
+            ],
+            "instance": 61
+          },
+          {
+            "certified_cells": [
+              62
+            ],
+            "instance": 62
+          },
+          {
+            "certified_cells": [
+              63
+            ],
+            "instance": 63
+          },
+          {
+            "certified_cells": [
+              64
+            ],
+            "instance": 64
+          }
+        ],
+        "instances": 65,
+        "reused_committed_receipts": 0,
+        "scope": "committed receipt frontiers and proved cut-compatible transitions; not a whole-frontier saturation certificate or unique causal provenance",
+        "state_revisions": 0,
+        "transitions": [],
+        "unresolved_bindings": 0
+      }
+    }
+  ],
+  "equality": {
+    "exact_equal": true,
+    "enodes": 347,
+    "eclasses": 137
+  }
+}
