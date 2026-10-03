@@ -1,0 +1,306 @@
+{
+  "scope": "standalone native-engine probe; preserved concrete scalar payloads, symbolic equality-sort boundary slots from validated entries; exact finite snapshot comparison, not production cell reuse or universal symbolic equivalence",
+  "source_sha256": "7747960d4e1aefb1bb904d67472c02927be555f5a030ca09e42e43e668deaaad",
+  "selection": {
+    "prepared_jobs": 620,
+    "excluded_with_input_initializer": 476,
+    "selected_jobs": 144,
+    "input_initializer_rules": [
+      661
+    ]
+  },
+  "input_initializer_rows": 58,
+  "empty_context_rows": 3,
+  "short_observation": {
+    "milliseconds": 50,
+    "statuses": {
+      "fixed_point": 140,
+      "unfinished": 4
+    },
+    "completed_initial_groups": 68,
+    "final_groups": 44,
+    "groups_with_multiple_occurrences": 15,
+    "occurrences_in_shared_groups": 111,
+    "groups_merging_different_initial_states": 11,
+    "groups_with_distinct_recorded_boundary_bindings": 12,
+    "net_row_growth_exceeds_empty_control": 126
+  },
+  "long_observation": {
+    "milliseconds": 500,
+    "statuses": {
+      "fixed_point": 140,
+      "unfinished": 4
+    },
+    "completed_initial_groups": 68,
+    "final_groups": 44,
+    "groups_with_multiple_occurrences": 15,
+    "occurrences_in_shared_groups": 111,
+    "groups_merging_different_initial_states": 11,
+    "groups_with_distinct_recorded_boundary_bindings": 12,
+    "net_row_growth_exceeds_empty_control": 126
+  },
+  "largest_shared_group": {
+    "group": 20,
+    "occurrences": 26,
+    "recorded_binding_signatures_after_recorded_unions": 14,
+    "initial_rows": [
+      3,
+      4
+    ],
+    "final_rows": 11,
+    "boundary_slots": 1,
+    "tables": {
+      "Add-Gets": 2,
+      "Get": 2,
+      "PureTypeList": 1,
+      "RipenInput_5": 1,
+      "Single": 1,
+      "SubTuple": 2,
+      "TNil": 1,
+      "TypeList-length": 1
+    },
+    "rules": [
+      "(rule ((Get x i))\n      ((Add-Gets x x 0))\n        :ruleset always-run :name \"(rule ((Get x i))\n      ((Add-Gets x x 0))\n        :ruleset always-run )\")",
+      "(rule ((Get expr i))\n      ((union (Single (Get expr i)) (SubTuple expr i 1)))\n        :ruleset always-run :name \"(rule ((Get expr i))\n      ((union (Single (Get expr i)) (SubTuple expr i 1)))\n        :ruleset always-run )\")"
+    ]
+  },
+  "unfinished_with_ablation": [
+    {
+      "id": 563,
+      "family": [
+        97
+      ],
+      "initial_rows": 9,
+      "final_rows": 1159,
+      "result": {
+        "inserted_receipts": 1150,
+        "matches": 1602,
+        "passes": 115,
+        "seconds": 0.50211275,
+        "status": "unfinished",
+        "stop": "time"
+      },
+      "ablation_without_swap_if": {
+        "inserted_receipts": 9,
+        "matches": 6,
+        "passes": 2,
+        "seconds": 0.017397209,
+        "status": "fixed_point",
+        "union": false
+      },
+      "ablation_rows": 18
+    },
+    {
+      "id": 565,
+      "family": [
+        115
+      ],
+      "initial_rows": 6,
+      "final_rows": 1309,
+      "result": {
+        "inserted_receipts": 1303,
+        "matches": 1812,
+        "passes": 130,
+        "seconds": 0.50148675,
+        "status": "unfinished",
+        "stop": "time"
+      },
+      "ablation_without_swap_if": {
+        "inserted_receipts": 12,
+        "matches": 6,
+        "passes": 2,
+        "seconds": 0.015975041,
+        "status": "fixed_point",
+        "union": false
+      },
+      "ablation_rows": 18
+    },
+    {
+      "id": 566,
+      "family": [
+        161
+      ],
+      "initial_rows": 7,
+      "final_rows": 1279,
+      "result": {
+        "inserted_receipts": 1272,
+        "matches": 1770,
+        "passes": 126,
+        "seconds": 0.500436209,
+        "status": "unfinished",
+        "stop": "probe observation limit",
+        "union": false
+      },
+      "ablation_without_swap_if": {
+        "inserted_receipts": 11,
+        "matches": 6,
+        "passes": 2,
+        "seconds": 0.015759292,
+        "status": "fixed_point",
+        "union": false
+      },
+      "ablation_rows": 18
+    },
+    {
+      "id": 691,
+      "family": [
+        591
+      ],
+      "initial_rows": 8,
+      "final_rows": 1358,
+      "result": {
+        "inserted_receipts": 1350,
+        "matches": 1878,
+        "passes": 134,
+        "seconds": 0.501977333,
+        "status": "unfinished",
+        "stop": "time"
+      },
+      "ablation_without_swap_if": {
+        "inserted_receipts": 16,
+        "matches": 12,
+        "passes": 2,
+        "seconds": 0.015886292,
+        "status": "fixed_point",
+        "union": false
+      },
+      "ablation_rows": 24
+    }
+  ],
+  "grafts": [
+    {
+      "after_injection_rows": 18,
+      "after_ripen_rows": 121,
+      "before_rows": 11,
+      "binding": "(Arg (TupleT (TCons (IntT) (TCons (StateT) (TNil)))) (InFunc \"dummy\"))",
+      "cell_id": 1706,
+      "concrete_source": "Get operand extracted from actual eggcc input-initialization graph",
+      "fresh": {
+        "inserted_receipts": 107,
+        "matches": 199,
+        "passes": 2,
+        "seconds": 0.019692666,
+        "status": "fixed_point",
+        "union": true
+      },
+      "same_final_snapshot": true,
+      "warm": {
+        "inserted_receipts": 100,
+        "matches": 187,
+        "passes": 2,
+        "seconds": 0.010610208,
+        "status": "fixed_point",
+        "union": true
+      }
+    },
+    {
+      "after_injection_rows": 18,
+      "after_ripen_rows": 121,
+      "before_rows": 11,
+      "binding": "(Arg (TupleT (TCons (StateT) (TCons (IntT) (TNil)))) (InFunc \"dummy\"))",
+      "cell_id": 1706,
+      "concrete_source": "Get operand extracted from actual eggcc input-initialization graph",
+      "fresh": {
+        "inserted_receipts": 107,
+        "matches": 199,
+        "passes": 2,
+        "seconds": 0.020286041,
+        "status": "fixed_point",
+        "union": true
+      },
+      "same_final_snapshot": true,
+      "warm": {
+        "inserted_receipts": 100,
+        "matches": 187,
+        "passes": 2,
+        "seconds": 0.011842917,
+        "status": "fixed_point",
+        "union": true
+      }
+    },
+    {
+      "after_injection_rows": 28,
+      "after_ripen_rows": 202,
+      "before_rows": 11,
+      "binding": "(Call \"fact\" (Concat (Single (Bop (Sub) (Get (Arg (TupleT (TCons (StateT) (TCons (IntT) (TNil)))) (InFunc \"dummy\")) 1) (Const (Int 1) (TupleT (TCons (StateT) (TCons (IntT) (TNil)))) (InFunc \"dummy\")))) (Single (Get (Arg (TupleT (TCons (StateT) (TCons (IntT) (TNil)))) (InFunc \"dummy\")) 0))))",
+      "cell_id": 1706,
+      "concrete_source": "Get operand extracted from actual eggcc input-initialization graph",
+      "fresh": {
+        "inserted_receipts": 174,
+        "matches": 317,
+        "passes": 2,
+        "seconds": 0.021961917,
+        "status": "fixed_point",
+        "union": true
+      },
+      "same_final_snapshot": true,
+      "warm": {
+        "inserted_receipts": 167,
+        "matches": 305,
+        "passes": 2,
+        "seconds": 0.012622625,
+        "status": "fixed_point",
+        "union": true
+      }
+    },
+    {
+      "after_injection_rows": 24,
+      "after_ripen_rows": 143,
+      "before_rows": 11,
+      "binding": "(Call \"fact\" (Concat (Single (Get (Arg (TupleT (TCons (IntT) (TCons (StateT) (TNil)))) (InFunc \"dummy\")) 0)) (Single (Get (Arg (TupleT (TCons (IntT) (TCons (StateT) (TNil)))) (InFunc \"dummy\")) 1))))",
+      "cell_id": 1706,
+      "concrete_source": "Get operand extracted from actual eggcc input-initialization graph",
+      "fresh": {
+        "inserted_receipts": 125,
+        "matches": 237,
+        "passes": 2,
+        "seconds": 0.019742333,
+        "status": "fixed_point",
+        "union": true
+      },
+      "same_final_snapshot": true,
+      "warm": {
+        "inserted_receipts": 118,
+        "matches": 225,
+        "passes": 2,
+        "seconds": 0.010337959,
+        "status": "fixed_point",
+        "union": true
+      }
+    },
+    {
+      "after_injection_rows": 51,
+      "after_ripen_rows": 3361,
+      "before_rows": 11,
+      "binding": "(If (Bop (Eq) (Get (Arg (TupleT (TCons (IntT) (TCons (StateT) (TNil)))) (InFunc \"dummy\")) 0) (Const (Int 0) (TupleT (TCons (IntT) (TCons (StateT) (TNil)))) (InFunc \"dummy\"))) (Concat (Single (Get (Arg (TupleT (TCons (IntT) (TCons (StateT) (TNil)))) (InFunc \"dummy\")) 1)) (Single (Get (Arg (TupleT (TCons (IntT) (TCons (StateT) (TNil)))) (InFunc \"dummy\")) 0))) (Concat (Single (Get (Arg (TupleT (TCons (StateT) (TCons (IntT) (TNil)))) (InFunc \"dummy\")) 0)) (Single (Const (Int 1) (TupleT (TCons (StateT) (TCons (IntT) (TNil)))) (InFunc \"dummy\")))) (Concat (Single (Get (Call \"fact\" (Concat (Single (Bop (Sub) (Get (Arg (TupleT (TCons (StateT) (TCons (IntT) (TNil)))) (InFunc \"dummy\")) 1) (Const (Int 1) (TupleT (TCons (StateT) (TCons (IntT) (TNil)))) (InFunc \"dummy\")))) (Single (Get (Arg (TupleT (TCons (StateT) (TCons (IntT) (TNil)))) (InFunc \"dummy\")) 0)))) 1)) (Single (Bop (Mul) (Get (Arg (TupleT (TCons (StateT) (TCons (IntT) (TNil)))) (InFunc \"dummy\")) 1) (Get (Call \"fact\" (Concat (Single (Bop (Sub) (Get (Arg (TupleT (TCons (StateT) (TCons (IntT) (TNil)))) (InFunc \"dummy\")) 1) (Const (Int 1) (TupleT (TCons (StateT) (TCons (IntT) (TNil)))) (InFunc \"dummy\")))) (Single (Get (Arg (TupleT (TCons (StateT) (TCons (IntT) (TNil)))) (InFunc \"dummy\")) 0)))) 0)))))",
+      "cell_id": 1706,
+      "concrete_source": "Get operand extracted from actual eggcc input-initialization graph",
+      "fresh": {
+        "inserted_receipts": 3130,
+        "matches": 6212,
+        "passes": 96,
+        "seconds": 0.501153292,
+        "status": "unfinished",
+        "stop": "time"
+      },
+      "same_final_snapshot": null,
+      "warm": {
+        "inserted_receipts": 3128,
+        "matches": 6205,
+        "passes": 96,
+        "seconds": 0.501045166,
+        "status": "unfinished",
+        "stop": "time"
+      }
+    }
+  ],
+  "limitations": [
+    "Only prepared entries from one real fact.bril export are tested; the 144 cases are a selected subset, not all eggcc histories.",
+    "Equality-sort interfaces remain symbolic; primitive payloads are preserved. Snapshot equality is not a proof for all substitutions.",
+    "Occurrences and their interiors can overlap; no RSS, physical compression ratio, or distinct non-overlapping cell coverage is claimed.",
+    "Input-slot types and aliasing are preserved up to renaming; production interface adapters and planner/storage integration are not implemented by this probe.",
+    "Fixed point is relative to repeatedly executing the original optimizer schedule, excluding its separate input-initialization schedule.",
+    "Disabling swap-if is a changed-environment attribution ablation, not proof of saturation in the original environment.",
+    "Warm/fresh elapsed times are not speedup measurements: planner and native query cache warmth also differ."
+  ]
+}

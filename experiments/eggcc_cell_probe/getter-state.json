@@ -1,0 +1,137 @@
+{
+  "version": 2,
+  "scope": {
+    "probe_environment": "eggcc-optimizer",
+    "semantics": "observed snapshot isomorphism only; literals retained; input slots may be renamed; no general merge proof"
+  },
+  "values": [
+    {
+      "sort": "Expr",
+      "literal": null
+    },
+    {
+      "sort": "Expr",
+      "literal": null
+    },
+    {
+      "sort": "Expr",
+      "literal": null
+    },
+    {
+      "sort": "TypeList",
+      "literal": null
+    },
+    {
+      "sort": "___AddGetsSort",
+      "literal": null
+    },
+    {
+      "sort": "___AddGetsSort",
+      "literal": null
+    },
+    {
+      "sort": "___PureTypeListSort",
+      "literal": null
+    },
+    {
+      "sort": "i64",
+      "literal": "0"
+    },
+    {
+      "sort": "i64",
+      "literal": "1"
+    },
+    {
+      "sort": "@input:Expr",
+      "literal": null
+    }
+  ],
+  "rows": [
+    {
+      "op": "@binding",
+      "args": [
+        0
+      ],
+      "result": 9
+    },
+    {
+      "op": "Add-Gets",
+      "args": [
+        0,
+        0,
+        7
+      ],
+      "result": 4
+    },
+    {
+      "op": "Add-Gets",
+      "args": [
+        2,
+        2,
+        7
+      ],
+      "result": 5
+    },
+    {
+      "op": "Get",
+      "args": [
+        0,
+        7
+      ],
+      "result": 1
+    },
+    {
+      "op": "Get",
+      "args": [
+        2,
+        7
+      ],
+      "result": 1
+    },
+    {
+      "op": "PureTypeList",
+      "args": [
+        3
+      ],
+      "result": 6
+    },
+    {
+      "op": "Single",
+      "args": [
+        1
+      ],
+      "result": 2
+    },
+    {
+      "op": "SubTuple",
+      "args": [
+        0,
+        7,
+        8
+      ],
+      "result": 2
+    },
+    {
+      "op": "SubTuple",
+      "args": [
+        2,
+        7,
+        8
+      ],
+      "result": 2
+    },
+    {
+      "op": "TNil",
+      "args": [],
+      "result": 3
+    },
+    {
+      "op": "TypeList-length",
+      "args": [
+        3
+      ],
+      "result": 7
+    }
+  ],
+  "ports": {}
+}
