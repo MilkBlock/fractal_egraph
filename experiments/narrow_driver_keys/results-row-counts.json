@@ -1,0 +1,10 @@
+{
+  "base_rows": 2758,
+  "variant_rows": {
+    "base": 2758,
+    "ctx1": 2756,
+    "get1": 2762,
+    "multi": 2674
+  },
+  "note": "get1 = base + 4 = exactly its key table size; ctx1/multi still lose rows so are not conservative"
+}
