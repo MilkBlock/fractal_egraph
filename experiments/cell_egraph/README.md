@@ -82,3 +82,59 @@ EGG_LAYOUT_GRAPHS=0 cargo test --offline --test cell_egraph_normalization --test
 The online fixture registers 4 real CS units, obtains 1 certified union, and
 reports 3 Cell eclasses. Registry tests cover multi-parent edges, distinct
 external obligations, unknown parents and refresh-local family renumbering.
+
+## Interface-slot normalization (2026-10-03)
+
+Default registration now alpha-renames **only opaque RipenInput indices**,
+anchored by ordered lower then upper interfaces. Ordinary primitive literals,
+aliases, action/check order, rules and external obligations remain in the key.
+The executable preparation and validation replace history/provenance as the
+normalized discriminator. Unsupported input retains the old conservative key.
+
+For a single-parent positive constructor composition, an exact sequential
+prefix in both source and validation can be factored into a parent Cell and a
+suffix. Deletion, subsumption, functions and unsupported schedules do not use
+this factorization. A registry regression verifies differently numbered slots
+and different parent preparations sharing one suffix after a parent certificate.
+No arbitrary reordering of checks or effects is performed.
+
+Run the real pipeline comparison (build the release binary first):
+
+```sh
+cargo build --offline --release --bin egg_layout
+python3 experiments/cell_egraph/bench.py --rounds 3 --output out/my-cell-comparison
+```
+
+`EGG_LAYOUT_CELL_BINDING_NORMALIZATION=0` selects the old key for ablation only.
+The default is enabled in ordinary analyze. This does not change tier0 rules,
+schedules, or ripen observation limits, and does not skip ripen tasks.
+
+Measured once per variant, original math-microbenchmark.egg, 3 rounds:
+
+| metric | raw | normalized |
+|---|---:|---:|
+| registered compositions | 85 | 85 |
+| distinct contracts | 74 | 73 |
+| completed-catalog union certificates | 41 | 41 |
+| resulting Cell eclasses | 44 | 44 |
+| factored successors (including multi-parent) | 0 | 7 |
+| end-to-end seconds | 1.513 | 1.288 |
+
+The unit-to-eclass partition is identical in this run. The timing is a single
+screen, not evidence of a stable speedup (ripen also has wall-time limits).
+All 85 normalized contracts succeeded. Of the real nodes, 35 have parents and
+all are multi-parent. Exact rebasing/residualization succeeded on 7. It uses
+actual token correspondences to substitute each parent boundary into child
+coordinates, and requires literal inclusion of all rebased parent actions and
+checks. Only then are supplied actions/checks removed; residual order, interface
+and ordered parent wiring remain in the contract. Missing correspondences,
+missing effects, globals and non-positive actions fall back to the full key.
+This is **not** a demonstration of maximal semantic merging in Math: final
+eclasses remain 44. Arbitrary equivalent embeddings or parent permutations are
+not searched, and there is no claim of a globally optimal representation. Detailed results
+are in `math3-results.json`. No claim of tier0 memory compression is made.
+
+The measured variants both recorded 129 applications and 0 excluded applications,
+with 79 saturated jobs and 6 observed unfinished jobs. The final unit partition
+was unchanged. Four registry/normalization tests and the two native integration
+tests passed. No parent certificate is inferred from hashes or similar syntax.

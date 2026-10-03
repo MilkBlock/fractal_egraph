@@ -1,0 +1,72 @@
+[
+  {
+    "variant": "raw",
+    "seconds": 1.5127313749399036,
+    "rounds": 3,
+    "summary": {
+      "applications": 129,
+      "excluded": 0,
+      "logical_matches": 129,
+      "scope": "native history -> CS -> ripen -> equivalence -> weak dominate"
+    },
+    "ripen_counts": {
+      "ObservedUnfinished": 6,
+      "Saturated": 79
+    },
+    "cells": {
+      "certified_unions": 41,
+      "contracts": 74,
+      "eclasses": 44,
+      "factored_successors": 0,
+      "normalization_fallbacks": 85,
+      "normalized_bindings": 0,
+      "registered_compositions": 85,
+      "scope": "automatic prepared CS registration; exact completed catalog unions; conservative full binding contracts; no ripen skipped"
+    },
+    "command": [
+      "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+      "analyze",
+      "--source",
+      "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg",
+      "--rounds",
+      "3",
+      "--output",
+      "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-binding-math3-multi/raw"
+    ]
+  },
+  {
+    "variant": "normalized",
+    "seconds": 1.2879026669543236,
+    "rounds": 3,
+    "summary": {
+      "applications": 129,
+      "excluded": 0,
+      "logical_matches": 129,
+      "scope": "native history -> CS -> ripen -> equivalence -> weak dominate"
+    },
+    "ripen_counts": {
+      "ObservedUnfinished": 6,
+      "Saturated": 79
+    },
+    "cells": {
+      "certified_unions": 41,
+      "contracts": 73,
+      "eclasses": 44,
+      "factored_successors": 7,
+      "normalization_fallbacks": 0,
+      "normalized_bindings": 85,
+      "registered_compositions": 85,
+      "scope": "automatic prepared CS registration; exact completed catalog unions; conservative full binding contracts; no ripen skipped"
+    },
+    "command": [
+      "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+      "analyze",
+      "--source",
+      "/Users/mineralsteins/Repos/egg_related/egg_layout/egglog/tests/math-microbenchmark.egg",
+      "--rounds",
+      "3",
+      "--output",
+      "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-binding-math3-multi/normalized"
+    ]
+  }
+]
