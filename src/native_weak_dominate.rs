@@ -31,7 +31,18 @@ pub(super) fn observe(
     if !pattern.subsumed_rows.is_empty() {
         return Ok(json!({"status":"unsupported_hidden_trigger"}));
     }
-    let rows: Vec<_> = pattern.rows.iter().filter(|r| r.op != marker).collect();
+    let rows: Vec<_> = pattern
+        .rows
+        .iter()
+        .filter(|r| {
+            r.op != marker
+                && !r.op.strip_prefix(marker).is_some_and(|suffix| {
+                    suffix.strip_prefix('_').is_some_and(|index| {
+                        !index.is_empty() && index.bytes().all(|b| b.is_ascii_digit())
+                    })
+                })
+        })
+        .collect();
     if rows.is_empty() {
         return Ok(json!({"status":"no_structural_trigger"}));
     }

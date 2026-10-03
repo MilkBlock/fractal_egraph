@@ -249,10 +249,10 @@ pub(super) fn read(path: &Path) -> Result<Captured> {
         .events
         .checked_sub(h.records.len())
         .ok_or("invalid history event count")?;
-    // Replayed histories carry the datatype text; take its name as the sort name
-    // the analysis uses, the same way a fresh capture does.
+    // Recover every equality sort from the saved declarations, just as in a
+    // fresh capture. Presort/container declarations are not equality sorts.
     let datatype_commands = eg.parse_program(None, &h.datatype)?;
-    let datatype_name = declaration_sort(&datatype_commands)?;
+    let datatype_names = sorts::equality_sorts(&datatype_commands);
     let preview_source = h.source_text.unwrap_or_else(|| {
         format!(
             "{}\n{}",
@@ -274,7 +274,7 @@ pub(super) fn read(path: &Path) -> Result<Captured> {
         layers: Default::default(),
         applies: vec![],
         datatype: h.datatype,
-        datatype_name,
+        datatype_names,
         rules,
         pool,
         record_index: h

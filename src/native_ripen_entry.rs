@@ -35,6 +35,7 @@ pub(super) struct Environment {
     pub code: String,
     source: String,
     hole: String,
+    holes: BTreeMap<String, String>,
     constructors: BTreeSet<String>,
     commands: Vec<Command>,
     table_names: Vec<String>,
@@ -48,26 +49,20 @@ impl Environment {
         }
         let mut parser = super::measured_engine();
         let mut datatypes = parser.parse_program(None, &c.datatype)?;
-        let extra = parser.parse_program(None, &format!("(datatype Temporary ({hole} i64))"))?;
-        let Command::Datatype {
-            variants: extra, ..
-        } = &extra[0]
-        else {
-            unreachable!()
-        };
-        let datatype_index=datatypes.iter().position(|c| matches!(c,Command::Datatype{..})).ok_or("symbolic ripen needs an equality datatype; scalar-only bindings are not parameterized yet")?;
-        let Command::Datatype { variants, .. } = &mut datatypes[datatype_index] else {
-            return Err("expected datatype".into());
-        };
-        variants.extend(extra.clone());
-        let constructors: BTreeSet<String> = datatypes
-            .iter()
-            .flat_map(|d| match d {
-                Command::Datatype { variants, .. } => {
-                    variants.iter().map(|v| v.name.clone()).collect()
-                }
-                _ => Vec::new(),
-            })
+        let mut holes = BTreeMap::new();
+        for (i, sort) in c.datatype_names.iter().enumerate() {
+            let name = if c.datatype_names.len() == 1 {
+                hole.clone()
+            } else {
+                format!("{hole}_{i}")
+            };
+            datatypes
+                .extend(parser.parse_program(None, &format!("(constructor {name} (i64) {sort})"))?);
+            holes.insert(sort.clone(), name);
+        }
+        let constructors: BTreeSet<String> = sorts::constructors(&datatypes)
+            .into_iter()
+            .map(|(_, v)| v.name)
             .collect();
         let mut entry = datatypes.clone();
         let rulesets: BTreeSet<_> = c
@@ -95,18 +90,17 @@ impl Environment {
             code,
             source: c.preview_source.clone(),
             hole,
+            holes,
             constructors,
-            table_names: datatypes
-                .iter()
-                .flat_map(|c| match c {
-                    Command::Datatype { variants, .. } => {
-                        variants.iter().map(|v| v.name.clone()).collect()
-                    }
+            table_names: sorts::constructors(&datatypes)
+                .into_iter()
+                .map(|(_, v)| v.name)
+                .chain(datatypes.iter().filter_map(|c| match c {
                     Command::Relation { name, .. } | Command::Function { name, .. } => {
-                        vec![name.clone()]
+                        Some(name.clone())
                     }
-                    _ => vec![],
-                })
+                    _ => None,
+                }))
                 .collect(),
             commands: entry,
         })
@@ -210,15 +204,16 @@ fn extract(
                         values.insert(*v, term.clone());
                         continue;
                     }
-                    if c.pool.values[*v].sort.as_ref() != c.datatype_name {
+                    if !c.datatype_names.contains(c.pool.values[*v].sort.as_ref()) {
                         return Err(format!("boundary token {v} has scalar sort {}; its literal is not recoverable from this history",c.pool.values[*v].sort).into());
                     }
                     let name = format!("ripen_p{}", parameters.len());
-                    let term = call(&hole, vec![num(parameters.len() as u64)]);
+                    let sort = c.pool.values[*v].sort.as_ref();
+                    let term = call(&environment.holes[sort], vec![num(parameters.len() as u64)]);
                     // Terms, not global variable names, preserve captured alias identity.
                     entry.push(Command::Action(Action::Expr(sp(), term.clone())));
                     values.insert(*v, term);
-                    parameters.push(json!({"name":name,"token":v,"sort":c.datatype_name,"semantics":"opaque boundary parameter"}));
+                    parameters.push(json!({"name":name,"token":v,"sort":sort,"semantics":"opaque boundary parameter"}));
                 }
                 Input::Read(_) => {}
             }
@@ -596,10 +591,7 @@ fn extract(
             "binding":wiring,"aliases":aliases,"input_roles":a.input_roles,"output_roles":a.output_roles,"source_coarse_layer":o.map(|o|o.coarse_layer),"source_smooth_layer":o.and_then(|o|o.smooth_layer)})
     }).collect();
     // Typed recipe uses occurrence-local parents, retaining effects and external obligations.
-    let selected: Vec<_> = member_ids
-        .iter()
-        .map(|i| c.applies[*i].clone())
-        .collect();
+    let selected: Vec<_> = member_ids.iter().map(|i| c.applies[*i].clone()).collect();
     let recipe = crate::reuse_graph::library::local_recipe(&selected, member_ids)?;
     let upper_terms: Vec<_> = c.records[root_member]
         .values
@@ -607,14 +599,18 @@ fn extract(
         .zip(&c.records[root_member].outputs)
         // Public interface roles must not depend on which RHS rows happened
         // to be newly inserted; inner column ports remain in symbolic_values.
-        .filter_map(|(v,role)|matches!(role,Output::Var(_)).then_some(v))
-        .filter(|v| c.pool.values[**v].sort.as_ref() == c.datatype_name)
-        .filter_map(|v| values.get(v).map(ToString::to_string)).collect();
-    let lower_terms: Vec<_> = parameters.iter().filter_map(|p| p["token"].as_u64())
-        .map(|v| values[&(v as usize)].to_string()).collect();
+        .filter_map(|(v, role)| matches!(role, Output::Var(_)).then_some(v))
+        .filter(|v| c.datatype_names.contains(c.pool.values[**v].sort.as_ref()))
+        .filter_map(|v| values.get(v).map(ToString::to_string))
+        .collect();
+    let lower_terms: Vec<_> = parameters
+        .iter()
+        .filter_map(|p| p["token"].as_u64())
+        .map(|v| values[&(v as usize)].to_string())
+        .collect();
     let provenance = json!({"reuse_recipe":recipe,"reuse_interface_terms":{"upper":upper_terms,"lower":lower_terms},"kind":"symbolic_cs_interface","template":null,"members":member_ids,"root_member":root_member,"comb_members":comb_members,"kind_scope":"use_kind is relative to directly recorded dependencies inside this CS entry; source_kind is the original layer classification; neither minimizes alternate proof requirements",
         "events":stages.iter().map(|(i,e,n,_,_)|json!({"record":i,"event":e,"precondition_checks":n})).collect::<Vec<_>>(),
-        "initial_tables":initial_tables,"original_use_tables":original_tables,"parameter_marker":hole,
+        "initial_tables":initial_tables,"original_use_tables":original_tables,"parameter_marker":hole,"parameter_markers":environment.holes,
         "symbolic_values":values.iter().map(|(token,term)|json!({"token":token,"term":term.to_string(),"sort":c.pool.values[*token].sort})).collect::<Vec<_>>(),
         "parameters":parameters,"all_source_rules":c.rules.len(),"validation":"all original LHS checks and recorded output aliases passed before/after the corresponding ground actions",
         "staged_injections":injections,"initial_source":seed_text,"concrete_boundary_structure_recovered":false,
@@ -688,6 +684,61 @@ mod tests {
         let mut c = capture_text_with_sink("staged.egg", source, None, None).unwrap();
         update_layers(&mut c).unwrap();
         c
+    }
+    #[test]
+    fn subsume_receipts_have_replayable_source_positions() {
+        let c = captured(
+            r#"
+            (datatype E (A i64) (B i64))
+            (datatype T (Tag E))
+            (rule ((= a (A n))) ((B n) (subsume (A n))))
+            (Tag (A 2)) (run 1)
+        "#,
+        );
+        assert!(!c.records.is_empty());
+        let path = std::env::temp_dir().join(format!("subsume-replay-{}.json", std::process::id()));
+        history::save(&path, Path::new("subsume.egg"), &c).unwrap();
+        let replay = history::read(&path).unwrap();
+        assert_eq!(replay.records.len(), c.records.len());
+        assert_eq!(replay.records[0].outputs.len(), c.records[0].outputs.len());
+        std::fs::remove_file(path).unwrap();
+    }
+    #[test]
+    fn multiple_datatypes_preserve_union_types_and_replay() {
+        for declarations in [
+            "(datatype E (A i64) (B i64)) (datatype T (X E) (Y E))",
+            "(sort E) (sort T) (constructor A (i64) E) (constructor B (i64) E) (constructor X (E) T) (constructor Y (E) T)",
+            "(datatype* (E (A i64) (B i64)) (T (X E) (Y E)))",
+        ] {
+            let source = format!(
+                "{declarations} (rule ((= a (A n)) (= b (B n))) ((union a b)) :name \"make-b\") (rule ((= x (X e)) (= y (Y e))) ((union x y)) :name \"make-y\") (X (A 7)) (Y (A 7)) (B 7) (run 2)"
+            );
+            let c = captured(&source);
+            assert_eq!(c.datatype_names, BTreeSet::from(["E".into(), "T".into()]));
+            let union_sorts: BTreeSet<_> = c
+                .records
+                .iter()
+                .flat_map(|r| &r.unions)
+                .map(|(a, b)| {
+                    assert_eq!(c.pool.values[*a].sort, c.pool.values[*b].sort);
+                    c.pool.values[*a].sort.to_string()
+                })
+                .collect();
+            assert_eq!(union_sorts, BTreeSet::from(["E".into(), "T".into()]));
+            let members: Vec<_> = (0..c.records.len()).collect();
+            let (entry, _, origin) = prepare_members(&c, &members).unwrap();
+            assert_eq!(origin["parameter_markers"].as_object().unwrap().len(), 2);
+            let mut eg = EGraph::default();
+            eg.parse_and_run_program(None, &entry).unwrap();
+            let path =
+                std::env::temp_dir().join(format!("multi-replay-{}.json", std::process::id()));
+            history::save(&path, Path::new("multi.egg"), &c).unwrap();
+            let mut replay = history::read(&path).unwrap();
+            update_layers(&mut replay).unwrap();
+            assert_eq!(replay.datatype_names, c.datatype_names);
+            assert_eq!(prepare_members(&replay, &members).unwrap().0, entry);
+            std::fs::remove_file(path).unwrap();
+        }
     }
     #[test]
     fn external_parent_fact_is_injected_after_its_internal_child_exists() {

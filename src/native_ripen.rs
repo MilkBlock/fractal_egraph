@@ -101,7 +101,7 @@ impl Session {
         let mut rules = vec![];
         let mut names = BTreeSet::new();
         let mut rulesets = BTreeSet::new();
-        let mut datatype = None;
+
         for command in commands {
             if matches!(command, Command::Rewrite(_, _, true)) {
                 return Err("ripen rejects subsuming rewrites".into());
@@ -113,11 +113,7 @@ impl Session {
                 }
             }
             match &command {
-            Command::Datatype { name, .. } => {
-                if datatype.replace((name.clone(), command.to_string())).is_some() {
-                    return Err("ripen currently requires one self-contained datatype".into());
-                }
-            }
+            command if sorts::is_declaration(command) => {}
             Command::Rule { rule } => {
                 if !rule.head.0.iter().all(supported_action) { return Err("ripen rejects delete and other unsupported actions".into()); }
                 if !names.insert(rule.name.clone()) { return Err("ripen rule names must be unique".into()); }
@@ -137,15 +133,10 @@ impl Session {
         }
             setup.push(command);
         }
-        let (datatype_name, _) = datatype.ok_or("ripen requires a datatype")?;
+        let datatype_names = sorts::equality_sorts(&setup);
         let datatype = setup
             .iter()
-            .filter(|c| {
-                matches!(
-                    c,
-                    Command::Datatype { .. } | Command::Relation { .. } | Command::Function { .. }
-                )
-            })
+            .filter(|c| sorts::is_declaration(c))
             .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join("\n");
@@ -194,7 +185,7 @@ impl Session {
             layers: Default::default(),
             applies: vec![],
             datatype,
-            datatype_name,
+            datatype_names,
             rules,
             records: vec![],
             record_index: BTreeMap::new(),
@@ -210,51 +201,25 @@ impl Session {
         std::fs::create_dir_all(out)?;
         std::fs::write(out.join("entry.egg"), &text)?;
         write_native_graph(&eg, out, "native-egraph-initial")?;
-        let initial = export_state(
-            setup
-                .iter()
-                .find(|c| matches!(c, Command::Datatype { .. }))
-                .unwrap(),
-            &eg,
-            &c,
-            &port_values,
-            true,
-            out,
-            false,
-        )
-        .ok();
+        let initial = export_state(&eg, &c, &port_values, true, out, false).ok();
         if let Some(state) = &initial {
             crate::pipeline::write_json(&out.join("initial-state.json"), state)?;
         }
-        let trigger = initial.clone().or_else(|| {
-            export_state(
-                setup
-                    .iter()
-                    .find(|c| matches!(c, Command::Datatype { .. }))
-                    .unwrap(),
-                &eg,
-                &c,
-                &port_values,
-                true,
-                out,
-                true,
-            )
-            .ok()
-        });
+        let trigger = initial
+            .clone()
+            .or_else(|| export_state(&eg, &c, &port_values, true, out, true).ok());
         if let Some(state) = &trigger {
             crate::pipeline::write_json(&out.join("trigger-state.json"), state)?;
         }
-        let table_names: Vec<String> = setup
-            .iter()
-            .flat_map(|cmd| match cmd {
-                Command::Datatype { variants, .. } => {
-                    variants.iter().map(|v| v.name.clone()).collect()
-                }
+        let table_names: Vec<_> = sorts::constructors(&setup)
+            .into_iter()
+            .map(|(_, v)| v.name)
+            .chain(setup.iter().filter_map(|c| match c {
                 Command::Relation { name, .. } | Command::Function { name, .. } => {
-                    vec![name.clone()]
+                    Some(name.clone())
                 }
-                _ => vec![],
-            })
+                _ => None,
+            }))
             .collect();
         let initial_facts = table_counts(&eg, &table_names).values().sum();
         let before = eg.fork_shared();
@@ -289,18 +254,7 @@ impl Session {
         })
     }
     pub(super) fn snapshot_unfinished(&self) -> Result<Json> {
-        let state = export_state(
-            self.setup
-                .iter()
-                .find(|c| matches!(c, Command::Datatype { .. }))
-                .unwrap(),
-            &self.eg,
-            &self.c,
-            &self.ports,
-            true,
-            &self.out,
-            true,
-        )?;
+        let state = export_state(&self.eg, &self.c, &self.ports, true, &self.out, true)?;
         let path = self.out.join("unfinished-state.json");
         crate::pipeline::write_json(&path, &state)?;
         Ok(json!({"status":"observed_only","path":path,"facts":state.rows.len()}))
@@ -406,18 +360,7 @@ impl Session {
         let mut exported = json!({"status":"running"});
         if self.done {
             self.eg.run_program(self.checks.clone())?;
-            match export_state(
-                self.setup
-                    .iter()
-                    .find(|c| matches!(c, Command::Datatype { .. }))
-                    .unwrap(),
-                &self.eg,
-                &self.c,
-                &self.ports,
-                true,
-                &self.out,
-                false,
-            ) {
+            match export_state(&self.eg, &self.c, &self.ports, true, &self.out, false) {
                 Ok(state) => {
                     std::fs::write(
                         self.out.join("saturated-rule-composition.json"),
@@ -495,7 +438,6 @@ fn write_native_graph(eg: &EGraph, out: &Path, stem: &str) -> Result<()> {
 }
 
 fn export_state(
-    datatype: &Command,
     eg: &EGraph,
     c: &Captured,
     ports: &[(String, egglog::ArcSort, Value)],
@@ -504,18 +446,8 @@ fn export_state(
     observation_only: bool,
 ) -> Result<crate::saturated_rule_composition::SaturatedRuleComposition> {
     use crate::saturated_rule_composition::{Row, SaturatedRuleComposition, Vertex};
-    let Command::Datatype { name, variants, .. } = datatype else {
-        return Err("expected datatype".into());
-    };
-    if name.contains('-')
-        || variants
-            .iter()
-            .flat_map(|v| &v.types)
-            .any(|t| t != name && !matches!(t.as_str(), "i64" | "String" | "bool"))
-        || ports.iter().any(|(_, s, _)| s.name() != name)
-    {
-        return Err("saturated-rule-composition export currently supports one equality datatype, i64/String/bool fields and equality-sort named ports".into());
-    }
+    let names = &c.datatype_names;
+    let name = names.iter().next().map(String::as_str).unwrap_or("Unit");
     fn constructor_expr(e: &Expr, ops: &BTreeSet<&str>) -> bool {
         match e {
             Expr::Call(_, op, args) => {
@@ -526,6 +458,17 @@ fn export_state(
     }
     let mut parser = measured_engine();
     let declarations = parser.parse_program(None, &c.datatype)?;
+    let constructors = sorts::constructors(&declarations);
+    let allowed =
+        |ty: &str| names.contains(ty) || matches!(ty, "i64" | "String" | "bool" | "f64" | "Unit");
+    if constructors
+        .iter()
+        .any(|(_, v)| v.types.iter().any(|t| !allowed(t)))
+        || ports.iter().any(|(_, s, _)| !allowed(s.name()))
+    {
+        return Err("unsupported container/table field sort in state export".into());
+    }
+
     let mut tables = vec![];
     for d in &declarations {
         match d {
@@ -549,13 +492,13 @@ fn export_state(
     if tables
         .iter()
         .flat_map(|(_, inputs, output)| inputs.iter().chain(std::iter::once(output)))
-        .any(|t| t != name && !matches!(t.as_str(), "i64" | "String" | "bool" | "Unit"))
+        .any(|t| !allowed(t))
     {
         return Err("unsupported table field sort in SaturatedRuleComposition export".into());
     }
-    let ops: BTreeSet<_> = variants
+    let ops: BTreeSet<_> = constructors
         .iter()
-        .map(|v| v.name.as_str())
+        .map(|(_, v)| v.name.as_str())
         .chain(tables.iter().map(|t| t.0.as_str()))
         .collect();
     for r in &c.rules {
@@ -583,8 +526,10 @@ fn export_state(
     if crate::graph_render::graphs_enabled() {
         write_native_graph(eg, out, "native-egraph")?;
     }
-    let sort_cache: BTreeMap<_, _> = [name.as_str(), "Unit", "i64", "String", "bool"]
-        .into_iter()
+    let sort_cache: BTreeMap<_, _> = names
+        .iter()
+        .map(String::as_str)
+        .chain(["Unit", "i64", "String", "bool", "f64"])
         .enumerate()
         .map(|(i, ty)| (ty, (i, eg.get_arcsort_by(|s| s.name() == ty))))
         .collect();
@@ -598,13 +543,20 @@ fn export_state(
             return Ok(*i);
         }
         let literal = match ty {
-            t if t == name => None,
+            t if names.contains(t) => None,
             "Unit" => Some("()".into()),
             "i64" => Some(eg.value_to_base::<i64>(v).to_string()),
             "String" => Some(serde_json::to_string(
                 &eg.value_to_base::<egglog::sort::S>(v).to_string(),
             )?),
             "bool" => Some(eg.value_to_base::<bool>(v).to_string()),
+            "f64" => Some(
+                Expr::Lit(
+                    sp(),
+                    Literal::Float(eg.value_to_base::<egglog::sort::F>(v).0),
+                )
+                .to_string(),
+            ),
             _ => return Err("unsupported scalar literal".into()),
         };
         let i = values.len();
@@ -618,9 +570,9 @@ fn export_state(
     };
     let mut rows = BTreeSet::new();
     let mut hidden = BTreeSet::new();
-    let mut sorted = variants.clone();
-    sorted.sort_by(|a, b| a.name.cmp(&b.name));
-    for v in &sorted {
+    let mut sorted = constructors;
+    sorted.sort_by(|a, b| a.1.name.cmp(&b.1.name));
+    for (output, v) in &sorted {
         let mut raw = vec![];
         eg.function_for_each(&v.name, |row| raw.push((row.vals.to_vec(), row.subsumed)))?;
         for (row, subsumed) in raw {
@@ -636,7 +588,7 @@ fn export_state(
             let fact = Row {
                 op: v.name.clone(),
                 args,
-                result: vertex(name, *row.last().unwrap())?,
+                result: vertex(output, *row.last().unwrap())?,
             };
             if rows.contains(&fact) && hidden.contains(&fact) != subsumed {
                 return Err("ambiguous canonical row visibility".into());
@@ -693,7 +645,7 @@ fn export_state(
     let mut state = SaturatedRuleComposition {
         version: 2,
         local_ids,
-        scope: json!({"datatype":name,"constructors":sorted.iter().map(|v|json!({"name":v.name,"types":v.types,"cost":v.cost.map(|x|x.to_string()),"unextractable":v.unextractable})).collect::<Vec<_>>(),"rules":rules,"symbolic_boundary":symbolic,"semantics":if observation_only{"observed-constructor-graph/v1"}else{"positive-constructor-equality/v1"},"observation_only":observation_only,"ports":"fixed named globals; otherwise all facts observable"}),
+        scope: json!({"datatype":name,"constructors":sorted.iter().map(|(output,v)|{let mut item=json!({"name":v.name,"types":v.types,"cost":v.cost.map(|x|x.to_string()),"unextractable":v.unextractable});if names.len()>1 {item["output"]=json!(output);}item}).collect::<Vec<_>>(),"rules":rules,"symbolic_boundary":symbolic,"semantics":if observation_only{"observed-constructor-graph/v1"}else{"positive-constructor-equality/v1"},"observation_only":observation_only,"ports":"fixed named globals; otherwise all facts observable"}),
         values,
         subsumed_rows: rows
             .iter()
@@ -703,6 +655,9 @@ fn export_state(
         rows: rows.into_iter().collect(),
         ports: named,
     };
+    if names.len() > 1 {
+        state.scope["datatypes"] = json!(names);
+    }
     if !tables.is_empty() {
         state.scope["tables"] = json!(
             declarations

@@ -29,6 +29,8 @@ mod layer_view;
 pub mod ripen;
 #[path = "native_saturated_rule_composition_pipeline.rs"]
 mod saturated_rule_composition_pipeline;
+#[path = "native_sorts.rs"]
+mod sorts;
 #[path = "native_weak_dominate.rs"]
 mod weak_dominate;
 fn sp() -> Span {
@@ -151,7 +153,7 @@ struct Captured {
     layers: crate::coarse_smooth::LayerStore,
     applies: Vec<crate::coarse_smooth::Apply>,
     datatype: String,
-    datatype_name: String,
+    datatype_names: BTreeSet<String>,
     rules: Vec<RuleInfo>,
     records: Vec<Record>,
     record_index: BTreeMap<u64, usize>,
@@ -163,28 +165,6 @@ struct Captured {
     trace_batches: usize,
     rejected: usize,
 }
-fn declaration_sort(commands: &[Command]) -> Result<String> {
-    let names = commands
-        .iter()
-        .filter_map(|c| match c {
-            Command::Datatype { name, .. }
-            | Command::Sort {
-                name,
-                presort_and_args: None,
-                ..
-            } => Some(name.clone()),
-            _ => None,
-        })
-        .collect::<Vec<_>>();
-    if names.len() > 1
-        || commands
-            .iter()
-            .any(|c| matches!(c, Command::Datatypes { .. }))
-    {
-        return Err("multi-datatype analysis is not yet supported".into());
-    }
-    Ok(names.first().cloned().unwrap_or_else(|| "Unit".into()))
-}
 /// Same as `capture_with_sink`, but for source text already in memory (the wasm
 /// build has no filesystem).
 fn capture_text_with_sink(
@@ -193,32 +173,25 @@ fn capture_text_with_sink(
     rounds: Option<usize>,
     sink: Option<&mut dyn FnMut(&mut Captured) -> Result>,
 ) -> Result<Captured> {
-    capture_text_with_planner(name,text,rounds,sink,None)
+    capture_text_with_planner(name, text, rounds, sink, None)
 }
 fn capture_text_with_planner(
-    name:&str,text:&str,rounds:Option<usize>,mut sink:Option<&mut dyn FnMut(&mut Captured)->Result>,
-    library:Option<&crate::reuse_graph::library::Library>,
-)->Result<Captured> {
+    name: &str,
+    text: &str,
+    rounds: Option<usize>,
+    mut sink: Option<&mut dyn FnMut(&mut Captured) -> Result>,
+    library: Option<&crate::reuse_graph::library::Library>,
+) -> Result<Captured> {
     let started = Instant::now();
     let mut eg = EGraph::default();
     let mut commands =
         crate::visual_rule::surface_program(eg.parse_program(Some(name.to_owned()), text)?);
-    declaration_sort(&commands)?;
     let declarations: Vec<_> = commands
         .iter()
-        .filter(|c| {
-            matches!(
-                c,
-                Command::Datatype { .. }
-                    | Command::Relation { .. }
-                    | Command::Function { .. }
-                    | Command::Sort { .. }
-                    | Command::Constructor { .. }
-            )
-        })
+        .filter(|c| sorts::is_declaration(c))
         .cloned()
         .collect();
-    let datatype_name = declaration_sort(&declarations)?;
+    let datatype_names = sorts::equality_sorts(&declarations);
     let datatype = declarations
         .iter()
         .map(ToString::to_string)
@@ -282,7 +255,7 @@ fn capture_text_with_planner(
         layers: Default::default(),
         applies: vec![],
         datatype,
-        datatype_name,
+        datatype_names,
         rules,
         records: vec![],
         record_index: BTreeMap::new(),
@@ -295,12 +268,23 @@ fn capture_text_with_planner(
         rejected: 0,
     };
     use crate::reuse_graph::planner::rule_runner::SourcePlanner;
-    let mut planner=if let Some(library)=library {
+    let mut planner = if let Some(library) = library {
         if SourcePlanner::supports_capture(&commands) {
-            let globals=commands.iter().filter_map(|c|match c {Command::Action(Action::Let(_,n,_))=>Some(n.clone()),_=>None}).collect();
-            Some(SourcePlanner::new(&mut eg,library,text,globals)?)
-        } else {c.reuse_plan=json!({"status":"native_fallback","reason":"program is outside the positive finite planner subset"});None}
-    } else {None};
+            let globals = commands
+                .iter()
+                .filter_map(|c| match c {
+                    Command::Action(Action::Let(_, n, _)) => Some(n.clone()),
+                    _ => None,
+                })
+                .collect();
+            Some(SourcePlanner::new(&mut eg, library, text, globals)?)
+        } else {
+            c.reuse_plan = json!({"status":"native_fallback","reason":"program is outside the positive finite planner subset"});
+            None
+        }
+    } else {
+        None
+    };
     let mut producers = BTreeMap::new();
     let mut count = 0;
     let mut known = true;
@@ -309,7 +293,9 @@ fn capture_text_with_planner(
             if matches!(**inner, egglog::ast::GenericSchedule::Run(..)) {
                 for _ in 0..*n {
                     let round_start = Instant::now();
-                    if let Some(p)=&planner {p.refresh(&mut eg)?;}
+                    if let Some(p) = &planner {
+                        p.refresh(&mut eg)?;
+                    }
                     eg.run_program_with_trace(
                         vec![Command::RunSchedule((**inner).clone())],
                         &trace,
@@ -317,7 +303,7 @@ fn capture_text_with_planner(
                     let tier0_seconds = round_start.elapsed().as_secs_f64();
                     let collect_start = Instant::now();
                     count += 1;
-                    collect_with_planner(&eg, &trace, &mut c, &mut producers,planner.as_mut())?;
+                    collect_with_planner(&eg, &trace, &mut c, &mut producers, planner.as_mut())?;
                     c.boundaries.push(CaptureBoundary {
                         ripen: None,
                         kind: if known { "round" } else { "execution-boundary" }.into(),
@@ -366,10 +352,21 @@ fn capture_text_with_planner(
             }
             _ => None,
         };
-        if schedule {if let Some(p)=&planner {p.refresh(&mut eg)?;}}
+        if schedule {
+            if let Some(p) = &planner {
+                p.refresh(&mut eg)?;
+            }
+        }
         match command {
-            Command::Rule{rule} if planner.is_some()=>planner.as_mut().unwrap().install(&mut eg,rule,Some(&trace))?,
-            command=>{eg.run_program_with_trace(vec![command], &trace)?;}
+            Command::Rule { rule } if planner.is_some() => {
+                planner
+                    .as_mut()
+                    .unwrap()
+                    .install(&mut eg, rule, Some(&trace))?
+            }
+            command => {
+                eg.run_program_with_trace(vec![command], &trace)?;
+            }
         }
         if let Some((reset, tables)) = external_change {
             c.changes.push(crate::closure_contract::Change {
@@ -380,7 +377,7 @@ fn capture_text_with_planner(
             });
         }
         if schedule {
-            collect_with_planner(&eg, &trace, &mut c, &mut producers,planner.as_mut())?;
+            collect_with_planner(&eg, &trace, &mut c, &mut producers, planner.as_mut())?;
             c.boundaries.push(CaptureBoundary {
                 ripen: None,
                 kind: "execution-boundary".into(),
@@ -392,7 +389,7 @@ fn capture_text_with_planner(
             }
         }
     }
-    collect_with_planner(&eg, &trace, &mut c, &mut producers,planner.as_mut())?;
+    collect_with_planner(&eg, &trace, &mut c, &mut producers, planner.as_mut())?;
     if c.boundaries.last().is_none_or(|b| b.end != c.records.len())
         || c.changes
             .last()
@@ -426,9 +423,15 @@ fn collect(
     c: &mut Captured,
     producers: &mut BTreeMap<u64, Producer>,
 ) -> Result {
-    collect_with_planner(eg,trace,c,producers,None)
+    collect_with_planner(eg, trace, c, producers, None)
 }
-fn collect_with_planner(eg:&EGraph,trace:&TraceSession,c:&mut Captured,producers:&mut BTreeMap<u64,Producer>,planner:Option<&mut crate::reuse_graph::planner::rule_runner::SourcePlanner>)->Result {
+fn collect_with_planner(
+    eg: &EGraph,
+    trace: &TraceSession,
+    c: &mut Captured,
+    producers: &mut BTreeMap<u64, Producer>,
+    planner: Option<&mut crate::reuse_graph::planner::rule_runner::SourcePlanner>,
+) -> Result {
     let prior_scope = c.last_scope;
     let rules = &c.rules;
     let names: BTreeMap<_, _> = rules
@@ -437,7 +440,11 @@ fn collect_with_planner(eg:&EGraph,trace:&TraceSession,c:&mut Captured,producers
         .map(|(i, r)| (r.rule.name.clone(), i))
         .collect();
     let batch = trace.drain_completed();
-    if let Some(planner)=planner {planner.consume(eg,&batch)?;c.reuse_plan=planner.report();c.reuse_signatures=planner.signatures();}
+    if let Some(planner) = planner {
+        planner.consume(eg, &batch)?;
+        c.reuse_plan = planner.report();
+        c.reuse_signatures = planner.signatures();
+    }
     let batch_len = batch.len();
     c.trace_peak = c.trace_peak.max(batch_len);
     c.trace_batches += usize::from(batch_len > 0);
@@ -504,7 +511,7 @@ fn collect_with_planner(eg:&EGraph,trace:&TraceSession,c:&mut Captured,producers
             );
         }
     }
-    for r in batch.reads.into_iter().filter(|r|!r.planner_summary) {
+    for r in batch.reads.into_iter().filter(|r| !r.planner_summary) {
         reads.entry(r.match_event_id).or_default().push(r);
     }
     let variable_sorts: Vec<BTreeMap<String, Arc<str>>> = rules
@@ -532,6 +539,49 @@ fn collect_with_planner(eg:&EGraph,trace:&TraceSession,c:&mut Captured,producers
             sorts
         })
         .collect();
+    let mut eq_types = BTreeMap::<Value, BTreeSet<Arc<str>>>::new();
+    for token in &c.pool.values {
+        if c.datatype_names.contains(token.sort.as_ref()) {
+            if let Key::Value(_, v) = token.key {
+                eq_types.entry(v).or_default().insert(token.sort.clone());
+            }
+        }
+    }
+    for w in &writes {
+        if let Some((_, _, types)) = schemas.get(&format!("{:?}", w.table)) {
+            for (v, ty) in w.actual.iter().zip(types) {
+                if c.datatype_names.contains(ty.as_ref()) {
+                    eq_types.entry(*v).or_default().insert(ty.clone());
+                }
+            }
+        }
+    }
+    for rs in reads.values() {
+        for r in rs {
+            if let Some((_, _, types)) = schemas.get(&format!("{:?}", r.table)) {
+                for (v, ty) in r.row.iter().zip(types) {
+                    if c.datatype_names.contains(ty.as_ref()) {
+                        eq_types.entry(*v).or_default().insert(ty.clone());
+                    }
+                }
+            }
+        }
+    }
+    let union_sort = |a: Value, b: Value| -> Result<Arc<str>> {
+        let candidates: BTreeSet<_> = eq_types
+            .get(&a)
+            .into_iter()
+            .flatten()
+            .chain(eq_types.get(&b).into_iter().flatten())
+            .cloned()
+            .collect();
+        if candidates.len() != 1 {
+            return Err(
+                format!("union sort evidence is missing or ambiguous: {candidates:?}").into(),
+            );
+        }
+        Ok(candidates.into_iter().next().unwrap())
+    };
     let pool = &mut c.pool;
     let records = &mut c.records;
     let imported = &mut c.record_index;
@@ -551,11 +601,7 @@ fn collect_with_planner(eg:&EGraph,trace:&TraceSession,c:&mut Captured,producers
             continue;
         }
         let s = scope(m.event_id);
-        let datatype_name = c.datatype_name.clone();
-        let value_token = |v| Token {
-            sort: Arc::from(datatype_name.as_str()),
-            key: Key::Value(s, v),
-        };
+
         let mut named = m
             .bindings
             .iter()
@@ -582,10 +628,20 @@ fn collect_with_planner(eg:&EGraph,trace:&TraceSession,c:&mut Captured,producers
                 .get(n)
                 .ok_or_else(|| format!("unmapped binding sort: {n}"))?
                 .clone();
-            let literal = if sort.as_ref() == "i64" {
-                Some(eg.value_to_base::<i64>(*v).to_string())
-            } else {
-                None
+            let literal = match sort.as_ref() {
+                "i64" => Some(eg.value_to_base::<i64>(*v).to_string()),
+                "String" => Some(serde_json::to_string(
+                    &eg.value_to_base::<egglog::sort::S>(*v).to_string(),
+                )?),
+                "bool" => Some(eg.value_to_base::<bool>(*v).to_string()),
+                "f64" => Some(
+                    Expr::Lit(
+                        sp(),
+                        egglog::ast::Literal::Float(eg.value_to_base::<egglog::sort::F>(*v).0),
+                    )
+                    .to_string(),
+                ),
+                _ => None,
             };
             let token = pool.intern(Token {
                 sort,
@@ -644,11 +700,19 @@ fn collect_with_planner(eg:&EGraph,trace:&TraceSession,c:&mut Captured,producers
                 schemas
                     .get(&format!("{:?}", r.table))
                     .and_then(|(_, arity, sorts)| {
-                        (sorts[*arity].as_ref() == datatype_name)
+                        (c.datatype_names.contains(sorts[*arity].as_ref()))
                             .then(|| r.row.get(*arity))
                             .flatten()
                     })
-                    .map(|v| pool.intern(value_token(*v))),
+                    .map(|v| {
+                        let sort = schemas[&format!("{:?}", r.table)].2
+                            [schemas[&format!("{:?}", r.table)].1]
+                            .clone();
+                        pool.intern(Token {
+                            sort,
+                            key: Key::Value(s, *v),
+                        })
+                    }),
             );
             let valid = r
                 .producer_match_event_id
@@ -719,8 +783,20 @@ fn collect_with_planner(eg:&EGraph,trace:&TraceSession,c:&mut Captured,producers
             .remove(&m.event_id)
             .unwrap_or_default()
             .into_iter()
-            .map(|(a, b)| (pool.intern(value_token(a)), pool.intern(value_token(b))))
-            .collect();
+            .map(|(a, b)| -> Result<_> {
+                let sort = union_sort(a, b)?;
+                Ok((
+                    pool.intern(Token {
+                        sort: sort.clone(),
+                        key: Key::Value(s, a),
+                    }),
+                    pool.intern(Token {
+                        sort,
+                        key: Key::Value(s, b),
+                    }),
+                ))
+            })
+            .collect::<Result<Vec<_>>>()?;
         let coarse = parents.is_empty() || ports.iter().any(|p| matches!(p, Port::External(_)));
         imported.insert(m.event_id, records.len());
         records.push(Record {
@@ -737,7 +813,9 @@ fn collect_with_planner(eg:&EGraph,trace:&TraceSession,c:&mut Captured,producers
             required,
             produced,
             unions: union_tokens,
-            updated_rows: ws.iter().any(|w| w.outcome == WriteOutcome::Updated && w.rebuild_of.is_none()),
+            updated_rows: ws
+                .iter()
+                .any(|w| w.outcome == WriteOutcome::Updated && w.rebuild_of.is_none()),
             coarse,
             comb: None,
             instance: None,
@@ -771,9 +849,10 @@ fn collect_with_planner(eg:&EGraph,trace:&TraceSession,c:&mut Captured,producers
         }
     }
     for u in raw_unions.into_iter().filter(|u| u.displaced.is_some()) {
+        let union_type = union_sort(u.lhs, u.rhs)?;
         let tokens = [u.lhs, u.rhs].map(|v| {
             pool.intern(Token {
-                sort: Arc::from(c.datatype_name.as_str()),
+                sort: union_type.clone(),
                 key: Key::Value(scope(u.match_event_id), v),
             })
         });
@@ -928,10 +1007,15 @@ fn update_layers(c: &mut Captured) -> Result {
     update_applies(c)?;
     c.layers.ripen = c.boundaries.last().and_then(|b| b.ripen.clone());
     if !crate::graph_render::graphs_enabled()
-        && std::env::var("EGG_LAYOUT_COMPOSITION_DISCOVERY").as_deref()!=Ok("layers")
-        && std::env::var("EGG_LAYOUT_LAYER_VIEW").as_deref()!=Ok("1") {return Ok(());}
+        && std::env::var("EGG_LAYOUT_COMPOSITION_DISCOVERY").as_deref() != Ok("layers")
+        && std::env::var("EGG_LAYOUT_LAYER_VIEW").as_deref() != Ok("1")
+    {
+        return Ok(());
+    }
     for apply in &c.applies[c.layers.occurrences.len()..] {
-        c.layers.push(apply.clone()).map_err(|e|->Box<dyn std::error::Error>{e.into()})?;
+        c.layers
+            .push(apply.clone())
+            .map_err(|e| -> Box<dyn std::error::Error> { e.into() })?;
     }
     Ok(())
 }
@@ -947,8 +1031,8 @@ fn execute(
     stream_frames: bool,
     observation: crate::ripen_observation::Limits,
     emit: &mut dyn FnMut(Json) -> Result,
-    reuse_library:Option<&Path>,
-    optimize:bool,
+    reuse_library: Option<&Path>,
+    optimize: bool,
 ) -> Result<Json> {
     std::fs::create_dir_all(out)?;
     let render_batch = crate::graph_render::Batch::start()?;
@@ -962,8 +1046,12 @@ fn execute(
         observation.facts.map_or("off".into(), |n| n.to_string()),
         detailed_trace
     );
-    let mut pipeline =
-        saturated_rule_composition_pipeline::Pipeline::new(out, name.into(), observation,reuse_library)?;
+    let mut pipeline = saturated_rule_composition_pipeline::Pipeline::new(
+        out,
+        name.into(),
+        observation,
+        reuse_library,
+    )?;
     let mut manifest = vec![];
     let mut emitted = 0;
     let mut boundary = 0;
@@ -1008,13 +1096,23 @@ fn execute(
     };
     let c = if let Some(path) = replay {
         let mut c = history::read(path)?;
-        let boundaries=std::mem::take(&mut c.boundaries);
-        if boundaries.is_empty() {boundary_emit(&mut c)?;} else {
-            let mut records=std::mem::take(&mut c.records).into_iter();
-            let mut changes=std::mem::take(&mut c.changes).into_iter().peekable();
-            for (index,boundary) in boundaries.into_iter().enumerate() {
-                while c.records.len()<boundary.end {c.records.push(records.next().ok_or("incomplete replay boundary")?);}
-                while changes.peek().is_some_and(|change|change.boundary<=index+1) {c.changes.push(changes.next().unwrap());}
+        let boundaries = std::mem::take(&mut c.boundaries);
+        if boundaries.is_empty() {
+            boundary_emit(&mut c)?;
+        } else {
+            let mut records = std::mem::take(&mut c.records).into_iter();
+            let mut changes = std::mem::take(&mut c.changes).into_iter().peekable();
+            for (index, boundary) in boundaries.into_iter().enumerate() {
+                while c.records.len() < boundary.end {
+                    c.records
+                        .push(records.next().ok_or("incomplete replay boundary")?);
+                }
+                while changes
+                    .peek()
+                    .is_some_and(|change| change.boundary <= index + 1)
+                {
+                    c.changes.push(changes.next().unwrap());
+                }
                 c.boundaries.push(boundary);
                 boundary_emit(&mut c)?;
             }
@@ -1022,8 +1120,18 @@ fn execute(
         }
         c
     } else {
-        let library=if optimize {Some(crate::reuse_graph::library::Library::load(reuse_library.ok_or("optimization requires a reuse library")?)?)}else{None};
-        if let Some(library)=&library {capture_text_with_planner(name,text,rounds,Some(&mut boundary_emit),Some(library))?} else {capture_text_with_sink(name,text,rounds,Some(&mut boundary_emit))?}
+        let library = if optimize {
+            Some(crate::reuse_graph::library::Library::load(
+                reuse_library.ok_or("optimization requires a reuse library")?,
+            )?)
+        } else {
+            None
+        };
+        if let Some(library) = &library {
+            capture_text_with_planner(name, text, rounds, Some(&mut boundary_emit), Some(library))?
+        } else {
+            capture_text_with_sink(name, text, rounds, Some(&mut boundary_emit))?
+        }
     };
     drop(boundary_emit);
     if save_history {
@@ -1069,22 +1177,37 @@ fn execute(
         emit(frame)?;
     }
     let finish_started = Instant::now();
-    let mut report = json!({"status":if pipeline.report()["counts"]["ObservedUnfinished"].as_u64().unwrap_or(0)>0 {"observed_unfinished"}else{"complete"},"summary":{"applications":c.records.len(),"logical_matches":c.events,"excluded":c.rejected,"scope":"native history -> CS -> ripen -> equivalence -> weak dominate"},"layers":c.layers.report(),"saturated_rule_composition":null});
-    report["reuse_plan"]=c.reuse_plan.clone();
+    let mut report = json!({"status":if pipeline.report()["counts"]["ObservedUnfinished"].as_u64().unwrap_or(0)>0 {"observed_unfinished"}else{"complete"},"summary":{"applications":c.records.len(),"equality_sorts":c.datatype_names,"logical_matches":c.events,"excluded":c.rejected,"scope":"native history -> CS -> ripen -> equivalence -> weak dominate"},"layers":c.layers.report(),"saturated_rule_composition":null});
+    report["reuse_plan"] = c.reuse_plan.clone();
     report["saturated_rule_composition"] = pipeline.take_report();
     // Opt-in through the graph-output switch: leave graphless native timing alone.
     if crate::graph_render::graphs_enabled() {
-        let specs = c.pool.values.iter().enumerate().map(|(i,t)|crate::slotted_layer::TokenSpec {
-            sort: t.sort.to_string(), literal:c.pool.literals.get(&i).cloned(),
-        }).collect::<Vec<_>>();
+        let specs = c
+            .pool
+            .values
+            .iter()
+            .enumerate()
+            .map(|(i, t)| crate::slotted_layer::TokenSpec {
+                sort: t.sort.to_string(),
+                literal: c.pool.literals.get(&i).cloned(),
+            })
+            .collect::<Vec<_>>();
         let slotted = crate::slotted_layer::LayerCanon::build(&c.layers, &specs)?;
         report["slotted_canon"] = slotted.report().clone();
-        std::fs::write(out.join("slotted-canon.json"), serde_json::to_vec_pretty(slotted.report())?)?;
+        std::fs::write(
+            out.join("slotted-canon.json"),
+            serde_json::to_vec_pretty(slotted.report())?,
+        )?;
         std::fs::write(out.join("slotted-canon.dsl"), slotted.to_dsl())?;
-        for (name,dot) in [("slotted-canon.dot",slotted.to_dot()),
-            ("slotted-egraph.dot",crate::slotted_dot::to_dot(&slotted.egraph))] {
-            let path=out.join(name);
-            std::fs::write(&path,dot)?;
+        for (name, dot) in [
+            ("slotted-canon.dot", slotted.to_dot()),
+            (
+                "slotted-egraph.dot",
+                crate::slotted_dot::to_dot(&slotted.egraph),
+            ),
+        ] {
+            let path = out.join(name);
+            std::fs::write(&path, dot)?;
             crate::graph_render::enqueue(&path)?;
         }
     }
@@ -1137,16 +1260,43 @@ pub fn run_with_observation(
     save_history: bool,
     observation: crate::ripen_observation::Limits,
 ) -> Result<Json> {
-    run_with_reuse(source,out,rounds,replay,save_history,observation,None)
+    run_with_reuse(source, out, rounds, replay, save_history, observation, None)
 }
 pub fn run_with_reuse(
-    source:&Path,out:&Path,rounds:Option<usize>,replay:Option<&Path>,save_history:bool,
-    observation:crate::ripen_observation::Limits,reuse_library:Option<&Path>,
-)->Result<Json> {
-    run_configured(source,out,rounds,replay,save_history,observation,reuse_library,false)
+    source: &Path,
+    out: &Path,
+    rounds: Option<usize>,
+    replay: Option<&Path>,
+    save_history: bool,
+    observation: crate::ripen_observation::Limits,
+    reuse_library: Option<&Path>,
+) -> Result<Json> {
+    run_configured(
+        source,
+        out,
+        rounds,
+        replay,
+        save_history,
+        observation,
+        reuse_library,
+        false,
+    )
 }
-pub fn run_configured(source:&Path,out:&Path,rounds:Option<usize>,replay:Option<&Path>,save_history:bool,observation:crate::ripen_observation::Limits,reuse_library:Option<&Path>,optimize:bool)->Result<Json> {
-    if optimize && (reuse_library.is_none()||replay.is_some()){return Err("planned capture requires a source and reuse library, not history replay".into());}
+pub fn run_configured(
+    source: &Path,
+    out: &Path,
+    rounds: Option<usize>,
+    replay: Option<&Path>,
+    save_history: bool,
+    observation: crate::ripen_observation::Limits,
+    reuse_library: Option<&Path>,
+    optimize: bool,
+) -> Result<Json> {
+    if optimize && (reuse_library.is_none() || replay.is_some()) {
+        return Err(
+            "planned capture requires a source and reuse library, not history replay".into(),
+        );
+    }
     observation.validate()?;
     if out.exists() {
         return Err("analysis output already exists".into());

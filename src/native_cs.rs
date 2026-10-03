@@ -360,7 +360,7 @@ impl Store {
                 .iter()
                 .copied()
                 .chain(roots)
-                .filter(|t| c.pool.values[*t].sort.as_ref() == c.datatype_name)
+                .filter(|t| c.datatype_names.contains(c.pool.values[*t].sort.as_ref()))
             {
                 pending.entry(self.canonical(port)).or_default().insert(id);
             }

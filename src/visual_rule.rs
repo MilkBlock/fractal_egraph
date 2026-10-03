@@ -96,6 +96,13 @@ pub fn positions(rule: &Rule) -> Vec<(String, String, String)> {
                 walk(a, format!("head/{i}/expr/0"), &mut out);
                 walk(b, format!("head/{i}/expr/1"), &mut out);
             }
+            Action::Change(span, _, op, args) => {
+                walk(
+                    &Expr::Call(span.clone(), op.clone(), args.clone()),
+                    format!("head/{i}/change/0"),
+                    &mut out,
+                );
+            }
             Action::Set(span, op, args, value) => {
                 walk(
                     &Expr::Call(span.clone(), op.clone(), args.clone()),
@@ -153,17 +160,20 @@ pub fn expression_at<'a>(rule: &'a Rule, path: &str) -> Option<&'a Expr> {
     Some(e)
 }
 
-/// `set` targets are table applications but are not Expr nodes in egglog's AST.
+/// `set` and `subsume`/`delete` targets are table applications, not Expr AST nodes.
 pub fn owned_expression_at(rule: &Rule, path: &str) -> Option<Expr> {
     if let Some(e) = expression_at(rule, path) {
         return Some(e.clone());
     }
     let p: Vec<_> = path.split('/').collect();
-    if p.len() < 4 || p[0] != "head" || p[2] != "set" || p[3] != "0" {
+    if p.len() < 4 || p[0] != "head" || !matches!(p[2], "set" | "change") || p[3] != "0" {
         return None;
     }
-    let Action::Set(span, op, args, _) = rule.head.0.get(p[1].parse::<usize>().ok()?)? else {
-        return None;
+    let (span, op, args) = match (p[2], rule.head.0.get(p[1].parse::<usize>().ok()?)?) {
+        ("set", Action::Set(span, op, args, _)) | ("change", Action::Change(span, _, op, args)) => {
+            (span, op, args)
+        }
+        _ => return None,
     };
     let root = Expr::Call(span.clone(), op.clone(), args.clone());
     let mut e = &root;

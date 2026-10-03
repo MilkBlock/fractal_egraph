@@ -283,19 +283,15 @@ impl Library {
             self.enclosures
                 .push(graph.enclosure(enclosure).unwrap().clone());
         }
-        if !self
-            .entries
-            .iter()
-            .any(|e| {
-                e.enclosure == enclosure
+        if !self.entries.iter().any(|e| {
+            e.enclosure == enclosure
                     && e.source == source
                     // Runtime occurrences have fresh history paths/event IDs.
                     // Keep the first validated replay evidence for this recipe;
                     // occurrence evidence remains in the run's ripen artifacts.
                     // Initial Bake still preserves distinct supplied origins.
                     && (admission == Admission::RuntimeSupplement || e.origin == *origin)
-            })
-        {
+        }) {
             self.entries.push(EntryRecord {
                 enclosure,
                 source,
@@ -452,7 +448,12 @@ impl Library {
         out
     }
     pub fn fragments(&self) -> Vec<super::planner::Query> {
-        self.fragment_catalog().into_iter().map(|(q, _)| q).collect::<BTreeSet<_>>().into_iter().collect()
+        self.fragment_catalog()
+            .into_iter()
+            .map(|(q, _)| q)
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .collect()
     }
     /// Keep physical input arities so omitted relation results cannot be mistaken
     /// for arguments while validating a source fragment against a larger body.
@@ -465,7 +466,17 @@ impl Library {
                 .rows
                 .iter()
                 .enumerate()
-                .filter(|(i, r)| r.op != marker && !b.subsumed_rows.contains(i))
+                .filter(|(i, r)| {
+                    r.op != marker
+                        && !e.origin["parameter_markers"]
+                            .as_object()
+                            .is_some_and(|markers| {
+                                markers
+                                    .values()
+                                    .any(|name| name.as_str() == Some(r.op.as_str()))
+                            })
+                        && !b.subsumed_rows.contains(i)
+                })
                 .map(|(_, r)| {
                     let mut columns = r.args.clone();
                     if b.values[r.result].sort != "Unit" {
@@ -483,18 +494,35 @@ impl Library {
                 .collect::<BTreeSet<_>>()
                 .into_iter()
                 .collect();
-            let arities = b.rows.iter().enumerate()
-                .filter(|(i, r)| r.op != marker && !b.subsumed_rows.contains(i))
-                .map(|(_, r)| r.args.len()).collect();
-            result.insert((super::planner::Query {
-                values: b
-                    .values
-                    .iter()
-                    .map(|v| (v.sort.clone(), v.literal.clone()))
-                    .collect(),
-                atoms,
-                projection,
-            }, arities));
+            let arities = b
+                .rows
+                .iter()
+                .enumerate()
+                .filter(|(i, r)| {
+                    r.op != marker
+                        && !e.origin["parameter_markers"]
+                            .as_object()
+                            .is_some_and(|markers| {
+                                markers
+                                    .values()
+                                    .any(|name| name.as_str() == Some(r.op.as_str()))
+                            })
+                        && !b.subsumed_rows.contains(i)
+                })
+                .map(|(_, r)| r.args.len())
+                .collect();
+            result.insert((
+                super::planner::Query {
+                    values: b
+                        .values
+                        .iter()
+                        .map(|v| (v.sort.clone(), v.literal.clone()))
+                        .collect(),
+                    atoms,
+                    projection,
+                },
+                arities,
+            ));
         }
         result.into_iter().collect()
     }
