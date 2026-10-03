@@ -1,0 +1,42 @@
+{
+  "before_gate": {
+    "elapsed": 6.537903291871771,
+    "counts": {
+      "Rejected": 2060
+    },
+    "reasons": {
+      "automatic merge update needs a pre-update table-state witness; explici": 2060
+    }
+  },
+  "after_gate": {
+    "elapsed_live": 91.76966145797633,
+    "elapsed_replay": 108.94484412507154,
+    "counts": {
+      "Rejected": 2060
+    },
+    "reasons": {
+      "automatic ripen cannot export its trigger state": 620,
+      "CS member 76": 70,
+      "set commits interleave match order; stage replay cannot reorder them": 1194,
+      "CS member 82": 1,
+      "set witness needs a scalar literal or an existing symbolic binding": 110,
+      "CS member 559": 40,
+      "CS member 1478": 2,
+      "unresolved binding inner": 9,
+      "CS member 1505": 1,
+      "CS member 1520": 5,
+      "CS member 1521": 1,
+      "CS member 1536": 1,
+      "CS member 1537": 1,
+      "CS member 1616": 3,
+      "CS member 1834": 1,
+      "CS member 1835": 1
+    }
+  },
+  "history_set_counts": {
+    "0": 2168,
+    "1": 602,
+    "2": 7
+  },
+  "history_records": 2777
+}
