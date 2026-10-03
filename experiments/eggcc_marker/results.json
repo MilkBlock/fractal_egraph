@@ -1,0 +1,744 @@
+{
+  "scope": "Actual modified local egglog runtime, source-only view transformation; not a pristine-runtime comparison and not an integrated planner change",
+  "bake_evidence": "experiments/eggcc_cell_probe, 44 observed finite snapshot groups; motif hints plus source boundary consumers",
+  "fact": {
+    "source_sha256": "7747960d4e1aefb1bb904d67472c02927be555f5a030ca09e42e43e668deaaad",
+    "binary_sha256": "32bb743c7e254466d2e1b9c75c422e68bf4e3c51b28206e4f831671d674f8087",
+    "repeats": 9,
+    "same_original_state_every_run": true,
+    "baseline": {
+      "execution_ms_median": 62.33858299999999,
+      "total_ms_median": 145.963709,
+      "scan_rows": 193024,
+      "refine_rows": 2641,
+      "key_lookups": 5579,
+      "marker_rows": 0
+    },
+    "candidate": {
+      "execution_ms_median": 61.401292999999995,
+      "total_ms_median": 144.243833,
+      "scan_rows": 174711,
+      "refine_rows": 2765,
+      "key_lookups": 5600,
+      "marker_rows": 39
+    },
+    "row_work_reduction_percent": 9.295990596172032,
+    "paired_execution_improvement_percent_median": 2.298383581169716,
+    "paired_execution_improvement_percent": [
+      4.574215398509818,
+      4.249636644258814,
+      -0.5966080428873477,
+      2.298383581169716,
+      4.173275229018325,
+      -0.06639377214112674,
+      2.826955448556212,
+      1.142437471115787,
+      0.03662463916771497
+    ],
+    "diagnostic_only_equivalent_except_to_hoist": [
+      true,
+      true
+    ],
+    "timing_scope": "rotating execution order; profiling disabled during timing; parse, rewrite generation and graph comparison excluded; setup and schedule time reported separately",
+    "motif": {
+      "inner": "Base",
+      "kind": "Nested",
+      "outer": "HasType",
+      "slot": 1
+    },
+    "rewritten_lhs_sites": 23,
+    "marker_arity": 2
+  },
+  "loopfact": {
+    "source_sha256": "b83dbc844f54f1b194f594e69cad1da8ccf44f2e7630971ef2be9215fcd0cafc",
+    "binary_sha256": "32bb743c7e254466d2e1b9c75c422e68bf4e3c51b28206e4f831671d674f8087",
+    "repeats": 9,
+    "same_original_state_every_run": true,
+    "baseline": {
+      "execution_ms_median": 78.588167,
+      "total_ms_median": 162.577458,
+      "scan_rows": 335342,
+      "refine_rows": 4831,
+      "key_lookups": 8906,
+      "marker_rows": 0
+    },
+    "candidate": {
+      "execution_ms_median": 75.675333,
+      "total_ms_median": 158.869,
+      "scan_rows": 320433,
+      "refine_rows": 5402,
+      "key_lookups": 8986,
+      "marker_rows": 76
+    },
+    "row_work_reduction_percent": 4.2149141760222,
+    "paired_execution_improvement_percent_median": 3.404590733610824,
+    "paired_execution_improvement_percent": [
+      9.274189032639402,
+      -4.867886998770077,
+      -9.979500231018434,
+      -0.7859564026320598,
+      6.08797656427662,
+      3.404590733610824,
+      7.142437844223215,
+      2.6249715176586474,
+      4.226062163781252
+    ],
+    "diagnostic_only_equivalent_except_to_hoist": [
+      true,
+      true
+    ],
+    "timing_scope": "rotating execution order; profiling disabled during timing; parse, rewrite generation and graph comparison excluded; setup and schedule time reported separately",
+    "motif": {
+      "inner": "TupleT",
+      "kind": "Nested",
+      "outer": "HasType",
+      "slot": 1
+    },
+    "rewritten_lhs_sites": 14,
+    "marker_arity": 2
+  },
+  "rejected_base_view_on_loopfact": {
+    "source_sha256": "b83dbc844f54f1b194f594e69cad1da8ccf44f2e7630971ef2be9215fcd0cafc",
+    "binary_sha256": "32bb743c7e254466d2e1b9c75c422e68bf4e3c51b28206e4f831671d674f8087",
+    "repeats": 1,
+    "same_original_state_every_run": false,
+    "baseline": {
+      "execution_ms_median": 70.988167,
+      "total_ms_median": 150.99041699999998,
+      "scan_rows": 335342,
+      "refine_rows": 4831,
+      "key_lookups": 8906,
+      "marker_rows": 0
+    },
+    "candidate": {
+      "execution_ms_median": 76.926084,
+      "total_ms_median": 161.970833,
+      "scan_rows": 320823,
+      "refine_rows": 5488,
+      "key_lookups": 8948,
+      "marker_rows": 38
+    },
+    "row_work_reduction_percent": 4.074985375088557,
+    "paired_execution_improvement_percent_median": -8.3646574505861,
+    "paired_execution_improvement_percent": [
+      -8.3646574505861
+    ],
+    "diagnostic_only_equivalent_except_to_hoist": [
+      true,
+      false
+    ],
+    "timing_scope": "rotating execution order; profiling disabled during timing; parse, rewrite generation and graph comparison excluded; setup and schedule time reported separately",
+    "motif": {
+      "inner": "Base",
+      "kind": "Nested",
+      "outer": "HasType",
+      "slot": 1
+    },
+    "rewritten_lhs_sites": 23,
+    "marker_arity": 2
+  },
+  "fact_screen": {
+    "baseline_self_equivalent": true,
+    "baseline_row_work": 195665,
+    "candidates": [
+      {
+        "id": 0,
+        "motif": {
+          "inner": "InIf",
+          "kind": "Nested",
+          "outer": "Arg",
+          "slot": 1
+        },
+        "same_original_snapshot": true,
+        "row_work": 195665,
+        "key_lookups": 5579,
+        "marker_rows": 0
+      },
+      {
+        "id": 1,
+        "motif": {
+          "inner": "InLoop",
+          "kind": "Nested",
+          "outer": "Arg",
+          "slot": 1
+        },
+        "same_original_snapshot": false,
+        "row_work": 195665,
+        "key_lookups": 5579,
+        "marker_rows": 0
+      },
+      {
+        "id": 2,
+        "motif": {
+          "inner": "PointerT",
+          "kind": "Nested",
+          "outer": "Base",
+          "slot": 0
+        },
+        "same_original_snapshot": false,
+        "row_work": 195665,
+        "key_lookups": 5579,
+        "marker_rows": 0
+      },
+      {
+        "id": 3,
+        "motif": {
+          "inner": "Get",
+          "kind": "Nested",
+          "outer": "Bop",
+          "slot": 1
+        },
+        "same_original_snapshot": false,
+        "row_work": 195942,
+        "key_lookups": 5607,
+        "marker_rows": 28
+      },
+      {
+        "id": 4,
+        "motif": {
+          "inner": "Bop",
+          "kind": "Nested",
+          "outer": "Bop",
+          "slot": 2
+        },
+        "same_original_snapshot": false,
+        "row_work": 195595,
+        "key_lookups": 5580,
+        "marker_rows": 1
+      },
+      {
+        "id": 5,
+        "motif": {
+          "inner": "Const",
+          "kind": "Nested",
+          "outer": "Bop",
+          "slot": 2
+        },
+        "same_original_snapshot": false,
+        "row_work": 191842,
+        "key_lookups": 5557,
+        "marker_rows": 5
+      },
+      {
+        "id": 6,
+        "motif": {
+          "inner": "Bool",
+          "kind": "Nested",
+          "outer": "Const",
+          "slot": 0
+        },
+        "same_original_snapshot": false,
+        "row_work": 195665,
+        "key_lookups": 5579,
+        "marker_rows": 0
+      },
+      {
+        "id": 7,
+        "motif": {
+          "inner": "Int",
+          "kind": "Nested",
+          "outer": "Const",
+          "slot": 0
+        },
+        "same_original_snapshot": false,
+        "row_work": 192090,
+        "key_lookups": 5559,
+        "marker_rows": 7
+      },
+      {
+        "id": 8,
+        "motif": {
+          "inner": "InIf",
+          "kind": "Nested",
+          "outer": "ExtractedExprCache",
+          "slot": 2
+        },
+        "same_original_snapshot": true,
+        "row_work": 195665,
+        "key_lookups": 5579,
+        "marker_rows": 0
+      },
+      {
+        "id": 9,
+        "motif": {
+          "inner": "Arg",
+          "kind": "Nested",
+          "outer": "Get",
+          "slot": 0
+        },
+        "same_original_snapshot": false,
+        "row_work": 186875,
+        "key_lookups": 5562,
+        "marker_rows": 9
+      },
+      {
+        "id": 10,
+        "motif": {
+          "inner": "Get",
+          "kind": "Nested",
+          "outer": "HasType",
+          "slot": 0
+        },
+        "same_original_snapshot": false,
+        "row_work": 193744,
+        "key_lookups": 5673,
+        "marker_rows": 92
+      },
+      {
+        "id": 11,
+        "motif": {
+          "inner": "Switch",
+          "kind": "Nested",
+          "outer": "HasType",
+          "slot": 0
+        },
+        "same_original_snapshot": true,
+        "row_work": 195665,
+        "key_lookups": 5579,
+        "marker_rows": 0
+      },
+      {
+        "id": 12,
+        "motif": {
+          "inner": "Base",
+          "kind": "Nested",
+          "outer": "HasType",
+          "slot": 1
+        },
+        "same_original_snapshot": true,
+        "row_work": 177476,
+        "key_lookups": 5600,
+        "marker_rows": 39
+      },
+      {
+        "id": 13,
+        "motif": {
+          "inner": "TupleT",
+          "kind": "Nested",
+          "outer": "HasType",
+          "slot": 1
+        },
+        "same_original_snapshot": false,
+        "row_work": 175308,
+        "key_lookups": 5629,
+        "marker_rows": 68
+      },
+      {
+        "id": 14,
+        "motif": {
+          "inner": "TCPair",
+          "kind": "Nested",
+          "outer": "Smaller",
+          "slot": 0
+        },
+        "same_original_snapshot": true,
+        "row_work": 195634,
+        "key_lookups": 5719,
+        "marker_rows": 70
+      },
+      {
+        "id": 15,
+        "motif": {
+          "inner": "TCPair",
+          "kind": "Nested",
+          "outer": "Smaller",
+          "slot": 1
+        },
+        "same_original_snapshot": true,
+        "row_work": 195688,
+        "key_lookups": 5720,
+        "marker_rows": 70
+      },
+      {
+        "id": 16,
+        "motif": {
+          "a": "BodyContainsExpr",
+          "ai": 0,
+          "b": "is-inv-Expr",
+          "bi": 0,
+          "kind": "Shared"
+        },
+        "same_original_snapshot": false,
+        "row_work": 186876,
+        "key_lookups": 5761,
+        "marker_rows": 182
+      },
+      {
+        "id": 17,
+        "motif": {
+          "a": "BodyContainsExpr",
+          "ai": 1,
+          "b": "ExprIsPure",
+          "bi": 0,
+          "kind": "Shared"
+        },
+        "same_original_snapshot": false,
+        "row_work": 194195,
+        "key_lookups": 5649,
+        "marker_rows": 67
+      },
+      {
+        "id": 18,
+        "motif": {
+          "a": "ContextOf",
+          "ai": 0,
+          "b": "HasArgType",
+          "bi": 0,
+          "kind": "Shared"
+        },
+        "same_original_snapshot": true,
+        "row_work": 192004,
+        "key_lookups": 5672,
+        "marker_rows": 107
+      },
+      {
+        "id": 19,
+        "motif": {
+          "a": "Function",
+          "ai": 3,
+          "b": "HasType",
+          "bi": 0,
+          "kind": "Shared"
+        },
+        "same_original_snapshot": true,
+        "row_work": 192104,
+        "key_lookups": 5554,
+        "marker_rows": 2
+      },
+      {
+        "id": 20,
+        "motif": {
+          "a": "HasType",
+          "ai": 0,
+          "b": "is-inv-Expr",
+          "bi": 1,
+          "kind": "Shared"
+        },
+        "same_original_snapshot": true,
+        "row_work": 195300,
+        "key_lookups": 5586,
+        "marker_rows": 7
+      }
+    ]
+  },
+  "loopfact_screen": {
+    "baseline_self_equivalent": true,
+    "baseline_row_work": 340173,
+    "candidates": [
+      {
+        "id": 0,
+        "motif": {
+          "inner": "InIf",
+          "kind": "Nested",
+          "outer": "Arg",
+          "slot": 1
+        },
+        "same_original_snapshot": true,
+        "row_work": 340173,
+        "key_lookups": 8906,
+        "marker_rows": 0
+      },
+      {
+        "id": 1,
+        "motif": {
+          "inner": "InLoop",
+          "kind": "Nested",
+          "outer": "Arg",
+          "slot": 1
+        },
+        "same_original_snapshot": true,
+        "row_work": 340173,
+        "key_lookups": 8906,
+        "marker_rows": 0
+      },
+      {
+        "id": 2,
+        "motif": {
+          "inner": "PointerT",
+          "kind": "Nested",
+          "outer": "Base",
+          "slot": 0
+        },
+        "same_original_snapshot": true,
+        "row_work": 340173,
+        "key_lookups": 8906,
+        "marker_rows": 0
+      },
+      {
+        "id": 3,
+        "motif": {
+          "inner": "Get",
+          "kind": "Nested",
+          "outer": "Bop",
+          "slot": 1
+        },
+        "same_original_snapshot": false,
+        "row_work": 340079,
+        "key_lookups": 8948,
+        "marker_rows": 42
+      },
+      {
+        "id": 4,
+        "motif": {
+          "inner": "Bop",
+          "kind": "Nested",
+          "outer": "Bop",
+          "slot": 2
+        },
+        "same_original_snapshot": true,
+        "row_work": 340027,
+        "key_lookups": 8906,
+        "marker_rows": 0
+      },
+      {
+        "id": 5,
+        "motif": {
+          "inner": "Const",
+          "kind": "Nested",
+          "outer": "Bop",
+          "slot": 2
+        },
+        "same_original_snapshot": false,
+        "row_work": 340502,
+        "key_lookups": 8911,
+        "marker_rows": 4
+      },
+      {
+        "id": 6,
+        "motif": {
+          "inner": "Bool",
+          "kind": "Nested",
+          "outer": "Const",
+          "slot": 0
+        },
+        "same_original_snapshot": false,
+        "row_work": 338874,
+        "key_lookups": 8913,
+        "marker_rows": 6
+      },
+      {
+        "id": 7,
+        "motif": {
+          "inner": "Int",
+          "kind": "Nested",
+          "outer": "Const",
+          "slot": 0
+        },
+        "same_original_snapshot": false,
+        "row_work": 340880,
+        "key_lookups": 8913,
+        "marker_rows": 6
+      },
+      {
+        "id": 8,
+        "motif": {
+          "inner": "InIf",
+          "kind": "Nested",
+          "outer": "ExtractedExprCache",
+          "slot": 2
+        },
+        "same_original_snapshot": true,
+        "row_work": 340173,
+        "key_lookups": 8906,
+        "marker_rows": 0
+      },
+      {
+        "id": 9,
+        "motif": {
+          "inner": "Arg",
+          "kind": "Nested",
+          "outer": "Get",
+          "slot": 0
+        },
+        "same_original_snapshot": false,
+        "row_work": 309810,
+        "key_lookups": 8915,
+        "marker_rows": 7
+      },
+      {
+        "id": 10,
+        "motif": {
+          "inner": "Get",
+          "kind": "Nested",
+          "outer": "HasType",
+          "slot": 0
+        },
+        "same_original_snapshot": false,
+        "row_work": 336806,
+        "key_lookups": 9028,
+        "marker_rows": 115
+      },
+      {
+        "id": 11,
+        "motif": {
+          "inner": "Switch",
+          "kind": "Nested",
+          "outer": "HasType",
+          "slot": 0
+        },
+        "same_original_snapshot": true,
+        "row_work": 340173,
+        "key_lookups": 8906,
+        "marker_rows": 0
+      },
+      {
+        "id": 12,
+        "motif": {
+          "inner": "Base",
+          "kind": "Nested",
+          "outer": "HasType",
+          "slot": 1
+        },
+        "same_original_snapshot": false,
+        "row_work": 326311,
+        "key_lookups": 8948,
+        "marker_rows": 38
+      },
+      {
+        "id": 13,
+        "motif": {
+          "inner": "TupleT",
+          "kind": "Nested",
+          "outer": "HasType",
+          "slot": 1
+        },
+        "same_original_snapshot": true,
+        "row_work": 325835,
+        "key_lookups": 8986,
+        "marker_rows": 76
+      },
+      {
+        "id": 14,
+        "motif": {
+          "inner": "TCPair",
+          "kind": "Nested",
+          "outer": "Smaller",
+          "slot": 0
+        },
+        "same_original_snapshot": false,
+        "row_work": 340216,
+        "key_lookups": 9040,
+        "marker_rows": 67
+      },
+      {
+        "id": 15,
+        "motif": {
+          "inner": "TCPair",
+          "kind": "Nested",
+          "outer": "Smaller",
+          "slot": 1
+        },
+        "same_original_snapshot": false,
+        "row_work": 340784,
+        "key_lookups": 9044,
+        "marker_rows": 67
+      },
+      {
+        "id": 16,
+        "motif": {
+          "a": "BodyContainsExpr",
+          "ai": 0,
+          "b": "is-inv-Expr",
+          "bi": 0,
+          "kind": "Shared"
+        },
+        "same_original_snapshot": true,
+        "row_work": 363175,
+        "key_lookups": 9366,
+        "marker_rows": 405
+      },
+      {
+        "id": 17,
+        "motif": {
+          "a": "BodyContainsExpr",
+          "ai": 1,
+          "b": "ExprIsPure",
+          "bi": 0,
+          "kind": "Shared"
+        },
+        "same_original_snapshot": false,
+        "row_work": 342047,
+        "key_lookups": 9288,
+        "marker_rows": 380
+      },
+      {
+        "id": 18,
+        "motif": {
+          "a": "ContextOf",
+          "ai": 0,
+          "b": "HasArgType",
+          "bi": 0,
+          "kind": "Shared"
+        },
+        "same_original_snapshot": true,
+        "row_work": 329814,
+        "key_lookups": 9030,
+        "marker_rows": 114
+      },
+      {
+        "id": 19,
+        "motif": {
+          "a": "Function",
+          "ai": 3,
+          "b": "HasType",
+          "bi": 0,
+          "kind": "Shared"
+        },
+        "same_original_snapshot": true,
+        "row_work": 340297,
+        "key_lookups": 8907,
+        "marker_rows": 1
+      },
+      {
+        "id": 20,
+        "motif": {
+          "a": "HasType",
+          "ai": 0,
+          "b": "is-inv-Expr",
+          "bi": 1,
+          "kind": "Shared"
+        },
+        "same_original_snapshot": false,
+        "row_work": 338321,
+        "key_lookups": 8916,
+        "marker_rows": 9
+      }
+    ]
+  },
+  "failed_combinations": [
+    {
+      "motifs": [
+        12,
+        18
+      ],
+      "profile_same_original_snapshot": [
+        true,
+        true,
+        false
+      ]
+    },
+    {
+      "motifs": [
+        12,
+        19
+      ],
+      "profile_same_original_snapshot": [
+        true,
+        true,
+        false
+      ]
+    }
+  ],
+  "shadow_rule_placement": {
+    "fact_equivalent_candidates": 9,
+    "candidate_count": 21,
+    "note": "Preserving original declarations/rule registration and redirecting schedules did not remove the full-state mismatches."
+  },
+  "limitations": [
+    "Candidate selection is workload specific; two accepted results use different views from the same frozen motif dictionary.",
+    "Logical view equivalence does not prove preservation of order-sensitive merge choices or arbitrary future schedules.",
+    "All marker maintenance scans and lookups are included. Read-row work is not a count of logical matches.",
+    "Timing uses nine rotating-order, profiling-disabled repetitions. Setup is included in total; parsing, generation and differential checking are outside the timer.",
+    "The workflow measures candidates offline. Running baseline and candidate on every production invocation would eliminate this small speed benefit."
+  ]
+}

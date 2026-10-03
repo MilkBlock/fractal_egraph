@@ -1,0 +1,273 @@
+{
+  "version": 1,
+  "scope": "Frozen source-query motifs discovered from observed RipSat interiors and their source consumers; selection hints, not saturation certificates",
+  "catalog_source_sha256": "7747960d4e1aefb1bb904d67472c02927be555f5a030ca09e42e43e668deaaad",
+  "motifs": [
+    {
+      "motif": {
+        "inner": "InIf",
+        "kind": "Nested",
+        "outer": "Arg",
+        "slot": 1
+      },
+      "ripsat_evidence": [
+        "boundary-consumer-of-observed-cell-operator"
+      ]
+    },
+    {
+      "motif": {
+        "inner": "InLoop",
+        "kind": "Nested",
+        "outer": "Arg",
+        "slot": 1
+      },
+      "ripsat_evidence": [
+        "boundary-consumer-of-observed-cell-operator"
+      ]
+    },
+    {
+      "motif": {
+        "inner": "PointerT",
+        "kind": "Nested",
+        "outer": "Base",
+        "slot": 0
+      },
+      "ripsat_evidence": [
+        "boundary-consumer-of-observed-cell-operator"
+      ]
+    },
+    {
+      "motif": {
+        "inner": "Get",
+        "kind": "Nested",
+        "outer": "Bop",
+        "slot": 1
+      },
+      "ripsat_evidence": [
+        "boundary-consumer-of-observed-cell-operator"
+      ]
+    },
+    {
+      "motif": {
+        "inner": "Bop",
+        "kind": "Nested",
+        "outer": "Bop",
+        "slot": 2
+      },
+      "ripsat_evidence": [
+        "boundary-consumer-of-observed-cell-operator"
+      ]
+    },
+    {
+      "motif": {
+        "inner": "Const",
+        "kind": "Nested",
+        "outer": "Bop",
+        "slot": 2
+      },
+      "ripsat_evidence": [
+        "boundary-consumer-of-observed-cell-operator",
+        "group-29.json",
+        "group-30.json",
+        "group-32.json",
+        "group-33.json",
+        "group-37.json"
+      ]
+    },
+    {
+      "motif": {
+        "inner": "Bool",
+        "kind": "Nested",
+        "outer": "Const",
+        "slot": 0
+      },
+      "ripsat_evidence": [
+        "boundary-consumer-of-observed-cell-operator"
+      ]
+    },
+    {
+      "motif": {
+        "inner": "Int",
+        "kind": "Nested",
+        "outer": "Const",
+        "slot": 0
+      },
+      "ripsat_evidence": [
+        "boundary-consumer-of-observed-cell-operator"
+      ]
+    },
+    {
+      "motif": {
+        "inner": "InIf",
+        "kind": "Nested",
+        "outer": "ExtractedExprCache",
+        "slot": 2
+      },
+      "ripsat_evidence": [
+        "boundary-consumer-of-observed-cell-operator"
+      ]
+    },
+    {
+      "motif": {
+        "inner": "Arg",
+        "kind": "Nested",
+        "outer": "Get",
+        "slot": 0
+      },
+      "ripsat_evidence": [
+        "boundary-consumer-of-observed-cell-operator"
+      ]
+    },
+    {
+      "motif": {
+        "inner": "Get",
+        "kind": "Nested",
+        "outer": "HasType",
+        "slot": 0
+      },
+      "ripsat_evidence": [
+        "boundary-consumer-of-observed-cell-operator"
+      ]
+    },
+    {
+      "motif": {
+        "inner": "Switch",
+        "kind": "Nested",
+        "outer": "HasType",
+        "slot": 0
+      },
+      "ripsat_evidence": [
+        "boundary-consumer-of-observed-cell-operator"
+      ]
+    },
+    {
+      "motif": {
+        "inner": "Base",
+        "kind": "Nested",
+        "outer": "HasType",
+        "slot": 1
+      },
+      "ripsat_evidence": [
+        "boundary-consumer-of-observed-cell-operator"
+      ]
+    },
+    {
+      "motif": {
+        "inner": "TupleT",
+        "kind": "Nested",
+        "outer": "HasType",
+        "slot": 1
+      },
+      "ripsat_evidence": [
+        "boundary-consumer-of-observed-cell-operator"
+      ]
+    },
+    {
+      "motif": {
+        "inner": "TCPair",
+        "kind": "Nested",
+        "outer": "Smaller",
+        "slot": 0
+      },
+      "ripsat_evidence": [
+        "boundary-consumer-of-observed-cell-operator",
+        "group-15.json",
+        "group-16.json",
+        "group-2.json",
+        "group-25.json",
+        "group-26.json",
+        "group-27.json",
+        "group-29.json",
+        "group-30.json",
+        "group-32.json",
+        "group-33.json",
+        "group-35.json",
+        "group-37.json"
+      ]
+    },
+    {
+      "motif": {
+        "inner": "TCPair",
+        "kind": "Nested",
+        "outer": "Smaller",
+        "slot": 1
+      },
+      "ripsat_evidence": [
+        "boundary-consumer-of-observed-cell-operator",
+        "group-15.json",
+        "group-16.json",
+        "group-2.json",
+        "group-25.json",
+        "group-26.json",
+        "group-27.json",
+        "group-29.json",
+        "group-30.json",
+        "group-32.json",
+        "group-33.json",
+        "group-35.json",
+        "group-37.json"
+      ]
+    },
+    {
+      "motif": {
+        "a": "BodyContainsExpr",
+        "ai": 0,
+        "b": "is-inv-Expr",
+        "bi": 0,
+        "kind": "Shared"
+      },
+      "ripsat_evidence": [
+        "boundary-consumer-of-observed-cell-operator"
+      ]
+    },
+    {
+      "motif": {
+        "a": "BodyContainsExpr",
+        "ai": 1,
+        "b": "ExprIsPure",
+        "bi": 0,
+        "kind": "Shared"
+      },
+      "ripsat_evidence": [
+        "boundary-consumer-of-observed-cell-operator"
+      ]
+    },
+    {
+      "motif": {
+        "a": "ContextOf",
+        "ai": 0,
+        "b": "HasArgType",
+        "bi": 0,
+        "kind": "Shared"
+      },
+      "ripsat_evidence": [
+        "boundary-consumer-of-observed-cell-operator",
+        "group-2.json"
+      ]
+    },
+    {
+      "motif": {
+        "a": "Function",
+        "ai": 3,
+        "b": "HasType",
+        "bi": 0,
+        "kind": "Shared"
+      },
+      "ripsat_evidence": [
+        "boundary-consumer-of-observed-cell-operator"
+      ]
+    },
+    {
+      "motif": {
+        "a": "HasType",
+        "ai": 0,
+        "b": "is-inv-Expr",
+        "bi": 1,
+        "kind": "Shared"
+      },
+      "ripsat_evidence": [
+        "boundary-consumer-of-observed-cell-operator"
+      ]
+    }
+  ]
+}
