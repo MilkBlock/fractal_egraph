@@ -1,0 +1,29 @@
+{
+  "history_sha256": "e8903e518ff7c3c93dda44dd705d3d040f55bbfd72fc9a73bba1b157f94eacc4",
+  "binary_sha256": "fc5b323981f21c5599aeaa01acd6fac7521a97447ba4675d9b1a9a3a4a1f750f",
+  "commit": "8d7fbf871e8d13e6a67491c9ceb45a3f88a8e256",
+  "working_diff_sha256": "2ccf1afd267e0e26d54bf838f61831d91d977f68f8d5311a204c8d5129f65c61",
+  "command": [
+    "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+    "analyze",
+    "--replay-history",
+    "/private/tmp/eggcc-set-final/live/history.json",
+    "--output",
+    "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004/run",
+    "--ripen-observe-ms",
+    "50",
+    "--ripen-observe-facts",
+    "200000"
+  ],
+  "environment": {
+    "EGG_LAYOUT_GRAPHS": "0",
+    "EGG_LAYOUT_ANALYSIS_THREADS": "2"
+  },
+  "scope": "Actual local native analyze replay of saved eggcc history; not pristine runtime or held-out coverage",
+  "exit_code": -6,
+  "wall_seconds": 401.9239369579591,
+  "maximum_resident_bytes_macos": 7012646912,
+  "completed": false,
+  "peak_memory_footprint_bytes_macos": 50365383808,
+  "failure": "thread stack overflow"
+}

@@ -1,0 +1,92 @@
+{
+  "history_sha256": "e8903e518ff7c3c93dda44dd705d3d040f55bbfd72fc9a73bba1b157f94eacc4",
+  "binary_sha256": "fc5b323981f21c5599aeaa01acd6fac7521a97447ba4675d9b1a9a3a4a1f750f",
+  "commit": "8d7fbf871e8d13e6a67491c9ceb45a3f88a8e256",
+  "working_diff_sha256": "2ccf1afd267e0e26d54bf838f61831d91d977f68f8d5311a204c8d5129f65c61",
+  "command": [
+    "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/egg_layout",
+    "analyze",
+    "--replay-history",
+    "/private/tmp/eggcc-set-final/live/history.json",
+    "--output",
+    "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-full-replay-20261004-stack16m/run",
+    "--ripen-observe-ms",
+    "50",
+    "--ripen-observe-facts",
+    "200000"
+  ],
+  "environment": {
+    "EGG_LAYOUT_GRAPHS": "0",
+    "EGG_LAYOUT_ANALYSIS_THREADS": "2",
+    "RUST_MIN_STACK": "16777216"
+  },
+  "scope": "Actual local native analyze replay of saved eggcc history; not pristine runtime or held-out coverage",
+  "exit_code": 0,
+  "wall_seconds": 423.4459790829569,
+  "maximum_resident_bytes_macos": 14052622336,
+  "peak_memory_footprint_bytes_macos": 50868357632,
+  "completed": true,
+  "analysis": {
+    "jobs": 2060,
+    "prepared_and_registered": 594,
+    "states": {
+      "Rejected": 1903,
+      "Saturated": 121,
+      "ObservedUnfinished": 36
+    },
+    "exports": {
+      "none": 1939,
+      "unavailable": 121
+    },
+    "completed_observation_exports": 121,
+    "rejected_reasons": {
+      "Panic: type mismatch- check RUST_LOG=info for expressions that mismatched": 426,
+      "internal fact before external injection failed": 60,
+      "Panic: if branches else branch has incorrect input type": 6,
+      "recorded output alias failed": 1059,
+      "Panic: if branches then branch has incorrect input type": 5,
+      "set witness needs a scalar literal or an existing symbolic binding": 175,
+      "external fact injection failed": 40,
+      "unsupported non-monotone CS action": 132
+    },
+    "preparation": {
+      "check_compilations": 4887,
+      "check_runs": 41896,
+      "environment_compilations": 1,
+      "seconds": {
+        "LHS fact": 0.2735238009999991,
+        "clone_validation_egraph": 9.461588654999991,
+        "compile_check_groups": 85.83630851100007,
+        "construct_facts_bindings": 70.35457414699998,
+        "encode_key": 22.46169140099998,
+        "encode_result_provenance": 2.3204500589999992,
+        "environment_setup": 0.090040208,
+        "external fact injection": 0.5321251779999999,
+        "internal fact before external injection": 0.32344407499999955,
+        "prepare_total": 291.82231712400005,
+        "recorded output alias": 0.5395050410000017,
+        "rule action": 18.621249675000126,
+        "seed_parameters": 0.09812104900000004,
+        "table_statistics": 0.18510991399999957
+      },
+      "validated_compositions": 530,
+      "validation_cache_hits": 64,
+      "validation_runs": 1689
+    },
+    "catalog": null,
+    "limits": {
+      "facts": 200000,
+      "milliseconds": 50,
+      "sweep_steps": 4
+    }
+  },
+  "verification": {
+    "terminal_jobs": 2060,
+    "observed_state_files_checked": 121,
+    "all_observation_only": true,
+    "observed_fact_count_min": 3,
+    "observed_fact_count_max": 50,
+    "input_history_same_as_first_attempt": true,
+    "same_composition_ids_and_kinds_as_pre_repair": true
+  }
+}
