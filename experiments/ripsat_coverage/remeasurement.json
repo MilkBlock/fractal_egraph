@@ -1,0 +1,190 @@
+{
+  "commit": "36b5136cd465395886abd1fc6a542305d3b34c6c",
+  "binary_sha256": "f7660763e4f89c219e9d78face0215e3f36008d843a4a8b508ce00dffb106af2",
+  "working_diff_sha256": "1bce17d8b715cfab831c54907cbd8f61a202650894388c368e43298d74e64d7d",
+  "source_sha256": {
+    "train": "7747960d4e1aefb1bb904d67472c02927be555f5a030ca09e42e43e668deaaad",
+    "test": "b83dbc844f54f1b194f594e69cad1da8ccf44f2e7630971ef2be9215fcd0cafc"
+  },
+  "scope": "Frozen fact training to loopfact held-out empirical coverage; not certified transition reuse or Join savings",
+  "new_observation_manifest_sha256": "0d1f5f13550d55f1ce4924fa3227d42cf31e4cd0d35be0cf9921885441ba5e9f",
+  "new_completed_observations": 121,
+  "old_signatures_preserved_in_union": 1678,
+  "variants": {
+    "control": {
+      "patterns": 43,
+      "trained_signatures": 1678,
+      "library_sha256": "65fbcb097c86d7eed2e1708aee764368b1e5e28d3958d54b5aace8e7e3493538",
+      "unsupported": [
+        {
+          "file": "group-0.json",
+          "reason": "background-only state"
+        }
+      ],
+      "structure": {
+        "covered_constructor_rows": 729,
+        "covered_expr_eclasses": 87,
+        "covered_expr_enodes": 340,
+        "expr_eclasses": 157,
+        "expr_enodes": 557,
+        "matched_patterns": 24,
+        "positive_embeddings": 320,
+        "stored_constructor_rows": 2674,
+        "visible_constructor_rows": 2592
+      },
+      "matches": {
+        "all_reads_one_cell": 381,
+        "any_cell": 3005,
+        "complete_witness": 6788,
+        "covered_read_atoms": 3506,
+        "effective_insert_update_union": 2890,
+        "known_effect_signature": 639,
+        "logical": 6788,
+        "multiple_internal_atoms": 159,
+        "one_marker_atom_contraction": 176,
+        "read_atoms": 15185,
+        "signature_candidates": 3926,
+        "signature_unsupported": 0
+      },
+      "effective_matches": {
+        "all_reads_one_cell": 0,
+        "any_cell": 957,
+        "complete_witness": 2890,
+        "covered_read_atoms": 1119,
+        "effective_insert_update_union": 2890,
+        "known_effect_signature": 639,
+        "logical": 2890,
+        "multiple_internal_atoms": 23,
+        "one_marker_atom_contraction": 28,
+        "read_atoms": 6430,
+        "signature_candidates": 3926,
+        "signature_unsupported": 0
+      },
+      "effective_signature_hit_percent": 22.110726643598618,
+      "anchored_effective_signature_hit_percent": 66.77115987460814,
+      "audit_seconds": 1.0471073850000001,
+      "native_traced_seconds": 0.10233051200000008,
+      "train_control_equal": true,
+      "held_out_control_equal": true,
+      "library_frozen": true
+    },
+    "refreshed": {
+      "patterns": 120,
+      "trained_signatures": 5724,
+      "library_sha256": "3899c0e26fdf23db4890952aaf8227ec2469005e9f52e1890bf56ca799d10b2a",
+      "unsupported": [
+        {
+          "file": "group-000001.json",
+          "reason": "background-only state"
+        }
+      ],
+      "structure": {
+        "covered_constructor_rows": 491,
+        "covered_expr_eclasses": 79,
+        "covered_expr_enodes": 325,
+        "expr_eclasses": 157,
+        "expr_enodes": 557,
+        "matched_patterns": 55,
+        "positive_embeddings": 1953,
+        "stored_constructor_rows": 2674,
+        "visible_constructor_rows": 2592
+      },
+      "matches": {
+        "all_reads_one_cell": 362,
+        "any_cell": 2735,
+        "complete_witness": 6788,
+        "covered_read_atoms": 3091,
+        "effective_insert_update_union": 2890,
+        "known_effect_signature": 585,
+        "logical": 6788,
+        "multiple_internal_atoms": 98,
+        "one_marker_atom_contraction": 114,
+        "read_atoms": 15185,
+        "signature_candidates": 21771,
+        "signature_unsupported": 0
+      },
+      "effective_matches": {
+        "all_reads_one_cell": 0,
+        "any_cell": 868,
+        "complete_witness": 2890,
+        "covered_read_atoms": 981,
+        "effective_insert_update_union": 2890,
+        "known_effect_signature": 585,
+        "logical": 2890,
+        "multiple_internal_atoms": 9,
+        "one_marker_atom_contraction": 13,
+        "read_atoms": 6430,
+        "signature_candidates": 21771,
+        "signature_unsupported": 0
+      },
+      "effective_signature_hit_percent": 20.242214532871973,
+      "anchored_effective_signature_hit_percent": 67.3963133640553,
+      "audit_seconds": 2.8107685509999873,
+      "native_traced_seconds": 0.11103207100000005,
+      "train_control_equal": true,
+      "held_out_control_equal": true,
+      "library_frozen": true
+    },
+    "merged": {
+      "patterns": 163,
+      "trained_signatures": 7402,
+      "library_sha256": "662fe572b9d83423d235ab355d78d12bab02c12d8977e0ea0b873ba596cda5c4",
+      "unsupported": [
+        {
+          "file": "group-0.json",
+          "reason": "background-only state"
+        },
+        {
+          "file": "group-000001.json",
+          "reason": "background-only state"
+        }
+      ],
+      "structure": {
+        "covered_constructor_rows": 729,
+        "covered_expr_eclasses": 87,
+        "covered_expr_enodes": 340,
+        "expr_eclasses": 157,
+        "expr_enodes": 557,
+        "matched_patterns": 79,
+        "positive_embeddings": 2273,
+        "stored_constructor_rows": 2674,
+        "visible_constructor_rows": 2592
+      },
+      "matches": {
+        "all_reads_one_cell": 381,
+        "any_cell": 3005,
+        "complete_witness": 6788,
+        "covered_read_atoms": 3506,
+        "effective_insert_update_union": 2890,
+        "known_effect_signature": 639,
+        "logical": 6788,
+        "multiple_internal_atoms": 159,
+        "one_marker_atom_contraction": 176,
+        "read_atoms": 15185,
+        "signature_candidates": 25697,
+        "signature_unsupported": 0
+      },
+      "effective_matches": {
+        "all_reads_one_cell": 0,
+        "any_cell": 957,
+        "complete_witness": 2890,
+        "covered_read_atoms": 1119,
+        "effective_insert_update_union": 2890,
+        "known_effect_signature": 639,
+        "logical": 2890,
+        "multiple_internal_atoms": 23,
+        "one_marker_atom_contraction": 28,
+        "read_atoms": 6430,
+        "signature_candidates": 25697,
+        "signature_unsupported": 0
+      },
+      "effective_signature_hit_percent": 22.110726643598618,
+      "anchored_effective_signature_hit_percent": 66.77115987460814,
+      "audit_seconds": 3.6743927009999915,
+      "native_traced_seconds": 0.136522425,
+      "train_control_equal": true,
+      "held_out_control_equal": true,
+      "library_frozen": true
+    }
+  }
+}

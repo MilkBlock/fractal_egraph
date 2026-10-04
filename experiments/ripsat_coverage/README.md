@@ -8,6 +8,71 @@ It does not change source rules, the planner, or the runtime. It trains on `fact
 and freezes before evaluating `loopfact`. No held-out pattern or signature is
 added to the library.
 
+## Remeasurement after analyze/snapshot integration (2026-10-04)
+
+Rebuilt the diagnostic on the current local runtime and repeated `fact` training
+followed by frozen `loopfact` evaluation. The requested effective-apply signature
+metric remains **639 / 2,890 = 22.1107%**. All five other headline metrics in the
+original table are unchanged when retaining the old library.
+
+To distinguish execution changes from library changes, three training-only inputs
+were measured:
+
+| Pattern input | Pattern entries | Trained signatures | Held-out known effective applies |
+| --- | ---: | ---: | ---: |
+| Original empirical library | 43 | 1,678 | 639 / 2,890 = 22.11% |
+| Latest completed observations only | 120 | 5,724 | 585 / 2,890 = 20.24% |
+| Original plus latest observations | 163 | 7,402 | 639 / 2,890 = 22.11% |
+
+The new input comes from the 121 completed observational states of the full native
+analyze replay; one background-only state is excluded. These are occurrence-level
+patterns and include duplicates, not 120 distinct learned families. Marker rows
+are converted into boundary-slot incidences before the existing pattern importer
+runs; literal payloads, aliases and visibility are preserved. No unfinished or
+rejected cell is admitted. The full-replay observations use the local ripen
+schedule, whereas the older probe used the original optimizer schedule; they
+must not silently replace one another in an attribution experiment.
+
+The new-only input covers 325/557 Expr rows, 79/157 Expr classes and 491/2,674
+constructor rows. Unioning it with the old input restores 340/557, 87/157 and
+729/2,674, but adds **zero** new covered rows or effective-apply hits on this
+held-out workload. Every original trained signature remains in the merged set.
+The merged library also leaves pre-step full-LHS coverage at 381/6,788 (5.61%)
+and multiple-internal-read coverage at 159/6,788 (2.34%).
+
+All three runs preserve the native traced control's final state, and each test
+leaves its library hash/signature count unchanged. Conditional on an existing
+cell anchor, the old/merged hit rate is 639/957 = 66.77%; this is **not** the
+all-effective-apply denominator requested here. Effective applies count inserted/
+updated writes and successful union displacement; subsume-only effects are excluded.
+
+The merged diagnostic takes about 3.67 s on held-out evaluation versus 1.05 s for
+the old input in these single runs, with more duplicate embeddings/signatures.
+These are audit costs, not runtime Join improvements. Parent-snapshot reuse changes
+initialization work in `analyze`; this diagnostic still measures frozen positive
+pattern support and observed effect signatures, not certified transition reuse.
+See `remeasurement.json` for hashes, counters, control checks and exact results.
+
+Reproduce the new-only and merged variants after the ordinary control run below:
+
+```sh
+python3 experiments/ripsat_coverage/refresh.py \
+  --analysis out/eggcc-full-replay-20261004-stack16m/run \
+  --output out/coverage-new-patterns
+python3 experiments/ripsat_coverage/run.py \
+  --train-source /tmp/eggcc-set-final/live/source.egg \
+  --test-source /tmp/eggcc-marker-loopfact.egg \
+  --patterns out/coverage-new-patterns --output out/coverage-new
+python3 experiments/ripsat_coverage/refresh.py \
+  --merge-old experiments/ripsat_coverage/patterns.json \
+  --merge-new out/coverage-new/train/library.json \
+  --output out/coverage-union-patterns.json
+python3 experiments/ripsat_coverage/run.py \
+  --train-source /tmp/eggcc-set-final/live/source.egg \
+  --test-source /tmp/eggcc-marker-loopfact.egg \
+  --patterns out/coverage-union-patterns.json --output out/coverage-union
+```
+
 ## What is frozen
 
 The earlier probe produced 44 empirical finite closure snapshots. One contains
@@ -77,8 +142,8 @@ reported for diagnosis, not multiplied by coverage percentages.
 
 `certified_state_transition_coverage` is null, not 22.11%. The frozen library here
 contains empirical snapshots and effect signatures. It has no certified eggcc
-source-state → target-state adapters. The earlier production pipeline still
-rejects these exports; Math-specific execution support is not silently treated
+source-state → target-state adapters. The production pipeline can now save completed observations, but these eggcc
+states still lack certified transition adapters; Math-specific execution support is not silently treated
 as general eggcc support. This experiment therefore does not claim that the
 runtime can already emit all covered abstractions without searching.
 
