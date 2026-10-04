@@ -1,0 +1,1505 @@
+{
+  "scope": "Actual native engine in standalone differential harness; not automatic analyze/runtime reuse",
+  "source_sha256": "7747960d4e1aefb1bb904d67472c02927be555f5a030ca09e42e43e668deaaad",
+  "binary_sha256": "d85b778935255f86b768a56555082ac19d856068c36c7c90460972fe14f9919f",
+  "kernel_commit": "289aba863d6cf5231ac63de9e632ce3813123769",
+  "working_diff_sha256": "2ccf1afd267e0e26d54bf838f61831d91d977f68f8d5311a204c8d5129f65c61",
+  "selection": "All distinct Get operand terms from the real source initialization; one previously observed getter parent plus explicit semantic-contract fixtures",
+  "cell": 1706,
+  "repeats": 3,
+  "full": {
+    "workload_sha256": "bcf621dc3934836d3f135c12a698a41b3f0e44d544e292b9b119dfc22ee4e2e3",
+    "limits": {
+      "milliseconds_per_closure": 50,
+      "facts": 200000
+    },
+    "runs": [
+      {
+        "mode": "rebuild",
+        "repeat": 0,
+        "wall_seconds": 0.4120759170036763,
+        "max_rss_bytes": 111804416,
+        "peak_footprint_bytes": 83379840
+      },
+      {
+        "mode": "snapshot",
+        "repeat": 0,
+        "wall_seconds": 0.33636233303695917,
+        "max_rss_bytes": 109510656,
+        "peak_footprint_bytes": 82757312
+      },
+      {
+        "mode": "fused",
+        "repeat": 0,
+        "wall_seconds": 0.364564707968384,
+        "max_rss_bytes": 116408320,
+        "peak_footprint_bytes": 83199680
+      },
+      {
+        "mode": "fused",
+        "repeat": 1,
+        "wall_seconds": 0.36375983408652246,
+        "max_rss_bytes": 112427008,
+        "peak_footprint_bytes": 81643136
+      },
+      {
+        "mode": "snapshot",
+        "repeat": 1,
+        "wall_seconds": 0.3482053750194609,
+        "max_rss_bytes": 109658112,
+        "peak_footprint_bytes": 84330368
+      },
+      {
+        "mode": "rebuild",
+        "repeat": 1,
+        "wall_seconds": 0.41566712502390146,
+        "max_rss_bytes": 120406016,
+        "peak_footprint_bytes": 85362816
+      },
+      {
+        "mode": "rebuild",
+        "repeat": 2,
+        "wall_seconds": 0.40254054218530655,
+        "max_rss_bytes": 114573312,
+        "peak_footprint_bytes": 85133184
+      },
+      {
+        "mode": "snapshot",
+        "repeat": 2,
+        "wall_seconds": 0.335109667154029,
+        "max_rss_bytes": 114278400,
+        "peak_footprint_bytes": 82691776
+      },
+      {
+        "mode": "fused",
+        "repeat": 2,
+        "wall_seconds": 0.37246629083529115,
+        "max_rss_bytes": 117391360,
+        "peak_footprint_bytes": 81921792
+      }
+    ],
+    "comparisons": [
+      {
+        "mode": "snapshot",
+        "repeat": 0,
+        "counts": {
+          "equal": 13,
+          "different": 0,
+          "inconclusive": 2
+        },
+        "cases": [
+          {
+            "family": "boundary-and-chain",
+            "case": "external",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "union-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "two-transitions",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "duplicate",
+            "result": "equal"
+          },
+          {
+            "family": "union-enables-join",
+            "case": "alias-slots",
+            "result": "equal"
+          },
+          {
+            "family": "mutable-table",
+            "case": "replace-value",
+            "result": "equal"
+          },
+          {
+            "family": "visibility",
+            "case": "subsume-input",
+            "result": "equal"
+          },
+          {
+            "family": "error",
+            "case": "invalid-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "error",
+            "case": "after-error-valid",
+            "result": "equal"
+          },
+          {
+            "family": "growth",
+            "case": "unfinished",
+            "result": "inconclusive"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-0",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-1",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-2",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-3",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-4",
+            "result": "inconclusive"
+          }
+        ]
+      },
+      {
+        "mode": "fused",
+        "repeat": 0,
+        "counts": {
+          "equal": 11,
+          "different": 2,
+          "inconclusive": 2
+        },
+        "cases": [
+          {
+            "family": "boundary-and-chain",
+            "case": "external",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "union-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "two-transitions",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "duplicate",
+            "result": "equal"
+          },
+          {
+            "family": "union-enables-join",
+            "case": "alias-slots",
+            "result": "equal"
+          },
+          {
+            "family": "mutable-table",
+            "case": "replace-value",
+            "result": "different"
+          },
+          {
+            "family": "visibility",
+            "case": "subsume-input",
+            "result": "different"
+          },
+          {
+            "family": "error",
+            "case": "invalid-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "error",
+            "case": "after-error-valid",
+            "result": "equal"
+          },
+          {
+            "family": "growth",
+            "case": "unfinished",
+            "result": "inconclusive"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-0",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-1",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-2",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-3",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-4",
+            "result": "inconclusive"
+          }
+        ]
+      },
+      {
+        "mode": "snapshot",
+        "repeat": 1,
+        "counts": {
+          "equal": 13,
+          "different": 0,
+          "inconclusive": 2
+        },
+        "cases": [
+          {
+            "family": "boundary-and-chain",
+            "case": "external",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "union-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "two-transitions",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "duplicate",
+            "result": "equal"
+          },
+          {
+            "family": "union-enables-join",
+            "case": "alias-slots",
+            "result": "equal"
+          },
+          {
+            "family": "mutable-table",
+            "case": "replace-value",
+            "result": "equal"
+          },
+          {
+            "family": "visibility",
+            "case": "subsume-input",
+            "result": "equal"
+          },
+          {
+            "family": "error",
+            "case": "invalid-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "error",
+            "case": "after-error-valid",
+            "result": "equal"
+          },
+          {
+            "family": "growth",
+            "case": "unfinished",
+            "result": "inconclusive"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-0",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-1",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-2",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-3",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-4",
+            "result": "inconclusive"
+          }
+        ]
+      },
+      {
+        "mode": "fused",
+        "repeat": 1,
+        "counts": {
+          "equal": 11,
+          "different": 2,
+          "inconclusive": 2
+        },
+        "cases": [
+          {
+            "family": "boundary-and-chain",
+            "case": "external",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "union-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "two-transitions",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "duplicate",
+            "result": "equal"
+          },
+          {
+            "family": "union-enables-join",
+            "case": "alias-slots",
+            "result": "equal"
+          },
+          {
+            "family": "mutable-table",
+            "case": "replace-value",
+            "result": "different"
+          },
+          {
+            "family": "visibility",
+            "case": "subsume-input",
+            "result": "different"
+          },
+          {
+            "family": "error",
+            "case": "invalid-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "error",
+            "case": "after-error-valid",
+            "result": "equal"
+          },
+          {
+            "family": "growth",
+            "case": "unfinished",
+            "result": "inconclusive"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-0",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-1",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-2",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-3",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-4",
+            "result": "inconclusive"
+          }
+        ]
+      },
+      {
+        "mode": "snapshot",
+        "repeat": 2,
+        "counts": {
+          "equal": 13,
+          "different": 0,
+          "inconclusive": 2
+        },
+        "cases": [
+          {
+            "family": "boundary-and-chain",
+            "case": "external",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "union-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "two-transitions",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "duplicate",
+            "result": "equal"
+          },
+          {
+            "family": "union-enables-join",
+            "case": "alias-slots",
+            "result": "equal"
+          },
+          {
+            "family": "mutable-table",
+            "case": "replace-value",
+            "result": "equal"
+          },
+          {
+            "family": "visibility",
+            "case": "subsume-input",
+            "result": "equal"
+          },
+          {
+            "family": "error",
+            "case": "invalid-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "error",
+            "case": "after-error-valid",
+            "result": "equal"
+          },
+          {
+            "family": "growth",
+            "case": "unfinished",
+            "result": "inconclusive"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-0",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-1",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-2",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-3",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-4",
+            "result": "inconclusive"
+          }
+        ]
+      },
+      {
+        "mode": "fused",
+        "repeat": 2,
+        "counts": {
+          "equal": 11,
+          "different": 2,
+          "inconclusive": 2
+        },
+        "cases": [
+          {
+            "family": "boundary-and-chain",
+            "case": "external",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "union-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "two-transitions",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "duplicate",
+            "result": "equal"
+          },
+          {
+            "family": "union-enables-join",
+            "case": "alias-slots",
+            "result": "equal"
+          },
+          {
+            "family": "mutable-table",
+            "case": "replace-value",
+            "result": "different"
+          },
+          {
+            "family": "visibility",
+            "case": "subsume-input",
+            "result": "different"
+          },
+          {
+            "family": "error",
+            "case": "invalid-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "error",
+            "case": "after-error-valid",
+            "result": "equal"
+          },
+          {
+            "family": "growth",
+            "case": "unfinished",
+            "result": "inconclusive"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-0",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-1",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-2",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-3",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-4",
+            "result": "inconclusive"
+          }
+        ]
+      }
+    ],
+    "metrics": {
+      "rebuild": {
+        "wall_seconds_median": 0.4120759170036763,
+        "max_rss_bytes_median": 114573312,
+        "peak_footprint_bytes_median": 85133184
+      },
+      "snapshot": {
+        "wall_seconds_median": 0.33636233303695917,
+        "max_rss_bytes_median": 109658112,
+        "peak_footprint_bytes_median": 82757312
+      },
+      "fused": {
+        "wall_seconds_median": 0.364564707968384,
+        "max_rss_bytes_median": 116408320,
+        "peak_footprint_bytes_median": 81921792
+      }
+    }
+  },
+  "finite": {
+    "workload_sha256": "69d642871e8c67d635ede080ebe3ecc10e678c0f18ec2d530469d29d7b175cc0",
+    "limits": {
+      "milliseconds_per_closure": 50,
+      "facts": 200000
+    },
+    "runs": [
+      {
+        "mode": "rebuild",
+        "repeat": 0,
+        "wall_seconds": 0.2763583338819444,
+        "max_rss_bytes": 102973440,
+        "peak_footprint_bytes": 84461312
+      },
+      {
+        "mode": "snapshot",
+        "repeat": 0,
+        "wall_seconds": 0.24131258320994675,
+        "max_rss_bytes": 100859904,
+        "peak_footprint_bytes": 82560896
+      },
+      {
+        "mode": "fused",
+        "repeat": 0,
+        "wall_seconds": 0.24725100002251565,
+        "max_rss_bytes": 106397696,
+        "peak_footprint_bytes": 82609920
+      },
+      {
+        "mode": "fused",
+        "repeat": 1,
+        "wall_seconds": 0.2513550000730902,
+        "max_rss_bytes": 98828288,
+        "peak_footprint_bytes": 81364544
+      },
+      {
+        "mode": "snapshot",
+        "repeat": 1,
+        "wall_seconds": 0.22130237496457994,
+        "max_rss_bytes": 101498880,
+        "peak_footprint_bytes": 84362944
+      },
+      {
+        "mode": "rebuild",
+        "repeat": 1,
+        "wall_seconds": 0.27627370902337134,
+        "max_rss_bytes": 106119168,
+        "peak_footprint_bytes": 83953280
+      },
+      {
+        "mode": "rebuild",
+        "repeat": 2,
+        "wall_seconds": 0.28413004195317626,
+        "max_rss_bytes": 103006208,
+        "peak_footprint_bytes": 82806528
+      },
+      {
+        "mode": "snapshot",
+        "repeat": 2,
+        "wall_seconds": 0.23075733403675258,
+        "max_rss_bytes": 96403456,
+        "peak_footprint_bytes": 82315136
+      },
+      {
+        "mode": "fused",
+        "repeat": 2,
+        "wall_seconds": 0.26198637508787215,
+        "max_rss_bytes": 103759872,
+        "peak_footprint_bytes": 87836608
+      }
+    ],
+    "comparisons": [
+      {
+        "mode": "snapshot",
+        "repeat": 0,
+        "counts": {
+          "equal": 13,
+          "different": 0,
+          "inconclusive": 0
+        },
+        "cases": [
+          {
+            "family": "boundary-and-chain",
+            "case": "external",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "union-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "two-transitions",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "duplicate",
+            "result": "equal"
+          },
+          {
+            "family": "union-enables-join",
+            "case": "alias-slots",
+            "result": "equal"
+          },
+          {
+            "family": "mutable-table",
+            "case": "replace-value",
+            "result": "equal"
+          },
+          {
+            "family": "visibility",
+            "case": "subsume-input",
+            "result": "equal"
+          },
+          {
+            "family": "error",
+            "case": "invalid-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "error",
+            "case": "after-error-valid",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-0",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-1",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-2",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-3",
+            "result": "equal"
+          }
+        ]
+      },
+      {
+        "mode": "fused",
+        "repeat": 0,
+        "counts": {
+          "equal": 11,
+          "different": 2,
+          "inconclusive": 0
+        },
+        "cases": [
+          {
+            "family": "boundary-and-chain",
+            "case": "external",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "union-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "two-transitions",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "duplicate",
+            "result": "equal"
+          },
+          {
+            "family": "union-enables-join",
+            "case": "alias-slots",
+            "result": "equal"
+          },
+          {
+            "family": "mutable-table",
+            "case": "replace-value",
+            "result": "different"
+          },
+          {
+            "family": "visibility",
+            "case": "subsume-input",
+            "result": "different"
+          },
+          {
+            "family": "error",
+            "case": "invalid-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "error",
+            "case": "after-error-valid",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-0",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-1",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-2",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-3",
+            "result": "equal"
+          }
+        ]
+      },
+      {
+        "mode": "snapshot",
+        "repeat": 1,
+        "counts": {
+          "equal": 13,
+          "different": 0,
+          "inconclusive": 0
+        },
+        "cases": [
+          {
+            "family": "boundary-and-chain",
+            "case": "external",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "union-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "two-transitions",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "duplicate",
+            "result": "equal"
+          },
+          {
+            "family": "union-enables-join",
+            "case": "alias-slots",
+            "result": "equal"
+          },
+          {
+            "family": "mutable-table",
+            "case": "replace-value",
+            "result": "equal"
+          },
+          {
+            "family": "visibility",
+            "case": "subsume-input",
+            "result": "equal"
+          },
+          {
+            "family": "error",
+            "case": "invalid-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "error",
+            "case": "after-error-valid",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-0",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-1",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-2",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-3",
+            "result": "equal"
+          }
+        ]
+      },
+      {
+        "mode": "fused",
+        "repeat": 1,
+        "counts": {
+          "equal": 11,
+          "different": 2,
+          "inconclusive": 0
+        },
+        "cases": [
+          {
+            "family": "boundary-and-chain",
+            "case": "external",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "union-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "two-transitions",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "duplicate",
+            "result": "equal"
+          },
+          {
+            "family": "union-enables-join",
+            "case": "alias-slots",
+            "result": "equal"
+          },
+          {
+            "family": "mutable-table",
+            "case": "replace-value",
+            "result": "different"
+          },
+          {
+            "family": "visibility",
+            "case": "subsume-input",
+            "result": "different"
+          },
+          {
+            "family": "error",
+            "case": "invalid-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "error",
+            "case": "after-error-valid",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-0",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-1",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-2",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-3",
+            "result": "equal"
+          }
+        ]
+      },
+      {
+        "mode": "snapshot",
+        "repeat": 2,
+        "counts": {
+          "equal": 13,
+          "different": 0,
+          "inconclusive": 0
+        },
+        "cases": [
+          {
+            "family": "boundary-and-chain",
+            "case": "external",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "union-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "two-transitions",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "duplicate",
+            "result": "equal"
+          },
+          {
+            "family": "union-enables-join",
+            "case": "alias-slots",
+            "result": "equal"
+          },
+          {
+            "family": "mutable-table",
+            "case": "replace-value",
+            "result": "equal"
+          },
+          {
+            "family": "visibility",
+            "case": "subsume-input",
+            "result": "equal"
+          },
+          {
+            "family": "error",
+            "case": "invalid-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "error",
+            "case": "after-error-valid",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-0",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-1",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-2",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-3",
+            "result": "equal"
+          }
+        ]
+      },
+      {
+        "mode": "fused",
+        "repeat": 2,
+        "counts": {
+          "equal": 11,
+          "different": 2,
+          "inconclusive": 0
+        },
+        "cases": [
+          {
+            "family": "boundary-and-chain",
+            "case": "external",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "union-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "two-transitions",
+            "result": "equal"
+          },
+          {
+            "family": "boundary-and-chain",
+            "case": "duplicate",
+            "result": "equal"
+          },
+          {
+            "family": "union-enables-join",
+            "case": "alias-slots",
+            "result": "equal"
+          },
+          {
+            "family": "mutable-table",
+            "case": "replace-value",
+            "result": "different"
+          },
+          {
+            "family": "visibility",
+            "case": "subsume-input",
+            "result": "different"
+          },
+          {
+            "family": "error",
+            "case": "invalid-boundary",
+            "result": "equal"
+          },
+          {
+            "family": "error",
+            "case": "after-error-valid",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-0",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-1",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-2",
+            "result": "equal"
+          },
+          {
+            "family": "eggcc-cell-1706",
+            "case": "get-input-3",
+            "result": "equal"
+          }
+        ]
+      }
+    ],
+    "metrics": {
+      "rebuild": {
+        "wall_seconds_median": 0.2763583338819444,
+        "max_rss_bytes_median": 103006208,
+        "peak_footprint_bytes_median": 83953280
+      },
+      "snapshot": {
+        "wall_seconds_median": 0.23075733403675258,
+        "max_rss_bytes_median": 100859904,
+        "peak_footprint_bytes_median": 82560896
+      },
+      "fused": {
+        "wall_seconds_median": 0.2513550000730902,
+        "max_rss_bytes_median": 103759872,
+        "peak_footprint_bytes_median": 82609920
+      }
+    }
+  },
+  "real_finite_cases": {
+    "rebuild": {
+      "setup_seconds_median": 0.097789084,
+      "parent_bake_seconds_median": 0,
+      "cases": [
+        {
+          "id": "get-input-0",
+          "statuses": [
+            "fixed_point",
+            "fixed_point",
+            "fixed_point"
+          ],
+          "execution_seconds_median": 0.033084874,
+          "fork_seconds_median": 0.005263625,
+          "amortized_seconds_median": 0.033084874,
+          "parent_matches": [
+            12,
+            12,
+            12
+          ],
+          "child_matches": [
+            187,
+            187,
+            187
+          ],
+          "parent_unchanged": [
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "id": "get-input-1",
+          "statuses": [
+            "fixed_point",
+            "fixed_point",
+            "fixed_point"
+          ],
+          "execution_seconds_median": 0.032277125000000004,
+          "fork_seconds_median": 0.004707584,
+          "amortized_seconds_median": 0.032277125000000004,
+          "parent_matches": [
+            12,
+            12,
+            12
+          ],
+          "child_matches": [
+            187,
+            187,
+            187
+          ],
+          "parent_unchanged": [
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "id": "get-input-2",
+          "statuses": [
+            "fixed_point",
+            "fixed_point",
+            "fixed_point"
+          ],
+          "execution_seconds_median": 0.0344755,
+          "fork_seconds_median": 0.004799,
+          "amortized_seconds_median": 0.0344755,
+          "parent_matches": [
+            12,
+            12,
+            12
+          ],
+          "child_matches": [
+            305,
+            305,
+            305
+          ],
+          "parent_unchanged": [
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "id": "get-input-3",
+          "statuses": [
+            "fixed_point",
+            "fixed_point",
+            "fixed_point"
+          ],
+          "execution_seconds_median": 0.032562291,
+          "fork_seconds_median": 0.005075458,
+          "amortized_seconds_median": 0.032562291,
+          "parent_matches": [
+            12,
+            12,
+            12
+          ],
+          "child_matches": [
+            225,
+            225,
+            225
+          ],
+          "parent_unchanged": [
+            null,
+            null,
+            null
+          ]
+        }
+      ]
+    },
+    "snapshot": {
+      "setup_seconds_median": 0.097948291,
+      "parent_bake_seconds_median": 0.016910333,
+      "cases": [
+        {
+          "id": "get-input-0",
+          "statuses": [
+            "fixed_point",
+            "fixed_point",
+            "fixed_point"
+          ],
+          "execution_seconds_median": 0.016293834,
+          "fork_seconds_median": 0.005220834,
+          "amortized_seconds_median": 0.020499907,
+          "parent_matches": [
+            0,
+            0,
+            0
+          ],
+          "child_matches": [
+            187,
+            187,
+            187
+          ],
+          "parent_unchanged": [
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "id": "get-input-1",
+          "statuses": [
+            "fixed_point",
+            "fixed_point",
+            "fixed_point"
+          ],
+          "execution_seconds_median": 0.0162625,
+          "fork_seconds_median": 0.00507375,
+          "amortized_seconds_median": 0.020652302249999997,
+          "parent_matches": [
+            0,
+            0,
+            0
+          ],
+          "child_matches": [
+            187,
+            187,
+            187
+          ],
+          "parent_unchanged": [
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "id": "get-input-2",
+          "statuses": [
+            "fixed_point",
+            "fixed_point",
+            "fixed_point"
+          ],
+          "execution_seconds_median": 0.018988458,
+          "fork_seconds_median": 0.005022125,
+          "amortized_seconds_median": 0.023194531,
+          "parent_matches": [
+            0,
+            0,
+            0
+          ],
+          "child_matches": [
+            305,
+            305,
+            305
+          ],
+          "parent_unchanged": [
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "id": "get-input-3",
+          "statuses": [
+            "fixed_point",
+            "fixed_point",
+            "fixed_point"
+          ],
+          "execution_seconds_median": 0.016316959,
+          "fork_seconds_median": 0.00499275,
+          "amortized_seconds_median": 0.020706761249999997,
+          "parent_matches": [
+            0,
+            0,
+            0
+          ],
+          "child_matches": [
+            225,
+            225,
+            225
+          ],
+          "parent_unchanged": [
+            true,
+            true,
+            true
+          ]
+        }
+      ]
+    },
+    "fused": {
+      "setup_seconds_median": 0.096961041,
+      "parent_bake_seconds_median": 0,
+      "cases": [
+        {
+          "id": "get-input-0",
+          "statuses": [
+            "fixed_point",
+            "fixed_point",
+            "fixed_point"
+          ],
+          "execution_seconds_median": 0.026847958,
+          "fork_seconds_median": 0.005780166,
+          "amortized_seconds_median": 0.026847958,
+          "parent_matches": [
+            0,
+            0,
+            0
+          ],
+          "child_matches": [
+            199,
+            199,
+            199
+          ],
+          "parent_unchanged": [
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "id": "get-input-1",
+          "statuses": [
+            "fixed_point",
+            "fixed_point",
+            "fixed_point"
+          ],
+          "execution_seconds_median": 0.025851332999999997,
+          "fork_seconds_median": 0.004889083,
+          "amortized_seconds_median": 0.025851332999999997,
+          "parent_matches": [
+            0,
+            0,
+            0
+          ],
+          "child_matches": [
+            199,
+            199,
+            199
+          ],
+          "parent_unchanged": [
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "id": "get-input-2",
+          "statuses": [
+            "fixed_point",
+            "fixed_point",
+            "fixed_point"
+          ],
+          "execution_seconds_median": 0.028146251,
+          "fork_seconds_median": 0.005354167,
+          "amortized_seconds_median": 0.028146251,
+          "parent_matches": [
+            0,
+            0,
+            0
+          ],
+          "child_matches": [
+            317,
+            317,
+            317
+          ],
+          "parent_unchanged": [
+            null,
+            null,
+            null
+          ]
+        },
+        {
+          "id": "get-input-3",
+          "statuses": [
+            "fixed_point",
+            "fixed_point",
+            "fixed_point"
+          ],
+          "execution_seconds_median": 0.026191583999999997,
+          "fork_seconds_median": 0.0049045,
+          "amortized_seconds_median": 0.026191583999999997,
+          "parent_matches": [
+            0,
+            0,
+            0
+          ],
+          "child_matches": [
+            237,
+            237,
+            237
+          ],
+          "parent_unchanged": [
+            null,
+            null,
+            null
+          ]
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "Incomplete runs are inconclusive, never equivalent.",
+    "Rebuild saturates the parent before grafting; fused intentionally changes that order.",
+    "Execution timings exclude serialization, comparison and manifest parsing. Wall/RSS include the full process.",
+    "The snapshot parent replaces the unused scratch engine; retaining an extra compiled base would increase its memory footprint.",
+    "Snapshot totals include a one-time parent bake; amortized per-graft costs divide that bake over this finite batch.",
+    "Shared-backing byte counts exclude owned rows and all indexes/metadata; they are not total memory or compression ratios.",
+    "No terminal state cache. A successful differential test is not a proof for all bindings or rule environments."
+  ]
+}

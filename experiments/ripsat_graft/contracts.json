@@ -1,0 +1,111 @@
+[
+  {
+    "id": "boundary-and-chain",
+    "environment": "(datatype E (Input i64) (A E) (B E) (Extra E) (C E) (Next E) (D E)) (rule ((A x)) ((B x))) (rule ((B x) (Extra x)) ((C x))) (rule ((C x) (Next x)) ((D x)))",
+    "seed": "(A (Input 0))",
+    "schedule": "(run 1)",
+    "grafts": [
+      {
+        "id": "external",
+        "steps": [
+          "(Extra (Input 0))"
+        ]
+      },
+      {
+        "id": "union-boundary",
+        "steps": [
+          "(union (Input 0) (Input 1)) (Extra (Input 1))"
+        ]
+      },
+      {
+        "id": "two-transitions",
+        "steps": [
+          "(Extra (Input 0))",
+          "(Next (Input 0))"
+        ]
+      },
+      {
+        "id": "duplicate",
+        "steps": [
+          "(B (Input 0))"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "union-enables-join",
+    "environment": "(datatype E (Input i64) (Edge E E) (Reached E)) (rule ((Edge x x)) ((Reached x)))",
+    "seed": "(Edge (Input 0) (Input 1))",
+    "schedule": "(run 1)",
+    "grafts": [
+      {
+        "id": "alias-slots",
+        "steps": [
+          "(union (Input 0) (Input 1))"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mutable-table",
+    "environment": "(datatype E (Input i64)) (function score (E) i64 :merge new) (relation Seen (E i64)) (rule ((= n (score x))) ((Seen x n)))",
+    "seed": "(set (score (Input 0)) 1)",
+    "schedule": "(run 1)",
+    "grafts": [
+      {
+        "id": "replace-value",
+        "steps": [
+          "(set (score (Input 0)) 2)"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "visibility",
+    "environment": "(datatype E (A) (B)) (rule ((A)) ((B)))",
+    "seed": "(A)",
+    "schedule": "(run 1)",
+    "grafts": [
+      {
+        "id": "subsume-input",
+        "steps": [
+          "(subsume (A))"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "error",
+    "environment": "(datatype E (Input i64) (Bad E)) (rule ((Bad x)) ((panic \"bad-graft\")))",
+    "seed": "(Input 0)",
+    "schedule": "(run 1)",
+    "grafts": [
+      {
+        "id": "invalid-boundary",
+        "steps": [
+          "(Bad (Input 0))"
+        ]
+      },
+      {
+        "id": "after-error-valid",
+        "steps": [
+          "(Input 1)"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "growth",
+    "environment": "(datatype E (Input i64) (Grow E)) (rule ((= x (Grow y))) ((Grow x)))",
+    "seed": "(Input 0)",
+    "schedule": "(run 1)",
+    "grafts": [
+      {
+        "id": "unfinished",
+        "steps": [
+          "(Grow (Input 0))"
+        ]
+      }
+    ]
+  }
+]
