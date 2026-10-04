@@ -366,3 +366,36 @@ fn source_witness_plan_keeps_actual_producers_through_a_summary() {
     assert!(!missing.matches.is_empty());
     assert!(missing.matches.iter().all(|m| !m.physical_witness_complete));
 }
+
+#[test]
+fn repeated_ground_subterms_remain_read_only_and_observe_updates() {
+    use egglog::ast::Command;
+    let mut eg = EGraph::default();
+    eg.parse_and_run_program(
+        None,
+        "(datatype E (A) (Pair E E)) (function score (E) i64 :merge new)",
+    )
+    .unwrap();
+    let mut term = "(A)".to_string();
+    for _ in 0..8 {
+        term = format!("(Pair {term} {term})");
+    }
+    let cmds = eg
+        .parse_program(
+            None,
+            &format!("(check (= (score {term}) 7) (= {term} {term}))"),
+        )
+        .unwrap();
+    let Command::Check(_, facts) = &cmds[0] else {
+        panic!()
+    };
+    let check = eg.compile_ground_check(facts).unwrap();
+    assert!(eg.run_ground_check(&check).is_err());
+    assert_eq!(eg.get_size("Pair"), 0);
+    eg.parse_and_run_program(None, &format!("(set (score {term}) 7)"))
+        .unwrap();
+    eg.run_ground_check(&check).unwrap();
+    eg.parse_and_run_program(None, &format!("(set (score {term}) 9)"))
+        .unwrap();
+    assert!(eg.run_ground_check(&check).is_err());
+}

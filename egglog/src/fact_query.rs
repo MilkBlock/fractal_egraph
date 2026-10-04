@@ -222,7 +222,79 @@ impl EGraph {
                 "cached checks require ground facts and proof mode disabled".into(),
             ));
         }
-        let resolved = self.resolve_command(Command::Check(span!(), facts.to_vec()))?;
+        // Ground replay checks often repeat large constructor subterms. Share
+        // table lookups before lowering, instead of generating thousands of
+        // duplicate variables for core canonicalization to eliminate.
+        fn share(
+            e: &Expr,
+            functions: &HashSet<String>,
+            fresh: &mut SymbolGen,
+            memo: &mut HashMap<String, Expr>,
+            definitions: &mut Vec<ast::Fact>,
+        ) -> Expr {
+            let Expr::Call(span, op, args) = e else {
+                return e.clone();
+            };
+            let args = args
+                .iter()
+                .map(|a| share(a, functions, fresh, memo, definitions))
+                .collect();
+            let call = Expr::Call(span.clone(), op.clone(), args);
+            // Do not assume that custom primitive evaluations are pure.
+            fn table_only(e: &Expr, functions: &HashSet<String>) -> bool {
+                match e {
+                    Expr::Call(_, op, args) => {
+                        functions.contains(op) && args.iter().all(|a| table_only(a, functions))
+                    }
+                    _ => true,
+                }
+            }
+            if !table_only(&call, functions) {
+                return call;
+            }
+            let key = call.to_string();
+            if let Some(value) = memo.get(&key) {
+                return value.clone();
+            }
+            let value = Expr::Var(span.clone(), fresh.fresh("ground_term_"));
+            definitions.push(ast::Fact::Eq(span.clone(), value.clone(), call));
+            memo.insert(key, value.clone());
+            value
+        }
+        let functions = self.get_function_names().into_iter().collect();
+        let mut definitions = vec![];
+        let mut memo = HashMap::default();
+        let flattened: Vec<_> = facts
+            .iter()
+            .map(|f| match f {
+                ast::Fact::Eq(span, a, b) => ast::Fact::Eq(
+                    span.clone(),
+                    share(
+                        a,
+                        &functions,
+                        &mut self.parser.symbol_gen,
+                        &mut memo,
+                        &mut definitions,
+                    ),
+                    share(
+                        b,
+                        &functions,
+                        &mut self.parser.symbol_gen,
+                        &mut memo,
+                        &mut definitions,
+                    ),
+                ),
+                ast::Fact::Fact(e) => ast::Fact::Fact(share(
+                    e,
+                    &functions,
+                    &mut self.parser.symbol_gen,
+                    &mut memo,
+                    &mut definitions,
+                )),
+            })
+            .collect();
+        definitions.extend(flattened);
+        let resolved = self.resolve_command(Command::Check(span!(), definitions))?;
         let [ResolvedNCommand::Check(span, body)] = resolved.desugared.as_slice() else {
             return Err(Error::BackendError(
                 "unexpected ground-check lowering".into(),
