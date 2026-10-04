@@ -1,0 +1,504 @@
+{
+  "scope": "Frozen diagnostic closure library; original native rules and schedules. No candidate or embedding cutoff, no held-out library growth, no replacement runtime.",
+  "source_sha256": {
+    "train": "7747960d4e1aefb1bb904d67472c02927be555f5a030ca09e42e43e668deaaad",
+    "test": "b83dbc844f54f1b194f594e69cad1da8ccf44f2e7630971ef2be9215fcd0cafc"
+  },
+  "library_sha256": "65fbcb097c86d7eed2e1708aee764368b1e5e28d3958d54b5aace8e7e3493538",
+  "pattern_count": 43,
+  "unsupported_patterns": [
+    {
+      "file": "group-0.json",
+      "reason": "background-only state"
+    }
+  ],
+  "learned_effect_signatures": 1678,
+  "train": {
+    "structure": {
+      "covered_constructor_rows": 626,
+      "covered_expr_eclasses": 99,
+      "covered_expr_enodes": 329,
+      "expr_eclasses": 134,
+      "expr_enodes": 419,
+      "matched_patterns": 43,
+      "positive_embeddings": 437,
+      "stored_constructor_rows": 1914,
+      "visible_constructor_rows": 1884
+    },
+    "matches": {
+      "all_reads_one_cell": 432,
+      "any_cell": 2377,
+      "complete_witness": 4664,
+      "covered_read_atoms": 2833,
+      "effective_insert_update_union": 2060,
+      "known_effect_signature": 0,
+      "logical": 4664,
+      "multiple_internal_atoms": 271,
+      "one_marker_atom_contraction": 294,
+      "read_atoms": 10500,
+      "signature_candidates": 4365,
+      "signature_unsupported": 0
+    },
+    "effective_matches": {
+      "all_reads_one_cell": 0,
+      "any_cell": 797,
+      "complete_witness": 2060,
+      "covered_read_atoms": 945,
+      "effective_insert_update_union": 2060,
+      "known_effect_signature": 0,
+      "logical": 2060,
+      "multiple_internal_atoms": 44,
+      "one_marker_atom_contraction": 49,
+      "read_atoms": 4645,
+      "signature_candidates": 4365,
+      "signature_unsupported": 0
+    },
+    "expr_enode_coverage_percent": 78.52028639618139,
+    "expr_eclass_coverage_percent": 73.88059701492537,
+    "constructor_storage_coverage_percent": 32.70637408568443,
+    "complete_lhs_one_cell_percent": 9.262435677530018,
+    "at_least_two_internal_atoms_percent": 5.810463121783877,
+    "successful_read_atom_coverage_percent": 26.98095238095238,
+    "one_marker_atom_contraction_percent": 2.8,
+    "effective_signature_hit_percent": null,
+    "anchored_effective_signature_hit_percent": null,
+    "native_steps": 881,
+    "audit_seconds": 1.114154612,
+    "native_traced_seconds": 0.09072810500000013,
+    "control_equal": true,
+    "hottest_rules": [
+      {
+        "rule": "(rule ((= lhs (If pred inputs then else))\n       (HasType pred (Base (BoolT )))\n       (HasType then ty)\n       (HasType else ty))\n      ((HasType lhs ty))\n        :ruleset type-analysis )",
+        "search_and_apply_seconds": 0.0010661239999999999,
+        "coverage": {
+          "all_reads_one_cell": 0,
+          "any_cell": 6,
+          "complete_witness": 6,
+          "covered_read_atoms": 9,
+          "effective_insert_update_union": 2,
+          "known_effect_signature": 0,
+          "logical": 6,
+          "multiple_internal_atoms": 3,
+          "one_marker_atom_contraction": 3,
+          "read_atoms": 36,
+          "signature_candidates": 4,
+          "signature_unsupported": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Concat e1 e2))\n       (HasType e1 (TupleT tylist1))\n       (HasType e2 (TupleT tylist2)))\n      ((HasType lhs (TupleT (TLConcat tylist1 tylist2))))\n        :ruleset type-analysis )",
+        "search_and_apply_seconds": 0.0008818290000000001,
+        "coverage": {
+          "all_reads_one_cell": 0,
+          "any_cell": 25,
+          "complete_witness": 48,
+          "covered_read_atoms": 25,
+          "effective_insert_update_union": 30,
+          "known_effect_signature": 0,
+          "logical": 48,
+          "multiple_internal_atoms": 0,
+          "one_marker_atom_contraction": 0,
+          "read_atoms": 240,
+          "signature_candidates": 28,
+          "signature_unsupported": 0
+        }
+      },
+      {
+        "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (= (ExtractedExpr expr) (TCPair oldterm oldcost))\n       (< cost oldcost))\n      ((set (ExtractedExpr expr) (TCPair term cost)))\n        :ruleset terms-helpers )",
+        "search_and_apply_seconds": 0.0008053369999999999,
+        "coverage": {
+          "all_reads_one_cell": 0,
+          "any_cell": 77,
+          "complete_witness": 242,
+          "covered_read_atoms": 102,
+          "effective_insert_update_union": 73,
+          "known_effect_signature": 0,
+          "logical": 242,
+          "multiple_internal_atoms": 25,
+          "one_marker_atom_contraction": 25,
+          "read_atoms": 968,
+          "signature_candidates": 702,
+          "signature_unsupported": 0
+        }
+      },
+      {
+        "rule": "(rewrite (Concat (SubTuple expr a b) (SubTuple expr (+ a b) c)) (SubTuple expr a (+ b c)) :ruleset always-run)",
+        "search_and_apply_seconds": 0.000691999,
+        "coverage": {
+          "all_reads_one_cell": 12,
+          "any_cell": 58,
+          "complete_witness": 67,
+          "covered_read_atoms": 146,
+          "effective_insert_update_union": 23,
+          "known_effect_signature": 0,
+          "logical": 67,
+          "multiple_internal_atoms": 34,
+          "one_marker_atom_contraction": 46,
+          "read_atoms": 201,
+          "signature_candidates": 221,
+          "signature_unsupported": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Bop op e1 e2))\n       (bop-of-type op ty)\n       (HasType e1 ty)\n       (HasType e2 ty))\n      ((HasType lhs ty))\n        :ruleset type-analysis )",
+        "search_and_apply_seconds": 0.0005785380000000001,
+        "coverage": {
+          "all_reads_one_cell": 0,
+          "any_cell": 6,
+          "complete_witness": 8,
+          "covered_read_atoms": 7,
+          "effective_insert_update_union": 5,
+          "known_effect_signature": 0,
+          "logical": 8,
+          "multiple_internal_atoms": 1,
+          "one_marker_atom_contraction": 1,
+          "read_atoms": 32,
+          "signature_candidates": 6,
+          "signature_unsupported": 0
+        }
+      },
+      {
+        "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Get (Arg ty ctx) i))\n       (= expr (Get body (+ i 1))))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+        "search_and_apply_seconds": 0.0005105,
+        "coverage": {
+          "all_reads_one_cell": 0,
+          "any_cell": 1,
+          "complete_witness": 1,
+          "covered_read_atoms": 2,
+          "effective_insert_update_union": 1,
+          "known_effect_signature": 0,
+          "logical": 1,
+          "multiple_internal_atoms": 0,
+          "one_marker_atom_contraction": 0,
+          "read_atoms": 5,
+          "signature_candidates": 13,
+          "signature_unsupported": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Bop pred e1 e2))\n       (bpred-of-type pred ty)\n       (HasType e1 ty)\n       (HasType e2 ty))\n      ((HasType lhs (Base (BoolT ))))\n        :ruleset type-analysis )",
+        "search_and_apply_seconds": 0.00048358800000000013,
+        "coverage": {
+          "all_reads_one_cell": 0,
+          "any_cell": 5,
+          "complete_witness": 6,
+          "covered_read_atoms": 8,
+          "effective_insert_update_union": 2,
+          "known_effect_signature": 0,
+          "logical": 6,
+          "multiple_internal_atoms": 3,
+          "one_marker_atom_contraction": 3,
+          "read_atoms": 24,
+          "signature_candidates": 2,
+          "signature_unsupported": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Get e i))\n       (HasType e (TupleT tylist)))\n      ((HasType lhs (Base (TypeList-ith tylist i))))\n        :ruleset type-analysis )",
+        "search_and_apply_seconds": 0.00046470999999999996,
+        "coverage": {
+          "all_reads_one_cell": 0,
+          "any_cell": 79,
+          "complete_witness": 112,
+          "covered_read_atoms": 79,
+          "effective_insert_update_union": 34,
+          "known_effect_signature": 0,
+          "logical": 112,
+          "multiple_internal_atoms": 0,
+          "one_marker_atom_contraction": 0,
+          "read_atoms": 336,
+          "signature_candidates": 24,
+          "signature_unsupported": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (AddContext ctx inner))\n       (= inner (AddContext ctx expr)))\n      ((union lhs inner))\n        :ruleset context )",
+        "search_and_apply_seconds": 0.00046191900000000003,
+        "coverage": {
+          "all_reads_one_cell": 40,
+          "any_cell": 40,
+          "complete_witness": 72,
+          "covered_read_atoms": 80,
+          "effective_insert_update_union": 14,
+          "known_effect_signature": 0,
+          "logical": 72,
+          "multiple_internal_atoms": 40,
+          "one_marker_atom_contraction": 40,
+          "read_atoms": 144,
+          "signature_candidates": 0,
+          "signature_unsupported": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (<= cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+        "search_and_apply_seconds": 0.0004479599999999999,
+        "coverage": {
+          "all_reads_one_cell": 0,
+          "any_cell": 100,
+          "complete_witness": 140,
+          "covered_read_atoms": 102,
+          "effective_insert_update_union": 0,
+          "known_effect_signature": 0,
+          "logical": 140,
+          "multiple_internal_atoms": 2,
+          "one_marker_atom_contraction": 2,
+          "read_atoms": 420,
+          "signature_candidates": 0,
+          "signature_unsupported": 0
+        }
+      }
+    ]
+  },
+  "held_out": {
+    "structure": {
+      "covered_constructor_rows": 729,
+      "covered_expr_eclasses": 87,
+      "covered_expr_enodes": 340,
+      "expr_eclasses": 157,
+      "expr_enodes": 557,
+      "matched_patterns": 24,
+      "positive_embeddings": 320,
+      "stored_constructor_rows": 2674,
+      "visible_constructor_rows": 2592
+    },
+    "matches": {
+      "all_reads_one_cell": 381,
+      "any_cell": 3005,
+      "complete_witness": 6788,
+      "covered_read_atoms": 3506,
+      "effective_insert_update_union": 2890,
+      "known_effect_signature": 639,
+      "logical": 6788,
+      "multiple_internal_atoms": 159,
+      "one_marker_atom_contraction": 176,
+      "read_atoms": 15185,
+      "signature_candidates": 3926,
+      "signature_unsupported": 0
+    },
+    "effective_matches": {
+      "all_reads_one_cell": 0,
+      "any_cell": 957,
+      "complete_witness": 2890,
+      "covered_read_atoms": 1119,
+      "effective_insert_update_union": 2890,
+      "known_effect_signature": 639,
+      "logical": 2890,
+      "multiple_internal_atoms": 23,
+      "one_marker_atom_contraction": 28,
+      "read_atoms": 6430,
+      "signature_candidates": 3926,
+      "signature_unsupported": 0
+    },
+    "expr_enode_coverage_percent": 61.04129263913824,
+    "expr_eclass_coverage_percent": 55.4140127388535,
+    "constructor_storage_coverage_percent": 27.26252804786836,
+    "complete_lhs_one_cell_percent": 5.6128461991750145,
+    "at_least_two_internal_atoms_percent": 2.342368886269888,
+    "successful_read_atom_coverage_percent": 23.0885742509055,
+    "one_marker_atom_contraction_percent": 1.1590385248600592,
+    "effective_signature_hit_percent": 22.110726643598618,
+    "anchored_effective_signature_hit_percent": 66.77115987460814,
+    "native_steps": 784,
+    "audit_seconds": 1.0941004520000002,
+    "native_traced_seconds": 0.11230019500000006,
+    "control_equal": true,
+    "hottest_rules": [
+      {
+        "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Get (Arg ty ctx) i))\n       (= expr (Get body (+ i 1))))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+        "search_and_apply_seconds": 0.0016163249999999994,
+        "coverage": {
+          "all_reads_one_cell": 0,
+          "any_cell": 1,
+          "complete_witness": 1,
+          "covered_read_atoms": 3,
+          "effective_insert_update_union": 1,
+          "known_effect_signature": 1,
+          "logical": 1,
+          "multiple_internal_atoms": 0,
+          "one_marker_atom_contraction": 0,
+          "read_atoms": 5,
+          "signature_candidates": 3,
+          "signature_unsupported": 0
+        }
+      },
+      {
+        "rule": "(rewrite (Concat (SubTuple expr a b) (SubTuple expr (+ a b) c)) (SubTuple expr a (+ b c)) :ruleset always-run)",
+        "search_and_apply_seconds": 0.001609457,
+        "coverage": {
+          "all_reads_one_cell": 10,
+          "any_cell": 147,
+          "complete_witness": 162,
+          "covered_read_atoms": 257,
+          "effective_insert_update_union": 51,
+          "known_effect_signature": 41,
+          "logical": 162,
+          "multiple_internal_atoms": 22,
+          "one_marker_atom_contraction": 32,
+          "read_atoms": 486,
+          "signature_candidates": 90,
+          "signature_unsupported": 0
+        }
+      },
+      {
+        "rule": "(rule ((BodyContainsExpr body (Get _tup _i)))\n      ((BodyContainsExpr body _tup))\n        :ruleset always-run )",
+        "search_and_apply_seconds": 0.0012349090000000002,
+        "coverage": {
+          "all_reads_one_cell": 5,
+          "any_cell": 576,
+          "complete_witness": 581,
+          "covered_read_atoms": 694,
+          "effective_insert_update_union": 116,
+          "known_effect_signature": 108,
+          "logical": 581,
+          "multiple_internal_atoms": 5,
+          "one_marker_atom_contraction": 5,
+          "read_atoms": 1162,
+          "signature_candidates": 361,
+          "signature_unsupported": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Concat e1 e2))\n       (HasType e1 (TupleT tylist1))\n       (HasType e2 (TupleT tylist2)))\n      ((HasType lhs (TupleT (TLConcat tylist1 tylist2))))\n        :ruleset type-analysis )",
+        "search_and_apply_seconds": 0.000954245,
+        "coverage": {
+          "all_reads_one_cell": 0,
+          "any_cell": 6,
+          "complete_witness": 70,
+          "covered_read_atoms": 6,
+          "effective_insert_update_union": 45,
+          "known_effect_signature": 2,
+          "logical": 70,
+          "multiple_internal_atoms": 0,
+          "one_marker_atom_contraction": 0,
+          "read_atoms": 350,
+          "signature_candidates": 5,
+          "signature_unsupported": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (If pred inputs then else))\n       (HasType pred (Base (BoolT )))\n       (HasType then ty)\n       (HasType else ty))\n      ((HasType lhs ty))\n        :ruleset type-analysis )",
+        "search_and_apply_seconds": 0.000882211,
+        "coverage": {
+          "all_reads_one_cell": 0,
+          "any_cell": 19,
+          "complete_witness": 19,
+          "covered_read_atoms": 29,
+          "effective_insert_update_union": 5,
+          "known_effect_signature": 5,
+          "logical": 19,
+          "multiple_internal_atoms": 4,
+          "one_marker_atom_contraction": 4,
+          "read_atoms": 114,
+          "signature_candidates": 6,
+          "signature_unsupported": 0
+        }
+      },
+      {
+        "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (= (ExtractedExpr expr) (TCPair oldterm oldcost))\n       (< cost oldcost))\n      ((set (ExtractedExpr expr) (TCPair term cost)))\n        :ruleset terms-helpers )",
+        "search_and_apply_seconds": 0.0008039589999999999,
+        "coverage": {
+          "all_reads_one_cell": 0,
+          "any_cell": 51,
+          "complete_witness": 235,
+          "covered_read_atoms": 71,
+          "effective_insert_update_union": 74,
+          "known_effect_signature": 31,
+          "logical": 235,
+          "multiple_internal_atoms": 20,
+          "one_marker_atom_contraction": 20,
+          "read_atoms": 940,
+          "signature_candidates": 959,
+          "signature_unsupported": 0
+        }
+      },
+      {
+        "rule": "(rule ((BodyContainsExpr body (Concat _x _y)))\n      ((BodyContainsExpr body _x)\n       (BodyContainsExpr body _y))\n        :ruleset always-run )",
+        "search_and_apply_seconds": 0.0006500419999999995,
+        "coverage": {
+          "all_reads_one_cell": 0,
+          "any_cell": 106,
+          "complete_witness": 357,
+          "covered_read_atoms": 114,
+          "effective_insert_update_union": 201,
+          "known_effect_signature": 10,
+          "logical": 357,
+          "multiple_internal_atoms": 0,
+          "one_marker_atom_contraction": 0,
+          "read_atoms": 714,
+          "signature_candidates": 50,
+          "signature_unsupported": 0
+        }
+      },
+      {
+        "rule": "(rule ((= expr (If pred inputs then else))\n       (= sum (+ (Expr-size inputs) (+ (Expr-size else) (+ (Expr-size then) (Expr-size pred))))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )",
+        "search_and_apply_seconds": 0.0005488650000000002,
+        "coverage": {
+          "all_reads_one_cell": 0,
+          "any_cell": 13,
+          "complete_witness": 14,
+          "covered_read_atoms": 27,
+          "effective_insert_update_union": 8,
+          "known_effect_signature": 0,
+          "logical": 14,
+          "multiple_internal_atoms": 3,
+          "one_marker_atom_contraction": 3,
+          "read_atoms": 70,
+          "signature_candidates": 19,
+          "signature_unsupported": 0
+        }
+      },
+      {
+        "rule": "(rule ((= expr (Get tup i))\n       (= sum (Expr-size tup)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+        "search_and_apply_seconds": 0.0005023759999999999,
+        "coverage": {
+          "all_reads_one_cell": 6,
+          "any_cell": 124,
+          "complete_witness": 170,
+          "covered_read_atoms": 134,
+          "effective_insert_update_union": 54,
+          "known_effect_signature": 0,
+          "logical": 170,
+          "multiple_internal_atoms": 6,
+          "one_marker_atom_contraction": 6,
+          "read_atoms": 340,
+          "signature_candidates": 30,
+          "signature_unsupported": 0
+        }
+      },
+      {
+        "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Get _tup _i))\n       (is-inv-Expr body _tup))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+        "search_and_apply_seconds": 0.00048062300000000006,
+        "coverage": {
+          "all_reads_one_cell": 0,
+          "any_cell": 3,
+          "complete_witness": 3,
+          "covered_read_atoms": 3,
+          "effective_insert_update_union": 0,
+          "known_effect_signature": 0,
+          "logical": 3,
+          "multiple_internal_atoms": 0,
+          "one_marker_atom_contraction": 0,
+          "read_atoms": 12,
+          "signature_candidates": 0,
+          "signature_unsupported": 0
+        }
+      }
+    ]
+  },
+  "certified_state_transition_coverage": null,
+  "actual_join_savings": null,
+  "limitations": [
+    "Patterns are positive structural embeddings, not proofs of closed instances under arbitrary outside contexts.",
+    "Signature hits retain relative cell slots, external/residual aliasing, source read positions, literals and committed effects, but have no certified target-state adapter.",
+    "Only pre-step facts receive temporal credit; overlapping embeddings are deduplicated. Background-only facts receive no coverage credit.",
+    "The contraction count replaces k successful LHS reads in one cell with one marker; it neither counts failed Join candidates nor bounds savings from suppressing whole internal rules.",
+    "Native search-and-apply times include tracing and RHS work; they are not pure Join times and are not multiplied by coverage ratios.",
+    "Effective mutation denominator covers insert/update/union receipts; subsume-only changes are outside this count.",
+    "Native control uses identical dependency tracing. This does not claim tracing leaves order-sensitive untraced execution choices unchanged."
+  ],
+  "frozen_training_self_check": {
+    "control_equal": true,
+    "anchored_effective_matches": 797,
+    "known_effect_signatures": 797
+  }
+}
