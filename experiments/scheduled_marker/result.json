@@ -1,0 +1,52 @@
+{
+  "reports": [
+    {
+      "file": "experiments/scheduled_marker/baseline.egg",
+      "phases": [
+        {
+          "ms": 26.34925,
+          "schedule": "(run-schedule (repeat 17 (run seed)))"
+        },
+        {
+          "ms": 49.327208999999996,
+          "schedule": "(run-schedule (repeat 1 (run produce)))"
+        },
+        {
+          "ms": 102.283333,
+          "schedule": "(run-schedule (repeat 1 (run consume)))"
+        }
+      ],
+      "result_rows": 131071,
+      "total_ms": 188.003625
+    },
+    {
+      "file": "experiments/scheduled_marker/scheduled.egg",
+      "phases": [
+        {
+          "ms": 24.185292,
+          "schedule": "(run-schedule (repeat 17 (run seed)))"
+        },
+        {
+          "ms": 63.816582999999994,
+          "schedule": "(run-schedule (repeat 1 (run produce)))"
+        },
+        {
+          "ms": 102.068209,
+          "schedule": "(run-schedule (repeat 1 (run cell-answer)))"
+        },
+        {
+          "ms": 13.912709000000001,
+          "schedule": "(run-schedule (repeat 1 (run fallback)))"
+        },
+        {
+          "ms": 105.067333,
+          "schedule": "(run-schedule (repeat 1 (run consume)))"
+        }
+      ],
+      "result_rows": 131071,
+      "total_ms": 321.68162500000005
+    }
+  ],
+  "runs_per_variant": 1,
+  "same_original_relations": true
+}
