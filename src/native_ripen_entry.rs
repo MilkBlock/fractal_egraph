@@ -198,7 +198,11 @@ fn extract(
     let mut final_checks = vec![];
     let mut injections = vec![];
     let mut written = BTreeSet::new();
-    let mut last_commit = 0;
+    // Commit delivery can differ from match/action order for independent keys.
+    // Preserve order for syntactically identical targets. Distinct expressions
+    // may still alias after union: executable before/after guards below check
+    // the actual replay state, rather than assuming unequal strings are disjoint.
+    let mut last_commit_by_target = BTreeMap::new();
     let mut update_evidence = vec![];
     for i in &members {
         let r = &c.records[*i];
@@ -411,12 +415,6 @@ fn extract(
                     "multiple commits for one set action require finer stage replay".into(),
                 );
             }
-            if w.commit <= last_commit {
-                return Err(
-                    "set commits interleave match order; stage replay cannot reorder them".into(),
-                );
-            }
-            last_commit = w.commit;
             if w.table != *op
                 || w.after.len() != args.len() + 1
                 || w.proposed.len() != args.len() + 1
@@ -429,6 +427,13 @@ fn extract(
                 .collect::<Result<Vec<_>>>()?;
             let target = call(op, args.clone());
             let key = target.to_string();
+            if last_commit_by_target
+                .get(&key)
+                .is_some_and(|last| w.commit <= *last)
+            {
+                return Err("set commits interleave match order for one target; stage replay cannot reorder them".into());
+            }
+            last_commit_by_target.insert(key.clone(), w.commit);
             let after = values
                 .get(w.after.last().unwrap())
                 .cloned()
@@ -829,6 +834,77 @@ mod tests {
         update_layers(&mut c).unwrap();
         c
     }
+    #[test]
+    fn independent_table_commit_order_does_not_reject_replay() {
+        let mut c = captured(
+            r#"
+            (datatype E (V i64))
+            (function A (E) i64 :merge (min old new))
+            (function B (E) i64 :merge (min old new))
+            (rule ((= x (V 0))) ((set (A x) 7) (set (B x) 9)))
+            (V 0) (run 1)
+        "#,
+        );
+        // Cross-table commit delivery may differ from source action order.
+        assert_eq!(c.records[0].sets.len(), 2);
+        c.records[0].sets.iter_mut().for_each(|w| {
+            w.commit = if w.table == "A" { 20 } else { 10 };
+        });
+        prepare_members(&c, &[0]).unwrap();
+        // Reordering is not permission to accept an incorrect effect.
+        let bad = c.records[0]
+            .sets
+            .iter()
+            .find(|w| w.table == "A")
+            .unwrap()
+            .after
+            .last()
+            .copied()
+            .unwrap();
+        *c.records[0]
+            .sets
+            .iter_mut()
+            .find(|w| w.table == "B")
+            .unwrap()
+            .after
+            .last_mut()
+            .unwrap() = bad;
+        assert!(prepare_members(&c, &[0]).is_err());
+    }
+
+    #[test]
+    fn independent_keys_in_one_table_can_replay_out_of_commit_order() {
+        let mut c = captured(
+            r#"
+            (datatype E (V i64))
+            (function A (E) i64 :merge (min old new))
+            (rule ((= x (V 0)) (= y (V 1))) ((set (A x) 7) (set (A y) 5)))
+            (V 0) (V 1) (run 1)
+        "#,
+        );
+        for w in &mut c.records[0].sets {
+            w.commit = if w.path == "head/0/set/0" { 20 } else { 10 };
+        }
+        prepare_members(&c, &[0]).unwrap();
+    }
+
+    #[test]
+    fn reversed_same_table_commits_are_still_rejected() {
+        let mut c = captured(
+            r#"
+            (datatype E (V i64))
+            (function A (E) i64 :merge (min old new))
+            (rule ((= x (V 0))) ((set (A x) 7) (set (A x) 5)))
+            (V 0) (run 1)
+        "#,
+        );
+        for w in &mut c.records[0].sets {
+            w.commit = if w.path == "head/0/set/0" { 20 } else { 10 };
+        }
+        let error = prepare_members(&c, &[0]).unwrap_err().to_string();
+        assert!(error.contains("for one target"), "{error}");
+    }
+
     #[test]
     fn two_sets_in_one_apply_keep_each_committed_scalar_snapshot() {
         let c = captured(

@@ -1,0 +1,78 @@
+{
+  "scope": "Offline native analyze replay; no cell certification or Join speedup claimed",
+  "before": {
+    "jobs": 2060,
+    "reasons": {
+      "passed_replay_export_blocked": 620,
+      "output_alias": 87,
+      "commit_order": 1194,
+      "missing_scalar_or_binding": 110,
+      "external_injection": 40,
+      "unresolved_binding": 9
+    },
+    "states": {
+      "Rejected": 2060
+    },
+    "preparation": {
+      "check_compilations": 1437,
+      "check_runs": 7709,
+      "environment_compilations": 1,
+      "seconds": {
+        "LHS fact": 0.12794450400000018,
+        "clone_validation_egraph": 4.765631251000002,
+        "compile_check_groups": 12.526258738999985,
+        "construct_facts_bindings": 7.361133005,
+        "encode_key": 2.0823829460000005,
+        "encode_result_provenance": 4.0566823690000025,
+        "environment_setup": 0.108822292,
+        "external fact injection": 0.3480558680000002,
+        "internal fact before external injection": 0.021705396,
+        "prepare_total": 81.29587403700016,
+        "recorded output alias": 0.23686248600000046,
+        "rule action": 10.180079731999987,
+        "seed_parameters": 0.02735476300000001,
+        "table_statistics": 0.17944312699999987
+      },
+      "validated_compositions": 550,
+      "validation_cache_hits": 70,
+      "validation_runs": 677
+    }
+  },
+  "after": {
+    "jobs": 2060,
+    "reasons": {
+      "passed_replay_export_blocked": 639,
+      "output_alias": 177,
+      "missing_scalar_or_binding": 139,
+      "external_injection": 40,
+      "unresolved_binding": 1065
+    },
+    "states": {
+      "Rejected": 2060
+    },
+    "preparation": {
+      "check_compilations": 1661,
+      "check_runs": 10586,
+      "environment_compilations": 1,
+      "seconds": {
+        "LHS fact": 0.1146047080000001,
+        "clone_validation_egraph": 4.295968486999999,
+        "compile_check_groups": 9.909690129000014,
+        "construct_facts_bindings": 6.870130994999998,
+        "encode_key": 1.6952798069999997,
+        "encode_result_provenance": 2.9314364329999996,
+        "environment_setup": 0.111627709,
+        "external fact injection": 0.24931794600000012,
+        "internal fact before external injection": 0.018117572999999974,
+        "prepare_total": 62.760435079000004,
+        "recorded output alias": 0.2053050749999996,
+        "rule action": 8.41279631099997,
+        "seed_parameters": 0.01955508799999999,
+        "table_statistics": 0.13476272699999992
+      },
+      "validated_compositions": 569,
+      "validation_cache_hits": 70,
+      "validation_runs": 786
+    }
+  }
+}
