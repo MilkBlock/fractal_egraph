@@ -1,0 +1,93 @@
+{
+  "full_replay": {
+    "completed": false,
+    "reason": "StorageFull during full artifact-producing analyze; no final coverage result",
+    "last_persisted_boundary": 1,
+    "last_persisted_counts": {
+      "Running": 1
+    }
+  },
+  "selected_records": [
+    {
+      "done": false,
+      "preparation_seconds": 0.873730583,
+      "prepared": true,
+      "record": 888,
+      "rule": 594
+    },
+    {
+      "done": false,
+      "preparation_seconds": 0.049368875,
+      "prepared": true,
+      "record": 559,
+      "rule": 127
+    },
+    {
+      "preparation_seconds": 0.038902584,
+      "prepared": false,
+      "reason": "CS member 1520: recorded output alias failed: At 312:56 of egglog/src/fact_query.rs\nCheck failed: \n(= (RipenInput_5_ 0) (RipenInput_5_ 0))\n(= (RipenInput_5_ 1) (RipenInput_5_ 1))\n(= (RipenInput_0_ 2) (RipenInput_0_ 2))\n(= (RipenInput_5_ 0) (AddContext (RipenInput_0_ 2) (RipenInput_5_ 0)))\n(= (AddContext (RipenInput_0_ 2) (Concat (RipenInput_5_ 0) (RipenInput_5_ 1))) (Concat (AddContext (RipenInput_0_ 2) (RipenInput_5_ 0)) (AddContext (RipenInput_0_ 2) (RipenInput_5_ 1))))\n(= (RipenInput_0_ 2) (RipenInput_0_ 2))\n(= (RipenInput_5_ 1) (RipenInput_5_ 1))\n(= (AddContext (RipenInput_0_ 2) (RipenInput_5_ 1)) (AddContext (RipenInput_0_ 2) (RipenInput_5_ 1)))",
+      "record": 1520,
+      "rule": 202
+    }
+  ],
+  "release_local_559": {
+    "ripen": {
+      "excluded_matches": 0,
+      "round": 2,
+      "rulesets": [
+        "always-run",
+        "apply-drop-unions",
+        "apply-subst-unions",
+        "boundary-analysis",
+        "boundary-analysis-prep",
+        "canon",
+        "cicm-index",
+        "cleanup-drop",
+        "context",
+        "drop",
+        "error-checking",
+        "interval-analysis",
+        "is-resolved",
+        "loop-iters-analysis",
+        "mem-simple",
+        "passthrough",
+        "rec-to-loop",
+        "state-edge-passthrough",
+        "subst",
+        "subsume-after-helpers",
+        "swap-if",
+        "term-subst",
+        "terms",
+        "terms-helpers",
+        "terms-helpers-helpers",
+        "type-analysis",
+        "type-helpers"
+      ],
+      "scope": "whole isolated cell",
+      "state": "Saturated",
+      "updated": false
+    },
+    "checks": "passed",
+    "events": 43,
+    "observation_limits": {
+      "facts": 200000,
+      "milliseconds": 50,
+      "sweep_steps": 4
+    },
+    "saturated_rule_composition": {
+      "observed_state": {
+        "certified": false,
+        "facts": 34,
+        "file": "observed-saturated-state.json",
+        "values": 28
+      },
+      "reason": "unsupported container/table field sort in state export",
+      "status": "unavailable"
+    }
+  },
+  "tests": {
+    "library_passed": 33,
+    "library_ignored": 2,
+    "native_queries_passed": 8
+  }
+}

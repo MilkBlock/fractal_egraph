@@ -16,6 +16,44 @@ fn subst(e: &Expr, env: &BTreeMap<String, Expr>) -> Result<Expr> {
         ),
     })
 }
+// LHS is a conjunction, not a sequence of let definitions. The native
+// planner may omit a binding recoverable from an equation that appears later.
+fn resolve_lhs_bindings(body: &[Fact], env: &mut BTreeMap<String, Expr>) -> Result {
+    let mut definitions = vec![];
+    for fact in body {
+        if let Fact::Eq(_, a, b) = fact {
+            if let Expr::Var(_, name) = a {
+                definitions.push((name, b));
+            }
+            if let Expr::Var(_, name) = b {
+                definitions.push((name, a));
+            }
+        }
+    }
+    loop {
+        let mut changed = false;
+        for (name, rhs) in &definitions {
+            if !env.contains_key(*name) {
+                if let Ok(value) = subst(rhs, env) {
+                    env.insert((*name).clone(), value);
+                    changed = true;
+                }
+            }
+        }
+        if !changed {
+            break;
+        }
+    }
+    // No guessed holes for unresolved/cyclic variables. The original LHS
+    // checks below still validate every equality, including alternate definitions.
+    for (name, _) in definitions {
+        if !env.contains_key(name) {
+            return Err(format!("unresolved binding {name}").into());
+        }
+    }
+    Ok(())
+}
+
 fn check(f: Fact) -> Command {
     Command::Check(sp(), vec![f])
 }
@@ -39,6 +77,34 @@ fn literal(c: &Captured, id: usize) -> Result<Expr> {
     };
     Ok(value.clone())
 }
+// An observed external function row has an output as well as its key.
+// Equality-sort outputs are legitimate boundary slots, not missing literals.
+fn external_value(
+    c: &Captured,
+    id: usize,
+    values: &mut BTreeMap<usize, Expr>,
+    parameters: &mut Vec<Json>,
+    entry: &mut Vec<Command>,
+    holes: &BTreeMap<String, String>,
+) -> Result<Expr> {
+    if let Some(value) = values.get(&id) {
+        return Ok(value.clone());
+    }
+    if c.pool.literals.contains_key(&id) {
+        return literal(c, id);
+    }
+    let sort = c.pool.values[id].sort.as_ref();
+    let Some(hole) = holes.get(sort) else {
+        return Err(format!("external output sort {sort} needs a concrete payload").into());
+    };
+    let slot = parameters.len();
+    let value = call(hole, vec![num(slot as u64)]);
+    entry.push(Command::Action(Action::Expr(sp(), value.clone())));
+    parameters.push(json!({"name":format!("ripen_p{slot}"),"token":id,"sort":sort,"semantics":"observed external row output"}));
+    values.insert(id, value.clone());
+    Ok(value)
+}
+
 fn outside(r: &Record, p: &Port, members: &BTreeSet<usize>) -> bool {
     match p {
         Port::External(_) => true,
@@ -72,7 +138,7 @@ impl Environment {
             let name = if c.datatype_names.len() == 1 {
                 hole.clone()
             } else {
-                format!("{hole}_{i}")
+                format!("{hole}_{i}_")
             };
             datatypes
                 .extend(parser.parse_program(None, &format!("(constructor {name} (i64) {sort})"))?);
@@ -81,6 +147,54 @@ impl Environment {
         let constructors: BTreeSet<String> = sorts::constructors(&datatypes)
             .into_iter()
             .map(|(_, v)| v.name)
+            .collect();
+        // Do not activate declared-but-unscheduled maintenance/debug rules.
+        fn scheduled(s: &egglog::ast::Schedule, out: &mut BTreeSet<String>) {
+            use egglog::ast::GenericSchedule::*;
+            match s {
+                Run(_, config) => {
+                    out.insert(config.ruleset.clone());
+                }
+                Sequence(_, xs) => {
+                    for x in xs {
+                        scheduled(x, out);
+                    }
+                }
+                Repeat(_, _, x) | Saturate(_, x) => scheduled(x, out),
+            }
+        }
+        let mut active = BTreeSet::new();
+        let mut has_schedule = false;
+        let mut combined = BTreeMap::new();
+        for cmd in parser.parse_program(None, &c.preview_source)? {
+            match cmd {
+                Command::RunSchedule(s) => {
+                    has_schedule = true;
+                    scheduled(&s, &mut active);
+                }
+                Command::UnstableCombinedRuleset(_, name, members) => {
+                    combined.insert(name, members);
+                }
+                _ => {}
+            }
+        }
+        let mut pending: Vec<_> = active.iter().cloned().collect();
+        while let Some(name) = pending.pop() {
+            if let Some(members) = combined.get(&name) {
+                for member in members {
+                    if active.insert(member.clone()) {
+                        pending.push(member.clone());
+                    }
+                }
+            }
+        }
+        let local_rules: Vec<_> = c
+            .rules
+            .iter()
+            .filter(|r| {
+                !r.rule.body.is_empty() && (!has_schedule || active.contains(&r.rule.ruleset))
+            })
+            .cloned()
             .collect();
         let mut entry = datatypes.clone();
         let rulesets: BTreeSet<_> = c
@@ -92,7 +206,7 @@ impl Environment {
         for ruleset in rulesets {
             entry.push(Command::AddRuleset(sp(), ruleset));
         }
-        entry.extend(c.rules.iter().map(|r| Command::Rule {
+        entry.extend(local_rules.iter().map(|r| Command::Rule {
             rule: r.rule.clone(),
         }));
         let code = entry
@@ -105,7 +219,7 @@ impl Environment {
         Ok(Self {
             export_error: super::export_schema(c, true).err().map(|e| e.to_string()),
             base,
-            rules: c.rules.clone(),
+            rules: local_rules,
             code,
             source: c.preview_source.clone(),
             hole,
@@ -255,10 +369,15 @@ fn extract(
                 );
             }
         }
-        for f in &rule.rule.body {
-            if let Fact::Eq(_, Expr::Var(_, name), rhs) = f {
-                if !env.contains_key(name) {
-                    env.insert(name.clone(), subst(rhs, &env)?);
+        let grounded_names: BTreeSet<_> = env.keys().cloned().collect();
+        resolve_lhs_bindings(&rule.rule.body, &mut env)?;
+        // Every internal row must already exist before boundary injection,
+        // including dependencies reached through an LHS equation alias.
+        for (input, port) in r.inputs.iter().zip(&r.ports) {
+            if let Input::Read(span) = input {
+                if !outside(r, port, &members) {
+                    let term = subst(&rule.calls[span].1, &env)?;
+                    requirements.insert(term.to_string(), eq(term.clone(), term));
                 }
             }
         }
@@ -296,6 +415,11 @@ fn extract(
                     let mut needed = BTreeSet::new();
                     variables(&rule.calls[span].1, &mut needed);
                     for name in needed {
+                        // An equation-derived variable may name an external row
+                        // being injected now. Requiring it earlier is circular.
+                        if !grounded_names.contains(&name) {
+                            continue;
+                        }
                         let expr = env
                             .get(&name)
                             .ok_or("missing external fact binding")?
@@ -325,11 +449,14 @@ fn extract(
                                 .copied()
                                 .flatten()
                                 .ok_or("missing function read result")?;
-                            let value = values
-                                .get(&id)
-                                .cloned()
-                                .map(Ok)
-                                .unwrap_or_else(|| literal(c, id))?;
+                            let value = external_value(
+                                c,
+                                id,
+                                &mut values,
+                                &mut parameters,
+                                &mut entry,
+                                &environment.holes,
+                            )?;
                             Command::Action(Action::Set(sp(), op.clone(), args.clone(), value))
                         } else {
                             Command::Action(Action::Expr(sp(), expr.clone()))
@@ -434,11 +561,6 @@ fn extract(
                 return Err("set commits interleave match order for one target; stage replay cannot reorder them".into());
             }
             last_commit_by_target.insert(key.clone(), w.commit);
-            let after = values
-                .get(w.after.last().unwrap())
-                .cloned()
-                .map(Ok)
-                .unwrap_or_else(|| literal(c, *w.after.last().unwrap()))?;
             let before = match &w.before {
                 PreviousRow::Unknown => {
                     return Err("unknown pre-update row; recapture with commit witnesses".into());
@@ -447,11 +569,23 @@ fn extract(
                     Command::Fail(sp(), Box::new(eq(target.clone(), target.clone())))
                 }
                 PreviousRow::Present(row) => {
-                    let old = values
-                        .get(row.last().ok_or("empty old row")?)
-                        .cloned()
-                        .map(Ok)
-                        .unwrap_or_else(|| literal(c, *row.last().unwrap()))?;
+                    let id = *row.last().ok_or("empty old row")?;
+                    let old = if !written.contains(&key) {
+                        external_value(
+                            c,
+                            id,
+                            &mut values,
+                            &mut parameters,
+                            &mut entry,
+                            &environment.holes,
+                        )?
+                    } else {
+                        values
+                            .get(&id)
+                            .cloned()
+                            .map(Ok)
+                            .unwrap_or_else(|| literal(c, id))?
+                    };
                     if !written.contains(&key) && !seeds.contains_key(&key) {
                         seeds.insert(
                             key.clone(),
@@ -466,6 +600,11 @@ fn extract(
                     immediate(eq(target.clone(), old))
                 }
             };
+            let after = values
+                .get(w.after.last().unwrap())
+                .cloned()
+                .map(Ok)
+                .unwrap_or_else(|| literal(c, *w.after.last().unwrap()))?;
             update_evidence.push(json!({"record":i,"action":action_index,"before":w.before,"commit":w.commit,"table":op}));
             written.insert(key);
             set_guards.insert(action_index, (before, immediate(eq(target, after))));
@@ -782,7 +921,7 @@ fn extract(
         "events":stages.iter().map(|(i,e,n,_,_)|json!({"record":i,"event":e,"precondition_checks":n})).collect::<Vec<_>>(),
         "initial_tables":initial_tables,"original_use_tables":original_tables,"parameter_marker":hole,"parameter_markers":environment.holes,
         "symbolic_values":values.iter().map(|(token,term)|json!({"token":token,"term":term.to_string(),"sort":c.pool.values[*token].sort})).collect::<Vec<_>>(),
-        "parameters":parameters,"all_source_rules":c.rules.len(),"validation":"all original LHS checks and recorded output aliases passed before/after the corresponding ground actions",
+        "parameters":parameters,"excluded_seed_rules":c.rules.iter().filter(|r|r.rule.body.is_empty()).map(|r|r.rule.name.clone()).collect::<Vec<_>>(),"all_source_rules":c.rules.len(),"validation":"all original LHS checks and recorded output aliases passed before/after the corresponding ground actions",
         "set_update_witnesses":update_evidence,"staged_injections":injections,"initial_source":seed_text,"concrete_boundary_structure_recovered":false,
         "saturated_scope":"extracted interface only; not the complete original tier0 neighborhood"});
     elapsed!("encode_result_provenance", output_tick);
@@ -834,6 +973,105 @@ mod tests {
         update_layers(&mut c).unwrap();
         c
     }
+    #[test]
+    fn multi_sort_hole_names_do_not_collide_with_native_fresh_suffixes() {
+        let source = (0..25)
+            .map(|i| format!("(datatype S{i:02} (V{i:02}))"))
+            .collect::<Vec<_>>()
+            .join("\n");
+        let c = captured(&source);
+        let environment = Environment::new(&c).unwrap();
+        let mut eg = environment.base.clone();
+        let mut facts = vec![];
+        for ty in ["S02", "S22"] {
+            for i in 0..4 {
+                let term = call(&environment.holes[ty], vec![num(i)]);
+                eg.run_program(vec![Command::Action(Action::Expr(sp(), term.clone()))])
+                    .unwrap();
+                facts.push(Fact::Eq(sp(), term.clone(), term));
+            }
+        }
+        let query = eg.compile_ground_check(&facts).unwrap();
+        assert!(eg.run_ground_check(&query).is_ok());
+    }
+
+    #[test]
+    fn unscheduled_rules_are_not_activated_by_local_ripen() {
+        let mut c = captured(
+            r#"
+            (datatype E (V) (G E))
+            (ruleset work) (ruleset destructive)
+            (rule ((= x (V))) ((G x)) :ruleset work)
+            (rule ((= x (V))) ((delete (V))) :ruleset destructive)
+            (V) (run work 1)
+        "#,
+        );
+        c.preview_source = c.preview_source.replace("(run work 1)", "(unstable-combined-ruleset joined work) (run joined 1)");
+        let environment = Environment::new(&c).unwrap();
+        assert_eq!(environment.rules.len(), 1);
+        assert_eq!(environment.rules[0].rule.ruleset, "work");
+    }
+
+    #[test]
+    fn local_preparation_does_not_reinstall_zero_premise_input_generator() {
+        let c = captured(
+            r#"
+            (datatype E (V i64) (G E))
+            (ruleset seed) (ruleset work)
+            (rule () ((V 42)) :ruleset seed :name "input")
+            (rule ((= x (V 42))) ((G x)) :ruleset work)
+            (run seed 1) (run work 1)
+        "#,
+        );
+        let mut cache = PreparationCache::default();
+        let (_, _, origin) = cache.prepare(&c, &[1]).unwrap();
+        assert_eq!(origin["excluded_seed_rules"], json!(["input"]));
+        assert!(
+            cache
+                .environment
+                .as_ref()
+                .unwrap()
+                .rules
+                .iter()
+                .all(|r| !r.rule.body.is_empty())
+        );
+    }
+
+    #[test]
+    fn external_equality_sort_function_results_are_boundary_slots() {
+        let c = captured(
+            r#"
+            (datatype E (V i64) (G E))
+            (function F (E) E :merge old)
+            (set (F (V 0)) (V 1))
+            (rule ((= x (V 0))) ((set (F x) (V 2))))
+            (run 1)
+        "#,
+        );
+        assert_eq!(c.records.len(), 1);
+        let (_, _, origin) = prepare_members(&c, &[0]).unwrap();
+        assert!(
+            origin["parameters"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|p| p["semantics"] == "observed external row output")
+        );
+    }
+
+    #[test]
+    fn lhs_definitions_resolve_independently_of_source_order() {
+        let mut eg = EGraph::default();
+        let cmds = eg.parse_program(None, "(rule ((= body (Wrap branch)) (= leaf x) (= (Pair leaf leaf) branch)) ((Wrap body)))").unwrap();
+        let Command::Rule { rule } = &cmds[0] else {
+            panic!()
+        };
+        let mut env = BTreeMap::from([("x".into(), num(3))]);
+        resolve_lhs_bindings(&rule.body, &mut env).unwrap();
+        assert_eq!(env["body"].to_string(), "(Wrap (Pair 3 3))");
+        assert!(resolve_lhs_bindings(&rule.body, &mut BTreeMap::new()).is_err());
+    }
+
     #[test]
     fn independent_table_commit_order_does_not_reject_replay() {
         let mut c = captured(
@@ -1174,6 +1412,76 @@ mod tests {
         assert_eq!(cache.stats()["validation_runs"], 2);
         assert_eq!(cache.stats()["validation_cache_hits"], 0);
     }
+    #[test]
+    #[ignore = "explicit recorded-entry audit; paths and records supplied by caller"]
+    fn recorded_entry_audit() {
+        let path = std::env::var("EGG_LAYOUT_AUDIT_HISTORY").unwrap();
+        let records = std::env::var("EGG_LAYOUT_AUDIT_RECORDS").unwrap();
+        let output = std::path::PathBuf::from(std::env::var("EGG_LAYOUT_AUDIT_OUTPUT").unwrap());
+        assert!(!output.exists());
+        std::fs::create_dir_all(&output).unwrap();
+        let mut c = history::read(Path::new(&path)).unwrap();
+        update_layers(&mut c).unwrap();
+        let mut cache = PreparationCache::default();
+        let mut rows = vec![];
+        for id in records.split(',').map(|s| s.parse::<usize>().unwrap()) {
+            let started = std::time::Instant::now();
+            let result = cache.prepare(&c, &[id]);
+            let mut row = json!({"record":id,"rule":c.records[id].rule,"preparation_seconds":started.elapsed().as_secs_f64()});
+            match result {
+                Ok((entry, _, origin)) => {
+                    let dir = output.join(id.to_string());
+                    std::fs::create_dir(&dir).unwrap();
+                    let source = dir.join("entry.egg");
+                    std::fs::write(&source, entry).unwrap();
+                    row["prepared"] = json!(true);
+                    row["origin"] = origin;
+                    let mut session =
+                        super::super::Session::new_cached(&source, &dir.join("ripen"), &cache);
+                    match &mut session {
+                        Ok(session) => {
+                            let start = std::time::Instant::now();
+                            let limits = crate::ripen_observation::Limits::default();
+                            loop {
+                                if let Err(e) = session.advance_with_observation(
+                                    &limits,
+                                    start.elapsed().as_secs_f64(),
+                                ) {
+                                    row["ripen_error"] = json!(e.to_string());
+                                    break;
+                                }
+                                if session.done
+                                    || !limits
+                                        .reached(
+                                            start.elapsed().as_secs_f64(),
+                                            super::super::table_counts(
+                                                &session.eg,
+                                                &session.table_names,
+                                            )
+                                            .values()
+                                            .sum(),
+                                        )
+                                        .is_empty()
+                                {
+                                    break;
+                                }
+                            }
+                            row["done"] = json!(session.done);
+                            row["report"] = session.report.clone();
+                        }
+                        Err(e) => row["ripen_error"] = json!(e.to_string()),
+                    }
+                }
+                Err(e) => {
+                    row["prepared"] = json!(false);
+                    row["reason"] = json!(e.to_string());
+                }
+            }
+            rows.push(row);
+        }
+        std::fs::write(output.join("report.json"),serde_json::to_vec_pretty(&json!({"scope":"selected recorded applications treated as local coarse entries; not full-composition coverage","rows":rows})).unwrap()).unwrap();
+    }
+
     #[test]
     #[ignore = "explicit math preparation audit; no ripen or saturation claims"]
     fn math_six_round_preparation_audit() {

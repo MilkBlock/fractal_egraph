@@ -10,6 +10,7 @@ fn supported_action(a: &Action) -> bool {
     matches!(
         a,
         Action::Let(..)
+            | Action::Panic(..)
             | Action::Expr(..)
             | Action::Union(..)
             | Action::Set(..)
@@ -389,7 +390,18 @@ impl Session {
                     exported = json!({"status":"exported","values":state.values.len(),"facts":state.rows.len()});
                     self.final_state = Some(state);
                 }
-                Err(e) => exported = json!({"status":"unavailable","reason":e.to_string()}),
+                Err(e) => {
+                    exported = json!({"status":"unavailable","reason":e.to_string()});
+                    // A complete observed state is useful for analysis, but must
+                    // never enter the certified catalog through this fallback.
+                    match export_state(&self.eg, &self.c, &self.ports, true, &self.out, true) {
+                        Ok(state) => {
+                            crate::pipeline::write_json(&self.out.join("observed-saturated-state.json"), &state)?;
+                            exported["observed_state"] = json!({"file":"observed-saturated-state.json","values":state.values.len(),"facts":state.rows.len(),"certified":false});
+                        }
+                        Err(error) => exported["observation_error"] = json!(error.to_string()),
+                    }
+                },
             }
         }
         let shared=self.eg.shared_row_storage();
@@ -422,9 +434,17 @@ pub fn run(source: &Path, out: &Path) -> Result<Json> {
     }
     let render_batch = crate::graph_render::Batch::start()?;
     let mut task = Session::new(source, out)?;
+    let limits = crate::ripen_observation::Limits::from_env()?;
+    let started = std::time::Instant::now();
     while !task.done {
-        task.advance()?;
+        task.advance_with_observation(&limits, started.elapsed().as_secs_f64())?;
         eprintln!("[ripen] {}", task.report["ripen"]);
+        if !task.done && (task.report["native_stop_reason"].is_string()
+            || !limits.reached(started.elapsed().as_secs_f64(), table_counts(&task.eg, &task.table_names).values().sum()).is_empty()) {
+            task.report["ripen"]["state"] = json!("ObservedUnfinished");
+            task.write_report()?;
+            break;
+        }
     }
     render_batch.finish()?;
     Ok(task.report)
@@ -457,6 +477,49 @@ fn write_native_graph(eg: &EGraph, out: &Path, stem: &str) -> Result<()> {
     Ok(())
 }
 
+// Container values need structural identity, never an opaque primitive ID.
+// Sets use unordered incidence rows; element order cannot affect comparison.
+#[derive(Default)]
+struct StateVertices {
+    ids: BTreeMap<(String, Value), usize>,
+    values: Vec<crate::saturated_rule_composition::Vertex>,
+    local_ids: Vec<String>,
+    container_rows: BTreeSet<crate::saturated_rule_composition::Row>,
+}
+impl StateVertices {
+    fn intern(&mut self, eg: &EGraph, ty: &str, v: Value) -> Result<usize> {
+        use crate::saturated_rule_composition::{Row, Vertex};
+        let sort = eg.get_sort_by_name(ty).ok_or_else(|| format!("missing sort {ty}"))?;
+        let v = eg.get_canonical_value(v, sort);
+        let key = (ty.to_owned(), v);
+        if let Some(id) = self.ids.get(&key) { return Ok(*id); }
+        let is_set = sort.value_type() == Some(std::any::TypeId::of::<egglog::sort::SetContainer>());
+        let literal = if sort.is_eq_sort() || is_set { None } else {
+            Some(match ty {
+                "Unit" => "()".into(),
+                "i64" => eg.value_to_base::<i64>(v).to_string(),
+                "String" => serde_json::to_string(&eg.value_to_base::<egglog::sort::S>(v).to_string())?,
+                "bool" => eg.value_to_base::<bool>(v).to_string(),
+                "f64" => Expr::Lit(sp(), Literal::Float(eg.value_to_base::<egglog::sort::F>(v).0)).to_string(),
+                _ => return Err(format!("unsupported populated state sort {ty}").into()),
+            })
+        };
+        let id = self.values.len();
+        self.ids.insert(key, id);
+        self.values.push(Vertex {sort:ty.into(),literal});
+        self.local_ids.push(eg.value_to_class_id(sort, v).to_string());
+        if is_set {
+            let set = eg.value_to_container::<egglog::sort::SetContainer>(v).ok_or("missing set payload")?;
+            self.container_rows.insert(Row {op:format!("@set:{ty}"),args:vec![],result:id});
+            for element in &set.data {
+                let child = self.intern(eg, sort.inner_sorts()[0].name(), *element)?;
+                self.container_rows.insert(Row {op:format!("@member:{ty}"),args:vec![child],result:id});
+            }
+        }
+        Ok(id)
+    }
+}
+
 struct ExportSchema {
     declarations: Vec<Command>,
     constructors: Vec<(String, egglog::ast::Variant)>,
@@ -477,7 +540,7 @@ fn export_schema(c: &Captured, observation_only: bool) -> Result<ExportSchema> {
     let constructors = sorts::constructors(&declarations);
     let allowed =
         |ty: &str| names.contains(ty) || matches!(ty, "i64" | "String" | "bool" | "f64" | "Unit");
-    if constructors
+    if !observation_only && constructors
         .iter()
         .any(|(_, v)| v.types.iter().any(|t| !allowed(t)))
     {
@@ -496,7 +559,7 @@ fn export_schema(c: &Captured, observation_only: bool) -> Result<ExportSchema> {
                 merge,
                 ..
             } => {
-                if merge.as_ref().is_some_and(|e| !matches!(e,Expr::Call(_,op,args) if matches!(op.as_str(),"max"|"min") && args.len()==2 && matches!((&args[0],&args[1]),(Expr::Var(_,a),Expr::Var(_,b)) if (a=="old"&&b=="new")||(a=="new"&&b=="old")))) {
+                if !observation_only && merge.as_ref().is_some_and(|e| !matches!(e,Expr::Call(_,op,args) if matches!(op.as_str(),"max"|"min") && args.len()==2 && matches!((&args[0],&args[1]),(Expr::Var(_,a),Expr::Var(_,b)) if (a=="old"&&b=="new")||(a=="new"&&b=="old")))) {
                     return Err("SaturatedRuleComposition sharing supports only min/max lattice merges; other merges remain uncertified".into());
                 }
                 tables.push((op.clone(), schema.input.clone(), schema.output.clone()));
@@ -504,7 +567,7 @@ fn export_schema(c: &Captured, observation_only: bool) -> Result<ExportSchema> {
             _ => {}
         }
     }
-    if tables
+    if !observation_only && tables
         .iter()
         .flat_map(|(_, inputs, output)| inputs.iter().chain(std::iter::once(output)))
         .any(|t| !allowed(t))
@@ -553,7 +616,7 @@ fn export_state(
     out: &Path,
     observation_only: bool,
 ) -> Result<crate::saturated_rule_composition::SaturatedRuleComposition> {
-    use crate::saturated_rule_composition::{Row, SaturatedRuleComposition, Vertex};
+    use crate::saturated_rule_composition::{Row, SaturatedRuleComposition};
     let names = &c.datatype_names;
     let name = names.iter().next().map(String::as_str).unwrap_or("Unit");
     let ExportSchema {
@@ -561,57 +624,11 @@ fn export_state(
         constructors,
         tables,
     } = export_schema(c, observation_only)?;
-    if ports.iter().any(|(_, sort, _)| {
-        !names.contains(sort.name())
-            && !matches!(sort.name(), "i64" | "String" | "bool" | "f64" | "Unit")
-    }) {
-        return Err("unsupported port sort in state export".into());
-    }
     if crate::graph_render::graphs_enabled() {
         write_native_graph(eg, out, "native-egraph")?;
     }
-    let sort_cache: BTreeMap<_, _> = names
-        .iter()
-        .map(String::as_str)
-        .chain(["Unit", "i64", "String", "bool", "f64"])
-        .enumerate()
-        .map(|(i, ty)| (ty, (i, eg.get_arcsort_by(|s| s.name() == ty))))
-        .collect();
-    let mut ids = BTreeMap::<(usize, Value), usize>::new();
-    let mut local_ids = vec![];
-    let mut values = vec![];
-    let mut vertex = |ty: &str, v: Value| -> Result<usize> {
-        let (sort_id, sort) = &sort_cache[ty];
-        let key = (*sort_id, eg.get_canonical_value(v, sort));
-        if let Some(i) = ids.get(&key) {
-            return Ok(*i);
-        }
-        let literal = match ty {
-            t if names.contains(t) => None,
-            "Unit" => Some("()".into()),
-            "i64" => Some(eg.value_to_base::<i64>(v).to_string()),
-            "String" => Some(serde_json::to_string(
-                &eg.value_to_base::<egglog::sort::S>(v).to_string(),
-            )?),
-            "bool" => Some(eg.value_to_base::<bool>(v).to_string()),
-            "f64" => Some(
-                Expr::Lit(
-                    sp(),
-                    Literal::Float(eg.value_to_base::<egglog::sort::F>(v).0),
-                )
-                .to_string(),
-            ),
-            _ => return Err("unsupported scalar literal".into()),
-        };
-        let i = values.len();
-        ids.insert(key, i);
-        local_ids.push(eg.value_to_class_id(sort, v).to_string());
-        values.push(Vertex {
-            sort: ty.into(),
-            literal,
-        });
-        Ok(i)
-    };
+    let mut vertices = StateVertices::default();
+    let mut vertex = |ty: &str, v: Value| vertices.intern(eg, ty, v);
     let mut rows = BTreeSet::new();
     let mut hidden = BTreeSet::new();
     let mut sorted = constructors;
@@ -673,6 +690,10 @@ fn export_state(
     for (p, sort, value) in ports {
         named.insert(p.clone(), vertex(sort.name(), *value)?);
     }
+    drop(vertex);
+    rows.extend(vertices.container_rows);
+    let values = vertices.values;
+    let local_ids = vertices.local_ids;
     let mut rules: Vec<_> = c
         .rules
         .iter()
@@ -689,7 +710,7 @@ fn export_state(
     let mut state = SaturatedRuleComposition {
         version: 2,
         local_ids,
-        scope: json!({"datatype":name,"constructors":sorted.iter().map(|(output,v)|{let mut item=json!({"name":v.name,"types":v.types,"cost":v.cost.map(|x|x.to_string()),"unextractable":v.unextractable});if names.len()>1 {item["output"]=json!(output);}item}).collect::<Vec<_>>(),"rules":rules,"symbolic_boundary":symbolic,"semantics":if observation_only{"observed-constructor-graph/v1"}else{"positive-constructor-equality/v1"},"observation_only":observation_only,"ports":"fixed named globals; otherwise all facts observable"}),
+        scope: json!({"datatype":name,"constructors":sorted.iter().map(|(output,v)|{let mut item=json!({"name":v.name,"types":v.types,"cost":v.cost.map(|x|x.to_string()),"unextractable":v.unextractable});if names.len()>1 {item["output"]=json!(output);}item}).collect::<Vec<_>>(),"rules":rules,"symbolic_boundary":symbolic,"semantics":if observation_only{"observed-constructor-graph/v1"}else{"positive-constructor-equality/v1"},"observation_only":observation_only,"seed_policy":if c.rules.iter().any(|r|r.rule.body.is_empty()) {"source includes zero-premise rules"}else{"no zero-premise rules in this local environment"},"ports":"fixed named globals; otherwise all facts observable"}),
         values,
         subsumed_rows: rows
             .iter()
@@ -725,7 +746,7 @@ fn export_state(
         .iter()
         .any(|d| matches!(d, Command::Function { merge: Some(_), .. }))
     {
-        state.scope["merge_contract"] = json!("min/max lattice; exact retained table rows");
+        state.scope["merge_contract"] = if observation_only { json!("observed rows only; no merge congruence certified") } else { json!("min/max lattice; exact retained table rows") };
     }
     if c.rules.iter().any(|r| {
         r.rule
@@ -748,4 +769,50 @@ fn export_state(
             .remove("observation_only");
     }
     Ok(state)
+}
+
+#[cfg(test)]
+mod export_tests {
+    use super::*;
+    fn state(facts: &str) -> crate::saturated_rule_composition::SaturatedRuleComposition {
+        let source = format!("(datatype E (V i64)) (sort ES (Set E)) (constructor Box (ES) E) {facts}");
+        let c = capture_text_with_sink("sets.egg", &source, None, None).unwrap();
+        let mut eg = EGraph::default();
+        eg.parse_and_run_program(None, &source).unwrap();
+        // Test only the vertex adapter: no graph or output files are generated.
+        let mut vertices = StateVertices::default();
+        let mut rows = BTreeSet::new();
+        for (op, ins, out) in [("V", vec!["i64"], "E"), ("Box", vec!["ES"], "E")] {
+            let mut raw = vec![];
+            eg.function_for_each(op, |r| raw.push(r.vals.to_vec())).unwrap();
+            for row in raw {
+                rows.insert(crate::saturated_rule_composition::Row {
+                    op: op.into(),
+                    args: ins.iter().zip(&row).map(|(t,v)| vertices.intern(&eg,t,*v).unwrap()).collect(),
+                    result: vertices.intern(&eg,out,*row.last().unwrap()).unwrap(),
+                });
+            }
+        }
+        assert!(export_schema(&c, true).is_ok());
+        rows.extend(vertices.container_rows);
+        crate::saturated_rule_composition::SaturatedRuleComposition {
+            version:2, scope:json!({"test":"sets"}), local_ids:vec![],
+            values:vertices.values, rows:rows.into_iter().collect(), subsumed_rows:vec![], ports:BTreeMap::new(),
+        }
+    }
+    #[test]
+    fn set_export_retains_membership_literals_and_ignores_order() {
+        use crate::saturated_rule_composition::{compare, Comparison};
+        let a=state("(Box (set-of (V 1) (V 2)))");
+        let b=state("(Box (set-of (V 2) (V 1)))");
+        assert!(matches!(compare(&a,&b).unwrap(),Comparison::Equivalent{..}));
+        let c=state("(Box (set-of (V 1) (V 3)))");
+        assert!(!matches!(compare(&a,&c).unwrap(),Comparison::Equivalent{..}));
+        assert_eq!(a.rows.iter().filter(|r|r.op=="@member:ES").count(),2);
+    }
+    #[test]
+    fn set_export_tracks_union_deduplication() {
+        let a=state("(Box (set-of (V 1) (V 2))) (union (V 1) (V 2))");
+        assert_eq!(a.rows.iter().filter(|r|r.op=="@member:ES").count(),1);
+    }
 }
