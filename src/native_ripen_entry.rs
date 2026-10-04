@@ -857,7 +857,10 @@ fn extract(
     };
     let output_tick = std::time::Instant::now();
     let seed_text = encode(&entry);
-    for (_, _, _, commands, _) in &stages {
+    let parameter_end = entry.len();
+    let mut replay_stages = vec![];
+    for (record, _, _, commands, _) in &stages {
+        let start = entry.len();
         entry.extend(commands.iter().cloned().map(|c| {
             if matches!(c, Command::Check(..)) {
                 immediate(c)
@@ -865,6 +868,7 @@ fn extract(
                 c
             }
         }));
+        replay_stages.push(json!({"record":record,"start":start,"end":entry.len()}));
     }
     entry.extend(final_checks);
     let text = format!(
@@ -917,7 +921,7 @@ fn extract(
         .filter_map(|p| p["token"].as_u64())
         .map(|v| values[&(v as usize)].to_string())
         .collect();
-    let provenance = json!({"reuse_recipe":recipe,"reuse_interface_terms":{"upper":upper_terms,"lower":lower_terms},"kind":"symbolic_cs_interface","template":null,"members":member_ids,"root_member":root_member,"comb_members":comb_members,"kind_scope":"use_kind is relative to directly recorded dependencies inside this CS entry; source_kind is the original layer classification; neither minimizes alternate proof requirements",
+    let provenance = json!({"replay_plan":{"environment_end":environment_len,"parameter_end":parameter_end,"stages":replay_stages},"reuse_recipe":recipe,"reuse_interface_terms":{"upper":upper_terms,"lower":lower_terms},"kind":"symbolic_cs_interface","template":null,"members":member_ids,"root_member":root_member,"comb_members":comb_members,"kind_scope":"use_kind is relative to directly recorded dependencies inside this CS entry; source_kind is the original layer classification; neither minimizes alternate proof requirements",
         "events":stages.iter().map(|(i,e,n,_,_)|json!({"record":i,"event":e,"precondition_checks":n})).collect::<Vec<_>>(),
         "initial_tables":initial_tables,"original_use_tables":original_tables,"parameter_marker":hole,"parameter_markers":environment.holes,
         "symbolic_values":values.iter().map(|(token,term)|json!({"token":token,"term":term.to_string(),"sort":c.pool.values[*token].sort})).collect::<Vec<_>>(),
@@ -1006,7 +1010,10 @@ mod tests {
             (V) (run work 1)
         "#,
         );
-        c.preview_source = c.preview_source.replace("(run work 1)", "(unstable-combined-ruleset joined work) (run joined 1)");
+        c.preview_source = c.preview_source.replace(
+            "(run work 1)",
+            "(unstable-combined-ruleset joined work) (run joined 1)",
+        );
         let environment = Environment::new(&c).unwrap();
         assert_eq!(environment.rules.len(), 1);
         assert_eq!(environment.rules[0].rule.ruleset, "work");

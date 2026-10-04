@@ -2,7 +2,7 @@
 
 **Parent-snapshot continuation agrees with ordered reconstruction in the tested
 finite cases and saves repeated parent computation. This is a standalone harness
-using the actual local egglog runtime, not a change to default `analyze`, not a
+using the actual local egglog runtime, originally separate from default `analyze` (integration is documented below), not a
 pristine-egglog comparison, and not terminal-state caching.**
 
 ## Three paths, one explicit contract
@@ -125,7 +125,78 @@ target/release/examples/ripsat_graft run \
 ```
 
 `results.json` preserves compact results and hashes. Generated workload, per-mode
-snapshots and paired comparisons live under the output directory. No default
-planner, automatic composition discovery, or certified sharing catalog was changed.
-The next integration would need to supply a verified parent/slot mapping and the
-exact ordered external effect delta; these experiments do not infer that mapping.
+snapshots and paired comparisons live under the output directory. The standalone
+experiment does not change the planner, automatic composition discovery, or
+certified sharing catalog. The integration below obtains exact prefix mappings
+from prepared history; general rebinding and nonpositive schedule contracts remain
+outside its scope.
+
+
+## Default analyze integration
+
+The native `analyze` pipeline now attempts parent snapshot reuse by default.
+`EGG_LAYOUT_RIPEN_PARENT_REUSE=0` restores the original rebuild path for ablation.
+This integration is deliberately narrower than the standalone differential probe:
+
+- Select only actual registered parents from the observed composition DAG.
+- Require an exact chronological replay prefix, the same declaration/rule
+  environment, and identical typed boundary-token coordinates and terms.
+- Admit only the positive constructor/relation fragment. Function tables,
+  primitive guards/actions, panic, set, subsume, negative checks and unsupported
+  declarations fall back. No sampling, candidate cutoff or guessed slot mapping.
+- Select the longest admissible prefix among those direct parents. New boundary
+  slots may be appended, but existing slots cannot be renamed or rebound.
+- A same-batch child enters `WaitingParent`; once the parent is saturated and has
+  a certified state, fork its actual native engine and execute only the residual
+  parameter creation, checkpoints and actions. Unfinished/rejected parents cause
+  ordinary reconstruction, not dropped children or permanent waiting.
+- Checkpoints stay at their original suffix positions. Extra parent closure facts
+  are permitted by the positive-fragment closure law, not by ignoring failures.
+  A failure after choosing a snapshot is reported, not silently hidden by retry.
+- `initialization.path` identifies `parent_snapshot` or `rebuild`; the summary
+  reports actual forks, waits, skipped stages/commands, and fallback reasons.
+  Existing complete-source equality aliases remain separate from these counts.
+
+The initial graph of a reused child is **parent closure plus graft**, not only
+its original coarse facts. Viewer labels reflect that distinction. `entry.egg`
+retains the cold source recipe; `ripened.egg` preserves the actual parent replay,
+parent rule schedule and child suffix so the completed result can be replayed.
+
+Full cold preparation/validation still runs before admission. This does not yet
+remove the expensive symbolic binding preparation stage, generalize slot mapping,
+reuse nonpositive eggcc rule environments, or cache terminal transition results.
+The earlier standalone eggcc timings must not be claimed as default analyze speedups.
+
+### Actual CLI check
+
+```sh
+cargo build --release --offline --bin egg_layout
+python3 experiments/ripsat_graft/integrated.py --output out/parent-graft-check
+cargo test --offline --test native_parent_graft --test core_flow
+```
+
+The positive arithmetic-shaped fixture contains 12 concrete inputs and three
+consumer-connected stages. One paired native CLI run produced:
+
+| Metric | Rebuild | Default snapshot path |
+| --- | ---: | ---: |
+| Saturated compositions | 36 | 36 |
+| Final states verified equivalent | 36 | 36 |
+| Actual parent snapshot forks | 0 | 24 |
+| Initialization replay stages skipped | 0 | 36 |
+| Initialization commands skipped | 0 | 276 |
+| Graft failures | 0 | 0 |
+| Initialization time | 48.73 ms | 46.76 ms |
+| Entire CLI wall time | 664.31 ms | 226.39 ms |
+
+This is a single correctness/integration measurement with file output and other
+analysis phases, not a controlled end-to-end speedup estimate. Initialization
+savings on this small fixture are only about 2 ms; the whole wall-time difference
+must not all be attributed to snapshot forking. `integrated-results.json` records
+the measured values. No new RSS claim is made for the integrated path.
+
+Regression checks cover final-state equivalence, replaying generated warm recipes,
+strict binding/order admission, negative-check rejection, mutable-environment
+fallback, and releasing children when parents remain unfinished. Existing core
+flow tests (registration/sharing, finite reentry and cancellable infinite work)
+continue to pass.

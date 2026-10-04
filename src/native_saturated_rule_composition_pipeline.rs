@@ -11,6 +11,24 @@ struct Work {
     session: ripen::Session,
     active_seconds: f64,
 }
+struct Pending {
+    id: usize,
+    key: String,
+    entry: PathBuf,
+    folder: PathBuf,
+    parent: Option<(usize, ripen::GraftPlan)>,
+    waited: bool,
+}
+#[derive(Default, serde::Serialize)]
+struct ParentReuse {
+    eligible: usize,
+    waits: usize,
+    hits: usize,
+    skipped_stages: usize,
+    skipped_commands: usize,
+    graft_errors: usize,
+    fallbacks: BTreeMap<String, usize>,
+}
 pub(super) struct Pipeline {
     worker_pool: rayon::ThreadPool,
     learner:Option<crate::reuse_graph::library::Learner>,
@@ -20,6 +38,11 @@ pub(super) struct Pipeline {
     cells: cell_egraph::Registry,
     jobs: Vec<Json>,
     work: Vec<Work>,
+    work_index: BTreeMap<usize, usize>,
+    unit_jobs: BTreeMap<usize, usize>,
+    pending: Vec<Pending>,
+    parent_reuse_enabled: bool,
+    parent_reuse: ParentReuse,
     owners: BTreeMap<String, usize>,
     aliases: BTreeMap<usize, usize>,
     completed: Vec<PathBuf>,
@@ -59,6 +82,11 @@ impl Pipeline {
             cells: cell_egraph::Registry::new()?,
             jobs: vec![],
             work: vec![],
+            work_index: BTreeMap::new(),
+            unit_jobs: BTreeMap::new(),
+            pending: vec![],
+            parent_reuse_enabled: std::env::var("EGG_LAYOUT_RIPEN_PARENT_REUSE").as_deref()!=Ok("0"),
+            parent_reuse: ParentReuse::default(),
             owners: BTreeMap::new(),
             aliases: BTreeMap::new(),
             completed: vec![],
@@ -75,12 +103,13 @@ impl Pipeline {
     pub fn has_work(&self) -> bool {
         self.jobs
             .iter()
-            .any(|j| matches!(j["state"].as_str(), Some("Running" | "WaitingEquivalent")))
+            .any(|j| matches!(j["state"].as_str(), Some("Running" | "WaitingEquivalent" | "WaitingParent")))
     }
     pub fn report(&self) -> &Json {
         &self.report
     }
     pub fn release_engines(&mut self) {
+        self.work_index.clear();
         let work = std::mem::take(&mut self.work);
         self.worker_pool
             .install(|| work.into_par_iter().with_max_len(1).for_each(drop));
@@ -96,6 +125,155 @@ impl Pipeline {
     }
     pub fn take_report(&mut self) -> Json {
         std::mem::take(&mut self.report)
+    }
+    fn choose_parent(
+        &mut self,
+        units: &[usize],
+        source: &str,
+        origin: &Json,
+    ) -> Option<(usize, ripen::GraftPlan)> {
+        if !self.parent_reuse_enabled {
+            return None;
+        }
+        let mut selected: Option<(usize, ripen::GraftPlan)> = None;
+        let mut reason = "no registered observed parent".to_string();
+        for unit in units {
+            let Some(&job) = self.unit_jobs.get(unit) else {
+                continue;
+            };
+            let Some(folder) = self.jobs[job]["folder"].as_str() else {
+                continue;
+            };
+            match std::fs::read_to_string(PathBuf::from(folder).join("source.egg"))
+                .map_err(|e| e.to_string())
+                .and_then(|text| {
+                    ripen::graft_plan(
+                        &self.preparation,
+                        &text,
+                        &self.jobs[job]["origin"],
+                        source,
+                        origin,
+                    )
+                    .map_err(|e| e.to_string())
+                }) {
+                Ok(plan) => {
+                    if selected
+                        .as_ref()
+                        .is_none_or(|(_, p)| plan.skipped_stages > p.skipped_stages)
+                    {
+                        selected = Some((job, plan));
+                    }
+                }
+                Err(e) => reason = e,
+            }
+        }
+        if selected.is_some() {
+            self.parent_reuse.eligible += 1;
+        } else {
+            *self.parent_reuse.fallbacks.entry(reason).or_default() += 1;
+        }
+        selected
+    }
+    fn activate_pending(&mut self) {
+        for mut pending in std::mem::take(&mut self.pending) {
+            let id = pending.id;
+            if let Some(&owner) = self.owners.get(&pending.key) {
+                self.aliases.insert(id, owner);
+                self.jobs[id]["state"] = json!("WaitingEquivalent");
+                self.jobs[id]["fully_equivalent_to"] = json!(owner);
+                continue;
+            }
+            let mut parent_index = None;
+            if let Some((parent, _)) = &pending.parent {
+                let mut parent = *parent;
+                while let Some(&owner) = self.aliases.get(&parent) {
+                    parent = owner;
+                }
+                match self.jobs[parent]["state"].as_str() {
+                    Some("Running" | "WaitingParent" | "WaitingEquivalent") => {
+                        if !pending.waited {
+                            self.parent_reuse.waits += 1;
+                            pending.waited = true;
+                        }
+                        self.jobs[id]["state"] = json!("WaitingParent");
+                        self.jobs[id]["waiting_for_parent"] = json!(parent);
+                        self.pending.push(pending);
+                        continue;
+                    }
+                    Some("Saturated") => {
+                        parent_index = self
+                            .work_index
+                            .get(&parent)
+                            .copied()
+                            .filter(|i| self.work[*i].session.final_state.is_some())
+                    }
+                    _ => {}
+                }
+                if parent_index.is_none() {
+                    let reason = "parent unfinished, rejected, or without certified snapshot";
+                    *self
+                        .parent_reuse
+                        .fallbacks
+                        .entry(reason.into())
+                        .or_default() += 1;
+                    self.jobs[id]["parent_fallback"] = json!(reason);
+                }
+            }
+            self.jobs[id]
+                .as_object_mut()
+                .unwrap()
+                .remove("waiting_for_parent");
+            let started = std::time::Instant::now();
+            let reused = parent_index.is_some();
+            let result = if let Some(i) = parent_index {
+                let (_, plan) = pending.parent.take().unwrap();
+                let parent = self.work[i].id;
+                ripen::Session::graft_cached(
+                    &pending.entry,
+                    &pending.folder,
+                    &self.preparation,
+                    &mut self.work[i].session,
+                    parent,
+                    plan,
+                )
+            } else {
+                ripen::Session::new_cached(&pending.entry, &pending.folder, &self.preparation)
+            };
+            match result {
+                Ok(mut session) => {
+                    session.initialization["seconds"] = json!(started.elapsed().as_secs_f64());
+                    self.jobs[id]["initialization"] = session.initialization.clone();
+                    self.jobs[id]["state"] = json!("Running");
+                    if reused {
+                        self.parent_reuse.hits += 1;
+                        self.parent_reuse.skipped_stages += session.initialization["skipped_stages"]
+                            .as_u64()
+                            .unwrap_or(0)
+                            as usize;
+                        self.parent_reuse.skipped_commands +=
+                            session.initialization["skipped_commands"]
+                                .as_u64()
+                                .unwrap_or(0) as usize;
+                    }
+                    if session.initial.is_some() {
+                        self.owners.insert(pending.key, id);
+                    }
+                    self.work_index.insert(id, self.work.len());
+                    self.work.push(Work {
+                        id,
+                        session,
+                        active_seconds: 0.,
+                    });
+                }
+                Err(e) => {
+                    if reused {
+                        self.parent_reuse.graft_errors += 1;
+                    }
+                    self.jobs[id]["state"] = json!("Rejected");
+                    self.jobs[id]["reason"] = json!(e.to_string());
+                }
+            }
+        }
     }
     pub fn step(&mut self, c: &Captured, layers: &LayerStore, boundary: usize) -> Result<()> {
         let profile = std::env::var_os("EGG_LAYOUT_PROFILE").is_some();
@@ -113,10 +291,9 @@ impl Pipeline {
         if !self.out.join("source.egg").exists() {
             std::fs::write(self.out.join("source.egg"), &c.preview_source)?;
         }
-        let mut pending = vec![];
         for (kind, unit) in self.cs.discover(c, layers, boundary)? {
             let id = self.jobs.len();
-            let u = &self.cs.units[unit];
+            let source_composition = self.cs.units[unit].source_composition;
             let members = self.cs.members(unit);
             let mut job = json!({"candidate_kind":kind.clone(),"candidate_id":unit,"state":"Running","discovered_boundary":boundary});
             let folder = self
@@ -128,11 +305,11 @@ impl Pipeline {
                 origin["candidate_kind"] = json!(kind);
                 origin["candidate_id"] = json!(unit);
                 origin["history"] = json!(self.source);
-                if let Some(comp) = u.source_composition {
+                if let Some(comp) = source_composition {
                     origin["composition"] = json!(self.cs.compositions[comp]);
                     origin["composition_id"] = json!(comp);
                 }
-                let parents = u.source_composition
+                let parents = source_composition
                     .map(|comp| self.cs.compositions[comp].parts.clone())
                     .unwrap_or_default();
                 // A rejected parent cannot supply a certified coordinate contract.
@@ -141,6 +318,7 @@ impl Pipeline {
                 self.cells.register(unit, &parents, &origin, &source, &validation)?;
                 job["cell_unit"] = json!(unit);
                 let key = serde_json::to_string(&(&source, &validation))?;
+                let parent = self.choose_parent(&parents, &source, &origin);
                 job["origin"] = origin;
                 std::fs::create_dir_all(&folder)?;
                 let entry = folder.join("source.egg");
@@ -151,18 +329,8 @@ impl Pipeline {
                     self.aliases.insert(id, owner);
                     job["state"] = json!("WaitingEquivalent");
                     job["fully_equivalent_to"] = json!(owner);
-                } else if crate::graph_render::graphs_enabled() {
-                    let session = ripen::Session::new_cached(&entry, &folder, &self.preparation)?;
-                    if session.initial.is_some() {
-                        self.owners.insert(key, id);
-                    }
-                    self.work.push(Work {
-                        id,
-                        session,
-                        active_seconds: 0.,
-                    });
                 } else {
-                    pending.push((id, key, entry, folder));
+                    self.pending.push(Pending{id,key,entry,folder,parent,waited:false});
                 }
                 Ok(())
             })();
@@ -171,43 +339,11 @@ impl Pipeline {
                 job["reason"] = json!(e.to_string());
             }
             self.jobs.push(job);
+            self.unit_jobs.insert(unit,id);
         }
-        let prepare = |(id, key, entry, folder): &(usize, String, PathBuf, PathBuf)| {
-            (
-                *id,
-                key.clone(),
-                ripen::Session::new_cached(entry, folder, &self.preparation)
-                    .map_err(|e| e.to_string()),
-            )
-        };
-        // Native initialization can broadcast to Rayon. Running it as many
-        // stealable Rayon jobs recursively nests constructors on worker stacks.
-        // Initialize in source order; the subsequent sweeps remain parallel.
-        let prepared: Vec<_> = pending.iter().map(prepare).collect();
-        for (id, key, result) in prepared {
-            if let Some(&owner) = self.owners.get(&key) {
-                self.aliases.insert(id, owner);
-                self.jobs[id]["state"] = json!("WaitingEquivalent");
-                self.jobs[id]["fully_equivalent_to"] = json!(owner);
-                continue;
-            }
-            match result {
-                Ok(session) => {
-                    if session.initial.is_some() {
-                        self.owners.insert(key, id);
-                    }
-                    self.work.push(Work {
-                        id,
-                        session,
-                        active_seconds: 0.,
-                    });
-                }
-                Err(e) => {
-                    self.jobs[id]["state"] = json!("Rejected");
-                    self.jobs[id]["reason"] = json!(e);
-                }
-            }
-        }
+        // Native constructors may broadcast internally; initialize on this thread.
+        // Children with exact positive prefixes wait for their actual parent.
+        self.activate_pending();
         mark("register_entries");
         let mut changed = false;
         // One bounded batch of native passes per live task; this is fair interleaving, not a
@@ -614,7 +750,7 @@ impl Pipeline {
                 .or_default() += 1;
         }
         mark("weak_queries_and_evidence");
-        self.report = json!({"analysis_threads":self.worker_pool.current_num_threads(),"weak_query_cache":{"result_cache_hits":self.work.iter().flat_map(|w|w.session.weak_queries.values()).map(|q|q.cache_hits).sum::<usize>(),"compiled_pairs":self.work.iter().map(|w|w.session.weak_queries.len()).sum::<usize>(),"current_scans":self.work.iter().flat_map(|w|w.session.weak_queries.values()).map(|q|q.executions).sum::<usize>()},"step_seconds":timings,"preparation_cache":self.preparation.stats(),"kind":"saturated_rule_composition_snapshot","boundary":boundary,"jobs":self.jobs,"cs":self.cs.report(),"cell_egraph":self.cells.report(),"weak_dominate":weak,"observation_limits":self.observation,"bucket_trigger_matches":self.bucket_matches.values().map(|(_,r)|r).collect::<Vec<_>>(),"reentry_buckets":self.reentry.report(),"structural_reentry":self.structural_reentry,"weak_unresolved":unresolved,"counts":counts,"not_queued":0,"limits":null,"scope":"observed state entries (legacy layers optional); fair resumable sweeps; no heuristic selection, live tier0 substitution or termination guess","catalog":self.catalog});
+        self.report = json!({"parent_snapshot_reuse":{"enabled":self.parent_reuse_enabled,"stats":self.parent_reuse,"scope":"initialization reuse only; full cold preparation checks retained; no terminal-state cache"},"analysis_threads":self.worker_pool.current_num_threads(),"weak_query_cache":{"result_cache_hits":self.work.iter().flat_map(|w|w.session.weak_queries.values()).map(|q|q.cache_hits).sum::<usize>(),"compiled_pairs":self.work.iter().map(|w|w.session.weak_queries.len()).sum::<usize>(),"current_scans":self.work.iter().flat_map(|w|w.session.weak_queries.values()).map(|q|q.executions).sum::<usize>()},"step_seconds":timings,"preparation_cache":self.preparation.stats(),"kind":"saturated_rule_composition_snapshot","boundary":boundary,"jobs":self.jobs,"cs":self.cs.report(),"cell_egraph":self.cells.report(),"weak_dominate":weak,"observation_limits":self.observation,"bucket_trigger_matches":self.bucket_matches.values().map(|(_,r)|r).collect::<Vec<_>>(),"reentry_buckets":self.reentry.report(),"structural_reentry":self.structural_reentry,"weak_unresolved":unresolved,"counts":counts,"not_queued":0,"limits":null,"scope":"observed state entries (legacy layers optional); fair resumable sweeps; no heuristic selection, live tier0 substitution or termination guess","catalog":self.catalog});
         if let Some(learner) = &self.learner {
             self.report["reuse_learning"] = learner.report();
         }

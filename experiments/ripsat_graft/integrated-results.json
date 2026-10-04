@@ -1,0 +1,702 @@
+{
+  "scope": "Actual default analyze CLI, positive arithmetic-shaped integration fixture; not eggcc or math-microbenchmark speedup",
+  "source_sha256": "a946562b82e67ac5d8dcefbbeb11edce891375233bd9ce1a4ceb2e14ba38b8c9",
+  "binary_sha256": "0ae6f8a253554e5a069c0a583b32150cb38083414d9c61bf5ff13b20ab1e99e1",
+  "equivalent_completed_states": 36,
+  "modes": {
+    "rebuild": {
+      "wall_seconds": 0.6643052080180496,
+      "counts": {
+        "Saturated": 36
+      },
+      "parent_snapshot_reuse": {
+        "enabled": false,
+        "scope": "initialization reuse only; full cold preparation checks retained; no terminal-state cache",
+        "stats": {
+          "eligible": 0,
+          "fallbacks": {},
+          "graft_errors": 0,
+          "hits": 0,
+          "skipped_commands": 0,
+          "skipped_stages": 0,
+          "waits": 0
+        }
+      },
+      "initialization_seconds": 0.04872542,
+      "initialization_paths": [
+        {
+          "job": 0,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001076667
+          }
+        },
+        {
+          "job": 1,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.000925917
+          }
+        },
+        {
+          "job": 2,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.000946708
+          }
+        },
+        {
+          "job": 3,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.000999709
+          }
+        },
+        {
+          "job": 4,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.000985125
+          }
+        },
+        {
+          "job": 5,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.000917875
+          }
+        },
+        {
+          "job": 6,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.000938917
+          }
+        },
+        {
+          "job": 7,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.000937375
+          }
+        },
+        {
+          "job": 8,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.000960417
+          }
+        },
+        {
+          "job": 9,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001045125
+          }
+        },
+        {
+          "job": 10,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001014167
+          }
+        },
+        {
+          "job": 11,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.000979625
+          }
+        },
+        {
+          "job": 12,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001306666
+          }
+        },
+        {
+          "job": 13,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001269166
+          }
+        },
+        {
+          "job": 14,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.00122625
+          }
+        },
+        {
+          "job": 15,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001222667
+          }
+        },
+        {
+          "job": 16,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001260209
+          }
+        },
+        {
+          "job": 17,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001342292
+          }
+        },
+        {
+          "job": 18,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.00128225
+          }
+        },
+        {
+          "job": 19,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001385083
+          }
+        },
+        {
+          "job": 20,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001359875
+          }
+        },
+        {
+          "job": 21,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001321167
+          }
+        },
+        {
+          "job": 22,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001327084
+          }
+        },
+        {
+          "job": 23,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.00126425
+          }
+        },
+        {
+          "job": 24,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001881375
+          }
+        },
+        {
+          "job": 25,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001921959
+          }
+        },
+        {
+          "job": 26,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001787125
+          }
+        },
+        {
+          "job": 27,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.00178775
+          }
+        },
+        {
+          "job": 28,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.00165875
+          }
+        },
+        {
+          "job": 29,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001800208
+          }
+        },
+        {
+          "job": 30,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001963125
+          }
+        },
+        {
+          "job": 31,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001770083
+          }
+        },
+        {
+          "job": 32,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001733708
+          }
+        },
+        {
+          "job": 33,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.00166175
+          }
+        },
+        {
+          "job": 34,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001737709
+          }
+        },
+        {
+          "job": 35,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001727292
+          }
+        }
+      ]
+    },
+    "snapshot": {
+      "wall_seconds": 0.2263877501245588,
+      "counts": {
+        "Saturated": 36
+      },
+      "parent_snapshot_reuse": {
+        "enabled": true,
+        "scope": "initialization reuse only; full cold preparation checks retained; no terminal-state cache",
+        "stats": {
+          "eligible": 24,
+          "fallbacks": {
+            "no registered observed parent": 12
+          },
+          "graft_errors": 0,
+          "hits": 24,
+          "skipped_commands": 276,
+          "skipped_stages": 36,
+          "waits": 24
+        }
+      },
+      "initialization_seconds": 0.046757415999999996,
+      "initialization_paths": [
+        {
+          "job": 0,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001016667
+          }
+        },
+        {
+          "job": 1,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.000946458
+          }
+        },
+        {
+          "job": 2,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.00135075
+          }
+        },
+        {
+          "job": 3,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001084917
+          }
+        },
+        {
+          "job": 4,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.0010325
+          }
+        },
+        {
+          "job": 5,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001000792
+          }
+        },
+        {
+          "job": 6,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.000981083
+          }
+        },
+        {
+          "job": 7,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.00104375
+          }
+        },
+        {
+          "job": 8,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001077542
+          }
+        },
+        {
+          "job": 9,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001018833
+          }
+        },
+        {
+          "job": 10,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.000956166
+          }
+        },
+        {
+          "job": 11,
+          "path": {
+            "path": "rebuild",
+            "seconds": 0.001010542
+          }
+        },
+        {
+          "job": 12,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 9,
+            "fork_seconds": 0.000125875,
+            "parent_job": 0,
+            "path": "parent_snapshot",
+            "seconds": 0.00138525,
+            "skipped_commands": 7,
+            "skipped_stages": 1
+          }
+        },
+        {
+          "job": 13,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 9,
+            "fork_seconds": 9.95e-05,
+            "parent_job": 1,
+            "path": "parent_snapshot",
+            "seconds": 0.001435667,
+            "skipped_commands": 7,
+            "skipped_stages": 1
+          }
+        },
+        {
+          "job": 14,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 9,
+            "fork_seconds": 0.000109333,
+            "parent_job": 2,
+            "path": "parent_snapshot",
+            "seconds": 0.001404291,
+            "skipped_commands": 7,
+            "skipped_stages": 1
+          }
+        },
+        {
+          "job": 15,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 9,
+            "fork_seconds": 0.00011025,
+            "parent_job": 3,
+            "path": "parent_snapshot",
+            "seconds": 0.001336166,
+            "skipped_commands": 7,
+            "skipped_stages": 1
+          }
+        },
+        {
+          "job": 16,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 9,
+            "fork_seconds": 0.00010075,
+            "parent_job": 4,
+            "path": "parent_snapshot",
+            "seconds": 0.0012755,
+            "skipped_commands": 7,
+            "skipped_stages": 1
+          }
+        },
+        {
+          "job": 17,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 9,
+            "fork_seconds": 9.6417e-05,
+            "parent_job": 5,
+            "path": "parent_snapshot",
+            "seconds": 0.001229583,
+            "skipped_commands": 7,
+            "skipped_stages": 1
+          }
+        },
+        {
+          "job": 18,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 9,
+            "fork_seconds": 0.000111959,
+            "parent_job": 6,
+            "path": "parent_snapshot",
+            "seconds": 0.001330791,
+            "skipped_commands": 7,
+            "skipped_stages": 1
+          }
+        },
+        {
+          "job": 19,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 9,
+            "fork_seconds": 9.6583e-05,
+            "parent_job": 7,
+            "path": "parent_snapshot",
+            "seconds": 0.001509167,
+            "skipped_commands": 7,
+            "skipped_stages": 1
+          }
+        },
+        {
+          "job": 20,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 9,
+            "fork_seconds": 0.000135667,
+            "parent_job": 8,
+            "path": "parent_snapshot",
+            "seconds": 0.001374625,
+            "skipped_commands": 7,
+            "skipped_stages": 1
+          }
+        },
+        {
+          "job": 21,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 9,
+            "fork_seconds": 0.000114625,
+            "parent_job": 9,
+            "path": "parent_snapshot",
+            "seconds": 0.001314583,
+            "skipped_commands": 7,
+            "skipped_stages": 1
+          }
+        },
+        {
+          "job": 22,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 9,
+            "fork_seconds": 0.000117042,
+            "parent_job": 10,
+            "path": "parent_snapshot",
+            "seconds": 0.001498917,
+            "skipped_commands": 7,
+            "skipped_stages": 1
+          }
+        },
+        {
+          "job": 23,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 9,
+            "fork_seconds": 0.000108291,
+            "parent_job": 11,
+            "path": "parent_snapshot",
+            "seconds": 0.00124125,
+            "skipped_commands": 7,
+            "skipped_stages": 1
+          }
+        },
+        {
+          "job": 24,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 10,
+            "fork_seconds": 0.000176458,
+            "parent_job": 12,
+            "path": "parent_snapshot",
+            "seconds": 0.001861167,
+            "skipped_commands": 16,
+            "skipped_stages": 2
+          }
+        },
+        {
+          "job": 25,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 10,
+            "fork_seconds": 0.000120166,
+            "parent_job": 13,
+            "path": "parent_snapshot",
+            "seconds": 0.001492875,
+            "skipped_commands": 16,
+            "skipped_stages": 2
+          }
+        },
+        {
+          "job": 26,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 10,
+            "fork_seconds": 0.000113917,
+            "parent_job": 14,
+            "path": "parent_snapshot",
+            "seconds": 0.001454333,
+            "skipped_commands": 16,
+            "skipped_stages": 2
+          }
+        },
+        {
+          "job": 27,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 10,
+            "fork_seconds": 0.000136458,
+            "parent_job": 15,
+            "path": "parent_snapshot",
+            "seconds": 0.001529167,
+            "skipped_commands": 16,
+            "skipped_stages": 2
+          }
+        },
+        {
+          "job": 28,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 10,
+            "fork_seconds": 0.000110417,
+            "parent_job": 16,
+            "path": "parent_snapshot",
+            "seconds": 0.001495791,
+            "skipped_commands": 16,
+            "skipped_stages": 2
+          }
+        },
+        {
+          "job": 29,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 10,
+            "fork_seconds": 9.9e-05,
+            "parent_job": 17,
+            "path": "parent_snapshot",
+            "seconds": 0.001474,
+            "skipped_commands": 16,
+            "skipped_stages": 2
+          }
+        },
+        {
+          "job": 30,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 10,
+            "fork_seconds": 0.00014325,
+            "parent_job": 18,
+            "path": "parent_snapshot",
+            "seconds": 0.001449042,
+            "skipped_commands": 16,
+            "skipped_stages": 2
+          }
+        },
+        {
+          "job": 31,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 10,
+            "fork_seconds": 0.000124791,
+            "parent_job": 19,
+            "path": "parent_snapshot",
+            "seconds": 0.001493167,
+            "skipped_commands": 16,
+            "skipped_stages": 2
+          }
+        },
+        {
+          "job": 32,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 10,
+            "fork_seconds": 0.000111,
+            "parent_job": 20,
+            "path": "parent_snapshot",
+            "seconds": 0.001348834,
+            "skipped_commands": 16,
+            "skipped_stages": 2
+          }
+        },
+        {
+          "job": 33,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 10,
+            "fork_seconds": 0.000102583,
+            "parent_job": 21,
+            "path": "parent_snapshot",
+            "seconds": 0.001400375,
+            "skipped_commands": 16,
+            "skipped_stages": 2
+          }
+        },
+        {
+          "job": 34,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 10,
+            "fork_seconds": 0.000108334,
+            "parent_job": 22,
+            "path": "parent_snapshot",
+            "seconds": 0.001435083,
+            "skipped_commands": 16,
+            "skipped_stages": 2
+          }
+        },
+        {
+          "job": 35,
+          "path": {
+            "contract": "positive exact observed prefix; stable typed boundary tokens; no terminal-state cache",
+            "delta_commands": 10,
+            "fork_seconds": 0.000110666,
+            "parent_job": 23,
+            "path": "parent_snapshot",
+            "seconds": 0.001467792,
+            "skipped_commands": 16,
+            "skipped_stages": 2
+          }
+        }
+      ]
+    }
+  }
+}

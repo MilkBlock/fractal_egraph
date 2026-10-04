@@ -2,6 +2,12 @@
 use super::*;
 #[path = "native_ripen_entry.rs"]
 mod entry;
+#[path = "native_ripen_graft.rs"]
+mod graft;
+pub(super) use graft::Plan as GraftPlan;
+pub(super) fn graft_plan(cache: &PreparationCache, parent: &str, po: &Json, child: &str, co: &Json) -> Result<GraftPlan> {
+    graft::plan(cache.prepared_commands.get(parent).ok_or("missing parent preparation")?,po,cache.prepared_commands.get(child).ok_or("missing child preparation")?,co)
+}
 pub(super) use entry::PreparationCache;
 pub(super) fn measured_engine() -> EGraph {
     EGraph::default()
@@ -45,6 +51,7 @@ pub(super) struct Session {
     schedule: String,
     pub report: Json,
     pub done: bool,
+    pub initialization: Json,
 }
 struct Report<'a>(&'a Session);
 impl serde::Serialize for Report<'_> {
@@ -69,7 +76,7 @@ impl Session {
         crate::pipeline::write_json(&self.out.join("ripen.json"), &Report(self))
     }
     pub fn new(source: &Path, out: &Path) -> Result<Self> {
-        Self::new_impl(source, out, None, None)
+        Self::new_impl(source, out, None, None, None)
     }
     pub(super) fn new_cached(source: &Path, out: &Path, cache: &PreparationCache) -> Result<Self> {
         if let Some(reason) = cache
@@ -86,6 +93,33 @@ impl Session {
             out,
             cache.environment.as_ref(),
             Some(&cache.prepared_commands),
+            None,
+        )
+    }
+    pub(super) fn graft_cached(
+        source: &Path,
+        out: &Path,
+        cache: &PreparationCache,
+        parent: &mut Session,
+        parent_id: usize,
+        plan: GraftPlan,
+    ) -> Result<Self> {
+        if !parent.done || parent.final_state.is_none() {
+            return Err("parent has no completed certified state".into());
+        }
+        let started = std::time::Instant::now();
+        let eg = parent.eg.fork_shared();
+        let fork_seconds = started.elapsed().as_secs_f64();
+        let mut replay = parent.setup.clone();
+        replay.extend(parent.eg.parse_program(None, &parent.schedule)?);
+        replay.extend(plan.delta.clone());
+        let info = json!({"path":"parent_snapshot","parent_job":parent_id,"fork_seconds":fork_seconds,"skipped_stages":plan.skipped_stages,"skipped_commands":plan.skipped_commands,"delta_commands":plan.delta.len(),"contract":"positive exact observed prefix; stable typed boundary tokens; no terminal-state cache"});
+        Self::new_impl(
+            source,
+            out,
+            cache.environment.as_ref(),
+            Some(&cache.prepared_commands),
+            Some((eg, plan.delta, replay, info)),
         )
     }
     fn new_impl(
@@ -93,12 +127,15 @@ impl Session {
         out: &Path,
         environment: Option<&entry::Environment>,
         prepared: Option<&std::collections::HashMap<String, Vec<Command>>>,
+        fork: Option<(EGraph, Vec<Command>, Vec<Command>, Json)>,
     ) -> Result<Self> {
         let source = source.canonicalize()?;
         let text = std::fs::read_to_string(&source)?;
-        let mut eg = environment
-            .map(|e| e.base.clone())
-            .unwrap_or_else(measured_engine);
+        let (mut eg, delta, replay, initialization) = if let Some((eg,delta,replay,info))=fork {
+            (eg,Some(delta),Some(replay),info)
+        } else {
+            (environment.map(|e|e.base.clone()).unwrap_or_else(measured_engine),None,None,json!({"path":"rebuild"}))
+        };
         let commands = if let Some(commands) = prepared.and_then(|c| c.get(&text)) {
             commands.clone()
         } else {
@@ -163,13 +200,11 @@ impl Session {
                 return Err("cached ripen rule environment mismatch".into());
             }
             rules = environment.rules.clone(); // source spans must match the compiled rules
-            eg.run_program(
-                setup
+            eg.run_program(delta.unwrap_or_else(|| setup
                     .iter()
                     .filter(|c| matches!(c, Command::Action(_) | Command::Fail(..)))
                     .cloned()
-                    .collect(),
-            )?;
+                    .collect()))?;
         } else {
             eg.run_program(setup.clone())?;
         }
@@ -261,7 +296,7 @@ impl Session {
             source,
             out: out.to_path_buf(),
             text,
-            setup,
+            setup: replay.unwrap_or(setup),
             checks,
             c,
             ports: port_values,
@@ -272,6 +307,7 @@ impl Session {
             schedule: String::new(),
             report: json!({"ripen":{"state":"Running","round":0}}),
             done: false,
+            initialization,
         })
     }
     pub(super) fn snapshot_unfinished(&self) -> Result<Json> {
@@ -406,7 +442,7 @@ impl Session {
         }
         let shared=self.eg.shared_row_storage();
         let snapshot_sharing=json!({"shared_tables":shared.iter().filter(|(_,_,owners,_)|*owners>1).count(),"shared_logical_row_bytes":shared.iter().filter(|(_,_,owners,_)|*owners>1).map(|(_,_,_,bytes)|*bytes).sum::<usize>(),"scope":"native before/current snapshot row allocations; excludes indexes and metadata; no parameter remapping"});
-        self.report = json!({"snapshot_sharing":snapshot_sharing,"native_stop_reason":native_stop_reason,"observation_limits":limits,"sweep":{"steps":steps,"max_steps":limits.sweep_steps},"ripen":f,"source":self.source,"source_text":self.text,"checks":if self.done{"passed"}else{"deferred"},"checks_count":self.checks.len(),"internal_history":self.record_history,"imported_applies":if self.record_history {Some(self.c.records.len())} else {None},"events":self.c.events,"saturated_rule_composition":exported,"native_egraph":if self.final_state.is_some(){Some("native-egraph.dot")}else{None},"tier1":null,"tables":table_counts(&self.eg,&self.table_names)});
+        self.report = json!({"initialization":self.initialization,"snapshot_sharing":snapshot_sharing,"native_stop_reason":native_stop_reason,"observation_limits":limits,"sweep":{"steps":steps,"max_steps":limits.sweep_steps},"ripen":f,"source":self.source,"source_text":self.text,"checks":if self.done{"passed"}else{"deferred"},"checks_count":self.checks.len(),"internal_history":self.record_history,"imported_applies":if self.record_history {Some(self.c.records.len())} else {None},"events":self.c.events,"saturated_rule_composition":exported,"native_egraph":if self.final_state.is_some(){Some("native-egraph.dot")}else{None},"tier1":null,"tables":table_counts(&self.eg,&self.table_names)});
         self.write_report()?;
         if self.done {
             let replay = self

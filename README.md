@@ -20,6 +20,8 @@ cargo run --release --offline -- analyze \
 
 输出目录必须不存在。省略 `--rounds` 时遵循源程序 schedule。Ripen 默认使用 CLI / 网页共享的 50 ms、200K facts 上限；可显式指定 `--ripen-observe-ms N` 或 `--ripen-observe-facts N`，在原生匹配入队和 Join 批次边界停止推进，保存并挂起未完成观察。可用 Ctrl-C 取消。一个 sweep 默认最多推进 4 轮，每轮让各 ruleset 各执行一步；遇到不动点或显式上限提前结束。可用 `--ripen-sweep-steps N` 调整。单次原生 step 仍可能很昂贵。
 
+`analyze` 默认尝试复用已完成的父 RipSat 快照，再执行精确的 graft 后缀。目前仅接纳正向构造/关系规则、稳定的边界 token 与完整历史前缀；`set`、`subsume`、primitive 条件等环境会回退原路径。同批次的合法子组合会等待父状态，父状态未完成或被拒绝时回退重建。统计在 `analysis.json` 的 `saturated_rule_composition.parent_snapshot_reuse`，每个 job 的 `initialization` 标明实际路径。设置 `EGG_LAYOUT_RIPEN_PARENT_REUSE=0` 可作关闭对照。当前只省初始化回放，完整冷准备验证仍保留，也没有终点状态缓存。详见 [接入验证](experiments/ripsat_graft/README.md#default-analyze-integration)。
+
 默认不写完整历史。需要重新分析时：
 
 ```sh
