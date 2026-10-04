@@ -1,0 +1,9 @@
+[package]
+name = "eggcc-term-validate"
+version = "0.1.0"
+edition = "2021"
+[workspace]
+[dependencies]
+dag_in_context = { path = "../../../check_statewalk/dag_in_context" }
+egglog = { git = "https://github.com/egraphs-good/egglog-experimental", rev = "08771f9", package = "egglog-experimental" }
+serde_json = "1"

@@ -1,0 +1,157 @@
+{
+  "scope": "Rule-level producer-marker experiment on actual native runtime. Marker legality and extracted-program witnesses, not identical internal tables or a universal optimization proof.",
+  "source_sha256": "b83dbc844f54f1b194f594e69cad1da8ccf44f2e7630971ef2be9215fcd0cafc",
+  "history_sha256": "e8903e518ff7c3c93dda44dd705d3d040f55bbfd72fc9a73bba1b157f94eacc4",
+  "repeats": 3,
+  "inner": "TupleT",
+  "accepted_for_measured_instance": true,
+  "legality": {
+    "consumer_checkpoints": 200,
+    "function_membership": [
+      {
+        "function": "main",
+        "in_original_root_eclass": true,
+        "reason": null,
+        "same_as_original_extraction": true
+      }
+    ],
+    "marker_checkpoints": 1197,
+    "marker_violations": [],
+    "membership_queries": "read-only compiled ground checks; no terms inserted into the baseline",
+    "programs": {
+      "baseline": "baseline.term",
+      "candidate": "candidate.term",
+      "input": "input.term"
+    },
+    "schedule_walk_matches_plain_execution": true,
+    "scope": "actual optimized execution; independent copied-row marker oracle, plus original-rule eclass membership of native tree extraction; not production DAG-extractor validation",
+    "to_hoist": {
+      "baseline": {
+        "choices": [
+          {
+            "expression": "(Get (Arg (TupleT (TCons (StateT) (TCons (IntT) (TCons (IntT) (TNil))))) (InFunc \"dummy\")) 0)",
+            "maximum": 1,
+            "size": 1
+          }
+        ],
+        "currently_admissible": 1,
+        "entries": 1,
+        "failures": [],
+        "scope": "final-state original selection predicate; does not establish historical write validity when premises later change"
+      },
+      "candidate": {
+        "choices": [
+          {
+            "expression": "(Get (Arg (TupleT (TCons (StateT) (TCons (IntT) (TCons (IntT) (TNil))))) (InFunc \"dummy\")) 0)",
+            "maximum": 1,
+            "size": 1
+          }
+        ],
+        "currently_admissible": 1,
+        "entries": 1,
+        "failures": [],
+        "scope": "final-state original selection predicate; does not establish historical write validity when premises later change"
+      }
+    }
+  },
+  "eggcc": {
+    "typecheck": "eggcc TreeProgram::with_arg_types_and_cache passed",
+    "argument_annotations_changed": {
+      "input": false,
+      "baseline": false,
+      "candidate": false
+    },
+    "conversion": "eggcc FromEgglog preserves Rc sharing and removes context nodes",
+    "interpreter": "actual eggcc DAG interpreter; factorial/loopfactorial inputs",
+    "passed": true,
+    "cases": [
+      {
+        "input": 0,
+        "equal": true,
+        "input_result": "(Tuple([StateV]), [\"1\"])",
+        "baseline_result": "(Tuple([StateV]), [\"1\"])",
+        "candidate_result": "(Tuple([StateV]), [\"1\"])"
+      },
+      {
+        "input": 1,
+        "equal": true,
+        "input_result": "(Tuple([StateV]), [\"1\"])",
+        "baseline_result": "(Tuple([StateV]), [\"1\"])",
+        "candidate_result": "(Tuple([StateV]), [\"1\"])"
+      },
+      {
+        "input": 2,
+        "equal": true,
+        "input_result": "(Tuple([StateV]), [\"2\"])",
+        "baseline_result": "(Tuple([StateV]), [\"2\"])",
+        "candidate_result": "(Tuple([StateV]), [\"2\"])"
+      },
+      {
+        "input": 3,
+        "equal": true,
+        "input_result": "(Tuple([StateV]), [\"6\"])",
+        "baseline_result": "(Tuple([StateV]), [\"6\"])",
+        "candidate_result": "(Tuple([StateV]), [\"6\"])"
+      },
+      {
+        "input": 5,
+        "equal": true,
+        "input_result": "(Tuple([StateV]), [\"120\"])",
+        "baseline_result": "(Tuple([StateV]), [\"120\"])",
+        "candidate_result": "(Tuple([StateV]), [\"120\"])"
+      },
+      {
+        "input": 10,
+        "equal": true,
+        "input_result": "(Tuple([StateV]), [\"3628800\"])",
+        "baseline_result": "(Tuple([StateV]), [\"3628800\"])",
+        "candidate_result": "(Tuple([StateV]), [\"3628800\"])"
+      }
+    ],
+    "scope": "native tree extraction imported into eggcc; not the production Tiger/DAG extractor and not a universal program-equivalence proof"
+  },
+  "metrics": [
+    {
+      "variant": "baseline",
+      "scan_rows": 335342,
+      "refine_rows": 4831,
+      "key_lookups": 8906,
+      "marker_rows": 0,
+      "execution_ms_median": 72.288291,
+      "setup_ms_median": 81.72499700000002
+    },
+    {
+      "variant": "producer-only",
+      "scan_rows": 335311,
+      "refine_rows": 4834,
+      "key_lookups": 9037,
+      "marker_rows": 93,
+      "execution_ms_median": 72.339874,
+      "setup_ms_median": 82.023153
+    },
+    {
+      "variant": "candidate",
+      "scan_rows": 323778,
+      "refine_rows": 4852,
+      "key_lookups": 9051,
+      "marker_rows": 93,
+      "execution_ms_median": 72.192583,
+      "setup_ms_median": 81.49810600000004
+    }
+  ],
+  "original_table_equality_diagnostic": [
+    true,
+    false,
+    false
+  ],
+  "row_work_reduction_percent": 3.39327342264083,
+  "paired_execution_improvement_percent": [
+    0.13239765206235488,
+    0.1894847956770751,
+    2.1392490318235313
+  ],
+  "paired_execution_improvement_percent_median": 0.1894847956770751,
+  "production_dag_extractor_validated": false,
+  "program": "instance-validated.egg",
+  "workload": "loopfact"
+}
