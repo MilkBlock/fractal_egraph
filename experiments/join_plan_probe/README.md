@@ -104,3 +104,77 @@ python3 experiments/join_plan_probe/make_plan_variant.py /tmp/rt.egg /tmp/rt-spl
 ./egglog/target/release/egglog /tmp/rt.egg       --report-level time-only --save-report a.json
 ./egglog/target/release/egglog /tmp/rt-split.egg --report-level time-only --save-report b.json
 ```
+
+---
+
+## 附：怎么读这些 stage 计划
+
+### 记号
+
+```
+s0: INTERSECT TCPair(@c2) | Smaller(@c0)
+s2: DRIVE TCPair[t1@c0,cost1@c1]  ->  Other(x@c3)
+```
+
+- `c0/c1/...` 是**该表自己的列号**（0 起）。constructor 的**输入列在前，输出列在后**，
+  再后面是引擎内部列（其中一列是 timestamp，规则的列引用里不出现）。
+- `@xxx` 是规划器的**内部变量**（用户没给它起名）：`@TCPair11` = "第 11 号 `TCPair` atom 的输出值"，
+  `@Smaller2` = "第 2 号 `Smaller` atom 的输出值"。
+- `INTERSECT a(colA) | b(colB) | …` = **generic join 的一步**：在这些 atom 的这些列上按**同一个变量**求交。
+  它会把每个 atom 的子集缩小到"在该变量上有对手"的行。
+- `DRIVE cover[...] -> probe(...)` = **FusedIntersect**：以 `cover` 为驱动，枚举它的行、绑定它的列，
+  再按列去探测 `->` 后面的 atom（这里 `to_intersect` 为空，表示只需枚举 cover 自己）。
+
+### 相关表的实际形状（raytrace 导出步）
+
+| 表 | 声明 | 行数 | 各列 distinct |
+|---|---|---:|---|
+| `Smaller` | `(constructor Smaller (TermAndCost TermAndCost) TermAndCost)` | 73,961 | c0:35,267 / c1:37,885 / **c2:37,625（输出）** |
+| `TCPair` | `(constructor TCPair (Term i64) TermAndCost)` | 63,071 | c0:63,071 / c1:15,712 / **c2:63,071（输出）** |
+| `ExtractedExpr` | `(function ExtractedExpr (Expr) TermAndCost :merge (Smaller old new))` | 7,422 | c0:7,422（key）/ c1:2,993（值） |
+
+关键：`TermAndCost` 是 **e-class 值**。`Smaller` 的两个字段存的是"指向某个 `TCPair` 结果的值"，
+而 `TCPair` 的**输出列 c2 是唯一的**（63,071 个不同值 / 63,071 行）——所以"反查是哪个 `TCPair`
+产生了这个字段值"本质上是**一次字典查找**，只是方向在**值列**（不是 key 列 `(Term,i64)`）上。
+
+### 逐 stage 走一遍（玩具例子）
+
+设图里有：
+
+```
+TCPair(TermConst(5), 1)  -> TC#100
+TCPair(TermBop(Add,…), 3) -> TC#200
+Smaller(TC#100, TC#200)  -> TC#300          ; 某次 ExtractedExpr 的 merge 产生的
+```
+
+规则要做的：`Smaller` 的第 1 个字段（`TC#100`）和第 2 个字段（`TC#200`）**分别反查回它们的 TCPair**，
+比较两者的 cost（1 和 3），赢家与 `lhs`（`TC#300`）合并。
+
+```
+s0: INTERSECT TCPair(@c2) | Smaller(@c0)
+    在值 TC#100 上把「TCPair 输出列」与「Smaller 第 1 字段」求交
+    -> 锁定第 1 行 TCPair 与那行 Smaller
+s1: INTERSECT TCPair(@c2) | Smaller(@c1)
+    在值 TC#200 上做同样的事 -> 锁定第 2 行 TCPair
+s2: DRIVE TCPair[t1@c0, cost1@c1]
+    枚举第 1 行 TCPair，绑定 t1 = TermConst(5), cost1 = 1
+s3: INTERSECT TCPair(cost2@c1)
+    从第 2 行 TCPair 绑定 cost2 = 3
+s4: INTERSECT Smaller(@c2)
+    绑定 lhs = TC#300
+    （规则体的 (<= cost1 cost2) 在绑定完成后求值，1<=3 成立）
+    （head: union(TC#300, TCPair(TermConst(5),1))）
+```
+
+### 为什么这个计划贵
+
+1. **反查走的是值列**：`Smaller.c0/c1` 是 `TermAndCost` 值，要拿 cost 必须沿 `TCPair.c2` 反查。
+   引擎的主键索引在 `(Term,i64)` 上，按值列查需要次级索引，而次级索引是否被缓存取决于子集形状
+   （见 `experiments/rule_index_shaping`：只有子集又大又密才走缓存索引）。
+2. **同一个反查做了两遍**：s0 和 s1 形状完全相同，只是一个接 `c0` 一个接 `c1`。
+3. **两条规则各做一遍**：`<=` 和 `>` 是两条独立规则，各自完整跑这套 5 阶段 join
+   （68,852 + 75,568 次匹配，18.2 / 16.4 µs/match）。
+4. **根因在表示**：`Smaller` 存的是**指针**（e-class 值）而不是 cost 本身。
+   如果 `Smaller` 能内联 `(Term i64 Term i64)`，这个 5 阶段 join 会塌缩成"扫一张表 + 比较两个内联整数"——
+   不需要反查、不需要标记表。做不到的原因是 `:merge (Smaller old new)` 只能拿到两个 `TermAndCost` 值，
+   **merge 表达式里无法解构**它们（规则体可以，merge 表达式不行），除非有一个能解构的原语。
