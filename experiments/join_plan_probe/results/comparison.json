@@ -1,0 +1,28 @@
+{
+  "base": {
+    "total_search_median": 0.602479834,
+    "total_search_min": 0.5842044260000001,
+    "if_typing_family_median": 0.030547686,
+    "if_typing_family_min": 0.029353474,
+    "runs": 5
+  },
+  "split": {
+    "total_search_median": 0.566551055,
+    "total_search_min": 0.553735282,
+    "if_typing_family_median": 0.009003297,
+    "if_typing_family_min": 0.008835486,
+    "runs": 5
+  },
+  "rows": {
+    "base": 147959,
+    "split": 148002,
+    "delta": 43,
+    "marker_table": [
+      38
+    ]
+  },
+  "delta": {
+    "total_search": -0.03592877900000002,
+    "if_typing": -0.021544389
+  }
+}

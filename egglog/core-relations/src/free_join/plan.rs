@@ -250,8 +250,13 @@ impl Plan {
     pub(crate) fn to_report(&self, _symbol_map: &SymbolMap) -> egglog_reports::Plan {
         match self {
             Plan::SinglePlan(p) => p.to_report(_symbol_map),
-            Plan::DecomposedPlan(_) => {
-                todo!()
+            Plan::DecomposedPlan(p) => {
+                let mut stages = Vec::new();
+                for (block, _) in &p.stages.blocks {
+                    stages.extend(stages_to_report(&p.atoms, &block.instrs, _symbol_map));
+                }
+                stages.extend(stages_to_report(&p.atoms, &p.result_block.instrs, _symbol_map));
+                egglog_reports::Plan { stages }
             }
         }
     }
@@ -308,12 +313,112 @@ pub(crate) struct DecomposedPlan {
     pub actions: ActionId,
 }
 
+/// Convert one stage list into report stages. Shared by single and decomposed
+/// plans; the latter concatenates its blocks, which is what the profiler needs
+/// (the access order per stage).
+fn stages_to_report(
+    atoms: &DenseIdMap<AtomId, Atom>,
+    instrs: &[JoinStage],
+    symbol_map: &SymbolMap,
+) -> Vec<(egglog_reports::Stage, Option<egglog_reports::StageStats>, Vec<usize>)> {
+    use egglog_reports::{
+        Scan as ReportScan, SingleScan as ReportSingleScan, Stage as ReportStage,
+    };
+    let mut out = Vec::new();
+    for stage in instrs.iter() {
+        let report_stage = match stage {
+            JoinStage::Intersect { var, scans } => {
+                let var_name = get_var_name(symbol_map, *var);
+                ReportStage::Intersect {
+                    scans: scans
+                        .iter()
+                        .map(|scan| {
+                            ReportSingleScan(
+                                get_atom_name(symbol_map, scan.atom),
+                                (var_name.clone(), scan.column.index() as i64),
+                            )
+                        })
+                        .collect(),
+                }
+            }
+            JoinStage::FusedIntersect {
+                cover,
+                bind: _,
+                to_intersect,
+            } => ReportStage::FusedIntersect {
+                cover: scan_to_report(atoms, symbol_map, cover),
+                to_intersect: to_intersect
+                    .iter()
+                    .map(|(scan, _)| scan_to_report(atoms, symbol_map, scan))
+                    .collect(),
+            },
+            JoinStage::FusedIntersectMat {
+                cover: _,
+                mode: _,
+                bind: _,
+                to_intersect,
+            } => ReportStage::FusedIntersect {
+                // The materialization variant hides its cover id from the
+                // report; keep the probed sides so the shape is still visible.
+                cover: ReportScan("(materialized)".to_string(), vec![]),
+                to_intersect: to_intersect
+                    .iter()
+                    .map(|(scan, _)| scan_to_report(atoms, symbol_map, scan))
+                    .collect(),
+            },
+        };
+        out.push((report_stage, None, vec![]));
+    }
+    for i in 0..out.len().saturating_sub(1) {
+        let next = vec![i + 1];
+        out[i].2 = next;
+    }
+    out
+}
+
+fn get_var_name(symbol_map: &SymbolMap, var: Variable) -> String {
+    symbol_map
+        .vars
+        .get(&var)
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| format!("@x{var:?}"))
+}
+
+fn get_atom_name(symbol_map: &SymbolMap, atom: AtomId) -> String {
+    symbol_map
+        .atoms
+        .get(&atom)
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| format!("@R{atom:?}"))
+}
+
+fn scan_to_report(
+    atoms: &DenseIdMap<AtomId, Atom>,
+    symbol_map: &SymbolMap,
+    scan: &ScanSpec,
+) -> egglog_reports::Scan {
+    let cols: Vec<(String, i64)> = scan
+        .to_index
+        .vars
+        .iter()
+        .map(|col| {
+            let var = atoms[scan.to_index.atom]
+                .get_var(*col)
+                .map(|v| get_var_name(symbol_map, v))
+                .unwrap_or_else(|| "@const".to_string());
+            (var, col.index() as i64)
+        })
+        .collect();
+    egglog_reports::Scan(get_atom_name(symbol_map, scan.to_index.atom), cols)
+}
+
 impl SinglePlan {
     pub(crate) fn to_report(&self, symbol_map: &SymbolMap) -> egglog_reports::Plan {
         use egglog_reports::{
             Plan as ReportPlan, Scan as ReportScan, SingleScan as ReportSingleScan,
             Stage as ReportStage,
         };
+        let _ = (ReportScan::clone, ReportSingleScan::clone, ReportStage::clone);
         const INTERNAL_PREFIX: &str = "@";
         let get_var = |var: Variable| {
             symbol_map
@@ -329,79 +434,7 @@ impl SinglePlan {
                 .map(|s| s.to_string())
                 .unwrap_or_else(|| format!("{INTERNAL_PREFIX}R{atom:?}"))
         };
-        let mut stages = Vec::new();
-        for (i, stage) in self.stages.instrs.iter().enumerate() {
-            let report_stage = match stage {
-                JoinStage::Intersect { var, scans } => {
-                    let var_name = get_var(*var);
-                    let report_scans = scans
-                        .iter()
-                        .map(|scan| {
-                            let atom_name = get_atom(scan.atom);
-                            ReportSingleScan(
-                                atom_name,
-                                (var_name.clone(), scan.column.index() as i64),
-                            )
-                        })
-                        .collect();
-                    ReportStage::Intersect {
-                        scans: report_scans,
-                    }
-                }
-                JoinStage::FusedIntersect {
-                    cover,
-                    bind: _,
-                    to_intersect,
-                } => {
-                    let cover_atom_name = get_atom(cover.to_index.atom);
-                    let cover_cols: Vec<(String, i64)> = cover
-                        .to_index
-                        .vars
-                        .iter()
-                        .map(|col| {
-                            let var_name =
-                                get_var(self.atoms[cover.to_index.atom].get_var(*col).unwrap());
-                            (var_name, col.index() as i64)
-                        })
-                        .collect();
-                    let report_cover = ReportScan(cover_atom_name, cover_cols);
-                    let report_to_intersect = to_intersect
-                        .iter()
-                        .map(|(scan, key_spec)| {
-                            let atom_name = get_atom(scan.to_index.atom);
-                            let cols: Vec<(String, i64)> = key_spec
-                                .iter()
-                                .map(|col| {
-                                    let var_name = get_var(
-                                        self.atoms[scan.to_index.atom].get_var(*col).unwrap(),
-                                    );
-                                    (var_name, col.index() as i64)
-                                })
-                                .collect();
-                            ReportScan(atom_name, cols)
-                        })
-                        .collect();
-                    ReportStage::FusedIntersect {
-                        cover: report_cover,
-                        to_intersect: report_to_intersect,
-                    }
-                }
-                JoinStage::FusedIntersectMat {
-                    cover: _,
-                    mode: _,
-                    bind: _,
-                    to_intersect: _,
-                } => {
-                    todo!("materialization")
-                }
-            };
-            let next = if i == self.stages.instrs.len() - 1 {
-                vec![]
-            } else {
-                vec![i + 1]
-            };
-            stages.push((report_stage, None, next));
-        }
+        let stages = stages_to_report(&self.atoms, &self.stages.instrs, symbol_map);
         ReportPlan { stages }
     }
 }

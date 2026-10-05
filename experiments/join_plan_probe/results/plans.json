@@ -1,0 +1,2086 @@
+{
+ "top": [
+  {
+   "rule": "(rule ((= expr (Concat x y))\n       (= sum (+ (Expr-size y) (Expr-size x))))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+   "seconds": 0.044872833000000036,
+   "matches": 15922,
+   "plan": {
+    "stages": [
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Concat",
+          [
+           "x",
+           0
+          ]
+         ],
+         [
+          "Expr-size",
+          [
+           "x",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Concat",
+          [
+           "y",
+           1
+          ]
+         ],
+         [
+          "Expr-size",
+          [
+           "y",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Concat",
+          [
+           "@Concat57",
+           2
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       3
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Expr-size",
+          [
+           "@Expr-size31",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       4
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Expr-size",
+          [
+           "@Expr-size32",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      []
+     ]
+    ]
+   }
+  },
+  {
+   "rule": "(rule ((= lhs (Concat e1 e2))\n       (HasType e1 (TupleT tylist1))\n       (HasType e2 (TupleT tylist2)))\n      ((HasType lhs (TupleT (TLConcat tylist1 tylist2))))\n        :ruleset type-analysis )",
+   "seconds": 0.040272146,
+   "matches": 4614,
+   "plan": {
+    "stages": [
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Concat",
+          [
+           "e1",
+           0
+          ]
+         ],
+         [
+          "HasType",
+          [
+           "e1",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Concat",
+          [
+           "e2",
+           1
+          ]
+         ],
+         [
+          "HasType",
+          [
+           "e2",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TupleT",
+          [
+           "@TupleT25",
+           1
+          ]
+         ],
+         [
+          "HasType",
+          [
+           "@TupleT25",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       3
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Concat",
+          [
+           "@Concat5",
+           2
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       4
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TupleT",
+          [
+           "tylist1",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      []
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "(materialized)",
+         []
+        ],
+        "to_intersect": [
+         [
+          "Concat",
+          [
+           [
+            "e2",
+            1
+           ]
+          ]
+         ],
+         [
+          "HasType",
+          [
+           [
+            "e2",
+            0
+           ]
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TupleT",
+          [
+           "@TupleT26",
+           1
+          ]
+         ],
+         [
+          "HasType",
+          [
+           "@TupleT26",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TupleT",
+          [
+           "tylist2",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      []
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "(materialized)",
+         []
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "(materialized)",
+         []
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      []
+     ]
+    ]
+   }
+  },
+  {
+   "rule": "(rewrite (Concat (SubTuple expr a b) (SubTuple expr (+ a b) c)) (SubTuple expr a (+ b c)) :ruleset always-run)",
+   "seconds": 0.02800225199999999,
+   "matches": 8959,
+   "plan": {
+    "stages": [
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "SubTuple",
+          [
+           "expr",
+           0
+          ]
+         ],
+         [
+          "SubTuple",
+          [
+           "expr",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "SubTuple",
+          [
+           "@SubTuple21",
+           3
+          ]
+         ],
+         [
+          "Concat",
+          [
+           "@SubTuple21",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "SubTuple",
+          [
+           "@SubTuple22",
+           3
+          ]
+         ],
+         [
+          "Concat",
+          [
+           "@SubTuple22",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       3
+      ]
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "SubTuple",
+         [
+          [
+           "a",
+           1
+          ],
+          [
+           "b",
+           2
+          ]
+         ]
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      [
+       4
+      ]
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "SubTuple",
+         [
+          [
+           "@+32",
+           1
+          ],
+          [
+           "c",
+           2
+          ]
+         ]
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      [
+       5
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Concat",
+          [
+           "@Concat53",
+           2
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      []
+     ]
+    ]
+   }
+  },
+  {
+   "rule": "(rule ((= lhs (If pred inputs then else))\n       (HasType pred (Base (BoolT )))\n       (HasType then ty)\n       (HasType else ty))\n      ((HasType lhs ty))\n        :ruleset type-analysis )",
+   "seconds": 0.023140490000000003,
+   "matches": 26,
+   "plan": {
+    "stages": [
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "If",
+          [
+           "pred",
+           0
+          ]
+         ],
+         [
+          "HasType",
+          [
+           "pred",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Base",
+          [
+           "@Base109",
+           1
+          ]
+         ],
+         [
+          "HasType",
+          [
+           "@Base109",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "BoolT",
+          [
+           "@BoolT19",
+           0
+          ]
+         ],
+         [
+          "Base",
+          [
+           "@BoolT19",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      []
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "(materialized)",
+         []
+        ],
+        "to_intersect": [
+         [
+          "If",
+          [
+           [
+            "pred",
+            0
+           ]
+          ]
+         ],
+         [
+          "HasType",
+          [
+           [
+            "pred",
+            0
+           ]
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "If",
+          [
+           "then",
+           2
+          ]
+         ],
+         [
+          "HasType",
+          [
+           "then",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "If",
+          [
+           "else",
+           3
+          ]
+         ],
+         [
+          "HasType",
+          [
+           "else",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       3
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "HasType",
+          [
+           "ty",
+           1
+          ]
+         ],
+         [
+          "HasType",
+          [
+           "ty",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       4
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "If",
+          [
+           "@If9",
+           4
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      []
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "(materialized)",
+         []
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      []
+     ]
+    ]
+   }
+  },
+  {
+   "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Get (Arg ty ctx) i))\n       (= expr (Get body (+ i 1))))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+   "seconds": 0.020126916999999994,
+   "matches": 201,
+   "plan": {
+    "stages": [
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "BodyContainsExpr",
+          [
+           "body",
+           0
+          ]
+         ],
+         [
+          "DoWhile",
+          [
+           "body",
+           1
+          ]
+         ],
+         [
+          "Get",
+          [
+           "body",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "BodyContainsExpr",
+          [
+           "@Get233",
+           1
+          ]
+         ],
+         [
+          "Get",
+          [
+           "@Get233",
+           2
+          ]
+         ],
+         [
+          "Get",
+          [
+           "@Get233",
+           2
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Get",
+          [
+           "@+111",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      []
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "(materialized)",
+         []
+        ],
+        "to_intersect": [
+         [
+          "BodyContainsExpr",
+          [
+           [
+            "@Get233",
+            1
+           ]
+          ]
+         ],
+         [
+          "Get",
+          [
+           [
+            "@Get233",
+            2
+           ]
+          ]
+         ],
+         [
+          "Get",
+          [
+           [
+            "@Get233",
+            2
+           ]
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Arg",
+          [
+           "@Arg101",
+           2
+          ]
+         ],
+         [
+          "Get",
+          [
+           "@Arg101",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Get",
+          [
+           "i",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      []
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "(materialized)",
+         []
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "(materialized)",
+         []
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      []
+     ]
+    ]
+   }
+  },
+  {
+   "rule": "(rule ((= lhs (Concat _x _y))\n       (ExprIsResolved _x)\n       (ExprIsResolved _y))\n      ((ExprIsResolved lhs))\n        :ruleset is-resolved )",
+   "seconds": 0.01830212400000001,
+   "matches": 4596,
+   "plan": {
+    "stages": [
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Concat",
+          [
+           "_x",
+           0
+          ]
+         ],
+         [
+          "ExprIsResolved",
+          [
+           "_x",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Concat",
+          [
+           "_y",
+           1
+          ]
+         ],
+         [
+          "ExprIsResolved",
+          [
+           "_y",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Concat",
+          [
+           "@Concat13",
+           2
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      []
+     ]
+    ]
+   }
+  },
+  {
+   "rule": "(rule ((= expr (Get tup i))\n       (= sum (Expr-size tup)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+   "seconds": 0.015496133000000011,
+   "matches": 16967,
+   "plan": {
+    "stages": [
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Get",
+          [
+           "tup",
+           0
+          ]
+         ],
+         [
+          "Expr-size",
+          [
+           "tup",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Get",
+          [
+           "@Get63",
+           2
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Expr-size",
+          [
+           "@Expr-size26",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      []
+     ]
+    ]
+   }
+  },
+  {
+   "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Concat _x _y))\n       (is-inv-Expr body _x)\n       (is-inv-Expr body _y))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+   "seconds": 0.015406782000000003,
+   "matches": 1925,
+   "plan": {
+    "stages": [
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "BodyContainsExpr",
+          [
+           "body",
+           0
+          ]
+         ],
+         [
+          "DoWhile",
+          [
+           "body",
+           1
+          ]
+         ],
+         [
+          "is-inv-Expr",
+          [
+           "body",
+           0
+          ]
+         ],
+         [
+          "is-inv-Expr",
+          [
+           "body",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "BodyContainsExpr",
+          [
+           "@Concat73",
+           1
+          ]
+         ],
+         [
+          "Concat",
+          [
+           "@Concat73",
+           2
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Concat",
+          [
+           "_x",
+           0
+          ]
+         ],
+         [
+          "is-inv-Expr",
+          [
+           "_x",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       3
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Concat",
+          [
+           "_y",
+           1
+          ]
+         ],
+         [
+          "is-inv-Expr",
+          [
+           "_y",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      []
+     ]
+    ]
+   }
+  },
+  {
+   "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (= (ExtractedExpr expr) (TCPair oldterm oldcost))\n       (< cost oldcost))\n      ((set (ExtractedExpr expr) (TCPair term cost)))\n        :ruleset terms-helpers )",
+   "seconds": 0.014228036999999999,
+   "matches": 2943,
+   "plan": {
+    "stages": [
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TCPair",
+          [
+           "@TCPair5",
+           2
+          ]
+         ],
+         [
+          "PotentialExtractedExpr",
+          [
+           "@TCPair5",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "PotentialExtractedExpr",
+          [
+           "expr",
+           0
+          ]
+         ],
+         [
+          "ExtractedExpr",
+          [
+           "expr",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "ExtractedExpr",
+          [
+           "@TCPair6",
+           1
+          ]
+         ],
+         [
+          "TCPair",
+          [
+           "@TCPair6",
+           2
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       3
+      ]
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "TCPair",
+         [
+          [
+           "term",
+           0
+          ],
+          [
+           "cost",
+           1
+          ]
+         ]
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      [
+       4
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TCPair",
+          [
+           "oldcost",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      []
+     ]
+    ]
+   }
+  },
+  {
+   "rule": "(rule ((= lhs (Concat e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))\n        :ruleset terms )",
+   "seconds": 0.014010252999999993,
+   "matches": 4634,
+   "plan": {
+    "stages": [
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Concat",
+          [
+           "e1",
+           0
+          ]
+         ],
+         [
+          "ExtractedExpr",
+          [
+           "e1",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Concat",
+          [
+           "e2",
+           1
+          ]
+         ],
+         [
+          "ExtractedExpr",
+          [
+           "e2",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TCPair",
+          [
+           "@ExtractedExpr24",
+           2
+          ]
+         ],
+         [
+          "ExtractedExpr",
+          [
+           "@ExtractedExpr24",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       3
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TCPair",
+          [
+           "@ExtractedExpr25",
+           2
+          ]
+         ],
+         [
+          "ExtractedExpr",
+          [
+           "@ExtractedExpr25",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       4
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Concat",
+          [
+           "@Concat9",
+           2
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       5
+      ]
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "TCPair",
+         [
+          [
+           "t1",
+           0
+          ],
+          [
+           "c1",
+           1
+          ]
+         ]
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      [
+       6
+      ]
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "TCPair",
+         [
+          [
+           "t2",
+           0
+          ],
+          [
+           "c2",
+           1
+          ]
+         ]
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      []
+     ]
+    ]
+   }
+  },
+  {
+   "rule": "(rule ((= lhs (DoWhile inp pred-body))\n       (HasType inp (TupleT tylist))\n       (HasType pred-body (TupleT (TCons (BoolT ) tylist))))\n      ((HasType lhs (TupleT tylist)))\n        :ruleset type-analysis )",
+   "seconds": 0.013624474999999988,
+   "matches": 29,
+   "plan": {
+    "stages": [
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "DoWhile",
+          [
+           "inp",
+           0
+          ]
+         ],
+         [
+          "HasType",
+          [
+           "inp",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "DoWhile",
+          [
+           "pred-body",
+           1
+          ]
+         ],
+         [
+          "HasType",
+          [
+           "pred-body",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TupleT",
+          [
+           "@TupleT35",
+           1
+          ]
+         ],
+         [
+          "HasType",
+          [
+           "@TupleT35",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       3
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TupleT",
+          [
+           "@TupleT36",
+           1
+          ]
+         ],
+         [
+          "HasType",
+          [
+           "@TupleT36",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       4
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "DoWhile",
+          [
+           "@DoWhile15",
+           2
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      []
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "(materialized)",
+         []
+        ],
+        "to_intersect": [
+         [
+          "TupleT",
+          [
+           [
+            "@TupleT35",
+            1
+           ]
+          ]
+         ],
+         [
+          "HasType",
+          [
+           [
+            "@TupleT35",
+            1
+           ]
+          ]
+         ],
+         [
+          "TupleT",
+          [
+           [
+            "@TupleT36",
+            1
+           ]
+          ]
+         ],
+         [
+          "HasType",
+          [
+           [
+            "@TupleT36",
+            1
+           ]
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TupleT",
+          [
+           "tylist",
+           0
+          ]
+         ],
+         [
+          "TCons",
+          [
+           "tylist",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "BoolT",
+          [
+           "@BoolT25",
+           0
+          ]
+         ],
+         [
+          "TCons",
+          [
+           "@BoolT25",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       3
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TCons",
+          [
+           "@TCons21",
+           2
+          ]
+         ],
+         [
+          "TupleT",
+          [
+           "@TCons21",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      []
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "(materialized)",
+         []
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "(materialized)",
+         []
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      []
+     ]
+    ]
+   }
+  },
+  {
+   "rule": "(rule ((= lhs (Bop (PtrAdd ) ptr n))\n       (HasType ptr (Base (PointerT ty)))\n       (HasType n (Base (IntT ))))\n      ((HasType lhs (Base (PointerT ty))))\n        :ruleset type-analysis )",
+   "seconds": 0.012574039000000004,
+   "matches": 28,
+   "plan": {
+    "stages": [
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Bop",
+          [
+           "ptr",
+           1
+          ]
+         ],
+         [
+          "HasType",
+          [
+           "ptr",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "PointerT",
+          [
+           "@PointerT10",
+           1
+          ]
+         ],
+         [
+          "Base",
+          [
+           "@PointerT10",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Base",
+          [
+           "@Base95",
+           1
+          ]
+         ],
+         [
+          "HasType",
+          [
+           "@Base95",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       3
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "PointerT",
+          [
+           "ty",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      []
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "(materialized)",
+         []
+        ],
+        "to_intersect": [
+         [
+          "Bop",
+          [
+           [
+            "ptr",
+            1
+           ]
+          ]
+         ],
+         [
+          "HasType",
+          [
+           [
+            "ptr",
+            0
+           ]
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "PtrAdd",
+          [
+           "@PtrAdd3",
+           0
+          ]
+         ],
+         [
+          "Bop",
+          [
+           "@PtrAdd3",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Bop",
+          [
+           "n",
+           2
+          ]
+         ],
+         [
+          "HasType",
+          [
+           "n",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       3
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Base",
+          [
+           "@Base96",
+           1
+          ]
+         ],
+         [
+          "HasType",
+          [
+           "@Base96",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       4
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Bop",
+          [
+           "@Bop29",
+           3
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       5
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "IntT",
+          [
+           "@IntT39",
+           0
+          ]
+         ],
+         [
+          "Base",
+          [
+           "@IntT39",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      []
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "(materialized)",
+         []
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "(materialized)",
+         []
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      []
+     ]
+    ]
+   }
+  }
+ ]
+}
