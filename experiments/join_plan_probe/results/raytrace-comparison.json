@@ -1,0 +1,81 @@
+{
+  "exported_step_total_search": 16.937103263,
+  "iterations": 10123,
+  "top_rules": [
+    {
+      "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (= (ExtractedExpr expr) (TCPair oldterm oldcost))\n       (< cost oldcost))\n      ((set (ExtractedExpr expr) (TCPair term cost)))\n        :ruleset terms-helpers )",
+      "seconds": 1.7465370979999997,
+      "matches": 42713,
+      "us_per_match": 40.89005918572799
+    },
+    {
+      "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (<= cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+      "seconds": 1.2517173139999997,
+      "matches": 68852,
+      "us_per_match": 18.179825045024106
+    },
+    {
+      "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (> cost1 cost2))\n      ((union lhs (TCPair t2 cost2)))\n        :ruleset terms-helpers-helpers )",
+      "seconds": 1.2361188310000002,
+      "matches": 75568,
+      "us_per_match": 16.35770208289223
+    },
+    {
+      "rule": "(rule ((= lhs (Bop o e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermBop o t1 t2) (+ 1 (+ c1 c2)))))\n        :ruleset terms )",
+      "seconds": 0.8570450529999998,
+      "matches": 16734,
+      "us_per_match": 51.215791382813414
+    },
+    {
+      "rule": "(rule ((= lhs (Concat e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))\n        :ruleset terms )",
+      "seconds": 0.7257733500000005,
+      "matches": 6160,
+      "us_per_match": 117.82034902597411
+    },
+    {
+      "rule": "(rule ((= expr (Concat x y))\n       (= sum (+ (Expr-size y) (Expr-size x))))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+      "seconds": 0.7218549060000019,
+      "matches": 329668,
+      "us_per_match": 2.1896420216702923
+    },
+    {
+      "rule": "(rule ((= expr (Get tup i))\n       (= sum (Expr-size tup)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+      "seconds": 0.5367724130000002,
+      "matches": 956221,
+      "us_per_match": 0.561347651850357
+    },
+    {
+      "rule": "(rule ((= lhs (Top o e1 e2 e3))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2))\n       (= (TCPair t3 c3) (ExtractedExpr e3)))\n      ((PotentialExtractedExpr lhs (TCPair (TermTop o t1 t2 t3) (+ (+ 1 c1) (+ c2 c3)))))\n        :ruleset terms )",
+      "seconds": 0.5274472600000001,
+      "matches": 4070,
+      "us_per_match": 129.5939213759214
+    }
+  ],
+  "pipeline": {
+    "pristine": {
+      "egglog": 39.083,
+      "search": 31.731,
+      "rebuild": 5.66,
+      "iters": 23378,
+      "pass2_tuples": 697997,
+      "wall": 49.58
+    },
+    "fold_only": {
+      "egglog": 35.122,
+      "search": 28.175,
+      "rebuild": 5.486,
+      "iters": 23380,
+      "pass2_tuples": 697944,
+      "wall": 45.27
+    },
+    "plan_change": {
+      "egglog": 35.708,
+      "search": 27.965,
+      "rebuild": 6.105,
+      "iters": 25123,
+      "pass2_tuples": 770156,
+      "wall": 46.98
+    }
+  },
+  "extracted_program_sha256_prefix": "d18709571e6c252d (identical in all three)"
+}

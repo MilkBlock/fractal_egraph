@@ -1,0 +1,741 @@
+{
+ "top": [
+  {
+   "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (= (ExtractedExpr expr) (TCPair oldterm oldcost))\n       (< cost oldcost))\n      ((set (ExtractedExpr expr) (TCPair term cost)))\n        :ruleset terms-helpers )",
+   "seconds": 1.7348990330000011,
+   "matches": 42713,
+   "plan": {
+    "stages": [
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TCPair",
+          [
+           "@TCPair5",
+           2
+          ]
+         ],
+         [
+          "PotentialExtractedExpr",
+          [
+           "@TCPair5",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "PotentialExtractedExpr",
+          [
+           "expr",
+           0
+          ]
+         ],
+         [
+          "ExtractedExpr",
+          [
+           "expr",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "ExtractedExpr",
+          [
+           "@TCPair6",
+           1
+          ]
+         ],
+         [
+          "TCPair",
+          [
+           "@TCPair6",
+           2
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       3
+      ]
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "TCPair",
+         [
+          [
+           "term",
+           0
+          ],
+          [
+           "cost",
+           1
+          ]
+         ]
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      [
+       4
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TCPair",
+          [
+           "oldcost",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      []
+     ]
+    ]
+   }
+  },
+  {
+   "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (<= cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+   "seconds": 1.2507094200000004,
+   "matches": 68852,
+   "plan": {
+    "stages": [
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TCPair",
+          [
+           "@TCPair11",
+           2
+          ]
+         ],
+         [
+          "Smaller",
+          [
+           "@TCPair11",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TCPair",
+          [
+           "@TCPair12",
+           2
+          ]
+         ],
+         [
+          "Smaller",
+          [
+           "@TCPair12",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "TCPair",
+         [
+          [
+           "t1",
+           0
+          ],
+          [
+           "cost1",
+           1
+          ]
+         ]
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      [
+       3
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TCPair",
+          [
+           "cost2",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       4
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Smaller",
+          [
+           "@Smaller2",
+           2
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      []
+     ]
+    ]
+   }
+  },
+  {
+   "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (> cost1 cost2))\n      ((union lhs (TCPair t2 cost2)))\n        :ruleset terms-helpers-helpers )",
+   "seconds": 1.2281995440000009,
+   "matches": 75568,
+   "plan": {
+    "stages": [
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TCPair",
+          [
+           "@TCPair17",
+           2
+          ]
+         ],
+         [
+          "Smaller",
+          [
+           "@TCPair17",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TCPair",
+          [
+           "@TCPair18",
+           2
+          ]
+         ],
+         [
+          "Smaller",
+          [
+           "@TCPair18",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TCPair",
+          [
+           "cost1",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       3
+      ]
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "TCPair",
+         [
+          [
+           "t2",
+           0
+          ],
+          [
+           "cost2",
+           1
+          ]
+         ]
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      [
+       4
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Smaller",
+          [
+           "@Smaller4",
+           2
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      []
+     ]
+    ]
+   }
+  },
+  {
+   "rule": "(rule ((= lhs (Bop o e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermBop o t1 t2) (+ 1 (+ c1 c2)))))\n        :ruleset terms )",
+   "seconds": 0.8444464550000017,
+   "matches": 16734,
+   "plan": {
+    "stages": [
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Bop",
+          [
+           "e1",
+           1
+          ]
+         ],
+         [
+          "ExtractedExpr",
+          [
+           "e1",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Bop",
+          [
+           "e2",
+           2
+          ]
+         ],
+         [
+          "ExtractedExpr",
+          [
+           "e2",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TCPair",
+          [
+           "@ExtractedExpr8",
+           2
+          ]
+         ],
+         [
+          "ExtractedExpr",
+          [
+           "@ExtractedExpr8",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       3
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TCPair",
+          [
+           "@ExtractedExpr9",
+           2
+          ]
+         ],
+         [
+          "ExtractedExpr",
+          [
+           "@ExtractedExpr9",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       4
+      ]
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "Bop",
+         [
+          [
+           "o",
+           0
+          ],
+          [
+           "@Bop33",
+           3
+          ]
+         ]
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      [
+       5
+      ]
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "TCPair",
+         [
+          [
+           "t1",
+           0
+          ],
+          [
+           "c1",
+           1
+          ]
+         ]
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      [
+       6
+      ]
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "TCPair",
+         [
+          [
+           "t2",
+           0
+          ],
+          [
+           "c2",
+           1
+          ]
+         ]
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      []
+     ]
+    ]
+   }
+  },
+  {
+   "rule": "(rule ((= expr (Concat x y))\n       (= sum (+ (Expr-size y) (Expr-size x))))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+   "seconds": 0.7311287740000013,
+   "matches": 329668,
+   "plan": null
+  },
+  {
+   "rule": "(rule ((= lhs (Concat e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))\n        :ruleset terms )",
+   "seconds": 0.7131426750000008,
+   "matches": 6160,
+   "plan": {
+    "stages": [
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Concat",
+          [
+           "e1",
+           0
+          ]
+         ],
+         [
+          "ExtractedExpr",
+          [
+           "e1",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       1
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Concat",
+          [
+           "e2",
+           1
+          ]
+         ],
+         [
+          "ExtractedExpr",
+          [
+           "e2",
+           0
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       2
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TCPair",
+          [
+           "@ExtractedExpr24",
+           2
+          ]
+         ],
+         [
+          "ExtractedExpr",
+          [
+           "@ExtractedExpr24",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       3
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "TCPair",
+          [
+           "@ExtractedExpr25",
+           2
+          ]
+         ],
+         [
+          "ExtractedExpr",
+          [
+           "@ExtractedExpr25",
+           1
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       4
+      ]
+     ],
+     [
+      {
+       "Intersect": {
+        "scans": [
+         [
+          "Concat",
+          [
+           "@Concat9",
+           2
+          ]
+         ]
+        ]
+       }
+      },
+      null,
+      [
+       5
+      ]
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "TCPair",
+         [
+          [
+           "t1",
+           0
+          ],
+          [
+           "c1",
+           1
+          ]
+         ]
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      [
+       6
+      ]
+     ],
+     [
+      {
+       "FusedIntersect": {
+        "cover": [
+         "TCPair",
+         [
+          [
+           "t2",
+           0
+          ],
+          [
+           "c2",
+           1
+          ]
+         ]
+        ],
+        "to_intersect": []
+       }
+      },
+      null,
+      []
+     ]
+    ]
+   }
+  }
+ ]
+}

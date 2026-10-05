@@ -409,7 +409,14 @@ impl Database {
                     let report_plan = match report_level {
                         ReportLevel::TimeOnly => None,
                         ReportLevel::WithPlan | ReportLevel::StageInfo => {
-                            Some(plan.to_report(symbol_map))
+                            // Profiling filter: on very long runs the plan object
+                            // dominates the report (one per rule per iteration),
+                            // so allow restricting it to matching rule text.
+                            let keep = match std::env::var("EGGLOG_PLAN_FILTER") {
+                                Ok(f) if !f.is_empty() => desc.contains(&f),
+                                _ => true,
+                            };
+                            keep.then(|| plan.to_report(symbol_map))
                         }
                     };
 
@@ -557,7 +564,11 @@ impl Database {
                 let report_plan = match report_level {
                     ReportLevel::TimeOnly => None,
                     ReportLevel::WithPlan | ReportLevel::StageInfo => {
-                        Some(plan.to_report(symbol_map))
+                        let keep = match std::env::var("EGGLOG_PLAN_FILTER") {
+                            Ok(f) if !f.is_empty() => desc.contains(&f),
+                            _ => true,
+                        };
+                        keep.then(|| plan.to_report(symbol_map))
                     }
                 };
                 let mut binding_info = join_state.initial_bindings(plan, &desc, symbol_map);
@@ -818,18 +829,27 @@ impl FrameUpdates {
 struct CompletionCursor {
     table: crate::TableId,
     permutations: Arc<Vec<Vec<usize>>>,
-    variables: SmallVec<[(Variable,Option<usize>);8]>,
+    variables: SmallVec<[(Variable, Option<usize>); 8]>,
     checked_at: Option<usize>,
 }
 impl CompletionCursor {
-    fn enter(&mut self, depth:usize) {
-        for (_,defined) in &mut self.variables {
-            if defined.is_some_and(|d|d>=depth) {*defined=None;}
+    fn enter(&mut self, depth: usize) {
+        for (_, defined) in &mut self.variables {
+            if defined.is_some_and(|d| d >= depth) {
+                *defined = None;
+            }
         }
-        if self.checked_at.is_some_and(|d|d>=depth) {self.checked_at=None;}
+        if self.checked_at.is_some_and(|d| d >= depth) {
+            self.checked_at = None;
+        }
     }
-    fn bind(&mut self,var:Variable,depth:usize) {
-        for (v,defined) in &mut self.variables {if *v==var {*defined=Some(depth);self.checked_at=None;}}
+    fn bind(&mut self, var: Variable, depth: usize) {
+        for (v, defined) in &mut self.variables {
+            if *v == var {
+                *defined = Some(depth);
+                self.checked_at = None;
+            }
+        }
     }
 }
 
@@ -899,60 +919,133 @@ impl BindingInfo {
 }
 
 impl<'a> JoinState<'a> {
-    fn initial_bindings(&self, plan: &Plan, rule: &str, names: &crate::query::SymbolMap) -> BindingInfo {
+    fn initial_bindings(
+        &self,
+        plan: &Plan,
+        rule: &str,
+        names: &crate::query::SymbolMap,
+    ) -> BindingInfo {
         let mut bindings = BindingInfo::default();
-        if let Some((table,params))=self.db.completed_cells.get(rule) {
-            let variables=params.iter().map(|n| names.vars.iter().find(|(_,v)|v.as_ref()==n).map(|(v,_)|(*v,None))).collect::<Option<SmallVec<[_;8]>>>();
-            if matches!(plan,Plan::SinglePlan(_)) && self.db.get_table_info(*table).spec.n_keys==params.len() && variables.is_some() {
-                bindings.completion=Some(Box::new(CompletionCursor{table:*table,permutations:Arc::new(self.db.cell_symmetries.get(rule).cloned().unwrap_or_else(||vec![(0..params.len()).collect()])),variables:variables.unwrap(),checked_at:None}));
-            } else {self.db.unresolved_completions.fetch_add(1,std::sync::atomic::Ordering::Relaxed);}
+        if let Some((table, params)) = self.db.completed_cells.get(rule) {
+            let variables = params
+                .iter()
+                .map(|n| {
+                    names
+                        .vars
+                        .iter()
+                        .find(|(_, v)| v.as_ref() == n)
+                        .map(|(v, _)| (*v, None))
+                })
+                .collect::<Option<SmallVec<[_; 8]>>>();
+            if matches!(plan, Plan::SinglePlan(_))
+                && self.db.get_table_info(*table).spec.n_keys == params.len()
+                && variables.is_some()
+            {
+                bindings.completion = Some(Box::new(CompletionCursor {
+                    table: *table,
+                    permutations: Arc::new(
+                        self.db
+                            .cell_symmetries
+                            .get(rule)
+                            .cloned()
+                            .unwrap_or_else(|| vec![(0..params.len()).collect()]),
+                    ),
+                    variables: variables.unwrap(),
+                    checked_at: None,
+                }));
+            } else {
+                self.db
+                    .unresolved_completions
+                    .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            }
         }
 
         for (id, atom) in plan.atoms().iter() {
             bindings.insert_subset(id, self.db.get_table(atom.table).all());
         }
         if let Some((anchor, coverage)) = self.db.key_coverage.get(rule) {
-            let plan_atoms=plan.atoms();
-            let atoms=plan_atoms.iter().filter(|(_,a)|a.table==*anchor).collect::<Vec<_>>();
+            let plan_atoms = plan.atoms();
+            let atoms = plan_atoms
+                .iter()
+                .filter(|(_, a)| a.table == *anchor)
+                .collect::<Vec<_>>();
             if let [(id, atom)] = atoms.as_slice() {
-                let n=self.db.get_table_info(*anchor).spec.n_keys;
-                if n>0 && n==self.db.get_table_info(*coverage).spec.n_keys {
-                    struct Uncovered<'a> { covered: &'a crate::table_spec::WrappedTable, rows: Pooled<SortedOffsetVector> }
+                let n = self.db.get_table_info(*anchor).spec.n_keys;
+                if n > 0 && n == self.db.get_table_info(*coverage).spec.n_keys {
+                    struct Uncovered<'a> {
+                        covered: &'a crate::table_spec::WrappedTable,
+                        rows: Pooled<SortedOffsetVector>,
+                    }
                     impl crate::row_buffer::RowSink for Uncovered<'_> {
-                        fn add_row(&mut self,id:RowId,row:&[Value]) {
-                            if self.covered.get_row(row).is_none() {self.rows.push(id);}
+                        fn add_row(&mut self, id: RowId, row: &[Value]) {
+                            if self.covered.get_row(row).is_none() {
+                                self.rows.push(id);
+                            }
                         }
                     }
-                    let table=self.db.get_table(atom.table);
-                    let mut subset=table.all();
-                    for h in plan.header().iter().filter(|h|h.atom==*id) {subset.intersect(h.subset.as_ref(),&self.pool);}
-                    let cols=(0..n).map(ColumnId::from_usize).collect::<Vec<_>>();
-                    let mut sink=Uncovered{covered:self.db.get_table(*coverage),rows:with_pool_set(|ps|ps.get())};
-                    let mut offset=Offset::new(0);
-                    while let Some(next)=table.scan_project(subset.as_ref(),&cols,offset,usize::MAX,&[],&mut sink) {offset=next;}
-                    bindings.insert_subset(*id,Subset::Sparse(sink.rows));
+                    let table = self.db.get_table(atom.table);
+                    let mut subset = table.all();
+                    for h in plan.header().iter().filter(|h| h.atom == *id) {
+                        subset.intersect(h.subset.as_ref(), &self.pool);
+                    }
+                    let cols = (0..n).map(ColumnId::from_usize).collect::<Vec<_>>();
+                    let mut sink = Uncovered {
+                        covered: self.db.get_table(*coverage),
+                        rows: with_pool_set(|ps| ps.get()),
+                    };
+                    let mut offset = Offset::new(0);
+                    while let Some(next) = table.scan_project(
+                        subset.as_ref(),
+                        &cols,
+                        offset,
+                        usize::MAX,
+                        &[],
+                        &mut sink,
+                    ) {
+                        offset = next;
+                    }
+                    bindings.insert_subset(*id, Subset::Sparse(sink.rows));
                 }
             }
         }
-        let Some((root_table, excluded)) = self.db.excluded_roots.get(rule) else { return bindings; };
+        let Some((root_table, excluded)) = self.db.excluded_roots.get(rule) else {
+            return bindings;
+        };
         // Frontend normalization renames variables. Select the unique tree root
         // structurally: its result is not used as another atom's key.
-        let roots = plan.atoms().iter().filter_map(|(id, atom)| {
-            if names.atoms.get(&id).is_none_or(|n| n.as_ref() != root_table) { return None; }
-            let column = ColumnId::from_usize(self.db.get_table_info(atom.table).spec.n_keys);
-            let result = atom.get_var(column)?;
-            let consumed = plan.atoms().iter().any(|(_, other)| other.var_columns.iter().any(|(c,v)|
-                v == result && c.index() < self.db.get_table_info(other.table).spec.n_keys));
-            (!consumed).then_some((id, column))
-        }).collect::<Vec<_>>();
-        let [(id, column)] = roots.as_slice() else { return bindings; };
+        let roots = plan
+            .atoms()
+            .iter()
+            .filter_map(|(id, atom)| {
+                if names
+                    .atoms
+                    .get(&id)
+                    .is_none_or(|n| n.as_ref() != root_table)
+                {
+                    return None;
+                }
+                let column = ColumnId::from_usize(self.db.get_table_info(atom.table).spec.n_keys);
+                let result = atom.get_var(column)?;
+                let consumed = plan.atoms().iter().any(|(_, other)| {
+                    other.var_columns.iter().any(|(c, v)| {
+                        v == result && c.index() < self.db.get_table_info(other.table).spec.n_keys
+                    })
+                });
+                (!consumed).then_some((id, column))
+            })
+            .collect::<Vec<_>>();
+        let [(id, column)] = roots.as_slice() else {
+            return bindings;
+        };
         struct KeepRows<'a> {
             excluded: &'a std::collections::BTreeSet<Value>,
             rows: Pooled<SortedOffsetVector>,
         }
         impl crate::row_buffer::RowSink for KeepRows<'_> {
             fn add_row(&mut self, id: RowId, row: &[Value]) {
-                if !self.excluded.contains(&row[0]) { self.rows.push(id); }
+                if !self.excluded.contains(&row[0]) {
+                    self.rows.push(id);
+                }
             }
         }
         let table = self.db.get_table(plan.atoms()[*id].table);
@@ -962,9 +1055,19 @@ impl<'a> JoinState<'a> {
         for header in plan.header().iter().filter(|h| h.atom == *id) {
             subset.intersect(header.subset.as_ref(), &self.pool);
         }
-        let mut sink = KeepRows { excluded, rows: with_pool_set(|ps| ps.get()) };
+        let mut sink = KeepRows {
+            excluded,
+            rows: with_pool_set(|ps| ps.get()),
+        };
         let mut offset = Offset::new(0);
-        while let Some(next) = table.scan_project(subset.as_ref(), &[*column], offset, usize::MAX, &[], &mut sink) {
+        while let Some(next) = table.scan_project(
+            subset.as_ref(),
+            &[*column],
+            offset,
+            usize::MAX,
+            &[],
+            &mut sink,
+        ) {
             offset = next;
         }
         bindings.insert_subset(*id, Subset::Sparse(sink.rows));
@@ -972,43 +1075,118 @@ impl<'a> JoinState<'a> {
     }
 
     fn completed(&self, info: &mut BindingInfo, depth: usize) -> bool {
-        let Some(c) = info.completion.as_mut() else { return false; };
-        if c.variables.iter().any(|(_, d)| d.is_none()) { return false; }
-        let values = c.variables.iter().map(|(v, _)| info.bindings[*v]).collect::<SmallVec<[Value; 8]>>();
+        let Some(c) = info.completion.as_mut() else {
+            return false;
+        };
+        if c.variables.iter().any(|(_, d)| d.is_none()) {
+            return false;
+        }
+        let values = c
+            .variables
+            .iter()
+            .map(|(v, _)| info.bindings[*v])
+            .collect::<SmallVec<[Value; 8]>>();
         for permutation in c.permutations.iter() {
-            let key = permutation.iter().map(|i| values[*i]).collect::<SmallVec<[Value; 8]>>();
-            if c.checked_at.is_none() && self.db.get_table(c.table).get_row_column(&key, ColumnId::from_usize(key.len())).is_some() {
-                self.db.completed_prefixes.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            let key = permutation
+                .iter()
+                .map(|i| values[*i])
+                .collect::<SmallVec<[Value; 8]>>();
+            if c.checked_at.is_none()
+                && self
+                    .db
+                    .get_table(c.table)
+                    .get_row_column(&key, ColumnId::from_usize(key.len()))
+                    .is_some()
+            {
+                self.db
+                    .completed_prefixes
+                    .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                 return true;
             }
-            if !self.db.promise_tables.is_empty() && self.db.promised_cells.get().expect("configured completion promises").contains_key(&(c.table, SmallVec::from_slice(&key))) {
-                self.db.promised_prefixes.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            if !self.db.promise_tables.is_empty()
+                && self
+                    .db
+                    .promised_cells
+                    .get()
+                    .expect("configured completion promises")
+                    .contains_key(&(c.table, SmallVec::from_slice(&key)))
+            {
+                self.db
+                    .promised_prefixes
+                    .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
                 return true;
             }
         }
-        if c.checked_at.is_none() { c.checked_at = Some(depth); }
+        if c.checked_at.is_none() {
+            c.checked_at = Some(depth);
+        }
         false
     }
 
-    fn orbit_key(&self, c:&CompletionCursor, info:&BindingInfo)->SmallVec<[Value;3]> {
-        let values=c.variables.iter().map(|(v,_)|info.bindings[*v]).collect::<SmallVec<[Value;3]>>();
-        c.permutations.iter().map(|p|p.iter().map(|i|values[*i]).collect::<SmallVec<[Value;3]>>()).min().unwrap_or(values)
+    fn orbit_key(&self, c: &CompletionCursor, info: &BindingInfo) -> SmallVec<[Value; 3]> {
+        let values = c
+            .variables
+            .iter()
+            .map(|(v, _)| info.bindings[*v])
+            .collect::<SmallVec<[Value; 3]>>();
+        c.permutations
+            .iter()
+            .map(|p| {
+                p.iter()
+                    .map(|i| values[*i])
+                    .collect::<SmallVec<[Value; 3]>>()
+            })
+            .min()
+            .unwrap_or(values)
     }
-    fn already_queued(&self, info:&BindingInfo)->bool {
-        let Some(c)=info.completion.as_ref() else {return false;};
-        if self.db.promise_tables.is_empty() || c.variables.iter().any(|(_,d)|d.is_none()) {return false;}
-        if self.db.queued_cells.get().expect("configured completion queue").contains_key(&(c.table,self.orbit_key(c,info))) {
-            self.db.queued_prefixes.fetch_add(1,std::sync::atomic::Ordering::Relaxed);true
-        } else {false}
+    fn already_queued(&self, info: &BindingInfo) -> bool {
+        let Some(c) = info.completion.as_ref() else {
+            return false;
+        };
+        if self.db.promise_tables.is_empty() || c.variables.iter().any(|(_, d)| d.is_none()) {
+            return false;
+        }
+        if self
+            .db
+            .queued_cells
+            .get()
+            .expect("configured completion queue")
+            .contains_key(&(c.table, self.orbit_key(c, info)))
+        {
+            self.db
+                .queued_prefixes
+                .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            true
+        } else {
+            false
+        }
     }
     // Only called after the full query succeeds. A queued total positive recipe
     // will establish every equivalent state before this rule step commits.
-    fn claim_cell(&self,info:&BindingInfo)->bool {
-        let Some(c)=info.completion.as_ref() else {return false;};
-        if self.db.promise_tables.is_empty() || c.variables.iter().any(|(_,d)|d.is_none()) {return false;}
-        match self.db.queued_cells.get().expect("configured completion queue").entry((c.table,self.orbit_key(c,info))) {
-            Entry::Occupied(_)=>{self.db.queued_prefixes.fetch_add(1,std::sync::atomic::Ordering::Relaxed);true},
-            Entry::Vacant(v)=>{v.insert(());false},
+    fn claim_cell(&self, info: &BindingInfo) -> bool {
+        let Some(c) = info.completion.as_ref() else {
+            return false;
+        };
+        if self.db.promise_tables.is_empty() || c.variables.iter().any(|(_, d)| d.is_none()) {
+            return false;
+        }
+        match self
+            .db
+            .queued_cells
+            .get()
+            .expect("configured completion queue")
+            .entry((c.table, self.orbit_key(c, info)))
+        {
+            Entry::Occupied(_) => {
+                self.db
+                    .queued_prefixes
+                    .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                true
+            }
+            Entry::Vacant(v) => {
+                v.insert(());
+                false
+            }
         }
     }
 
@@ -1175,11 +1353,17 @@ impl<'a> JoinState<'a> {
             return;
         }
 
-        if let Some(c)=binding_info.completion.as_mut() {c.enter(cur);}
-        if self.completed(binding_info,cur) || self.already_queued(binding_info) {return;}
+        if let Some(c) = binding_info.completion.as_mut() {
+            c.enter(cur);
+        }
+        if self.completed(binding_info, cur) || self.already_queued(binding_info) {
+            return;
+        }
 
         if cur >= instr_order.len() {
-            if self.claim_cell(binding_info) {return;}
+            if self.claim_cell(binding_info) {
+                return;
+            }
             action_buf.push_bindings(action, &binding_info.bindings, || self.exec_state.clone());
             return;
         }
@@ -1268,7 +1452,9 @@ impl<'a> JoinState<'a> {
                         updates.drain(|update| match update {
                             UpdateInstr::PushBinding(var, val) => {
                                 binding_info.bindings.insert(var, val);
-                            if let Some(c)=binding_info.completion.as_mut() {c.bind(var,cur);}
+                                if let Some(c) = binding_info.completion.as_mut() {
+                                    c.bind(var, cur);
+                                }
                             }
                             UpdateInstr::RefineAtom(atom, subset) => {
                                 binding_info.insert_node(atom, subset);
