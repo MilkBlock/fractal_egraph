@@ -1,0 +1,679 @@
+{
+  "eligible_matches": 6788,
+  "unsupported_matches": 0,
+  "pair_shapes": 695,
+  "cross_rule_shapes": 126,
+  "scope": "Pre-step positive Cell embeddings; successful physical reads only. Observed aliases are not static rule equalities. No failed branches, pure Join timing, negative certificates, or optimizer rewrites inferred. Occurrences may overlap; counts must not be summed as saved work. Union counts describe effects of these matches, not incoming invalidations.",
+  "cost": "O(sum of squared LHS read counts plus pair encoding); no arbitrary subgraph enumeration. Concrete binding deduplication is discarded after each step.",
+  "totals": {
+    "pair_occurrences": 9559,
+    "same_cell": 186,
+    "separate_cells": 336,
+    "one_side_in_cell": 3169,
+    "neither_in_cell": 5868,
+    "distinct_bindings_per_step_sum": 8282
+  },
+  "same_final_state_as_native_control": true,
+  "frozen_signature_counts": [
+    7402,
+    7402
+  ],
+  "inputs": {
+    "/tmp/eggcc-marker-loopfact.egg": "b83dbc844f54f1b194f594e69cad1da8ccf44f2e7630971ef2be9215fcd0cafc",
+    "out/ripsat-coverage-remeasure-merged/train/library.json": "662fe572b9d83423d235ab355d78d12bab02c12d8977e0ea0b873ba596cda5c4"
+  },
+  "top_12_observed_shapes": [
+    {
+      "read_shape": [
+        [
+          "HasType",
+          [
+            [
+              "slot",
+              "Expr",
+              0
+            ],
+            [
+              "slot",
+              "Type",
+              1
+            ],
+            [
+              "slot",
+              "___HasTypeSort",
+              2
+            ]
+          ]
+        ],
+        [
+          "TupleT",
+          [
+            [
+              "slot",
+              "TypeList",
+              3
+            ],
+            [
+              "slot",
+              "Type",
+              1
+            ]
+          ]
+        ]
+      ],
+      "stats": {
+        "distinct_bindings_per_step_sum": 246,
+        "effective_pair_occurrences": 220,
+        "match_events": 277,
+        "neither_in_cell": 375,
+        "one_side_in_cell": 0,
+        "pair_occurrences": 375,
+        "same_cell": 0,
+        "separate_cells": 0,
+        "union_effect_pair_occurrences": 0
+      },
+      "rule_count": 6
+    },
+    {
+      "read_shape": [
+        [
+          "BodyContainsExpr",
+          [
+            [
+              "slot",
+              "Expr",
+              0
+            ],
+            [
+              "slot",
+              "Expr",
+              1
+            ],
+            [
+              "slot",
+              "___BodyContainsExprSort",
+              2
+            ]
+          ]
+        ],
+        [
+          "Concat",
+          [
+            [
+              "slot",
+              "Expr",
+              3
+            ],
+            [
+              "slot",
+              "Expr",
+              4
+            ],
+            [
+              "slot",
+              "Expr",
+              1
+            ]
+          ]
+        ]
+      ],
+      "stats": {
+        "distinct_bindings_per_step_sum": 279,
+        "effective_pair_occurrences": 175,
+        "match_events": 279,
+        "neither_in_cell": 182,
+        "one_side_in_cell": 89,
+        "pair_occurrences": 279,
+        "same_cell": 0,
+        "separate_cells": 8,
+        "union_effect_pair_occurrences": 0
+      },
+      "rule_count": 1
+    },
+    {
+      "read_shape": [
+        [
+          "BodyContainsExpr",
+          [
+            [
+              "slot",
+              "Expr",
+              0
+            ],
+            [
+              "slot",
+              "Expr",
+              1
+            ],
+            [
+              "slot",
+              "___BodyContainsExprSort",
+              2
+            ]
+          ]
+        ],
+        [
+          "Get",
+          [
+            [
+              "slot",
+              "Expr",
+              3
+            ],
+            [
+              "literal",
+              "i64",
+              "0"
+            ],
+            [
+              "slot",
+              "Expr",
+              1
+            ]
+          ]
+        ]
+      ],
+      "stats": {
+        "distinct_bindings_per_step_sum": 269,
+        "effective_pair_occurrences": 62,
+        "match_events": 270,
+        "neither_in_cell": 0,
+        "one_side_in_cell": 223,
+        "pair_occurrences": 270,
+        "same_cell": 5,
+        "separate_cells": 42,
+        "union_effect_pair_occurrences": 0
+      },
+      "rule_count": 3
+    },
+    {
+      "read_shape": [
+        [
+          "ExtractedExpr",
+          [
+            [
+              "slot",
+              "Expr",
+              0
+            ],
+            [
+              "slot",
+              "TermAndCost",
+              1
+            ]
+          ]
+        ],
+        [
+          "TCPair",
+          [
+            [
+              "slot",
+              "Term",
+              2
+            ],
+            [
+              "literal",
+              "i64",
+              "1"
+            ],
+            [
+              "slot",
+              "TermAndCost",
+              1
+            ]
+          ]
+        ]
+      ],
+      "stats": {
+        "distinct_bindings_per_step_sum": 178,
+        "effective_pair_occurrences": 112,
+        "match_events": 199,
+        "neither_in_cell": 222,
+        "one_side_in_cell": 39,
+        "pair_occurrences": 265,
+        "same_cell": 4,
+        "separate_cells": 0,
+        "union_effect_pair_occurrences": 0
+      },
+      "rule_count": 6
+    },
+    {
+      "read_shape": [
+        [
+          "DropAtInternal",
+          [
+            [
+              "slot",
+              "Type",
+              0
+            ],
+            [
+              "slot",
+              "Assumption",
+              1
+            ],
+            [
+              "literal",
+              "i64",
+              "0"
+            ],
+            [
+              "slot",
+              "Expr",
+              2
+            ],
+            [
+              "slot",
+              "Expr",
+              3
+            ]
+          ]
+        ],
+        [
+          "ExprIsResolved",
+          [
+            [
+              "slot",
+              "Expr",
+              2
+            ],
+            [
+              "slot",
+              "___ExprIsResolvedSort",
+              4
+            ]
+          ]
+        ]
+      ],
+      "stats": {
+        "distinct_bindings_per_step_sum": 78,
+        "effective_pair_occurrences": 84,
+        "match_events": 168,
+        "neither_in_cell": 152,
+        "one_side_in_cell": 16,
+        "pair_occurrences": 168,
+        "same_cell": 0,
+        "separate_cells": 0,
+        "union_effect_pair_occurrences": 0
+      },
+      "rule_count": 5
+    },
+    {
+      "read_shape": [
+        [
+          "ExtractedExpr",
+          [
+            [
+              "slot",
+              "Expr",
+              0
+            ],
+            [
+              "slot",
+              "TermAndCost",
+              1
+            ]
+          ]
+        ],
+        [
+          "PotentialExtractedExpr",
+          [
+            [
+              "slot",
+              "Expr",
+              0
+            ],
+            [
+              "slot",
+              "TermAndCost",
+              2
+            ],
+            [
+              "slot",
+              "___PotentialExtractedExprSort",
+              3
+            ]
+          ]
+        ]
+      ],
+      "stats": {
+        "distinct_bindings_per_step_sum": 148,
+        "effective_pair_occurrences": 74,
+        "match_events": 148,
+        "neither_in_cell": 145,
+        "one_side_in_cell": 3,
+        "pair_occurrences": 148,
+        "same_cell": 0,
+        "separate_cells": 0,
+        "union_effect_pair_occurrences": 0
+      },
+      "rule_count": 1
+    },
+    {
+      "read_shape": [
+        [
+          "BodyContainsExpr",
+          [
+            [
+              "slot",
+              "Expr",
+              0
+            ],
+            [
+              "slot",
+              "Expr",
+              1
+            ],
+            [
+              "slot",
+              "___BodyContainsExprSort",
+              2
+            ]
+          ]
+        ],
+        [
+          "Get",
+          [
+            [
+              "slot",
+              "Expr",
+              3
+            ],
+            [
+              "literal",
+              "i64",
+              "1"
+            ],
+            [
+              "slot",
+              "Expr",
+              1
+            ]
+          ]
+        ]
+      ],
+      "stats": {
+        "distinct_bindings_per_step_sum": 143,
+        "effective_pair_occurrences": 41,
+        "match_events": 143,
+        "neither_in_cell": 0,
+        "one_side_in_cell": 96,
+        "pair_occurrences": 143,
+        "same_cell": 0,
+        "separate_cells": 47,
+        "union_effect_pair_occurrences": 0
+      },
+      "rule_count": 1
+    },
+    {
+      "read_shape": [
+        [
+          "PotentialExtractedExpr",
+          [
+            [
+              "slot",
+              "Expr",
+              0
+            ],
+            [
+              "slot",
+              "TermAndCost",
+              1
+            ],
+            [
+              "slot",
+              "___PotentialExtractedExprSort",
+              2
+            ]
+          ]
+        ],
+        [
+          "TCPair",
+          [
+            [
+              "slot",
+              "Term",
+              3
+            ],
+            [
+              "literal",
+              "i64",
+              "1"
+            ],
+            [
+              "slot",
+              "TermAndCost",
+              1
+            ]
+          ]
+        ]
+      ],
+      "stats": {
+        "distinct_bindings_per_step_sum": 98,
+        "effective_pair_occurrences": 34,
+        "match_events": 98,
+        "neither_in_cell": 117,
+        "one_side_in_cell": 25,
+        "pair_occurrences": 142,
+        "same_cell": 0,
+        "separate_cells": 0,
+        "union_effect_pair_occurrences": 0
+      },
+      "rule_count": 1
+    },
+    {
+      "read_shape": [
+        [
+          "ExtractedExpr",
+          [
+            [
+              "slot",
+              "Expr",
+              0
+            ],
+            [
+              "slot",
+              "TermAndCost",
+              1
+            ]
+          ]
+        ],
+        [
+          "TCPair",
+          [
+            [
+              "slot",
+              "Term",
+              2
+            ],
+            [
+              "literal",
+              "i64",
+              "3"
+            ],
+            [
+              "slot",
+              "TermAndCost",
+              1
+            ]
+          ]
+        ]
+      ],
+      "stats": {
+        "distinct_bindings_per_step_sum": 83,
+        "effective_pair_occurrences": 48,
+        "match_events": 101,
+        "neither_in_cell": 125,
+        "one_side_in_cell": 0,
+        "pair_occurrences": 125,
+        "same_cell": 0,
+        "separate_cells": 0,
+        "union_effect_pair_occurrences": 0
+      },
+      "rule_count": 6
+    },
+    {
+      "read_shape": [
+        [
+          "BodyContainsExpr",
+          [
+            [
+              "slot",
+              "Expr",
+              0
+            ],
+            [
+              "slot",
+              "Expr",
+              1
+            ],
+            [
+              "slot",
+              "___BodyContainsExprSort",
+              2
+            ]
+          ]
+        ],
+        [
+          "Single",
+          [
+            [
+              "slot",
+              "Expr",
+              3
+            ],
+            [
+              "slot",
+              "Expr",
+              1
+            ]
+          ]
+        ]
+      ],
+      "stats": {
+        "distinct_bindings_per_step_sum": 123,
+        "effective_pair_occurrences": 99,
+        "match_events": 123,
+        "neither_in_cell": 0,
+        "one_side_in_cell": 113,
+        "pair_occurrences": 123,
+        "same_cell": 10,
+        "separate_cells": 0,
+        "union_effect_pair_occurrences": 0
+      },
+      "rule_count": 2
+    },
+    {
+      "read_shape": [
+        [
+          "ContextOf",
+          [
+            [
+              "slot",
+              "Expr",
+              0
+            ],
+            [
+              "slot",
+              "Assumption",
+              1
+            ],
+            [
+              "slot",
+              "___ContextOfSort",
+              2
+            ]
+          ]
+        ],
+        [
+          "ContextOf",
+          [
+            [
+              "slot",
+              "Expr",
+              0
+            ],
+            [
+              "slot",
+              "Assumption",
+              1
+            ],
+            [
+              "slot",
+              "___ContextOfSort",
+              2
+            ]
+          ]
+        ]
+      ],
+      "stats": {
+        "distinct_bindings_per_step_sum": 117,
+        "effective_pair_occurrences": 0,
+        "match_events": 117,
+        "neither_in_cell": 115,
+        "one_side_in_cell": 0,
+        "pair_occurrences": 117,
+        "same_cell": 2,
+        "separate_cells": 0,
+        "union_effect_pair_occurrences": 0
+      },
+      "rule_count": 1
+    },
+    {
+      "read_shape": [
+        [
+          "Smaller",
+          [
+            [
+              "slot",
+              "TermAndCost",
+              0
+            ],
+            [
+              "slot",
+              "TermAndCost",
+              1
+            ],
+            [
+              "slot",
+              "TermAndCost",
+              1
+            ]
+          ]
+        ],
+        [
+          "TCPair",
+          [
+            [
+              "slot",
+              "Term",
+              2
+            ],
+            [
+              "literal",
+              "i64",
+              "10000000000000000"
+            ],
+            [
+              "slot",
+              "TermAndCost",
+              0
+            ]
+          ]
+        ]
+      ],
+      "stats": {
+        "distinct_bindings_per_step_sum": 50,
+        "effective_pair_occurrences": 0,
+        "match_events": 100,
+        "neither_in_cell": 56,
+        "one_side_in_cell": 44,
+        "pair_occurrences": 100,
+        "same_cell": 0,
+        "separate_cells": 0,
+        "union_effect_pair_occurrences": 0
+      },
+      "rule_count": 2
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 //! Read-only temporal coverage audit. The native engine executes its real rules;
 //! diagnostic pattern joins run over copied rows, never over the live engine.
+#[path = "support/cell_query_anatomy.rs"]
+mod cell_query_anatomy;
 use egg_layout::{
     pipeline::Result, saturated_rule_composition::SaturatedRuleComposition as State, visual_rule,
 };
@@ -377,6 +379,7 @@ struct Counts {
     signature_unsupported: usize,
 }
 struct Audit {
+    anatomy: cell_query_anatomy::Anatomy,
     library: Library,
     train: bool,
     stats: BTreeMap<String, Counts>,
@@ -526,6 +529,44 @@ impl Audit {
                             }
                         }
                     }
+                    let observations: Option<Vec<_>> = rs
+                        .iter()
+                        .map(|r| {
+                            let (op, sorts) = schemas.get(&r.table)?;
+                            if r.row.len() < sorts.len() {
+                                return None;
+                            }
+                            let key = RowKey {
+                                op: op.clone(),
+                                values: r.row.iter().take(sorts.len()).copied().collect(),
+                            };
+                            Some(cell_query_anatomy::Read {
+                                op: op.clone(),
+                                cols: sorts
+                                    .iter()
+                                    .zip(&r.row)
+                                    .map(|(s, v)| (s.clone(), format!("{v:?}"), literal(eg, s, *v)))
+                                    .collect(),
+                                cells: coverage
+                                    .rows
+                                    .get(&key)
+                                    .into_iter()
+                                    .flatten()
+                                    .copied()
+                                    .collect(),
+                            })
+                        })
+                        .collect();
+                    if let Some(observations) = observations {
+                        self.anatomy.record(
+                            m.rule.as_ref(),
+                            &observations,
+                            effective,
+                            !us.is_empty(),
+                        );
+                    } else {
+                        self.anatomy.unsupported_matches += 1;
+                    }
                     let maximum = hits.values().copied().max().unwrap_or(0);
                     c.any_cell = usize::from(maximum > 0);
                     c.all_reads_one_cell = usize::from(!rs.is_empty() && maximum == rs.len());
@@ -647,6 +688,7 @@ impl Audit {
             add(self.rulesets.entry(set.into()).or_default(), &c);
         }
         self.audit_seconds += tick.elapsed().as_secs_f64();
+        self.anatomy.finish_step();
         self.steps += 1;
         if self.steps % 100 == 0 {
             eprintln!(
@@ -796,6 +838,7 @@ fn main() -> Result {
         }
     }
     let mut audit = Audit {
+        anatomy: Default::default(),
         library,
         train: mode == "train",
         stats: BTreeMap::new(),
@@ -852,6 +895,10 @@ fn main() -> Result {
         return Err("held-out evaluation mutated frozen library".into());
     }
     let report = json!({"mode":mode,"source":args[2],"same_final_state_as_native_control":same,"library_patterns":audit.library.patterns.len(),"unsupported_patterns":audit.library.unsupported,"signature_count_before":frozen_count,"signature_count_after":audit.library.signatures.len(),"structure":structure,"matches":total,"effective_matches":effective_total,"rulesets":audit.rulesets,"rules":audit.stats,"effective_rules":audit.effective_stats,"rule_search_and_apply_seconds":audit.rule_seconds,"native_steps":audit.steps,"audit_seconds":audit.audit_seconds,"native_traced_seconds":audit.native_seconds,"native_table_profile":audit.profile,"certified_transition_coverage":null,"certified_transition_status":"unavailable: these are observed closure snapshots; no certified eggcc state-to-state transition adapters are loaded","actual_join_savings":null,"limits":"No candidate or embedding cap. Positive containment and successful-read coverage are optimistic diagnostics, not closed-instance certificates or saved Join work. Mutation denominator includes inserted/updated writes and successful union displacement; subsume-only effects are not counted."});
+    std::fs::write(
+        out.join("query_anatomy.json"),
+        serde_json::to_vec_pretty(&audit.anatomy.report())?,
+    )?;
     std::fs::write(out.join("report.json"), serde_json::to_vec_pretty(&report)?)?;
     if audit.train {
         std::fs::write(
