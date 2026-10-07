@@ -1,0 +1,357 @@
+{
+  "date": "2026-10-07",
+  "runs_per_workload": 1,
+  "schedule": "parallel, all three production passes; extraction feeds next pass",
+  "use_context": false,
+  "timing_engine": "check_statewalk production egglog ebba7bb / experimental 08771f9, with temporary counters",
+  "extraction": "actual production Tiger pipeline, no ILP",
+  "coverage_engine": "separate egg_layout native diagnostic on exported actual per-pass sources",
+  "library_sha256": "662fe572b9d83423d235ab355d78d12bab02c12d8977e0ea0b873ba596cda5c4",
+  "library_scope": "Existing frozen fact Pass-1 observation library: 163 pattern entries, not separately baked per-pass certified cells. fact is in-training, loopfact held-out. Later passes measure transfer.",
+  "limitations": [
+    "Search is search/binding wall time minus instrumented RHS intervals, not just hash probes.",
+    "RHS includes primitive work, constructor lookups and staging writes.",
+    "Insert/merge is the shared table-commit phase; no separate pure-insert timer is claimed.",
+    "Execution includes egraph construction, parsing, typechecking, rule installation and scheduling; source-program generation is outside this timer.",
+    "Coverage has its own native traced control; it does not establish cross-engine whole-state identity or certified transition coverage.",
+    "Counters introduce overhead. No averaging, speedup claim or cross-pass combined graph denominator."
+  ],
+  "rows": [
+    {
+      "workload": "fact",
+      "pass": 1,
+      "timing": {
+        "execution_ms": 77.863667,
+        "search_and_apply_ms": 12.117465,
+        "rhs_ms": 1.437885,
+        "search_and_binding_ms": 10.67958,
+        "insert_merge_ms": 1.97875,
+        "rebuild_ms": 5.706703,
+        "serialization_ms": 3.149,
+        "extraction_ms": 10.385959,
+        "extraction_wall_ms": 12.656667,
+        "setup_and_other_ms": 58.060749000000015
+      },
+      "production_nodes": 2235,
+      "production_eclasses": 1588,
+      "production_matches": 3910,
+      "source_sha256": "b2c5d2a56e817af9b7554a74af5a5ddb46e0afbfd809cd674e6a0f863b4c6a7a",
+      "flat_source_sha256": "38e614939ac36e27966b6e9cff94ccc172633303d9d3dc94ab874831cd4f0ad8",
+      "coverage": {
+        "expr_enodes": {
+          "covered": 329,
+          "total": 419,
+          "percent": 78.52
+        },
+        "expr_eclasses": {
+          "covered": 99,
+          "total": 134,
+          "percent": 73.881
+        },
+        "constructor_rows": {
+          "covered": 626,
+          "total": 1914,
+          "percent": 32.706
+        },
+        "pre_step_full_lhs": {
+          "covered": 432,
+          "total": 4789,
+          "percent": 9.021
+        },
+        "pre_step_two_reads": {
+          "covered": 271,
+          "total": 4789,
+          "percent": 5.659
+        },
+        "effective_signature_hits": {
+          "covered": 785,
+          "total": 2060,
+          "percent": 38.107
+        }
+      },
+      "coverage_native_control_equal": true,
+      "frozen_signatures": 7402,
+      "patterns": 163
+    },
+    {
+      "workload": "fact",
+      "pass": 2,
+      "timing": {
+        "execution_ms": 44.452709,
+        "search_and_apply_ms": 1.763541,
+        "rhs_ms": 0.387292,
+        "search_and_binding_ms": 1.376249,
+        "insert_merge_ms": 0.312953,
+        "rebuild_ms": 0.802874,
+        "serialization_ms": 2.220708,
+        "extraction_ms": 6.645083,
+        "extraction_wall_ms": 8.246875,
+        "setup_and_other_ms": 41.57334099999999
+      },
+      "production_nodes": 815,
+      "production_eclasses": 632,
+      "production_matches": 930,
+      "source_sha256": "21c2709b87be4552b6f83a0630b5f34b7961c3805e8ba8aef00b369f156a706f",
+      "flat_source_sha256": "2bbed74ddee071617968bd16aed8c6718fc9e5ec6dc9bf38955f1ab10e55f4b3",
+      "coverage": {
+        "expr_enodes": {
+          "covered": 97,
+          "total": 102,
+          "percent": 95.098
+        },
+        "expr_eclasses": {
+          "covered": 37,
+          "total": 41,
+          "percent": 90.244
+        },
+        "constructor_rows": {
+          "covered": 219,
+          "total": 680,
+          "percent": 32.206
+        },
+        "pre_step_full_lhs": {
+          "covered": 82,
+          "total": 1187,
+          "percent": 6.908
+        },
+        "pre_step_two_reads": {
+          "covered": 33,
+          "total": 1187,
+          "percent": 2.78
+        },
+        "effective_signature_hits": {
+          "covered": 163,
+          "total": 545,
+          "percent": 29.908
+        }
+      },
+      "coverage_native_control_equal": true,
+      "frozen_signatures": 7402,
+      "patterns": 163
+    },
+    {
+      "workload": "fact",
+      "pass": 3,
+      "timing": {
+        "execution_ms": 48.975666,
+        "search_and_apply_ms": 2.673333,
+        "rhs_ms": 0.44249,
+        "search_and_binding_ms": 2.230843,
+        "insert_merge_ms": 0.377589,
+        "rebuild_ms": 0.867122,
+        "serialization_ms": 2.30025,
+        "extraction_ms": 7.596125,
+        "extraction_wall_ms": 9.728708,
+        "setup_and_other_ms": 45.057621999999995
+      },
+      "production_nodes": 1126,
+      "production_eclasses": 860,
+      "production_matches": 1525,
+      "source_sha256": "fcbfd9be43a1c0d96d025dffca0dd5d9985c656b327586474162b81ddaa2a498",
+      "flat_source_sha256": "84615f276c5968cadaec53abf228a9acab66dd6c1597e902e9af1a8cab6ed149",
+      "coverage": {
+        "expr_enodes": {
+          "covered": 160,
+          "total": 166,
+          "percent": 96.386
+        },
+        "expr_eclasses": {
+          "covered": 58,
+          "total": 60,
+          "percent": 96.667
+        },
+        "constructor_rows": {
+          "covered": 344,
+          "total": 948,
+          "percent": 36.287
+        },
+        "pre_step_full_lhs": {
+          "covered": 164,
+          "total": 1883,
+          "percent": 8.71
+        },
+        "pre_step_two_reads": {
+          "covered": 67,
+          "total": 1883,
+          "percent": 3.558
+        },
+        "effective_signature_hits": {
+          "covered": 249,
+          "total": 829,
+          "percent": 30.036
+        }
+      },
+      "coverage_native_control_equal": true,
+      "frozen_signatures": 7402,
+      "patterns": 163
+    },
+    {
+      "workload": "loopfact",
+      "pass": 1,
+      "timing": {
+        "execution_ms": 71.750209,
+        "search_and_apply_ms": 13.605333,
+        "rhs_ms": 1.35372,
+        "search_and_binding_ms": 12.251613,
+        "insert_merge_ms": 1.317904,
+        "rebuild_ms": 5.096002,
+        "serialization_ms": 3.814417,
+        "extraction_ms": 11.18975,
+        "extraction_wall_ms": 13.365667,
+        "setup_and_other_ms": 51.73097
+      },
+      "production_nodes": 3020,
+      "production_eclasses": 2220,
+      "production_matches": 5847,
+      "source_sha256": "67fa8cf4fad74467c078af142b8bcbaf3aa5b337d241acec9af9977b960a4401",
+      "flat_source_sha256": "5deb4365bb71b2b9cedfd41b2273c460e9635fbac3ec8043ea620204fc553f6d",
+      "coverage": {
+        "expr_enodes": {
+          "covered": 340,
+          "total": 557,
+          "percent": 61.041
+        },
+        "expr_eclasses": {
+          "covered": 87,
+          "total": 157,
+          "percent": 55.414
+        },
+        "constructor_rows": {
+          "covered": 729,
+          "total": 2674,
+          "percent": 27.263
+        },
+        "pre_step_full_lhs": {
+          "covered": 381,
+          "total": 6922,
+          "percent": 5.504
+        },
+        "pre_step_two_reads": {
+          "covered": 159,
+          "total": 6922,
+          "percent": 2.297
+        },
+        "effective_signature_hits": {
+          "covered": 638,
+          "total": 2890,
+          "percent": 22.076
+        }
+      },
+      "coverage_native_control_equal": true,
+      "frozen_signatures": 7402,
+      "patterns": 163
+    },
+    {
+      "workload": "loopfact",
+      "pass": 2,
+      "timing": {
+        "execution_ms": 66.661042,
+        "search_and_apply_ms": 11.355325,
+        "rhs_ms": 1.134834,
+        "search_and_binding_ms": 10.220491,
+        "insert_merge_ms": 1.269872,
+        "rebuild_ms": 6.443872,
+        "serialization_ms": 3.164042,
+        "extraction_ms": 10.195333,
+        "extraction_wall_ms": 12.183542,
+        "setup_and_other_ms": 47.591972999999996
+      },
+      "production_nodes": 2607,
+      "production_eclasses": 1791,
+      "production_matches": 4925,
+      "source_sha256": "f1efa880c5cb314273db98eab45908120d967ba94ff0e1bf7b6f44dd39d3ebe8",
+      "flat_source_sha256": "f5a279aef7769377adc2382afe9368774582232302b563bb696e37adc8f6ee60",
+      "coverage": {
+        "expr_enodes": {
+          "covered": 398,
+          "total": 615,
+          "percent": 64.715
+        },
+        "expr_eclasses": {
+          "covered": 114,
+          "total": 195,
+          "percent": 58.462
+        },
+        "constructor_rows": {
+          "covered": 672,
+          "total": 2255,
+          "percent": 29.8
+        },
+        "pre_step_full_lhs": {
+          "covered": 451,
+          "total": 5863,
+          "percent": 7.692
+        },
+        "pre_step_two_reads": {
+          "covered": 336,
+          "total": 5863,
+          "percent": 5.731
+        },
+        "effective_signature_hits": {
+          "covered": 693,
+          "total": 2532,
+          "percent": 27.37
+        }
+      },
+      "coverage_native_control_equal": true,
+      "frozen_signatures": 7402,
+      "patterns": 163
+    },
+    {
+      "workload": "loopfact",
+      "pass": 3,
+      "timing": {
+        "execution_ms": 49.322333,
+        "search_and_apply_ms": 2.796878,
+        "rhs_ms": 0.457869,
+        "search_and_binding_ms": 2.339009,
+        "insert_merge_ms": 0.426999,
+        "rebuild_ms": 1.345788,
+        "serialization_ms": 2.163666,
+        "extraction_ms": 6.650916,
+        "extraction_wall_ms": 8.213,
+        "setup_and_other_ms": 44.752668
+      },
+      "production_nodes": 1065,
+      "production_eclasses": 812,
+      "production_matches": 1239,
+      "source_sha256": "fa27ac1db7320fe58c5b22e715fef23b1a2ebd227ac8184554d4928db3f4dd80",
+      "flat_source_sha256": "26c0d368e168673ed0925e10e42651c255cc7068fa33af96ee065371b88b2051",
+      "coverage": {
+        "expr_enodes": {
+          "covered": 108,
+          "total": 123,
+          "percent": 87.805
+        },
+        "expr_eclasses": {
+          "covered": 43,
+          "total": 49,
+          "percent": 87.755
+        },
+        "constructor_rows": {
+          "covered": 253,
+          "total": 892,
+          "percent": 28.363
+        },
+        "pre_step_full_lhs": {
+          "covered": 89,
+          "total": 1590,
+          "percent": 5.597
+        },
+        "pre_step_two_reads": {
+          "covered": 35,
+          "total": 1590,
+          "percent": 2.201
+        },
+        "effective_signature_hits": {
+          "covered": 197,
+          "total": 732,
+          "percent": 26.913
+        }
+      },
+      "coverage_native_control_equal": true,
+      "frozen_signatures": 7402,
+      "patterns": 163
+    }
+  ]
+}

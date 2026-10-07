@@ -1,0 +1,120 @@
+--- a/engine/core-relations/src/lib.rs
++++ b/engine/core-relations/src/lib.rs
+@@ -46,3 +46,15 @@
+ 
+ use egglog_numeric_id as numeric_id;
+ use egglog_union_find as union_find;
++
++// Measurement-only instrumentation, restored after the profiler build.
++pub mod pass_profile {
++    use std::sync::atomic::{AtomicBool,AtomicU64,Ordering};
++    static ACTIVE:AtomicBool=AtomicBool::new(false);
++    static RHS:AtomicU64=AtomicU64::new(0);
++    pub struct Scope(bool);
++    pub fn scope(active:bool)->Scope {Scope(ACTIVE.swap(active,Ordering::Relaxed))}
++    impl Drop for Scope {fn drop(&mut self){ACTIVE.store(self.0,Ordering::Relaxed);}}
++    pub fn record(start:std::time::Instant){if ACTIVE.load(Ordering::Relaxed){RHS.fetch_add(start.elapsed().as_nanos() as u64,Ordering::Relaxed);}}
++    #[unsafe(no_mangle)] pub extern "C" fn eggcc_profile_rhs_ns()->u64 {RHS.load(Ordering::Relaxed)}
++}
+--- a/engine/core-relations/src/free_join/execute.rs
++++ b/engine/core-relations/src/free_join/execute.rs
+@@ -622,6 +622,7 @@
+         }
+         let search_and_apply_time = search_and_apply_timer.elapsed();
+ 
++        let _merge_profile = crate::pass_profile::scope(false);
+         let merge_timer = Instant::now();
+         let changed = self.merge_all();
+         let merge_time = merge_timer.elapsed();
+@@ -1772,7 +1773,9 @@
+         }
+         if action_state.len >= VAR_BATCH_SIZE {
+             let mut state = to_exec_state();
++            let rhs_tick = std::time::Instant::now();
+             let succeeded = state.run_instrs(&action_info.instrs, &mut action_state.bindings);
++            crate::pass_profile::record(rhs_tick);
+             action_state.bindings.clear();
+             self.match_counter.inc_matches(action, succeeded);
+             action_state.len = 0;
+@@ -1855,7 +1858,9 @@
+             action_state.len = 0;
+             let match_counter = self.match_counter.clone();
+             self.scope.spawn(move |_| {
++                let rhs_tick = std::time::Instant::now();
+                 let succeeded = state.run_instrs(&action_info.instrs, &mut bindings);
++                crate::pass_profile::record(rhs_tick);
+                 match_counter.inc_matches(action, succeeded);
+             });
+         }
+@@ -1918,7 +1923,9 @@
+ ) {
+     for (action, ActionState { bindings, len, .. }) in actions.iter_mut() {
+         if *len > 0 {
++            let rhs_tick = std::time::Instant::now();
+             let succeeded = exec_state.run_instrs(&rule_set.actions[action].instrs, bindings);
++            crate::pass_profile::record(rhs_tick);
+             bindings.clear();
+             match_counter.inc_matches(action, succeeded);
+             *len = 0;
+--- a/engine/egglog-bridge/src/lib.rs
++++ b/engine/egglog-bridge/src/lib.rs
+@@ -575,8 +575,10 @@
+         let ts = self.next_ts();
+ 
+         let uf_size_before = self.db.get_table(self.uf_table).len();
++        let _profile = core_relations::pass_profile::scope(true);
+         let rule_set_report =
+             run_rules_impl(&mut self.db, &mut self.rules, rules, ts, self.report_level)?;
++        drop(_profile);
+         if let Some(message) = self.panic_message.lock().unwrap().take() {
+             return Err(PanicError(message).into());
+         }
+--- a/eggcc/dag_in_context/src/lib.rs
++++ b/eggcc/dag_in_context/src/lib.rs
+@@ -971,8 +971,20 @@
+             );
+ 
+             log::info!("Running egglog program...");
++            unsafe extern "C" { fn eggcc_profile_rhs_ns() -> u64; }
++            let rhs_before = unsafe { eggcc_profile_rhs_ns() };
++            let execution_start = Instant::now();
+             let mut egraph = new_single_threaded_egraph();
+             egraph.parse_and_run_program(None, &egglog_prog)?;
++            let execution_seconds = execution_start.elapsed().as_secs_f64();
++            let rhs_seconds = (unsafe { eggcc_profile_rhs_ns() } - rhs_before) as f64 / 1e9;
++            let report = egraph.get_overall_run_report();
++            let sum = |values: Vec<Duration>| values.iter().map(Duration::as_secs_f64).sum::<f64>();
++            let search_apply = sum(report.search_and_apply_time_per_ruleset.values().copied().collect());
++            let merge = sum(report.merge_time_per_ruleset.values().copied().collect());
++            let rebuild = sum(report.rebuild_time_per_ruleset.values().copied().collect());
++            let matches: usize = report.num_matches_per_rule.values().sum();
++
+ 
+             let serialization_start = Instant::now();
+             let serialized = serialized_egraph(egraph);
+@@ -1002,9 +1014,25 @@
+                     "Program has debug expressions, extracting them instead of original program."
+                 );
+             }
++            let extraction_wall_start = Instant::now();
+             let (iter_result, region_timings, extract_time) =
+                 extract(eggcc_config, &res, batch.clone(), &serialized);
+ 
++            let extraction_wall = extraction_wall_start.elapsed().as_secs_f64();
++            if let Ok(dir) = std::env::var("EGGCC_PASS_PROFILE_DIR") {
++                let dir = PathBuf::from(dir); fs::create_dir_all(&dir).unwrap();
++                let prefix = format!("pass-{}", i+1);
++                fs::write(dir.join(format!("{prefix}.egg")), &egglog_prog).unwrap();
++                let row=serde_json::json!({"pass":i+1,"batch":batch,"schedule":schedule.egglog_schedule(),
++                    "execution_seconds":execution_seconds,"search_and_apply_seconds":search_apply,
++                    "rhs_seconds":rhs_seconds,"search_and_binding_seconds":search_apply-rhs_seconds,
++                    "insert_merge_seconds":merge,"rebuild_seconds":rebuild,"matches":matches,
++                    "serialization_seconds":serialization_duration.as_secs_f64(),
++                    "extraction_seconds":extract_time.as_secs_f64(),"extraction_wall_seconds":extraction_wall,
++                    "nodes":serialized.nodes.len(),"eclasses":serialized.nodes.values().map(|n|n.eclass.clone()).collect::<std::collections::HashSet<_>>().len(),
++                    "use_context":eggcc_config.use_context,"extractor":"production Tiger pipeline"});
++                fs::write(dir.join(format!("{prefix}.json")),serde_json::to_vec_pretty(&row).unwrap()).unwrap();
++            }
+             eggcc_extraction_time += extract_time;
+             eggcc_serialization_time += serialization_duration;
+ 
