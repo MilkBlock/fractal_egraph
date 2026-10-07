@@ -1,6 +1,9 @@
 //! Extract an executable symbolic interface, not a full concrete tier0 snapshot.
 use super::super::*;
 
+#[cfg(test)]
+thread_local! { static LEGACY_SET_RESULT_CHECK: std::cell::Cell<bool> = const { std::cell::Cell::new(false) }; }
+
 fn subst(e: &Expr, env: &BTreeMap<String, Expr>) -> Result<Expr> {
     Ok(match e {
         Expr::Var(_, v) => env
@@ -529,7 +532,7 @@ fn extract(
             if let Action::Let(_, name, expr) = action {
                 guard_env.insert(name.clone(), subst(expr, &guard_env)?);
             }
-            let Action::Set(_, op, args, _) = action else {
+            let Action::Set(_, op, args, proposed_expr) = action else {
                 continue;
             };
             let path = format!("head/{action_index}/set/0");
@@ -600,11 +603,44 @@ fn extract(
                     immediate(eq(target.clone(), old))
                 }
             };
-            let after = values
-                .get(w.after.last().unwrap())
-                .cloned()
-                .map(Ok)
-                .unwrap_or_else(|| literal(c, *w.after.last().unwrap()))?;
+            let after_id = *w.after.last().unwrap();
+            let after = if let Some(value) = values.get(&after_id) {
+                value.clone()
+            } else if c.pool.literals.contains_key(&after_id) {
+                literal(c, after_id)?
+            } else if w.proposed.last() == Some(&after_id) {
+                #[cfg(test)]
+                if LEGACY_SET_RESULT_CHECK.get() {
+                    literal(c, after_id)?;
+                }
+                // The committed result is exactly the proposed value. Rebuild
+                // constructor-only RHS terms rather than treating a new equality
+                // value as a missing scalar literal. Mutable lookups and fresh
+                // primitives must not be re-evaluated by the post-action check.
+                fn constructor_term(e: &Expr, constructors: &BTreeSet<String>) -> bool {
+                    match e {
+                        Expr::Lit(..) => true,
+                        Expr::Call(_, op, args) => {
+                            constructors.contains(op)
+                                && args.iter().all(|e| constructor_term(e, constructors))
+                        }
+                        _ => false,
+                    }
+                }
+                let term = subst(proposed_expr, &guard_env)?;
+                if !constructor_term(&term, &constructors) {
+                    return Err(
+                        "new set result requires a stable constructor RHS or recorded binding"
+                            .into(),
+                    );
+                }
+                term
+            } else {
+                return Err(
+                    "merged set result differs from proposal and has no recorded symbolic binding"
+                        .into(),
+                );
+            };
             update_evidence.push(json!({"record":i,"action":action_index,"before":w.before,"commit":w.commit,"table":op}));
             written.insert(key);
             set_guards.insert(action_index, (before, immediate(eq(target, after))));
@@ -977,6 +1013,69 @@ mod tests {
         update_layers(&mut c).unwrap();
         c
     }
+    #[test]
+    fn new_constructor_set_result_and_forged_receipt() {
+        let mut c = captured(
+            r#"
+            (datatype E (V) (Box E))
+            (function chosen (E) E :merge old)
+            (rule ((= x (V))) ((set (chosen x) (Box x))))
+            (V) (run 1)
+        "#,
+        );
+        assert_eq!(c.records.len(), 1);
+        prepare_members(&c, &[0]).unwrap();
+        let w = &mut c.records[0].sets[0];
+        // Falsify only the committed output: it must not be assumed equal to RHS.
+        let wrong = w.after[0];
+        *w.after.last_mut().unwrap() = wrong;
+        assert!(prepare_members(&c, &[0]).is_err());
+    }
+
+    #[test]
+    #[ignore = "manual existing-history preparation audit; no ripen or trace recapture"]
+    fn audit_existing_equality_set_results() {
+        let path = std::env::var("RIPSAT_SET_AUDIT_HISTORY").unwrap();
+        let mut c = history::read(Path::new(&path)).unwrap();
+        update_layers(&mut c).unwrap();
+        let mut cache = PreparationCache::default();
+        let mut legacy_cache = PreparationCache::default();
+        let mut old_ok = 0;
+        let mut rescued = vec![];
+        let mut ok = vec![];
+        let mut rejected = BTreeMap::<String, usize>::new();
+        for (i, r) in c.records.iter().enumerate() {
+            if !r.sets.iter().any(|w| {
+                w.after.last().is_some_and(|v| {
+                    !c.pool.literals.contains_key(v) && w.proposed.last() == Some(v)
+                })
+            }) {
+                continue;
+            }
+            LEGACY_SET_RESULT_CHECK.set(true);
+            let before = legacy_cache.prepare(&c, &[i]).is_ok();
+            LEGACY_SET_RESULT_CHECK.set(false);
+            old_ok += usize::from(before);
+            match cache.prepare(&c, &[i]) {
+                Ok(_) => {
+                    ok.push(i);
+                    if !before {
+                        rescued.push(i);
+                    }
+                }
+                Err(e) => {
+                    *rejected
+                        .entry(e.to_string().lines().next().unwrap_or("").to_string())
+                        .or_default() += 1
+                }
+            }
+        }
+        println!(
+            "{}",
+            json!({"legacy_accepted":old_ok,"accepted_records":ok,"rescued_records":rescued,"rejections":rejected})
+        );
+    }
+
     #[test]
     fn multi_sort_hole_names_do_not_collide_with_native_fresh_suffixes() {
         let source = (0..25)
