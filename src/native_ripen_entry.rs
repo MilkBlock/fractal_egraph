@@ -1,5 +1,7 @@
 //! Extract an executable symbolic interface, not a full concrete tier0 snapshot.
 use super::super::*;
+#[path = "ripen_scalar.rs"]
+mod scalar;
 
 #[cfg(test)]
 thread_local! { static LEGACY_SET_RESULT_CHECK: std::cell::Cell<bool> = const { std::cell::Cell::new(false) }; }
@@ -321,6 +323,7 @@ fn extract(
     // the actual replay state, rather than assuming unequal strings are disjoint.
     let mut last_commit_by_target = BTreeMap::new();
     let mut update_evidence = vec![];
+    let mut scalar_program = scalar::Program::new(&environment.commands);
     for i in &members {
         let r = &c.records[*i];
         let rule = &c.rules[r.rule];
@@ -671,6 +674,7 @@ fn extract(
         if !facts.is_empty() {
             injections.push(json!({"before_record":i,"requires":commands.iter().map(ToString::to_string).collect::<Vec<_>>(),"facts":facts.iter().map(ToString::to_string).collect::<Vec<_>>()}));
         }
+        scalar_program.observe(&rule.rule, &env, &facts);
         commands.extend(facts);
         let lhs_start = commands.len();
         commands.extend(rhs_requirements.into_values());
@@ -972,7 +976,7 @@ fn extract(
         "initial_tables":initial_tables,"original_use_tables":original_tables,"parameter_marker":hole,"parameter_markers":environment.holes,
         "symbolic_values":values.iter().map(|(token,term)|json!({"token":token,"term":term.to_string(),"sort":c.pool.values[*token].sort})).collect::<Vec<_>>(),
         "parameters":parameters,"excluded_seed_rules":c.rules.iter().filter(|r|r.rule.body.is_empty()).map(|r|r.rule.name.clone()).collect::<Vec<_>>(),"all_source_rules":c.rules.len(),"validation":"all original LHS checks and recorded output aliases passed before/after the corresponding ground actions",
-        "set_update_witnesses":update_evidence,"staged_injections":injections,"initial_source":seed_text,"concrete_boundary_structure_recovered":false,
+        "analysis_program":scalar_program.report(),"set_update_witnesses":update_evidence,"staged_injections":injections,"initial_source":seed_text,"concrete_boundary_structure_recovered":false,
         "saturated_scope":"extracted interface only; not the complete original tier0 neighborhood"});
     elapsed!("encode_result_provenance", output_tick);
     Ok((text, validation, provenance))
@@ -1063,6 +1067,38 @@ mod tests {
         }
         let out = std::env::var("RIPSAT_RHS_AUDIT_OUTPUT").unwrap();
         std::fs::write(out, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+    }
+
+    #[test]
+    fn analysis_program_is_exported_without_concrete_size_identity() {
+        let mut templates = vec![];
+        for n in [25, 27] {
+            let c = captured(&format!(
+                r#"
+                (datatype E (V) (Out E))
+                (function Expr-size (E) i64 :merge (min old new))
+                (ruleset work)
+                (rule ((= x (V)) (= n (Expr-size x)) (> n 6) (> n 10))
+                      ((set (Expr-size (Out x)) (+ n 1))) :ruleset work :name "grow")
+                (set (Expr-size (V)) {n}) (run work 1)
+            "#
+            ));
+            let id = c
+                .records
+                .iter()
+                .position(|r| c.rules[r.rule].rule.name == "grow")
+                .unwrap();
+            let (_, _, origin) = prepare_members(&c, &[id]).unwrap();
+            let a = &origin["analysis_program"];
+            assert_eq!(a["complete"], true, "{a}");
+            assert_eq!(
+                a["template"]["conditions"]["bounds"][0]["lower_inclusive"],
+                11
+            );
+            assert_eq!(a["instance_inputs"][0]["observed"], n.to_string());
+            templates.push(a["template"].clone());
+        }
+        assert_eq!(templates[0], templates[1]);
     }
 
     #[test]

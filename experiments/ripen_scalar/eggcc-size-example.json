@@ -1,0 +1,114 @@
+{
+  "record": 2628,
+  "prepared": true,
+  "analysis_program": {
+    "complete": true,
+    "instance_inputs": [
+      {
+        "id": 0,
+        "observed": "27",
+        "source": "(Expr-size (Get (RipenInput_5_ 0) 0))"
+      },
+      {
+        "id": 1,
+        "observed": "25",
+        "source": "(Expr-size (RipenInput_5_ 0))"
+      }
+    ],
+    "schema": "ripsat-analysis-program/v1",
+    "scope": "Symbolic Expr-size/ListExpr-size with min merge. Structured calculations and ordered guards retained; no concrete egraph union or runtime optimization authorized by this report.",
+    "template": {
+      "conditions": {
+        "bounds": [],
+        "impossible": false,
+        "residual": []
+      },
+      "final_fields": {
+        "(Expr-size (Get (RipenInput_5_ 0) 0))": {
+          "kind": "Compute",
+          "value": [
+            "min",
+            [
+              {
+                "kind": "Input",
+                "value": 0
+              },
+              {
+                "kind": "Input",
+                "value": 1
+              }
+            ]
+          ]
+        },
+        "(Expr-size (RipenInput_5_ 0))": {
+          "kind": "Input",
+          "value": 1
+        }
+      },
+      "parameters": [
+        {
+          "id": 0,
+          "source": "(Expr-size (Get (RipenInput_5_ 0) 0))"
+        },
+        {
+          "id": 1,
+          "source": "(Expr-size (RipenInput_5_ 0))"
+        }
+      ],
+      "steps": [
+        {
+          "guards": [],
+          "ruleset": "always-run",
+          "seeds": [
+            {
+              "field": "(Expr-size (Get (RipenInput_5_ 0) 0))",
+              "value": {
+                "kind": "Input",
+                "value": 0
+              }
+            },
+            {
+              "field": "(Expr-size (RipenInput_5_ 0))",
+              "value": {
+                "kind": "Input",
+                "value": 1
+              }
+            }
+          ],
+          "updates": [
+            {
+              "after": {
+                "kind": "Compute",
+                "value": [
+                  "min",
+                  [
+                    {
+                      "kind": "Input",
+                      "value": 0
+                    },
+                    {
+                      "kind": "Input",
+                      "value": 1
+                    }
+                  ]
+                ]
+              },
+              "before": {
+                "kind": "Input",
+                "value": 0
+              },
+              "field": "(Expr-size (Get (RipenInput_5_ 0) 0))",
+              "merge": "min",
+              "proposed": {
+                "kind": "Input",
+                "value": 1
+              }
+            }
+          ]
+        }
+      ],
+      "unresolved": []
+    },
+    "unsupported": []
+  }
+}
