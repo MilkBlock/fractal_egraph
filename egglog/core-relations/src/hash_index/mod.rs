@@ -69,18 +69,20 @@ impl<TI: IndexBase> Index<TI> {
             return;
         }
         let is_full = cur_version.major != self.updated_to.major;
-        crate::probe_counters::INDEX_REBUILD_ROWS
-            .fetch_add(table.all().size(), std::sync::atomic::Ordering::Relaxed);
-        if is_full {
-            crate::probe_counters::INDEX_REBUILD_FULL
-                .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-        }
         let subset = if is_full {
             self.table.clear();
             table.all()
         } else {
             table.updates_since(self.updated_to.minor)
         };
+        // rows actually (re)scanned by index construction: the delta for an
+        // incremental refresh, the whole table for a full one
+        crate::probe_counters::INDEX_REBUILD_ROWS
+            .fetch_add(subset.size(), std::sync::atomic::Ordering::Relaxed);
+        if is_full {
+            crate::probe_counters::INDEX_REBUILD_FULL
+                .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        }
         if parallelize_index_construction(subset.size()) {
             self.table.merge_parallel(&self.key, table, subset.as_ref());
         } else if is_full {

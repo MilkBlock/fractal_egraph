@@ -14,7 +14,8 @@
 | └ `dynamic_tuple`（`group_by_key`） | **180** | 多列探测**从不缓存**，但这里几乎没发生 |
 | 缓存索引命中 | 1,664,720 | |
 | 缓存索引**重建** | **88,853** | 其中只有 **232** 次是全量重建，其余是增量 |
-| **重建时扫过的行数** | **495,913,202** | **4.96 亿行**被重新索引 |
+| **重建时真正扫过的行数**（增量 delta） | **6,583,321** | 658 万行；见下面的修正 |
+| ~~上界~~（误用 `table.all()`） | ~~495,913,202~~ | **这个数字是错的，已修正** |
 
 换算：每个 match 平均 **3.22 次探针**；**每次探针平均对应 26.6 行被重新索引**。
 
@@ -23,19 +24,21 @@
 1. **join 不是在算大中间结果**——恰恰相反：**73% 的探针打在 ≤8 行的 subset 上**。
    图是 sparse 的（717K 节点 / 544K e-class = 1.32 节点/类，几乎没有共享），
    所以每次探测都很窄，但**次数是天文数字**。
-2. **真正的大头是索引重建**：88,853 次重建、**4.96 亿行**被重新哈希。
-   原因是 **380 条规则在跑的同时不断往这些表里插行**（`TCPair`/`Smaller`/`PotentialExtractedExpr`
-   /`BodyContainsExpr`/…），于是被探测的表的缓存索引反复失效、必须 `refresh`
-   （`hash_index/mod.rs:66-87`：`major` 变了走全量 `rebuild_full`，否则 `updates_since` 增量）。
-3. 所以"search 占 78.7%"的物理含义是：**每次 match 要付 3 次窄探针 + 摊销的索引刷新成本**，
-   而不是"枚举了大量候选组合"。
+2. **索引刷新是小头**：真实增量只有 **658 万行**、其中仅 **232 次全量重建**。
+   （我第一版用 `table.all().size()` 记成了 4.96 亿，那是**上界**，已修正为 `subset.size()`。）
+   失效机制本身很激进——`merge_all` 每轮**把全库所有表的索引 reset**
+   （`free_join/mod.rs:748-756`）——但因为 `Index::refresh` 会先比版本号、相同就 early return
+   （`hash_index/mod.rs:66-70`），真正的重建量并不大。
+3. 所以"search 占 78.7%"的物理含义是：**每次 match 要付 5.76 次窄探针**——
+   3.24M matches × 5.76 probes/match × ~1 µs/probe ≈ **18.9 s**，正好等于 pass 3 的 search 时间。
+   即成本 = **探针次数 × 每次探针的开销**，而不是"枚举了大量候选组合"，也主要不是索引重建。
 
 ## 因此我的合成 demo 为什么测不出效果（诚实的解释）
 
 | | 探针 | 缓存索引重建 | 重建扫过的行 | 每 match |
 |---|---:|---:|---:|---:|
-| raytrace pass 3 | 18,657,537 | 88,853 | 495,913,202 | 17.2 µs |
-| 我的合成（K=M=30,000） | 127,916 | **4** | ~0 | 1.24 µs |
+| raytrace pass 3 | 18,657,537 | 88,853（锁被 reset 的次数） | 6,583,321 | 17.2 µs |
+| 我的合成（K=M=30,000） | 127,916 | 4 | ~0 | 1.24 µs |
 
 两个 demo 的**分支占比其实一样**（都是 `sparse_column` 主导：73% vs 85%），
 但**重建次数差 22,000 倍**。我的合成只有一条规则、**没有任何并发插入**，
@@ -80,3 +83,59 @@ EGGLOG_PROBE_COUNTS=1 egglog/target/release/egglog /tmp/rt.egg --report-level ti
 3. **真正的优化方向**（比触点更直接）：减少"探测表的失效频率"——例如把插入批量提交后再刷新、
    或者让高频探测的列走**不依赖缓存索引**的路径（sparse 路径本来就是），
    或者把热数据搬到**运行期只写一次**的表里（这正是 Cell/白名单在原理上能帮上忙的地方）。
+
+---
+
+## 附：索引"重建/失效"机制对应 egglog 的哪些代码
+
+### A. 版本协议（表怎么表示自己变了）
+
+| 代码 | 作用 |
+|---|---|
+| `TableVersion { major: Generation, minor: Offset }` — `core-relations/src/table_spec.rs:43-51` | `major` 变化**作废所有 RowId**；`minor` 只是"表变长了"的追加偏移 |
+| `Table::version()` → `(self.generation, next_row_id())` — `table/mod.rs:518-523` | 每次访问时取当前版本 |
+| `Table::updates_since(offset)` → 新增行的 dense range — `table/mod.rs:525-528` | 增量重建的输入 |
+| `TableInfo.column_indexes: IndexCatalog<ColumnId, HashColumnIndex>`、`TableInfo.indexes: IndexCatalog<SmallVec<[ColumnId;4]>, HashIndex>` — `free_join/mod.rs:139-140` | **缓存索引的仓库**：单列索引一张 catalog，复合（多列）索引另一张 |
+
+### B. 失效（谁把它们弄脏）
+
+| 代码 | 作用 |
+|---|---|
+| **`Database::merge_all` 结尾** — `free_join/mod.rs:748-756`<br>注释原文：*"Reset all indexes to force an update on the next access"* | **每轮 merge 之后，把全库每张表的两个索引 catalog 全部 `reset()`**——不是只 reset 变了的表 |
+| `Database::materialize_virtual_table` — `free_join/mod.rs:953-958` | 虚拟行物化后同样 reset（且不宣告逻辑插入） |
+| `Database::install_compact_cells` — `free_join/mod.rs:1040` | 直接换成新的空 catalog |
+| `ResettableOnceLock` / `Once` — `concurrency/src/resettable_oncelock.rs:20-60` | `get()` 只在 completed 时返回；`reset()` 把 `Once` 复位；`get_or_update` 只在未 completed 时跑更新闭包 |
+
+调用频率：`merge_all` 每个 ruleset run 调用一次（`free_join/execute.rs:671-673`，也就是 `RuleSetReport.merge_time` 计的那一段）。
+raytrace pass 3 有 10,123 次迭代 × 261 张表 → 数百万次 `reset`（单独很便宜，我实测 `merge_time` 合计仅 0.33 s/3 pass）。
+
+### C. 重建（谁真正干活）
+
+| 代码 | 作用 |
+|---|---|
+| `get_column_index_from_tableinfo` / `get_index_from_tableinfo` — `free_join/mod.rs:986-1025` | 懒创建 + `index.get_or_update(\|index\| index.refresh(table))` |
+| **`Index::refresh`** — `hash_index/mod.rs:66-87` | ① 版本号相同 → **early return**（这就是为什么"全库 reset"没炸）；② `major` 不同 → `table.clear()` + `rebuild_full`；③ 否则 `updates_since` → `refresh_serial`；④ `subset.size() > 20_000` 走 `merge_parallel`（`parallel_heuristics.rs:14`） |
+| 触发点：探针路径的 `Cached` / `CachedColumn` 分支 — `free_join/execute.rs:1247-1257` | 只有"subset 是 dense 且大于半张表"时才走这条缓存路径 |
+| `dynamic_column` 用的 per-trie-node 缓存 — `execute.rs:1262` → `trie_node.get_cached_index(col, info)` | 这条路**不**经过上面那两张 catalog |
+| `SortedWritesTable` 自己的主索引 `rebuild_index` — `table/mod.rs:241, 826` | 表内部的主键索引，另一套 |
+
+### D. 别和 "congruence rebuild" 混了
+
+codex 报告里那 6.18 s 的 **Rebuild** 不是索引刷新，而是**同余闭包重建**：
+
+| 代码 | 作用 |
+|---|---|
+| `egglog-bridge/src/lib.rs:1008`（`incremental rebuild {table}, {col}`）、`:1050`（`nonincremental rebuild {table}`） | 为每张表生成**内部规则**来维护 `$rebuild` 表 |
+| `egglog-bridge/src/lib.rs:745` `rebuild_timer` | 报告里 rebuild 时间的来源 |
+| `core-relations/src/table/rebuild.rs` | 重建的具体实现（把 union 后的新代表写回各行） |
+
+两套东西的失效/重建触发条件完全不同：**索引刷新**由"表版本变了 + 有人要 probe 那列"触发（我的计数器量的是这个，实测 658 万行，小头）；**同余重建**由"union 发生后 rebuild 规则跑一轮"触发（codex 量到 6.18 s，是第二大头）。
+
+### E. 修正后的成本归因（pass 3，search 18.9 s）
+
+- 探针 **18,657,537** 次（73% 打在 ≤8 行 subset 上，走 `SparseColumnIndex::new` 每次现建、不缓存）
+- 索引真实重建 **658 万行**、**232 次**全量 → 小头
+- 3.24M matches × **5.76 probes/match** × ~1 µs ≈ 18.9 s → **大头是探针次数本身**
+
+所以要优化的是**探针路径**（`get_index` 的分支选择 + `SparseColumnIndex::new` + 每次 probe 的约束/绑定处理），
+而不是索引重建策略。
