@@ -1,384 +1,58 @@
 import {installCellPanel} from './cell-egraph-panel.mjs';
-import {ripenCoverage,renderCoverage} from './ripen-coverage.mjs';
-// Layer snapshots share the debugger's existing Typst plugin and Graphviz host.
-// No second SVG layout engine or independent visualization page.
-export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowserGenerator, editor, resolveRule}) {
-    const panel=document.createElement('details');panel.id='native-layer-panel';panel.open=true;
-    panel.innerHTML=`<summary>CS / Ripen · 每轮 DOT</summary>
-      <div><select id="native-layer-round" aria-label="Layer 轮次"></select>
-      <select id="native-layer-kind"><option value="saturated_rule_composition">Saturated rule composition · Ripen 复用统计</option><option value="cells">RipSatCell egraph · 路径与保证</option><option value="layers">Coarse / Smooth layers</option></select>
-      <select id="native-layer-scope" aria-label="Layer 或 Fractal"><option value="">全部</option></select>
-      <select id="native-layer-format"><option value="dot">DOT / Graphviz</option></select>
-      <button id="native-layer-render">显示</button><button id="native-layer-download">下载本轮 DOT</button></div>
-      <div><input id="native-layer-directory" placeholder="out/ 中的分析目录" aria-label="分析目录"><button id="native-layer-load">载入分析目录</button><button id="native-layer-source">载入该次源码</button></div>
-      <div id="native-layer-status">运行后逐轮接收 layer 快照；也可载入 CLI 分析目录。</div>
-      <div id="native-layer-viewport"></div><pre id="native-layer-error"></pre>
-      <details><summary>返回 binding、条件与 effect 证据</summary><pre id="native-layer-details"></pre></details>
-      <details><summary>当前 Typst / DOT 源码</summary><pre id="native-layer-code"></pre></details>`;
-    const catalogPanel=document.createElement('section');catalogPanel.hidden=true;catalogPanel.innerHTML=`<p>Saturated rule composition · 每轮处理进度与共享闭包</p><input hidden id="native-saturated-rule-composition-path" placeholder="out/ 中的 saturated-rule-composition-catalog 目录"><button hidden id="native-saturated-rule-composition-load">载入共享目录</button><select id="native-saturated-rule-composition" aria-label="共享闭包"><option value="">全部概览</option></select><select id="native-saturated-rule-composition-comb" aria-label="对应组合"><option value="">所有对应组合</option></select><select id="native-saturated-rule-composition-instance" aria-label="触发实例"><option value="">示例实例</option></select><select id="native-saturated-rule-composition-diagram" aria-label="SaturatedRuleComposition 图类型"><option value="comb">来源 rule comb</option><option value="cs">CSCS / CCSS 引用组合</option><option value="egraph">闭包 e-graph</option><option value="layers">来源 Coarse / Smooth layer</option><option value="ripen">起始图 / 饱和图</option><option value="body">合并前 / 合并后 body</option></select><div id="native-saturated-rule-composition-caption"></div><div id="native-saturated-rule-composition-status"></div><div id="native-saturated-rule-composition-coverage"></div><div id="native-saturated-rule-composition-weak"></div><div id="native-saturated-rule-composition-table"></div><div id="native-saturated-rule-composition-view"></div><pre id="native-saturated-rule-composition-rule" style="white-space:pre-wrap"></pre><pre id="native-saturated-rule-composition-details"></pre>`;panel.append(catalogPanel);
-    const cellView=installCellPanel(panel,{post,mountSvg,previewRow});
-    const cp=id=>catalogPanel.querySelector('#native-saturated-rule-composition'+(id==='state'?'':'-'+id));
-    let catalogData=null,catalogVersion=0,catalogError=null,coverageContext=null;
-    const NO_CATALOG='尚无 SaturatedRuleComposition 快照：请先「运行并识别」（它会自动推进 ripen 队列），或在目录框载入一次带 SaturatedRuleComposition 的运行目录（含 catalog/）。Pending / Suspended 不代表已闭合。';
-    const STALE_SNAPSHOTS='该目录的每轮快照里没有 SaturatedRuleComposition 数据（生成于 SaturatedRuleComposition 管线接入之前）。请用当前版本重新 analyze，或用「运行并识别」重跑一次。';
-    function catalogGraph(){
-        const c=catalogData.catalog,scope=cp('state').value,nodes=[],edges=[];
-        const states=(c.state_groups||[]).filter(g=>scope===''||g.saturated_rule_composition===Number(scope));
-        for(const state of states)nodes.push({id:'c'+state.saturated_rule_composition,label:`SaturatedRuleComposition C${state.saturated_rule_composition}\n${state.trigger_count} Uses / ${state.template_count} templates`,kind:'fractal',detail:state});
-        for(const g of c.comb_groups||[]){
-            if(scope!==''&&g.saturated_rule_composition!==Number(scope))continue;
-            if(cp('comb').value!==''&&g.id!==Number(cp('comb').value))continue;
-            if(cp('instance').value!==''&&!g.triggers.includes(Number(cp('instance').value)))continue;
-            const members=cp('instance').value!==''?(selectedTrigger()?.binding_origin?.comb_members||g.members):g.members;
-            const label=g.template===null?`入口 ${g.id}`:`T${g.template}`;
-            nodes.push({id:'g'+g.id,label:`${label} · ${g.triggers.length} Uses\n`+g.members.map(m=>(m.use_kind==='CoarseRuleComposition'?'C:':'S:')+m.rule_name).join(' / '),kind:'template',detail:g});
-            if(scope!==''&&members.length){
-                for(const m of members){
-                    const id=`g${g.id}m${m.slot}`;
-                    nodes.push({id,label:`${m.use_kind} · ${m.rule_name}`,kind:m.use_kind==='CoarseRuleComposition'?'coarse':'smooth',detail:{group:g.id,member:m}});
-                    if(!m.parents.length)edges.push({from:'g'+g.id,to:id,label:'entry'});
-                    const linked=new Set();
-                    for(const [input,w] of (m.binding||[]).entries())if(w.Local){linked.add(w.Local.member);edges.push({from:`g${g.id}m${w.Local.member}`,to:id,label:`out${w.Local.output} → in${input}`});}
-                    for(const parent of m.parents)if(!linked.has(parent))edges.push({from:`g${g.id}m${parent}`,to:id,label:'context dependency'});
-                }
-                edges.push({from:'g'+g.id,to:'c'+g.saturated_rule_composition,label:'ripen whole comb'});
-            }else edges.push({from:'g'+g.id,to:'c'+g.saturated_rule_composition,label:'exact state mapping'});
-        }
-        return {nodes,edges,sinks:states.map(s=>'c'+s.saturated_rule_composition)};
-    }
-    function catalogTable(){
-        const c=catalogData.catalog,scope=cp('state').value;cp('table').replaceChildren();
-        const note=document.createElement('p');note.textContent='C/S 按此 Use 的直接记录依赖分类；原始 Coarse/Smooth layer 编号在详情中。关联不表示完整覆盖，符号入口等价不表示任意具体参数都 closed。';cp('table').append(note);
-        const table=document.createElement('table'),head=document.createElement('tr');
-        for(const title of scope===''?['SaturatedRuleComposition','Use 实例','不同模板','查看']:['组合模板','Coarse / Smooth 成员','Use 数','查看']){const th=document.createElement('th');th.textContent=title;head.append(th);}table.append(head);
-        const rows=scope===''?(c.state_groups||[]):(c.comb_groups||[]).filter(g=>g.saturated_rule_composition===Number(scope));
-        for(const row of rows){
-            const tr=document.createElement('tr'),values=scope===''?[`C${row.saturated_rule_composition}`,row.trigger_count,row.template_count]:[`T${row.template??'—'}`,row.members.map(m=>(m.use_kind==='CoarseRuleComposition'?'C:':'S:')+m.rule_name).join(' / '),row.triggers.length];
-            for(const value of values){const td=document.createElement('td');td.textContent=value;tr.append(td);}
-            const td=document.createElement('td'),button=document.createElement('button');button.textContent=scope===''?'展开组合':'实例与 layer';
-            button.onclick=()=>{if(scope===''){cp('state').value=String(row.saturated_rule_composition);combOptions();renderCatalog();}else focusComb(row);};td.append(button);tr.append(td);table.append(tr);
-        }
-        cp('table').append(table);
-    }
-    function combOptions(){
-        cp('comb').replaceChildren(new Option('所有对应组合',''));
-        for(const g of catalogData?.catalog.comb_groups||[])if(cp('state').value===''||g.saturated_rule_composition===Number(cp('state').value))cp('comb').add(new Option(`T${g.template??'—'} · ${g.triggers.length} Uses`,String(g.id)));
-        instanceOptions();
-    }
-    function instanceOptions(){
-        cp('instance').replaceChildren(new Option('示例实例',''));
-        for(const [i,t] of (catalogData?.catalog.triggers||[]).entries()){
-            if(cp('state').value!==''&&t.saturated_rule_composition!==Number(cp('state').value))continue;
-            if(cp('comb').value!==''&&!catalogData.catalog.comb_groups[Number(cp('comb').value)].triggers.includes(i))continue;
-            cp('instance').add(new Option(t.origin?.candidate_id!==undefined?`${t.origin.candidate_kind} #${t.origin.candidate_id}`:`U${t.origin?.use_id??i} · T${t.origin?.template??'—'}`,String(i)));
-        }
-    }
-    function selectedTrigger(){
-        const i=cp('instance').value||cp('instance').options[1]?.value;
-        return i===undefined?null:catalogData.catalog.triggers[Number(i)];
-    }
-    function saturatedDiagram(){
-        const kind=cp('diagram').value;
-        if(kind==='cs'){
-            const cs=frame()?.saturated_rule_composition?.cs;
-            if(!cs)return {g:{nodes:[],edges:[]},caption:'该记录没有 CS 引用组合，请加载新运行快照。'};
-            const selected=selectedTrigger()?.binding_origin?.composition;
-            const pairs=new Map();
-            const add=i=>{if(pairs.has(i)||!cs.compositions[i])return;const p=cs.compositions[i];pairs.set(i,p);for(const u of p.parts){const parent=cs.units[u].source_composition;if(parent!==null&&parent!==undefined)add(parent);}};
-            if(cp('instance').value!==''&&selected){const t=selectedTrigger(),o=t.binding_origin||{},id=o.composition_id??cs.units[o.candidate_id]?.source_composition??t.origin?.candidate_id;if(id!==undefined&&id!==null)add(Number(id));}else cs.compositions.forEach((_,i)=>add(i));
-            const ids=new Set([...pairs.values()].flatMap(p=>p.parts));
-            cs.units.forEach((u,i)=>{if(pairs.has(u.source_composition))ids.add(i);});
-            const nodes=[...ids].map(i=>({id:'cs'+i,label:`CS #${i} · depth ${cs.units[i].depth??0}\nC ${cs.units[i].coarse.length} / S ${cs.units[i].smooth.length}`,kind:'template',detail:{...cs.units[i],lease:cs.leases?.[i]}})),edges=[];
-            for(const [i,p] of pairs){nodes.push({id:'pair'+i,label:p.kind,kind:'fractal',detail:p});p.parts.forEach((u,k)=>edges.push({from:'cs'+u,to:'pair'+i,label:p.kind==='CSCS'?(k===0?'先行 CS':'后继 CS'):'合并侧 '+k}));}
-            for(const i of ids){const parent=cs.units[i].source_composition;if(pairs.has(parent))edges.push({from:'pair'+parent,to:'cs'+i,label:'组合接口'});}
-            return {g:{nodes,edges},caption:'实际 consumer 触发的组件引用；保留原始依赖，不枚举全部配对。点击查看成员、接口及消费者。'};
-        }
-        if(kind==='comb')return {g:catalogGraph(),caption:'rule comb → SaturatedRuleComposition；选择组合和触发实例可查看实际来源。'};
-        // Both remaining diagrams describe exactly one SaturatedRuleComposition. With the overview
-        // selected they used to render an empty canvas, which reads as "the selector did
-        // nothing". Fall back to the first state and keep the selector in sync.
-        let state=cp('state').value,auto=false;
-        if(state===''&&catalogData.catalog.saturated_rule_compositions>0){state='0';cp('state').value=state;combOptions();auto=true;}
-        if(state==='')return {g:{nodes:[],edges:[]},caption:'本轮没有可显示的 SaturatedRuleComposition：ripen 队列可能仍在 Running，运行中不代表已闭合。'};
-        const autoNote=auto?'（概览下已自动选择 C0；此图按单个 SaturatedRuleComposition 显示。）':'';
-        if(kind==='egraph'){
-            const data=catalogData.states[Number(state)],q=JSON.stringify;
-            const lines=['digraph G {rankdir=TB; node [shape=box];'];
-            const nodes=[];
-            data.values.forEach((v,i)=>{
-                nodes.push({id:'v'+i,detail:{class:i,...v}});
-                lines.push(`subgraph cluster_${i} {label=${q(v.sort+' · class '+i)};color="#97a6ba"; v${i} [label=${q(v.literal??'EClass '+i)},shape=ellipse];`);
-                data.rows.forEach((r,j)=>{if(r.result===i){const hidden=(data.subsumed_rows||[]).includes(j);nodes.push({id:'n'+j,detail:{...r,subsumed:hidden}});lines.push(`n${j} [label=${q(r.op+(hidden?' [subsumed]':''))},style=${q(hidden?'filled,dashed':'filled')},fillcolor=${q(hidden?'#eeeeee':'#dff2ec')}];`);}});
-                lines.push('}');
-            });
-            data.rows.forEach((r,j)=>r.args.forEach((a,k)=>lines.push(`n${j} -> v${a} [label=${q('arg '+k)}];`)));
-            for(const [name,v] of Object.entries(data.ports||{}))lines.push(`p${v} [label=${q(name)},shape=plaintext]; p${v} -> v${v};`);
-            lines.push('}');
-            return {g:{nodes,edges:[]},source:lines.join('\n'),caption:`C${state} · ${data.values.filter(v=>v.literal===null).length} eclasses / ${data.rows.length} constructor rows；框内为同一 class 的 enodes。RipenInput 是符号边界参数，不是原始数据。${autoNote}`};
-        }
-        return memberDiagram(autoNote);
-    }
-    // The members that were merged into one body: this is the "before" of the sharing step.
-    // Rebuilt from the recorded trigger, unlike the native graph the cell wrote.
-    function memberDiagram(autoNote){
-        const trigger=selectedTrigger(),members=trigger?.binding_origin?.comb_members||[];
-        const nodes=[],edges=[],groups=new Map();
-        for(const m of members){
-            const layer=m.source_smooth_layer===null||m.source_smooth_layer===undefined?'C'+m.source_coarse_layer:'S'+m.source_smooth_layer;
-            const coarse='C'+m.source_coarse_layer;
-            if(!groups.has(coarse))groups.set(coarse,new Map());
-            const children=groups.get(coarse);if(!children.has(layer))children.set(layer,[]);children.get(layer).push('m'+m.slot);
-            nodes.push({id:'m'+m.slot,label:`${m.rule_name} · ${m.use_kind}\n原始 ${m.source_kind} · C${m.source_coarse_layer} / S${m.source_smooth_layer??'—'}`,kind:m.source_kind==='CoarseRuleComposition'?'coarse':'smooth',detail:m});
-            for(const parent of m.parents)edges.push({from:'m'+parent,to:'m'+m.slot,label:'recorded dependency'});
-        }
-        let source=dot({nodes,edges}).slice(0,-1);
-        for(const [coarse,children] of groups){
-            source+=`\nsubgraph cluster_${coarse} {label=${JSON.stringify('来源 Coarse layer '+coarse+' · 参与部分')};`;
-            for(const [layer,ids] of children){
-                const members=ids.map(x=>JSON.stringify(x)).join(';')+';';
-                source+=layer===coarse?members:`subgraph cluster_${coarse}_${layer} {label=${JSON.stringify('来源 Smooth layer '+layer+' · 参与部分')};${members}}`;
-            }source+='}';
-        }
-        source+='}';
-        return {g:{nodes,edges},source,caption:`${trigger?.origin?.candidate_id!==undefined?trigger.origin.candidate_kind+' #'+trigger.origin.candidate_id:'U'+(trigger?.origin?.use_id??'—')}：原始 layer 中参与此 rule comb 的成员；不是整个 layer。Use 内的 Coarse/Smooth 分类与原始 layer 分类可能不同。${autoNote}`};
-    }
-    function focusComb(g){cp('state').value=String(g.saturated_rule_composition);combOptions();cp('comb').value=String(g.id);instanceOptions();renderCatalog();showComb(g);}
-    function memberText(m){
-        const aliases=(m.input_roles||[]).map((r,i)=>`${r}=v${m.aliases?.[i]??'?'}`).join(', ');
-        return `${m.use_kind} · ${m.rule_name}\n观测别名（模板内）: ${aliases}\n示例来源 layer: C${m.source_coarse_layer} / ${m.source_smooth_layer===null?'—':'S'+m.source_smooth_layer}\n${m.rule}`;
-    }
-    function showComb(g){
-        const instances=g.triggers.map(i=>{const t=catalogData.catalog.triggers[i];return {origin:t.origin,source:t.source,value_map:t.value_map,comb_members:t.binding_origin?.comb_members};});
-        cp('details').textContent=JSON.stringify({template:g.template,instances},null,2);
-        cp('rule').textContent=(selectedTrigger()?.binding_origin?.comb_members||g.members).map(memberText).join('\n\n');
-    }
-    // 合并前 / 合并后: the member graphs that were shared, beside the single native body the
-    // ripen cell wrote. The two panels come from different sources on purpose -- the left side
-    // is rebuilt from the recorded trigger, the right side is the untouched egglog export.
-    async function renderBody(){
-        // Same fallback as the per-state diagrams: the overview cannot pick one body.
-        let state=cp('state').value;
-        if(state===''&&catalogData.catalog.saturated_rule_compositions>0){state='0';cp('state').value=state;combOptions();}
-        if(state===''){cp('view').dataset.dot='';cp('caption').textContent='请先选择一个 SaturatedRuleComposition，再查看它的合并前后 body。';cp('view').replaceChildren();cp('view').dataset.ready='true';return;}
-        const before=memberDiagram('');
-        let body=null;
-        try{body=await (await post('saturated-rule-composition-body',{path:cp('path').value,state:Number(state)})).json();}
-        catch(error){cp('status').textContent=String(error);}
-        cp('view').dataset.dot=body?.dot||before.source||'';
-        cp('view').replaceChildren();
-        const panels=[['合并前 · 原始成员（按记录的触发实例重建）',before.source],['合并后 · 饱和 body（ripen 写出的原生 egglog e-graph）',body?.dot]];
-        for(const [label,src] of panels){
-            // mountSvg replaces its container's children, so the caption and the graph need
-            // separate hosts, and each panel needs its own.
-            const section=document.createElement('section');
-            const head=document.createElement('p');head.textContent=label;head.style.fontWeight='600';section.append(head);
-            const host=document.createElement('div');section.append(host);
-            cp('view').append(section);
-            if(!src){const note=document.createElement('p');note.textContent='（这个 cell 没有原生图产物：先载入目录，或用当前版本重新运行以生成 native-egraph.dot/svg。）';host.append(note);continue;}
-            try{const markup=await (await post('render',{kind:'dot',source:src})).text();mountSvg(markup,host);}
-            catch(error){const note=document.createElement('p');note.textContent='渲染失败：'+error;host.append(note);}
-        }
-        cp('caption').textContent=`C${state}：合并前 ${before.g.nodes.length} 个原始成员 → 合并后 1 个饱和 body${body?.cell?'（'+body.cell.split('/').slice(-1)[0]+'）':''}。左侧由记录的触发实例重建，右侧是 cell 的原生导出，两者不是同一份数据。`;
-        cp('view').dataset.ready='true';
-    }
-    async function renderRipenPair(){
-        const version=++catalogVersion,view=cp('view');
-        view.dataset.ready='false';view.replaceChildren();
-        const state=cp('state').value,trigger=cp('instance').value||cp('instance').options[1]?.value;
-        if(state===''||trigger===undefined){cp('caption').textContent='请选择一个饱和族。';return;}
-        cp('caption').textContent=`C${state} · 载入实例 ${trigger} 的初始与饱和图…`;
-        try{
-            const response=await post('saturated-rule-composition-body',{path:cp('path').value,state:Number(state),trigger:Number(trigger)});
-            const body=await response.json();if(version!==catalogVersion)return;
-            if(body.error)throw new Error(body.error);
-            const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px';
-            view.append(grid);view.dataset.dot=body.dot||'';
-            for(const [kind,label,svg,source] of [
-                ['initial','Initial ripened egraph · before saturation',body.initial_svg,body.initial_dot],
-                ['saturated','Saturated ripened egraph',body.svg,body.dot]]){
-                const section=document.createElement('section');section.dataset.ripenGraph=kind;
-                const title=document.createElement('h3');title.textContent=label;section.append(title);
-                const host=document.createElement('div');host.style.overflow='auto';section.append(host);grid.append(section);
-                let markup=svg;
-                if(!markup&&source)markup=await(await post('render',{kind:'dot',source})).text();
-                if(version!==catalogVersion)return;
-                if(markup)mountSvg(markup,host);
-                else host.textContent='该实例未保存此原生图，请用当前版本重新运行。';
-            }
-            cp('caption').textContent=`C${state} · 实例 ${trigger}（${body.cell.split('/').at(-1)}）。左：本次推理的起始图，可能含复用的父闭包；右：同一实例饱和后。可切换触发实例查看不同初始图。`;
-            cp('rule').textContent=body.entry||'';view.dataset.ready='true';
-        }catch(error){if(version===catalogVersion){cp('caption').textContent='载入图失败：'+error;view.dataset.ready='true';}}
-    }
-    async function renderCatalog(){
-        if(frame()?.graphs_enabled===false){cp('view').textContent='本次运行未生成 DOT / SVG。';return;}
-        renderCoverage(cp('coverage'),ripenCoverage(catalogData?.catalog,coverageContext?.cs),id=>{cp('state').value=String(id);combOptions();cp('diagram').value='ripen';renderCatalog();});
-        if(catalogData?.catalog&&cp('diagram').value==='ripen'){await renderRipenPair();return;}
-        if(catalogData?.catalog&&cp('diagram').value==='body'){catalogVersion++;await renderBody();return;}
-        const v=++catalogVersion,c=catalogData.catalog;cp('view').dataset.ready='false';cp('rule').textContent='';
-        try{
-            let source=catalogData.dot,g=null;
-            if(c.comb_groups){const diagram=saturatedDiagram();g=diagram.g;source=diagram.source||dot(g);cp('caption').textContent=diagram.caption;catalogTable();}cp('view').dataset.dot=source;
-            const markup=await (await post('render',{kind:'dot',source})).text();if(v!==catalogVersion)return;
-            cp('view').replaceChildren();const svg=mountSvg(markup,cp('view'));if(g&&g.nodes.length<=10){svg.style.maxWidth='100%';svg.style.height='auto';}cp('view').dataset.ready='true';
-            for(const node of svg.querySelectorAll('.node')){
-                const id=node.querySelector('title')?.textContent||'';node.style.cursor='pointer';
-                node.onclick=()=>{
-                    if(cp('diagram').value!=='comb'){const d=g?.nodes.find(n=>n.id===id)?.detail;cp('details').textContent=JSON.stringify(d,null,2);if(d?.rule)cp('rule').textContent=memberText(d);return;}
-                    if(!g){cp('details').textContent=JSON.stringify(id.startsWith('t')?c.triggers[Number(id.slice(1))]:catalogData.states[Number(id.slice(1))],null,2);return;}
-                    if(id.startsWith('c')){const state=Number(id.slice(1));cp('details').textContent=JSON.stringify({state:catalogData.states[state],groups:c.comb_groups.filter(g=>g.saturated_rule_composition===state)},null,2);if(cp('state').value===''){cp('state').value=String(state);combOptions();renderCatalog();}}
-                    else if(/^g\d+$/.test(id))focusComb(c.comb_groups[Number(id.slice(1))]);
-                    else {const d=g.nodes.find(n=>n.id===id)?.detail;if(d){cp('details').textContent=JSON.stringify(d,null,2);cp('rule').textContent=memberText(d.member);}}
-                };
-            }
-        }catch(e){cp('status').textContent=String(e);}
-    }
-    cp('diagram').onchange=()=>{if(catalogData)renderCatalog();};
-    cp('instance').onchange=()=>{if(catalogData){renderCatalog();const g=catalogData.catalog.comb_groups?.find(g=>g.triggers.includes(Number(cp('instance').value)));if(g)showComb(g);}};
-    cp('state').onchange=()=>{if(catalogData){combOptions();renderCatalog();}};
-    cp('comb').onchange=()=>{if(!catalogData)return;const id=cp('comb').value;if(id==='')renderCatalog();else focusComb(catalogData.catalog.comb_groups[Number(id)]);};
-    cp('load').onclick=async()=>{
-        cp('load').disabled=true;cp('state').disabled=true;cp('comb').disabled=true;catalogVersion++;catalogData=null;catalogError=null;coverageContext=null;cp('coverage').replaceChildren();cp('table').replaceChildren();cp('view').replaceChildren();cp('rule').textContent='';cp('status').textContent='载入…';cp('details').textContent='';
-        try{
-            catalogData=await (await post('saturated-rule-composition-catalog',{path:cp('path').value})).json();const c=catalogData.catalog;coverageContext=catalogData.coverage_context||null;
-            cp('state').replaceChildren(new Option('全部概览',''));
-            for(let i=0;i<c.saturated_rule_compositions;i++)cp('state').add(new Option(`SaturatedRuleComposition C${i}`,String(i)));
-            const requestedState=new URLSearchParams(location.search).get('saturated_rule_composition');
-            if(cp('path').value===initialCatalog&&requestedState!==null&&/^\d+$/.test(requestedState)&&Number(requestedState)<c.saturated_rule_compositions)cp('state').value=requestedState;
-            combOptions();
-            const templates=new Set(c.triggers.filter(t=>t.origin?.template!==undefined).map(t=>JSON.stringify([t.origin.history,t.origin.template]))).size;
-            cp('status').textContent=`${c.triggers.length} 个 Trigger → ${c.saturated_rule_compositions} 个共享 SaturatedRuleComposition，涉及 ${templates} 种模板。未决比较 ${c.unresolved_comparisons||0}。`;
-            if(c.scan)cp('status').textContent+=` 已检查 ${c.scan.attempts.length}/${c.scan.population.historical_uses} 个历史 Use；${JSON.stringify(c.scan.counts)}。预算 ${c.scan.budgets.rounds} 轮 / 每例 ${c.scan.budgets.seconds_per_use} 秒。跨模板共享组 ${c.scan.shared_template_states}。`;
-            await renderCatalog();
-        }catch(e){catalogError=String(e);cp('status').textContent=catalogError;}finally{cp('load').disabled=false;cp('state').disabled=false;cp('comb').disabled=false;}
-    };
-    const initialCatalog=new URLSearchParams(location.search).get('saturated_rule_composition_catalog');
-
-    host.append(panel);
-    const $=id=>panel.querySelector('#native-layer-'+id);
-    let frames=[],version=0,abort=null,previewCache=new Map(),pinned=false,rendered=false;
-    const frame=()=>frames[Number($('round').value)];
-    // Three different "nothing to show" cases need three different answers: nothing loaded
-    // at all, snapshots taken before the SaturatedRuleComposition pipeline existed, or a run in which no
-    // Use actually closed. Only the first is fixed by running again.
-    const noSaturatedHint=()=>frames.length&&!frames.some(f=>f.saturated_rule_composition)?STALE_SNAPSHOTS:NO_CATALOG;
-    function mode(){
-        const saturated=$('kind').value==='saturated_rule_composition',cells=$('kind').value==='cells';catalogPanel.hidden=!saturated;cellView.panel.hidden=!cells;
-        for(const id of ['scope','format'])$(id).hidden=saturated||cells;$('round').hidden=cells||(saturated&&!frames.length);
-        for(const id of ['viewport','details','code']){const e=$(id);(e.closest('details')===panel?e:e.closest('details')||e).hidden=saturated||cells;}
-        $('status').hidden=saturated||cells;$('source').disabled=cells?!cellView.source:!frame();
-        $('directory').placeholder=saturated?'out/ 中的共享目录或含 catalog/ 的运行目录':'out/ 中的分析目录';
-        $('load').textContent=saturated?'载入 SaturatedRuleComposition':'载入分析目录';
-        $('download').textContent=saturated?'下载当前 SaturatedRuleComposition DOT':'下载本轮 DOT';
-        // Never overwrite a load failure with the generic hint: that used to erase the one
-        // message telling the user why nothing rendered.
-        if(saturated&&!catalogData&&!catalogError&&!frame()?.saturated_rule_composition)cp('status').textContent=noSaturatedHint();
-    }
-    function showSaturatedFrame(result){
-        catalogVersion++;catalogData=result.catalog;coverageContext=result;
-        if(!catalogData)renderCoverage(cp('coverage'),ripenCoverage({state_groups:[],triggers:[]},result.cs),()=>{});
-        cp('state').replaceChildren(new Option('全部概览',''));
-        cp('table').replaceChildren();cp('view').replaceChildren();cp('rule').textContent='';
-        cp('details').textContent=JSON.stringify(result.jobs,null,2);
-        cp('status').textContent=`边界 ${result.boundary} · ${Object.entries(result.counts).map(([k,v])=>k+' '+v).join(' / ')||'尚无 CS'} · 已注册 ${result.jobs.length} 个入口。Ripen 上限 ${result.observation_limits?.milliseconds ?? "关闭"} ms / ${result.observation_limits?.facts ?? "关闭"} facts（原生协作停止）。`;
-        cp('weak').replaceChildren();
-        const edges=(result.weak_dominate||[]).filter(e=>e.evidence?.bindings?.length);
-        const details=document.createElement('details'),summary=document.createElement('summary'),pre=document.createElement('pre');
-        summary.textContent=`weak dominate：${edges.length} 条已观测关系；再入观察 ${edges.filter(e=>e.reentry_observation).length}（未证明 infi / 耗散）；无法判定 ${(result.weak_unresolved||[]).length} 条`;
-        details.append(summary,pre);details.ontoggle=()=>{if(details.open)pre.textContent=JSON.stringify({relations:edges,unresolved:result.weak_unresolved||[]},null,2);};cp('weak').append(details);
-        const buckets=result.reentry_buckets;
-        if(buckets){
-            const box=document.createElement('details');box.id='native-reentry-buckets';
-            const title=document.createElement('summary');const groups=buckets.groups||[];
-            title.textContent=`non-trivial reentry：${groups.length} 个成分桶 · ${groups.reduce((n,g)=>n+g.minimal_starting_conditions.length,0)} 个已观察的最小 starting conditions`;
-            box.append(title);const note=document.createElement('p');note.textContent='按新增节点的 operator 成分分组；忽略字面值但保留类型、binding 别名与位置。增长观察可直接入桶，不要求自身 C 再现；真正的起始条件可能尚未确定。这不是 infi / 耗散分类，也不是已证明的循环体。';box.append(note);
-            const table=document.createElement('table');const head=document.createElement('tr');
-            for(const text of ['桶','新增成分','最小 starting conditions','保留条件数']){const cell=document.createElement('th');cell.textContent=text;head.append(cell);}table.append(head);
-            const evidence=document.createElement('pre');evidence.style.whiteSpace='pre-wrap';
-            for(const g of groups){const row=document.createElement('tr');
-                for(const text of [String(g.id),g.new_node_operators.join(', ')+(g.union_effect?' + union':'')]){const cell=document.createElement('td');cell.textContent=text;row.append(cell);}
-                const minima=document.createElement('td');for(const id of g.minimal_starting_conditions){const button=document.createElement('button');button.textContent='条件 '+id;button.onclick=()=>{const c=buckets.conditions[id];const targets=[...new Set(c.observations.map(o=>o.target))];evidence.textContent=JSON.stringify({condition:c,cover:g.cover,known_C_matches:(result.bucket_trigger_matches||[]).filter(m=>targets.includes(m.target)),original_conditions:targets.map(t=>({target:t,condition:buckets.original_conditions[t]}))},null,2);};minima.append(button);}row.append(minima);
-                const count=document.createElement('td');count.textContent=String(g.conditions.length);row.append(count);table.append(row);
-            }box.append(table,evidence);cp('weak').append(box);
-        }
-
-        if(catalogData){
-            for(let i=0;i<catalogData.catalog.saturated_rule_compositions;i++)cp('state').add(new Option(`SaturatedRuleComposition C${i}`,String(i)));
-            cp('status').textContent+=` ${catalogData.catalog.triggers.length} 个历史入口 → ${catalogData.catalog.saturated_rule_compositions} 个饱和等价桶。`;
-
-            combOptions();if($('kind').value==='saturated_rule_composition')renderCatalog();
-        }else{
-            combOptions();
-            cp('status').textContent+=' 本轮尚无可共享的饱和图（Running / WaitingParent / WaitingEquivalent 不代表已闭合）；本次运行的数据已在内存里，无需手动载入目录。';
-            // A run that rejects every queued job looks like "nothing happened" unless the
-            // queue's own reason is surfaced here.
-            const tally=new Map();
-            for(const j of result.jobs||[])if(j.reason)tally.set(j.reason,(tally.get(j.reason)||0)+1);
-            const top=[...tally.entries()].sort((a,b)=>b[1]-a[1])[0];
-            if(top)cp('status').textContent+=` 最常见拒绝原因（${top[1]} 个）：${top[0].split('\n')[0].slice(0,200)}`;
-        }
-    }
-    function clearCatalog(){catalogVersion++;catalogData=null;coverageContext=null;cp('coverage').replaceChildren();cp('weak').replaceChildren();cp('path').value='';for(const id of ['view','table','details','rule','caption'])cp(id).replaceChildren();cp('state').replaceChildren(new Option('全部概览',''));combOptions();}
-
-    // A ?layer_run=... from a generated fractal.html link seeds the directory box and reloads
-    // that directory on every refresh, so a stale path looked like a hardcoded default and no
-    // other option could shake it. Once new data arrives it is no longer the current context:
-    // drop it from the URL and clear the box only if it still holds that exact value, so a
-    // path the user typed themselves is left alone.
-    function dropStaleDirectory(){
-        const seeded=new URLSearchParams(location.search).get('layer_run');
-        if(!seeded||$('directory').value!==seeded)return;
-        $('directory').value='';
-        const url=new URL(location.href);url.searchParams.delete('layer_run');history.replaceState(null,'',url);
-    }
-    function reset(){dropStaleDirectory();clearCatalog();mode();abort?.abort();version++;frames=[];pinned=false;rendered=false;previewCache.clear();$('round').replaceChildren();$('scope').replaceChildren(new Option('全部',''));$('viewport').replaceChildren();$('details').textContent='';$('code').textContent='';$('status').textContent='等待实际执行边界…';}
-    function receive(f){
-        if(f.kind!=='layer_snapshot'||!f.graphs||!f.analysis)throw Error('无效的 layer 快照');
-        if(f.ripen_output_directory)cp('path').value=f.ripen_output_directory;
-        frames.push(f);$('round').add(new Option(f.label,String(frames.length-1)));
-        // New data does not start expensive render subprocesses automatically.
-        if(!pinned){$('round').value=String(frames.length-1);options(false);}
-    }
-    function options(pin=true){
-        mode();if(frame()?.saturated_rule_composition)showSaturatedFrame(frame().saturated_rule_composition);
-        if(['saturated_rule_composition','cells'].includes($('kind').value))return;
-        const f=frame();if(!f)return;if(pin!==false)pinned=true;
-        $('scope').replaceChildren(new Option('全部',''));for(const g of f.graphs.layers.groups||[])$('scope').add(new Option(g.label,g.id));
-        $('status').textContent=`${f.label} · ${f.counts.applications} 个实际应用；无模板搜索和候选预算。`;
-    }
-    function selectedGraph(){const f=frame(),g=f.graphs.layers,scope=$('scope').value;if(!scope)return g;
-        const group=g.groups?.find(g=>g.id===scope),keep=new Set(group?.members||[]);for(const e of g.edges)if(keep.has(e.to))keep.add(e.from);
-        return {...g,nodes:g.nodes.filter(n=>keep.has(n.id)),edges:g.edges.filter(e=>keep.has(e.from)&&keep.has(e.to))};
-    }
-    function dot(g){
-        const q=JSON.stringify,lines=['digraph G { rankdir=TB; node [shape=box,style=filled];'];
-        for(const n of g.nodes)lines.push(`${q(n.id)} [label=${q(n.label)},fillcolor=${q({coarse:'#fce6c9',smooth:'#dff2ec',fractal:'#e9e1fa',trigger:'#fbd5d0'}[n.kind]||'#edf0f5')}];`);
-        if(g.sinks?.length)lines.push('{rank=sink;'+g.sinks.map(q).join(';')+';}');
-        for(const e of g.edges)lines.push(`${q(e.from)} -> ${q(e.to)} [label=${q(e.label)}];`);
-        return lines.join('\n')+'\n}';
-    }
-    async function render(){
-        if($('kind').value==='cells'){mode();const path=$('directory').value;if(path)await cellView.load(path).catch(e=>$('error').textContent=e.message);return;}
-        if(frame()?.graphs_enabled===false){$('status').textContent='本次运行未生成 DOT / SVG，统计结果仍可查看。';return;}
-        if($('kind').value==='saturated_rule_composition'){mode();if(catalogData)await renderCatalog();return;}
-        if(!frame())return;const v=++version,g=selectedGraph(),source=dot(g);$('code').textContent=source;
-        try{const markup=await(await post('render',{kind:'dot',source})).text();if(v!==version)return;$('viewport').replaceChildren();mountSvg(markup,$('viewport'));$('viewport').dataset.ready='true';rendered=true;}catch(e){$('error').textContent=String(e);}
-    }
-    $('round').onchange=()=>{options();render();};$('kind').onchange=()=>{options();render();};$('render').onclick=render;
-    $('download').onclick=()=>{if($('kind').value==='cells'){cellView.download();return;}const source=$('kind').value==='saturated_rule_composition'?cp('view').dataset.dot:dot(selectedGraph());if(!source)return;const a=document.createElement('a'),u=URL.createObjectURL(new Blob([source],{type:'text/vnd.graphviz'}));a.href=u;a.download='cs-ripen.dot';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);};
-    async function load(path){
-        if($('kind').value==='cells'){mode();await cellView.load(path);mode();return;}
-        const controls=['load','render','round','kind','scope','format'];controls.forEach(id=>$(id).disabled=true);
-        try {const data=await (await post('layer-run',{path})).json();reset();for(const f of data.frames)receive(f);cp('path').value=path;if(data.saturated_rule_composition_catalog&&!data.frames.some(f=>f.saturated_rule_composition)){cp('path').value=data.saturated_rule_composition_catalog;await cp('load').onclick();}mode();}
-        finally {controls.forEach(id=>$(id).disabled=false);}
-    }
-    $('load').onclick=()=>{const path=$('directory').value;return load(path).catch(e=>{if($('kind').value==='saturated_rule_composition'){reset();$('directory').value=path;cp('path').value=path;mode();return cp('load').onclick();}$('error').textContent=e.message;});};
-    $('source').onclick=()=>{if($('kind').value==='cells'){if(cellView.source)editor.setValue(cellView.source);return;}if(frame())editor.setValue(frame().preview_source);};
-    const initialKind=new URLSearchParams(location.search).get('layer_kind');if(['layers','saturated_rule_composition','cells'].includes(initialKind))$('kind').value=initialKind;
-    if(initialCatalog&&!new URLSearchParams(location.search).get('layer_run')){$('kind').value='saturated_rule_composition';$('directory').value=initialCatalog;cp('path').value=initialCatalog;cp('load').click();}mode();
-    const initial=new URLSearchParams(location.search).get('layer_run');if(initial){$('directory').value=initial;load(initial).then(async()=>{if(initialCatalog){$('kind').value='saturated_rule_composition';cp('path').value=initialCatalog;await cp('load').onclick();mode();}return $('kind').value==='cells'?undefined:render();}).catch(e=>$('error').textContent=e.message);}
-    // Re-render the current selection against the current source. Called after an
-    // editor change so an edited annotation template is visible without re-running.
-    async function refresh(){if(rendered&&frames.length)await render();}
-    function progress(q){if(frames.length){frames.at(-1).saturated_rule_composition=q;if(Number($('round').value)===frames.length-1)showSaturatedFrame(q);}}
-    return {receive,progress,reset,load,refresh,get snapshots(){return structuredClone(frames);}};
+// Keep the public stream hooks; retired CS/Layer controls are no longer UI concepts.
+export function installLayerPanel(host,{post,previewRow,mountSvg,editor}) {
+  const panel=document.createElement('section');panel.id='native-layer-panel';
+  panel.innerHTML=`<h3>RipSatCell</h3>
+    <div><label>分析结果 <select id="native-layer-directory" aria-label="分析目录"><option value="">查找当前 .egg 的结果…</option></select></label>
+    <button id="native-layer-load">刷新目录</button><button id="native-layer-render">显示</button><button id="native-layer-source">载入该次源码</button><button id="native-layer-download">下载图</button></div>
+    <p id="native-layer-status" role="status"></p><p id="native-layer-error" role="alert"></p>`;
+  host.append(panel);
+  const $=name=>panel.querySelector('#native-layer-'+name);
+  const view=installCellPanel(panel,{post,previewRow,mountSvg});
+  let frames=[],source=null,refreshEpoch=0,lastDirectory='',running=false;
+  let initial=new URLSearchParams(location.search).get('layer_run');
+  if(new URLSearchParams(location.search).has('example'))initial=null;
+  function clearSelection(){view.clear();$('source').disabled=true;$('render').disabled=true;$('download').disabled=true;}
+  async function load(path){
+    if(!path){clearSelection();return;}
+    if(![...$('directory').options].some(o=>o.value===path))$('directory').add(new Option(path,path));
+    $('directory').value=path;$('error').textContent='';
+    view.panel.hidden=false;
+    await view.load(path);lastDirectory=path;
+    $('source').disabled=!view.source;$('render').disabled=false;$('download').disabled=false;
+    const url=new URL(location.href);url.searchParams.set('layer_run',path);url.searchParams.set('layer_kind','cells');history.replaceState(null,'',url);
+  }
+  async function refresh(force=false){
+    if(running)return;
+    const current=editor.getValue();
+    if(!force&&current===source)return;
+    const token=++refreshEpoch,changed=current!==source;source=current;if(changed){lastDirectory='';clearSelection();}
+    try{
+      const data=await(await post('analysis-directories',{source:current})).json();if(token!==refreshEpoch)return;
+      const previous=$('directory').value;
+      $('directory').replaceChildren(new Option('请选择分析结果',''));
+      const matching=document.createElement('optgroup');matching.label='当前 .egg';
+      const other=document.createElement('optgroup');other.label='其他源码（手动选择）';
+      for(const row of data.directories){const date=new Date(row.modified*1000).toLocaleString();(row.matches_source?matching:other).append(new Option(`${row.path} · ${date}`,row.path));}
+      if(matching.children.length)$('directory').append(matching);if(other.children.length)$('directory').append(other);
+      const matched=data.directories.filter(r=>r.matches_source);
+      const preserveLink=Boolean(initial);
+      const selected=initial||(!changed&&data.directories.some(r=>r.path===previous)?previous:matched[0]?.path)||'';initial=null;
+      $('status').textContent=matched.length?`当前源码有 ${matched.length} 次分析，默认选择最近一次。`:'当前 .egg 尚无匹配的分析结果。点击「运行并识别」生成；也可手动查看其他源码的结果。';
+      if(!selected){$('directory').value='';lastDirectory='';clearSelection();const u=new URL(location.href);u.searchParams.delete('layer_run');u.searchParams.delete('cell_unit');u.searchParams.delete('cell_eclass');history.replaceState(null,'',u);return;}
+      if(selected!==lastDirectory||force){if(selected!==lastDirectory&&!preserveLink){const u=new URL(location.href);u.searchParams.delete('cell_unit');u.searchParams.delete('cell_eclass');history.replaceState(null,'',u);}await load(selected);}
+      else $('directory').value=selected;
+    }catch(e){if(token===refreshEpoch)$('error').textContent=e.message;}
+  }
+  $('directory').onchange=()=>{const url=new URL(location.href);url.searchParams.delete('cell_unit');url.searchParams.delete('cell_eclass');history.replaceState(null,'',url);load($('directory').value).catch(e=>$('error').textContent=e.message);};
+  $('load').onclick=()=>refresh(true);
+  $('render').onclick=()=>load($('directory').value).catch(e=>$('error').textContent=e.message);
+  $('source').onclick=()=>{if(view.source)editor.setValue(view.source);};
+  $('download').onclick=()=>view.download();
+  function reset(){frames=[];running=true;refreshEpoch++;lastDirectory='';clearSelection();$('status').textContent='正在分析当前 .egg，结果生成后自动选中。';}
+  function receive(frame){frames.push(frame);if(frame.artifact_directory)lastDirectory=frame.artifact_directory;}
+  function progress(q){$('status').textContent='Ripen · '+Object.entries(q.counts||{}).map(([k,v])=>`${k} ${v}`).join(' / ');}
+  async function complete(){running=false;source=null;await refresh(true);}
+  clearSelection();queueMicrotask(()=>refresh(true));
+  return {receive,progress,reset,load,refresh,complete,get snapshots(){return structuredClone(frames);}};
 }

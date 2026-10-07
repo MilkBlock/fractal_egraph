@@ -1,5 +1,8 @@
 """Read-only Cell egraph views. No analysis, saturation or inferred certificates."""
 import json
+import os
+import hashlib
+import functools
 import re
 from pathlib import Path
 
@@ -13,9 +16,59 @@ def folder_in_out(root, path):
 
 def read_run(root, path):
     folder = folder_in_out(root, path)
-    data = json.loads((folder / 'analysis.json').read_text())
+    final = folder / 'analysis.json'
+    if final.is_file():
+        data = json.loads(final.read_text())
+    else:
+        manifest = json.loads((folder / 'rounds/manifest.json').read_text())
+        if not manifest:
+            raise ValueError('该次分析尚未生成状态快照')
+        stem = manifest[-1]['stem']
+        if not re.fullmatch(r'round-[0-9]+', stem):
+            raise ValueError('无效的快照文件名')
+        data = json.loads((folder / 'rounds' / (stem + '.json')).read_text())
     queue = data.get('saturated_rule_composition') or {}
     return folder, queue
+
+
+def source_digest(text):
+    return hashlib.sha256(text.replace('\r\n', '\n').strip().encode()).hexdigest()
+
+
+@functools.lru_cache(maxsize=4096)
+def file_digest(path, modified, size):
+    return source_digest(Path(path).read_text())
+
+
+def directories(root, source):
+    wanted = source_digest(source)
+    entries = []
+    for current, children, files in os.walk(root / 'out', followlinks=False):
+        children[:] = [c for c in children if c not in {
+            'saturated-rule-composition', 'rounds', 'cells', 'states', 'node_modules',
+            'target', '.git', '__pycache__'}]
+        folder = Path(current)
+        artifact = folder / 'analysis.json'
+        if not artifact.is_file():
+            artifact = folder / 'rounds/manifest.json'
+        if not artifact.is_file():
+            continue
+        if not folder.resolve().is_relative_to((root / 'out').resolve()):
+            continue
+        matched = False
+        for name in ['input.egg', 'source.egg']:
+            path = folder / name
+            try:
+                if path.is_file() and path.resolve().is_relative_to((root / 'out').resolve()):
+                    st = path.stat()
+                    matched |= file_digest(str(path), st.st_mtime_ns, st.st_size) == wanted
+            except (OSError, UnicodeError):
+                pass
+        entries.append({'path': str(folder.relative_to(root)),
+                        'modified': artifact.stat().st_mtime, 'matches_source': matched})
+    entries.sort(key=lambda e: (-e['modified'], e['path']))
+    return {'directories': entries, 'source_sha256': wanted,
+            'matching': 'source content, normalized line endings and outer whitespace'}
 
 
 def overview(root, path):

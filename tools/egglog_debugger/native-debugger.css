@@ -77,3 +77,5 @@
 #native-cell-egraph select {max-width:100%;}
 #native-cell-egraph pre {max-height:280px; overflow:auto; overflow-wrap:anywhere; font-size:12px;}
 #native-cell-egraph [data-role=error] {color:#a32222;}
+
+#native-layer-directory {max-width:100%; width: min(42rem, 100%);}

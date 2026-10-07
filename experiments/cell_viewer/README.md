@@ -1,8 +1,11 @@
 # RipSatCell egraph viewer
 
-The existing local debugger now has a `RipSatCell egraph · 路径与保证` choice beside
-Saturated rule composition and Coarse/Smooth layers. No publishing or separate
-website is needed.
+The local debugger now exposes RipSatCell directly. Retired CS layer, CSCS/CCSS
+and old catalog-mode controls have been removed. The analysis-directory dropdown
+groups runs by exact current-source content and defaults to the newest matching
+run. Switching source clears unrelated results; finishing a web run refreshes
+and selects its output automatically. Other sources remain manually selectable.
+No publishing or separate website is needed.
 
 ```sh
 EGG_LAYOUT_GRAPHS=0 cargo run --offline --release --bin egg_layout -- analyze --source experiments/cell_viewer/demo.egg --output out/cell-egraph-view-demo
@@ -52,3 +55,9 @@ The browser test uses installed Chrome and Playwright; it checks eclass selectio
 DOT links, Typst path rendering, existing rule templates, bound LHS coloring,
 and honest missing-evidence labels on the saved eggcc run. No generated images
 or run artifacts are tracked. The focused native preparation suite passed 29 tests.
+
+The directory index reads source files and file timestamps, not every large
+analysis JSON. Source hashes are cached by file version. Browser runs preserve
+input.egg for matching. Partial runs with round snapshots are readable as well.
+`test_cell_directory_browser.cjs` checks switching source, latest-run selection,
+no-result clearing, removal of old controls, and selection after a fresh web run.

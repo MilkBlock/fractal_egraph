@@ -11,11 +11,11 @@ export function installNativeDebugger(editor) {
     window.nativeDebugger = true;
     const link = document.createElement('link'); link.rel='stylesheet'; link.href='native-debugger.css'; document.head.append(link);
     const panel = document.createElement('section'); panel.id='native-debugger';
-    panel.innerHTML = `<strong>Native Rule Compose / Fractal</strong>
+    panel.innerHTML = `<strong>RipSatCell 分析与规则预览</strong>
       <label><input id="native-generate-graphs" type="checkbox" checked>生成 DOT / SVG（关闭可加快分析）</label>
       <button id="native-run">运行并识别</button><button id="native-stop" disabled>停止</button>
       <button id="native-download">下载 .egg</button><button id="native-export">导出日志</button><button id="native-restore">载入日志源码</button><label>回放日志 <input id="native-import" type="file" accept=".json"></label>
-      <div id="native-status">点击 .egg 规则任意一行查看 Pattern。原生识别使用本地 egg_layout（单个自包含 datatype，名字任意）。</div>
+      <div id="native-status">点击 .egg 规则任意一行查看 Pattern。使用本地 egglog 运行时生成 Cell 状态与路径。</div>
       <div id="native-layer-host"></div>
       <select id="native-filter"><option value="all">所有日志</option><option value="application">有效应用</option></select>
       <div id="native-trace" role="log" aria-label="增量识别日志"></div>
@@ -592,7 +592,7 @@ export function installNativeDebugger(editor) {
             let complete=false;
             const consume=line=>{if(!line.trim())return;const row=JSON.parse(line);
                 if(row.kind==='error')throw Error(row.error);
-                if(row.kind==='complete'){complete=true;runStatus='complete';status(row.analysis_status==='observed_unfinished'?'观察结束：仍有未完成的 ripen，增长记录已保存；这不是 Saturated 或 infi 判定。':`完成：${rows.filter(r=>r.kind==='application').length} 个有效应用；CS、ripen 等价桶与 weak dominate 见统计面板。`);}
+                if(row.kind==='complete'){complete=true;runStatus='complete';status(row.analysis_status==='observed_unfinished'?'观察结束：仍有未完成的 ripen，增长记录已保存；这不是 Saturated 或 infi 判定。':`完成：${rows.filter(r=>r.kind==='application').length} 个有效应用；Cell 状态与生成路径见下方。`);}
                 else if(row.kind==='layer_snapshot')layerPanel.receive(row);
                 else if(row.kind==='rendering'){status('分析完成，正在并行生成 SVG；完成后图表可用。');}
                 else if(row.kind==='ripen_progress'){layerPanel.progress(row.saturated_rule_composition);status('Ripen · '+JSON.stringify(row.saturated_rule_composition.counts));}
@@ -615,12 +615,12 @@ export function installNativeDebugger(editor) {
                 if(!complete)throw Error('wasm 事件流没有给出完成事件');
             }
         }catch(error){runStatus=error.name==='AbortError'?'cancelled':'failed';status(error.name==='AbortError'?'已停止，保留已收到的日志。':`运行失败：${error.message}`);}
-        finally{if(controller===current){el('run').disabled=false;el('stop').disabled=true;el('import').disabled=false;controller=null;}}
+        finally{if(controller===current){layerPanel.complete();el('run').disabled=false;el('stop').disabled=true;el('import').disabled=false;controller=null;}}
     };
     el('restore').onclick=()=>{if(snapshotSource){editor.setValue(snapshotSource);status('已载入日志对应源码；点击日志重现公式。');}};
     el('stop').onclick=()=>{streamWorker?.terminate();streamWorker=null;controller?.abort();};
     el('export').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify({version:3,status:runStatus,source:snapshotSource,rows,layer_snapshots:layerPanel.snapshots},null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='egglog-debug-history.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
-    el('import').onchange=async event=>{try{const file=event.target.files[0];if(!file)return;const data=JSON.parse(await file.text());if(![1,2,3].includes(data.version) || typeof data.source!=='string' || !Array.isArray(data.rows) || data.rows.some(r=>!['application','compose','fractal'].includes(r.kind) || typeof r.id!=='string'))throw Error('无效的日志格式');controller?.abort();snapshotSource=data.source;runStatus=data.status || 'unknown';rows=data.rows;layerPanel.reset();for(const f of data.layer_snapshots||[])layerPanel.receive(f);selected=null;el('preview').hidden=true;el('filter').onchange();status(`已载入 ${rows.length} 条公式快照（${runStatus}）；点击日志回放。`);}catch(error){status(error.message);}event.target.value='';};
+    el('import').onchange=async event=>{try{const file=event.target.files[0];if(!file)return;const data=JSON.parse(await file.text());if(![1,2,3].includes(data.version) || typeof data.source!=='string' || !Array.isArray(data.rows) || data.rows.some(r=>!['application','compose','fractal'].includes(r.kind) || typeof r.id!=='string'))throw Error('无效的日志格式');controller?.abort();snapshotSource=data.source;runStatus=data.status || 'unknown';rows=data.rows;layerPanel.reset();for(const f of data.layer_snapshots||[])layerPanel.receive(f);layerPanel.complete();selected=null;el('preview').hidden=true;el('filter').onchange();status(`已载入 ${rows.length} 条公式快照（${runStatus}）；点击日志回放。`);}catch(error){status(error.message);}event.target.value='';};
     // Expose read-only state for debugging and browser regression tests.
     window.egglogNative={get layerSnapshots(){return layerPanel.snapshots;},get rows(){return structuredClone(rows);},get selected(){return structuredClone(selected);},get rendered(){return renderedCount;}};
 }

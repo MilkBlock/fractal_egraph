@@ -180,6 +180,8 @@ class Handler(SimpleHTTPRequestHandler):
             if not 0 < length <= 2_000_000:
                 return self.reply(413, {'error': 'Source must be at most 2 MB'})
             data = json.loads(self.rfile.read(length))
+            if self.path == '/api/analysis-directories':
+                return self.reply(200, cell_egraph.directories(ROOT, data.get('source', '')))
             if self.path == '/api/cell-egraph':
                 return self.reply(200, cell_egraph.overview(ROOT, data['path']))
             if self.path == '/api/cell-egraph-state':
@@ -323,6 +325,7 @@ class Handler(SimpleHTTPRequestHandler):
                 run_id = uuid.uuid4().hex
                 run_folder = RUN_ROOT / run_id
                 (run_folder / 'rounds').mkdir(parents=True)
+                (run_folder / 'input.egg').write_text(data['source'])
                 # Prune *after* the new folder exists, so RUN_LIMIT counts it. Pruning first
                 # would keep RUN_LIMIT stale runs and then add one more.
                 prune_runs()
