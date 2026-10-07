@@ -1,0 +1,52 @@
+[
+  {
+    "entries": [
+      {
+        "accepted": false,
+        "reason": "CS member 51: internal fact before external injection failed: At 349:56 of egglog/src/fact_query.rs\nCheck failed: \n(= (HasType (Get (Arg (TupleT (TCons (IntT ) (TCons (StateT ) (TNil )))) (InFunc \"dummy\")) 1) (Base (StateT ))) (HasType (Get (Arg (TupleT (TCons (IntT ) (TCons (StateT ) (TNil )))) (InFunc \"dummy\")) 1) (Base (StateT ))))\n(= (Single (Get (Arg (TupleT (TCons (IntT ) (TCons (StateT ) (TNil )))) (InFunc \"dummy\")) 1)) (Single (Get (Arg (TupleT (TCons (IntT ) (TCons (StateT ) (TNil )))) (InFunc \"dummy\")) 1)))\n(= (StateT ) (StateT ))",
+        "record": 62
+      },
+      {
+        "accepted": false,
+        "reason": "CS member 51: internal fact before external injection failed: At 349:56 of egglog/src/fact_query.rs\nCheck failed: \n(= (HasType (Get (Arg (TupleT (TCons (IntT ) (TCons (StateT ) (TNil )))) (InFunc \"dummy\")) 1) (Base (StateT ))) (HasType (Get (Arg (TupleT (TCons (IntT ) (TCons (StateT ) (TNil )))) (InFunc \"dummy\")) 1) (Base (StateT ))))\n(= (Single (Get (Arg (TupleT (TCons (IntT ) (TCons (StateT ) (TNil )))) (InFunc \"dummy\")) 1)) (Single (Get (Arg (TupleT (TCons (IntT ) (TCons (StateT ) (TNil )))) (InFunc \"dummy\")) 1)))\n(= (StateT ) (StateT ))",
+        "record": 63
+      },
+      {
+        "accepted": true,
+        "reason": null,
+        "record": 64
+      },
+      {
+        "accepted": false,
+        "reason": "CS member 76: recorded output alias failed: At 349:56 of egglog/src/fact_query.rs\nCheck failed: \n(= (Single (Bop (Sub ) (Get (Arg (TupleT (TCons (StateT ) (TCons (IntT ) (TNil )))) (InFunc \"dummy\")) 1) (Const (Int 1) (TupleT (TCons (StateT ) (TCons (IntT ) (TNil )))) (InFunc \"dummy\")))) (Single (Bop (Sub ) (Get (Arg (TupleT (TCons (StateT ) (TCons (IntT ) (TNil )))) (InFunc \"dummy\")) 1) (Const (Int 1) (TupleT (TCons (StateT ) (TCons (IntT ) (TNil )))) (InFunc \"dummy\")))))\n(= (Single (Get (Arg (TupleT (TCons (StateT ) (TCons (IntT ) (TNil )))) (InFunc \"dummy\")) 0)) (Single (Get (Arg (TupleT (TCons (StateT ) (TCons (IntT ) (TNil )))) (InFunc \"dummy\")) 0)))\n(= (TCons (IntT ) (TNil )) (TCons (IntT ) (TNil )))\n(= (TCons (StateT ) (TNil )) (TCons (StateT ) (TNil )))\n(= (Concat (Single (Bop (Sub ) (Get (Arg (TupleT (TCons (StateT ) (TCons (IntT ) (TNil )))) (InFunc \"dummy\")) 1) (Const (Int 1) (TupleT (TCons (StateT ) (TCons (IntT ) (TNil )))) (InFunc \"dummy\")))) (Single (Get (Arg (TupleT (TCons (StateT ) (TCons (IntT ) (TNil )))) (InFunc \"dummy\")) 0))) (Concat (Single (Bop (Sub ) (Get (Arg (TupleT (TCons (StateT ) (TCons (IntT ) (TNil )))) (InFunc \"dummy\")) 1) (Const (Int 1) (TupleT (TCons (StateT ) (TCons (IntT ) (TNil )))) (InFunc \"dummy\")))) (Single (Get (Arg (TupleT (TCons (StateT ) (TCons (IntT ) (TNil )))) (InFunc \"dummy\")) 0))))\n(= (TupleT (TCons (IntT ) (TCons (StateT ) (TNil )))) (TupleT (TLConcat (TCons (IntT ) (TNil )) (TCons (StateT ) (TNil )))))",
+        "record": 76
+      }
+    ],
+    "mode": "saved_history"
+  },
+  {
+    "entries": [
+      {
+        "accepted": false,
+        "reason": "CS member 51: internal fact before external injection failed: At 349:56 of egglog/src/fact_query.rs\nCheck failed: \n(= (HasType (Get (Arg (TupleT (TCons (IntT ) (TCons (StateT ) (TNil )))) (InFunc \"dummy\")) 1) (Base (StateT ))) (HasType (Get (Arg (TupleT (TCons (IntT ) (TCons (StateT ) (TNil )))) (InFunc \"dummy\")) 1) (Base (StateT ))))\n(= (Single (Get (Arg (TupleT (TCons (IntT ) (TCons (StateT ) (TNil )))) (InFunc \"dummy\")) 1)) (Single (Get (Arg (TupleT (TCons (IntT ) (TCons (StateT ) (TNil )))) (InFunc \"dummy\")) 1)))\n(= (StateT ) (StateT ))",
+        "record": 62
+      },
+      {
+        "accepted": false,
+        "reason": "CS member 51: internal fact before external injection failed: At 349:56 of egglog/src/fact_query.rs\nCheck failed: \n(= (HasType (Get (Arg (TupleT (TCons (IntT ) (TCons (StateT ) (TNil )))) (InFunc \"dummy\")) 1) (Base (StateT ))) (HasType (Get (Arg (TupleT (TCons (IntT ) (TCons (StateT ) (TNil )))) (InFunc \"dummy\")) 1) (Base (StateT ))))\n(= (Single (Get (Arg (TupleT (TCons (IntT ) (TCons (StateT ) (TNil )))) (InFunc \"dummy\")) 1)) (Single (Get (Arg (TupleT (TCons (IntT ) (TCons (StateT ) (TNil )))) (InFunc \"dummy\")) 1)))\n(= (StateT ) (StateT ))",
+        "record": 63
+      },
+      {
+        "accepted": true,
+        "reason": null,
+        "record": 64
+      },
+      {
+        "accepted": true,
+        "reason": null,
+        "record": 76
+      }
+    ],
+    "mode": "rhs_lookup_history"
+  }
+]

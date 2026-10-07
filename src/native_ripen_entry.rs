@@ -363,6 +363,7 @@ fn extract(
         }
         let mut seeds = BTreeMap::new();
         let mut requirements = BTreeMap::new();
+        let mut rhs_requirements = BTreeMap::new();
         let mut env = BTreeMap::new();
         for (input, v) in r.inputs.iter().zip(&r.wanted) {
             if let Input::Var(name) = input {
@@ -380,7 +381,15 @@ fn extract(
             if let Input::Read(span) = input {
                 if !outside(r, port, &members) {
                     let term = subst(&rule.calls[span].1, &env)?;
-                    requirements.insert(term.to_string(), eq(term.clone(), term));
+                    // An existing RHS lookup can depend on an external nested
+                    // constructor lookup injected below. Check it after those
+                    // boundary facts, but before executing the original action.
+                    let checks = if rule.calls[span].0.starts_with("head/") {
+                        &mut rhs_requirements
+                    } else {
+                        &mut requirements
+                    };
+                    checks.insert(term.to_string(), eq(term.clone(), term));
                 }
             }
         }
@@ -664,6 +673,7 @@ fn extract(
         }
         commands.extend(facts);
         let lhs_start = commands.len();
+        commands.extend(rhs_requirements.into_values());
         for fact in &rule.rule.body {
             commands.push(check(match fact {
                 Fact::Eq(_, a, b) => Fact::Eq(sp(), subst(a, &env)?, subst(b, &env)?),
@@ -1013,6 +1023,79 @@ mod tests {
         update_layers(&mut c).unwrap();
         c
     }
+    #[test]
+    #[ignore = "manual four-entry eggcc TLConcat dependency recapture comparison"]
+    fn audit_rhs_lookup_recapture() {
+        let path = std::env::var("RIPSAT_SET_AUDIT_HISTORY").unwrap();
+        let mut old = history::read(Path::new(&path)).unwrap();
+        update_layers(&mut old).unwrap();
+        let new = captured(&old.preview_source);
+        let mut report = vec![];
+        for (name, c) in [("saved_history", &old), ("rhs_lookup_history", &new)] {
+            let mut cache = PreparationCache::default();
+            let entries: Vec<_> = c
+                .records
+                .iter()
+                .enumerate()
+                .filter(|(_, r)| {
+                    c.rules[r.rule]
+                        .rule
+                        .to_string()
+                        .contains("TLConcat tylist1 tylist2")
+                })
+                .take(4)
+                .map(|(i, _)| i)
+                .collect();
+            assert_eq!(entries.len(), 4);
+            let mut results = vec![];
+            for id in entries {
+                let mut members = BTreeSet::new();
+                let mut pending = vec![id];
+                while let Some(i) = pending.pop() {
+                    if members.insert(i) {
+                        pending.extend(c.records[i].parents.iter().copied());
+                    }
+                }
+                let result = cache.prepare(c, &members.into_iter().collect::<Vec<_>>());
+                results.push(json!({"record":id,"accepted":result.is_ok(),"reason":result.err().map(|e|e.to_string())}));
+            }
+            report.push(json!({"mode":name,"entries":results}));
+        }
+        let out = std::env::var("RIPSAT_RHS_AUDIT_OUTPUT").unwrap();
+        std::fs::write(out, serde_json::to_vec_pretty(&report).unwrap()).unwrap();
+    }
+
+    #[test]
+    fn rhs_existing_constructor_keeps_its_boundary_equality() {
+        let c = captured(
+            r#"
+            (datatype L (Nil) (Cons i64 L) (Cat L L))
+            (datatype Ty (Wrap L))
+            (datatype E (V))
+            (relation HasType (E Ty))
+            (ruleset normalize) (ruleset consume)
+            (rule ((= q (Cat (Cons n (Nil)) tail)))
+                  ((union q (Cons n tail))) :ruleset normalize)
+            (rule ((= x (V)) (= expected (Wrap (Cons 1 (Cons 2 (Nil))))))
+                  ((HasType x (Wrap (Cat (Cons 1 (Nil)) (Cons 2 (Nil))))))
+                  :ruleset consume :name "consumer")
+            (Cat (Cons 1 (Nil)) (Cons 2 (Nil)))
+            (Wrap (Cons 1 (Cons 2 (Nil)))) (V)
+            (run normalize 1) (run consume 1)
+        "#,
+        );
+        let id = c
+            .records
+            .iter()
+            .position(|r| c.rules[r.rule].rule.name == "consumer")
+            .unwrap();
+        let r = &c.records[id];
+        assert!(r.inputs.iter().any(
+            |i| matches!(i,Input::Read(span) if c.rules[r.rule].calls[span].0.starts_with("head/"))
+        ));
+        prepare_members(&c, &[id]).unwrap();
+    }
+
     #[test]
     fn new_constructor_set_result_and_forged_receipt() {
         let mut c = captured(

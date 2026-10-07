@@ -146,6 +146,7 @@ pub type RedundantRhsFilter = Arc<dyn Fn(&str, &[(&str, &[Value])]) -> bool + Se
 
 #[derive(Default)]
 struct TraceState {
+    rhs_lookup_reads: AtomicBool,
     rhs_filter: Mutex<Option<RedundantRhsFilter>>,
     skipped_rhs: Mutex<Vec<u64>>,
     next_event_id: AtomicU64,
@@ -204,6 +205,13 @@ impl TraceBatch {
     }
 }
 impl TraceSession {
+    /// Opt-in dependencies from successful constructor lookups in rule actions.
+    pub fn set_rhs_lookup_reads(&self, enabled: bool) {
+        self.state.rhs_lookup_reads.store(enabled, Ordering::Relaxed);
+    }
+    pub(crate) fn records_rhs_lookup_reads(&self) -> bool {
+        self.records_dependencies() && self.state.rhs_lookup_reads.load(Ordering::Relaxed)
+    }
     pub fn set_proven_redundant_rhs_filter(&self, filter: Option<RedundantRhsFilter>) {
         *self.state.rhs_filter.lock().unwrap() = filter;
     }
@@ -557,6 +565,7 @@ impl TraceSession {
             let producer = origin.as_ref().map(|p| p.match_event_id);
             let producer_write = origin.as_ref().and_then(|p| p.commit_event_id);
             out.push(RowReadEvent {
+                rhs_lookup: r.rhs_lookup,
                 planner_summary: r.planner_summary,
                 source_span: r.source_span,
                 event_id: self.state.next_event_id.fetch_add(1, Ordering::Relaxed),
@@ -682,6 +691,8 @@ pub struct WriteEvent {
 }
 #[derive(Clone, Debug)]
 pub struct RowReadEvent {
+    /// This read occurs during RHS evaluation, not LHS matching.
+    pub rhs_lookup: bool,
     /// Planner-only summary witness; source analyses should use expanded reads.
     pub planner_summary: bool,
     /// Source-file identity and byte range of the query atom before planning.
@@ -732,6 +743,7 @@ impl TraceCause {
     }
 }
 pub(crate) struct RowWitness {
+    pub rhs_lookup: bool,
     pub planner_summary: bool,
     pub source_span: Option<Arc<str>>,
     pub table: crate::TableId,

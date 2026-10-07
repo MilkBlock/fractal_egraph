@@ -294,6 +294,7 @@ fn capture_text_with_planner(
         }
     }
     let trace = TraceSession::with_dependencies();
+    trace.set_rhs_lookup_reads(true);
     let mut c = Captured {
         reuse_plan: Json::Null,
         reuse_signatures: BTreeSet::new(),

@@ -669,6 +669,7 @@ impl ExecutionState<'_> {
             };
             let producer = table.row_producer(&keys, &row.vals);
             reads.push(crate::trace::RowWitness {
+                    rhs_lookup: false,
                 planner_summary: source_plan.is_some(),
                 source_span: atom.source_span.clone(),
                 table: atom.table,
@@ -707,6 +708,7 @@ impl ExecutionState<'_> {
                     continue;
                 };
                 reads.push(crate::trace::RowWitness {
+                    rhs_lookup: false,
                     planner_summary: false,
                     source_span: source.source_span.clone(),
                     table: source.table,
@@ -833,6 +835,34 @@ impl ExecutionState<'_> {
                 // any offsets where the lookup failed, insert the default value.
                 let mut mask_copy = mask.clone();
                 table.lookup_row_vectorized(&mut mask_copy, bindings, args, *dst_col, *dst_var);
+                // Successful RHS lookups are dependencies too: a constructor
+                // may already have a canonical output established by an earlier
+                // union. Omitting this read loses the coarse boundary equality.
+                if let (Some((trace, event)), Some(span)) =
+                    (&self.buffers.trace_cause, &self.buffers.trace_source)
+                {
+                    if trace.records_rhs_lookup_reads() && table.supports_row_provenance() {
+                        for lane in 0..bindings.matches {
+                            if !mask_copy.contains(lane) { continue; }
+                            let key: Vec<Value> = args.iter().map(|arg| match arg {
+                                QueryEntry::Const(v) => *v,
+                                QueryEntry::Var(v) => bindings[*v][lane],
+                            }).collect();
+                            if let Some(row) = table.get_row(&key) {
+                                trace.record_reads(*event, vec![crate::trace::RowWitness {
+                                    rhs_lookup: true,
+                                    planner_summary: false,
+                                    source_span: Some(span.clone()),
+                                    table: *table_id,
+                                    table_name: self.db.table_info[*table_id].name.clone(),
+                                    producer: table.row_producer(&key, &row.vals),
+                                    key,
+                                    row: row.vals.to_vec(),
+                                }], false);
+                            }
+                        }
+                    }
+                }
                 mask_copy.symmetric_difference(mask);
                 if mask_copy.is_empty() {
                     return;
