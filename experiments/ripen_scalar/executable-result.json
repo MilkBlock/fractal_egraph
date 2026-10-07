@@ -1,0 +1,112 @@
+{
+  "record": 2628,
+  "prepared": true,
+  "done": true,
+  "lowering": {
+    "certifies_original_full_saturation": false,
+    "concrete_size_checks_replaced": 6,
+    "lifted_functions": [
+      "Expr-size",
+      "ListExpr-size",
+      "to-hoist-size"
+    ],
+    "schema": "ripsat-symbolic-size/v1",
+    "semantics": "closure under explicit symbolic path assumptions; unproved scalar guards remain deferred"
+  },
+  "symbolic_size_rows": [
+    {
+      "op": "Expr-size",
+      "args": [
+        0
+      ],
+      "result": 7
+    },
+    {
+      "op": "Expr-size",
+      "args": [
+        3
+      ],
+      "result": 8
+    },
+    {
+      "op": "Expr-size",
+      "args": [
+        5
+      ],
+      "result": 8
+    },
+    {
+      "op": "RSMin",
+      "args": [
+        6,
+        7
+      ],
+      "result": 8
+    },
+    {
+      "op": "RSMin",
+      "args": [
+        8,
+        7
+      ],
+      "result": 8
+    },
+    {
+      "op": "RSParam",
+      "args": [
+        1
+      ],
+      "result": 6
+    },
+    {
+      "op": "RSParam",
+      "args": [
+        9
+      ],
+      "result": 7
+    }
+  ],
+  "values": [
+    {
+      "sort": "Expr",
+      "literal": null
+    },
+    {
+      "sort": "i64",
+      "literal": "0"
+    },
+    {
+      "sort": "___AddGetsSort",
+      "literal": null
+    },
+    {
+      "sort": "Expr",
+      "literal": null
+    },
+    {
+      "sort": "___AddGetsSort",
+      "literal": null
+    },
+    {
+      "sort": "Expr",
+      "literal": null
+    },
+    {
+      "sort": "RipenSize",
+      "literal": null
+    },
+    {
+      "sort": "RipenSize",
+      "literal": null
+    },
+    {
+      "sort": "RipenSize",
+      "literal": null
+    },
+    {
+      "sort": "i64",
+      "literal": "1"
+    }
+  ],
+  "training_size_literals_in_state": false
+}

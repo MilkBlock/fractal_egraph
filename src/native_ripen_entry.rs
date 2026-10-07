@@ -2,6 +2,8 @@
 use super::super::*;
 #[path = "ripen_scalar.rs"]
 mod scalar;
+#[path = "ripen_symbolic_egg.rs"]
+mod symbolic_egg;
 
 #[cfg(test)]
 thread_local! { static LEGACY_SET_RESULT_CHECK: std::cell::Cell<bool> = const { std::cell::Cell::new(false) }; }
@@ -971,13 +973,32 @@ fn extract(
         .filter_map(|p| p["token"].as_u64())
         .map(|v| values[&(v as usize)].to_string())
         .collect();
-    let provenance = json!({"replay_plan":{"environment_end":environment_len,"parameter_end":parameter_end,"stages":replay_stages},"reuse_recipe":recipe,"reuse_interface_terms":{"upper":upper_terms,"lower":lower_terms},"kind":"symbolic_cs_interface","template":null,"members":member_ids,"root_member":root_member,"comb_members":comb_members,"kind_scope":"use_kind is relative to directly recorded dependencies inside this CS entry; source_kind is the original layer classification; neither minimizes alternate proof requirements",
+    let mut provenance = json!({"replay_plan":{"environment_end":environment_len,"parameter_end":parameter_end,"stages":replay_stages},"reuse_recipe":recipe,"reuse_interface_terms":{"upper":upper_terms,"lower":lower_terms},"kind":"symbolic_cs_interface","template":null,"members":member_ids,"root_member":root_member,"comb_members":comb_members,"kind_scope":"use_kind is relative to directly recorded dependencies inside this CS entry; source_kind is the original layer classification; neither minimizes alternate proof requirements",
         "events":stages.iter().map(|(i,e,n,_,_)|json!({"record":i,"event":e,"precondition_checks":n})).collect::<Vec<_>>(),
         "initial_tables":initial_tables,"original_use_tables":original_tables,"parameter_marker":hole,"parameter_markers":environment.holes,
         "symbolic_values":values.iter().map(|(token,term)|json!({"token":token,"term":term.to_string(),"sort":c.pool.values[*token].sort})).collect::<Vec<_>>(),
         "parameters":parameters,"excluded_seed_rules":c.rules.iter().filter(|r|r.rule.body.is_empty()).map(|r|r.rule.name.clone()).collect::<Vec<_>>(),"all_source_rules":c.rules.len(),"validation":"all original LHS checks and recorded output aliases passed before/after the corresponding ground actions",
         "analysis_program":scalar_program.report(),"set_update_witnesses":update_evidence,"staged_injections":injections,"initial_source":seed_text,"concrete_boundary_structure_recovered":false,
         "saturated_scope":"extracted interface only; not the complete original tier0 neighborhood"});
+    let analysis = &provenance["analysis_program"];
+    if analysis["instance_inputs"]
+        .as_array()
+        .is_some_and(|p| !p.is_empty())
+    {
+        match symbolic_egg::compile(&entry, analysis) {
+            Ok((symbolic_text, commands, lowering)) => {
+                provenance["symbolic_lowering"] = lowering;
+                cache
+                    .prepared_commands
+                    .insert(symbolic_text.clone(), commands);
+                elapsed!("encode_result_provenance", output_tick);
+                return Ok((symbolic_text, validation, provenance));
+            }
+            Err(reason) => {
+                provenance["symbolic_lowering"] = json!({"status":"unsupported","reason":reason.to_string(),"execution":"concrete replay retained"});
+            }
+        }
+    }
     elapsed!("encode_result_provenance", output_tick);
     Ok((text, validation, provenance))
 }
@@ -1088,7 +1109,26 @@ mod tests {
                 .iter()
                 .position(|r| c.rules[r.rule].rule.name == "grow")
                 .unwrap();
-            let (_, _, origin) = prepare_members(&c, &[id]).unwrap();
+            let (program, _, origin) = prepare_members(&c, &[id]).unwrap();
+            assert!(
+                program.starts_with("; ripsat-symbolic-size/v1"),
+                "{}",
+                origin["symbolic_lowering"]
+            );
+            let mut symbolic = EGraph::default();
+            symbolic.parse_and_run_program(None, &program).unwrap();
+            let output = origin["analysis_program"]["template"]["final_fields"]
+                .as_object()
+                .unwrap()
+                .keys()
+                .find(|k| k.contains("(Out "))
+                .unwrap();
+            symbolic
+                .parse_and_run_program(
+                    None,
+                    &format!("(check (= {output} (RSAdd (RSParam 0) (RSConst 1))))"),
+                )
+                .unwrap();
             let a = &origin["analysis_program"];
             assert_eq!(a["complete"], true, "{a}");
             assert_eq!(

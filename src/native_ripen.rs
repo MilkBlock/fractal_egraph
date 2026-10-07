@@ -6,6 +6,7 @@ mod entry;
 mod graft;
 pub(super) use graft::Plan as GraftPlan;
 pub(super) fn graft_plan(cache: &PreparationCache, parent: &str, po: &Json, child: &str, co: &Json) -> Result<GraftPlan> {
+    if parent.starts_with("; ripsat-symbolic-size/v1") || child.starts_with("; ripsat-symbolic-size/v1") {return Err("symbolic-size environments require their own initialization".into());}
     graft::plan(cache.prepared_commands.get(parent).ok_or("missing parent preparation")?,po,cache.prepared_commands.get(child).ok_or("missing child preparation")?,co)
 }
 pub(super) use entry::PreparationCache;
@@ -79,6 +80,9 @@ impl Session {
         Self::new_impl(source, out, None, None, None)
     }
     pub(super) fn new_cached(source: &Path, out: &Path, cache: &PreparationCache) -> Result<Self> {
+        if std::fs::read_to_string(source)?.starts_with("; ripsat-symbolic-size/v1") {
+            return Self::new_impl(source, out, None, Some(&cache.prepared_commands), None);
+        }
         if let Some(reason) = cache
             .environment
             .as_ref()
@@ -746,7 +750,7 @@ fn export_state(
     let mut state = SaturatedRuleComposition {
         version: 2,
         local_ids,
-        scope: json!({"datatype":name,"constructors":sorted.iter().map(|(output,v)|{let mut item=json!({"name":v.name,"types":v.types,"cost":v.cost.map(|x|x.to_string()),"unextractable":v.unextractable});if names.len()>1 {item["output"]=json!(output);}item}).collect::<Vec<_>>(),"rules":rules,"symbolic_boundary":symbolic,"semantics":if observation_only{"observed-constructor-graph/v1"}else{"positive-constructor-equality/v1"},"observation_only":observation_only,"seed_policy":if c.rules.iter().any(|r|r.rule.body.is_empty()) {"source includes zero-premise rules"}else{"no zero-premise rules in this local environment"},"ports":"fixed named globals; otherwise all facts observable"}),
+        scope: json!({"datatype":name,"constructors":sorted.iter().map(|(output,v)|{let mut item=json!({"name":v.name,"types":v.types,"cost":v.cost.map(|x|x.to_string()),"unextractable":v.unextractable});if names.len()>1 {item["output"]=json!(output);}item}).collect::<Vec<_>>(),"rules":rules,"symbolic_boundary":symbolic,"semantics":if observation_only{"observed-constructor-graph/v1"}else{"positive-constructor-equality/v1"},"observation_only":observation_only,"symbolic_size_conditions":c.preview_source.starts_with("; ripsat-symbolic-size/v1"),"seed_policy":if c.rules.iter().any(|r|r.rule.body.is_empty()) {"source includes zero-premise rules"}else{"no zero-premise rules in this local environment"},"ports":"fixed named globals; otherwise all facts observable"}),
         values,
         subsumed_rows: rows
             .iter()
