@@ -11,14 +11,14 @@ export function model(data) {
 }
 const q=JSON.stringify;
 export function overviewDot(m){
-  const lines=['digraph Cells {rankdir=LR; node [shape=box,style="rounded,filled",fillcolor="#e8eef9"];'];
+  const lines=['digraph Cells {rankdir=TB; node [shape=box,style="rounded,filled",fillcolor="#e8eef9"];'];
   for(const [c,ns] of m.classes)lines.push(`"c${c}" [label=${q(`Cell e${c}\n${ns.length} constructions`)},URL=${q(`#cell-class-${c}`)}];`);
   for(const [c,ns] of m.classes)for(const n of ns){lines.push(`"u${n.unit}" [shape=ellipse,fillcolor="#f8edcf",label=${q(`CoarseApply ${n.contract}`)},URL=${q(`#cell-unit-${n.unit}`)}];`);lines.push(`"u${n.unit}" -> "c${c}";`);for(const p of n.parents||[]){const parent=m.units.get(p);if(parent)lines.push(`"c${parent.eclass}" -> "u${n.unit}";`);}}
   return lines.join('\n')+'\n}';
 }
 export function bodyDot(state,highlight=[]){
   const selected=new Set(highlight),hidden=new Set(state.subsumed_rows||[]);
-  const lines=['digraph Body {rankdir=LR; node [fontname="Helvetica",fontsize=11];'];
+  const lines=['digraph Body {rankdir=TB; node [fontname="Helvetica",fontsize=11];'];
   for(const [i,v] of (state.values||[]).entries())lines.push(`"v${i}" [shape=ellipse,label=${q(v.literal??`${v.sort} · ${i}`)},color="#8893a8"];`);
   for(const [i,r] of (state.rows||[]).entries()){
     const color=selected.has(i)?'#ffc477':hidden.has(i)?'#eeeeee':'#dceee6';

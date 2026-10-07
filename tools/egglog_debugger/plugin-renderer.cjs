@@ -223,6 +223,8 @@ async function renderPreview(plugin, request) {
             if (rendered.dot) { dot = rendered.dot; patternRenderer = 'wasm'; }
         } catch { /* The extension uses the TypeScript renderer if this bundle is absent. */ }
     }
+    const graphEnd = dot.lastIndexOf('}');
+    if (graphEnd >= 0) dot = dot.slice(0, graphEnd) + '\n graph [rankdir=TB];\n' + dot.slice(graphEnd);
     const graphSvg = await plugin.load('svg').dotToSvg(dot);
     const core = plugin.load('shared/typstCore');
     const formula = typstRenderings[formulaTarget];

@@ -21,7 +21,7 @@ fn graph(nodes: Vec<Json>, edges: Vec<Json>) -> Json {
 }
 fn dots(title: &str, g: &Json) -> String {
     let mut s = format!(
-        "digraph G {{\n  graph [rankdir=LR, label={}, labelloc=t];\n  node [shape=box, style=filled, fontname=Helvetica];\n",
+        "digraph G {{\n  graph [rankdir=TB, label={}, labelloc=t];\n  node [shape=box, style=filled, fontname=Helvetica];\n",
         quoted(title)
     );
     for n in g["nodes"].as_array().unwrap() {

@@ -395,7 +395,7 @@ pub(crate) fn refresh_catalog(inputs: &[std::path::PathBuf], out: &Path) -> Resu
     }).collect();
     let report = json!({"timings":{"read_seconds":read_seconds,"key_seconds":key_seconds,"compare_seconds":compare_seconds},"schema":"saturated-rule-composition-catalog/v1","scope":"exact complete constructor-state sharing with fixed named ports; triggers remain separate; no tier0 substitution", "unresolved_comparisons":0,"saturated_rule_compositions":states.len(),"state_groups":state_groups,"comb_groups":comb_groups,"triggers":triggers,"comparisons":comparisons});
     if crate::graph_render::graphs_enabled() {
-        let mut dot = String::from("digraph ClosedCatalog { rankdir=LR; node [shape=box];\n");
+        let mut dot = String::from("digraph ClosedCatalog { rankdir=TB; node [shape=box];\n");
         for (i, state) in states.iter().enumerate() {
             let label = format!(
                 "SaturatedRuleComposition C{i}\n{} values / {} facts",

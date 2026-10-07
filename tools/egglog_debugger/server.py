@@ -32,6 +32,12 @@ RUN_ROOT = ROOT / 'out' / 'debugger'
 RUN_LIMIT = max(1, int(os.environ.get('EGG_LAYOUT_DEBUGGER_RUNS', '3')))
 
 
+def vertical_dot(source):
+    # Override graph attributes after the generated body, without editing labels.
+    end = source.rfind('}')
+    return source[:end] + '\n  graph [rankdir=TB];\n' + source[end:] if end >= 0 else source
+
+
 def prune_runs(keep=RUN_LIMIT):
     """Delete the oldest run directories beyond `keep`. Best effort, never raises.
 
@@ -232,6 +238,10 @@ class Handler(SimpleHTTPRequestHandler):
                                   ('initial_svg','native-egraph-initial.svg')):
                     path = cell / name
                     body[key] = path.read_text() if path.is_file() else None
+                for dot_key, svg_key in [('dot', 'svg'), ('initial_dot', 'initial_svg')]:
+                    if body.get(dot_key):
+                        body[dot_key] = vertical_dot(body[dot_key])
+                        body[svg_key] = None  # Re-render legacy horizontal SVG from its DOT.
                 return self.reply(200, body)
             if self.path == '/api/layer-run':
                 folder = (ROOT / data['path']).resolve()
@@ -290,7 +300,7 @@ class Handler(SimpleHTTPRequestHandler):
                     if kind not in ('typst', 'dot'):
                         return self.reply(400, {'error': 'Unknown renderer'})
                     src = folder / ('formula.typ' if kind == 'typst' else 'graph.dot')
-                    src.write_text(data['source'])
+                    src.write_text(vertical_dot(data['source']) if kind == 'dot' else data['source'])
                     dest = folder / 'preview.svg'
                     command = (['typst', 'compile', '--root', str(folder), str(src), str(dest)]
                                if kind == 'typst' else ['dot', '-Tsvg', str(src), '-o', str(dest)])

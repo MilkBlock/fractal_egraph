@@ -39,7 +39,7 @@ pub(super) fn render(rule: &Rule) -> Json {
         }
         id
     }
-    let mut lines = vec!["digraph pattern { rankdir=LR;".into()];
+    let mut lines = vec!["digraph pattern { rankdir=TB;".into()];
     let mut next = 0;
     lines.push("subgraph cluster_match { label=\"match / pattern\";".into());
     let mut body = vec![];

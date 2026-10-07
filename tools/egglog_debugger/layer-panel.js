@@ -103,7 +103,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         const autoNote=auto?'（概览下已自动选择 C0；此图按单个 SaturatedRuleComposition 显示。）':'';
         if(kind==='egraph'){
             const data=catalogData.states[Number(state)],q=JSON.stringify;
-            const lines=['digraph G {rankdir=LR; node [shape=box];'];
+            const lines=['digraph G {rankdir=TB; node [shape=box];'];
             const nodes=[];
             data.values.forEach((v,i)=>{
                 nodes.push({id:'v'+i,detail:{class:i,...v}});
@@ -350,7 +350,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         return {...g,nodes:g.nodes.filter(n=>keep.has(n.id)),edges:g.edges.filter(e=>keep.has(e.from)&&keep.has(e.to))};
     }
     function dot(g){
-        const q=JSON.stringify,lines=['digraph G { rankdir=LR; node [shape=box,style=filled];'];
+        const q=JSON.stringify,lines=['digraph G { rankdir=TB; node [shape=box,style=filled];'];
         for(const n of g.nodes)lines.push(`${q(n.id)} [label=${q(n.label)},fillcolor=${q({coarse:'#fce6c9',smooth:'#dff2ec',fractal:'#e9e1fa',trigger:'#fbd5d0'}[n.kind]||'#edf0f5')}];`);
         if(g.sinks?.length)lines.push('{rank=sink;'+g.sinks.map(q).join(';')+';}');
         for(const e of g.edges)lines.push(`${q(e.from)} -> ${q(e.to)} [label=${q(e.label)}];`);
