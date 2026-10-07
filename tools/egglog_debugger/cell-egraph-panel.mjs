@@ -41,9 +41,9 @@ export function pathTypst(m,root,choices){
   // Same local Typst renderer and upright/arrow convention as existing fractal lanes.
   return '#set page(width: auto, height: auto, margin: 12pt)\n#set text(size: 11pt)\n#stack(dir: ttb, spacing: 8pt,\n'+items.join(',\n')+'\n)';
 }
-export function installCellPanel(parent,{post,mountSvg,previewRow}){
+export function installCellPanel(parent,{post,mountSvg,previewRow,standalone=false}){
   const panel=document.createElement('section');panel.id='native-cell-egraph';panel.hidden=true;
-  panel.innerHTML=`<header data-role="toolbar"><button data-role="fullscreen">全屏看图</button><label>快照 <select data-role="snapshot"><option value="">最新（自动跟随）</option></select></label></header><p><b>RipSatCell egraph</b> · 点击状态查看内部图与生成方式</p>
+  panel.innerHTML=`<header data-role="toolbar"><button data-role="fullscreen">打开独立看图页</button><label>快照 <select data-role="snapshot"><option value="">最新（自动跟随）</option></select></label></header><p><b>RipSatCell egraph</b> · 点击状态查看内部图与生成方式</p>
     <div data-role="status"></div><label>Cell e-class <select data-role="class"></select></label>
     <label>当前构造路径 <select data-role="unit"></select></label>
     <p data-role="guarantee" style="padding:10px;background:#edf1f7;color:#182338;border-radius:6px"></p>
@@ -66,10 +66,14 @@ export function installCellPanel(parent,{post,mountSvg,previewRow}){
   for(const child of [...panel.children])if(child!==el('toolbar')&&child!==graphPane)inspector.append(child);
   workspace.append(graphPane,inspector);panel.append(workspace);
   el('body').closest('details').dataset.section='body';
-  let oldOverflow='';
-  function fullscreen(on){panel.classList.toggle('cell-fullscreen',on);el('fullscreen').textContent=on?'退出全屏（Esc）':'全屏看图';if(on){oldOverflow=document.body.style.overflow;document.body.style.overflow='hidden';graphPane.open=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');if(m&&!el('overview').childNodes.length)svg('dot',overviewDot(m),el('overview')).catch(fail);}else{document.body.style.overflow=oldOverflow;panel.removeAttribute('role');panel.removeAttribute('aria-modal');}}
-  el('fullscreen').onclick=()=>fullscreen(!panel.classList.contains('cell-fullscreen'));
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&panel.classList.contains('cell-fullscreen'))fullscreen(false);});
+  if(standalone){panel.classList.add('cell-fullscreen');graphPane.open=true;el('fullscreen').hidden=true;}
+  el('fullscreen').onclick=()=>{
+    if(!path)return;
+    const url=new URL('/cell-viewer.html',location.href);url.searchParams.set('layer_run',path);
+    if(snapshot)url.searchParams.set('cell_snapshot',snapshot);
+    if(selected)url.searchParams.set('cell_unit',selected.unit);
+    window.open(url,'_blank','noopener');
+  };
   const choices=new Map();
   function fail(e){el('error').textContent=e.message||String(e);}
   async function svg(kind,source,host,token=epoch){
@@ -126,7 +130,7 @@ export function installCellPanel(parent,{post,mountSvg,previewRow}){
   el('class').onchange=()=>selectClass(Number(el('class').value));el('unit').onchange=()=>selectUnit(Number(el('unit').value));el('body-kind').onchange=()=>body().catch(fail);
   el('typst-button').onclick=async()=>{try{if(!selected)return;const root=choices.get(selected.eclass)||selected;const src=pathTypst(m,root,choices);el('source').textContent=src;await svg('typst',src,el('typst'));}catch(e){fail(e);}};
   const all=el('overview').parentElement;all.ontoggle=()=>{if(all.open&&m&&!el('overview').childNodes.length)svg('dot',overviewDot(m),el('overview')).catch(fail);};
-  const api={panel,noteSnapshot(frame){if(frame.artifact_directory===path&&frame.stem&&![...el('snapshot').options].some(o=>o.value===frame.stem))el('snapshot').add(new Option(frame.label||frame.stem,frame.stem));},get snapshot(){return snapshot;},get path(){return path;},clear(){if(panel.classList.contains('cell-fullscreen'))fullscreen(false);epoch++;selected=null;detail=null;m=null;panel.hidden=true;for(const name of ['body','paths','typst','rule-svg','evidence','overview','status','guarantee','error'])el(name).replaceChildren();},get source(){return detail?.preview_source||'';},download(){if(!m)return;const a=document.createElement('a'),u=URL.createObjectURL(new Blob([overviewDot(m)],{type:'text/vnd.graphviz'}));a.href=u;a.download='ripsat-cell-egraph.dot';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);},async load(p,round){if(round!==undefined)snapshot=round;else if(p!==path)snapshot='';path=p;const token=++epoch;const received=await(await post('cell-egraph',{path,snapshot})).json();if(token!==epoch)return;data=received;el('snapshot').replaceChildren(new Option('最新（自动跟随）',''));for(const f of data.snapshots||[])el('snapshot').add(new Option(f.label||`Round ${f.round??f.stem}`,f.stem));el('snapshot').value=snapshot;m=model(data);choices.clear();el('overview').replaceChildren();el('class').replaceChildren();
+  const api={panel,noteSnapshot(frame){if(frame.artifact_directory===path&&frame.stem&&![...el('snapshot').options].some(o=>o.value===frame.stem))el('snapshot').add(new Option(frame.label||frame.stem,frame.stem));},get snapshot(){return snapshot;},get path(){return path;},clear(){epoch++;selected=null;detail=null;m=null;panel.hidden=true;for(const name of ['body','paths','typst','rule-svg','evidence','overview','status','guarantee','error'])el(name).replaceChildren();},get source(){return detail?.preview_source||'';},download(){if(!m)return;const a=document.createElement('a'),u=URL.createObjectURL(new Blob([overviewDot(m)],{type:'text/vnd.graphviz'}));a.href=u;a.download='ripsat-cell-egraph.dot';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);},async load(p,round){if(round!==undefined)snapshot=round;else if(p!==path)snapshot='';path=p;const token=++epoch;const received=await(await post('cell-egraph',{path,snapshot})).json();if(token!==epoch)return;data=received;el('snapshot').replaceChildren(new Option('最新（自动跟随）',''));for(const f of data.snapshots||[])el('snapshot').add(new Option(f.label||`Round ${f.round??f.stem}`,f.stem));el('snapshot').value=snapshot;m=model(data);choices.clear();el('overview').replaceChildren();el('class').replaceChildren();
     for(const [c,ns] of m.classes)el('class').add(new Option(`e${c} · ${ns.length} 条构造 · 入度 ${m.degree(c)}`,c));
     el('status').textContent=`${m.classes.size} 个 e-class，${data.nodes.length} 条已登记构造；认证合并 ${data.certified_unions}。${data.note}`;
     if(!m.classes.size){el('guarantee').textContent='此分析目录没有 Cell egraph 登记数据。';for(const name of ['body','paths','typst','evidence'])el(name).replaceChildren();selected=null;detail=null;return;}

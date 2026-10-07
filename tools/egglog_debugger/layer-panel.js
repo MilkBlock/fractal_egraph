@@ -9,6 +9,7 @@ export function installLayerPanel(host,{post,previewRow,mountSvg,editor}) {
   host.append(panel);
   const $=name=>panel.querySelector('#native-layer-'+name);
   const view=installCellPanel(panel,{post,previewRow,mountSvg});
+  const roundChannel=typeof BroadcastChannel==='undefined'?null:new BroadcastChannel('ripsat-rounds');
   let frames=[],source=null,refreshEpoch=0,lastDirectory='',running=false;
   let initial=new URLSearchParams(location.search).get('layer_run');
   if(new URLSearchParams(location.search).has('example'))initial=null;
@@ -50,7 +51,7 @@ export function installLayerPanel(host,{post,previewRow,mountSvg,editor}) {
   $('source').onclick=()=>{if(view.source)editor.setValue(view.source);};
   $('download').onclick=()=>view.download();
   function reset(){frames=[];running=true;refreshEpoch++;lastDirectory='';clearSelection();$('status').textContent='正在分析当前 .egg，结果生成后自动选中。';}
-  function receive(frame){frames.push(frame);if(frame.artifact_directory){const path=frame.artifact_directory;lastDirectory=path;view.noteSnapshot(frame);if(!view.snapshot||view.path!==path)load(path).catch(e=>$('error').textContent=e.message);}}
+  function receive(frame){frames.push(frame);if(frame.artifact_directory)roundChannel?.postMessage({path:frame.artifact_directory,stem:frame.stem});if(frame.artifact_directory){const path=frame.artifact_directory;lastDirectory=path;view.noteSnapshot(frame);if(!view.snapshot||view.path!==path)load(path).catch(e=>$('error').textContent=e.message);}}
   function progress(q){$('status').textContent='Ripen · '+Object.entries(q.counts||{}).map(([k,v])=>`${k} ${v}`).join(' / ');}
   async function complete(){running=false;await refresh(true,true);}
   clearSelection();queueMicrotask(()=>refresh(true));
