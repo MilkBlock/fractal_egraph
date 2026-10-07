@@ -3,7 +3,9 @@ import argparse,hashlib,json,pathlib,datetime
 from zoneinfo import ZoneInfo
 p=argparse.ArgumentParser();p.add_argument('--input',type=pathlib.Path,default=pathlib.Path('out/eggcc-pass-audit'));p.add_argument('--library',type=pathlib.Path,default=pathlib.Path('out/ripsat-coverage-remeasure-merged/train/library.json'));p.add_argument('--output',type=pathlib.Path,default=pathlib.Path('experiments/eggcc_passes/results.json'));a=p.parse_args()
 rows=[]
-for name in ['fact','loopfact']:
+for directory in sorted(a.input.iterdir()):
+ if not directory.is_dir() or not (directory/'pass-1.json').exists():continue
+ name=directory.name
  for i in range(1,4):
   folder=a.input/name;t=json.loads((folder/f'pass-{i}.json').read_text());c=json.loads((folder/f'coverage-stage{i}/report.json').read_text());s=c['structure'];m=c['matches'];e=c['effective_matches']
   assert c['same_final_state_as_native_control']

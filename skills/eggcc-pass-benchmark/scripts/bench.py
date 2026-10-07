@@ -17,7 +17,9 @@ for name in ['check', 'run']:
     q = s.add_parser(name)
     q.add_argument('--library', type=pathlib.Path, default=pathlib.Path('out/ripsat-coverage-remeasure-merged/train/library.json'))
     q.add_argument('--profile-binary', type=pathlib.Path, default=pathlib.Path('out/eggcc-pass-audit/eggcc-profile'))
-    if name == 'run': q.add_argument('--output', type=pathlib.Path)
+    if name == 'run':
+        q.add_argument('--output', type=pathlib.Path)
+        q.add_argument('--source', type=pathlib.Path, action='append')
 a = p.parse_args(); repo = a.repo.resolve()
 def resolve(path): return path if path.is_absolute() else repo / path
 
@@ -52,5 +54,5 @@ else:
     if a.mode == 'run':
         stamp=datetime.datetime.now(ZoneInfo('Asia/Shanghai')).strftime('%Y%m%d-%H%M%S')
         dest=resolve(a.output or pathlib.Path('out')/('eggcc-passes-'+stamp))
-        subprocess.run([sys.executable,str(repo/'experiments/eggcc_passes/run.py'),'--output',str(dest),'--library',str(resolve(a.library)),'--profile-binary',str(resolve(a.profile_binary))],cwd=repo,check=True)
+        subprocess.run([sys.executable,str(repo/'experiments/eggcc_passes/run.py'),'--output',str(dest),'--library',str(resolve(a.library)),'--profile-binary',str(resolve(a.profile_binary))]+[arg for source in (a.source or []) for arg in ['--source',str(resolve(source))]],cwd=repo,check=True)
         report(dest/'summary.json', fresh=True)

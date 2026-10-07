@@ -20,6 +20,9 @@ description: 统计 eggcc 各 pass 的执行、search、RHS、insert/merge、reb
 - **重绘其他结果**：
   `python3 "$SKILL/scripts/bench.py" report --input out/某次运行/summary.json`
 
+- **指定样例**：`python3 "$SKILL/scripts/bench.py" run --source ../check_statewalk/benchmarks/passing/raytrace/raytrace.rs`
+  `--source` 可重复。使用 `optimized-pretty-print`，与 `dag-optimize` 调用同一优化流程，但不执行 Graphviz；不要把画图耗时算成编译推理时间。
+
 不要因为“重新统计”就重建所有工具、重新 analyze、重新采集 trace 或 bake。覆盖率使用现有冻结库。用户要求重新 bake 或不同样例时，明确扩展现有 runner，而不是把默认两个样例当成不可更改要求。
 
 ## 缺依赖才读这里
