@@ -95,29 +95,29 @@ EGGLOG_PROBE_COUNTS=1 egglog/target/release/egglog /tmp/rt.egg --report-level ti
 | `TableVersion { major: Generation, minor: Offset }` — `core-relations/src/table_spec.rs:43-51` | `major` 变化**作废所有 RowId**；`minor` 只是"表变长了"的追加偏移 |
 | `Table::version()` → `(self.generation, next_row_id())` — `table/mod.rs:518-523` | 每次访问时取当前版本 |
 | `Table::updates_since(offset)` → 新增行的 dense range — `table/mod.rs:525-528` | 增量重建的输入 |
-| `TableInfo.column_indexes: IndexCatalog<ColumnId, HashColumnIndex>`、`TableInfo.indexes: IndexCatalog<SmallVec<[ColumnId;4]>, HashIndex>` — `free_join/mod.rs:139-140` | **缓存索引的仓库**：单列索引一张 catalog，复合（多列）索引另一张 |
+| `TableInfo.indexes: IndexCatalog<SmallVec<[ColumnId;4]>, HashIndex>`、`TableInfo.column_indexes: IndexCatalog<ColumnId, HashColumnIndex>`（两个成员都声明为 `Arc<ResettableOnceLock<Index<_>>>`）— `core-relations/src/free_join/mod.rs:138-139` | **缓存索引的仓库**：单列索引一张 catalog，复合（多列）索引另一张 |
 
 ### B. 失效（谁把它们弄脏）
 
 | 代码 | 作用 |
 |---|---|
-| **`Database::merge_all` 结尾** — `free_join/mod.rs:748-756`<br>注释原文：*"Reset all indexes to force an update on the next access"* | **每轮 merge 之后，把全库每张表的两个索引 catalog 全部 `reset()`**——不是只 reset 变了的表 |
-| `Database::materialize_virtual_table` — `free_join/mod.rs:953-958` | 虚拟行物化后同样 reset（且不宣告逻辑插入） |
-| `Database::install_compact_cells` — `free_join/mod.rs:1040` | 直接换成新的空 catalog |
-| `ResettableOnceLock` / `Once` — `concurrency/src/resettable_oncelock.rs:20-60` | `get()` 只在 completed 时返回；`reset()` 把 `Once` 复位；`get_or_update` 只在未 completed 时跑更新闭包 |
+| **`Database::merge_all` 结尾** — `core-relations/src/free_join/mod.rs:748-761`<br>注释原文：*"Reset all indexes to force an update on the next access"* | **每轮 merge 之后，把全库每张表的两个索引 catalog 全部 `reset()`**——不是只 reset 变了的表 |
+| `Database::materialize_virtual_table` — `core-relations/src/free_join/mod.rs:948-950,954-958` | 虚拟行物化后同样 reset（且不宣告逻辑插入） |
+| `Database::install_compact_cells` — `core-relations/src/free_join/mod.rs:1092-1106`（最后一行 `info.indexes=IndexCatalog::new(); info.column_indexes=IndexCatalog::new();`） | 直接换成新的空 catalog |
+| `ResettableOnceLock` — `concurrency/src/resettable_oncelock.rs:20`（`get` :36、`get_or_update` :46、`reset` :66） | `get()` 只在 completed 时返回；`reset()` 把 `Once` 复位；`get_or_update` 只在未 completed 时跑更新闭包 |
 
-调用频率：`merge_all` 每个 ruleset run 调用一次（`free_join/execute.rs:671-673`，也就是 `RuleSetReport.merge_time` 计的那一段）。
+调用频率：`merge_all` 每个 ruleset run 调用一次（`core-relations/src/free_join/execute.rs:683`，计时在 :682-684，就是 `RuleSetReport.merge_time` 计的那一段）。
 raytrace pass 3 有 10,123 次迭代 × 261 张表 → 数百万次 `reset`（单独很便宜，我实测 `merge_time` 合计仅 0.33 s/3 pass）。
 
 ### C. 重建（谁真正干活）
 
 | 代码 | 作用 |
 |---|---|
-| `get_column_index_from_tableinfo` / `get_index_from_tableinfo` — `free_join/mod.rs:986-1025` | 懒创建 + `index.get_or_update(\|index\| index.refresh(table))` |
-| **`Index::refresh`** — `hash_index/mod.rs:66-87` | ① 版本号相同 → **early return**（这就是为什么"全库 reset"没炸）；② `major` 不同 → `table.clear()` + `rebuild_full`；③ 否则 `updates_since` → `refresh_serial`；④ `subset.size() > 20_000` 走 `merge_parallel`（`parallel_heuristics.rs:14`） |
-| 触发点：探针路径的 `Cached` / `CachedColumn` 分支 — `free_join/execute.rs:1247-1257` | 只有"subset 是 dense 且大于半张表"时才走这条缓存路径 |
-| `dynamic_column` 用的 per-trie-node 缓存 — `execute.rs:1262` → `trie_node.get_cached_index(col, info)` | 这条路**不**经过上面那两张 catalog |
-| `SortedWritesTable` 自己的主索引 `rebuild_index` — `table/mod.rs:241, 826` | 表内部的主键索引，另一套 |
+| `get_index_from_tableinfo`（复合键）— `core-relations/src/free_join/mod.rs:986-1011`；`get_column_index_from_tableinfo`（单列）— `:1013-1029` | 懒创建 + `index.get_or_update(\|index\| index.refresh(table))` |
+| **`Index::refresh`** — `core-relations/src/hash_index/mod.rs:66-92`（`needs_refresh` 在 :62-64） | ① 版本号相同 → **early return**（这就是为什么"全库 reset"没炸）；② `major` 不同 → `table.clear()` + `rebuild_full`；③ 否则 `updates_since` → `refresh_serial`；④ `subset.size() > 20_000` 且 rayon 线程 >1 走 `merge_parallel`（`core-relations/src/parallel_heuristics.rs:14`） |
+| 触发点：探针路径的 `Cached` / `CachedColumn` 分支 — `core-relations/src/free_join/execute.rs:1252-1270` | 只有"subset 是 dense 且大于半张表"时才走这条缓存路径 |
+| `DynamicColumn` 用的 per-trie-node 缓存 — `execute.rs:1279` → `trie_node.get_cached_index(cols[0], info)`，实现是 `execute.rs:770-783`（`subset_trie_node` 上的 `OnceLock`，**独立于**上面那两张 catalog） | 这条路**不**经过上面那两张 catalog |
+| `SortedWritesTable` 自己的 `rebuild_index: Index<ColumnIndex>` — 字段 `table/mod.rs:215`，刷新在 `table/rebuild.rs:60-69`（`refresh_rebuild_index`） | 表内部用于「哪些行需要重写」的索引，**和上面那两张 catalog 无关** |
 
 ### D. 别和 "congruence rebuild" 混了
 
@@ -125,9 +125,9 @@ codex 报告里那 6.18 s 的 **Rebuild** 不是索引刷新，而是**同余闭
 
 | 代码 | 作用 |
 |---|---|
-| `egglog-bridge/src/lib.rs:1008`（`incremental rebuild {table}, {col}`）、`:1050`（`nonincremental rebuild {table}`） | 为每张表生成**内部规则**来维护 `$rebuild` 表 |
-| `egglog-bridge/src/lib.rs:745` `rebuild_timer` | 报告里 rebuild 时间的来源 |
-| `core-relations/src/table/rebuild.rs` | 重建的具体实现（把 union 后的新代表写回各行） |
+| `egglog-bridge/src/lib.rs:984`（`incremental_rebuild_rules`）/ `:997`（`incremental_rebuild_rule`，规则名 `` `incremental rebuild {table:?}, {col:?}` `` 在 :1005，并显式 `set_plan_strategy(PlanStrategy::MinCover)` 在 :1008）、`:1046`（`nonincremental_rebuild`） | 为每张表生成**内部规则**来维护 `$rebuild` 表 |
+| `egglog-bridge/src/lib.rs:774`（`fn rebuild`）/ `:902`（`rebuild_parallel`）；`rebuild_timer` 在 :756，写回 `iteration_report.rebuild_time` 在 :765 | 报告里 rebuild 时间的来源 |
+| `Database::apply_rebuild` — `core-relations/src/free_join/mod.rs:542`；实现 `core-relations/src/table/rebuild.rs`（`do_rebuild` :71、`rebuild_incremental` :142、`rebuild_nonincremental` :219） | 把 union 后的新代表写回各行 |
 
 两套东西的失效/重建触发条件完全不同：**索引刷新**由"表版本变了 + 有人要 probe 那列"触发（我的计数器量的是这个，实测 658 万行，小头）；**同余重建**由"union 发生后 rebuild 规则跑一轮"触发（codex 量到 6.18 s，是第二大头）。
 
