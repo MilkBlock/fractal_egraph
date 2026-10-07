@@ -20,8 +20,10 @@ mod exec_state;
 pub mod extract;
 mod ground_import;
 mod virtual_facts;
-pub use virtual_facts::{VirtualFactRow,VirtualFactTemplate,VirtualizeReport,VirtualizeBatchReport};
 pub use core_relations::NativeVirtualStats;
+pub use virtual_facts::{
+    VirtualFactRow, VirtualFactTemplate, VirtualizeBatchReport, VirtualizeReport,
+};
 pub mod prelude;
 mod proofs;
 
@@ -970,53 +972,114 @@ impl EGraph {
     /// Trusted positive-cell completion certificates. Each table key is the
     /// complete original rule parameter tuple; its presence proves all effects
     /// already hold. This does not suppress other parameter bindings.
-    pub fn step_rules_with_completed_cells(&mut self,ruleset:&str,entries:Vec<(String,String,Vec<String>)>)->Result<RunReport,Error> {
-        self.step_cells_impl(ruleset,entries,false,Default::default())
+    pub fn step_rules_with_completed_cells(
+        &mut self,
+        ruleset: &str,
+        entries: Vec<(String, String, Vec<String>)>,
+    ) -> Result<RunReport, Error> {
+        self.step_cells_impl(ruleset, entries, false, Default::default())
     }
     /// Positive total recipes only: markers must follow all semantic actions.
     /// Uses fully staged completion promises within a step, not committed facts.
     /// On execution failure the caller must discard the failed run.
-    pub fn step_rules_with_cell_promises(&mut self,ruleset:&str,entries:Vec<(String,String,Vec<String>)>)->Result<RunReport,Error> {
-        self.step_cells_impl(ruleset,entries,true,Default::default())
+    pub fn step_rules_with_cell_promises(
+        &mut self,
+        ruleset: &str,
+        entries: Vec<(String, String, Vec<String>)>,
+    ) -> Result<RunReport, Error> {
+        self.step_cells_impl(ruleset, entries, true, Default::default())
     }
     /// The supplied permutations and their inverses must be proved to preserve
     /// the entire positive cell recipe. No empirical similarity is sufficient.
-    pub fn step_rules_with_cell_machine(&mut self,ruleset:&str,entries:Vec<(String,String,Vec<String>)>,symmetries:std::collections::BTreeMap<String,Vec<Vec<usize>>>)->Result<RunReport,Error> {
-        for (r,_,params) in &entries {
-            if let Some(perms)=symmetries.get(r) {for perm in perms {
-                if perm.len()!=params.len() || perm.iter().copied().collect::<std::collections::BTreeSet<_>>().into_iter().ne(0..params.len()) {
-                    return Err(Error::BackendError("invalid cell parameter permutation".into()));
+    pub fn step_rules_with_cell_machine(
+        &mut self,
+        ruleset: &str,
+        entries: Vec<(String, String, Vec<String>)>,
+        symmetries: std::collections::BTreeMap<String, Vec<Vec<usize>>>,
+    ) -> Result<RunReport, Error> {
+        for (r, _, params) in &entries {
+            if let Some(perms) = symmetries.get(r) {
+                for perm in perms {
+                    if perm.len() != params.len()
+                        || perm
+                            .iter()
+                            .copied()
+                            .collect::<std::collections::BTreeSet<_>>()
+                            .into_iter()
+                            .ne(0..params.len())
+                    {
+                        return Err(Error::BackendError(
+                            "invalid cell parameter permutation".into(),
+                        ));
+                    }
                 }
-            }}
+            }
         }
-        self.step_cells_impl(ruleset,entries,true,symmetries)
+        self.step_cells_impl(ruleset, entries, true, symmetries)
     }
-    fn step_cells_impl(&mut self,ruleset:&str,entries:Vec<(String,String,Vec<String>)>,staged:bool,symmetries:std::collections::BTreeMap<String,Vec<Vec<usize>>>)->Result<RunReport,Error> {
-        let entries=entries.into_iter().map(|(r,f,n)| {
-            Ok((r,self.functions.get(&f).ok_or_else(||Error::BackendError("unknown cell state".into()))?.backend_id,n))
-        }).collect::<Result<Vec<_>,Error>>()?;
-        self.backend.set_completed_cells(entries,staged);
+    fn step_cells_impl(
+        &mut self,
+        ruleset: &str,
+        entries: Vec<(String, String, Vec<String>)>,
+        staged: bool,
+        symmetries: std::collections::BTreeMap<String, Vec<Vec<usize>>>,
+    ) -> Result<RunReport, Error> {
+        let entries = entries
+            .into_iter()
+            .map(|(r, f, n)| {
+                Ok((
+                    r,
+                    self.functions
+                        .get(&f)
+                        .ok_or_else(|| Error::BackendError("unknown cell state".into()))?
+                        .backend_id,
+                    n,
+                ))
+            })
+            .collect::<Result<Vec<_>, Error>>()?;
+        self.backend.set_completed_cells(entries, staged);
         self.backend.set_cell_symmetries(symmetries);
-        let result=self.step_rules(ruleset);
-        self.backend.set_completed_cells(Vec::new(),false);result
+        let result = self.step_rules(ruleset);
+        self.backend.set_completed_cells(Vec::new(), false);
+        result
     }
-    pub fn queued_cell_prefixes(&self)->usize {self.backend.queued_cell_prefixes()}
-    pub fn promised_cell_prefixes(&self)->usize {self.backend.promised_cell_prefixes()}
-    pub fn completed_cell_counts(&self)->(usize,usize) {self.backend.completed_cell_counts()}
+    pub fn queued_cell_prefixes(&self) -> usize {
+        self.backend.queued_cell_prefixes()
+    }
+    pub fn promised_cell_prefixes(&self) -> usize {
+        self.backend.promised_cell_prefixes()
+    }
+    pub fn completed_cell_counts(&self) -> (usize, usize) {
+        self.backend.completed_cell_counts()
+    }
 
     /// A trusted optimizer hook for complete positive, functional-pattern views.
     /// Entries are (builder rule, unique anchor constructor, coverage relation).
     /// The optimizer proves that a covered key has exactly the already-materialized
     /// query result. This does not authorize hiding arbitrary overlapping facts.
-    pub fn step_rules_with_key_coverage(&mut self, ruleset:&str,
-        entries:Vec<(String,String,String)>) -> Result<RunReport,Error> {
-        let entries=entries.into_iter().map(|(r,a,c)| {
-            let a=self.functions.get(&a).ok_or_else(||Error::BackendError("unknown coverage anchor".into()))?.backend_id;
-            let c=self.functions.get(&c).ok_or_else(||Error::BackendError("unknown coverage relation".into()))?.backend_id;
-            Ok((r,a,c))
-        }).collect::<Result<Vec<_>,Error>>()?;
+    pub fn step_rules_with_key_coverage(
+        &mut self,
+        ruleset: &str,
+        entries: Vec<(String, String, String)>,
+    ) -> Result<RunReport, Error> {
+        let entries = entries
+            .into_iter()
+            .map(|(r, a, c)| {
+                let a = self
+                    .functions
+                    .get(&a)
+                    .ok_or_else(|| Error::BackendError("unknown coverage anchor".into()))?
+                    .backend_id;
+                let c = self
+                    .functions
+                    .get(&c)
+                    .ok_or_else(|| Error::BackendError("unknown coverage relation".into()))?
+                    .backend_id;
+                Ok((r, a, c))
+            })
+            .collect::<Result<Vec<_>, Error>>()?;
         self.backend.set_key_coverage(entries);
-        let result=self.step_rules(ruleset);
+        let result = self.step_rules(ruleset);
         self.backend.set_key_coverage(Vec::new());
         result
     }
@@ -1025,8 +1088,11 @@ impl EGraph {
     /// The caller proves that all matches of each named rule with the specified
     /// root output values have no required effect; each entry names a unique
     /// tree-pattern root table. Certificates are cleared on return.
-    pub fn step_rules_excluding_proven_roots(&mut self, ruleset: &str,
-        entries: Vec<(String,String,Vec<Value>)>) -> Result<RunReport, Error> {
+    pub fn step_rules_excluding_proven_roots(
+        &mut self,
+        ruleset: &str,
+        entries: Vec<(String, String, Vec<Value>)>,
+    ) -> Result<RunReport, Error> {
         self.backend.set_excluded_roots(entries);
         let result = self.step_rules(ruleset);
         self.backend.set_excluded_roots(Vec::new());
@@ -1979,6 +2045,18 @@ impl EGraph {
         &self.overall_run_report
     }
 
+    /// Read-only introspection: which join indexes this egraph actually
+    /// materialized, per table, as (column indexes, composite tuple indexes).
+    /// Observing only; it never causes an index to be built.
+    pub fn materialized_indexes(&self) -> Vec<(String, Vec<Vec<u32>>, Vec<Vec<u32>>)> {
+        self.backend.materialized_indexes()
+    }
+
+    /// Read-only per-column cardinality; profiling only.
+    pub fn column_cardinality(&self) -> Vec<(String, usize, Vec<(u32, usize)>)> {
+        self.backend.column_cardinality()
+    }
+
     /// Convert from an egglog value to a Rust type.
     pub fn value_to_base<T: BaseValue>(&self, x: Value) -> T {
         self.backend.base_values().unwrap::<T>(x)
@@ -2128,6 +2206,12 @@ impl EGraph {
     /// Returns `None` if the function does not exist.
     pub fn get_function(&self, name: &str) -> Option<&Function> {
         self.functions.get(name)
+    }
+
+    /// Ask the engine to record the full query plan and per-stage
+    /// candidate/success counts for every rule (profiling only).
+    pub fn enable_stage_info_reporting(&mut self) {
+        self.set_report_level(ReportLevel::StageInfo);
     }
 
     pub fn set_report_level(&mut self, level: ReportLevel) {
@@ -2732,3 +2816,8 @@ mod fact_query;
 pub use fact_query::{CompiledCheck, CompiledFactQuery};
 
 pub use virtual_facts::CompactCellsReport;
+
+/// Read-only profiling hook: where the join-probe path spent its probes.
+pub fn probe_counts() -> Vec<(&'static str, usize)> {
+    egglog_core_relations::probe_counters::snapshot()
+}

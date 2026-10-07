@@ -288,17 +288,20 @@ impl Counters {
 /// A database also owns the memory pools used by its tables.
 #[derive(Default)]
 pub struct Database {
-    pub(crate) queued_cells: std::sync::OnceLock<crate::common::DashMap<(TableId,smallvec::SmallVec<[Value;3]>),()>>,
+    pub(crate) queued_cells:
+        std::sync::OnceLock<crate::common::DashMap<(TableId, smallvec::SmallVec<[Value; 3]>), ()>>,
     pub(crate) queued_prefixes: std::sync::atomic::AtomicUsize,
-    pub(crate) cell_symmetries: std::collections::BTreeMap<String,Vec<Vec<usize>>>,
-    pub(crate) promised_cells: std::sync::OnceLock<crate::common::DashMap<(TableId,smallvec::SmallVec<[Value;3]>),()>>,
+    pub(crate) cell_symmetries: std::collections::BTreeMap<String, Vec<Vec<usize>>>,
+    pub(crate) promised_cells:
+        std::sync::OnceLock<crate::common::DashMap<(TableId, smallvec::SmallVec<[Value; 3]>), ()>>,
     pub(crate) promise_tables: std::collections::BTreeSet<TableId>,
     pub(crate) promised_prefixes: std::sync::atomic::AtomicUsize,
-    pub(crate) completed_cells: std::collections::BTreeMap<String,(TableId,Vec<String>)>,
+    pub(crate) completed_cells: std::collections::BTreeMap<String, (TableId, Vec<String>)>,
     pub(crate) completed_prefixes: std::sync::atomic::AtomicUsize,
     pub(crate) unresolved_completions: std::sync::atomic::AtomicUsize,
-    pub(crate) key_coverage: std::collections::BTreeMap<String, (TableId,TableId)>,
-    pub(crate) excluded_roots: std::collections::BTreeMap<String, (String, std::collections::BTreeSet<Value>)>,
+    pub(crate) key_coverage: std::collections::BTreeMap<String, (TableId, TableId)>,
+    pub(crate) excluded_roots:
+        std::collections::BTreeMap<String, (String, std::collections::BTreeSet<Value>)>,
     #[cfg(feature = "table-read-profile")]
     read_profiling: bool,
     // NB: some fields are pub(crate) to allow some internal modules to avoid
@@ -325,33 +328,61 @@ pub struct Database {
 }
 
 impl Database {
-    pub fn set_completed_cells(&mut self, entries:Vec<(String,TableId,Vec<String>)>, staged:bool) {
-        if let Some(m)=self.promised_cells.get(){m.clear();}
-        if let Some(m)=self.queued_cells.get(){m.clear();}
+    pub fn set_completed_cells(
+        &mut self,
+        entries: Vec<(String, TableId, Vec<String>)>,
+        staged: bool,
+    ) {
+        if let Some(m) = self.promised_cells.get() {
+            m.clear();
+        }
+        if let Some(m) = self.queued_cells.get() {
+            m.clear();
+        }
         if staged && !entries.is_empty() {
             self.promised_cells.get_or_init(Default::default);
             self.queued_cells.get_or_init(Default::default);
         }
         self.cell_symmetries.clear();
-        self.promise_tables=if staged {entries.iter().map(|(_,t,_)|*t).collect()}else{Default::default()};
-        self.completed_cells=entries.into_iter().map(|(r,t,n)|(r,(t,n))).collect();
+        self.promise_tables = if staged {
+            entries.iter().map(|(_, t, _)| *t).collect()
+        } else {
+            Default::default()
+        };
+        self.completed_cells = entries.into_iter().map(|(r, t, n)| (r, (t, n))).collect();
     }
-    pub fn set_cell_symmetries(&mut self, p:std::collections::BTreeMap<String,Vec<Vec<usize>>>) {self.cell_symmetries=p;}
-    pub fn queued_cell_prefixes(&self)->usize {self.queued_prefixes.load(std::sync::atomic::Ordering::Relaxed)}
-    pub fn promised_cell_prefixes(&self)->usize {self.promised_prefixes.load(std::sync::atomic::Ordering::Relaxed)}
-    pub fn completed_cell_counts(&self)->(usize,usize) {
-        (self.completed_prefixes.load(std::sync::atomic::Ordering::Relaxed),self.unresolved_completions.load(std::sync::atomic::Ordering::Relaxed))
+    pub fn set_cell_symmetries(&mut self, p: std::collections::BTreeMap<String, Vec<Vec<usize>>>) {
+        self.cell_symmetries = p;
+    }
+    pub fn queued_cell_prefixes(&self) -> usize {
+        self.queued_prefixes
+            .load(std::sync::atomic::Ordering::Relaxed)
+    }
+    pub fn promised_cell_prefixes(&self) -> usize {
+        self.promised_prefixes
+            .load(std::sync::atomic::Ordering::Relaxed)
+    }
+    pub fn completed_cell_counts(&self) -> (usize, usize) {
+        (
+            self.completed_prefixes
+                .load(std::sync::atomic::Ordering::Relaxed),
+            self.unresolved_completions
+                .load(std::sync::atomic::Ordering::Relaxed),
+        )
     }
 
     /// Trusted positive-view proof: covered anchor keys already have their full
     /// functional-pattern result in a persistent summary relation.
-    pub fn set_key_coverage(&mut self, entries: Vec<(String,TableId,TableId)>) {
-        self.key_coverage=entries.into_iter().map(|(r,a,c)|(r,(a,c))).collect();
+    pub fn set_key_coverage(&mut self, entries: Vec<(String, TableId, TableId)>) {
+        self.key_coverage = entries.into_iter().map(|(r, a, c)| (r, (a, c))).collect();
     }
     /// Trusted per-query proof: every match at one of these tree-root output values is redundant.
     /// The caller must refresh this certificate after any mutation. Clones discard it.
     pub fn set_excluded_roots(&mut self, entries: Vec<(String, String, Vec<Value>)>) {
-        self.excluded_roots = entries.into_iter().map(|(rule,table,values)| (rule,(table,values.into_iter().collect()))).collect();
+        self.excluded_roots = entries
+            .into_iter()
+            .map(|(rule, table, values)| (rule, (table, values.into_iter().collect())))
+            .collect();
     }
 
     #[cfg(feature = "table-read-profile")]
@@ -914,11 +945,15 @@ impl Database {
     /// the documentation for [`Database::get_table`].
     /// Storage-only compaction outside the merge loop must invalidate physical
     /// index caches, but must not announce a logical insertion or advance time.
-    pub fn materialize_virtual_table(&mut self,id:TableId)->bool {
-        let info=self.tables.get_mut(id).expect("known table");
-        if !info.table.materialize_virtual_rows(){return false;}
-        info.column_indexes.update(|_,index|Arc::get_mut(index).unwrap().reset());
-        info.indexes.update(|_,index|Arc::get_mut(index).unwrap().reset());
+    pub fn materialize_virtual_table(&mut self, id: TableId) -> bool {
+        let info = self.tables.get_mut(id).expect("known table");
+        if !info.table.materialize_virtual_rows() {
+            return false;
+        }
+        info.column_indexes
+            .update(|_, index| Arc::get_mut(index).unwrap().reset());
+        info.indexes
+            .update(|_, index| Arc::get_mut(index).unwrap().reset());
         true
     }
     pub fn get_table_mut(&mut self, id: TableId) -> &mut dyn Table {
@@ -955,6 +990,11 @@ fn get_index_from_tableinfo(table_info: &TableInfo, cols: &[ColumnId]) -> HashIn
             TupleIndex::new(cols.len()),
         )))
     });
+    if index.get().is_none() {
+        crate::probe_counters::bump(&crate::probe_counters::INDEX_REBUILD);
+    } else {
+        crate::probe_counters::bump(&crate::probe_counters::INDEX_HIT);
+    }
     index.get_or_update(|index| {
         index.refresh(table_info.table.as_ref());
     });
@@ -977,6 +1017,11 @@ fn get_column_index_from_tableinfo(table_info: &TableInfo, col: ColumnId) -> Has
             ColumnIndex::new(),
         )))
     });
+    if index.get().is_none() {
+        crate::probe_counters::bump(&crate::probe_counters::INDEX_REBUILD);
+    } else {
+        crate::probe_counters::bump(&crate::probe_counters::INDEX_HIT);
+    }
     index.get_or_update(|index| {
         index.refresh(table_info.table.as_ref());
     });
@@ -990,6 +1035,60 @@ fn get_column_index_from_tableinfo(table_info: &TableInfo, col: ColumnId) -> Has
 }
 
 impl Database {
+    /// Read-only introspection: for every table, the column indexes and the
+    /// composite tuple indexes the engine has actually materialized. Keys are
+    /// the column ids, i.e. index 0 is the table's first column. Purely a
+    /// observer; it never creates an index.
+    pub fn materialized_indexes(&self) -> Vec<(String, Vec<Vec<u32>>, Vec<Vec<u32>>)> {
+        let mut out = vec![];
+        for (_, info) in self.tables.iter() {
+            let cols = info
+                .column_indexes
+                .keys()
+                .into_iter()
+                .map(|c| vec![c.index() as u32])
+                .collect::<Vec<_>>();
+            let tuples = info
+                .indexes
+                .keys()
+                .into_iter()
+                .map(|k| k.iter().map(|c| c.index() as u32).collect::<Vec<_>>())
+                .collect::<Vec<_>>();
+            let name = info.name.as_deref().unwrap_or("<anon>").to_owned();
+            out.push((name, cols, tuples));
+        }
+        out
+    }
+
+    /// Read-only profiling: for every table, its row count and the number of
+    /// distinct values in each column (including the output column, whose index
+    /// is `spec.arity() - 1`). Observing only; it never creates an index.
+    pub fn column_cardinality(&self) -> Vec<(String, usize, Vec<(u32, usize)>)> {
+        let mut out = vec![];
+        for (_, info) in self.tables.iter() {
+            let name = info.name.as_deref().unwrap_or("<anon>").to_owned();
+            let arity = info.spec.arity();
+            let rows = info.table.all();
+            let mut seen: Vec<std::collections::HashSet<crate::common::Value>> =
+                (0..arity).map(|_| Default::default()).collect();
+            let mut count = 0usize;
+            for (col, slot) in seen.iter_mut().enumerate() {
+                let col = crate::table_spec::ColumnId::from_usize(col);
+                info.table.as_ref().for_each_col(rows.as_ref(), col, &mut |_, v| {
+                    slot.insert(v);
+                });
+            }
+            count = info.table.len();
+            let cards = seen
+                .iter()
+                .enumerate()
+                .map(|(col, set)| (col as u32, set.len()))
+                .collect();
+            out.push((name, count, cards));
+        }
+        out
+    }
+
     pub fn install_compact_cells(&mut self, batches:&[Arc<crate::NativeCellBatch>])->Result<(),String>{
         let ids=batches.iter().flat_map(|b|b.rows.iter().map(|r|r.table)).collect::<std::collections::BTreeSet<_>>();
         // Validate the complete cross-table change before mutating any table.

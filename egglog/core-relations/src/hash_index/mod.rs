@@ -69,6 +69,12 @@ impl<TI: IndexBase> Index<TI> {
             return;
         }
         let is_full = cur_version.major != self.updated_to.major;
+        crate::probe_counters::INDEX_REBUILD_ROWS
+            .fetch_add(table.all().size(), std::sync::atomic::Ordering::Relaxed);
+        if is_full {
+            crate::probe_counters::INDEX_REBUILD_FULL
+                .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        }
         let subset = if is_full {
             self.table.clear();
             table.all()
@@ -764,6 +770,12 @@ where
         for (k, i) in self.data.as_mut_ref() {
             f(k, i)
         }
+    }
+
+    /// Read-only introspection for profiling: the keys of every index this
+    /// catalog currently holds. Does not insert, refresh or mutate anything.
+    pub fn keys(&self) -> Vec<K> {
+        self.data.read().iter().map(|(k, _)| k.clone()).collect()
     }
 
     pub fn get_or_insert(&self, k: K, init: impl FnOnce() -> I) -> I {

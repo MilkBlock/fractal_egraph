@@ -182,6 +182,10 @@ pub fn cli(mut egraph: EGraph) {
         log::info!("Saved report to {report_path:?}");
     }
 
+    if std::env::var_os("EGGLOG_PROBE_COUNTS").is_some() {
+        eprintln!("[probe] {:?}", crate::probe_counts());
+    }
+
     // no need to drop the egraph if we are going to exit
     std::mem::forget(egraph)
 }

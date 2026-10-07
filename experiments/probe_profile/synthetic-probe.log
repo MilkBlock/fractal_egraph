@@ -1,0 +1,3 @@
+[WARN ] In 8:1-26 of baseline.egg: (let cp0 (CP (Leaf 0) 21))
+    Global `cp0` should start with `$`. Enable `--strict-mode` to turn this warning into an error. Suppressing additional warnings of this type.
+[probe] [("probes", 127916), ("sparse_column", 108957), ("cached_tuple", 0), ("cached_column", 18959), ("dynamic_tuple (group_by_key)", 0), ("dynamic_column (per-node cache)", 0), ("cached_index_rebuild", 4), ("cached_index_hit", 18959)]

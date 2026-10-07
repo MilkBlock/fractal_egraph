@@ -1219,6 +1219,7 @@ impl<'a> JoinState<'a> {
         binding_info: &mut BindingInfo,
         cols: impl Iterator<Item = ColumnId>,
     ) -> Prober {
+        crate::probe_counters::bump(&crate::probe_counters::PROBES);
         let cols = SmallVec::<[ColumnId; 4]>::from_iter(cols);
         let trie_node = binding_info.subsets.unwrap_val(atom);
         let subset = &trie_node.subset;
@@ -1226,6 +1227,7 @@ impl<'a> JoinState<'a> {
         let table_id = atoms[atom].table;
         let info = &self.db.tables[table_id];
         let dyn_index = if subset.size() <= SMALL_RESIDUAL && cols.len() == 1 {
+            crate::probe_counters::bump(&crate::probe_counters::SPARSE_COLUMN);
             DynamicIndex::SparseColumn(SparseColumnIndex::new(
                 info.table.as_ref(),
                 subset.as_ref(),
@@ -1256,11 +1258,13 @@ impl<'a> JoinState<'a> {
                 // large _or_ it is most of the table, or we already have a cached
                 // index for it, then return it.
                 if cols.len() != 1 {
+                    crate::probe_counters::bump(&crate::probe_counters::CACHED_TUPLE);
                     DynamicIndex::Cached {
                         intersect_outer,
                         table: get_index_from_tableinfo(info, &cols),
                     }
                 } else {
+                    crate::probe_counters::bump(&crate::probe_counters::CACHED_COLUMN);
                     DynamicIndex::CachedColumn {
                         intersect_outer,
                         table: get_column_index_from_tableinfo(info, cols[0]).clone(),
@@ -1268,8 +1272,10 @@ impl<'a> JoinState<'a> {
                 }
             } else if cols.len() != 1 {
                 // NB: we should have a caching strategy for non-column indexes.
+                crate::probe_counters::bump(&crate::probe_counters::DYNAMIC_TUPLE);
                 DynamicIndex::Dynamic(info.table.group_by_key(subset.as_ref(), &cols))
             } else {
+                crate::probe_counters::bump(&crate::probe_counters::DYNAMIC_COLUMN);
                 DynamicIndex::DynamicColumn(trie_node.get_cached_index(cols[0], info))
             }
         };
