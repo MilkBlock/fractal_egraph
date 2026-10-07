@@ -113,10 +113,10 @@ raytrace pass 3 有 10,123 次迭代 × 261 张表 → 数百万次 `reset`（�
 
 | 代码 | 作用 |
 |---|---|
-| `get_index_from_tableinfo`（复合键）— `core-relations/src/free_join/mod.rs:986-1011`；`get_column_index_from_tableinfo`（单列）— `:1013-1029` | 懒创建 + `index.get_or_update(\|index\| index.refresh(table))` |
-| **`Index::refresh`** — `core-relations/src/hash_index/mod.rs:66-92`（`needs_refresh` 在 :62-64） | ① 版本号相同 → **early return**（这就是为什么"全库 reset"没炸）；② `major` 不同 → `table.clear()` + `rebuild_full`；③ 否则 `updates_since` → `refresh_serial`；④ `subset.size() > 20_000` 且 rayon 线程 >1 走 `merge_parallel`（`core-relations/src/parallel_heuristics.rs:14`） |
+| `get_index_from_tableinfo`（复合键）— `core-relations/src/free_join/mod.rs:986-1008`；`get_column_index_from_tableinfo`（单列）— `:1013-1035` | 懒创建 + `index.get_or_update(\|index\| index.refresh(table))` |
+| **`Index::refresh`** — `core-relations/src/hash_index/mod.rs:66-95`（`needs_refresh` 在 :62-64，版本写回在 :94） | ① 版本号相同 → **early return**（这就是为什么"全库 reset"没炸）；② `major` 不同 → `table.clear()` + `rebuild_full`；③ 否则 `updates_since` → `refresh_serial`；④ `subset.size() > 20_000` 且 rayon 线程 >1 走 `merge_parallel`（`core-relations/src/parallel_heuristics.rs:14`） |
 | 触发点：探针路径的 `Cached` / `CachedColumn` 分支 — `core-relations/src/free_join/execute.rs:1252-1270` | 只有"subset 是 dense 且大于半张表"时才走这条缓存路径 |
-| `DynamicColumn` 用的 per-trie-node 缓存 — `execute.rs:1279` → `trie_node.get_cached_index(cols[0], info)`，实现是 `execute.rs:770-783`（`subset_trie_node` 上的 `OnceLock`，**独立于**上面那两张 catalog） | 这条路**不**经过上面那两张 catalog |
+| `DynamicColumn` 用的 per-trie-node 缓存 — `execute.rs:1279` → `trie_node.get_cached_index(cols[0], info)`，实现是 `execute.rs:770-782`（`subset_trie_node` 上的 `OnceLock`，**独立于**上面那两张 catalog） | 这条路**不**经过上面那两张 catalog |
 | `SortedWritesTable` 自己的 `rebuild_index: Index<ColumnIndex>` — 字段 `table/mod.rs:215`，刷新在 `table/rebuild.rs:60-69`（`refresh_rebuild_index`） | 表内部用于「哪些行需要重写」的索引，**和上面那两张 catalog 无关** |
 
 ### D. 别和 "congruence rebuild" 混了
