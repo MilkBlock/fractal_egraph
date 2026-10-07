@@ -80,6 +80,12 @@ pub mod probe_counters {
     pub static INDEX_REBUILD_ROWS: AtomicUsize = AtomicUsize::new(0);
     /// index rebuilds that had to rebuild the whole table (major version bump)
     pub static INDEX_REBUILD_FULL: AtomicUsize = AtomicUsize::new(0);
+    /// distinct key values handed out by a prober (`Prober::for_each` iterations)
+    pub static PROBED_KEYS: AtomicUsize = AtomicUsize::new(0);
+    /// rows reachable through probes: the sum of every subset a prober hands out,
+    /// i.e. every row that still has to pass the remaining constraints. This is the
+    /// fan-out the join actually pays for, as opposed to `matches` (rule firings).
+    pub static CANDIDATE_ROWS: AtomicUsize = AtomicUsize::new(0);
 
     pub fn bump(c: &AtomicUsize) {
         c.fetch_add(1, Ordering::Relaxed);
@@ -98,6 +104,8 @@ pub mod probe_counters {
             ("cached_index_hit", g(&INDEX_HIT)),
             ("cached_index_rebuild_rows", g(&INDEX_REBUILD_ROWS)),
             ("cached_index_rebuild_full", g(&INDEX_REBUILD_FULL)),
+            ("probed_keys", g(&PROBED_KEYS)),
+            ("candidate_rows", g(&CANDIDATE_ROWS)),
         ]
     }
 }

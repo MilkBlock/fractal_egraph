@@ -245,6 +245,18 @@ struct Prober {
 
 impl Prober {
     fn get_subset<'a>(&'a self, key: &'a [Value]) -> Option<PotentiallyStale<SubsetRef<'a>>> {
+        let out = self.get_subset_uncounted(key);
+        if let Some(sub) = &out {
+            crate::probe_counters::CANDIDATE_ROWS
+                .fetch_add(sub.size(), std::sync::atomic::Ordering::Relaxed);
+        }
+        out
+    }
+
+    fn get_subset_uncounted<'a>(
+        &'a self,
+        key: &'a [Value],
+    ) -> Option<PotentiallyStale<SubsetRef<'a>>> {
         match &self.ix {
             DynamicIndex::Cached {
                 intersect_outer,
@@ -282,6 +294,14 @@ impl Prober {
         }
     }
     fn for_each(&self, mut f: impl FnMut(&[Value], PotentiallyStale<SubsetRef>)) {
+        // Profiling only: every key handed out is one probe iteration, and every row in
+        // its subset is one candidate the join still has to refute or accept.
+        let mut f = |k: &[Value], v: PotentiallyStale<SubsetRef>| {
+            crate::probe_counters::bump(&crate::probe_counters::PROBED_KEYS);
+            crate::probe_counters::CANDIDATE_ROWS
+                .fetch_add(v.size(), std::sync::atomic::Ordering::Relaxed);
+            f(k, v)
+        };
         match &self.ix {
             DynamicIndex::Cached {
                 intersect_outer: Some(range),

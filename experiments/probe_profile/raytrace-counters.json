@@ -1,0 +1,32 @@
+{
+ "run": "egglog /tmp/rt.egg --report-level time-only (exported raytrace egglog script, one process)",
+ "iterations": 10123,
+ "matches": 3093841,
+ "search_and_apply_seconds": 16.339,
+ "search_and_apply_seconds_by_ruleset": 16.674,
+ "rebuild_seconds": 3.83,
+ "merge_seconds": 0.37,
+ "counters": {
+  "probes": 18657537,
+  "probed_keys": 32161076,
+  "candidate_rows": 87119445,
+  "sparse_column": 13643271,
+  "cached_column": 1686046,
+  "dynamic_column": 3328010,
+  "cached_tuple": 30,
+  "dynamic_tuple": 180,
+  "cached_index_rebuild": 88853,
+  "cached_index_hit": 1664720,
+  "cached_index_rebuild_rows": 6583321,
+  "cached_index_rebuild_full": 232
+ },
+ "derived": {
+  "probes_per_match": 6.03,
+  "probed_keys_per_match": 10.4,
+  "candidate_rows_per_match": 28.2,
+  "candidate_rows_per_probed_key": 2.71,
+  "microseconds_per_match": 5.28,
+  "nanoseconds_per_candidate_row": 187.5
+ },
+ "caveat": "counters are process-global; scope is the exported script (10123 iterations), not the real eggcc 3-pass run (23378 iterations). Probe/match/candidate-row counters add unconditional relaxed atomic increments, so wall-clock from a counted run is not a baseline."
+}
