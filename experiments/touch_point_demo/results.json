@@ -1,0 +1,32 @@
+{
+  "2000": {
+    "baseline": 0.0010309170000000001,
+    "touch": 0.0020301250000000002,
+    "touch_drop": 0.000246708,
+    "inline": 0.000230375,
+    "stages_baseline": 5,
+    "stages_touch": 7,
+    "stages_touch_drop": 1,
+    "stages_inline": 1
+  },
+  "10000": {
+    "baseline": 0.005327667,
+    "touch": 0.010021583,
+    "touch_drop": 0.001158917,
+    "inline": 0.001111625,
+    "stages_baseline": 5,
+    "stages_touch": 7,
+    "stages_touch_drop": 1,
+    "stages_inline": 1
+  },
+  "30000": {
+    "baseline": 0.019192125,
+    "touch": 0.035076917,
+    "touch_drop": 0.0034608750000000004,
+    "inline": 0.0032,
+    "stages_baseline": 5,
+    "stages_touch": 7,
+    "stages_touch_drop": 1,
+    "stages_inline": 1
+  }
+}
