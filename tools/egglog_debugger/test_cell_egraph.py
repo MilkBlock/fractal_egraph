@@ -1,7 +1,7 @@
 import tempfile
 import unittest
 from pathlib import Path
-from cell_egraph import folder_in_out, match_terms, directories
+from cell_egraph import folder_in_out, match_terms, directories, overview, state_detail
 
 class CellTests(unittest.TestCase):
     def test_precise_ground_arguments_and_hidden_rows(self):
@@ -24,6 +24,22 @@ class CellTests(unittest.TestCase):
             data=directories(root,'(V)')['directories']
             self.assertEqual([r['path'] for r in data if r['matches_source']],['out/b','out/a'])
             self.assertEqual(data[0]['path'],'out/c')
+
+    def test_round_does_not_read_final_registry(self):
+        import json
+        with tempfile.TemporaryDirectory() as t:
+            root=Path(t).resolve();run=root/'out'/'run';(run/'rounds').mkdir(parents=True)
+            early={'cell_egraph':{'units':[{'unit':0,'eclass':0}],'nodes':[{'unit':0,'parents':[],'contract':0}]},'jobs':[{'candidate_id':0,'state':'Pending'}]}
+            final={'cell_egraph':{'units':[{'unit':1,'eclass':1}],'nodes':[{'unit':1,'parents':[],'contract':1}]},'jobs':[]}
+            (run/'rounds/manifest.json').write_text(json.dumps([{'stem':'round-0001','label':'round 1'}]))
+            (run/'rounds/round-0001.json').write_text(json.dumps({'saturated_rule_composition':early}))
+            (run/'analysis.json').write_text(json.dumps({'saturated_rule_composition':final}))
+            self.assertEqual(overview(root,'out/run','round-0001')['nodes'][0]['unit'],0)
+            self.assertEqual(overview(root,'out/run')['nodes'][0]['unit'],1)
+            self.assertIsNone(state_detail(root,'out/run',0,'round-0001')['state'])
+            with self.assertRaises(ValueError):overview(root,'out/run','../../analysis')
+            (run/'analysis.json').unlink()
+            self.assertEqual(overview(root,'out/run')['nodes'][0]['unit'],0)
 
     def test_path_scope(self):
         with tempfile.TemporaryDirectory() as t:

@@ -22,7 +22,7 @@ export function installLayerPanel(host,{post,previewRow,mountSvg,editor}) {
     $('source').disabled=!view.source;$('render').disabled=false;$('download').disabled=false;
     const url=new URL(location.href);url.searchParams.set('layer_run',path);url.searchParams.set('layer_kind','cells');history.replaceState(null,'',url);
   }
-  async function refresh(force=false){
+  async function refresh(force=false,preferLatest=false){
     if(running)return;
     const current=editor.getValue();
     if(!force&&current===source)return;
@@ -37,7 +37,7 @@ export function installLayerPanel(host,{post,previewRow,mountSvg,editor}) {
       if(matching.children.length)$('directory').append(matching);if(other.children.length)$('directory').append(other);
       const matched=data.directories.filter(r=>r.matches_source);
       const preserveLink=Boolean(initial);
-      const selected=initial||(!changed&&data.directories.some(r=>r.path===previous)?previous:matched[0]?.path)||'';initial=null;
+      const selected=initial||(!preferLatest&&!changed&&data.directories.some(r=>r.path===previous)?previous:matched[0]?.path)||'';initial=null;
       $('status').textContent=matched.length?`当前源码有 ${matched.length} 次分析，默认选择最近一次。`:'当前 .egg 尚无匹配的分析结果。点击「运行并识别」生成；也可手动查看其他源码的结果。';
       if(!selected){$('directory').value='';lastDirectory='';clearSelection();const u=new URL(location.href);u.searchParams.delete('layer_run');u.searchParams.delete('cell_unit');u.searchParams.delete('cell_eclass');history.replaceState(null,'',u);return;}
       if(selected!==lastDirectory||force){if(selected!==lastDirectory&&!preserveLink){const u=new URL(location.href);u.searchParams.delete('cell_unit');u.searchParams.delete('cell_eclass');history.replaceState(null,'',u);}await load(selected);}
@@ -50,9 +50,9 @@ export function installLayerPanel(host,{post,previewRow,mountSvg,editor}) {
   $('source').onclick=()=>{if(view.source)editor.setValue(view.source);};
   $('download').onclick=()=>view.download();
   function reset(){frames=[];running=true;refreshEpoch++;lastDirectory='';clearSelection();$('status').textContent='正在分析当前 .egg，结果生成后自动选中。';}
-  function receive(frame){frames.push(frame);if(frame.artifact_directory)lastDirectory=frame.artifact_directory;}
+  function receive(frame){frames.push(frame);if(frame.artifact_directory){const path=frame.artifact_directory;lastDirectory=path;view.noteSnapshot(frame);if(!view.snapshot||view.path!==path)load(path).catch(e=>$('error').textContent=e.message);}}
   function progress(q){$('status').textContent='Ripen · '+Object.entries(q.counts||{}).map(([k,v])=>`${k} ${v}`).join(' / ');}
-  async function complete(){running=false;source=null;await refresh(true);}
+  async function complete(){running=false;await refresh(true,true);}
   clearSelection();queueMicrotask(()=>refresh(true));
   return {receive,progress,reset,load,refresh,complete,get snapshots(){return structuredClone(frames);}};
 }

@@ -43,7 +43,7 @@ export function pathTypst(m,root,choices){
 }
 export function installCellPanel(parent,{post,mountSvg,previewRow}){
   const panel=document.createElement('section');panel.id='native-cell-egraph';panel.hidden=true;
-  panel.innerHTML=`<p><b>RipSatCell egraph</b> · 点击状态查看内部图与生成方式</p>
+  panel.innerHTML=`<header data-role="toolbar"><button data-role="fullscreen">全屏看图</button><label>快照 <select data-role="snapshot"><option value="">最新（自动跟随）</option></select></label></header><p><b>RipSatCell egraph</b> · 点击状态查看内部图与生成方式</p>
     <div data-role="status"></div><label>Cell e-class <select data-role="class"></select></label>
     <label>当前构造路径 <select data-role="unit"></select></label>
     <p data-role="guarantee" style="padding:10px;background:#edf1f7;color:#182338;border-radius:6px"></p>
@@ -60,13 +60,22 @@ export function installCellPanel(parent,{post,mountSvg,previewRow}){
     <p data-role="error" role="alert"></p>`;
   parent.append(panel);
   const el=r=>panel.querySelector(`[data-role="${r}"]`);
-  let data,m,path='',selected=null,detail=null,epoch=0;
+  let data,m,path='',snapshot='',selected=null,detail=null,epoch=0;
+  const graphPane=el('overview').parentElement,workspace=document.createElement('div'),inspector=document.createElement('div');
+  workspace.className='cell-workspace';inspector.className='cell-inspector';graphPane.classList.add('cell-graph-pane');
+  for(const child of [...panel.children])if(child!==el('toolbar')&&child!==graphPane)inspector.append(child);
+  workspace.append(graphPane,inspector);panel.append(workspace);
+  el('body').closest('details').dataset.section='body';
+  let oldOverflow='';
+  function fullscreen(on){panel.classList.toggle('cell-fullscreen',on);el('fullscreen').textContent=on?'退出全屏（Esc）':'全屏看图';if(on){oldOverflow=document.body.style.overflow;document.body.style.overflow='hidden';graphPane.open=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');if(m&&!el('overview').childNodes.length)svg('dot',overviewDot(m),el('overview')).catch(fail);}else{document.body.style.overflow=oldOverflow;panel.removeAttribute('role');panel.removeAttribute('aria-modal');}}
+  el('fullscreen').onclick=()=>fullscreen(!panel.classList.contains('cell-fullscreen'));
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&panel.classList.contains('cell-fullscreen'))fullscreen(false);});
   const choices=new Map();
   function fail(e){el('error').textContent=e.message||String(e);}
   async function svg(kind,source,host,token=epoch){
     const text=await(await post('render',{kind,source})).text();if(token!==epoch)return;
     host.replaceChildren();mountSvg(text,host);host.dataset.ready='true';
-    host.onclick=e=>{const link=e.target.closest('a');if(!link)return;const href=link.getAttribute('href')||link.getAttribute('xlink:href')||'';const match=href.match(/#cell-(class|unit)-(\d+)$/);if(match){e.preventDefault();if(match[1]==='class')selectClass(Number(match[2]));else selectUnit(Number(match[2]));}};
+    host.onclick=e=>{const link=e.target.closest('a');if(!link)return;const href=link.getAttribute('href')||link.getAttribute('xlink:href')||'';const match=href.match(/#cell-(class|unit)-(\d+)$/);if(match){e.preventDefault();if(match[1]==='class'){panel.dataset.focus='body';el('body').closest('details').open=true;selectClass(Number(match[2]));}else{panel.dataset.focus='rule';selectUnit(Number(match[2])).then(()=>{if(selected?.unit===Number(match[2]))renderRule();});}}};
   }
   function paths(){
     el('paths').replaceChildren();
@@ -96,12 +105,13 @@ export function installCellPanel(parent,{post,mountSvg,previewRow}){
   }
   async function selectUnit(id){
     const n=m?.units.get(id);if(!n)return;
-    const token=++epoch;selected=n;choices.set(n.eclass,n);el('error').textContent='';el('typst').replaceChildren();el('body').replaceChildren();
+    const token=++epoch;selected=n;detail=null;choices.set(n.eclass,n);el('error').textContent='';el('typst').replaceChildren();el('body').replaceChildren();
     el('class').value=String(n.eclass);el('unit').replaceChildren();
     for(const v of m.classes.get(n.eclass))el('unit').add(new Option(`unit ${v.unit} · ${v.state} · 前驱 ${v.parents.join(', ')||'无'}`,v.unit));el('unit').value=String(id);
     paths();el('guarantee').textContent='正在读取此路径的证据…';
     try{
-      const d=await(await post('cell-egraph-state',{path,unit:id})).json();if(token!==epoch)return;detail=d;el('member').replaceChildren();el('rule-svg').replaceChildren();for(const member of d.members)el('member').add(new Option(`${member.use_kind==='CoarseRuleComposition'?'Coarse':'Smooth'} · record ${member.record}`,member.record));
+      const d=await(await post('cell-egraph-state',{path,unit:id,snapshot})).json();if(token!==epoch)return;detail=d;el('member').replaceChildren();el('rule-svg').replaceChildren();for(const member of d.members)el('member').add(new Option(`${member.use_kind==='CoarseRuleComposition'?'Coarse':'Smooth'} · record ${member.record}`,member.record));
+      if(d.root_record!=null)el('member').value=String(d.root_record);
       const g=d.guarantee;
       el('guarantee').textContent=[g.replay?'✓ 原历史回放验证通过':'? 无回放验证记录',g.saturated?'✓ 局部推理完成':`未完成：${d.status}`,g.certified_body?'✓ 导出认证闭包':g.observation_only?'观察性快照，不是认证闭包':'无认证闭包',g.symbolic?.schema?'符号路径条件下的闭包；不是全数值分支饱和':'',g.runtime_adapter].filter(Boolean).join(' ｜ ');
       el('evidence').textContent=JSON.stringify({guarantee:g,members:d.members,lhs_evidence:d.lhs_evidence},null,2);
@@ -110,15 +120,19 @@ export function installCellPanel(parent,{post,mountSvg,previewRow}){
     }catch(e){if(token===epoch)fail(e);}
   }
   function selectClass(c){const n=choices.get(c)||m.classes.get(c)?.[0];if(n)return selectUnit(n.unit);}
-  el('rule-preview').onclick=async()=>{const token=epoch;try{const member=detail?.members.find(m=>String(m.record)===el('member').value);if(!member||!detail.preview_source)throw Error('这条路径缺少原始规则源码，无法调用现有模板。');const source=detail.preview_source+'\n'+member.rule;const line=detail.preview_source.split('\n').length+1;const rendered=await previewRow({source,line,mode:'combined',label_style:'recursive',recursive_strategy:'tree-safe'});if(token!==epoch)return;el('source').textContent=rendered.typst;mountSvg(rendered.typst_svg,el('rule-svg'));el('rule-svg').dataset.ready='true';}catch(e){if(token===epoch)fail(e);}};
+  async function renderRule(){const token=epoch;try{const member=detail?.members.find(m=>String(m.record)===el('member').value);if(!member||!detail.preview_source)throw Error('这条路径缺少原始规则源码，无法调用现有模板。');const source=detail.preview_source+'\n'+member.rule;const line=detail.preview_source.split('\n').length+1;const rendered=await previewRow({source,line,mode:'combined',label_style:'recursive',recursive_strategy:'tree-safe'});if(token!==epoch)return;el('source').textContent=rendered.typst;mountSvg(rendered.typst_svg,el('rule-svg'));el('rule-svg').dataset.ready='true';}catch(e){if(token===epoch)fail(e);}};
+  el('rule-preview').onclick=renderRule;
+  el('snapshot').onchange=()=>api.load(path,el('snapshot').value).catch(fail);
   el('class').onchange=()=>selectClass(Number(el('class').value));el('unit').onchange=()=>selectUnit(Number(el('unit').value));el('body-kind').onchange=()=>body().catch(fail);
   el('typst-button').onclick=async()=>{try{if(!selected)return;const root=choices.get(selected.eclass)||selected;const src=pathTypst(m,root,choices);el('source').textContent=src;await svg('typst',src,el('typst'));}catch(e){fail(e);}};
   const all=el('overview').parentElement;all.ontoggle=()=>{if(all.open&&m&&!el('overview').childNodes.length)svg('dot',overviewDot(m),el('overview')).catch(fail);};
-  return {panel,clear(){epoch++;selected=null;detail=null;m=null;panel.hidden=true;for(const name of ['body','paths','typst','rule-svg','evidence','overview','status','guarantee','error'])el(name).replaceChildren();},get source(){return detail?.preview_source||'';},download(){if(!m)return;const a=document.createElement('a'),u=URL.createObjectURL(new Blob([overviewDot(m)],{type:'text/vnd.graphviz'}));a.href=u;a.download='ripsat-cell-egraph.dot';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);},async load(p){path=p;const token=++epoch;const received=await(await post('cell-egraph',{path})).json();if(token!==epoch)return;data=received;m=model(data);choices.clear();el('overview').replaceChildren();el('class').replaceChildren();
+  const api={panel,noteSnapshot(frame){if(frame.artifact_directory===path&&frame.stem&&![...el('snapshot').options].some(o=>o.value===frame.stem))el('snapshot').add(new Option(frame.label||frame.stem,frame.stem));},get snapshot(){return snapshot;},get path(){return path;},clear(){if(panel.classList.contains('cell-fullscreen'))fullscreen(false);epoch++;selected=null;detail=null;m=null;panel.hidden=true;for(const name of ['body','paths','typst','rule-svg','evidence','overview','status','guarantee','error'])el(name).replaceChildren();},get source(){return detail?.preview_source||'';},download(){if(!m)return;const a=document.createElement('a'),u=URL.createObjectURL(new Blob([overviewDot(m)],{type:'text/vnd.graphviz'}));a.href=u;a.download='ripsat-cell-egraph.dot';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);},async load(p,round){if(round!==undefined)snapshot=round;else if(p!==path)snapshot='';path=p;const token=++epoch;const received=await(await post('cell-egraph',{path,snapshot})).json();if(token!==epoch)return;data=received;el('snapshot').replaceChildren(new Option('最新（自动跟随）',''));for(const f of data.snapshots||[])el('snapshot').add(new Option(f.label||`Round ${f.round??f.stem}`,f.stem));el('snapshot').value=snapshot;m=model(data);choices.clear();el('overview').replaceChildren();el('class').replaceChildren();
     for(const [c,ns] of m.classes)el('class').add(new Option(`e${c} · ${ns.length} 条构造 · 入度 ${m.degree(c)}`,c));
     el('status').textContent=`${m.classes.size} 个 e-class，${data.nodes.length} 条已登记构造；认证合并 ${data.certified_unions}。${data.note}`;
     if(!m.classes.size){el('guarantee').textContent='此分析目录没有 Cell egraph 登记数据。';for(const name of ['body','paths','typst','evidence'])el(name).replaceChildren();selected=null;detail=null;return;}
     const query=new URLSearchParams(location.search),unit=Number(query.get('cell_unit'));
     if(query.has('cell_unit')&&m.units.has(unit))await selectUnit(unit);else await selectClass(query.has('cell_eclass')&&m.classes.has(Number(query.get('cell_eclass')))?Number(query.get('cell_eclass')):m.classes.keys().next().value);
+    if(graphPane.open)await svg('dot',overviewDot(m),el('overview'));
   },refresh(){return selected?selectUnit(selected.unit):Promise.resolve();}};
+  return api;
 }

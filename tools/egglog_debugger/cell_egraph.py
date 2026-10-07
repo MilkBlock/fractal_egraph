@@ -14,10 +14,14 @@ def folder_in_out(root, path):
     return folder
 
 
-def read_run(root, path):
+def read_run(root, path, snapshot=None):
     folder = folder_in_out(root, path)
     final = folder / 'analysis.json'
-    if final.is_file():
+    if snapshot:
+        if not re.fullmatch(r'round-[0-9]+', snapshot):
+            raise ValueError('无效的快照文件名')
+        data = json.loads((folder / 'rounds' / (snapshot + '.json')).read_text())
+    elif final.is_file():
         data = json.loads(final.read_text())
     else:
         manifest = json.loads((folder / 'rounds/manifest.json').read_text())
@@ -71,8 +75,8 @@ def directories(root, source):
             'matching': 'source content, normalized line endings and outer whitespace'}
 
 
-def overview(root, path):
-    folder, queue = read_run(root, path)
+def overview(root, path, snapshot=None):
+    folder, queue = read_run(root, path, snapshot)
     registry = queue.get('cell_egraph') or {}
     mapping = {v['unit']: v['eclass'] for v in registry.get('units', [])}
     jobs = {j.get('cell_unit', j.get('candidate_id')): j for j in queue.get('jobs', [])}
@@ -83,7 +87,9 @@ def overview(root, path):
         nodes.append(dict(n, eclass=mapping.get(n['unit']), state=j.get('state', 'Unknown'),
             observed=bool(export.get('observed_state')), reason=j.get('reason'),
             symbolic=j.get('origin', {}).get('symbolic_lowering')))
-    return {'path': str(folder.relative_to(root)), 'nodes': nodes,
+    manifest = folder / 'rounds/manifest.json'
+    snapshots = json.loads(manifest.read_text()) if manifest.is_file() else []
+    return {'path': str(folder.relative_to(root)), 'snapshot': snapshot, 'snapshots': snapshots, 'nodes': nodes,
             'units': registry.get('units', []), 'certified_unions': registry.get('certified_unions', 0),
             'scope': registry.get('scope'), 'boundary': queue.get('boundary'),
             'dsl': '(CellParents (NoParents) (Parent Cell CellParents))\n(Cell (CoarseApply CellParents i64))',
@@ -143,8 +149,8 @@ def match_terms(state, terms):
     return sorted(selected), unresolved
 
 
-def state_detail(root, path, unit):
-    folder, queue = read_run(root, path)
+def state_detail(root, path, unit, snapshot=None):
+    folder, queue = read_run(root, path, snapshot)
     registry = queue.get('cell_egraph') or {}
     node = next((n for n in registry.get('nodes', []) if n['unit'] == unit), None)
     if node is None: raise ValueError('未登记的 Cell unit')
@@ -181,7 +187,7 @@ def state_detail(root, path, unit):
     symbolic = origin.get('symbolic_lowering') or {}
     return {'unit': unit, 'node': node, 'state': state, 'initial': initial,
         'status': job.get('state', 'Unknown'), 'reason': job.get('reason'),
-        'members': members, 'preview_source': (folder / 'source.egg').read_text() if (folder / 'source.egg').is_file() else None, 'lhs_evidence': local_evidence, 'highlight_rows': highlight,
+        'root_record': origin.get('root_member'), 'members': members, 'preview_source': (folder / 'source.egg').read_text() if (folder / 'source.egg').is_file() else None, 'lhs_evidence': local_evidence, 'highlight_rows': highlight,
         'initial_highlight_rows': initial_highlight, 'initial_unresolved_lhs': initial_unresolved, 'unresolved_lhs': unresolved, 'has_lhs_evidence': bool(local_evidence),
         'guarantee': {'replay': bool(origin.get('validation')), 'validation': origin.get('validation'),
             'saturated': state is not None, 'certified_body': state is not None and not observed,

@@ -183,9 +183,9 @@ class Handler(SimpleHTTPRequestHandler):
             if self.path == '/api/analysis-directories':
                 return self.reply(200, cell_egraph.directories(ROOT, data.get('source', '')))
             if self.path == '/api/cell-egraph':
-                return self.reply(200, cell_egraph.overview(ROOT, data['path']))
+                return self.reply(200, cell_egraph.overview(ROOT, data['path'], data.get('snapshot')))
             if self.path == '/api/cell-egraph-state':
-                return self.reply(200, cell_egraph.state_detail(ROOT, data['path'], int(data['unit'])))
+                return self.reply(200, cell_egraph.state_detail(ROOT, data['path'], int(data['unit']), data.get('snapshot')))
             if self.path == '/api/saturated-rule-composition-catalog':
                 folder = (ROOT / data['path']).resolve()
                 if not folder.is_relative_to(ROOT / 'out'):

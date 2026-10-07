@@ -79,3 +79,13 @@
 #native-cell-egraph [data-role=error] {color:#a32222;}
 
 #native-layer-directory {max-width:100%; width: min(42rem, 100%);}
+#native-cell-egraph .cell-workspace {display:block;}
+#native-cell-egraph.cell-fullscreen {position:fixed;inset:0;z-index:100000;margin:0;border:0;border-radius:0;padding:12px;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;}
+#native-cell-egraph.cell-fullscreen .cell-workspace {display:grid;grid-template-columns:minmax(0,3fr) minmax(300px,2fr);gap:16px;flex:1;min-height:0;}
+#native-cell-egraph.cell-fullscreen .cell-graph-pane {overflow:auto;margin:0;border-right:1px solid #cbd4e2;}
+#native-cell-egraph.cell-fullscreen .cell-inspector {overflow:auto;min-height:0;}
+#native-cell-egraph.cell-fullscreen [data-role=overview], #native-cell-egraph.cell-fullscreen [data-role=body] {max-height:none;}
+#native-cell-egraph.cell-fullscreen [data-role=paths], #native-cell-egraph.cell-fullscreen [data-role=typst], #native-cell-egraph.cell-fullscreen [data-role=typst-button] {display:none;}
+#native-cell-egraph.cell-fullscreen[data-focus=rule] [data-section=body] {display:none;}
+#native-cell-egraph.cell-fullscreen[data-focus=body] [data-role=rule-svg] {display:none;}
+@media(max-width:750px){#native-cell-egraph.cell-fullscreen .cell-workspace {grid-template-columns:1fr;overflow:auto;}}

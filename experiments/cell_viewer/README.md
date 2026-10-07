@@ -61,3 +61,18 @@ analysis JSON. Source hashes are cached by file version. Browser runs preserve
 input.egg for matching. Partial runs with round snapshots are readable as well.
 `test_cell_directory_browser.cjs` checks switching source, latest-run selection,
 no-result clearing, removal of old controls, and selection after a fresh web run.
+
+## Round snapshots and full-screen layout
+
+The snapshot selector reads saved round JSON independently of the final report.
+Web runs feed each emitted round into the same panel before completion. The latest
+option follows new rounds; selecting a specific round pins it. Old CLI runs that
+did not save rounds expose only their final result. Selecting a historical round
+never substitutes the final registry or a future saturated body.
+
+Full-screen mode is a CSS layout switch over the same DOM/SVG: the graph is on
+the left and its inspector on the right, covering the editor and logs. Click a
+CoarseApply node for the root application's existing Typst preview, or an eclass
+for its body. Escape restores the embedded layout. DOT generation is unchanged.
+`test_cell_fullscreen_browser.cjs` verifies identical SVG across the switch, both
+click routes, snapshot isolation and exiting with Escape.
