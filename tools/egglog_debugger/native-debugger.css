@@ -66,3 +66,14 @@
 #native-saturated-rule-composition-table table{border-collapse:collapse;margin:8px 0;}
 #native-saturated-rule-composition-table th,#native-saturated-rule-composition-table td{padding:5px 10px;border:1px solid #d7dce0;text-align:left;}
 #native-saturated-rule-composition-details{max-height:350px;overflow:auto;}
+/* Cell egraph shares the local DOT/Typst renderer; wide graphs scroll in place. */
+#native-cell-egraph {margin-top:10px; padding:12px; border:1px solid #cbd4e2; border-radius:8px; background:#fff; color:#182338;}
+#native-cell-egraph [data-role=status], #native-cell-egraph [data-role=legend] {color:#536078; line-height:1.5; margin:8px 0;}
+#native-cell-egraph [data-role=rule-svg], #native-cell-egraph [data-role=body], #native-cell-egraph [data-role=typst], #native-cell-egraph [data-role=overview] {overflow:auto; max-height:560px; max-width:100%; background:#fff;}
+#native-cell-egraph svg {max-width:none;}
+#native-cell-egraph [data-role=paths] {padding:8px; background:#f4f7fb; border-radius:6px; max-height:350px; overflow:auto;}
+#native-cell-egraph details {margin:8px 0;}
+#native-cell-egraph summary {cursor:pointer;}
+#native-cell-egraph select {max-width:100%;}
+#native-cell-egraph pre {max-height:280px; overflow:auto; overflow-wrap:anywhere; font-size:12px;}
+#native-cell-egraph [data-role=error] {color:#a32222;}

@@ -1,3 +1,4 @@
+import {installCellPanel} from './cell-egraph-panel.mjs';
 import {ripenCoverage,renderCoverage} from './ripen-coverage.mjs';
 // Layer snapshots share the debugger's existing Typst plugin and Graphviz host.
 // No second SVG layout engine or independent visualization page.
@@ -5,7 +6,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     const panel=document.createElement('details');panel.id='native-layer-panel';panel.open=true;
     panel.innerHTML=`<summary>CS / Ripen · 每轮 DOT</summary>
       <div><select id="native-layer-round" aria-label="Layer 轮次"></select>
-      <select id="native-layer-kind"><option value="saturated_rule_composition">Saturated rule composition · Ripen 复用统计</option><option value="layers">Coarse / Smooth layers</option></select>
+      <select id="native-layer-kind"><option value="saturated_rule_composition">Saturated rule composition · Ripen 复用统计</option><option value="cells">RipSatCell egraph · 路径与保证</option><option value="layers">Coarse / Smooth layers</option></select>
       <select id="native-layer-scope" aria-label="Layer 或 Fractal"><option value="">全部</option></select>
       <select id="native-layer-format"><option value="dot">DOT / Graphviz</option></select>
       <button id="native-layer-render">显示</button><button id="native-layer-download">下载本轮 DOT</button></div>
@@ -15,6 +16,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
       <details><summary>返回 binding、条件与 effect 证据</summary><pre id="native-layer-details"></pre></details>
       <details><summary>当前 Typst / DOT 源码</summary><pre id="native-layer-code"></pre></details>`;
     const catalogPanel=document.createElement('section');catalogPanel.hidden=true;catalogPanel.innerHTML=`<p>Saturated rule composition · 每轮处理进度与共享闭包</p><input hidden id="native-saturated-rule-composition-path" placeholder="out/ 中的 saturated-rule-composition-catalog 目录"><button hidden id="native-saturated-rule-composition-load">载入共享目录</button><select id="native-saturated-rule-composition" aria-label="共享闭包"><option value="">全部概览</option></select><select id="native-saturated-rule-composition-comb" aria-label="对应组合"><option value="">所有对应组合</option></select><select id="native-saturated-rule-composition-instance" aria-label="触发实例"><option value="">示例实例</option></select><select id="native-saturated-rule-composition-diagram" aria-label="SaturatedRuleComposition 图类型"><option value="comb">来源 rule comb</option><option value="cs">CSCS / CCSS 引用组合</option><option value="egraph">闭包 e-graph</option><option value="layers">来源 Coarse / Smooth layer</option><option value="ripen">起始图 / 饱和图</option><option value="body">合并前 / 合并后 body</option></select><div id="native-saturated-rule-composition-caption"></div><div id="native-saturated-rule-composition-status"></div><div id="native-saturated-rule-composition-coverage"></div><div id="native-saturated-rule-composition-weak"></div><div id="native-saturated-rule-composition-table"></div><div id="native-saturated-rule-composition-view"></div><pre id="native-saturated-rule-composition-rule" style="white-space:pre-wrap"></pre><pre id="native-saturated-rule-composition-details"></pre>`;panel.append(catalogPanel);
+    const cellView=installCellPanel(panel,{post,mountSvg,previewRow});
     const cp=id=>catalogPanel.querySelector('#native-saturated-rule-composition'+(id==='state'?'':'-'+id));
     let catalogData=null,catalogVersion=0,catalogError=null,coverageContext=null;
     const NO_CATALOG='尚无 SaturatedRuleComposition 快照：请先「运行并识别」（它会自动推进 ripen 队列），或在目录框载入一次带 SaturatedRuleComposition 的运行目录（含 catalog/）。Pending / Suspended 不代表已闭合。';
@@ -260,10 +262,10 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     // Use actually closed. Only the first is fixed by running again.
     const noSaturatedHint=()=>frames.length&&!frames.some(f=>f.saturated_rule_composition)?STALE_SNAPSHOTS:NO_CATALOG;
     function mode(){
-        const saturated=$('kind').value==='saturated_rule_composition';catalogPanel.hidden=!saturated;
-        for(const id of ['scope','format'])$(id).hidden=saturated;$('round').hidden=saturated&&!frames.length;
-        for(const id of ['viewport','details','code']){const e=$(id);(e.closest('details')===panel?e:e.closest('details')||e).hidden=saturated;}
-        $('status').hidden=saturated;$('source').disabled=!frame();
+        const saturated=$('kind').value==='saturated_rule_composition',cells=$('kind').value==='cells';catalogPanel.hidden=!saturated;cellView.panel.hidden=!cells;
+        for(const id of ['scope','format'])$(id).hidden=saturated||cells;$('round').hidden=cells||(saturated&&!frames.length);
+        for(const id of ['viewport','details','code']){const e=$(id);(e.closest('details')===panel?e:e.closest('details')||e).hidden=saturated||cells;}
+        $('status').hidden=saturated||cells;$('source').disabled=cells?!cellView.source:!frame();
         $('directory').placeholder=saturated?'out/ 中的共享目录或含 catalog/ 的运行目录':'out/ 中的分析目录';
         $('load').textContent=saturated?'载入 SaturatedRuleComposition':'载入分析目录';
         $('download').textContent=saturated?'下载当前 SaturatedRuleComposition DOT':'下载本轮 DOT';
@@ -338,7 +340,7 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
     }
     function options(pin=true){
         mode();if(frame()?.saturated_rule_composition)showSaturatedFrame(frame().saturated_rule_composition);
-        if($('kind').value==='saturated_rule_composition')return;
+        if(['saturated_rule_composition','cells'].includes($('kind').value))return;
         const f=frame();if(!f)return;if(pin!==false)pinned=true;
         $('scope').replaceChildren(new Option('全部',''));for(const g of f.graphs.layers.groups||[])$('scope').add(new Option(g.label,g.id));
         $('status').textContent=`${f.label} · ${f.counts.applications} 个实际应用；无模板搜索和候选预算。`;
@@ -355,23 +357,25 @@ export function installLayerPanel(host, {post, previewRow, mountSvg, loadBrowser
         return lines.join('\n')+'\n}';
     }
     async function render(){
+        if($('kind').value==='cells'){mode();const path=$('directory').value;if(path)await cellView.load(path).catch(e=>$('error').textContent=e.message);return;}
         if(frame()?.graphs_enabled===false){$('status').textContent='本次运行未生成 DOT / SVG，统计结果仍可查看。';return;}
         if($('kind').value==='saturated_rule_composition'){mode();if(catalogData)await renderCatalog();return;}
         if(!frame())return;const v=++version,g=selectedGraph(),source=dot(g);$('code').textContent=source;
         try{const markup=await(await post('render',{kind:'dot',source})).text();if(v!==version)return;$('viewport').replaceChildren();mountSvg(markup,$('viewport'));$('viewport').dataset.ready='true';rendered=true;}catch(e){$('error').textContent=String(e);}
     }
     $('round').onchange=()=>{options();render();};$('kind').onchange=()=>{options();render();};$('render').onclick=render;
-    $('download').onclick=()=>{const source=$('kind').value==='saturated_rule_composition'?cp('view').dataset.dot:dot(selectedGraph());if(!source)return;const a=document.createElement('a'),u=URL.createObjectURL(new Blob([source],{type:'text/vnd.graphviz'}));a.href=u;a.download='cs-ripen.dot';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);};
+    $('download').onclick=()=>{if($('kind').value==='cells'){cellView.download();return;}const source=$('kind').value==='saturated_rule_composition'?cp('view').dataset.dot:dot(selectedGraph());if(!source)return;const a=document.createElement('a'),u=URL.createObjectURL(new Blob([source],{type:'text/vnd.graphviz'}));a.href=u;a.download='cs-ripen.dot';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);};
     async function load(path){
+        if($('kind').value==='cells'){mode();await cellView.load(path);mode();return;}
         const controls=['load','render','round','kind','scope','format'];controls.forEach(id=>$(id).disabled=true);
         try {const data=await (await post('layer-run',{path})).json();reset();for(const f of data.frames)receive(f);cp('path').value=path;if(data.saturated_rule_composition_catalog&&!data.frames.some(f=>f.saturated_rule_composition)){cp('path').value=data.saturated_rule_composition_catalog;await cp('load').onclick();}mode();}
         finally {controls.forEach(id=>$(id).disabled=false);}
     }
     $('load').onclick=()=>{const path=$('directory').value;return load(path).catch(e=>{if($('kind').value==='saturated_rule_composition'){reset();$('directory').value=path;cp('path').value=path;mode();return cp('load').onclick();}$('error').textContent=e.message;});};
-    $('source').onclick=()=>{if(frame())editor.setValue(frame().preview_source);};
-    const initialKind=new URLSearchParams(location.search).get('layer_kind');if(['layers','saturated_rule_composition'].includes(initialKind))$('kind').value=initialKind;
+    $('source').onclick=()=>{if($('kind').value==='cells'){if(cellView.source)editor.setValue(cellView.source);return;}if(frame())editor.setValue(frame().preview_source);};
+    const initialKind=new URLSearchParams(location.search).get('layer_kind');if(['layers','saturated_rule_composition','cells'].includes(initialKind))$('kind').value=initialKind;
     if(initialCatalog&&!new URLSearchParams(location.search).get('layer_run')){$('kind').value='saturated_rule_composition';$('directory').value=initialCatalog;cp('path').value=initialCatalog;cp('load').click();}mode();
-    const initial=new URLSearchParams(location.search).get('layer_run');if(initial){$('directory').value=initial;load(initial).then(async()=>{if(initialCatalog){$('kind').value='saturated_rule_composition';cp('path').value=initialCatalog;await cp('load').onclick();mode();}return render();}).catch(e=>$('error').textContent=e.message);}
+    const initial=new URLSearchParams(location.search).get('layer_run');if(initial){$('directory').value=initial;load(initial).then(async()=>{if(initialCatalog){$('kind').value='saturated_rule_composition';cp('path').value=initialCatalog;await cp('load').onclick();mode();}return $('kind').value==='cells'?undefined:render();}).catch(e=>$('error').textContent=e.message);}
     // Re-render the current selection against the current source. Called after an
     // editor change so an edited annotation template is visible without re-running.
     async function refresh(){if(rendered&&frames.length)await render();}

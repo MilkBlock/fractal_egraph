@@ -20,6 +20,7 @@ import subprocess
 import tempfile
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from plugin_renderer import PluginRenderer, default_plugin_root
+import cell_egraph
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_DEMO = ROOT.parent / 'egglog-demo'
@@ -121,7 +122,7 @@ class Handler(SimpleHTTPRequestHandler):
         return self.reply(204, b'')
 
     def translate_path(self, path):
-        if path.split('?')[0] in ('/native-debugger.js', '/native-debugger.css', '/wasm-worker.js', '/layer-panel.js', '/ripen-coverage.mjs'):
+        if path.split('?')[0] in ('/native-debugger.js', '/native-debugger.css', '/wasm-worker.js', '/layer-panel.js', '/ripen-coverage.mjs', '/cell-egraph-panel.mjs'):
             return str(ROOT / 'tools/egglog_debugger' / path.split('?')[0][1:])
         # The browser bundle is a build artifact (see browser/build.mjs); the local
         # page imports it to generate a fractal lane's `.egg`, so serve it when it
@@ -173,6 +174,10 @@ class Handler(SimpleHTTPRequestHandler):
             if not 0 < length <= 2_000_000:
                 return self.reply(413, {'error': 'Source must be at most 2 MB'})
             data = json.loads(self.rfile.read(length))
+            if self.path == '/api/cell-egraph':
+                return self.reply(200, cell_egraph.overview(ROOT, data['path']))
+            if self.path == '/api/cell-egraph-state':
+                return self.reply(200, cell_egraph.state_detail(ROOT, data['path'], int(data['unit'])))
             if self.path == '/api/saturated-rule-composition-catalog':
                 folder = (ROOT / data['path']).resolve()
                 if not folder.is_relative_to(ROOT / 'out'):

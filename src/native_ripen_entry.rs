@@ -326,6 +326,7 @@ fn extract(
     let mut last_commit_by_target = BTreeMap::new();
     let mut update_evidence = vec![];
     let mut scalar_program = scalar::Program::new(&environment.commands);
+    let mut lhs_evidence = vec![];
     for i in &members {
         let r = &c.records[*i];
         let rule = &c.rules[r.rule];
@@ -687,6 +688,11 @@ fn extract(
             }));
         }
         let preconditions = commands.len();
+        let calls: Vec<_> = rule.calls.values().filter(|(position,_)|position.starts_with("body/")).filter_map(|(position,e)| {
+            if !matches!(e,Expr::Call(..)) {return None;}
+            subst(e,&env).ok().map(|term|json!({"position":position,"term":term.to_string()}))
+        }).collect();
+        lhs_evidence.push(json!({"record":i,"ruleset":rule.rule.ruleset,"calls":calls}));
         for (action_index, action) in rule.rule.head.0.iter().enumerate() {
             let action = match action {
                 Action::Let(_, n, e) => {
@@ -978,7 +984,7 @@ fn extract(
         "initial_tables":initial_tables,"original_use_tables":original_tables,"parameter_marker":hole,"parameter_markers":environment.holes,
         "symbolic_values":values.iter().map(|(token,term)|json!({"token":token,"term":term.to_string(),"sort":c.pool.values[*token].sort})).collect::<Vec<_>>(),
         "parameters":parameters,"excluded_seed_rules":c.rules.iter().filter(|r|r.rule.body.is_empty()).map(|r|r.rule.name.clone()).collect::<Vec<_>>(),"all_source_rules":c.rules.len(),"validation":"all original LHS checks and recorded output aliases passed before/after the corresponding ground actions",
-        "analysis_program":scalar_program.report(),"set_update_witnesses":update_evidence,"staged_injections":injections,"initial_source":seed_text,"concrete_boundary_structure_recovered":false,
+        "lhs_evidence":lhs_evidence,"analysis_program":scalar_program.report(),"set_update_witnesses":update_evidence,"staged_injections":injections,"initial_source":seed_text,"concrete_boundary_structure_recovered":false,
         "saturated_scope":"extracted interface only; not the complete original tier0 neighborhood"});
     let analysis = &provenance["analysis_program"];
     if analysis["instance_inputs"]
