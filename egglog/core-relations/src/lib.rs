@@ -85,7 +85,16 @@ pub mod probe_counters {
     /// rows reachable through probes: the sum of every subset a prober hands out,
     /// i.e. every row that still has to pass the remaining constraints. This is the
     /// fan-out the join actually pays for, as opposed to `matches` (rule firings).
+    /// Equal to `ENUM_ROWS + LOOKUP_ROWS`; kept so a single counter tells the whole story.
     pub static CANDIDATE_ROWS: AtomicUsize = AtomicUsize::new(0);
+    /// the `Prober::for_each` half of `CANDIDATE_ROWS`: enumerating a whole index,
+    /// one subset per distinct key
+    pub static ENUM_ROWS: AtomicUsize = AtomicUsize::new(0);
+    /// single-key lookups (`Prober::get_subset`), which are NOT counted as probes:
+    /// one prober is built per stage and then reused for every row of the cover
+    pub static LOOKUP_CALLS: AtomicUsize = AtomicUsize::new(0);
+    /// the `Prober::get_subset` half of `CANDIDATE_ROWS`
+    pub static LOOKUP_ROWS: AtomicUsize = AtomicUsize::new(0);
 
     pub fn bump(c: &AtomicUsize) {
         c.fetch_add(1, Ordering::Relaxed);
@@ -106,6 +115,9 @@ pub mod probe_counters {
             ("cached_index_rebuild_full", g(&INDEX_REBUILD_FULL)),
             ("probed_keys", g(&PROBED_KEYS)),
             ("candidate_rows", g(&CANDIDATE_ROWS)),
+            ("  candidate_rows enumerated (for_each)", g(&ENUM_ROWS)),
+            ("  lookup calls (get_subset)", g(&LOOKUP_CALLS)),
+            ("  candidate_rows from lookups", g(&LOOKUP_ROWS)),
         ]
     }
 }

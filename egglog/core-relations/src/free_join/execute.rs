@@ -246,9 +246,13 @@ struct Prober {
 impl Prober {
     fn get_subset<'a>(&'a self, key: &'a [Value]) -> Option<PotentiallyStale<SubsetRef<'a>>> {
         let out = self.get_subset_uncounted(key);
+        crate::probe_counters::bump(&crate::probe_counters::LOOKUP_CALLS);
         if let Some(sub) = &out {
+            let n = sub.size();
             crate::probe_counters::CANDIDATE_ROWS
-                .fetch_add(sub.size(), std::sync::atomic::Ordering::Relaxed);
+                .fetch_add(n, std::sync::atomic::Ordering::Relaxed);
+            crate::probe_counters::LOOKUP_ROWS
+                .fetch_add(n, std::sync::atomic::Ordering::Relaxed);
         }
         out
     }
@@ -298,8 +302,10 @@ impl Prober {
         // its subset is one candidate the join still has to refute or accept.
         let mut f = |k: &[Value], v: PotentiallyStale<SubsetRef>| {
             crate::probe_counters::bump(&crate::probe_counters::PROBED_KEYS);
+            let n = v.size();
             crate::probe_counters::CANDIDATE_ROWS
-                .fetch_add(v.size(), std::sync::atomic::Ordering::Relaxed);
+                .fetch_add(n, std::sync::atomic::Ordering::Relaxed);
+            crate::probe_counters::ENUM_ROWS.fetch_add(n, std::sync::atomic::Ordering::Relaxed);
             f(k, v)
         };
         match &self.ix {

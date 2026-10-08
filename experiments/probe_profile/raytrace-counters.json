@@ -18,7 +18,10 @@
   "cached_index_rebuild": 88853,
   "cached_index_hit": 1664720,
   "cached_index_rebuild_rows": 6583321,
-  "cached_index_rebuild_full": 232
+  "cached_index_rebuild_full": 232,
+  "enum_rows": 36695340,
+  "lookup_calls": 26249838,
+  "lookup_rows": 50424105
  },
  "derived": {
   "probes_per_match": 6.03,
@@ -26,7 +29,19 @@
   "candidate_rows_per_match": 28.2,
   "candidate_rows_per_probed_key": 2.71,
   "microseconds_per_match": 5.28,
-  "nanoseconds_per_candidate_row": 187.5
+  "nanoseconds_per_candidate_row": 187.5,
+  "enum_rows_per_match": 11.86,
+  "lookup_rows_per_match": 16.3,
+  "lookup_calls_per_match": 8.48,
+  "rows_per_enumerated_key": 1.14,
+  "rows_per_lookup_call": 1.92,
+  "probed_keys_per_probe": 1.72,
+  "lookup_calls_per_probe": 1.41,
+  "nanoseconds_per_probe": 875.8
  },
- "caveat": "counters are process-global; scope is the exported script (10123 iterations), not the real eggcc 3-pass run (23378 iterations). Probe/match/candidate-row counters add unconditional relaxed atomic increments, so wall-clock from a counted run is not a baseline."
+ "caveat": "counters are process-global; scope is the exported script (10123 iterations), not the real eggcc 3-pass run (23378 iterations). Probe/match/candidate-row counters add unconditional relaxed atomic increments, so wall-clock from a counted run is not a baseline.",
+ "retracted": [
+  "probes x ~1us as a cost model (probe is a per-stage index-handle build)",
+  "reading 28.2 candidate_rows/match as 'the driving key is too coarse' (rows/key is 1.14: keys are near-unique)"
+ ]
 }
