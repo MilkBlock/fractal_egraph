@@ -1,0 +1,258 @@
+{
+  "scope": "Standalone exact binding algebra, native egglog one-step oracle; no runtime acceleration claimed",
+  "rule": "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
+  "source_sha256": "aaa8942131b4db57e76710486718790e1d7f2cb9288aeb702c0c17019439cf16",
+  "binary_sha256": "d35818c2345b23bcd27c5d2ce0ea6b163043bf3cefc6f60d8ba1a915c25abbfa",
+  "union_sequence_checks": 648,
+  "phases": [
+    {
+      "phase": 0,
+      "union": null,
+      "new_outer_terms": 0,
+      "raw_witnesses": 6,
+      "distinct_bindings": 6,
+      "newly_enabled": 0,
+      "max_coefficient": 1,
+      "factors_before_compaction": 4,
+      "factors_after_compaction": 4,
+      "factor_scalar_slots": 36,
+      "dense_scalar_slots": 20,
+      "matrix": [
+        [
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ],
+      "native_checks_passed": true
+    },
+    {
+      "phase": 1,
+      "union": [
+        0,
+        1
+      ],
+      "new_outer_terms": 2,
+      "raw_witnesses": 10,
+      "distinct_bindings": 8,
+      "newly_enabled": 2,
+      "max_coefficient": 2,
+      "factors_before_compaction": 6,
+      "factors_after_compaction": 3,
+      "factor_scalar_slots": 27,
+      "dense_scalar_slots": 20,
+      "matrix": [
+        [
+          1,
+          1,
+          0,
+          0
+        ],
+        [
+          1,
+          1,
+          0,
+          0
+        ],
+        [
+          2,
+          2,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ],
+      "native_checks_passed": true
+    },
+    {
+      "phase": 2,
+      "union": [
+        1,
+        2
+      ],
+      "new_outer_terms": 2,
+      "raw_witnesses": 16,
+      "distinct_bindings": 13,
+      "newly_enabled": 5,
+      "max_coefficient": 2,
+      "factors_before_compaction": 5,
+      "factors_after_compaction": 2,
+      "factor_scalar_slots": 18,
+      "dense_scalar_slots": 20,
+      "matrix": [
+        [
+          1,
+          1,
+          1,
+          0
+        ],
+        [
+          1,
+          1,
+          1,
+          0
+        ],
+        [
+          2,
+          2,
+          2,
+          0
+        ],
+        [
+          1,
+          1,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ],
+      "native_checks_passed": true
+    },
+    {
+      "phase": 3,
+      "union": [
+        0,
+        0
+      ],
+      "new_outer_terms": 0,
+      "raw_witnesses": 16,
+      "distinct_bindings": 13,
+      "newly_enabled": 0,
+      "max_coefficient": 2,
+      "factors_before_compaction": 2,
+      "factors_after_compaction": 2,
+      "factor_scalar_slots": 18,
+      "dense_scalar_slots": 20,
+      "matrix": [
+        [
+          1,
+          1,
+          1,
+          0
+        ],
+        [
+          1,
+          1,
+          1,
+          0
+        ],
+        [
+          2,
+          2,
+          2,
+          0
+        ],
+        [
+          1,
+          1,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ],
+      "native_checks_passed": true
+    },
+    {
+      "phase": 4,
+      "union": [
+        2,
+        3
+      ],
+      "new_outer_terms": 2,
+      "raw_witnesses": 24,
+      "distinct_bindings": 20,
+      "newly_enabled": 7,
+      "max_coefficient": 2,
+      "factors_before_compaction": 4,
+      "factors_after_compaction": 1,
+      "factor_scalar_slots": 9,
+      "dense_scalar_slots": 20,
+      "matrix": [
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          2,
+          2,
+          2,
+          2
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ],
+        [
+          1,
+          1,
+          1,
+          1
+        ]
+      ],
+      "native_checks_passed": true
+    }
+  ],
+  "structured_case": {
+    "rows": 64,
+    "cols": 64,
+    "bindings": 4096,
+    "factor_scalar_slots": 128,
+    "dense_scalar_slots": 4096
+  }
+}
