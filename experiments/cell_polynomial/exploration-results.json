@@ -1,0 +1,110 @@
+{
+  "scope": "Standalone exact experiments, not a Cell runtime integration",
+  "binary_sha256": "d35818c2345b23bcd27c5d2ce0ea6b163043bf3cefc6f60d8ba1a915c25abbfa",
+  "recursive_associativity": [
+    {
+      "leaves": 3,
+      "equivalent_root_trees": 2,
+      "add_enodes": 4,
+      "all_math_enodes": 7,
+      "eclasses": 6,
+      "rhs_feedback": "native saturation",
+      "all_root_trees_checked": true,
+      "equality_checks": 6,
+      "native_checks_passed": true
+    },
+    {
+      "leaves": 4,
+      "equivalent_root_trees": 5,
+      "add_enodes": 10,
+      "all_math_enodes": 14,
+      "eclasses": 10,
+      "rhs_feedback": "native saturation",
+      "all_root_trees_checked": true,
+      "equality_checks": 15,
+      "native_checks_passed": true
+    },
+    {
+      "leaves": 5,
+      "equivalent_root_trees": 14,
+      "add_enodes": 20,
+      "all_math_enodes": 25,
+      "eclasses": 15,
+      "rhs_feedback": "native saturation",
+      "all_root_trees_checked": true,
+      "equality_checks": 34,
+      "native_checks_passed": true
+    },
+    {
+      "leaves": 6,
+      "equivalent_root_trees": 42,
+      "add_enodes": 35,
+      "all_math_enodes": 41,
+      "eclasses": 21,
+      "rhs_feedback": "native saturation",
+      "all_root_trees_checked": true,
+      "equality_checks": 77,
+      "native_checks_passed": true
+    },
+    {
+      "leaves": 7,
+      "equivalent_root_trees": 132,
+      "add_enodes": 56,
+      "all_math_enodes": 63,
+      "eclasses": 28,
+      "rhs_feedback": "native saturation",
+      "all_root_trees_checked": true,
+      "equality_checks": 188,
+      "native_checks_passed": true
+    },
+    {
+      "leaves": 12,
+      "equivalent_root_trees": 58786,
+      "add_enodes": 286,
+      "all_math_enodes": 298,
+      "eclasses": 78,
+      "rhs_feedback": "native saturation",
+      "all_root_trees_checked": false,
+      "equality_checks": 286,
+      "native_checks_passed": true
+    }
+  ],
+  "structured_full_rank": [
+    {
+      "dimension": 4,
+      "raw_rank": 1,
+      "guarded_rank": 4,
+      "dense_entries": 16,
+      "stored_numeric_coefficients": 8,
+      "scan_multiplications": 8,
+      "scan_additions": 3,
+      "exact_basis_vector_checks": 5,
+      "inverse_nonzeros": 7,
+      "scope": "Exact integer algebra; no egglog guard runtime benchmark"
+    },
+    {
+      "dimension": 16,
+      "raw_rank": 1,
+      "guarded_rank": 16,
+      "dense_entries": 256,
+      "stored_numeric_coefficients": 32,
+      "scan_multiplications": 32,
+      "scan_additions": 15,
+      "exact_basis_vector_checks": 17,
+      "inverse_nonzeros": 31,
+      "scope": "Exact integer algebra; no egglog guard runtime benchmark"
+    },
+    {
+      "dimension": 64,
+      "raw_rank": 1,
+      "guarded_rank": 64,
+      "dense_entries": 4096,
+      "stored_numeric_coefficients": 128,
+      "scan_multiplications": 128,
+      "scan_additions": 63,
+      "exact_basis_vector_checks": 65,
+      "inverse_nonzeros": 127,
+      "scope": "Exact integer algebra; no egglog guard runtime benchmark"
+    }
+  ]
+}
