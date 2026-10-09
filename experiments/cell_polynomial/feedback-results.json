@@ -1,0 +1,251 @@
+{
+  "scope": "Specialized associativity interval model with sequential native saturation oracle",
+  "cases": [
+    {
+      "initial_leaves": 3,
+      "successive_grafts": 3,
+      "phases": [
+        {
+          "phase": 0,
+          "leaves": 3,
+          "add_enodes": 4,
+          "distinct_hits": 1,
+          "new_add_enodes": null,
+          "new_distinct_hits": null,
+          "implicit_state": "ordered distinct leaf list + interval/split schema"
+        },
+        {
+          "phase": 1,
+          "leaves": 4,
+          "add_enodes": 10,
+          "distinct_hits": 5,
+          "new_add_enodes": 6,
+          "new_distinct_hits": 4,
+          "implicit_state": "ordered distinct leaf list + interval/split schema"
+        },
+        {
+          "phase": 2,
+          "leaves": 5,
+          "add_enodes": 20,
+          "distinct_hits": 15,
+          "new_add_enodes": 10,
+          "new_distinct_hits": 10,
+          "implicit_state": "ordered distinct leaf list + interval/split schema"
+        },
+        {
+          "phase": 3,
+          "leaves": 6,
+          "add_enodes": 35,
+          "distinct_hits": 35,
+          "new_add_enodes": 15,
+          "new_distinct_hits": 20,
+          "implicit_state": "ordered distinct leaf list + interval/split schema"
+        }
+      ],
+      "native_checks_passed": true
+    },
+    {
+      "initial_leaves": 7,
+      "successive_grafts": 3,
+      "phases": [
+        {
+          "phase": 0,
+          "leaves": 7,
+          "add_enodes": 56,
+          "distinct_hits": 70,
+          "new_add_enodes": null,
+          "new_distinct_hits": null,
+          "implicit_state": "ordered distinct leaf list + interval/split schema"
+        },
+        {
+          "phase": 1,
+          "leaves": 8,
+          "add_enodes": 84,
+          "distinct_hits": 126,
+          "new_add_enodes": 28,
+          "new_distinct_hits": 56,
+          "implicit_state": "ordered distinct leaf list + interval/split schema"
+        },
+        {
+          "phase": 2,
+          "leaves": 9,
+          "add_enodes": 120,
+          "distinct_hits": 210,
+          "new_add_enodes": 36,
+          "new_distinct_hits": 84,
+          "implicit_state": "ordered distinct leaf list + interval/split schema"
+        },
+        {
+          "phase": 3,
+          "leaves": 10,
+          "add_enodes": 165,
+          "distinct_hits": 330,
+          "new_add_enodes": 45,
+          "new_distinct_hits": 120,
+          "implicit_state": "ordered distinct leaf list + interval/split schema"
+        }
+      ],
+      "native_checks_passed": true
+    },
+    {
+      "initial_leaves": 12,
+      "successive_grafts": 3,
+      "phases": [
+        {
+          "phase": 0,
+          "leaves": 12,
+          "add_enodes": 286,
+          "distinct_hits": 715,
+          "new_add_enodes": null,
+          "new_distinct_hits": null,
+          "implicit_state": "ordered distinct leaf list + interval/split schema"
+        },
+        {
+          "phase": 1,
+          "leaves": 13,
+          "add_enodes": 364,
+          "distinct_hits": 1001,
+          "new_add_enodes": 78,
+          "new_distinct_hits": 286,
+          "implicit_state": "ordered distinct leaf list + interval/split schema"
+        },
+        {
+          "phase": 2,
+          "leaves": 14,
+          "add_enodes": 455,
+          "distinct_hits": 1365,
+          "new_add_enodes": 91,
+          "new_distinct_hits": 364,
+          "implicit_state": "ordered distinct leaf list + interval/split schema"
+        },
+        {
+          "phase": 3,
+          "leaves": 15,
+          "add_enodes": 560,
+          "distinct_hits": 1820,
+          "new_add_enodes": 105,
+          "new_distinct_hits": 455,
+          "implicit_state": "ordered distinct leaf list + interval/split schema"
+        }
+      ],
+      "native_checks_passed": true
+    }
+  ],
+  "algebra_checks": [
+    {
+      "old_leaves": 2,
+      "delta_add": 3,
+      "delta_hits": 1
+    },
+    {
+      "old_leaves": 3,
+      "delta_add": 6,
+      "delta_hits": 4
+    },
+    {
+      "old_leaves": 4,
+      "delta_add": 10,
+      "delta_hits": 10
+    },
+    {
+      "old_leaves": 5,
+      "delta_add": 15,
+      "delta_hits": 20
+    },
+    {
+      "old_leaves": 6,
+      "delta_add": 21,
+      "delta_hits": 35
+    },
+    {
+      "old_leaves": 7,
+      "delta_add": 28,
+      "delta_hits": 56
+    },
+    {
+      "old_leaves": 8,
+      "delta_add": 36,
+      "delta_hits": 84
+    },
+    {
+      "old_leaves": 9,
+      "delta_add": 45,
+      "delta_hits": 120
+    },
+    {
+      "old_leaves": 10,
+      "delta_add": 55,
+      "delta_hits": 165
+    },
+    {
+      "old_leaves": 11,
+      "delta_add": 66,
+      "delta_hits": 220
+    },
+    {
+      "old_leaves": 12,
+      "delta_add": 78,
+      "delta_hits": 286
+    },
+    {
+      "old_leaves": 13,
+      "delta_add": 91,
+      "delta_hits": 364
+    },
+    {
+      "old_leaves": 14,
+      "delta_add": 105,
+      "delta_hits": 455
+    },
+    {
+      "old_leaves": 15,
+      "delta_add": 120,
+      "delta_hits": 560
+    },
+    {
+      "old_leaves": 16,
+      "delta_add": 136,
+      "delta_hits": 680
+    },
+    {
+      "old_leaves": 17,
+      "delta_add": 153,
+      "delta_hits": 816
+    },
+    {
+      "old_leaves": 18,
+      "delta_add": 171,
+      "delta_hits": 969
+    },
+    {
+      "old_leaves": 19,
+      "delta_add": 190,
+      "delta_hits": 1140
+    },
+    {
+      "old_leaves": 20,
+      "delta_add": 210,
+      "delta_hits": 1330
+    },
+    {
+      "old_leaves": 21,
+      "delta_add": 231,
+      "delta_hits": 1540
+    },
+    {
+      "old_leaves": 22,
+      "delta_add": 253,
+      "delta_hits": 1771
+    },
+    {
+      "old_leaves": 23,
+      "delta_add": 276,
+      "delta_hits": 2024
+    },
+    {
+      "old_leaves": 24,
+      "delta_add": 300,
+      "delta_hits": 2300
+    }
+  ]
+}
