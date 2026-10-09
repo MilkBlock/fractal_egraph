@@ -1,0 +1,198 @@
+{
+  "scope": "Standalone incremental interface for the verbatim CICM Uop LHS; original RHS separately attempted and status reported; production pipeline not replaced",
+  "source": "/Users/mineralsteins/Repos/egg_related/check_statewalk/dag_in_context/src/optimizations/conditional_invariant_code_motion.egg",
+  "source_sha256": "e29597610c5770af7c8c6d2de251a90775ed83b1251f5106e3e4231dbfb580bc",
+  "lhs_sha256": "9dfe72e0ac233c1155c4c967034383f486d4b5e3a681e29013739c28589acc4d",
+  "binary_sha256": "d35818c2345b23bcd27c5d2ce0ea6b163043bf3cefc6f60d8ba1a915c25abbfa",
+  "named_binding_variables": [
+    "if_e",
+    "pred",
+    "orig_ins",
+    "thn",
+    "els",
+    "tylist",
+    "outer_ctx",
+    "e1",
+    "o",
+    "x",
+    "ty",
+    "t1",
+    "c1",
+    "e2",
+    "y",
+    "t2",
+    "c2",
+    "orig_ins_len"
+  ],
+  "cap_law_input_pairs": 1225,
+  "native_binding_sets_equal": true,
+  "original_rhs_construction_and_union_checked": false,
+  "original_rhs_failure": "Original RHS did not establish its final If union; fresh-create/subsume probe also skips the following Done action.",
+  "existing_node_subsume_checked": true,
+  "original_rhs_fresh_subsume_checked": false,
+  "fresh_subsume_visible_rows": 1,
+  "fresh_subsume_following_action_count": 0,
+  "stages": [
+    {
+      "stage": 0,
+      "event": null,
+      "matches": 0,
+      "reindexed_rows": 0,
+      "brute_force_pair_attempts": 242,
+      "factor_blocks": 0,
+      "emitted_pairs": 0
+    },
+    {
+      "stage": 1,
+      "event": [
+        "size",
+        "e:R1",
+        10
+      ],
+      "matches": 0,
+      "reindexed_rows": 0,
+      "brute_force_pair_attempts": 242,
+      "factor_blocks": 0,
+      "emitted_pairs": 0
+    },
+    {
+      "stage": 2,
+      "event": [
+        "size",
+        "e:R1",
+        9
+      ],
+      "matches": 2,
+      "reindexed_rows": 1,
+      "brute_force_pair_attempts": 242,
+      "factor_blocks": 1,
+      "emitted_pairs": 2
+    },
+    {
+      "stage": 3,
+      "event": [
+        "size",
+        "e:R1",
+        25
+      ],
+      "matches": 2,
+      "reindexed_rows": 0,
+      "brute_force_pair_attempts": 242,
+      "factor_blocks": 1,
+      "emitted_pairs": 2
+    },
+    {
+      "stage": 4,
+      "event": [
+        "size",
+        "e:R7",
+        1
+      ],
+      "matches": 4,
+      "reindexed_rows": 1,
+      "brute_force_pair_attempts": 242,
+      "factor_blocks": 1,
+      "emitted_pairs": 4
+    },
+    {
+      "stage": 5,
+      "event": [
+        "pure",
+        "e:R5"
+      ],
+      "matches": 6,
+      "reindexed_rows": 1,
+      "brute_force_pair_attempts": 242,
+      "factor_blocks": 1,
+      "emitted_pairs": 6
+    },
+    {
+      "stage": 6,
+      "event": [
+        "pending",
+        "e:p0",
+        "e:p1"
+      ],
+      "matches": 6,
+      "reindexed_rows": 0,
+      "brute_force_pair_attempts": 242,
+      "factor_blocks": 1,
+      "emitted_pairs": 6
+    },
+    {
+      "stage": 7,
+      "event": [
+        "commit"
+      ],
+      "matches": 8,
+      "reindexed_rows": 2,
+      "brute_force_pair_attempts": 242,
+      "factor_blocks": 1,
+      "emitted_pairs": 8
+    },
+    {
+      "stage": 8,
+      "event": [
+        "union",
+        "t:A",
+        "t:B"
+      ],
+      "matches": 10,
+      "reindexed_rows": 1,
+      "brute_force_pair_attempts": 242,
+      "factor_blocks": 1,
+      "emitted_pairs": 10
+    },
+    {
+      "stage": 9,
+      "event": [
+        "union",
+        "e:i0",
+        "e:i1"
+      ],
+      "matches": 24,
+      "reindexed_rows": 1,
+      "brute_force_pair_attempts": 242,
+      "factor_blocks": 2,
+      "emitted_pairs": 24
+    },
+    {
+      "stage": 10,
+      "event": [
+        "subsume",
+        "e:L1"
+      ],
+      "matches": 12,
+      "reindexed_rows": 1,
+      "brute_force_pair_attempts": 242,
+      "factor_blocks": 2,
+      "emitted_pairs": 12
+    },
+    {
+      "stage": 11,
+      "event": [
+        "size",
+        "e:L3",
+        8
+      ],
+      "matches": 24,
+      "reindexed_rows": 1,
+      "brute_force_pair_attempts": 242,
+      "factor_blocks": 2,
+      "emitted_pairs": 24
+    },
+    {
+      "stage": 12,
+      "event": [
+        "size",
+        "e:L3",
+        6
+      ],
+      "matches": 24,
+      "reindexed_rows": 0,
+      "brute_force_pair_attempts": 242,
+      "factor_blocks": 2,
+      "emitted_pairs": 24
+    }
+  ]
+}
