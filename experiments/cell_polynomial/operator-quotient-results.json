@@ -1,0 +1,135 @@
+{
+  "scope": "Exact operator semantics with anchored integral; not native opaque egglog graph equivalence",
+  "action_checks": 65472,
+  "effect_checks": 65472,
+  "composition_checks": 3969,
+  "associativity_checks": 39304,
+  "power_checks": 714,
+  "growth": [
+    {
+      "depth": 0,
+      "history_words": 1,
+      "distinct_operators": 1
+    },
+    {
+      "depth": 1,
+      "history_words": 2,
+      "distinct_operators": 2
+    },
+    {
+      "depth": 2,
+      "history_words": 4,
+      "distinct_operators": 4
+    },
+    {
+      "depth": 4,
+      "history_words": 16,
+      "distinct_operators": 13
+    },
+    {
+      "depth": 8,
+      "history_words": 256,
+      "distinct_operators": 54
+    },
+    {
+      "depth": 12,
+      "history_words": 4096,
+      "distinct_operators": 139
+    },
+    {
+      "depth": 16,
+      "history_words": 65536,
+      "distinct_operators": 284
+    },
+    {
+      "depth": 20,
+      "history_words": 1048576,
+      "distinct_operators": 505
+    },
+    {
+      "depth": 32,
+      "history_words": 4294967296,
+      "distinct_operators": 1784
+    },
+    {
+      "depth": 40,
+      "history_words": 1099511627776,
+      "distinct_operators": 3310
+    }
+  ],
+  "degree": 4,
+  "minus_matrix": [
+    [
+      "0",
+      "1/4",
+      "0",
+      "0",
+      "0"
+    ],
+    [
+      "0",
+      "0",
+      "2/3",
+      "0",
+      "0"
+    ],
+    [
+      "0",
+      "0",
+      "0",
+      "3/2",
+      "0"
+    ],
+    [
+      "0",
+      "0",
+      "0",
+      "0",
+      "4"
+    ],
+    [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ]
+  ],
+  "plus_matrix": [
+    [
+      "0",
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    [
+      "4",
+      "0",
+      "0",
+      "0",
+      "0"
+    ],
+    [
+      "0",
+      "3/2",
+      "0",
+      "0",
+      "0"
+    ],
+    [
+      "0",
+      "0",
+      "2/3",
+      "0",
+      "0"
+    ],
+    [
+      "0",
+      "0",
+      "0",
+      "1/4",
+      "0"
+    ]
+  ]
+}
