@@ -1,5 +1,6 @@
 # Rule-derived Cell kernel: CPU, Metal, and native fact submission
 
+> Real LHS source compilation: [CICM decomposition and native equivalence](LHS_COMPILER.md).
 > Automatic shared long-range touch discovery: [method and checks](TOUCHPOINTS.md).
 > Current architecture: [one shared Program for observe/update/code generation](SHARED_PROGRAM.md).
 > Verify with `python3 experiments/cell_kernel/test_program.py` and

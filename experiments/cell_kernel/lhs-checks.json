@@ -1,0 +1,1386 @@
+{
+  "scope": "Automatic source LHS decomposition; actual native same-snapshot binding equivalence, no benchmark",
+  "source": "/Users/mineralsteins/Repos/egg_related/check_statewalk/dag_in_context/src/optimizations/conditional_invariant_code_motion.egg",
+  "source_sha256": "e29597610c5770af7c8c6d2de251a90775ed83b1251f5106e3e4231dbfb580bc",
+  "parser_sha256": "c8c4d0eaffc9bed8f029a880b722fa9497e6e2fb340516bcf2e6933f31dd0047",
+  "oracle_sha256": "5f26f86b03d1b6e49f932414071bc691a5d96c6a794d19d3e41d154969cdc59e",
+  "actual_source_rule": "((= if_e (If pred orig_ins thn els)) (HasArgType thn (TupleT tylist)) (HasArgType els (TupleT tylist)) (ContextOf if_e outer_ctx) (= e1 (Uop o x)) (HasType e1 (Base ty)) (= (TCPair t1 c1) (ExtractedExpr e1)) (> 10 (Expr-size e1)) (ExprIsPure e1) (ContextOf e1 (InIf true pred orig_ins)) (= e2 (Uop o y)) (HasType e2 (Base ty)) (= (TCPair t2 c2) (ExtractedExpr e2)) (> 10 (Expr-size e2)) (ExprIsPure e2) (ContextOf e2 (InIf false pred orig_ins)) (= t1 t2) (= orig_ins_len (TypeList-length tylist)))",
+  "variants": {
+    "source": {
+      "compiler": {
+        "named_variables": [
+          "if_e",
+          "pred",
+          "orig_ins",
+          "thn",
+          "els",
+          "tylist",
+          "outer_ctx",
+          "e1",
+          "o",
+          "x",
+          "ty",
+          "t1",
+          "c1",
+          "e2",
+          "y",
+          "t2",
+          "c2",
+          "orig_ins_len"
+        ],
+        "variable_sorts": {
+          "if_e": "Expr",
+          "pred": "Expr",
+          "orig_ins": "Expr",
+          "thn": "Expr",
+          "els": "Expr",
+          "tylist": "TypeList",
+          "outer_ctx": "Assumption",
+          "e1": "Expr",
+          "o": "UnaryOp",
+          "x": "Expr",
+          "ty": "BaseType",
+          "t1": "Term",
+          "c1": "i64",
+          "e2": "Expr",
+          "y": "Expr",
+          "t2": "Term",
+          "c2": "i64",
+          "orig_ins_len": "i64"
+        },
+        "root_families": {
+          "Uop": [
+            "e1",
+            "e2"
+          ]
+        },
+        "residual_indices": [
+          0,
+          1,
+          2,
+          3,
+          16,
+          17
+        ],
+        "source_conjuncts": 18,
+        "owned_conjuncts": 12,
+        "templates": 1,
+        "instances": 2,
+        "scope": "source conjunct partition; all named bindings; fresh snapshot relations"
+      },
+      "stages": [
+        {
+          "binding_count": 0,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "initial",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch0_cell_0",
+              "rows": 7
+            }
+          ]
+        },
+        {
+          "binding_count": 0,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('size', 'e:R1', 10)",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch1_cell_0",
+              "rows": 7
+            }
+          ]
+        },
+        {
+          "binding_count": 2,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('size', 'e:R1', 9)",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch2_cell_0",
+              "rows": 8
+            }
+          ]
+        },
+        {
+          "binding_count": 2,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('size', 'e:R1', 25)",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch3_cell_0",
+              "rows": 8
+            }
+          ]
+        },
+        {
+          "binding_count": 4,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('size', 'e:R7', 1)",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch4_cell_0",
+              "rows": 9
+            }
+          ]
+        },
+        {
+          "binding_count": 6,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('pure', 'e:R5')",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch5_cell_0",
+              "rows": 10
+            }
+          ]
+        },
+        {
+          "binding_count": 6,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('pending', 'e:p0', 'e:p1')",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch6_cell_0",
+              "rows": 10
+            }
+          ]
+        },
+        {
+          "binding_count": 8,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('commit',)",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch7_cell_0",
+              "rows": 10
+            }
+          ]
+        },
+        {
+          "binding_count": 10,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('union', 't:A', 't:B')",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch8_cell_0",
+              "rows": 10
+            }
+          ]
+        },
+        {
+          "binding_count": 24,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('union', 'e:i0', 'e:i1')",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch9_cell_0",
+              "rows": 10
+            }
+          ]
+        },
+        {
+          "binding_count": 12,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('subsume', 'e:L1')",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch10_cell_0",
+              "rows": 9
+            }
+          ]
+        },
+        {
+          "binding_count": 24,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('size', 'e:L3', 8)",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch11_cell_0",
+              "rows": 10
+            }
+          ]
+        },
+        {
+          "binding_count": 24,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('size', 'e:L3', 6)",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch12_cell_0",
+              "rows": 10
+            }
+          ]
+        },
+        {
+          "binding_count": 28,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "same Expr in both branches",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch13_cell_0",
+              "rows": 11
+            }
+          ]
+        },
+        {
+          "binding_count": 32,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "another Uop witness in the same eclass",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch14_cell_0",
+              "rows": 13
+            }
+          ]
+        },
+        {
+          "binding_count": 32,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "operand union",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch15_cell_0",
+              "rows": 13
+            }
+          ]
+        },
+        {
+          "binding_count": 28,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "hide only the alternative Uop",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch16_cell_0",
+              "rows": 11
+            }
+          ]
+        },
+        {
+          "binding_count": 24,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "ExtractedExpr merge produces unresolved Smaller",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch17_cell_0",
+              "rows": 10
+            }
+          ]
+        },
+        {
+          "binding_count": 28,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "resolve Smaller to selected TCPair",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch18_cell_0",
+              "rows": 11
+            }
+          ]
+        },
+        {
+          "binding_count": 32,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "two TCPair cost witnesses in one output eclass",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch19_cell_0",
+              "rows": 12
+            }
+          ]
+        }
+      ]
+    },
+    "cross_side_guard": {
+      "compiler": {
+        "named_variables": [
+          "if_e",
+          "pred",
+          "orig_ins",
+          "thn",
+          "els",
+          "tylist",
+          "outer_ctx",
+          "e1",
+          "o",
+          "x",
+          "ty",
+          "t1",
+          "c1",
+          "e2",
+          "y",
+          "t2",
+          "c2",
+          "orig_ins_len"
+        ],
+        "variable_sorts": {
+          "if_e": "Expr",
+          "pred": "Expr",
+          "orig_ins": "Expr",
+          "thn": "Expr",
+          "els": "Expr",
+          "tylist": "TypeList",
+          "outer_ctx": "Assumption",
+          "e1": "Expr",
+          "o": "UnaryOp",
+          "x": "Expr",
+          "ty": "BaseType",
+          "t1": "Term",
+          "c1": "i64",
+          "e2": "Expr",
+          "y": "Expr",
+          "t2": "Term",
+          "c2": "i64",
+          "orig_ins_len": "i64"
+        },
+        "root_families": {
+          "Uop": [
+            "e1",
+            "e2"
+          ]
+        },
+        "residual_indices": [
+          0,
+          1,
+          2,
+          3,
+          16,
+          17,
+          18
+        ],
+        "source_conjuncts": 19,
+        "owned_conjuncts": 12,
+        "templates": 1,
+        "instances": 2,
+        "scope": "source conjunct partition; all named bindings; fresh snapshot relations"
+      },
+      "stages": [
+        {
+          "binding_count": 0,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "initial",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch0_cell_0",
+              "rows": 7
+            }
+          ]
+        },
+        {
+          "binding_count": 0,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('size', 'e:R1', 10)",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch1_cell_0",
+              "rows": 7
+            }
+          ]
+        },
+        {
+          "binding_count": 2,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('size', 'e:R1', 9)",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch2_cell_0",
+              "rows": 8
+            }
+          ]
+        },
+        {
+          "binding_count": 2,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('size', 'e:R1', 25)",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch3_cell_0",
+              "rows": 8
+            }
+          ]
+        },
+        {
+          "binding_count": 3,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('size', 'e:R7', 1)",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch4_cell_0",
+              "rows": 9
+            }
+          ]
+        },
+        {
+          "binding_count": 4,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('pure', 'e:R5')",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch5_cell_0",
+              "rows": 10
+            }
+          ]
+        },
+        {
+          "binding_count": 4,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('pending', 'e:p0', 'e:p1')",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch6_cell_0",
+              "rows": 10
+            }
+          ]
+        },
+        {
+          "binding_count": 5,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('commit',)",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch7_cell_0",
+              "rows": 10
+            }
+          ]
+        },
+        {
+          "binding_count": 6,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('union', 't:A', 't:B')",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch8_cell_0",
+              "rows": 10
+            }
+          ]
+        },
+        {
+          "binding_count": 14,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('union', 'e:i0', 'e:i1')",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch9_cell_0",
+              "rows": 10
+            }
+          ]
+        },
+        {
+          "binding_count": 2,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('subsume', 'e:L1')",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch10_cell_0",
+              "rows": 9
+            }
+          ]
+        },
+        {
+          "binding_count": 14,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('size', 'e:L3', 8)",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch11_cell_0",
+              "rows": 10
+            }
+          ]
+        },
+        {
+          "binding_count": 14,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "('size', 'e:L3', 6)",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch12_cell_0",
+              "rows": 10
+            }
+          ]
+        },
+        {
+          "binding_count": 18,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "same Expr in both branches",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch13_cell_0",
+              "rows": 11
+            }
+          ]
+        },
+        {
+          "binding_count": 20,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "another Uop witness in the same eclass",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch14_cell_0",
+              "rows": 13
+            }
+          ]
+        },
+        {
+          "binding_count": 20,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "operand union",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch15_cell_0",
+              "rows": 13
+            }
+          ]
+        },
+        {
+          "binding_count": 18,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "hide only the alternative Uop",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch16_cell_0",
+              "rows": 11
+            }
+          ]
+        },
+        {
+          "binding_count": 14,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "ExtractedExpr merge produces unresolved Smaller",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch17_cell_0",
+              "rows": 10
+            }
+          ]
+        },
+        {
+          "binding_count": 14,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "resolve Smaller to selected TCPair",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch18_cell_0",
+              "rows": 11
+            }
+          ]
+        },
+        {
+          "binding_count": 14,
+          "binding_sorts": [
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "Expr",
+            "TypeList",
+            "Assumption",
+            "Expr",
+            "UnaryOp",
+            "Expr",
+            "BaseType",
+            "Term",
+            "i64",
+            "Expr",
+            "Expr",
+            "Term",
+            "i64",
+            "i64"
+          ],
+          "label": "two TCPair cost witnesses in one output eclass",
+          "same_bindings": true,
+          "touches": [
+            {
+              "relation": "touch19_cell_0",
+              "rows": 12
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "original_rhs_preserved": true,
+  "rewritten_source_conjuncts": 8,
+  "shared_template_across_variants": true,
+  "producer_cost": "View construction still executes its original six-condition Join; no total Join elimination claimed",
+  "visibility": "Fresh relation names at each event boundary; not a production incremental view-maintenance implementation"
+}
