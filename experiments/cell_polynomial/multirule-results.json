@@ -1,0 +1,253 @@
+{
+  "scope": "Four/five-rule specialized closure descriptor; actual native saturation oracle, no accelerated matcher",
+  "rules": [
+    "(rewrite (Add a b) (Add b a))",
+    "(rewrite (Add a (Add b c)) (Add (Add a b) c))",
+    "(rewrite (Mul a b) (Mul b a))",
+    "(rewrite (Mul a (Add b c)) (Add (Mul a b) (Mul a c)))"
+  ],
+  "optional_factoring_rule": "(rewrite (Add (Mul a b) (Mul a c)) (Mul a (Add b c)))",
+  "source_sha256": "aaa8942131b4db57e76710486718790e1d7f2cb9288aeb702c0c17019439cf16",
+  "binary_sha256": "d35818c2345b23bcd27c5d2ce0ea6b163043bf3cefc6f60d8ba1a915c25abbfa",
+  "runs": [
+    {
+      "schedule": "combined",
+      "factoring": false,
+      "stages": [
+        {
+          "leaves": 3,
+          "add_enodes": 24,
+          "mul_enodes": 14,
+          "math_enodes": 42,
+          "eclasses": 15,
+          "plain_root_trees": 12,
+          "scaled_root_trees": 168,
+          "distinct_class_pairs_checked": 105
+        },
+        {
+          "leaves": 4,
+          "add_enodes": 100,
+          "mul_enodes": 30,
+          "math_enodes": 135,
+          "eclasses": 31,
+          "plain_root_trees": 120,
+          "scaled_root_trees": 3792,
+          "distinct_class_pairs_checked": 465
+        }
+      ],
+      "native_checks_passed": true
+    },
+    {
+      "schedule": "alternating",
+      "factoring": false,
+      "stages": [
+        {
+          "leaves": 3,
+          "add_enodes": 24,
+          "mul_enodes": 14,
+          "math_enodes": 42,
+          "eclasses": 15,
+          "plain_root_trees": 12,
+          "scaled_root_trees": 168,
+          "distinct_class_pairs_checked": 105
+        },
+        {
+          "leaves": 4,
+          "add_enodes": 100,
+          "mul_enodes": 30,
+          "math_enodes": 135,
+          "eclasses": 31,
+          "plain_root_trees": 120,
+          "scaled_root_trees": 3792,
+          "distinct_class_pairs_checked": 465
+        }
+      ],
+      "native_checks_passed": true
+    },
+    {
+      "schedule": "combined",
+      "factoring": true,
+      "stages": [
+        {
+          "leaves": 3,
+          "add_enodes": 24,
+          "mul_enodes": 14,
+          "math_enodes": 42,
+          "eclasses": 15,
+          "plain_root_trees": 12,
+          "scaled_root_trees": 168,
+          "distinct_class_pairs_checked": 105
+        },
+        {
+          "leaves": 4,
+          "add_enodes": 100,
+          "mul_enodes": 30,
+          "math_enodes": 135,
+          "eclasses": 31,
+          "plain_root_trees": 120,
+          "scaled_root_trees": 3792,
+          "distinct_class_pairs_checked": 465
+        }
+      ],
+      "native_checks_passed": true
+    },
+    {
+      "schedule": "alternating",
+      "factoring": true,
+      "stages": [
+        {
+          "leaves": 3,
+          "add_enodes": 24,
+          "mul_enodes": 14,
+          "math_enodes": 42,
+          "eclasses": 15,
+          "plain_root_trees": 12,
+          "scaled_root_trees": 168,
+          "distinct_class_pairs_checked": 105
+        },
+        {
+          "leaves": 4,
+          "add_enodes": 100,
+          "mul_enodes": 30,
+          "math_enodes": 135,
+          "eclasses": 31,
+          "plain_root_trees": 120,
+          "scaled_root_trees": 3792,
+          "distinct_class_pairs_checked": 465
+        }
+      ],
+      "native_checks_passed": true
+    },
+    {
+      "schedule": "combined",
+      "factoring": false,
+      "stages": [
+        {
+          "leaves": 4,
+          "add_enodes": 100,
+          "mul_enodes": 30,
+          "math_enodes": 135,
+          "eclasses": 31,
+          "plain_root_trees": 120,
+          "scaled_root_trees": 3792,
+          "distinct_class_pairs_checked": 465
+        },
+        {
+          "leaves": 5,
+          "add_enodes": 360,
+          "mul_enodes": 62,
+          "math_enodes": 428,
+          "eclasses": 63,
+          "plain_root_trees": 1680,
+          "scaled_root_trees": 119520,
+          "distinct_class_pairs_checked": 1953
+        }
+      ],
+      "native_checks_passed": true
+    },
+    {
+      "schedule": "alternating",
+      "factoring": false,
+      "stages": [
+        {
+          "leaves": 4,
+          "add_enodes": 100,
+          "mul_enodes": 30,
+          "math_enodes": 135,
+          "eclasses": 31,
+          "plain_root_trees": 120,
+          "scaled_root_trees": 3792,
+          "distinct_class_pairs_checked": 465
+        },
+        {
+          "leaves": 5,
+          "add_enodes": 360,
+          "mul_enodes": 62,
+          "math_enodes": 428,
+          "eclasses": 63,
+          "plain_root_trees": 1680,
+          "scaled_root_trees": 119520,
+          "distinct_class_pairs_checked": 1953
+        }
+      ],
+      "native_checks_passed": true
+    },
+    {
+      "schedule": "combined",
+      "factoring": true,
+      "stages": [
+        {
+          "leaves": 4,
+          "add_enodes": 100,
+          "mul_enodes": 30,
+          "math_enodes": 135,
+          "eclasses": 31,
+          "plain_root_trees": 120,
+          "scaled_root_trees": 3792,
+          "distinct_class_pairs_checked": 465
+        },
+        {
+          "leaves": 5,
+          "add_enodes": 360,
+          "mul_enodes": 62,
+          "math_enodes": 428,
+          "eclasses": 63,
+          "plain_root_trees": 1680,
+          "scaled_root_trees": 119520,
+          "distinct_class_pairs_checked": 1953
+        }
+      ],
+      "native_checks_passed": true
+    },
+    {
+      "schedule": "alternating",
+      "factoring": true,
+      "stages": [
+        {
+          "leaves": 4,
+          "add_enodes": 100,
+          "mul_enodes": 30,
+          "math_enodes": 135,
+          "eclasses": 31,
+          "plain_root_trees": 120,
+          "scaled_root_trees": 3792,
+          "distinct_class_pairs_checked": 465
+        },
+        {
+          "leaves": 5,
+          "add_enodes": 360,
+          "mul_enodes": 62,
+          "math_enodes": 428,
+          "eclasses": 63,
+          "plain_root_trees": 1680,
+          "scaled_root_trees": 119520,
+          "distinct_class_pairs_checked": 1953
+        }
+      ],
+      "native_checks_passed": true
+    }
+  ],
+  "egf_coefficients": {
+    "F": [
+      1,
+      1,
+      2,
+      5,
+      14,
+      42,
+      132,
+      429
+    ],
+    "G": [
+      2,
+      6,
+      28,
+      158,
+      996,
+      6748,
+      48056,
+      354798
+    ]
+  },
+  "native_root_tree_counts": "Computed from verified acyclic split grammar; not individually extracted"
+}
