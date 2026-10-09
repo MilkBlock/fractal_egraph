@@ -1,0 +1,9 @@
+; Generated from actual Cell 1916; requires its frozen structural contract.
+; Not a general global-graph rule. Original size rules are not executed by this ruleset.
+(ruleset CellOperatorCompiled1916)
+(rule ((= cell_size (Expr-size (RipenInput_5_ 5))) (>= cell_size 0) (<= cell_size 9223372036854775802))
+      ((let cell_basis_1 (+ cell_size 2))
+       (set (Expr-size (Bop (RipenInput_2_ 4) (RipenInput_5_ 5) (Const (RipenInput_4_ 1) (RipenInput_22_ 2) (RipenInput_0_ 0)))) cell_basis_1)
+       (set (Expr-size (Bop (RipenInput_2_ 6) (Bop (RipenInput_2_ 4) (RipenInput_5_ 5) (Const (RipenInput_4_ 1) (RipenInput_22_ 2) (RipenInput_0_ 0))) (Const (RipenInput_4_ 3) (RipenInput_22_ 2) (RipenInput_0_ 0)))) (+ 2 cell_basis_1))
+       (set (Expr-size (Uop (RipenInput_24_ 7) (Bop (RipenInput_2_ 6) (Bop (RipenInput_2_ 4) (RipenInput_5_ 5) (Const (RipenInput_4_ 1) (RipenInput_22_ 2) (RipenInput_0_ 0))) (Const (RipenInput_4_ 3) (RipenInput_22_ 2) (RipenInput_0_ 0))))) (+ 3 cell_basis_1)))
+      :ruleset CellOperatorCompiled1916)

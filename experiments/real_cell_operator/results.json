@@ -1,0 +1,812 @@
+{
+  "scope": "Real completed Cell observations; exact source-derived size slice, not full Cell admission",
+  "provenance": {
+    "base_commit": "5b4076f74384344bea75a4522993124d619e04da",
+    "parser_sha256": "ef84cc6c01300a438ce188eea8bb762f424ad8da23fd6b02c76dde53023a85be",
+    "oracle_sha256": "d774aa5ab3294144cc69357dfc8531854761766e5f189bac80c7ada78c68ba37",
+    "local_kernel_diff_sha256": "dda990e285e40b7026085761f2494f4fc362db43f25b0e19d7b2599dd928cef5",
+    "note": "Local modified runtime, not pristine egglog. This experiment changes no engine files."
+  },
+  "operators": [
+    {
+      "cell": 1729,
+      "parent_links": [],
+      "input_columns": [
+        "1"
+      ],
+      "source_arithmetic_matrix": [
+        [
+          1
+        ]
+      ],
+      "parent_binding_matrix": [
+        [
+          1
+        ]
+      ],
+      "final_basis": [
+        "1"
+      ],
+      "composed_row": [
+        1
+      ],
+      "formula": {
+        "1": 1
+      }
+    },
+    {
+      "cell": 1730,
+      "parent_links": [],
+      "input_columns": [
+        "1"
+      ],
+      "source_arithmetic_matrix": [
+        [
+          1
+        ]
+      ],
+      "parent_binding_matrix": [
+        [
+          1
+        ]
+      ],
+      "final_basis": [
+        "1"
+      ],
+      "composed_row": [
+        1
+      ],
+      "formula": {
+        "1": 1
+      }
+    },
+    {
+      "cell": 1865,
+      "parent_links": [
+        {
+          "parent": 1729,
+          "typed_token": "Expr:2799",
+          "parent_slot": 3,
+          "child_slot": 3
+        }
+      ],
+      "input_columns": [
+        "Expr:1767",
+        "Expr:2799",
+        "1"
+      ],
+      "source_arithmetic_matrix": [
+        [
+          1,
+          1,
+          1
+        ]
+      ],
+      "parent_binding_matrix": [
+        [
+          1,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "final_basis": [
+        "Expr:1767",
+        "1"
+      ],
+      "composed_row": [
+        1,
+        2
+      ],
+      "formula": {
+        "Expr:1767": 1,
+        "1": 2
+      }
+    },
+    {
+      "cell": 1893,
+      "parent_links": [
+        {
+          "parent": 1730,
+          "typed_token": "Expr:3110",
+          "parent_slot": 3,
+          "child_slot": 7
+        },
+        {
+          "parent": 1865,
+          "typed_token": "Expr:2781",
+          "parent_slot": 4,
+          "child_slot": 6
+        }
+      ],
+      "input_columns": [
+        "Expr:2781",
+        "Expr:3110",
+        "1"
+      ],
+      "source_arithmetic_matrix": [
+        [
+          1,
+          1,
+          1
+        ]
+      ],
+      "parent_binding_matrix": [
+        [
+          1,
+          2
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "final_basis": [
+        "Expr:1767",
+        "1"
+      ],
+      "composed_row": [
+        1,
+        4
+      ],
+      "formula": {
+        "Expr:1767": 1,
+        "1": 4
+      }
+    },
+    {
+      "cell": 1916,
+      "parent_links": [
+        {
+          "parent": 1893,
+          "typed_token": "Expr:3089",
+          "parent_slot": 8,
+          "child_slot": 8
+        }
+      ],
+      "input_columns": [
+        "Expr:3089",
+        "1"
+      ],
+      "source_arithmetic_matrix": [
+        [
+          1,
+          1
+        ]
+      ],
+      "parent_binding_matrix": [
+        [
+          1,
+          4
+        ],
+        [
+          0,
+          1
+        ]
+      ],
+      "final_basis": [
+        "Expr:1767",
+        "1"
+      ],
+      "composed_row": [
+        1,
+        5
+      ],
+      "formula": {
+        "Expr:1767": 1,
+        "1": 5
+      }
+    }
+  ],
+  "interface_basis": {
+    "basis": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "owners": [
+      "constant",
+      0
+    ],
+    "rank": 2,
+    "transforms": [
+      [
+        "0",
+        "1"
+      ],
+      [
+        "2",
+        "1"
+      ],
+      [
+        "3",
+        "1"
+      ]
+    ],
+    "cell_order": [
+      1865,
+      1893,
+      1916
+    ],
+    "retained_runtime_outputs": [
+      1865
+    ]
+  },
+  "compiled_bases": {
+    "1865": {
+      "basis": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "owners": [
+        "constant",
+        0
+      ],
+      "rank": 2,
+      "transforms": [
+        [
+          "0",
+          "1"
+        ]
+      ]
+    },
+    "1893": {
+      "basis": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "owners": [
+        "constant",
+        0
+      ],
+      "rank": 2,
+      "transforms": [
+        [
+          "0",
+          "1"
+        ],
+        [
+          "2",
+          "1"
+        ]
+      ]
+    },
+    "1916": {
+      "basis": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "owners": [
+        "constant",
+        0
+      ],
+      "rank": 2,
+      "transforms": [
+        [
+          "0",
+          "1"
+        ],
+        [
+          "2",
+          "1"
+        ],
+        [
+          "3",
+          "1"
+        ]
+      ]
+    }
+  },
+  "domain": {
+    "input": "Expr:1767",
+    "min": 0,
+    "max": 9223372036854775802
+  },
+  "counterexamples": {
+    "wrong_existing_typed_port_rejected": true,
+    "non01_counterexample_input": 1,
+    "exact_value": 6,
+    "booleanized_value": 2,
+    "dropped_parent_transition_value": 2,
+    "note": "Dropping the parent scalar transition feeds raw boundary1 into final Uop, producing2 instead of6."
+  },
+  "native_rejections": [
+    "out-of-domain",
+    "wrong-affine-effect"
+  ],
+  "limitations": [
+    "Saved exports remain observation_only and are not union certificates.",
+    "All-table differential tests are sample checks; symbolic arithmetic certificate is for the declared fixed-shape slice.",
+    "No timing benchmark, full workload acceleration, or general union/subsume operator is claimed."
+  ],
+  "source_cells": [
+    {
+      "cell_id": 1729,
+      "parents": [],
+      "root_member": 2242,
+      "members": [
+        2242
+      ],
+      "source_hashes": {
+        "ripen": "4ccef6ef83b19a6bbb700d53aa7d68eadc82696c7eb20311d64275d8817a490f",
+        "snapshot": "744da7b820c56ba07bde2626534c85a13643a4c6c24fa5f34f2506430716fffa",
+        "trigger": "9a0285e1cb441c1762e3d159d9c29d2309f6dab751f267c6c8ff3c172cba84a6",
+        "entry": "2707df157eda74b32529bce5835146dbfc7fc4bfa15efb53c421d793073da9bb",
+        "ripened": "1e07a2ef87dcbafbe90e6c417fc8ad6f28909ff207c63122a2618c7e8511fbfb"
+      },
+      "snapshot_counts": {
+        "values": 18,
+        "rows": 17
+      },
+      "observation_only": true,
+      "state": "Saturated",
+      "checks": "passed"
+    },
+    {
+      "cell_id": 1730,
+      "parents": [],
+      "root_member": 2243,
+      "members": [
+        2243
+      ],
+      "source_hashes": {
+        "ripen": "2593ebda89792df017279f4b7315da737e110727a86579e3b3e744f3ab39b8de",
+        "snapshot": "744da7b820c56ba07bde2626534c85a13643a4c6c24fa5f34f2506430716fffa",
+        "trigger": "9a0285e1cb441c1762e3d159d9c29d2309f6dab751f267c6c8ff3c172cba84a6",
+        "entry": "2707df157eda74b32529bce5835146dbfc7fc4bfa15efb53c421d793073da9bb",
+        "ripened": "1e07a2ef87dcbafbe90e6c417fc8ad6f28909ff207c63122a2618c7e8511fbfb"
+      },
+      "snapshot_counts": {
+        "values": 18,
+        "rows": 17
+      },
+      "observation_only": true,
+      "state": "Saturated",
+      "checks": "passed"
+    },
+    {
+      "cell_id": 1865,
+      "parents": [
+        1729
+      ],
+      "root_member": 2448,
+      "members": [
+        2242,
+        2448
+      ],
+      "source_hashes": {
+        "ripen": "f3795592192a225b2b8ef2e7381ba752e4b51d493efb5a2fe266ad7ff6cae259",
+        "snapshot": "cf84dd9dbde920c3567b4580d81757cbe8a009a9b5c97a8c07309f01bd4ff97e",
+        "trigger": "3dc241947c6c1315a9364f925b0bd791c9d3a9eee8e8f6c2d7d1846fa5fbd286",
+        "entry": "627b7bf0be7ec009d7cd1e6d1f967e117a49294c1ba6a14faf2cc3b306e30306",
+        "ripened": "720b095fa1a88e943390419e3390b096f3380cbe797ba8e3221c90bb0e005878"
+      },
+      "snapshot_counts": {
+        "values": 28,
+        "rows": 25
+      },
+      "observation_only": true,
+      "state": "Saturated",
+      "checks": "passed"
+    },
+    {
+      "cell_id": 1893,
+      "parents": [
+        1730,
+        1865
+      ],
+      "root_member": 2511,
+      "members": [
+        2242,
+        2243,
+        2448,
+        2511
+      ],
+      "source_hashes": {
+        "ripen": "01e9c858307908e9bdd97c33d4e93bb8b5d839cffee43e751e62c8a65d241156",
+        "snapshot": "f5880233858962b9a5b32967d3ce8089499b4b32f379e05f76b3b549be77a689",
+        "trigger": "3b44cb9d44a7c3b62c0c188c03d76d3fb98b1ffd62e41f7010f1ddc1e0f96b5c",
+        "entry": "b68cae6907bda1704fa16a8ade2b6b9a8f6b0980d4017a31bd098ff7f8bb69db",
+        "ripened": "7d0bc8e2486547900ad445c673c028966fbcd17dc1ecd9584485357f451603d5"
+      },
+      "snapshot_counts": {
+        "values": 46,
+        "rows": 44
+      },
+      "observation_only": true,
+      "state": "Saturated",
+      "checks": "passed"
+    },
+    {
+      "cell_id": 1916,
+      "parents": [
+        1893
+      ],
+      "root_member": 2552,
+      "members": [
+        2242,
+        2243,
+        2448,
+        2511,
+        2552
+      ],
+      "source_hashes": {
+        "ripen": "96a502888b3c21b71b525dc963622c3ef7e74911bd88f7994759f02b34e34aec",
+        "snapshot": "089e6c38df60df4772a4fb5510af9832f7bdb39833b307e0edcdbfc9048a68ab",
+        "trigger": "e1138878d87058e7b75c419896584cde39e351c618f25c941348801d87282da1",
+        "entry": "d93f0fce3ec5ad5f36dedc25f671bfa9b20737a890c69c0ec501ecb366621f37",
+        "ripened": "d87eb58f537b71d1d71f61a4bc5909691a604db6793ccb3809171bec2e3b9406"
+      },
+      "snapshot_counts": {
+        "values": 53,
+        "rows": 50
+      },
+      "observation_only": true,
+      "state": "Saturated",
+      "checks": "passed"
+    }
+  ],
+  "source_rules": [
+    "(rule ((= expr (Bop op x y))\n       (= sum (+ (Expr-size y) (Expr-size x))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run :name \"(rule ((= expr (Bop op x y))\n       (= sum (+ (Expr-size y) (Expr-size x))))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )\")",
+    "(rule ((= expr (Const n ty assum)))\n      ((set (Expr-size expr) 1))\n        :ruleset always-run :name \"(rule ((= expr (Const n ty assum)))\n      ((set (Expr-size expr) 1))\n        :ruleset always-run )\")",
+    "(rule ((= expr (Uop op x))\n       (= sum (Expr-size x)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run :name \"(rule ((= expr (Uop op x))\n       (= sum (Expr-size x)))\n      ((set (Expr-size expr) (+ sum 1)))\n        :ruleset always-run )\")"
+  ],
+  "native_status": "passed",
+  "native_cells": [
+    {
+      "id": 1865,
+      "observable_tables": 355,
+      "unseeded_interface_sizes_absent": true,
+      "interface_resolution_preserved_all_tables": true,
+      "isolation_checked": true,
+      "shortcut_installation_preserved_all_tables": true,
+      "cases": [
+        {
+          "input": 0,
+          "proposed_outputs": [
+            2
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        },
+        {
+          "input": 1,
+          "proposed_outputs": [
+            3
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        },
+        {
+          "input": 2,
+          "proposed_outputs": [
+            4
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        },
+        {
+          "input": 4,
+          "proposed_outputs": [
+            6
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        },
+        {
+          "input": 9,
+          "proposed_outputs": [
+            11
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        },
+        {
+          "input": 27,
+          "proposed_outputs": [
+            29
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        },
+        {
+          "input": 1000,
+          "proposed_outputs": [
+            1002
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        },
+        {
+          "input": 9223372036854775802,
+          "proposed_outputs": [
+            9223372036854775804
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        }
+      ]
+    },
+    {
+      "id": 1893,
+      "observable_tables": 355,
+      "unseeded_interface_sizes_absent": true,
+      "interface_resolution_preserved_all_tables": true,
+      "isolation_checked": true,
+      "shortcut_installation_preserved_all_tables": true,
+      "cases": [
+        {
+          "input": 0,
+          "proposed_outputs": [
+            2,
+            4
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        },
+        {
+          "input": 1,
+          "proposed_outputs": [
+            3,
+            5
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        },
+        {
+          "input": 2,
+          "proposed_outputs": [
+            4,
+            6
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        },
+        {
+          "input": 4,
+          "proposed_outputs": [
+            6,
+            8
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        },
+        {
+          "input": 9,
+          "proposed_outputs": [
+            11,
+            13
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        },
+        {
+          "input": 27,
+          "proposed_outputs": [
+            29,
+            31
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        },
+        {
+          "input": 1000,
+          "proposed_outputs": [
+            1002,
+            1004
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        },
+        {
+          "input": 9223372036854775802,
+          "proposed_outputs": [
+            9223372036854775804,
+            9223372036854775806
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        }
+      ]
+    },
+    {
+      "id": 1916,
+      "observable_tables": 355,
+      "unseeded_interface_sizes_absent": true,
+      "interface_resolution_preserved_all_tables": true,
+      "isolation_checked": true,
+      "shortcut_installation_preserved_all_tables": true,
+      "cases": [
+        {
+          "input": 0,
+          "proposed_outputs": [
+            2,
+            4,
+            5
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        },
+        {
+          "input": 1,
+          "proposed_outputs": [
+            3,
+            5,
+            6
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        },
+        {
+          "input": 2,
+          "proposed_outputs": [
+            4,
+            6,
+            7
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        },
+        {
+          "input": 4,
+          "proposed_outputs": [
+            6,
+            8,
+            9
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        },
+        {
+          "input": 9,
+          "proposed_outputs": [
+            11,
+            13,
+            14
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        },
+        {
+          "input": 27,
+          "proposed_outputs": [
+            29,
+            31,
+            32
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        },
+        {
+          "input": 1000,
+          "proposed_outputs": [
+            1002,
+            1004,
+            1005
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        },
+        {
+          "input": 9223372036854775802,
+          "proposed_outputs": [
+            9223372036854775804,
+            9223372036854775806,
+            9223372036854775807
+          ],
+          "all_tables_equal": true,
+          "shortcut_all_tables_equal": true,
+          "shortcut_rule_matches": 1,
+          "non_size_tables_unchanged": true,
+          "parent_unchanged": true
+        }
+      ]
+    }
+  ],
+  "tests": {
+    "scalar_algebra_unit_tests": 23,
+    "existing_lhs_compiler_tests": 13
+  }
+}

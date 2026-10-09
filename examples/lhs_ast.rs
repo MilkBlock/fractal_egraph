@@ -7,7 +7,7 @@
 
 use egglog::{
     EGraph,
-    ast::{Command, Expr, Fact, Literal, Span, Subdatatypes, Variant},
+    ast::{Action, Command, Expr, Fact, Literal, Span, Subdatatypes, Variant},
 };
 use serde_json::{Value as Json, json};
 use std::{collections::BTreeMap, error::Error, fs, io::Write};
@@ -38,6 +38,21 @@ fn expression(expr: &Expr) -> Json {
                 "value": value,
             })
         }
+    }
+}
+
+fn action(action: &Action) -> Json {
+    match action {
+        Action::Let(_, name, expr) => json!({"kind":"let", "name":name, "expr":expression(expr)}),
+        Action::Set(_, head, args, value) => json!({"kind":"set", "head":head,
+            "args":args.iter().map(expression).collect::<Vec<_>>(), "value":expression(value)}),
+        Action::Union(_, a, b) => json!({"kind":"union", "args":[expression(a), expression(b)]}),
+        Action::Change(_, change, head, args) => {
+            json!({"kind":"change", "change":format!("{change:?}"),
+            "head":head,"args":args.iter().map(expression).collect::<Vec<_>>()})
+        }
+        Action::Expr(_, expr) => json!({"kind":"expr", "expr":expression(expr)}),
+        Action::Panic(_, message) => json!({"kind":"panic", "message":message}),
     }
 }
 
@@ -83,8 +98,12 @@ fn export(source_name: &str, source: &str) -> Result<Json, Box<dyn Error>> {
     let mut rules = Vec::new();
     let mut declarations = Vec::new();
     let mut other_commands = Vec::new();
+    let mut actions = Vec::new();
 
     for (command_ordinal, command) in commands.iter().enumerate() {
+        if let Command::Action(a) = command {
+            actions.push(json!({"command_ordinal":command_ordinal,"action":action(a)}));
+        }
         match command {
             Command::Rule { rule } => rules.push(json!({
                 "ordinal": rules.len(),
@@ -93,6 +112,7 @@ fn export(source_name: &str, source: &str) -> Result<Json, Box<dyn Error>> {
                 "ruleset": rule.ruleset,
                 "naive": rule.naive,
                 "body": rule.body.iter().map(fact).collect::<Vec<_>>(),
+                "head": rule.head.0.iter().map(action).collect::<Vec<_>>(),
                 "head_text": format!("({})", rule.head.0.iter().map(ToString::to_string).collect::<Vec<_>>().join(" ")),
                 "body_text": format!("({})", rule.body.iter().map(ToString::to_string).collect::<Vec<_>>().join(" ")),
                 "rule_text": rule.to_string(),
@@ -118,8 +138,10 @@ fn export(source_name: &str, source: &str) -> Result<Json, Box<dyn Error>> {
             Command::Relation { name, inputs, .. } => {
                 declarations.push(signature("relation", name, inputs, "Unit"));
             }
-            Command::Function { name, schema, .. } => {
-                declarations.push(signature("function", name, &schema.input, &schema.output));
+            Command::Function { name, schema, merge, .. } => {
+                let mut sig = signature("function", name, &schema.input, &schema.output);
+                sig["merge"] = merge.as_ref().map(expression).unwrap_or(Json::Null);
+                declarations.push(sig);
             }
             Command::Sort { name, presort_and_args, .. } => {
                 let mut declaration = json!({"kind": "sort", "name": name});
@@ -172,6 +194,7 @@ fn export(source_name: &str, source: &str) -> Result<Json, Box<dyn Error>> {
         "duplicate_signatures": duplicate_signatures,
         "rules": rules,
         "other_commands": other_commands,
+        "actions":actions,
     }))
 }
 
