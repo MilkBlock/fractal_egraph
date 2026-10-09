@@ -1,7 +1,7 @@
 // Standalone batch evaluator; this does not modify or execute the egglog runtime.
 // Input: little-endian Int64[18] rows. Output: little-endian Int64[6] rows:
 // id, bopLeft, left, bopRight, right, eligible.
-// GPU arithmetic comes from --metal-source; the CPU pilot operator is fixed here.
+// CPU body and Metal source are generated from the shared typed Cell program.
 import Foundation
 import Metal
 
@@ -77,28 +77,9 @@ private func evaluate() throws {
 
     if backend == "cpu" {
         let computeStarted = now()
-        // This CPU reference is intentionally fixed for this pilot. The generated
-        // Metal program must implement this same operator, not arbitrary egglog.
-        for row in 0..<count {
-            let i = row * inputWidth
-            let o = row * outputWidth
-            let bopLeft = 2 * inputs[i + 1] + 1
-            let bopRight = inputs[i + 3] + inputs[i + 4] + 1
-            let left = min(inputs[i + 5], bopLeft + 1)
-            let right = min(inputs[i + 6], bopRight + 1)
-            let eligible = left < 10 && right < 10 && (inputs[i + 7] & 15) == 15
-                && inputs[i + 8] == inputs[i + 9]
-                && inputs[i + 10] == inputs[i + 11]
-                && inputs[i + 12] == inputs[i + 13]
-                && inputs[i + 14] == inputs[i + 15]
-                && inputs[i + 16] == inputs[i + 17]
-            outputs[o] = inputs[i]
-            outputs[o + 1] = bopLeft
-            outputs[o + 2] = left
-            outputs[o + 3] = bopRight
-            outputs[o + 4] = right
-            outputs[o + 5] = eligible ? 1 : 0
-        }
+        // CELL_BODY_BEGIN
+        throw BackendError("CPU body not generated; run the Cell compiler with --build")
+        // CELL_BODY_END
         computeSeconds = now() - computeStarted
     } else {
         let setupStarted = now()
@@ -192,7 +173,7 @@ private func evaluate() throws {
         "output_fields": outputWidth,
         "format": "little-endian-int64",
         "scope": "standalone-batch-prototype",
-        "cpu_operator": "fixed-pilot-reference",
+        "cpu_operator": "generated-shared-program",
         "metal_source": sourcePath as Any? ?? NSNull(),
         "gpu_device": deviceName as Any? ?? NSNull(),
         "input_read_s": inputReadSeconds,

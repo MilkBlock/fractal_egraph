@@ -1,0 +1,50 @@
+{
+  "kind": "standalone shared-program architectural checks",
+  "native_egglog_executed": false,
+  "timing_benchmark": false,
+  "recurrence": "s[i+1] = min(100, 2*s[i] + 2)",
+  "independent_branches": 2,
+  "stages_per_branch": 64,
+  "initial_observed_roots": [
+    "left",
+    "right"
+  ],
+  "initial_output_values": {
+    "left": 100,
+    "right": 100
+  },
+  "initial_node_count": 388,
+  "initial_edge_count": 640,
+  "maximum_dependency_depth": 192,
+  "cell_alias_count": 128,
+  "initial_evaluated_nodes": 386,
+  "initial_traversed_nodes_including_cached_boundaries": 388,
+  "initial_retained_cache_entries_including_inputs": 388,
+  "late_consumer": {
+    "expression": "left.stage48.size < 100",
+    "new_nodes": 1,
+    "value": false,
+    "warm_evaluated_nodes": 1,
+    "warm_traversed_nodes_including_cached_boundaries": 3,
+    "warm_retained_cache_entries_including_inputs": 389,
+    "cold_evaluated_nodes": 147,
+    "cold_traversed_nodes_including_cached_boundaries": 148,
+    "cold_retained_cache_entries_including_inputs": 149,
+    "cold_untouched_later_left_stages": 16,
+    "cold_untouched_right_stages": 64
+  },
+  "min_barrier_patch": {
+    "updates": {
+      "left": 61
+    },
+    "recomputed_nodes": 3,
+    "changed_nodes_including_input": 3,
+    "unchanged_first_minimum": 100,
+    "later_left_stages_recomputed": 0,
+    "right_stages_recomputed": 0,
+    "late_consumer_recomputed": false
+  },
+  "storage_contract": "One cache entry per evaluated scalar node, shared by all cell aliases; all input bindings are also retained.",
+  "scope": "Counts describe scalar evaluation and retained values, not elapsed time, bytes, pattern discovery, or committed egglog mutations.",
+  "unittest_cases_passed": 12
+}

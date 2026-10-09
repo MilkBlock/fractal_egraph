@@ -8,6 +8,7 @@ from pathlib import Path
 import struct
 import subprocess
 import time
+from lowering import cicm_program, metal_source, swift_source
 
 ROOT=Path(__file__).resolve().parents[2]
 SPEC=importlib.util.spec_from_file_location('cicm_fixture',ROOT/'experiments/cicm_interface/verify.py')
@@ -47,37 +48,14 @@ def compile_plan(dest):
               bound='all ABI values in [0,2^30], s1=s0; arithmetic sums fit uint32 and checked native i64',
               original_source_sha256=hashlib.sha256(SIZE_SOURCE.read_bytes()+CICM.SOURCE.read_bytes()).hexdigest())
     (dest/'plan.json').write_text(json.dumps(plan,indent=2)+'\n')
-    # Emit the affine part from coefficients, not from independently copied formulas.
-    affines=[]
-    for row,bias in zip(plan['affine_coefficients'],plan['bop_bias']):
-        affines.append(' + '.join([f'{c}u * p[{j+1}]' for j,c in enumerate(row) if c]+[f'{bias}u']))
-    metal='''#include <metal_stdlib>
-using namespace metal;
-kernel void cell_kernel(device const uint* input [[buffer(0)]],
-                        device uint* output [[buffer(1)]],
-                        constant uint& count [[buffer(2)]],
-                        uint id [[thread_position_in_grid]]) {
-    if (id >= count) return;
-    device const uint* p = input + id * 18;
-    device uint* o = output + id * 6;
-    uint bl = LEFT;
-    uint br = RIGHT;
-    uint l = min(p[5], bl + 1u), r = min(p[6], br + 1u);
-    bool selected = l < 10u && r < 10u && (p[7] & 15u) == 15u;
-    for (uint j=8; j<18; j+=2) selected = selected && p[j]==p[j+1];
-    o[0]=p[0]; o[1]=bl; o[2]=l; o[3]=br; o[4]=r; o[5]=selected ? 1u : 0u;
-}
-'''.replace('LEFT',affines[0]).replace('RIGHT',affines[1])
-    (dest/'kernel.metal').write_text(metal)
-    swift=(ROOT/'experiments/cell_kernel/backend.swift').read_text()
-    for old,expr in [('2 * inputs[i + 1] + 1',affines[0]),('inputs[i + 3] + inputs[i + 4] + 1',affines[1])]:
-        new=expr.replace('u','')
-        import re
-        new=re.sub(r'p\[(\d+)\]',lambda m:f'inputs[i + {m[1]}]',new)
-        assert old in swift
-        swift=swift.replace(old,new)
-    swift=swift.replace('fixed-pilot-reference','generated-from-affine-plan')
-    (dest/'backend.generated.swift').write_text(swift)
+    program,roots=cicm_program()
+    plan['kind']='shared typed operator program'
+    plan['program']=program.to_dict(list(roots.values()))
+    plan['outputs']=roots
+    (dest/'plan.json').write_text(json.dumps(plan,indent=2)+'\n')
+    (dest/'kernel.metal').write_text(metal_source(program,roots))
+    template=(ROOT/'experiments/cell_kernel/backend.swift').read_text()
+    (dest/'backend.generated.swift').write_text(swift_source(template,program,roots))
     return rules,lhs
 
 

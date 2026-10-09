@@ -1,5 +1,11 @@
 # Rule-derived Cell kernel: CPU, Metal, and native fact submission
 
+> Current architecture: [one shared Program for observe/update/code generation](SHARED_PROGRAM.md).
+> Verify with `python3 experiments/cell_kernel/test_program.py` and
+> `python3 experiments/cell_kernel/verify_shared.py --gpu`.
+> The timings below are historical results from commit `3952781`; they were not
+> rerun for the shared-program revision and do not measure its performance.
+
 2026-10-09. This is a complete **fixed-shape pilot**: derive an affine/min plan
 from two actual eggcc rules, emit CPU/Metal code, execute a batch, and submit its
 analysis/selection facts back to the actual local egglog engine. No egglog engine

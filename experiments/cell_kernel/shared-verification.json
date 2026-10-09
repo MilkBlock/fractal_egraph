@@ -1,0 +1,21 @@
+{
+  "scope": "Correctness and representation checks only; no performance benchmark",
+  "batch_rows": 32,
+  "native_effects_equal": [
+    "native",
+    "cpu",
+    "gpu"
+  ],
+  "compiled_backends": [
+    "cpu",
+    "gpu"
+  ],
+  "original_operator_nodes": 36,
+  "nodes_after_observer": 38,
+  "old_nodes_unchanged": true,
+  "late_observer_outputs": 7,
+  "observer_only_nodes": 6,
+  "patch_checks": 7,
+  "integration": "Existing source-checked CICM size/selection pilot now uses one shared Program",
+  "limits": "Known explicit ports, scalar pure operators, synthetic instances; no arbitrary pattern discovery or general union/subsume implementation"
+}
