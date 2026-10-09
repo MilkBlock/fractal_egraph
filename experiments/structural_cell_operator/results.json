@@ -1,0 +1,874 @@
+{
+  "scope": "Exact finite constructor/equality boundary response of recorded Math Cell36",
+  "gates": [
+    {
+      "index": 0,
+      "name": "outer_mul",
+      "actions": [
+        "(Mul (RipenInput 0) (RipenInput 1))"
+      ]
+    },
+    {
+      "index": 1,
+      "name": "sub_context",
+      "actions": [
+        "(Sub (RipenInput 2) (Mul (RipenInput 0) (RipenInput 1)))"
+      ]
+    },
+    {
+      "index": 2,
+      "name": "square",
+      "actions": [
+        "(Const 2)",
+        "(Pow (RipenInput 3) (Const 2))"
+      ]
+    },
+    {
+      "index": 3,
+      "name": "connect",
+      "actions": [
+        "(union (RipenInput 1) (Pow (RipenInput 3) (Const 2)))"
+      ]
+    }
+  ],
+  "omitted_stage": {
+    "record": 49,
+    "reason": "Recorded nodes and union must be derived by the source rules and congruence; checked against complete replay."
+  },
+  "symbolic_sweeps": 8,
+  "response": {
+    "observables": 2804,
+    "monomials": [
+      1,
+      2,
+      3,
+      4,
+      8,
+      9,
+      10,
+      11,
+      12,
+      0
+    ],
+    "rank": 7,
+    "basis": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        -1,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        -1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "basis_observables": [
+      "constant",
+      "row:(Mul (RipenInput 0) (RipenInput 1))",
+      "row:(Sub (RipenInput 2) (Mul (RipenInput 0) (RipenInput 1)))",
+      "row:(Const 2)",
+      "row:(Mul (RipenInput 0) (RipenInput 3))",
+      "row:(Mul (Const -1) (Mul (RipenInput 0) (RipenInput 3)))",
+      "eq:(RipenInput 1)=(Pow (RipenInput 3) (Const 2))"
+    ],
+    "signed_coefficients": [
+      -1
+    ],
+    "note": "Exact factorization of fact/equality response, not numerical e-class IDs or count fitting."
+  },
+  "rules_with_new_term_spellings": {
+    "R1": 44,
+    "R4": 4,
+    "R13": 1,
+    "R0": 1,
+    "R3": 60
+  },
+  "environment_sha256": "7eb5eddc8c77bd108c03735df7c10542c1b8c579630961b0ccd9e0b199fd7b0b",
+  "oracle_sha256": "bae6dddaa0b6d96cc1c5d23144699158ac1e30b1fd4c9528a634e255746f1f8a",
+  "negative_checks": [
+    "lost-union-effects",
+    "omitted-constructor-row",
+    "false-equality",
+    "hidden-rule-execution"
+  ],
+  "limitations": [
+    "Missing-gate worlds are positive input variants, not failure/phase-equivalent replays of the recorded checks.",
+    "Requires finite ground-term spelling closure and an acyclic quotient for compact emission; finite native egraphs alone do not ensure this.",
+    "Rank measures a four-gate fact/equality response, not physical egraph storage compression.",
+    "No arbitrary parent-DAG composition, generic guarded/function/subsume rules, runtime speedup, or GPU execution is claimed."
+  ],
+  "source_cells": [
+    {
+      "cell_id": 8,
+      "source_hashes": {
+        "ripen": "adced418612098368f09aefadee997b4f630cb7ec6d18844202063160d2d1908",
+        "snapshot": "eb51b1bfc013c8a68b765b60434ffda4f320ac970cf5034b6759ca6566e7143e",
+        "entry": "f79217ec7b817ba29fcd1e1aadb3cd2de3c22e06fbf488f95fa22b35e08f0e34",
+        "source": "f79217ec7b817ba29fcd1e1aadb3cd2de3c22e06fbf488f95fa22b35e08f0e34"
+      },
+      "composition": {
+        "boundary": 1,
+        "consumer": 9,
+        "context_parts": [],
+        "external_facts": [
+          38
+        ],
+        "forms": [
+          "ObservedCoarseApply"
+        ],
+        "kind": "ObservedCoarseApply",
+        "members": [
+          9
+        ],
+        "parts": [],
+        "producer_parts": [],
+        "rule": 1,
+        "union_effects": [],
+        "updated_rows": false
+      },
+      "root_record": 9,
+      "root_rule_name": "R1",
+      "snapshot_counts": {
+        "values": 5,
+        "rows": 4
+      }
+    },
+    {
+      "cell_id": 10,
+      "source_hashes": {
+        "ripen": "41113e74dc4f4b57de121e4777a0d4bcc0ccfd4fbffab3f034494d73adfcba0b",
+        "snapshot": "3e086299ff5a3b53731880ff6e575538fc2d87f528d3c04a05f25fd177b1e237",
+        "entry": "c78165271fd8795ff4af251b355291b83ea920c0d2bf47f202e882b8199aa66b",
+        "source": "c78165271fd8795ff4af251b355291b83ea920c0d2bf47f202e882b8199aa66b",
+        "ripened": "fdb7453a4c7d14341043ef01a8554879e78c37fa1f5e40fbe4c4d5503747c81a"
+      },
+      "composition": {
+        "boundary": 1,
+        "consumer": 11,
+        "context_parts": [],
+        "external_facts": [
+          49
+        ],
+        "forms": [
+          "ObservedCoarseApply"
+        ],
+        "kind": "ObservedCoarseApply",
+        "members": [
+          11
+        ],
+        "parts": [],
+        "producer_parts": [],
+        "rule": 4,
+        "union_effects": [],
+        "updated_rows": false
+      },
+      "root_record": 11,
+      "root_rule_name": "R4",
+      "snapshot_counts": {
+        "values": 8,
+        "rows": 8
+      }
+    },
+    {
+      "cell_id": 15,
+      "source_hashes": {
+        "ripen": "cd62fe0cb3df83c3042a6a6db3dff92e5443d368ad6017a397c920f2d6e30782",
+        "snapshot": "8705cb48de4e35d9d4d3e4f0be6c36eae3cc64ceaec63940b4061ab9948ec10d",
+        "entry": "f994afcd589af4dce96faf94a110d45b7cba93af981e7b3f9fe92d246aec8998",
+        "source": "f994afcd589af4dce96faf94a110d45b7cba93af981e7b3f9fe92d246aec8998",
+        "ripened": "cc71ad0cce0fdb1c0ad81f07c60edb4d899e490a4c96b695c96246c108101e9f"
+      },
+      "composition": {
+        "boundary": 1,
+        "consumer": 16,
+        "context_parts": [],
+        "external_facts": [
+          72,
+          73
+        ],
+        "forms": [
+          "ObservedCoarseApply"
+        ],
+        "kind": "ObservedCoarseApply",
+        "members": [
+          16
+        ],
+        "parts": [],
+        "producer_parts": [],
+        "rule": 13,
+        "union_effects": [],
+        "updated_rows": false
+      },
+      "root_record": 16,
+      "root_rule_name": "R13",
+      "snapshot_counts": {
+        "values": 5,
+        "rows": 4
+      }
+    },
+    {
+      "cell_id": 36,
+      "source_hashes": {
+        "ripen": "900c8ab993799ba215ec205fc14c5698201047eb48b0b447a33ac03f225d721b",
+        "snapshot": "3385916674a50a803ba78e8e55ba63ffe9bea3d424720bba46a46f737e7fed8a",
+        "entry": "0d4cc669854ea61b02c91dd5c77cc7f43dc3e603ef522fd8097b930f7ee80bed",
+        "source": "0d4cc669854ea61b02c91dd5c77cc7f43dc3e603ef522fd8097b930f7ee80bed",
+        "ripened": "4be4afc166dfb6642847992e5e0e14ef9585bc2f734d3707d893850dc9a5ab8a"
+      },
+      "composition": {
+        "boundary": 2,
+        "consumer": 49,
+        "context_parts": [
+          8,
+          10,
+          15
+        ],
+        "external_facts": [],
+        "forms": [
+          "ObservedSmoothApply"
+        ],
+        "kind": "ObservedSmoothApply",
+        "members": [
+          49
+        ],
+        "parts": [
+          8,
+          10,
+          15
+        ],
+        "producer_parts": [
+          15
+        ],
+        "rule": 3,
+        "union_effects": [],
+        "updated_rows": false
+      },
+      "root_record": 49,
+      "root_rule_name": "R3",
+      "snapshot_counts": {
+        "values": 19,
+        "rows": 41
+      }
+    },
+    {
+      "cell_id": 59,
+      "source_hashes": {
+        "ripen": "8f030e8453f8d4db86bff9d4b19be07f5f3f01a262b0279aeea965199049c5bb",
+        "snapshot": "ca62b4f80ad54ff068aec0f4f9220a780894e4b42fcf9cea1dc3ad71951e0c9a",
+        "entry": "ff728d25278385792b34a915c4898459e3f211d322624d3506aa1d249c68f6c1",
+        "source": "ff728d25278385792b34a915c4898459e3f211d322624d3506aa1d249c68f6c1",
+        "ripened": "eb07a18bc96709ea04bca853018cd08a659141818e55fc75a44a701274db3f27"
+      },
+      "composition": {
+        "boundary": 3,
+        "consumer": 91,
+        "context_parts": [
+          36
+        ],
+        "external_facts": [],
+        "forms": [
+          "ObservedSmoothApply"
+        ],
+        "kind": "ObservedSmoothApply",
+        "members": [
+          91
+        ],
+        "parts": [
+          36
+        ],
+        "producer_parts": [
+          36
+        ],
+        "rule": 1,
+        "union_effects": [],
+        "updated_rows": false
+      },
+      "root_record": 91,
+      "root_rule_name": "R1",
+      "snapshot_counts": {
+        "values": 19,
+        "rows": 41
+      }
+    }
+  ],
+  "examples": {
+    "row:(Mul (RipenInput 0) (RipenInput 1))": "outer_mul + sub_context - outer_mul*sub_context",
+    "row:(Pow (RipenInput 3) (Const 2))": "square + connect - square*connect",
+    "row:(Mul (RipenInput 0) (RipenInput 3))": "outer_mul*connect + sub_context*connect - outer_mul*sub_context*connect",
+    "eq:(RipenInput 1)=(Pow (RipenInput 3) (Const 2))": "connect",
+    "eq:(RipenInput 1)=(Mul (RipenInput 3) (RipenInput 3))": "connect"
+  },
+  "native_cases": [
+    {
+      "name": "boundary-0000",
+      "enodes": 4,
+      "math_eclasses": 4,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 4,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "boundary-0001",
+      "enodes": 6,
+      "math_eclasses": 5,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 6,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "boundary-0010",
+      "enodes": 20,
+      "math_eclasses": 10,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 20,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "boundary-0011",
+      "enodes": 20,
+      "math_eclasses": 10,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 20,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "boundary-0100",
+      "enodes": 7,
+      "math_eclasses": 6,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 7,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "boundary-0101",
+      "enodes": 9,
+      "math_eclasses": 7,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 9,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "boundary-0110",
+      "enodes": 23,
+      "math_eclasses": 12,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 23,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "boundary-0111",
+      "enodes": 23,
+      "math_eclasses": 12,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 23,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "boundary-1000",
+      "enodes": 7,
+      "math_eclasses": 5,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 7,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "boundary-1001",
+      "enodes": 13,
+      "math_eclasses": 7,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 13,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "boundary-1010",
+      "enodes": 41,
+      "math_eclasses": 14,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 41,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "boundary-1011",
+      "enodes": 41,
+      "math_eclasses": 14,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 41,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "boundary-1100",
+      "enodes": 7,
+      "math_eclasses": 5,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 7,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "boundary-1101",
+      "enodes": 13,
+      "math_eclasses": 7,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 13,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "boundary-1110",
+      "enodes": 41,
+      "math_eclasses": 14,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 41,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "boundary-1111",
+      "enodes": 41,
+      "math_eclasses": 14,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 41,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": true
+    },
+    {
+      "name": "recorded-successor-59",
+      "enodes": 41,
+      "math_eclasses": 14,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 41,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": true
+    },
+    {
+      "name": "graft-0000-gate0",
+      "enodes": 6,
+      "math_eclasses": 5,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 3,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-0000-gate1",
+      "enodes": 20,
+      "math_eclasses": 10,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 38,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-0000-gate2",
+      "enodes": 7,
+      "math_eclasses": 6,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 4,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-0000-gate3",
+      "enodes": 7,
+      "math_eclasses": 5,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 5,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-0001-gate1",
+      "enodes": 20,
+      "math_eclasses": 10,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 35,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-0001-gate2",
+      "enodes": 9,
+      "math_eclasses": 7,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 4,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-0001-gate3",
+      "enodes": 13,
+      "math_eclasses": 7,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 20,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-0010-gate0",
+      "enodes": 20,
+      "math_eclasses": 10,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 0,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-0010-gate2",
+      "enodes": 23,
+      "math_eclasses": 12,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 4,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-0010-gate3",
+      "enodes": 41,
+      "math_eclasses": 14,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 178,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-0011-gate2",
+      "enodes": 23,
+      "math_eclasses": 12,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 4,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-0011-gate3",
+      "enodes": 41,
+      "math_eclasses": 14,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 178,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-0100-gate0",
+      "enodes": 9,
+      "math_eclasses": 7,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 3,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-0100-gate1",
+      "enodes": 23,
+      "math_eclasses": 12,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 38,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-0100-gate3",
+      "enodes": 7,
+      "math_eclasses": 5,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 1,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-0101-gate1",
+      "enodes": 23,
+      "math_eclasses": 12,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 35,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-0101-gate3",
+      "enodes": 13,
+      "math_eclasses": 7,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 16,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-0110-gate0",
+      "enodes": 23,
+      "math_eclasses": 12,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 0,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-0110-gate3",
+      "enodes": 41,
+      "math_eclasses": 14,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 174,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-0111-gate3",
+      "enodes": 41,
+      "math_eclasses": 14,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 174,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-1000-gate0",
+      "enodes": 13,
+      "math_eclasses": 7,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 18,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-1000-gate1",
+      "enodes": 41,
+      "math_eclasses": 14,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 211,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-1000-gate2",
+      "enodes": 7,
+      "math_eclasses": 5,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 0,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-1001-gate1",
+      "enodes": 41,
+      "math_eclasses": 14,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 193,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-1001-gate2",
+      "enodes": 13,
+      "math_eclasses": 7,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 0,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-1010-gate0",
+      "enodes": 41,
+      "math_eclasses": 14,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 0,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-1010-gate2",
+      "enodes": 41,
+      "math_eclasses": 14,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 0,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-1011-gate2",
+      "enodes": 41,
+      "math_eclasses": 14,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 0,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-1100-gate0",
+      "enodes": 13,
+      "math_eclasses": 7,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 18,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-1100-gate1",
+      "enodes": 41,
+      "math_eclasses": 14,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 211,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-1101-gate1",
+      "enodes": 41,
+      "math_eclasses": 14,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 193,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    },
+    {
+      "name": "graft-1110-gate0",
+      "enodes": 41,
+      "math_eclasses": 14,
+      "native_status": "passed",
+      "compiled_status": "passed",
+      "compiled_actions": 0,
+      "compiled_rule_schedules": 0,
+      "real_history_replay": false
+    }
+  ],
+  "unit_tests": 18,
+  "runtime_provenance": {
+    "base_commit": "ddad5d60f76c7b6410de93e3c68c8ae28452bad3",
+    "kernel_diff_sha256": "dda990e285e40b7026085761f2494f4fc362db43f25b0e19d7b2599dd928cef5",
+    "note": "Existing modified local engine, not pristine upstream; no engine files changed by this experiment."
+  }
+}
