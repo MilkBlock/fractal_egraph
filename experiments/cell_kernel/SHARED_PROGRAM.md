@@ -1,5 +1,7 @@
 # One program for composition, observation and updates
 
+Automatic shared long-range touch discovery now builds on this core; see [TOUCHPOINTS.md](TOUCHPOINTS.md).
+
 2026-10-09. This change focuses on representation and interaction, not performance.
 No benchmark was run for this revision. No egglog engine source was modified.
 

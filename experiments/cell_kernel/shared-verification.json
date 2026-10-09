@@ -16,6 +16,14 @@
   "late_observer_outputs": 7,
   "observer_only_nodes": 6,
   "patch_checks": 7,
-  "integration": "Existing source-checked CICM size/selection pilot now uses one shared Program",
-  "limits": "Known explicit ports, scalar pure operators, synthetic instances; no arbitrary pattern discovery or general union/subsume implementation"
+  "automatic_touch_fragments": 3,
+  "automatic_touch_operator_sizes": [
+    2,
+    3,
+    2
+  ],
+  "automatic_touch_outputs": 4,
+  "compiled_packets_equal": true,
+  "integration": "Source-checked CICM pilot with automatic shared-touch discovery and packet reconstruction",
+  "limits": "Consumer roots still supplied by source lowering; automatic shared cuts are over pure scalar Program, not arbitrary egraph pattern discovery or general union/subsume"
 }

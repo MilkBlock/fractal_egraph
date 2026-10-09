@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """Correctness only: one program, late observation, two lowerings, native effects."""
 import argparse
+from dataclasses import asdict
 import json
 from pathlib import Path
 import struct
 import subprocess
 import run
 from lowering import FIELDS, cicm_program, metal_source, swift_source
+from touchpoints import discover
+from touch_backend import TouchRequest
 
 
 def command(args,log):
@@ -83,6 +86,38 @@ def main():
         if mode=='gpu':cmd+=['--metal-source',args.output/'observer-only/kernel.metal']
         command(cmd,args.output/f'observer-only-{mode}.log')
         assert [r[0] for r in struct.iter_unpack('<q',path.read_bytes())]==[r[-1] for r in extended_expected]
+    # Automatically choose shared interfaces for three consumer requirements.
+    touch_plan=discover(p,{
+        'size_export':{name:roots[name] for name in ['bopLeft','left','bopRight','right']},
+        'selector':{'eligible':roots['eligible']},
+        'internal_policy':{'small':observer},
+    })
+    assert touch_plan.fragments
+    live=[p.instance(dict(zip(FIELDS,row))) for row in rows]
+    requests=[TouchRequest.capture(touch_plan,inst,row[0]) for inst,row in zip(live,rows)]
+    touch_roots=requests[0].outputs
+    touch_binary=build(p,touch_roots,args.output/'automatic-touchpoints')
+    (args.output/'automatic-touchpoints/plan.json').write_text(json.dumps({
+        'consumers':{name:dict(ports) for name,ports in touch_plan.consumers.items()},
+        'fragments':[asdict(f) for f in touch_plan.fragments],
+        'compiled_outputs':touch_roots,
+        'program':p.to_dict(list(touch_roots.values())),
+    },indent=2)+'\n')
+    for mode in modes:
+        path=args.output/f'automatic-touchpoints-{mode}.bin'
+        cmd=[touch_binary,mode,input_path,path]
+        if mode=='gpu':cmd+=['--metal-source',args.output/'automatic-touchpoints/kernel.metal']
+        command(cmd,args.output/f'automatic-touchpoints-{mode}.log')
+        data=list(struct.iter_unpack(f'<{len(touch_roots)}q',path.read_bytes()))
+        assert len(data)==len(rows)
+        for row,inst,request,values in zip(rows,live,requests,data):
+            values={node:bool(value) if p.nodes[node].kind=='bool' else value
+                    for node,value in zip(touch_roots,values)}
+            cache_before=dict(inst.cache)
+            packets=request.finish(inst,values)
+            assert inst.cache==cache_before, 'compiled touch reconstruction evaluated the old Cell'
+            reference_packets=touch_plan.observe(p.instance(dict(zip(FIELDS,row))),row[0])['packets']
+            assert packets==reference_packets
     # Patch exact canonical boundary values. Compare live instance with fresh full eval.
     patch_checks=0
     instance=p.instance(dict(zip(FIELDS,rows[0])))
@@ -112,8 +147,11 @@ def main():
                 batch_rows=len(rows),native_effects_equal=native,compiled_backends=modes,
                 original_operator_nodes=len(before),nodes_after_observer=len(p.nodes),
                 old_nodes_unchanged=True,late_observer_outputs=7,observer_only_nodes=len(reachable),patch_checks=patch_checks,
-                integration='Existing source-checked CICM size/selection pilot now uses one shared Program',
-                limits='Known explicit ports, scalar pure operators, synthetic instances; no arbitrary pattern discovery or general union/subsume implementation')
+                automatic_touch_fragments=len(touch_plan.fragments),
+                automatic_touch_operator_sizes=[len(f.nodes) for f in touch_plan.fragments],
+                automatic_touch_outputs=len(touch_roots),compiled_packets_equal=True,
+                integration='Source-checked CICM pilot with automatic shared-touch discovery and packet reconstruction',
+                limits='Consumer roots still supplied by source lowering; automatic shared cuts are over pure scalar Program, not arbitrary egraph pattern discovery or general union/subsume')
     (args.output/'verification.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps(report,indent=2))
 

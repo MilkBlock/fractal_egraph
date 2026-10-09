@@ -1,5 +1,6 @@
 # Rule-derived Cell kernel: CPU, Metal, and native fact submission
 
+> Automatic shared long-range touch discovery: [method and checks](TOUCHPOINTS.md).
 > Current architecture: [one shared Program for observe/update/code generation](SHARED_PROGRAM.md).
 > Verify with `python3 experiments/cell_kernel/test_program.py` and
 > `python3 experiments/cell_kernel/verify_shared.py --gpu`.
