@@ -1,0 +1,232 @@
+{
+  "scope": "Exact bounded integral rewrite family, no saturation or runtime speedup claim",
+  "rules": [
+    "(rewrite (Integral (Add f g) x) (Add (Integral f x) (Integral g x)))",
+    "(rewrite (Integral (Mul a b) x) (Sub (Mul a (Integral b x)) (Integral (Mul (Diff x a) (Integral b x)) x)))",
+    "(rewrite (Mul a b) (Mul b a))"
+  ],
+  "source_sha256": "aaa8942131b4db57e76710486718790e1d7f2cb9288aeb702c0c17019439cf16",
+  "binary_sha256": "d35818c2345b23bcd27c5d2ce0ea6b163043bf3cefc6f60d8ba1a915c25abbfa",
+  "runs": [
+    {
+      "depth": 0,
+      "mul_commutativity": false,
+      "states_per_depth": [
+        2
+      ],
+      "distinct_normalized_states": 2,
+      "ordered_binding_states": 2,
+      "distinct_unary_terms": 3,
+      "table_counts": {
+        "State": 2,
+        "Add": 2,
+        "Mul": 2,
+        "Sub": 0,
+        "Diff": 0,
+        "Integral": 3,
+        "Var": 4
+      },
+      "native_checks_passed": true
+    },
+    {
+      "depth": 1,
+      "mul_commutativity": false,
+      "states_per_depth": [
+        2,
+        2
+      ],
+      "distinct_normalized_states": 4,
+      "ordered_binding_states": 4,
+      "distinct_unary_terms": 6,
+      "table_counts": {
+        "State": 4,
+        "Add": 2,
+        "Mul": 6,
+        "Sub": 2,
+        "Diff": 2,
+        "Integral": 6,
+        "Var": 4
+      },
+      "native_checks_passed": true
+    },
+    {
+      "depth": 2,
+      "mul_commutativity": false,
+      "states_per_depth": [
+        2,
+        2,
+        2
+      ],
+      "distinct_normalized_states": 6,
+      "ordered_binding_states": 6,
+      "distinct_unary_terms": 9,
+      "table_counts": {
+        "State": 6,
+        "Add": 2,
+        "Mul": 10,
+        "Sub": 4,
+        "Diff": 4,
+        "Integral": 9,
+        "Var": 4
+      },
+      "native_checks_passed": true
+    },
+    {
+      "depth": 3,
+      "mul_commutativity": false,
+      "states_per_depth": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "distinct_normalized_states": 8,
+      "ordered_binding_states": 8,
+      "distinct_unary_terms": 12,
+      "table_counts": {
+        "State": 8,
+        "Add": 2,
+        "Mul": 14,
+        "Sub": 6,
+        "Diff": 6,
+        "Integral": 12,
+        "Var": 4
+      },
+      "native_checks_passed": true
+    },
+    {
+      "depth": 4,
+      "mul_commutativity": false,
+      "states_per_depth": [
+        2,
+        2,
+        2,
+        2,
+        2
+      ],
+      "distinct_normalized_states": 10,
+      "ordered_binding_states": 10,
+      "distinct_unary_terms": 15,
+      "table_counts": {
+        "State": 10,
+        "Add": 2,
+        "Mul": 18,
+        "Sub": 8,
+        "Diff": 8,
+        "Integral": 15,
+        "Var": 4
+      },
+      "native_checks_passed": true
+    },
+    {
+      "depth": 0,
+      "mul_commutativity": true,
+      "states_per_depth": [
+        2
+      ],
+      "distinct_normalized_states": 2,
+      "ordered_binding_states": 4,
+      "distinct_unary_terms": 3,
+      "table_counts": {
+        "State": 4,
+        "Add": 2,
+        "Mul": 4,
+        "Sub": 0,
+        "Diff": 0,
+        "Integral": 3,
+        "Var": 4
+      },
+      "native_checks_passed": true
+    },
+    {
+      "depth": 1,
+      "mul_commutativity": true,
+      "states_per_depth": [
+        2,
+        4
+      ],
+      "distinct_normalized_states": 6,
+      "ordered_binding_states": 12,
+      "distinct_unary_terms": 9,
+      "table_counts": {
+        "State": 12,
+        "Add": 2,
+        "Mul": 20,
+        "Sub": 4,
+        "Diff": 3,
+        "Integral": 10,
+        "Var": 4
+      },
+      "native_checks_passed": true
+    },
+    {
+      "depth": 2,
+      "mul_commutativity": true,
+      "states_per_depth": [
+        2,
+        4,
+        8
+      ],
+      "distinct_normalized_states": 14,
+      "ordered_binding_states": 28,
+      "distinct_unary_terms": 21,
+      "table_counts": {
+        "State": 28,
+        "Add": 2,
+        "Mul": 52,
+        "Sub": 12,
+        "Diff": 9,
+        "Integral": 24,
+        "Var": 4
+      },
+      "native_checks_passed": true
+    },
+    {
+      "depth": 3,
+      "mul_commutativity": true,
+      "states_per_depth": [
+        2,
+        4,
+        8,
+        16
+      ],
+      "distinct_normalized_states": 30,
+      "ordered_binding_states": 60,
+      "distinct_unary_terms": 45,
+      "table_counts": {
+        "State": 60,
+        "Add": 2,
+        "Mul": 116,
+        "Sub": 28,
+        "Diff": 21,
+        "Integral": 52,
+        "Var": 4
+      },
+      "native_checks_passed": true
+    },
+    {
+      "depth": 4,
+      "mul_commutativity": true,
+      "states_per_depth": [
+        2,
+        4,
+        8,
+        16,
+        32
+      ],
+      "distinct_normalized_states": 62,
+      "ordered_binding_states": 124,
+      "distinct_unary_terms": 93,
+      "table_counts": {
+        "State": 124,
+        "Add": 2,
+        "Mul": 244,
+        "Sub": 60,
+        "Diff": 45,
+        "Integral": 108,
+        "Var": 4
+      },
+      "native_checks_passed": true
+    }
+  ]
+}
