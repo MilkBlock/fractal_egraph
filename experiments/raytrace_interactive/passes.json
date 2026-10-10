@@ -1,0 +1,673 @@
+{
+  "scope": "One replay per saved production pass input on the same local instrumented native runtime. Pass3 reuses the preceding diagnostic; Pass1 and Pass2 are newly replayed. Not a fresh end-to-end eggcc run.",
+  "runtime_sha256": "c28f3f9456b66f95b82268f42ca63b1517f145731487516ebca0a4eda26e80a7",
+  "passes": [
+    {
+      "pass_number": 1,
+      "logical_matches": 924275,
+      "observed_rules": 311,
+      "per_rule_search_and_apply_seconds": 4.076691298,
+      "table_rows": 245442,
+      "tables": {
+        "BodyContainsExpr": 39533,
+        "Concat": 5677,
+        "Expr-size": 11363,
+        "ExtractedExpr": 6001,
+        "Get": 9149,
+        "PotentialExtractedExpr": 9648,
+        "Smaller": 3436,
+        "SubTuple": 16658,
+        "TCPair": 4880,
+        "lsr-inv": 24149
+      },
+      "groups": {
+        "type-analysis": {
+          "matches": 53958,
+          "seconds": 0.996218533,
+          "rule_count": 54,
+          "percent": 24.43693819761969
+        },
+        "expr_size": {
+          "matches": 487680,
+          "seconds": 0.727393713,
+          "rule_count": 14,
+          "percent": 17.84274696876987
+        },
+        "always_run_other": {
+          "matches": 292370,
+          "seconds": 1.6932945380000004,
+          "rule_count": 96,
+          "percent": 41.53600099253825
+        },
+        "candidate_construction_and_selection": {
+          "matches": 34524,
+          "seconds": 0.3663837199999999,
+          "rule_count": 14,
+          "percent": 8.987281430402776
+        },
+        "is-resolved": {
+          "matches": 22488,
+          "seconds": 0.11371577800000002,
+          "rule_count": 14,
+          "percent": 2.78941351423367
+        },
+        "state-edge-passthrough": {
+          "matches": 7,
+          "seconds": 0.013662332,
+          "rule_count": 1,
+          "percent": 0.335132856557048
+        },
+        "loop-iters-analysis": {
+          "matches": 41,
+          "seconds": 0.021926748,
+          "rule_count": 4,
+          "percent": 0.5378564722513359
+        },
+        "passthrough": {
+          "matches": 907,
+          "seconds": 0.022741249,
+          "rule_count": 4,
+          "percent": 0.5578359345275106
+        },
+        "error-checking": {
+          "matches": 0,
+          "seconds": 0.04687695299999999,
+          "rule_count": 22,
+          "percent": 1.1498774268975809
+        },
+        "cicm-index": {
+          "matches": 6214,
+          "seconds": 0.005773123,
+          "rule_count": 1,
+          "percent": 0.1416129546731257
+        },
+        "interval-analysis": {
+          "matches": 868,
+          "seconds": 0.025026367000000008,
+          "rule_count": 29,
+          "percent": 0.6138891853861437
+        },
+        "type-helpers": {
+          "matches": 22805,
+          "seconds": 0.019090988,
+          "rule_count": 10,
+          "percent": 0.46829614028822647
+        },
+        "boundary-analysis": {
+          "matches": 418,
+          "seconds": 0.00520529,
+          "rule_count": 1,
+          "percent": 0.12768418355723138
+        },
+        "boundary-analysis-prep": {
+          "matches": 479,
+          "seconds": 0.00459421,
+          "rule_count": 1,
+          "percent": 0.11269457665960361
+        },
+        "drop": {
+          "matches": 387,
+          "seconds": 0.011281171000000001,
+          "rule_count": 16,
+          "percent": 0.2767237000636883
+        },
+        "rec-to-loop": {
+          "matches": 0,
+          "seconds": 0.0009725,
+          "rule_count": 2,
+          "percent": 0.02385512978324119
+        },
+        "mem-simple": {
+          "matches": 465,
+          "seconds": 0.0021519609999999995,
+          "rule_count": 12,
+          "percent": 0.052786950070409754
+        },
+        "subsume-after-helpers": {
+          "matches": 51,
+          "seconds": 0.000121706,
+          "rule_count": 1,
+          "percent": 0.0029854112343436017
+        },
+        "swap-if": {
+          "matches": 134,
+          "seconds": 7.6418e-05,
+          "rule_count": 2,
+          "percent": 0.001874510342185836
+        },
+        "cleanup-drop": {
+          "matches": 143,
+          "seconds": 6.0126e-05,
+          "rule_count": 3,
+          "percent": 0.0014748725278634035
+        },
+        "canon": {
+          "matches": 144,
+          "seconds": 0.00010579,
+          "rule_count": 8,
+          "percent": 0.002594996585880808
+        },
+        "apply-drop-unions": {
+          "matches": 191,
+          "seconds": 1.6126e-05,
+          "rule_count": 1,
+          "percent": 0.00039556588471418766
+        },
+        "initialization": {
+          "matches": 1,
+          "seconds": 1.958e-06,
+          "rule_count": 1,
+          "percent": 4.8029145620140116e-05
+        }
+      },
+      "top_rules": [
+        {
+          "matches": 6578,
+          "rule": "(rule ((= lhs (Concat e1 e2))\n       (HasType e1 (TupleT tylist1))\n       (HasType e2 (TupleT tylist2)))\n      ((HasType lhs (TupleT (TLConcat tylist1 tylist2))))\n        :ruleset type-analysis )",
+          "search_and_apply_seconds": 0.365007777
+        },
+        {
+          "matches": 150519,
+          "rule": "(rule ((= expr (Concat x y))\n       (= sum (+ (Expr-size y) (Expr-size x))))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+          "search_and_apply_seconds": 0.305069641
+        },
+        {
+          "matches": 319,
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Get (Arg ty ctx) i))\n       (= expr (Get body (+ i 1))))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "search_and_apply_seconds": 0.215913463
+        },
+        {
+          "matches": 10735,
+          "rule": "(rewrite (Concat (SubTuple expr a b) (SubTuple expr (+ a b) c)) (SubTuple expr a (+ b c)) :ruleset always-run)",
+          "search_and_apply_seconds": 0.170099494
+        },
+        {
+          "matches": 238825,
+          "rule": "(rule ((= expr (Get tup i))\n       (= sum (Expr-size tup)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+          "search_and_apply_seconds": 0.162438376
+        },
+        {
+          "matches": 272,
+          "rule": "(rule ((= lhs (If pred inputs then else))\n       (HasType pred (Base (BoolT )))\n       (HasType then ty)\n       (HasType else ty))\n      ((HasType lhs ty))\n        :ruleset type-analysis )",
+          "search_and_apply_seconds": 0.159838079
+        },
+        {
+          "matches": 315,
+          "rule": "(rule ((= lhs (Bop (PtrAdd ) ptr n))\n       (HasType ptr (Base (PointerT ty)))\n       (HasType n (Base (IntT ))))\n      ((HasType lhs (Base (PointerT ty))))\n        :ruleset type-analysis )",
+          "search_and_apply_seconds": 0.151856885
+        },
+        {
+          "matches": 285,
+          "rule": "(rule ((BodyContainsExpr body expr)\n       (= loop (DoWhile in body))\n       (= expr (Concat _x _y))\n       (is-inv-Expr body _x)\n       (is-inv-Expr body _y))\n      ((is-inv-Expr body expr))\n        :ruleset always-run )",
+          "search_and_apply_seconds": 0.12294308
+        }
+      ],
+      "raw_report": "out/raytrace-interactive-20261010/pass1/final.json",
+      "production_pass_source_sha256": "11a636a97b9a4295c792ca830a27e3f4d33e31dddc5297827a1a23546348bf2d",
+      "replay_source_sha256": "772919f15840652752b6ca8d5adce574d63bfa7baa48083cc8d944ab830bdad3"
+    },
+    {
+      "pass_number": 2,
+      "logical_matches": 1767619,
+      "observed_rules": 312,
+      "per_rule_search_and_apply_seconds": 10.804264029,
+      "table_rows": 649252,
+      "tables": {
+        "BodyContainsExpr": 65703,
+        "Concat": 44161,
+        "Expr-size": 25508,
+        "ExtractedExpr": 12108,
+        "Get": 20469,
+        "PotentialExtractedExpr": 36642,
+        "Smaller": 16175,
+        "SubTuple": 42312,
+        "TCPair": 19796,
+        "lsr-inv": 38685
+      },
+      "groups": {
+        "candidate_construction_and_selection": {
+          "matches": 142470,
+          "seconds": 3.403789488,
+          "rule_count": 14,
+          "percent": 31.50413095111154
+        },
+        "type-analysis": {
+          "matches": 198644,
+          "seconds": 2.0959766689999992,
+          "rule_count": 54,
+          "percent": 19.39953210486281
+        },
+        "expr_size": {
+          "matches": 78214,
+          "seconds": 0.645599732,
+          "rule_count": 14,
+          "percent": 5.975416097451241
+        },
+        "is-resolved": {
+          "matches": 67721,
+          "seconds": 0.674137673,
+          "rule_count": 14,
+          "percent": 6.239552006416448
+        },
+        "always_run_other": {
+          "matches": 881369,
+          "seconds": 2.2891910579999997,
+          "rule_count": 94,
+          "percent": 21.187848166756417
+        },
+        "context": {
+          "matches": 189441,
+          "seconds": 0.732518111,
+          "rule_count": 14,
+          "percent": 6.779898279362939
+        },
+        "subst": {
+          "matches": 77599,
+          "seconds": 0.5592260990000001,
+          "rule_count": 16,
+          "percent": 5.175975869332396
+        },
+        "ivt-analysis": {
+          "matches": 1165,
+          "seconds": 0.156343631,
+          "rule_count": 8,
+          "percent": 1.4470548903687848
+        },
+        "error-checking": {
+          "matches": 0,
+          "seconds": 0.103054166,
+          "rule_count": 22,
+          "percent": 0.9538286524967337
+        },
+        "type-helpers": {
+          "matches": 40381,
+          "seconds": 0.038151357999999996,
+          "rule_count": 7,
+          "percent": 0.35311389926789055
+        },
+        "loop-iters-analysis": {
+          "matches": 81,
+          "seconds": 0.026093874,
+          "rule_count": 4,
+          "percent": 0.24151459025770539
+        },
+        "cicm-index": {
+          "matches": 12306,
+          "seconds": 0.01236004,
+          "rule_count": 1,
+          "percent": 0.11439964783185694
+        },
+        "interval-analysis": {
+          "matches": 1243,
+          "seconds": 0.04334779899999999,
+          "rule_count": 25,
+          "percent": 0.40121010448883015
+        },
+        "loop-inversion": {
+          "matches": 40,
+          "seconds": 0.005059751,
+          "rule_count": 1,
+          "percent": 0.04683105657561675
+        },
+        "boundary-analysis-prep": {
+          "matches": 420,
+          "seconds": 0.004625457,
+          "rule_count": 1,
+          "percent": 0.042811402864505105
+        },
+        "boundary-analysis": {
+          "matches": 347,
+          "seconds": 0.004247792,
+          "rule_count": 1,
+          "percent": 0.0393158848080572
+        },
+        "apply-subst-unions": {
+          "matches": 74488,
+          "seconds": 0.003750251,
+          "rule_count": 1,
+          "percent": 0.034710841848494774
+        },
+        "mem-simple": {
+          "matches": 1338,
+          "seconds": 0.0065397499999999996,
+          "rule_count": 12,
+          "percent": 0.06052934269698047
+        },
+        "canon": {
+          "matches": 351,
+          "seconds": 0.000249538,
+          "rule_count": 8,
+          "percent": 0.002309625156606768
+        },
+        "initialization": {
+          "matches": 1,
+          "seconds": 1.792e-06,
+          "rule_count": 1,
+          "percent": 1.658604413211346e-05
+        }
+      },
+      "top_rules": [
+        {
+          "matches": 21748,
+          "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (= (ExtractedExpr expr) (TCPair oldterm oldcost))\n       (< cost oldcost))\n      ((set (ExtractedExpr expr) (TCPair term cost)))\n        :ruleset terms-helpers )",
+          "search_and_apply_seconds": 0.682439673
+        },
+        {
+          "matches": 32190,
+          "rule": "(rule ((= lhs (Concat e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))\n        :ruleset terms )",
+          "search_and_apply_seconds": 0.634014466
+        },
+        {
+          "matches": 40323,
+          "rule": "(rule ((= lhs (Concat e1 e2))\n       (HasType e1 (TupleT tylist1))\n       (HasType e2 (TupleT tylist2)))\n      ((HasType lhs (TupleT (TLConcat tylist1 tylist2))))\n        :ruleset type-analysis )",
+          "search_and_apply_seconds": 0.569132881
+        },
+        {
+          "matches": 7540,
+          "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (= cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+          "search_and_apply_seconds": 0.433388602
+        },
+        {
+          "matches": 337,
+          "rule": "(rule ((= lhs (If pred inputs then else))\n       (HasType pred (Base (BoolT )))\n       (HasType then ty)\n       (HasType else ty))\n      ((HasType lhs ty))\n        :ruleset type-analysis )",
+          "search_and_apply_seconds": 0.391521338
+        },
+        {
+          "matches": 45919,
+          "rule": "(rule ((= expr (Concat x y))\n       (= sum (+ (Expr-size y) (Expr-size x))))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+          "search_and_apply_seconds": 0.384150803
+        },
+        {
+          "matches": 41428,
+          "rule": "(rule ((= lhs (Concat _x _y))\n       (ExprIsResolved _x)\n       (ExprIsResolved _y))\n      ((ExprIsResolved lhs))\n        :ruleset is-resolved )",
+          "search_and_apply_seconds": 0.380674775
+        },
+        {
+          "matches": 722,
+          "rule": "(rule ((= lhs (Bop (PtrAdd ) ptr n))\n       (HasType ptr (Base (PointerT ty)))\n       (HasType n (Base (IntT ))))\n      ((HasType lhs (Base (PointerT ty))))\n        :ruleset type-analysis )",
+          "search_and_apply_seconds": 0.361269204
+        }
+      ],
+      "raw_report": "out/raytrace-interactive-20261010/pass2/final.json",
+      "production_pass_source_sha256": "539030a9809bfb5518d3b6a0da3a6ad796312359c9ad74a17d0c149538d0545c",
+      "replay_source_sha256": "481fc0fff568ca3a91e3149beaaf87d36ed0ff264d68205ed7cc8ef3bd5882b6"
+    },
+    {
+      "pass_number": 3,
+      "logical_matches": 3093625,
+      "observed_rules": 382,
+      "per_rule_search_and_apply_seconds": 20.190463301,
+      "table_rows": 697922,
+      "tables": {
+        "BodyContainsExpr": 50594,
+        "Concat": 8147,
+        "Expr-size": 19161,
+        "ExtractedExpr": 7422,
+        "Get": 13341,
+        "PotentialExtractedExpr": 69649,
+        "Smaller": 72198,
+        "SubTuple": 21246,
+        "TCPair": 63051,
+        "lsr-inv": 122846
+      },
+      "groups": {
+        "candidate_construction_and_selection": {
+          "matches": 335420,
+          "seconds": 9.959654786,
+          "rule_count": 14,
+          "percent": 49.32851038394307
+        },
+        "expr_size": {
+          "matches": 1917109,
+          "seconds": 2.99253508,
+          "rule_count": 14,
+          "percent": 14.82152754687796
+        },
+        "type-analysis": {
+          "matches": 108254,
+          "seconds": 2.1314887519999997,
+          "rule_count": 54,
+          "percent": 10.556908577201547
+        },
+        "always_run_other": {
+          "matches": 489871,
+          "seconds": 2.9483787530000005,
+          "rule_count": 96,
+          "percent": 14.602828617875113
+        },
+        "is-resolved": {
+          "matches": 41500,
+          "seconds": 0.5306516639999999,
+          "rule_count": 14,
+          "percent": 2.6282292589775174
+        },
+        "context": {
+          "matches": 130547,
+          "seconds": 0.4128784500000001,
+          "rule_count": 14,
+          "percent": 2.0449181568783064
+        },
+        "loop-iters-analysis": {
+          "matches": 87,
+          "seconds": 0.188409327,
+          "rule_count": 4,
+          "percent": 0.9331599983179603
+        },
+        "subst": {
+          "matches": 15020,
+          "seconds": 0.313386366,
+          "rule_count": 15,
+          "percent": 1.5521504451286092
+        },
+        "state-edge-passthrough": {
+          "matches": 4,
+          "seconds": 0.043781544,
+          "rule_count": 1,
+          "percent": 0.21684269126123307
+        },
+        "error-checking": {
+          "matches": 0,
+          "seconds": 0.172858414,
+          "rule_count": 22,
+          "percent": 0.8561389177802502
+        },
+        "interval-analysis": {
+          "matches": 2685,
+          "seconds": 0.10944877200000003,
+          "rule_count": 25,
+          "percent": 0.5420815281369953
+        },
+        "peepholes": {
+          "matches": 1235,
+          "seconds": 0.053087213999999994,
+          "rule_count": 23,
+          "percent": 0.2629321239863311
+        },
+        "passthrough": {
+          "matches": 618,
+          "seconds": 0.05607837500000001,
+          "rule_count": 4,
+          "percent": 0.27774684594395876
+        },
+        "cicm-index": {
+          "matches": 10021,
+          "seconds": 0.025126626,
+          "rule_count": 1,
+          "percent": 0.1244479912392873
+        },
+        "boundary-analysis-prep": {
+          "matches": 915,
+          "seconds": 0.019498165,
+          "rule_count": 1,
+          "percent": 0.09657116188628662
+        },
+        "select_opt": {
+          "matches": 440,
+          "seconds": 0.018152208,
+          "rule_count": 1,
+          "percent": 0.08990486116829696
+        },
+        "boundary-analysis": {
+          "matches": 689,
+          "seconds": 0.016893123,
+          "rule_count": 1,
+          "percent": 0.08366882298913522
+        },
+        "loop-strength-reduction": {
+          "matches": 0,
+          "seconds": 0.016606,
+          "rule_count": 1,
+          "percent": 0.08224675061902878
+        },
+        "mem-simple": {
+          "matches": 2857,
+          "seconds": 0.06961062700000001,
+          "rule_count": 12,
+          "percent": 0.34476983495743907
+        },
+        "loop-unroll": {
+          "matches": 0,
+          "seconds": 0.015823751,
+          "rule_count": 1,
+          "percent": 0.07837240168340405
+        },
+        "interval-rewrite": {
+          "matches": 26,
+          "seconds": 0.014580000000000001,
+          "rule_count": 4,
+          "percent": 0.07221231025083945
+        },
+        "type-helpers": {
+          "matches": 16775,
+          "seconds": 0.018067973,
+          "rule_count": 10,
+          "percent": 0.08948765925101443
+        },
+        "drop": {
+          "matches": 108,
+          "seconds": 0.037290629,
+          "rule_count": 16,
+          "percent": 0.18469427097372773
+        },
+        "term-subst": {
+          "matches": 2596,
+          "seconds": 0.009032582,
+          "rule_count": 9,
+          "percent": 0.04473687337106639
+        },
+        "non-weakly-linear": {
+          "matches": 1613,
+          "seconds": 0.0072101660000000005,
+          "rule_count": 7,
+          "percent": 0.035710750627712895
+        },
+        "switch_rewrite": {
+          "matches": 8,
+          "seconds": 0.005053752999999999,
+          "rule_count": 2,
+          "percent": 0.025030396403779874
+        },
+        "hacker": {
+          "matches": 0,
+          "seconds": 0.001633872,
+          "rule_count": 1,
+          "percent": 0.008092295732109709
+        },
+        "apply-subst-unions": {
+          "matches": 14577,
+          "seconds": 0.000728167,
+          "rule_count": 1,
+          "percent": 0.003606489802360975
+        },
+        "cleanup-drop": {
+          "matches": 42,
+          "seconds": 0.000856791,
+          "rule_count": 3,
+          "percent": 0.004243543039240533
+        },
+        "canon": {
+          "matches": 550,
+          "seconds": 0.0016394549999999995,
+          "rule_count": 8,
+          "percent": 0.008119947400705757
+        },
+        "subsume-after-helpers": {
+          "matches": 4,
+          "seconds": 1.4e-05,
+          "rule_count": 1,
+          "percent": 6.933966690752758e-05
+        },
+        "apply-drop-unions": {
+          "matches": 53,
+          "seconds": 5.208e-06,
+          "rule_count": 1,
+          "percent": 2.579435608960026e-05
+        },
+        "initialization": {
+          "matches": 1,
+          "seconds": 2.708e-06,
+          "rule_count": 1,
+          "percent": 1.3412272713256052e-05
+        }
+      },
+      "top_rules": [
+        {
+          "matches": 42713,
+          "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (= (ExtractedExpr expr) (TCPair oldterm oldcost))\n       (< cost oldcost))\n      ((set (ExtractedExpr expr) (TCPair term cost)))\n        :ruleset terms-helpers )",
+          "search_and_apply_seconds": 2.14009447
+        },
+        {
+          "matches": 554,
+          "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (= cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+          "search_and_apply_seconds": 1.6001091189999999
+        },
+        {
+          "matches": 68290,
+          "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (< cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+          "search_and_apply_seconds": 1.4083544510000001
+        },
+        {
+          "matches": 75552,
+          "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (> cost1 cost2))\n      ((union lhs (TCPair t2 cost2)))\n        :ruleset terms-helpers-helpers )",
+          "search_and_apply_seconds": 1.40082846
+        },
+        {
+          "matches": 16730,
+          "rule": "(rule ((= lhs (Bop o e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermBop o t1 t2) (+ 1 (+ c1 c2)))))\n        :ruleset terms )",
+          "search_and_apply_seconds": 0.942392451
+        },
+        {
+          "matches": 329668,
+          "rule": "(rule ((= expr (Concat x y))\n       (= sum (+ (Expr-size y) (Expr-size x))))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+          "search_and_apply_seconds": 0.822785767
+        },
+        {
+          "matches": 6162,
+          "rule": "(rule ((= lhs (Concat e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))\n        :ruleset terms )",
+          "search_and_apply_seconds": 0.775510118
+        },
+        {
+          "matches": 956221,
+          "rule": "(rule ((= expr (Get tup i))\n       (= sum (Expr-size tup)))\n      ((set (Expr-size expr) sum))\n        :ruleset always-run )",
+          "search_and_apply_seconds": 0.604788904
+        }
+      ],
+      "raw_report": "out/raytrace-interactive-20261010/live/complete.json",
+      "production_pass_source_sha256": "146b2c333847e019dd8fd4f3b09fb2aeedb56305bd053cd8c8b02cf13423a0eb",
+      "replay_source_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f"
+    }
+  ],
+  "lhs_table_atoms": {
+    "Smaller": 3,
+    "better_candidate": 4,
+    "Bop_candidate": 5,
+    "Concat_candidate": 5,
+    "Top_candidate": 7
+  },
+  "limitations": [
+    "Table-atom counts describe logical LHS decomposition, not physical stages or visited row counts.",
+    "Times include RHS and match management plus existing counter overhead; no pure per-rule Join timing.",
+    "Piecewise affine describes only fixed-candidate scalar cost updates; no affine closed Cell has been certified.",
+    "No fresh extraction or output quality comparison; each saved pass already incorporates preceding production extraction."
+  ]
+}

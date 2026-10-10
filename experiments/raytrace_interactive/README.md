@@ -1,5 +1,9 @@
 # Raytrace: interactive rule-family inspection
 
+Follow-up: Pass 1 and Pass 2 have now also been replayed once with the same
+binary. The initial finding below was specifically about Pass 3; it must not
+be applied unchanged to the earlier passes. See the cross-pass section below.
+
 Measured 2026-10-10, one interactive diagnostic of the saved **real production
 Pass 3 input**, plus one intact-schedule correctness control. The input was
 produced after the preceding two production passes and their extractions;
@@ -143,3 +147,65 @@ the large initialization fact body is represented by its hash and source pointer
 Raw summaries are in `out/raytrace-interactive-20261010/live`; they are a few MB,
 not a full trace. Recreate the compact result with `summarize.py LIVE CONTROL
 --output DIRECTORY` using this saved capture layout.
+
+## Follow-up: the first two passes differ
+
+New intact-schedule replays of the saved production Pass 1 and Pass 2 inputs
+use the same local instrumented `rule_repl` binary as the Pass 3 inspection.
+Pass 3 below reuses that earlier diagnostic; no averages are taken. This is
+not a new end-to-end production run or a new extraction-quality measurement.
+
+| Pass | Logical matches | All per-rule search+apply | Terms-family matches | Terms-family time | Share |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 1 | 924,275 | 4.077 s | 34,524 | 0.366 s | 8.99% |
+| 2 | 1,767,619 | 10.804 s | 142,470 | 3.404 s | 31.50% |
+| 3 | 3,093,625 | 20.190 s | 335,420 | 9.960 s | 49.33% |
+
+Pass 1's top rule is Concat type propagation (6,578 matches / 0.365 s).
+Other visible costs are Concat size propagation (150,519 / 0.305 s), a loop
+invariance rule joining BodyContainsExpr, DoWhile, Arg and Get
+(319 / 0.216 s), and adjacent SubTuple merging (10,735 / 0.170 s).
+The rest of always-run excluding Expr-size is 41.54% of Pass 1 per-rule time;
+type-analysis is 24.44%, Expr-size is 17.84%.
+
+Pass 2 has mixed hotspots: better-candidate selection (21,748 / 0.682 s),
+Concat Term candidate construction (32,190 / 0.634 s), Concat type propagation
+(40,323 / 0.569 s), and equal-cost Smaller resolution (7,540 / 0.433 s).
+
+### What "piecewise affine" and "Join size" actually mean here
+
+For one fixed binding, a Bop candidate has cost `1+c1+c2`. Selecting the
+smaller of that cost and the old cost is piecewise affine (within defined
+i64 arithmetic). This description applies only to the scalar update, not to
+the complete Term construction, equality changes, guard search or Cell state.
+
+The hot rules have modest logical LHS table-atom counts:
+
+| Rule | Logical table atoms | Additional condition |
+| --- | ---: | --- |
+| Smaller resolution | Smaller + two TCPair = 3 | cost comparison/equality |
+| Better candidate | PotentialExtractedExpr + ExtractedExpr + two TCPair = 4 | new cost < old cost |
+| Bop/Concat candidate | constructor + two ExtractedExpr + two TCPair = 5 | none beyond bindings |
+| Top candidate | constructor + three ExtractedExpr + three TCPair = 7 | none beyond bindings |
+
+These are neither physical stage counts nor visited-row counts. A TCPair
+result is an e-class value; finding its Term and cost is another relational
+lookup, not reading two ordinary fields of a Rust struct. The final Pass 3
+tables have 63,051 TCPair, 72,198 Smaller and 69,649 PotentialExtractedExpr
+rows. Many repeated searches over those relations can be costly even when
+only a few complete matches survive. This report does not separately measure
+per-rule index-handle time, probe time or intermediate candidate counts, and
+therefore does not diagnose a Cartesian-product explosion or a bad key choice.
+
+[passes.json](passes.json) gives per-pass groups and top rules;
+[all-pass-rules.csv](all-pass-rules.csv) contains all observed per-rule counts.
+The comparison script validates sums and records input/runtime hashes.
+
+```sh
+mkdir -p out/raytrace-interactive-20261010/pass1 out/raytrace-interactive-20261010/pass2
+../check_statewalk/target/release/flatten out/eggcc-raytrace-pass-audit/raytrace/pass-1.egg out/raytrace-interactive-20261010/pass1/source.egg
+target/release/examples/rule_repl out/raytrace-interactive-20261010/pass1/source.egg out/raytrace-interactive-20261010/pass1 --control
+../check_statewalk/target/release/flatten out/eggcc-raytrace-pass-audit/raytrace/pass-2.egg out/raytrace-interactive-20261010/pass2/source.egg
+target/release/examples/rule_repl out/raytrace-interactive-20261010/pass2/source.egg out/raytrace-interactive-20261010/pass2 --control
+python3 experiments/raytrace_interactive/compare_passes.py
+```
