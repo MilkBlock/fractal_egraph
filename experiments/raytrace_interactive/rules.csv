@@ -1,0 +1,1663 @@
+time_rank,ruleset,logical_matches,search_and_apply_seconds,rule_sha256,rule
+1,terms-helpers,42713,2.14009447,5f85174b5b69ffd5eb03f63844f1db7f38d89b9ab068d340bc26d659bcd8be3d,"(rule ((PotentialExtractedExpr expr (TCPair term cost))
+       (= (ExtractedExpr expr) (TCPair oldterm oldcost))
+       (< cost oldcost))
+      ((set (ExtractedExpr expr) (TCPair term cost)))
+        :ruleset terms-helpers )"
+2,terms-helpers-helpers,554,1.6001091189999999,4fb09c4807c4cb65d5d08f99e3837ec28fd158519811406bcfb26153bc3652a1,"(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))
+       (= cost1 cost2))
+      ((union lhs (TCPair t1 cost1)))
+        :ruleset terms-helpers-helpers )"
+3,terms-helpers-helpers,68290,1.4083544510000001,00ae3d6eaf642d75e2e4392c30c22b84eb4d0a396fac64dd055f56363c866776,"(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))
+       (< cost1 cost2))
+      ((union lhs (TCPair t1 cost1)))
+        :ruleset terms-helpers-helpers )"
+4,terms-helpers-helpers,75552,1.40082846,e6d4ef7c3cbee3faf9bdbbfd25d5f717337afd97e9dc59e02b9a895a0268cb5d,"(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))
+       (> cost1 cost2))
+      ((union lhs (TCPair t2 cost2)))
+        :ruleset terms-helpers-helpers )"
+5,terms,16730,0.942392451,9d3e163a98357a529322308b02f026adaf5febf278477768ef4c24ff0ff14886,"(rule ((= lhs (Bop o e1 e2))
+       (= (TCPair t1 c1) (ExtractedExpr e1))
+       (= (TCPair t2 c2) (ExtractedExpr e2)))
+      ((PotentialExtractedExpr lhs (TCPair (TermBop o t1 t2) (+ 1 (+ c1 c2)))))
+        :ruleset terms )"
+6,always-run,329668,0.822785767,9ecb608e029e4783c35673406c9ec8092cc0126562bad31881b89262677d055c,"(rule ((= expr (Concat x y))
+       (= sum (+ (Expr-size y) (Expr-size x))))
+      ((set (Expr-size expr) sum))
+        :ruleset always-run )"
+7,terms,6162,0.775510118,e58452471fd0a803ecfe195ad96961b1bb5426198c89a68f3020dd82c34e03cc,"(rule ((= lhs (Concat e1 e2))
+       (= (TCPair t1 c1) (ExtractedExpr e1))
+       (= (TCPair t2 c2) (ExtractedExpr e2)))
+      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))
+        :ruleset terms )"
+8,always-run,956221,0.604788904,e1717e667785c3e7c12287c44836390067a5248d3888ac297ea44afffe08071e,"(rule ((= expr (Get tup i))
+       (= sum (Expr-size tup)))
+      ((set (Expr-size expr) sum))
+        :ruleset always-run )"
+9,terms,4070,0.583763929,3ffac54a507d62c5b97b8e5d8a83f04022436a9da4ab76b4e3fdaea69e6f74dc,"(rule ((= lhs (Top o e1 e2 e3))
+       (= (TCPair t1 c1) (ExtractedExpr e1))
+       (= (TCPair t2 c2) (ExtractedExpr e2))
+       (= (TCPair t3 c3) (ExtractedExpr e3)))
+      ((PotentialExtractedExpr lhs (TCPair (TermTop o t1 t2 t3) (+ (+ 1 c1) (+ c2 c3)))))
+        :ruleset terms )"
+10,type-analysis,1699,0.503797656,ed94d717cf64282a1b07fa8c267ea0b6713c5dac053b45d55312d5d74e1deb77,"(rule ((= lhs (Bop (PtrAdd ) ptr n))
+       (HasType ptr (Base (PointerT ty)))
+       (HasType n (Base (IntT ))))
+      ((HasType lhs (Base (PointerT ty))))
+        :ruleset type-analysis )"
+11,always-run,218792,0.473154066,a2266822b9fcb9c05bcabaebc6dd9b21ec0071432f47ce8425e21b2d4eb783d7,"(rule ((= expr (Bop op x y))
+       (= sum (+ (Expr-size y) (Expr-size x))))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )"
+12,terms-helpers,0,0.444930153,929f547918d4a65929b07a0982838dac3bbc9a7e97604170d077edfa5ecaaa3a,"(rule ((PotentialExtractedExpr expr (TCPair term cost))
+       (< cost 0))
+      ((panic 'Negative cost'))
+        :ruleset terms-helpers )"
+13,always-run,79484,0.431795601,f3d15e23838df24881fa7b6a573a19c724ead8b492e0d11950743654260dcf1f,"(rule ((= expr (Top op x y z))
+       (= sum (+ (Expr-size z) (+ (Expr-size y) (Expr-size x)))))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )"
+14,type-analysis,9330,0.403475323,e28456f9992879b072ba194858ed2ccea632daed74ed38c8d36757bd9d391d3c,"(rule ((= lhs (Concat e1 e2))
+       (HasType e1 (TupleT tylist1))
+       (HasType e2 (TupleT tylist2)))
+      ((HasType lhs (TupleT (TLConcat tylist1 tylist2))))
+        :ruleset type-analysis )"
+15,type-analysis,192,0.395953616,837aedcbac97de736401589a473c9920b436a16091077d64f7940ce5c20ede0c,"(rule ((= lhs (If pred inputs then else))
+       (HasType pred (Base (BoolT )))
+       (HasType then ty)
+       (HasType else ty))
+      ((HasType lhs ty))
+        :ruleset type-analysis )"
+16,terms,33806,0.392745007,fcde785a0aab5ba49f2501b543b1bf8dcb02eb9706edac133ac92a194462e5ab,"(rule ((= lhs (Get tup i))
+       (= (TCPair t1 c1) (ExtractedExpr tup)))
+      ((PotentialExtractedExpr lhs (TCPair (TermGet t1 i) c1)))
+        :ruleset terms )"
+17,always-run,604,0.351315035,b7fae7243b41c7d79c49a8b2dd16a749cacc434de38ac49b7aacdfda362127e0,"(rule ((BodyContainsExpr body expr)
+       (= loop (DoWhile in body))
+       (= expr (Get (Arg ty ctx) i))
+       (= expr (Get body (+ i 1))))
+      ((is-inv-Expr body expr))
+        :ruleset always-run )"
+18,always-run,12946,0.280721948,0cd749152c47edd511118d5de2d03d008eef140dac53f24fd6d4a588a261f6dc,"(rule ((= expr (If pred inputs then else))
+       (= sum (+ (Expr-size inputs) (+ (Expr-size else) (+ (Expr-size then) (Expr-size pred))))))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )"
+19,terms,14703,0.256798276,2e4904fc146ca16d98011f2e2dc59407845b89dd64afb432336c3caa5a4d3f83,"(rule ((= lhs (Single e1))
+       (= (TCPair t1 c1) (ExtractedExpr e1)))
+      ((PotentialExtractedExpr lhs (TCPair (TermSingle t1) c1)))
+        :ruleset terms )"
+20,always-run,302586,0.249167929,370a7cd1be8a9cecd775f93ce0aa1e681179d1bd5989aedb5fb6701c94081c42,"(rule ((= expr (Single x))
+       (= sum (Expr-size x)))
+      ((set (Expr-size expr) sum))
+        :ruleset always-run )"
+21,always-run,12132,0.220816287,6cea149a18900e37d8f343b0417d7372ad273b8c1c58d7ab050b3290aac0720b,(rewrite (Concat (SubTuple expr a b) (SubTuple expr (+ a b) c)) (SubTuple expr a (+ b c)) :ruleset always-run)
+22,always-run,123418,0.216136666,b8bf7f2360956d0901e6b57d6098d104f4d6b6d0fe3b0d07d44ae3fc00585338,"(rule ((= loop (DoWhile inputs pred-and-body))
+       (ContextOf inputs loop-input-ctx)
+       (ContextOf pred-and-body loop-output-ctx)
+       (= constant (Const c out-type loop-output-ctx))
+       (HasArgType inputs in-type))
+      ((lsr-inv loop (Const c in-type loop-input-ctx) constant))
+        :ruleset always-run )"
+23,always-run,700,0.189554778,191bf832252a2b55828a4e586ff9dc65b9d3f605d63e1e7bdbb472b8675eb2fd,"(rule ((BodyContainsExpr body expr)
+       (= loop (DoWhile in body))
+       (= expr (Get _tup _i))
+       (is-inv-Expr body _tup))
+      ((is-inv-Expr body expr))
+        :ruleset always-run )"
+24,always-run,1388,0.184714835,efe214a31ddfe2baf9877dfa625c0364493ebe08dd9d4d77e1d4bbca7f6bc121,"(rule ((BodyContainsExpr body expr)
+       (= loop (DoWhile in body))
+       (= expr (Concat _x _y))
+       (is-inv-Expr body _x)
+       (is-inv-Expr body _y))
+      ((is-inv-Expr body expr))
+        :ruleset always-run )"
+25,is-resolved,8999,0.172280097,77ea0d4e87a935737048a7caada26674844b88708ede87238bd0e1244cf43ffe,"(rule ((= lhs (Concat _x _y))
+       (ExprIsResolved _x)
+       (ExprIsResolved _y))
+      ((ExprIsResolved lhs))
+        :ruleset is-resolved )"
+26,is-resolved,17688,0.163284881,f71ac7fb0762a0dcd72e8503d8d95d9df19e8a779ad93a1936b53d6b02ad83fc,"(rule ((= lhs (Get _tup _i))
+       (ExprIsResolved _tup))
+      ((ExprIsResolved lhs))
+        :ruleset is-resolved )"
+27,always-run,50152,0.159689087,ba0b5908b1898f7e2fd85f9a90def09b4faf1dad4233354777188acc26dd68b2,"(rule ((BodyContainsExpr body (Get _tup _i)))
+      ((BodyContainsExpr body _tup))
+        :ruleset always-run )"
+28,type-analysis,1269,0.155743596,e6bcc01320a794744d0480112fe0673d4cd809c2dc656efe8f6fa872c0ec1d40,"(rule ((= lhs (Bop op e1 e2))
+       (bop-of-type op ty)
+       (HasType e1 ty)
+       (HasType e2 ty))
+      ((HasType lhs ty))
+        :ruleset type-analysis )"
+29,type-analysis,314,0.148155295,dfde05e2c2092316cdefdf3e855cb31746cf0549d430ac02b53afd28d65d80ef,"(rule ((= lhs (Bop pred e1 e2))
+       (bpred-of-type pred ty)
+       (HasType e1 ty)
+       (HasType e2 ty))
+      ((HasType lhs (Base (BoolT ))))
+        :ruleset type-analysis )"
+30,always-run,0,0.140546664,4a7ab8856f4e512ff6e205fb65a2615f3faf91c3e2f80546b77dbdf4ac7baa8c,"(rule ((BodyContainsExpr body expr)
+       (= loop (DoWhile in body))
+       (= expr (DoWhile _in _pred-and-output))
+       (is-inv-Expr body _in)
+       (ExprIsPure expr))
+      ((is-inv-Expr body expr))
+        :ruleset always-run )"
+31,always-run,0,0.135232775,3b237b0c88e7e3948b5f3dd26c41f2d9dca9115e3d9fd96d77e2c0377c18f2a2,"(rule ((BodyContainsExpr body expr)
+       (= loop (DoWhile in body))
+       (= expr (Call _func _arg))
+       (is-inv-Expr body _arg)
+       (ExprIsPure expr))
+      ((is-inv-Expr body expr))
+        :ruleset always-run )"
+32,always-run,694,0.133364918,2de05e4ba58eb1742eb79ea19ce3d300bdf785cecaba98d20ad66fe2feb4f72a,"(rule ((BodyContainsExpr body expr)
+       (= loop (DoWhile in body))
+       (= expr (Single _x))
+       (is-inv-Expr body _x))
+      ((is-inv-Expr body expr))
+        :ruleset always-run )"
+33,type-analysis,84,0.127015117,e5cda1b2b4ad17aaaeeda0c0e1670c2e622116183ec4aea7c54b7fa1fe9cf94d,"(rule ((= lhs (DoWhile inp pred-body))
+       (HasType inp (TupleT tylist))
+       (HasType pred-body (TupleT (TCons (BoolT ) tylist))))
+      ((HasType lhs (TupleT tylist)))
+        :ruleset type-analysis )"
+34,always-run,35,0.119240379,3bed16350a816ceaba1f817557540fe9780500e7a71ceb4c3c741d966b0e391c,"(rule ((BodyContainsExpr body expr)
+       (= loop (DoWhile in body))
+       (= expr (Top _op _x _y _z))
+       (is-inv-Expr body _x)
+       (is-inv-Expr body _y)
+       (is-inv-Expr body _z))
+      ((is-inv-Expr body expr))
+        :ruleset always-run )"
+35,context,34862,0.118854584,3f9132e7dd41637220172136ea6caed0c4049db8fc3862e251ea3dfeb11d2130,"(rule ((= lhs (AddContext ctx inner))
+       (= inner (AddContext ctx expr)))
+      ((union lhs inner))
+        :ruleset context )"
+36,always-run,300,0.115114702,02fe27c8a9362a633ba3d6cf86d7257e61d3db8c0c76420fb386321551a88fa6,"(rule ((BodyContainsExpr body expr)
+       (= loop (DoWhile in body))
+       (= expr (Bop _op _x _y))
+       (BinaryOpIsPure _op)
+       (is-inv-Expr body _x)
+       (is-inv-Expr body _y))
+      ((is-inv-Expr body expr))
+        :ruleset always-run )"
+37,loop-iters-analysis,0,0.11380491,76baed99ce3cdae699ebc74f7153af32106cba004f7327e68e5075528fc6965d,"(rule ((= lhs (DoWhile inputs outputs))
+       (= pred (Get outputs 0))
+       (= (Const (Int start_const) _ty1 _ctx1) (Get inputs counter_i))
+       (= body-arg (Get (Arg _ty _ctx) counter_i))
+       (= next_counter (Get outputs (+ counter_i 1)))
+       (= next_counter (Bop (Add ) body-arg (Const (Int increment) _ty2 _ctx2)))
+       (> increment 0)
+       (= pred (Bop (LessThan ) body-arg (Const (Int end_constant) _ty3 _ctx3)))
+       (>= end_constant start_const))
+      ((set (LoopNumItersGuess inputs outputs) (+ (/ (- end_constant start_const) increment) 1))
+       (LoopIsFinite inputs outputs))
+        :ruleset loop-iters-analysis )"
+38,always-run,26933,0.102470165,b90a9273b878e84cb69dea89d8b714cfe8c3ff5451c60f16a9bc01c14d0a5baa,"(rule ((BodyContainsExpr body (Concat _x _y)))
+      ((BodyContainsExpr body _x)
+       (BodyContainsExpr body _y))
+        :ruleset always-run )"
+39,always-run,17486,0.094463581,85f7ec35b17abceff6000c6872233ed41bf471a984e501bd7905a9e1548ae4e2,"(rule ((BodyContainsExpr body (Single _x)))
+      ((BodyContainsExpr body _x))
+        :ruleset always-run )"
+40,context,39400,0.078970075,70de3c94bb55a5820e1f5aa798f8f6d59dc1080afca5bab80a6ec26907de8e5f,(rewrite (AddContext ctx (Get c1 index)) (Get (AddContext ctx c1) index) :ruleset context)
+41,always-run,0,0.076655008,e865152f8ac68d82605e82a64b141b989c5ff960c4b1b1f079c57a9474f752cc,"(rule ((BodyContainsExpr body expr)
+       (= loop (DoWhile in body))
+       (= expr (If _pred _input _then _else))
+       (is-inv-Expr body _pred)
+       (is-inv-Expr body _input))
+      ((is-inv-Expr body expr))
+        :ruleset always-run )"
+42,type-analysis,18576,0.07630347,976c1c22bc7ba0f7a9f4bab6d0a6f4b26ab19baeadaf5c15f2edb0a667e82bc3,"(rule ((= lhs (Get e i))
+       (HasType e (TupleT tylist)))
+      ((HasType lhs (Base (TypeList-ith tylist i))))
+        :ruleset type-analysis )"
+43,is-resolved,5010,0.075885648,a24b2545074106f35b9216e7294180b0e5c9dd017ca7522516c4be82a337fdb9,"(rule ((= lhs (Bop _op _x _y))
+       (ExprIsResolved _x)
+       (ExprIsResolved _y))
+      ((ExprIsResolved lhs))
+        :ruleset is-resolved )"
+44,loop-iters-analysis,3,0.073592625,512d9c441e5cc7b66c787004b9950e1feef66480e4db89f0a1a66f0c04dd50d6,"(rule ((= lhs (DoWhile inputs outputs))
+       (= pred (Get outputs 0))
+       (= (Const (Int start_const) _ty1 _ctx1) (Get inputs counter_i))
+       (= next_counter (Get outputs (+ counter_i 1)))
+       (= next_counter (Bop (Add ) (Get (Arg _ty _ctx) counter_i) (Const (Int increment) _ty2 _ctx2)))
+       (> increment 0)
+       (= pred (Bop (LessThan ) next_counter (Const (Int end_constant) _ty3 _ctx3)))
+       (>= end_constant start_const))
+      ((set (LoopNumItersGuess inputs outputs) (/ (- end_constant start_const) increment))
+       (LoopIsFinite inputs outputs))
+        :ruleset loop-iters-analysis )"
+45,always-run,20525,0.067098085,a3068d8322088e06667923f32bc5530a2ca3af8e56ef6da7cb3041ec05cb352f,"(rule ((Get tup i)
+       (ContextOf tup ctx))
+      ((ContextOf (Get tup i) ctx))
+        :ruleset always-run )"
+46,is-resolved,6430,0.058535195,0242b9cb809404b4f18246d498f791d437a8ff391d91aca2e976dd09fa31356a,"(rule ((= lhs (Single _x))
+       (ExprIsResolved _x))
+      ((ExprIsResolved lhs))
+        :ruleset is-resolved )"
+47,type-analysis,760,0.056868959,88fc03a2bd9fe0710fc590b1872ae8e6a307fe22c33e2ae24f8c1ce90a0130db,"(rule ((= lhs (Top (Write ) ptr val state))
+       (HasType ptr (Base (PointerT ty)))
+       (HasType val (Base ty)))
+      ((HasType lhs (Base (StateT ))))
+        :ruleset type-analysis )"
+48,always-run,7179,0.056251045,691475e87ba42b5c5b6c3c9050f908056d942a7eefbb153754e93e762cc4276f,"(rule ((= expr (DoWhile in pred-and-output))
+       (= sum (+ (Expr-size pred-and-output) (Expr-size in))))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )"
+49,subst,3761,0.055556906,de9aa4a87c6f99170f99132c39229c41bb23cdae9e2bcfe40197ded54dbeeb98,"(rule ((= e (Get c1 index))
+       (= lhs (Subst assum to e))
+       (ExprIsResolved e)
+       (ExprIsResolved to))
+      ((DelayedSubstUnion lhs (Get (Subst assum to c1) index))
+       (subsume (Subst assum to e)))
+        :ruleset subst )"
+50,type-analysis,334,0.055466247,5b30d2d6093efce4700354ef824fef93e4280091eacadb3e2e0ffa46ed6c7a1f,"(rule ((= lhs (Top (Select ) pred v1 v2))
+       (HasType v1 ty)
+       (HasType v2 ty))
+      ((HasType lhs ty))
+        :ruleset type-analysis )"
+51,context,11668,0.053702913,d8c1f3c41985477a49a309f45c027cfa86c118f5afe789d5927821150fd6f2b9,(rewrite (AddContext ctx (Bop op c1 c2)) (Bop op (AddContext ctx c1) (AddContext ctx c2)) :ruleset context)
+52,always-run,10660,0.053194246,284bcf77497638555bc57d5473762d3ea664d9ea6c5c432c893e6c43c2833643,"(rule ((Add-Gets orig (Concat left right) n)
+       (= len (tuple-length left)))
+      ((Add-Gets orig left n)
+       (Add-Gets orig right (+ n len)))
+        :ruleset always-run )"
+53,always-run,2,0.04914838,8e6fcba98a1b32916e361bb76a53039f9fc2e82f05680303de2aecb58814351a,"(rule ((BodyContainsExpr body expr)
+       (= loop (DoWhile in body))
+       (= expr (Uop _op _x))
+       (UnaryOpIsPure _op)
+       (is-inv-Expr body _x))
+      ((is-inv-Expr body expr))
+        :ruleset always-run )"
+54,context,13388,0.048440244,43f6f6bd5cd0693e86b617f750fc57f5591324c2c480c6a0f5d7db3454176672,(rewrite (AddContext ctx (Single c1)) (Single (AddContext ctx c1)) :ruleset context)
+55,always-run,14172,0.045532951,2c8c9f38a807dcbe3a3f54848624dba22e0b9d01b1448ac344275b0b337f53ca,"(rule ((Add-Gets orig (Single e) n))
+      ((union (Get orig n) e))
+        :ruleset always-run )"
+56,context,25912,0.045220254,e7b9cea4b3ce110fa726c246b39581c2fc8c825546d73b83bca8047bb9619ba0,(rewrite (AddContext ctx (Concat c1 c2)) (Concat (AddContext ctx c1) (AddContext ctx c2)) :ruleset context)
+57,state-edge-passthrough,4,0.043781544,fad500e5a4b77948ab8a92849e87ddf3d68e8814de208707109ac47423182ad2,"(rule ((= outputs (If pred inputs then_ else_))
+       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))
+       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))
+       (HasType (Get then_ i) (Base (StateT ))))
+      ((let lhs (Get outputs i))
+       (let new_inputs (TupleRemoveAt inputs j))
+       (let new_then_ctx DUMMYCTX)
+       (let new_else_ctx DUMMYCTX)
+       (let old_then (TupleRemoveAt then_ i))
+       (let old_else (TupleRemoveAt else_ i))
+       (let new_then (DropAt new_then_ctx j old_then))
+       (let new_else (DropAt new_else_ctx j old_else))
+       (let old_outputs (TupleRemoveAt outputs i))
+       (let new_if (If pred new_inputs new_then new_else))
+       (union new_if old_outputs)
+       (union lhs (Get inputs j))
+       (ToSubsumeIf pred inputs then_ else_))
+        :ruleset state-edge-passthrough )"
+58,subst,5717,0.043130751,1ec9bb51dddb4a99545c8d6c94d0eb41ca5f4ca079329a21a2eed7f39cd7d8ee,"(rule ((= lhs (Subst assum to in))
+       (HasArgType to ty))
+      ((HasArgType lhs ty))
+        :ruleset subst )"
+59,always-run,3023,0.04236466,2b0dfde5eb50ceb5f2a1191c444efd15e91024a8c5ace719dd1e75baae55d8e8,"(rule ((Concat _x _y)
+       (ExprIsPure _x)
+       (ExprIsPure _y))
+      ((ExprIsPure (Concat _x _y)))
+        :ruleset always-run )"
+60,subst,2888,0.04223408,97715cc66e3fab6f099f4c3d4389c46b993aa95a9cc04f8b1b24d675973697d3,"(rule ((= e (Concat c1 c2))
+       (= lhs (Subst assum to e))
+       (ExprIsResolved e)
+       (ExprIsResolved to))
+      ((DelayedSubstUnion lhs (Concat (Subst assum to c1) (Subst assum to c2)))
+       (subsume (Subst assum to e)))
+        :ruleset subst )"
+61,always-run,9574,0.042196125,5f0480586d97ba93ecacd8a5ce91452628eadb5e28c5c5ea7ab34e0bd52e8da7,"(rule ((Concat x y)
+       (ContextOf x ctx))
+      ((ContextOf (Concat x y) ctx))
+        :ruleset always-run )"
+62,always-run,9189,0.041057701,f41d901676aac9313f2bf23ec8f654b90c92813145e20bc0513c9d7072491082,"(rule ((Concat x y)
+       (ContextOf y ctx))
+      ((ContextOf (Concat x y) ctx))
+        :ruleset always-run )"
+63,subst,34,0.039556578,dd0006638b4f5c3445f5f6020cacc14adbed2c4d2b5d03134b3310c873dc95e5,"(rule ((= lhs (Subst assum to e))
+       (= e (Const c _ty _oldctx))
+       (HasArgType to newty))
+      ((DelayedSubstUnion lhs (Const c newty assum))
+       (subsume (Subst assum to e)))
+        :ruleset subst )"
+64,always-run,8186,0.037949119,abb4b6ca59bf332337a9d2e20cef65b4a00246ff32f2ba93c63b20014bee7f52,"(rule ((Single x)
+       (ContextOf x ctx))
+      ((ContextOf (Single x) ctx))
+        :ruleset always-run )"
+65,error-checking,0,0.037710913,71c5fa6bdcfc38e3081809b877d6f6cad09f7d6add7a0abb8068d2dd6007bf9f,"(rule ((= lhs (If pred inputs then else))
+       (HasType pred (Base (BoolT )))
+       (HasType then tya)
+       (HasType else tyb)
+       (!= tya tyb))
+      ((panic 'if branches had different types'))
+        :ruleset error-checking )"
+66,always-run,13649,0.036691735,62730ae11466b744fbbd23aad5abba9cff8cf60b54d20d7901b0d55656a55569,"(rule ((BodyContainsExpr body (Bop _op _x _y)))
+      ((BodyContainsExpr body _x)
+       (BodyContainsExpr body _y))
+        :ruleset always-run )"
+67,context,3185,0.036636464,70e9071c0b1c7d7c9a6b5fa9477a4d57f9bcae39bffcd2b558c9127941830e4d,(rewrite (AddContext ctx (Top op c1 c2 c3)) (Top op (AddContext ctx c1) (AddContext ctx c2) (AddContext ctx c3)) :ruleset context)
+68,subst,1565,0.033211336,6ab7bd587aff57eebb02391c72b2df623b711c9be905ace358bc6f99d9f15e87,"(rule ((= e (Single c1))
+       (= lhs (Subst assum to e))
+       (ExprIsResolved e)
+       (ExprIsResolved to))
+      ((DelayedSubstUnion lhs (Single (Subst assum to c1)))
+       (subsume (Subst assum to e)))
+        :ruleset subst )"
+69,always-run,1111,0.032625328,4e61894c7e2e11e217141c5b79b8ba30ab1660ded1fe7365988eb0e7195e693f,"(rule ((Get _tup _i)
+       (ExprIsPure _tup))
+      ((ExprIsPure (Get _tup _i)))
+        :ruleset always-run )"
+70,interval-analysis,840,0.03164325,243beb1c4f13832083dbf1bfad02cdfbf4404c404633a17681aa12d0bcf56220,"(rule ((= (IntB x) (lo-bound expr))
+       (= (IntB x) (hi-bound expr))
+       (HasArgType expr ty)
+       (ContextOf expr ctx))
+      ((union expr (Const (Int x) ty ctx)))
+        :ruleset interval-analysis )"
+71,peepholes,0,0.028699083,0a5be3d30961685004fa8f74ed8a98ad0df897bee746ad8e57bc8a8fd2126bbd,"(rule ((= expr (Bop (Add ) (Bop (Mul ) a x) a))
+       (HasArgType expr ty)
+       (ContextOf expr ctx))
+      ((union expr (Bop (Mul ) a (Bop (Add ) x (Const (Int 1) ty ctx)))))
+        :ruleset peepholes )"
+72,is-resolved,1120,0.028562696,8e952c5a8c80725b35f91ee755d2542302b229dc5cfd01bab0c68447a0d87d79,"(rule ((= lhs (Top _op _x _y _z))
+       (ExprIsResolved _x)
+       (ExprIsResolved _y)
+       (ExprIsResolved _z))
+      ((ExprIsResolved lhs))
+        :ruleset is-resolved )"
+73,passthrough,267,0.028406209,081389f9d4f8c1b56b71755370a8b863980a386d5c74f7037716956c78e94d3e,"(rule ((= lhs (Get loop i))
+       (= loop (DoWhile inputs pred-outputs))
+       (= (Get pred-outputs (+ i 1)) (Get (Arg _ty _ctx) i))
+       (HasType lhs lhs_ty)
+       (PureType lhs_ty))
+      ((union lhs (Get inputs i)))
+        :ruleset passthrough )"
+74,type-analysis,18436,0.027876256,35d8990a0960bc1325341b3655e828f87aed79920173c6e353ffb35b62eb6349,"(rule ((= lhs (Get e @_6))
+       (HasArgType e ty))
+      ((HasArgType lhs ty))
+        :ruleset type-analysis )"
+75,subst,811,0.025161048,86183cf5454262bb1e1e9416f96d449b145143c7ce88d2cb966a487cb3fffc40,"(rule ((= e (Bop op c1 c2))
+       (= lhs (Subst assum to e))
+       (ExprIsResolved e)
+       (ExprIsResolved to))
+      ((DelayedSubstUnion lhs (Bop op (Subst assum to c1) (Subst assum to c2)))
+       (subsume (Subst assum to e)))
+        :ruleset subst )"
+76,cicm-index,10021,0.025126626,1e57201b642a107b9d57b045a88ef9b97185642a50b64d814eeafe99e9a59c88,"(rule ((= (TCPair t1 c1) (ExtractedExpr e1))
+       (ContextOf e1 ctx1))
+      ((ExtractedExprCache t1 e1 ctx1))
+        :ruleset cicm-index )"
+77,type-analysis,6845,0.023594001,4fceb8caa576808a0b239624ec884667577097dcc953e6263ef514f9533d5d8e,"(rule ((= lhs (Single e))
+       (HasType e (Base basety)))
+      ((HasType lhs (TupleT (TCons basety (TNil )))))
+        :ruleset type-analysis )"
+78,always-run,6909,0.021283407,03a84c66b42942ae8b36e3df871463ea22e612dcb917bbef20b2f3aff1bf52a8,"(rule ((= expr (Call func arg))
+       (= sum (Expr-size arg)))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )"
+79,passthrough,351,0.021008334,2d43f7031fcd9c7083995f331c4b3ba6787e6e92fef6736e7eb5a82041bdf1d2,"(rule ((= if (If pred inputs then_ else_))
+       (= then-branch (Get then_ i))
+       (= else-branch (Get else_ i))
+       (= then-branch (Get (Arg arg_ty _then_ctx) j))
+       (= else-branch (Get (Arg arg_ty _else_ctx) j))
+       (HasType then-branch lhs_ty)
+       (!= lhs_ty (Base (StateT ))))
+      ((union (Get if i) (Get inputs j)))
+        :ruleset passthrough )"
+80,always-run,209,0.019581423,1c7c2570124e984af9205482331b1484d1e3745c8f1805fb3eea212e05a1eb92,"(rule ((BodyContainsExpr body expr)
+       (= loop (DoWhile in body))
+       (= expr (Const _n _ty _ctx)))
+      ((is-inv-Expr body expr))
+        :ruleset always-run )"
+81,always-run,230,0.019540032,ad292ba1f9d0b3bd9aa3e3bc86ead7ba22231eb60bc0ed57caad60143d2d0bb4,"(rule ((= expr (Alloc id e state ty))
+       (= sum (Expr-size e)))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )"
+82,boundary-analysis-prep,915,0.019498165,ec8e7efb5340177c960fd26110f717712ceca5f7b71725143598d02b57548ee4,"(rule ((is-inv-Expr body expr)
+       (DoWhile inputs body)
+       (HasType expr inv_type)
+       (= inv_type (Base base_inv_ty))
+       (= size (Expr-size expr)))
+      ((set (to-hoist-size inputs body) size))
+        :ruleset boundary-analysis-prep )"
+83,always-run,5771,0.019149073,59378b8c39012da8c8eef69cc5c0df6fbebe611b34a64b28ad00371cd96fa84b,(rewrite (Concat (Concat a b) c) (Concat a (Concat b c)) :ruleset always-run)
+84,always-run,1458,0.018848436,8e5cd057885b995f44b0e4e0deca0524fbbb179e9b6aa979ce594f94a28ae7e7,"(rule ((= expr (Function name tyin tyout out))
+       (= sum (Expr-size out)))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )"
+85,error-checking,0,0.018442708,616c38656402b96242cbc2bfcf505514ec15f545abfc68c26897dfd09ac601b7,"(rule ((ContextOf x ctx1)
+       (ContextOf x ctx2)
+       (!= ctx1 ctx2))
+      ((panic 'Equivalent expressions have nonequivalent context, breaking the single context invariant.'))
+        :ruleset error-checking )"
+86,select_opt,440,0.018152208,fa27af260ead64e676c2a849492c87214e9d1fc2aada5fdcdfae3b981c3061c6,"(rule ((= if_e (If pred inputs thn els))
+       (ExprIsPure (Get thn i))
+       (ExprIsPure (Get els i))
+       (> 10 (Expr-size (Get thn i)))
+       (> 10 (Expr-size (Get els i)))
+       (= (TCPair t1 c1) (ExtractedExpr (Get thn i)))
+       (= (TCPair t2 c2) (ExtractedExpr (Get els i)))
+       (ContextOf if_e ctx))
+      ((union (Get if_e i) (Top (Select ) pred (TermSubst ctx inputs t1) (TermSubst ctx inputs t2))))
+        :ruleset select_opt )"
+87,interval-analysis,100,0.017968167,4f058ad7dbad2ee3372853718ce9ddc4f009deba9279f69acf5458342ca4dd92,"(rule ((= (BoolB x) (lo-bound expr))
+       (= (BoolB x) (hi-bound expr))
+       (HasArgType expr ty)
+       (ContextOf expr ctx))
+      ((union expr (Const (Bool x) ty ctx)))
+        :ruleset interval-analysis )"
+88,always-run,729,0.016998491,b69687a178806905321205e6c8aac12bdc47263e88cef38f6c502153467f066e,"(rule ((Bop _op _x _y)
+       (BinaryOpIsPure _op)
+       (ExprIsPure _x)
+       (ExprIsPure _y))
+      ((ExprIsPure (Bop _op _x _y)))
+        :ruleset always-run )"
+89,type-analysis,9307,0.016979697,dda58c528e6ab0adcc18d83392c4e8c1d9c0ec63bc9252ebe7463891ddf408fd,"(rule ((= lhs (Concat e1 e2))
+       (HasArgType e2 ty))
+      ((HasArgType lhs ty))
+        :ruleset type-analysis )"
+90,boundary-analysis,689,0.016893123,fcf3add58b55eb7497977c48ccaf36f6092ed46769caed7d4f05281f9755017b,"(rule ((is-inv-Expr body expr)
+       (DoWhile inputs body)
+       (HasType expr inv_type)
+       (= inv_type (Base base_inv_ty))
+       (= (Expr-size expr) (to-hoist-size inputs body)))
+      ((set (to-hoist inputs body) expr))
+        :ruleset boundary-analysis )"
+91,type-analysis,2552,0.016836287,175387c8bc689df690d25293f8bd371072a6edda0dbd92ef59af101db3eb563c,"(rule ((= lhs (Bop (Load ) e state))
+       (HasType e (Base (PointerT ty))))
+      ((HasType lhs (TupleT (TCons ty (TCons (StateT ) (TNil ))))))
+        :ruleset type-analysis )"
+92,type-analysis,9322,0.016708249,b564a2df95af73ba0ab425db2574bfa3b007077ed825b6361fa088ff78dcd4a5,"(rule ((= lhs (Concat e1 e2))
+       (HasArgType e1 ty))
+      ((HasArgType lhs ty))
+        :ruleset type-analysis )"
+93,always-run,4810,0.016676907,4e14adb472031e1ea93abdb03ed23ea5fa16d1bf42251de82c48876c4d81509b,"(rule ((BodyContainsExpr body (Top _op _x _y _z)))
+      ((BodyContainsExpr body _x)
+       (BodyContainsExpr body _y)
+       (BodyContainsExpr body _z))
+        :ruleset always-run )"
+94,loop-strength-reduction,0,0.016606,537069897d4030d9367998ed2d2d94e0914bf76b8f16ffa6e3da9973d54cec67,"(rule ((= old-loop (DoWhile inputs pred-and-outputs))
+       (ContextOf pred-and-outputs loop-ctx)
+       (lsr-inv old-loop loop-incr-in loop-incr-out)
+       (= (Get pred-and-outputs (+ i 1)) (Bop (Add ) (Get (Arg arg-type assm) i) loop-incr-out))
+       (lsr-inv old-loop c-in c-out)
+       (= old-mul (Bop (Mul ) c-out (Get (Arg arg-type assm) i)))
+       (ContextOf old-mul loop-ctx)
+       (= arg-type (TupleT ty-list))
+       (= n (tuple-length inputs)))
+      ((let addend (Bop (Mul ) c-out loop-incr-out))
+       (let d-init (Bop (Mul ) c-in (Get inputs i)))
+       (let new-inputs (Concat inputs (Single d-init)))
+       (let new-arg-ty (TupleT (TLConcat ty-list (TCons (IntT ) (TNil )))))
+       (let fresh-ctx (@GeneratedFreshTable3 old-loop inputs pred-and-outputs loop-ctx loop-incr-in loop-incr-out i arg-type assm c-in c-out old-mul ty-list n 0))
+       (let replace-arg (SubTuple (Arg new-arg-ty fresh-ctx) 0 n))
+       (let d-out (Bop (Add ) (Get (Arg new-arg-ty fresh-ctx) n) (Subst fresh-ctx replace-arg addend)))
+       (let new-body (Concat (Subst fresh-ctx replace-arg pred-and-outputs) (Single d-out)))
+       (let new-loop (DoWhile new-inputs new-body))
+       (let new-c (Subst fresh-ctx replace-arg c-out))
+       (union fresh-ctx DUMMYCTX)
+       (let new-mul (Bop (Mul ) new-c (Get replace-arg i)))
+       (union (Get (Arg new-arg-ty fresh-ctx) n) new-mul)
+       (let before (Bop (Mul ) new-c (Get replace-arg i)))
+       (subsume (Bop (Mul ) new-c (Get replace-arg i)))
+       (union old-loop (SubTuple new-loop 0 n)))
+        :ruleset loop-strength-reduction )"
+95,type-analysis,84,0.016602034,dde6f9067732df1f2f8ccc50ed027cd0c411eb5295217013428a5273c16ee5b9,"(rule ((= lhs (DoWhile inp pred-body))
+       (HasType inp (TupleT tylist)))
+      ((HasArgType pred-body (TupleT tylist)))
+        :ruleset type-analysis )"
+96,mem-simple,111,0.015978082,d512e2be14c11e762c3d445667d3a1ba0aed8f19ebaef107132d11595dff248e,"(rule ((= p1 (Bop (PtrAdd ) p i))
+       (= p2 (Bop (PtrAdd ) p (Bop (Add ) i diff)))
+       (= (lo-bound diff) (IntB lo))
+       (> lo 0))
+      ((NoAlias p1 p2))
+        :ruleset mem-simple )"
+97,loop-unroll,0,0.015823751,9a3a1b2b0559ca3367f1600265358b90d4fde9e04f4be6b03f1f8e0ed0e8d613,"(rule ((= lhs (DoWhile inputs outputs))
+       (= num-inputs (tuple-length inputs))
+       (= pred (Get outputs 0))
+       (= (Const (Int start_const) _ty1 _ctx1) (Get inputs counter_i))
+       (= next_counter (Get outputs (+ counter_i 1)))
+       (= next_counter (Bop (Add ) (Get (Arg _ty _ctx) counter_i) (Const (Int 1) _ty2 _ctx2)))
+       (= pred (Bop (LessThan ) next_counter (Const (Int end_constant) _ty3 _ctx3)))
+       (> end_constant start_const)
+       (= (% start_const 4) 0)
+       (= (% end_constant 4) 0)
+       (= old_cost (LoopNumItersGuess inputs outputs)))
+      ((let one-iter (SubTuple outputs 1 num-inputs))
+       (let fresh-ctx (@GeneratedFreshTable lhs inputs outputs num-inputs pred start_const _ty1 _ctx1 counter_i next_counter _ty _ctx _ty2 _ctx2 end_constant _ty3 _ctx3 old_cost 0))
+       (let unrolled (Subst fresh-ctx one-iter (Subst fresh-ctx one-iter (Subst fresh-ctx one-iter outputs))))
+       (union lhs (DoWhile inputs unrolled))
+       (let actual-ctx DUMMYCTX)
+       (union fresh-ctx actual-ctx)
+       (set (LoopNumItersGuess inputs unrolled) (/ old_cost 4))
+       (LoopIsFinite inputs unrolled))
+        :ruleset loop-unroll )"
+98,is-resolved,173,0.015821344,b3e2e2f2eee5d0045f9a2dd8e16871ab9d79ab56f3799e6a4d54ab4b0b525932,"(rule ((= lhs (If _pred _input _then _else))
+       (ExprIsResolved _pred)
+       (ExprIsResolved _input)
+       (ExprIsResolved _then)
+       (ExprIsResolved _else))
+      ((ExprIsResolved lhs))
+        :ruleset is-resolved )"
+99,always-run,5569,0.015252538,c7f8016eabe9f521493e8bae10bab208e7d8097b4d3f0c51f57bf0107b0b4128,"(rule ((Bop op x y)
+       (ContextOf x ctx))
+      ((ContextOf (Bop op x y) ctx))
+        :ruleset always-run )"
+100,subst,123,0.015229914,60aa9df6b0764c8ea396308e3f73dff9864b36644633107b626d69cfd3e46570,"(rule ((= e (Top op c1 c2 c3))
+       (= lhs (Subst assum to e))
+       (ExprIsResolved e)
+       (ExprIsResolved to))
+      ((DelayedSubstUnion lhs (Top op (Subst assum to c1) (Subst assum to c2) (Subst assum to c3)))
+       (subsume (Subst assum to e)))
+        :ruleset subst )"
+101,error-checking,0,0.01520104,c4bb30e80d85fb0996c3f0e2491887c0485020d2820590294cb3a21071f7300d,"(rule ((HasType (Get expr i) (TupleT tl))
+       (= (TypeList-length tl) len)
+       (>= i len))
+      ((panic 'index out of bounds'))
+        :ruleset error-checking )"
+102,always-run,5593,0.014989422,6e89b084401a769c984ece8029512eb96e018a05847a1ca59a9591165f7764b5,"(rule ((Bop op x y)
+       (ContextOf y ctx))
+      ((ContextOf (Bop op x y) ctx))
+        :ruleset always-run )"
+103,mem-simple,97,0.01450725,dc74dafcb46415d1c9a2ae9d0d082fab00e0a42d2df4bd81626000348a91d2fc,"(rule ((= p1 (Bop (PtrAdd ) p i))
+       (= p2 (Bop (PtrAdd ) p (Bop (Add ) i diff)))
+       (= (hi-bound diff) (IntB hi))
+       (< hi 0))
+      ((NoAlias p1 p2))
+        :ruleset mem-simple )"
+104,always-run,1029,0.014227872,360bcb55d16d048d9f323a46a89294c11abca1da29b47ec01fcc094fec403852,"(rule ((Single _x)
+       (ExprIsPure _x))
+      ((ExprIsPure (Single _x)))
+        :ruleset always-run )"
+105,mem-simple,67,0.014095628,61334d4b90e0498be5123b87d44d9e0cd159a88e1fd8d77fbc9b1123b327174e,"(rule ((= p1 (Bop (PtrAdd ) p i))
+       (= p2 (Bop (PtrAdd ) p (Bop (Sub ) i diff)))
+       (= (lo-bound diff) (IntB lo))
+       (> lo 0))
+      ((NoAlias p1 p2))
+        :ruleset mem-simple )"
+106,error-checking,0,0.014077376,0d668e8e82e292dd8a2d172d83a4be762d1b587221f13bf30b497cc6b6150a0c,"(rule ((= lhs (Function name in out body))
+       (HasArgType body ty)
+       (HasArgType body ty2)
+       (!= ty ty2))
+      ((panic 'arg type mismatch in function'))
+        :ruleset error-checking )"
+107,always-run,4,0.014055985,a3257e3352355c47c883070cc12839cb644105375b51fe272898c8497e3bb2f9,"(rule ((= expr (Uop op x))
+       (= sum (Expr-size x)))
+      ((set (Expr-size expr) (+ sum 1)))
+        :ruleset always-run )"
+108,type-analysis,6774,0.013936963,c21e6c4f573ec74de018f6b5f48a191a1e47e6ea4e6269d12deaddd0140d149c,"(rule ((= lhs (Single e))
+       (HasArgType e ty))
+      ((HasArgType lhs ty))
+        :ruleset type-analysis )"
+109,error-checking,0,0.013936084,fec294fc4cc788981365c3d684e70eb6352f02ea5ddf1c9f04f993fddaca2534,"(rule ((HasType (Get expr i) (TupleT tl))
+       (= (TypeList-length tl) len)
+       (< i 0))
+      ((panic 'negative index'))
+        :ruleset error-checking )"
+110,mem-simple,0,0.013670417,95a1791e630b6130445cd3e9cd5238a919964a81f6b7350a65becee22758cd8b,"(rule ((= p1 (Bop (PtrAdd ) p i))
+       (= p2 (Bop (PtrAdd ) p (Bop (Sub ) i diff)))
+       (= (hi-bound diff) (IntB hi))
+       (< hi 0))
+      ((NoAlias p1 p2))
+        :ruleset mem-simple )"
+111,interval-rewrite,0,0.013532293,ab3ddd90f23d4b7f1b0afef41c4bd1ed27c4d77320329e6b6d3207f237fba950,"(rule ((= lhs (Uop (Abs ) x))
+       (= (IntB hx) (hi-bound x))
+       (<= hx 0)
+       (HasArgType lhs ty)
+       (ContextOf lhs ctx))
+      ((union lhs (Bop (Sub ) (Const (Int 0) ty ctx) x)))
+        :ruleset interval-rewrite )"
+112,type-analysis,6114,0.013070166,c96fc5007d8a30d872080b68ea018f6e990ab364818921726e6551fbec6ca5a8,"(rule ((= lhs (Bop @_1 a b))
+       (HasArgType a ty))
+      ((HasArgType lhs ty))
+        :ruleset type-analysis )"
+113,subst,30,0.013062336,a75620baae143995bb48ad27ed2fd19ed1356d01acd4ce3dac10642796b15712,"(rule ((= e (DoWhile in out))
+       (= lhs (Subst assum to e))
+       (ExprIsResolved e)
+       (ExprIsResolved to))
+      ((DelayedSubstUnion lhs (DoWhile (Subst assum to in) out))
+       (subsume (Subst assum to e)))
+        :ruleset subst )"
+114,interval-analysis,57,0.012897376,c4dd7520ce45a31bf8f1c4109aba2fb5bf2cb8fea19d4694a5cc5dc735dbeef0,"(rule ((= (BoolB true) (lo-bound expr))
+       (HasArgType expr ty)
+       (ContextOf expr ctx))
+      ((union expr (Const (Bool true) ty ctx)))
+        :ruleset interval-analysis )"
+115,always-run,6663,0.012354088,6cd8b73403df3fe21b3ca90769c5b2604e410383f89736fdfac98a59b917cc43,"(rule ((leading-Expr tuple)
+       (= len (tuple-length tuple))
+       (= ith (Get tuple i))
+       (< (+ i 1) len))
+      ((Get tuple (+ 1 i)))
+        :ruleset always-run )"
+116,subst,36,0.01213841,a30a71002ca4c4fb91ab667b9782bfd1f28ec69843cb288dcae17b88cd47f0d8,"(rule ((= e (Call name c1))
+       (= lhs (Subst assum to e))
+       (ExprIsResolved e)
+       (ExprIsResolved to))
+      ((DelayedSubstUnion lhs (Call name (Subst assum to c1)))
+       (subsume (Subst assum to e)))
+        :ruleset subst )"
+117,subst,20,0.011803873,57c779a33c550196674f305c3b5d0dc6ede786de32c30a57ee4d51811f753388,"(rule ((= lhs (Subst assum to inner))
+       (= inner (If pred inputs c1 c2))
+       (ExprIsResolved inner))
+      ((DelayedSubstUnion lhs (If (Subst assum to pred) (Subst assum to inputs) c1 c2))
+       (subsume (Subst assum to inner)))
+        :ruleset subst )"
+118,type-analysis,6182,0.01180346,af6f5efbd54a8efb5a5950c2af7918f447b762c18755df4a1228573ba1d0882e,"(rule ((= lhs (Bop @_2 a b))
+       (HasArgType b ty))
+      ((HasArgType lhs ty))
+        :ruleset type-analysis )"
+119,interval-analysis,43,0.011317121,874ed75f20ffa6009559b65d8facea2338ce047c2305f6ccc13afbde3db12af2,"(rule ((= (BoolB false) (hi-bound expr))
+       (HasArgType expr ty)
+       (ContextOf expr ctx))
+      ((union expr (Const (Bool false) ty ctx)))
+        :ruleset interval-analysis )"
+120,subst,0,0.010907499,6a9a924640089f251ff57012fb854e0e40cd52f75d3b50d3bec9486598fcaa86,"(rule ((= e (Uop op c1))
+       (= lhs (Subst assum to e))
+       (ExprIsResolved e)
+       (ExprIsResolved to))
+      ((DelayedSubstUnion lhs (Uop op (Subst assum to c1)))
+       (subsume (Subst assum to e)))
+        :ruleset subst )"
+121,subst,6,0.010615385,9e1ae2fce60450ff0996edc5fc943c72b3162059e236920f9587324a6815ae3c,"(rule ((= e (Alloc id c1 c2 ty))
+       (= lhs (Subst assum to e))
+       (ExprIsResolved e)
+       (ExprIsResolved to))
+      ((DelayedSubstUnion lhs (Alloc id (Subst assum to c1) (Subst assum to c2) ty))
+       (subsume (Subst assum to e)))
+        :ruleset subst )"
+122,peepholes,3,0.010325001,42fa8fb156c655e3d226fdeca7ded97b112069fa6efc339e008073e029d3f0eb,"(rule ((= expr (Bop (Sub ) x x))
+       (HasArgType expr ty)
+       (ContextOf expr ctx))
+      ((union expr (Const (Int 0) ty ctx)))
+        :ruleset peepholes )"
+123,error-checking,0,0.010293543,76daa02066ac57bcb85ef73768011ab466a9ed1b03e1af8433a09825b1d32e02,"(rule ((= lhs (DoWhile inp pred-body))
+       (HasType inp (TupleT in-tys))
+       (HasType pred-body (TupleT (TCons (BoolT ) out-tys)))
+       (!= in-tys out-tys))
+      ((panic 'input types and output types don't match'))
+        :ruleset error-checking )"
+124,interval-analysis,0,0.009534123,849ad45310ed93a419389e4b579f794eb0128349de01a9f598038a9bba00a987,"(rule ((= lhs (If pred inputs thn els))
+       (= lo-thn (lo-bound (Get thn i)))
+       (= lo-els (lo-bound (Get els i))))
+      ((set (lo-bound (Get lhs i)) (bound-min lo-thn lo-els)))
+        :ruleset interval-analysis )"
+125,error-checking,0,0.009178833,55f120bf82e7bb9b68980ac61f40ffddfbaeb7991678edc2f08c1fd6d5880461,"(rule ((= lhs (Single e))
+       (HasType e (TupleT tylist)))
+      ((panic 'don't nest tuples'))
+        :ruleset error-checking )"
+126,interval-analysis,0,0.008682252,21afff202cfd4ab98e622b55ef0cc2693333c73ab5aae9f8f0220da88b0e854c,"(rule ((= lhs (If cond inputs thn els))
+       (= hi-thn (hi-bound (Get thn i)))
+       (= hi-els (hi-bound (Get els i))))
+      ((set (hi-bound (Get lhs i)) (bound-max hi-thn hi-els)))
+        :ruleset interval-analysis )"
+127,error-checking,0,0.00797079,40542a342797a0da04e6ea6105d8086656ed931bdc70e60de8c98e3ce6346391,"(rule ((= lhs (Bop (Load ) e state))
+       (HasType e ty)
+       (= ty (TupleT x)))
+      ((panic '(Load) expected pointer, received tuple'))
+        :ruleset error-checking )"
+128,type-analysis,325,0.007722417,6c0b4592414e3c5f5ccb1c94e5fd83022d19a80159990ca876f34af2f301b6c7,"(rule ((= lhs (Bop (Free ) e s))
+       (HasType e (Base (PointerT _ty))))
+      ((HasType lhs (Base (StateT ))))
+        :ruleset type-analysis )"
+129,always-run,547,0.007563787,ebec9bb5e6d92c0d169dbdf1236a107a452c94a4bc5ee1fbe87e53946756661e,"(rule ((BodyContainsExpr body (If _pred _input _then _else)))
+      ((BodyContainsExpr body _pred)
+       (BodyContainsExpr body _input))
+        :ruleset always-run )"
+130,always-run,6014,0.007444127,f5f6c12c2c4bd23229a86d51a4f07da3547d979f775c7725d316756b5d470a10,"(rule ((Add-All-Gets orig something offset pos)
+       (< pos (tuple-length something)))
+      ((union (Get orig (+ offset pos)) (Get something pos))
+       (Add-All-Gets orig something offset (+ pos 1)))
+        :ruleset always-run )"
+131,always-run,2013,0.007359329,8c60556da3287fe296ca9b2cdd9ee161e16d1de813f2f128fc8d7bb9bd929e5c,"(rule ((Add-Gets orig something n)
+       (Not-Just-Concat something))
+      ((Add-All-Gets orig something n 0))
+        :ruleset always-run )"
+132,always-run,1578,0.00722863,a310deb5aa40afd87bbf33381978ca717556650ddde967eb2e945542e45460e2,"(rule ((Top op x y z)
+       (ContextOf x ctx))
+      ((ContextOf (Top op x y z) ctx))
+        :ruleset always-run )"
+133,type-analysis,759,0.007093797,95d43188a6d7744458187af4cc2540f305cdce03b4d24ee0e0853da598877ea7,"(rule ((= lhs (Top (Write ) ptr val state))
+       (HasType ptr (Base (PointerT ty))))
+      ((ExpectType val (Base ty) '(Write)'))
+        :ruleset type-analysis )"
+134,always-run,7263,0.007085424,92cf0ba6526e89a6755d35e347b9bec46662160bb890bbde4c31a8003a4e1b34,(rewrite (SubTuple expr 0 len) expr :when ((= len (tuple-length expr))) :ruleset always-run)
+135,terms,9,0.006928639,e1f0b805ea63c120eab27e59a22e9bfd93440e14d559ad1960470cbbc96d0141,"(rule ((= lhs (Uop o e1))
+       (= (TCPair t1 c1) (ExtractedExpr e1)))
+      ((PotentialExtractedExpr lhs (TCPair (TermUop o t1) (+ 1 c1))))
+        :ruleset terms )"
+136,context,507,0.006738257,284d62b149764252b2fea1745b379ea97a0719b92a0c8b40fe8ec2ef086e9bf8,(rewrite (AddContext ctx (Alloc id c1 state ty)) (Alloc id (AddContext ctx c1) (AddContext ctx state) ty) :ruleset context)
+137,error-checking,0,0.006688541,7fc9374beebb2e715d15cebedc9cb8c7affcba28749324eebeabbf85c056e899,"(rule ((ExpectType e expected msg)
+       (HasType e actual)
+       (!= expected actual))
+      ((panic 'type mismatch- check RUST_LOG=info for expressions that mismatched'))
+        :ruleset error-checking )"
+138,always-run,1193,0.006682877,80e29e5fc34738bf8bb73a2f944161c5a1c612d462d9ea665a773ab02c010377,"(rule ((Top op x y z)
+       (ContextOf y ctx))
+      ((ContextOf (Top op x y z) ctx))
+        :ruleset always-run )"
+139,always-run,168,0.006621745,7d9efadf32f94123e45cd3ed2a1381827ef6c1ceb830c3a788bd8bbeff505767,"(rule ((Top _op _x _y _z)
+       (TernaryOpIsPure _op)
+       (ExprIsPure _x)
+       (ExprIsPure _y)
+       (ExprIsPure _z))
+      ((ExprIsPure (Top _op _x _y _z)))
+        :ruleset always-run )"
+140,type-helpers,3467,0.006216345,80d4ca5d7ac93e06151a82e5fefddc85a0f94bbee8c9413aebcd7d4b02347009,(rewrite (TLConcat (TCons hd tl) r) (TCons hd (TLConcat tl r)) :ruleset type-helpers)
+141,terms-helpers,71204,0.006152215,025521087d8fea699a02cc40e0988714ca85c1688a772a1530ae6f5abcba1265,"(rule ((PotentialExtractedExpr expr termandcost))
+      ((set (ExtractedExpr expr) (TCPair (NoTerm ) 10000000000000000)))
+        :ruleset terms-helpers )"
+142,always-run,1156,0.006000954,35b00692fdc53665e59e1ec5818158d4f388e683ad702724678500ce3ebcc52e,"(rule ((Top op x y z)
+       (ContextOf z ctx))
+      ((ContextOf (Top op x y z) ctx))
+        :ruleset always-run )"
+143,error-checking,0,0.005960249,4d8443f8e8313c6695f1e096e648e80e649cf48a12bcf1ddf8c8cf5165844848,"(rule ((= lhs (If c i t e))
+       (HasType i ty)
+       (HasArgType e ty2)
+       (!= ty ty2))
+      ((panic 'if branches else branch has incorrect input type'))
+        :ruleset error-checking )"
+144,is-resolved,211,0.005860943,643d95560ec0a87de483c9f2af87e7c385e6072607085d549576f4bc26c26f68,"(rule ((= lhs (Alloc _id _e _state _ty))
+       (ExprIsResolved _e)
+       (ExprIsResolved _state))
+      ((ExprIsResolved lhs))
+        :ruleset is-resolved )"
+145,peepholes,536,0.005793542,7ff5acd5e0df2aede0eb57394cee95623ec710cb460c5d06510cb6c3818aa760,(rewrite (Bop (Add ) (Bop (Add ) x (Const (Int i) ty ctx)) (Const (Int j) ty ctx)) (Bop (Add ) x (Const (Int (+ i j)) ty ctx)) :ruleset peepholes)
+146,error-checking,0,0.00578804,8137be5c7f0304664d94852596a0da2b4df215c9ac015778751b70464587dcdb,"(rule ((= lhs (If c i t e))
+       (HasType i ty)
+       (HasArgType t ty2)
+       (!= ty ty2))
+      ((panic 'if branches then branch has incorrect input type'))
+        :ruleset error-checking )"
+147,always-run,726,0.005721216,1e302c1dd78735387b6eed59c3ca70007cf9becf790670f67434d6828d6f583b,"(rule ((= lhs (Get (Arg (TupleT tylist) _ctx) i))
+       (!= (TypeList-ith tylist i) (StateT )))
+      ((ExprIsPure lhs))
+        :ruleset always-run )"
+148,drop,40,0.005594167,7a5cd1d805d1208ef33b6bfa794be8d57489d41f6d80323235e71f86303ab128,"(rule ((= lhs (DropAtInternal newty newctx idx (Get c1 index)))
+       (ExprIsResolved (Get c1 index)))
+      ((DelayedDropUnion lhs (Get (DropAtInternal newty newctx idx c1) index)))
+        :ruleset drop )"
+149,is-resolved,84,0.005532722,3dd66ed7b315372613f5ad2f9bda742be5d3af414b9a4fe1cc4e59c03daca18e,"(rule ((= lhs (DoWhile _in _pred-and-output))
+       (ExprIsResolved _in)
+       (ExprIsResolved _pred-and-output))
+      ((ExprIsResolved lhs))
+        :ruleset is-resolved )"
+150,always-run,8,0.0053627,5b92653c6928a333b32338b955fef78a943007e10b681c5bcc54cba218721e65,"(rule ((If _pred _input _then _else)
+       (ExprIsPure _pred)
+       (ExprIsPure _input)
+       (ExprIsPure _then)
+       (ExprIsPure _else))
+      ((ExprIsPure (If _pred _input _then _else)))
+        :ruleset always-run )"
+151,drop,20,0.005321419,b4723cca445af281c20619859ae3a3aba2017f959549e3fb9fc8dbc8510cb6cf,"(rule ((= lhs (DropAtInternal newty newctx idx (Concat c1 c2)))
+       (ExprIsResolved (Concat c1 c2)))
+      ((DelayedDropUnion lhs (Concat (DropAtInternal newty newctx idx c1) (DropAtInternal newty newctx idx c2))))
+        :ruleset drop )"
+152,type-analysis,1653,0.005290463,c0edd92973127bb78a145153102b179c8f2dd2995c130056617a0eee940c99c3,"(rule ((= lhs (Top @_3 a b c))
+       (HasArgType a ty))
+      ((HasArgType lhs ty))
+        :ruleset type-analysis )"
+153,context,412,0.005247415,7983c2ddce9a365625bace7513db000999239f1e1117c21c2ab2848265d58567,(rewrite (AddContext ctx (Call name c1)) (Call name (AddContext ctx c1)) :ruleset context)
+154,error-checking,0,0.005169167,6379f61c1ecae2641e11f223f9b3641fe334e8eae59b68beb8fd93c9b6b3f7a8,"(rule ((= lhs (Bop (Load ) e state))
+       (HasType e ty)
+       (= ty (Base (IntT ))))
+      ((panic '(Load) expected pointer, received int'))
+        :ruleset error-checking )"
+155,always-run,16,0.005161291,8c1973be54b9ed878336b0e34ba20f8f13ee471a8fcbbc90b28813130eb36b67,(rewrite (SubTuple expr x 0) (Empty ty ctx) :when ((HasArgType expr ty) (ContextOf expr ctx)) :ruleset always-run)
+156,always-run,22663,0.005142333,8f616828831c2000aeef168f8d7e688f7875749e4b6260279ed3bd9fc12d103f,"(rule ((Get expr i))
+      ((union (Single (Get expr i)) (SubTuple expr i 1)))
+        :ruleset always-run )"
+157,always-run,0,0.005111532,cb9378a7191bc8be552c446fac7fb55f0e59783458982c5bfc1063993b2fb643,"(rule ((BodyContainsExpr body expr)
+       (= loop (DoWhile in body))
+       (= expr (Function _name _tyin _tyout _out)))
+      ((is-inv-Expr body expr))
+        :ruleset always-run )"
+158,type-analysis,1142,0.004975421,51cf8fe242eac72ee330c338bfeb5e524652a9afe6166074ffb22aee7d76cdb6,"(rule ((= lhs (Top @_4 a b c))
+       (HasArgType b ty))
+      ((HasArgType lhs ty))
+        :ruleset type-analysis )"
+159,type-analysis,1096,0.004824747,11e6bce409de1cd83042d1f5ef1312966f33873f25cb8d3307692df75dc4c40e,"(rule ((= lhs (Top @_5 a b c))
+       (HasArgType c ty))
+      ((HasArgType lhs ty))
+        :ruleset type-analysis )"
+160,context,424,0.004799376,08d3bb4fedc935fbb4c246ad20f97e07a925f56d40c51aab4cd00cfbfe496888,"(rule ((= lhs (AddContext ctx (Const c ty oldctx))))
+      ((union lhs (Const c ty ctx)))
+        :ruleset context )"
+161,context,172,0.00471062,e1518b61228372eb15ce69161e5b27d429de968477acff10e5faafd0f9d93c55,"(rule ((= lhs (AddContext ctx (DoWhile inputs outputs))))
+      ((union lhs (DoWhile (AddContext ctx inputs) outputs)))
+        :ruleset context )"
+162,always-run,205,0.004599175,81aed94d2165530ff59fcd55499364e8cdeec0d25df7f51f28cefb39617ad35e,"(rule ((BodyContainsExpr body (DoWhile _in _pred-and-output)))
+      ((BodyContainsExpr body _in))
+        :ruleset always-run )"
+163,type-analysis,1,0.00459134,780dfed81132a5c975bf48e5ff3cb8311b497a15bb3fa8744b65428d1c3461f0,"(rule ((= lhs (Bop (Print ) e state))
+       (HasType e _ty))
+      ((HasType lhs (Base (StateT ))))
+        :ruleset type-analysis )"
+164,error-checking,0,0.00438854,4e6b25aaacf69884d54a220eae8285eb8b50dd7780da0364aec061a5117a7e0d,"(rule ((= lhs (Bop (Free ) e s))
+       (HasType e (TupleT _ty)))
+      ((panic 'Free expected pointer, received tuple'))
+        :ruleset error-checking )"
+165,drop,16,0.004325124,cba5a125b4240915af9a010b07543ba937023164bee270b21f5db7bdaa8cc59b,"(rule ((= lhs (DropAtInternal newty newctx idx (Single c1)))
+       (ExprIsResolved (Single c1)))
+      ((DelayedDropUnion lhs (Single (DropAtInternal newty newctx idx c1))))
+        :ruleset drop )"
+166,always-run,14161,0.004309667,a5e2184a78b09101015224de187b2bb0d84696c40b39fe715372a34f0b068bbb,"(rule ((HasType expr (TupleT tl))
+       (= len (TypeList-length tl)))
+      ((set (tuple-length expr) len))
+        :ruleset always-run )"
+167,term-subst,1297,0.004226498,7ab2381bfb27e12fbf39a2be317543ed32f4e04a40b83d625127cffcd826b90b,"(rule ((= lhs (TermSubst ctx e1 term))
+       (HasArgType e1 ty))
+      ((HasArgType lhs ty))
+        :ruleset term-subst )"
+168,context,526,0.00417912,48392d5b343cfdb8017b21c30d3d99bf2c4922708c5804655cd0899182a40463,"(rule ((= lhs (AddContext ctx (If pred inputs c1 c2))))
+      ((union lhs (If (AddContext ctx pred) (AddContext ctx inputs) c1 c2)))
+        :ruleset context )"
+169,drop,18,0.003990126,6329413e2e8ed3b840bbf39652c45dca9a7d4088253bc8b005269d00bd9b93e3,"(rule ((= lhs (DropAtInternal newty newctx idx (Bop op c1 c2)))
+       (ExprIsResolved (Bop op c1 c2)))
+      ((DelayedDropUnion lhs (Bop op (DropAtInternal newty newctx idx c1) (DropAtInternal newty newctx idx c2))))
+        :ruleset drop )"
+170,type-helpers,9771,0.0039102,aa1db2820ba99a885734f5837d55ce58596e3222842e905226cf801e908c6a95,(rewrite (TypeList-ith (TCons hd tl) i) (TypeList-ith tl (- i 1)) :when ((> i 0)) :ruleset type-helpers)
+171,always-run,576,0.003909837,22b089700bd23a290f3ae803884a31611730555844fe620c9eabf0948dd0f721,"(rule ((BodyContainsExpr body (Alloc _id _e _state _ty)))
+      ((BodyContainsExpr body _e)
+       (BodyContainsExpr body _state))
+        :ruleset always-run )"
+172,non-weakly-linear,0,0.0034545,53baf635f01288292794420889841d9f23aade016a3ef8ef1c0af72635293121,"(rule ((= outputs (If pred inputs then_ else_))
+       (= (Get then_ i) (Get (Arg arg_ty then_ctx) j))
+       (= (Get else_ i) (Get (Arg arg_ty else_ctx) j))
+       (HasType (Get then_ i) (Base (StateT ))))
+      ((union (Get outputs i) (Get inputs j)))
+        :ruleset non-weakly-linear )"
+173,passthrough,0,0.003446874,40b44a26aae581221e5c2827656c2bceef661175d377b7cbc7be550d635db60a,"(rule ((= if (If pred inputs then_ else_))
+       (= (Get then_ i) (Const (Bool false) @_30 _thenctx))
+       (= (Get else_ i) (Const (Bool true) @_31 _elsectx)))
+      ((let new_then (TupleRemoveAt then_ i))
+       (let new_else (TupleRemoveAt else_ i))
+       (let new_if (If pred inputs new_then new_else))
+       (union (Get if i) (Uop (Not ) pred))
+       (union (TupleRemoveAt if i) new_if)
+       (ToSubsumeIf pred inputs then_ else_))
+        :ruleset passthrough )"
+174,context,5,0.003323255,0da6c98e9f5d3f0a9233e4bc458af9d8aebd3039960f662c63f5970dee319cec,(rewrite (AddContext ctx (Uop op c1)) (Uop op (AddContext ctx c1)) :ruleset context)
+175,always-run,8113,0.003274485,e7c9880bd7a44e493bca1bb2e518322bee082de0b69779ce38458939fa98b792,(rewrite (SubTuple expr a b) (Concat (Single (Get expr a)) (SubTuple expr (+ a 1) (- b 1))) :when ((> b 1)) :ruleset always-run)
+176,passthrough,0,0.003216958,7e4f1c556b78b1dbb28c5911b86e5f9fcf4bc36f64feeb2c6bc7ee8c2a774ede,"(rule ((= if (If pred inputs then_ else_))
+       (= (Get then_ i) (Const (Bool true) @_28 _thenctx))
+       (= (Get else_ i) (Const (Bool false) @_29 _elsectx)))
+      ((let new_then (TupleRemoveAt then_ i))
+       (let new_else (TupleRemoveAt else_ i))
+       (let new_if (If pred inputs new_then new_else))
+       (union (Get if i) pred)
+       (union (TupleRemoveAt if i) new_if)
+       (ToSubsumeIf pred inputs then_ else_))
+        :ruleset passthrough )"
+177,always-run,185,0.0030195,1e35c0ad8694b3d5d83d5189603e6b1ccd3cb08a4d03ba3f4a63923871af29e9,"(rule ((If pred inputs then else)
+       (ContextOf inputs ctx))
+      ((ContextOf (If pred inputs then else) ctx))
+        :ruleset always-run )"
+178,always-run,187,0.003000171,82718e1504757b86adddc8ed8c666cf803fd23d369bd99df200fecaa785ac835,"(rule ((If pred inputs then else)
+       (ContextOf pred ctx))
+      ((ContextOf (If pred inputs then else) ctx))
+        :ruleset always-run )"
+179,error-checking,0,0.002902213,e58835b7bcf1d31e32292547c3353605363975d3cbf2bae94728cb9b24a3578f,"(rule ((= lhs (Top (Select ) pred v1 v2))
+       (HasType v1 ty1)
+       (HasType v2 ty2)
+       (!= ty1 ty2))
+      ((panic '(Select) branches had different types'))
+        :ruleset error-checking )"
+180,error-checking,0,0.00280125,34a8baa8923a5e2b2c06ba5bf62ed509272db78b43159bf24b5ccef5c6121186,"(rule ((= lhs (Bop (Print ) e state))
+       (HasType e (TupleT ty)))
+      ((panic 'Don't print a tuple'))
+        :ruleset error-checking )"
+181,type-analysis,121,0.002789129,d4cf507db6e4cbcf2f75d23c30f5ff885eeddb6ecc5ba701d5182a2e8a5f3906,"(rule ((= lhs (Call name arg))
+       (FunctionHasType name in-ty out-ty)
+       (HasType arg in-ty))
+      ((HasType lhs out-ty))
+        :ruleset type-analysis )"
+182,mem-simple,104,0.002748206,7d25883dbe86babcbd96f7f03c22753dffb84b008b830700dd55404c248f335c,"(rule ((NoAlias write-addr load-addr)
+       (= write (Top (Write ) write-addr write-val state))
+       (= load (Bop (Load ) load-addr write)))
+      ((let new-load (Bop (Load ) load-addr state))
+       (union (Get load 1) (Top (Write ) write-addr write-val (Get new-load 1)))
+       (union (Get load 0) (Get new-load 0))
+       (DidMemOptimization 'commute write then load'))
+        :ruleset mem-simple )"
+183,drop,0,0.002683333,ad255c56205d73490684c751ee2404b6384d2b571058686eabb8c7b8fb4da2cc,"(rule ((= lhs (DropAtInternal newty newctx idx (Top op c1 c2 c3)))
+       (ExprIsResolved (Top op c1 c2 c3)))
+      ((DelayedDropUnion lhs (Top op (DropAtInternal newty newctx idx c1) (DropAtInternal newty newctx idx c2) (DropAtInternal newty newctx idx c3))))
+        :ruleset drop )"
+184,is-resolved,121,0.002683051,7129e2a78567e1bb4ab3b4c397d83e3fad554fd0d6a44893dd4cd007d63b244b,"(rule ((= lhs (Call _func _arg))
+       (ExprIsResolved _arg))
+      ((ExprIsResolved lhs))
+        :ruleset is-resolved )"
+185,switch_rewrite,0,0.002643376,b2f56f5501109d79a4b0528c00aed23f2b7b00ae7593028257b3196616f79eb1,"(rule ((= lhs (If (Bop (Or ) a b) ins X Y))
+       (HasType ins (TupleT ins_ty))
+       (= len (tuple-length ins))
+       (< (Expr-size X) 100)
+       (< (Expr-size Y) 100))
+      ((let outer_ins (Concat (Single b) ins))
+       (let outer_ins_ty (TupleT (TCons (BoolT ) ins_ty)))
+       (let inner_pred (Get (Arg outer_ins_ty DUMMYCTX) 0))
+       (let sub_arg_true (SubTuple (Arg outer_ins_ty DUMMYCTX) 1 len))
+       (let sub_arg_false (SubTuple (Arg outer_ins_ty DUMMYCTX) 1 len))
+       (let outer_X (Subst DUMMYCTX sub_arg_true X))
+       (let inner_X (AddContext DUMMYCTX X))
+       (let inner_Y (AddContext DUMMYCTX Y))
+       (let inner (If inner_pred sub_arg_false inner_X inner_Y))
+       (union lhs (If a outer_ins outer_X inner)))
+        :ruleset switch_rewrite )"
+186,type-analysis,200,0.002568502,dad1f3819bdd12d9f051a45b49e4911c2c8756ed6eaea64c6dc2f58284396d92,"(rule ((= lhs (If c i t e))
+       (HasArgType c ty))
+      ((HasArgType lhs ty))
+        :ruleset type-analysis )"
+187,always-run,22663,0.002556629,25e3aa891b62d23fa09317a82b3ff377c58b511e587e0923ddad86697fbbc7f4,"(rule ((Get x i))
+      ((Add-Gets x x 0))
+        :ruleset always-run )"
+188,type-helpers,1098,0.002513413,ffb28b98815bb5d3b7c59685edc6a102431a307e8a5615636c4760d06cdd05c6,(rewrite (TypeList-ith (TCons hd tl) 0) hd :ruleset type-helpers)
+189,type-analysis,233,0.002484607,f928a7413c66560d7d6923c93671c737b1fbe70f2a353e81cc382e8412e4c045,"(rule ((= lhs (Alloc _id amt state ty))
+       (HasType amt (Base (IntT ))))
+      ((HasType lhs (TupleT (TCons ty (TCons (StateT ) (TNil ))))))
+        :ruleset type-analysis )"
+190,interval-analysis,286,0.002473577,b9a4460a065bda75c7e9e448eecf23dfa6617b113de57b11d4a79c66ca0893ea,"(rule ((= lhs (Bop (Add ) a b))
+       (= (IntB la) (lo-bound a))
+       (= (IntB lb) (lo-bound b)))
+      ((set (lo-bound lhs) (IntB (+ la lb))))
+        :ruleset interval-analysis )"
+191,type-helpers,0,0.002467747,a65ff4b043e2e2994103970665b54700aa37f46589c26869856becedabb4c3ea,"(rule ((TypeList-ith list i)
+       (= (TypeList-length list) n)
+       (>= i n))
+      ((panic 'TypeList-ith out of bounds'))
+        :ruleset type-helpers )"
+192,mem-simple,677,0.002433915,cc56d20d99f206d416e501cafb77171ff522030ebb52217382afd69e166ed92b,"(rule ((Bop (PtrAdd ) e i)
+       (= (lo-bound i) (IntB lo))
+       (> lo 0))
+      ((NoAlias e (Bop (PtrAdd ) e i)))
+        :ruleset mem-simple )"
+193,switch_rewrite,8,0.002410377,0e2f1ecafa51cd19463e9306e16628734625eab55d7aaa23064e3bd0395c69c7,"(rule ((= lhs (If (Bop (And ) a b) ins X Y))
+       (HasType ins (TupleT ins_ty))
+       (= len (tuple-length ins))
+       (< (Expr-size Y) 100))
+      ((let outer_ins (Concat (Single b) ins))
+       (let outer_ins_ty (TupleT (TCons (BoolT ) ins_ty)))
+       (let inner_pred (Get (Arg outer_ins_ty DUMMYCTX) 0))
+       (let sub_arg_true (SubTuple (Arg outer_ins_ty DUMMYCTX) 1 len))
+       (let sub_arg_false (SubTuple (Arg outer_ins_ty DUMMYCTX) 1 len))
+       (let inner_Y (AddContext DUMMYCTX Y))
+       (let outer_Y (Subst DUMMYCTX sub_arg_false Y))
+       (let inner (If inner_pred sub_arg_true X inner_Y))
+       (union lhs (If a outer_ins inner outer_Y)))
+        :ruleset switch_rewrite )"
+194,error-checking,0,0.002394128,5fa575dc86dc750218529eb6340fe9f2069d54f5f29539dc8b56c89a4d82d570,"(rule ((= lhs (DoWhile inp pred-body))
+       (HasType inp (Base ty)))
+      ((panic 'loop input must be tuple'))
+        :ruleset error-checking )"
+195,term-subst,54,0.002340082,22d99c835e60beda066f19df73120f7e63078f73e21a47189568a94ffc8bb4cb,"(rule ((= lhs (TermSubst ctx e (TermConst c)))
+       (HasArgType e newty))
+      ((union lhs (Const c newty ctx)))
+        :ruleset term-subst )"
+196,always-run,403,0.002339544,1ac95e3014625e1e1e4e20e80b6eea51875527e57000ac54eb68e1fc31fa3b93,"(rule ((BodyContainsExpr body (Call _func _arg)))
+      ((BodyContainsExpr body _arg))
+        :ruleset always-run )"
+197,always-run,0,0.002321585,6f4bc7186ab1ce477aadc00553ce20222d3d31e1474c8ceb0bd96b26f869aef4,"(rule ((Call _f _arg)
+       (ExprIsPure _arg)
+       (ExprIsPure (Function _f inty outty out)))
+      ((ExprIsPure (Call _f _arg)))
+        :ruleset always-run )"
+198,always-run,20488,0.002292331,1ab2de86ee8c4b0bcf306ab3d94f57c72585068a727f73c77edfd695e5dc19bc,(rewrite (SubTuple expr x 1) (Single (Get expr x)) :ruleset always-run)
+199,interval-analysis,286,0.002191748,5c60863e6d4cf0d0fef71cb09a080d7a97de18b9cd0390276d939a4f9e82a2a3,"(rule ((= lhs (Bop (Add ) a b))
+       (= (IntB ha) (hi-bound a))
+       (= (IntB hb) (hi-bound b)))
+      ((set (hi-bound lhs) (IntB (+ ha hb))))
+        :ruleset interval-analysis )"
+200,drop,0,0.002163792,7734963ca0d7c19c053c8b5d7ada460e47df2fab0001546ce18ed4dd20b08db7,"(rule ((= lhs (DropAtInternal newty newctx idx (Uop op c1)))
+       (ExprIsResolved (Uop op c1)))
+      ((DelayedDropUnion lhs (Uop op (DropAtInternal newty newctx idx c1))))
+        :ruleset drop )"
+201,type-helpers,902,0.002147218,8c94c72b3d3ccb685ef40c464891412a91646b958c744f15a2eb14e87e592637,"(rule ((= lst (TCons hd tl))
+       (= len (TypeList-length tl)))
+      ((set (TypeList-length lst) (+ 1 len)))
+        :ruleset type-helpers )"
+202,error-checking,0,0.002116042,601299abc99b0baec4a7070524c15372fc9b0bf64b0b15f50046fbf830aef09b,"(rule ((= lhs (Bop (Free ) e s))
+       (HasType e (Base (IntT ))))
+      ((panic 'Free expected pointer, received integer'))
+        :ruleset error-checking )"
+203,drop,0,0.002053039,abbfc9f71a20bb7ebce4c9ffee7c6d5fd385b1faac27a6430d1ca03970c1f9a7,"(rule ((= lhs (DropAtInternal newty newctx idx (If pred inputs c1 c2)))
+       (ExprIsResolved (If pred inputs c1 c2)))
+      ((DelayedDropUnion lhs (If (DropAtInternal newty newctx idx pred) (DropAtInternal newty newctx idx inputs) c1 c2)))
+        :ruleset drop )"
+204,mem-simple,0,0.002044336,50d3577c7ce9639d0924b7d432613d7db53f91b2222f8187b7a5453ed70a91aa,"(rule ((Bop (PtrAdd ) e i)
+       (= (hi-bound i) (IntB hi))
+       (< hi 0))
+      ((NoAlias e (Bop (PtrAdd ) e i)))
+        :ruleset mem-simple )"
+205,drop,0,0.002035251,ccb9a5df89ecfa890ccc8c5a27348943f56c012901ddd218116a1a61262ae78f,"(rule ((= lhs (DropAtInternal newty newctx idx (Alloc id c1 c2 ty)))
+       (ExprIsResolved (Alloc id c1 c2 ty)))
+      ((DelayedDropUnion lhs (Alloc id (DropAtInternal newty newctx idx c1) (DropAtInternal newty newctx idx c2) ty)))
+        :ruleset drop )"
+206,drop,0,0.002015334,e40de6b6d920aa27d7564cb448fada9ceffc1200df74708e17fbd4f459ec39f6,"(rule ((= lhs (DropAtInternal newty newctx idx (Get (Arg oldty oldctx) i)))
+       (< i idx))
+      ((DelayedDropUnion lhs (Get (Arg newty newctx) i)))
+        :ruleset drop )"
+207,drop,0,0.002011335,046fe37b9152aeaa3e7c5003ada81508def77bca4e3ab1a1fee6d667fb5fa9cb,"(rule ((= lhs (DropAtInternal newty newctx idx (DoWhile in out)))
+       (ExprIsResolved (DoWhile in out)))
+      ((DelayedDropUnion lhs (DoWhile (DropAtInternal newty newctx idx in) out)))
+        :ruleset drop )"
+208,always-run,8,0.001998076,174117fb37cade7789dc309d514c07bc446627a19790cce93ed9bed338d28649,"(rule ((BodyContainsExpr body (Uop _op _x)))
+      ((BodyContainsExpr body _x))
+        :ruleset always-run )"
+209,drop,0,0.001985792,3c6c2c2131bc780633e0557530098b1f2f8cd5fdcc8866decc13ce9d107bb102,"(rule ((= lhs (DropAtInternal newty newctx idx (Call name c1)))
+       (ExprIsResolved (Call name c1)))
+      ((DelayedDropUnion lhs (Call name (DropAtInternal newty newctx idx c1))))
+        :ruleset drop )"
+210,drop,6,0.001952419,36417e2374041252ae8b5cbfc7463e0603723ed989d41943d8e998c609b1a267,"(rule ((= lhs (DropAtInternal newty newctx idx (Get (Arg oldty oldctx) i)))
+       (> i idx))
+      ((DelayedDropUnion lhs (Get (Arg newty newctx) (- i 1))))
+        :ruleset drop )"
+211,peepholes,123,0.00194075,5dcb6cd2439dd25ffe710b89ed97de62327ad8df22b70c07edc34c32639194d1,(rewrite (Bop (Add ) (Const (Int j) ty ctx) (Const (Int i) ty ctx)) (Const (Int (+ i j)) ty ctx) :ruleset peepholes)
+212,always-run,230,0.001931329,2533056a28d46b193df051665ff4d2ca53e70d476bf97f2435c7f4fe5e203c02,"(rule ((Alloc amt e state ty)
+       (ContextOf e ctx))
+      ((ContextOf (Alloc amt e state ty) ctx))
+        :ruleset always-run )"
+213,error-checking,0,0.001875038,59c4c6389b6fa9193081f9fbe328dc09bb1690672fe29516b6bd4ddcc256b4cb,"(rule ((= lhs (DoWhile inp pred-body))
+       (HasType pred-body (Base ty)))
+      ((panic 'loop pred-body must be tuple'))
+        :ruleset error-checking )"
+214,non-weakly-linear,318,0.001859625,e675e11409ae65cf51a300de009fc2bb4889d905dbd1cc7df741ab9313ef42a1,"(rule ((= if (If pred inputs then_ else_))
+       (= then-branch (Get then_ i))
+       (= else-branch (Get else_ i))
+       (= then-branch (Get (Arg arg_ty _then_ctx) j))
+       (= else-branch (Get (Arg arg_ty _else_ctx) j)))
+      ((union (Get if i) (Get inputs j)))
+        :ruleset non-weakly-linear )"
+215,always-run,212,0.001842918,b4861818fc48f1845373e4d22237729fce026dc525c62028d1e3cadfb20c9460,"(rule ((Alloc amt e state ty)
+       (ContextOf state ctx))
+      ((ContextOf (Alloc amt e state ty) ctx))
+        :ruleset always-run )"
+216,always-run,4,0.001782749,f794f3a825eba6d968ac1ef5c61f2cf33e13c4732660cca19e2a9b5022e9f3ac,"(rule ((BodyContainsExpr body expr)
+       (= loop (DoWhile in body))
+       (= expr (Empty _ty _ctx)))
+      ((is-inv-Expr body expr))
+        :ruleset always-run )"
+217,error-checking,0,0.001753584,7a7f0b22713f06a97569e82eb9d5b42879be581ecf14d8498ecf108449851d9f,"(rule ((= lhs (DoWhile inp pred-body))
+       (HasType inp (Base (PointerT ty))))
+      ((panic 'loop input must be tuple'))
+        :ruleset error-checking )"
+218,interval-analysis,0,0.001717458,2276e333f333e968341ca698a374a760962cd4482d8cb25129d5c0ae76f997a1,"(rule ((= lhs (Bop (Mul ) a b))
+       (= (IntB x) (lo-bound a))
+       (= (IntB x) (hi-bound a))
+       (= (IntB y) (lo-bound b))
+       (= (IntB y) (hi-bound b)))
+      ((set (lo-bound lhs) (IntB (* x y)))
+       (set (hi-bound lhs) (IntB (* x y))))
+        :ruleset interval-analysis )"
+219,type-analysis,84,0.001643835,83ad3ff440b26e9384e730c633009a1ac27a608a5a4fff8805a16f51ca0582f9,"(rule ((= lhs (DoWhile ins body))
+       (HasArgType ins ty))
+      ((HasArgType lhs ty))
+        :ruleset type-analysis )"
+220,context,80,0.001642083,74e84fbac83c1e48de9b1ae714f6f0f0c23c0e13dccd45ece7b6dda5c7fa02c5,"(rule ((= lhs (AddContext ctx (Arg ty oldctx))))
+      ((union lhs (Arg ty ctx)))
+        :ruleset context )"
+221,error-checking,0,0.001635919,b0c14ab972740ffb83e5e81fa11128a94c800b8d6da4e03e304b3e6970e4b840,"(rule ((HasArgType (Arg t1 ctx) t2)
+       (!= t1 t2))
+      ((panic 'arg type mismatch'))
+        :ruleset error-checking )"
+222,hacker,0,0.001633872,69c043e01e76b7ee5d2859e8b96ab396271bf4df8b47fb299fc87c72aa011c0f,"(rule ((= two (Const (Int 2) _ty _ctx))
+       (= e (Bop (Eq ) x (Bop (Mul ) (Bop (Div ) x two) two))))
+      ((IsIsEven e x))
+        :ruleset hacker )"
+223,error-checking,0,0.001575375,4d80ffb9c26ce1237a972d543fb8ecabde5b19d3fb6e48e2820203f5ecc5e4a1,"(rule ((= lhs (DoWhile inp pred-body))
+       (HasType pred-body (Base (PointerT ty))))
+      ((panic 'loop pred-body must be tuple'))
+        :ruleset error-checking )"
+224,mem-simple,0,0.001483875,bee06bbeab81058be3414727dc26606ab6a0c4a2126035b48812153403629dce,"(rule ((= first-load (Bop (Load ) addr state))
+       (= second-load (Bop (Load ) addr first-load)))
+      ((union (Get first-load 0) (Get second-load 0))
+       (union (Get first-load 1) (Get second-load 1))
+       (DidMemOptimization 'duplicate load'))
+        :ruleset mem-simple )"
+225,always-run,84,0.001481166,83fa7682d22e3c88c70af8fc9b8df6ab1275d71c28856b2dd22228b5dca68365,"(rule ((DoWhile in pred-and-output)
+       (ContextOf in ctx))
+      ((ContextOf (DoWhile in pred-and-output) ctx))
+        :ruleset always-run )"
+226,always-run,0,0.001422572,846c96f2609b2336971aeabd7f2af4ffbda1c0eb853551ef781617e7f1033558,"(rule ((DoWhile _in _pred-and-output)
+       (ExprIsPure _in)
+       (ExprIsPure _pred-and-output))
+      ((ExprIsPure (DoWhile _in _pred-and-output)))
+        :ruleset always-run )"
+227,mem-simple,95,0.001409795,e6daa3793753cc7980eacfdadef83ecc62ce0992add4325b87cb50cb6793d361,"(rule ((= write (Top (Write ) addr write-val state))
+       (= load (Bop (Load ) addr write)))
+      ((union (Get load 0) write-val)
+       (union (Get load 1) write)
+       (DidMemOptimization 'store forward'))
+        :ruleset mem-simple )"
+228,type-analysis,1,0.001391883,b870bae87ab3e2fae2b1d23c73e3a3609cedf74f2c72d8a342e78376a114aa1b,"(rule ((= lhs (Uop (Not ) e))
+       (HasType e (Base (BoolT ))))
+      ((HasType lhs (Base (BoolT ))))
+        :ruleset type-analysis )"
+229,type-analysis,233,0.001274293,16388b4301ca27be98639a8b8239d5f78f7d96cfcbf2be21f9ff72535f85b045,"(rule ((= lhs (Alloc _id e state @_7))
+       (HasArgType e ty))
+      ((HasArgType lhs ty))
+        :ruleset type-analysis )"
+230,is-resolved,29,0.001271795,d74a1fd79af019825d21be581dfa3a3dc3dce0173e14fed13d11fd741db1122b,"(rule ((= lhs (Function _name _tyin _tyout _out))
+       (ExprIsResolved _out))
+      ((ExprIsResolved lhs))
+        :ruleset is-resolved )"
+231,interval-analysis,46,0.001169666,e55b0cb1f5415c53c54d75817f7709356d82b2ca72c2ec8cfd376f6a0edff047,"(rule ((= lhs (Bop (LessThan ) a b))
+       (= (IntB ha) (hi-bound a))
+       (= (IntB lb) (lo-bound b)))
+      ((set (lo-bound lhs) (BoolB (bool-< ha lb))))
+        :ruleset interval-analysis )"
+232,peepholes,111,0.001157,1cd9364f756e140107c3579f83da3291aabfd26a4c05bc37e7ca49d32954b6c5,(rewrite (Bop (Add ) (Bop (Sub ) x y) z) (Bop (Add ) x (Bop (Sub ) z y)) :ruleset peepholes)
+233,interval-analysis,48,0.001122915,3a8fc2b9170b894297d9be2b29d7977feafed817e1e27f777d4a02c21b0a0948,"(rule ((= lhs (Bop (Sub ) a b))
+       (= (IntB la) (lo-bound a))
+       (= (IntB hb) (hi-bound b)))
+      ((set (lo-bound lhs) (IntB (- la hb))))
+        :ruleset interval-analysis )"
+234,interval-analysis,46,0.001119583,4ab177cde165999a1019e2e68b952a23be85453e55dc37bddc80dd6080678a8a,"(rule ((= lhs (Bop (LessThan ) a b))
+       (= (IntB la) (lo-bound a))
+       (= (IntB hb) (hi-bound b)))
+      ((set (hi-bound lhs) (BoolB (bool-< la hb))))
+        :ruleset interval-analysis )"
+235,interval-analysis,48,0.001083707,90e72bb0b42e69570374cea18561c0c52b7640db6e4bc1ec7eaf5cbcf22df6b1,"(rule ((= lhs (Bop (Sub ) a b))
+       (= (IntB ha) (hi-bound a))
+       (= (IntB lb) (lo-bound b)))
+      ((set (hi-bound lhs) (IntB (- ha lb))))
+        :ruleset interval-analysis )"
+236,term-subst,931,0.001072332,c1eb5cc4da814480ae6bf60faf56f9eafd5c09dc4a934f05da46370b33a2e640,"(rule ((= lhs (TermSubst ctx e (TermGet t idx))))
+      ((union lhs (Get (TermSubst ctx e t) idx)))
+        :ruleset term-subst )"
+237,always-run,9207,0.001038792,cd40a9e9dbe97a2b6f1e25aab45898c0d75d9aae9d2e17f8f8f81bd019d2824e,"(rule ((Single expr))
+      ((union (Get (Single expr) 0) expr))
+        :ruleset always-run )"
+238,interval-analysis,0,0.001033376,dbb7618ec60f053ef99b2e126975771b5d8cc6b6f8c9daa7b1dfc9e15774a487,"(rule ((= (IntB lo) (lo-bound expr))
+       (= (IntB hi) (hi-bound expr))
+       (> lo hi))
+      ((set (lo-bound expr) (Dead ))
+       (set (hi-bound expr) (Dead )))
+        :ruleset interval-analysis )"
+239,terms,1550,0.001030916,89e84359bafb60c2eac16b4ddd214d01516060d96b67312423ebc4f91373de1f,"(rule ((= lhs (Const c ty ass)))
+      ((PotentialExtractedExpr lhs (TCPair (TermConst c) 1)))
+        :ruleset terms )"
+240,non-weakly-linear,0,0.00102325,78eee98b6509d3ff54bd1aa5e578d5f9de947d9bf53bd009977fdba928225373,"(rule ((= lp (DoWhile inputs pred_outputs))
+       (LoopIsFinite inputs pred_outputs)
+       (= (Get pred_outputs (+ i 1)) (Get (Arg _ty _ctx) i))
+       (HasType (Get pred_outputs (+ i 1)) (Base (StateT ))))
+      ((union (Get lp i) (Get inputs i)))
+        :ruleset non-weakly-linear )"
+241,loop-iters-analysis,0,0.000999168,ff0209c06e5355a71be3de61628aee1abd5cd03a40e2504448a56a9b057171f1,"(rule ((= loop (DoWhile inputs outputs))
+       (= (Const (Bool false) ty ctx) (Get outputs 0)))
+      ((set (LoopNumItersGuess inputs outputs) 1)
+       (LoopIsFinite inputs outputs))
+        :ruleset loop-iters-analysis )"
+242,error-checking,0,0.000999041,9902733bc6c6a0f8af0845e2ed416968dac97166e9589a7636b10fb8f6d70799,"(rule ((= (Const c1 ty1 ctx1) (Const c2 ty2 ctx2))
+       (= ctx1 (InFunc name))
+       (!= c1 c2))
+      ((panic 'Unsoundness detected: const values differ at top level'))
+        :ruleset error-checking )"
+243,interval-rewrite,26,0.000955166,60c124613e93791f6c20fd65b6303c2a8240ceb210f212037d9ba291e93b2bc1,"(rule ((= lhs (If cond inputs thn els))
+       (ContextOf lhs if_ctx)
+       (= (BoolB true) (lo-bound cond)))
+      ((union lhs (Subst if_ctx inputs thn)))
+        :ruleset interval-rewrite )"
+244,type-analysis,3,0.000948044,fec6f16c0824d49b23d73083bce106887a04633528bd4f5874cf7b983505c9d9,"(rule ((= lhs (Uop @_ e))
+       (HasArgType e ty))
+      ((HasArgType lhs ty))
+        :ruleset type-analysis )"
+245,type-analysis,2,0.000906717,110e0d79d14f91a7146a0895a1b47366a129d05857f14b58a730197c9ed29b37,"(rule ((= lhs (Uop (Neg ) e))
+       (HasType e (Base (IntT ))))
+      ((HasType lhs (Base (IntT ))))
+        :ruleset type-analysis )"
+246,peepholes,122,0.00083354,7f81476f77bec14a182e3074ce38aa8f62454b81946ac3c6f582ce5f4dd4cf84,(rewrite (Bop (Sub ) (Bop (Add ) a b) c) (Bop (Add ) a (Bop (Sub ) b c)) :ruleset peepholes)
+247,always-run,121,0.000829341,a90452ab26af919487bd9ea8417f99b442d281b2f0f4ff40805e27151d537e81,"(rule ((Call func arg)
+       (ContextOf arg ctx))
+      ((ContextOf (Call func arg) ctx))
+        :ruleset always-run )"
+248,type-analysis,121,0.000802206,99979f8fba7bfa9a9a8862c38479d17071097634af3f98c505bb033367bac70c,"(rule ((= lhs (Call @_8 e))
+       (HasArgType e ty))
+      ((HasArgType lhs ty))
+        :ruleset type-analysis )"
+249,interval-analysis,0,0.000790335,a8851179481acbb215dfcd7cd50d47451611767cfaccd55efd8e85d923b92dbf,"(rule ((= lhs (Bop (Mul ) x y))
+       (= (IntB hi-x) (hi-bound x))
+       (= (IntB lo-y) (lo-bound y))
+       (< hi-x 0)
+       (> lo-y 0))
+      ((set (hi-bound lhs) (IntB -1)))
+        :ruleset interval-analysis )"
+250,interval-analysis,0,0.000786832,0c3524c52912a5ee5d0b967647e5cb78a55956eb38ee40d59fd0479e733b350d,"(rule ((= lhs (Bop (Mul ) x y))
+       (= (IntB hi-x) (hi-bound x))
+       (= (IntB hi-y) (hi-bound y))
+       (<= hi-x 0)
+       (<= hi-y 0))
+      ((set (lo-bound lhs) (IntB 0)))
+        :ruleset interval-analysis )"
+251,interval-analysis,0,0.000782287,84e8c14920f88fd7e84651aa93e366d31f705a631c23ca36e7f6172b494fe13e,"(rule ((= lhs (Bop (Mul ) x y))
+       (= (IntB hi-x) (hi-bound x))
+       (= (IntB lo-y) (lo-bound y))
+       (<= hi-x 0)
+       (>= lo-y 0))
+      ((set (hi-bound lhs) (IntB 0)))
+        :ruleset interval-analysis )"
+252,non-weakly-linear,1,0.000770583,f658c9b809b475bb3ebcc135a86e25c1efb83cd8746901b1b0de08879fe00f09,"(rule ((= lhs (DoWhile inputs outputs))
+       (ContextOf lhs ctx)
+       (HasType inputs inputs-ty)
+       (= outputs-len (tuple-length outputs))
+       (= old_cost (LoopNumItersGuess inputs outputs))
+       (LoopIsFinite inputs outputs)
+       (<= old_cost 5))
+      ((let executed-once (Subst ctx inputs outputs))
+       (let executed-once-body (SubTuple executed-once 1 (- outputs-len 1)))
+       (let then-ctx DUMMYCTX)
+       (let else-ctx DUMMYCTX)
+       (let new-loop-input (Arg inputs-ty then-ctx))
+       (let fresh-ctx (@GeneratedFreshTable5 lhs inputs outputs ctx inputs-ty outputs-len old_cost 0))
+       (let new-loop-body (Subst fresh-ctx (Arg inputs-ty fresh-ctx) outputs))
+       (union DUMMYCTX fresh-ctx)
+       (union lhs (If (Get executed-once 0) executed-once-body (DoWhile new-loop-input new-loop-body) (Arg inputs-ty else-ctx)))
+       (set (LoopNumItersGuess new-loop-input new-loop-body) (- old_cost 1))
+       (LoopIsFinite new-loop-input new-loop-body))
+        :ruleset non-weakly-linear )"
+253,interval-analysis,0,0.00077,c327ea8fd9a0caf59fb246b760550acb37ac87c31e8c6daf0f0d656aa0cf1a06,"(rule ((= lhs (Bop (Mul ) x y))
+       (= (IntB lo-x) (lo-bound x))
+       (= (IntB lo-y) (lo-bound y))
+       (> lo-x 0)
+       (> lo-y 0))
+      ((set (lo-bound lhs) (IntB 1)))
+        :ruleset interval-analysis )"
+254,interval-analysis,0,0.000764209,7db9266d7323b603bc27328a17c3804a62d6a965225d4f2b8789f9a4701b8d4f,"(rule ((= lhs (Bop (Mul ) x y))
+       (= (IntB hi-x) (hi-bound x))
+       (= (IntB hi-y) (hi-bound y))
+       (< hi-x 0)
+       (< hi-y 0))
+      ((set (lo-bound lhs) (IntB 1)))
+        :ruleset interval-analysis )"
+255,type-helpers,1534,0.000754758,ae50b2403f427cb61deb98c1220616a176b548c518562c48ed3dcb5c1a80aed2,(rewrite (TLConcat (TNil ) r) r :ruleset type-helpers)
+256,interval-analysis,0,0.000747791,e3dfda2d63ed98553014a29f61644a0f5b6b21a505afffa2c0f9835706bb4f32,"(rule ((= lhs (Bop (Mul ) x y))
+       (= (IntB lo-x) (lo-bound x))
+       (= (IntB lo-y) (lo-bound y))
+       (>= lo-x 0)
+       (>= lo-y 0))
+      ((set (lo-bound lhs) (IntB 0)))
+        :ruleset interval-analysis )"
+257,apply-subst-unions,14577,0.000728167,659e2ef3707d7895ee506cce2575014a5866eded3e6af1291120741d06028e02,"(rule ((DelayedSubstUnion lhs rhs))
+      ((union lhs rhs))
+        :ruleset apply-subst-unions )"
+258,always-run,6184,0.000701465,05add90c83911bd4d50ab9d8c57047e9200d41c5bcc81b47edc82524dc6f15fe,"(rule ((= lhs (Bop a b c)))
+      ((Not-Just-Concat lhs))
+        :ruleset always-run )"
+259,always-run,569,0.000699747,5a6f3ba4e3aad30c37cfdca0c1d4a091f1142930e828cf142c0996b9f4dacb47,"(rule ((leading-Expr tuple)
+       (> (tuple-length tuple) 0))
+      ((Get tuple 0))
+        :ruleset always-run )"
+260,drop,2,0.000686791,d84c0304102bebc4c106c33fd1bd238e49080193c20b8ec38926a392f1f0dbea,"(rule ((= lhs (DropAt ctx idx in))
+       (HasArgType in (TupleT oldty)))
+      ((let newty (TupleT (TypeListRemoveAt oldty idx)))
+       (union lhs (DropAtInternal newty ctx idx in)))
+        :ruleset drop )"
+261,is-resolved,3,0.000671416,05190d00ee0a2567f866a46fe7a408485699b6f4fae4c0c4ccf5eb6d2c961962,"(rule ((= lhs (Uop _op _x))
+       (ExprIsResolved _x))
+      ((ExprIsResolved lhs))
+        :ruleset is-resolved )"
+262,peepholes,29,0.000670751,5bad549165afb038409c0eeb297f963c585f9427f5e9aebd542322efa572b0eb,(rewrite (Bop (Add ) (Const (Int 0) ty ctx) e) e :ruleset peepholes)
+263,always-run,3,0.000641911,18419225655b0955f4cf2ede1f395ebf8943a8f39ab029a0a0e35de35761e545,"(rule ((Uop op x)
+       (ContextOf x ctx))
+      ((ContextOf (Uop op x) ctx))
+        :ruleset always-run )"
+264,mem-simple,0,0.000641498,50f2564bdb1d7ff901088f502896c5667834cf12d35e179a683fce9c49e54898,"(rule ((= first-write (Top (Write ) addr write-val state))
+       (= second-write (Top (Write ) addr write-val first-write)))
+      ((union first-write second-write)
+       (DidMemOptimization 'duplicate write'))
+        :ruleset mem-simple )"
+265,cleanup-drop,13,0.000625999,d6cc279a5ccedae9a82e9179e1816c31aa783233f240ddc2b989ef716fd8c155,"(rule ((ExprIsResolved (DropAtInternal newty newctx idx in)))
+      ((subsume (DropAtInternal newty newctx idx in)))
+        :ruleset cleanup-drop )"
+266,peepholes,29,0.000625249,2540473f80b4e2afcd991fe3d7a828784e19a31f31280cc06c53f2d669036620,(rewrite (Bop (Add ) e (Const (Int 0) ty ctx)) e :ruleset peepholes)
+267,canon,0,0.000550415,fc7d070c756286322ef68a9e5df8b0a67dfef8eb6890555693311bf599827f89,"(rule ((= lhs (Bop (GreaterEq ) x y))
+       (HasArgType x ty)
+       (ContextOf lhs ctx))
+      ((union lhs (Bop (LessThan ) y (Bop (Add ) x (Const (Int 1) ty ctx))))
+       (union lhs (Bop (LessThan ) (Bop (Sub ) y (Const (Int 1) ty ctx)) x)))
+        :ruleset canon )"
+268,canon,0,0.000505498,b5681e7423ae4c972aca5378897e7f1488d3397a6dea1eb1983356163914fb04,"(rule ((= lhs (Bop (LessEq ) x y))
+       (HasArgType y ty)
+       (ContextOf lhs ctx))
+      ((union lhs (Bop (LessThan ) x (Bop (Add ) y (Const (Int 1) ty ctx))))
+       (union lhs (Bop (LessThan ) (Bop (Sub ) x (Const (Int 1) ty ctx)) y)))
+        :ruleset canon )"
+269,term-subst,83,0.000467291,7f4dc5adf209cfbfdd0d3359e50e431c8d2731470a80fb8d46c95e6b9c893b1d,"(rule ((= lhs (TermSubst ctx e (TermBop op t1 t2))))
+      ((union lhs (Bop op (TermSubst ctx e t1) (TermSubst ctx e t2))))
+        :ruleset term-subst )"
+270,subst,0,0.000462577,d9bd75630324a841c0dac08fd39606e8fb91f341408853c9d203819ea77ef31f,(rewrite (Subst assum to (Function name inty outty body)) (Function name inty outty (Subst assum to body)) :when ((ExprIsResolved body)) :ruleset subst)
+271,peepholes,0,0.000458957,cb94c4d8e56ba0deb2e0963c21db461169715ab6d740287435d8235a7f8a5daf,(rewrite (Bop (Mul ) (Const (Int j) ty ctx) (Const (Int i) ty ctx)) (Const (Int (* i j)) ty ctx) :ruleset peepholes)
+272,type-analysis,0,0.000448956,b9dad95b462b02d0b4366a92f28cf76ea413a2673d2c8c46a0440d385125e923,"(rule ((= lhs (Uop (Abs ) e))
+       (HasType e (Base (IntT ))))
+      ((HasType lhs (Base (IntT ))))
+        :ruleset type-analysis )"
+273,mem-simple,0,0.000438376,9a0169b1be281605246acbc32f8b2962a0e8da2fb4153c8b136a46c3812c3ae1,"(rule ((= first-write (Top (Write ) addr shadowed-val state))
+       (= second-write (Top (Write ) addr write-val first-write)))
+      ((union second-write (Top (Write ) addr write-val state))
+       (DidMemOptimization 'shadowed write'))
+        :ruleset mem-simple )"
+274,interval-analysis,801,0.000425206,12a5efaceb26b49eaf5675d34287182cd85ddce3c3634a785af3051a6f86d0ff,"(rule ((= lhs (Const (Int x) ty ctx)))
+      ((set (lo-bound lhs) (IntB x))
+       (set (hi-bound lhs) (IntB x)))
+        :ruleset interval-analysis )"
+275,peepholes,0,0.000420167,e98cbfaa3dae63d073b39f2aa3a799c2be6fdc63e676e8a1bc899eefaf7dcd0c,(rewrite (Bop (PtrAdd ) (Bop (PtrAdd ) p x) y) (Bop (PtrAdd ) p (Bop (Add ) x y)) :ruleset peepholes)
+276,context,6,0.00041379,c8753bab111b219d2243c8dbe17665d026a046228da0d8f03d127fbea9f6291d,"(rule ((= lhs (AddContext ctx (Empty ty oldctx))))
+      ((union lhs (Empty ty ctx)))
+        :ruleset context )"
+277,always-run,841,0.000380957,2a9b9f90d897fe501f0dd368ddffb1e46b551204e209c24f3be68535e9183f72,"(rule ((= f (TCons hd tl))
+       (PointerishTypeList tl))
+      ((PointerishTypeList f))
+        :ruleset always-run )"
+278,type-analysis,1229,0.000375792,8ceeeeeff6669ed6c9d7dacd657e9f2caf89730b1da5b708ff4a31fe71297342,"(rule ((= lhs (Bop op e1 e2))
+       (bop-of-type op ty)
+       (bop->string op op-str))
+      ((ExpectType e1 ty op-str)
+       (ExpectType e2 ty op-str))
+        :ruleset type-analysis )"
+279,always-run,0,0.000361083,3d65ec2a480b48c3db60c90c409bbd6b7ee20bd1828c67dac6e4aa1bd3d3c582,"(rule ((Function _name _tyin _tyout _out)
+       (ExprIsPure _out))
+      ((ExprIsPure (Function _name _tyin _tyout _out)))
+        :ruleset always-run )"
+280,always-run,873,0.000337207,469245405e8c30bee35aad5a5e7ab5f732d4c4f17ac6f4a7972ce7045aa6cbae,"(rule ((= f (TupleT l))
+       (PointerishTypeList l))
+      ((PointerishType f))
+        :ruleset always-run )"
+281,type-analysis,801,0.000326498,c80e4e7af03f22f177ddf26474a1c5b2d2310fb2188e05c5edbfc7d33a30a344,"(rule ((= lhs (Const (Int i) ty ctx)))
+      ((HasType lhs (Base (IntT )))
+       (HasArgType lhs ty))
+        :ruleset type-analysis )"
+282,term-subst,0,0.000315501,2fdda06406e80b1a8a092f8e740bfbe2f2cb31e37eb6e53154c97c261b1a8120,"(rule ((= lhs (TermSubst ctx e (TermSingle t))))
+      ((union lhs (Single (TermSubst ctx e t))))
+        :ruleset term-subst )"
+283,subst,29,0.000311047,c5f9008f7c9d17f5c9c56d864eb805b7cf186ab24df6f9fa3608d465a93085aa,"(rule ((= lhs (Subst assum to e))
+       (= e (Arg _ty _oldctx)))
+      ((DelayedSubstUnion lhs (AddContext assum to))
+       (subsume (Subst assum to e)))
+        :ruleset subst )"
+284,term-subst,0,0.00029571,eddfed0aebdabbe8f38110325d1a30762a8c71a212152eef2311d97413456f2c,"(rule ((= lhs (TermSubst ctx e (TermTop op t1 t2 t3))))
+      ((union lhs (Top op (TermSubst ctx e t1) (TermSubst ctx e t2) (TermSubst ctx e t3))))
+        :ruleset term-subst )"
+285,always-run,1550,0.000266751,f48b7c3ab94bc651b9a2c82464a1d0efd8ee61f4206ee9d0859c33fe7838228d,"(rule ((Const c ty ctx))
+      ((ContextOf (Const c ty ctx) ctx))
+        :ruleset always-run )"
+286,drop,0,0.000258167,739c8090fbc88e49b26a220955e3e8c5a0509bf2eaaa6aa15c3109c8b14e0e15,(rewrite (DropAtInternal newty newctx idx (Function name inty outty body)) (Function name inty outty (DropAtInternal newty newctx idx body)) :when ((ExprIsResolved body)) :ruleset drop)
+287,always-run,23,0.000255333,7a725e75abda3f11dde52cb1675a446f33d5e7b8a69f8416826dc9411e878d23,(rewrite (Concat x (Empty ty ctx)) x :ruleset always-run)
+288,always-run,2,0.000252123,30b40b21f80158ec32992d4a29de476e742a86946fc3d52e69ff4056c92690eb,"(rule ((Uop _op _x)
+       (UnaryOpIsPure _op)
+       (ExprIsPure _x))
+      ((ExprIsPure (Uop _op _x)))
+        :ruleset always-run )"
+289,always-run,190,0.000249041,8c4893676c5827af26fa0471a17edfdda33a266ee64cd51eb38e8b28391c93e5,"(rule ((= lhs (If pred inputs thn els))
+       (= size (tuple-length lhs)))
+      ((union lhs (SubTuple lhs 0 size)))
+        :ruleset always-run )"
+290,is-resolved,1550,0.000243583,55eb07d8afb5acddec2cba622c47ada89fb81a2318585984a9f6209c4a6eeb25,"(rule ((= lhs (Const _n _ty _ctx)))
+      ((ExprIsResolved lhs))
+        :ruleset is-resolved )"
+291,canon,504,0.000243248,59acc4a8dda1a94af7d0045c6202cd976e75097e7769f2e33d896abd06d99cb9,(rewrite (Bop (Add ) x y) (Bop (Add ) y x) :ruleset canon)
+292,always-run,66,0.000241624,8eee73c313c8dd1a1b492df732d4fcea5865aafec53695dfc13d17b3f79fb30e,(rewrite (Concat (Empty ty ctx) x) x :ruleset always-run)
+293,always-run,1550,0.000232502,e3b6d9e9de03c70234bf874dcaeafd251707dadafd13e272306affa5efcbacef,"(rule ((Const _n _ty _ctx))
+      ((ExprIsPure (Const _n _ty _ctx)))
+        :ruleset always-run )"
+294,peepholes,0,0.000231042,08e4da6b4c5185a1937ecf26c06b6952f8f5cbf8ebd8d60822c4c36d6ce3ca5e,(rewrite (Bop (And ) e (Const (Bool true) ty ctx)) e :ruleset peepholes)
+295,cleanup-drop,0,0.000228375,191018a1158ebe04c1f37f4cd06905ce8bd3e1c38a730e25846e19fb5d99ec06,"(rule ((ExprIsResolved (DropAt newctx idx in)))
+      ((subsume (DropAt newctx idx in)))
+        :ruleset cleanup-drop )"
+296,always-run,1588,0.000210666,06e0cb9fe57c30353a8df3062e8f2153eeb097f8599b5b6bbbc46f07eeafd254,"(rule ((= lhs (Top a b c d)))
+      ((Not-Just-Concat lhs))
+        :ruleset always-run )"
+297,term-subst,0,0.000201041,cda51051eb3f9aa9f8aca4cdebe223afdffa9a1f9084715d850a06e44caedd8e,"(rule ((= lhs (TermSubst ctx e (TermConcat t1 t2))))
+      ((union lhs (Concat (TermSubst ctx e t1) (TermSubst ctx e t2))))
+        :ruleset term-subst )"
+298,drop,4,0.000199957,25b53cb49c86b0410a84d6bbf03cac90f350cecb150ca8b6adcf4ba8523b6058,"(rule ((= lhs (DropAtInternal newty newctx idx (Const c oldty oldctx))))
+      ((DelayedDropUnion lhs (Const c newty newctx)))
+        :ruleset drop )"
+299,interval-analysis,0,0.000199499,107c8e4e40164e035bd930cdd73b8e9cf960bb4c027a9d02f88152ee6c103583,"(rule ((= lhs (If cond inputs thn els))
+       (= lo-thn (lo-bound thn))
+       (= lo-els (lo-bound els)))
+      ((set (lo-bound lhs) (bound-min lo-thn lo-els)))
+        :ruleset interval-analysis )"
+300,peepholes,0,0.000191834,f025145c1b31ba1f2f5196288ba90140e8c408cd5acf8eb39659b4cd3564eb68,(rewrite (Bop (And ) (Const (Bool true) ty ctx) e) e :ruleset peepholes)
+301,peepholes,0,0.00018525,e849f66a7e9214a9560214052aa20e2b48889fdf8a07c3193822017a5c0e9afd,(rewrite (Bop (And ) (Const (Bool false) ty ctx) e) (Const (Bool false) ty ctx) :ruleset peepholes)
+302,always-run,84,0.000183212,90569d963af0fc3d2c47dad1740d473ab6b75c87e5e0aad7fabbf6c83d5a8791,"(rule ((= lhs (DoWhile inputs body))
+       (= size (tuple-length lhs)))
+      ((union lhs (SubTuple lhs 0 size)))
+        :ruleset always-run )"
+303,peepholes,0,0.000178709,f71add6d1f8ac38774fbd9d9dfa89f10db1a5677c7c613975d36c55b0b0b95a4,(rewrite (Bop (Mul ) (Const (Int 0) ty ctx) e) (Const (Int 0) ty ctx) :ruleset peepholes)
+304,type-analysis,665,0.000177252,4764560c8bfb829971463c88c6630d781ec493f377e42c2415b08d1d7b87b364,"(rule ((= lhs (Const (Float b) ty ctx)))
+      ((HasType lhs (Base (FloatT )))
+       (HasArgType lhs ty))
+        :ruleset type-analysis )"
+305,peepholes,0,0.000174001,5c5540c189e82ea4fe6d38479c7cb4a10e32c832322ec0b34b5a4591451bde86,(rewrite (Bop (And ) e (Const (Bool false) ty ctx)) (Const (Bool false) ty ctx) :ruleset peepholes)
+306,peepholes,0,0.000173541,e5a4ac1e198b0856b6182fc80d3694eea1c3da340e9c0fb7955adf623b012ee9,(rewrite (Bop (Or ) e (Const (Bool true) ty ctx)) (Const (Bool true) ty ctx) :ruleset peepholes)
+307,peepholes,0,0.000172043,4986c726a0ac5d702a98893dea179ae754b2e27134bcd576817d0613dbf86922,(rewrite (Bop (Or ) (Const (Bool true) ty ctx) e) (Const (Bool true) ty ctx) :ruleset peepholes)
+308,peepholes,0,0.000170416,a2d8df438f272ff6e170f6e0253181b5c89d0e80a0765f52bf9d1156f56f032a,(rewrite (Bop (Or ) e (Const (Bool false) ty ctx)) e :ruleset peepholes)
+309,peepholes,0,0.000163418,bc424c97888a93e5bd7e2f60bf3cdc003464fc5800b10e13d903dcc22b8f6bf0,(rewrite (Bop (Or ) (Const (Bool false) ty ctx) e) e :ruleset peepholes)
+310,peepholes,0,0.000161001,ab44420fa66e00c7b8632e34c01a52aa0e001d5388f0212e4846bf2b052bd8be,(rewrite (Bop (Mul ) (Const (Int 1) ty ctx) e) e :ruleset peepholes)
+311,always-run,77,0.000160333,b3d560777ce696bf0bfeb969fe8af9e58bcdbce3a290c3ee332fb25e4371f6cf,"(rule ((= lhs (Arg ty ctx))
+       (= size (tuple-length lhs)))
+      ((union lhs (SubTuple lhs 0 size)))
+        :ruleset always-run )"
+312,peepholes,0,0.000159502,257ecc22a9953ff41898692e629d8cbc8addd01510b714235cb1a9dc7e7f7a60,(rewrite (Bop (Mul ) e (Const (Int 0) ty ctx)) (Const (Int 0) ty ctx) :ruleset peepholes)
+313,mem-simple,1706,0.000159249,c5e2c36444735d2ddffe16af410bfe0cb7be3d7e630cdbfee1957534416da7ec,"(rule ((NoAlias x y))
+      ((NoAlias y x))
+        :ruleset mem-simple )"
+314,peepholes,0,0.000157042,736d83c179a2ee378682dbed6870342dda51199cbddddeb09ecb81b0306dcc7d,(rewrite (Bop (Mul ) e (Const (Int 1) ty ctx)) e :ruleset peepholes)
+315,type-analysis,307,0.000150747,39a36104e33f91f89d6ea601bc0ae224dea01182113c7110df6e391c8d0d9051,"(rule ((= lhs (Bop pred e1 e2))
+       (bpred-of-type pred ty)
+       (bop->string pred pred-str))
+      ((ExpectType e1 ty pred-str)
+       (ExpectType e2 ty pred-str))
+        :ruleset type-analysis )"
+316,type-analysis,4,0.000144377,32a65ebfb2320303585106192383345d94f8ae09998c4faf95c69a65c8c2346d,"(rule ((TCons hd tl)
+       (PureBaseType hd)
+       (PureTypeList tl))
+      ((PureTypeList (TCons hd tl)))
+        :ruleset type-analysis )"
+317,always-run,1550,0.000129041,883c0c73041f5e4a3911aea305f0afb0cba985ed9c053e0905252510fc7d5852,"(rule ((= expr (Const n ty assum)))
+      ((set (Expr-size expr) 1))
+        :ruleset always-run )"
+318,interval-analysis,0,0.000101709,5e4c97921bf33dfec70d4ae2678e2329e379a40915ffe2b5f38892fb4ec56f79,"(rule ((= (BoolB true) (lo-bound expr))
+       (= (BoolB false) (hi-bound expr)))
+      ((set (lo-bound expr) (Dead ))
+       (set (hi-bound expr) (Dead )))
+        :ruleset interval-analysis )"
+319,type-analysis,5,9.7713e-05,04ece35733093d9fd2fb924f2c54a6f7820692525408fb637c3a8f2c0ed856e5,"(rule ((TupleT tylist)
+       (PureTypeList tylist))
+      ((PureType (TupleT tylist)))
+        :ruleset type-analysis )"
+320,interval-analysis,0,9.2127e-05,d9d8b1b955096cee96df2fbc4c24cd11eca1ebcea68d835d1b969026e5e0e2c3,"(rule ((= lhs (If cond inputs thn els))
+       (= hi-thn (hi-bound thn))
+       (= hi-els (hi-bound els)))
+      ((set (hi-bound lhs) (bound-max hi-thn hi-els)))
+        :ruleset interval-analysis )"
+321,term-subst,231,8.3626e-05,11ec709d921f9b307dbef6589a44eab6283aedf45327d63ab9371d015b8467f7,"(rule ((= lhs (TermSubst ctx e (TermArg ))))
+      ((union lhs (AddContext ctx e)))
+        :ruleset term-subst )"
+322,always-run,502,8.1791e-05,6cb3659c6b382788716801b2e02a0a0fb55cc05b5bcb0f65a42538eba58e65ae,"(rule ((= f (TCons (PointerT ty) tl)))
+      ((PointerishTypeList f))
+        :ruleset always-run )"
+323,non-weakly-linear,1269,8.0208e-05,9c7e05c6ac7b067165eedae8159c0e7379a8feb2bb871f37507721f77e67c5c1,"(rule ((= load (Bop (Load ) load-addr state)))
+      ((union (Get load 1) state))
+        :ruleset non-weakly-linear )"
+324,always-run,200,7.625e-05,52020f20d3782fb4f0d5cfbb76e7a9b745ebacdc9904e6370d226a5f5ea5842a,"(rule ((= e (If cond inputs thn els)))
+      ((leading-Expr e)
+       (leading-Expr inputs)
+       (leading-Expr thn)
+       (leading-Expr els))
+        :ruleset always-run )"
+325,canon,24,7.296e-05,d83517822eb08864a4fcb16a67eb6993829b9176bbdde513c171b4fc90864ddb,(rewrite (Bop (And ) x y) (Bop (And ) y x) :ruleset canon)
+326,type-analysis,256,7.2749e-05,de309f25e62d81ed619672bfa70c6397a2aa6b8a45d87f657b3c8d8014e3679c,"(rule ((= lhs (Top (Select ) pred v1 v2)))
+      ((ExpectType pred (Base (BoolT )) '(Select)'))
+        :ruleset type-analysis )"
+327,interval-rewrite,0,7.2291e-05,eefe8ebee9da47bf30b447bfebcd940aeac1c44d88863702d83b4e0b3dcec47b,"(rule ((= lhs (If cond inputs thn els))
+       (ContextOf lhs if_ctx)
+       (= (BoolB false) (hi-bound cond)))
+      ((union lhs (Subst if_ctx inputs els)))
+        :ruleset interval-rewrite )"
+328,canon,0,7.1166e-05,648a9b6bb1d083bf3d995a6a23ec17f2ee4300688046932d18a6de0f143e01ec,(rewrite (Bop (Mul ) x y) (Bop (Mul ) y x) :ruleset canon)
+329,canon,10,6.7125e-05,5f40c5b11db5a42d4b9916e0cfecd06f99f739932196414ff8b0195dd6301582,(rewrite (Bop (Eq ) x y) (Bop (Eq ) y x) :ruleset canon)
+330,canon,8,6.621e-05,fab96eacca984ec8a44785be4deb2023a16b6092ed166ddbe8788d7a784d48d3,(rewrite (Bop (Or ) x y) (Bop (Or ) y x) :ruleset canon)
+331,canon,4,6.2833e-05,af43fbd82d3f34d4f6e2761fd20ef87d95fd7139f3f7b5c77ffd72914255c519,(rewrite (Bop (GreaterThan ) x y) (Bop (LessThan ) y x) :ruleset canon)
+332,type-analysis,200,5.1417e-05,d65843a7f86db989aa7dbcc7024c7f9bfbd0df22ab7add74e48390d5ecb48a2f,"(rule ((= lhs (If pred inputs then else)))
+      ((ExpectType pred (Base (BoolT )) 'If predicate must be boolean'))
+        :ruleset type-analysis )"
+333,peepholes,282,4.5375e-05,0423b6682d237274cf4d054b410da775d2273067a6558ea0f9576967d186accb,(rewrite (Top (Select ) pred x x) x :ruleset peepholes)
+334,always-run,200,4.2542e-05,f18900fb539dc89ee622d6f4dc4a7fe26e0cce609b05bcd698d862166cf92cdc,"(rule ((If _pred _input _then _else))
+      ((BodyContainsExpr _then _then)
+       (BodyContainsExpr _else _else))
+        :ruleset always-run )"
+335,type-analysis,233,3.9417e-05,69b71169deb99a223723452d418f6e119befa4b1d378e75fef28e2df1c8c65e1,"(rule ((= lhs (Alloc _id amt state ty)))
+      ((ExpectType amt (Base (IntT )) '(Alloc)'))
+        :ruleset type-analysis )"
+336,always-run,200,3.6165e-05,a32456441840ad1da0abb769b81791f0c02b14316e840c517d96e9f2cc589ac6,"(rule ((= lhs (If a b c d)))
+      ((Not-Just-Concat lhs))
+        :ruleset always-run )"
+337,interval-analysis,84,3.4458e-05,d58b8540694203e9e5a64684bfd64806d3ecb02a1d7a4052e5568f000ab1bcb7,"(rule ((= lhs (Const (Bool x) ty ctx)))
+      ((set (lo-bound lhs) (BoolB x))
+       (set (hi-bound lhs) (BoolB x)))
+        :ruleset interval-analysis )"
+338,type-analysis,121,3.3916e-05,e65a6d1893f8226708ecd59fedb76da013541ae3ac1b6c77646a41c7cc8ff0b4,"(rule ((= lhs (Call name arg))
+       (FunctionHasType name in-ty out-ty))
+      ((ExpectType arg in-ty 'function called with wrong arg type'))
+        :ruleset type-analysis )"
+339,term-subst,0,3.0501e-05,aed72d0b04c0c3a7508deddd493f1135320121a5d0bad831a77fad08224deb8d,"(rule ((= lhs (TermSubst ctx e (TermUop op t1))))
+      ((union lhs (Uop op (TermSubst ctx e t1))))
+        :ruleset term-subst )"
+340,type-analysis,84,3.0123e-05,fbccbc65dbc0f5a1bf6e13ad278c939fcaf9762c98862b83887251c427251ad0,"(rule ((= lhs (Const (Bool b) ty ctx)))
+      ((HasType lhs (Base (BoolT )))
+       (HasArgType lhs ty))
+        :ruleset type-analysis )"
+341,always-run,20,3.0041e-05,a2afd4c47af89a31fd2025d8edaa2a223cc262c575c764b9eed49dbec8849a82,(rewrite (TupleRemoveAt tuple idx) (Concat (SubTuple tuple 0 idx) (SubTuple tuple (+ idx 1) (- len (+ idx 1)))) :when ((= len (tuple-length tuple))) :ruleset always-run)
+342,type-helpers,2,2.85e-05,80d7dd04a55547a285e1583cf231f276955ecad1da72b2bbca3cbc9723d65632,(rewrite (TypeListRemoveAt (TCons x xs) 0) xs :ruleset type-helpers)
+343,type-helpers,0,2.6e-05,5ac2f0be9519478e4db94c1168718d5218d1bb9343339297e2ad47ba50b05c64,(rewrite (TypeListRemoveAt (TCons x xs) idx) (TCons x (TypeListRemoveAt xs (- idx 1))) :when ((> idx 0)) :ruleset type-helpers)
+344,interval-rewrite,0,2.025e-05,1540563634bbe15a7ea2be7fdf1a930e8189338a18a4c2ecad1becab482a18a6,"(rule ((= lhs (Uop (Abs ) x))
+       (= (IntB lx) (lo-bound x))
+       (>= lx 0))
+      ((union lhs x))
+        :ruleset interval-rewrite )"
+345,type-analysis,84,1.8666e-05,80f728fbedff861786964438f4597f8050a088db812dc76927ec25ef12badd98,"(rule ((= lhs (DoWhile inp pred-body)))
+      ((ExpectType (Get pred-body 0) (Base (BoolT )) 'loop pred must be bool'))
+        :ruleset type-analysis )"
+346,non-weakly-linear,25,1.6875e-05,c49cd43c06f580059181ef1125dea248994668dd5067f1fafab0d2fa33dacc43,"(rule ((= pred (Const (Bool true) _ty ctx))
+       (= if_e (If pred inputs thn els)))
+      ((union if_e (Subst ctx inputs thn)))
+        :ruleset non-weakly-linear )"
+347,terms,77,1.6582e-05,898656188977662861ae80d7513fb784bf7b3f5794bf745098e0751820d002d0,"(rule ((= lhs (Arg ty ass)))
+      ((PotentialExtractedExpr lhs (TCPair (TermArg ) 1)))
+        :ruleset terms )"
+348,always-run,84,1.5334e-05,ed6aae6672adfe58d7556a3da30b664ff7da8e7dfc4e760d88980e7e162806f2,"(rule ((= e (DoWhile inputs pred_out)))
+      ((leading-Expr e)
+       (leading-Expr inputs)
+       (leading-Expr pred_out))
+        :ruleset always-run )"
+349,is-resolved,77,1.4877e-05,7cc3465a2a2e517a47805d8f6a54445f7e6d7d1803179c99d349389dc561a05e,"(rule ((= lhs (Arg _ty _ctx)))
+      ((ExprIsResolved lhs))
+        :ruleset is-resolved )"
+350,always-run,0,1.4833e-05,35e7fa26e1aca9c64094cc45ca5f3470117d0e5254d0deb76176f75b9dd98b6f,"(rule ((TupleRemoveAt tuple idx)
+       (= len (tuple-length tuple))
+       (>= idx len))
+      ((panic 'Index out of bounds for TupleRemoveAt'))
+        :ruleset always-run )"
+351,drop,2,1.4583e-05,5bfc69523440154e16d155b7c765d2224fe4342aa2e925293b0f31e696f83ea1,"(rule ((= lhs (DropAtInternal newty newctx idx (Empty oldty oldctx))))
+      ((DelayedDropUnion lhs (Empty newty newctx)))
+        :ruleset drop )"
+352,subsume-after-helpers,4,1.4e-05,abffe643ea10f9f9da1132ac7ae94eaf59b564e68eabd7c22f998e344e69ed40,"(rule ((ToSubsumeIf a b c d)
+       (If a b c d))
+      ((subsume (If a b c d)))
+        :ruleset subsume-after-helpers )"
+353,loop-iters-analysis,84,1.2624e-05,10dfd84729cc9336ef115e5232b13ac17147ed75e3311e29de5182b15952c2a2,"(rule ((DoWhile inputs outputs))
+      ((set (LoopNumItersGuess inputs outputs) 1000))
+        :ruleset loop-iters-analysis )"
+354,type-analysis,77,1.196e-05,ebfff84590a578aa6ce53c6162ddf689ce36a8efa15374c128c91c18eece09f1,"(rule ((Arg ty ctx))
+      ((HasType (Arg ty ctx) ty)
+       (HasArgType (Arg ty ctx) ty))
+        :ruleset type-analysis )"
+355,always-run,77,1.021e-05,f19ba3d01f50d058281385ed7419c6e89d95e42b77b7a99a9db4baf9a50dfff2,"(rule ((= expr (Arg ty assum)))
+      ((set (Expr-size expr) 1))
+        :ruleset always-run )"
+356,always-run,77,1.0126e-05,0331497d86eaa1471345c7b0298377f91f193796289719186c3d89deb5bac124,"(rule ((= e (Arg t a)))
+      ((leading-Expr e))
+        :ruleset always-run )"
+357,always-run,84,1.0043e-05,846165fa1a6f65b6021b987f6dffc12b40a01005c1dde44626d01a47c4eb579a,"(rule ((DoWhile _in _pred-and-output))
+      ((BodyContainsExpr _pred-and-output _pred-and-output))
+        :ruleset always-run )"
+358,always-run,121,9.333e-06,0a258ef0431575469157ca9dca9d3aef3f9ec18dda828df7f52fbe1af9e447a7,"(rule ((= lhs (Call a b)))
+      ((Not-Just-Concat lhs))
+        :ruleset always-run )"
+359,always-run,77,9.126e-06,57f4eeb4e7ccb6f37366195782a6f89f318f56044eb6b13b98b2bf97ceb4214c,"(rule ((= lhs (Arg a b)))
+      ((Not-Just-Concat lhs))
+        :ruleset always-run )"
+360,always-run,77,8.375e-06,a5301b16d1d65fa609bd650af5c517a12c75d6a125a01b6beee5216e8e1a5951,"(rule ((Arg ty ctx))
+      ((ContextOf (Arg ty ctx) ctx))
+        :ruleset always-run )"
+361,always-run,84,8.21e-06,a7bcf5b91ca8ec24e881f938b6bd73f902c8a79dabb764fd8c832a19972687a7,"(rule ((= lhs (DoWhile a b)))
+      ((Not-Just-Concat lhs))
+        :ruleset always-run )"
+362,apply-drop-unions,53,5.208e-06,f5d85086421170672b8a1f332296303d5e619b887adaf1c7d6b685719c1c952f,"(rule ((DelayedDropUnion lhs rhs))
+      ((union lhs rhs))
+        :ruleset apply-drop-unions )"
+363,non-weakly-linear,0,5.125e-06,7ff2f21fc1e210b29edafa4b03547a234b276142950a3ab61eaae664493c4e85,"(rule ((= pred (Const (Bool false) _ty ctx))
+       (= if_e (If pred inputs thn els)))
+      ((union if_e (Subst ctx inputs els)))
+        :ruleset non-weakly-linear )"
+364,subst,0,4.626e-06,0605355858c8c8a21324770e96abda0731d107de52dd0fe695a98e494cbe638a,"(rule ((= lhs (Subst assum to e))
+       (= e (Empty _ty _oldctx))
+       (HasArgType to newty))
+      ((DelayedSubstUnion lhs (Empty newty assum))
+       (subsume (Subst assum to e)))
+        :ruleset subst )"
+365,type-analysis,5,3.625e-06,0f19fc789e64b9130a73db6a6c1b6af4ea720ff1085b00502e5faa54fd0de617,"(rule ((= lhs (Empty ty ctx)))
+      ((HasType lhs (TupleT (TNil )))
+       (HasArgType lhs ty))
+        :ruleset type-analysis )"
+366,is-resolved,5,3.416e-06,295703a6ec872b70440459780fb95f6b8932591ddf4b189d6aa05f9156211136,"(rule ((= lhs (Empty _ty _ctx)))
+      ((ExprIsResolved lhs))
+        :ruleset is-resolved )"
+367,type-analysis,2,3.376e-06,25c95acfc2c44b563b04c6674ed380cb15c24f9a9c4271d72850ded18924a7f4,"(rule ((Base ty)
+       (PureBaseType ty))
+      ((PureType (Base ty)))
+        :ruleset type-analysis )"
+368,always-run,5,3.293e-06,34a8d6e0cbcb44435ba4deefccf4abaee4eb27f8791030010263d487eaa92df7,"(rule ((= f (Base (PointerT ty))))
+      ((PointerishType f))
+        :ruleset always-run )"
+369,always-run,5,3.125e-06,ab58bb81613e1824895df70de2bb293b4cab8a25af78a3df19b890f9c47195d7,"(rule ((Empty ty ctx))
+      ((ContextOf (Empty ty ctx) ctx))
+        :ruleset always-run )"
+370,always-run,29,2.959e-06,95e3a254bf1de7929ac833f8fc63e89b6df428a282923529557cd06d14cc287b,"(rule ((Function _name _tyin _tyout _out))
+      ((BodyContainsExpr _out _out))
+        :ruleset always-run )"
+371,always-run,5,2.709e-06,a7feab9f2cd92ab65b3999dd764e689af97bc2135c17a7da6bded8fc1071539f,"(rule ((Empty ty assum))
+      ((set (Expr-size (Empty ty assum)) 0))
+        :ruleset always-run )"
+372,initialization,1,2.708e-06,0172c57601ba60b64a9b0dc59712c40caf7d8af4106f998b10268f140941c3e1,Initialization source facts omitted; full rule is in the captured pass and live report.
+373,always-run,5,2.625e-06,214d36f83b33a7944ddc532ce876bfa9a255801a7bbff9f5767dc77bf9d59166,"(rule ((Empty _ty _ctx))
+      ((ExprIsPure (Empty _ty _ctx)))
+        :ruleset always-run )"
+374,type-analysis,29,2.458e-06,f8de7ffe0545ccfa22c8e234a6502777baf17e7933e4667ed8be5cb565231c60,"(rule ((= lhs (Function name in-ty out-ty body)))
+      ((HasArgType body in-ty)
+       (ExpectType body out-ty 'Function body had wrong type'))
+        :ruleset type-analysis )"
+375,cleanup-drop,29,2.417e-06,fa76e2d1612523299c606a6a3f0a49f97b0f01b32d127e2c61070a05bde8cfeb,"(rule ((DelayedDropUnion lhs rhs))
+      ((subsume (DelayedDropUnion lhs rhs)))
+        :ruleset cleanup-drop )"
+376,type-helpers,1,2.25e-06,e3efd3cd09ca74736891bb1a37d8fde84d1b18d8d6a288b2acce3133d0ec1bcc,"(rule ()
+      ((set (TypeList-length (TNil )) 0))
+        :ruleset type-helpers )"
+377,type-analysis,1,2.209e-06,0cfb835a7789c9223ba304e27aef19efb25d8d88af02b00ff725f951fbdb75e9,"(rule ((= lhs (Uop (Not ) e)))
+      ((ExpectType e (Base (BoolT )) '(Not)'))
+        :ruleset type-analysis )"
+378,type-analysis,2,2.083e-06,e8074f5937353441635d4cc4bf2eac864f8d3be492cc06c3863aa19b5a80289a,"(rule ((= lhs (Uop (Neg ) e)))
+      ((ExpectType e (Base (IntT )) '(Neg)'))
+        :ruleset type-analysis )"
+379,always-run,3,1.791e-06,ed603b0f79781e8354f87557c5d6de634753e664e7bb5cf17e7fdc7c17384073,"(rule ((= lhs (Uop a b)))
+      ((Not-Just-Concat lhs))
+        :ruleset always-run )"
+380,type-helpers,0,1.542e-06,604fc8c2bfe61c79af8fd5f0c135c03b8d56fefe0af3738b5d0fcd923eb10da0,"(rule ((TypeListRemoveAt (TNil ) _idx))
+      ((panic 'Index out of bounds for TypeListRemoveAt.'))
+        :ruleset type-helpers )"
+381,type-analysis,0,8.75e-07,41a2d7512f84c02962369f04ea88711e77991e17bc00ccc8a368c626cd75bbad,"(rule ((= lhs (Uop (Abs ) e)))
+      ((ExpectType e (Base (IntT )) '(Abs)'))
+        :ruleset type-analysis )"
+382,type-analysis,1,7.5e-07,8a99cc3e269c40d0ed0767d5a0db4e0219284af8b333e98e6ab17cfe6e25aec1,"(rule ((TNil ))
+      ((PureTypeList (TNil )))
+        :ruleset type-analysis )"
