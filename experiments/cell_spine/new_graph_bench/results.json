@@ -1,0 +1,570 @@
+{
+  "schema": "cell-spine-new-graphs-bench/v1",
+  "platform": "macOS-15.3.1-arm64-arm-64bit-Mach-O",
+  "threads": 1,
+  "commit": "990d7a62c8e26975a8b2e75b0bced4503b2d7554",
+  "dirty": true,
+  "binary_sha256": "6f40765d2f07cff88d778cef051f0b784937bda1bd674d5690cb1ac39d3a0253",
+  "pristine": {
+    "binary": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+    "sha256": "33d3de0f31b6ae5b36cd40a2565ebce8dc88f7990eee236a82c30c46bdd6ae4b",
+    "tag": "62ae6baa5539af4468a8f1a94d6e108de4dcd2df",
+    "evidence": "experiments/native_compare/results/final.json"
+  },
+  "external_process_guard": {
+    "seconds": 30,
+    "rss_bytes": 4294967296
+  },
+  "training": {
+    "factored": {
+      "source_sha256": "e7feaeac34937a701c5627b60bc438ccd30274d7ee7d26a2d8b54b58f61568c7",
+      "library_sha256": "c1f829122f8f7ecc6dca53bbf5f3d98dc7a105f3e51234d1aea32f719d59e134",
+      "library_bytes": 4038,
+      "families": 3,
+      "consumer_rules": 3,
+      "offline_compile_and_verify_wall_seconds": 0.23994441609829664
+    },
+    "expanded": {
+      "source_sha256": "186d18cde9b557b717b6ac5c19b6563097917d52536a1d2b5949c6c09ce35644",
+      "library_sha256": "f3832d4f7058837ae8bbb5f5b4e0ea9fc8921254ec53c0e5022066282a5b23a8",
+      "library_bytes": 44170,
+      "families": 4,
+      "consumer_rules": 79,
+      "offline_compile_and_verify_wall_seconds": 0.2704593329690397
+    }
+  },
+  "cases": [
+    {
+      "workload": "factored",
+      "copies": 1,
+      "source_sha256": "4b3c22342307af0b1114c4dbf6b2cd45b6e84f69744b7865b3c4ea723294dbdb",
+      "cellify_seconds": 0.00013941689394414425,
+      "verification": {
+        "exact_equal": true,
+        "enodes": 13,
+        "eclasses": 7
+      },
+      "shapes": {
+        "active_summaries": 3,
+        "original_before_export": {
+          "eclasses": 0,
+          "enodes": 0,
+          "tables": {
+            "Add": 0,
+            "Mul": 0,
+            "Var": 0
+          }
+        },
+        "restored": {
+          "eclasses": 7,
+          "enodes": 13,
+          "tables": {
+            "Add": 4,
+            "Mul": 6,
+            "Var": 3
+          }
+        },
+        "spine": {
+          "eclasses": 5,
+          "enodes": 5,
+          "tables": {
+            "Spine-Add": 1,
+            "Spine-Mul": 1,
+            "Spine-Var": 3
+          }
+        },
+        "subsumed_summaries": 0
+      },
+      "timings": {
+        "native": {
+          "result": {
+            "drop_seconds": 0.000121584,
+            "export_matches": 0,
+            "export_seconds": 0.0,
+            "input_seconds": 8.4125e-05,
+            "matches": 14,
+            "read_seconds": 4.6209e-05,
+            "run_seconds": 0.000112708,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.000855541,
+            "setup_seconds": 0.000658708,
+            "through_drop_seconds": 0.0009771250000000001,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 4702208,
+          "process_wall_seconds": 0.0,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-new-graph-bench-v2/factored-1/native.json"
+          ]
+        },
+        "spine": {
+          "result": {
+            "drop_seconds": 0.000268958,
+            "export_matches": 0,
+            "export_seconds": 0.0,
+            "input_seconds": 8.2458e-05,
+            "matches": 3,
+            "read_seconds": 7.3125e-05,
+            "run_seconds": 5.1583e-05,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.002169125,
+            "setup_seconds": 0.002035084,
+            "through_drop_seconds": 0.002438083,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 5226496,
+          "process_wall_seconds": 0.0,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-new-graph-bench-v2/factored-1/spine.json"
+          ]
+        },
+        "spine_export": {
+          "result": {
+            "drop_seconds": 0.000289167,
+            "export_matches": 13,
+            "export_seconds": 0.000172125,
+            "input_seconds": 0.000101791,
+            "matches": 3,
+            "read_seconds": 5.6625e-05,
+            "run_seconds": 5.9375e-05,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.0026146249999999998,
+            "setup_seconds": 0.002281334,
+            "through_drop_seconds": 0.0029037919999999997,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 5292032,
+          "process_wall_seconds": 0.0,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-new-graph-bench-v2/factored-1/spine_export.json"
+          ]
+        },
+        "pristine": {
+          "result": {
+            "matches": 14,
+            "seconds": 0.000762,
+            "through_drop_seconds": 0.000871875,
+            "verification": false
+          },
+          "peak_rss_bytes": 4374528,
+          "process_wall_seconds": 0.0,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-new-graph-bench-v2/factored-1/source.egg"
+          ]
+        }
+      }
+    },
+    {
+      "workload": "factored",
+      "copies": 1000,
+      "source_sha256": "e454fb6250cedc99b8bcedd57cf589875330d1074b366265d252241f19ba69aa",
+      "cellify_seconds": 0.00879666581749916,
+      "verification": {
+        "exact_equal": true,
+        "enodes": 13000,
+        "eclasses": 7000
+      },
+      "shapes": {
+        "active_summaries": 3000,
+        "original_before_export": {
+          "eclasses": 0,
+          "enodes": 0,
+          "tables": {
+            "Add": 0,
+            "Mul": 0,
+            "Var": 0
+          }
+        },
+        "restored": {
+          "eclasses": 7000,
+          "enodes": 13000,
+          "tables": {
+            "Add": 4000,
+            "Mul": 6000,
+            "Var": 3000
+          }
+        },
+        "spine": {
+          "eclasses": 5000,
+          "enodes": 5000,
+          "tables": {
+            "Spine-Add": 1000,
+            "Spine-Mul": 1000,
+            "Spine-Var": 3000
+          }
+        },
+        "subsumed_summaries": 0
+      },
+      "timings": {
+        "native": {
+          "result": {
+            "drop_seconds": 0.000343375,
+            "export_matches": 0,
+            "export_seconds": 0.0,
+            "input_seconds": 0.036249709,
+            "matches": 14000,
+            "read_seconds": 6.5834e-05,
+            "run_seconds": 0.010401417,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.04727921,
+            "setup_seconds": 0.000628084,
+            "through_drop_seconds": 0.047622585,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 12730368,
+          "process_wall_seconds": 0.05,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-new-graph-bench-v2/factored-1000/native.json"
+          ]
+        },
+        "spine": {
+          "result": {
+            "drop_seconds": 0.000511834,
+            "export_matches": 0,
+            "export_seconds": 0.0,
+            "input_seconds": 0.035369583,
+            "matches": 3000,
+            "read_seconds": 7.1375e-05,
+            "run_seconds": 0.001238667,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.038606833,
+            "setup_seconds": 0.001998583,
+            "through_drop_seconds": 0.039118667,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 10600448,
+          "process_wall_seconds": 0.04,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-new-graph-bench-v2/factored-1000/spine.json"
+          ]
+        },
+        "spine_export": {
+          "result": {
+            "drop_seconds": 0.000745458,
+            "export_matches": 13000,
+            "export_seconds": 0.013332,
+            "input_seconds": 0.035083625,
+            "matches": 3000,
+            "read_seconds": 6.7291e-05,
+            "run_seconds": 0.001147833,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.051544166,
+            "setup_seconds": 0.001980708,
+            "through_drop_seconds": 0.052289624,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 12091392,
+          "process_wall_seconds": 0.05,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-new-graph-bench-v2/factored-1000/spine_export.json"
+          ]
+        },
+        "pristine": {
+          "result": {
+            "matches": 14000,
+            "seconds": 0.043232625,
+            "through_drop_seconds": 0.043607208,
+            "verification": false
+          },
+          "peak_rss_bytes": 12894208,
+          "process_wall_seconds": 0.04,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-new-graph-bench-v2/factored-1000/source.egg"
+          ]
+        }
+      }
+    },
+    {
+      "workload": "expanded",
+      "copies": 1,
+      "source_sha256": "1c7bdb086ee9d4672bd5e3c08d959c3b1610312b1fc0f05bbb63c730874daf92",
+      "cellify_seconds": 0.00017345789819955826,
+      "verification": {
+        "exact_equal": true,
+        "enodes": 13,
+        "eclasses": 7
+      },
+      "shapes": {
+        "active_summaries": 1,
+        "original_before_export": {
+          "eclasses": 0,
+          "enodes": 0,
+          "tables": {
+            "Add": 0,
+            "Mul": 0,
+            "Var": 0
+          }
+        },
+        "restored": {
+          "eclasses": 7,
+          "enodes": 13,
+          "tables": {
+            "Add": 4,
+            "Mul": 6,
+            "Var": 3
+          }
+        },
+        "spine": {
+          "eclasses": 6,
+          "enodes": 6,
+          "tables": {
+            "Spine-Add": 1,
+            "Spine-Mul": 2,
+            "Spine-Var": 3
+          }
+        },
+        "subsumed_summaries": 3
+      },
+      "timings": {
+        "native": {
+          "result": {
+            "drop_seconds": 0.000123458,
+            "export_matches": 0,
+            "export_seconds": 0.0,
+            "input_seconds": 9.8709e-05,
+            "matches": 17,
+            "read_seconds": 4.2459e-05,
+            "run_seconds": 0.000147083,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.000837376,
+            "setup_seconds": 0.000591584,
+            "through_drop_seconds": 0.000960834,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 4718592,
+          "process_wall_seconds": 0.0,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-new-graph-bench-v2/expanded-1/native.json"
+          ]
+        },
+        "spine": {
+          "result": {
+            "drop_seconds": 0.001386083,
+            "export_matches": 0,
+            "export_seconds": 0.0,
+            "input_seconds": 9.5416e-05,
+            "matches": 15,
+            "read_seconds": 6.2625e-05,
+            "run_seconds": 0.000350167,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.013844124999999999,
+            "setup_seconds": 0.013398542,
+            "through_drop_seconds": 0.015230207999999999,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 8028160,
+          "process_wall_seconds": 0.01,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-new-graph-bench-v2/expanded-1/spine.json"
+          ]
+        },
+        "spine_export": {
+          "result": {
+            "drop_seconds": 0.001745,
+            "export_matches": 13,
+            "export_seconds": 0.00021375,
+            "input_seconds": 9.975e-05,
+            "matches": 15,
+            "read_seconds": 5.5792e-05,
+            "run_seconds": 0.00035075,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.014068542,
+            "setup_seconds": 0.013404292,
+            "through_drop_seconds": 0.015813542,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 9125888,
+          "process_wall_seconds": 0.01,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-new-graph-bench-v2/expanded-1/spine_export.json"
+          ]
+        },
+        "pristine": {
+          "result": {
+            "matches": 17,
+            "seconds": 0.000810625,
+            "through_drop_seconds": 0.0009235,
+            "verification": false
+          },
+          "peak_rss_bytes": 4440064,
+          "process_wall_seconds": 0.0,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-new-graph-bench-v2/expanded-1/source.egg"
+          ]
+        }
+      }
+    },
+    {
+      "workload": "expanded",
+      "copies": 1000,
+      "source_sha256": "6e27391ae7481e221548e343681a25b225d34713396d263580de9aeb22069b01",
+      "cellify_seconds": 0.012434084201231599,
+      "verification": {
+        "exact_equal": true,
+        "enodes": 13000,
+        "eclasses": 7000
+      },
+      "shapes": {
+        "active_summaries": 1000,
+        "original_before_export": {
+          "eclasses": 0,
+          "enodes": 0,
+          "tables": {
+            "Add": 0,
+            "Mul": 0,
+            "Var": 0
+          }
+        },
+        "restored": {
+          "eclasses": 7000,
+          "enodes": 13000,
+          "tables": {
+            "Add": 4000,
+            "Mul": 6000,
+            "Var": 3000
+          }
+        },
+        "spine": {
+          "eclasses": 6000,
+          "enodes": 6000,
+          "tables": {
+            "Spine-Add": 1000,
+            "Spine-Mul": 2000,
+            "Spine-Var": 3000
+          }
+        },
+        "subsumed_summaries": 3000
+      },
+      "timings": {
+        "native": {
+          "result": {
+            "drop_seconds": 0.000319375,
+            "export_matches": 0,
+            "export_seconds": 0.0,
+            "input_seconds": 0.044517625,
+            "matches": 17000,
+            "read_seconds": 0.00010175,
+            "run_seconds": 0.007901584,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.053035126,
+            "setup_seconds": 0.000615917,
+            "through_drop_seconds": 0.053354501,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 14221312,
+          "process_wall_seconds": 0.05,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-new-graph-bench-v2/expanded-1000/native.json"
+          ]
+        },
+        "spine": {
+          "result": {
+            "drop_seconds": 0.001988292,
+            "export_matches": 0,
+            "export_seconds": 0.0,
+            "input_seconds": 0.044777334,
+            "matches": 15000,
+            "read_seconds": 7.8708e-05,
+            "run_seconds": 0.015664042,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.073729626,
+            "setup_seconds": 0.01328825,
+            "through_drop_seconds": 0.07571791800000001,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 14516224,
+          "process_wall_seconds": 0.07,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-new-graph-bench-v2/expanded-1000/spine.json"
+          ]
+        },
+        "spine_export": {
+          "result": {
+            "drop_seconds": 0.001599625,
+            "export_matches": 13000,
+            "export_seconds": 0.015970666,
+            "input_seconds": 0.045211084,
+            "matches": 15000,
+            "read_seconds": 6.8958e-05,
+            "run_seconds": 0.01549275,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.089975375,
+            "setup_seconds": 0.013300875,
+            "through_drop_seconds": 0.09157499999999999,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 17776640,
+          "process_wall_seconds": 0.09,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-new-graph-bench-v2/expanded-1000/spine_export.json"
+          ]
+        },
+        "pristine": {
+          "result": {
+            "matches": 17000,
+            "seconds": 0.051218833,
+            "through_drop_seconds": 0.051640833,
+            "verification": false
+          },
+          "peak_rss_bytes": 13451264,
+          "process_wall_seconds": 0.05,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/native-compare/bin/pristine",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-new-graph-bench-v2/expanded-1000/source.egg"
+          ]
+        }
+      }
+    }
+  ],
+  "cross_input_equalities": {
+    "1": {
+      "exact_equal": true,
+      "enodes": 13,
+      "eclasses": 7
+    },
+    "1000": {
+      "exact_equal": true,
+      "enodes": 13000,
+      "eclasses": 7000
+    }
+  }
+}

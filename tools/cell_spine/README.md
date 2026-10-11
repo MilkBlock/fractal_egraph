@@ -297,3 +297,22 @@ are rejected by the independent witness checker:
 ```sh
 target/release/examples/spine_stages --verify out/my-spine-run/stage-bake/stages.json
 ``` These are correctness checks, not a speed/RSS benchmark.
+
+## New-graph time/RSS benchmark
+
+```sh
+out/cell-spine-venv/bin/python tools/bench/cell_spine.py \
+  --output out/cell-new-graph-bench-next --copies 1 1000
+```
+
+This reuses the repository's independent-process measurement and exact Math graph
+comparison helpers. Each tiny source is baked once, then reused on fresh literal
+bindings in a new egraph, without analyzing the test graph. `native`, `spine`, and
+`spine_export` use the same current native runner; an existing SHA-verified
+pristine binary is included as a separate reference (`--no-pristine` omits it).
+Timing and RSS runs do not dump graphs; exact verification uses other processes.
+Installation, input construction, execution and full export are separate phases.
+AST-to-spine conversion, offline compilation and library bytes are also reported.
+One run per case, no averaging. See `experiments/cell_spine/new_graph_bench` for
+results and limitations: this is a four-rule workload with disjoint new instances,
+not full math-microbenchmark generalization or a demonstrated end-to-end speedup.
