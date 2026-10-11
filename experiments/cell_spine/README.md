@@ -1,7 +1,13 @@
 # Multi-node Cell spine
 
-A standalone generated-rule prototype, executed by the actual local egglog
-runtime. It does not yet modify the analyze/Bake pipeline or claim a speedup.
+The general automatic Bake/Gurobi compiler is now in
+[`tools/cell_spine`](../../tools/cell_spine/README.md). The files in this directory
+retain the original small Add demonstration and provide its regression fixtures.
+
+The original `demo.egg` is a standalone generated-rule prototype executed by
+the actual local egglog runtime. `automatic.egg` is produced by the new native
+Bake/Gurobi pipeline from `fixtures/assoc.egg`; `automatic-results.json` records
+five automatically compiled programs. Neither is a speed/RSS benchmark.
 
 ```sh
 python3 experiments/cell_spine/generate.py

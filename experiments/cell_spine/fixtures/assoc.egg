@@ -1,0 +1,7 @@
+(datatype Term (Leaf String) (Plus Term Term))
+(ruleset algebra)
+(rewrite (Plus a b) (Plus b a) :ruleset algebra)
+(rewrite (Plus (Plus a b) c) (Plus a (Plus b c)) :ruleset algebra)
+(let root (Plus (Plus (Leaf "a") (Leaf "b")) (Leaf "c")))
+(run-schedule (saturate algebra))
+(check (= root (Plus (Leaf "a") (Plus (Leaf "b") (Leaf "c")))))

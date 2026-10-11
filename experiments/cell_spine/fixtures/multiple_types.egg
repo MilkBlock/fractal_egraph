@@ -1,0 +1,6 @@
+(datatype* (Expr (Lit i64) (Unbox Box)) (Box (Boxed Expr)))
+(ruleset one)
+(rewrite (Unbox (Boxed x)) x :ruleset one)
+(let root (Unbox (Boxed (Lit 7))))
+(run-schedule (saturate one))
+(check (= root (Lit 7)))

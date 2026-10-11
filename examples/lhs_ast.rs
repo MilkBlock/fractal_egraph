@@ -92,6 +92,24 @@ fn datatype(name: &str, variants: &[Variant]) -> Json {
     })
 }
 
+fn schedule(s: &egglog::ast::Schedule) -> Json {
+    use egglog::ast::GenericSchedule as S;
+    fn unwrap(s: &egglog::ast::Schedule) -> &egglog::ast::Schedule {
+        if let S::Sequence(_, items) = s {
+            if items.len() == 1 {
+                return unwrap(&items[0]);
+            }
+        }
+        s
+    }
+    if let S::Saturate(_, inner) = unwrap(s) {
+        if let S::Run(_, cfg) = unwrap(inner) {
+            return json!({"kind":"saturate_single", "ruleset":cfg.ruleset,"has_until":cfg.until.is_some()});
+        }
+    }
+    json!({"kind":"other"})
+}
+
 fn export(source_name: &str, source: &str) -> Result<Json, Box<dyn Error>> {
     let mut egraph = EGraph::default();
     let commands = egraph.parse_program(Some(source_name.to_owned()), source)?;
@@ -195,6 +213,27 @@ fn export(source_name: &str, source: &str) -> Result<Json, Box<dyn Error>> {
         "rules": rules,
         "other_commands": other_commands,
         "actions":actions,
+        "checks": commands.iter().enumerate().filter_map(|(ordinal, c)| {
+            if let Command::Check(_, facts) = c { Some(json!({"ordinal":ordinal,"facts":facts.iter().map(fact).collect::<Vec<_>>()})) } else { None }
+        }).collect::<Vec<_>>(),
+        "rule_rulesets": commands.iter().filter_map(|c| match c {
+            Command::Rule {rule} => Some(rule.ruleset.clone()),
+            Command::Rewrite(name, ..) | Command::BiRewrite(name, ..) => Some(name.clone()),
+            _ => None,
+        }).collect::<std::collections::BTreeSet<_>>(),
+        "schedules": commands.iter().filter_map(|c| {
+            if let Command::RunSchedule(s) = c { Some(schedule(s)) } else {None}
+        }).collect::<Vec<_>>(),
+        "commands": commands.iter().enumerate().map(|(ordinal, c)| json!({
+            "ordinal": ordinal, "text": c.to_string(),
+            "kind": match c {
+                Command::Action(_) => "action", Command::RunSchedule(_) => "schedule",
+                Command::Check(..) => "check", Command::Rule{..} | Command::Rewrite(..) | Command::BiRewrite(..) => "rule",
+                Command::Datatype{..} | Command::Datatypes{..} | Command::Constructor{..} |
+                Command::Sort{..} | Command::Function{..} | Command::Relation{..} | Command::AddRuleset(..) => "declaration",
+                _ => "unsupported",
+            },
+        })).collect::<Vec<_>>(),
     }))
 }
 

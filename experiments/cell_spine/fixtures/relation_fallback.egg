@@ -1,0 +1,7 @@
+(relation P (i64))
+(relation Q (i64))
+(ruleset one)
+(rule ((P x)) ((Q x)) :ruleset one)
+(P 7)
+(run-schedule (saturate one))
+(check (Q 7))

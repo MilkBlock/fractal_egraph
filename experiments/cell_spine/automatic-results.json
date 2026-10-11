@@ -1,0 +1,121 @@
+{
+  "runtime": "actual local modified egglog; no pristine speed/RSS benchmark",
+  "solver": "Gurobi 13.0.3, proven optimal solutions",
+  "validator_sha256": "c64c2bca9e2077f76eae1c06f8c1a8924a1e7ac5c0521b88c8f601424d41c023",
+  "source_revision_before_this_change": "b991682b9794fad7f52bb00a253b986fc29b59ba",
+  "results": {
+    "assoc": {
+      "source_sha256": "c966121350be9fcd415a18917e883f44ad08f01e7163c732f04604d22ccdf264",
+      "admitted_paths": 9,
+      "selected_paths": [
+        1,
+        4
+      ],
+      "objective": 6.0,
+      "factored_transitions": 1,
+      "native_validation_cases": 10,
+      "library_bytes": 3578,
+      "source_case": {
+        "native_total_rows_before_export": 9,
+        "original_constructor_rows": 15,
+        "original_native_total_rows": 16,
+        "original_rules_executed": false,
+        "physical_original_rows_before_export": 0,
+        "restored_constructor_rows": 15,
+        "spine_constructor_rows": 5,
+        "status": "passed",
+        "summary_rows": 3
+      }
+    },
+    "union": {
+      "source_sha256": "0d988ef51b2f6630f16f5bc2947383a7f14954725953cf325f94f61f4f91a43f",
+      "admitted_paths": 2,
+      "selected_paths": [
+        0,
+        1
+      ],
+      "objective": 7.0,
+      "factored_transitions": 0,
+      "native_validation_cases": 3,
+      "library_bytes": 3239,
+      "source_case": {
+        "native_total_rows_before_export": 10,
+        "original_constructor_rows": 6,
+        "original_native_total_rows": 9,
+        "original_rules_executed": false,
+        "physical_original_rows_before_export": 0,
+        "restored_constructor_rows": 6,
+        "spine_constructor_rows": 5,
+        "status": "passed",
+        "summary_rows": 2
+      }
+    },
+    "multiple_types": {
+      "source_sha256": "d0d7cae5cba2006fed4c00f260df91726dee182f09568b446aa402c82caac50a",
+      "admitted_paths": 1,
+      "selected_paths": [
+        0
+      ],
+      "objective": 4.0,
+      "factored_transitions": 0,
+      "native_validation_cases": 2,
+      "library_bytes": 2484,
+      "source_case": {
+        "native_total_rows_before_export": 5,
+        "original_constructor_rows": 3,
+        "original_native_total_rows": 4,
+        "original_rules_executed": false,
+        "physical_original_rows_before_export": 0,
+        "restored_constructor_rows": 3,
+        "spine_constructor_rows": 3,
+        "status": "passed",
+        "summary_rows": 1
+      }
+    },
+    "default_ruleset": {
+      "source_sha256": "faed5d68625ae231d5d0ed273652f7a996d2e7d9bb13d9c4d70adb2249e45e3b",
+      "admitted_paths": 9,
+      "selected_paths": [
+        1,
+        4
+      ],
+      "objective": 6.0,
+      "factored_transitions": 1,
+      "native_validation_cases": 10,
+      "library_bytes": 3526,
+      "source_case": {
+        "native_total_rows_before_export": 9,
+        "original_constructor_rows": 15,
+        "original_native_total_rows": 16,
+        "original_rules_executed": false,
+        "physical_original_rows_before_export": 0,
+        "restored_constructor_rows": 15,
+        "spine_constructor_rows": 5,
+        "status": "passed",
+        "summary_rows": 3
+      }
+    },
+    "merged_ports": {
+      "source_sha256": "e4194c8c88937a22c5bb7f1bd76ef30b52d2cdc7ef752ea734d4a00631bfe261",
+      "admitted_paths": 2,
+      "selected_paths": [
+        0
+      ],
+      "objective": 2.0,
+      "factored_transitions": 0,
+      "native_validation_cases": 3,
+      "library_bytes": 1860,
+      "source_case": {
+        "native_total_rows_before_export": 7,
+        "original_constructor_rows": 3,
+        "original_native_total_rows": 6,
+        "original_rules_executed": false,
+        "physical_original_rows_before_export": 0,
+        "restored_constructor_rows": 3,
+        "spine_constructor_rows": 3,
+        "status": "passed",
+        "summary_rows": 1
+      }
+    }
+  }
+}

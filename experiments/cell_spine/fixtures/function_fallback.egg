@@ -1,0 +1,6 @@
+(function score (i64) i64 :merge (max old new))
+(ruleset one)
+(rule ((= y (score 0)) (< y 3)) ((set (score 0) (+ y 1))) :ruleset one)
+(set (score 0) 0)
+(run-schedule (saturate one))
+(check (= (score 0) 3))
