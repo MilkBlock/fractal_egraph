@@ -1,0 +1,12 @@
+; Large retires the A Cell; a later Q must still enable the A consumer.
+(datatype Term (Leaf String) (A Term) (AA Term) (P Term) (PP Term) (Q Term) (Large Term) (Other Term))
+(ruleset demo)
+(rewrite (A x) (AA x) :ruleset demo)
+(rewrite (P x) (PP x) :ruleset demo)
+(rule ((AA x) (PP x)) ((Large x)) :ruleset demo)
+(rule ((AA x) (Q x)) ((Other x)) :ruleset demo)
+(A (Leaf "x"))
+(P (Leaf "x"))
+(Q (Leaf "x"))
+(run-schedule (saturate demo))
+(check (Large (Leaf "x")) (Other (Leaf "x")))

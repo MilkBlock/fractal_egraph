@@ -29,6 +29,8 @@ struct Case {
     compressed: String,
     restore: String,
     expected_summary: Option<String>,
+    #[serde(default)]
+    expected_active_summaries: BTreeMap<String, usize>,
 }
 
 fn snapshot(eg: &EGraph, names: &[String]) -> Result<SaturatedRuleComposition> {
@@ -99,6 +101,14 @@ fn count(eg: &EGraph, name: &str) -> usize {
     let mut n = 0;
     if eg.get_function(name).is_some() {
         eg.function_for_each(name, |_| n += 1).unwrap();
+    }
+    n
+}
+fn active_count(eg: &EGraph, name: &str) -> usize {
+    let mut n = 0;
+    if eg.get_function(name).is_some() {
+        eg.function_for_each(name, |row| n += usize::from(!row.subsumed))
+            .unwrap();
     }
     n
 }
@@ -187,6 +197,21 @@ fn main() -> Result {
             .map(|n| (n.to_string(), count(&compressed, n)))
             .collect();
         let summary_rows: usize = summary_tables.values().sum();
+        let active_summary_tables: BTreeMap<_, _> = summary_tables
+            .keys()
+            .map(|name| (name.clone(), active_count(&compressed, name)))
+            .collect();
+        let active_summary_rows: usize = active_summary_tables.values().sum();
+        for (name, expected) in &c.expected_active_summaries {
+            let actual = active_count(&compressed, name);
+            if actual != *expected {
+                return Err(format!(
+                    "{}: active {name}: expected {expected}, got {actual}",
+                    c.name
+                )
+                .into());
+            }
+        }
         // Capture before export: cached expansion matches must not be charged
         // to compressed inference. These are logical matches, not mutations.
         let compressed_matches = matches(&compressed);
@@ -205,6 +230,8 @@ fn main() -> Result {
         let mut result = json!({"case":c.name,"status":"passed","original_rules_executed":false,
             "physical_original_rows_before_export":before.rows.len(),"spine_constructor_rows":spine.rows.len(),
             "summary_rows":summary_rows,"summary_tables":summary_tables,
+            "active_summary_rows":active_summary_rows,"subsumed_summary_rows":summary_rows-active_summary_rows,
+            "active_summary_tables":active_summary_tables,
             "native_total_rows_before_export":native_rows_before_export,"original_native_total_rows":original.num_tuples(),
             "original_constructor_rows":expected.rows.len(),"restored_constructor_rows":actual.rows.len(),
             "original_constructor_eclasses":classes(&expected),"spine_constructor_eclasses":classes(&spine),

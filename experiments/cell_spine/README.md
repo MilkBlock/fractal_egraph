@@ -69,3 +69,18 @@ three-endpoint ILP is checked against exhaustive enumeration.
 Run `python -m unittest tools.cell_spine.test_spine tools.cell_spine.test_stages -v`
 using the environment containing Gurobi. Full compiler commands and the exact
 cost model are in `tools/cell_spine/README.md`.
+
+## Parent takeover and retirement
+
+`fixtures/late_takeover.egg` and `fixtures/two_retired_parents.egg` exercise late
+consumers of retired parents. `takeover-generated.egg` is the actual native
+compiler output, including same-RHS subsumption and inherited continuations.
+`takeover-results.json` includes native final-state evidence and a transparent
+before/after comparison for the math tiny workload. Historical generated files
+above remain snapshots of the earlier compiler.
+
+Run `python -m unittest tools.cell_spine.test_takeover -v` in the Gurobi environment.
+Tests explicitly disable inherited consumers as a negative ablation, inspect
+active row flags, and install a real probe after retirement. This avoids confusing
+native `check` (which includes subsumed rows) with runtime query visibility.
+Active-state reduction is demonstrated; speed/RSS improvement is not claimed.

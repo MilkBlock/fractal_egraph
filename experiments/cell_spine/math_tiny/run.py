@@ -50,31 +50,36 @@ def render(result, out):
     for label, c in cases.items():
         v = c['validation']
         rows.append(f'<tr><td>{esc(c["seed"])}</td><td>{v["original_constructor_rows"]} / {v["original_constructor_eclasses"]}</td>'
-                    f'<td>{v["spine_constructor_rows"]} / {v["spine_constructor_eclasses"]}</td><td>{v["summary_rows"]}</td>'
+                    f'<td>{v["spine_constructor_rows"]} / {v["spine_constructor_eclasses"]}</td><td>{v["active_summary_rows"]} / {v["summary_rows"]}</td>'
                     f'<td>{total_matches(v,"original_logical_matches")} → {total_matches(v,"compressed_logical_matches_before_export")}</td>'
                     f'<td>{c["library_bytes"]:,} B</td></tr>')
     parts = ['<!doctype html><html lang="zh"><meta charset="utf-8"><title>Math tiny · Cell spine</title>',
              '<style>body{font:16px system-ui;color:#152638;background:#f6f8fb;margin:30px auto;max-width:1100px;padding:0 20px}h1{font-size:30px}section{background:white;border:1px solid #dde4ed;border-radius:14px;padding:22px;margin:20px 0}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:12px;border-bottom:1px solid #dde4ed}pre{overflow:auto;background:#f1f5f9;padding:16px;border-radius:8px;font-size:13px}svg{max-width:100%;height:auto}small,p{line-height:1.7}summary{cursor:pointer;padding:10px 0}.bad{color:#9c4c00}.ok{color:#087767}</style>',
              '<h1>四条数学规则，两个起点，同一个闭包</h1>',
              '<p>加法交换、乘法交换、分配律、提取公因式。实际运行本仓库的 native egglog；不是 pristine 上游性能基准。</p>',
-             '<section><table><tr><th>输入</th><th>原始节点 / 类</th><th>spine 节点 / 类</th><th>Summary 行</th><th>逻辑匹配次数</th><th>完整库文本</th></tr>'+''.join(rows)+'</table>',
+             '<section><table><tr><th>输入</th><th>原始节点 / 类</th><th>spine 节点 / 类</th><th>Summary 活跃 / 总行</th><th>逻辑匹配次数</th><th>完整库文本</th></tr>'+''.join(rows)+'</table>',
              '<p>两边分别达到饱和；导出后均为 13 节点、7 个 Math e-class。原始与导出状态逐行、逐等价类对照通过，两个输入的最终状态也通过交叉对照。</p>',
              '<p class="bad">匹配次数不是提交变更次数，也不是 Join 工作量。节点、Summary 行宽不同，表中不能推出 RSS 压缩率或加速倍数。匹配次数不含 Bake、求解和显式导出。</p></section>']
     for label, c in cases.items():
         v = c['validation']
-        tables = '\n'.join(f'{name}: {n}' for name,n in v['summary_tables'].items())
+        tables = '\n'.join(f'{name}: active={v["active_summary_tables"][name]}, total={n}' for name,n in v['summary_tables'].items())
         parts += [f'<section><h2>{esc(c["seed"])}</h2>',
                   f'<p>选择 {len(c["plan"]["selected"])} 个 Cell 族；发出 {len(c["transitions"])} 条 spine 规则。含多个父 Summary 的规则实际匹配 <b>{c["multi_parent_matches"]}</b> 次。</p>',
                   '<details><summary>原始 .egg</summary><pre>'+esc(c['source'])+'</pre></details>',
                   '<details open><summary>生成的规则 · 实际匹配次数</summary>']
-        for t in c['transitions']:
-            m = v['compressed_logical_matches_before_export'].get(t['id'],0)
-            parts += [f'<p><b>{esc(t["id"])}</b> · {len(t["parents"])} 个父实例 · {m} 次匹配</p><pre>{esc(t["rule"])}</pre>']
+        used = [t for t in c['transitions'] if v['compressed_logical_matches_before_export'].get(t['id'],0)]
+        unused = [t for t in c['transitions'] if not v['compressed_logical_matches_before_export'].get(t['id'],0)]
+        for group in [used,unused]:
+            if group is unused: parts.append(f'<details><summary>未触发的生成规则（{len(unused)} 条）</summary>')
+            for t in group:
+                m = v['compressed_logical_matches_before_export'].get(t['id'],0)
+                parts += [f'<p><b>{esc(t["id"])}</b> · {len(t["parents"])} 个源父实例 · {m} 次匹配</p><pre>{esc(t["rule"])}</pre>']
+            if group is unused: parts.append('</details>')
         parts += ['</details><details><summary>Summary 表</summary><pre>'+esc(tables)+'</pre></details>',
                   '<h3>实际存储的 spine</h3>'+ (out/f'{label}-spine.svg').read_text(), '</section>']
     parts += ['<section><h2>原始饱和 egraph</h2><p>圆角框内属于同一个 e-class，箭头指向参数所属的 e-class；数字为参数位置。</p>',
               (out/'original.svg').read_text(), '</section>',
-              '<section><h2>这次直接暴露的限制</h2><p>因式形式仍直接查询 Add + Mul 来登记大 Cell，没有使用父 Summary。展开形式同时保留了 Summary 路径与完整 coarse 模式，两条路线都触发；还有已生成但未触发的转移。相同最终闭包尚未得到同样紧凑的 spine。</p>',
+              '<section><h2>接管与剩余开销</h2><p>有构造证据的大 Cell 接管父 Summary，消费者直接读取大 Cell 的投影。已退休 Summary 不会重新作为活跃入口。因式输入仍缺少父构造边，不能据此直接退休；展开输入还有完整 coarse 模式的重复入口。继承会增加规则代码，活跃 Summary 变少不等于 Join 或内存已经变少。</p>',
               '<p>结果文件：<a href="results.json">results.json</a>。每个子目录保存 selection.lp、transitions.json、runtime.egg 和 restore.egg。</p></section></html>']
     (out/'index.html').write_text('\n'.join(parts))
 
@@ -112,7 +117,10 @@ def main():
         states = v.pop('states')
         v['comparison'].pop('value_map',None)
         c = dict(seed=seed,source=source.read_text(),validation=v,plan=report['plan'],library_bytes=report['library_bytes'],
-                 transitions=report['transitions'],multi_parent_matches=sum(v['compressed_logical_matches_before_export'].get(t['id'],0)
+                 transitions=report['transitions'],retirement_summary=dict(lenses=len(report['retirement']['lenses']),
+                     inherited_rules=sum(t['inherited'] for t in report['transitions']),
+                     proven_redundant_removed=report['retirement']['redundant_inherited_rules_removed'],
+                     cycle_edges_retained=len(report['retirement']['cyclic_lenses_retained'])),multi_parent_matches=sum(v['compressed_logical_matches_before_export'].get(t['id'],0)
                      for t in report['transitions'] if len(t['parents'])>=2))
         result['cases'][label] = c
         diagrams = {f'{label}-spine':(states['spine'],'#dbeafe')}

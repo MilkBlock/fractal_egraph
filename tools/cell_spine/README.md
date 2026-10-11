@@ -108,7 +108,9 @@ now produces this **actual rule**, rather than factoring just the first parent:
 ```egg
 (rule ((Spine-Summary-0 parent_0_root_0 p0)
        (Spine-Summary-1 parent_1_root_0 p0))
-      ((Spine-Summary-2 parent_0_root_0 parent_1_root_0 p0))
+      ((Spine-Summary-2 parent_0_root_0 parent_1_root_0 p0)
+       (subsume (Spine-Summary-0 parent_0_root_0 p0))
+       (subsume (Spine-Summary-1 parent_1_root_0 p0)))
       :ruleset Spine-Run :name "impl_2_0")
 ```
 
@@ -133,7 +135,7 @@ Instance identities and port mappings are distinct even though the two Summaries
 use the same relation and Gurobi-selected representation. The external `Gate`
 condition remains. A reversed Gate cannot trigger the composition. A new union
 can enable a previously blocked binding, via ordinary egglog canonicalization
-and incremental matching on the Summary relations.
+and incremental matching on the Summary constructors.
 
 Only parents recorded in Bake history are eligible. Typed history-token mappings,
 seed containment, and explicit equality prerequisites justify factoring. All
@@ -164,7 +166,8 @@ z[o] <= x[p]   for EVERY parent and target representation required by o
 Two instances of the same family retain separate bindings but share the one
 representation choice. A tuple with no legal implementation cannot be selected.
 This couples both parents and the target, rather than pricing two unrelated
-pairwise edges. The emitter uses the selected implementation verbatim.
+pairwise edges. The selected implementation is the input to the certified
+ancestor-takeover pass described below; its final rules are reported separately.
 
 For each alpha-local template shape `n`, `y[n]` is the OR of all selected
 representations using it. Objective:
@@ -194,7 +197,8 @@ errors are surfaced, not worked around by quietly dropping options.
 
 `selection.lp`/`.sol` expose the actual coupled model. `transitions.json` records
 all options, port maps, required representations, query/write terms and costs;
-`report.json` lists selected implementations and emitted rules. Concrete stage
+`report.json` lists selected implementations and the final emitted rules.
+`retirement.costed_transitions` retains the pre-takeover implementations. Concrete stage
 recipe selection remains a separate, per-stage problem. `StageConcat` is still
 archive sharing and is not used as a substitute for these Cell transitions.
 
@@ -207,6 +211,65 @@ out/cell-spine-venv/bin/python -m tools.cell_spine.compiler \
 out/cell-spine-venv/bin/python -m tools.cell_spine.compiler \
   --source experiments/cell_spine/fixtures/shared_family_graft.egg \
   --mode symbolic --output out/spine-shared-family-new
+```
+
+## Retiring a parent Summary without losing its consumers
+
+Summaries are now constructors returning `Spine-Cell`, so egglog can subsume a
+**specific Summary row**. The multi-node spine remains shared. No fresh instance
+counter, duplicated small-Summary view, engine patch, or union of different Cell
+closures is introduced.
+
+From the typed construction witnesses, the compiler builds a projection from a
+larger canonical Summary to each smaller parent's roots and parameters. It
+composes these projections transitively. Constructor expressions needed by a
+projection must resolve in the owner's certified saturated snapshot; the owner
+emits any required support nodes/equalities when it is created. This avoids
+assuming that a semantically known hidden row is physically queryable.
+
+Each baked consumer of a small Summary receives versions that read the appropriate
+larger Summary directly. Multiple operands can be covered independently, including
+two instances of one family. External facts and equality guards remain in the
+body. There is no intermediate relation that reactivates the small Summary.
+
+A composition's RHS now publishes its canonical result and subsumes the directly
+matched, certified parent Summary rows. It does not subsume a larger owner merely
+because that owner supplied a smaller view. Additional retirement rules handle a
+small Summary arriving after its covering owner. Under normal `saturate Spine-Run`,
+all such covered rows are inactive at the fixed point. Rules may still match in
+the same execution batch before retirement commits; there is no claim of zero
+redundant matches or ordering between rules within a batch.
+
+Inheritance covers every compiled Summary consumer. Raw coarse-input queries
+still exist, and shared Add/Mul rows remain visible. Re-inserting a retired
+Summary does not reactivate it. Inherited matchers remain available after new
+external facts or union/rebuild, as verified by the late-input tests. Closure
+export uses active owners and reconstructs the complete original constructor
+graph, including the facts of retired parents.
+
+A finite congruence check removes inherited rules only if their target is already
+covered **and** all their writes/equalities are already guaranteed materialized.
+Constructor injectivity is never assumed. Alpha-equivalent declarations are
+shared. Cyclic family-dominance edges are recorded but do not authorize retirement:
+mutual disappearance is not a proof. No budget or sampled candidate cutoff is used.
+
+The current implementation expands the alternatives for each consumer operand.
+With `k_i` owner projections for operand `i`, it considers `product_i(1+k_i)`
+forms before proven-redundancy removal. This can enlarge rule code and Join work.
+The Gurobi objective still prices pre-inheritance plans; it does not optimize
+this expansion. Reported objective optimality must not be read as optimality of
+the final runtime code. `retirement` exposes projections, retained cycles,
+emitted consumers, retirement rules and the count of proven-redundant forms.
+
+Native regressions cover: Q arriving after Small is retired into Large; a later
+union enabling Q; two retired instances joining on a late Gate; an uncovered
+instance remaining active; transitive retirement; and an ablation that removes
+inherited rules and must fail. Since native `check` deliberately includes
+subsumed rows, tests also use late-installed real matchers and inspect active row
+counts. Total and active Summary counts are reported separately.
+
+```sh
+out/cell-spine-venv/bin/python -m unittest tools.cell_spine.test_takeover -v
 ```
 
 ## Verification

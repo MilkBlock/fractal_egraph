@@ -189,7 +189,8 @@ class NativePipeline(unittest.TestCase):
         target = next(t for t in report['transitions'] if len(t['parents']) == 2)
         self.assertEqual(len(target['body']), 2)
         self.assertTrue(all(s.startswith('(Spine-Summary-') for s in target['body']))
-        self.assertEqual(len(target['head']), 1)  # No reconstruction, just target Summary.
+        self.assertEqual(sum(h.startswith('(Spine-Summary-') for h in target['head']), 1)
+        self.assertEqual(sum(h.startswith('(subsume ') for h in target['head']), 2)
         self.assertEqual([t for t in report['transitions'] if t['target_family'] == target['target_family']], [target])
         self.assertEqual(len({p['unit'] for p in target['parents']}), 2)
         self.assertTrue(all(len(p['roots']) == 1 for p in target['parents']))
@@ -205,7 +206,7 @@ class NativePipeline(unittest.TestCase):
         self.assertEqual(len(transitions), 2)
         first, last = sorted(transitions, key=lambda t: t['target_unit'])
         self.assertIn(first['target_family'], [p['family'] for p in last['parents']])
-        self.assertTrue(all(len(t['body']) == 2 and len(t['head']) == 1 for t in transitions))
+        self.assertTrue(all(len(t['body']) == 2 and sum(h.startswith('(subsume ') for h in t['head']) == 2 for t in transitions))
         compressed = f"""
 (let x (Spine-Leaf "x"))
 (Spine-A x) (Spine-B x)

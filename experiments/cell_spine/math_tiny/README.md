@@ -15,7 +15,7 @@
 - `source.egg`：`x × (y + z)`。
 - `expanded.egg`：`y × x + z × x`，乘法方向特意反过来。
 
-## 实测
+## 实测（接管前，3558bbc）
 
 实际运行本仓库的 native egglog。没有修改执行引擎。不是 pristine 上游性能对比。
 编译强制 `--mode symbolic`，不允许退回当前输入的阶段快照缓存。
@@ -107,3 +107,19 @@ out/cell-spine-venv/bin/python experiments/cell_spine/math_tiny/run.py \
 ```sh
 out/cell-spine-venv/bin/python -m unittest tools.cell_spine.test_math_tiny -v
 ```
+
+## 父 Summary 接管后的对照
+
+当前编译器会根据构造边安装接续规则，并 subsume 被接管的具体父 Summary。
+新的 runner 页面将 Summary 的活跃行与物理总行分开。历史 `results.json` 和
+两份 generated 文件保留为接管前的对照；新结果见上级 `takeover-results.json`。
+
+展开输入：活跃 Summary **4→1**，物理 Summary 仍有 **4** 行，其中 **3** 行被
+subsume；spine 仍为 **6** 节点。导出仍严格等于 **13 节点 / 7 类**。
+因式输入没有记录到可用父构造边，仍保留 3 条活跃 Summary。
+
+这还没有成为性能优化：展开输入的消费者规则从 **6→79**，库文本从
+**6,969→44,170 字节**；消费者逻辑匹配从 **5→12**，另有 3 次清理匹配。
+这些增加来自为多个父操作数展开继承分支，不能用活跃 Summary 减少来掩盖。
+当前 Gurobi 不计这轮后处理成本，后续需要对接续规则做共享表示/代价建模。
+没有为控制数量而使用预算或采样。

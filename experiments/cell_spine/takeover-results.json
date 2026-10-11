@@ -1,0 +1,231 @@
+{
+  "scope": "native correctness and active Summary counts; no speed/RSS claim",
+  "math": {
+    "factored": {
+      "before": {
+        "active_summaries": 3,
+        "consumer_rules": 3,
+        "library_bytes": 4083
+      },
+      "after": {
+        "active_summaries": 3,
+        "physical_summaries": 3,
+        "subsumed_summaries": 0,
+        "spine_nodes": 5,
+        "consumer_rules": 3,
+        "library_bytes": 4038,
+        "consumer_matches": 3,
+        "retirement_matches": 0,
+        "restored_nodes": 13,
+        "restored_classes": 7,
+        "comparison": "equivalent"
+      },
+      "inheritance": {
+        "lenses": 0,
+        "inherited_rules": 0,
+        "proven_redundant_removed": 0,
+        "cycle_edges_retained": 0
+      }
+    },
+    "expanded": {
+      "before": {
+        "active_summaries": 4,
+        "consumer_rules": 6,
+        "library_bytes": 6969
+      },
+      "after": {
+        "active_summaries": 1,
+        "physical_summaries": 4,
+        "subsumed_summaries": 3,
+        "spine_nodes": 6,
+        "consumer_rules": 79,
+        "library_bytes": 44170,
+        "consumer_matches": 12,
+        "retirement_matches": 3,
+        "restored_nodes": 13,
+        "restored_classes": 7,
+        "comparison": "equivalent"
+      },
+      "inheritance": {
+        "lenses": 5,
+        "inherited_rules": 73,
+        "proven_redundant_removed": 0,
+        "cycle_edges_retained": 0
+      }
+    }
+  },
+  "late_example": {
+    "projections": [
+      {
+        "owner": 2,
+        "child": 0,
+        "args": [
+          {
+            "kind": "var",
+            "name": "r0"
+          },
+          {
+            "kind": "var",
+            "name": "p0"
+          }
+        ],
+        "owner_fields": [
+          "r0",
+          "r1",
+          "p0"
+        ],
+        "child_fields": [
+          "r0",
+          "p0"
+        ],
+        "evidence": [
+          [
+            2,
+            0
+          ]
+        ]
+      },
+      {
+        "owner": 2,
+        "child": 1,
+        "args": [
+          {
+            "kind": "var",
+            "name": "r1"
+          },
+          {
+            "kind": "var",
+            "name": "p0"
+          }
+        ],
+        "owner_fields": [
+          "r0",
+          "r1",
+          "p0"
+        ],
+        "child_fields": [
+          "r0",
+          "p0"
+        ],
+        "evidence": [
+          [
+            2,
+            1
+          ]
+        ]
+      },
+      {
+        "owner": 3,
+        "child": 0,
+        "args": [
+          {
+            "kind": "var",
+            "name": "r0"
+          },
+          {
+            "kind": "var",
+            "name": "p0"
+          }
+        ],
+        "owner_fields": [
+          "r0",
+          "r1",
+          "p0"
+        ],
+        "child_fields": [
+          "r0",
+          "p0"
+        ],
+        "evidence": [
+          [
+            3,
+            0
+          ]
+        ]
+      }
+    ],
+    "rules": [
+      "(rule ((= match_0 (Spine-A p0))) ((Spine-Summary-0 (Spine-A p0) p0)) :ruleset Spine-Run :name \"impl_0_0\")",
+      "(rule ((= match_0 (Spine-P p0))) ((Spine-Summary-1 (Spine-P p0) p0)) :ruleset Spine-Run :name \"impl_1_0\")",
+      "(rule ((Spine-Summary-0 parent_0_root_0 p0) (Spine-Summary-1 parent_1_root_0 p0)) ((Spine-Summary-2 parent_0_root_0 parent_1_root_0 p0) (subsume (Spine-Summary-0 parent_0_root_0 p0)) (subsume (Spine-Summary-1 parent_1_root_0 p0))) :ruleset Spine-Run :name \"impl_2_0\")",
+      "(rule ((Spine-Summary-3 cover_0_r0 cover_0_r1 cover_0_p0) (Spine-Summary-1 parent_1_root_0 cover_0_p0)) ((Spine-Summary-2 cover_0_r0 parent_1_root_0 cover_0_p0) (subsume (Spine-Summary-1 parent_1_root_0 cover_0_p0))) :ruleset Spine-Run :name \"impl_2_0_cover_4\")",
+      "(rule ((Spine-Summary-0 parent_0_root_0 p0) (= match_1 (Spine-Q p0))) ((Spine-Summary-3 parent_0_root_0 (Spine-Q p0) p0) (subsume (Spine-Summary-0 parent_0_root_0 p0))) :ruleset Spine-Run :name \"impl_3_0\")",
+      "(rule ((Spine-Summary-2 cover_0_r0 cover_0_r1 cover_0_p0) (= match_1 (Spine-Q cover_0_p0))) ((Spine-Summary-3 cover_0_r0 (Spine-Q cover_0_p0) cover_0_p0)) :ruleset Spine-Run :name \"impl_3_0_cover_1\")"
+    ],
+    "validation": {
+      "active_summary_rows": 2,
+      "active_summary_tables": {
+        "Spine-Summary-0": 0,
+        "Spine-Summary-1": 0,
+        "Spine-Summary-2": 1,
+        "Spine-Summary-3": 1
+      },
+      "case": "source",
+      "comparison": {
+        "states": 7,
+        "status": "equivalent",
+        "value_map": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      "compressed_logical_matches_before_export": {
+        "impl_0_0": 1,
+        "impl_1_0": 1,
+        "impl_2_0": 1,
+        "impl_2_0_cover_4": 0,
+        "impl_3_0": 1,
+        "impl_3_0_cover_1": 1,
+        "retire_0": 0,
+        "retire_1": 0,
+        "retire_2": 0
+      },
+      "native_total_rows_before_export": 8,
+      "original_constructor_eclasses": 6,
+      "original_constructor_rows": 8,
+      "original_logical_matches": {
+        "(rewrite (A x) (AA x) :ruleset demo)": 1,
+        "(rewrite (P x) (PP x) :ruleset demo)": 1,
+        "(rule ((AA x)\n       (PP x))\n      ((Large x))\n        :ruleset demo )": 1,
+        "(rule ((AA x)\n       (Q x))\n      ((Other x))\n        :ruleset demo )": 1
+      },
+      "original_native_total_rows": 8,
+      "original_rules_executed": false,
+      "original_tables": {
+        "A": 1,
+        "AA": 1,
+        "Large": 1,
+        "Leaf": 1,
+        "Other": 1,
+        "P": 1,
+        "PP": 1,
+        "Q": 1
+      },
+      "physical_original_rows_before_export": 0,
+      "restored_constructor_eclasses": 6,
+      "restored_constructor_rows": 8,
+      "spine_constructor_eclasses": 4,
+      "spine_constructor_rows": 4,
+      "spine_tables": {
+        "Spine-A": 1,
+        "Spine-Leaf": 1,
+        "Spine-P": 1,
+        "Spine-Q": 1
+      },
+      "status": "passed",
+      "subsumed_summary_rows": 2,
+      "summary_rows": 4,
+      "summary_tables": {
+        "Spine-Summary-0": 1,
+        "Spine-Summary-1": 1,
+        "Spine-Summary-2": 1,
+        "Spine-Summary-3": 1
+      }
+    }
+  }
+}

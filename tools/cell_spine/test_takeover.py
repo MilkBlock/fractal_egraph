@@ -1,0 +1,152 @@
+"""Retirement must preserve late consumers without reviving smaller summaries."""
+import json
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+import unittest
+
+from .compiler import ROOT
+from .takeover import ancestors, var, call, entailed, normalize
+
+
+class Proofs(unittest.TestCase):
+    def test_cyclic_dominance_is_not_retirement(self):
+        lenses = [dict(owner=a,child=b,owner_fields=['p'],child_fields=['p'],args=[var('p')],evidence=[])
+                  for a,b in [(0,1),(1,0),(2,1)]]
+        safe, blocked = ancestors(lenses)
+        self.assertEqual([(x['owner'],x['child']) for x in safe],[(2,1)])
+        self.assertEqual(len(blocked),2)
+
+    def test_existing_summary_does_not_prove_hidden_row_materialized(self):
+        root, x = var('root'),var('x')
+        s=call('Spine-Summary-0',[root,x]); a=call('Spine-A',[x])
+        body=[dict(kind='fact',expr=s)]
+        head=[dict(kind='expr',expr=call('Spine-Hidden',[x])),dict(kind='expr',expr=s)]
+        definitions={'Spine-Summary-0':dict(fields=['root','x'],roots=[a],aliases=[],materialized=[a])}
+        covered, implied = entailed(body,head,definitions,[])
+        self.assertTrue(covered)
+        self.assertEqual(implied,[False])
+
+    def test_equal_constructor_results_do_not_imply_equal_arguments(self):
+        root,a,b=map(var,('root','a','b'))
+        s=call('Spine-Summary-0',[root,a]); other=call('Spine-Summary-0',[root,b])
+        body=[dict(kind='fact',expr=e) for e in (s,other)]
+        head=[dict(kind='union',args=[a,b]),dict(kind='expr',expr=s)]
+        definitions={'Spine-Summary-0':dict(fields=['root','a'],roots=[call('Spine-A',[a])],aliases=[],materialized=[call('Spine-A',[a])])}
+        covered, implied=entailed(body,head,definitions,[])
+        self.assertTrue(covered)
+        self.assertEqual(implied,[False])
+
+    def test_alpha_dedup_preserves_literals(self):
+        def key(name,literal):
+            term=call('A',[var(name),dict(kind='literal',text=literal,sort='i64')])
+            return normalize([dict(kind='fact',expr=term)],[dict(kind='expr',expr=term)])[2]
+        self.assertEqual(key('x','1'),key('y','1'))
+        self.assertNotEqual(key('x','1'),key('x','2'))
+
+
+class NativeTakeover(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.tmp=tempfile.TemporaryDirectory(dir=ROOT/'out',prefix='takeover-test-')
+        cls.folder=Path(cls.tmp.name);cls.outputs={}
+        for name in ('late_takeover','two_retired_parents','nested_parents','transitive_takeover'):
+            out=cls.folder/name
+            subprocess.run([sys.executable,'-m','tools.cell_spine.compiler','--source',
+                ROOT/f'experiments/cell_spine/fixtures/{name}.egg','--output',out,'--mode','symbolic','--skip-build'],
+                check=True,cwd=ROOT,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+            cls.outputs[name]=out
+
+    @classmethod
+    def tearDownClass(cls): cls.tmp.cleanup()
+
+    def verify(self, fixture, name, code, expected, remove_inherited=False, reference=None):
+        out=self.outputs[fixture]
+        manifest=json.loads((out/'work/validation.json').read_text())
+        if remove_inherited:
+            report=json.loads((out/'report.json').read_text())
+            for t in report['transitions']:
+                if t['inherited']: manifest['library']=manifest['library'].replace(t['rule'],'')
+        c=dict(name=name,reference='',reference_path=str(ROOT/f'experiments/cell_spine/fixtures/{fixture}.egg'),
+            compressed=code,restore='(run-schedule (saturate Spine-Export))',expected_active_summaries=expected)
+        if reference is not None: c.update(reference=reference,reference_path=None)
+        manifest['cases']=[c]
+        path=self.folder/f'{name}.json';path.write_text(json.dumps(manifest))
+        result=subprocess.run([ROOT/'target/release/examples/spine_validate',path,self.folder/f'{name}-result.json'],
+                              capture_output=True,text=True)
+        if remove_inherited:
+            self.assertNotEqual(result.returncode,0)
+            self.assertTrue('active Spine-Summary-' in result.stderr or 'full closure mismatch' in result.stderr,result.stderr)
+            return
+        self.assertEqual(result.returncode,0,result.stderr)
+        return json.loads((self.folder/f'{name}-result.json').read_text())['cases'][0]
+
+    def late_code(self, alias=False):
+        q='(Spine-Q y)\n(run-schedule (saturate Spine-Run))\n(fail (check (Spine-Summary-3 a b x)))\n(union x y)' if alias else '(Spine-Q x)'
+        return '''
+(let x (Spine-Leaf "x"))
+''' + ('(let y (Spine-Leaf "y"))\n' if alias else '') + '''
+(Spine-A x) (Spine-P x)
+(run-schedule (saturate Spine-Run))
+; Install a real matcher AFTER retirement. check alone sees subsumed rows!
+(relation SawRetired ())
+(rule ((Spine-Summary-0 r x)) ((SawRetired)) :ruleset Spine-Run :name "probe-retired")
+''' + q + '''
+(run-schedule (saturate Spine-Run))
+(fail (check (SawRetired)))
+'''
+
+    def test_late_q_uses_large_cell_and_does_not_revive_small(self):
+        expected={'Spine-Summary-0':0,'Spine-Summary-1':0,'Spine-Summary-2':1,'Spine-Summary-3':1}
+        result=self.verify('late_takeover','late',self.late_code(),expected)
+        self.assertGreater(result['subsumed_summary_rows'],0)
+        self.assertGreater(sum(n for r,n in result['compressed_logical_matches_before_export'].items() if '_cover_' in r),0)
+        # Without compiler-generated inherited consumers, the same late-Q run
+        # cannot derive Other: no raw alternative is secretly saving this test.
+        self.verify('late_takeover','late-disabled',self.late_code(),expected,remove_inherited=True)
+
+    def test_union_after_retirement_enables_inherited_binding(self):
+        source=(ROOT/'experiments/cell_spine/fixtures/late_takeover.egg').read_text()
+        source=source.replace('(Q (Leaf "x"))','(Q (Leaf "y"))\n(union (Leaf "x") (Leaf "y"))')
+        self.verify('late_takeover','late-union',self.late_code(True),
+                    {'Spine-Summary-0':0,'Spine-Summary-3':1},reference=source)
+
+    def test_uncovered_instance_of_same_family_remains_active(self):
+        code='(Spine-A (Spine-Leaf "z"))\n'+self.late_code()
+        source=(ROOT/'experiments/cell_spine/fixtures/late_takeover.egg').read_text()
+        source=source.replace('(run-schedule','(A (Leaf "z"))\n(run-schedule',1)
+        self.verify('late_takeover','uncovered-instance',code,{'Spine-Summary-0':1},reference=source)
+
+    def test_two_retired_instances_can_still_join_on_late_gate(self):
+        code='''
+(let x (Spine-Leaf "x")) (let y (Spine-Leaf "y"))
+(Spine-A x) (Spine-A y) (Spine-P x) (Spine-P y)
+(run-schedule (saturate Spine-Run))
+(relation SawRetired ())
+(rule ((Spine-Summary-0 r a)) ((SawRetired)) :ruleset Spine-Run :name "probe-retired")
+(Spine-Gate x y)
+(run-schedule (saturate Spine-Run))
+(fail (check (SawRetired)))
+'''
+        r=self.verify('two_retired_parents','two-retired',code,{'Spine-Summary-0':0})
+        self.assertGreater(sum(n for name,n in r['compressed_logical_matches_before_export'].items() if '_cover_' in name),0)
+        self.verify('two_retired_parents','two-disabled',code,{'Spine-Summary-0':0},remove_inherited=True)
+
+    def test_grandparent_consumer_survives_two_retirements(self):
+        code=self.late_code().replace('(Spine-A x) (Spine-P x)', '(Spine-A x) (Spine-P x) (Spine-R x)')
+        result=self.verify('transitive_takeover','grandparent-late',code,{'Spine-Summary-0':0})
+        self.assertEqual(result['active_summary_rows'],2)
+        self.verify('transitive_takeover','grandparent-disabled',code,{'Spine-Summary-0':0},remove_inherited=True)
+
+    def test_transitive_dominance_leaves_only_largest_summary_active(self):
+        out=self.outputs['nested_parents']
+        v=json.loads((out/'validation.json').read_text())['cases'][-1]
+        self.assertEqual(v['active_summary_rows'],1)
+        self.assertEqual(v['subsumed_summary_rows'],4)
+        r=json.loads((out/'report.json').read_text())
+        self.assertTrue(any(len(l['evidence'])>1 for l in r['retirement']['lenses']))
+        self.assertGreater(r['retirement']['redundant_inherited_rules_removed'],0)
+
+
+if __name__=='__main__': unittest.main()

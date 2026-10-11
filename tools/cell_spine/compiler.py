@@ -16,6 +16,7 @@ import sys
 
 from .terms import actions, expressions, text, walk
 from .planner import solve
+from . import takeover
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -198,7 +199,8 @@ def parent_wirings(c, params, by_id):
         if not any(a['kind'] == 'expr' and text(a['expr'], True, c['signatures'], params) in provided
                    for a in c['acts']):
             continue
-        result.append(dict(parent=parent, subst=subst, provided=provided))
+        result.append(dict(parent=parent, subst=subst, provided=provided,
+                           native_subst={raw:child_exprs[token_terms[native_tokens[raw]]] for raw in parent['params']}))
     return result
 
 
@@ -367,13 +369,77 @@ def closure_export(c):
     return f'(rule ({" ".join(body)}) ({" ".join(head)}) :ruleset Spine-Export)'
 
 
-def make_library(candidates, plan, edges, environment, signatures):
+def summary_fields(c):
+    return [f'r{i}' for i in range(len(c['roots']))] + list(c['params'].values())
+
+
+def takeover_lenses(candidates, chosen):
+    direct, by_id = [], {c['id']:c for c in candidates}
+    for c in candidates:
+        owner = chosen[c['family']]
+        params = {raw:takeover.var(name) for raw,name in mapping_to(c,owner).items()}
+        for w in parent_wirings(c,mapping_to(c,owner),by_id):
+            parent = w['parent']; child = chosen[parent['family']]
+            renamed = mapping_to(parent,child)
+            slots = {renamed[raw]:takeover.fork(e,params) for raw,e in w['native_subst'].items()}
+            binding = {raw:slots[name] for raw,name in child['params'].items()}
+            args = [takeover.fork(e,binding) for e in child['roots']] + [binding[raw] for raw in child['params']]
+            direct.append(dict(owner=owner['family'],child=child['family'],args=args,
+                owner_fields=summary_fields(owner),child_fields=summary_fields(child),evidence=[[c['id'],parent['id']]]))
+    lenses, blocked = takeover.ancestors(direct)
+    supports = {}
+    for family, owner in chosen.items():
+        fields = summary_fields(owner)
+        native_fields = dict(zip(fields,owner['roots']+[parse_param(owner,raw) for raw in owner['params']]))
+        def native(e):
+            if e['kind']=='var': return native_fields[e['name']]
+            if e['kind']=='call': return dict(e,head=e['head'].removeprefix('Spine-'),args=[native(a) for a in e['args']])
+            return e
+        def cls(e):
+            try:
+                return resolve(owner['snapshot'],native(e))
+            except (KeyError, StopIteration) as error:
+                raise ValueError(f'Cell {family}: inherited projection is absent from its certified closure: {text(e)}') from error
+        known = {cls(takeover.var(name)):takeover.var(name) for name in fields}
+        def project(e):
+            value = cls(e)
+            if value in known: return known[value]
+            if e['kind']=='call': return dict(e,args=[project(a) for a in e['args']])
+            return e
+        extra, representatives = [], dict(known)
+        for lens in lenses:
+            if lens['owner'] != family: continue
+            for arg in lens['args']:
+                for e in walk(arg):
+                    if e['kind'] != 'call': continue
+                    value = cls(e)  # Fails closed if a projected fact is not in the certified closure.
+                    if value in representatives and e != representatives[value]:
+                        extra.append(dict(kind='union',args=[e,representatives[value]]))
+                    else:
+                        extra.append(dict(kind='expr',expr=e)); representatives[value] = e
+            lens['args'] = [project(e) for e in lens['args']]
+        supports[family] = fields,extra
+    definitions = {}
+    for family, c in chosen.items():
+        fields = summary_fields(c)
+        params = {raw:takeover.var(name) for raw,name in c['params'].items()}
+        roots = [takeover.fork(e,params) for e in c['roots']]
+        exprs = list(c['roots']) + [parse_param(c,raw) for raw in c['params']]
+        classes = [resolve(c['snapshot'],e) for e in exprs]
+        materialized = [takeover.fork(e,params) for root in expressions(c['acts']) for e in walk(root) if e['kind']=='call' and text(e) not in params]
+        materialized += [e for a in supports[family][1] for e in expressions([a])]
+        definitions[f'Spine-Summary-{family}'] = dict(fields=fields,roots=roots,materialized=materialized,
+            aliases=[(i,j) for i in range(len(classes)) for j in range(i) if classes[i]==classes[j]])
+    return lenses, blocked, supports, definitions
+
+
+def make_library(candidates, plan, edges, environment, signatures, work):
     chosen = {c['family']: c for c in candidates if c['id'] in plan['selected']}
-    out = environment + fork_definitions(signatures)
+    out = environment + fork_definitions(signatures) + ['(sort Spine-Cell)']
     for c in chosen.values():
         types = [signatures[e['head']]['output'] for e in c['roots']]
         types += [c['param_sorts'][raw] for raw in c['params']]
-        out.append(f'(relation Spine-Summary-{c["family"]} ({" ".join("Spine-"+t for t in types)}))')
+        out.append(f'(constructor Spine-Summary-{c["family"]} ({" ".join("Spine-"+t for t in types)}) Spine-Cell)')
     emitted, transitions = set(), []
     for edge in edges:
         opt = next(o for o in edge['options'] if o['id'] in plan['implementations'])
@@ -382,10 +448,18 @@ def make_library(candidates, plan, edges, environment, signatures):
             continue
         emitted.add(key)
         rule = option_rule(opt)
-        out += [f'; exact Cell {opt["target_family"]}: observed path {edge["id"]} -> selected path {opt["target_path"]}', rule]
+        out += [f'; selected Cell {opt["target_family"]}: observed path {edge["id"]} -> path {opt["target_path"]}']
         transitions.append(dict(**opt, rule=rule))
+    lenses, blocked, supports, definitions = takeover_lenses(candidates,chosen)
+    parsed = {r['name']:r for r in json.loads((work/'implementations.json').read_text())['rules']}
+    lowered, retire, redundant = takeover.lower([(t,parsed[t['id']]) for t in transitions],lenses,supports,definitions)
+    # The costed plans stay in the report. Only lowered consumers are emitted;
+    # inherited consumers never recreate a small Summary view.
+    out += [r['rule'] for r in lowered] + retire
     out += [closure_export(c) for c in chosen.values()]
-    return '\n'.join(out)+'\n', chosen, transitions
+    retirement = dict(lenses=lenses, cyclic_lenses_retained=blocked, consumers=lowered, retirement_rules=retire, redundant_inherited_rules_removed=redundant,
+                      costed_transitions=transitions, scope='post-selection certified ancestor lowering; inheritance costs are not included in the path ILP objective')
+    return '\n'.join(out)+'\n', chosen, lowered, retirement
 
 
 def compatible_program(data):
@@ -512,7 +586,7 @@ def main():
                         if name not in sig:
                             environment.append(f'(constructor {name} ({" ".join(s["input"])}) {s["output"]})')
                             sig[name]=s
-                lib,chosen,transitions=make_library(cs,plan,edges,environment,sig)
+                lib,chosen,transitions,retirement=make_library(cs,plan,edges,environment,sig,work)
                 runtime,restore=cellify(data,lib)
                 cases=[]
                 for c in cs:
@@ -536,7 +610,7 @@ def main():
                 (a.output/'restore.egg').write_text(runtime+restore)
                 report.update(status='compiled',compressed=True,analysis=str(analysis),plan=plan,rejected=rejected,
                               library_bytes=len(lib.encode()), runtime_bytes=len(runtime.encode()),
-                              transitions=transitions,
+                              transitions=transitions,retirement=retirement,
                               paths=[dict(id=c['id'],family=c['family'],nodes=c['nodes'],lhs_atoms=c['lhs_atoms'],source_folder=c['source_folder']) for c in cs],
                               guarantees='exact finite constructor closure at explicit export from cached snapshots; original rules do not run on compressed path',
                               boundary='baked path whitelist only; no general hidden-fact matcher or automatic dynamic rebake')
