@@ -332,3 +332,43 @@ it does not hardcode operators or assume constructor injectivity. Direct root
 aliases take precedence, and children are projected before the outer expression.
 The RHS keeps its canonical materialization contract. Native regressions verify
 that min/max results are recovered while near misses remain unmatched.
+
+## Split independent scopes before Bake
+
+```sh
+out/cell-spine-venv/bin/python -m tools.cell_spine.split --source /path/to/math.egg
+```
+
+This parser-only command writes `math.split-NNN-RULESET.egg` and `math.split.json`
+**beside the selected source**. It uses `examples/split_ast.rs`, egglog's own
+parser and native S-expression source spans; it does not split parentheses with
+regex or print the normalized AST. Wildcards and adjacent source annotations
+remain intact. `--dry-run` writes nothing; `--skip-build` uses an existing
+`target/release/examples/split_ast` binary.
+
+Each scope with direct schedules is considered once. It inherits its ancestors'
+executed prefixes, excluding completed sibling scopes whose state was popped.
+Only rules from its one scheduled ruleset are kept. Ancestor push wrappers are
+removed; the resulting program describes the selected scope **before pop**.
+Finite counts, `:until`, order of commands, checks and effects are preserved.
+Nested and counted push/pop are supported, and invalid stacks are rejected.
+
+A path still scheduling more than one ruleset (including necessary prefix runs)
+is listed as skipped. We do not split a dependent sequence by merely deleting
+its other rulesets. Includes, combined-ruleset declarations, custom/proof
+commands and external file IO are rejected explicitly. This is a bounded source
+normalization contract, not support for every possible egglog extension.
+Outputs are reparsed before publication. Identical reruns reuse existing files;
+any conflicting edited file prevents publication. The original is untouched.
+The operation does not execute rules, solve a Gurobi model, or certify saturation;
+use ordinary Bake on the resulting file for those later checks.
+
+The complete upstream web-demo `math.egg` has one independent `add-ac` scope and
+20 scopes requiring default + `prune`. The former retains its 7 rounds and original
+check, passes native execution and can be baked as a concrete finite-stage cache.
+It is not renamed as a saturated or parameterized Cell certificate.
+
+```sh
+cargo test --offline --release --example split_ast
+out/cell-spine-venv/bin/python -m unittest tools.cell_spine.test_split -v
+```
