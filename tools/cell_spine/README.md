@@ -99,34 +99,115 @@ mode an unsupported symbolic lowering can use the concrete stage contract; the
 reason is recorded. Solver/license errors remain errors. No engine changes are
 introduced by either compiler.
 
+## Multi-parent spine composition
+
+`fixtures/dual_parents.egg` bakes three exact families. `A(x)` derives `AA(x)`;
+`B(x)` derives `BB(x)`; both hidden facts enable `Joined(x)`. Automatic lowering
+now produces this **actual rule**, rather than factoring just the first parent:
+
+```egg
+(rule ((Spine-Summary-0 parent_0_root_0 p0)
+       (Spine-Summary-1 parent_1_root_0 p0))
+      ((Spine-Summary-2 parent_0_root_0 parent_1_root_0 p0))
+      :ruleset Spine-Run :name "impl_2_0")
+```
+
+`fixtures/nested_parents.egg` additionally checks `A + B -> AB`, then
+`AB + C -> ABC`: the combined spine is an ordinary parent for later baked
+transitions, not a terminal archive.
+
+Both parent spines remain shared. Their common `p0` is the binding constraint;
+family identity alone cannot enable this transition. Neither `AA`, `BB` nor
+`Joined` is materialized as a forked internal node. The larger Cell's Summary
+refers to both existing roots; its cached closure is expanded only in
+`Spine-Export`.
+
+`fixtures/shared_family_graft.egg` demonstrates **two instances of one family**:
+
+```egg
+SummaryA(root0, x, y) + SummaryA(root1, y, z) + Spine-Gate(x, z)
+    -> SummaryCombined(root0, root1, gate, x, y, z)
+```
+
+Instance identities and port mappings are distinct even though the two Summaries
+use the same relation and Gurobi-selected representation. The external `Gate`
+condition remains. A reversed Gate cannot trigger the composition. A new union
+can enable a previously blocked binding, via ordinary egglog canonicalization
+and incremental matching on the Summary relations.
+
+Only parents recorded in Bake history are eligible. Typed history-token mappings,
+seed containment, and explicit equality prerequisites justify factoring. All
+certified parents are retained together; unsupported portions remain in the
+residual pattern. Equality obligations are never erased merely because both
+endpoint nodes exist. Parents of the target family itself are left in residual
+form to avoid self-dependent ingress. This is not arbitrary pair enumeration,
+nor a general matcher for unbaked hidden-fact interactions.
+
 ## Binary optimization
 
-For exact Cell family `f`, choose one observed path `p` using `x[f,p]` and
-`sum_p x[f,p] = 1`. For each shared structural template node, `y[n]` is the OR
-of all choices using it. For observed parent-family edges, `z[p,q]` is the AND of
-the selected endpoint paths. Objective:
+For each exact Cell family `f`, choose one observed representation `p`:
 
 ```
-storage_weight * sum(y)
-+ search_weight * sum(path_LHS_atoms * x)
-+ update_weight * sum(new_template_nodes(p,q) * z[p,q])
+x[p] in {0,1}; sum(p in family f) x[p] = 1
 ```
 
-Weights default to 1 and are explicit CLI arguments. Sharing refers to
-alpha-local **template code shapes**, not automatic identity of different
-runtime instances. Update is likewise a shape-difference proxy, not a claim that
-two runtime bindings share values. This is a global coupled model, not an
-independent shortest-path choice, but it optimizes this stated proxy rather than
-measured Join time, RSS or arbitrary unobserved paths. The model contains all
-admitted observed paths; no candidate budget, sampling or greedy fallback.
-License/model errors are surfaced. Only proven optimal solutions are published.
+A transition is a hyperedge with all its parent instances, their typed binding
+maps, residual facts/equalities, and a target. First compile every endpoint
+representation tuple on this observed hyperedge. Then give each implementation
+`o` a binary `z[o]`:
 
-Parent factoring uses actual history token mappings plus seed containment. It
-replaces the parent subquery with a Summary and keeps residual coarse facts and
-all equality obligations. It does not search arbitrary pairs of Cells. Rules
-with identical ingress/head are deduplicated, retaining a valid factored form
-when available. The selected constructor forest remains visible; Summary is a
-relation and does not change its hashcons key.
+```
+sum(o implements observed hyperedge e) z[o] = 1
+z[o] <= x[p]   for EVERY parent and target representation required by o
+```
+
+Two instances of the same family retain separate bindings but share the one
+representation choice. A tuple with no legal implementation cannot be selected.
+This couples both parents and the target, rather than pricing two unrelated
+pairwise edges. The emitter uses the selected implementation verbatim.
+
+For each alpha-local template shape `n`, `y[n]` is the OR of all selected
+representations using it. Objective:
+
+```
+storage_weight * sum(y[n])
++ search_weight * sum(distinct_lookup_terms_and_guards[o] * z[o])
++ update_weight * sum(distinct_write_terms_and_unions[o] * z[o])
+```
+
+The native expression parser counts **nested** constructor calls, Summary calls
+and explicit equalities/unions from the actual generated rules. Lookup/write
+counts are structural proxies, not measured Join cardinalities or timings.
+Template sharing refers to code shapes, not automatic identity of runtime
+instances. Reusing parent root variables avoids rebuilding those trees in RHS.
+Each observed path contributes once to transition costs; duplicate emitted
+rules can share one declaration. Workload frequencies are not extrapolated.
+
+Weights default to 1 and are explicit CLI arguments. There is no candidate
+budget, sampling or greedy fallback. No search over arbitrary parent subsets is
+introduced: all certified parents of the observed composition are used. For
+hyperedge `e` touching distinct endpoint families `F_e`, the number of compiled
+options is `product(f in F_e) |P_f|`; total options sum over observed hyperedges.
+This can still grow combinatorially with representation alternatives. Gurobi's
+optimality is only for this finite option set and proxy cost. Solver/license
+errors are surfaced, not worked around by quietly dropping options.
+
+`selection.lp`/`.sol` expose the actual coupled model. `transitions.json` records
+all options, port maps, required representations, query/write terms and costs;
+`report.json` lists selected implementations and emitted rules. Concrete stage
+recipe selection remains a separate, per-stage problem. `StageConcat` is still
+archive sharing and is not used as a substitute for these Cell transitions.
+
+Reproduce the native two-parent and same-family cases with:
+
+```sh
+out/cell-spine-venv/bin/python -m tools.cell_spine.compiler \
+  --source experiments/cell_spine/fixtures/dual_parents.egg \
+  --mode symbolic --output out/spine-dual
+out/cell-spine-venv/bin/python -m tools.cell_spine.compiler \
+  --source experiments/cell_spine/fixtures/shared_family_graft.egg \
+  --mode symbolic --output out/spine-shared-family-new
+```
 
 ## Verification
 
@@ -141,7 +222,9 @@ out/cell-spine-venv/bin/python -m unittest tools.cell_spine.test_spine tools.cel
 ```
 
 Tests include global sharing versus independent minima, exhaustive verification
-of a tiny weighted model, actual native analysis on multiple programs, ordinary
+of a three-endpoint hyperedge model, incompatible endpoint tuples, two-parent
+composition, same-family instances, wrong/missing external facts, union-enabled
+transitions, preserved equality guards, actual native analysis on multiple programs, ordinary
 row isolation, full cached-export equivalence, delayed boundary grafting,
 non-injective binding, and negative tests for wrong union, ordinary-node leakage
 and secretly running original rules. Relation/function stage compilation is executed on native egglog, together with

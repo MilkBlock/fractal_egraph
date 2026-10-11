@@ -1,0 +1,13 @@
+; The result of a two-spine composition is itself a parent of the next one.
+(datatype Term (Leaf String) (A Term) (AA Term) (B Term) (BB Term) (C Term) (CC Term) (Joined Term) (Final Term))
+(ruleset demo)
+(rewrite (A x) (AA x) :ruleset demo)
+(rewrite (B x) (BB x) :ruleset demo)
+(rewrite (C x) (CC x) :ruleset demo)
+(rule ((AA x) (BB x)) ((Joined x)) :ruleset demo)
+(rule ((Joined x) (CC x)) ((Final x)) :ruleset demo)
+(A (Leaf "x"))
+(B (Leaf "x"))
+(C (Leaf "x"))
+(run-schedule (saturate demo))
+(check (Final (Leaf "x")))

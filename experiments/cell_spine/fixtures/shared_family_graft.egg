@@ -1,0 +1,10 @@
+; Two instances of one Cell family, connected at y, plus a late coarse fact.
+(datatype Term (Leaf String) (A Term Term) (AA Term Term) (Gate Term Term) (Joined Term Term))
+(ruleset demo)
+(rewrite (A x y) (AA x y) :ruleset demo)
+(rule ((AA x y) (AA y z) (Gate x z)) ((Joined x z)) :ruleset demo)
+(A (Leaf "a") (Leaf "b"))
+(A (Leaf "b") (Leaf "c"))
+(Gate (Leaf "a") (Leaf "c"))
+(run-schedule (saturate demo))
+(check (Joined (Leaf "a") (Leaf "c")))

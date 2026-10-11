@@ -5,6 +5,8 @@ Other finite executions use a verified concrete-stage recipe archive.
 """
 import argparse
 import hashlib
+import itertools
+from collections import defaultdict
 import json
 import math
 import os
@@ -40,7 +42,7 @@ def shape(acts, params):
                    if e['kind'] == 'call' and text(e) not in params})
 
 
-def load_candidates(analysis, work, source):
+def load_candidates(analysis, work):
     report = json.loads((analysis / 'analysis.json').read_text())['saturated_rule_composition']
     catalog = (report.get('catalog') or {}).get('catalog') or {}
     families = {t['binding_origin']['candidate_id']: t['saturated_rule_composition']
@@ -104,9 +106,7 @@ def load_candidates(analysis, work, source):
                 rulesets=r['ripen']['rulesets'], marker=marker, markers=markers))
         except (ValueError, KeyError, FileNotFoundError) as e:
             rejected.append(dict(unit=cid, reason=str(e)))
-    edges = [(families[p], c['family']) for c in candidates
-             for p in (c['origin'].get('composition') or {}).get('parts', []) if p in families]
-    return candidates, edges, rejected
+    return candidates, rejected
 
 
 def fork_definitions(signatures):
@@ -156,75 +156,167 @@ def parse_param(c, raw):
     return next(e for root in expressions(c['acts']) for e in walk(root) if text(e)==raw)
 
 
-def pattern(c, params):
-    sig = c['signatures']
-    body = []
-    for i,a in enumerate(c['acts']):
-        if a['kind']=='expr':
-            body.append(f'(= match_{i} {text(a["expr"], True, sig, params)})')
-        else:
-            body.append('(= ' + ' '.join(text(e, True, sig, params) for e in a['args']) + ')')
-    return list(dict.fromkeys(body))
-
-
 def summary(c, params, roots=None):
-    args = roots if roots is not None else [text(e, True, c['signatures'], params) for e in c['roots']]
+    args = list(roots) if roots is not None else [text(e, True, c['signatures'], params) for e in c['roots']]
     args += [params[raw] for raw in c['params']]
     return f'(Spine-Summary-{c["family"]} {" ".join(args)})'
 
 
-def incremental_body(c, params, by_id, chosen):
-    """Factor an observed parent only when its seed is syntactically contained.
+def parent_wirings(c, params, by_id):
+    """Only observed parents whose seeds/guards occur in this entry.
 
-    Token IDs come from one native history, not e-class ID guesses. The
-    containment check proves the ingress path can create the parent Summary.
-    No search over arbitrary Cell pairs is performed.
+    History tokens align typed ports. Final closure equality is not sufficient
+    evidence for dropping an entry precondition. Unsupported parents stay as
+    explicit residual facts; never guess a join from family IDs alone.
     """
     child_exprs = {text(e): e for a in expressions(c['acts']) for e in walk(a)}
     token_terms = {v['token']: v['term'] for v in c['origin']['symbolic_values']
                    if v['term'] in child_exprs}
     child_nodes = {text(e, True, c['signatures'], params) for e in child_exprs.values()}
-    for pid in (c['origin'].get('composition') or {}).get('parts', []):
-        if pid not in by_id:
-            continue
-        parent = by_id[pid]
-        if parent['family'] == c['family']:
-            continue
+    def guards(path, binding):
+        return {tuple(sorted(text(e, True, path['signatures'], binding) for e in a['args']))
+                for a in path['acts'] if a['kind'] == 'union'}
+    child_guards = guards(c, params)
+    result = []
+    for pid in dict.fromkeys((c['origin'].get('composition') or {}).get('parts', [])):
+        parent = by_id.get(pid)
+        if parent is None or parent['family'] == c['family']:
+            continue  # A self Summary cannot bootstrap its own ingress.
         native_tokens = {v['term']: v['token'] for v in parent['origin']['symbolic_values']}
         try:
             subst = {raw: text(child_exprs[token_terms[native_tokens[raw]]], True, c['signatures'], params)
                      for raw in parent['params']}
+            if any(parent['param_sorts'][raw] != c['signatures'][child_exprs[token_terms[native_tokens[raw]]]['head']]['output']
+                   for raw in parent['params']):
+                continue
         except KeyError:
             continue
-        if any(a['kind'] != 'expr' for a in parent['acts']):
-            continue  # Equality obligations cannot be erased by node containment.
         provided = {text(e, True, parent['signatures'], subst)
                     for a in expressions(parent['acts']) for e in walk(a)}
-        if not provided <= child_nodes:
+        if not provided <= child_nodes or not guards(parent, subst) <= child_guards:
             continue
-        target = chosen[parent['family']]
-        normalized = mapping_to(parent, target)
-        slots = {normalized[raw]: value for raw,value in subst.items()}
-        target_subst = {raw: slots[name] for raw,name in target['params'].items()}
-        root_names = [f'parent_root_{i}' for i in range(len(target['roots']))]
-        root_aliases = {text(e,True,target['signatures'],target_subst): n for e,n in zip(target['roots'],root_names)}
-        residual_params = dict(params)
-        for raw,e in child_exprs.items():
-            if text(e,True,c['signatures'],params) in root_aliases:
-                residual_params[raw] = root_aliases[text(e,True,c['signatures'],params)]
-        residual = []
-        removed = 0
-        for i,a in enumerate(c['acts']):
-            if a['kind']=='expr' and text(a['expr'],True,c['signatures'],params) in provided:
+        if not any(a['kind'] == 'expr' and text(a['expr'], True, c['signatures'], params) in provided
+                   for a in c['acts']):
+            continue
+        result.append(dict(parent=parent, subst=subst, provided=provided))
+    return result
+
+
+def alias_binding(path, binding, aliases):
+    result = dict(binding)
+    for root in expressions(path['acts']):
+        for e in walk(root):
+            term = text(e, True, path['signatures'], binding)
+            if term in aliases:
+                result[text(e)] = aliases[term]
+    return result
+
+
+def lower_option(c, target, wirings, chosen):
+    """Compile the exact hyperedge implementation that the ILP will price."""
+    params = mapping_to(c, target)
+    aliases, provided, body, parents = {}, set(), [], []
+    for i, w in enumerate(wirings):
+        parent, subst = w['parent'], w['subst']
+        representation = chosen[parent['family']]
+        normalized = mapping_to(parent, representation)
+        slots = {normalized[raw]: value for raw, value in subst.items()}
+        binding = {raw: slots[name] for raw, name in representation['params'].items()}
+        roots = []
+        for j, e in enumerate(representation['roots']):
+            term = text(e, True, representation['signatures'], binding)
+            roots.append(aliases.setdefault(term, f'parent_{i}_root_{j}'))
+        body.append(summary(representation, binding, roots))
+        provided.update(w['provided'])
+        parents.append(dict(unit=parent['id'], family=parent['family'], path=representation['id'],
+                            slots=binding, roots=roots))
+    residual_params = alias_binding(c, params, aliases)
+    removed = 0
+    for i, a in enumerate(c['acts']):
+        if a['kind'] == 'expr':
+            if text(a['expr'], True, c['signatures'], params) in provided:
                 removed += 1
-                continue
-            if a['kind']=='expr':
-                residual.append(f'(= match_{i} {text(a["expr"],True,c["signatures"],residual_params)})')
             else:
-                residual.append('(= '+' '.join(text(e,True,c['signatures'],residual_params) for e in a['args'])+')')
-        if removed:
-            return [summary(target,target_subst,root_names)] + residual, dict(parent_unit=pid,parent_family=parent['family'],removed_seed_atoms=removed)
-    return pattern(c,params), None
+                body.append(f'(= match_{i} {text(a["expr"], True, c["signatures"], residual_params)})')
+        else:
+            # Includes cross-parent equalities: two Summaries alone are not a
+            # certificate that independently bound ports have been unioned.
+            body.append('(= ' + ' '.join(text(e, True, c['signatures'], residual_params) for e in a['args']) + ')')
+    target_params = alias_binding(target, target['params'], aliases)
+    head = []
+    for a in target['acts']:
+        if a['kind'] == 'expr' and text(a['expr'], True, target['signatures'], target['params']) in aliases:
+            continue  # Reuse the Summary root rather than reconstruct its tree.
+        head.extend(actions([a], True, target['signatures'], target_params))
+    visible = {}
+    for path, binding in [(c, residual_params), (target, target_params)]:
+        for root in expressions(path['acts']):
+            for e in walk(root):
+                if e['kind'] != 'call':
+                    continue
+                cls = path['value_map'][resolve(path['snapshot'], e)]
+                term = text(e, True, path['signatures'], binding)
+                if cls in visible and visible[cls] != term:
+                    head.append(f'(union {visible[cls]} {term})')
+                else:
+                    visible[cls] = term
+    head = list(dict.fromkeys(head))
+    head.append(summary(target, target_params))
+    body = list(dict.fromkeys(body))
+    return dict(target_unit=c['id'], target_family=c['family'], target_path=target['id'],
+                parents=parents, removed_seed_atoms=removed, body=body, head=head,
+                requires=sorted({target['id'], *(p['path'] for p in parents)}),
+                equality_guards=sum(a['kind'] == 'union' for a in c['acts']))
+
+
+def transition_options(candidates):
+    """All representation tuples on observed hyperedges; no arbitrary pairs.
+
+    Parent instances are never deduplicated by family. Two occurrences of one
+    family share its representation choice, but retain separate port mappings.
+    No powerset search over parent subsets is needed: factor all certified
+    parents, retaining everything else as a residual precondition.
+    """
+    by_id = {c['id']: c for c in candidates}
+    groups = defaultdict(list)
+    for c in candidates:
+        groups[c['family']].append(c)
+    edges = []
+    for c in candidates:
+        options = []
+        for target in groups[c['family']]:
+            wirings = parent_wirings(c, mapping_to(c, target), by_id)
+            families = sorted({w['parent']['family'] for w in wirings})
+            for paths in itertools.product(*(groups[f] for f in families)):
+                chosen = {p['family']: p for p in paths}
+                opt = lower_option(c, target, wirings, chosen)
+                opt['id'] = f'impl_{c["id"]}_{len(options)}'
+                options.append(opt)
+        edges.append(dict(id=c['id'], observed_parents=(c['origin'].get('composition') or {}).get('parts', []),
+                          options=options))
+    return edges
+
+
+def option_rule(opt):
+    return f'(rule ({" ".join(opt["body"])}) ({" ".join(opt["head"])}) :ruleset Spine-Run :name "{opt["id"]}")'
+
+
+def price_options(edges, work):
+    """Batch native parsing counts nested lookups/writes, not just root atoms."""
+    options = {o['id']: o for e in edges for o in e['options']}
+    path = work/'implementations.egg'
+    path.write_text('(ruleset Spine-Run)\n' + '\n'.join(option_rule(o) for o in options.values()))
+    data = ast(path, work/'implementations.json')
+    for rule in data['rules']:
+        opt = options[rule['name']]
+        reads = set()
+        for fact in rule['body']:
+            roots = fact['args'] if fact['kind'] == 'eq' else [fact['expr']]
+            reads.update(text(e) for root in roots for e in walk(root) if e['kind'] == 'call')
+        writes = {text(e) for root in expressions(rule['head']) for e in walk(root) if e['kind'] == 'call'}
+        unions = sum(a['kind'] == 'union' for a in rule['head'])
+        opt.update(search_atoms=len(reads) + opt['equality_guards'], update_actions=len(writes) + unions,
+                   lookup_terms=sorted(reads), write_terms=sorted(writes), union_actions=unions)
 
 
 def closure_export(c):
@@ -275,45 +367,23 @@ def closure_export(c):
     return f'(rule ({" ".join(body)}) ({" ".join(head)}) :ruleset Spine-Export)'
 
 
-def make_library(candidates, selected, environment, signatures):
-    chosen = {c['family']:c for c in candidates if c['id'] in selected}
+def make_library(candidates, plan, edges, environment, signatures):
+    chosen = {c['family']: c for c in candidates if c['id'] in plan['selected']}
     out = environment + fork_definitions(signatures)
     for c in chosen.values():
         types = [signatures[e['head']]['output'] for e in c['roots']]
         types += [c['param_sorts'][raw] for raw in c['params']]
         out.append(f'(relation Spine-Summary-{c["family"]} ({" ".join("Spine-"+t for t in types)}))')
-    emitted = {}
-    by_id = {c['id']:c for c in candidates}
-    transitions = []
-    for c in candidates:
-        target = chosen[c['family']]
-        params = mapping_to(c, target)
-        head = actions(target['acts'], True, signatures, target['params'])
-        # Carry every proven equality between visible spine nodes and ports.
-        # Hidden smooth constructor rows remain in the cached export only.
-        visible = {}
-        for path,binding in [(c,params),(target,target['params'])]:
-            for root in expressions(path['acts']):
-                for e in walk(root):
-                    if e['kind'] != 'call':
-                        continue
-                    cls = path['value_map'][resolve(path['snapshot'],e)]
-                    term = text(e,True,signatures,binding)
-                    if cls in visible and visible[cls] != term:
-                        head.append(f'(union {visible[cls]} {term})')
-                    else:
-                        visible[cls] = term
-        head = list(dict.fromkeys(head))
-        head.append(summary(target, target['params']))
-        body, transition = incremental_body(c,params,by_id,chosen)
-        rule = f'(rule ({" ".join(body)}) ({" ".join(head)}) :ruleset Spine-Run)'
-        key = (tuple(pattern(c,params)),tuple(head))
-        if key not in emitted or (transition and not emitted[key][2]):
-            emitted[key] = (c,rule,transition)
-    for c,rule,transition in emitted.values():
-        if transition:
-            transitions.append(dict(target_unit=c['id'],target_family=c['family'],**transition))
-        out += [f'; exact Cell {c["family"]}: observed path {c["id"]} -> selected path {chosen[c["family"]]["id"]}',rule]
+    emitted, transitions = set(), []
+    for edge in edges:
+        opt = next(o for o in edge['options'] if o['id'] in plan['implementations'])
+        key = (tuple(opt['body']), tuple(opt['head']))
+        if key in emitted:
+            continue
+        emitted.add(key)
+        rule = option_rule(opt)
+        out += [f'; exact Cell {opt["target_family"]}: observed path {edge["id"]} -> selected path {opt["target_path"]}', rule]
+        transitions.append(dict(**opt, rule=rule))
     out += [closure_export(c) for c in chosen.values()]
     return '\n'.join(out)+'\n', chosen, transitions
 
@@ -425,13 +495,15 @@ def main():
                 if not captured.exists(): captured=analysis/'input.egg'
                 if not captured.exists() or captured.read_text().strip()!=a.source.read_text().strip():
                     raise ValueError('analysis source does not match input')
-            cs,edges,rejected=load_candidates(analysis,work,data)
+            cs,rejected=load_candidates(analysis,work)
             if not cs:
                 if a.mode == 'symbolic': raise ValueError('no supported completed Cell paths')
                 from .stages import compile_stages
                 report.update(compile_stages(a.source,a.output,ROOT,'no supported completed Cell paths',weights))
                 report['symbolic_rejected']=rejected
             else:
+                edges=transition_options(cs)
+                price_options(edges,work)
                 plan=solve(cs,edges,a.output,weights)
                 # Definitions preserve the source rules. Only opaque parameter constructors are added.
                 sig=dict(data['signatures']);environment=commands(data,{'declaration','rule'})
@@ -440,7 +512,7 @@ def main():
                         if name not in sig:
                             environment.append(f'(constructor {name} ({" ".join(s["input"])}) {s["output"]})')
                             sig[name]=s
-                lib,chosen,transitions=make_library(cs,plan['selected'],environment,sig)
+                lib,chosen,transitions=make_library(cs,plan,edges,environment,sig)
                 runtime,restore=cellify(data,lib)
                 cases=[]
                 for c in cs:
@@ -458,6 +530,7 @@ def main():
                 (work/'validation.json').write_text(json.dumps(manifest))
                 run([ROOT/'target/release/examples/spine_validate',work/'validation.json',a.output/'validation.json'])
                 # Publish executable output only after every native differential check.
+                (a.output/'transitions.json').write_text(json.dumps(edges,indent=2)+'\n')
                 (a.output/'library.egg').write_text(lib)
                 (a.output/'runtime.egg').write_text(runtime)
                 (a.output/'restore.egg').write_text(runtime+restore)

@@ -1,0 +1,598 @@
+{
+  "scope": "native egglog Bake, compiled Summary hyperedges and full constructor-state differential verification; no performance claim",
+  "cases": [
+    {
+      "name": "dual",
+      "source": "experiments/cell_spine/fixtures/dual_parents.egg",
+      "mode": "compiled",
+      "plan": {
+        "selected": [
+          0,
+          1,
+          2
+        ],
+        "implementations": [
+          "impl_0_0",
+          "impl_1_0",
+          "impl_2_0"
+        ],
+        "objective": 11.0,
+        "bound": 11.0,
+        "costs": {
+          "template_nodes": 2.0,
+          "lookup_atoms_and_guards": 4.0,
+          "write_atoms_and_unions": 5.0
+        },
+        "hyperedges": 3,
+        "implementations_considered": 3,
+        "status": "optimal",
+        "variables": 8,
+        "constraints": 17,
+        "weights": {
+          "storage": 1.0,
+          "search": 1.0,
+          "update": 1.0
+        },
+        "cost_scope": "shared template shapes + distinct nested lookup terms/guards + write terms/unions of compiled implementations; not measured Join work, runtime or RSS"
+      },
+      "emitted_transitions": [
+        {
+          "id": "impl_2_0",
+          "target_unit": 2,
+          "target_family": 2,
+          "target_path": 2,
+          "parents": [
+            {
+              "unit": 0,
+              "family": 0,
+              "path": 0,
+              "slots": {
+                "(RipenInput 0)": "p0"
+              },
+              "roots": [
+                "parent_0_root_0"
+              ]
+            },
+            {
+              "unit": 1,
+              "family": 1,
+              "path": 1,
+              "slots": {
+                "(RipenInput 0)": "p0"
+              },
+              "roots": [
+                "parent_1_root_0"
+              ]
+            }
+          ],
+          "search_atoms": 2,
+          "update_actions": 1,
+          "rule": "(rule ((Spine-Summary-0 parent_0_root_0 p0) (Spine-Summary-1 parent_1_root_0 p0)) ((Spine-Summary-2 parent_0_root_0 parent_1_root_0 p0)) :ruleset Spine-Run :name \"impl_2_0\")"
+        }
+      ],
+      "validation": {
+        "cases": [
+          {
+            "case": "path-0",
+            "comparison": {
+              "states": 3,
+              "status": "equivalent",
+              "value_map": [
+                0,
+                1,
+                2
+              ]
+            },
+            "native_total_rows_before_export": 3,
+            "original_constructor_rows": 3,
+            "original_native_total_rows": 3,
+            "original_rules_executed": false,
+            "physical_original_rows_before_export": 0,
+            "restored_constructor_rows": 3,
+            "spine_constructor_rows": 2,
+            "status": "passed",
+            "summary_rows": 1
+          },
+          {
+            "case": "path-1",
+            "comparison": {
+              "states": 3,
+              "status": "equivalent",
+              "value_map": [
+                0,
+                1,
+                2
+              ]
+            },
+            "native_total_rows_before_export": 3,
+            "original_constructor_rows": 3,
+            "original_native_total_rows": 3,
+            "original_rules_executed": false,
+            "physical_original_rows_before_export": 0,
+            "restored_constructor_rows": 3,
+            "spine_constructor_rows": 2,
+            "status": "passed",
+            "summary_rows": 1
+          },
+          {
+            "case": "path-2",
+            "comparison": {
+              "states": 5,
+              "status": "equivalent",
+              "value_map": [
+                0,
+                1,
+                2,
+                3,
+                4
+              ]
+            },
+            "native_total_rows_before_export": 6,
+            "original_constructor_rows": 6,
+            "original_native_total_rows": 6,
+            "original_rules_executed": false,
+            "physical_original_rows_before_export": 0,
+            "restored_constructor_rows": 6,
+            "spine_constructor_rows": 3,
+            "status": "passed",
+            "summary_rows": 3
+          },
+          {
+            "case": "source",
+            "comparison": {
+              "states": 5,
+              "status": "equivalent",
+              "value_map": [
+                0,
+                1,
+                2,
+                3,
+                4
+              ]
+            },
+            "native_total_rows_before_export": 6,
+            "original_constructor_rows": 6,
+            "original_native_total_rows": 6,
+            "original_rules_executed": false,
+            "physical_original_rows_before_export": 0,
+            "restored_constructor_rows": 6,
+            "spine_constructor_rows": 3,
+            "status": "passed",
+            "summary_rows": 3
+          }
+        ],
+        "native_runtime": true,
+        "scope": "complete constructor rows and equality partition after explicit native closure restoration, not a runtime speedup benchmark"
+      }
+    },
+    {
+      "name": "shared",
+      "source": "experiments/cell_spine/fixtures/shared_family_graft.egg",
+      "mode": "compiled",
+      "plan": {
+        "selected": [
+          1,
+          2
+        ],
+        "implementations": [
+          "impl_0_1",
+          "impl_1_1",
+          "impl_2_1"
+        ],
+        "objective": 14.0,
+        "bound": 14.0,
+        "costs": {
+          "template_nodes": 3.0,
+          "lookup_atoms_and_guards": 5.0,
+          "write_atoms_and_unions": 6.0
+        },
+        "hyperedges": 3,
+        "implementations_considered": 6,
+        "status": "optimal",
+        "variables": 12,
+        "constraints": 21,
+        "weights": {
+          "storage": 1.0,
+          "search": 1.0,
+          "update": 1.0
+        },
+        "cost_scope": "shared template shapes + distinct nested lookup terms/guards + write terms/unions of compiled implementations; not measured Join work, runtime or RSS"
+      },
+      "emitted_transitions": [
+        {
+          "id": "impl_2_1",
+          "target_unit": 2,
+          "target_family": 1,
+          "target_path": 2,
+          "parents": [
+            {
+              "unit": 0,
+              "family": 0,
+              "path": 1,
+              "slots": {
+                "(RipenInput 0)": "p0",
+                "(RipenInput 1)": "p1"
+              },
+              "roots": [
+                "parent_0_root_0"
+              ]
+            },
+            {
+              "unit": 1,
+              "family": 0,
+              "path": 1,
+              "slots": {
+                "(RipenInput 0)": "p1",
+                "(RipenInput 1)": "p2"
+              },
+              "roots": [
+                "parent_1_root_0"
+              ]
+            }
+          ],
+          "search_atoms": 3,
+          "update_actions": 2,
+          "rule": "(rule ((Spine-Summary-0 parent_0_root_0 p0 p1) (Spine-Summary-0 parent_1_root_0 p1 p2) (= match_2 (Spine-Gate p0 p2))) ((Spine-Gate p0 p2) (Spine-Summary-1 parent_0_root_0 parent_1_root_0 (Spine-Gate p0 p2) p0 p1 p2)) :ruleset Spine-Run :name \"impl_2_1\")"
+        }
+      ],
+      "validation": {
+        "cases": [
+          {
+            "case": "path-0",
+            "comparison": {
+              "states": 5,
+              "status": "equivalent",
+              "value_map": [
+                0,
+                1,
+                2,
+                3,
+                4
+              ]
+            },
+            "native_total_rows_before_export": 4,
+            "original_constructor_rows": 4,
+            "original_native_total_rows": 4,
+            "original_rules_executed": false,
+            "physical_original_rows_before_export": 0,
+            "restored_constructor_rows": 4,
+            "spine_constructor_rows": 3,
+            "status": "passed",
+            "summary_rows": 1
+          },
+          {
+            "case": "path-1",
+            "comparison": {
+              "states": 5,
+              "status": "equivalent",
+              "value_map": [
+                0,
+                1,
+                2,
+                3,
+                4
+              ]
+            },
+            "native_total_rows_before_export": 4,
+            "original_constructor_rows": 4,
+            "original_native_total_rows": 4,
+            "original_rules_executed": false,
+            "physical_original_rows_before_export": 0,
+            "restored_constructor_rows": 4,
+            "spine_constructor_rows": 3,
+            "status": "passed",
+            "summary_rows": 1
+          },
+          {
+            "case": "path-2",
+            "comparison": {
+              "states": 10,
+              "status": "equivalent",
+              "value_map": [
+                3,
+                0,
+                4,
+                1,
+                2,
+                5,
+                6,
+                7,
+                8,
+                9
+              ]
+            },
+            "native_total_rows_before_export": 9,
+            "original_constructor_rows": 9,
+            "original_native_total_rows": 9,
+            "original_rules_executed": false,
+            "physical_original_rows_before_export": 0,
+            "restored_constructor_rows": 9,
+            "spine_constructor_rows": 6,
+            "status": "passed",
+            "summary_rows": 3
+          },
+          {
+            "case": "source",
+            "comparison": {
+              "states": 10,
+              "status": "equivalent",
+              "value_map": [
+                3,
+                0,
+                4,
+                1,
+                2,
+                5,
+                6,
+                7,
+                8,
+                9
+              ]
+            },
+            "native_total_rows_before_export": 9,
+            "original_constructor_rows": 9,
+            "original_native_total_rows": 9,
+            "original_rules_executed": false,
+            "physical_original_rows_before_export": 0,
+            "restored_constructor_rows": 9,
+            "spine_constructor_rows": 6,
+            "status": "passed",
+            "summary_rows": 3
+          }
+        ],
+        "native_runtime": true,
+        "scope": "complete constructor rows and equality partition after explicit native closure restoration, not a runtime speedup benchmark"
+      }
+    },
+    {
+      "name": "nested",
+      "source": "experiments/cell_spine/fixtures/nested_parents.egg",
+      "mode": "compiled",
+      "plan": {
+        "selected": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "implementations": [
+          "impl_0_0",
+          "impl_1_0",
+          "impl_2_0",
+          "impl_3_0",
+          "impl_4_0"
+        ],
+        "objective": 18.0,
+        "bound": 18.0,
+        "costs": {
+          "template_nodes": 3.0,
+          "lookup_atoms_and_guards": 7.0,
+          "write_atoms_and_unions": 8.0
+        },
+        "hyperedges": 5,
+        "implementations_considered": 5,
+        "status": "optimal",
+        "variables": 13,
+        "constraints": 30,
+        "weights": {
+          "storage": 1.0,
+          "search": 1.0,
+          "update": 1.0
+        },
+        "cost_scope": "shared template shapes + distinct nested lookup terms/guards + write terms/unions of compiled implementations; not measured Join work, runtime or RSS"
+      },
+      "emitted_transitions": [
+        {
+          "id": "impl_3_0",
+          "target_unit": 3,
+          "target_family": 4,
+          "target_path": 3,
+          "parents": [
+            {
+              "unit": 0,
+              "family": 0,
+              "path": 0,
+              "slots": {
+                "(RipenInput 0)": "p0"
+              },
+              "roots": [
+                "parent_0_root_0"
+              ]
+            },
+            {
+              "unit": 1,
+              "family": 1,
+              "path": 1,
+              "slots": {
+                "(RipenInput 0)": "p0"
+              },
+              "roots": [
+                "parent_1_root_0"
+              ]
+            }
+          ],
+          "search_atoms": 2,
+          "update_actions": 1,
+          "rule": "(rule ((Spine-Summary-0 parent_0_root_0 p0) (Spine-Summary-1 parent_1_root_0 p0)) ((Spine-Summary-4 parent_0_root_0 parent_1_root_0 p0)) :ruleset Spine-Run :name \"impl_3_0\")"
+        },
+        {
+          "id": "impl_4_0",
+          "target_unit": 4,
+          "target_family": 3,
+          "target_path": 4,
+          "parents": [
+            {
+              "unit": 2,
+              "family": 2,
+              "path": 2,
+              "slots": {
+                "(RipenInput 0)": "p0"
+              },
+              "roots": [
+                "parent_0_root_0"
+              ]
+            },
+            {
+              "unit": 3,
+              "family": 4,
+              "path": 3,
+              "slots": {
+                "(RipenInput 0)": "p0"
+              },
+              "roots": [
+                "parent_1_root_0",
+                "parent_1_root_1"
+              ]
+            }
+          ],
+          "search_atoms": 2,
+          "update_actions": 1,
+          "rule": "(rule ((Spine-Summary-2 parent_0_root_0 p0) (Spine-Summary-4 parent_1_root_0 parent_1_root_1 p0)) ((Spine-Summary-3 parent_1_root_0 parent_1_root_1 parent_0_root_0 p0)) :ruleset Spine-Run :name \"impl_4_0\")"
+        }
+      ],
+      "validation": {
+        "cases": [
+          {
+            "case": "path-0",
+            "comparison": {
+              "states": 3,
+              "status": "equivalent",
+              "value_map": [
+                0,
+                1,
+                2
+              ]
+            },
+            "native_total_rows_before_export": 3,
+            "original_constructor_rows": 3,
+            "original_native_total_rows": 3,
+            "original_rules_executed": false,
+            "physical_original_rows_before_export": 0,
+            "restored_constructor_rows": 3,
+            "spine_constructor_rows": 2,
+            "status": "passed",
+            "summary_rows": 1
+          },
+          {
+            "case": "path-1",
+            "comparison": {
+              "states": 3,
+              "status": "equivalent",
+              "value_map": [
+                0,
+                1,
+                2
+              ]
+            },
+            "native_total_rows_before_export": 3,
+            "original_constructor_rows": 3,
+            "original_native_total_rows": 3,
+            "original_rules_executed": false,
+            "physical_original_rows_before_export": 0,
+            "restored_constructor_rows": 3,
+            "spine_constructor_rows": 2,
+            "status": "passed",
+            "summary_rows": 1
+          },
+          {
+            "case": "path-2",
+            "comparison": {
+              "states": 3,
+              "status": "equivalent",
+              "value_map": [
+                0,
+                1,
+                2
+              ]
+            },
+            "native_total_rows_before_export": 3,
+            "original_constructor_rows": 3,
+            "original_native_total_rows": 3,
+            "original_rules_executed": false,
+            "physical_original_rows_before_export": 0,
+            "restored_constructor_rows": 3,
+            "spine_constructor_rows": 2,
+            "status": "passed",
+            "summary_rows": 1
+          },
+          {
+            "case": "path-3",
+            "comparison": {
+              "states": 5,
+              "status": "equivalent",
+              "value_map": [
+                0,
+                1,
+                2,
+                3,
+                4
+              ]
+            },
+            "native_total_rows_before_export": 6,
+            "original_constructor_rows": 6,
+            "original_native_total_rows": 6,
+            "original_rules_executed": false,
+            "physical_original_rows_before_export": 0,
+            "restored_constructor_rows": 6,
+            "spine_constructor_rows": 3,
+            "status": "passed",
+            "summary_rows": 3
+          },
+          {
+            "case": "path-4",
+            "comparison": {
+              "states": 7,
+              "status": "equivalent",
+              "value_map": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            "native_total_rows_before_export": 9,
+            "original_constructor_rows": 9,
+            "original_native_total_rows": 9,
+            "original_rules_executed": false,
+            "physical_original_rows_before_export": 0,
+            "restored_constructor_rows": 9,
+            "spine_constructor_rows": 4,
+            "status": "passed",
+            "summary_rows": 5
+          },
+          {
+            "case": "source",
+            "comparison": {
+              "states": 7,
+              "status": "equivalent",
+              "value_map": [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            },
+            "native_total_rows_before_export": 9,
+            "original_constructor_rows": 9,
+            "original_native_total_rows": 9,
+            "original_rules_executed": false,
+            "physical_original_rows_before_export": 0,
+            "restored_constructor_rows": 9,
+            "spine_constructor_rows": 4,
+            "status": "passed",
+            "summary_rows": 5
+          }
+        ],
+        "native_runtime": true,
+        "scope": "complete constructor rows and equality partition after explicit native closure restoration, not a runtime speedup benchmark"
+      }
+    }
+  ]
+}

@@ -25,25 +25,34 @@ def solve(candidates, edges, output, weights=(1., 1., 1.)):
             for u in uses:
                 model.addConstr(y >= u)
             model.addConstr(y <= gp.quicksum(uses))
-        update = gp.LinExpr()
-        for i, (a, b) in enumerate(sorted(set(edges))):
-            if a == b or a not in groups or b not in groups:
-                continue
-            for p in groups[a]:
-                for q in groups[b]:
-                    z = model.addVar(vtype=gp.GRB.BINARY, name=f'edge_{i}_{p["id"]}_{q["id"]}')
-                    model.addConstr(z <= x[p['id']]); model.addConstr(z <= x[q['id']])
-                    model.addConstr(z >= x[p['id']] + x[q['id']] - 1)
-                    update += len(set(q['nodes']) - set(p['nodes'])) * z
-        search = gp.quicksum(c['lhs_atoms'] * x[c['id']] for c in candidates)
-        model.setObjective(weights[0] * gp.quicksum(ys) + weights[1] * search + weights[2] * update)
+        # One compiled implementation per observed hyperedge. A choice jointly
+        # requires ALL endpoint representations, not independent pairwise edges.
+        z, options = {}, {}
+        for edge in edges:
+            terms = []
+            for opt in edge['options']:
+                v = model.addVar(vtype=gp.GRB.BINARY, name=opt['id'])
+                z[opt['id']] = v
+                options[opt['id']] = opt
+                terms.append(v)
+                for cid in opt['requires']:
+                    model.addConstr(v <= x[cid], name=f'{opt["id"]}_needs_{cid}')
+            model.addConstr(gp.quicksum(terms) == 1, name=f'one_impl_{edge["id"]}')
+        storage = gp.quicksum(ys)
+        search = gp.quicksum(options[k]['search_atoms'] * v for k, v in z.items())
+        update = gp.quicksum(options[k]['update_actions'] * v for k, v in z.items())
+        model.setObjective(weights[0] * storage + weights[1] * search + weights[2] * update)
         model.write(str(output / 'selection.lp'))
         model.optimize()
         if model.Status != gp.GRB.OPTIMAL:
             raise RuntimeError(f'Gurobi did not prove optimality: status {model.Status}')
         model.write(str(output / 'selection.sol'))
         selected = [c['id'] for c in candidates if x[c['id']].X > .5]
-        return dict(selected=selected, objective=model.ObjVal, bound=model.ObjBound,
+        return dict(selected=selected, implementations=[k for k,v in z.items() if v.X > .5],
+                    objective=model.ObjVal, bound=model.ObjBound,
+                    costs=dict(template_nodes=storage.getValue(), lookup_atoms_and_guards=search.getValue(),
+                               write_atoms_and_unions=update.getValue()),
+                    hyperedges=len(edges), implementations_considered=len(z),
                     status='optimal', variables=model.NumVars, constraints=model.NumConstrs,
                     weights=dict(storage=weights[0], search=weights[1], update=weights[2]),
-                    cost_scope='template structure/code and query-atom proxies; not measured runtime or RSS')
+                    cost_scope='shared template shapes + distinct nested lookup terms/guards + write terms/unions of compiled implementations; not measured Join work, runtime or RSS')
