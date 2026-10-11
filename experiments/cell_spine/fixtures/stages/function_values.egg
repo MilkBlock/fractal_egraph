@@ -1,0 +1,8 @@
+(sort IntFn (UnstableFn (i64) i64))
+(function fun () IntFn :no-merge)
+(relation Seed (i64))
+(ruleset one)
+(rule ((Seed x)) ((set (fun) (unstable-fn "+" x))) :ruleset one)
+(Seed 2)
+(run one 1)
+(check (= (unstable-app (fun) 3) 5))

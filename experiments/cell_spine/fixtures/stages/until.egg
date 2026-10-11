@@ -1,0 +1,6 @@
+(function score () i64 :merge new)
+(ruleset one)
+(rule ((= n (score))) ((set (score) (+ n 1))) :ruleset one)
+(set (score) 0)
+(run one 20 :until (= (score) 2))
+(check (= (score) 2))

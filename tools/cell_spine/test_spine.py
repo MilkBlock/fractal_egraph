@@ -64,14 +64,16 @@ class NativePipeline(unittest.TestCase):
                 self.assertEqual(case['physical_original_rows_before_export'],0)
                 self.assertEqual(case['comparison']['status'],'equivalent')
 
-    def test_fallback_preserves_program_bytes(self):
+    def test_functions_and_relations_use_verified_stage_compression(self):
         for name in ('relation_fallback','function_fallback'):
-            d=json.loads((self.outputs[name]/'report.json').read_text())
-            self.assertEqual(d['status'],'native_fallback')
-            source=ROOT/f'experiments/cell_spine/fixtures/{name}.egg'
-            self.assertEqual((self.outputs[name]/'runtime.egg').read_bytes(),source.read_bytes())
-            subprocess.run([ROOT/'target/release/examples/native_math_baseline',self.outputs[name]/'runtime.egg'],check=True,
-                stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+            out=self.outputs[name]
+            d=json.loads((out/'report.json').read_text())
+            self.assertEqual(d['status'],'compiled_stages')
+            self.assertFalse(d['generalizes_bindings'])
+            self.assertTrue((out/'selection.lp').is_file())
+            v=json.loads((out/'validation.json').read_text())
+            self.assertTrue(v['cases'])
+            self.assertTrue(all(c['comparison']['status']=='equivalent' for c in v['cases']))
 
     def test_invalid_union_is_rejected(self):
         output=self.outputs['assoc']

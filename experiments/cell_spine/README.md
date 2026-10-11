@@ -42,3 +42,8 @@ contract. Unsupported grafts remain unsupported rather than silently expanding
 the whitelist. Input Math references participate in native canonicalization;
 the summary does not assert that arbitrary unions preserve its baked interface.
 The 0-1 path-selection optimization is deliberately not implemented here.
+
+Current-input stage compilation is covered by `fixtures/stages/` and
+`stage-results.json`: 14 programs / 55 native checkpoints, including upstream
+list and merge examples. The stage archive is intentionally distinct from the
+parameterized Add spine above; its full contract is in the compiler README.

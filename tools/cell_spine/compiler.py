@@ -1,7 +1,7 @@
 """Native Bake -> exact catalog -> Gurobi -> multi-node spine .egg.
 
 Only positive constructor/equality certificates authorize template substitution.
-Other programs are explicitly emitted as unchanged native fallbacks.
+Other finite executions use a verified concrete-stage recipe archive.
 """
 import argparse
 import hashlib
@@ -386,6 +386,7 @@ def main():
     p.add_argument('--source',type=Path,required=True)
     p.add_argument('--output',type=Path,required=True)
     p.add_argument('--analysis-dir',type=Path)
+    p.add_argument('--mode',choices=('auto','symbolic','stages'),default='auto')
     p.add_argument('--storage-weight',type=float,default=1.)
     p.add_argument('--search-weight',type=float,default=1.)
     p.add_argument('--update-weight',type=float,default=1.)
@@ -400,67 +401,78 @@ def main():
     a.output.mkdir(parents=True,exist_ok=True)
     work=a.output/'work';work.mkdir()
     if not a.skip_build:
-        run(['cargo','build','--offline','--release','--bin','egg_layout','--example','lhs_ast','--example','spine_validate'])
+        run(['cargo','build','--offline','--release','--bin','egg_layout','--example','lhs_ast','--example','spine_validate','--example','spine_stages','--example','native_math_baseline'])
     data=ast(a.source,work/'input.json')
     report=dict(schema='cell-spine/v1',source=str(a.source),source_sha256=digest(a.source))
     problem=compatible_program(data)
+    if a.mode=='stages': problem='explicit concrete stage mode'
+    if a.mode=='symbolic' and problem: raise ValueError(problem)
     if problem:
-        (a.output/'runtime.egg').write_bytes(a.source.read_bytes())
-        report.update(status='native_fallback',reason=problem,compressed=False)
+        from .stages import compile_stages
+        report.update(compile_stages(a.source,a.output,ROOT,problem,weights))
     else:
         try:
-            import gurobipy  # Fail before native analysis if the requested solver is absent.
-        except ImportError as e:
-            raise RuntimeError('install tools/cell_spine/requirements.txt in the Python environment running this command') from e
-        analysis=a.analysis_dir.resolve() if a.analysis_dir else a.output/'analysis'
-        if not a.analysis_dir:
-            env=dict(os.environ,EGG_LAYOUT_GRAPHS='0')
-            run([ROOT/'target/release/egg_layout','analyze','--source',a.source,'--output',analysis],env=env)
-        else:
-            captured=analysis/'source.egg'
-            if not captured.exists(): captured=analysis/'input.egg'
-            if not captured.exists() or captured.read_text().strip()!=a.source.read_text().strip():
-                raise ValueError('analysis source does not match input')
-        cs,edges,rejected=load_candidates(analysis,work,data)
-        if not cs:
-            (a.output/'runtime.egg').write_bytes(a.source.read_bytes())
-            report.update(status='native_fallback',reason='no supported completed Cell paths',rejected=rejected,compressed=False)
-        else:
-            plan=solve(cs,edges,a.output,weights)
-            # Definitions preserve the source rules. Only opaque parameter constructors are added.
-            sig=dict(data['signatures']);environment=commands(data,{'declaration','rule'})
-            for c in cs:
-                for name,s in c['signatures'].items():
-                    if name not in sig:
-                        environment.append(f'(constructor {name} ({" ".join(s["input"])}) {s["output"]})')
-                        sig[name]=s
-            lib,chosen,transitions=make_library(cs,plan['selected'],environment,sig)
-            runtime,restore=cellify(data,lib)
-            cases=[]
-            for c in cs:
-                # Check the actual staged native entry against flattened spine export.
-                src=Path(c['source_folder'])/'entry.egg'
-                seed=(work/f'path-{c["id"]}.json')
-                ds=json.loads(seed.read_text())
-                compact='\n'.join(actions([x['action'] for x in ds['actions']],True,sig))+'\n(run-schedule (saturate Spine-Run))\n'
-                ruleset=c['rulesets'][0] if c['rulesets'] else ''
-                finish='(run-schedule (saturate Spine-Export))\n'
-                cases.append(dict(name=f'path-{c["id"]}',reference_path=str(src),reference=f'\n(run-schedule (saturate (run {ruleset})))',compressed=compact,restore=finish,
-                                  expected_summary=f'Spine-Summary-{c["family"]}'))
-            cases.append(dict(name='source',reference_path=str(a.source),reference='',compressed=runtime.removeprefix(lib),restore=restore))
-            manifest=dict(constructors=sorted(sig),cases=cases,library=lib)
-            (work/'validation.json').write_text(json.dumps(manifest))
-            run([ROOT/'target/release/examples/spine_validate',work/'validation.json',a.output/'validation.json'])
-            # Publish executable output only after every native differential check.
-            (a.output/'library.egg').write_text(lib)
-            (a.output/'runtime.egg').write_text(runtime)
-            (a.output/'restore.egg').write_text(runtime+restore)
-            report.update(status='compiled',compressed=True,analysis=str(analysis),plan=plan,rejected=rejected,
-                          library_bytes=len(lib.encode()), runtime_bytes=len(runtime.encode()),
-                          transitions=transitions,
-                          paths=[dict(id=c['id'],family=c['family'],nodes=c['nodes'],lhs_atoms=c['lhs_atoms'],source_folder=c['source_folder']) for c in cs],
-                          guarantees='exact finite constructor closure at explicit export from cached snapshots; original rules do not run on compressed path',
-                          boundary='baked path whitelist only; no general hidden-fact matcher or automatic dynamic rebake')
+            try:
+                import gurobipy  # Fail before native analysis if the requested solver is absent.
+            except ImportError as e:
+                raise RuntimeError('install tools/cell_spine/requirements.txt in the Python environment running this command') from e
+            analysis=a.analysis_dir.resolve() if a.analysis_dir else a.output/'analysis'
+            if not a.analysis_dir:
+                env=dict(os.environ,EGG_LAYOUT_GRAPHS='0')
+                run([ROOT/'target/release/egg_layout','analyze','--source',a.source,'--output',analysis],env=env)
+            else:
+                captured=analysis/'source.egg'
+                if not captured.exists(): captured=analysis/'input.egg'
+                if not captured.exists() or captured.read_text().strip()!=a.source.read_text().strip():
+                    raise ValueError('analysis source does not match input')
+            cs,edges,rejected=load_candidates(analysis,work,data)
+            if not cs:
+                if a.mode == 'symbolic': raise ValueError('no supported completed Cell paths')
+                from .stages import compile_stages
+                report.update(compile_stages(a.source,a.output,ROOT,'no supported completed Cell paths',weights))
+                report['symbolic_rejected']=rejected
+            else:
+                plan=solve(cs,edges,a.output,weights)
+                # Definitions preserve the source rules. Only opaque parameter constructors are added.
+                sig=dict(data['signatures']);environment=commands(data,{'declaration','rule'})
+                for c in cs:
+                    for name,s in c['signatures'].items():
+                        if name not in sig:
+                            environment.append(f'(constructor {name} ({" ".join(s["input"])}) {s["output"]})')
+                            sig[name]=s
+                lib,chosen,transitions=make_library(cs,plan['selected'],environment,sig)
+                runtime,restore=cellify(data,lib)
+                cases=[]
+                for c in cs:
+                    # Check the actual staged native entry against flattened spine export.
+                    src=Path(c['source_folder'])/'entry.egg'
+                    seed=(work/f'path-{c["id"]}.json')
+                    ds=json.loads(seed.read_text())
+                    compact='\n'.join(actions([x['action'] for x in ds['actions']],True,sig))+'\n(run-schedule (saturate Spine-Run))\n'
+                    ruleset=c['rulesets'][0] if c['rulesets'] else ''
+                    finish='(run-schedule (saturate Spine-Export))\n'
+                    cases.append(dict(name=f'path-{c["id"]}',reference_path=str(src),reference=f'\n(run-schedule (saturate (run {ruleset})))',compressed=compact,restore=finish,
+                                      expected_summary=f'Spine-Summary-{c["family"]}'))
+                cases.append(dict(name='source',reference_path=str(a.source),reference='',compressed=runtime.removeprefix(lib),restore=restore))
+                manifest=dict(constructors=sorted(sig),cases=cases,library=lib)
+                (work/'validation.json').write_text(json.dumps(manifest))
+                run([ROOT/'target/release/examples/spine_validate',work/'validation.json',a.output/'validation.json'])
+                # Publish executable output only after every native differential check.
+                (a.output/'library.egg').write_text(lib)
+                (a.output/'runtime.egg').write_text(runtime)
+                (a.output/'restore.egg').write_text(runtime+restore)
+                report.update(status='compiled',compressed=True,analysis=str(analysis),plan=plan,rejected=rejected,
+                              library_bytes=len(lib.encode()), runtime_bytes=len(runtime.encode()),
+                              transitions=transitions,
+                              paths=[dict(id=c['id'],family=c['family'],nodes=c['nodes'],lhs_atoms=c['lhs_atoms'],source_folder=c['source_folder']) for c in cs],
+                              guarantees='exact finite constructor closure at explicit export from cached snapshots; original rules do not run on compressed path',
+                              boundary='baked path whitelist only; no general hidden-fact matcher or automatic dynamic rebake')
+        except (ValueError, subprocess.CalledProcessError) as error:
+            if a.mode != 'auto' or a.analysis_dir is not None:
+                raise
+            from .stages import compile_stages
+            report.update(compile_stages(a.source,a.output,ROOT,
+                f'parameterized lowering rejected: {error}',weights))
     (a.output/'report.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps({k:report[k] for k in ('status','compressed','reason') if k in report}))
 

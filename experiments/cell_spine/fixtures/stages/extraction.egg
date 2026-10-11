@@ -1,0 +1,8 @@
+(datatype Term (V i64 :cost 1) (Wrap Term :cost 10))
+(ruleset one)
+(rewrite (Wrap x) x :ruleset one)
+(let root (Wrap (V 7)))
+(run one 1)
+(extract root)
+(print-function V)
+(print-size V)
