@@ -18,6 +18,8 @@ struct Manifest {
     cases: Vec<Case>,
     #[serde(default)]
     library: String,
+    #[serde(default)]
+    dump_states: bool,
 }
 #[derive(Deserialize)]
 struct Case {
@@ -100,6 +102,28 @@ fn count(eg: &EGraph, name: &str) -> usize {
     }
     n
 }
+fn classes(state: &SaturatedRuleComposition) -> usize {
+    state
+        .rows
+        .iter()
+        .map(|r| r.result)
+        .collect::<BTreeSet<_>>()
+        .len()
+}
+fn table_rows(state: &SaturatedRuleComposition) -> BTreeMap<String, usize> {
+    let mut counts = BTreeMap::new();
+    for row in &state.rows {
+        *counts.entry(row.op.clone()).or_default() += 1;
+    }
+    counts
+}
+fn matches(eg: &EGraph) -> BTreeMap<String, usize> {
+    eg.get_overall_run_report()
+        .num_matches_per_rule
+        .iter()
+        .map(|(rule, count)| (rule.to_string(), *count))
+        .collect()
+}
 fn execute_spine(eg: &mut EGraph, source: &str) -> Result {
     use egglog::ast::{Command, GenericSchedule as S};
     fn admitted(s: &egglog::ast::Schedule) -> bool {
@@ -150,17 +174,22 @@ fn main() -> Result {
                 return Err(format!("{}: missing expected summary {name}", c.name).into());
             }
         }
-        let spine_rows: usize = manifest
+        let spine_names: Vec<_> = manifest
             .constructors
             .iter()
-            .map(|n| count(&compressed, &format!("Spine-{n}")))
-            .sum();
-        let summary_rows: usize = compressed
+            .map(|n| format!("Spine-{n}"))
+            .collect();
+        let spine = snapshot(&compressed, &spine_names)?;
+        let summary_tables: BTreeMap<_, _> = compressed
             .get_function_names()
             .iter()
             .filter(|n| n.starts_with("Spine-Summary-"))
-            .map(|n| count(&compressed, n))
-            .sum();
+            .map(|n| (n.to_string(), count(&compressed, n)))
+            .collect();
+        let summary_rows: usize = summary_tables.values().sum();
+        // Capture before export: cached expansion matches must not be charged
+        // to compressed inference. These are logical matches, not mutations.
+        let compressed_matches = matches(&compressed);
         let native_rows_before_export = compressed.num_tuples();
         execute_spine(&mut compressed, &c.restore)?;
         let actual = snapshot(&compressed, &manifest.constructors)?;
@@ -173,7 +202,20 @@ fn main() -> Result {
             )
             .into());
         }
-        report.push(json!({"case":c.name,"status":"passed","original_rules_executed":false,"physical_original_rows_before_export":before.rows.len(),"spine_constructor_rows":spine_rows,"summary_rows":summary_rows,"native_total_rows_before_export":native_rows_before_export,"original_native_total_rows":original.num_tuples(),"original_constructor_rows":expected.rows.len(),"restored_constructor_rows":actual.rows.len(),"comparison":comparison}));
+        let mut result = json!({"case":c.name,"status":"passed","original_rules_executed":false,
+            "physical_original_rows_before_export":before.rows.len(),"spine_constructor_rows":spine.rows.len(),
+            "summary_rows":summary_rows,"summary_tables":summary_tables,
+            "native_total_rows_before_export":native_rows_before_export,"original_native_total_rows":original.num_tuples(),
+            "original_constructor_rows":expected.rows.len(),"restored_constructor_rows":actual.rows.len(),
+            "original_constructor_eclasses":classes(&expected),"spine_constructor_eclasses":classes(&spine),
+            "restored_constructor_eclasses":classes(&actual),
+            "original_tables":table_rows(&expected),"spine_tables":table_rows(&spine),
+            "original_logical_matches":matches(&original),"compressed_logical_matches_before_export":compressed_matches,
+            "comparison":comparison});
+        if manifest.dump_states {
+            result["states"] = json!({"original":expected,"spine":spine,"restored":actual});
+        }
+        report.push(result);
     }
     fs::write(
         &args[2],

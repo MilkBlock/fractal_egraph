@@ -1,0 +1,10 @@
+; Four rules copied from egglog/tests/math-microbenchmark.egg:19,20,33,34.
+; A single seed and saturation replace the full benchmark's inputs and run 11.
+(datatype Math (Add Math Math) (Mul Math Math) (Var String))
+(rewrite (Add a b) (Add b a))
+(rewrite (Mul a b) (Mul b a))
+(rewrite (Mul a (Add b c)) (Add (Mul a b) (Mul a c)))
+(rewrite (Add (Mul a b) (Mul a c)) (Mul a (Add b c)))
+(let root (Add (Mul (Var "y") (Var "x")) (Mul (Var "z") (Var "x"))))
+(run-schedule (saturate (run)))
+(check (= root (Add (Mul (Var "x") (Var "y")) (Mul (Var "x") (Var "z")))))

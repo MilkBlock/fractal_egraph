@@ -1,0 +1,48 @@
+(datatype Math (Add Math Math) (Mul Math Math) (Var String))
+(rewrite (Add a b) (Add b a))
+(rewrite (Mul a b) (Mul b a))
+(rewrite (Mul a (Add b c)) (Add (Mul a b) (Mul a c)))
+(rewrite (Add (Mul a b) (Mul a c)) (Mul a (Add b c)))
+(constructor RipenInput (i64) Math)
+(ruleset Spine-Run)
+(ruleset Spine-Export)
+(sort Spine-Math)
+(constructor Spine-Add (Spine-Math Spine-Math) Spine-Math)
+(constructor Spine-Mul (Spine-Math Spine-Math) Spine-Math)
+(constructor Spine-Var (String) Spine-Math)
+(constructor Spine-RipenInput (i64) Spine-Math)
+(function Spine-Reified-Math (Spine-Math) Math :merge old)
+(rule ((= s (Spine-Add x0 x1)) (= y0 (Spine-Reified-Math x0)) (= y1 (Spine-Reified-Math x1))) ((set (Spine-Reified-Math s) (Add y0 y1))) :ruleset Spine-Export)
+(rule ((= s (Spine-Add x0 x1)) (= y0 (Spine-Reified-Math x0)) (= y1 (Spine-Reified-Math x1)) (= previous (Spine-Reified-Math s))) ((union previous (Add y0 y1))) :ruleset Spine-Export)
+(rule ((= s (Spine-Mul x0 x1)) (= y0 (Spine-Reified-Math x0)) (= y1 (Spine-Reified-Math x1))) ((set (Spine-Reified-Math s) (Mul y0 y1))) :ruleset Spine-Export)
+(rule ((= s (Spine-Mul x0 x1)) (= y0 (Spine-Reified-Math x0)) (= y1 (Spine-Reified-Math x1)) (= previous (Spine-Reified-Math s))) ((union previous (Mul y0 y1))) :ruleset Spine-Export)
+(rule ((= s (Spine-Var x0))) ((set (Spine-Reified-Math s) (Var x0))) :ruleset Spine-Export)
+(rule ((= s (Spine-Var x0)) (= previous (Spine-Reified-Math s))) ((union previous (Var x0))) :ruleset Spine-Export)
+(rule ((= s (Spine-RipenInput x0))) ((set (Spine-Reified-Math s) (RipenInput x0))) :ruleset Spine-Export)
+(rule ((= s (Spine-RipenInput x0)) (= previous (Spine-Reified-Math s))) ((union previous (RipenInput x0))) :ruleset Spine-Export)
+(relation Spine-Summary-0 (Spine-Math Spine-Math Spine-Math))
+(relation Spine-Summary-1 (Spine-Math Spine-Math Spine-Math))
+(relation Spine-Summary-2 (Spine-Math Spine-Math Spine-Math Spine-Math Spine-Math Spine-Math))
+(relation Spine-Summary-3 (Spine-Math Spine-Math Spine-Math Spine-Math Spine-Math Spine-Math Spine-Math Spine-Math))
+; exact Cell 0: observed path 0 -> selected path 0
+(rule ((= match_0 (Spine-Add p0 p1))) ((Spine-Add p0 p1) (Spine-Summary-0 (Spine-Add p0 p1) p0 p1)) :ruleset Spine-Run :name "impl_0_0")
+; exact Cell 1: observed path 1 -> selected path 1
+(rule ((= match_0 (Spine-Mul p0 p1))) ((Spine-Mul p0 p1) (Spine-Summary-1 (Spine-Mul p0 p1) p0 p1)) :ruleset Spine-Run :name "impl_1_0")
+; exact Cell 2: observed path 3 -> selected path 5
+(rule ((Spine-Summary-1 parent_0_root_0 p0 p1) (Spine-Summary-1 parent_1_root_0 p2 p1) (= match_2 (Spine-Add (Spine-Mul p1 p0) (Spine-Mul p1 p2)))) ((Spine-Add (Spine-Mul p1 p0) (Spine-Mul p1 p2)) (union parent_0_root_0 (Spine-Mul p1 p0)) (union parent_1_root_0 (Spine-Mul p1 p2)) (Spine-Summary-2 parent_0_root_0 parent_1_root_0 (Spine-Add (Spine-Mul p1 p0) (Spine-Mul p1 p2)) p0 p1 p2)) :ruleset Spine-Run :name "impl_3_2")
+; exact Cell 3: observed path 4 -> selected path 7
+(rule ((Spine-Summary-0 parent_0_root_0 p0 p1) (Spine-Summary-1 parent_1_root_0 p2 p3) (Spine-Summary-1 parent_2_root_0 p4 p3) (= p0 parent_1_root_0) (= p1 parent_2_root_0)) ((union p0 parent_1_root_0) (union p1 parent_2_root_0) (Spine-Summary-3 parent_0_root_0 parent_1_root_0 parent_2_root_0 p0 p1 p2 p3 p4)) :ruleset Spine-Run :name "impl_4_2")
+; exact Cell 2: observed path 5 -> selected path 5
+(rule ((= match_0 (Spine-Mul p0 p1)) (= match_1 (Spine-Mul p2 p1)) (= match_2 (Spine-Add (Spine-Mul p1 p0) (Spine-Mul p1 p2)))) ((Spine-Mul p0 p1) (Spine-Mul p2 p1) (Spine-Add (Spine-Mul p1 p0) (Spine-Mul p1 p2)) (union (Spine-Mul p0 p1) (Spine-Mul p1 p0)) (union (Spine-Mul p2 p1) (Spine-Mul p1 p2)) (Spine-Summary-2 (Spine-Mul p0 p1) (Spine-Mul p2 p1) (Spine-Add (Spine-Mul p1 p0) (Spine-Mul p1 p2)) p0 p1 p2)) :ruleset Spine-Run :name "impl_5_1")
+; exact Cell 3: observed path 7 -> selected path 7
+(rule ((= match_0 (Spine-Add p0 p1)) (= match_1 (Spine-Mul p2 p3)) (= p0 (Spine-Mul p2 p3)) (= match_3 (Spine-Mul p4 p3)) (= p1 (Spine-Mul p4 p3))) ((Spine-Add p0 p1) (Spine-Mul p2 p3) (union p0 (Spine-Mul p2 p3)) (Spine-Mul p4 p3) (union p1 (Spine-Mul p4 p3)) (Spine-Summary-3 (Spine-Add p0 p1) (Spine-Mul p2 p3) (Spine-Mul p4 p3) p0 p1 p2 p3 p4)) :ruleset Spine-Run :name "impl_7_1")
+(rule ((Spine-Summary-0 export_root_0 p0 p1) (= export_input_0 (Spine-Reified-Math p0)) (= export_input_1 (Spine-Reified-Math p1))) ((let export_class_2 (Add export_input_0 export_input_1)) (union export_class_2 (Add export_input_1 export_input_0)) (set (Spine-Reified-Math export_root_0) export_class_2)) :ruleset Spine-Export)
+(rule ((Spine-Summary-1 export_root_0 p0 p1) (= export_input_0 (Spine-Reified-Math p0)) (= export_input_1 (Spine-Reified-Math p1))) ((let export_class_2 (Mul export_input_0 export_input_1)) (union export_class_2 (Mul export_input_1 export_input_0)) (set (Spine-Reified-Math export_root_0) export_class_2)) :ruleset Spine-Export)
+(rule ((Spine-Summary-2 export_root_0 export_root_1 export_root_2 p0 p1 p2) (= export_input_0 (Spine-Reified-Math p0)) (= export_input_1 (Spine-Reified-Math p1)) (= export_input_2 (Spine-Reified-Math p2))) ((let export_class_5 (Add export_input_0 export_input_2)) (union export_class_5 (Add export_input_2 export_input_0)) (let export_class_0 (Mul export_input_0 export_input_1)) (let export_class_1 (Mul export_input_2 export_input_1)) (let export_class_2 (Mul export_class_5 export_input_1)) (union export_class_0 (Mul export_input_1 export_input_0)) (union export_class_1 (Mul export_input_1 export_input_2)) (union export_class_2 (Mul export_input_1 export_class_5)) (union export_class_2 (Add export_class_0 export_class_1)) (union export_class_2 (Add export_class_1 export_class_0)) (set (Spine-Reified-Math export_root_0) export_class_0) (set (Spine-Reified-Math export_root_1) export_class_1) (set (Spine-Reified-Math export_root_2) export_class_2)) :ruleset Spine-Export)
+(rule ((Spine-Summary-3 export_root_0 export_root_1 export_root_2 p0 p1 p2 p3 p4) (= export_input_0 (Spine-Reified-Math p0)) (= export_input_1 (Spine-Reified-Math p1)) (= export_input_2 (Spine-Reified-Math p2)) (= export_input_3 (Spine-Reified-Math p3)) (= export_input_4 (Spine-Reified-Math p4))) ((let export_class_2 (Add export_input_0 export_input_1)) (union export_class_2 (Add export_input_1 export_input_0)) (let export_class_5 (Add export_input_4 export_input_2)) (union export_class_5 (Add export_input_2 export_input_4)) (union export_input_1 (Mul export_input_4 export_input_3)) (union export_input_0 (Mul export_input_2 export_input_3)) (union export_class_2 (Mul export_class_5 export_input_3)) (union export_input_1 (Mul export_input_3 export_input_4)) (union export_input_0 (Mul export_input_3 export_input_2)) (union export_class_2 (Mul export_input_3 export_class_5)) (set (Spine-Reified-Math export_root_0) export_class_2) (set (Spine-Reified-Math export_root_1) export_input_0) (set (Spine-Reified-Math export_root_2) export_input_1)) :ruleset Spine-Export)
+
+; Automatic constructor-level ingress; no scan of a materialized original graph.
+(let root (Spine-Add (Spine-Mul (Spine-Var "y") (Spine-Var "x")) (Spine-Mul (Spine-Var "z") (Spine-Var "x"))))
+(run-schedule (saturate Spine-Run))
+(run-schedule (saturate Spine-Export))
+(check (= (Spine-Reified-Math root) (Add (Mul (Var "x") (Var "y")) (Mul (Var "x") (Var "z")))))

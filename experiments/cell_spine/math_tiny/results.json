@@ -1,0 +1,318 @@
+{
+  "scope": "native constructor-state and logical-match comparison; not a speed/RSS benchmark",
+  "provenance": {
+    "source": "egglog/tests/math-microbenchmark.egg",
+    "sha256": "aaa8942131b4db57e76710486718790e1d7f2cb9288aeb702c0c17019439cf16",
+    "rule_lines": [
+      19,
+      20,
+      33,
+      34
+    ]
+  },
+  "cases": {
+    "factored": {
+      "seed": "x × (y + z)",
+      "validation": {
+        "case": "source",
+        "comparison": {
+          "states": 10,
+          "status": "equivalent"
+        },
+        "compressed_logical_matches_before_export": {
+          "impl_0_0": 1,
+          "impl_1_0": 1,
+          "impl_2_3": 1
+        },
+        "native_total_rows_before_export": 9,
+        "original_constructor_eclasses": 7,
+        "original_constructor_rows": 13,
+        "original_logical_matches": {
+          "(rewrite (Add (Mul a b) (Mul a c)) (Mul a (Add b c)))": 2,
+          "(rewrite (Add a b) (Add b a))": 4,
+          "(rewrite (Mul a (Add b c)) (Add (Mul a b) (Mul a c)))": 2,
+          "(rewrite (Mul a b) (Mul b a))": 6
+        },
+        "original_native_total_rows": 14,
+        "original_rules_executed": false,
+        "original_tables": {
+          "Add": 4,
+          "Mul": 6,
+          "Var": 3
+        },
+        "physical_original_rows_before_export": 0,
+        "restored_constructor_eclasses": 7,
+        "restored_constructor_rows": 13,
+        "spine_constructor_eclasses": 5,
+        "spine_constructor_rows": 5,
+        "spine_tables": {
+          "Spine-Add": 1,
+          "Spine-Mul": 1,
+          "Spine-Var": 3
+        },
+        "status": "passed",
+        "summary_rows": 3,
+        "summary_tables": {
+          "Spine-Summary-0": 1,
+          "Spine-Summary-1": 1,
+          "Spine-Summary-2": 1
+        }
+      },
+      "plan": {
+        "selected": [
+          0,
+          1,
+          5
+        ],
+        "implementations": [
+          "impl_0_0",
+          "impl_1_0",
+          "impl_2_3",
+          "impl_3_3",
+          "impl_4_3",
+          "impl_5_3"
+        ],
+        "objective": 30.0,
+        "bound": 30.0,
+        "costs": {
+          "template_nodes": 4.0,
+          "lookup_atoms_and_guards": 10.0,
+          "write_atoms_and_unions": 16.0
+        },
+        "hyperedges": 6,
+        "implementations_considered": 18,
+        "status": "optimal",
+        "variables": 28,
+        "constraints": 41,
+        "weights": {
+          "storage": 1.0,
+          "search": 1.0,
+          "update": 1.0
+        },
+        "cost_scope": "shared template shapes + distinct nested lookup terms/guards + write terms/unions of compiled implementations; not measured Join work, runtime or RSS"
+      },
+      "library_bytes": 4083,
+      "transitions": [
+        {
+          "id": "impl_0_0",
+          "target_family": 0,
+          "parents": [],
+          "rule": "(rule ((= match_0 (Spine-Add p0 p1))) ((Spine-Add p0 p1) (Spine-Summary-0 (Spine-Add p0 p1) p0 p1)) :ruleset Spine-Run :name \"impl_0_0\")",
+          "matches": 1
+        },
+        {
+          "id": "impl_1_0",
+          "target_family": 1,
+          "parents": [],
+          "rule": "(rule ((= match_0 (Spine-Mul p0 p1))) ((Spine-Mul p0 p1) (Spine-Summary-1 (Spine-Mul p0 p1) p0 p1)) :ruleset Spine-Run :name \"impl_1_0\")",
+          "matches": 1
+        },
+        {
+          "id": "impl_2_3",
+          "target_family": 2,
+          "parents": [],
+          "rule": "(rule ((= match_0 (Spine-Add p1 p2)) (= match_1 (Spine-Mul p0 (Spine-Add p1 p2)))) ((Spine-Add p1 p2) (Spine-Mul p0 (Spine-Add p1 p2)) (Spine-Summary-2 (Spine-Mul p0 (Spine-Add p1 p2)) p0 p1 p2)) :ruleset Spine-Run :name \"impl_2_3\")",
+          "matches": 1
+        }
+      ],
+      "multi_parent_matches": 0
+    },
+    "expanded": {
+      "seed": "y × x + z × x",
+      "validation": {
+        "case": "source",
+        "comparison": {
+          "states": 10,
+          "status": "equivalent"
+        },
+        "compressed_logical_matches_before_export": {
+          "impl_0_0": 1,
+          "impl_1_0": 2,
+          "impl_3_2": 0,
+          "impl_4_2": 1,
+          "impl_5_1": 0,
+          "impl_7_1": 1
+        },
+        "native_total_rows_before_export": 11,
+        "original_constructor_eclasses": 7,
+        "original_constructor_rows": 13,
+        "original_logical_matches": {
+          "(rewrite (Add (Mul a b) (Mul a c)) (Mul a (Add b c)))": 2,
+          "(rewrite (Add a b) (Add b a))": 5,
+          "(rewrite (Mul a (Add b c)) (Add (Mul a b) (Mul a c)))": 3,
+          "(rewrite (Mul a b) (Mul b a))": 7
+        },
+        "original_native_total_rows": 14,
+        "original_rules_executed": false,
+        "original_tables": {
+          "Add": 4,
+          "Mul": 6,
+          "Var": 3
+        },
+        "physical_original_rows_before_export": 0,
+        "restored_constructor_eclasses": 7,
+        "restored_constructor_rows": 13,
+        "spine_constructor_eclasses": 6,
+        "spine_constructor_rows": 6,
+        "spine_tables": {
+          "Spine-Add": 1,
+          "Spine-Mul": 2,
+          "Spine-Var": 3
+        },
+        "status": "passed",
+        "summary_rows": 4,
+        "summary_tables": {
+          "Spine-Summary-0": 1,
+          "Spine-Summary-1": 2,
+          "Spine-Summary-2": 0,
+          "Spine-Summary-3": 1
+        }
+      },
+      "plan": {
+        "selected": [
+          0,
+          1,
+          5,
+          7
+        ],
+        "implementations": [
+          "impl_0_0",
+          "impl_1_0",
+          "impl_2_0",
+          "impl_3_2",
+          "impl_4_2",
+          "impl_5_1",
+          "impl_6_1",
+          "impl_7_1"
+        ],
+        "objective": 73.0,
+        "bound": 73.0,
+        "costs": {
+          "template_nodes": 8.0,
+          "lookup_atoms_and_guards": 28.0,
+          "write_atoms_and_unions": 37.0
+        },
+        "hyperedges": 8,
+        "implementations_considered": 23,
+        "status": "optimal",
+        "variables": 39,
+        "constraints": 81,
+        "weights": {
+          "storage": 1.0,
+          "search": 1.0,
+          "update": 1.0
+        },
+        "cost_scope": "shared template shapes + distinct nested lookup terms/guards + write terms/unions of compiled implementations; not measured Join work, runtime or RSS"
+      },
+      "library_bytes": 6969,
+      "transitions": [
+        {
+          "id": "impl_0_0",
+          "target_family": 0,
+          "parents": [],
+          "rule": "(rule ((= match_0 (Spine-Add p0 p1))) ((Spine-Add p0 p1) (Spine-Summary-0 (Spine-Add p0 p1) p0 p1)) :ruleset Spine-Run :name \"impl_0_0\")",
+          "matches": 1
+        },
+        {
+          "id": "impl_1_0",
+          "target_family": 1,
+          "parents": [],
+          "rule": "(rule ((= match_0 (Spine-Mul p0 p1))) ((Spine-Mul p0 p1) (Spine-Summary-1 (Spine-Mul p0 p1) p0 p1)) :ruleset Spine-Run :name \"impl_1_0\")",
+          "matches": 2
+        },
+        {
+          "id": "impl_3_2",
+          "target_family": 2,
+          "parents": [
+            {
+              "unit": 1,
+              "family": 1,
+              "path": 1,
+              "slots": {
+                "(RipenInput 0)": "p0",
+                "(RipenInput 1)": "p1"
+              },
+              "roots": [
+                "parent_0_root_0"
+              ]
+            },
+            {
+              "unit": 2,
+              "family": 1,
+              "path": 1,
+              "slots": {
+                "(RipenInput 0)": "p2",
+                "(RipenInput 1)": "p1"
+              },
+              "roots": [
+                "parent_1_root_0"
+              ]
+            }
+          ],
+          "rule": "(rule ((Spine-Summary-1 parent_0_root_0 p0 p1) (Spine-Summary-1 parent_1_root_0 p2 p1) (= match_2 (Spine-Add (Spine-Mul p1 p0) (Spine-Mul p1 p2)))) ((Spine-Add (Spine-Mul p1 p0) (Spine-Mul p1 p2)) (union parent_0_root_0 (Spine-Mul p1 p0)) (union parent_1_root_0 (Spine-Mul p1 p2)) (Spine-Summary-2 parent_0_root_0 parent_1_root_0 (Spine-Add (Spine-Mul p1 p0) (Spine-Mul p1 p2)) p0 p1 p2)) :ruleset Spine-Run :name \"impl_3_2\")",
+          "matches": 0
+        },
+        {
+          "id": "impl_4_2",
+          "target_family": 3,
+          "parents": [
+            {
+              "unit": 0,
+              "family": 0,
+              "path": 0,
+              "slots": {
+                "(RipenInput 0)": "p0",
+                "(RipenInput 1)": "p1"
+              },
+              "roots": [
+                "parent_0_root_0"
+              ]
+            },
+            {
+              "unit": 1,
+              "family": 1,
+              "path": 1,
+              "slots": {
+                "(RipenInput 0)": "p2",
+                "(RipenInput 1)": "p3"
+              },
+              "roots": [
+                "parent_1_root_0"
+              ]
+            },
+            {
+              "unit": 2,
+              "family": 1,
+              "path": 1,
+              "slots": {
+                "(RipenInput 0)": "p4",
+                "(RipenInput 1)": "p3"
+              },
+              "roots": [
+                "parent_2_root_0"
+              ]
+            }
+          ],
+          "rule": "(rule ((Spine-Summary-0 parent_0_root_0 p0 p1) (Spine-Summary-1 parent_1_root_0 p2 p3) (Spine-Summary-1 parent_2_root_0 p4 p3) (= p0 parent_1_root_0) (= p1 parent_2_root_0)) ((union p0 parent_1_root_0) (union p1 parent_2_root_0) (Spine-Summary-3 parent_0_root_0 parent_1_root_0 parent_2_root_0 p0 p1 p2 p3 p4)) :ruleset Spine-Run :name \"impl_4_2\")",
+          "matches": 1
+        },
+        {
+          "id": "impl_5_1",
+          "target_family": 2,
+          "parents": [],
+          "rule": "(rule ((= match_0 (Spine-Mul p0 p1)) (= match_1 (Spine-Mul p2 p1)) (= match_2 (Spine-Add (Spine-Mul p1 p0) (Spine-Mul p1 p2)))) ((Spine-Mul p0 p1) (Spine-Mul p2 p1) (Spine-Add (Spine-Mul p1 p0) (Spine-Mul p1 p2)) (union (Spine-Mul p0 p1) (Spine-Mul p1 p0)) (union (Spine-Mul p2 p1) (Spine-Mul p1 p2)) (Spine-Summary-2 (Spine-Mul p0 p1) (Spine-Mul p2 p1) (Spine-Add (Spine-Mul p1 p0) (Spine-Mul p1 p2)) p0 p1 p2)) :ruleset Spine-Run :name \"impl_5_1\")",
+          "matches": 0
+        },
+        {
+          "id": "impl_7_1",
+          "target_family": 3,
+          "parents": [],
+          "rule": "(rule ((= match_0 (Spine-Add p0 p1)) (= match_1 (Spine-Mul p2 p3)) (= p0 (Spine-Mul p2 p3)) (= match_3 (Spine-Mul p4 p3)) (= p1 (Spine-Mul p4 p3))) ((Spine-Add p0 p1) (Spine-Mul p2 p3) (union p0 (Spine-Mul p2 p3)) (Spine-Mul p4 p3) (union p1 (Spine-Mul p4 p3)) (Spine-Summary-3 (Spine-Add p0 p1) (Spine-Mul p2 p3) (Spine-Mul p4 p3) p0 p1 p2 p3 p4)) :ruleset Spine-Run :name \"impl_7_1\")",
+          "matches": 1
+        }
+      ],
+      "multi_parent_matches": 1
+    }
+  },
+  "same_final_closure": "equivalent"
+}
