@@ -1,0 +1,48 @@
+; MIT, Oliver Flatt 2023; source details and full license in this directory.
+; Minimal original constructor signatures from eggcc schema.egg.
+(datatype Expr)
+(sort TypeList)
+(datatype BaseType (IntT) (BoolT))
+(datatype Type (Base BaseType) (TupleT TypeList))
+(constructor TNil () TypeList)
+(constructor TCons (BaseType TypeList) TypeList)
+(datatype Assumption (InFunc String) (InIf bool Expr Expr))
+(datatype BinaryOp (LessThan) (Smin) (Smax))
+(constructor Arg (Type Assumption) Expr)
+(constructor Get (Expr i64) Expr)
+(constructor Bop (BinaryOp Expr Expr) Expr)
+(constructor Single (Expr) Expr)
+(constructor If (Expr Expr Expr Expr) Expr)
+(ruleset if-tiny)
+; utility/util.egg:59, scheduling label only changed.
+(rule ((Single expr)) ((union (Get (Single expr) 0) expr)) :ruleset if-tiny)
+; if a < b then a else b ~~> (min a b)
+(rule (
+       (= pred (Bop (LessThan) a b))
+       (= if_e (If pred inputs thn els))
+       ; a is an input to the if region
+       (= a (Get inputs i))
+       ; b is an input to the if region
+       (= b (Get inputs j))
+       ; if a < b then a else b
+       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))
+       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j))
+      )
+      ((union (Get if_e k) (Bop (Smin) a b)))
+      :ruleset if-tiny)
+
+; if a < b then b else a ~~> (max a b)
+(rule (
+       (= pred (Bop (LessThan) a b))
+       (= if_e (If pred inputs thn els))
+       ; a is an input to the if region
+       (= a (Get inputs i))
+       ; b is an input to the if region
+       (= b (Get inputs j))
+       ; if a < b then b else a
+       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) j))
+       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) i))
+      )
+      ((union (Get if_e k) (Bop (Smax) a b)))
+      :ruleset if-tiny) 
+

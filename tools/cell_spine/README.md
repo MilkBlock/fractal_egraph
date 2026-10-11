@@ -316,3 +316,19 @@ AST-to-spine conversion, offline compilation and library bytes are also reported
 One run per case, no averaging. See `experiments/cell_spine/new_graph_bench` for
 results and limitations: this is a four-rule workload with disjoint new instances,
 not full math-microbenchmark generalization or a demonstrated end-to-end speedup.
+
+## Sparse eggcc If subset
+
+`tools/bench/eggcc_if.py` runs the actual If-to-min/max rules with all constructor,
+index, type and context conditions intact. The shared phased native harness now
+supports typed constructor graphs; pristine and current builds use the same
+module. `experiments/cell_spine/eggcc_if_tiny` records the source revision/license,
+matching and near-miss inputs, exact all-sort graph comparisons, and timings.
+
+This workload exposed a missing connection: a parent may prove that a hidden row
+(e.g. Get(Single(x),0)) equals a visible Summary field. `visible_projections`
+uses the parent's actual closure snapshot to replace such LHS reads with the field;
+it does not hardcode operators or assume constructor injectivity. Direct root
+aliases take precedence, and children are projected before the outer expression.
+The RHS keeps its canonical materialization contract. Native regressions verify
+that min/max results are recovered while near misses remain unmatched.

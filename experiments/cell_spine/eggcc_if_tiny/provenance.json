@@ -1,0 +1,27 @@
+{
+  "repository": "https://github.com/egraphs-good/eggcc.git",
+  "local_checkout": "/Users/mineralsteins/Repos/egg_related/check_statewalk",
+  "commit": "ae80f82a403c1209fb084b115ee89470c7e66d0e",
+  "files": {
+    "schema.egg": "cbf82f3ddb22f60f364ee59e9ecf15ff2bd468f1d561ccb48e93e65a1fd0144b",
+    "utility/util.egg": "44e52eb369af8b4bf73ffbfaa9bb6b32faf4f0438537e6dc3e81306f99830a6f",
+    "optimizations/switch_rewrites.egg": "14d929e8be79c25bb591be7d05e4a5d27ecf7343be1ef5f51d65b97754a1d6a3"
+  },
+  "rule_locations": {
+    "min": "optimizations/switch_rewrites.egg:5-17",
+    "max": "optimizations/switch_rewrites.egg:20-32",
+    "single_get": "utility/util.egg:59"
+  },
+  "changes": [
+    "constructor declarations restricted to used signatures",
+    "three positive rules moved to if-tiny ruleset",
+    "synthetic well-scoped two-int input tuples and Single-output branches"
+  ],
+  "guards_removed": false,
+  "training_cases": [
+    "min",
+    "max",
+    "near_miss"
+  ],
+  "license": "MIT; UPSTREAM-LICENSE"
+}

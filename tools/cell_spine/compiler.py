@@ -207,17 +207,39 @@ def parent_wirings(c, params, by_id):
 def alias_binding(path, binding, aliases):
     result = dict(binding)
     for root in expressions(path['acts']):
-        for e in walk(root):
-            term = text(e, True, path['signatures'], binding)
-            if term in aliases:
-                result[text(e)] = aliases[term]
+        # Project children first, so Get(Single(x),0) can become x through
+        # the parent's root field without querying the hidden Get row.
+        for e in reversed(list(walk(root))):
+            direct = text(e, True, path['signatures'], binding)
+            projected = text(e, True, path['signatures'], result)
+            if direct in aliases or projected in aliases:
+                result[text(e)] = aliases[direct] if direct in aliases else aliases[projected]
     return result
+
+
+def visible_projections(c, binding, roots):
+    """Certified closed rows whose result can be read from a Summary field."""
+    state = c['snapshot']
+    known = {i:v['literal'] for i,v in enumerate(state['values']) if v['literal'] is not None}
+    for raw, value in binding.items():
+        known[resolve(state,parse_param(c,raw))] = value
+    for expr, name in zip(c['roots'],roots):
+        known.setdefault(resolve(state,expr),name)
+    aliases = {}
+    for row in state['rows']:
+        if row['op'] in c['markers'] or row['result'] not in known:
+            continue
+        if all(arg in known for arg in row['args']):
+            term = '('+' '.join(['Spine-'+row['op']]+[known[arg] for arg in row['args']])+')'
+            aliases[term] = known[row['result']]
+    return aliases
 
 
 def lower_option(c, target, wirings, chosen):
     """Compile the exact hyperedge implementation that the ILP will price."""
     params = mapping_to(c, target)
     aliases, provided, body, parents = {}, set(), [], []
+    projections = {}
     for i, w in enumerate(wirings):
         parent, subst = w['parent'], w['subst']
         representation = chosen[parent['family']]
@@ -229,10 +251,13 @@ def lower_option(c, target, wirings, chosen):
             term = text(e, True, representation['signatures'], binding)
             roots.append(aliases.setdefault(term, f'parent_{i}_root_{j}'))
         body.append(summary(representation, binding, roots))
+        projections.update(visible_projections(representation,binding,roots))
         provided.update(w['provided'])
         parents.append(dict(unit=parent['id'], family=parent['family'], path=representation['id'],
                             slots=binding, roots=roots))
-    residual_params = alias_binding(c, params, aliases)
+    residual_params = alias_binding(c, params, {**aliases, **projections})
+    # Head materialization remains the selected spine, not its logical views.
+    source_params = alias_binding(c, params, aliases)
     removed = 0
     for i, a in enumerate(c['acts']):
         if a['kind'] == 'expr':
@@ -251,7 +276,7 @@ def lower_option(c, target, wirings, chosen):
             continue  # Reuse the Summary root rather than reconstruct its tree.
         head.extend(actions([a], True, target['signatures'], target_params))
     visible = {}
-    for path, binding in [(c, residual_params), (target, target_params)]:
+    for path, binding in [(c, source_params), (target, target_params)]:
         for root in expressions(path['acts']):
             for e in walk(root):
                 if e['kind'] != 'call':

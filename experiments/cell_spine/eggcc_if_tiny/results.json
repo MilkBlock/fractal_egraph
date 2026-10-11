@@ -1,0 +1,1368 @@
+{
+  "schema": "eggcc-if-cell-bench/v1",
+  "commit": "43d14725c565508bee70df2eea62f8538c3420f0",
+  "dirty": true,
+  "binary_sha256": "2c7c26a33b2870a712f8ad26cd489d812be86aaa69063e0b4d2f79c8b2f2fc89",
+  "pristine": {
+    "commit": "c7553a6c2b16c529c13f3eb7eecd742495b992d3",
+    "source_clean": true,
+    "shared_harness_sha256": "d8095d44d726e5046d00521956ed565822a9d6dde201d9ac6042ccabe41e7585",
+    "binary_sha256": "d35e35b3784529319487b98f965ce515aa7a44b9f09421d80d0f627dc64469d5",
+    "registry_versions_pinned": true
+  },
+  "threads": 1,
+  "source_sha256": "c7b1592f3e4aa3049fb9d12889ec826e370f4acfd83ad4c6d384d59a71ff0957",
+  "eq_sorts": [
+    "Assumption",
+    "BaseType",
+    "BinaryOp",
+    "Expr",
+    "Type",
+    "TypeList"
+  ],
+  "training": {
+    "library_bytes": 117812,
+    "library_sha256": "1536e5e11e33b89b49848a9793277dc56ef3463e1cf5a32b4091006ffaf3c152",
+    "families": 3,
+    "consumer_rules": 51,
+    "offline_compile_verify_seconds": 0.6949794171378016
+  },
+  "cases": [
+    {
+      "distribution": "all_match",
+      "ifs": 10,
+      "kinds": {
+        "min": 5,
+        "max": 5,
+        "miss": 0
+      },
+      "initial": {
+        "eclasses": 146,
+        "enodes": 146,
+        "sorts": {
+          "Assumption": {
+            "eclasses": 30,
+            "enodes": 30
+          },
+          "BaseType": {
+            "eclasses": 1,
+            "enodes": 1
+          },
+          "BinaryOp": {
+            "eclasses": 1,
+            "enodes": 1
+          },
+          "Expr": {
+            "eclasses": 110,
+            "enodes": 110
+          },
+          "Type": {
+            "eclasses": 1,
+            "enodes": 1
+          },
+          "TypeList": {
+            "eclasses": 3,
+            "enodes": 3
+          }
+        },
+        "tables": {
+          "Arg": 30,
+          "Base": 0,
+          "BoolT": 0,
+          "Bop": 10,
+          "Get": 40,
+          "If": 10,
+          "InFunc": 10,
+          "InIf": 20,
+          "IntT": 1,
+          "LessThan": 1,
+          "Single": 20,
+          "Smax": 0,
+          "Smin": 0,
+          "TCons": 2,
+          "TNil": 1,
+          "TupleT": 1
+        }
+      },
+      "verification": {
+        "exact_equal": true,
+        "enodes": 188,
+        "eclasses": 158,
+        "sorts": {
+          "Assumption": {
+            "enodes": 30,
+            "eclasses": 30
+          },
+          "BaseType": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "BinaryOp": {
+            "enodes": 3,
+            "eclasses": 3
+          },
+          "Expr": {
+            "enodes": 150,
+            "eclasses": 120
+          },
+          "Type": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "TypeList": {
+            "enodes": 3,
+            "eclasses": 3
+          }
+        }
+      },
+      "shapes": {
+        "active_summaries": 10,
+        "initial_original": {
+          "eclasses": 0,
+          "enodes": 0,
+          "sorts": {},
+          "tables": {
+            "Arg": 0,
+            "Base": 0,
+            "BoolT": 0,
+            "Bop": 0,
+            "Get": 0,
+            "If": 0,
+            "InFunc": 0,
+            "InIf": 0,
+            "IntT": 0,
+            "LessThan": 0,
+            "Single": 0,
+            "Smax": 0,
+            "Smin": 0,
+            "TCons": 0,
+            "TNil": 0,
+            "TupleT": 0
+          }
+        },
+        "original_before_export": {
+          "eclasses": 0,
+          "enodes": 0,
+          "sorts": {},
+          "tables": {
+            "Arg": 0,
+            "Base": 0,
+            "BoolT": 0,
+            "Bop": 0,
+            "Get": 0,
+            "If": 0,
+            "InFunc": 0,
+            "InIf": 0,
+            "IntT": 0,
+            "LessThan": 0,
+            "Single": 0,
+            "Smax": 0,
+            "Smin": 0,
+            "TCons": 0,
+            "TNil": 0,
+            "TupleT": 0
+          }
+        },
+        "restored": {
+          "eclasses": 158,
+          "enodes": 188,
+          "sorts": {
+            "Assumption": {
+              "eclasses": 30,
+              "enodes": 30
+            },
+            "BaseType": {
+              "eclasses": 1,
+              "enodes": 1
+            },
+            "BinaryOp": {
+              "eclasses": 3,
+              "enodes": 3
+            },
+            "Expr": {
+              "eclasses": 120,
+              "enodes": 150
+            },
+            "Type": {
+              "eclasses": 1,
+              "enodes": 1
+            },
+            "TypeList": {
+              "eclasses": 3,
+              "enodes": 3
+            }
+          },
+          "tables": {
+            "Arg": 30,
+            "Base": 0,
+            "BoolT": 0,
+            "Bop": 20,
+            "Get": 70,
+            "If": 10,
+            "InFunc": 10,
+            "InIf": 20,
+            "IntT": 1,
+            "LessThan": 1,
+            "Single": 20,
+            "Smax": 1,
+            "Smin": 1,
+            "TCons": 2,
+            "TNil": 1,
+            "TupleT": 1
+          }
+        },
+        "spine": {
+          "eclasses": 146,
+          "enodes": 166,
+          "sorts": {
+            "Spine-Assumption": {
+              "eclasses": 30,
+              "enodes": 30
+            },
+            "Spine-BaseType": {
+              "eclasses": 1,
+              "enodes": 1
+            },
+            "Spine-BinaryOp": {
+              "eclasses": 1,
+              "enodes": 1
+            },
+            "Spine-Expr": {
+              "eclasses": 110,
+              "enodes": 130
+            },
+            "Spine-Type": {
+              "eclasses": 1,
+              "enodes": 1
+            },
+            "Spine-TypeList": {
+              "eclasses": 3,
+              "enodes": 3
+            }
+          },
+          "tables": {
+            "Spine-Arg": 30,
+            "Spine-Base": 0,
+            "Spine-BoolT": 0,
+            "Spine-Bop": 10,
+            "Spine-Get": 60,
+            "Spine-If": 10,
+            "Spine-InFunc": 10,
+            "Spine-InIf": 20,
+            "Spine-IntT": 1,
+            "Spine-LessThan": 1,
+            "Spine-Single": 20,
+            "Spine-Smax": 0,
+            "Spine-Smin": 0,
+            "Spine-TCons": 2,
+            "Spine-TNil": 1,
+            "Spine-TupleT": 1
+          }
+        },
+        "subsumed_summaries": 20
+      },
+      "cellify_seconds": 0.0005112090148031712,
+      "branch_results_verified": true,
+      "timings": {
+        "native": {
+          "result": {
+            "drop_seconds": 0.001335667,
+            "export_matches": 0,
+            "export_seconds": 0.0,
+            "input_seconds": 0.005571833,
+            "matches": 30,
+            "read_seconds": 5.1625e-05,
+            "run_seconds": 0.000906916,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.008522207,
+            "setup_seconds": 0.002043458,
+            "through_drop_seconds": 0.009857874,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 8749056,
+          "process_wall_seconds": 0.01,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-if-cell-bench/all_match-10/native.json"
+          ]
+        },
+        "spine": {
+          "result": {
+            "drop_seconds": 0.007723916,
+            "export_matches": 0,
+            "export_seconds": 0.0,
+            "input_seconds": 0.004624833,
+            "matches": 40,
+            "read_seconds": 8.0042e-05,
+            "run_seconds": 0.002873292,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.076001166,
+            "setup_seconds": 0.068503041,
+            "through_drop_seconds": 0.08372508199999999,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 22282240,
+          "process_wall_seconds": 0.08,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-if-cell-bench/all_match-10/spine.json"
+          ]
+        },
+        "spine_export": {
+          "result": {
+            "drop_seconds": 0.005311667,
+            "export_matches": 342,
+            "export_seconds": 0.001723542,
+            "input_seconds": 0.005035916,
+            "matches": 40,
+            "read_seconds": 0.000137583,
+            "run_seconds": 0.002645084,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.07735887500000001,
+            "setup_seconds": 0.067954333,
+            "through_drop_seconds": 0.08267054200000001,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 20267008,
+          "process_wall_seconds": 0.08,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-if-cell-bench/all_match-10/spine_export.json"
+          ]
+        },
+        "pristine": {
+          "result": {
+            "drop_seconds": 0.000967333,
+            "export_matches": 0,
+            "export_seconds": 0.0,
+            "input_seconds": 0.004177416,
+            "matches": 30,
+            "read_seconds": 5.0292e-05,
+            "run_seconds": 0.000808166,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.006664206999999999,
+            "setup_seconds": 0.001678625,
+            "through_drop_seconds": 0.007631539999999999,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 7684096,
+          "process_wall_seconds": 0.0,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-if-cell-bench/pristine-build/pristine",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-if-cell-bench/all_match-10/native.json"
+          ]
+        }
+      }
+    },
+    {
+      "distribution": "all_match",
+      "ifs": 1000,
+      "kinds": {
+        "min": 500,
+        "max": 500,
+        "miss": 0
+      },
+      "initial": {
+        "eclasses": 14006,
+        "enodes": 14006,
+        "sorts": {
+          "Assumption": {
+            "eclasses": 3000,
+            "enodes": 3000
+          },
+          "BaseType": {
+            "eclasses": 1,
+            "enodes": 1
+          },
+          "BinaryOp": {
+            "eclasses": 1,
+            "enodes": 1
+          },
+          "Expr": {
+            "eclasses": 11000,
+            "enodes": 11000
+          },
+          "Type": {
+            "eclasses": 1,
+            "enodes": 1
+          },
+          "TypeList": {
+            "eclasses": 3,
+            "enodes": 3
+          }
+        },
+        "tables": {
+          "Arg": 3000,
+          "Base": 0,
+          "BoolT": 0,
+          "Bop": 1000,
+          "Get": 4000,
+          "If": 1000,
+          "InFunc": 1000,
+          "InIf": 2000,
+          "IntT": 1,
+          "LessThan": 1,
+          "Single": 2000,
+          "Smax": 0,
+          "Smin": 0,
+          "TCons": 2,
+          "TNil": 1,
+          "TupleT": 1
+        }
+      },
+      "verification": {
+        "exact_equal": true,
+        "enodes": 18008,
+        "eclasses": 15008,
+        "sorts": {
+          "Assumption": {
+            "enodes": 3000,
+            "eclasses": 3000
+          },
+          "BaseType": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "BinaryOp": {
+            "enodes": 3,
+            "eclasses": 3
+          },
+          "Expr": {
+            "enodes": 15000,
+            "eclasses": 12000
+          },
+          "Type": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "TypeList": {
+            "enodes": 3,
+            "eclasses": 3
+          }
+        }
+      },
+      "shapes": {
+        "active_summaries": 1000,
+        "initial_original": {
+          "eclasses": 0,
+          "enodes": 0,
+          "sorts": {},
+          "tables": {
+            "Arg": 0,
+            "Base": 0,
+            "BoolT": 0,
+            "Bop": 0,
+            "Get": 0,
+            "If": 0,
+            "InFunc": 0,
+            "InIf": 0,
+            "IntT": 0,
+            "LessThan": 0,
+            "Single": 0,
+            "Smax": 0,
+            "Smin": 0,
+            "TCons": 0,
+            "TNil": 0,
+            "TupleT": 0
+          }
+        },
+        "original_before_export": {
+          "eclasses": 0,
+          "enodes": 0,
+          "sorts": {},
+          "tables": {
+            "Arg": 0,
+            "Base": 0,
+            "BoolT": 0,
+            "Bop": 0,
+            "Get": 0,
+            "If": 0,
+            "InFunc": 0,
+            "InIf": 0,
+            "IntT": 0,
+            "LessThan": 0,
+            "Single": 0,
+            "Smax": 0,
+            "Smin": 0,
+            "TCons": 0,
+            "TNil": 0,
+            "TupleT": 0
+          }
+        },
+        "restored": {
+          "eclasses": 15008,
+          "enodes": 18008,
+          "sorts": {
+            "Assumption": {
+              "eclasses": 3000,
+              "enodes": 3000
+            },
+            "BaseType": {
+              "eclasses": 1,
+              "enodes": 1
+            },
+            "BinaryOp": {
+              "eclasses": 3,
+              "enodes": 3
+            },
+            "Expr": {
+              "eclasses": 12000,
+              "enodes": 15000
+            },
+            "Type": {
+              "eclasses": 1,
+              "enodes": 1
+            },
+            "TypeList": {
+              "eclasses": 3,
+              "enodes": 3
+            }
+          },
+          "tables": {
+            "Arg": 3000,
+            "Base": 0,
+            "BoolT": 0,
+            "Bop": 2000,
+            "Get": 7000,
+            "If": 1000,
+            "InFunc": 1000,
+            "InIf": 2000,
+            "IntT": 1,
+            "LessThan": 1,
+            "Single": 2000,
+            "Smax": 1,
+            "Smin": 1,
+            "TCons": 2,
+            "TNil": 1,
+            "TupleT": 1
+          }
+        },
+        "spine": {
+          "eclasses": 14006,
+          "enodes": 16006,
+          "sorts": {
+            "Spine-Assumption": {
+              "eclasses": 3000,
+              "enodes": 3000
+            },
+            "Spine-BaseType": {
+              "eclasses": 1,
+              "enodes": 1
+            },
+            "Spine-BinaryOp": {
+              "eclasses": 1,
+              "enodes": 1
+            },
+            "Spine-Expr": {
+              "eclasses": 11000,
+              "enodes": 13000
+            },
+            "Spine-Type": {
+              "eclasses": 1,
+              "enodes": 1
+            },
+            "Spine-TypeList": {
+              "eclasses": 3,
+              "enodes": 3
+            }
+          },
+          "tables": {
+            "Spine-Arg": 3000,
+            "Spine-Base": 0,
+            "Spine-BoolT": 0,
+            "Spine-Bop": 1000,
+            "Spine-Get": 6000,
+            "Spine-If": 1000,
+            "Spine-InFunc": 1000,
+            "Spine-InIf": 2000,
+            "Spine-IntT": 1,
+            "Spine-LessThan": 1,
+            "Spine-Single": 2000,
+            "Spine-Smax": 0,
+            "Spine-Smin": 0,
+            "Spine-TCons": 2,
+            "Spine-TNil": 1,
+            "Spine-TupleT": 1
+          }
+        },
+        "subsumed_summaries": 2000
+      },
+      "cellify_seconds": 0.032410958083346486,
+      "branch_results_verified": true,
+      "timings": {
+        "native": {
+          "result": {
+            "drop_seconds": 0.130398334,
+            "export_matches": 0,
+            "export_seconds": 0.0,
+            "input_seconds": 1.05083125,
+            "matches": 3000,
+            "read_seconds": 0.000132334,
+            "run_seconds": 0.04722,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 1.0997215000000002,
+            "setup_seconds": 0.00167025,
+            "through_drop_seconds": 1.2301198340000004,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 301531136,
+          "process_wall_seconds": 1.23,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-if-cell-bench/all_match-1000/native.json"
+          ]
+        },
+        "spine": {
+          "result": {
+            "drop_seconds": 0.135369375,
+            "export_matches": 0,
+            "export_seconds": 0.0,
+            "input_seconds": 1.058993875,
+            "matches": 4000,
+            "read_seconds": 0.000158541,
+            "run_seconds": 0.121198792,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 1.246395667,
+            "setup_seconds": 0.066203,
+            "through_drop_seconds": 1.381765042,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 307576832,
+          "process_wall_seconds": 1.38,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-if-cell-bench/all_match-1000/spine.json"
+          ]
+        },
+        "spine_export": {
+          "result": {
+            "drop_seconds": 0.140960042,
+            "export_matches": 33012,
+            "export_seconds": 0.06004225,
+            "input_seconds": 1.042456292,
+            "matches": 4000,
+            "read_seconds": 0.000160458,
+            "run_seconds": 0.128193666,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 1.2986052080000001,
+            "setup_seconds": 0.067913,
+            "through_drop_seconds": 1.4395652500000002,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 312737792,
+          "process_wall_seconds": 1.44,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-if-cell-bench/all_match-1000/spine_export.json"
+          ]
+        },
+        "pristine": {
+          "result": {
+            "drop_seconds": 0.123605792,
+            "export_matches": 0,
+            "export_seconds": 0.0,
+            "input_seconds": 0.842658833,
+            "matches": 3000,
+            "read_seconds": 0.000126916,
+            "run_seconds": 0.044302375,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.888575,
+            "setup_seconds": 0.001613792,
+            "through_drop_seconds": 1.012180792,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 276103168,
+          "process_wall_seconds": 1.01,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-if-cell-bench/pristine-build/pristine",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-if-cell-bench/all_match-1000/native.json"
+          ]
+        }
+      }
+    },
+    {
+      "distribution": "sparse",
+      "ifs": 10,
+      "kinds": {
+        "min": 1,
+        "max": 0,
+        "miss": 9
+      },
+      "initial": {
+        "eclasses": 146,
+        "enodes": 146,
+        "sorts": {
+          "Assumption": {
+            "eclasses": 30,
+            "enodes": 30
+          },
+          "BaseType": {
+            "eclasses": 1,
+            "enodes": 1
+          },
+          "BinaryOp": {
+            "eclasses": 1,
+            "enodes": 1
+          },
+          "Expr": {
+            "eclasses": 110,
+            "enodes": 110
+          },
+          "Type": {
+            "eclasses": 1,
+            "enodes": 1
+          },
+          "TypeList": {
+            "eclasses": 3,
+            "enodes": 3
+          }
+        },
+        "tables": {
+          "Arg": 30,
+          "Base": 0,
+          "BoolT": 0,
+          "Bop": 10,
+          "Get": 40,
+          "If": 10,
+          "InFunc": 10,
+          "InIf": 20,
+          "IntT": 1,
+          "LessThan": 1,
+          "Single": 20,
+          "Smax": 0,
+          "Smin": 0,
+          "TCons": 2,
+          "TNil": 1,
+          "TupleT": 1
+        }
+      },
+      "verification": {
+        "exact_equal": true,
+        "enodes": 169,
+        "eclasses": 148,
+        "sorts": {
+          "Assumption": {
+            "enodes": 30,
+            "eclasses": 30
+          },
+          "BaseType": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "BinaryOp": {
+            "enodes": 2,
+            "eclasses": 2
+          },
+          "Expr": {
+            "enodes": 132,
+            "eclasses": 111
+          },
+          "Type": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "TypeList": {
+            "enodes": 3,
+            "eclasses": 3
+          }
+        }
+      },
+      "shapes": {
+        "active_summaries": 19,
+        "initial_original": {
+          "eclasses": 0,
+          "enodes": 0,
+          "sorts": {},
+          "tables": {
+            "Arg": 0,
+            "Base": 0,
+            "BoolT": 0,
+            "Bop": 0,
+            "Get": 0,
+            "If": 0,
+            "InFunc": 0,
+            "InIf": 0,
+            "IntT": 0,
+            "LessThan": 0,
+            "Single": 0,
+            "Smax": 0,
+            "Smin": 0,
+            "TCons": 0,
+            "TNil": 0,
+            "TupleT": 0
+          }
+        },
+        "original_before_export": {
+          "eclasses": 0,
+          "enodes": 0,
+          "sorts": {},
+          "tables": {
+            "Arg": 0,
+            "Base": 0,
+            "BoolT": 0,
+            "Bop": 0,
+            "Get": 0,
+            "If": 0,
+            "InFunc": 0,
+            "InIf": 0,
+            "IntT": 0,
+            "LessThan": 0,
+            "Single": 0,
+            "Smax": 0,
+            "Smin": 0,
+            "TCons": 0,
+            "TNil": 0,
+            "TupleT": 0
+          }
+        },
+        "restored": {
+          "eclasses": 148,
+          "enodes": 169,
+          "sorts": {
+            "Assumption": {
+              "eclasses": 30,
+              "enodes": 30
+            },
+            "BaseType": {
+              "eclasses": 1,
+              "enodes": 1
+            },
+            "BinaryOp": {
+              "eclasses": 2,
+              "enodes": 2
+            },
+            "Expr": {
+              "eclasses": 111,
+              "enodes": 132
+            },
+            "Type": {
+              "eclasses": 1,
+              "enodes": 1
+            },
+            "TypeList": {
+              "eclasses": 3,
+              "enodes": 3
+            }
+          },
+          "tables": {
+            "Arg": 30,
+            "Base": 0,
+            "BoolT": 0,
+            "Bop": 11,
+            "Get": 61,
+            "If": 10,
+            "InFunc": 10,
+            "InIf": 20,
+            "IntT": 1,
+            "LessThan": 1,
+            "Single": 20,
+            "Smax": 0,
+            "Smin": 1,
+            "TCons": 2,
+            "TNil": 1,
+            "TupleT": 1
+          }
+        },
+        "spine": {
+          "eclasses": 146,
+          "enodes": 148,
+          "sorts": {
+            "Spine-Assumption": {
+              "eclasses": 30,
+              "enodes": 30
+            },
+            "Spine-BaseType": {
+              "eclasses": 1,
+              "enodes": 1
+            },
+            "Spine-BinaryOp": {
+              "eclasses": 1,
+              "enodes": 1
+            },
+            "Spine-Expr": {
+              "eclasses": 110,
+              "enodes": 112
+            },
+            "Spine-Type": {
+              "eclasses": 1,
+              "enodes": 1
+            },
+            "Spine-TypeList": {
+              "eclasses": 3,
+              "enodes": 3
+            }
+          },
+          "tables": {
+            "Spine-Arg": 30,
+            "Spine-Base": 0,
+            "Spine-BoolT": 0,
+            "Spine-Bop": 10,
+            "Spine-Get": 42,
+            "Spine-If": 10,
+            "Spine-InFunc": 10,
+            "Spine-InIf": 20,
+            "Spine-IntT": 1,
+            "Spine-LessThan": 1,
+            "Spine-Single": 20,
+            "Spine-Smax": 0,
+            "Spine-Smin": 0,
+            "Spine-TCons": 2,
+            "Spine-TNil": 1,
+            "Spine-TupleT": 1
+          }
+        },
+        "subsumed_summaries": 2
+      },
+      "cellify_seconds": 0.0005548340268433094,
+      "branch_results_verified": true,
+      "timings": {
+        "native": {
+          "result": {
+            "drop_seconds": 0.000953542,
+            "export_matches": 0,
+            "export_seconds": 0.0,
+            "input_seconds": 0.004619666,
+            "matches": 21,
+            "read_seconds": 4.4834e-05,
+            "run_seconds": 0.000738875,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.007103583,
+            "setup_seconds": 0.001745042,
+            "through_drop_seconds": 0.008057125,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 8224768,
+          "process_wall_seconds": 0.01,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-if-cell-bench/sparse-10/native.json"
+          ]
+        },
+        "spine": {
+          "result": {
+            "drop_seconds": 0.005372,
+            "export_matches": 0,
+            "export_seconds": 0.0,
+            "input_seconds": 0.004647416,
+            "matches": 22,
+            "read_seconds": 7.225e-05,
+            "run_seconds": 0.001232917,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.073265417,
+            "setup_seconds": 0.067385084,
+            "through_drop_seconds": 0.078637417,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 16531456,
+          "process_wall_seconds": 0.08,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-if-cell-bench/sparse-10/spine.json"
+          ]
+        },
+        "spine_export": {
+          "result": {
+            "drop_seconds": 0.006312666,
+            "export_matches": 315,
+            "export_seconds": 0.001695542,
+            "input_seconds": 0.005014416,
+            "matches": 22,
+            "read_seconds": 7.0209e-05,
+            "run_seconds": 0.0013285,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.07517495799999999,
+            "setup_seconds": 0.0671365,
+            "through_drop_seconds": 0.08148762399999998,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 19906560,
+          "process_wall_seconds": 0.08,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-if-cell-bench/sparse-10/spine_export.json"
+          ]
+        },
+        "pristine": {
+          "result": {
+            "drop_seconds": 0.00099275,
+            "export_matches": 0,
+            "export_seconds": 0.0,
+            "input_seconds": 0.00412925,
+            "matches": 21,
+            "read_seconds": 4.1292e-05,
+            "run_seconds": 0.000718667,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.006484125,
+            "setup_seconds": 0.001636208,
+            "through_drop_seconds": 0.007476875,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 7733248,
+          "process_wall_seconds": 0.0,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-if-cell-bench/pristine-build/pristine",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-if-cell-bench/sparse-10/native.json"
+          ]
+        }
+      }
+    },
+    {
+      "distribution": "sparse",
+      "ifs": 1000,
+      "kinds": {
+        "min": 50,
+        "max": 50,
+        "miss": 900
+      },
+      "initial": {
+        "eclasses": 14006,
+        "enodes": 14006,
+        "sorts": {
+          "Assumption": {
+            "eclasses": 3000,
+            "enodes": 3000
+          },
+          "BaseType": {
+            "eclasses": 1,
+            "enodes": 1
+          },
+          "BinaryOp": {
+            "eclasses": 1,
+            "enodes": 1
+          },
+          "Expr": {
+            "eclasses": 11000,
+            "enodes": 11000
+          },
+          "Type": {
+            "eclasses": 1,
+            "enodes": 1
+          },
+          "TypeList": {
+            "eclasses": 3,
+            "enodes": 3
+          }
+        },
+        "tables": {
+          "Arg": 3000,
+          "Base": 0,
+          "BoolT": 0,
+          "Bop": 1000,
+          "Get": 4000,
+          "If": 1000,
+          "InFunc": 1000,
+          "InIf": 2000,
+          "IntT": 1,
+          "LessThan": 1,
+          "Single": 2000,
+          "Smax": 0,
+          "Smin": 0,
+          "TCons": 2,
+          "TNil": 1,
+          "TupleT": 1
+        }
+      },
+      "verification": {
+        "exact_equal": true,
+        "enodes": 16208,
+        "eclasses": 14108,
+        "sorts": {
+          "Assumption": {
+            "enodes": 3000,
+            "eclasses": 3000
+          },
+          "BaseType": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "BinaryOp": {
+            "enodes": 3,
+            "eclasses": 3
+          },
+          "Expr": {
+            "enodes": 13200,
+            "eclasses": 11100
+          },
+          "Type": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "TypeList": {
+            "enodes": 3,
+            "eclasses": 3
+          }
+        }
+      },
+      "shapes": {
+        "active_summaries": 1900,
+        "initial_original": {
+          "eclasses": 0,
+          "enodes": 0,
+          "sorts": {},
+          "tables": {
+            "Arg": 0,
+            "Base": 0,
+            "BoolT": 0,
+            "Bop": 0,
+            "Get": 0,
+            "If": 0,
+            "InFunc": 0,
+            "InIf": 0,
+            "IntT": 0,
+            "LessThan": 0,
+            "Single": 0,
+            "Smax": 0,
+            "Smin": 0,
+            "TCons": 0,
+            "TNil": 0,
+            "TupleT": 0
+          }
+        },
+        "original_before_export": {
+          "eclasses": 0,
+          "enodes": 0,
+          "sorts": {},
+          "tables": {
+            "Arg": 0,
+            "Base": 0,
+            "BoolT": 0,
+            "Bop": 0,
+            "Get": 0,
+            "If": 0,
+            "InFunc": 0,
+            "InIf": 0,
+            "IntT": 0,
+            "LessThan": 0,
+            "Single": 0,
+            "Smax": 0,
+            "Smin": 0,
+            "TCons": 0,
+            "TNil": 0,
+            "TupleT": 0
+          }
+        },
+        "restored": {
+          "eclasses": 14108,
+          "enodes": 16208,
+          "sorts": {
+            "Assumption": {
+              "eclasses": 3000,
+              "enodes": 3000
+            },
+            "BaseType": {
+              "eclasses": 1,
+              "enodes": 1
+            },
+            "BinaryOp": {
+              "eclasses": 3,
+              "enodes": 3
+            },
+            "Expr": {
+              "eclasses": 11100,
+              "enodes": 13200
+            },
+            "Type": {
+              "eclasses": 1,
+              "enodes": 1
+            },
+            "TypeList": {
+              "eclasses": 3,
+              "enodes": 3
+            }
+          },
+          "tables": {
+            "Arg": 3000,
+            "Base": 0,
+            "BoolT": 0,
+            "Bop": 1100,
+            "Get": 6100,
+            "If": 1000,
+            "InFunc": 1000,
+            "InIf": 2000,
+            "IntT": 1,
+            "LessThan": 1,
+            "Single": 2000,
+            "Smax": 1,
+            "Smin": 1,
+            "TCons": 2,
+            "TNil": 1,
+            "TupleT": 1
+          }
+        },
+        "spine": {
+          "eclasses": 14006,
+          "enodes": 14206,
+          "sorts": {
+            "Spine-Assumption": {
+              "eclasses": 3000,
+              "enodes": 3000
+            },
+            "Spine-BaseType": {
+              "eclasses": 1,
+              "enodes": 1
+            },
+            "Spine-BinaryOp": {
+              "eclasses": 1,
+              "enodes": 1
+            },
+            "Spine-Expr": {
+              "eclasses": 11000,
+              "enodes": 11200
+            },
+            "Spine-Type": {
+              "eclasses": 1,
+              "enodes": 1
+            },
+            "Spine-TypeList": {
+              "eclasses": 3,
+              "enodes": 3
+            }
+          },
+          "tables": {
+            "Spine-Arg": 3000,
+            "Spine-Base": 0,
+            "Spine-BoolT": 0,
+            "Spine-Bop": 1000,
+            "Spine-Get": 4200,
+            "Spine-If": 1000,
+            "Spine-InFunc": 1000,
+            "Spine-InIf": 2000,
+            "Spine-IntT": 1,
+            "Spine-LessThan": 1,
+            "Spine-Single": 2000,
+            "Spine-Smax": 0,
+            "Spine-Smin": 0,
+            "Spine-TCons": 2,
+            "Spine-TNil": 1,
+            "Spine-TupleT": 1
+          }
+        },
+        "subsumed_summaries": 200
+      },
+      "cellify_seconds": 0.03181683295406401,
+      "branch_results_verified": true,
+      "timings": {
+        "native": {
+          "result": {
+            "drop_seconds": 0.134172792,
+            "export_matches": 0,
+            "export_seconds": 0.0,
+            "input_seconds": 1.059359042,
+            "matches": 2100,
+            "read_seconds": 0.000164375,
+            "run_seconds": 0.044716708,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 1.1057972090000001,
+            "setup_seconds": 0.001721459,
+            "through_drop_seconds": 1.239970001,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 301989888,
+          "process_wall_seconds": 1.24,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-if-cell-bench/sparse-1000/native.json"
+          ]
+        },
+        "spine": {
+          "result": {
+            "drop_seconds": 0.138558334,
+            "export_matches": 0,
+            "export_seconds": 0.0,
+            "input_seconds": 1.070918667,
+            "matches": 2200,
+            "read_seconds": 0.000150625,
+            "run_seconds": 0.113379916,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 1.2515531249999998,
+            "setup_seconds": 0.067254542,
+            "through_drop_seconds": 1.3901114589999999,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 310444032,
+          "process_wall_seconds": 1.39,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-if-cell-bench/sparse-1000/spine.json"
+          ]
+        },
+        "spine_export": {
+          "result": {
+            "drop_seconds": 0.1385375,
+            "export_matches": 30312,
+            "export_seconds": 0.055516042,
+            "input_seconds": 1.049860291,
+            "matches": 2200,
+            "read_seconds": 0.000177667,
+            "run_seconds": 0.105243916,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 1.277925583,
+            "setup_seconds": 0.067305334,
+            "through_drop_seconds": 1.416463083,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 311721984,
+          "process_wall_seconds": 1.42,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-if-cell-bench/sparse-1000/spine_export.json"
+          ]
+        },
+        "pristine": {
+          "result": {
+            "drop_seconds": 0.1183485,
+            "export_matches": 0,
+            "export_seconds": 0.0,
+            "input_seconds": 0.851394666,
+            "matches": 2100,
+            "read_seconds": 0.000135291,
+            "run_seconds": 0.041982625,
+            "scope": "phased native execution; graph inspection only in separate verification runs",
+            "seconds": 0.8950580410000001,
+            "setup_seconds": 0.00168075,
+            "through_drop_seconds": 1.0134065410000002,
+            "traced": false,
+            "verification": null
+          },
+          "peak_rss_bytes": 265306112,
+          "process_wall_seconds": 1.01,
+          "command": [
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-if-cell-bench/pristine-build/pristine",
+            "bench",
+            "/Users/mineralsteins/Repos/egg_related/egg_layout/out/eggcc-if-cell-bench/sparse-1000/native.json"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -220,6 +220,15 @@ fn main() -> Result {
         let actual = snapshot(&compressed, &manifest.constructors)?;
         let comparison = state::compare(&expected, &actual)?;
         if !matches!(comparison, state::Comparison::Equivalent { .. }) {
+            if manifest.dump_states {
+                fs::write(
+                    &args[2],
+                    serde_json::to_string_pretty(&json!({
+                        "case":c.name,"comparison":comparison,"expected":expected,"actual":actual,
+                        "spine":spine,"active_summary_tables":active_summary_tables
+                    }))?,
+                )?;
+            }
             return Err(format!(
                 "{}: full closure mismatch: {:?}",
                 c.name,
