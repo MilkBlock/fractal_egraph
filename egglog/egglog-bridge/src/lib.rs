@@ -203,6 +203,17 @@ pub struct FunctionConfig {
 }
 
 impl EGraph {
+    /// Read-only introspection of materialized join indexes; profiling only,
+    /// never creates an index.
+    pub fn materialized_indexes(&self) -> Vec<(String, Vec<Vec<u32>>, Vec<Vec<u32>>)> {
+        self.db.materialized_indexes()
+    }
+
+    /// Read-only per-column cardinality; profiling only.
+    pub fn column_cardinality(&self) -> Vec<(String, usize, Vec<(u32, usize)>)> {
+        self.db.column_cardinality()
+    }
+
     fn next_ts(&self) -> Timestamp {
         Timestamp::from_usize(self.db.read_counter(self.timestamp_counter))
     }
