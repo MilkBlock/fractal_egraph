@@ -72,6 +72,38 @@ def signature(layout,c):
     return [sort(e) for e in layout['terms']]
 
 
+def normalize_lookups(body, head, signatures):
+    """Coalesce equal constructor queries after bindings have been normalized.
+
+    Same table + same arguments implies the same result, never the inverse.
+    Iterate because coalescing a child result can expose equal parent queries.
+    Preserve one existence check and only erase unions of equal bound values;
+    a self-union containing a constructor can still materialize that term.
+    """
+    constructors={name for op,sig in signatures.items() if sig.get('kind','constructor')=='constructor'
+                  for name in (naming.raw(op),naming.canonical(op))}
+    body=[dict(f,args=list(reversed(f['args']))) if f['kind']=='eq' and
+          f['args'][0]['kind']=='call' and f['args'][1]['kind']=='var' and
+          f['args'][0]['head'] in constructors else f for f in body]
+    body,head,_=t.normalize_ast(body,head)
+    while True:
+        outputs={};aliases=[]
+        for fact in body:
+            if fact['kind']!='eq':continue
+            left,right=fact['args']
+            if left['kind']=='call':left,right=right,left
+            if left['kind']!='var' or right['kind']!='call' or right['head'] not in constructors:continue
+            key=text(right)
+            if key in outputs and outputs[key]!=left:
+                aliases.append(dict(kind='eq',args=[outputs[key],left]))
+            else:outputs[key]=left
+        if not aliases:break
+        body,head,_=t.normalize_ast(body+aliases,head)
+    head=[a for a in head if not (a['kind']=='union' and a['args'][0]['kind']=='var'
+                                  and a['args'][0]==a['args'][1])]
+    return body,head
+
+
 def lower_ast(rule, selected, signatures, *, export=False):
     """Replace full Summary arguments by the selected active marker layout.
 
@@ -238,7 +270,7 @@ def lower_ast(rule, selected, signatures, *, export=False):
             if a['kind']=='set':other.append(a['value'])
         if introduced.isdisjoint(variables(other)):
             body=[f for i,f in enumerate(body) if i not in decoder_indices]
-    body,head,_=t.normalize_ast(body,head)
+    body,head=normalize_lookups(body,head,signatures)
     return dict(name=rule['name'],ruleset=rule['ruleset'],body=body,head=head,reused_subtrees=sorted(reused))
 
 

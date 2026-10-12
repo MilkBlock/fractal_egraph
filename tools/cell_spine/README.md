@@ -544,6 +544,26 @@ selection. `gate_audit` and `cost_audit` check the emitted code. Solver optimali
 refers to this structural model, not actual time or RSS. The cost diagram shares
 equal suffixes without sampling layouts or imposing a candidate budget.
 
+### Coalescing repeated constructor lookups
+
+After marker lowering and variable normalization, `normalize_lookups` merges
+queries with the same constructor and argument tuple. Their result variables
+become aliases throughout the rule. It repeats to a fixed point because merging
+child results can expose duplicate parent queries. Both `Op!` and `Op!!` are
+supported, but remain different tables.
+
+At least one constructor-existence check remains. Different argument tuples,
+argument orders and literals are preserved; equal results never imply equal
+inputs. RHS unions are not used to justify LHS simplification. Primitive or
+undeclared/nonconstructor calls are outside this pass. Only resulting unions
+between the same bound variable are removed; constructor-bearing actions may
+still create facts. Pricing and emission use this same lowered AST.
+
+The inherited `long_spine_graft` continuation now queries `Extend!` once and
+publishes its target marker without a redundant union. `test_lookups.py` checks
+cascading aliases, guards and negative cases; `test_markers.py` checks the actual
+emitted rule and the native closure through the normal compiler pipeline.
+
 ### Solver-selected physical representation
 
 `representation.py` extends each conditional path choice with legal storage

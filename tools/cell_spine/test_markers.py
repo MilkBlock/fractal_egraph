@@ -9,7 +9,7 @@ import unittest
 from .compiler import ROOT, load_candidates
 from .markers import RUNTIME_SCHEDULE, layouts
 from .pricing import audit,cost
-from .terms import text
+from .terms import text,walk
 from .test_support import marker_pattern
 
 
@@ -80,6 +80,17 @@ class ActiveMarkers(unittest.TestCase):
         self.assertTrue(all(l.get('representation')=='borrowed' for l in ls.values()))
         self.assertFalse(any(p['canonical_writes'] for p in prices.values()))
         self.assertEqual(prices['retire_0']['search_atoms'],2)
+
+    def test_inherited_graft_has_one_extend_query_and_no_union(self):
+        out=self.outputs['long_spine_graft']
+        rules=json.loads((out/'work/marker-runtime.json').read_text())['rules']
+        inherited=next(r for r in rules if r['name']=='impl_1_0_cover_1')
+        calls=[e for f in inherited['body'] for root in (f['args'] if f['kind']=='eq' else [f['expr']])
+               for e in walk(root) if e.get('head')=='Extend!']
+        self.assertEqual(len(calls),1)
+        self.assertFalse(any(a['kind']=='union' for a in inherited['head']))
+        report=json.loads((out/'report.json').read_text())
+        self.assertEqual(report['plan']['pricing']['rule_costs'][inherited['name']]['unions'],0)
 
     def test_all_admitted_storage_contracts_compose_and_export(self):
         # Exercise feasible but non-optimal mixed ABIs as well as the optimum.
