@@ -526,8 +526,9 @@ def prepare_runtime(candidates, plan, edges, work, destination=None):
     destination.mkdir(parents=True,exist_ok=True)
     path=destination/'lowered-consumers.egg';path.write_text('\n'.join([r['rule'] for r in lowered]+retire))
     consumers=ast(path,destination/'lowered-consumers.json')['rules']
-    return dict(chosen=chosen,transitions=transitions,lenses=lenses,blocked=blocked,lowered=lowered,
-                retire=retire,redundant=redundant,consumers=consumers)
+    from .representation import extend_layouts
+    return extend_layouts(dict(chosen=chosen,transitions=transitions,lenses=lenses,blocked=blocked,lowered=lowered,
+                retire=retire,redundant=redundant,consumers=consumers))
 
 
 def make_library(candidates, plan, edges, environment, signatures, work, prepared=None):
@@ -562,7 +563,7 @@ def make_library(candidates, plan, edges, environment, signatures, work, prepare
     out += [markers.lower(r,selected_layouts,signatures,export=True) for r in exported]
     retirement=dict(lenses=prepared['lenses'],cyclic_lenses_retained=prepared['blocked'],consumers=prepared['lowered'],retirement_rules=prepared['retire'],
         redundant_inherited_rules_removed=prepared['redundant'],runtime_rules=runtime_rules,marker_layouts=selected_layouts,gate_audit=gate_audit,
-        costed_transitions=transitions,scope='active canonical markers; raw constructors are ingress only; no closure-read relations')
+        raw_contracts=prepared.get('raw_contracts',{}),costed_transitions=transitions,scope='active canonical markers; raw constructors are ingress only; no closure-read relations')
     return '\n'.join(out)+'\n', chosen, prepared['lowered'], retirement
 
 

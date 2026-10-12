@@ -76,7 +76,41 @@ class ActiveMarkers(unittest.TestCase):
         self.assertTrue(any(name.startswith('retire_') for name in prices))
         self.assertTrue(any('_cover_' in name for name in prices))
         self.assertTrue(any(text(ls['1']['anchor']) in p['reused_subtrees'] for p in prices.values()))
-        self.assertEqual(r['plan']['objective'],57)
+        self.assertLess(r['plan']['objective'],57)
+        self.assertTrue(all(l.get('representation')=='borrowed' for l in ls.values()))
+        self.assertFalse(any(p['canonical_writes'] for p in prices.values()))
+        self.assertEqual(prices['retire_0']['search_atoms'],2)
+
+    def test_all_admitted_storage_contracts_compose_and_export(self):
+        # Exercise feasible but non-optimal mixed ABIs as well as the optimum.
+        # A borrowed parent must still materialize a canonical child when that
+        # is what the selected child reader contract requires.
+        from . import compiler as c
+        out=self.outputs['long_spine_graft'];work=self.folder/'storage-matrix';work.mkdir()
+        report=json.loads((out/'report.json').read_text())
+        cs,_=c.load_candidates(Path(report['analysis']),work)
+        for candidate in cs:candidate['marker_layouts']=layouts(candidate)
+        edges=c.transition_options(cs);c.price_options(edges,work)
+        plan=report['plan'];bundle=c.prepare_runtime(cs,plan,edges,work)
+        data=json.loads((out/'work/input.json').read_text());sig=dict(data['signatures'])
+        env=c.commands(data,{'declaration','rule'})
+        for candidate in cs:
+            for op,shape in candidate['signatures'].items():
+                if op not in sig:
+                    env.append(f'(constructor {op} ({" ".join(shape["input"])}) {shape["output"]})');sig[op]=shape
+        modes={f:{} for f in bundle['chosen']}
+        for f,candidate in bundle['chosen'].items():
+            for layout in candidate['marker_layouts']:
+                modes[f].setdefault(layout.get('representation','canonical'),layout)
+        self.assertEqual(set(modes[1]),{'canonical','borrowed','boundary','boundary_borrowed'})
+        for a in modes[0].values():
+            for b in modes[1].values():
+                selected=dict(plan,marker_layouts=[a['id'],b['id']])
+                library,*_=c.make_library(cs,selected,edges,env,sig,work,bundle)
+                manifest=json.loads((out/'work/validation.json').read_text());manifest['library']=library
+                path=work/'verify.json';path.write_text(json.dumps(manifest))
+                run=subprocess.run([ROOT/'target/release/examples/spine_validate',path,work/'result.json'],capture_output=True,text=True)
+                self.assertEqual(run.returncode,0,(a['id'],b['id'],run.stderr))
 
     def test_root_union_does_not_invent_a_sibling_input(self):
         layout=json.loads((self.outputs['root_alias']/'report.json').read_text())['retirement']['marker_layouts']['0']

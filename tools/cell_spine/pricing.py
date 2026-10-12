@@ -120,8 +120,8 @@ class RuntimePricing:
         # Path IDs and variable spelling do not change emitted operation
         # counts. Reuse only identical typed lowering recipes, not merely
         # equal costs observed on a few samples. Relabel decision variables.
-        recipe_fields=('roots','fields','terms','decode','anchor','anchor_field','columns')
-        recipes=tuple(tuple(json.dumps({k:l[k] for k in recipe_fields},sort_keys=True) for l in ls) for ls in domains)
+        recipe_fields=('roots','fields','terms','decode','anchor','anchor_field','columns','representation','read_storage','stored_roots')
+        recipes=tuple(tuple(json.dumps({k:l.get(k) for k in recipe_fields},sort_keys=True) for l in ls) for ls in domains)
         key=(rule_recipe(rule),recipes)
         if key in self.profiles:
             root,previous=self.profiles[key]

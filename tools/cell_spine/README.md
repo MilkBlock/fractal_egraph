@@ -199,7 +199,8 @@ export, source input construction and rule installation are outside this score.
 The solve is conditional but not greedy:
 
 1. An outer Gurobi model chooses paths and transition implementations.
-2. An inner Gurobi model jointly chooses their marker layouts and returns the
+2. An inner Gurobi model jointly chooses marker layouts and legal physical
+   representations (canonical, borrowed, or boundary form), and returns the
    minimum cost of the actual generated runtime, including inherited rules.
 3. An exact conditional value cut feeds this cost back to the outer model.
    It can choose different paths. Stop when its lower bound reaches the best
@@ -483,7 +484,8 @@ are no global `Spine-Read-*` or `Spine-Wanted-*` relations in generated programs
 A transition requires active parent markers. It reads canonical nodes only
 through these markers. Known subtrees become result variables in both LHS and
 RHS. A transition needing only a stored root does not decode the old chain.
-It constructs the changed canonical part, publishes the new marker, and subsumes
+It stores the changed part according to the selected contract, publishes the new
+marker, and subsumes
 certified parent markers. Normalization can read noncanonical input; subsequent
 inference is authorized by canonical markers. Merely inserting an unmarked Cano
 node does not activate a Cell.
@@ -492,13 +494,13 @@ For the ordinary `long_spine_graft.egg` fixture, the main graft has two LHS atom
 
 ```egg
 (rule ((Spine-Summary-0 root) (= next (Spine-Extend root extra)))
-      ((Spine-Cano-Extend root extra)
-       (union next (Spine-Cano-Extend root extra))
-       (Spine-Summary-1 next)
+      ((Spine-Summary-1 next root)
        (subsume (Spine-Summary-0 root)))
       :ruleset Spine-Run)
 ```
 
+This selection borrows the existing raw chain and Extend row. There is no
+canonical copy; explicit export reads that chain through its active owner.
 The fixture has a seven-input chain and an external graft. It is **not** the
 complete seven-input AC problem. Actual generated names and inherited consumers
 are in the report and `library.egg`.
@@ -517,7 +519,9 @@ activation accidentally. If fields are omitted, the decoder checks the canonical
 seed forest and its equality guards. Reading one root alone is insufficient:
 union of constructor outputs does not imply union of their inputs. Dead decoders
 are removed only when their omitted bindings cannot affect the transition; joins
-between multiple owners keep their correlation checks.
+between multiple owners keep their correlation checks unless a single owner
+exposes all subordinate forests directly in the same physical table namespace
+and the subordinate markers carry roots only.
 
 The objective includes shared template shapes, stored marker columns, and actual
 lowered reads/writes and marker keys, including inherited consumers and decoder
@@ -525,6 +529,55 @@ elimination. The conditional solve above feeds those costs back into spine
 selection. `gate_audit` and `cost_audit` check the emitted code. Solver optimality
 refers to this structural model, not actual time or RSS. The cost diagram shares
 equal suffixes without sampling layouts or imposing a candidate budget.
+
+### Solver-selected physical representation
+
+`representation.py` extends each conditional path choice with legal storage
+contracts. These are inputs to the cost diagram, not patches to a solved program.
+All producers, inherited consumers, retirement rules, and export agree on one
+marker ABI for a family.
+
+- **Canonical** keeps the previous behavior: store the complete canonical seed
+  forest, with optional parameter decoding.
+- **Borrowed** stores no canonical copy of that forest. Its raw rows must exist
+  on **every** producer path. Decode them under the active marker when needed.
+- **Boundary** stores one immediate canonical subtree. The existing raw root
+  need not be duplicated; the marker also carries inputs outside that subtree.
+  If the subtree is independently guaranteed raw, it may be borrowed too.
+
+Boundary form currently requires a single root, a single compound child, and no
+seed union guards. Multi-root forests retain full correlated decoding. This is
+an explicit finite representation space; it does not enumerate every subset of
+nodes or change the rules to special-case Add, If, or associative laws.
+
+The frontend checks raw-row availability as a finite inductive invariant over
+**all** producers, including inherited/self transitions. It starts with seed
+rows and removes obligations that any producer cannot preserve. Matching a
+constructor's output never implies equality of its arguments. Logical seed
+identity alone is not evidence of a raw or canonical table row. The lowerer
+therefore tracks canonical-row availability separately, still constructs a
+canonical child when a borrowed parent cannot supply its physical readers, and
+preserves required unions between existing roots.
+
+`retirement.raw_contracts` lists the admitted raw rows.
+`retirement.marker_layouts` records each selected `representation`,
+`read_storage`, and `stored_roots` (absent fields mean canonical for compatibility).
+`plan.pricing.rule_costs` prices the resulting reads and writes, so a removed
+canonical copy reduces the actual update score. `template_nodes` still counts
+shared **descriptions**, including export recipes, not runtime physical rows.
+The structural objective does not model failed Join-prefix cardinalities, so a
+smaller score is not a speedup guarantee; sparse If remains a counterexample.
+
+New raw facts continue through existing ingress; borrowed storage is never
+written by inference. Input union preserves these rows modulo rebuild in the
+supported positive-constructor subset. Deletion, user subsumption of borrowed
+input, mutable function tables and arbitrary foreign writes are outside this
+backend's contract. The original canonical mode remains available in the same
+optimization problem.
+
+See `experiments/cell_spine/representation` for the native single-run comparison
+and `test_representation.py` / `test_markers.py` for mixed-storage, missing-row,
+noninjectivity, correlated-join and required-union checks.
 
 ### Retirement and validation
 

@@ -1,7 +1,7 @@
-"""Canonical marker layouts and lowering; no materialized closure-read table.
+"""Canonical marker layouts and physical-storage lowering.
 
-Ingress reads the raw Spine constructors. Transition outputs are Cano
-constructors and therefore cannot become new raw ingress. A Summary is the
+Ingress reads raw Spine constructors. Storage contracts either borrow these
+immutable rows or construct Cano rows; neither publishes new raw ingress. A Summary is the
 active marker itself, not an extra provenance record.
 """
 from .terms import text, walk
@@ -74,11 +74,11 @@ def signature(layout,c):
 def lower_ast(rule, selected, signatures, *, export=False):
     """Replace full Summary arguments by the selected active marker layout.
 
-    LHS raw facts remain raw. Marker decoding uses only canonical constructors.
-    RHS known source terms reuse their matched result, rather than reconstructing
-    noncanonical shapes. The canonical target spine is explicitly constructed.
+    Marker decoding follows the selected raw/canonical storage contract. Logical
+    value identity and physical canonical-row existence are tracked separately.
+    A target materializes only the spine required by its selected readers.
     """
-    body=[];known={};certified={};decoded=set();names=set();reused=set()
+    body=[];known={};certified={};canonical_rows=set();decoded=set();names=set();reused=set()
     for fact in rule['body']:
         for root in fact['args'] if fact['kind']=='eq' else [fact['expr']]:
             names.update(e['name'] for e in walk(root) if e['kind']=='var')
@@ -96,15 +96,17 @@ def lower_ast(rule, selected, signatures, *, export=False):
         else:known[key]=value
         if owned:certified[key]=known[key]
         return known[key]
-    def decode(expr,output=None):
+    def decode(expr,output=None,storage='canonical'):
         if expr['kind']!='call':
             if output is not None:body.append(dict(kind='eq',args=[output,expr]))
             return expr
         output=output or known.get(text(expr)) or fresh()
         if text(expr) in decoded:return bind(expr,output,True)
         decoded.add(text(expr))
-        args=[decode(a) if a['kind']=='call' else a for a in expr['args']]
-        body.append(dict(kind='eq',args=[output,canonical(t.call(expr['head'],args),signatures)]))
+        args=[decode(a,storage=storage) if a['kind']=='call' else a for a in expr['args']]
+        row=t.call(expr['head'],args)
+        body.append(dict(kind='eq',args=[output,row if storage=='raw' else canonical(row,signatures)]))
+        if storage=='canonical':canonical_rows.add(text(expr))
         return bind(expr,output,True)
     def flatten(expr):
         if text(expr) in known:
@@ -112,8 +114,10 @@ def lower_ast(rule, selected, signatures, *, export=False):
             return known[text(expr)]
         if expr['kind']!='call':return expr
         if expr['head'].startswith('Spine-') and expr['head'][6:] in signatures:
-            args=[flatten(a) for a in expr['args']];v=fresh()
-            body.append(dict(kind='eq',args=[v,t.call(expr['head'],args)]))
+            args=[flatten(a) for a in expr['args']];row=t.call(expr['head'],args)
+            if text(row) in known:return bind(expr,known[text(row)])
+            v=fresh();body.append(dict(kind='eq',args=[v,row]))
+            bind(row,v)
             return bind(expr,v)
         return t.call(expr['head'],[flatten(a) for a in expr['args']])
     def layout_args(expr):
@@ -123,7 +127,7 @@ def lower_ast(rule, selected, signatures, *, export=False):
     # Establish active ownership before resolving other atoms. Each decoded
     # subtree supplies a real canonical value to both LHS and RHS. No lookup
     # relation is emitted, and a retired marker cannot supply these values.
-    constraints=[];decoder_indices=set();owners=[]
+    constraints=[];decoder_indices=set();owners=[];owner_interfaces=[]
     for fact in rule['body']:
         if fact['kind']!='fact' or not fact['expr']['head'].startswith('Spine-Summary-'):continue
         expr=fact['expr'];layout,original,_=layout_args(expr)
@@ -144,17 +148,26 @@ def lower_ast(rule, selected, signatures, *, export=False):
         body.append(owner)
         for term,column in zip(layout['terms'],columns):
             if term['kind']=='var':subst[term['name']]=column
-        for i,root in enumerate(layout['roots']):bind(t.replace(root,subst),columns[i],True)
+        for i,root in enumerate(layout['roots']):
+            term=t.replace(root,subst);bind(term,columns[i],True)
+            if layout.get('representation','canonical')=='canonical':canonical_rows.add(text(term))
         if layout['anchor_field']=='anchor':
             subst['anchor']=columns[len(layout['roots'])]
-            bind(t.replace(layout['anchor'],subst),subst['anchor'],True)
+            term=t.replace(layout['anchor'],subst);bind(term,subst['anchor'],True)
+            if layout.get('read_storage','canonical')=='canonical':canonical_rows.add(text(term))
+        exposed=[t.replace(r,subst) for r in layout['roots']]
+        if layout['anchor_field']=='anchor':exposed.append(t.replace(layout['anchor'],subst))
+        owner_interfaces.append(dict(exposed=exposed,roots=[t.replace(r,subst) for r in layout['roots']],
+            roots_only=len(layout['terms'])==len(layout['roots']),
+            storage=layout.get('read_storage','canonical'),guard=any(q.get('guard') for q in layout['decode'])))
         decoder_start=len(body)
         for query in layout['decode']:
             output,pattern=[t.replace(x,subst) for x in query['args']]
             if query.get('guard'):
                 body.append(dict(kind='eq',args=[flatten(output),flatten(pattern)]))
-            else:decode(pattern,output)
-        decoder_indices.update(range(decoder_start,len(body)))
+            else:decode(pattern,output,layout.get('read_storage','canonical'))
+        decoder_indices.update(i for i in range(decoder_start,len(body))
+                               if any(e['kind']=='call' for r in body[i]['args'] for e in walk(r)))
     for left,right in constraints:
         body.append(dict(kind='eq',args=[left,flatten(right)]))
     for fact in rule['body']:
@@ -162,7 +175,7 @@ def lower_ast(rule, selected, signatures, *, export=False):
         if fact['kind']=='eq':body.append(dict(kind='eq',args=[flatten(x) for x in fact['args']]))
         else:body.append(dict(kind='fact',expr=flatten(fact['expr'])))
     def build(expr):
-        if text(expr) in certified:
+        if text(expr) in certified and text(expr) in canonical_rows:
             reused.add(text(expr));return certified[text(expr)]
         if expr['kind']!='call':return expr
         return canonical(t.call(expr['head'],[build(a) for a in expr['args']]),signatures)
@@ -183,10 +196,19 @@ def lower_ast(rule, selected, signatures, *, export=False):
             head.append(action);continue
         if action['kind']=='expr' and action['expr']['head'].startswith('Spine-Summary-'):
             expr=action['expr'];layout,subst,args=layout_args(expr)
-            for i,root in enumerate(layout['roots']):
-                result=materialize(t.replace(root,subst))
-                head.append(dict(kind='union',args=[value(expr['args'][i]),result]))
-            head.append(dict(kind='expr',expr=t.call(expr['head'],[value(x) for x in args])))
+            if layout.get('representation','canonical')=='canonical':
+                for i,root in enumerate(layout['roots']):
+                    result=materialize(t.replace(root,subst))
+                    head.append(dict(kind='union',args=[value(expr['args'][i]),result]))
+            else:
+                # Roots already have identities from the certified raw input.
+                # Store only the chosen physical subtree, or borrow it too.
+                for root in layout['stored_roots']:materialize(t.replace(root,subst))
+                for original,root in zip(expr['args'],layout['roots']):
+                    result=flatten(t.replace(root,subst))
+                    head.append(dict(kind='union',args=[flatten(original),result]))
+            borrow=layout.get('representation') in ('borrowed','boundary_borrowed')
+            head.append(dict(kind='expr',expr=t.call(expr['head'],[(flatten(x) if borrow else value(x)) for x in args])))
         elif action['kind']=='expr':materialize(action['expr'])
         elif action['kind']=='change' and action['head'].startswith('Spine-Summary-'):
             _,_,args=layout_args(t.call(action['head'],action['args']))
@@ -195,13 +217,20 @@ def lower_ast(rule, selected, signatures, *, export=False):
         else:head.append(action)
     head=[a for a in head if not (a['kind']=='union' and a['args'][0]==a['args'][1])]
     # An owner certifies that its seed already exists. If this transition uses
-    # only stored fields, decoding the rest cannot affect its actions. Keep all
-    # decoders for multi-owner joins: erased shared variables still constrain
-    # which instances may join, even when the RHS does not use those variables.
+    # only stored fields, decoding the rest cannot affect its actions. Multi-owner
+    # joins additionally require compatible exposed subtree witnesses below.
     def variables(roots):return {e['name'] for root in roots for e in walk(root) if e['kind']=='var'}
     def fact_roots(f):return f['args'] if f['kind']=='eq' else [f['expr']]
-    if len(owners)==1 and decoder_indices:
-        introduced=variables(e for i in decoder_indices for e in fact_roots(body[i]))-variables(fact_roots(owners[0]))
+    # For several owners, one owner must expose every subordinate forest
+    # directly, and subordinates must carry roots only. Arbitrary overlapping
+    # hidden variables (or different physical tables) still require a join.
+    compatible=not any(i['guard'] for i in owner_interfaces)
+    if len(owners)>1:
+        compatible=compatible and any(all(j==k or (child['roots_only'] and
+            child['storage']==owner['storage'] and all(r in owner['exposed'] for r in child['roots']))
+            for k,child in enumerate(owner_interfaces)) for j,owner in enumerate(owner_interfaces))
+    if compatible and decoder_indices:
+        introduced=variables(e for i in decoder_indices for e in fact_roots(body[i]))-variables(e for owner in owners for e in fact_roots(owner))
         other=[e for i,f in enumerate(body) if i not in decoder_indices for e in fact_roots(f)]
         for a in head:
             other += [a['expr']] if a['kind'] in ('expr','let') else a['args']
