@@ -169,8 +169,9 @@ async function renderPreview(plugin, request) {
     let ir, variableMap = {}, variableLabels = {}, rustSource = '', rustStartLine = 0;
     const hasPreviewSource = plugin.hasEggPreviewSource
         ?? require('node:fs').existsSync(require('node:path').join(plugin.root, 'out/eggPreviewSource.js'));
-    if (hasPreviewSource) {
-        const { prepareEggPreviewPlan, buildEggPreview } = plugin.load('eggPreviewSource');
+    const previewApi = hasPreviewSource ? plugin.load('eggPreviewSource') : {};
+    if (typeof previewApi.prepareEggPreviewPlan === 'function' && typeof previewApi.buildEggPreview === 'function') {
+        const { prepareEggPreviewPlan, buildEggPreview } = previewApi;
         const plan = prepareEggPreviewPlan(previewSource, rust);
         // The plugin drops `rewrite` forms from program.rules, which both ignores their
         // annotations and shifts every later rule onto the wrong annotation. Index the
@@ -190,6 +191,16 @@ async function renderPreview(plugin, request) {
             rustSource = prepared.rust.slice(span.start, span.end);
             rustStartLine = prepared.rust.slice(0, span.start).split('\n').length;
         }
+    } else if (typeof previewApi.prepareEggPreview === 'function') {
+        // 0.1.7 returns the extractor source/offset directly; it has no plan or
+        // annotation decorator. Keep using that version's own selection pipeline.
+        const prepared = await previewApi.prepareEggPreview(
+            previewSource, request.file || 'preview.egg', offset,
+            text => plugin.transpiler.transpileEggSource(text));
+        if (prepared.expression) throw Error('Rule preview requires a rule or rewrite, not a let expression');
+        ir = await extract(prepared.source, prepared.offset);
+        rustSource = prepared.source;
+        rustStartLine = 1;
     } else {
         const rustOffset = plugin.load('eggRuleMapping').resolveEggPreviewOffset(previewSource, offset, rust);
         ir = await extract(rust, rustOffset);
