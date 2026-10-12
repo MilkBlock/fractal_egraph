@@ -56,6 +56,12 @@ class AblationEvidence(unittest.TestCase):
             # A one-atom scan may need no Join probe at all; zero is valid.
             self.assertIn('probes',p)
             self.assertEqual(p['candidate_rows'],p['  candidate_rows enumerated (for_each)']+p['  candidate_rows from lookups'])
+            path.write_text(json.dumps(dict(manifest,counts=True)))
+            counts=run(['bench-probes',path])
+            self.assertEqual(counts['verification']['check_mode'],'counts_only')
+            self.assertEqual(counts['verification']['spine'],v['spine'])
+            self.assertEqual(counts['verification']['restored'],v['restored'])
+            path.write_text(json.dumps(manifest))
             timed=run(['bench',path])
             self.assertEqual(timed['matches'],checked['matches'])
             self.assertIsNone(timed['verification'])

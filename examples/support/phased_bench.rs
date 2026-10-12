@@ -8,6 +8,9 @@ struct Phases {
     run: String,
     #[serde(default)]
     export: String,
+    /// Inspect row/class counts without writing or comparing a complete graph.
+    #[serde(default)]
+    counts: bool,
     constructors: Vec<String>,
 }
 fn execute_phase(
@@ -94,6 +97,7 @@ pub fn run_diagnostic(
     use std::io::Write;
     let tick = std::time::Instant::now();
     let config: Phases = serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap();
+    let inspect = config.counts || graph.is_some();
     let environment = std::fs::read_to_string(&config.environment).unwrap();
     let input = std::fs::read_to_string(&config.input).unwrap();
     let read_seconds = tick.elapsed().as_secs_f64();
@@ -103,9 +107,9 @@ pub fn run_diagnostic(
     execute_phase(&mut eg, &environment, false);
     let setup_seconds = tick.elapsed().as_secs_f64();
     let (input_seconds, _, _) = execute_phase(&mut eg, &input, false);
-    let initial = graph.map(|_| shape(&eg, &config.constructors));
-    let before_probes = graph.map(|_| probes());
-    let (run_seconds, matches, rule_matches) = execute_phase(&mut eg, &config.run, graph.is_some());
+    let initial = inspect.then(|| shape(&eg, &config.constructors));
+    let before_probes = inspect.then(|| probes());
+    let (run_seconds, matches, rule_matches) = execute_phase(&mut eg, &config.run, inspect);
     let join_probes = before_probes.map(|before| {
         let before: std::collections::BTreeMap<_, _> = before.into_iter().collect();
         probes()
@@ -114,7 +118,7 @@ pub fn run_diagnostic(
             .collect::<std::collections::BTreeMap<_, _>>()
     });
     let mut verification = serde_json::Value::Null;
-    if graph.is_some() {
+    if inspect {
         let names = eg.get_function_names();
         let (mut active, mut hidden) = (0, 0);
         let mut summary_tables = std::collections::BTreeMap::new();
@@ -158,8 +162,15 @@ pub fn run_diagnostic(
         let (seconds, matches, _) = execute_phase(&mut eg, &config.export, false);
         (seconds, matches)
     };
-    if let Some(path) = graph {
+    if inspect {
         verification["restored"] = shape(&eg, &config.constructors);
+        verification["check_mode"] = json!(if graph.is_some() {
+            "graph_dump"
+        } else {
+            "counts_only"
+        });
+    }
+    if let Some(path) = graph {
         let mut writer = std::io::BufWriter::new(std::fs::File::create(path).unwrap());
         write!(writer, "[").unwrap();
         let eq_sorts = config
