@@ -9,7 +9,7 @@ out/cell-spine-venv/bin/python -m tools.cell_spine.compiler \
 ```
 
 The default `--mode auto` retains the existing parameterized constructor Cell
-compiler when its contracts are sufficient. Other single-ruleset programs use
+compiler when its contracts are sufficient. Other supported finite programs, including multiple rulesets, use
 **concrete stage Bake**, as requested: compile the current input first, defer new
 binding generalization. `--mode stages` selects that path explicitly;
 `--mode symbolic` requires the original parameterized certificate.
@@ -87,7 +87,7 @@ The native program must finish on the supplied input. Nonterminating saturation
 cannot produce a finite completed Bake. Proof generation, plugin-defined
 commands/custom populated sorts without a codec, and external file writes are
 rejected with an error, not silently copied or labeled compressed. Thus this is
-broad standard single-ruleset support, not a claim about every possible egglog
+broad standard concrete-program support, not a claim about every possible egglog
 extension. Header or codec errors also prevent publication.
 
 The original symbolic path still requires complete positive constructor/equality
@@ -369,9 +369,25 @@ The operation does not execute rules or certify saturation.
 The complete upstream web-demo `math.egg` produces 21 files: one `add-ac` scope
 and 20 scopes retaining default + `prune`. The unchanged add-ac scope's original
 7 rounds and check pass native execution and concrete-stage Bake. This is not
-proof of successful Bake for the other 20 mixed programs.
+proof of successful Bake for every other mixed program. Auto/stage Bake now
+supports multiple native rulesets; the actual default/prune scope also passes
+checkpoint reconstruction. Strict symbolic Cell composition remains single-ruleset.
 
 ```sh
 cargo test --offline --release --example split_ast
 out/cell-spine-venv/bin/python -m unittest tools.cell_spine.test_split -v
 ```
+
+## Multiple rulesets in concrete Bake
+
+The checkpoint runner executes each original RunSchedule on the same native
+egraph, with its ordinary per-rule incremental frontiers. It preserves seq,
+repeat, :until, prune, union, updates and scope rollback. No rulesets are merged
+and no schedules are reordered. Thus auto/stages need no single-ruleset gate.
+Restore remains immutable checkpoint reconstruction, not restoration of the
+native semi-naive frontiers for arbitrary continuation; new inputs require
+rebaking. Symbolic Cell compilation keeps its separate single-ruleset contract.
+
+`fixtures/stages/multi_rulesets.egg` checks that running prune does not reset the
+default rule's frontier and accidentally repeat a non-idempotent merge. Native
+checks, hidden rows and rollback states are verified again after restoration.

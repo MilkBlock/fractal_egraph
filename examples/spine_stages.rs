@@ -497,17 +497,9 @@ fn main() -> Result {
     let mut eg = EGraph::default();
     let parsed = eg.parse_program(Some(args[1].clone()), &source)?;
     let commands = expand(&mut eg, parsed, &mut BTreeSet::new())?;
-    let sets: BTreeSet<_> = commands
-        .iter()
-        .filter_map(|c| match c {
-            Command::Rule { rule } => Some(rule.ruleset.clone()),
-            Command::Rewrite(r, ..) | Command::BiRewrite(r, ..) => Some(r.clone()),
-            _ => None,
-        })
-        .collect();
-    if sets.len() > 1 {
-        return Err("requires a single rule-bearing ruleset after expanding includes".into());
-    }
+    // Concrete snapshots replay each native schedule in its original position.
+    // Unlike symbolic Cell composition, they need no single-ruleset assumption:
+    // seq/default/prune and cross-ruleset semi-naive frontiers remain native.
     let all_text = commands
         .iter()
         .map(ToString::to_string)

@@ -1,0 +1,26 @@
+; Two native semi-naive frontiers, pruning, non-idempotent merge and rollback.
+(datatype Node (V i64) (Wrap Node))
+(function counter () i64 :merge (+ old new))
+(relation Tick (i64))
+(rule ((Tick n)) ((set (counter) 1) (Wrap (V n))))
+(ruleset prune)
+(rule ((Wrap x)) ((subsume (Wrap x))) :ruleset prune)
+
+(Tick 0)
+(run 1)
+(check (= (counter) 1))
+(run prune 1)
+(run 1)
+(check (= (counter) 1))
+
+(push)
+(Tick 1)
+(run-schedule (seq (run) (run prune)))
+(check (= (counter) 2))
+(pop)
+(check (= (counter) 1))
+(fail (check (Tick 1)))
+
+(Tick 2)
+(run-schedule (repeat 2 (seq (run :until (= (counter) 2)) (run prune))))
+(check (= (counter) 2))

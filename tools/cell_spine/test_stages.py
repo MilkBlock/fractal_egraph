@@ -14,7 +14,7 @@ class ConcreteStages(unittest.TestCase):
     def setUpClass(cls):
         cls.tmp=tempfile.TemporaryDirectory(dir=ROOT/'out',prefix='stage-test-')
         cls.root=Path(cls.tmp.name);cls.outputs={}
-        names=['finite_updates','visibility','containers','function_values','pair_multiset','extraction','included','non_idempotent_merge','until','global_merge']
+        names=['finite_updates','visibility','containers','function_values','pair_multiset','extraction','included','non_idempotent_merge','until','global_merge','multi_rulesets']
         sources={n:ROOT/f'experiments/cell_spine/fixtures/stages/{n}.egg' for n in names}
         sources['upstream_list']=ROOT/'egglog/tests/web-demo/list.egg'
         sources['upstream_merge']=ROOT/'egglog/tests/repro-should-saturate.egg'
@@ -88,6 +88,19 @@ class ConcreteStages(unittest.TestCase):
         f=self.frames('until')[0]
         row=next(r for r in f['state']['rows'] if r['op']=='score')
         self.assertEqual(f['state']['values'][row['result']]['literal'],'2')
+
+    def test_multiple_rulesets_keep_native_frontiers_pruning_and_rollback(self):
+        frames=self.frames('multi_rulesets')
+        def counter(f):
+            state=f['state'];row=next(r for r in state['rows'] if r['op']=='counter')
+            return state['values'][row['result']]['literal']
+        checks=[f for f in frames if f['command'].startswith('(check')]
+        self.assertEqual([counter(f) for f in checks],['1','1','2','1','2'])
+        self.assertTrue(any(f['hidden_rows'] for f in frames))
+        after_pop=next(f for f in frames if f['command'].startswith('(pop'))
+        self.assertEqual(counter(after_pop),'1')
+        self.assertTrue(any('prune' in f['command'] and 'seq' in f['command'] for f in frames))
+        subprocess.run([ROOT/'target/release/examples/spine_stages','--verify',self.outputs['multi_rulesets']/'stage-bake/stages.json'],check=True,stdout=subprocess.DEVNULL)
 
     def test_native_witness_rejects_removed_subsume(self):
         report=json.loads((self.outputs['visibility']/'stage-bake/stages.json').read_text())
