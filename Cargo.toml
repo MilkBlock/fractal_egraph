@@ -35,6 +35,7 @@ harness = false
 
 [features]
 native-read-profile = ["egglog/table-read-profile"]
+native-join-work-profile = ["egglog/join-work-profile"]
 
 [[bench]]
 name = "reuse_features"

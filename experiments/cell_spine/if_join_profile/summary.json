@@ -1,0 +1,1377 @@
+{
+  "schema": "if-join-diagnosis/v1",
+  "threads": 1,
+  "diagnostic_only": true,
+  "commit": "fb8c8954355937bd07387fa2057867c001a82479",
+  "dirty": true,
+  "binary_sha256": "9c8220c48de8682a6012489836adcb5c0888a295869c9afacb3cef2b914b4e21",
+  "ablation_report_sha256": "327c21b6f886c084df747a17689e5826b871ad6789412e2b728c4cf63019f207",
+  "profile_rules": [
+    "impl_6_5_cover_5",
+    "impl_7_5_cover_10"
+  ],
+  "counterfactuals_are_not_production_fixes": true,
+  "variants": {
+    "native": {
+      "run_ms": 52.134458,
+      "matches": 2100,
+      "phases_ms": {
+        "search_and_apply_time_per_ruleset": 38.174583999999996,
+        "merge_time_per_ruleset": 1.4172500000000001,
+        "rebuild_time_per_ruleset": 11.983291999999999
+      },
+      "probes": {
+        "  candidate_rows enumerated (for_each)": 106400,
+        "  candidate_rows from lookups": 211800,
+        "  lookup calls (get_subset)": 176500,
+        "cached_column": 54070,
+        "cached_index_hit": 54095,
+        "cached_index_rebuild": 37,
+        "cached_index_rebuild_full": 0,
+        "cached_index_rebuild_rows": 42601,
+        "cached_tuple": 34,
+        "candidate_rows": 318200,
+        "dynamic_column (per-node cache)": 34010,
+        "dynamic_tuple (group_by_key)": 2,
+        "probed_keys": 104500,
+        "probes": 203516,
+        "sparse_column": 115400
+      },
+      "blocks": [],
+      "equivalence": {
+        "exact_equal": true,
+        "enodes": 16208,
+        "eclasses": 14108,
+        "sorts": {
+          "Assumption": {
+            "enodes": 3000,
+            "eclasses": 3000
+          },
+          "BaseType": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "BinaryOp": {
+            "enodes": 3,
+            "eclasses": 3
+          },
+          "Expr": {
+            "enodes": 13200,
+            "eclasses": 11100
+          },
+          "Type": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "TypeList": {
+            "enodes": 3,
+            "eclasses": 3
+          }
+        }
+      },
+      "hot_rules": [],
+      "summary_tables": {},
+      "tables_before_export": {
+        "Arg": 3000,
+        "Base": 0,
+        "BoolT": 0,
+        "Bop": 1100,
+        "Get": 6100,
+        "If": 1000,
+        "InFunc": 1000,
+        "InIf": 2000,
+        "IntT": 1,
+        "LessThan": 1,
+        "Single": 2000,
+        "Smax": 1,
+        "Smin": 1,
+        "TCons": 2,
+        "TNil": 1,
+        "TupleT": 1
+      },
+      "total_table_rows_before_export": 30214,
+      "omitted_tables": {
+        "count": 14006,
+        "rows": 14006
+      }
+    },
+    "old": {
+      "run_ms": 50.334417,
+      "matches": 2200,
+      "phases_ms": {
+        "search_and_apply_time_per_ruleset": 30.503376,
+        "merge_time_per_ruleset": 1.577957,
+        "rebuild_time_per_ruleset": 15.988124999999998
+      },
+      "probes": {
+        "  candidate_rows enumerated (for_each)": 141050,
+        "  candidate_rows from lookups": 772304,
+        "  lookup calls (get_subset)": 183854,
+        "cached_column": 17740,
+        "cached_index_hit": 17754,
+        "cached_index_rebuild": 57,
+        "cached_index_rebuild_full": 17,
+        "cached_index_rebuild_rows": 42403,
+        "cached_tuple": 26,
+        "candidate_rows": 913354,
+        "dynamic_column (per-node cache)": 19720,
+        "dynamic_tuple (group_by_key)": 60,
+        "probed_keys": 140654,
+        "probes": 192550,
+        "sparse_column": 155004
+      },
+      "blocks": [
+        {
+          "rule": "impl_6_5_cover_5",
+          "kind": "materialize",
+          "block": 0,
+          "stages": 14,
+          "seconds": 0.000821625,
+          "materialized_keys": 50,
+          "materialized_rows": 50,
+          "message_columns": 12,
+          "value_columns": 0,
+          "counters": {
+            "probes": 11205,
+            "sparse_column": 10700,
+            "cached_tuple": 0,
+            "cached_column": 250,
+            "dynamic_tuple (group_by_key)": 0,
+            "dynamic_column (per-node cache)": 255,
+            "cached_index_rebuild": 4,
+            "cached_index_hit": 246,
+            "cached_index_rebuild_rows": 1600,
+            "cached_index_rebuild_full": 3,
+            "probed_keys": 10650,
+            "candidate_rows": 26500,
+            "  candidate_rows enumerated (for_each)": 10650,
+            "  lookup calls (get_subset)": 10800,
+            "  candidate_rows from lookups": 15850
+          },
+          "stage_entries": [
+            1,
+            50,
+            50,
+            50,
+            50,
+            50,
+            5000,
+            50,
+            50,
+            50,
+            50,
+            50,
+            50,
+            50
+          ],
+          "query": 0
+        },
+        {
+          "rule": "impl_6_5_cover_5",
+          "kind": "materialize",
+          "block": 1,
+          "stages": 19,
+          "seconds": 0.000516625,
+          "materialized_keys": 0,
+          "materialized_rows": 0,
+          "message_columns": 0,
+          "value_columns": 25,
+          "counters": {
+            "probes": 1514,
+            "sparse_column": 950,
+            "cached_tuple": 2,
+            "cached_column": 202,
+            "dynamic_tuple (group_by_key)": 6,
+            "dynamic_column (per-node cache)": 354,
+            "cached_index_rebuild": 4,
+            "cached_index_hit": 200,
+            "cached_index_rebuild_rows": 1400,
+            "cached_index_rebuild_full": 3,
+            "probed_keys": 450,
+            "candidate_rows": 52150,
+            "  candidate_rows enumerated (for_each)": 450,
+            "  lookup calls (get_subset)": 1700,
+            "  candidate_rows from lookups": 51700
+          },
+          "stage_entries": [
+            1,
+            50,
+            50,
+            50,
+            50,
+            50,
+            50,
+            50,
+            50,
+            50,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "query": 0
+        },
+        {
+          "rule": "impl_6_5_cover_5",
+          "kind": "plan",
+          "block": 0,
+          "stages": 0,
+          "seconds": 0.00152875,
+          "materialized_keys": null,
+          "materialized_rows": null,
+          "message_columns": null,
+          "value_columns": null,
+          "counters": {
+            "probes": 12719,
+            "sparse_column": 11650,
+            "cached_tuple": 2,
+            "cached_column": 452,
+            "dynamic_tuple (group_by_key)": 6,
+            "dynamic_column (per-node cache)": 609,
+            "cached_index_rebuild": 8,
+            "cached_index_hit": 446,
+            "cached_index_rebuild_rows": 3000,
+            "cached_index_rebuild_full": 6,
+            "probed_keys": 11100,
+            "candidate_rows": 78650,
+            "  candidate_rows enumerated (for_each)": 11100,
+            "  lookup calls (get_subset)": 12500,
+            "  candidate_rows from lookups": 67550
+          },
+          "stage_entries": [],
+          "query": 0
+        },
+        {
+          "rule": "impl_7_5_cover_10",
+          "kind": "materialize",
+          "block": 0,
+          "stages": 20,
+          "seconds": 0.000221875,
+          "materialized_keys": 0,
+          "materialized_rows": 0,
+          "message_columns": 14,
+          "value_columns": 0,
+          "counters": {
+            "probes": 955,
+            "sparse_column": 450,
+            "cached_tuple": 0,
+            "cached_column": 150,
+            "dynamic_tuple (group_by_key)": 0,
+            "dynamic_column (per-node cache)": 355,
+            "cached_index_rebuild": 0,
+            "cached_index_hit": 150,
+            "cached_index_rebuild_rows": 0,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 300,
+            "candidate_rows": 1250,
+            "  candidate_rows enumerated (for_each)": 300,
+            "  lookup calls (get_subset)": 900,
+            "  candidate_rows from lookups": 950
+          },
+          "stage_entries": [
+            1,
+            50,
+            50,
+            50,
+            50,
+            0,
+            50,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "query": 0
+        },
+        {
+          "rule": "impl_7_5_cover_10",
+          "kind": "plan",
+          "block": 0,
+          "stages": 0,
+          "seconds": 0.000334625,
+          "materialized_keys": null,
+          "materialized_rows": null,
+          "message_columns": null,
+          "value_columns": null,
+          "counters": {
+            "probes": 955,
+            "sparse_column": 450,
+            "cached_tuple": 0,
+            "cached_column": 150,
+            "dynamic_tuple (group_by_key)": 0,
+            "dynamic_column (per-node cache)": 355,
+            "cached_index_rebuild": 0,
+            "cached_index_hit": 150,
+            "cached_index_rebuild_rows": 0,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 300,
+            "candidate_rows": 1250,
+            "  candidate_rows enumerated (for_each)": 300,
+            "  lookup calls (get_subset)": 900,
+            "  candidate_rows from lookups": 950
+          },
+          "stage_entries": [],
+          "query": 0
+        }
+      ],
+      "equivalence": {
+        "exact_equal": true,
+        "enodes": 16208,
+        "eclasses": 14108,
+        "sorts": {
+          "Assumption": {
+            "enodes": 3000,
+            "eclasses": 3000
+          },
+          "BaseType": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "BinaryOp": {
+            "enodes": 3,
+            "eclasses": 3
+          },
+          "Expr": {
+            "enodes": 13200,
+            "eclasses": 11100
+          },
+          "Type": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "TypeList": {
+            "enodes": 3,
+            "eclasses": 3
+          }
+        }
+      },
+      "hot_rules": [
+        {
+          "rule": "impl_6_5_cover_5",
+          "matches": 0,
+          "search_apply_ms": 1.501833
+        },
+        {
+          "rule": "impl_7_5_cover_10",
+          "matches": 0,
+          "search_apply_ms": 0.319375
+        }
+      ],
+      "summary_tables": {
+        "Spine-Summary-0": {
+          "active": 1800,
+          "subsumed": 200
+        },
+        "Spine-Summary-1": {
+          "active": 50,
+          "subsumed": 0
+        },
+        "Spine-Summary-2": {
+          "active": 50,
+          "subsumed": 0
+        }
+      },
+      "tables_before_export": {
+        "Arg": 0,
+        "Base": 0,
+        "BoolT": 0,
+        "Bop": 0,
+        "Get": 0,
+        "If": 0,
+        "InFunc": 0,
+        "InIf": 0,
+        "IntT": 0,
+        "LessThan": 0,
+        "Single": 0,
+        "Smax": 0,
+        "Smin": 0,
+        "Spine-Arg": 3000,
+        "Spine-Base": 0,
+        "Spine-BoolT": 0,
+        "Spine-Bop": 1000,
+        "Spine-Cano-Arg": 200,
+        "Spine-Cano-Base": 0,
+        "Spine-Cano-BoolT": 0,
+        "Spine-Cano-Bop": 100,
+        "Spine-Cano-Get": 600,
+        "Spine-Cano-If": 100,
+        "Spine-Cano-InFunc": 0,
+        "Spine-Cano-InIf": 200,
+        "Spine-Cano-IntT": 0,
+        "Spine-Cano-LessThan": 1,
+        "Spine-Cano-RipenInput_0_": 0,
+        "Spine-Cano-RipenInput_1_": 0,
+        "Spine-Cano-RipenInput_2_": 0,
+        "Spine-Cano-RipenInput_3_": 0,
+        "Spine-Cano-RipenInput_4_": 0,
+        "Spine-Cano-RipenInput_5_": 0,
+        "Spine-Cano-Single": 2000,
+        "Spine-Cano-Smax": 0,
+        "Spine-Cano-Smin": 0,
+        "Spine-Cano-TCons": 0,
+        "Spine-Cano-TNil": 0,
+        "Spine-Cano-TupleT": 0,
+        "Spine-Get": 4000,
+        "Spine-If": 1000,
+        "Spine-InFunc": 1000,
+        "Spine-InIf": 2000,
+        "Spine-IntT": 1,
+        "Spine-LessThan": 1,
+        "Spine-Reified-Assumption": 0,
+        "Spine-Reified-BaseType": 0,
+        "Spine-Reified-BinaryOp": 0,
+        "Spine-Reified-Expr": 0,
+        "Spine-Reified-Type": 0,
+        "Spine-Reified-TypeList": 0,
+        "Spine-RipenInput_0_": 0,
+        "Spine-RipenInput_1_": 0,
+        "Spine-RipenInput_2_": 0,
+        "Spine-RipenInput_3_": 0,
+        "Spine-RipenInput_4_": 0,
+        "Spine-RipenInput_5_": 0,
+        "Spine-Single": 2000,
+        "Spine-Smax": 0,
+        "Spine-Smin": 0,
+        "Spine-Summary-0": 2000,
+        "Spine-Summary-1": 50,
+        "Spine-Summary-2": 50,
+        "Spine-TCons": 2,
+        "Spine-TNil": 1,
+        "Spine-TupleT": 1,
+        "TCons": 0,
+        "TNil": 0,
+        "TupleT": 0
+      },
+      "total_table_rows_before_export": 33313,
+      "omitted_tables": {
+        "count": 14012,
+        "rows": 14006
+      }
+    },
+    "joint": {
+      "run_ms": 100.948334,
+      "matches": 2200,
+      "phases_ms": {
+        "search_and_apply_time_per_ruleset": 83.13624899999999,
+        "merge_time_per_ruleset": 1.86575,
+        "rebuild_time_per_ruleset": 14.601917
+      },
+      "probes": {
+        "  candidate_rows enumerated (for_each)": 699600,
+        "  candidate_rows from lookups": 576952,
+        "  lookup calls (get_subset)": 682752,
+        "cached_column": 20261,
+        "cached_index_hit": 20260,
+        "cached_index_rebuild": 48,
+        "cached_index_rebuild_full": 0,
+        "cached_index_rebuild_rows": 54601,
+        "cached_tuple": 13,
+        "candidate_rows": 1276552,
+        "dynamic_column (per-node cache)": 216285,
+        "dynamic_tuple (group_by_key)": 3,
+        "probed_keys": 447752,
+        "probes": 695414,
+        "sparse_column": 458852
+      },
+      "blocks": [
+        {
+          "rule": "impl_6_5_cover_5",
+          "kind": "materialize",
+          "block": 0,
+          "stages": 10,
+          "seconds": 0.032468125,
+          "materialized_keys": 50,
+          "materialized_rows": 50,
+          "message_columns": 8,
+          "value_columns": 2,
+          "counters": {
+            "probes": 300553,
+            "sparse_column": 200250,
+            "cached_tuple": 0,
+            "cached_column": 201,
+            "dynamic_tuple (group_by_key)": 0,
+            "dynamic_column (per-node cache)": 100102,
+            "cached_index_rebuild": 4,
+            "cached_index_hit": 197,
+            "cached_index_rebuild_rows": 4000,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 200300,
+            "candidate_rows": 500500,
+            "  candidate_rows enumerated (for_each)": 250250,
+            "  lookup calls (get_subset)": 300200,
+            "  candidate_rows from lookups": 250250
+          },
+          "stage_entries": [
+            50,
+            1,
+            50,
+            50000,
+            50000,
+            50,
+            50000,
+            50,
+            50,
+            50
+          ],
+          "query": 0
+        },
+        {
+          "rule": "impl_6_5_cover_5",
+          "kind": "materialize",
+          "block": 1,
+          "stages": 9,
+          "seconds": 0.000245666,
+          "materialized_keys": 0,
+          "materialized_rows": 0,
+          "message_columns": 0,
+          "value_columns": 16,
+          "counters": {
+            "probes": 410,
+            "sparse_column": 300,
+            "cached_tuple": 3,
+            "cached_column": 51,
+            "dynamic_tuple (group_by_key)": 1,
+            "dynamic_column (per-node cache)": 55,
+            "cached_index_rebuild": 3,
+            "cached_index_hit": 51,
+            "cached_index_rebuild_rows": 3000,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 100,
+            "candidate_rows": 850,
+            "  candidate_rows enumerated (for_each)": 100,
+            "  lookup calls (get_subset)": 750,
+            "  candidate_rows from lookups": 750
+          },
+          "stage_entries": [
+            1,
+            50,
+            50,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "query": 0
+        },
+        {
+          "rule": "impl_6_5_cover_5",
+          "kind": "plan",
+          "block": 0,
+          "stages": 0,
+          "seconds": 0.032901583,
+          "materialized_keys": null,
+          "materialized_rows": null,
+          "message_columns": null,
+          "value_columns": null,
+          "counters": {
+            "probes": 300963,
+            "sparse_column": 200550,
+            "cached_tuple": 3,
+            "cached_column": 252,
+            "dynamic_tuple (group_by_key)": 1,
+            "dynamic_column (per-node cache)": 100157,
+            "cached_index_rebuild": 7,
+            "cached_index_hit": 248,
+            "cached_index_rebuild_rows": 7000,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 200400,
+            "candidate_rows": 501350,
+            "  candidate_rows enumerated (for_each)": 250350,
+            "  lookup calls (get_subset)": 300950,
+            "  candidate_rows from lookups": 251000
+          },
+          "stage_entries": [],
+          "query": 0
+        },
+        {
+          "rule": "impl_7_5_cover_10",
+          "kind": "materialize",
+          "block": 0,
+          "stages": 10,
+          "seconds": 0.031799208,
+          "materialized_keys": 0,
+          "materialized_rows": 0,
+          "message_columns": 8,
+          "value_columns": 2,
+          "counters": {
+            "probes": 300353,
+            "sparse_column": 200100,
+            "cached_tuple": 0,
+            "cached_column": 151,
+            "dynamic_tuple (group_by_key)": 0,
+            "dynamic_column (per-node cache)": 100102,
+            "cached_index_rebuild": 0,
+            "cached_index_hit": 151,
+            "cached_index_rebuild_rows": 0,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 200150,
+            "candidate_rows": 500250,
+            "  candidate_rows enumerated (for_each)": 250100,
+            "  lookup calls (get_subset)": 300150,
+            "  candidate_rows from lookups": 250150
+          },
+          "stage_entries": [
+            50,
+            1,
+            50,
+            50000,
+            50000,
+            0,
+            50000,
+            50,
+            0,
+            0
+          ],
+          "query": 0
+        },
+        {
+          "rule": "impl_7_5_cover_10",
+          "kind": "plan",
+          "block": 0,
+          "stages": 0,
+          "seconds": 0.031922042,
+          "materialized_keys": null,
+          "materialized_rows": null,
+          "message_columns": null,
+          "value_columns": null,
+          "counters": {
+            "probes": 300353,
+            "sparse_column": 200100,
+            "cached_tuple": 0,
+            "cached_column": 151,
+            "dynamic_tuple (group_by_key)": 0,
+            "dynamic_column (per-node cache)": 100102,
+            "cached_index_rebuild": 0,
+            "cached_index_hit": 151,
+            "cached_index_rebuild_rows": 0,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 200150,
+            "candidate_rows": 500250,
+            "  candidate_rows enumerated (for_each)": 250100,
+            "  lookup calls (get_subset)": 300150,
+            "  candidate_rows from lookups": 250150
+          },
+          "stage_entries": [],
+          "query": 0
+        }
+      ],
+      "equivalence": {
+        "exact_equal": true,
+        "enodes": 16208,
+        "eclasses": 14108,
+        "sorts": {
+          "Assumption": {
+            "enodes": 3000,
+            "eclasses": 3000
+          },
+          "BaseType": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "BinaryOp": {
+            "enodes": 3,
+            "eclasses": 3
+          },
+          "Expr": {
+            "enodes": 13200,
+            "eclasses": 11100
+          },
+          "Type": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "TypeList": {
+            "enodes": 3,
+            "eclasses": 3
+          }
+        }
+      },
+      "hot_rules": [
+        {
+          "rule": "impl_6_5_cover_5",
+          "matches": 0,
+          "search_apply_ms": 32.887167000000005
+        },
+        {
+          "rule": "impl_7_5_cover_10",
+          "matches": 0,
+          "search_apply_ms": 31.909709000000003
+        }
+      ],
+      "summary_tables": {
+        "Spine-Summary-0": {
+          "active": 1800,
+          "subsumed": 200
+        },
+        "Spine-Summary-1": {
+          "active": 50,
+          "subsumed": 0
+        },
+        "Spine-Summary-2": {
+          "active": 50,
+          "subsumed": 0
+        }
+      },
+      "tables_before_export": {
+        "Arg": 0,
+        "Base": 0,
+        "BoolT": 0,
+        "Bop": 0,
+        "Get": 0,
+        "If": 0,
+        "InFunc": 0,
+        "InIf": 0,
+        "IntT": 0,
+        "LessThan": 0,
+        "Single": 0,
+        "Smax": 0,
+        "Smin": 0,
+        "Spine-Arg": 3000,
+        "Spine-Base": 0,
+        "Spine-BoolT": 0,
+        "Spine-Bop": 1000,
+        "Spine-Cano-Arg": 200,
+        "Spine-Cano-Base": 0,
+        "Spine-Cano-BoolT": 0,
+        "Spine-Cano-Bop": 100,
+        "Spine-Cano-Get": 600,
+        "Spine-Cano-If": 100,
+        "Spine-Cano-InFunc": 0,
+        "Spine-Cano-InIf": 200,
+        "Spine-Cano-IntT": 0,
+        "Spine-Cano-LessThan": 1,
+        "Spine-Cano-RipenInput_0_": 0,
+        "Spine-Cano-RipenInput_1_": 0,
+        "Spine-Cano-RipenInput_2_": 0,
+        "Spine-Cano-RipenInput_3_": 0,
+        "Spine-Cano-RipenInput_4_": 0,
+        "Spine-Cano-RipenInput_5_": 0,
+        "Spine-Cano-Single": 2000,
+        "Spine-Cano-Smax": 0,
+        "Spine-Cano-Smin": 0,
+        "Spine-Cano-TCons": 0,
+        "Spine-Cano-TNil": 0,
+        "Spine-Cano-TupleT": 0,
+        "Spine-Get": 4000,
+        "Spine-If": 1000,
+        "Spine-InFunc": 1000,
+        "Spine-InIf": 2000,
+        "Spine-IntT": 1,
+        "Spine-LessThan": 1,
+        "Spine-Reified-Assumption": 0,
+        "Spine-Reified-BaseType": 0,
+        "Spine-Reified-BinaryOp": 0,
+        "Spine-Reified-Expr": 0,
+        "Spine-Reified-Type": 0,
+        "Spine-Reified-TypeList": 0,
+        "Spine-RipenInput_0_": 0,
+        "Spine-RipenInput_1_": 0,
+        "Spine-RipenInput_2_": 0,
+        "Spine-RipenInput_3_": 0,
+        "Spine-RipenInput_4_": 0,
+        "Spine-RipenInput_5_": 0,
+        "Spine-Single": 2000,
+        "Spine-Smax": 0,
+        "Spine-Smin": 0,
+        "Spine-Summary-0": 2000,
+        "Spine-Summary-1": 50,
+        "Spine-Summary-2": 50,
+        "Spine-TCons": 2,
+        "Spine-TNil": 1,
+        "Spine-TupleT": 1,
+        "TCons": 0,
+        "TNil": 0,
+        "TupleT": 0
+      },
+      "total_table_rows_before_export": 33313,
+      "omitted_tables": {
+        "count": 14012,
+        "rows": 14006
+      }
+    },
+    "canonical_hot": {
+      "run_ms": 107.864458,
+      "matches": 2200,
+      "phases_ms": {
+        "search_and_apply_time_per_ruleset": 84.931834,
+        "merge_time_per_ruleset": 1.908208,
+        "rebuild_time_per_ruleset": 19.447833000000003
+      },
+      "probes": {
+        "  candidate_rows enumerated (for_each)": 699600,
+        "  candidate_rows from lookups": 576952,
+        "  lookup calls (get_subset)": 682752,
+        "cached_column": 20259,
+        "cached_index_hit": 20257,
+        "cached_index_rebuild": 48,
+        "cached_index_rebuild_full": 0,
+        "cached_index_rebuild_rows": 54601,
+        "cached_tuple": 12,
+        "candidate_rows": 1276552,
+        "dynamic_column (per-node cache)": 216287,
+        "dynamic_tuple (group_by_key)": 4,
+        "probed_keys": 447752,
+        "probes": 695414,
+        "sparse_column": 458852
+      },
+      "blocks": [
+        {
+          "rule": "impl_6_5_cover_5",
+          "kind": "materialize",
+          "block": 0,
+          "stages": 10,
+          "seconds": 0.031877667,
+          "materialized_keys": 50,
+          "materialized_rows": 50,
+          "message_columns": 8,
+          "value_columns": 2,
+          "counters": {
+            "probes": 300553,
+            "sparse_column": 200250,
+            "cached_tuple": 0,
+            "cached_column": 200,
+            "dynamic_tuple (group_by_key)": 0,
+            "dynamic_column (per-node cache)": 100103,
+            "cached_index_rebuild": 4,
+            "cached_index_hit": 196,
+            "cached_index_rebuild_rows": 4000,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 200300,
+            "candidate_rows": 500500,
+            "  candidate_rows enumerated (for_each)": 250250,
+            "  lookup calls (get_subset)": 300200,
+            "  candidate_rows from lookups": 250250
+          },
+          "stage_entries": [
+            50,
+            1,
+            50,
+            50000,
+            50000,
+            50,
+            50000,
+            50,
+            50,
+            50
+          ],
+          "query": 0
+        },
+        {
+          "rule": "impl_6_5_cover_5",
+          "kind": "materialize",
+          "block": 1,
+          "stages": 9,
+          "seconds": 0.000227875,
+          "materialized_keys": 0,
+          "materialized_rows": 0,
+          "message_columns": 0,
+          "value_columns": 16,
+          "counters": {
+            "probes": 410,
+            "sparse_column": 300,
+            "cached_tuple": 2,
+            "cached_column": 51,
+            "dynamic_tuple (group_by_key)": 2,
+            "dynamic_column (per-node cache)": 55,
+            "cached_index_rebuild": 2,
+            "cached_index_hit": 51,
+            "cached_index_rebuild_rows": 1000,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 100,
+            "candidate_rows": 850,
+            "  candidate_rows enumerated (for_each)": 100,
+            "  lookup calls (get_subset)": 750,
+            "  candidate_rows from lookups": 750
+          },
+          "stage_entries": [
+            1,
+            50,
+            50,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "query": 0
+        },
+        {
+          "rule": "impl_6_5_cover_5",
+          "kind": "plan",
+          "block": 0,
+          "stages": 0,
+          "seconds": 0.034263542,
+          "materialized_keys": null,
+          "materialized_rows": null,
+          "message_columns": null,
+          "value_columns": null,
+          "counters": {
+            "probes": 300963,
+            "sparse_column": 200550,
+            "cached_tuple": 2,
+            "cached_column": 251,
+            "dynamic_tuple (group_by_key)": 2,
+            "dynamic_column (per-node cache)": 100158,
+            "cached_index_rebuild": 6,
+            "cached_index_hit": 247,
+            "cached_index_rebuild_rows": 5000,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 200400,
+            "candidate_rows": 501350,
+            "  candidate_rows enumerated (for_each)": 250350,
+            "  lookup calls (get_subset)": 300950,
+            "  candidate_rows from lookups": 251000
+          },
+          "stage_entries": [],
+          "query": 0
+        },
+        {
+          "rule": "impl_7_5_cover_10",
+          "kind": "materialize",
+          "block": 0,
+          "stages": 10,
+          "seconds": 0.030806625,
+          "materialized_keys": 0,
+          "materialized_rows": 0,
+          "message_columns": 8,
+          "value_columns": 2,
+          "counters": {
+            "probes": 300353,
+            "sparse_column": 200100,
+            "cached_tuple": 0,
+            "cached_column": 150,
+            "dynamic_tuple (group_by_key)": 0,
+            "dynamic_column (per-node cache)": 100103,
+            "cached_index_rebuild": 0,
+            "cached_index_hit": 150,
+            "cached_index_rebuild_rows": 0,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 200150,
+            "candidate_rows": 500250,
+            "  candidate_rows enumerated (for_each)": 250100,
+            "  lookup calls (get_subset)": 300150,
+            "  candidate_rows from lookups": 250150
+          },
+          "stage_entries": [
+            50,
+            1,
+            50,
+            50000,
+            50000,
+            0,
+            50000,
+            50,
+            0,
+            0
+          ],
+          "query": 0
+        },
+        {
+          "rule": "impl_7_5_cover_10",
+          "kind": "plan",
+          "block": 0,
+          "stages": 0,
+          "seconds": 0.030904667,
+          "materialized_keys": null,
+          "materialized_rows": null,
+          "message_columns": null,
+          "value_columns": null,
+          "counters": {
+            "probes": 300353,
+            "sparse_column": 200100,
+            "cached_tuple": 0,
+            "cached_column": 150,
+            "dynamic_tuple (group_by_key)": 0,
+            "dynamic_column (per-node cache)": 100103,
+            "cached_index_rebuild": 0,
+            "cached_index_hit": 150,
+            "cached_index_rebuild_rows": 0,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 200150,
+            "candidate_rows": 500250,
+            "  candidate_rows enumerated (for_each)": 250100,
+            "  lookup calls (get_subset)": 300150,
+            "  candidate_rows from lookups": 250150
+          },
+          "stage_entries": [],
+          "query": 0
+        }
+      ],
+      "equivalence": {
+        "exact_equal": true,
+        "enodes": 16208,
+        "eclasses": 14108,
+        "sorts": {
+          "Assumption": {
+            "enodes": 3000,
+            "eclasses": 3000
+          },
+          "BaseType": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "BinaryOp": {
+            "enodes": 3,
+            "eclasses": 3
+          },
+          "Expr": {
+            "enodes": 13200,
+            "eclasses": 11100
+          },
+          "Type": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "TypeList": {
+            "enodes": 3,
+            "eclasses": 3
+          }
+        }
+      },
+      "hot_rules": [
+        {
+          "rule": "impl_6_5_cover_5",
+          "matches": 0,
+          "search_apply_ms": 32.295542000000005
+        },
+        {
+          "rule": "impl_7_5_cover_10",
+          "matches": 0,
+          "search_apply_ms": 30.888292
+        }
+      ],
+      "summary_tables": {
+        "Spine-Summary-0": {
+          "active": 1800,
+          "subsumed": 200
+        },
+        "Spine-Summary-1": {
+          "active": 50,
+          "subsumed": 0
+        },
+        "Spine-Summary-2": {
+          "active": 50,
+          "subsumed": 0
+        }
+      },
+      "tables_before_export": {
+        "Arg": 0,
+        "Base": 0,
+        "BoolT": 0,
+        "Bop": 0,
+        "Get": 0,
+        "If": 0,
+        "InFunc": 0,
+        "InIf": 0,
+        "IntT": 0,
+        "LessThan": 0,
+        "Single": 0,
+        "Smax": 0,
+        "Smin": 0,
+        "Spine-Arg": 3000,
+        "Spine-Base": 0,
+        "Spine-BoolT": 0,
+        "Spine-Bop": 1000,
+        "Spine-Cano-Arg": 200,
+        "Spine-Cano-Base": 0,
+        "Spine-Cano-BoolT": 0,
+        "Spine-Cano-Bop": 100,
+        "Spine-Cano-Get": 600,
+        "Spine-Cano-If": 100,
+        "Spine-Cano-InFunc": 0,
+        "Spine-Cano-InIf": 200,
+        "Spine-Cano-IntT": 0,
+        "Spine-Cano-LessThan": 1,
+        "Spine-Cano-RipenInput_0_": 0,
+        "Spine-Cano-RipenInput_1_": 0,
+        "Spine-Cano-RipenInput_2_": 0,
+        "Spine-Cano-RipenInput_3_": 0,
+        "Spine-Cano-RipenInput_4_": 0,
+        "Spine-Cano-RipenInput_5_": 0,
+        "Spine-Cano-Single": 2000,
+        "Spine-Cano-Smax": 0,
+        "Spine-Cano-Smin": 0,
+        "Spine-Cano-TCons": 0,
+        "Spine-Cano-TNil": 0,
+        "Spine-Cano-TupleT": 0,
+        "Spine-Get": 4000,
+        "Spine-If": 1000,
+        "Spine-InFunc": 1000,
+        "Spine-InIf": 2000,
+        "Spine-IntT": 1,
+        "Spine-LessThan": 1,
+        "Spine-Reified-Assumption": 0,
+        "Spine-Reified-BaseType": 0,
+        "Spine-Reified-BinaryOp": 0,
+        "Spine-Reified-Expr": 0,
+        "Spine-Reified-Type": 0,
+        "Spine-Reified-TypeList": 0,
+        "Spine-RipenInput_0_": 0,
+        "Spine-RipenInput_1_": 0,
+        "Spine-RipenInput_2_": 0,
+        "Spine-RipenInput_3_": 0,
+        "Spine-RipenInput_4_": 0,
+        "Spine-RipenInput_5_": 0,
+        "Spine-Single": 2000,
+        "Spine-Smax": 0,
+        "Spine-Smin": 0,
+        "Spine-Summary-0": 2000,
+        "Spine-Summary-1": 50,
+        "Spine-Summary-2": 50,
+        "Spine-TCons": 2,
+        "Spine-TNil": 1,
+        "Spine-TupleT": 1,
+        "TCons": 0,
+        "TNil": 0,
+        "TupleT": 0
+      },
+      "total_table_rows_before_export": 33313,
+      "omitted_tables": {
+        "count": 14012,
+        "rows": 14006
+      }
+    },
+    "drop_hot": {
+      "run_ms": 37.213207999999995,
+      "matches": 2200,
+      "phases_ms": {
+        "search_and_apply_time_per_ruleset": 18.415208999999997,
+        "merge_time_per_ruleset": 1.569749,
+        "rebuild_time_per_ruleset": 16.068042000000002
+      },
+      "probes": {
+        "  candidate_rows enumerated (for_each)": 199150,
+        "  candidate_rows from lookups": 75802,
+        "  lookup calls (get_subset)": 81652,
+        "cached_column": 19858,
+        "cached_index_hit": 19855,
+        "cached_index_rebuild": 47,
+        "cached_index_rebuild_full": 0,
+        "cached_index_rebuild_rows": 53601,
+        "cached_tuple": 10,
+        "candidate_rows": 274952,
+        "dynamic_column (per-node cache)": 16026,
+        "dynamic_tuple (group_by_key)": 2,
+        "probed_keys": 47202,
+        "probes": 94098,
+        "sparse_column": 58202
+      },
+      "blocks": [],
+      "equivalence": {
+        "exact_equal": true,
+        "enodes": 16208,
+        "eclasses": 14108,
+        "sorts": {
+          "Assumption": {
+            "enodes": 3000,
+            "eclasses": 3000
+          },
+          "BaseType": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "BinaryOp": {
+            "enodes": 3,
+            "eclasses": 3
+          },
+          "Expr": {
+            "enodes": 13200,
+            "eclasses": 11100
+          },
+          "Type": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "TypeList": {
+            "enodes": 3,
+            "eclasses": 3
+          }
+        }
+      },
+      "hot_rules": [],
+      "summary_tables": {
+        "Spine-Summary-0": {
+          "active": 1800,
+          "subsumed": 200
+        },
+        "Spine-Summary-1": {
+          "active": 50,
+          "subsumed": 0
+        },
+        "Spine-Summary-2": {
+          "active": 50,
+          "subsumed": 0
+        }
+      },
+      "tables_before_export": {
+        "Arg": 0,
+        "Base": 0,
+        "BoolT": 0,
+        "Bop": 0,
+        "Get": 0,
+        "If": 0,
+        "InFunc": 0,
+        "InIf": 0,
+        "IntT": 0,
+        "LessThan": 0,
+        "Single": 0,
+        "Smax": 0,
+        "Smin": 0,
+        "Spine-Arg": 3000,
+        "Spine-Base": 0,
+        "Spine-BoolT": 0,
+        "Spine-Bop": 1000,
+        "Spine-Cano-Arg": 200,
+        "Spine-Cano-Base": 0,
+        "Spine-Cano-BoolT": 0,
+        "Spine-Cano-Bop": 100,
+        "Spine-Cano-Get": 600,
+        "Spine-Cano-If": 100,
+        "Spine-Cano-InFunc": 0,
+        "Spine-Cano-InIf": 200,
+        "Spine-Cano-IntT": 0,
+        "Spine-Cano-LessThan": 1,
+        "Spine-Cano-RipenInput_0_": 0,
+        "Spine-Cano-RipenInput_1_": 0,
+        "Spine-Cano-RipenInput_2_": 0,
+        "Spine-Cano-RipenInput_3_": 0,
+        "Spine-Cano-RipenInput_4_": 0,
+        "Spine-Cano-RipenInput_5_": 0,
+        "Spine-Cano-Single": 2000,
+        "Spine-Cano-Smax": 0,
+        "Spine-Cano-Smin": 0,
+        "Spine-Cano-TCons": 0,
+        "Spine-Cano-TNil": 0,
+        "Spine-Cano-TupleT": 0,
+        "Spine-Get": 4000,
+        "Spine-If": 1000,
+        "Spine-InFunc": 1000,
+        "Spine-InIf": 2000,
+        "Spine-IntT": 1,
+        "Spine-LessThan": 1,
+        "Spine-Reified-Assumption": 0,
+        "Spine-Reified-BaseType": 0,
+        "Spine-Reified-BinaryOp": 0,
+        "Spine-Reified-Expr": 0,
+        "Spine-Reified-Type": 0,
+        "Spine-Reified-TypeList": 0,
+        "Spine-RipenInput_0_": 0,
+        "Spine-RipenInput_1_": 0,
+        "Spine-RipenInput_2_": 0,
+        "Spine-RipenInput_3_": 0,
+        "Spine-RipenInput_4_": 0,
+        "Spine-RipenInput_5_": 0,
+        "Spine-Single": 2000,
+        "Spine-Smax": 0,
+        "Spine-Smin": 0,
+        "Spine-Summary-0": 2000,
+        "Spine-Summary-1": 50,
+        "Spine-Summary-2": 50,
+        "Spine-TCons": 2,
+        "Spine-TNil": 1,
+        "Spine-TupleT": 1,
+        "TCons": 0,
+        "TNil": 0,
+        "TupleT": 0
+      },
+      "total_table_rows_before_export": 33313,
+      "omitted_tables": {
+        "count": 14012,
+        "rows": 14006
+      }
+    }
+  },
+  "workload": {
+    "ifs": 1000,
+    "min": 50,
+    "max": 50,
+    "near_miss": 900,
+    "cell1_active": 50,
+    "cell2_active": 50,
+    "raw_predicate_rows": 1000
+  },
+  "measurements": {
+    "native": {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+        "bench-plans",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/if-join-profile-final/native.json",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/if-join-profile-final/native-graph.json"
+      ],
+      "process_wall_seconds": 1.72,
+      "peak_rss_bytes": 306151424,
+      "user_seconds": 1.3,
+      "system_seconds": 0.06,
+      "observed_wall_seconds": 1.73981195804663
+    },
+    "old": {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+        "bench-plans",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/if-join-profile-final/old.json",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/if-join-profile-final/old-graph.json"
+      ],
+      "process_wall_seconds": 1.67,
+      "peak_rss_bytes": 340918272,
+      "user_seconds": 1.57,
+      "system_seconds": 0.07,
+      "observed_wall_seconds": 1.689147791825235
+    },
+    "joint": {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+        "bench-plans",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/if-join-profile-final/joint.json",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/if-join-profile-final/joint-graph.json"
+      ],
+      "process_wall_seconds": 1.61,
+      "peak_rss_bytes": 324747264,
+      "user_seconds": 1.52,
+      "system_seconds": 0.07,
+      "observed_wall_seconds": 1.6562858340330422
+    },
+    "canonical_hot": {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+        "bench-plans",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/if-join-profile-final/canonical_hot.json",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/if-join-profile-final/canonical_hot-graph.json"
+      ],
+      "process_wall_seconds": 1.69,
+      "peak_rss_bytes": 318144512,
+      "user_seconds": 1.51,
+      "system_seconds": 0.07,
+      "observed_wall_seconds": 1.7105868340004236
+    },
+    "drop_hot": {
+      "command": [
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+        "bench-plans",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/if-join-profile-final/drop_hot.json",
+        "/Users/mineralsteins/Repos/egg_related/egg_layout/out/if-join-profile-final/drop_hot-graph.json"
+      ],
+      "process_wall_seconds": 1.51,
+      "peak_rss_bytes": 325943296,
+      "user_seconds": 1.43,
+      "system_seconds": 0.06,
+      "observed_wall_seconds": 1.5490128330420703
+    }
+  }
+}

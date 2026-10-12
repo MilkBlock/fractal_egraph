@@ -80,6 +80,16 @@ pub fn run_with_probes(
     graph: Option<&str>,
     probes: impl Fn() -> Vec<(&'static str, usize)>,
 ) {
+    run_diagnostic(path, graph, probes, false, |_| {});
+}
+
+pub fn run_diagnostic(
+    path: &str,
+    graph: Option<&str>,
+    probes: impl Fn() -> Vec<(&'static str, usize)>,
+    plans: bool,
+    configure: impl FnOnce(&mut EGraph),
+) {
     use serde_json::json;
     use std::io::Write;
     let tick = std::time::Instant::now();
@@ -89,6 +99,7 @@ pub fn run_with_probes(
     let read_seconds = tick.elapsed().as_secs_f64();
     let tick = std::time::Instant::now();
     let mut eg = EGraph::default();
+    configure(&mut eg);
     execute_phase(&mut eg, &environment, false);
     let setup_seconds = tick.elapsed().as_secs_f64();
     let (input_seconds, _, _) = execute_phase(&mut eg, &input, false);
@@ -137,6 +148,9 @@ pub fn run_with_probes(
             "active_summaries":active,"subsumed_summaries":hidden,"summary_tables":summary_tables,
             "native_total_rows_before_export":table_rows.values().sum::<usize>(),"native_tables_before_export":table_rows,
             "rule_matches":rule_matches,"run_probe_counters":join_probes});
+        if plans {
+            verification["run_report"] = serde_json::to_value(eg.get_overall_run_report()).unwrap();
+        }
     }
     let (export_seconds, export_matches) = if config.export.is_empty() {
         (0., 0)

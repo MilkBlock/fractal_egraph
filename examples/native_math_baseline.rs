@@ -9,9 +9,17 @@ fn main() {
     let args: Vec<_> = std::env::args().collect();
     if args
         .get(1)
-        .is_some_and(|s| s == "bench" || s == "bench-probes")
+        .is_some_and(|s| s == "bench" || s == "bench-probes" || s == "bench-plans")
     {
-        if args[1] == "bench-probes" {
+        if args[1] == "bench-plans" {
+            phased_bench::run_diagnostic(
+                &args[2],
+                args.get(3).map(String::as_str),
+                egglog::probe_counts,
+                true,
+                |eg| eg.enable_stage_info_reporting(),
+            );
+        } else if args[1] == "bench-probes" {
             phased_bench::run_with_probes(
                 &args[2],
                 args.get(3).map(String::as_str),

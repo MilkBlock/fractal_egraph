@@ -131,6 +131,7 @@ bin = [
 serde = ["egraph-serialize/serde"]
 graphviz = ["egraph-serialize/graphviz"]
 table-read-profile = ["egglog-core-relations/table-read-profile", "egglog-bridge/table-read-profile"]
+join-work-profile = ["egglog-core-relations/join-work-profile"]
 
 [dependencies]
 smallvec.workspace = true

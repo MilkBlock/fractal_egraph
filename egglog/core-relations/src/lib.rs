@@ -9,6 +9,8 @@ pub(crate) mod containers;
 pub(crate) mod dependency_graph;
 pub(crate) mod free_join;
 pub(crate) mod hash_index;
+#[cfg(feature = "join-work-profile")]
+pub(crate) mod join_work_profile;
 pub(crate) mod offsets;
 pub(crate) mod parallel_heuristics;
 pub(crate) mod pool;

@@ -417,6 +417,8 @@ impl Database {
         if rule_set.plans.is_empty() {
             return RuleSetReport::default();
         }
+        #[cfg(feature = "join-work-profile")]
+        crate::join_work_profile::verify_threads();
         #[cfg(feature = "table-read-profile")]
         let read_profile_guard = self.begin_join_read_profile();
         let match_counter = Arc::new(MatchCounter::new(rule_set.actions.n_ids()));
@@ -587,6 +589,8 @@ impl Database {
                 trace,
             };
             for (plan, desc, symbol_map) in rule_set.plans.values() {
+                #[cfg(feature = "join-work-profile")]
+                let rule_work = crate::join_work_profile::BlockProfile::begin(desc, "plan", 0, 0);
                 let report_plan = match report_level {
                     ReportLevel::TimeOnly => None,
                     ReportLevel::WithPlan | ReportLevel::StageInfo => {
@@ -618,6 +622,10 @@ impl Database {
                     binding_info.share_unfiltered_roots(&plan.atoms());
                     match plan {
                         Plan::SinglePlan(plan) => {
+                            #[cfg(feature = "join-work-profile")]
+                            let work = crate::join_work_profile::BlockProfile::begin(
+                                desc, "single", 0, plan.stages.instrs.len(),
+                            );
                             join_state.run_join_stages(
                                 &plan.stages,
                                 &plan.atoms,
@@ -625,6 +633,10 @@ impl Database {
                                 &mut binding_info,
                                 &mut action_buf,
                             );
+                            #[cfg(feature = "join-work-profile")]
+                            if let Some(work) = work {
+                                work.finish(None);
+                            }
                         }
                         Plan::DecomposedPlan(plan) => {
                             let mut materializations =
@@ -646,6 +658,10 @@ impl Database {
                             };
 
                             for (mat_id, stage_block) in plan.stages.blocks.iter().enumerate() {
+                                #[cfg(feature = "join-work-profile")]
+                                let work = crate::join_work_profile::BlockProfile::begin(
+                                    desc, "materialize", mat_id, stage_block.0.instrs.len(),
+                                );
                                 let mat_id = MatId::from_usize(mat_id);
                                 join_state.run_join_stages(
                                     &stage_block.0,
@@ -654,6 +670,14 @@ impl Database {
                                     &mut binding_info,
                                     &mut materializer,
                                 );
+                                #[cfg(feature = "join-work-profile")]
+                                if let Some(work) = work {
+                                    let rows = &materializer.materializations[mat_id];
+                                    work.finish(Some((
+                                        rows.len(), rows.values().map(|r| r.len()).sum(),
+                                        stage_block.1.msg_vars.len(), stage_block.1.val_vars.len(),
+                                    )));
+                                }
                                 if materializer.materializations[mat_id].is_empty() {
                                     break 'eval;
                                 }
@@ -662,6 +686,10 @@ impl Database {
                                     Arc::new(materializer.materializations.take(mat_id).unwrap()),
                                 );
                             }
+                            #[cfg(feature = "join-work-profile")]
+                            let work = crate::join_work_profile::BlockProfile::begin(
+                                desc, "result", plan.stages.blocks.len(), plan.result_block.instrs.len(),
+                            );
                             join_state.run_join_stages(
                                 &plan.result_block,
                                 &plan.atoms,
@@ -669,10 +697,18 @@ impl Database {
                                 &mut binding_info,
                                 &mut action_buf,
                             );
+                            #[cfg(feature = "join-work-profile")]
+                            if let Some(work) = work {
+                                work.finish(None);
+                            }
                         }
                     }
                 }
                 let search_and_apply_time = search_and_apply_timer.elapsed();
+                #[cfg(feature = "join-work-profile")]
+                if let Some(work) = rule_work {
+                    work.finish(None);
+                }
 
                 // TODO: unnecessary cloning in many cases
                 let rule_report = rule_reports.entry(desc.clone()).or_default();
@@ -1541,6 +1577,8 @@ impl<'a> JoinState<'a> {
         }
 
         let pool = &self.pool;
+        #[cfg(feature = "join-work-profile")]
+        crate::join_work_profile::record_stage(instr_order.get(cur));
         match &stages.instrs[instr_order.get(cur)] {
             JoinStage::Intersect { var, scans } => match scans.as_slice() {
                 [] => {}

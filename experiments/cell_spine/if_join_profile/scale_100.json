@@ -1,0 +1,1264 @@
+{
+  "schema": "if-join-diagnosis/v1",
+  "threads": 1,
+  "diagnostic_only": true,
+  "commit": "fb8c8954355937bd07387fa2057867c001a82479",
+  "dirty": true,
+  "binary_sha256": "9c8220c48de8682a6012489836adcb5c0888a295869c9afacb3cef2b914b4e21",
+  "ablation_report_sha256": "327c21b6f886c084df747a17689e5826b871ad6789412e2b728c4cf63019f207",
+  "profile_rules": [
+    "impl_6_5_cover_5",
+    "impl_7_5_cover_10"
+  ],
+  "ifs": 100,
+  "counterfactuals_are_not_production_fixes": true,
+  "variants": {
+    "native": {
+      "run_ms": 4.52175,
+      "matches": 210,
+      "phases_ms": {
+        "search_and_apply_time_per_ruleset": 3.3892919999999997,
+        "merge_time_per_ruleset": 0.12679100000000001,
+        "rebuild_time_per_ruleset": 0.804208
+      },
+      "probes": {
+        "  candidate_rows enumerated (for_each)": 10640,
+        "  candidate_rows from lookups": 21180,
+        "  lookup calls (get_subset)": 17650,
+        "cached_column": 5470,
+        "cached_index_hit": 5495,
+        "cached_index_rebuild": 37,
+        "cached_index_rebuild_full": 0,
+        "cached_index_rebuild_rows": 4261,
+        "cached_tuple": 34,
+        "candidate_rows": 31820,
+        "dynamic_column (per-node cache)": 3410,
+        "dynamic_tuple (group_by_key)": 2,
+        "probed_keys": 10450,
+        "probes": 20456,
+        "sparse_column": 11540
+      },
+      "blocks": [],
+      "equivalence": {
+        "exact_equal": true,
+        "enodes": 1628,
+        "eclasses": 1418,
+        "sorts": {
+          "Assumption": {
+            "enodes": 300,
+            "eclasses": 300
+          },
+          "BaseType": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "BinaryOp": {
+            "enodes": 3,
+            "eclasses": 3
+          },
+          "Expr": {
+            "enodes": 1320,
+            "eclasses": 1110
+          },
+          "Type": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "TypeList": {
+            "enodes": 3,
+            "eclasses": 3
+          }
+        }
+      },
+      "summary_tables": {},
+      "tables_before_export": {
+        "Arg": 300,
+        "Base": 0,
+        "BoolT": 0,
+        "Bop": 110,
+        "Get": 610,
+        "If": 100,
+        "InFunc": 100,
+        "InIf": 200,
+        "IntT": 1,
+        "LessThan": 1,
+        "Single": 200,
+        "Smax": 1,
+        "Smin": 1,
+        "TCons": 2,
+        "TNil": 1,
+        "TupleT": 1
+      },
+      "total_table_rows_before_export": 3034,
+      "omitted_tables": {
+        "count": 1406,
+        "rows": 1406
+      }
+    },
+    "old": {
+      "run_ms": 7.901834,
+      "matches": 220,
+      "phases_ms": {
+        "search_and_apply_time_per_ruleset": 4.728959,
+        "merge_time_per_ruleset": 0.15620900000000001,
+        "rebuild_time_per_ruleset": 1.334334
+      },
+      "probes": {
+        "  candidate_rows enumerated (for_each)": 6935,
+        "  candidate_rows from lookups": 18189,
+        "  lookup calls (get_subset)": 12809,
+        "cached_column": 1810,
+        "cached_index_hit": 1824,
+        "cached_index_rebuild": 57,
+        "cached_index_rebuild_full": 17,
+        "cached_index_rebuild_rows": 4243,
+        "cached_tuple": 26,
+        "candidate_rows": 25124,
+        "dynamic_column (per-node cache)": 3172,
+        "dynamic_tuple (group_by_key)": 60,
+        "probed_keys": 6899,
+        "probes": 14420,
+        "sparse_column": 9352
+      },
+      "blocks": [
+        {
+          "rule": "impl_6_5_cover_5",
+          "kind": "materialize",
+          "block": 0,
+          "stages": 14,
+          "seconds": 4.8791e-05,
+          "materialized_keys": 5,
+          "materialized_rows": 5,
+          "message_columns": 12,
+          "value_columns": 0,
+          "counters": {
+            "probes": 225,
+            "sparse_column": 171,
+            "cached_tuple": 0,
+            "cached_column": 25,
+            "dynamic_tuple (group_by_key)": 0,
+            "dynamic_column (per-node cache)": 29,
+            "cached_index_rebuild": 4,
+            "cached_index_hit": 21,
+            "cached_index_rebuild_rows": 160,
+            "cached_index_rebuild_full": 3,
+            "probed_keys": 165,
+            "candidate_rows": 400,
+            "  candidate_rows enumerated (for_each)": 165,
+            "  lookup calls (get_subset)": 180,
+            "  candidate_rows from lookups": 235
+          },
+          "stage_entries": [
+            1,
+            5,
+            5,
+            5,
+            5,
+            5,
+            50,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5
+          ],
+          "query": 0
+        },
+        {
+          "rule": "impl_6_5_cover_5",
+          "kind": "materialize",
+          "block": 1,
+          "stages": 19,
+          "seconds": 7.3167e-05,
+          "materialized_keys": 0,
+          "materialized_rows": 0,
+          "message_columns": 0,
+          "value_columns": 25,
+          "counters": {
+            "probes": 164,
+            "sparse_column": 95,
+            "cached_tuple": 2,
+            "cached_column": 22,
+            "dynamic_tuple (group_by_key)": 6,
+            "dynamic_column (per-node cache)": 39,
+            "cached_index_rebuild": 4,
+            "cached_index_hit": 20,
+            "cached_index_rebuild_rows": 140,
+            "cached_index_rebuild_full": 3,
+            "probed_keys": 45,
+            "candidate_rows": 715,
+            "  candidate_rows enumerated (for_each)": 45,
+            "  lookup calls (get_subset)": 170,
+            "  candidate_rows from lookups": 670
+          },
+          "stage_entries": [
+            1,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            5,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "query": 0
+        },
+        {
+          "rule": "impl_6_5_cover_5",
+          "kind": "plan",
+          "block": 0,
+          "stages": 0,
+          "seconds": 0.000271416,
+          "materialized_keys": null,
+          "materialized_rows": null,
+          "message_columns": null,
+          "value_columns": null,
+          "counters": {
+            "probes": 389,
+            "sparse_column": 266,
+            "cached_tuple": 2,
+            "cached_column": 47,
+            "dynamic_tuple (group_by_key)": 6,
+            "dynamic_column (per-node cache)": 68,
+            "cached_index_rebuild": 8,
+            "cached_index_hit": 41,
+            "cached_index_rebuild_rows": 300,
+            "cached_index_rebuild_full": 6,
+            "probed_keys": 210,
+            "candidate_rows": 1115,
+            "  candidate_rows enumerated (for_each)": 210,
+            "  lookup calls (get_subset)": 350,
+            "  candidate_rows from lookups": 905
+          },
+          "stage_entries": [],
+          "query": 0
+        },
+        {
+          "rule": "impl_7_5_cover_10",
+          "kind": "materialize",
+          "block": 0,
+          "stages": 20,
+          "seconds": 2.775e-05,
+          "materialized_keys": 0,
+          "materialized_rows": 0,
+          "message_columns": 14,
+          "value_columns": 0,
+          "counters": {
+            "probes": 100,
+            "sparse_column": 46,
+            "cached_tuple": 0,
+            "cached_column": 15,
+            "dynamic_tuple (group_by_key)": 0,
+            "dynamic_column (per-node cache)": 39,
+            "cached_index_rebuild": 0,
+            "cached_index_hit": 15,
+            "cached_index_rebuild_rows": 0,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 30,
+            "candidate_rows": 125,
+            "  candidate_rows enumerated (for_each)": 30,
+            "  lookup calls (get_subset)": 90,
+            "  candidate_rows from lookups": 95
+          },
+          "stage_entries": [
+            1,
+            5,
+            5,
+            5,
+            5,
+            0,
+            5,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "query": 0
+        },
+        {
+          "rule": "impl_7_5_cover_10",
+          "kind": "plan",
+          "block": 0,
+          "stages": 0,
+          "seconds": 8.9042e-05,
+          "materialized_keys": null,
+          "materialized_rows": null,
+          "message_columns": null,
+          "value_columns": null,
+          "counters": {
+            "probes": 100,
+            "sparse_column": 46,
+            "cached_tuple": 0,
+            "cached_column": 15,
+            "dynamic_tuple (group_by_key)": 0,
+            "dynamic_column (per-node cache)": 39,
+            "cached_index_rebuild": 0,
+            "cached_index_hit": 15,
+            "cached_index_rebuild_rows": 0,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 30,
+            "candidate_rows": 125,
+            "  candidate_rows enumerated (for_each)": 30,
+            "  lookup calls (get_subset)": 90,
+            "  candidate_rows from lookups": 95
+          },
+          "stage_entries": [],
+          "query": 0
+        }
+      ],
+      "equivalence": {
+        "exact_equal": true,
+        "enodes": 1628,
+        "eclasses": 1418,
+        "sorts": {
+          "Assumption": {
+            "enodes": 300,
+            "eclasses": 300
+          },
+          "BaseType": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "BinaryOp": {
+            "enodes": 3,
+            "eclasses": 3
+          },
+          "Expr": {
+            "enodes": 1320,
+            "eclasses": 1110
+          },
+          "Type": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "TypeList": {
+            "enodes": 3,
+            "eclasses": 3
+          }
+        }
+      },
+      "summary_tables": {
+        "Spine-Summary-0": {
+          "active": 180,
+          "subsumed": 20
+        },
+        "Spine-Summary-1": {
+          "active": 5,
+          "subsumed": 0
+        },
+        "Spine-Summary-2": {
+          "active": 5,
+          "subsumed": 0
+        }
+      },
+      "tables_before_export": {
+        "Arg": 0,
+        "Base": 0,
+        "BoolT": 0,
+        "Bop": 0,
+        "Get": 0,
+        "If": 0,
+        "InFunc": 0,
+        "InIf": 0,
+        "IntT": 0,
+        "LessThan": 0,
+        "Single": 0,
+        "Smax": 0,
+        "Smin": 0,
+        "Spine-Arg": 300,
+        "Spine-Base": 0,
+        "Spine-BoolT": 0,
+        "Spine-Bop": 100,
+        "Spine-Cano-Arg": 20,
+        "Spine-Cano-Base": 0,
+        "Spine-Cano-BoolT": 0,
+        "Spine-Cano-Bop": 10,
+        "Spine-Cano-Get": 60,
+        "Spine-Cano-If": 10,
+        "Spine-Cano-InFunc": 0,
+        "Spine-Cano-InIf": 20,
+        "Spine-Cano-IntT": 0,
+        "Spine-Cano-LessThan": 1,
+        "Spine-Cano-RipenInput_0_": 0,
+        "Spine-Cano-RipenInput_1_": 0,
+        "Spine-Cano-RipenInput_2_": 0,
+        "Spine-Cano-RipenInput_3_": 0,
+        "Spine-Cano-RipenInput_4_": 0,
+        "Spine-Cano-RipenInput_5_": 0,
+        "Spine-Cano-Single": 200,
+        "Spine-Cano-Smax": 0,
+        "Spine-Cano-Smin": 0,
+        "Spine-Cano-TCons": 0,
+        "Spine-Cano-TNil": 0,
+        "Spine-Cano-TupleT": 0,
+        "Spine-Get": 400,
+        "Spine-If": 100,
+        "Spine-InFunc": 100,
+        "Spine-InIf": 200,
+        "Spine-IntT": 1,
+        "Spine-LessThan": 1,
+        "Spine-Reified-Assumption": 0,
+        "Spine-Reified-BaseType": 0,
+        "Spine-Reified-BinaryOp": 0,
+        "Spine-Reified-Expr": 0,
+        "Spine-Reified-Type": 0,
+        "Spine-Reified-TypeList": 0,
+        "Spine-RipenInput_0_": 0,
+        "Spine-RipenInput_1_": 0,
+        "Spine-RipenInput_2_": 0,
+        "Spine-RipenInput_3_": 0,
+        "Spine-RipenInput_4_": 0,
+        "Spine-RipenInput_5_": 0,
+        "Spine-Single": 200,
+        "Spine-Smax": 0,
+        "Spine-Smin": 0,
+        "Spine-Summary-0": 200,
+        "Spine-Summary-1": 5,
+        "Spine-Summary-2": 5,
+        "Spine-TCons": 2,
+        "Spine-TNil": 1,
+        "Spine-TupleT": 1,
+        "TCons": 0,
+        "TNil": 0,
+        "TupleT": 0
+      },
+      "total_table_rows_before_export": 3343,
+      "omitted_tables": {
+        "count": 1412,
+        "rows": 1406
+      }
+    },
+    "joint": {
+      "run_ms": 5.902084,
+      "matches": 220,
+      "phases_ms": {
+        "search_and_apply_time_per_ruleset": 3.792459,
+        "merge_time_per_ruleset": 0.154666,
+        "rebuild_time_per_ruleset": 1.0315420000000002
+      },
+      "probes": {
+        "  candidate_rows enumerated (for_each)": 11460,
+        "  candidate_rows from lookups": 12697,
+        "  lookup calls (get_subset)": 14277,
+        "cached_column": 2081,
+        "cached_index_hit": 2080,
+        "cached_index_rebuild": 48,
+        "cached_index_rebuild_full": 0,
+        "cached_index_rebuild_rows": 5461,
+        "cached_tuple": 13,
+        "candidate_rows": 24157,
+        "dynamic_column (per-node cache)": 3457,
+        "dynamic_tuple (group_by_key)": 3,
+        "probed_keys": 8777,
+        "probes": 15734,
+        "sparse_column": 10180
+      },
+      "blocks": [
+        {
+          "rule": "impl_6_5_cover_5",
+          "kind": "materialize",
+          "block": 0,
+          "stages": 10,
+          "seconds": 0.000359875,
+          "materialized_keys": 5,
+          "materialized_rows": 5,
+          "message_columns": 8,
+          "value_columns": 2,
+          "counters": {
+            "probes": 3058,
+            "sparse_column": 2026,
+            "cached_tuple": 0,
+            "cached_column": 21,
+            "dynamic_tuple (group_by_key)": 0,
+            "dynamic_column (per-node cache)": 1011,
+            "cached_index_rebuild": 4,
+            "cached_index_hit": 17,
+            "cached_index_rebuild_rows": 400,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 2030,
+            "candidate_rows": 5050,
+            "  candidate_rows enumerated (for_each)": 2525,
+            "  lookup calls (get_subset)": 3020,
+            "  candidate_rows from lookups": 2525
+          },
+          "stage_entries": [
+            5,
+            1,
+            5,
+            500,
+            500,
+            5,
+            500,
+            5,
+            5,
+            5
+          ],
+          "query": 0
+        },
+        {
+          "rule": "impl_6_5_cover_5",
+          "kind": "materialize",
+          "block": 1,
+          "stages": 9,
+          "seconds": 3.6167e-05,
+          "materialized_keys": 0,
+          "materialized_rows": 0,
+          "message_columns": 0,
+          "value_columns": 16,
+          "counters": {
+            "probes": 50,
+            "sparse_column": 31,
+            "cached_tuple": 3,
+            "cached_column": 6,
+            "dynamic_tuple (group_by_key)": 1,
+            "dynamic_column (per-node cache)": 9,
+            "cached_index_rebuild": 3,
+            "cached_index_hit": 6,
+            "cached_index_rebuild_rows": 300,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 10,
+            "candidate_rows": 85,
+            "  candidate_rows enumerated (for_each)": 10,
+            "  lookup calls (get_subset)": 75,
+            "  candidate_rows from lookups": 75
+          },
+          "stage_entries": [
+            1,
+            5,
+            5,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "query": 0
+        },
+        {
+          "rule": "impl_6_5_cover_5",
+          "kind": "plan",
+          "block": 0,
+          "stages": 0,
+          "seconds": 0.000549416,
+          "materialized_keys": null,
+          "materialized_rows": null,
+          "message_columns": null,
+          "value_columns": null,
+          "counters": {
+            "probes": 3108,
+            "sparse_column": 2057,
+            "cached_tuple": 3,
+            "cached_column": 27,
+            "dynamic_tuple (group_by_key)": 1,
+            "dynamic_column (per-node cache)": 1020,
+            "cached_index_rebuild": 7,
+            "cached_index_hit": 23,
+            "cached_index_rebuild_rows": 700,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 2040,
+            "candidate_rows": 5135,
+            "  candidate_rows enumerated (for_each)": 2535,
+            "  lookup calls (get_subset)": 3095,
+            "  candidate_rows from lookups": 2600
+          },
+          "stage_entries": [],
+          "query": 0
+        },
+        {
+          "rule": "impl_7_5_cover_10",
+          "kind": "materialize",
+          "block": 0,
+          "stages": 10,
+          "seconds": 0.000329625,
+          "materialized_keys": 0,
+          "materialized_rows": 0,
+          "message_columns": 8,
+          "value_columns": 2,
+          "counters": {
+            "probes": 3038,
+            "sparse_column": 2011,
+            "cached_tuple": 0,
+            "cached_column": 16,
+            "dynamic_tuple (group_by_key)": 0,
+            "dynamic_column (per-node cache)": 1011,
+            "cached_index_rebuild": 0,
+            "cached_index_hit": 16,
+            "cached_index_rebuild_rows": 0,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 2015,
+            "candidate_rows": 5025,
+            "  candidate_rows enumerated (for_each)": 2510,
+            "  lookup calls (get_subset)": 3015,
+            "  candidate_rows from lookups": 2515
+          },
+          "stage_entries": [
+            5,
+            1,
+            5,
+            500,
+            500,
+            0,
+            500,
+            5,
+            0,
+            0
+          ],
+          "query": 0
+        },
+        {
+          "rule": "impl_7_5_cover_10",
+          "kind": "plan",
+          "block": 0,
+          "stages": 0,
+          "seconds": 0.000384416,
+          "materialized_keys": null,
+          "materialized_rows": null,
+          "message_columns": null,
+          "value_columns": null,
+          "counters": {
+            "probes": 3038,
+            "sparse_column": 2011,
+            "cached_tuple": 0,
+            "cached_column": 16,
+            "dynamic_tuple (group_by_key)": 0,
+            "dynamic_column (per-node cache)": 1011,
+            "cached_index_rebuild": 0,
+            "cached_index_hit": 16,
+            "cached_index_rebuild_rows": 0,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 2015,
+            "candidate_rows": 5025,
+            "  candidate_rows enumerated (for_each)": 2510,
+            "  lookup calls (get_subset)": 3015,
+            "  candidate_rows from lookups": 2515
+          },
+          "stage_entries": [],
+          "query": 0
+        }
+      ],
+      "equivalence": {
+        "exact_equal": true,
+        "enodes": 1628,
+        "eclasses": 1418,
+        "sorts": {
+          "Assumption": {
+            "enodes": 300,
+            "eclasses": 300
+          },
+          "BaseType": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "BinaryOp": {
+            "enodes": 3,
+            "eclasses": 3
+          },
+          "Expr": {
+            "enodes": 1320,
+            "eclasses": 1110
+          },
+          "Type": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "TypeList": {
+            "enodes": 3,
+            "eclasses": 3
+          }
+        }
+      },
+      "summary_tables": {
+        "Spine-Summary-0": {
+          "active": 180,
+          "subsumed": 20
+        },
+        "Spine-Summary-1": {
+          "active": 5,
+          "subsumed": 0
+        },
+        "Spine-Summary-2": {
+          "active": 5,
+          "subsumed": 0
+        }
+      },
+      "tables_before_export": {
+        "Arg": 0,
+        "Base": 0,
+        "BoolT": 0,
+        "Bop": 0,
+        "Get": 0,
+        "If": 0,
+        "InFunc": 0,
+        "InIf": 0,
+        "IntT": 0,
+        "LessThan": 0,
+        "Single": 0,
+        "Smax": 0,
+        "Smin": 0,
+        "Spine-Arg": 300,
+        "Spine-Base": 0,
+        "Spine-BoolT": 0,
+        "Spine-Bop": 100,
+        "Spine-Cano-Arg": 20,
+        "Spine-Cano-Base": 0,
+        "Spine-Cano-BoolT": 0,
+        "Spine-Cano-Bop": 10,
+        "Spine-Cano-Get": 60,
+        "Spine-Cano-If": 10,
+        "Spine-Cano-InFunc": 0,
+        "Spine-Cano-InIf": 20,
+        "Spine-Cano-IntT": 0,
+        "Spine-Cano-LessThan": 1,
+        "Spine-Cano-RipenInput_0_": 0,
+        "Spine-Cano-RipenInput_1_": 0,
+        "Spine-Cano-RipenInput_2_": 0,
+        "Spine-Cano-RipenInput_3_": 0,
+        "Spine-Cano-RipenInput_4_": 0,
+        "Spine-Cano-RipenInput_5_": 0,
+        "Spine-Cano-Single": 200,
+        "Spine-Cano-Smax": 0,
+        "Spine-Cano-Smin": 0,
+        "Spine-Cano-TCons": 0,
+        "Spine-Cano-TNil": 0,
+        "Spine-Cano-TupleT": 0,
+        "Spine-Get": 400,
+        "Spine-If": 100,
+        "Spine-InFunc": 100,
+        "Spine-InIf": 200,
+        "Spine-IntT": 1,
+        "Spine-LessThan": 1,
+        "Spine-Reified-Assumption": 0,
+        "Spine-Reified-BaseType": 0,
+        "Spine-Reified-BinaryOp": 0,
+        "Spine-Reified-Expr": 0,
+        "Spine-Reified-Type": 0,
+        "Spine-Reified-TypeList": 0,
+        "Spine-RipenInput_0_": 0,
+        "Spine-RipenInput_1_": 0,
+        "Spine-RipenInput_2_": 0,
+        "Spine-RipenInput_3_": 0,
+        "Spine-RipenInput_4_": 0,
+        "Spine-RipenInput_5_": 0,
+        "Spine-Single": 200,
+        "Spine-Smax": 0,
+        "Spine-Smin": 0,
+        "Spine-Summary-0": 200,
+        "Spine-Summary-1": 5,
+        "Spine-Summary-2": 5,
+        "Spine-TCons": 2,
+        "Spine-TNil": 1,
+        "Spine-TupleT": 1,
+        "TCons": 0,
+        "TNil": 0,
+        "TupleT": 0
+      },
+      "total_table_rows_before_export": 3343,
+      "omitted_tables": {
+        "count": 1412,
+        "rows": 1406
+      }
+    },
+    "canonical_hot": {
+      "run_ms": 4.904209,
+      "matches": 220,
+      "phases_ms": {
+        "search_and_apply_time_per_ruleset": 3.3770409999999997,
+        "merge_time_per_ruleset": 0.106542,
+        "rebuild_time_per_ruleset": 0.7452500000000001
+      },
+      "probes": {
+        "  candidate_rows enumerated (for_each)": 11460,
+        "  candidate_rows from lookups": 12697,
+        "  lookup calls (get_subset)": 14277,
+        "cached_column": 2079,
+        "cached_index_hit": 2077,
+        "cached_index_rebuild": 48,
+        "cached_index_rebuild_full": 0,
+        "cached_index_rebuild_rows": 5461,
+        "cached_tuple": 12,
+        "candidate_rows": 24157,
+        "dynamic_column (per-node cache)": 3459,
+        "dynamic_tuple (group_by_key)": 4,
+        "probed_keys": 8777,
+        "probes": 15734,
+        "sparse_column": 10180
+      },
+      "blocks": [
+        {
+          "rule": "impl_6_5_cover_5",
+          "kind": "materialize",
+          "block": 0,
+          "stages": 10,
+          "seconds": 0.0003465,
+          "materialized_keys": 5,
+          "materialized_rows": 5,
+          "message_columns": 8,
+          "value_columns": 2,
+          "counters": {
+            "probes": 3058,
+            "sparse_column": 2026,
+            "cached_tuple": 0,
+            "cached_column": 20,
+            "dynamic_tuple (group_by_key)": 0,
+            "dynamic_column (per-node cache)": 1012,
+            "cached_index_rebuild": 4,
+            "cached_index_hit": 16,
+            "cached_index_rebuild_rows": 400,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 2030,
+            "candidate_rows": 5050,
+            "  candidate_rows enumerated (for_each)": 2525,
+            "  lookup calls (get_subset)": 3020,
+            "  candidate_rows from lookups": 2525
+          },
+          "stage_entries": [
+            5,
+            1,
+            5,
+            500,
+            500,
+            5,
+            500,
+            5,
+            5,
+            5
+          ],
+          "query": 0
+        },
+        {
+          "rule": "impl_6_5_cover_5",
+          "kind": "materialize",
+          "block": 1,
+          "stages": 9,
+          "seconds": 2.6708e-05,
+          "materialized_keys": 0,
+          "materialized_rows": 0,
+          "message_columns": 0,
+          "value_columns": 16,
+          "counters": {
+            "probes": 50,
+            "sparse_column": 31,
+            "cached_tuple": 2,
+            "cached_column": 6,
+            "dynamic_tuple (group_by_key)": 2,
+            "dynamic_column (per-node cache)": 9,
+            "cached_index_rebuild": 2,
+            "cached_index_hit": 6,
+            "cached_index_rebuild_rows": 100,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 10,
+            "candidate_rows": 85,
+            "  candidate_rows enumerated (for_each)": 10,
+            "  lookup calls (get_subset)": 75,
+            "  candidate_rows from lookups": 75
+          },
+          "stage_entries": [
+            1,
+            5,
+            5,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "query": 0
+        },
+        {
+          "rule": "impl_6_5_cover_5",
+          "kind": "plan",
+          "block": 0,
+          "stages": 0,
+          "seconds": 0.000510375,
+          "materialized_keys": null,
+          "materialized_rows": null,
+          "message_columns": null,
+          "value_columns": null,
+          "counters": {
+            "probes": 3108,
+            "sparse_column": 2057,
+            "cached_tuple": 2,
+            "cached_column": 26,
+            "dynamic_tuple (group_by_key)": 2,
+            "dynamic_column (per-node cache)": 1021,
+            "cached_index_rebuild": 6,
+            "cached_index_hit": 22,
+            "cached_index_rebuild_rows": 500,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 2040,
+            "candidate_rows": 5135,
+            "  candidate_rows enumerated (for_each)": 2535,
+            "  lookup calls (get_subset)": 3095,
+            "  candidate_rows from lookups": 2600
+          },
+          "stage_entries": [],
+          "query": 0
+        },
+        {
+          "rule": "impl_7_5_cover_10",
+          "kind": "materialize",
+          "block": 0,
+          "stages": 10,
+          "seconds": 0.000319959,
+          "materialized_keys": 0,
+          "materialized_rows": 0,
+          "message_columns": 8,
+          "value_columns": 2,
+          "counters": {
+            "probes": 3038,
+            "sparse_column": 2011,
+            "cached_tuple": 0,
+            "cached_column": 15,
+            "dynamic_tuple (group_by_key)": 0,
+            "dynamic_column (per-node cache)": 1012,
+            "cached_index_rebuild": 0,
+            "cached_index_hit": 15,
+            "cached_index_rebuild_rows": 0,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 2015,
+            "candidate_rows": 5025,
+            "  candidate_rows enumerated (for_each)": 2510,
+            "  lookup calls (get_subset)": 3015,
+            "  candidate_rows from lookups": 2515
+          },
+          "stage_entries": [
+            5,
+            1,
+            5,
+            500,
+            500,
+            0,
+            500,
+            5,
+            0,
+            0
+          ],
+          "query": 0
+        },
+        {
+          "rule": "impl_7_5_cover_10",
+          "kind": "plan",
+          "block": 0,
+          "stages": 0,
+          "seconds": 0.000375458,
+          "materialized_keys": null,
+          "materialized_rows": null,
+          "message_columns": null,
+          "value_columns": null,
+          "counters": {
+            "probes": 3038,
+            "sparse_column": 2011,
+            "cached_tuple": 0,
+            "cached_column": 15,
+            "dynamic_tuple (group_by_key)": 0,
+            "dynamic_column (per-node cache)": 1012,
+            "cached_index_rebuild": 0,
+            "cached_index_hit": 15,
+            "cached_index_rebuild_rows": 0,
+            "cached_index_rebuild_full": 0,
+            "probed_keys": 2015,
+            "candidate_rows": 5025,
+            "  candidate_rows enumerated (for_each)": 2510,
+            "  lookup calls (get_subset)": 3015,
+            "  candidate_rows from lookups": 2515
+          },
+          "stage_entries": [],
+          "query": 0
+        }
+      ],
+      "equivalence": {
+        "exact_equal": true,
+        "enodes": 1628,
+        "eclasses": 1418,
+        "sorts": {
+          "Assumption": {
+            "enodes": 300,
+            "eclasses": 300
+          },
+          "BaseType": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "BinaryOp": {
+            "enodes": 3,
+            "eclasses": 3
+          },
+          "Expr": {
+            "enodes": 1320,
+            "eclasses": 1110
+          },
+          "Type": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "TypeList": {
+            "enodes": 3,
+            "eclasses": 3
+          }
+        }
+      },
+      "summary_tables": {
+        "Spine-Summary-0": {
+          "active": 180,
+          "subsumed": 20
+        },
+        "Spine-Summary-1": {
+          "active": 5,
+          "subsumed": 0
+        },
+        "Spine-Summary-2": {
+          "active": 5,
+          "subsumed": 0
+        }
+      },
+      "tables_before_export": {
+        "Arg": 0,
+        "Base": 0,
+        "BoolT": 0,
+        "Bop": 0,
+        "Get": 0,
+        "If": 0,
+        "InFunc": 0,
+        "InIf": 0,
+        "IntT": 0,
+        "LessThan": 0,
+        "Single": 0,
+        "Smax": 0,
+        "Smin": 0,
+        "Spine-Arg": 300,
+        "Spine-Base": 0,
+        "Spine-BoolT": 0,
+        "Spine-Bop": 100,
+        "Spine-Cano-Arg": 20,
+        "Spine-Cano-Base": 0,
+        "Spine-Cano-BoolT": 0,
+        "Spine-Cano-Bop": 10,
+        "Spine-Cano-Get": 60,
+        "Spine-Cano-If": 10,
+        "Spine-Cano-InFunc": 0,
+        "Spine-Cano-InIf": 20,
+        "Spine-Cano-IntT": 0,
+        "Spine-Cano-LessThan": 1,
+        "Spine-Cano-RipenInput_0_": 0,
+        "Spine-Cano-RipenInput_1_": 0,
+        "Spine-Cano-RipenInput_2_": 0,
+        "Spine-Cano-RipenInput_3_": 0,
+        "Spine-Cano-RipenInput_4_": 0,
+        "Spine-Cano-RipenInput_5_": 0,
+        "Spine-Cano-Single": 200,
+        "Spine-Cano-Smax": 0,
+        "Spine-Cano-Smin": 0,
+        "Spine-Cano-TCons": 0,
+        "Spine-Cano-TNil": 0,
+        "Spine-Cano-TupleT": 0,
+        "Spine-Get": 400,
+        "Spine-If": 100,
+        "Spine-InFunc": 100,
+        "Spine-InIf": 200,
+        "Spine-IntT": 1,
+        "Spine-LessThan": 1,
+        "Spine-Reified-Assumption": 0,
+        "Spine-Reified-BaseType": 0,
+        "Spine-Reified-BinaryOp": 0,
+        "Spine-Reified-Expr": 0,
+        "Spine-Reified-Type": 0,
+        "Spine-Reified-TypeList": 0,
+        "Spine-RipenInput_0_": 0,
+        "Spine-RipenInput_1_": 0,
+        "Spine-RipenInput_2_": 0,
+        "Spine-RipenInput_3_": 0,
+        "Spine-RipenInput_4_": 0,
+        "Spine-RipenInput_5_": 0,
+        "Spine-Single": 200,
+        "Spine-Smax": 0,
+        "Spine-Smin": 0,
+        "Spine-Summary-0": 200,
+        "Spine-Summary-1": 5,
+        "Spine-Summary-2": 5,
+        "Spine-TCons": 2,
+        "Spine-TNil": 1,
+        "Spine-TupleT": 1,
+        "TCons": 0,
+        "TNil": 0,
+        "TupleT": 0
+      },
+      "total_table_rows_before_export": 3343,
+      "omitted_tables": {
+        "count": 1412,
+        "rows": 1406
+      }
+    },
+    "drop_hot": {
+      "run_ms": 4.539625,
+      "matches": 220,
+      "phases_ms": {
+        "search_and_apply_time_per_ruleset": 2.622083,
+        "merge_time_per_ruleset": 0.174,
+        "rebuild_time_per_ruleset": 0.92325
+      },
+      "probes": {
+        "  candidate_rows enumerated (for_each)": 6415,
+        "  candidate_rows from lookups": 7582,
+        "  lookup calls (get_subset)": 8167,
+        "cached_column": 2038,
+        "cached_index_hit": 2035,
+        "cached_index_rebuild": 47,
+        "cached_index_rebuild_full": 0,
+        "cached_index_rebuild_rows": 5361,
+        "cached_tuple": 10,
+        "candidate_rows": 13997,
+        "dynamic_column (per-node cache)": 1426,
+        "dynamic_tuple (group_by_key)": 2,
+        "probed_keys": 4722,
+        "probes": 9588,
+        "sparse_column": 6112
+      },
+      "blocks": [],
+      "equivalence": {
+        "exact_equal": true,
+        "enodes": 1628,
+        "eclasses": 1418,
+        "sorts": {
+          "Assumption": {
+            "enodes": 300,
+            "eclasses": 300
+          },
+          "BaseType": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "BinaryOp": {
+            "enodes": 3,
+            "eclasses": 3
+          },
+          "Expr": {
+            "enodes": 1320,
+            "eclasses": 1110
+          },
+          "Type": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "TypeList": {
+            "enodes": 3,
+            "eclasses": 3
+          }
+        }
+      },
+      "summary_tables": {
+        "Spine-Summary-0": {
+          "active": 180,
+          "subsumed": 20
+        },
+        "Spine-Summary-1": {
+          "active": 5,
+          "subsumed": 0
+        },
+        "Spine-Summary-2": {
+          "active": 5,
+          "subsumed": 0
+        }
+      },
+      "tables_before_export": {
+        "Arg": 0,
+        "Base": 0,
+        "BoolT": 0,
+        "Bop": 0,
+        "Get": 0,
+        "If": 0,
+        "InFunc": 0,
+        "InIf": 0,
+        "IntT": 0,
+        "LessThan": 0,
+        "Single": 0,
+        "Smax": 0,
+        "Smin": 0,
+        "Spine-Arg": 300,
+        "Spine-Base": 0,
+        "Spine-BoolT": 0,
+        "Spine-Bop": 100,
+        "Spine-Cano-Arg": 20,
+        "Spine-Cano-Base": 0,
+        "Spine-Cano-BoolT": 0,
+        "Spine-Cano-Bop": 10,
+        "Spine-Cano-Get": 60,
+        "Spine-Cano-If": 10,
+        "Spine-Cano-InFunc": 0,
+        "Spine-Cano-InIf": 20,
+        "Spine-Cano-IntT": 0,
+        "Spine-Cano-LessThan": 1,
+        "Spine-Cano-RipenInput_0_": 0,
+        "Spine-Cano-RipenInput_1_": 0,
+        "Spine-Cano-RipenInput_2_": 0,
+        "Spine-Cano-RipenInput_3_": 0,
+        "Spine-Cano-RipenInput_4_": 0,
+        "Spine-Cano-RipenInput_5_": 0,
+        "Spine-Cano-Single": 200,
+        "Spine-Cano-Smax": 0,
+        "Spine-Cano-Smin": 0,
+        "Spine-Cano-TCons": 0,
+        "Spine-Cano-TNil": 0,
+        "Spine-Cano-TupleT": 0,
+        "Spine-Get": 400,
+        "Spine-If": 100,
+        "Spine-InFunc": 100,
+        "Spine-InIf": 200,
+        "Spine-IntT": 1,
+        "Spine-LessThan": 1,
+        "Spine-Reified-Assumption": 0,
+        "Spine-Reified-BaseType": 0,
+        "Spine-Reified-BinaryOp": 0,
+        "Spine-Reified-Expr": 0,
+        "Spine-Reified-Type": 0,
+        "Spine-Reified-TypeList": 0,
+        "Spine-RipenInput_0_": 0,
+        "Spine-RipenInput_1_": 0,
+        "Spine-RipenInput_2_": 0,
+        "Spine-RipenInput_3_": 0,
+        "Spine-RipenInput_4_": 0,
+        "Spine-RipenInput_5_": 0,
+        "Spine-Single": 200,
+        "Spine-Smax": 0,
+        "Spine-Smin": 0,
+        "Spine-Summary-0": 200,
+        "Spine-Summary-1": 5,
+        "Spine-Summary-2": 5,
+        "Spine-TCons": 2,
+        "Spine-TNil": 1,
+        "Spine-TupleT": 1,
+        "TCons": 0,
+        "TNil": 0,
+        "TupleT": 0
+      },
+      "total_table_rows_before_export": 3343,
+      "omitted_tables": {
+        "count": 1412,
+        "rows": 1406
+      }
+    }
+  }
+}

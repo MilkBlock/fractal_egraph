@@ -75,6 +75,12 @@ plan's work changed; they do not attribute the increase to a particular rule or
 claim that one kind of probe has a constant time cost. Changing weights based
 only on successful matches would not solve this problem.
 
+The follow-up in `../if_join_profile/README.md` attributes the regression to two
+zero-match inherited rules. Actual stage counters expose 50-by-1,000 attempted
+bindings before rejection; restoring a canonical lookup alone does not help.
+That experiment adds per-rule plans and opt-in block/stage diagnostics without
+changing the production planner or deleting rules from the compiler.
+
 ## Storage and code size
 
 The phased harness previously counted raw `Spine-*` constructors but omitted
