@@ -63,6 +63,10 @@ class AblationEvidence(unittest.TestCase):
             self.assertEqual(counts['verification']['restored'],v['restored'])
             path.write_text(json.dumps(manifest))
             timed=run(['bench',path])
+            for phase in ('run_engine_seconds','export_engine_seconds'):
+                self.assertEqual(set(timed[phase]),{'search_apply','merge','rebuild'})
+                self.assertTrue(all(v>=0 for v in timed[phase].values()))
+            self.assertTrue(all(v==0 for v in timed['export_engine_seconds'].values()))
             self.assertEqual(timed['matches'],checked['matches'])
             self.assertIsNone(timed['verification'])
             self.assertAlmostEqual(timed['seconds'],sum(timed[k] for k in ('setup_seconds','input_seconds','run_seconds','export_seconds')))

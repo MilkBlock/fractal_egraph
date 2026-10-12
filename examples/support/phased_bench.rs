@@ -16,11 +16,23 @@ struct Phases {
     counts: bool,
     constructors: Vec<String>,
 }
+#[derive(Default, serde::Serialize)]
+struct EngineTimes {
+    search_apply: f64,
+    merge: f64,
+    rebuild: f64,
+}
+
 fn execute_phase(
     eg: &mut EGraph,
     source: &str,
     diagnose: bool,
-) -> (f64, usize, std::collections::BTreeMap<String, usize>) {
+) -> (
+    f64,
+    usize,
+    std::collections::BTreeMap<String, usize>,
+    EngineTimes,
+) {
     let tick = std::time::Instant::now();
     let outputs = eg.parse_and_run_program(None, source).unwrap();
     let matches = outputs
@@ -33,9 +45,25 @@ fn execute_phase(
         })
         .sum();
     let mut per_rule = std::collections::BTreeMap::new();
-    if diagnose {
-        for output in &outputs {
-            if let egglog::CommandOutput::RunSchedule(report) = output {
+    let mut engine = EngineTimes::default();
+    for output in &outputs {
+        if let egglog::CommandOutput::RunSchedule(report) = output {
+            engine.search_apply += report
+                .search_and_apply_time_per_ruleset
+                .values()
+                .map(|d| d.as_secs_f64())
+                .sum::<f64>();
+            engine.merge += report
+                .merge_time_per_ruleset
+                .values()
+                .map(|d| d.as_secs_f64())
+                .sum::<f64>();
+            engine.rebuild += report
+                .rebuild_time_per_ruleset
+                .values()
+                .map(|d| d.as_secs_f64())
+                .sum::<f64>();
+            if diagnose {
                 for (rule, count) in &report.num_matches_per_rule {
                     *per_rule.entry(rule.to_string()).or_default() += count;
                 }
@@ -43,7 +71,7 @@ fn execute_phase(
         }
     }
     drop(outputs);
-    (tick.elapsed().as_secs_f64(), matches, per_rule)
+    (tick.elapsed().as_secs_f64(), matches, per_rule, engine)
 }
 fn shape(eg: &EGraph, names: &[String]) -> serde_json::Value {
     let mut classes = std::collections::BTreeSet::new();
@@ -109,10 +137,11 @@ pub fn run_diagnostic(
     configure(&mut eg);
     execute_phase(&mut eg, &environment, false);
     let setup_seconds = tick.elapsed().as_secs_f64();
-    let (input_seconds, _, _) = execute_phase(&mut eg, &input, false);
+    let (input_seconds, _, _, _) = execute_phase(&mut eg, &input, false);
     let initial = inspect.then(|| shape(&eg, &config.constructors));
     let before_probes = inspect.then(|| probes());
-    let (run_seconds, matches, rule_matches) = execute_phase(&mut eg, &config.run, inspect);
+    let (run_seconds, matches, rule_matches, run_engine) =
+        execute_phase(&mut eg, &config.run, inspect);
     let join_probes = before_probes.map(|before| {
         let before: std::collections::BTreeMap<_, _> = before.into_iter().collect();
         probes()
@@ -159,11 +188,11 @@ pub fn run_diagnostic(
             verification["run_report"] = serde_json::to_value(eg.get_overall_run_report()).unwrap();
         }
     }
-    let (export_seconds, export_matches) = if config.export.is_empty() {
-        (0., 0)
+    let (export_seconds, export_matches, export_engine) = if config.export.is_empty() {
+        (0., 0, EngineTimes::default())
     } else {
-        let (seconds, matches, _) = execute_phase(&mut eg, &config.export, false);
-        (seconds, matches)
+        let (seconds, matches, _, engine) = execute_phase(&mut eg, &config.export, false);
+        (seconds, matches, engine)
     };
     if inspect {
         verification["restored"] = shape(&eg, &config.constructors);
@@ -248,6 +277,7 @@ pub fn run_diagnostic(
         json!({"seconds":seconds,"read_seconds":read_seconds,"setup_seconds":setup_seconds,
         "input_seconds":input_seconds,"run_seconds":run_seconds,"export_seconds":export_seconds,
         "drop_seconds":drop_seconds,"through_drop_seconds":seconds+drop_seconds,
+        "run_engine_seconds":run_engine,"export_engine_seconds":export_engine,
         "matches":matches,"export_matches":export_matches,"verification":verification,
         "traced":false,"scope":"phased native execution; graph inspection only in separate verification runs"})
     );

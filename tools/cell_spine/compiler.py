@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import time
 
 from .terms import actions, expressions, text, walk
 from .planner import solve
@@ -654,8 +655,13 @@ def main():
         raise ValueError('output must be empty; use a fresh output directory')
     a.output.mkdir(parents=True,exist_ok=True)
     work=a.output/'work';work.mkdir()
+    phases={};phase_start=time.perf_counter()
+    def phase(name):
+        nonlocal phase_start
+        now=time.perf_counter();phases[name]=now-phase_start;phase_start=now
     if not a.skip_build:
         run(['cargo','build','--offline','--release','--bin','egg_layout','--example','lhs_ast','--example','spine_validate','--example','spine_stages','--example','native_math_baseline'])
+    phase('build')
     data=ast(a.source,work/'input.json')
     report=dict(schema='cell-spine/v1',source=str(a.source),source_sha256=digest(a.source))
     if a.mode=='stages':
@@ -670,6 +676,7 @@ def main():
         import gurobipy  # Fail before native analysis if the requested solver is absent.
     except ImportError as e:
         raise RuntimeError('install tools/cell_spine/requirements.txt in the Python environment running this command') from e
+    phase('source_prepare')
     analysis=a.analysis_dir.resolve() if a.analysis_dir else a.output/'analysis'
     if not a.analysis_dir:
         env=dict(os.environ,EGG_LAYOUT_GRAPHS='0')
@@ -679,6 +686,7 @@ def main():
         if not captured.exists(): captured=analysis/'input.egg'
         if not captured.exists() or captured.read_text().strip()!=a.source.read_text().strip():
             raise ValueError('analysis source does not match input')
+    phase('tier0_capture')
     cs,rejected=load_candidates(analysis,work)
     if not cs:
         raise ValueError('Cell Bake found no supported completed Cell paths; snapshot export is a separate explicit operation')
@@ -694,15 +702,19 @@ def main():
                 sig[name]=s
     from .pricing import RuntimePricing,audit
     pricing=RuntimePricing(lambda plan,dest:prepare_runtime(cs,plan,edges,work,dest),sig,work/'pricing',weights)
+    phase('catalog_prepare')
     plan=solve(cs,edges,a.output,weights,pricing=pricing)
     prepared,priced=pricing.optimize(plan)
+    phase('spine_solve')
     lib,chosen,transitions,retirement=make_library(cs,plan,edges,environment,sig,work,prepared)
     emitted=json.loads((work/'marker-runtime.json').read_text())['rules']
     audit(emitted,priced['rule_costs'])
     retirement['cost_audit']=dict(status='exact',rule_costs=priced['rule_costs'],scope='Native parser agrees with pre-solver lowered AST costs')
+    phase('library_emit')
     from .input_spine import project
     initial,input_plan=project(data,cs,chosen,retirement['marker_layouts'],prepared,a.output)
     (a.output/'input-plan.json').write_text(json.dumps(input_plan,indent=2)+'\n')
+    phase('input_solve')
     runtime,restore=cellify(data,lib,initial=initial)
     cases=[]
     for c in cs:
@@ -718,7 +730,9 @@ def main():
     cases.append(dict(name='source',reference_path=str(a.source),reference='',compressed=runtime.removeprefix(lib),restore=restore))
     manifest=dict(constructors=sorted(sig),cases=cases,library=lib)
     (work/'validation.json').write_text(json.dumps(manifest))
+    phase('validation_prepare')
     run([ROOT/'target/release/examples/spine_validate',work/'validation.json',a.output/'validation.json'])
+    phase('native_validation')
     measured=next(c for c in json.loads((a.output/'validation.json').read_text())['cases'] if c['case']=='source')
     # Publish executable output only after every native differential check.
     (a.output/'transitions.json').write_text(json.dumps(edges,indent=2)+'\n')
@@ -733,6 +747,10 @@ def main():
                   input_plan=input_plan,paths=[dict(id=c['id'],family=c['family'],nodes=c['nodes'],lhs_atoms=c['lhs_atoms'],source_folder=c['source_folder']) for c in cs],
                   guarantees='exact finite constructor closure at explicit export from cached snapshots; original rules do not run on compressed path',
                   boundary='baked path whitelist only; no general hidden-fact matcher or automatic dynamic rebake')
+    phase('output_write')
+    report.update(phase_seconds=phases,compiler_seconds=sum(phases.values()),build_included=not a.skip_build,
+                  capture_mode='reused' if a.analysis_dir else 'fresh',
+                  phase_scope='sequential wall-clock stages; spine_solve includes preparation, pricing and Gurobi; final report serialization and process startup excluded')
     (a.output/'report.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps({k:report[k] for k in ('status','compressed','reason') if k in report}))
 

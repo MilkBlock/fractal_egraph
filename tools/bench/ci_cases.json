@@ -1,0 +1,17 @@
+{
+  "schema": "cell-ci-suite/v1",
+  "copies": 128,
+  "cases": {
+    "left": "experiments/cell_spine/fixtures/input_spine_left.egg",
+    "right": "experiments/cell_spine/fixtures/input_spine_right.egg",
+    "boundary": "experiments/cell_spine/fixtures/input_spine_boundary.egg",
+    "specialized": "experiments/cell_spine/fixtures/input_spine_specialized.egg",
+    "long_chain": "experiments/cell_spine/fixtures/long_spine_graft.egg",
+    "eggcc_if": "experiments/cell_spine/eggcc_if_tiny/source.egg"
+  },
+  "ripen_limits": {
+    "milliseconds": 50,
+    "facts": 200000,
+    "sweep_steps": 4
+  }
+}

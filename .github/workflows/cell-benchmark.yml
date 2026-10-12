@@ -1,0 +1,154 @@
+name: Cell size and phase benchmarks
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - 'src/**'
+      - 'egglog/**'
+      - 'examples/**'
+      - 'tools/cell_spine/**'
+      - 'tools/bench/**'
+      - 'experiments/cell_spine/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.github/workflows/cell-benchmark.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'egglog/**'
+      - 'examples/**'
+      - 'tools/cell_spine/**'
+      - 'tools/bench/**'
+      - 'experiments/cell_spine/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.github/workflows/cell-benchmark.yml'
+  workflow_dispatch:
+    inputs:
+      accept_baseline:
+        description: Accept this default-branch result as the new performance baseline
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cell-benchmark-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      CARGO_BUILD_JOBS: '2'
+      CARGO_INCREMENTAL: '0'
+      RAYON_NUM_THREADS: '1'
+      EGG_LAYOUT_GRAPHS: '0'
+      EGG_LAYOUT_EAGER_SVG: '0'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.94.0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: tools/cell_spine/requirements.txt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: cell-bench-rust-1.94
+      - name: Install solver and verify bundled limited license
+        run: |
+          python -m pip install -r tools/cell_spine/requirements.txt
+          python - <<'PY'
+          import gurobipy as gp
+          with gp.Model() as model:
+              model.Params.OutputFlag = 0
+              model.addVar(lb=1)
+              model.optimize()
+              assert model.Status == gp.GRB.OPTIMAL
+          PY
+      - name: Build native tools from committed sources
+        run: >-
+          cargo build --locked --release --bin egg_layout
+          --example lhs_ast --example spine_validate
+          --example spine_stages --example native_math_baseline
+      - name: Unit and native contract tests
+        run: |
+          mkdir -p out
+          python -m unittest tools.bench.test_ci_cell_spine tools.bench.test_spine_ablation tools.cell_spine.test_names tools.cell_spine.test_lookups tools.cell_spine.test_markers tools.cell_spine.test_representation tools.cell_spine.test_pricing tools.cell_spine.test_spine tools.cell_spine.test_takeover tools.cell_spine.test_contract tools.cell_spine.test_input_spine
+      - name: Restore accepted baseline (never from a PR save)
+        id: baseline
+        uses: actions/cache/restore@v4
+        with:
+          path: out/ci-baseline/report.json
+          key: cell-bench-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('tools/bench/ci_cases.json', 'experiments/cell_spine/fixtures/*.egg', 'experiments/cell_spine/eggcc_if_tiny/source.egg', 'tools/cell_spine/requirements.txt') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            cell-bench-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('tools/bench/ci_cases.json', 'experiments/cell_spine/fixtures/*.egg', 'experiments/cell_spine/eggcc_if_tiny/source.egg', 'tools/cell_spine/requirements.txt') }}-
+      - name: Measure size and all phases (one run per mode)
+        id: bench
+        run: python tools/bench/ci_cell_spine.py --output out/ci-cell
+      - name: Compare with accepted baseline
+        id: regression
+        env:
+          ACCEPT_REGRESSION: ${{ github.event_name == 'workflow_dispatch' && inputs.accept_baseline }}
+        run: |
+          args=()
+          if [ "$ACCEPT_REGRESSION" = true ]; then args+=(--accept-regression); fi
+          python tools/bench/check_ci_cell_spine.py \
+            --baseline out/ci-baseline/report.json --current out/ci-cell/report.json \
+            --output out/ci-cell/regression.json --summary out/ci-cell/summary.md "${args[@]}"
+      - name: Publish job summary
+        if: always()
+        run: |
+          if test -f out/ci-cell/summary.md; then
+            cat out/ci-cell/summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'Benchmark did not finish. Inspect the failed step and uploaded logs.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Preserve reports, generated programs and small logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cell-benchmark-${{ github.sha }}-${{ github.run_attempt }}
+          retention-days: 30
+          if-no-files-found: warn
+          path: |
+            out/ci-cell/report.json
+            out/ci-cell/summary.md
+            out/ci-cell/regression.json
+            out/ci-cell/*/*.stdout
+            out/ci-cell/*/*.stderr
+            out/ci-cell/*/bake/report.json
+            out/ci-cell/*/bake/input-plan.json
+            out/ci-cell/*/bake/library.egg
+            out/ci-cell/*/bake/runtime.egg
+            out/ci-cell/*/bake/restore.egg
+            out/ci-cell/*/bake/selection.lp
+            out/ci-cell/*/bake/selection.sol
+            out/ci-cell/*/bake/input-selection.lp
+            out/ci-cell/*/bake/input-selection.sol
+      - name: Save first or explicitly accepted default-branch baseline
+        if: >-
+          steps.bench.outcome == 'success' &&
+          github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
+          steps.regression.outcome == 'success' &&
+          (steps.baseline.outputs.cache-matched-key == '' ||
+           (github.event_name == 'workflow_dispatch' && inputs.accept_baseline))
+        run: |
+          mkdir -p out/ci-baseline
+          cp out/ci-cell/report.json out/ci-baseline/report.json
+      - uses: actions/cache/save@v4
+        if: >-
+          steps.bench.outcome == 'success' &&
+          github.ref == format('refs/heads/{0}', github.event.repository.default_branch) &&
+          steps.regression.outcome == 'success' &&
+          (steps.baseline.outputs.cache-matched-key == '' ||
+           (github.event_name == 'workflow_dispatch' && inputs.accept_baseline))
+        with:
+          path: out/ci-baseline/report.json
+          key: ${{ steps.baseline.outputs.cache-primary-key }}
