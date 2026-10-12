@@ -6,6 +6,7 @@ import subprocess
 import tempfile
 import unittest
 
+from .frontier import RUNTIME_SCHEDULE
 from .compiler import ROOT, load_candidates, parent_wirings, lower_option
 from .planner import solve
 
@@ -131,12 +132,12 @@ class NativePipeline(unittest.TestCase):
 (run-schedule (saturate algebra))
 (Plus (Plus (Leaf "b") (Leaf "a")) (Leaf "c"))
 (run-schedule (saturate algebra))
-''',compressed=lib+'''
+''',compressed=lib+f'''
 (Spine-Plus (Spine-Leaf "a") (Spine-Leaf "b"))
-(run-schedule (saturate Spine-Run))
+{RUNTIME_SCHEDULE}
 (check (Spine-Summary-0 (Spine-Plus (Spine-Leaf "a") (Spine-Leaf "b")) (Spine-Leaf "a") (Spine-Leaf "b")))
 (Spine-Plus (Spine-Plus (Spine-Leaf "b") (Spine-Leaf "a")) (Spine-Leaf "c"))
-(run-schedule (saturate Spine-Run))
+{RUNTIME_SCHEDULE}
 ''',restore='(run-schedule (saturate Spine-Export))',expected_summary='Spine-Summary-1')
         manifest=dict(constructors=['Leaf','Plus','RipenInput'],cases=[case])
         path=self.folder/'late.json';path.write_text(json.dumps(manifest))
@@ -211,11 +212,11 @@ class NativePipeline(unittest.TestCase):
         compressed = f"""
 (let x (Spine-Leaf "x"))
 (Spine-A x) (Spine-B x)
-(run-schedule (saturate Spine-Run))
+{RUNTIME_SCHEDULE}
 (check (Spine-Summary-{first['target_family']} a b x))
 (fail (check (Spine-Summary-{last['target_family']} a b c x)))
 (Spine-C x)
-(run-schedule (saturate Spine-Run))
+{RUNTIME_SCHEDULE}
 (check (Spine-Summary-{last['target_family']} a b c x))
 (fail (check (Spine-Joined x)))
 (fail (check (Spine-Final x)))
@@ -259,18 +260,18 @@ class NativePipeline(unittest.TestCase):
 (run-schedule (saturate demo))
 (check (Joined x))
 """
-        compressed = """
+        compressed = f"""
 (let x (Spine-Leaf "x")) (let y (Spine-Leaf "y"))
 (Spine-A x)
-(run-schedule (saturate Spine-Run))
+{RUNTIME_SCHEDULE}
 (check (Spine-Summary-0 (Spine-A x) x))
 (fail (check (Spine-Summary-2 a b p)))
 (Spine-B y)
-(run-schedule (saturate Spine-Run))
+{RUNTIME_SCHEDULE}
 (check (Spine-Summary-1 (Spine-B y) y))
 (fail (check (Spine-Summary-2 a b p)))
 (union x y)
-(run-schedule (saturate Spine-Run))
+{RUNTIME_SCHEDULE}
 (check (Spine-Summary-2 (Spine-A x) (Spine-B y) x))
 (fail (check (Spine-AA x)))
 (fail (check (Spine-BB x)))
@@ -290,19 +291,19 @@ class NativePipeline(unittest.TestCase):
         self.assertIn('(Spine-Gate p0 p2)', ' '.join(t['body']))
         reference = (ROOT/'experiments/cell_spine/fixtures/shared_family_graft.egg').read_text()
         reference = reference.replace('(run-schedule', '(Gate (Leaf "c") (Leaf "a"))\n(run-schedule', 1)
-        compressed = """
+        compressed = f"""
 (let a (Spine-Leaf "a")) (let b (Spine-Leaf "b")) (let c (Spine-Leaf "c"))
 (Spine-A a b)
-(run-schedule (saturate Spine-Run))
+{RUNTIME_SCHEDULE}
 (fail (check (Spine-Summary-1 r0 r1 g x y z)))
 (Spine-A b c)
-(run-schedule (saturate Spine-Run))
+{RUNTIME_SCHEDULE}
 (fail (check (Spine-Summary-1 r0 r1 g x y z)))
 (Spine-Gate c a)
-(run-schedule (saturate Spine-Run))
+{RUNTIME_SCHEDULE}
 (fail (check (Spine-Summary-1 r0 r1 g x y z)))
 (Spine-Gate a c)
-(run-schedule (saturate Spine-Run))
+{RUNTIME_SCHEDULE}
 (check (Spine-Summary-1 (Spine-A a b) (Spine-A b c) (Spine-Gate a c) a b c))
 (fail (check (Spine-AA x y)))
 (fail (check (Spine-Joined x z)))

@@ -6,6 +6,7 @@ import sys
 import tempfile
 import unittest
 
+from .frontier import RUNTIME_SCHEDULE
 from .compiler import ROOT
 from .takeover import ancestors, var, call, entailed, normalize
 
@@ -67,7 +68,10 @@ class NativeTakeover(unittest.TestCase):
         if remove_inherited:
             report=json.loads((out/'report.json').read_text())
             for t in report['transitions']:
-                if t['inherited']: manifest['library']=manifest['library'].replace(t['rule'],'')
+                if t['inherited']:
+                    for emitted in report['retirement']['runtime_rules'][t['id']]:
+                        self.assertIn(emitted,manifest['library'])
+                        manifest['library']=manifest['library'].replace(emitted,'')
         c=dict(name=name,reference='',reference_path=str(ROOT/f'experiments/cell_spine/fixtures/{fixture}.egg'),
             compressed=code,restore='(run-schedule (saturate Spine-Export))',expected_active_summaries=expected)
         if reference is not None: c.update(reference=reference,reference_path=None)
@@ -83,17 +87,17 @@ class NativeTakeover(unittest.TestCase):
         return json.loads((self.folder/f'{name}-result.json').read_text())['cases'][0]
 
     def late_code(self, alias=False):
-        q='(Spine-Q y)\n(run-schedule (saturate Spine-Run))\n(fail (check (Spine-Summary-3 a b x)))\n(union x y)' if alias else '(Spine-Q x)'
-        return '''
+        q=f'(Spine-Q y)\n{RUNTIME_SCHEDULE}\n(fail (check (Spine-Summary-3 a b x)))\n(union x y)' if alias else '(Spine-Q x)'
+        return f'''
 (let x (Spine-Leaf "x"))
-''' + ('(let y (Spine-Leaf "y"))\n' if alias else '') + '''
+''' + ('(let y (Spine-Leaf "y"))\n' if alias else '') + f'''
 (Spine-A x) (Spine-P x)
-(run-schedule (saturate Spine-Run))
+{RUNTIME_SCHEDULE}
 ; Install a real matcher AFTER retirement. check alone sees subsumed rows!
 (relation SawRetired ())
 (rule ((Spine-Summary-0 r x)) ((SawRetired)) :ruleset Spine-Run :name "probe-retired")
-''' + q + '''
-(run-schedule (saturate Spine-Run))
+''' + q + f'''
+{RUNTIME_SCHEDULE}
 (fail (check (SawRetired)))
 '''
 
@@ -119,14 +123,14 @@ class NativeTakeover(unittest.TestCase):
         self.verify('late_takeover','uncovered-instance',code,{'Spine-Summary-0':1},reference=source)
 
     def test_two_retired_instances_can_still_join_on_late_gate(self):
-        code='''
+        code=f'''
 (let x (Spine-Leaf "x")) (let y (Spine-Leaf "y"))
 (Spine-A x) (Spine-A y) (Spine-P x) (Spine-P y)
-(run-schedule (saturate Spine-Run))
+{RUNTIME_SCHEDULE}
 (relation SawRetired ())
 (rule ((Spine-Summary-0 r a)) ((SawRetired)) :ruleset Spine-Run :name "probe-retired")
 (Spine-Gate x y)
-(run-schedule (saturate Spine-Run))
+{RUNTIME_SCHEDULE}
 (fail (check (SawRetired)))
 '''
         r=self.verify('two_retired_parents','two-retired',code,{'Spine-Summary-0':0})

@@ -16,6 +16,7 @@ from math_virtual import ROOT, measure
 from math_graph_equal import verify
 sys.path.insert(0,str(ROOT))
 from tools.cell_spine.compiler import commands, cellify
+from tools.cell_spine.frontier import RUNTIME_SCHEDULE
 from tools.cell_spine.terms import actions, walk
 
 RUNNER = ROOT/'target/release/examples/native_math_baseline'
@@ -44,7 +45,7 @@ def prepare(data, library, copies, folder):
     # above is excluded from every runtime; the existing typed AST is the input.
     tick = time.perf_counter()
     compact, export = cellify(dict(signatures=data['signatures'],actions=[{'action':a} for a in initial],checks=[]),library)
-    run = '(run-schedule (saturate Spine-Run))\n'
+    run = RUNTIME_SCHEDULE+'\n'
     body = compact.removeprefix(library)
     assert body.endswith(run)
     (folder/'spine-input.egg').write_text(body.removesuffix(run))

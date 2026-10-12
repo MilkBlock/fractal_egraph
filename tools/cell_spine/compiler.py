@@ -17,7 +17,7 @@ import sys
 
 from .terms import actions, expressions, text, walk
 from .planner import solve
-from . import takeover
+from . import takeover, frontier
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -479,12 +479,39 @@ def make_library(candidates, plan, edges, environment, signatures, work):
     lenses, blocked, supports, definitions = takeover_lenses(candidates,chosen)
     parsed = {r['name']:r for r in json.loads((work/'implementations.json').read_text())['rules']}
     lowered, retire, redundant = takeover.lower([(t,parsed[t['id']]) for t in transitions],lenses,supports,definitions)
+    path=work/'lowered-consumers.egg';path.write_text('\n'.join([r['rule'] for r in lowered]+retire))
+    consumers=ast(path,work/'lowered-consumers.json')['rules']
+    allowed=frontier.consumer_operators(consumers,signatures) | frontier.rhs_operators(consumers,signatures)
+    allowed.update(e['head'][6:] for lens in lenses for arg in lens['args'] for e in walk(arg)
+                   if e.get('head','').startswith('Spine-') and e['head'][6:] in signatures)
+    # Interface witnesses may read another constructor type. Close this finite
+    # set of demanded types before publishing any rows; no depth/size heuristic.
+    while True:
+        published=[p for c in chosen.values() for p in (frontier.rule(c,allowed,resolve,parse_param,summary) or [])]
+        required=allowed | {op for p in published for op in p['witness_ops']}
+        if required == allowed: break
+        allowed=required
+    # Frontier consumers use the same inherited-ownership lowering as ordinary
+    # transitions, so retirement cannot hide a promised interface publication.
+    if published:
+        path=work/'frontier.egg';path.write_text('\n'.join(p['rule'] for p in published))
+        parsed.update({r['name']:r for r in ast(path,work/'frontier.json')['rules']})
+    exposed = frontier.inherit(published,parsed,lenses)
     # The costed plans stay in the report. Only lowered consumers are emitted;
     # inherited consumers never recreate a small Summary view.
-    out += [r['rule'] for r in lowered] + retire
+    runtime_consumers=[r['rule'] for r in lowered] + [r['rule'] for r in exposed] + retire
+    path=work/'frontier-consumers.egg';path.write_text('\n'.join(runtime_consumers))
+    consumer_ast=ast(path,work/'frontier-consumers.json')
+    interface_ops=allowed | frontier.consumer_operators(consumer_ast['rules'],signatures) | frontier.rhs_operators(consumer_ast['rules'],signatures)
+    out += frontier.definitions(interface_ops,signatures)
+    runtime_rules={r['name']:frontier.rewrite_body(r,interface_ops) for r in consumer_ast['rules']}
+    out += [line for group in runtime_rules.values() for line in group]
+    out.append('; Runtime protocol: '+frontier.RUNTIME_SCHEDULE)
     out += [closure_export(c) for c in chosen.values()]
     retirement = dict(lenses=lenses, cyclic_lenses_retained=blocked, consumers=lowered, retirement_rules=retire, redundant_inherited_rules_removed=redundant,
-                      costed_transitions=transitions, scope='post-selection certified ancestor lowering; inheritance costs are not included in the path ILP objective')
+                      frontier=published, frontier_consumers=exposed,
+                      runtime_rules=runtime_rules,
+                      costed_transitions=transitions, scope='post-selection certified ancestor/interface lowering; inheritance and frontier support costs are not included in the path ILP objective')
     return '\n'.join(out)+'\n', chosen, lowered, retirement
 
 
@@ -527,7 +554,7 @@ def cellify(data, library):
     acts = [a['action'] for a in data['actions']]
     lines = [library, '; Automatic constructor-level ingress; no scan of a materialized original graph.']
     lines += actions(acts, True, sig)
-    lines += ['(run-schedule (saturate Spine-Run))']
+    lines += [frontier.RUNTIME_SCHEDULE]
     runtime = '\n'.join(lines)+'\n'
     types = {}
     def sort(e):
@@ -616,7 +643,7 @@ def main():
         src=Path(c['source_folder'])/'entry.egg'
         seed=(work/f'path-{c["id"]}.json')
         ds=json.loads(seed.read_text())
-        compact='\n'.join(actions([x['action'] for x in ds['actions']],True,sig))+'\n(run-schedule (saturate Spine-Run))\n'
+        compact='\n'.join(actions([x['action'] for x in ds['actions']],True,sig))+'\n'+frontier.RUNTIME_SCHEDULE+'\n'
         ruleset=c['rulesets'][0] if c['rulesets'] else ''
         finish='(run-schedule (saturate Spine-Export))\n'
         cases.append(dict(name=f'path-{c["id"]}',reference_path=str(src),reference=f'\n(run-schedule (saturate (run {ruleset})))',compressed=compact,restore=finish,
@@ -625,6 +652,7 @@ def main():
     manifest=dict(constructors=sorted(sig),cases=cases,library=lib)
     (work/'validation.json').write_text(json.dumps(manifest))
     run([ROOT/'target/release/examples/spine_validate',work/'validation.json',a.output/'validation.json'])
+    measured=next(c for c in json.loads((a.output/'validation.json').read_text())['cases'] if c['case']=='source')
     # Publish executable output only after every native differential check.
     (a.output/'transitions.json').write_text(json.dumps(edges,indent=2)+'\n')
     (a.output/'library.egg').write_text(lib)
@@ -632,7 +660,9 @@ def main():
     (a.output/'restore.egg').write_text(runtime+restore)
     report.update(status='compiled',cellified=True,representation='cell_spine',analysis=str(analysis),plan=plan,rejected=rejected,
                   library_bytes=len(lib.encode()), runtime_bytes=len(runtime.encode()),
-                  transitions=transitions,retirement=retirement,
+                  source_storage={k:measured[k] for k in ('spine_constructor_rows','native_total_rows_before_export','native_tables_before_export','original_native_total_rows')},
+                  storage_scope='Native table rows, including auxiliary relations and subsumed rows; not bytes or RSS. Cellification does not imply compression.',
+                  transitions=transitions,retirement=retirement,runtime_schedule=frontier.RUNTIME_SCHEDULE,
                   paths=[dict(id=c['id'],family=c['family'],nodes=c['nodes'],lhs_atoms=c['lhs_atoms'],source_folder=c['source_folder']) for c in cs],
                   guarantees='exact finite constructor closure at explicit export from cached snapshots; original rules do not run on compressed path',
                   boundary='baked path whitelist only; no general hidden-fact matcher or automatic dynamic rebake')

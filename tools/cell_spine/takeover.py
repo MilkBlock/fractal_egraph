@@ -37,6 +37,14 @@ def remap_fact(f, bindings):
             else dict(kind='fact',expr=replace(f['expr'],bindings)))
 
 
+def remap_action(a, bindings):
+    if a['kind'] in ('expr','let'):
+        result=dict(a,expr=replace(a['expr'],bindings))
+        if a['kind']=='let': result['name']=bindings.get(a['name'],var(a['name']))['name']
+        return result
+    return dict(a,args=[replace(e,bindings) for e in a['args']])
+
+
 def normalize(body, head):
     """Unify variable equalities; do not erase constructor-existence checks."""
     links = {}
@@ -52,19 +60,17 @@ def normalize(body, head):
     subst = {name:var(find(name)) for name in links}
     body = [remap_fact(f, subst) for f in body]
     body = [f for f in body if not (f['kind']=='eq' and f['args'][0]==f['args'][1] and f['args'][0]['kind']=='var')]
-    head = [dict(a, expr=replace(a['expr'],subst)) if a['kind']=='expr'
-            else dict(a, args=[replace(e,subst) for e in a['args']]) for a in head]
+    head = [remap_action(a,subst) for a in head]
     # Alpha-equivalent inherited rules share one declaration. Preserve readable
     # names in the emitted rule; use canonical names only as the dedup key.
     names = {}
     roots = [e for f in body for e in (f['args'] if f['kind']=='eq' else [f['expr']])]
-    roots += [e for a in head for e in ([a['expr']] if a['kind']=='expr' else a['args'])]
+    roots += [e for a in head for e in ([var(a['name']),a['expr']] if a['kind']=='let' else [a['expr']] if a['kind']=='expr' else a['args'])]
     for root in roots:
         for e in walk(root):
             if e['kind']=='var': names.setdefault(e['name'],var(f'v{len(names)}'))
     alpha_body = list(dict.fromkeys(fact_text(remap_fact(f,names)) for f in body))
-    alpha_head = [dict(a,expr=replace(a['expr'],names)) if a['kind']=='expr'
-                  else dict(a,args=[replace(e,names) for e in a['args']]) for a in head]
+    alpha_head = [remap_action(a,names) for a in head]
     key = tuple(alpha_body),tuple(dict.fromkeys(actions(alpha_head)))
     return list(dict.fromkeys(map(fact_text,body))), list(dict.fromkeys(actions(head))), key
 

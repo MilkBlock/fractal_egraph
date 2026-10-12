@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """Diagnose general Cell library reuse; no AC compiler or snapshot fallback."""
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import subprocess
 import sys
 
 ROOT=Path(__file__).resolve().parents[3]
+sys.path.insert(0,str(ROOT))
+from tools.cell_spine.frontier import RUNTIME_SCHEDULE
 HEADER='''(datatype Term (Leaf String) (Plus Term Term))
 (ruleset algebra)
 (rewrite (Plus a b) (Plus b a) :ruleset algebra)
@@ -38,8 +41,10 @@ def main():
         for left in [True,False]:
             label=f'{n}-'+('left' if left else 'right')
             case=dict(name=label,reference=HEADER+tree(n,left)+'\n(run-schedule (saturate algebra))',
-                      compressed=tree(n,left,'Spine-')+'\n(run-schedule (saturate Spine-Run))',
+                      compressed=tree(n,left,'Spine-')+'\n'+RUNTIME_SCHEDULE,
                       restore='(run-schedule (saturate Spine-Export))')
+            (out/f'{label}-runtime.egg').write_text(lib+case['compressed']+'\n')
+            (out/f'{label}-restore.egg').write_text(lib+case['compressed']+'\n'+case['restore']+'\n')
             manifest=dict(constructors=['Leaf','Plus'],library=lib,dump_states=True,cases=[case])
             path=out/f'{label}.json';path.write_text(json.dumps(manifest))
             r=subprocess.run([ROOT/'target/release/examples/spine_validate',path,out/f'{label}-result.json'],cwd=ROOT,capture_output=True,text=True)
@@ -53,9 +58,16 @@ def main():
                 c=d['cases'][0]
                 result=dict(case=label,status='equivalent',original_rows=c['original_constructor_rows'],
                             restored_rows=c['restored_constructor_rows'],spine_rows=c['spine_constructor_rows'],
-                            active_summaries=c['active_summary_tables'])
+                            original_eclasses=c['original_constructor_eclasses'],restored_eclasses=c['restored_constructor_eclasses'],
+                            active_summaries=c['active_summary_tables'],
+                            native_total_rows_before_export=c['native_total_rows_before_export'],
+                            native_tables_before_export=c['native_tables_before_export'],
+                            original_native_total_rows=c['original_native_total_rows'],
+                            original_rules_executed=c['original_rules_executed'])
             results.append(result)
-    report=dict(native_runtime=True,scope='one frozen three-leaf library on six new input trees; negative cases are limitations, not successful compiles',cases=results)
+    report=dict(native_runtime=True,scope='one frozen three-leaf library on six new input trees; whole-state equality, not a speed/RSS benchmark',
+                library_bytes=len(lib.encode()),library_sha256=hashlib.sha256(lib.encode()).hexdigest(),
+                storage_scope='All native rows before export, including Read interfaces, Wanted tombstones and Summary bindings; rows have different widths. This is not RSS.',cases=results)
     (out/'report.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps(report,indent=2))
 

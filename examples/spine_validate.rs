@@ -138,7 +138,10 @@ fn execute_spine(eg: &mut EGraph, source: &str) -> Result {
     use egglog::ast::{Command, GenericSchedule as S};
     fn admitted(s: &egglog::ast::Schedule) -> bool {
         match s {
-            S::Run(_, cfg) => matches!(cfg.ruleset.as_str(), "Spine-Run" | "Spine-Export"),
+            S::Run(_, cfg) => matches!(
+                cfg.ruleset.as_str(),
+                "Spine-Run" | "Spine-Reuse" | "Spine-Create" | "Spine-Export"
+            ),
             S::Repeat(_, _, s) | S::Saturate(_, s) => admitted(s),
             S::Sequence(_, items) => items.iter().all(admitted),
         }
@@ -216,6 +219,14 @@ fn main() -> Result {
         // to compressed inference. These are logical matches, not mutations.
         let compressed_matches = matches(&compressed);
         let native_rows_before_export = compressed.num_tuples();
+        // Count support relations and tombstones too. A small constructor
+        // spine alone is not evidence of total storage compression.
+        let native_tables_before_export: BTreeMap<_, _> = compressed
+            .get_function_names()
+            .iter()
+            .map(|n| (n.to_string(), count(&compressed, n)))
+            .filter(|(_, n)| *n > 0)
+            .collect();
         execute_spine(&mut compressed, &c.restore)?;
         let actual = snapshot(&compressed, &manifest.constructors)?;
         let comparison = state::compare(&expected, &actual)?;
@@ -242,6 +253,7 @@ fn main() -> Result {
             "active_summary_rows":active_summary_rows,"subsumed_summary_rows":summary_rows-active_summary_rows,
             "active_summary_tables":active_summary_tables,
             "native_total_rows_before_export":native_rows_before_export,"original_native_total_rows":original.num_tuples(),
+            "native_tables_before_export":native_tables_before_export,
             "original_constructor_rows":expected.rows.len(),"restored_constructor_rows":actual.rows.len(),
             "original_constructor_eclasses":classes(&expected),"spine_constructor_eclasses":classes(&spine),
             "restored_constructor_eclasses":classes(&actual),

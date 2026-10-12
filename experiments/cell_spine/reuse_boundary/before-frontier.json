@@ -1,0 +1,72 @@
+{
+  "native_runtime": true,
+  "scope": "one frozen three-leaf library on six new input trees; negative cases are limitations, not successful compiles",
+  "cases": [
+    {
+      "case": "3-left",
+      "status": "equivalent",
+      "original_rows": 15,
+      "restored_rows": 15,
+      "spine_rows": 6,
+      "active_summaries": {
+        "Spine-Summary-0": 1,
+        "Spine-Summary-1": 2
+      }
+    },
+    {
+      "case": "3-right",
+      "status": "rejected_incomplete_reuse",
+      "original_rows": 15,
+      "restored_rows": 7,
+      "spine_rows": 5,
+      "active_summaries": {
+        "Spine-Summary-0": 2,
+        "Spine-Summary-1": 0
+      }
+    },
+    {
+      "case": "4-left",
+      "status": "rejected_incomplete_reuse",
+      "original_rows": 54,
+      "restored_rows": 26,
+      "spine_rows": 9,
+      "active_summaries": {
+        "Spine-Summary-0": 1,
+        "Spine-Summary-1": 4
+      }
+    },
+    {
+      "case": "4-right",
+      "status": "rejected_incomplete_reuse",
+      "original_rows": 54,
+      "restored_rows": 10,
+      "spine_rows": 7,
+      "active_summaries": {
+        "Spine-Summary-0": 3,
+        "Spine-Summary-1": 0
+      }
+    },
+    {
+      "case": "7-left",
+      "status": "rejected_incomplete_reuse",
+      "original_rows": 1939,
+      "restored_rows": 59,
+      "spine_rows": 18,
+      "active_summaries": {
+        "Spine-Summary-0": 1,
+        "Spine-Summary-1": 10
+      }
+    },
+    {
+      "case": "7-right",
+      "status": "rejected_incomplete_reuse",
+      "original_rows": 1939,
+      "restored_rows": 19,
+      "spine_rows": 13,
+      "active_summaries": {
+        "Spine-Summary-0": 6,
+        "Spine-Summary-1": 0
+      }
+    }
+  ]
+}

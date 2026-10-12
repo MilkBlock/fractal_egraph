@@ -183,7 +183,9 @@ and explicit equalities/unions from the actual generated rules. Lookup/write
 counts are structural proxies, not measured Join cardinalities or timings.
 Template sharing refers to code shapes, not automatic identity of runtime
 instances. Reusing parent root variables avoids rebuilding those trees in RHS.
-Each observed path contributes once to transition costs; duplicate emitted
+Interface publication and its reuse/creation support are added after selection
+and are not included in this objective; an optimal solver result is not a
+claim of optimal final runtime storage. Each observed path contributes once to transition costs; duplicate emitted
 rules can share one declaration. Workload frequencies are not extrapolated.
 
 Weights default to 1 and are explicit CLI arguments. There is no candidate
@@ -235,7 +237,7 @@ body. There is no intermediate relation that reactivates the small Summary.
 A composition's RHS now publishes its canonical result and subsumes the directly
 matched, certified parent Summary rows. It does not subsume a larger owner merely
 because that owner supplied a smaller view. Additional retirement rules handle a
-small Summary arriving after its covering owner. Under normal `saturate Spine-Run`,
+small Summary arriving after its covering owner. Under the generated phased runtime schedule,
 all such covered rows are inactive at the fixed point. Rules may still match in
 the same execution batch before retirement commits; there is no claim of zero
 redundant matches or ordering between rules within a batch.
@@ -405,3 +407,54 @@ this limitation. Default Bake fails rather than returning a snapshot as success.
 ```sh
 out/cell-spine-venv/bin/python -m unittest tools.cell_spine.test_contract -v
 ```
+
+
+## Internal closure values as future boundary bindings
+
+`frontier.py` supplies typed `Spine-Read-<constructor>(arguments..., result)`
+interfaces. Their facts come from native constructors or from certified finite
+Cell closure rows. A consumer can use an internal closure result as its next
+RipenInput even if the corresponding alternate constructor is not physically
+present in the spine. This repairs the frozen three-leaf library's missing
+right-associated and larger-tree results; it is not an AC-specific lowering.
+
+Only constructor types required by compiled consumers, RHS requests, inherited
+projections and their value witnesses receive interfaces. A finite fixed point
+on these types closes witness dependencies. For each required internal value,
+the compiler chooses an anchored constructor witness; it does not allocate an
+unrelated token for each Cell instance. `Spine-Read` congruence unions outputs
+with the same constructor and canonical arguments, preserving identity across
+overlapping Cells and after input unions.
+
+The emitted schedule is essential:
+
+```egg
+(run-schedule
+  (saturate
+    (seq (saturate (run Spine-Run))
+         (saturate (run Spine-Reuse))
+         (run Spine-Create))))
+```
+
+`Spine-Run` derives summaries, interfaces and constructor-value requests.
+`Spine-Reuse` subsumes requests already answered by interfaces. Only unresolved
+requests reach `Spine-Create`; their newly built witnesses trigger another
+round. These phases must not be collapsed into one ruleset: native batch
+execution could otherwise build a value before its existing interface is read.
+Retirement consumers and publication are both inherited through certified
+larger owners. Original user rules still never run on forked spine sorts.
+
+**This repairs reachability, not net storage compression.** On the frozen
+three-leaf library, both seven-leaf shapes restore exactly 1,939 constructors /
+127 classes. They have 251 physical spine constructors, but **16,246 total
+native rows** before export, including 1,932 Read rows, 1,925 Wanted rows
+(including subsumed requests) and 12,138 Summary rows. Flat Read interfaces and
+all binding-specific Summaries are still too large on this dense example.
+The 53-line library is 8,479 bytes; short code is not small runtime memory.
+See `experiments/cell_spine/reuse_boundary/` for before/after evidence.
+
+`report.json.source_storage` and `validation.json.native_tables_before_export`
+include support tables; never report constructor reduction as RSS compression.
+These are native-runtime correctness measurements, not pristine benchmarks.
+Finite `(run ... 7)` is still not silently converted into saturation, and no
+unsupported Cell compile falls back to a concrete snapshot archive.

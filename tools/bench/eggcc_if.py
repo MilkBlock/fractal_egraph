@@ -17,6 +17,7 @@ from math_virtual import ROOT, measure
 from math_graph_equal import verify
 sys.path.insert(0,str(ROOT))
 from tools.cell_spine.compiler import commands, cellify
+from tools.cell_spine.frontier import RUNTIME_SCHEDULE
 from tools.cell_spine.terms import actions, text, walk
 
 SOURCE=ROOT/'experiments/cell_spine/eggcc_if_tiny/source.egg'
@@ -149,7 +150,7 @@ def main():
             (folder/'native-env.egg').write_text(environment);(folder/'native-input.egg').write_text('\n'.join(actions(initial))+'\n')
             tick=time.perf_counter()
             compact,export=cellify(dict(signatures=data['signatures'],actions=[{'action':x} for x in initial],checks=[]),library)
-            run='(run-schedule (saturate Spine-Run))\n';body=compact.removeprefix(library);assert body.endswith(run)
+            run=RUNTIME_SCHEDULE+'\n';body=compact.removeprefix(library);assert body.endswith(run)
             (folder/'spine-input.egg').write_text(body.removesuffix(run));lowering=time.perf_counter()-tick
             manifests=dict(native=dict(environment=str(folder/'native-env.egg'),input=str(folder/'native-input.egg'),run='(run-schedule (saturate if-tiny))'),spine=dict(environment=str(train/'library.egg'),input=str(folder/'spine-input.egg'),run=run))
             manifests['spine_export']=dict(manifests['spine'],export=export)
