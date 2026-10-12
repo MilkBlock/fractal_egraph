@@ -9,5 +9,6 @@ def marker_pattern(output, family, bindings=None):
     fields.update(bindings or {})
     args=[text(term,params=fields) for term in layout['terms']]
     if layout.get('read_storage','canonical')=='canonical':
-        args=[arg.replace('(Spine-', '(Spine-Cano-') for arg in args]
-    return f'(Spine-Summary-{family} '+ ' '.join(args)+')'
+        import re
+        args=[re.sub(r'\(([^\s()]+)!(?=\s|\))',r'(\1!!',arg) for arg in args]
+    return f'(Summary-{family}! '+ ' '.join(args)+')'

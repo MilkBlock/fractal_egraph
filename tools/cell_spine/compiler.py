@@ -17,7 +17,7 @@ import sys
 
 from .terms import actions, expressions, text, walk
 from .planner import solve
-from . import takeover, markers
+from . import takeover, markers, names
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -113,24 +113,24 @@ def load_candidates(analysis, work):
 
 def fork_definitions(signatures):
     sorts = sorted({s['output'] for s in signatures.values()})
-    out = ['(ruleset Spine-Run)', '(ruleset Spine-Export)']
-    out += [f'(sort Spine-{s})' for s in sorts]
+    out = ['(ruleset Run!)', '(ruleset Export!)']
+    out += [f'(sort {s}!)' for s in sorts]
     for op, sig in signatures.items():
-        inputs = ' '.join('Spine-' + t if t in sorts else t for t in sig['input'])
-        out.append(f'(constructor Spine-{op} ({inputs}) Spine-{sig["output"]})')
+        inputs = ' '.join(names.raw(t) if t in sorts else t for t in sig['input'])
+        out.append(f'(constructor {op}! ({inputs}) {sig["output"]}!)')
     for s in sorts:
-        out.append(f'(function Spine-Reified-{s} (Spine-{s}) {s} :merge old)')
+        out.append(f'(function Reified-{s}! ({s}!) {s} :merge old)')
     for op, sig in signatures.items():
         xs = [f'x{i}' for i in range(len(sig['input']))]
         ys = [f'y{i}' if t in sorts else x for i,(t,x) in enumerate(zip(sig['input'],xs))]
-        body = [f'(= s (Spine-{op} {" ".join(xs)}))']
-        body += [f'(= {y} (Spine-Reified-{t} {x}))' for t,x,y in zip(sig['input'],xs,ys) if t in sorts]
+        body = [f'(= s ({op}! {" ".join(xs)}))']
+        body += [f'(= {y} (Reified-{t}! {x}))' for t,x,y in zip(sig['input'],xs,ys) if t in sorts]
         original = f'({op} {" ".join(ys)})'
-        reified = f'(Spine-Reified-{sig["output"]} s)'
-        out.append(f'(rule ({" ".join(body)}) ((set {reified} {original})) :ruleset Spine-Export)')
+        reified = f'(Reified-{sig["output"]}! s)'
+        out.append(f'(rule ({" ".join(body)}) ((set {reified} {original})) :ruleset Export!)')
         # Retaining old in the function is only a representative choice. Union
         # every alternate constructor denotation explicitly; none may be lost.
-        out.append(f'(rule ({" ".join(body)} (= previous {reified})) ((union previous {original})) :ruleset Spine-Export)')
+        out.append(f'(rule ({" ".join(body)} (= previous {reified})) ((union previous {original})) :ruleset Export!)')
     return out
 
 
@@ -161,7 +161,7 @@ def parse_param(c, raw):
 def summary(c, params, roots=None):
     args = list(roots) if roots is not None else [text(e, True, c['signatures'], params) for e in c['roots']]
     args += [params[raw] for raw in c['params']]
-    return f'(Spine-Summary-{c["family"]} {" ".join(args)})'
+    return f'(Summary-{c["family"]}! {" ".join(args)})'
 
 
 def parent_wirings(c, params, by_id):
@@ -231,7 +231,7 @@ def visible_projections(c, binding, roots):
         if row['op'] in c['markers'] or row['result'] not in known:
             continue
         if all(arg in known for arg in row['args']):
-            term = '('+' '.join(['Spine-'+row['op']]+[known[arg] for arg in row['args']])+')'
+            term = '('+' '.join([names.raw(row['op'])]+[known[arg] for arg in row['args']])+')'
             aliases[term] = known[row['result']]
     return aliases
 
@@ -326,14 +326,14 @@ def transition_options(candidates):
 
 
 def option_rule(opt):
-    return f'(rule ({" ".join(opt["body"])}) ({" ".join(opt["head"])}) :ruleset Spine-Run :name "{opt["id"]}")'
+    return f'(rule ({" ".join(opt["body"])}) ({" ".join(opt["head"])}) :ruleset Run! :name "{opt["id"]}")'
 
 
 def price_options(edges, work):
     """Batch native parsing counts nested lookups/writes, not just root atoms."""
     options = {o['id']: o for e in edges for o in e['options']}
     path = work/'implementations.egg'
-    path.write_text('(ruleset Spine-Run)\n' + '\n'.join(option_rule(o) for o in options.values()))
+    path.write_text('(ruleset Run!)\n' + '\n'.join(option_rule(o) for o in options.values()))
     data = ast(path, work/'implementations.json')
     for rule in data['rules']:
         opt = options[rule['name']]
@@ -362,7 +362,7 @@ def closure_export(c):
     for i,(raw,p) in enumerate(c['params'].items()):
         value=resolve(state,parse_param(c,raw))
         actual=f'export_input_{i}'
-        body.append(f'(= {actual} (Spine-Reified-{c["param_sorts"][raw]} {p}))')
+        body.append(f'(= {actual} (Reified-{c["param_sorts"][raw]}! {p}))')
         if value in values:
             head.append(f'(union {values[value]} {actual})')
         else:
@@ -391,8 +391,8 @@ def closure_export(c):
     for root,expr in zip(roots,c['roots']):
         v=values[resolve(state,expr)]
         sort=c['signatures'][expr['head']]['output']
-        head.append(f'(set (Spine-Reified-{sort} {root}) {v})')
-    return f'(rule ({" ".join(body)}) ({" ".join(head)}) :ruleset Spine-Export)'
+        head.append(f'(set (Reified-{sort}! {root}) {v})')
+    return f'(rule ({" ".join(body)}) ({" ".join(head)}) :ruleset Export!)'
 
 
 def summary_fields(c):
@@ -414,7 +414,7 @@ def canonical_subtree_lenses(chosen):
         fields={name:parse_param(owner,raw) for raw,name in owner['params'].items()}
         def native(e):
             if e['kind']=='var':return fields[e['name']]
-            if e['kind']=='call':return dict(e,head=e['head'][6:],args=[native(a) for a in e['args']])
+            if e['kind']=='call':return dict(e,head=e['head'].removesuffix('!'),args=[native(a) for a in e['args']])
             return e
         def match(pattern,value,binding):
             if pattern['kind']=='var':
@@ -468,7 +468,7 @@ def takeover_lenses(candidates, chosen):
         native_fields = dict(zip(fields,owner['roots']+[parse_param(owner,raw) for raw in owner['params']]))
         def native(e):
             if e['kind']=='var': return native_fields[e['name']]
-            if e['kind']=='call': return dict(e,head=e['head'].removeprefix('Spine-'),args=[native(a) for a in e['args']])
+            if e['kind']=='call': return dict(e,head=e['head'].removesuffix('!'),args=[native(a) for a in e['args']])
             return e
         def cls(e):
             try:
@@ -503,7 +503,7 @@ def takeover_lenses(candidates, chosen):
         classes = [resolve(c['snapshot'],e) for e in exprs]
         materialized = [takeover.fork(e,params) for root in expressions(c['acts']) for e in walk(root) if e['kind']=='call' and text(e) not in params]
         materialized += [e for a in supports[family][1] for e in expressions([a])]
-        definitions[f'Spine-Summary-{family}'] = dict(fields=fields,roots=roots,materialized=materialized,
+        definitions[f'Summary-{family}!'] = dict(fields=fields,roots=roots,materialized=materialized,
             aliases=[(i,j) for i in range(len(classes)) for j in range(i) if classes[i]==classes[j]])
     return lenses, blocked, supports, definitions
 
@@ -535,10 +535,10 @@ def make_library(candidates, plan, edges, environment, signatures, work, prepare
     prepared=prepared or prepare_runtime(candidates,plan,edges,work)
     chosen=prepared['chosen'];transitions=prepared['transitions'];consumers=prepared['consumers']
     selected_layouts={c['family']:next(l for l in c['marker_layouts'] if l['id'] in plan['marker_layouts']) for c in chosen.values()}
-    out=environment + fork_definitions(signatures) + markers.definitions(signatures,fork_definitions(signatures)) + ['(sort Spine-Cell)']
+    out=environment + fork_definitions(signatures) + markers.definitions(signatures,fork_definitions(signatures)) + ['(sort Cell!)']
     for family,c in chosen.items():
         types=markers.signature(selected_layouts[family],c)
-        out.append(f'(constructor Spine-Summary-{family} ({" ".join("Spine-"+s for s in types)}) Spine-Cell)')
+        out.append(f'(constructor Summary-{family}! ({" ".join(names.raw(s) for s in types)}) Cell!)')
     runtime_rules={r['name']:[markers.lower(r,selected_layouts,signatures)] for r in consumers}
     out += [line for group in runtime_rules.values() for line in group]
     emitted_path=work/'marker-runtime.egg'
@@ -549,15 +549,15 @@ def make_library(candidates, plan, edges, environment, signatures, work, prepare
                for e in walk(root) if e['kind']=='call'}
         writes={text(e):e['head'] for a in r['head'] for root in ([a['expr']] if a['kind'] in ('expr','let') else a['args'])
                 for e in walk(root) if e['kind']=='call'}
-        owners=sum(h.startswith('Spine-Summary-') for h in reads.values())
-        canonical_reads=sum(h.startswith('Spine-Cano-') for h in reads.values())
-        external_reads=sum(h.startswith('Spine-') and h[6:] in signatures for h in reads.values())
+        owners=sum(names.is_summary(h) for h in reads.values())
+        canonical_reads=sum(names.is_canonical(h) for h in reads.values())
+        external_reads=sum(names.is_raw(h,signatures) for h in reads.values())
         if canonical_reads and not owners:raise ValueError(f'{r["name"]}: canonical lookup without an active marker')
-        if any(h.startswith('Spine-') and h[6:] in signatures for h in writes.values()):
+        if any(names.is_raw(h,signatures) for h in writes.values()):
             raise ValueError(f'{r["name"]}: a runtime rule may not recreate raw ingress constructors')
         gate_audit.append(dict(rule=r['name'],kind='transition' if owners else 'ingress',marker_reads=owners,
                               canonical_lookups=canonical_reads,external_lookups=external_reads,
-                              canonical_writes=sum(h.startswith('Spine-Cano-') for h in writes.values())))
+                              canonical_writes=sum(names.is_canonical(h) for h in writes.values())))
     export_path=work/'marker-exports.egg';export_path.write_text('\n'.join(closure_export(c) for c in chosen.values()))
     exported=ast(export_path,work/'marker-exports.json')['rules']
     out += [markers.lower(r,selected_layouts,signatures,export=True) for r in exported]
@@ -591,8 +591,12 @@ def compatible_program(data):
     if any(e['kind']=='call' and e['head'] not in data['signatures']
            for root in expressions([a['action'] for a in data['actions']]) for e in walk(root)):
         return 'primitive computation in initial actions must retain native evaluation'
-    if any(name.startswith('Spine-') for name in data['signatures']):
-        return 'Spine- namespace already used by source'
+    if any(name.endswith('!') or name.startswith(('Spine-','Reified-')) or names.is_summary(names.raw(name))
+           for name in data['signatures']) or any(
+        d.get('name','').endswith('!') or d.get('name')=='Cell' for d in data['declarations']) or any(
+        r.endswith('!') for r in data['rule_rulesets']) or any(
+        a['action'].get('name','').endswith('!') for a in data['actions']):
+        return 'source name collides with the reserved Cell namespace (! suffix, Summary-N, Reified-, Cell or legacy Spine-)'
     first = min((a['command_ordinal'] for a in data['actions']), default=cut)
     if any(c['kind'] in ('declaration','rule') and c['ordinal']>first for c in data['commands']):
         return 'interleaved declarations/rules may capture earlier global bindings'
@@ -618,10 +622,10 @@ def cellify(data, library):
     eqsorts = {s['output'] for s in sig.values()}
     def reify(e):
         if e['kind']=='var' and types.get(e['name']) in eqsorts:
-            return f'(Spine-Reified-{types[e["name"]]} {e["name"]})'
+            return f'(Reified-{types[e["name"]]}! {e["name"]})'
         if e['kind']=='call': return '('+' '.join([e['head']]+[reify(a) for a in e['args']])+')'
         return text(e)
-    restore = ['(run-schedule (saturate Spine-Export))']
+    restore = ['(run-schedule (saturate Export!))']
     for check in data['checks']:
         facts=[]
         for f in check['facts']:
@@ -704,9 +708,9 @@ def main():
         ds=json.loads(seed.read_text())
         compact='\n'.join(actions([x['action'] for x in ds['actions']],True,sig))+'\n'+markers.RUNTIME_SCHEDULE+'\n'
         ruleset=c['rulesets'][0] if c['rulesets'] else ''
-        finish='(run-schedule (saturate Spine-Export))\n'
+        finish='(run-schedule (saturate Export!))\n'
         cases.append(dict(name=f'path-{c["id"]}',reference_path=str(src),reference=f'\n(run-schedule (saturate (run {ruleset})))',compressed=compact,restore=finish,
-                          expected_summary=f'Spine-Summary-{c["family"]}'))
+                          expected_summary=f'Summary-{c["family"]}!'))
     cases.append(dict(name='source',reference_path=str(a.source),reference='',compressed=runtime.removeprefix(lib),restore=restore))
     manifest=dict(constructors=sorted(sig),cases=cases,library=lib)
     (work/'validation.json').write_text(json.dumps(manifest))

@@ -17,11 +17,11 @@ HEADER='''(datatype Term (Leaf String) (Plus Term Term))
 '''
 
 
-def tree(n,left,prefix=''):
-    leaves=[f'({prefix}Leaf "{i}")' for i in range(n)]
+def tree(n,left,suffix=''):
+    leaves=[f'(Leaf{suffix} "{i}")' for i in range(n)]
     term=leaves[0] if left else leaves[-1]
     for leaf in leaves[1:] if left else reversed(leaves[:-1]):
-        term=f'({prefix}Plus {term} {leaf})' if left else f'({prefix}Plus {leaf} {term})'
+        term=f'(Plus{suffix} {term} {leaf})' if left else f'(Plus{suffix} {leaf} {term})'
     return term
 
 
@@ -41,8 +41,8 @@ def main():
         for left in [True,False]:
             label=f'{n}-'+('left' if left else 'right')
             case=dict(name=label,reference=HEADER+tree(n,left)+'\n(run-schedule (saturate algebra))',
-                      compressed=tree(n,left,'Spine-')+'\n'+RUNTIME_SCHEDULE,
-                      restore='(run-schedule (saturate Spine-Export))')
+                      compressed=tree(n,left,'!')+'\n'+RUNTIME_SCHEDULE,
+                      restore='(run-schedule (saturate Export!))')
             (out/f'{label}-runtime.egg').write_text(lib+case['compressed']+'\n')
             (out/f'{label}-restore.egg').write_text(lib+case['compressed']+'\n'+case['restore']+'\n')
             manifest=dict(constructors=['Leaf','Plus'],library=lib,dump_states=True,cases=[case])

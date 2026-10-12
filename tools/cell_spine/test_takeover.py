@@ -22,20 +22,20 @@ class Proofs(unittest.TestCase):
 
     def test_existing_summary_does_not_prove_hidden_row_materialized(self):
         root, x = var('root'),var('x')
-        s=call('Spine-Summary-0',[root,x]); a=call('Spine-A',[x])
+        s=call('Summary-0!',[root,x]); a=call('A!',[x])
         body=[dict(kind='fact',expr=s)]
-        head=[dict(kind='expr',expr=call('Spine-Hidden',[x])),dict(kind='expr',expr=s)]
-        definitions={'Spine-Summary-0':dict(fields=['root','x'],roots=[a],aliases=[],materialized=[a])}
+        head=[dict(kind='expr',expr=call('Hidden!',[x])),dict(kind='expr',expr=s)]
+        definitions={'Summary-0!':dict(fields=['root','x'],roots=[a],aliases=[],materialized=[a])}
         covered, implied = entailed(body,head,definitions,[])
         self.assertTrue(covered)
         self.assertEqual(implied,[False])
 
     def test_equal_constructor_results_do_not_imply_equal_arguments(self):
         root,a,b=map(var,('root','a','b'))
-        s=call('Spine-Summary-0',[root,a]); other=call('Spine-Summary-0',[root,b])
+        s=call('Summary-0!',[root,a]); other=call('Summary-0!',[root,b])
         body=[dict(kind='fact',expr=e) for e in (s,other)]
         head=[dict(kind='union',args=[a,b]),dict(kind='expr',expr=s)]
-        definitions={'Spine-Summary-0':dict(fields=['root','a'],roots=[call('Spine-A',[a])],aliases=[],materialized=[call('Spine-A',[a])])}
+        definitions={'Summary-0!':dict(fields=['root','a'],roots=[call('A!',[a])],aliases=[],materialized=[call('A!',[a])])}
         covered, implied=entailed(body,head,definitions,[])
         self.assertTrue(covered)
         self.assertEqual(implied,[False])
@@ -65,9 +65,9 @@ class NativeTakeover(unittest.TestCase):
 
     def verify(self, fixture, name, code, expected, remove_inherited=False, reference=None):
         out=self.outputs[fixture]
-        for family,pattern in [(0,'(Spine-Summary-0 r x)'),(0,'(Spine-Summary-0 r a)'),(3,'(Spine-Summary-3 a b x)')]:
+        for family,pattern in [(0,'(Summary-0! r x)'),(0,'(Summary-0! r a)'),(3,'(Summary-3! a b x)')]:
             if pattern in code:
-                bindings={'r0':'(Spine-A x)','p0':'x'} if pattern=='(Spine-Summary-0 r x)' else None
+                bindings={'r0':'(A! x)','p0':'x'} if pattern=='(Summary-0! r x)' else None
                 code=code.replace(pattern,marker_pattern(out,family,bindings))
         manifest=json.loads((out/'work/validation.json').read_text())
         if remove_inherited:
@@ -78,7 +78,7 @@ class NativeTakeover(unittest.TestCase):
                         self.assertIn(emitted,manifest['library'])
                         manifest['library']=manifest['library'].replace(emitted,'')
         c=dict(name=name,reference='',reference_path=str(ROOT/f'experiments/cell_spine/fixtures/{fixture}.egg'),
-            compressed=code,restore='(run-schedule (saturate Spine-Export))',expected_active_summaries=expected)
+            compressed=code,restore='(run-schedule (saturate Export!))',expected_active_summaries=expected)
         if reference is not None: c.update(reference=reference,reference_path=None)
         manifest['cases']=[c]
         path=self.folder/f'{name}.json';path.write_text(json.dumps(manifest))
@@ -86,28 +86,28 @@ class NativeTakeover(unittest.TestCase):
                               capture_output=True,text=True)
         if remove_inherited:
             self.assertNotEqual(result.returncode,0)
-            self.assertTrue('active Spine-Summary-' in result.stderr or 'full closure mismatch' in result.stderr,result.stderr)
+            self.assertTrue('active Summary-' in result.stderr or 'full closure mismatch' in result.stderr,result.stderr)
             return
         self.assertEqual(result.returncode,0,result.stderr)
         return json.loads((self.folder/f'{name}-result.json').read_text())['cases'][0]
 
     def late_code(self, alias=False):
-        q=f'(Spine-Q y)\n{RUNTIME_SCHEDULE}\n(fail (check (Spine-Summary-3 a b x)))\n(union x y)' if alias else '(Spine-Q x)'
+        q=f'(Q! y)\n{RUNTIME_SCHEDULE}\n(fail (check (Summary-3! a b x)))\n(union x y)' if alias else '(Q! x)'
         return f'''
-(let x (Spine-Leaf "x"))
-''' + ('(let y (Spine-Leaf "y"))\n' if alias else '') + f'''
-(Spine-A x) (Spine-P x)
+(let x (Leaf! "x"))
+''' + ('(let y (Leaf! "y"))\n' if alias else '') + f'''
+(A! x) (P! x)
 {RUNTIME_SCHEDULE}
 ; Install a real matcher AFTER retirement. check alone sees subsumed rows!
 (relation SawRetired ())
-(rule ((Spine-Summary-0 r x)) ((SawRetired)) :ruleset Spine-Run :name "probe-retired")
+(rule ((Summary-0! r x)) ((SawRetired)) :ruleset Run! :name "probe-retired")
 ''' + q + f'''
 {RUNTIME_SCHEDULE}
 (fail (check (SawRetired)))
 '''
 
     def test_late_q_uses_large_cell_and_does_not_revive_small(self):
-        expected={'Spine-Summary-0':0,'Spine-Summary-1':0,'Spine-Summary-2':1,'Spine-Summary-3':1}
+        expected={'Summary-0!':0,'Summary-1!':0,'Summary-2!':1,'Summary-3!':1}
         result=self.verify('late_takeover','late',self.late_code(),expected)
         self.assertGreater(result['subsumed_summary_rows'],0)
         self.assertGreater(sum(n for r,n in result['compressed_logical_matches_before_export'].items() if '_cover_' in r),0)
@@ -119,34 +119,34 @@ class NativeTakeover(unittest.TestCase):
         source=(ROOT/'experiments/cell_spine/fixtures/late_takeover.egg').read_text()
         source=source.replace('(Q (Leaf "x"))','(Q (Leaf "y"))\n(union (Leaf "x") (Leaf "y"))')
         self.verify('late_takeover','late-union',self.late_code(True),
-                    {'Spine-Summary-0':0,'Spine-Summary-3':1},reference=source)
+                    {'Summary-0!':0,'Summary-3!':1},reference=source)
 
     def test_uncovered_instance_of_same_family_remains_active(self):
-        code='(Spine-A (Spine-Leaf "z"))\n'+self.late_code()
+        code='(A! (Leaf! "z"))\n'+self.late_code()
         source=(ROOT/'experiments/cell_spine/fixtures/late_takeover.egg').read_text()
         source=source.replace('(run-schedule','(A (Leaf "z"))\n(run-schedule',1)
-        self.verify('late_takeover','uncovered-instance',code,{'Spine-Summary-0':1},reference=source)
+        self.verify('late_takeover','uncovered-instance',code,{'Summary-0!':1},reference=source)
 
     def test_two_retired_instances_can_still_join_on_late_gate(self):
         code=f'''
-(let x (Spine-Leaf "x")) (let y (Spine-Leaf "y"))
-(Spine-A x) (Spine-A y) (Spine-P x) (Spine-P y)
+(let x (Leaf! "x")) (let y (Leaf! "y"))
+(A! x) (A! y) (P! x) (P! y)
 {RUNTIME_SCHEDULE}
 (relation SawRetired ())
-(rule ((Spine-Summary-0 r a)) ((SawRetired)) :ruleset Spine-Run :name "probe-retired")
-(Spine-Gate x y)
+(rule ((Summary-0! r a)) ((SawRetired)) :ruleset Run! :name "probe-retired")
+(Gate! x y)
 {RUNTIME_SCHEDULE}
 (fail (check (SawRetired)))
 '''
-        r=self.verify('two_retired_parents','two-retired',code,{'Spine-Summary-0':0})
+        r=self.verify('two_retired_parents','two-retired',code,{'Summary-0!':0})
         self.assertGreater(sum(n for name,n in r['compressed_logical_matches_before_export'].items() if '_cover_' in name),0)
-        self.verify('two_retired_parents','two-disabled',code,{'Spine-Summary-0':0},remove_inherited=True)
+        self.verify('two_retired_parents','two-disabled',code,{'Summary-0!':0},remove_inherited=True)
 
     def test_grandparent_consumer_survives_two_retirements(self):
-        code=self.late_code().replace('(Spine-A x) (Spine-P x)', '(Spine-A x) (Spine-P x) (Spine-R x)')
-        result=self.verify('transitive_takeover','grandparent-late',code,{'Spine-Summary-0':0})
+        code=self.late_code().replace('(A! x) (P! x)', '(A! x) (P! x) (R! x)')
+        result=self.verify('transitive_takeover','grandparent-late',code,{'Summary-0!':0})
         self.assertEqual(result['active_summary_rows'],2)
-        self.verify('transitive_takeover','grandparent-disabled',code,{'Spine-Summary-0':0},remove_inherited=True)
+        self.verify('transitive_takeover','grandparent-disabled',code,{'Summary-0!':0},remove_inherited=True)
 
     def test_transitive_dominance_leaves_only_largest_summary_active(self):
         out=self.outputs['nested_parents']

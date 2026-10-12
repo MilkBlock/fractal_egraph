@@ -5,6 +5,7 @@ inductive invariant records which seed rows already exist in raw input storage.
 This is row congruence, not constructor injectivity or a closure-existence guess.
 """
 from . import takeover as t
+from . import names
 from .terms import text,walk
 
 
@@ -40,7 +41,7 @@ def seed(c):return [t.fork(e,{p:t.var(v) for p,v in c['params'].items()}) for e 
 
 def calls(roots):return {text(e):e for r in roots for e in walk(r) if e['kind']=='call'}
 
-def summary(e):return e.get('head','').startswith('Spine-Summary-')
+def summary(e):return names.is_summary(e.get('head',''))
 
 def raw_contracts(chosen,rules):
     """Greatest inductive row invariant, checked against ALL rule producers.
@@ -62,7 +63,7 @@ def raw_contracts(chosen,rules):
             for e in es:proof.add(e)
             if fact['kind']=='eq':proof.union(*es)
             if fact['kind']=='fact' and summary(es[0]):
-                e=es[0];f=int(e['head'].removeprefix('Spine-Summary-'))
+                e=es[0];f=names.family(e['head'])
                 fields=[f'r{i}' for i in range(len(roots[f]))]+list(chosen[f]['params'].values())
                 subst=dict(zip(fields,e['args']))
                 mapped={k:t.replace(v,subst) for k,v in terms[f].items()}
@@ -72,7 +73,7 @@ def raw_contracts(chosen,rules):
             else:external.extend(calls(es).values())
         mapped_targets=[]
         for e in targets:
-            f=int(e['head'].removeprefix('Spine-Summary-'))
+            f=names.family(e['head'])
             fields=[f'r{i}' for i in range(len(roots[f]))]+list(chosen[f]['params'].values())
             subst=dict(zip(fields,e['args']))
             mapped={k:t.replace(v,subst) for k,v in terms[f].items()}

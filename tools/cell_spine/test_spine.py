@@ -113,7 +113,7 @@ class NativePipeline(unittest.TestCase):
         output=self.outputs['assoc']
         manifest=json.loads((output/'work/validation.json').read_text())
         case=next(c for c in manifest['cases'] if c['name']=='path-0')
-        case['compressed']+='\n(union (Spine-RipenInput 0) (Spine-RipenInput 1))\n'
+        case['compressed']+='\n(union (RipenInput! 0) (RipenInput! 1))\n'
         manifest['cases']=[case]
         path=self.folder/'bad.json'; path.write_text(json.dumps(manifest))
         result=subprocess.run([ROOT/'target/release/examples/spine_validate',path,self.folder/'bad-report.json'],
@@ -148,12 +148,12 @@ class NativePipeline(unittest.TestCase):
 (Plus (Plus (Leaf "b") (Leaf "a")) (Leaf "c"))
 (run-schedule (saturate algebra))
 ''',compressed=lib+f'''
-(Spine-Plus (Spine-Leaf "a") (Spine-Leaf "b"))
+(Plus! (Leaf! "a") (Leaf! "b"))
 {RUNTIME_SCHEDULE}
 (check {marker_pattern(output,0)})
-(Spine-Plus (Spine-Plus (Spine-Leaf "b") (Spine-Leaf "a")) (Spine-Leaf "c"))
+(Plus! (Plus! (Leaf! "b") (Leaf! "a")) (Leaf! "c"))
 {RUNTIME_SCHEDULE}
-''',restore='(run-schedule (saturate Spine-Export))',expected_summary='Spine-Summary-1')
+''',restore='(run-schedule (saturate Export!))',expected_summary='Summary-1!')
         manifest=dict(constructors=['Leaf','Plus','RipenInput'],cases=[case])
         path=self.folder/'late.json';path.write_text(json.dumps(manifest))
         subprocess.run([ROOT/'target/release/examples/spine_validate',path,self.folder/'late-report.json'],check=True,stdout=subprocess.DEVNULL)
@@ -189,7 +189,7 @@ class NativePipeline(unittest.TestCase):
         path=self.folder/'visible-unions.json';path.write_text(json.dumps(manifest))
         subprocess.run([ROOT/'target/release/examples/spine_validate',path,self.folder/'visible-unions-report.json'],check=True,stdout=subprocess.DEVNULL)
 
-    def validate_extra(self, fixture, name, reference, compressed, restore='(run-schedule (saturate Spine-Export))'):
+    def validate_extra(self, fixture, name, reference, compressed, restore='(run-schedule (saturate Export!))'):
         output = self.outputs[fixture]
         base = json.loads((output/'work/validation.json').read_text())
         case = dict(name=name, reference=reference, compressed=compressed, restore=restore)
@@ -205,8 +205,8 @@ class NativePipeline(unittest.TestCase):
         self.assertEqual(report['status'], 'compiled')  # Not a concrete stage archive.
         target = next(t for t in report['transitions'] if len(t['parents']) == 2)
         self.assertEqual(len(target['body']), 2)
-        self.assertTrue(all(s.startswith('(Spine-Summary-') for s in target['body']))
-        self.assertEqual(sum(h.startswith('(Spine-Summary-') for h in target['head']), 1)
+        self.assertTrue(all(s.startswith('(Summary-') for s in target['body']))
+        self.assertEqual(sum(h.startswith('(Summary-') for h in target['head']), 1)
         self.assertEqual(sum(h.startswith('(subsume ') for h in target['head']), 2)
         self.assertEqual([t for t in report['transitions'] if t['target_family'] == target['target_family']], [target])
         self.assertEqual(len({p['unit'] for p in target['parents']}), 2)
@@ -225,16 +225,16 @@ class NativePipeline(unittest.TestCase):
         self.assertIn(first['target_family'], [p['family'] for p in last['parents']])
         self.assertTrue(all(len(t['body']) == 2 and sum(h.startswith('(subsume ') for h in t['head']) == 2 for t in transitions))
         compressed = f"""
-(let x (Spine-Leaf "x"))
-(Spine-A x) (Spine-B x)
+(let x (Leaf! "x"))
+(A! x) (B! x)
 {RUNTIME_SCHEDULE}
 (check {marker_pattern(out,first['target_family'])})
 (fail (check {marker_pattern(out,last['target_family'])}))
-(Spine-C x)
+(C! x)
 {RUNTIME_SCHEDULE}
 (check {marker_pattern(out,last['target_family'])})
-(fail (check (Spine-Joined x)))
-(fail (check (Spine-Final x)))
+(fail (check (Joined! x)))
+(fail (check (Final! x)))
 """
         reference = (ROOT/'experiments/cell_spine/fixtures/nested_parents.egg').read_text()
         self.validate_extra('nested_parents', 'nested-hyperedge', reference, compressed)
@@ -277,21 +277,21 @@ class NativePipeline(unittest.TestCase):
 (check (Joined x))
 """
         compressed = f"""
-(let x (Spine-Leaf "x")) (let y (Spine-Leaf "y"))
-(Spine-A x)
+(let x (Leaf! "x")) (let y (Leaf! "y"))
+(A! x)
 {RUNTIME_SCHEDULE}
 (check {marker_pattern(out,0)})
 (fail (check {marker_pattern(out,2)}))
-(Spine-B y)
+(B! y)
 {RUNTIME_SCHEDULE}
 (check {marker_pattern(out,1)})
 (fail (check {marker_pattern(out,2)}))
 (union x y)
 {RUNTIME_SCHEDULE}
 (check {marker_pattern(out,2)})
-(fail (check (Spine-AA x)))
-(fail (check (Spine-BB x)))
-(fail (check (Spine-Joined x)))
+(fail (check (AA! x)))
+(fail (check (BB! x)))
+(fail (check (Joined! x)))
 """
         self.validate_extra('dual_parents', 'union-enables-dual', reference, compressed)
 
@@ -304,25 +304,25 @@ class NativePipeline(unittest.TestCase):
         self.assertEqual(len({p['path'] for p in t['parents']}), 1)
         self.assertEqual(len({p['unit'] for p in t['parents']}), 2)
         self.assertNotEqual(t['parents'][0]['slots'], t['parents'][1]['slots'])
-        self.assertIn('(Spine-Gate p0 p2)', ' '.join(t['body']))
+        self.assertIn('(Gate! p0 p2)', ' '.join(t['body']))
         reference = (ROOT/'experiments/cell_spine/fixtures/shared_family_graft.egg').read_text()
         reference = reference.replace('(run-schedule', '(Gate (Leaf "c") (Leaf "a"))\n(run-schedule', 1)
         compressed = f"""
-(let a (Spine-Leaf "a")) (let b (Spine-Leaf "b")) (let c (Spine-Leaf "c"))
-(Spine-A a b)
+(let a (Leaf! "a")) (let b (Leaf! "b")) (let c (Leaf! "c"))
+(A! a b)
 {RUNTIME_SCHEDULE}
 (fail (check {marker_pattern(out,1)}))
-(Spine-A b c)
+(A! b c)
 {RUNTIME_SCHEDULE}
 (fail (check {marker_pattern(out,1)}))
-(Spine-Gate c a)
+(Gate! c a)
 {RUNTIME_SCHEDULE}
 (fail (check {marker_pattern(out,1)}))
-(Spine-Gate a c)
+(Gate! a c)
 {RUNTIME_SCHEDULE}
 (check {marker_pattern(out,1)})
-(fail (check (Spine-AA x y)))
-(fail (check (Spine-Joined x z)))
+(fail (check (AA! x y)))
+(fail (check (Joined! x z)))
 """
         self.validate_extra('shared_family_graft', 'same-family-graft', reference, compressed)
 

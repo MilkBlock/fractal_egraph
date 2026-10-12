@@ -67,5 +67,30 @@ class AblationEvidence(unittest.TestCase):
             self.assertIsNone(timed['verification'])
             self.assertAlmostEqual(timed['seconds'],sum(timed[k] for k in ('setup_seconds','input_seconds','run_seconds','export_seconds')))
 
+    def test_native_short_names_count_every_storage_category(self):
+        with tempfile.TemporaryDirectory(dir=ROOT/'out',prefix='bang-counts-') as tmp:
+            folder=Path(tmp)
+            (folder/'env.egg').write_text("""
+(datatype Term (Leaf String) (A Term))
+(datatype Term! (Leaf! String) (A! Term!) (A!! Term!))
+(sort Cell!)
+(constructor Summary-0! (Term!) Cell!)
+(constructor Summary-1! (Term!) Cell!)
+(ruleset Run!)
+(rule ((= a (A! x))) ((A!! x) (Summary-0! a)) :ruleset Run! :name "create")
+(rule ((Summary-0! a)) ((Summary-1! a) (subsume (Summary-0! a))) :ruleset Run! :name "retire")
+""")
+            (folder/'input.egg').write_text('(A! (Leaf! "x"))')
+            manifest=dict(environment=str(folder/'env.egg'),input=str(folder/'input.egg'),
+                run='(run-schedule (saturate Run!))',constructors=['Leaf','A'],counts=True)
+            path=folder/'counts.json';path.write_text(json.dumps(manifest))
+            result=subprocess.run([RUNNER,'bench-probes',path],cwd=ROOT,check=True,text=True,capture_output=True)
+            v=json.loads(result.stdout.splitlines()[-1])['verification']
+            self.assertEqual(v['raw_spine']['enodes'],2)
+            self.assertEqual(v['canonical_spine']['enodes'],1)
+            self.assertEqual(v['active_summaries'],1)
+            self.assertEqual(v['subsumed_summaries'],1)
+            self.assertEqual(v['native_total_rows_before_export'],5)
+
 
 if __name__=='__main__':unittest.main()

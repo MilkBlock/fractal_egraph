@@ -49,7 +49,7 @@ class ExactPricing(unittest.TestCase):
         self.assertNotEqual(rule_recipe(r),rule_recipe(dict(r,body=[fact,alias])))
 
     def test_cost_audit_rejects_missing_added_or_changed_emitted_rule(self):
-        r=dict(name='graft',body=[],head=[dict(kind='expr',expr=takeover.call('Spine-Cano-A',[]))])
+        r=dict(name='graft',body=[],head=[dict(kind='expr',expr=takeover.call('A!!',[]))])
         expected={'graft':cost(r)}
         audit([r],expected)
         for rules in ([],[r,r],[r,dict(r,name='extra')],[dict(r,head=[])]):
@@ -62,9 +62,9 @@ class ExactPricing(unittest.TestCase):
             c=dict(id=i,family=i,roots=[call(op,[var('x')])],params={'x':'p0'},acts=[])
             c['marker_layouts']=markers.layouts(c);chosen[i]=c
         sig={op:dict(input=['T'],output='T') for op in ('A','B')}
-        def rule(a,b):return dict(name='transition',ruleset='Spine-Run',
-            body=[dict(kind='fact',expr=call('Spine-Summary-0',[var(a),var(b)]))],
-            head=[dict(kind='expr',expr=call('Spine-Summary-1',[call('Spine-B',[var(b)]),var(b)]))])
+        def rule(a,b):return dict(name='transition',ruleset='Run!',
+            body=[dict(kind='fact',expr=call('Summary-0!',[var(a),var(b)]))],
+            head=[dict(kind='expr',expr=call('Summary-1!',[call('B!',[var(b)]),var(b)]))])
         with tempfile.TemporaryDirectory() as tmp:
             oracle=RuntimePricing(None,sig,Path(tmp),(1,1,1))
             oracle.profile(rule('root','x'),chosen);n=oracle.evaluations

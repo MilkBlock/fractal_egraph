@@ -15,7 +15,9 @@ import time
 ROOT=Path(__file__).resolve().parents[3]
 sys.path[:0]=[str(ROOT),str(ROOT/'tools/bench')]
 from math_virtual import measure
-from tools.cell_spine.compiler import digest
+from tools.cell_spine.compiler import digest,ast
+from tools.cell_spine.terms import actions
+from tools.cell_spine.markers import RUNTIME_SCHEDULE
 
 RUNNER=ROOT/'target/release/examples/native_math_baseline'
 
@@ -50,6 +52,12 @@ def main():
             dest=folder/mode;dest.mkdir()
             source=json.loads((base/'fresh-1000/joint_export.json').read_text())
             source.update(environment=str(path.resolve()),counts=True)
+            if mode=='selected':
+                data=json.loads((bake/'work/input.json').read_text())
+                initial=ast(base/'fresh-1000/native-input.egg',dest/'input.json')
+                ingress=dest/'input.egg'
+                ingress.write_text('\n'.join(actions([a['action'] for a in initial['actions']],True,data['signatures'])))
+                source.update(input=str(ingress.resolve()),run=RUNTIME_SCHEDULE,export='(run-schedule (saturate Export!))')
             (dest/'counts.json').write_text(json.dumps(source))
             counts=measure([RUNNER,'bench-probes',dest/'counts.json'],dest/'counts')['result']['verification']
             assert counts['check_mode']=='counts_only'

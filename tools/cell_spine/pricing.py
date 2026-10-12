@@ -7,7 +7,7 @@ those path choices. No layout-pair binary variables or candidate budgets.
 import json
 import math
 from collections import defaultdict
-from . import markers
+from . import markers,names
 from . import takeover
 from .terms import actions,text,walk
 
@@ -24,13 +24,13 @@ def cost(rule):
     guards=sum(f['kind']=='eq' and not any(e['kind']=='call' for r in f['args'] for e in walk(r)) for f in rule['body'])
     unions=sum(a['kind']=='union' for a in rule['head'])
     changes=sum(a['kind']=='change' for a in rule['head'])
-    marker_columns=sum(len(e['args']) for e in writes.values() if e['head'].startswith('Spine-Summary-'))
-    marker_keys=sum(len(a['args']) for a in rule['head'] if a['kind']=='change' and a['head'].startswith('Spine-Summary-'))
+    marker_columns=sum(len(e['args']) for e in writes.values() if names.is_summary(e['head']))
+    marker_keys=sum(len(a['args']) for a in rule['head'] if a['kind']=='change' and names.is_summary(a['head']))
     return dict(search_atoms=len(reads)+guards,update_actions=len(writes)+unions+changes+marker_columns+marker_keys,
-        canonical_reads=sum(e['head'].startswith('Spine-Cano-') for e in reads.values()),
-        external_reads=sum(e['head'].startswith('Spine-') and not e['head'].startswith(('Spine-Cano-','Spine-Summary-')) for e in reads.values()),
-        marker_reads=sum(e['head'].startswith('Spine-Summary-') for e in reads.values()),
-        canonical_writes=sum(e['head'].startswith('Spine-Cano-') for e in writes.values()),
+        canonical_reads=sum(names.is_canonical(e['head']) for e in reads.values()),
+        external_reads=sum(names.is_raw(e['head']) for e in reads.values()),
+        marker_reads=sum(names.is_summary(e['head']) for e in reads.values()),
+        canonical_writes=sum(names.is_canonical(e['head']) for e in writes.values()),
         marker_columns=marker_columns,marker_key_columns=marker_keys,unions=unions,changes=changes)
 
 
@@ -46,10 +46,10 @@ def audit(rules, expected):
 
 
 def families(rule):
-    names={e['head'] for f in rule['body'] for r in (f['args'] if f['kind']=='eq' else [f['expr']]) for e in walk(r) if e['kind']=='call'}
-    names.update(e['head'] for a in rule['head'] for r in roots(a) for e in walk(r) if e['kind']=='call')
-    names.update(a['head'] for a in rule['head'] if a['kind']=='change')
-    return sorted(int(n.removeprefix('Spine-Summary-')) for n in names if n.startswith('Spine-Summary-'))
+    heads={e['head'] for f in rule['body'] for r in (f['args'] if f['kind']=='eq' else [f['expr']]) for e in walk(r) if e['kind']=='call'}
+    heads.update(e['head'] for a in rule['head'] for r in roots(a) for e in walk(r) if e['kind']=='call')
+    heads.update(a['head'] for a in rule['head'] if a['kind']=='change')
+    return sorted(names.family(n) for n in heads if names.is_summary(n))
 
 
 def rule_recipe(rule):

@@ -1,3 +1,6 @@
+#[path = "cell_names.rs"]
+mod cell_names;
+
 use egglog::EGraph;
 // Phased mode uses the same native engine as the existing baseline command.
 // Expensive graph inspection is only enabled in separate verification processes.
@@ -122,7 +125,7 @@ pub fn run_diagnostic(
         let names = eg.get_function_names();
         let (mut active, mut hidden) = (0, 0);
         let mut summary_tables = std::collections::BTreeMap::new();
-        for name in names.iter().filter(|n| n.starts_with("Spine-Summary-")) {
+        for name in names.iter().filter(|n| cell_names::summary(n)) {
             let (mut live, mut retired) = (0, 0);
             eg.function_for_each(name, |r| if r.subsumed { retired += 1 } else { live += 1 })
                 .unwrap();
@@ -133,12 +136,12 @@ pub fn run_diagnostic(
         let raw: Vec<_> = config
             .constructors
             .iter()
-            .map(|n| format!("Spine-{n}"))
+            .flat_map(|n| cell_names::raw(n))
             .collect();
         let canonical: Vec<_> = config
             .constructors
             .iter()
-            .map(|n| format!("Spine-Cano-{n}"))
+            .flat_map(|n| cell_names::canonical(n))
             .collect();
         let all: Vec<_> = raw.iter().chain(&canonical).cloned().collect();
         let mut table_rows = std::collections::BTreeMap::new();

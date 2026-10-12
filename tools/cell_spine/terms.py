@@ -1,5 +1,6 @@
 """Manipulate native-parser ASTs. No handwritten egglog parser."""
 import json
+from . import names
 
 
 def text(e, fork=False, signatures=None, params=None):
@@ -18,7 +19,7 @@ def text(e, fork=False, signatures=None, params=None):
     if fork:
         if op not in signatures or signatures[op]['kind'] != 'constructor':
             raise ValueError(f'non-constructor expression {op}')
-        op = 'Spine-' + op
+        op = names.raw(op)
     return '(' + ' '.join([op] + [text(a, fork, signatures, params) for a in e['args']]) + ')'
 
 

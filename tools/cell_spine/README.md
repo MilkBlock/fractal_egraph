@@ -19,6 +19,20 @@ coarse paths. Its output filenames and status are distinct from Cell results.
 `--analysis-dir DIR` applies only to Cell compilation. `--skip-build` requires
 current native binaries. Output must be empty.
 
+## Generated names
+
+The compiler uses `Op!` for forked input constructors and `Op!!` for separately
+materialized canonical constructors; `Term` becomes `Term!`. The two tables stay
+separate so canonical construction cannot accidentally reactivate raw ingress.
+Markers are `Summary-N!`, the marker sort is `Cell!`, and the generated rulesets
+are `Run!` / `Export!`. Export mappings use `Reified-Term!`.
+
+Only AST identifiers change. Literal strings, user rule names, and the original
+rules remain untouched. The `!` suffix and helper names (`Summary-N`, `Reified-*`, `Cell` and
+legacy `Spine-*`) are reserved in source declarations for this backend. Fresh Bake outputs use the new names; archived `.egg` and report
+files are not rewritten. Native validation and table counters also recognize
+legacy `Spine-*` names, so old measurements remain inspectable.
+
 ## Explicit debug snapshot coverage
 
 Supported and tested: relations, custom functions (`set`, arbitrary native merge
@@ -109,12 +123,12 @@ marker placement. Actual stored marker columns are in `retirement.marker_layouts
 now produces this **actual rule**, rather than factoring just the first parent:
 
 ```egg
-(rule ((Spine-Summary-0 parent_0_root_0 p0)
-       (Spine-Summary-1 parent_1_root_0 p0))
-      ((Spine-Summary-2 parent_0_root_0 parent_1_root_0 p0)
-       (subsume (Spine-Summary-0 parent_0_root_0 p0))
-       (subsume (Spine-Summary-1 parent_1_root_0 p0)))
-      :ruleset Spine-Run :name "impl_2_0")
+(rule ((Summary-0! parent_0_root_0 p0)
+       (Summary-1! parent_1_root_0 p0))
+      ((Summary-2! parent_0_root_0 parent_1_root_0 p0)
+       (subsume (Summary-0! parent_0_root_0 p0))
+       (subsume (Summary-1! parent_1_root_0 p0)))
+      :ruleset Run! :name "impl_2_0")
 ```
 
 `fixtures/nested_parents.egg` additionally checks `A + B -> AB`, then
@@ -125,12 +139,12 @@ Both parent spines remain shared. Their common `p0` is the binding constraint;
 family identity alone cannot enable this transition. Neither `AA`, `BB` nor
 `Joined` is materialized as a forked internal node. The larger Cell's Summary
 refers to both existing roots; its cached closure is expanded only in
-`Spine-Export`.
+`Export!`.
 
 `fixtures/shared_family_graft.egg` demonstrates **two instances of one family**:
 
 ```egg
-SummaryA(root0, x, y) + SummaryA(root1, y, z) + Spine-Gate(x, z)
+SummaryA(root0, x, y) + SummaryA(root1, y, z) + Gate!(x, z)
     -> SummaryCombined(root0, root1, gate, x, y, z)
 ```
 
@@ -279,7 +293,7 @@ out/cell-spine-venv/bin/python -m tools.cell_spine.compiler \
 
 ## Retiring a parent Summary without losing its consumers
 
-Summaries are now constructors returning `Spine-Cell`, so egglog can subsume a
+Summaries are now constructors returning `Cell!`, so egglog can subsume a
 **specific Summary row**. The multi-node spine remains shared. No fresh instance
 counter, duplicated small-Summary view, engine patch, or union of different Cell
 closures is introduced.
@@ -473,12 +487,12 @@ out/cell-spine-venv/bin/python -m unittest tools.cell_spine.test_contract -v
 ## Active canonical markers
 
 `markers.py` is the runtime lowering. The old `frontier.py` was removed. There
-are no global `Spine-Read-*` or `Spine-Wanted-*` relations in generated programs.
+are no global `Read-*!` or `Wanted-*!` relations in generated programs.
 
-- `Spine-Op` is raw ingress. Original inputs and new external facts use it.
-- `Spine-Cano-Op` is the selected spine. Generated inference never writes raw
+- `Op!` is raw ingress. Original inputs and new external facts use it.
+- `Op!!` is the selected spine. Generated inference never writes raw
   ingress constructors, so normalizing a Cell cannot reopen arbitrary ingress.
-- `Spine-Summary-N` is the **active marker itself**. Its fields and attachment
+- `Summary-N!` is the **active marker itself**. Its fields and attachment
   point are selected by Gurobi. There is no second summary-record layer.
 
 A transition requires active parent markers. It reads canonical nodes only
@@ -493,10 +507,10 @@ node does not activate a Cell.
 For the ordinary `long_spine_graft.egg` fixture, the main graft has two LHS atoms:
 
 ```egg
-(rule ((Spine-Summary-0 root) (= next (Spine-Extend root extra)))
-      ((Spine-Summary-1 next root)
-       (subsume (Spine-Summary-0 root)))
-      :ruleset Spine-Run)
+(rule ((Summary-0! root) (= next (Extend! root extra)))
+      ((Summary-1! next root)
+       (subsume (Summary-0! root)))
+      :ruleset Run!)
 ```
 
 This selection borrows the existing raw chain and Extend row. There is no

@@ -6,14 +6,15 @@ active marker itself, not an extra provenance record.
 """
 from .terms import text, walk
 from . import takeover as t
+from . import names as naming
 
-RUNTIME_SCHEDULE='(run-schedule (saturate Spine-Run))'
+RUNTIME_SCHEDULE='(run-schedule (saturate Run!))'
 
 
 def canonical(e, signatures):
     if e['kind']!='call':return e
     head=e['head']
-    if head.startswith('Spine-') and head[6:] in signatures:head='Spine-Cano-'+head[6:]
+    if naming.is_raw(head,signatures):head=naming.canonical(head[:-1])
     return t.call(head,[canonical(a,signatures) for a in e['args']])
 
 
@@ -67,7 +68,7 @@ def layouts(c):
 def signature(layout,c):
     fields={f'r{i}':c['signatures'][e['head']]['output'] for i,e in enumerate(c['roots'])}
     fields.update({name:c['param_sorts'][raw] for raw,name in c['params'].items()})
-    def sort(e):return fields[e['name']] if e['kind']=='var' else c['signatures'][e['head'][6:]]['output']
+    def sort(e):return fields[e['name']] if e['kind']=='var' else c['signatures'][e['head'][:-1]]['output']
     return [sort(e) for e in layout['terms']]
 
 
@@ -113,7 +114,7 @@ def lower_ast(rule, selected, signatures, *, export=False):
             if text(expr) in certified:reused.add(text(expr))
             return known[text(expr)]
         if expr['kind']!='call':return expr
-        if expr['head'].startswith('Spine-') and expr['head'][6:] in signatures:
+        if naming.is_raw(expr['head'],signatures):
             args=[flatten(a) for a in expr['args']];row=t.call(expr['head'],args)
             if text(row) in known:return bind(expr,known[text(row)])
             v=fresh();body.append(dict(kind='eq',args=[v,row]))
@@ -121,7 +122,7 @@ def lower_ast(rule, selected, signatures, *, export=False):
             return bind(expr,v)
         return t.call(expr['head'],[flatten(a) for a in expr['args']])
     def layout_args(expr):
-        layout=selected[int(expr['head'].removeprefix('Spine-Summary-'))]
+        layout=selected[naming.family(expr['head'])]
         subst=dict(zip(layout['fields'],expr['args']))
         return layout,subst,[t.replace(term,subst) for term in layout['terms']]
     # Establish active ownership before resolving other atoms. Each decoded
@@ -129,7 +130,7 @@ def lower_ast(rule, selected, signatures, *, export=False):
     # relation is emitted, and a retired marker cannot supply these values.
     constraints=[];decoder_indices=set();owners=[];owner_interfaces=[]
     for fact in rule['body']:
-        if fact['kind']!='fact' or not fact['expr']['head'].startswith('Spine-Summary-'):continue
+        if fact['kind']!='fact' or not naming.is_summary(fact['expr']['head']):continue
         expr=fact['expr'];layout,original,_=layout_args(expr)
         # A compound caller binding is still one opaque slot value. Do not
         # accidentally unfold that value as a canonical subtree of this Cell.
@@ -171,7 +172,7 @@ def lower_ast(rule, selected, signatures, *, export=False):
     for left,right in constraints:
         body.append(dict(kind='eq',args=[left,flatten(right)]))
     for fact in rule['body']:
-        if fact['kind']=='fact' and fact['expr']['head'].startswith('Spine-Summary-'):continue
+        if fact['kind']=='fact' and naming.is_summary(fact['expr']['head']):continue
         if fact['kind']=='eq':body.append(dict(kind='eq',args=[flatten(x) for x in fact['args']]))
         else:body.append(dict(kind='fact',expr=flatten(fact['expr'])))
     def build(expr):
@@ -194,7 +195,7 @@ def lower_ast(rule, selected, signatures, *, export=False):
     for action in rule['head']:
         if export:
             head.append(action);continue
-        if action['kind']=='expr' and action['expr']['head'].startswith('Spine-Summary-'):
+        if action['kind']=='expr' and naming.is_summary(action['expr']['head']):
             expr=action['expr'];layout,subst,args=layout_args(expr)
             if layout.get('representation','canonical')=='canonical':
                 for i,root in enumerate(layout['roots']):
@@ -210,7 +211,7 @@ def lower_ast(rule, selected, signatures, *, export=False):
             borrow=layout.get('representation') in ('borrowed','boundary_borrowed')
             head.append(dict(kind='expr',expr=t.call(expr['head'],[(flatten(x) if borrow else value(x)) for x in args])))
         elif action['kind']=='expr':materialize(action['expr'])
-        elif action['kind']=='change' and action['head'].startswith('Spine-Summary-'):
+        elif action['kind']=='change' and naming.is_summary(action['head']):
             _,_,args=layout_args(t.call(action['head'],action['args']))
             head.append(dict(action,args=[value(x) for x in args]))
         elif action['kind']=='union':head.append(dict(action,args=[value(e) for e in action['args']]))
@@ -254,12 +255,12 @@ def definitions(signatures, fork_lines):
     eqsorts={s['output'] for s in signatures.values()}
     result=[]
     for op,sig in signatures.items():
-        inputs=' '.join('Spine-'+s if s in eqsorts else s for s in sig['input'])
-        result.append(f'(constructor Spine-Cano-{op} ({inputs}) Spine-{sig["output"]})')
+        inputs=' '.join(naming.raw(s) if s in eqsorts else s for s in sig['input'])
+        result.append(f'(constructor {naming.canonical(op)} ({inputs}) {naming.raw(sig["output"])})')
     # Reify both raw ingress facts and the chosen canonical constructors only
     # during explicit export. Original inference rules never run here.
     for line in fork_lines:
         if not line.startswith('(rule '):continue
-        for op in signatures:line=line.replace(f'(Spine-{op} ',f'(Spine-Cano-{op} ')
+        for op in signatures:line=line.replace(f'({naming.raw(op)} ',f'({naming.canonical(op)} ')
         result.append(line)
     return result

@@ -33,7 +33,7 @@ class ActiveMarkers(unittest.TestCase):
     def verify(self,fixture,name,reference,compressed):
         out=self.outputs[fixture];base=json.loads((out/'work/validation.json').read_text())
         manifest=dict(constructors=base['constructors'],library=base['library'],cases=[dict(name=name,
-            reference=reference,compressed=compressed,restore='(run-schedule (saturate Spine-Export))')])
+            reference=reference,compressed=compressed,restore='(run-schedule (saturate Export!))')])
         path=self.folder/(name+'.json');path.write_text(json.dumps(manifest))
         dest=self.folder/(name+'-result.json')
         r=subprocess.run([ROOT/'target/release/examples/spine_validate',path,dest],capture_output=True,text=True)
@@ -43,18 +43,18 @@ class ActiveMarkers(unittest.TestCase):
     def test_no_read_tables_and_one_active_canonical_cell(self):
         for out in self.outputs.values():
             lib=(out/'library.egg').read_text()
-            self.assertNotIn('Spine-Read-',lib)
-            self.assertNotIn('Spine-Wanted-',lib)
+            self.assertNotIn('Read-!',lib)
+            self.assertNotIn('Wanted-!',lib)
             for c in json.loads((out/'validation.json').read_text())['cases']:
                 self.assertEqual(c['comparison']['status'],'equivalent')
                 self.assertFalse(c['original_rules_executed'])
                 self.assertEqual(c['physical_original_rows_before_export'],0)
         c=json.loads((self.outputs['assoc']/'validation.json').read_text())['cases'][-1]
         self.assertEqual(c['original_constructor_rows'],15)
-        self.assertEqual(c['active_summary_tables'],{'Spine-Summary-0':0,'Spine-Summary-1':1})
+        self.assertEqual(c['active_summary_tables'],{'Summary-0!':0,'Summary-1!':1})
         self.assertEqual(sum(c['native_tables_before_export'].values()),c['native_total_rows_before_export'])
         # Both raw and Cano constructors belong in the reported physical count.
-        self.assertTrue(any(k.startswith('Spine-Cano-') for k in c['spine_tables']))
+        self.assertTrue(any(k.endswith('!!') for k in c['spine_tables']))
 
     def test_solver_prices_final_consumers_and_selects_reusable_subtree_anchor(self):
         for out in self.outputs.values():
@@ -124,7 +124,7 @@ class ActiveMarkers(unittest.TestCase):
 (run-schedule (saturate demo))
 (fail (check (B b))) (fail (check (Hit b)))
 '''
-        compact=code.replace('(Leaf','(Spine-Leaf').replace('(A ','(Spine-A ').replace('(B ','(Spine-B ').replace('(Gate ','(Spine-Gate ')
+        compact=code.replace('(Leaf','(Leaf!').replace('(A ','(A! ').replace('(B ','(B! ').replace('(Gate ','(Gate! ')
         compact=compact[:compact.index('(fail (check')].replace('(run-schedule (saturate demo))',RUNTIME_SCHEDULE)
         self.verify('root_alias','root-union',prefix+code,compact)
 
@@ -140,15 +140,15 @@ class ActiveMarkers(unittest.TestCase):
 (fail (check (Joined t b)))
 '''
         compact=code[:code.index('(fail (check')]
-        for op in ('Tail','Leaf','A','Gate'):compact=compact.replace('('+op+' ','(Spine-'+op+' ')
+        for op in ('Tail','Leaf','A','Gate'):compact=compact.replace('('+op+' ','('+op+'! ')
         compact=compact.replace('(run-schedule (saturate demo))',RUNTIME_SCHEDULE)
         c=self.verify('shared_tail','shared-tail',prefix+code,compact)
-        self.assertEqual(c['active_summary_tables'],{'Spine-Summary-0':1,'Spine-Summary-1':1})
+        self.assertEqual(c['active_summary_tables'],{'Summary-0!':1,'Summary-1!':1})
 
     def test_unmarked_canonical_node_is_not_an_ingress(self):
         out=self.outputs['shared_tail']
         source=(out/'library.egg').read_text()+'''
-(Spine-Cano-A (Spine-Cano-Tail (Spine-Leaf "t")) (Spine-Leaf "z"))
+(A!! (Tail!! (Leaf! "t")) (Leaf! "z"))
 '''+RUNTIME_SCHEDULE+'\n'
         for family in (0,1):source+=f'(fail (check {marker_pattern(out,family)}))\n'
         path=self.folder/'unmarked.egg';path.write_text(source)
@@ -159,17 +159,17 @@ class ActiveMarkers(unittest.TestCase):
         out=self.outputs['long_spine_graft'];report=json.loads((out/'report.json').read_text())
         transition=next(t for t in report['transitions'] if t['parents'] and not t['inherited'])
         rule=report['retirement']['runtime_rules'][transition['id']][0]
-        self.assertNotIn('Spine-Cano-Plus',rule)
-        self.assertIn('(Spine-Extend parent_0_root_0',rule)
-        self.assertIn('(subsume (Spine-Summary-',rule)
+        self.assertNotIn('Plus!!',rule)
+        self.assertIn('(Extend! parent_0_root_0',rule)
+        self.assertIn('(subsume (Summary-',rule)
         c=json.loads((out/'validation.json').read_text())['cases'][-1]
         self.assertEqual(c['original_constructor_rows'],18)
         self.assertEqual(c['restored_constructor_rows'],18)
-        self.assertEqual(c['active_summary_tables'],{'Spine-Summary-0':0,'Spine-Summary-1':1})
+        self.assertEqual(c['active_summary_tables'],{'Summary-0!':0,'Summary-1!':1})
         candidates,_=load_candidates(out/'analysis',out/'work')
         anchor_terms={text(l['anchor']) for c in candidates for l in layouts(c)}
         self.assertTrue(any(s.startswith('p') for s in anchor_terms))  # Input anchors are admitted; equivalent layouts may share one ABI.
-        self.assertTrue(any(s.startswith('(Spine-Plus p5 p6)') for s in anchor_terms))
+        self.assertTrue(any(s.startswith('(Plus! p5 p6)') for s in anchor_terms))
 
 
 if __name__=='__main__':unittest.main()

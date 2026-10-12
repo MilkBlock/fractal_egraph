@@ -1,5 +1,8 @@
 //! Whole-constructor-state differential check of generated spine programs.
 //! Inspection never evaluates constructor expressions; it reads native tables.
+#[path = "support/cell_names.rs"]
+mod cell_names;
+
 use egg_layout::{
     pipeline::Result,
     saturated_rule_composition::{self as state, Row, SaturatedRuleComposition, Vertex},
@@ -140,7 +143,14 @@ fn execute_spine(eg: &mut EGraph, source: &str) -> Result {
         match s {
             S::Run(_, cfg) => matches!(
                 cfg.ruleset.as_str(),
-                "Spine-Run" | "Spine-Reuse" | "Spine-Create" | "Spine-Export"
+                "Run!"
+                    | "Reuse!"
+                    | "Create!"
+                    | "Export!"
+                    | "Spine-Run"
+                    | "Spine-Reuse"
+                    | "Spine-Create"
+                    | "Spine-Export"
             ),
             S::Repeat(_, _, s) | S::Saturate(_, s) => admitted(s),
             S::Sequence(_, items) => items.iter().all(admitted),
@@ -190,13 +200,17 @@ fn main() -> Result {
         let spine_names: Vec<_> = manifest
             .constructors
             .iter()
-            .flat_map(|n| [format!("Spine-{n}"), format!("Spine-Cano-{n}")])
+            .flat_map(|n| {
+                cell_names::raw(n)
+                    .into_iter()
+                    .chain(cell_names::canonical(n))
+            })
             .collect();
         let spine = snapshot(&compressed, &spine_names)?;
         let summary_tables: BTreeMap<_, _> = compressed
             .get_function_names()
             .iter()
-            .filter(|n| n.starts_with("Spine-Summary-"))
+            .filter(|n| cell_names::summary(n))
             .map(|n| (n.to_string(), count(&compressed, n)))
             .collect();
         let summary_rows: usize = summary_tables.values().sum();

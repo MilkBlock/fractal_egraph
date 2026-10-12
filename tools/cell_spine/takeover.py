@@ -1,5 +1,6 @@
 """Compile certified ancestor views into consumers, without reviving small Summaries."""
 import itertools
+from . import names
 from collections import defaultdict
 from .terms import actions, text, walk
 
@@ -24,7 +25,7 @@ def fork(e, bindings):
     if text(e) in bindings:
         return bindings[text(e)]
     if e['kind'] == 'call':
-        return call('Spine-'+e['head'], [fork(a, bindings) for a in e['args']])
+        return call(names.raw(e['head']), [fork(a, bindings) for a in e['args']])
     return e
 
 
@@ -127,11 +128,11 @@ def lower(rules, lenses, supports, definitions):
     by_child = defaultdict(list)
     retirement_pairs = {(l['owner'],l['child']) for l in lenses}
     for lens in lenses:
-        by_child[f'Spine-Summary-{lens["child"]}'].append(lens)
+        by_child[names.summary(lens['child'])].append(lens)
     emitted, result, redundant = set(), [], 0
     for opt, rule in rules:
         operands = [(i,f['expr']) for i,f in enumerate(rule['body'])
-                    if f['kind']=='fact' and f['expr']['head'].startswith('Spine-Summary-')]
+                    if f['kind']=='fact' and names.is_summary(f['expr']['head'])]
         alternatives = [[None]+by_child[e['head']] for _,e in operands]
         for n, choices in enumerate(itertools.product(*alternatives)):
             body = list(rule['body'])
@@ -139,7 +140,7 @@ def lower(rules, lenses, supports, definitions):
                 if lens is None:
                     continue
                 rename = {name:var(f'cover_{index}_{name}') for name in lens['owner_fields']}
-                owner = call(f'Spine-Summary-{lens["owner"]}',rename.values())
+                owner = call(names.summary(lens['owner']),rename.values())
                 body[index] = dict(kind='fact',expr=owner)
                 body.extend(dict(kind='eq',args=[a,replace(b,rename)]) for a,b in zip(old['args'],lens['args']))
             head = list(rule['head'])
@@ -157,7 +158,7 @@ def lower(rules, lenses, supports, definitions):
             # An inherited operand belongs to a possibly larger/incomparable
             # owner; do not retire that owner or manufacture a missing small row.
             for (_, old), lens in zip(operands,choices):
-                family = int(old['head'].removeprefix('Spine-Summary-'))
+                family = names.family(old['head'])
                 if lens is None and (opt['target_family'],family) in retirement_pairs:
                     head.append(dict(kind='expr',expr=call('subsume',[old])))
             body_text, head_text, key = normalize(body,head)
@@ -166,15 +167,15 @@ def lower(rules, lenses, supports, definitions):
             emitted.add(key)
             name = opt['id'] if not any(choices) else f'{opt["id"]}_cover_{n}'
             emitted_rule = {**opt, 'id':name, 'base':opt['id'], 'inherited':any(choices),'body':body_text,'head':head_text,
-                'rule':f'(rule ({" ".join(body_text)}) ({" ".join(head_text)}) :ruleset Spine-Run :name "{name}")'}
+                'rule':f'(rule ({" ".join(body_text)}) ({" ".join(head_text)}) :ruleset Run! :name "{name}")'}
             emitted_rule['pre_inheritance_cost'] = {k:emitted_rule.pop(k) for k in
                 ('search_atoms','update_actions','lookup_terms','write_terms','union_actions','equality_guards') if k in emitted_rule}
             result.append(emitted_rule)
     retire = []
     for i,lens in enumerate(lenses):
-        owner = text(call(f'Spine-Summary-{lens["owner"]}',map(var,lens['owner_fields'])))
-        child = text(call(f'Spine-Summary-{lens["child"]}',lens['args']))
-        retire.append(f'(rule ({owner} {child}) ((subsume {child})) :ruleset Spine-Run :name "retire_{i}")')
+        owner = text(call(names.summary(lens['owner']),map(var,lens['owner_fields'])))
+        child = text(call(names.summary(lens['child']),lens['args']))
+        retire.append(f'(rule ({owner} {child}) ((subsume {child})) :ruleset Run! :name "retire_{i}")')
     return result, retire, redundant
 
 
@@ -221,7 +222,7 @@ def entailed(body, head, definitions, lenses):
     for e in summaries:
         if e['head']==target['head']: covers.append(e)
         for lens in lenses:
-            if e['head']==f'Spine-Summary-{lens["owner"]}' and target['head']==f'Spine-Summary-{lens["child"]}':
+            if e['head']==names.summary(lens['owner']) and target['head']==names.summary(lens['child']):
                 binding = dict(zip(lens['owner_fields'],e['args']))
                 covers.append(call(target['head'],[replace(a,binding) for a in lens['args']]))
     for e in covers: add(e)
