@@ -17,7 +17,7 @@ from math_virtual import ROOT, measure
 from math_graph_equal import verify
 sys.path.insert(0,str(ROOT))
 from tools.cell_spine.compiler import commands, cellify
-from tools.cell_spine.frontier import RUNTIME_SCHEDULE
+from tools.cell_spine.markers import RUNTIME_SCHEDULE
 from tools.cell_spine.terms import actions, text, walk
 
 SOURCE=ROOT/'experiments/cell_spine/eggcc_if_tiny/source.egg'

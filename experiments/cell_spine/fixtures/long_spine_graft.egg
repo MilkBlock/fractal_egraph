@@ -1,0 +1,12 @@
+; A seven-input right spine, followed by one external graft.
+; These are ordinary source rules, not laws recognized by the compiler.
+(datatype Term (Leaf String) (Plus Term Term) (Ready Term) (Extend Term Term) (Done Term))
+(ruleset demo)
+(rule ((= root (Plus a (Plus b (Plus c (Plus d (Plus e (Plus f g))))))))
+      ((Ready root)) :ruleset demo :name "prepare-spine")
+(rule ((Ready root) (Extend root next))
+      ((Done (Plus root next))) :ruleset demo :name "graft-spine")
+(let root (Plus (Leaf "a") (Plus (Leaf "b") (Plus (Leaf "c") (Plus (Leaf "d") (Plus (Leaf "e") (Plus (Leaf "f") (Leaf "g"))))))))
+(Extend root (Leaf "h"))
+(run-schedule (saturate demo))
+(check (Done (Plus root (Leaf "h"))))

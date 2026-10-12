@@ -41,6 +41,8 @@ def actions(expressions, fork=False, signatures=None, params=None):
             change=a['change'].lower()
             if change not in ('subsume','delete'): raise ValueError(f'unsupported row change {change}')
             result.append(f'({change} ({a["head"]} {" ".join(text(e,params=params) for e in a["args"])}))')
+        elif a['kind'] == 'set' and not fork:
+            result.append(f'(set ({a["head"]} {" ".join(text(e,params=params) for e in a["args"])}) {text(a["value"],params=params)})')
         else:
             raise ValueError(f'unsupported action: {a["kind"]}')
     return result

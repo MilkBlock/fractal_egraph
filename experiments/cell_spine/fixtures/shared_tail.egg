@@ -1,0 +1,9 @@
+; Two instances share the same tail. Extending one must not retire the other.
+(datatype Term (Leaf String) (Tail Term) (A Term Term) (AA Term Term) (Gate Term) (Joined Term Term))
+(ruleset demo)
+(rewrite (A t x) (AA t x) :ruleset demo)
+(rule ((AA t x) (Gate x)) ((Joined t x)) :ruleset demo)
+(let t (Tail (Leaf "shared")))
+(A t (Leaf "a")) (A t (Leaf "b")) (Gate (Leaf "a"))
+(run-schedule (saturate demo))
+(check (Joined t (Leaf "a")))

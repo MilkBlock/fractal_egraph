@@ -1,153 +1,139 @@
 {
   "native_runtime": true,
   "scope": "one frozen three-leaf library on six new input trees; whole-state equality, not a speed/RSS benchmark",
-  "library_bytes": 8479,
-  "library_sha256": "fdd30e3fdacbb1e278f74c6dfb458644fdb90fa431efc1661ba6a3b986abe6b3",
-  "storage_scope": "All native rows before export, including Read interfaces, Wanted tombstones and Summary bindings; rows have different widths. This is not RSS.",
+  "library_bytes": 6888,
+  "library_sha256": "87d3f5c1567ddb601da0a47d47c978769a8c03dd38215bf862b5d70de7406568",
+  "storage_scope": "All native rows before export, including raw ingress, canonical constructors and active/subsumed markers; rows have different widths. This is not RSS.",
   "cases": [
     {
       "case": "3-left",
       "status": "equivalent",
       "original_rows": 15,
       "restored_rows": 15,
-      "spine_rows": 7,
+      "spine_rows": 8,
       "original_eclasses": 7,
       "restored_eclasses": 7,
       "active_summaries": {
-        "Spine-Summary-0": 6,
-        "Spine-Summary-1": 6
+        "Spine-Summary-0": 0,
+        "Spine-Summary-1": 1
       },
-      "native_total_rows_before_export": 46,
+      "native_total_rows_before_export": 11,
       "native_tables_before_export": {
+        "Spine-Cano-Plus": 3,
         "Spine-Leaf": 3,
-        "Spine-Plus": 4,
-        "Spine-Read-Plus": 12,
-        "Spine-Summary-0": 12,
-        "Spine-Summary-1": 6,
-        "Spine-Wanted-Plus": 9
+        "Spine-Plus": 2,
+        "Spine-Summary-0": 2,
+        "Spine-Summary-1": 1
       },
       "original_native_total_rows": 15,
       "original_rules_executed": false
     },
     {
       "case": "3-right",
-      "status": "equivalent",
+      "status": "rejected_incomplete_reuse",
       "original_rows": 15,
-      "restored_rows": 15,
+      "restored_rows": 7,
       "spine_rows": 7,
-      "original_eclasses": 7,
-      "restored_eclasses": 7,
       "active_summaries": {
-        "Spine-Summary-0": 6,
-        "Spine-Summary-1": 6
+        "Spine-Summary-0": 2,
+        "Spine-Summary-1": 0
       },
-      "native_total_rows_before_export": 46,
+      "original_eclasses": 7,
+      "restored_eclasses": 5,
+      "native_total_rows_before_export": 9,
       "native_tables_before_export": {
+        "Spine-Cano-Plus": 2,
         "Spine-Leaf": 3,
-        "Spine-Plus": 4,
-        "Spine-Read-Plus": 12,
-        "Spine-Summary-0": 12,
-        "Spine-Summary-1": 6,
-        "Spine-Wanted-Plus": 9
+        "Spine-Plus": 2,
+        "Spine-Summary-0": 2
       },
-      "original_native_total_rows": 15,
-      "original_rules_executed": false
+      "original_native_total_rows": 15
     },
     {
       "case": "4-left",
-      "status": "equivalent",
+      "status": "rejected_incomplete_reuse",
       "original_rows": 54,
-      "restored_rows": 54,
-      "spine_rows": 17,
-      "original_eclasses": 15,
-      "restored_eclasses": 15,
+      "restored_rows": 26,
+      "spine_rows": 12,
       "active_summaries": {
-        "Spine-Summary-0": 14,
-        "Spine-Summary-1": 60
+        "Spine-Summary-0": 0,
+        "Spine-Summary-1": 2
       },
-      "native_total_rows_before_export": 223,
+      "original_eclasses": 15,
+      "restored_eclasses": 11,
+      "native_total_rows_before_export": 17,
       "native_tables_before_export": {
+        "Spine-Cano-Plus": 5,
         "Spine-Leaf": 4,
-        "Spine-Plus": 13,
-        "Spine-Read-Plus": 50,
-        "Spine-Summary-0": 50,
-        "Spine-Summary-1": 60,
-        "Spine-Wanted-Plus": 46
+        "Spine-Plus": 3,
+        "Spine-Summary-0": 3,
+        "Spine-Summary-1": 2
       },
-      "original_native_total_rows": 54,
-      "original_rules_executed": false
+      "original_native_total_rows": 54
     },
     {
       "case": "4-right",
-      "status": "equivalent",
+      "status": "rejected_incomplete_reuse",
       "original_rows": 54,
-      "restored_rows": 54,
-      "spine_rows": 17,
-      "original_eclasses": 15,
-      "restored_eclasses": 15,
+      "restored_rows": 10,
+      "spine_rows": 10,
       "active_summaries": {
-        "Spine-Summary-0": 14,
-        "Spine-Summary-1": 60
+        "Spine-Summary-0": 3,
+        "Spine-Summary-1": 0
       },
-      "native_total_rows_before_export": 223,
+      "original_eclasses": 15,
+      "restored_eclasses": 7,
+      "native_total_rows_before_export": 13,
       "native_tables_before_export": {
+        "Spine-Cano-Plus": 3,
         "Spine-Leaf": 4,
-        "Spine-Plus": 13,
-        "Spine-Read-Plus": 50,
-        "Spine-Summary-0": 50,
-        "Spine-Summary-1": 60,
-        "Spine-Wanted-Plus": 46
+        "Spine-Plus": 3,
+        "Spine-Summary-0": 3
       },
-      "original_native_total_rows": 54,
-      "original_rules_executed": false
+      "original_native_total_rows": 54
     },
     {
       "case": "7-left",
-      "status": "equivalent",
+      "status": "rejected_incomplete_reuse",
       "original_rows": 1939,
-      "restored_rows": 1939,
-      "spine_rows": 251,
-      "original_eclasses": 127,
-      "restored_eclasses": 127,
+      "restored_rows": 59,
+      "spine_rows": 24,
       "active_summaries": {
-        "Spine-Summary-0": 126,
-        "Spine-Summary-1": 10206
+        "Spine-Summary-0": 0,
+        "Spine-Summary-1": 5
       },
-      "native_total_rows_before_export": 16246,
+      "original_eclasses": 127,
+      "restored_eclasses": 23,
+      "native_total_rows_before_export": 35,
       "native_tables_before_export": {
+        "Spine-Cano-Plus": 11,
         "Spine-Leaf": 7,
-        "Spine-Plus": 244,
-        "Spine-Read-Plus": 1932,
-        "Spine-Summary-0": 1932,
-        "Spine-Summary-1": 10206,
-        "Spine-Wanted-Plus": 1925
+        "Spine-Plus": 6,
+        "Spine-Summary-0": 6,
+        "Spine-Summary-1": 5
       },
-      "original_native_total_rows": 1939,
-      "original_rules_executed": false
+      "original_native_total_rows": 1939
     },
     {
       "case": "7-right",
-      "status": "equivalent",
+      "status": "rejected_incomplete_reuse",
       "original_rows": 1939,
-      "restored_rows": 1939,
-      "spine_rows": 251,
-      "original_eclasses": 127,
-      "restored_eclasses": 127,
+      "restored_rows": 19,
+      "spine_rows": 19,
       "active_summaries": {
-        "Spine-Summary-0": 126,
-        "Spine-Summary-1": 10206
+        "Spine-Summary-0": 6,
+        "Spine-Summary-1": 0
       },
-      "native_total_rows_before_export": 16246,
+      "original_eclasses": 127,
+      "restored_eclasses": 13,
+      "native_total_rows_before_export": 25,
       "native_tables_before_export": {
+        "Spine-Cano-Plus": 6,
         "Spine-Leaf": 7,
-        "Spine-Plus": 244,
-        "Spine-Read-Plus": 1932,
-        "Spine-Summary-0": 1932,
-        "Spine-Summary-1": 10206,
-        "Spine-Wanted-Plus": 1925
+        "Spine-Plus": 6,
+        "Spine-Summary-0": 6
       },
-      "original_native_total_rows": 1939,
-      "original_rules_executed": false
+      "original_native_total_rows": 1939
     }
   ]
 }

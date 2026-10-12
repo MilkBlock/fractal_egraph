@@ -9,7 +9,7 @@ import sys
 
 ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT))
-from tools.cell_spine.frontier import RUNTIME_SCHEDULE
+from tools.cell_spine.markers import RUNTIME_SCHEDULE
 HEADER='''(datatype Term (Leaf String) (Plus Term Term))
 (ruleset algebra)
 (rewrite (Plus a b) (Plus b a) :ruleset algebra)
@@ -53,7 +53,13 @@ def main():
                 if 'full closure mismatch' not in r.stderr:raise RuntimeError(r.stderr)
                 result=dict(case=label,status='rejected_incomplete_reuse',original_rows=len(d['expected']['rows']),
                             restored_rows=len(d['actual']['rows']),spine_rows=len(d['spine']['rows']),
-                            active_summaries=d['active_summary_tables'])
+                            active_summaries=d['active_summary_tables'],
+                            original_eclasses=d['original_constructor_eclasses'],restored_eclasses=d['restored_constructor_eclasses'],
+                            native_total_rows_before_export=d['native_total_rows_before_export'],
+                            native_tables_before_export=d['native_tables_before_export'],original_native_total_rows=d['original_native_total_rows'])
+                for suffix in ('runtime','restore'):
+                    file=out/f'{label}-{suffix}.egg'
+                    file.write_text('; REJECTED: this frozen library does not cover this input. See report.json.\n'+file.read_text())
             else:
                 c=d['cases'][0]
                 result=dict(case=label,status='equivalent',original_rows=c['original_constructor_rows'],
@@ -67,7 +73,7 @@ def main():
             results.append(result)
     report=dict(native_runtime=True,scope='one frozen three-leaf library on six new input trees; whole-state equality, not a speed/RSS benchmark',
                 library_bytes=len(lib.encode()),library_sha256=hashlib.sha256(lib.encode()).hexdigest(),
-                storage_scope='All native rows before export, including Read interfaces, Wanted tombstones and Summary bindings; rows have different widths. This is not RSS.',cases=results)
+                storage_scope='All native rows before export, including raw ingress, canonical constructors and active/subsumed markers; rows have different widths. This is not RSS.',cases=results)
     (out/'report.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps(report,indent=2))
 

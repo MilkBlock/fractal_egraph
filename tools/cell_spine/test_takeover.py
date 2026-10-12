@@ -6,8 +6,9 @@ import sys
 import tempfile
 import unittest
 
-from .frontier import RUNTIME_SCHEDULE
+from .markers import RUNTIME_SCHEDULE
 from .compiler import ROOT
+from .test_support import marker_pattern
 from .takeover import ancestors, var, call, entailed, normalize
 
 
@@ -64,6 +65,10 @@ class NativeTakeover(unittest.TestCase):
 
     def verify(self, fixture, name, code, expected, remove_inherited=False, reference=None):
         out=self.outputs[fixture]
+        for family,pattern in [(0,'(Spine-Summary-0 r x)'),(0,'(Spine-Summary-0 r a)'),(3,'(Spine-Summary-3 a b x)')]:
+            if pattern in code:
+                bindings={'r0':'(Spine-A x)','p0':'x'} if pattern=='(Spine-Summary-0 r x)' else None
+                code=code.replace(pattern,marker_pattern(out,family,bindings))
         manifest=json.loads((out/'work/validation.json').read_text())
         if remove_inherited:
             report=json.loads((out/'report.json').read_text())

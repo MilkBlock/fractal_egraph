@@ -6,9 +6,10 @@ import subprocess
 import tempfile
 import unittest
 
-from .frontier import RUNTIME_SCHEDULE
+from .markers import RUNTIME_SCHEDULE
 from .compiler import ROOT, load_candidates, parent_wirings, lower_option
 from .planner import solve
+from .test_support import marker_pattern
 
 
 class Planning(unittest.TestCase):
@@ -49,6 +50,20 @@ class Planning(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             result = solve(paths, [dict(id=0, options=opts)], Path(d))
         self.assertEqual(result['selected'], [1,2,5])
+
+    def test_marker_position_is_selected_with_transition_cost(self):
+        choices=[dict(id='root',columns=1,lookup_atoms=5),
+                 dict(id='tail',columns=2,lookup_atoms=1),
+                 dict(id='all_slots',columns=4,lookup_atoms=0)]
+        paths=[dict(id=0,family=0,nodes=['a'],marker_layouts=choices),
+               dict(id=1,family=1,nodes=['b'],marker_layouts=[dict(id='next',columns=1,lookup_atoms=0)])]
+        edges=[dict(id=0,options=[dict(id='graft',requires=[0,1],parents=[dict(path=0)],
+            target_path=1,search_atoms=0,update_actions=0)])]
+        with tempfile.TemporaryDirectory() as d:
+            result=solve(paths,edges,Path(d))
+        expected=min(choices,key=lambda c:c['columns']+c['lookup_atoms'])
+        self.assertEqual(set(result['marker_layouts']),{expected['id'],'next'})
+        self.assertEqual(result['objective'],7)
 
 
 class NativePipeline(unittest.TestCase):
@@ -135,7 +150,7 @@ class NativePipeline(unittest.TestCase):
 ''',compressed=lib+f'''
 (Spine-Plus (Spine-Leaf "a") (Spine-Leaf "b"))
 {RUNTIME_SCHEDULE}
-(check (Spine-Summary-0 (Spine-Plus (Spine-Leaf "a") (Spine-Leaf "b")) (Spine-Leaf "a") (Spine-Leaf "b")))
+(check {marker_pattern(output,0)})
 (Spine-Plus (Spine-Plus (Spine-Leaf "b") (Spine-Leaf "a")) (Spine-Leaf "c"))
 {RUNTIME_SCHEDULE}
 ''',restore='(run-schedule (saturate Spine-Export))',expected_summary='Spine-Summary-1')
@@ -213,11 +228,11 @@ class NativePipeline(unittest.TestCase):
 (let x (Spine-Leaf "x"))
 (Spine-A x) (Spine-B x)
 {RUNTIME_SCHEDULE}
-(check (Spine-Summary-{first['target_family']} a b x))
-(fail (check (Spine-Summary-{last['target_family']} a b c x)))
+(check {marker_pattern(out,first['target_family'])})
+(fail (check {marker_pattern(out,last['target_family'])}))
 (Spine-C x)
 {RUNTIME_SCHEDULE}
-(check (Spine-Summary-{last['target_family']} a b c x))
+(check {marker_pattern(out,last['target_family'])})
 (fail (check (Spine-Joined x)))
 (fail (check (Spine-Final x)))
 """
@@ -244,6 +259,7 @@ class NativePipeline(unittest.TestCase):
         self.assertIn('(= parent_0_root_0 p0)', opt['body'])
 
     def test_mismatched_ports_block_then_union_enables_two_parent_transition(self):
+        out=self.outputs['dual_parents']
         # A and B Summaries exist separately. The target cannot be created just
         # from family identity: its shared x must match, also after rebuild.
         reference = """
@@ -264,15 +280,15 @@ class NativePipeline(unittest.TestCase):
 (let x (Spine-Leaf "x")) (let y (Spine-Leaf "y"))
 (Spine-A x)
 {RUNTIME_SCHEDULE}
-(check (Spine-Summary-0 (Spine-A x) x))
-(fail (check (Spine-Summary-2 a b p)))
+(check {marker_pattern(out,0)})
+(fail (check {marker_pattern(out,2)}))
 (Spine-B y)
 {RUNTIME_SCHEDULE}
-(check (Spine-Summary-1 (Spine-B y) y))
-(fail (check (Spine-Summary-2 a b p)))
+(check {marker_pattern(out,1)})
+(fail (check {marker_pattern(out,2)}))
 (union x y)
 {RUNTIME_SCHEDULE}
-(check (Spine-Summary-2 (Spine-A x) (Spine-B y) x))
+(check {marker_pattern(out,2)})
 (fail (check (Spine-AA x)))
 (fail (check (Spine-BB x)))
 (fail (check (Spine-Joined x)))
@@ -295,16 +311,16 @@ class NativePipeline(unittest.TestCase):
 (let a (Spine-Leaf "a")) (let b (Spine-Leaf "b")) (let c (Spine-Leaf "c"))
 (Spine-A a b)
 {RUNTIME_SCHEDULE}
-(fail (check (Spine-Summary-1 r0 r1 g x y z)))
+(fail (check {marker_pattern(out,1)}))
 (Spine-A b c)
 {RUNTIME_SCHEDULE}
-(fail (check (Spine-Summary-1 r0 r1 g x y z)))
+(fail (check {marker_pattern(out,1)}))
 (Spine-Gate c a)
 {RUNTIME_SCHEDULE}
-(fail (check (Spine-Summary-1 r0 r1 g x y z)))
+(fail (check {marker_pattern(out,1)}))
 (Spine-Gate a c)
 {RUNTIME_SCHEDULE}
-(check (Spine-Summary-1 (Spine-A a b) (Spine-A b c) (Spine-Gate a c) a b c))
+(check {marker_pattern(out,1)})
 (fail (check (Spine-AA x y)))
 (fail (check (Spine-Joined x z)))
 """

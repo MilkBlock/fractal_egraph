@@ -1,0 +1,8 @@
+; Equal constructor results do not imply equal inputs across sibling roots.
+(datatype Term (Leaf String) (A Term) (B Term) (Joined Term) (Gate Term) (Hit Term))
+(ruleset demo)
+(rule ((A x) (B x)) ((Joined x)) :ruleset demo)
+(rule ((Joined x) (Gate x)) ((Hit x)) :ruleset demo)
+(A (Leaf "a")) (B (Leaf "a")) (Gate (Leaf "a"))
+(run-schedule (saturate demo))
+(check (Hit (Leaf "a")))

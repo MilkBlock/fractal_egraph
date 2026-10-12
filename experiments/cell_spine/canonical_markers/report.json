@@ -1,0 +1,954 @@
+{
+  "native_runtime": true,
+  "scope": "Current-input constructor closures and baked grafts; not a speed or RSS benchmark",
+  "cases": [
+    {
+      "fixture": "assoc",
+      "source": "experiments/cell_spine/fixtures/assoc.egg",
+      "library_bytes": 6888,
+      "runtime_bytes": 7094,
+      "marker_layouts": {
+        "0": {
+          "path": 0,
+          "position": 0,
+          "anchor": "(Spine-Plus p0 p1)",
+          "stored_fields": [
+            "r0"
+          ],
+          "columns": 1,
+          "decoder_lookups": 1,
+          "payload": "anchor"
+        },
+        "1": {
+          "path": 3,
+          "position": 0,
+          "anchor": "(Spine-Plus (Spine-Plus p0 p1) p2)",
+          "stored_fields": [
+            "r0"
+          ],
+          "columns": 1,
+          "decoder_lookups": 2,
+          "payload": "anchor"
+        }
+      },
+      "gate_audit": [
+        {
+          "rule": "impl_0_0",
+          "kind": "ingress",
+          "marker_reads": 0,
+          "canonical_lookups": 0,
+          "external_lookups": 1,
+          "canonical_writes": 1
+        },
+        {
+          "rule": "impl_2_1",
+          "kind": "ingress",
+          "marker_reads": 0,
+          "canonical_lookups": 0,
+          "external_lookups": 2,
+          "canonical_writes": 2
+        },
+        {
+          "rule": "impl_5_2",
+          "kind": "transition",
+          "marker_reads": 1,
+          "canonical_lookups": 1,
+          "external_lookups": 1,
+          "canonical_writes": 3
+        },
+        {
+          "rule": "impl_5_2_cover_1",
+          "kind": "transition",
+          "marker_reads": 1,
+          "canonical_lookups": 2,
+          "external_lookups": 1,
+          "canonical_writes": 3
+        },
+        {
+          "rule": "impl_5_2_cover_2",
+          "kind": "transition",
+          "marker_reads": 1,
+          "canonical_lookups": 2,
+          "external_lookups": 1,
+          "canonical_writes": 4
+        },
+        {
+          "rule": "impl_6_1",
+          "kind": "ingress",
+          "marker_reads": 0,
+          "canonical_lookups": 0,
+          "external_lookups": 3,
+          "canonical_writes": 3
+        },
+        {
+          "rule": "retire_0",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 2,
+          "external_lookups": 0,
+          "canonical_writes": 0
+        },
+        {
+          "rule": "retire_1",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 2,
+          "external_lookups": 0,
+          "canonical_writes": 0
+        }
+      ],
+      "counts": {
+        "original_constructor_rows": 15,
+        "restored_constructor_rows": 15,
+        "original_constructor_eclasses": 7,
+        "restored_constructor_eclasses": 7,
+        "original_native_total_rows": 16,
+        "native_total_rows_before_export": 12,
+        "native_tables_before_export": {
+          "Spine-Cano-Plus": 3,
+          "Spine-Leaf": 3,
+          "Spine-Plus": 2,
+          "Spine-Summary-0": 2,
+          "Spine-Summary-1": 1,
+          "root": 1
+        },
+        "active_summary_tables": {
+          "Spine-Summary-0": 0,
+          "Spine-Summary-1": 1
+        },
+        "spine_constructor_rows": 8
+      },
+      "status": "equivalent",
+      "original_rules_executed": false,
+      "solver": {
+        "status": "optimal",
+        "variables": 245,
+        "constraints": 384,
+        "objective": 68.0,
+        "cost_scope": "structural estimate: shared path shapes, marker columns, seed decoder lookups on observed parent uses, and writes; inherited consumers and decoder elimination are reported after lowering; optimum is for this model, not measured Join work or RSS"
+      },
+      "example_graft_rule": null
+    },
+    {
+      "fixture": "long_spine_graft",
+      "source": "experiments/cell_spine/fixtures/long_spine_graft.egg",
+      "library_bytes": 10016,
+      "runtime_bytes": 10379,
+      "marker_layouts": {
+        "0": {
+          "path": 0,
+          "position": 0,
+          "anchor": "(Spine-Plus p0 (Spine-Plus p1 (Spine-Plus p2 (Spine-Plus p3 (Spine-Plus p4 (Spine-Plus p5 p6))))))",
+          "stored_fields": [
+            "r0"
+          ],
+          "columns": 1,
+          "decoder_lookups": 6,
+          "payload": "anchor"
+        },
+        "1": {
+          "path": 1,
+          "position": 0,
+          "anchor": "(Spine-Extend (Spine-Plus p0 (Spine-Plus p1 (Spine-Plus p2 (Spine-Plus p3 (Spine-Plus p4 (Spine-Plus p5 p6)))))) p7)",
+          "stored_fields": [
+            "r0"
+          ],
+          "columns": 1,
+          "decoder_lookups": 7,
+          "payload": "anchor"
+        }
+      },
+      "gate_audit": [
+        {
+          "rule": "impl_0_0",
+          "kind": "ingress",
+          "marker_reads": 0,
+          "canonical_lookups": 0,
+          "external_lookups": 6,
+          "canonical_writes": 6
+        },
+        {
+          "rule": "impl_1_0",
+          "kind": "transition",
+          "marker_reads": 1,
+          "canonical_lookups": 0,
+          "external_lookups": 1,
+          "canonical_writes": 1
+        },
+        {
+          "rule": "impl_1_0_cover_1",
+          "kind": "transition",
+          "marker_reads": 1,
+          "canonical_lookups": 7,
+          "external_lookups": 1,
+          "canonical_writes": 1
+        },
+        {
+          "rule": "retire_0",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 7,
+          "external_lookups": 0,
+          "canonical_writes": 0
+        }
+      ],
+      "counts": {
+        "original_constructor_rows": 18,
+        "restored_constructor_rows": 18,
+        "original_constructor_eclasses": 18,
+        "restored_constructor_eclasses": 18,
+        "original_native_total_rows": 19,
+        "native_total_rows_before_export": 25,
+        "native_tables_before_export": {
+          "Spine-Cano-Extend": 1,
+          "Spine-Cano-Plus": 6,
+          "Spine-Extend": 1,
+          "Spine-Leaf": 8,
+          "Spine-Plus": 6,
+          "Spine-Summary-0": 1,
+          "Spine-Summary-1": 1,
+          "root": 1
+        },
+        "active_summary_tables": {
+          "Spine-Summary-0": 0,
+          "Spine-Summary-1": 1
+        },
+        "spine_constructor_rows": 22
+      },
+      "status": "equivalent",
+      "original_rules_executed": false,
+      "solver": {
+        "status": "optimal",
+        "variables": 159,
+        "constraints": 278,
+        "objective": 39.0,
+        "cost_scope": "structural estimate: shared path shapes, marker columns, seed decoder lookups on observed parent uses, and writes; inherited consumers and decoder elimination are reported after lowering; optimum is for this model, not measured Join work or RSS"
+      },
+      "example_graft_rule": "(rule ((Spine-Summary-0 parent_0_root_0) (= marker_value_15 (Spine-Extend parent_0_root_0 p7))) ((Spine-Cano-Extend parent_0_root_0 p7) (union marker_value_15 (Spine-Cano-Extend parent_0_root_0 p7)) (Spine-Summary-1 marker_value_15) (subsume (Spine-Summary-0 parent_0_root_0))) :ruleset Spine-Run :name \"impl_1_0\")"
+    },
+    {
+      "fixture": "shared_tail",
+      "source": "experiments/cell_spine/fixtures/shared_tail.egg",
+      "library_bytes": 7048,
+      "runtime_bytes": 7297,
+      "marker_layouts": {
+        "0": {
+          "path": 1,
+          "position": 0,
+          "anchor": "(Spine-A p0 p1)",
+          "stored_fields": [
+            "r0"
+          ],
+          "columns": 1,
+          "decoder_lookups": 1,
+          "payload": "anchor"
+        },
+        "1": {
+          "path": 2,
+          "position": 0,
+          "anchor": "(Spine-A p0 p1)",
+          "stored_fields": [
+            "r0",
+            "r1"
+          ],
+          "columns": 2,
+          "decoder_lookups": 2,
+          "payload": "anchor"
+        }
+      },
+      "gate_audit": [
+        {
+          "rule": "impl_0_1",
+          "kind": "ingress",
+          "marker_reads": 0,
+          "canonical_lookups": 0,
+          "external_lookups": 1,
+          "canonical_writes": 1
+        },
+        {
+          "rule": "impl_2_1",
+          "kind": "transition",
+          "marker_reads": 1,
+          "canonical_lookups": 1,
+          "external_lookups": 1,
+          "canonical_writes": 1
+        },
+        {
+          "rule": "retire_0",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 2,
+          "external_lookups": 0,
+          "canonical_writes": 0
+        }
+      ],
+      "counts": {
+        "original_constructor_rows": 10,
+        "restored_constructor_rows": 10,
+        "original_constructor_eclasses": 8,
+        "restored_constructor_eclasses": 8,
+        "original_native_total_rows": 11,
+        "native_total_rows_before_export": 14,
+        "native_tables_before_export": {
+          "Spine-A": 2,
+          "Spine-Cano-A": 2,
+          "Spine-Cano-Gate": 1,
+          "Spine-Gate": 1,
+          "Spine-Leaf": 3,
+          "Spine-Summary-0": 2,
+          "Spine-Summary-1": 1,
+          "Spine-Tail": 1,
+          "t": 1
+        },
+        "active_summary_tables": {
+          "Spine-Summary-0": 1,
+          "Spine-Summary-1": 1
+        },
+        "spine_constructor_rows": 10
+      },
+      "status": "equivalent",
+      "original_rules_executed": false,
+      "solver": {
+        "status": "optimal",
+        "variables": 49,
+        "constraints": 88,
+        "objective": 20.0,
+        "cost_scope": "structural estimate: shared path shapes, marker columns, seed decoder lookups on observed parent uses, and writes; inherited consumers and decoder elimination are reported after lowering; optimum is for this model, not measured Join work or RSS"
+      },
+      "example_graft_rule": null
+    },
+    {
+      "fixture": "root_alias",
+      "source": "experiments/cell_spine/fixtures/root_alias.egg",
+      "library_bytes": 6767,
+      "runtime_bytes": 6969,
+      "marker_layouts": {
+        "0": {
+          "path": 0,
+          "position": 0,
+          "anchor": "(Spine-A p0)",
+          "stored_fields": [
+            "r0",
+            "r1",
+            "p0"
+          ],
+          "columns": 3,
+          "decoder_lookups": 0,
+          "payload": "all"
+        },
+        "1": {
+          "path": 1,
+          "position": 0,
+          "anchor": "(Spine-A p0)",
+          "stored_fields": [
+            "r0",
+            "r1",
+            "r2"
+          ],
+          "columns": 3,
+          "decoder_lookups": 3,
+          "payload": "anchor"
+        }
+      },
+      "gate_audit": [
+        {
+          "rule": "impl_0_0",
+          "kind": "ingress",
+          "marker_reads": 0,
+          "canonical_lookups": 0,
+          "external_lookups": 2,
+          "canonical_writes": 2
+        },
+        {
+          "rule": "impl_1_0",
+          "kind": "transition",
+          "marker_reads": 1,
+          "canonical_lookups": 0,
+          "external_lookups": 1,
+          "canonical_writes": 1
+        },
+        {
+          "rule": "retire_0",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 3,
+          "external_lookups": 0,
+          "canonical_writes": 0
+        }
+      ],
+      "counts": {
+        "original_constructor_rows": 6,
+        "restored_constructor_rows": 6,
+        "original_constructor_eclasses": 6,
+        "restored_constructor_eclasses": 6,
+        "original_native_total_rows": 6,
+        "native_total_rows_before_export": 9,
+        "native_tables_before_export": {
+          "Spine-A": 1,
+          "Spine-B": 1,
+          "Spine-Cano-A": 1,
+          "Spine-Cano-B": 1,
+          "Spine-Cano-Gate": 1,
+          "Spine-Gate": 1,
+          "Spine-Leaf": 1,
+          "Spine-Summary-0": 1,
+          "Spine-Summary-1": 1
+        },
+        "active_summary_tables": {
+          "Spine-Summary-0": 0,
+          "Spine-Summary-1": 1
+        },
+        "spine_constructor_rows": 7
+      },
+      "status": "equivalent",
+      "original_rules_executed": false,
+      "solver": {
+        "status": "optimal",
+        "variables": 16,
+        "constraints": 32,
+        "objective": 24.0,
+        "cost_scope": "structural estimate: shared path shapes, marker columns, seed decoder lookups on observed parent uses, and writes; inherited consumers and decoder elimination are reported after lowering; optimum is for this model, not measured Join work or RSS"
+      },
+      "example_graft_rule": null
+    },
+    {
+      "fixture": "eggcc_if",
+      "source": "experiments/cell_spine/eggcc_if_tiny/source.egg",
+      "library_bytes": 230313,
+      "runtime_bytes": 235102,
+      "marker_layouts": {
+        "0": {
+          "path": 5,
+          "position": 0,
+          "anchor": "(Spine-Single p0)",
+          "stored_fields": [
+            "r0"
+          ],
+          "columns": 1,
+          "decoder_lookups": 1,
+          "payload": "anchor"
+        },
+        "1": {
+          "path": 6,
+          "position": 0,
+          "anchor": "(Spine-Get (Spine-Arg p3 (Spine-InIf false (Spine-Bop (Spine-LessThan) (Spine-Get p2 0) (Spine-Get p2 1)) p2)) 1)",
+          "stored_fields": [
+            "r0",
+            "r1",
+            "r2",
+            "r3",
+            "r4"
+          ],
+          "columns": 5,
+          "decoder_lookups": 15,
+          "payload": "anchor"
+        },
+        "2": {
+          "path": 7,
+          "position": 0,
+          "anchor": "(Spine-Get (Spine-Arg p3 (Spine-InIf false (Spine-Bop (Spine-LessThan) (Spine-Get p2 0) (Spine-Get p2 1)) p2)) 0)",
+          "stored_fields": [
+            "r0",
+            "r1",
+            "r2",
+            "r3",
+            "r4"
+          ],
+          "columns": 5,
+          "decoder_lookups": 15,
+          "payload": "anchor"
+        }
+      },
+      "gate_audit": [
+        {
+          "rule": "impl_0_5",
+          "kind": "ingress",
+          "marker_reads": 0,
+          "canonical_lookups": 0,
+          "external_lookups": 1,
+          "canonical_writes": 1
+        },
+        {
+          "rule": "impl_6_5",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 2,
+          "external_lookups": 11,
+          "canonical_writes": 13
+        },
+        {
+          "rule": "impl_6_5_cover_1",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 16,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_2",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 16,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_3",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 16,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_4",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 16,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_5",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 16,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_6",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_7",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_8",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_9",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_10",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 16,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_11",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_12",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_13",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_14",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_15",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 16,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_16",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_17",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_18",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_19",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_20",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 16,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_21",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_22",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_23",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_6_5_cover_24",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 2,
+          "external_lookups": 11,
+          "canonical_writes": 13
+        },
+        {
+          "rule": "impl_7_5_cover_1",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 16,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_2",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 16,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_3",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 16,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_4",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 16,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_5",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 16,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_6",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_7",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_8",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_9",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_10",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 16,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_11",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_12",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_13",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_14",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_15",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 16,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_16",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_17",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_18",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_19",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_20",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 16,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_21",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_22",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_23",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "impl_7_5_cover_24",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 29,
+          "external_lookups": 10,
+          "canonical_writes": 12
+        },
+        {
+          "rule": "retire_0",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 15,
+          "external_lookups": 0,
+          "canonical_writes": 0
+        },
+        {
+          "rule": "retire_1",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 15,
+          "external_lookups": 0,
+          "canonical_writes": 0
+        },
+        {
+          "rule": "retire_2",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 15,
+          "external_lookups": 0,
+          "canonical_writes": 0
+        },
+        {
+          "rule": "retire_3",
+          "kind": "transition",
+          "marker_reads": 2,
+          "canonical_lookups": 15,
+          "external_lookups": 0,
+          "canonical_writes": 0
+        }
+      ],
+      "counts": {
+        "original_constructor_rows": 60,
+        "restored_constructor_rows": 60,
+        "original_constructor_eclasses": 52,
+        "restored_constructor_eclasses": 52,
+        "original_native_total_rows": 60,
+        "native_total_rows_before_export": 87,
+        "native_tables_before_export": {
+          "Spine-Arg": 9,
+          "Spine-Bop": 3,
+          "Spine-Cano-Arg": 4,
+          "Spine-Cano-Bop": 2,
+          "Spine-Cano-Get": 12,
+          "Spine-Cano-If": 2,
+          "Spine-Cano-InIf": 4,
+          "Spine-Cano-LessThan": 1,
+          "Spine-Cano-Single": 6,
+          "Spine-Get": 12,
+          "Spine-If": 3,
+          "Spine-InFunc": 3,
+          "Spine-InIf": 6,
+          "Spine-IntT": 1,
+          "Spine-LessThan": 1,
+          "Spine-Single": 6,
+          "Spine-Summary-0": 6,
+          "Spine-Summary-1": 1,
+          "Spine-Summary-2": 1,
+          "Spine-TCons": 2,
+          "Spine-TNil": 1,
+          "Spine-TupleT": 1
+        },
+        "active_summary_tables": {
+          "Spine-Summary-0": 2,
+          "Spine-Summary-1": 1,
+          "Spine-Summary-2": 1
+        },
+        "spine_constructor_rows": 79
+      },
+      "status": "equivalent",
+      "original_rules_executed": false,
+      "solver": {
+        "status": "optimal",
+        "variables": 271,
+        "constraints": 438,
+        "objective": 140.0,
+        "cost_scope": "structural estimate: shared path shapes, marker columns, seed decoder lookups on observed parent uses, and writes; inherited consumers and decoder elimination are reported after lowering; optimum is for this model, not measured Join work or RSS"
+      },
+      "example_graft_rule": null
+    }
+  ]
+}

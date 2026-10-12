@@ -101,6 +101,9 @@ introduced by either compiler.
 
 ## Multi-parent spine composition
 
+The full Summary argument lists below describe the logical compiler IR before
+marker placement. Actual stored marker columns are in `retirement.marker_layouts`.
+
 `fixtures/dual_parents.egg` bakes three exact families. `A(x)` derives `AA(x)`;
 `B(x)` derives `BB(x)`; both hidden facts enable `Joined(x)`. Automatic lowering
 now produces this **actual rule**, rather than factoring just the first parent:
@@ -173,9 +176,9 @@ For each alpha-local template shape `n`, `y[n]` is the OR of all selected
 representations using it. Objective:
 
 ```
-storage_weight * sum(y[n])
-+ search_weight * sum(distinct_lookup_terms_and_guards[o] * z[o])
-+ update_weight * sum(distinct_write_terms_and_unions[o] * z[o])
+storage_weight * (sum(y[n]) + selected_marker_columns)
++ search_weight * (selected_lookup_terms_and_guards + marker_decoder_reads)
++ update_weight * (selected_write_terms_and_unions + marker_update_columns)
 ```
 
 The native expression parser counts **nested** constructor calls, Summary calls
@@ -183,10 +186,10 @@ and explicit equalities/unions from the actual generated rules. Lookup/write
 counts are structural proxies, not measured Join cardinalities or timings.
 Template sharing refers to code shapes, not automatic identity of runtime
 instances. Reusing parent root variables avoids rebuilding those trees in RHS.
-Interface publication and its reuse/creation support are added after selection
-and are not included in this objective; an optimal solver result is not a
-claim of optimal final runtime storage. Each observed path contributes once to transition costs; duplicate emitted
-rules can share one declaration. Workload frequencies are not extrapolated.
+Marker-layout choices are coupled to these path choices. Inherited consumers and
+decoder elimination occur after selection; their emitted reads/writes are audited
+separately. Optimality is for the stated structural model. Each observed path
+contributes once; runtime workload frequencies are not extrapolated.
 
 Weights default to 1 and are explicit CLI arguments. There is no candidate
 budget, sampling or greedy fallback. No search over arbitrary parent subsets is
@@ -409,52 +412,89 @@ out/cell-spine-venv/bin/python -m unittest tools.cell_spine.test_contract -v
 ```
 
 
-## Internal closure values as future boundary bindings
+## Active canonical markers
 
-`frontier.py` supplies typed `Spine-Read-<constructor>(arguments..., result)`
-interfaces. Their facts come from native constructors or from certified finite
-Cell closure rows. A consumer can use an internal closure result as its next
-RipenInput even if the corresponding alternate constructor is not physically
-present in the spine. This repairs the frozen three-leaf library's missing
-right-associated and larger-tree results; it is not an AC-specific lowering.
+`markers.py` is the runtime lowering. The old `frontier.py` was removed. There
+are no global `Spine-Read-*` or `Spine-Wanted-*` relations in generated programs.
 
-Only constructor types required by compiled consumers, RHS requests, inherited
-projections and their value witnesses receive interfaces. A finite fixed point
-on these types closes witness dependencies. For each required internal value,
-the compiler chooses an anchored constructor witness; it does not allocate an
-unrelated token for each Cell instance. `Spine-Read` congruence unions outputs
-with the same constructor and canonical arguments, preserving identity across
-overlapping Cells and after input unions.
+- `Spine-Op` is raw ingress. Original inputs and new external facts use it.
+- `Spine-Cano-Op` is the selected spine. Generated inference never writes raw
+  ingress constructors, so normalizing a Cell cannot reopen arbitrary ingress.
+- `Spine-Summary-N` is the **active marker itself**. Its fields and attachment
+  point are selected by Gurobi. There is no second summary-record layer.
 
-The emitted schedule is essential:
+A transition requires active parent markers. It reads canonical nodes only
+through these markers. Known subtrees become result variables in both LHS and
+RHS. A transition needing only a stored root does not decode the old chain.
+It constructs the changed canonical part, publishes the new marker, and subsumes
+certified parent markers. Normalization can read noncanonical input; subsequent
+inference is authorized by canonical markers. Merely inserting an unmarked Cano
+node does not activate a Cell.
+
+For the ordinary `long_spine_graft.egg` fixture, the main graft has two LHS atoms:
 
 ```egg
-(run-schedule
-  (saturate
-    (seq (saturate (run Spine-Run))
-         (saturate (run Spine-Reuse))
-         (run Spine-Create))))
+(rule ((Spine-Summary-0 root) (= next (Spine-Extend root extra)))
+      ((Spine-Cano-Extend root extra)
+       (union next (Spine-Cano-Extend root extra))
+       (Spine-Summary-1 next)
+       (subsume (Spine-Summary-0 root)))
+      :ruleset Spine-Run)
 ```
 
-`Spine-Run` derives summaries, interfaces and constructor-value requests.
-`Spine-Reuse` subsumes requests already answered by interfaces. Only unresolved
-requests reach `Spine-Create`; their newly built witnesses trigger another
-round. These phases must not be collapsed into one ruleset: native batch
-execution could otherwise build a value before its existing interface is read.
-Retirement consumers and publication are both inherited through certified
-larger owners. Original user rules still never run on forked spine sorts.
+The fixture has a seven-input chain and an external graft. It is **not** the
+complete seven-input AC problem. Actual generated names and inherited consumers
+are in the report and `library.egg`.
 
-**This repairs reachability, not net storage compression.** On the frozen
-three-leaf library, both seven-leaf shapes restore exactly 1,939 constructors /
-127 classes. They have 251 physical spine constructors, but **16,246 total
-native rows** before export, including 1,932 Read rows, 1,925 Wanted rows
-(including subsumed requests) and 12,138 Summary rows. Flat Read interfaces and
-all binding-specific Summaries are still too large on this dense example.
-The 53-line library is 8,479 bytes; short code is not small runtime memory.
-See `experiments/cell_spine/reuse_boundary/` for before/after evidence.
+### Placement and field selection
 
-`report.json.source_storage` and `validation.json.native_tables_before_export`
-include support tables; never report constructor reduction as RSS compression.
-These are native-runtime correctness measurements, not pristine benchmarks.
-Finite `(run ... 7)` is still not silently converted into saturation, and no
-unsupported Cell compile falls back to a concrete snapshot archive.
+Gurobi jointly selects canonical paths, transition implementations and marker
+layouts. Every canonical constructor and opaque input can be an attachment
+point. Equivalent stored-field/decoder layouts are deduplicated. Each point
+supports three explicit payload forms: owner roots plus anchor; also carry
+inputs outside the anchored subtree; or carry all inputs. This is a defined
+layout space, not a claim to enumerate every possible interface encoding.
+
+Owner roots remain in the marker, so two Cells sharing a tail do not share an
+activation accidentally. If fields are omitted, the decoder checks the canonical
+seed forest and its equality guards. Reading one root alone is insufficient:
+union of constructor outputs does not imply union of their inputs. Dead decoders
+are removed only when their omitted bindings cannot affect the transition; joins
+between multiple owners keep their correlation checks.
+
+The objective includes shared template shapes, stored marker columns, estimated
+seed-decoder reads and update columns. It is a structural model. Inherited
+consumers and eliminated decoders are reported after lowering in `gate_audit`.
+Solver optimality refers to this explicit model, not actual time or RSS. The
+linearization factors repeated edge/layout products algebraically; it does not
+sample layouts or introduce a candidate budget.
+
+### Retirement and validation
+
+The compiler also proves containment at actual canonical spine positions. Thus
+a large Cell can retire a small marker at its root as well as in a child subtree.
+Retired markers do not authorize matches. Larger owners inherit the already
+baked continuations. Canonical storage can remain shared with other instances.
+`subsume` stops matching; it is not physical reclamation of the retired row.
+
+`gate_audit` rejects canonical lookups without an active marker and generated
+writes to raw ingress. Native tests cover late facts, input union, noninjective
+bindings, shared tails, output-only union, and multi-parent continuation.
+All constructors **including Cano constructors**, auxiliary rows, and subsumed
+markers are counted before export.
+
+This backend is a baked-transition whitelist, not a replacement exhaustive
+matcher over every hidden closure row. In particular, the previously frozen
+three-input library is not promised to close every unseen seven-input AC graph.
+The separate `reuse_boundary/probe.py` retains that negative generalization
+check; a mismatch is reported as rejected, never as compression. A successful
+source Bake still requires whole-state native equality, including all original
+constructors and equality classes, before executable output is published.
+
+Reproduce the current-input and graft checks:
+
+```sh
+out/cell-spine-venv/bin/python experiments/cell_spine/canonical_markers/run.py \
+  --output out/canonical-markers-new --skip-build
+out/cell-spine-venv/bin/python -m unittest discover -s tools/cell_spine -t . -v
+```

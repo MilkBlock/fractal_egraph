@@ -1,80 +1,50 @@
-# General Cell closure interfaces (native runtime)
+# Frozen-library coverage boundary
 
-Bake `../fixtures/assoc.egg` once using the existing history/RipSatCell/Gurobi
-pipeline. Freeze that three-leaf, two-family library and run six new inputs.
-No operator-specific compiler, law recognizer or multiset lowering is used.
+This probe bakes the existing three-input `assoc.egg` fixture once, freezes its
+library, then validates six other inputs in native egglog. It compares complete
+constructor states and equality partitions. Counts alone are not a certificate.
 
 ```sh
 out/cell-spine-venv/bin/python experiments/cell_spine/reuse_boundary/probe.py \
   --output out/reuse-boundary-new --skip-build
 ```
 
-Use current native `egg_layout`, `lhs_ast` and `spine_validate` binaries, or omit
-`--skip-build`. This is an explicit saturation test. It does **not** reinterpret
-the user's finite `(run add-ac 7)` as saturation.
+## Current active-marker backend
 
-| Input | Old restored / expected rows | New restored rows / classes | Physical spine | Total native rows before export |
-|---|---:|---:|---:|---:|
-| 3 leaves, left | 15 / 15 | 15 / 7 | 7 | 46 |
-| 3 leaves, right | 7 / 15 | 15 / 7 | 7 | 46 |
-| 4 leaves, left | 26 / 54 | 54 / 15 | 17 | 223 |
-| 4 leaves, right | 10 / 54 | 54 / 15 | 17 | 223 |
-| 7 leaves, left | 59 / 1,939 | 1,939 / 127 | 251 | 16,246 |
-| 7 leaves, right | 19 / 1,939 | 1,939 / 127 | 251 | 16,246 |
+| Input | Expected original nodes | Restored nodes | All stored rows before export | Result |
+|---|---:|---:|---:|---|
+| 3, left | 15 | 15 | 11 | equivalent |
+| 3, right | 15 | 7 | 9 | rejected |
+| 4, left | 54 | 26 | 17 | rejected |
+| 4, right | 54 | 10 | 13 | rejected |
+| 7, left | 1,939 | 59 | 35 | rejected |
+| 7, right | 1,939 | 19 | 25 | rejected |
 
-`before-frontier.json` preserves the negative baseline (commit ab9ed1d).
-`report.json` records the corrected runtime. The native validator checks complete
-constructor rows **and** equality partitions, not only these counts. No original
-rules run during spine inference or export. `Spine-Export` expands the finite
-cached Cell closures only after inference. Each output directory includes actual
-`*-runtime.egg`, `*-restore.egg`, native manifests and detailed validation results.
+**The smaller rejected graphs are not compressed versions of the expected graph.**
+They are incomplete. Current inference uses baked canonical transitions, and no
+longer publishes every cached internal row into a global query table. The old
+three-input library lacks some transitions required by these new shapes/depths.
+This coverage loss is explicit, not hidden behind a storage ratio. Re-baking a
+right-associated three-input source succeeds with its own observed paths; that
+is different from promising arbitrary-depth reuse of the left-associated library.
 
-## What changed
+Generated failed `*-runtime.egg` and `*-restore.egg` files carry a REJECTED comment.
+Production Cell compilation still performs native whole-source validation before
+publishing executable output. No original inference rules run during compressed
+inference or cached export. Finite `(run add-ac 7)` is not silently replaced by
+saturation.
 
-Previously the pair Cell knew both `Plus(a,b)` and `Plus(b,a)`, but its alternate
-row was visible only at final export. A successor needed a physical constructor;
-internal values that were neither input slots nor selected roots could not become
-new bindings. Thus the same small library could not close even a right-associated
-three-leaf input.
+## Preserved comparisons
 
-The compiler now emits typed `Spine-Read-Plus(left,right,result)` interfaces from
-certified Cell closures. Successors read these interfaces, including internal
-values, while retaining their Summary, equality and external-fact guards.
-Constructor witnesses give new internal values identities; read congruence
-unifies results of the same constructor on canonical arguments across Cells.
+- `before-frontier.json`: pre-interface negative baseline from ab9ed1d.
+- `flat-interfaces.json`: 7fa61af's global Read/Wanted implementation. All six
+  graphs were equivalent, but seven inputs stored 16,246 rows, including 1,932
+  Read rows, 1,925 Wanted rows and 12,138 Summaries. That implementation has been
+  removed: its global reads bypassed marker retirement.
+- `report.json`: current active-marker result above. Three-left needs 11 rows
+  rather than 46 with flat interfaces. Both restore 15 constructor rows. This
+  says nothing about RSS; rows have different widths.
 
-RHS construction is phased: first propagate interfaces and requests, then retire
-requests already answered by known values, then create only missing witnesses.
-This avoids rematerializing every known constructor when a consumer needs its
-result. The generated schedule must be preserved. Retired smaller Summaries do
-not become active again; certified larger owners inherit their consumers and
-interface publishers.
-
-## The remaining storage problem is explicit
-
-The repaired library is **53 lines / 8,479 bytes**, shared unchanged by all six
-inputs. But a short library and fewer physical constructors do not imply a small
-runtime graph. On seven leaves:
-
-| Native table | Rows before export |
-|---|---:|
-| Spine-Leaf | 7 |
-| Spine-Plus | 244 |
-| Spine-Read-Plus | 1,932 |
-| Spine-Wanted-Plus | 1,925 |
-| Spine-Summary-0 | 1,932 |
-| Spine-Summary-1 | 10,206 |
-| **Total** | **16,246** |
-
-Counts include subsumed requests and Summaries. Original native storage has 1,939
-rows. Rows have different widths; neither count is RSS. There is **no claim of net
-compression or speedup**. Flat interfaces still enumerate all 1,932 Plus rows;
-Summary identities still enumerate different bindings of the same small Cell.
-Compact binding/summary sharing remains unresolved. Gurobi selects the original
-spine implementations; the added interface support is outside that objective.
-
-`test_frontier.py` locks in the six full-state comparisons, late union/congruence,
-primitive guards and reuse without redundant physical construction. Its ablation
-removes certified interface publication and verifies that the right-associated
-case fails whole-state comparison again. Existing retirement, multiple-sort,
-noninjective-binding and staged-archive tests remain enabled.
+The current positive tests, including a seven-input spine followed by one baked
+external graft, are in `../canonical_markers/`. That graft example is not the
+seven-input AC closure and must not be substituted for this negative test.

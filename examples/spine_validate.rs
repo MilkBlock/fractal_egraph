@@ -190,7 +190,7 @@ fn main() -> Result {
         let spine_names: Vec<_> = manifest
             .constructors
             .iter()
-            .map(|n| format!("Spine-{n}"))
+            .flat_map(|n| [format!("Spine-{n}"), format!("Spine-Cano-{n}")])
             .collect();
         let spine = snapshot(&compressed, &spine_names)?;
         let summary_tables: BTreeMap<_, _> = compressed
@@ -236,7 +236,12 @@ fn main() -> Result {
                     &args[2],
                     serde_json::to_string_pretty(&json!({
                         "case":c.name,"comparison":comparison,"expected":expected,"actual":actual,
-                        "spine":spine,"active_summary_tables":active_summary_tables
+                        "spine":spine,"active_summary_tables":active_summary_tables,
+                        "original_constructor_eclasses":classes(&expected),
+                        "restored_constructor_eclasses":classes(&actual),
+                        "native_total_rows_before_export":native_rows_before_export,
+                        "native_tables_before_export":native_tables_before_export,
+                        "original_native_total_rows":original.num_tuples()
                     }))?,
                 )?;
             }

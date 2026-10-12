@@ -38,6 +38,8 @@ def remap_fact(f, bindings):
 
 
 def remap_action(a, bindings):
+    if a['kind']=='set':
+        return dict(a,args=[replace(e,bindings) for e in a['args']],value=replace(a['value'],bindings))
     if a['kind'] in ('expr','let'):
         result=dict(a,expr=replace(a['expr'],bindings))
         if a['kind']=='let': result['name']=bindings.get(a['name'],var(a['name']))['name']
@@ -66,6 +68,7 @@ def normalize(body, head):
     names = {}
     roots = [e for f in body for e in (f['args'] if f['kind']=='eq' else [f['expr']])]
     roots += [e for a in head for e in ([var(a['name']),a['expr']] if a['kind']=='let' else [a['expr']] if a['kind']=='expr' else a['args'])]
+    roots += [a['value'] for a in head if a['kind']=='set']
     for root in roots:
         for e in walk(root):
             if e['kind']=='var': names.setdefault(e['name'],var(f'v{len(names)}'))
