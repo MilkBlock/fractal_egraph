@@ -20,7 +20,7 @@ class ConcreteStages(unittest.TestCase):
         sources['upstream_merge']=ROOT/'egglog/tests/repro-should-saturate.egg'
         for name,source in sources.items():
             out=cls.root/name
-            subprocess.run([sys.executable,'-m','tools.cell_spine.compiler','--source',source,'--output',out,'--skip-build'],cwd=ROOT,check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+            subprocess.run([sys.executable,'-m','tools.cell_spine.compiler','--source',source,'--output',out,'--mode','stages','--skip-build'],cwd=ROOT,check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
             cls.outputs[name]=out
 
     @classmethod
@@ -33,7 +33,7 @@ class ConcreteStages(unittest.TestCase):
     def test_all_states_are_native_verified_and_not_claimed_parameterized(self):
         for out in self.outputs.values():
             d=json.loads((out/'report.json').read_text())
-            self.assertEqual(d['status'],'compiled_stages')
+            self.assertEqual(d['status'],'archived_stages')
             self.assertFalse(d['generalizes_bindings'])
             self.assertEqual(d['plan']['status'],'optimal')
             v=json.loads((out/'validation.json').read_text())
@@ -43,7 +43,7 @@ class ConcreteStages(unittest.TestCase):
 
     def test_lossless_ordered_recipes(self):
         for out in self.outputs.values():
-            archive=json.loads((out/'stage-library.json').read_text())
+            archive=json.loads((out/'snapshot-library.json').read_text())
             frames=json.loads((out/'stage-bake/stages.json').read_text())['frames']
             expected=[f['environment']+f['slot_declarations']+f['actions'] for f in frames]
             self.assertEqual(expand_archive(archive),expected)
@@ -66,7 +66,7 @@ class ConcreteStages(unittest.TestCase):
 
     def test_final_state_remains_available(self):
         p=self.root/'post-check.egg'
-        p.write_text((self.outputs['finite_updates']/'restore.egg').read_text()+'\n(check (= (score 0) 3))\n')
+        p.write_text((self.outputs['finite_updates']/'snapshot-restore.egg').read_text()+'\n(check (= (score 0) 3))\n')
         subprocess.run([ROOT/'target/release/examples/native_math_baseline',p],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
 
     def test_container_codecs_are_structural(self):

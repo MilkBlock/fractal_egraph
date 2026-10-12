@@ -59,7 +59,8 @@ class NativePipeline(unittest.TestCase):
         for name in ('assoc','union','multiple_types','default_ruleset','merged_ports','dual_parents','nested_parents','shared_family_graft','relation_fallback','function_fallback'):
             output=cls.folder/name
             subprocess.run([__import__('sys').executable,'-m','tools.cell_spine.compiler',
-                '--source',f'experiments/cell_spine/fixtures/{name}.egg','--output',str(output),'--skip-build'],cwd=ROOT,check=True,
+                '--source',f'experiments/cell_spine/fixtures/{name}.egg','--output',str(output),'--skip-build',
+                *(['--mode','stages'] if name.endswith('_fallback') else [])],cwd=ROOT,check=True,
                 stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
             cls.outputs[name]=output
 
@@ -85,7 +86,7 @@ class NativePipeline(unittest.TestCase):
         for name in ('relation_fallback','function_fallback'):
             out=self.outputs[name]
             d=json.loads((out/'report.json').read_text())
-            self.assertEqual(d['status'],'compiled_stages')
+            self.assertEqual(d['status'],'archived_stages')
             self.assertFalse(d['generalizes_bindings'])
             self.assertTrue((out/'selection.lp').is_file())
             v=json.loads((out/'validation.json').read_text())

@@ -8,20 +8,18 @@ out/cell-spine-venv/bin/python -m tools.cell_spine.compiler \
   --output out/my-spine-run
 ```
 
-The default `--mode auto` retains the existing parameterized constructor Cell
-compiler when its contracts are sufficient. Other supported finite programs, including multiple rulesets, use
-**concrete stage Bake**, as requested: compile the current input first, defer new
-binding generalization. `--mode stages` selects that path explicitly;
-`--mode symbolic` requires the original parameterized certificate.
+The default `--mode auto` and `--mode symbolic` both require a successful
+compilation through the existing general Cell pipeline. Unsupported inputs and
+failed validation are errors. **There is no automatic snapshot fallback and no
+operator-specific AC compiler.**
 
-Both paths build the native tools, use Gurobi, and validate on the actual local
-egglog runtime. The stage path does not copy the source back as a pretend
-compression. It records native checkpoint states and creates a shared, ordered
-recipe DAG. `--analysis-dir DIR` applies to the symbolic path; stages need a fresh
-native execution. `--skip-build` requires current native binaries. Output must be
-empty.
+Use `--mode stages` only to explicitly export a debug snapshot archive. This is
+not Cell compilation. It preserves current-input checkpoints, not reusable
+coarse paths. Its output filenames and status are distinct from Cell results.
+`--analysis-dir DIR` applies only to Cell compilation. `--skip-build` requires
+current native binaries. Output must be empty.
 
-## Concrete stage coverage
+## Explicit debug snapshot coverage
 
 Supported and tested: relations, custom functions (`set`, arbitrary native merge
 expressions, including non-idempotent merge and references to globals), primitive
@@ -40,13 +38,13 @@ expressions are available before those functions are installed.
 
 Stage outputs:
 
-- `runtime.egg`: compact, shared **recipe spine**, with one `StageSummary` per
+- `snapshot.egg`: shared command encoding, with one `StageSummary` per
   checkpoint. This is an archive representation, not a generalized transition
   matcher. It does not materialize ordinary internal facts.
-- `library.egg`: readable comments mapping recipe command IDs to native `.egg`
-  declarations/actions. `stage-library.json` is the machine-readable codebook
+- `snapshot-dictionary.egg`: readable comments mapping command IDs to native `.egg`
+  declarations/actions. `snapshot-library.json` is the machine-readable codebook
   and exact prefix/middle/suffix recipes.
-- `restore.egg`: expand the recorded states and perform checks/extractions in
+- `snapshot-restore.egg`: expand the recorded states and perform checks/extractions in
   their original phases. Earlier phases use isolated scopes; the final native
   data remains available afterwards. It never runs original scheduled rules.
 - `stage-bake/stage-NNNN.egg`: independently runnable full checkpoint.
@@ -75,13 +73,16 @@ Some tiny programs are larger after encoding.
 
 ## Guarantees and remaining boundaries
 
-`compiled_stages` means **the recorded concrete execution is recoverable**, not
+`archived_stages` with `cellified:false` means **the recorded concrete execution is recoverable**, not
 that its snapshots are universally interchangeable saturated Cells. Changing the
 source/input requires rebaking. Equal table states can have different semi-naive
 frontiers: those frontiers are not restored, and this is not a native continuation
 snapshot. New bindings, arbitrary future grafts and continued native execution
 are not covered by this stage contract. Use the exported final data for inspection;
-parameterized execution remains separate work.
+parameterized execution remains separate work. The archive `compressed` flag
+only compares the encoded recipe plus necessary codebook against unshared
+checkpoint restore streams. It does not compare with original source bytes or
+egraph RSS; negative savings remain visible.
 
 The native program must finish on the supplied input. Nonterminating saturation
 cannot produce a finite completed Bake. Proof generation, plugin-defined
@@ -94,9 +95,8 @@ The original symbolic path still requires complete positive constructor/equality
 certificates and one unconditional saturation boundary. It emits typed fork
 nodes, independent Summaries, observed boundary rules and cached-closure export.
 Opaque-boundary equivalence is a positive substitution guarantee, not a promise
-that unseen concrete binding/union interactions are already saturated. In auto
-mode an unsupported symbolic lowering can use the concrete stage contract; the
-reason is recorded. Solver/license errors remain errors. No engine changes are
+that unseen concrete binding/union interactions are already saturated. An unsupported Cell lowering never redirects to the debug archive. The Cell
+result uses `cellified:true`, not an unqualified compression claim. Solver/license errors remain errors. No engine changes are
 introduced by either compiler.
 
 ## Multi-parent spine composition
@@ -369,7 +369,7 @@ The operation does not execute rules or certify saturation.
 The complete upstream web-demo `math.egg` produces 21 files: one `add-ac` scope
 and 20 scopes retaining default + `prune`. The unchanged add-ac scope's original
 7 rounds and check pass native execution and concrete-stage Bake. This is not
-proof of successful Bake for every other mixed program. Auto/stage Bake now
+proof of successful Bake for every other mixed program. Explicit stage export
 supports multiple native rulesets; the actual default/prune scope also passes
 checkpoint reconstruction. Strict symbolic Cell composition remains single-ruleset.
 
@@ -378,12 +378,13 @@ cargo test --offline --release --example split_ast
 out/cell-spine-venv/bin/python -m unittest tools.cell_spine.test_split -v
 ```
 
-## Multiple rulesets in concrete Bake
+## Multiple rulesets in explicit snapshot export
 
 The checkpoint runner executes each original RunSchedule on the same native
 egraph, with its ordinary per-rule incremental frontiers. It preserves seq,
 repeat, :until, prune, union, updates and scope rollback. No rulesets are merged
-and no schedules are reordered. Thus auto/stages need no single-ruleset gate.
+and no schedules are reordered. Thus explicit stage export needs no single-ruleset gate. Default Cell Bake
+keeps its separate admission checks.
 Restore remains immutable checkpoint reconstruction, not restoration of the
 native semi-naive frontiers for arbitrary continuation; new inputs require
 rebaking. Symbolic Cell compilation keeps its separate single-ruleset contract.
@@ -391,3 +392,16 @@ rebaking. Symbolic Cell compilation keeps its separate single-ruleset contract.
 `fixtures/stages/multi_rulesets.egg` checks that running prune does not reset the
 default rule's frontier and accidentally repeat a non-idempotent merge. Native
 checks, hidden rows and rollback states are verified again after restoration.
+
+## General reuse limitation
+
+The existing three-leaf library restores its own left-associated input exactly,
+but not arbitrary right-associated or larger inputs. See
+`experiments/cell_spine/reuse_boundary/README.md` and its native reproducer.
+The missing capability is successor matching over certified closure rows that
+are absent from the physical spine. No dedicated AC algorithm is used to hide
+this limitation. Default Bake fails rather than returning a snapshot as success.
+
+```sh
+out/cell-spine-venv/bin/python -m unittest tools.cell_spine.test_contract -v
+```

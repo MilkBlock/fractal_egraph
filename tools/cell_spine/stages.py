@@ -115,21 +115,22 @@ def compile_stages(source, output, root, reason, weights=(1.,1.,1.)):
     restored=output/'work'/'stages-restored.egg';restored.write_text(restore)
     subprocess.run([root/'target/release/examples/native_math_baseline',restored],check=True,cwd=root,stdout=subprocess.DEVNULL)
     comments='\n'.join('; command '+str(i)+': '+s.replace('\n','\n; ') for i,s in enumerate(dictionary))+'\n'
-    (output/'library.egg').write_text(comments)
-    (output/'runtime.egg').write_text(runtime)
-    (output/'restore.egg').write_text(restore)
+    (output/'snapshot-dictionary.egg').write_text(comments)
+    (output/'snapshot.egg').write_text(runtime)
+    (output/'snapshot-restore.egg').write_text(restore)
     archive=json.dumps({
         'schema':'ordered-stage-recipes/v1','commands':list(dictionary),
         'recipes':[dict(parent=c['parent'],prefix=c['prefix'],suffix=c['suffix'],middle=[dictionary[x] for x in c['middle']]) for c in selected]
     },indent=2)+'\n'
     if expand_archive(json.loads(archive))!=streams: raise AssertionError('encoded archive changed stage instructions')
-    (output/'stage-library.json').write_text(archive)
+    (output/'snapshot-library.json').write_text(archive)
     (output/'validation.json').write_text(json.dumps({
         'scope':'native stage states and observable outputs; concrete input only',
         'cases':[dict(stage=f['id'],command=f['command'],rows=f['rows'],hidden_rows=f['hidden_rows'],
                       comparison=f['comparison'],original_rules_executed_on_restore=False,outputs=f['output']) for f in frames]
     },indent=2)+'\n')
-    return dict(status='compiled_stages',compressed=True,generalizes_bindings=False,
+    return dict(status='archived_stages',cellified=False,representation='concrete_snapshot_archive',
+                compressed=(len(archive.encode())+len(runtime.encode()) < sum(len('\n'.join(s).encode()) for s in streams)),generalizes_bindings=False,
                 lowering_reason=reason,scope='concrete source/input stage specialization; not a parameterized Cell transition library',
                 plan=selection,stages=len(frames),unique_commands=len(dictionary),
                 unshared_command_references=sum(map(len,streams)),stored_command_references=sum(len(c['middle']) for c in selected),
@@ -138,4 +139,7 @@ def compile_stages(source, output, root, reason, weights=(1.,1.,1.)):
                 archive_smaller=(len(archive.encode())+len(runtime.encode()) < sum(len('\n'.join(s).encode()) for s in streams)),
                 net_archive_savings_bytes=sum(len('\n'.join(s).encode()) for s in streams)-len(archive.encode())-len(runtime.encode()),
                 expanded_recipe_bytes=sum(len('\n'.join(s).encode()) for s in streams),
-                runtime_bytes=len(runtime.encode()),original_rules_executed_on_restore=False)
+                snapshot_bytes=len(runtime.encode()),
+                compression_baseline='unshared checkpoint restore streams, not the original source or egraph RSS',
+                archive_byte_scope='snapshot.egg + snapshot-library.json; diagnostic reports, expanded restore and dictionary comments are excluded',
+                original_rules_executed_on_restore=False)
