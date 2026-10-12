@@ -339,34 +339,37 @@ that min/max results are recovered while near misses remain unmatched.
 out/cell-spine-venv/bin/python -m tools.cell_spine.split --source /path/to/math.egg
 ```
 
-This parser-only command writes `math.split-NNN-RULESET.egg` and `math.split.json`
-**beside the selected source**. It uses `examples/split_ast.rs`, egglog's own
-parser and native S-expression source spans; it does not split parentheses with
-regex or print the normalized AST. Wildcards and adjacent source annotations
-remain intact. `--dry-run` writes nothing; `--skip-build` uses an existing
-`target/release/examples/split_ast` binary.
+This parser-only command writes one `math.split-NNN-NAME.egg` per independent
+execution scope and a `math.split.json` report **beside the selected source**.
+It uses egglog's native parser through `examples/split_ast.rs`, preserving raw
+source text, wildcards and adjacent annotations. `--dry-run` writes nothing;
+`--skip-build` uses the existing native parser binary.
 
-Each scope with direct schedules is considered once. It inherits its ancestors'
-executed prefixes, excluding completed sibling scopes whose state was popped.
-Only rules from its one scheduled ruleset are kept. Ancestor push wrappers are
-removed; the resulting program describes the selected scope **before pop**.
-Finite counts, `:until`, order of commands, checks and effects are preserved.
-Nested and counted push/pop are supported, and invalid stacks are rejected.
+Scopes containing direct schedules are exported regardless of their ruleset
+count. Inherited prefixes are replayed, completed sibling scopes are omitted,
+and ancestor push wrappers are removed. Each file describes its scope before
+pop. All scheduled rulesets, finite counts, `:until`, checks, command order and
+effects are preserved. Only rulesets never scheduled on that path are removed.
+Nested and counted push/pop are supported. Empty wrapper scopes are not extra
+examples. Invalid stacks and unsupported includes, combined-ruleset/custom/proof
+commands or external file IO fail explicitly.
 
-A path still scheduling more than one ruleset (including necessary prefix runs)
-is listed as skipped. We do not split a dependent sequence by merely deleting
-its other rulesets. Includes, combined-ruleset declarations, custom/proof
-commands and external file IO are rejected explicitly. This is a bounded source
-normalization contract, not support for every possible egglog extension.
-Outputs are reparsed before publication. Identical reruns reuse existing files;
-any conflicting edited file prevents publication. The original is untouched.
-The operation does not execute rules, solve a Gurobi model, or certify saturation;
-use ordinary Bake on the resulting file for those later checks.
+Splitting is separate from Bake admission. Each v2 report entry lists `rulesets`
+and a static `bake.status`: `single_ruleset`, `requires_multi_ruleset_support`,
+or `no_scheduled_ruleset`. The first is only a ruleset check; compiler/native
+validation is still required. Multi-ruleset files are emitted, not skipped.
 
-The complete upstream web-demo `math.egg` has one independent `add-ac` scope and
-20 scopes requiring default + `prune`. The former retains its 7 rounds and original
-check, passes native execution and can be baked as a concrete finite-stage cache.
-It is not renamed as a saturated or parameterized Cell certificate.
+All outputs are reparsed and their retained command texts compared in order with
+the originals. Identical reruns reuse existing files, and conflicting edits are
+never overwritten. An exact, unmodified v1 manifest for the same source can be
+migrated to v2. If the source changes, a separate deterministic source-hash batch
+is emitted in the same directory, preserving prior outputs and their manifest.
+The operation does not execute rules or certify saturation.
+
+The complete upstream web-demo `math.egg` produces 21 files: one `add-ac` scope
+and 20 scopes retaining default + `prune`. The unchanged add-ac scope's original
+7 rounds and check pass native execution and concrete-stage Bake. This is not
+proof of successful Bake for the other 20 mixed programs.
 
 ```sh
 cargo test --offline --release --example split_ast

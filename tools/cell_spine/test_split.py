@@ -5,7 +5,7 @@ import sys
 import tempfile
 import unittest
 
-from .split import ROOT, native_ast, plan, publish
+from .split import ROOT, encoded, legacy_manifest, native_ast, plan, publish
 
 
 class SplitScopes(unittest.TestCase):
@@ -76,11 +76,34 @@ class SplitScopes(unittest.TestCase):
   (pop)
 (pop)
 ''')
-        self.assertEqual(len(report['files']), 2)
-        self.assertEqual(report['skipped'][0]['rulesets'], ['a', 'b'])
+        self.assertEqual(len(report['files']), 3)
+        self.assertEqual(report['skipped'], [])
+        self.assertEqual(report['files'][2]['rulesets'], ['a', 'b'])
+        self.assertEqual(report['files'][2]['bake']['status'], 'requires_multi_ruleset_support')
         self.assertEqual(len(report['files'][1]['inherited_schedule_lines']), 1)
         for f in report['files']:
             self.execute(f['path'])
+
+    def test_mixed_scope_preserves_ordered_pruning_and_fail_check(self):
+        source, _, report = self.split('''
+(datatype E (A) (B) (C))
+(ruleset prune)
+(rewrite (A) (B))
+(rule ((= x (B))) ((subsume (B))) :ruleset prune)
+(push)
+(A)
+(run-schedule (repeat 2 (seq (run) (run prune))))
+(check (= (A) (B)))
+(fail (check (= (A) (C))))
+(pop)
+''')
+        self.assertEqual(len(report['files']), 1)
+        output = report['files'][0]
+        self.assertEqual(output['rulesets'], ['', 'prune'])
+        self.assertIn('(repeat 2 (seq (run) (run prune)))', Path(output['path']).read_text())
+        self.assertIn('(fail (check (= (A) (C))))', Path(output['path']).read_text())
+        self.execute(source)
+        self.execute(output['path'])
 
     def test_counted_stack_wildcards_and_annotations_roundtrip(self):
         _, _, report = self.split('''; 中文 (push) 只是注释
@@ -123,6 +146,37 @@ class SplitScopes(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'different content'):
             publish(plan_report)
         self.assertEqual(output.read_text(), '; user edit\n')
+
+    def test_migrate_exact_legacy_manifest_but_preserve_user_edits(self):
+        source = self.folder/'source.egg'
+        source.write_text('(datatype E (A) (B))\n(ruleset a) (ruleset b)\n(rewrite (A) (B) :ruleset a)\n(rewrite (B) (A) :ruleset b)\n(push) (A) (run a 1) (pop)\n(push) (A) (run-schedule (seq (run a) (run b))) (pop)\n')
+        report = plan(source, native_ast(source, self.folder))
+        manifest = source.with_name('source.split.json')
+        single, mixed = report['files']
+        Path(single['path']).write_text(single['content'])
+        previous = encoded(legacy_manifest(report, manifest))
+        manifest.write_bytes(previous+b' ')
+        with self.assertRaisesRegex(ValueError, 'different content'):
+            publish(report)
+        self.assertFalse(Path(mixed['path']).exists())
+        manifest.write_bytes(previous)
+        result = publish(report)
+        self.assertEqual(result['schema'], 'egglog-scope-split/v2')
+        self.assertTrue(Path(mixed['path']).is_file())
+        self.assertEqual(publish(report), result)
+
+    def test_changed_source_creates_new_batch_without_overwriting_prior_files(self):
+        source, _, old = self.split('(datatype E (A))\n(rule ((A)) ((A)))\n(A)\n(run 1)\n')
+        first = Path(old['files'][0]['path'])
+        first.write_text('; user edited previous output\n')
+        manifest = Path(old['manifest']).read_bytes()
+        source.write_text(source.read_text().replace('(run 1)', '(run 2)'))
+        new = publish(plan(source, native_ast(source, self.folder)))
+        self.assertNotEqual(new['manifest'], old['manifest'])
+        self.assertNotEqual(new['files'][0]['path'], str(first))
+        self.assertEqual(first.read_text(), '; user edited previous output\n')
+        self.assertEqual(Path(old['manifest']).read_bytes(), manifest)
+        self.assertEqual(publish(plan(source, native_ast(source, self.folder))), new)
 
     def test_bad_stack_or_opaque_command_writes_nothing(self):
         for text in ['(pop)', '(push) (push) (pop)', '(include "other.egg")']:
