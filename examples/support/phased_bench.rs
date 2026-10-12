@@ -10,7 +10,11 @@ struct Phases {
     export: String,
     constructors: Vec<String>,
 }
-fn execute_phase(eg: &mut EGraph, source: &str) -> (f64, usize) {
+fn execute_phase(
+    eg: &mut EGraph,
+    source: &str,
+    diagnose: bool,
+) -> (f64, usize, std::collections::BTreeMap<String, usize>) {
     let tick = std::time::Instant::now();
     let outputs = eg.parse_and_run_program(None, source).unwrap();
     let matches = outputs
@@ -22,8 +26,18 @@ fn execute_phase(eg: &mut EGraph, source: &str) -> (f64, usize) {
             _ => None,
         })
         .sum();
+    let mut per_rule = std::collections::BTreeMap::new();
+    if diagnose {
+        for output in &outputs {
+            if let egglog::CommandOutput::RunSchedule(report) = output {
+                for (rule, count) in &report.num_matches_per_rule {
+                    *per_rule.entry(rule.to_string()).or_default() += count;
+                }
+            }
+        }
+    }
     drop(outputs);
-    (tick.elapsed().as_secs_f64(), matches)
+    (tick.elapsed().as_secs_f64(), matches, per_rule)
 }
 fn shape(eg: &EGraph, names: &[String]) -> serde_json::Value {
     let mut classes = std::collections::BTreeSet::new();
@@ -56,6 +70,16 @@ fn shape(eg: &EGraph, names: &[String]) -> serde_json::Value {
     serde_json::json!({"enodes":tables.values().sum::<usize>(),"eclasses":classes.len(),"tables":tables,"sorts":by_sort.into_iter().map(|(s,(n,c))| (s,serde_json::json!({"enodes":n,"eclasses":c.len()}))).collect::<std::collections::BTreeMap<_,_>>()})
 }
 pub fn run(path: &str, graph: Option<&str>) {
+    run_with_probes(path, graph, Vec::new);
+}
+
+// The shared harness still compiles against pristine egglog. Native diagnostic
+// callers may supply existing counters without adding instrumentation here.
+pub fn run_with_probes(
+    path: &str,
+    graph: Option<&str>,
+    probes: impl Fn() -> Vec<(&'static str, usize)>,
+) {
     use serde_json::json;
     use std::io::Write;
     let tick = std::time::Instant::now();
@@ -65,27 +89,60 @@ pub fn run(path: &str, graph: Option<&str>) {
     let read_seconds = tick.elapsed().as_secs_f64();
     let tick = std::time::Instant::now();
     let mut eg = EGraph::default();
-    execute_phase(&mut eg, &environment);
+    execute_phase(&mut eg, &environment, false);
     let setup_seconds = tick.elapsed().as_secs_f64();
-    let (input_seconds, _) = execute_phase(&mut eg, &input);
+    let (input_seconds, _, _) = execute_phase(&mut eg, &input, false);
     let initial = graph.map(|_| shape(&eg, &config.constructors));
-    let (run_seconds, matches) = execute_phase(&mut eg, &config.run);
+    let before_probes = graph.map(|_| probes());
+    let (run_seconds, matches, rule_matches) = execute_phase(&mut eg, &config.run, graph.is_some());
+    let join_probes = before_probes.map(|before| {
+        let before: std::collections::BTreeMap<_, _> = before.into_iter().collect();
+        probes()
+            .into_iter()
+            .map(|(name, count)| (name, count - before.get(name).copied().unwrap_or(0)))
+            .collect::<std::collections::BTreeMap<_, _>>()
+    });
     let mut verification = serde_json::Value::Null;
     if graph.is_some() {
         let names = eg.get_function_names();
         let (mut active, mut hidden) = (0, 0);
+        let mut summary_tables = std::collections::BTreeMap::new();
         for name in names.iter().filter(|n| n.starts_with("Spine-Summary-")) {
-            eg.function_for_each(name, |r| if r.subsumed { hidden += 1 } else { active += 1 })
+            let (mut live, mut retired) = (0, 0);
+            eg.function_for_each(name, |r| if r.subsumed { retired += 1 } else { live += 1 })
                 .unwrap();
+            active += live;
+            hidden += retired;
+            summary_tables.insert(name, json!({"active":live,"subsumed":retired}));
+        }
+        let raw: Vec<_> = config
+            .constructors
+            .iter()
+            .map(|n| format!("Spine-{n}"))
+            .collect();
+        let canonical: Vec<_> = config
+            .constructors
+            .iter()
+            .map(|n| format!("Spine-Cano-{n}"))
+            .collect();
+        let all: Vec<_> = raw.iter().chain(&canonical).cloned().collect();
+        let mut table_rows = std::collections::BTreeMap::new();
+        for name in &names {
+            let mut n = 0;
+            eg.function_for_each(name, |_| n += 1).unwrap();
+            table_rows.insert(name, n);
         }
         verification = json!({"initial_original":initial,"original_before_export":shape(&eg, &config.constructors),
-            "spine":shape(&eg, &config.constructors.iter().map(|n|format!("Spine-{n}")).collect::<Vec<_>>()),
-            "active_summaries":active,"subsumed_summaries":hidden});
+            "spine":shape(&eg, &all),"raw_spine":shape(&eg, &raw),"canonical_spine":shape(&eg, &canonical),
+            "active_summaries":active,"subsumed_summaries":hidden,"summary_tables":summary_tables,
+            "native_total_rows_before_export":table_rows.values().sum::<usize>(),"native_tables_before_export":table_rows,
+            "rule_matches":rule_matches,"run_probe_counters":join_probes});
     }
     let (export_seconds, export_matches) = if config.export.is_empty() {
         (0., 0)
     } else {
-        execute_phase(&mut eg, &config.export)
+        let (seconds, matches, _) = execute_phase(&mut eg, &config.export, false);
+        (seconds, matches)
     };
     if let Some(path) = graph {
         verification["restored"] = shape(&eg, &config.constructors);

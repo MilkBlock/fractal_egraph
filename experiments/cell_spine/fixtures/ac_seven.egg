@@ -1,0 +1,14 @@
+; Test-only Add/Const subset of upstream web-demo/math.egg, scope add-ac.
+; Preserve both rewrite directions, the seven inputs, run count and check.
+; Unused constructors/relations from the original file are omitted here.
+(datatype Math (Add Math Math) (Const f64))
+(ruleset add-ac)
+(rewrite (Add a b) (Add b a) :ruleset add-ac)
+(rewrite (Add a (Add b c)) (Add (Add a b) c) :ruleset add-ac)
+(let root (Add (Const 1.0)
+  (Add (Const 2.0) (Add (Const 3.0) (Add (Const 4.0)
+    (Add (Const 5.0) (Add (Const 6.0) (Const 7.0))))))))
+(run add-ac 7)
+(check (= root (Add (Const 7.0)
+  (Add (Const 6.0) (Add (Const 5.0) (Add (Const 4.0)
+    (Add (Const 3.0) (Add (Const 2.0) (Const 1.0)))))))))

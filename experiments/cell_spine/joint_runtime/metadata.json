@@ -1,0 +1,781 @@
+{
+  "schema": "spine-joint-native-ablation/v1",
+  "platform": "macOS-15.3.1-arm64-arm-64bit-Mach-O",
+  "threads": 1,
+  "commit": "3401f61ead5d224eed7eea91357813062c837091",
+  "dirty": true,
+  "runner_sha256": "20ad2a9a11b020f83ab679062c3e1d62ef1245f47a06edad9f61e863b1f56514",
+  "harness_sha256": "3fc682b3ef2884f024f72c08d3547318e79a0619170d5eafec3f717b69e417fe",
+  "diagnostic_runner_sha256": "ec2f2ae64cbb61255083c6e7c95b5d076a8d4da26328e36ad403ba905d575622",
+  "scope": "Actual current native runtime; no engine edits for this experiment; not pristine",
+  "external_guard": {
+    "seconds": 30,
+    "process_group_rss_bytes": 4294967296
+  },
+  "time_units": "CSV phase columns are milliseconds; RSS is MiB. Each mode timed once.",
+  "training": {
+    "assoc": {
+      "marker_only_basis": "fixed old path/implementation assignment, exact marker subproblem solved",
+      "rejected_paths": [],
+      "bake_report_sha256": "38d1bf574b66c2c307b4206f9040ec2425dbeceda364fa088be8be41b53e2be3",
+      "bake_analysis": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/joint-pricing-verified/assoc/analysis",
+      "joint_bound": 79.0,
+      "prepare_seconds": 0.2737379160244018,
+      "variants": {
+        "old": {
+          "plan": {
+            "selected": [
+              0,
+              3
+            ],
+            "implementations": [
+              "impl_0_0",
+              "impl_1_0",
+              "impl_2_1",
+              "impl_3_1",
+              "impl_4_1",
+              "impl_5_2",
+              "impl_6_1",
+              "impl_7_1",
+              "impl_8_1"
+            ],
+            "marker_layouts": [
+              "m0_0",
+              "m3_0"
+            ]
+          },
+          "score": 79,
+          "template_shapes": 2,
+          "marker_columns": 2,
+          "runtime_cost": {
+            "search_atoms": 25,
+            "update_actions": 50,
+            "canonical_reads": 9,
+            "external_reads": 9,
+            "marker_reads": 7,
+            "canonical_writes": 16,
+            "marker_columns": 6,
+            "marker_key_columns": 3,
+            "unions": 16,
+            "changes": 3
+          },
+          "runtime_rules": 8,
+          "library_bytes": 6888,
+          "library_lines": 40,
+          "library_sha256": "87d3f5c1567ddb601da0a47d47c978769a8c03dd38215bf862b5d70de7406568",
+          "cost_audit": "exact"
+        },
+        "marker_only": {
+          "plan": {
+            "selected": [
+              0,
+              3
+            ],
+            "implementations": [
+              "impl_0_0",
+              "impl_1_0",
+              "impl_2_1",
+              "impl_3_1",
+              "impl_4_1",
+              "impl_5_2",
+              "impl_6_1",
+              "impl_7_1",
+              "impl_8_1"
+            ],
+            "marker_layouts": [
+              "m0_0",
+              "m3_0"
+            ]
+          },
+          "score": 79,
+          "template_shapes": 2,
+          "marker_columns": 2,
+          "runtime_cost": {
+            "search_atoms": 25,
+            "update_actions": 50,
+            "canonical_reads": 9,
+            "external_reads": 9,
+            "marker_reads": 7,
+            "canonical_writes": 16,
+            "marker_columns": 6,
+            "marker_key_columns": 3,
+            "unions": 16,
+            "changes": 3
+          },
+          "runtime_rules": 8,
+          "library_bytes": 6888,
+          "library_lines": 40,
+          "library_sha256": "87d3f5c1567ddb601da0a47d47c978769a8c03dd38215bf862b5d70de7406568",
+          "cost_audit": "exact"
+        },
+        "joint": {
+          "plan": {
+            "selected": [
+              0,
+              8
+            ],
+            "implementations": [
+              "impl_0_0",
+              "impl_1_0",
+              "impl_2_6",
+              "impl_3_6",
+              "impl_4_6",
+              "impl_5_12",
+              "impl_6_6",
+              "impl_7_6",
+              "impl_8_6"
+            ],
+            "marker_layouts": [
+              "m0_0",
+              "m8_0"
+            ]
+          },
+          "score": 79,
+          "template_shapes": 2,
+          "marker_columns": 2,
+          "runtime_cost": {
+            "search_atoms": 25,
+            "update_actions": 50,
+            "canonical_reads": 9,
+            "external_reads": 9,
+            "marker_reads": 7,
+            "canonical_writes": 16,
+            "marker_columns": 6,
+            "marker_key_columns": 3,
+            "unions": 16,
+            "changes": 3
+          },
+          "runtime_rules": 8,
+          "library_bytes": 6891,
+          "library_lines": 40,
+          "library_sha256": "d247a4bf4071135c51926771e53dae2094fcdb98a2252d0ea50d6dfe819e88f9",
+          "cost_audit": "exact"
+        }
+      }
+    },
+    "long_spine_graft": {
+      "marker_only_basis": "same path/implementation assignment as supplied joint optimum; reuse its marker optimum",
+      "rejected_paths": [],
+      "bake_report_sha256": "f82d42247e97c005f4bc8f6dc01ff7fa69f0287d05384aabbf55b53bb2f1459d",
+      "bake_analysis": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/joint-pricing-verified/long_spine_graft/analysis",
+      "joint_bound": 57.0,
+      "prepare_seconds": 0.12601162493228912,
+      "variants": {
+        "old": {
+          "plan": {
+            "selected": [
+              0,
+              1
+            ],
+            "implementations": [
+              "impl_0_0",
+              "impl_1_0"
+            ],
+            "marker_layouts": [
+              "m0_0",
+              "m1_0"
+            ]
+          },
+          "score": 61,
+          "template_shapes": 7,
+          "marker_columns": 2,
+          "runtime_cost": {
+            "search_atoms": 26,
+            "update_actions": 26,
+            "canonical_reads": 14,
+            "external_reads": 8,
+            "marker_reads": 4,
+            "canonical_writes": 8,
+            "marker_columns": 3,
+            "marker_key_columns": 2,
+            "unions": 8,
+            "changes": 2
+          },
+          "runtime_rules": 4,
+          "library_bytes": 10016,
+          "library_lines": 59,
+          "library_sha256": "5c8f06dedfac9798a748d766acb84eeef2c893b813c55a9f9e7240006c951552",
+          "cost_audit": "exact"
+        },
+        "marker_only": {
+          "plan": {
+            "selected": [
+              0,
+              1
+            ],
+            "implementations": [
+              "impl_0_0",
+              "impl_1_0"
+            ],
+            "marker_layouts": [
+              "m0_0",
+              "m1_2"
+            ]
+          },
+          "score": 57,
+          "template_shapes": 7,
+          "marker_columns": 3,
+          "runtime_cost": {
+            "search_atoms": 19,
+            "update_actions": 28,
+            "canonical_reads": 7,
+            "external_reads": 8,
+            "marker_reads": 4,
+            "canonical_writes": 8,
+            "marker_columns": 5,
+            "marker_key_columns": 2,
+            "unions": 8,
+            "changes": 2
+          },
+          "runtime_rules": 4,
+          "library_bytes": 9660,
+          "library_lines": 59,
+          "library_sha256": "cbc6de36b63cdaa228e5f7c5631a5cdb92480fcf8b9419ba60b535aa08138713",
+          "cost_audit": "exact"
+        },
+        "joint": {
+          "plan": {
+            "selected": [
+              0,
+              1
+            ],
+            "implementations": [
+              "impl_0_0",
+              "impl_1_0"
+            ],
+            "marker_layouts": [
+              "m0_0",
+              "m1_2"
+            ]
+          },
+          "score": 57,
+          "template_shapes": 7,
+          "marker_columns": 3,
+          "runtime_cost": {
+            "search_atoms": 19,
+            "update_actions": 28,
+            "canonical_reads": 7,
+            "external_reads": 8,
+            "marker_reads": 4,
+            "canonical_writes": 8,
+            "marker_columns": 5,
+            "marker_key_columns": 2,
+            "unions": 8,
+            "changes": 2
+          },
+          "runtime_rules": 4,
+          "library_bytes": 9660,
+          "library_lines": 59,
+          "library_sha256": "cbc6de36b63cdaa228e5f7c5631a5cdb92480fcf8b9419ba60b535aa08138713",
+          "cost_audit": "exact"
+        }
+      }
+    },
+    "eggcc_if": {
+      "marker_only_basis": "same path/implementation assignment as supplied joint optimum; reuse its marker optimum",
+      "rejected_paths": [],
+      "bake_report_sha256": "41f0647ba709aee2d72eee161d2d6585ef83d0f5b03d307bdebdc5d63df0d98e",
+      "bake_analysis": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/joint-pricing-verified/eggcc_if/analysis",
+      "joint_bound": 2727.0,
+      "prepare_seconds": 1.8342936669941992,
+      "variants": {
+        "old": {
+          "plan": {
+            "selected": [
+              5,
+              6,
+              7
+            ],
+            "implementations": [
+              "impl_0_5",
+              "impl_1_5",
+              "impl_2_5",
+              "impl_3_5",
+              "impl_4_5",
+              "impl_5_5",
+              "impl_6_5",
+              "impl_7_5"
+            ],
+            "marker_layouts": [
+              "m5_0",
+              "m6_0",
+              "m7_0"
+            ]
+          },
+          "score": 3463,
+          "template_shapes": 17,
+          "marker_columns": 11,
+          "runtime_cost": {
+            "search_atoms": 1859,
+            "update_actions": 1576,
+            "canonical_reads": 1248,
+            "external_reads": 503,
+            "marker_reads": 108,
+            "canonical_writes": 603,
+            "marker_columns": 251,
+            "marker_key_columns": 24,
+            "unions": 623,
+            "changes": 24
+          },
+          "runtime_rules": 55,
+          "library_bytes": 230313,
+          "library_lines": 247,
+          "library_sha256": "f251b41f1ddb43aa484b3ef2186cde42e11c0b5748c458cd0438491f16a86533",
+          "cost_audit": "exact"
+        },
+        "marker_only": {
+          "plan": {
+            "selected": [
+              5,
+              6,
+              7
+            ],
+            "implementations": [
+              "impl_0_5",
+              "impl_1_5",
+              "impl_2_5",
+              "impl_3_5",
+              "impl_4_5",
+              "impl_5_5",
+              "impl_6_5",
+              "impl_7_5"
+            ],
+            "marker_layouts": [
+              "m5_0",
+              "m6_15",
+              "m7_38"
+            ]
+          },
+          "score": 2727,
+          "template_shapes": 17,
+          "marker_columns": 21,
+          "runtime_cost": {
+            "search_atoms": 711,
+            "update_actions": 1978,
+            "canonical_reads": 24,
+            "external_reads": 579,
+            "marker_reads": 108,
+            "canonical_writes": 679,
+            "marker_columns": 501,
+            "marker_key_columns": 24,
+            "unions": 699,
+            "changes": 24
+          },
+          "runtime_rules": 55,
+          "library_bytes": 173790,
+          "library_lines": 247,
+          "library_sha256": "82dc5cfd9fbe5cf66f8ffac19b650620d8317c9d97a3485fca0b4974fd930339",
+          "cost_audit": "exact"
+        },
+        "joint": {
+          "plan": {
+            "selected": [
+              5,
+              6,
+              7
+            ],
+            "implementations": [
+              "impl_0_5",
+              "impl_1_5",
+              "impl_2_5",
+              "impl_3_5",
+              "impl_4_5",
+              "impl_5_5",
+              "impl_6_5",
+              "impl_7_5"
+            ],
+            "marker_layouts": [
+              "m5_0",
+              "m6_15",
+              "m7_38"
+            ]
+          },
+          "score": 2727,
+          "template_shapes": 17,
+          "marker_columns": 21,
+          "runtime_cost": {
+            "search_atoms": 711,
+            "update_actions": 1978,
+            "canonical_reads": 24,
+            "external_reads": 579,
+            "marker_reads": 108,
+            "canonical_writes": 679,
+            "marker_columns": 501,
+            "marker_key_columns": 24,
+            "unions": 699,
+            "changes": 24
+          },
+          "runtime_rules": 55,
+          "library_bytes": 173790,
+          "library_lines": 247,
+          "library_sha256": "82dc5cfd9fbe5cf66f8ffac19b650620d8317c9d97a3485fca0b4974fd930339",
+          "cost_audit": "exact"
+        }
+      }
+    }
+  },
+  "whole_graph_checks": [
+    {
+      "fixture": "assoc",
+      "input": "source",
+      "variants": {
+        "old": {
+          "exact_equal": true,
+          "enodes": 15,
+          "eclasses": 7,
+          "sorts": {
+            "Term": {
+              "enodes": 15,
+              "eclasses": 7
+            }
+          }
+        },
+        "marker_only": {
+          "exact_equal": true,
+          "enodes": 15,
+          "eclasses": 7,
+          "sorts": {
+            "Term": {
+              "enodes": 15,
+              "eclasses": 7
+            }
+          }
+        },
+        "joint": {
+          "exact_equal": true,
+          "enodes": 15,
+          "eclasses": 7,
+          "sorts": {
+            "Term": {
+              "enodes": 15,
+              "eclasses": 7
+            }
+          }
+        }
+      }
+    },
+    {
+      "fixture": "assoc",
+      "input": "fresh-1000",
+      "variants": {
+        "old": {
+          "exact_equal": true,
+          "enodes": 15000,
+          "eclasses": 7000,
+          "sorts": {
+            "Term": {
+              "enodes": 15000,
+              "eclasses": 7000
+            }
+          }
+        },
+        "marker_only": {
+          "exact_equal": true,
+          "enodes": 15000,
+          "eclasses": 7000,
+          "sorts": {
+            "Term": {
+              "enodes": 15000,
+              "eclasses": 7000
+            }
+          }
+        },
+        "joint": {
+          "exact_equal": true,
+          "enodes": 15000,
+          "eclasses": 7000,
+          "sorts": {
+            "Term": {
+              "enodes": 15000,
+              "eclasses": 7000
+            }
+          }
+        }
+      }
+    },
+    {
+      "fixture": "long_spine_graft",
+      "input": "source",
+      "variants": {
+        "old": {
+          "exact_equal": true,
+          "enodes": 18,
+          "eclasses": 18,
+          "sorts": {
+            "Term": {
+              "enodes": 18,
+              "eclasses": 18
+            }
+          }
+        },
+        "marker_only": {
+          "exact_equal": true,
+          "enodes": 18,
+          "eclasses": 18,
+          "sorts": {
+            "Term": {
+              "enodes": 18,
+              "eclasses": 18
+            }
+          }
+        },
+        "joint": {
+          "exact_equal": true,
+          "enodes": 18,
+          "eclasses": 18,
+          "sorts": {
+            "Term": {
+              "enodes": 18,
+              "eclasses": 18
+            }
+          }
+        }
+      }
+    },
+    {
+      "fixture": "long_spine_graft",
+      "input": "fresh-1000",
+      "variants": {
+        "old": {
+          "exact_equal": true,
+          "enodes": 18000,
+          "eclasses": 18000,
+          "sorts": {
+            "Term": {
+              "enodes": 18000,
+              "eclasses": 18000
+            }
+          }
+        },
+        "marker_only": {
+          "exact_equal": true,
+          "enodes": 18000,
+          "eclasses": 18000,
+          "sorts": {
+            "Term": {
+              "enodes": 18000,
+              "eclasses": 18000
+            }
+          }
+        },
+        "joint": {
+          "exact_equal": true,
+          "enodes": 18000,
+          "eclasses": 18000,
+          "sorts": {
+            "Term": {
+              "enodes": 18000,
+              "eclasses": 18000
+            }
+          }
+        }
+      }
+    },
+    {
+      "fixture": "eggcc_if",
+      "input": "source",
+      "variants": {
+        "old": {
+          "exact_equal": true,
+          "enodes": 60,
+          "eclasses": 52,
+          "sorts": {
+            "Assumption": {
+              "enodes": 9,
+              "eclasses": 9
+            },
+            "BaseType": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "BinaryOp": {
+              "enodes": 3,
+              "eclasses": 3
+            },
+            "Expr": {
+              "enodes": 43,
+              "eclasses": 35
+            },
+            "Type": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "TypeList": {
+              "enodes": 3,
+              "eclasses": 3
+            }
+          }
+        },
+        "marker_only": {
+          "exact_equal": true,
+          "enodes": 60,
+          "eclasses": 52,
+          "sorts": {
+            "Assumption": {
+              "enodes": 9,
+              "eclasses": 9
+            },
+            "BaseType": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "BinaryOp": {
+              "enodes": 3,
+              "eclasses": 3
+            },
+            "Expr": {
+              "enodes": 43,
+              "eclasses": 35
+            },
+            "Type": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "TypeList": {
+              "enodes": 3,
+              "eclasses": 3
+            }
+          }
+        },
+        "joint": {
+          "exact_equal": true,
+          "enodes": 60,
+          "eclasses": 52,
+          "sorts": {
+            "Assumption": {
+              "enodes": 9,
+              "eclasses": 9
+            },
+            "BaseType": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "BinaryOp": {
+              "enodes": 3,
+              "eclasses": 3
+            },
+            "Expr": {
+              "enodes": 43,
+              "eclasses": 35
+            },
+            "Type": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "TypeList": {
+              "enodes": 3,
+              "eclasses": 3
+            }
+          }
+        }
+      }
+    },
+    {
+      "fixture": "eggcc_if",
+      "input": "fresh-1000",
+      "variants": {
+        "old": {
+          "exact_equal": true,
+          "enodes": 16208,
+          "eclasses": 14108,
+          "sorts": {
+            "Assumption": {
+              "enodes": 3000,
+              "eclasses": 3000
+            },
+            "BaseType": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "BinaryOp": {
+              "enodes": 3,
+              "eclasses": 3
+            },
+            "Expr": {
+              "enodes": 13200,
+              "eclasses": 11100
+            },
+            "Type": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "TypeList": {
+              "enodes": 3,
+              "eclasses": 3
+            }
+          }
+        },
+        "marker_only": {
+          "exact_equal": true,
+          "enodes": 16208,
+          "eclasses": 14108,
+          "sorts": {
+            "Assumption": {
+              "enodes": 3000,
+              "eclasses": 3000
+            },
+            "BaseType": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "BinaryOp": {
+              "enodes": 3,
+              "eclasses": 3
+            },
+            "Expr": {
+              "enodes": 13200,
+              "eclasses": 11100
+            },
+            "Type": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "TypeList": {
+              "enodes": 3,
+              "eclasses": 3
+            }
+          }
+        },
+        "joint": {
+          "exact_equal": true,
+          "enodes": 16208,
+          "eclasses": 14108,
+          "sorts": {
+            "Assumption": {
+              "enodes": 3000,
+              "eclasses": 3000
+            },
+            "BaseType": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "BinaryOp": {
+              "enodes": 3,
+              "eclasses": 3
+            },
+            "Expr": {
+              "enodes": 13200,
+              "eclasses": 11100
+            },
+            "Type": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "TypeList": {
+              "enodes": 3,
+              "eclasses": 3
+            }
+          }
+        }
+      }
+    }
+  ],
+  "earlier_smoke_limit": {
+    "test": "tools/bench/test_cell_spine.py",
+    "status": "blocked_by_external_bake_guard",
+    "fixture": "math_tiny/expanded.egg",
+    "seconds": 30.095,
+    "observed_rss_bytes": 151502848,
+    "note": "Offline compilation did not finish within the pre-existing 30-second measurement guard. This is not a graph-equivalence failure or a passed test."
+  }
+}

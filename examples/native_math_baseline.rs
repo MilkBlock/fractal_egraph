@@ -7,8 +7,19 @@ use egglog::{
 mod phased_bench;
 fn main() {
     let args: Vec<_> = std::env::args().collect();
-    if args.get(1).is_some_and(|s| s == "bench") {
-        phased_bench::run(&args[2], args.get(3).map(String::as_str));
+    if args
+        .get(1)
+        .is_some_and(|s| s == "bench" || s == "bench-probes")
+    {
+        if args[1] == "bench-probes" {
+            phased_bench::run_with_probes(
+                &args[2],
+                args.get(3).map(String::as_str),
+                egglog::probe_counts,
+            );
+        } else {
+            phased_bench::run(&args[2], args.get(3).map(String::as_str));
+        }
         return;
     }
     let source = &args[1];

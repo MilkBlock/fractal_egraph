@@ -1,0 +1,166 @@
+{
+  "source": "experiments/cell_spine/fixtures/ac_seven.egg",
+  "source_sha256": "1c90b69c497c906b51b03ecf1f8f7adcbd749a4177709aace862ce5d408ad004",
+  "runner_sha256": "ec2f2ae64cbb61255083c6e7c95b5d076a8d4da26328e36ad403ba905d575622",
+  "equality": {
+    "exact_equal": true,
+    "enodes": 1939,
+    "eclasses": 127,
+    "sorts": {
+      "Math": {
+        "enodes": 1939,
+        "eclasses": 127
+      }
+    }
+  },
+  "native": {
+    "finite7": {
+      "shape": {
+        "eclasses": 127,
+        "enodes": 1939,
+        "sorts": {
+          "Math": {
+            "eclasses": 127,
+            "enodes": 1939
+          }
+        },
+        "tables": {
+          "Add": 1932,
+          "Const": 7
+        }
+      },
+      "timing": {
+        "command": [
+          "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+          "bench",
+          "/Users/mineralsteins/Repos/egg_related/egg_layout/out/spine-ac-seven-verification/finite7.json"
+        ],
+        "process_wall_seconds": 0.0,
+        "peak_rss_bytes": 6275072,
+        "user_seconds": 0.0,
+        "system_seconds": 0.0,
+        "observed_wall_seconds": 0.010265624849125743,
+        "result": {
+          "drop_seconds": 0.000162,
+          "export_matches": 0,
+          "export_seconds": 0.0,
+          "input_seconds": 0.000145708,
+          "matches": 14448,
+          "read_seconds": 4.2542e-05,
+          "run_seconds": 0.004286542,
+          "scope": "phased native execution; graph inspection only in separate verification runs",
+          "seconds": 0.004862417,
+          "setup_seconds": 0.000430167,
+          "through_drop_seconds": 0.005024417,
+          "traced": false,
+          "verification": null
+        }
+      },
+      "probes": {
+        "  candidate_rows enumerated (for_each)": 6772,
+        "  candidate_rows from lookups": 3602,
+        "  lookup calls (get_subset)": 743,
+        "cached_column": 22,
+        "cached_index_hit": 29,
+        "cached_index_rebuild": 14,
+        "cached_index_rebuild_full": 4,
+        "cached_index_rebuild_rows": 11510,
+        "cached_tuple": 0,
+        "candidate_rows": 10374,
+        "dynamic_column (per-node cache)": 21,
+        "dynamic_tuple (group_by_key)": 0,
+        "probed_keys": 733,
+        "probes": 62,
+        "sparse_column": 19
+      }
+    },
+    "saturated": {
+      "shape": {
+        "eclasses": 127,
+        "enodes": 1939,
+        "sorts": {
+          "Math": {
+            "eclasses": 127,
+            "enodes": 1939
+          }
+        },
+        "tables": {
+          "Add": 1932,
+          "Const": 7
+        }
+      },
+      "timing": {
+        "command": [
+          "/Users/mineralsteins/Repos/egg_related/egg_layout/target/release/examples/native_math_baseline",
+          "bench",
+          "/Users/mineralsteins/Repos/egg_related/egg_layout/out/spine-ac-seven-verification/saturated.json"
+        ],
+        "process_wall_seconds": 0.0,
+        "peak_rss_bytes": 6127616,
+        "user_seconds": 0.0,
+        "system_seconds": 0.0,
+        "observed_wall_seconds": 0.010369665920734406,
+        "result": {
+          "drop_seconds": 0.000150541,
+          "export_matches": 0,
+          "export_seconds": 0.0,
+          "input_seconds": 0.000162875,
+          "matches": 15436,
+          "read_seconds": 6.0666e-05,
+          "run_seconds": 0.004396709,
+          "scope": "phased native execution; graph inspection only in separate verification runs",
+          "seconds": 0.005116376000000001,
+          "setup_seconds": 0.000556792,
+          "through_drop_seconds": 0.005266917,
+          "traced": false,
+          "verification": null
+        }
+      },
+      "probes": {
+        "  candidate_rows enumerated (for_each)": 6998,
+        "  candidate_rows from lookups": 3893,
+        "  lookup calls (get_subset)": 799,
+        "cached_column": 22,
+        "cached_index_hit": 29,
+        "cached_index_rebuild": 15,
+        "cached_index_rebuild_full": 4,
+        "cached_index_rebuild_rows": 12240,
+        "cached_tuple": 0,
+        "candidate_rows": 10891,
+        "dynamic_column (per-node cache)": 25,
+        "dynamic_tuple (group_by_key)": 0,
+        "probed_keys": 789,
+        "probes": 66,
+        "sparse_column": 19
+      }
+    }
+  },
+  "original_schedule_preserved": true,
+  "compiler_admission": {
+    "finite7": "exact export currently requires one saturation boundary, not a finite-step schedule",
+    "saturated": null
+  },
+  "scope": "Actual native current egglog, finite7 and a separate saturation fixture; no special AC backend",
+  "analysis": {
+    "path": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/joint-ac-seven-diagnosis/analysis",
+    "completed": false,
+    "measurement": null,
+    "failure": {
+      "error": "external benchmark guard: elapsed=60.109s, observed_group_rss=2216050688 bytes, limits=60s/4GiB: ['target/release/egg_layout', 'analyze', '--source', PosixPath('out/joint-ac-seven-diagnosis/saturated-source.egg'), '--output', PosixPath('out/joint-ac-seven-diagnosis/analysis')]"
+    },
+    "external_experiment_guard": {
+      "seconds": 60,
+      "process_group_rss_bytes": 4294967296
+    },
+    "candidate_pruning": false,
+    "solver_reached": false,
+    "partial_cell_states": {},
+    "partial_files": {
+      "directories": 3469,
+      "entry.egg": 3469,
+      "source.egg": 3469,
+      "initial-state.json": 510,
+      "trigger-state.json": 510
+    }
+  }
+}

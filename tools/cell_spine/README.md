@@ -257,6 +257,14 @@ solve using the same emitter, cost formula and native full-state verifier.
 It includes the long-spine graft where the optimal marker moves onto a reusable
 subtree, plus the sparse eggcc If subset. It reports per-model license size.
 
+`experiments/cell_spine/joint_runtime` adds native old/marker-only/joint ablations
+on identical catalogs. The structural score improves the long graft but slows
+sparse If inference: fewer syntax terms do not imply fewer Join operations.
+It reports full-graph equivalence, canonical as well as raw storage, library
+sizes, per-phase timings and existing native probe counters. Its separate
+seven-input AC probe records an unfinished analysis rather than claiming a
+compressed result.
+
 Reproduce the native two-parent and same-family cases with:
 
 ```sh
