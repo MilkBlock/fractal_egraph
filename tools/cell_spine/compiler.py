@@ -508,7 +508,7 @@ def takeover_lenses(candidates, chosen):
     return lenses, blocked, supports, definitions
 
 
-def make_library(candidates, plan, edges, environment, signatures, work):
+def prepare_runtime(candidates, plan, edges, work, destination=None):
     chosen = {c['family']: c for c in candidates if c['id'] in plan['selected']}
     emitted, transitions = set(), []
     for edge in edges:
@@ -522,8 +522,17 @@ def make_library(candidates, plan, edges, environment, signatures, work):
     lenses, blocked, supports, definitions = takeover_lenses(candidates,chosen)
     parsed = {r['name']:r for r in json.loads((work/'implementations.json').read_text())['rules']}
     lowered, retire, redundant = takeover.lower([(t,parsed[t['id']]) for t in transitions],lenses,supports,definitions)
-    path=work/'lowered-consumers.egg';path.write_text('\n'.join([r['rule'] for r in lowered]+retire))
-    consumers=ast(path,work/'lowered-consumers.json')['rules']
+    destination=destination or work
+    destination.mkdir(parents=True,exist_ok=True)
+    path=destination/'lowered-consumers.egg';path.write_text('\n'.join([r['rule'] for r in lowered]+retire))
+    consumers=ast(path,destination/'lowered-consumers.json')['rules']
+    return dict(chosen=chosen,transitions=transitions,lenses=lenses,blocked=blocked,lowered=lowered,
+                retire=retire,redundant=redundant,consumers=consumers)
+
+
+def make_library(candidates, plan, edges, environment, signatures, work, prepared=None):
+    prepared=prepared or prepare_runtime(candidates,plan,edges,work)
+    chosen=prepared['chosen'];transitions=prepared['transitions'];consumers=prepared['consumers']
     selected_layouts={c['family']:next(l for l in c['marker_layouts'] if l['id'] in plan['marker_layouts']) for c in chosen.values()}
     out=environment + fork_definitions(signatures) + markers.definitions(signatures,fork_definitions(signatures)) + ['(sort Spine-Cell)']
     for family,c in chosen.items():
@@ -551,10 +560,10 @@ def make_library(candidates, plan, edges, environment, signatures, work):
     export_path=work/'marker-exports.egg';export_path.write_text('\n'.join(closure_export(c) for c in chosen.values()))
     exported=ast(export_path,work/'marker-exports.json')['rules']
     out += [markers.lower(r,selected_layouts,signatures,export=True) for r in exported]
-    retirement=dict(lenses=lenses,cyclic_lenses_retained=blocked,consumers=lowered,retirement_rules=retire,
-        redundant_inherited_rules_removed=redundant,runtime_rules=runtime_rules,marker_layouts=selected_layouts,gate_audit=gate_audit,
+    retirement=dict(lenses=prepared['lenses'],cyclic_lenses_retained=prepared['blocked'],consumers=prepared['lowered'],retirement_rules=prepared['retire'],
+        redundant_inherited_rules_removed=prepared['redundant'],runtime_rules=runtime_rules,marker_layouts=selected_layouts,gate_audit=gate_audit,
         costed_transitions=transitions,scope='active canonical markers; raw constructors are ingress only; no closure-read relations')
-    return '\n'.join(out)+'\n', chosen, lowered, retirement
+    return '\n'.join(out)+'\n', chosen, prepared['lowered'], retirement
 
 
 def compatible_program(data):
@@ -670,7 +679,6 @@ def main():
     for c in cs: c["marker_layouts"]=markers.layouts(c)
     edges=transition_options(cs)
     price_options(edges,work)
-    plan=solve(cs,edges,a.output,weights)
     # Definitions preserve the source rules. Only opaque parameter constructors are added.
     sig=dict(data['signatures']);environment=commands(data,{'declaration','rule'})
     for c in cs:
@@ -678,7 +686,14 @@ def main():
             if name not in sig:
                 environment.append(f'(constructor {name} ({" ".join(s["input"])}) {s["output"]})')
                 sig[name]=s
-    lib,chosen,transitions,retirement=make_library(cs,plan,edges,environment,sig,work)
+    from .pricing import RuntimePricing,audit
+    pricing=RuntimePricing(lambda plan,dest:prepare_runtime(cs,plan,edges,work,dest),sig,work/'pricing',weights)
+    plan=solve(cs,edges,a.output,weights,pricing=pricing)
+    prepared,priced=pricing.optimize(plan)
+    lib,chosen,transitions,retirement=make_library(cs,plan,edges,environment,sig,work,prepared)
+    emitted=json.loads((work/'marker-runtime.json').read_text())['rules']
+    audit(emitted,priced['rule_costs'])
+    retirement['cost_audit']=dict(status='exact',rule_costs=priced['rule_costs'],scope='Native parser agrees with pre-solver lowered AST costs')
     runtime,restore=cellify(data,lib)
     cases=[]
     for c in cs:

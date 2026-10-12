@@ -168,28 +168,63 @@ z[o] <= x[p]   for EVERY parent and target representation required by o
 
 Two instances of the same family retain separate bindings but share the one
 representation choice. A tuple with no legal implementation cannot be selected.
-This couples both parents and the target, rather than pricing two unrelated
-pairwise edges. The selected implementation is the input to the certified
-ancestor-takeover pass described below; its final rules are reported separately.
+This couples both parents and the target. Two unrelated pairwise edges would
+lose shared binding constraints. The implementation is input to the certified
+ancestor-takeover pass described below.
 
 For each alpha-local template shape `n`, `y[n]` is the OR of all selected
 representations using it. Objective:
 
 ```
 storage_weight * (sum(y[n]) + selected_marker_columns)
-+ search_weight * (selected_lookup_terms_and_guards + marker_decoder_reads)
-+ update_weight * (selected_write_terms_and_unions + marker_update_columns)
++ search_weight * actual_runtime_reads_and_guards
++ update_weight * actual_runtime_writes_unions_changes_and_marker_columns
 ```
 
-The native expression parser counts **nested** constructor calls, Summary calls
-and explicit equalities/unions from the actual generated rules. Lookup/write
-counts are structural proxies, not measured Join cardinalities or timings.
-Template sharing refers to code shapes, not automatic identity of runtime
-instances. Reusing parent root variables avoids rebuilding those trees in RHS.
-Marker-layout choices are coupled to these path choices. Inherited consumers and
-decoder elimination occur after selection; their emitted reads/writes are audited
-separately. Optimality is for the stated structural model. Each observed path
-contributes once; runtime workload frequencies are not extrapolated.
+For each full path/implementation choice, first generate all inherited consumers
+and retirement rules. Lower each affected rule with **both endpoint marker
+layouts**. The lowering reuses certified source subtree values, constructs the
+target canonical spine, and removes unused decoders where proved safe. Its final
+AST supplies the cost. A marker carrying a reusable subtree can therefore save
+reads and writes in later transitions, at the cost of an extra column.
+
+Reads count distinct nested calls and remaining equality guards. Updates count
+distinct nested RHS calls, unions, `subsume` actions, marker creation columns,
+and the columns needed to identify a marker for subsumption. Repeated syntax in
+one rule is counted once for calls. This is a structural proxy, **not measured
+Join cardinalities, runtime frequency, committed mutations, time or RSS**.
+Shared template shapes also do not imply shared runtime instances. Explicit
+export, source input construction and rule installation are outside this score.
+
+The solve is conditional but not greedy:
+
+1. An outer Gurobi model chooses paths and transition implementations.
+2. An inner Gurobi model jointly chooses their marker layouts and returns the
+   minimum cost of the actual generated runtime, including inherited rules.
+3. An exact conditional value cut feeds this cost back to the outer model.
+   It can choose different paths. Stop when its lower bound reaches the best
+   feasible total cost.
+
+The cut is `extra >= residual * (sum(selected_decisions) - count + 1)`.
+For this complete choice it charges its exact additional cost. For another
+integer choice the RHS is nonpositive. The residual subtracts the minimum marker
+storage already charged by the outer model. No guessed large constant is used.
+Each inner problem is solved to optimality; otherwise compilation fails.
+
+Each rule's joint marker-cost table is represented by a reduced multi-valued
+decision diagram. Identical suffixes share cost nodes. The only binary variables
+are marker choices; diagram costs are continuous, so there is no binary variable
+for every marker pair. Alpha-equivalent rule recipes with identical typed marker
+recipes reuse profiles across path IDs. Recipe equality, not sampled cost
+similarity, authorizes this reuse.
+
+The final runtime is emitted from the same prepared rules used by the solver.
+An independent native-parser pass checks that the entire rule-name set and each
+rule's cost equal the priced AST. `retirement.cost_audit` records that check;
+`plan.pricing.rule_costs` also lists the subtrees actually substituted by values.
+Optimality is for the supplied paths, legal implementations and layout forms,
+under this structural score. It is not a global optimum over arbitrary spines
+or arbitrary marker payload subsets.
 
 Weights default to 1 and are explicit CLI arguments. There is no candidate
 budget, sampling or greedy fallback. No search over arbitrary parent subsets is
@@ -200,12 +235,27 @@ This can still grow combinatorially with representation alternatives. Gurobi's
 optimality is only for this finite option set and proxy cost. Solver/license
 errors are surfaced, not worked around by quietly dropping options.
 
-`selection.lp`/`.sol` expose the actual coupled model. `transitions.json` records
-all options, port maps, required representations, query/write terms and costs;
-`report.json` lists selected implementations and the final emitted rules.
+For a rule mentioning marker families `F`, profile construction can require
+`product(f in F) |L_f|` lowerings. Cost-diagram compression reduces solver size,
+not this worst-case enumeration cost. The outer solve may visit every legal
+path/implementation assignment. Its conditional cuts also grow with that count.
+This is exact finite optimization, not a polynomial-time or universal
+restricted-license guarantee. Per-model variable and constraint counts are
+reported separately for the outer model and peak inner model.
+
+`selection.lp`/`.sol` expose the outer model and certified solution.
+`work/pricing/scheme-NNNN/selection.lp`, `.sol`, and `pricing.json` expose each
+conditional marker solve. `transitions.json` records all pre-lowering options,
+port maps and required representations; its old raw AST counts are diagnostic,
+not the objective. `report.json` lists selected implementations and final costs.
 `retirement.costed_transitions` retains the pre-takeover implementations. Concrete stage
 recipe selection remains a separate, per-stage problem. `StageConcat` is still
 archive sharing and is not used as a substitute for these Cell transitions.
+
+`experiments/cell_spine/joint_pricing` compares frozen old choices and the joint
+solve using the same emitter, cost formula and native full-state verifier.
+It includes the long-spine graft where the optimal marker moves onto a reusable
+subtree, plus the sparse eggcc If subset. It reports per-model license size.
 
 Reproduce the native two-parent and same-family cases with:
 
@@ -261,9 +311,8 @@ mutual disappearance is not a proof. No budget or sampled candidate cutoff is us
 The current implementation expands the alternatives for each consumer operand.
 With `k_i` owner projections for operand `i`, it considers `product_i(1+k_i)`
 forms before proven-redundancy removal. This can enlarge rule code and Join work.
-The Gurobi objective still prices pre-inheritance plans; it does not optimize
-this expansion. Reported objective optimality must not be read as optimality of
-the final runtime code. `retirement` exposes projections, retained cycles,
+The Gurobi objective prices these forms after redundancy removal and marker
+lowering, so they now affect path and marker selection. `retirement` exposes projections, retained cycles,
 emitted consumers, retirement rules and the count of proven-redundant forms.
 
 Native regressions cover: Q arriving after Small is retired into Large; a later
@@ -462,12 +511,12 @@ union of constructor outputs does not imply union of their inputs. Dead decoders
 are removed only when their omitted bindings cannot affect the transition; joins
 between multiple owners keep their correlation checks.
 
-The objective includes shared template shapes, stored marker columns, estimated
-seed-decoder reads and update columns. It is a structural model. Inherited
-consumers and eliminated decoders are reported after lowering in `gate_audit`.
-Solver optimality refers to this explicit model, not actual time or RSS. The
-linearization factors repeated edge/layout products algebraically; it does not
-sample layouts or introduce a candidate budget.
+The objective includes shared template shapes, stored marker columns, and actual
+lowered reads/writes and marker keys, including inherited consumers and decoder
+elimination. The conditional solve above feeds those costs back into spine
+selection. `gate_audit` and `cost_audit` check the emitted code. Solver optimality
+refers to this structural model, not actual time or RSS. The cost diagram shares
+equal suffixes without sampling layouts or imposing a candidate budget.
 
 ### Retirement and validation
 

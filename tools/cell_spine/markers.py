@@ -71,14 +71,14 @@ def signature(layout,c):
     return [sort(e) for e in layout['terms']]
 
 
-def lower(rule, selected, signatures, *, export=False):
+def lower_ast(rule, selected, signatures, *, export=False):
     """Replace full Summary arguments by the selected active marker layout.
 
     LHS raw facts remain raw. Marker decoding uses only canonical constructors.
     RHS known source terms reuse their matched result, rather than reconstructing
     noncanonical shapes. The canonical target spine is explicitly constructed.
     """
-    body=[];known={};certified={};decoded=set();names=set()
+    body=[];known={};certified={};decoded=set();names=set();reused=set()
     for fact in rule['body']:
         for root in fact['args'] if fact['kind']=='eq' else [fact['expr']]:
             names.update(e['name'] for e in walk(root) if e['kind']=='var')
@@ -107,7 +107,9 @@ def lower(rule, selected, signatures, *, export=False):
         body.append(dict(kind='eq',args=[output,canonical(t.call(expr['head'],args),signatures)]))
         return bind(expr,output,True)
     def flatten(expr):
-        if text(expr) in known:return known[text(expr)]
+        if text(expr) in known:
+            if text(expr) in certified:reused.add(text(expr))
+            return known[text(expr)]
         if expr['kind']!='call':return expr
         if expr['head'].startswith('Spine-') and expr['head'][6:] in signatures:
             args=[flatten(a) for a in expr['args']];v=fresh()
@@ -160,7 +162,8 @@ def lower(rule, selected, signatures, *, export=False):
         if fact['kind']=='eq':body.append(dict(kind='eq',args=[flatten(x) for x in fact['args']]))
         else:body.append(dict(kind='fact',expr=flatten(fact['expr'])))
     def build(expr):
-        if text(expr) in certified:return certified[text(expr)]
+        if text(expr) in certified:
+            reused.add(text(expr));return certified[text(expr)]
         if expr['kind']!='call':return expr
         return canonical(t.call(expr['head'],[build(a) for a in expr['args']]),signatures)
     def value(expr):
@@ -205,8 +208,17 @@ def lower(rule, selected, signatures, *, export=False):
             if a['kind']=='set':other.append(a['value'])
         if introduced.isdisjoint(variables(other)):
             body=[f for i,f in enumerate(body) if i not in decoder_indices]
-    b,h,_=t.normalize(body,head)
-    return f'(rule ({" ".join(b)}) ({" ".join(h)}) :ruleset {rule["ruleset"]} :name "{rule["name"]}")'
+    body,head,_=t.normalize_ast(body,head)
+    return dict(name=rule['name'],ruleset=rule['ruleset'],body=body,head=head,reused_subtrees=sorted(reused))
+
+
+def render(rule):
+    from .terms import actions
+    return f'(rule ({" ".join(t.fact_text(f) for f in rule["body"])}) ({" ".join(actions(rule["head"]))}) :ruleset {rule["ruleset"]} :name "{rule["name"]}")'
+
+
+def lower(rule, selected, signatures, *, export=False):
+    return render(lower_ast(rule,selected,signatures,export=export))
 
 
 def definitions(signatures, fork_lines):

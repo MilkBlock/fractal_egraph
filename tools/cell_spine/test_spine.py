@@ -8,7 +8,7 @@ import unittest
 
 from .markers import RUNTIME_SCHEDULE
 from .compiler import ROOT, load_candidates, parent_wirings, lower_option
-from .planner import solve
+from .test_pricing import solve_table as solve
 from .test_support import marker_pattern
 
 

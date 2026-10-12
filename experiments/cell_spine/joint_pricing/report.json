@@ -1,0 +1,362 @@
+{
+  "scope": "Structural cost comparison and actual native egglog full-graph equality; not timing or RSS",
+  "reference_commit": "2402786",
+  "weights": {
+    "storage": 1,
+    "search": 1,
+    "update": 1
+  },
+  "cases": [
+    {
+      "fixture": "assoc",
+      "source": "experiments/cell_spine/fixtures/assoc.egg",
+      "reference": {
+        "selected": [
+          0,
+          3
+        ],
+        "marker_layouts": [
+          "m0_0",
+          "m3_0"
+        ],
+        "marker_positions": {
+          "0": {
+            "position": 0,
+            "anchor": "(Spine-Plus p0 p1)",
+            "columns": 1
+          },
+          "1": {
+            "position": 0,
+            "anchor": "(Spine-Plus (Spine-Plus p0 p1) p2)",
+            "columns": 1
+          }
+        },
+        "template_shapes": 2,
+        "marker_columns": 2,
+        "runtime": {
+          "search_atoms": 25,
+          "update_actions": 50,
+          "canonical_reads": 9,
+          "external_reads": 9,
+          "marker_reads": 7,
+          "canonical_writes": 16,
+          "marker_columns": 6,
+          "marker_key_columns": 3,
+          "unions": 16,
+          "changes": 3
+        },
+        "total": 79,
+        "native": {
+          "status": "equivalent",
+          "validated_cases": 10,
+          "original_enodes": 15,
+          "restored_enodes": 15,
+          "original_eclasses": 7,
+          "restored_eclasses": 7,
+          "original_rules_executed": false
+        }
+      },
+      "joint": {
+        "selected": [
+          0,
+          8
+        ],
+        "marker_layouts": [
+          "m0_0",
+          "m8_0"
+        ],
+        "marker_positions": {
+          "0": {
+            "position": 0,
+            "anchor": "(Spine-Plus p0 p1)",
+            "columns": 1
+          },
+          "1": {
+            "position": 0,
+            "anchor": "(Spine-Plus (Spine-Plus p0 p1) p2)",
+            "columns": 1
+          }
+        },
+        "template_shapes": 2,
+        "marker_columns": 2,
+        "runtime": {
+          "search_atoms": 25,
+          "update_actions": 50,
+          "canonical_reads": 9,
+          "external_reads": 9,
+          "marker_reads": 7,
+          "canonical_writes": 16,
+          "marker_columns": 6,
+          "marker_key_columns": 3,
+          "unions": 16,
+          "changes": 3
+        },
+        "total": 79,
+        "native": {
+          "status": "equivalent",
+          "validated_cases": 10,
+          "original_enodes": 15,
+          "restored_enodes": 15,
+          "original_eclasses": 7,
+          "restored_eclasses": 7,
+          "original_rules_executed": false
+        }
+      },
+      "solver": {
+        "status": "optimal",
+        "objective": 79.0,
+        "bound": 79.0,
+        "master": {
+          "variables": 74,
+          "constraints": 122
+        },
+        "inner_peak": {
+          "variables": 31,
+          "constraints": 53
+        },
+        "priced_schemes": 14,
+        "model_size_scope": "maximum per model, not sum across independent solves"
+      },
+      "cost_audit": "exact"
+    },
+    {
+      "fixture": "long_spine_graft",
+      "source": "experiments/cell_spine/fixtures/long_spine_graft.egg",
+      "reference": {
+        "selected": [
+          0,
+          1
+        ],
+        "marker_layouts": [
+          "m0_0",
+          "m1_0"
+        ],
+        "marker_positions": {
+          "0": {
+            "position": 0,
+            "anchor": "(Spine-Plus p0 (Spine-Plus p1 (Spine-Plus p2 (Spine-Plus p3 (Spine-Plus p4 (Spine-Plus p5 p6))))))",
+            "columns": 1
+          },
+          "1": {
+            "position": 0,
+            "anchor": "(Spine-Extend (Spine-Plus p0 (Spine-Plus p1 (Spine-Plus p2 (Spine-Plus p3 (Spine-Plus p4 (Spine-Plus p5 p6)))))) p7)",
+            "columns": 1
+          }
+        },
+        "template_shapes": 7,
+        "marker_columns": 2,
+        "runtime": {
+          "search_atoms": 26,
+          "update_actions": 26,
+          "canonical_reads": 14,
+          "external_reads": 8,
+          "marker_reads": 4,
+          "canonical_writes": 8,
+          "marker_columns": 3,
+          "marker_key_columns": 2,
+          "unions": 8,
+          "changes": 2
+        },
+        "total": 61,
+        "native": {
+          "status": "equivalent",
+          "validated_cases": 3,
+          "original_enodes": 18,
+          "restored_enodes": 18,
+          "original_eclasses": 18,
+          "restored_eclasses": 18,
+          "original_rules_executed": false
+        }
+      },
+      "joint": {
+        "selected": [
+          0,
+          1
+        ],
+        "marker_layouts": [
+          "m0_0",
+          "m1_2"
+        ],
+        "marker_positions": {
+          "0": {
+            "position": 0,
+            "anchor": "(Spine-Plus p0 (Spine-Plus p1 (Spine-Plus p2 (Spine-Plus p3 (Spine-Plus p4 (Spine-Plus p5 p6))))))",
+            "columns": 1
+          },
+          "1": {
+            "position": 1,
+            "anchor": "(Spine-Plus p0 (Spine-Plus p1 (Spine-Plus p2 (Spine-Plus p3 (Spine-Plus p4 (Spine-Plus p5 p6))))))",
+            "columns": 2
+          }
+        },
+        "template_shapes": 7,
+        "marker_columns": 3,
+        "runtime": {
+          "search_atoms": 19,
+          "update_actions": 28,
+          "canonical_reads": 7,
+          "external_reads": 8,
+          "marker_reads": 4,
+          "canonical_writes": 8,
+          "marker_columns": 5,
+          "marker_key_columns": 2,
+          "unions": 8,
+          "changes": 2
+        },
+        "total": 57,
+        "native": {
+          "status": "equivalent",
+          "validated_cases": 3,
+          "original_enodes": 18,
+          "restored_enodes": 18,
+          "original_eclasses": 18,
+          "restored_eclasses": 18,
+          "original_rules_executed": false
+        }
+      },
+      "solver": {
+        "status": "optimal",
+        "objective": 57.0,
+        "bound": 57.0,
+        "master": {
+          "variables": 12,
+          "constraints": 28
+        },
+        "inner_peak": {
+          "variables": 102,
+          "constraints": 343
+        },
+        "priced_schemes": 1,
+        "model_size_scope": "maximum per model, not sum across independent solves"
+      },
+      "cost_audit": "exact",
+      "graft_rule": "(rule ((Spine-Summary-0 parent_0_root_0) (= marker_value_15 (Spine-Extend parent_0_root_0 p7))) ((Spine-Cano-Extend parent_0_root_0 p7) (union marker_value_15 (Spine-Cano-Extend parent_0_root_0 p7)) (Spine-Summary-1 marker_value_15 parent_0_root_0) (subsume (Spine-Summary-0 parent_0_root_0))) :ruleset Spine-Run :name \"impl_1_0\")"
+    },
+    {
+      "fixture": "eggcc_if",
+      "source": "experiments/cell_spine/eggcc_if_tiny/source.egg",
+      "reference": {
+        "selected": [
+          5,
+          6,
+          7
+        ],
+        "marker_layouts": [
+          "m5_0",
+          "m6_0",
+          "m7_0"
+        ],
+        "marker_positions": {
+          "0": {
+            "position": 0,
+            "anchor": "(Spine-Single p0)",
+            "columns": 1
+          },
+          "1": {
+            "position": 0,
+            "anchor": "(Spine-Get (Spine-Arg p3 (Spine-InIf false (Spine-Bop (Spine-LessThan) (Spine-Get p2 0) (Spine-Get p2 1)) p2)) 1)",
+            "columns": 5
+          },
+          "2": {
+            "position": 0,
+            "anchor": "(Spine-Get (Spine-Arg p3 (Spine-InIf false (Spine-Bop (Spine-LessThan) (Spine-Get p2 0) (Spine-Get p2 1)) p2)) 0)",
+            "columns": 5
+          }
+        },
+        "template_shapes": 17,
+        "marker_columns": 11,
+        "runtime": {
+          "search_atoms": 1859,
+          "update_actions": 1576,
+          "canonical_reads": 1248,
+          "external_reads": 503,
+          "marker_reads": 108,
+          "canonical_writes": 603,
+          "marker_columns": 251,
+          "marker_key_columns": 24,
+          "unions": 623,
+          "changes": 24
+        },
+        "total": 3463,
+        "native": {
+          "status": "equivalent",
+          "validated_cases": 9,
+          "original_enodes": 60,
+          "restored_enodes": 60,
+          "original_eclasses": 52,
+          "restored_eclasses": 52,
+          "original_rules_executed": false
+        }
+      },
+      "joint": {
+        "selected": [
+          5,
+          6,
+          7
+        ],
+        "marker_layouts": [
+          "m5_0",
+          "m6_15",
+          "m7_38"
+        ],
+        "marker_positions": {
+          "0": {
+            "position": 0,
+            "anchor": "(Spine-Single p0)",
+            "columns": 1
+          },
+          "1": {
+            "position": 5,
+            "anchor": "(Spine-LessThan)",
+            "columns": 10
+          },
+          "2": {
+            "position": 15,
+            "anchor": "(Spine-Single p0)",
+            "columns": 10
+          }
+        },
+        "template_shapes": 17,
+        "marker_columns": 21,
+        "runtime": {
+          "search_atoms": 711,
+          "update_actions": 1978,
+          "canonical_reads": 24,
+          "external_reads": 579,
+          "marker_reads": 108,
+          "canonical_writes": 679,
+          "marker_columns": 501,
+          "marker_key_columns": 24,
+          "unions": 699,
+          "changes": 24
+        },
+        "total": 2727,
+        "native": {
+          "status": "equivalent",
+          "validated_cases": 9,
+          "original_enodes": 60,
+          "restored_enodes": 60,
+          "original_eclasses": 52,
+          "restored_eclasses": 52,
+          "original_rules_executed": false
+        }
+      },
+      "solver": {
+        "status": "optimal",
+        "objective": 2727.0,
+        "bound": 2727.0,
+        "master": {
+          "variables": 74,
+          "constraints": 130
+        },
+        "inner_peak": {
+          "variables": 180,
+          "constraints": 456
+        },
+        "priced_schemes": 6,
+        "model_size_scope": "maximum per model, not sum across independent solves"
+      },
+      "cost_audit": "exact"
+    }
+  ]
+}

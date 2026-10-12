@@ -8,6 +8,7 @@ import unittest
 
 from .compiler import ROOT, load_candidates
 from .markers import RUNTIME_SCHEDULE, layouts
+from .pricing import audit,cost
 from .terms import text
 from .test_support import marker_pattern
 
@@ -54,6 +55,28 @@ class ActiveMarkers(unittest.TestCase):
         self.assertEqual(sum(c['native_tables_before_export'].values()),c['native_total_rows_before_export'])
         # Both raw and Cano constructors belong in the reported physical count.
         self.assertTrue(any(k.startswith('Spine-Cano-') for k in c['spine_tables']))
+
+    def test_solver_prices_final_consumers_and_selects_reusable_subtree_anchor(self):
+        for out in self.outputs.values():
+            report=json.loads((out/'report.json').read_text())
+            emitted=json.loads((out/'work/marker-runtime.json').read_text())['rules']
+            prices=report['plan']['pricing']['rule_costs']
+            audit(emitted,prices)
+            self.assertEqual(report['retirement']['cost_audit']['status'],'exact')
+            weights=report['plan']['weights'];costs=report['plan']['costs']
+            score=(weights['storage']*(costs['template_nodes']+costs['marker_columns'])+
+                   weights['search']*sum(cost(r)['search_atoms'] for r in emitted)+
+                   weights['update']*sum(cost(r)['update_actions'] for r in emitted))
+            self.assertAlmostEqual(score,report['plan']['objective'])
+        r=json.loads((self.outputs['long_spine_graft']/'report.json').read_text())
+        ls=r['retirement']['marker_layouts']
+        self.assertEqual(ls['1']['anchor'],ls['0']['roots'][0])
+        self.assertNotEqual(ls['1']['position'],0)
+        prices=r['plan']['pricing']['rule_costs']
+        self.assertTrue(any(name.startswith('retire_') for name in prices))
+        self.assertTrue(any('_cover_' in name for name in prices))
+        self.assertTrue(any(text(ls['1']['anchor']) in p['reused_subtrees'] for p in prices.values()))
+        self.assertEqual(r['plan']['objective'],57)
 
     def test_root_union_does_not_invent_a_sibling_input(self):
         layout=json.loads((self.outputs['root_alias']/'report.json').read_text())['retirement']['marker_layouts']['0']

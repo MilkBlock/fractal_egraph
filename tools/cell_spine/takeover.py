@@ -47,7 +47,7 @@ def remap_action(a, bindings):
     return dict(a,args=[replace(e,bindings) for e in a['args']])
 
 
-def normalize(body, head):
+def normalize_ast(body, head):
     """Unify variable equalities; do not erase constructor-existence checks."""
     links = {}
     def find(name):
@@ -75,7 +75,14 @@ def normalize(body, head):
     alpha_body = list(dict.fromkeys(fact_text(remap_fact(f,names)) for f in body))
     alpha_head = [remap_action(a,names) for a in head]
     key = tuple(alpha_body),tuple(dict.fromkeys(actions(alpha_head)))
-    return list(dict.fromkeys(map(fact_text,body))), list(dict.fromkeys(actions(head))), key
+    body=list({fact_text(f):f for f in body}.values())
+    head=list({actions([a])[0]:a for a in head}.values())
+    return body,head,key
+
+
+def normalize(body, head):
+    body,head,key=normalize_ast(body,head)
+    return list(map(fact_text,body)),actions(head),key
 
 
 def ancestors(direct):

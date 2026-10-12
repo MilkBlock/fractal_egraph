@@ -1,0 +1,87 @@
+{
+  "commit": "2402786",
+  "scope": "Frozen old choices only; re-emitted and re-priced by current compiler",
+  "cases": [
+    {
+      "fixture": "assoc",
+      "source": "experiments/cell_spine/fixtures/assoc.egg",
+      "source_sha256": "c966121350be9fcd415a18917e883f44ad08f01e7163c732f04604d22ccdf264",
+      "plan": {
+        "selected": [
+          0,
+          3
+        ],
+        "implementations": [
+          "impl_0_0",
+          "impl_1_0",
+          "impl_2_1",
+          "impl_3_1",
+          "impl_4_1",
+          "impl_5_2",
+          "impl_6_1",
+          "impl_7_1",
+          "impl_8_1"
+        ],
+        "marker_layouts": [
+          "m0_0",
+          "m3_0"
+        ]
+      },
+      "paths_sha256": "e7fdf1af0b4f7818151bc8bde74111f9735254d7fc8dc8da987058fcb7380f78",
+      "layouts_sha256": "f2d19bc2ed4dfcc0c97643d7cf8124903b188c7892aa595c79e0c88c0e8cc3ca",
+      "implementations_sha256": "7c6991e288d2fe4f92ea942a67d913b1d161bf488f67ef51a686562f5ee25e84"
+    },
+    {
+      "fixture": "long_spine_graft",
+      "source": "experiments/cell_spine/fixtures/long_spine_graft.egg",
+      "source_sha256": "383c5c565b5dc99d639269804c262bd4ebb3497fca317f7c322637995a05fbd1",
+      "plan": {
+        "selected": [
+          0,
+          1
+        ],
+        "implementations": [
+          "impl_0_0",
+          "impl_1_0"
+        ],
+        "marker_layouts": [
+          "m0_0",
+          "m1_0"
+        ]
+      },
+      "paths_sha256": "22fc41359e0a672d7364bddc9ca166d295e1d270ca1ee3c4fefc266dc0b85001",
+      "layouts_sha256": "b0eea0350bbd8165dea96c1c6d5d3bdd9f34ecdf4d632e0c576a7b8418bcb0a7",
+      "implementations_sha256": "5712bdfa51de71d234254581d432622d8d9cd65998f161558149722a19dc8365"
+    },
+    {
+      "fixture": "eggcc_if",
+      "source": "experiments/cell_spine/eggcc_if_tiny/source.egg",
+      "source_sha256": "c7b1592f3e4aa3049fb9d12889ec826e370f4acfd83ad4c6d384d59a71ff0957",
+      "plan": {
+        "selected": [
+          5,
+          6,
+          7
+        ],
+        "implementations": [
+          "impl_0_5",
+          "impl_1_5",
+          "impl_2_5",
+          "impl_3_5",
+          "impl_4_5",
+          "impl_5_5",
+          "impl_6_5",
+          "impl_7_5"
+        ],
+        "marker_layouts": [
+          "m5_0",
+          "m6_0",
+          "m7_0"
+        ]
+      },
+      "paths_sha256": "ae59f0b6886d8689fe9dbed6f733ae0c7b501945a116eeaefd89866a1763599d",
+      "layouts_sha256": "ea7f95e81f17e2f0a5bd2aea4eb503b517dc7f1ebb131173c5230d9e6704b7f5",
+      "implementations_sha256": "edfdf5fa92786253be4a8f1b8b272988d7f5b638a1abd423ebec40bcf670f587"
+    }
+  ]
+}
