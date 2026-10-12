@@ -1,0 +1,11 @@
+; A generic Cell and a repeated-binding Cell share constructor shapes.
+(datatype Term (Leaf String) (Add Term Term) (Repeated Term))
+(ruleset algebra)
+(rewrite (Add a b) (Add b a) :ruleset algebra)
+(rewrite (Add (Add a b) c) (Add a (Add b c)) :ruleset algebra)
+(rewrite (Add a (Add b c)) (Add (Add a b) c) :ruleset algebra)
+(rule ((Add x x)) ((Repeated x)) :ruleset algebra)
+(let ordinary (Add (Add (Leaf "a") (Leaf "b")) (Leaf "c")))
+(let specialized (Add (Add (Leaf "x") (Leaf "x")) (Leaf "y")))
+(run-schedule (saturate algebra))
+(check (Repeated (Leaf "x")))

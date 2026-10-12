@@ -1,0 +1,202 @@
+{
+  "scope": "actual egglog runtime, same library and input; counts only, no timed speedup claim",
+  "binary_sha256": "897decc89b73643cca291a4ce4cf61bce5ff9824f0af813c57697060dc6213ae",
+  "cases": [
+    {
+      "source": "experiments/cell_spine/fixtures/input_spine_left.egg",
+      "library_sha256": "9d76d4414bfb1f5cb94da317899f9d5d1af22ce4ce601c5ca89fc01d8c61031b",
+      "input_model": {
+        "status": "projected",
+        "objective": 6.0,
+        "objective_scope": "distinct constructor/marker recipes; excludes constant global bindings, indices, RSS and union-dependent coalescing",
+        "variables": 22,
+        "constraints": 62,
+        "options": 3,
+        "semantic_input_obligations": 3
+      },
+      "variants": {
+        "raw_ingress": {
+          "physical_table_rows": 12,
+          "restored_enodes": 15,
+          "restored_eclasses": 7,
+          "active_markers": 1,
+          "retired_markers": 2,
+          "tables": {
+            "Add!": 2,
+            "Add!!": 3,
+            "Leaf!": 3,
+            "Summary-0!": 2,
+            "Summary-1!": 1,
+            "root": 1
+          }
+        },
+        "input_spine": {
+          "physical_table_rows": 7,
+          "restored_enodes": 15,
+          "restored_eclasses": 7,
+          "active_markers": 1,
+          "retired_markers": 0,
+          "tables": {
+            "Add!!": 2,
+            "Leaf!": 3,
+            "Summary-1!": 1,
+            "root": 1
+          }
+        }
+      }
+    },
+    {
+      "source": "experiments/cell_spine/fixtures/input_spine_right.egg",
+      "library_sha256": "0248075ce0132235223d127c300f571549ba3829a1a1cfd8939f321335fe4950",
+      "input_model": {
+        "status": "projected",
+        "objective": 7.0,
+        "objective_scope": "distinct constructor/marker recipes; excludes constant global bindings, indices, RSS and union-dependent coalescing",
+        "variables": 24,
+        "constraints": 67,
+        "options": 3,
+        "semantic_input_obligations": 4
+      },
+      "variants": {
+        "raw_ingress": {
+          "physical_table_rows": 22,
+          "restored_enodes": 15,
+          "restored_eclasses": 7,
+          "active_markers": 3,
+          "retired_markers": 5,
+          "tables": {
+            "Add!": 2,
+            "Add!!": 8,
+            "Leaf!": 3,
+            "Summary-0!": 2,
+            "Summary-1!": 3,
+            "Summary-2!": 3,
+            "root": 1
+          }
+        },
+        "input_spine": {
+          "physical_table_rows": 9,
+          "restored_enodes": 15,
+          "restored_eclasses": 7,
+          "active_markers": 1,
+          "retired_markers": 1,
+          "tables": {
+            "Add!!": 3,
+            "Leaf!": 3,
+            "Summary-1!": 1,
+            "Summary-2!": 1,
+            "root": 1
+          }
+        }
+      }
+    },
+    {
+      "source": "experiments/cell_spine/fixtures/input_spine_boundary.egg",
+      "library_sha256": "757c80cbc932e0fe6574f9b8812bef56a558593b82aac82e66791794b61e6643",
+      "input_model": {
+        "status": "projected",
+        "objective": 15.0,
+        "objective_scope": "distinct constructor/marker recipes; excludes constant global bindings, indices, RSS and union-dependent coalescing",
+        "variables": 47,
+        "constraints": 133,
+        "options": 6,
+        "semantic_input_obligations": 7
+      },
+      "variants": {
+        "raw_ingress": {
+          "physical_table_rows": 29,
+          "restored_enodes": 33,
+          "restored_eclasses": 17,
+          "active_markers": 3,
+          "retired_markers": 4,
+          "tables": {
+            "Add!": 4,
+            "Add!!": 6,
+            "Leaf!": 6,
+            "Summary-0!": 4,
+            "Summary-1!": 2,
+            "Summary-2!": 1,
+            "Use!": 1,
+            "Use!!": 1,
+            "held_inner": 1,
+            "held_root": 1,
+            "inner": 1,
+            "root": 1
+          }
+        },
+        "input_spine": {
+          "physical_table_rows": 24,
+          "restored_enodes": 33,
+          "restored_eclasses": 17,
+          "active_markers": 3,
+          "retired_markers": 2,
+          "tables": {
+            "Add!": 2,
+            "Add!!": 5,
+            "Leaf!": 6,
+            "Summary-0!": 2,
+            "Summary-1!": 2,
+            "Summary-2!": 1,
+            "Use!": 1,
+            "Use!!": 1,
+            "held_inner": 1,
+            "held_root": 1,
+            "inner": 1,
+            "root": 1
+          }
+        }
+      }
+    },
+    {
+      "source": "experiments/cell_spine/fixtures/input_spine_specialized.egg",
+      "library_sha256": "e616bffc2bdbcb4b47ce16a837c2ea943c8711004a52976a737b2330749ffc6e",
+      "input_model": {
+        "status": "projected",
+        "objective": 13.0,
+        "objective_scope": "distinct constructor/marker recipes; excludes constant global bindings, indices, RSS and union-dependent coalescing",
+        "variables": 46,
+        "constraints": 126,
+        "options": 7,
+        "semantic_input_obligations": 8
+      },
+      "variants": {
+        "raw_ingress": {
+          "physical_table_rows": 24,
+          "restored_enodes": 25,
+          "restored_eclasses": 13,
+          "active_markers": 2,
+          "retired_markers": 6,
+          "tables": {
+            "Add!": 4,
+            "Add!!": 5,
+            "Leaf!": 5,
+            "Summary-0!": 4,
+            "Summary-1!": 2,
+            "Summary-2!": 1,
+            "Summary-3!": 1,
+            "ordinary": 1,
+            "specialized": 1
+          }
+        },
+        "input_spine": {
+          "physical_table_rows": 19,
+          "restored_enodes": 25,
+          "restored_eclasses": 13,
+          "active_markers": 2,
+          "retired_markers": 4,
+          "tables": {
+            "Add!": 2,
+            "Add!!": 4,
+            "Leaf!": 5,
+            "Summary-0!": 2,
+            "Summary-1!": 2,
+            "Summary-2!": 1,
+            "Summary-3!": 1,
+            "ordinary": 1,
+            "specialized": 1
+          }
+        }
+      }
+    }
+  ]
+}

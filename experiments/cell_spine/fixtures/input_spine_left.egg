@@ -1,0 +1,8 @@
+(datatype Term (Leaf String) (Add Term Term))
+(ruleset algebra)
+(rewrite (Add a b) (Add b a) :ruleset algebra)
+(rewrite (Add (Add a b) c) (Add a (Add b c)) :ruleset algebra)
+(rewrite (Add a (Add b c)) (Add (Add a b) c) :ruleset algebra)
+(let root (Add (Add (Leaf "a") (Leaf "b")) (Leaf "c")))
+(run-schedule (saturate algebra))
+(check (= root (Add (Leaf "a") (Add (Leaf "b") (Leaf "c")))))

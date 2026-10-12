@@ -113,6 +113,52 @@ that unseen concrete binding/union interactions are already saturated. An unsupp
 result uses `cellified:true`, not an unqualified compression claim. Solver/license errors remain errors. No engine changes are
 introduced by either compiler.
 
+## Direct input spine construction
+
+Normal symbolic Bake now calls `input_spine.project` before writing the runtime
+input. It matches certified seed patterns on the source AST's finite constructor
+DAG; direct construction currently admits single-root, guard-free patterns.
+A constructible match maps its typed parameters and root through
+the existing closure-equivalence certificate to the **selected** canonical
+spine; it never runs source inference or hard-codes an operator law.
+
+For fixed spine/marker choices, a second Gurobi model selects initializer recipes
+and retained raw rows. Every matched input region needs a selected initializer
+covering it, possibly a larger one; unmatched facts remain raw. Constructor coverage alone
+does not discharge a specialized binding: each matched Cell interface must be
+provided by a certified ancestor lens, or its complete seed rows stay visible
+to ordinary ingress. Multi-root and equality matches also contribute these
+obligations even though they are not yet direct initializer choices. An original row
+may be omitted only if a selected Cell covers it. Every retained parent and every
+named global must still obtain each referenced value from a retained row or an
+initializer's certified root alias. Opaque input subtrees remain raw. Existing
+raw-row contracts and inherited-consumer support facts must also be constructed.
+The cost shares equal constructor/marker expression recipes across initializers;
+it excludes constant global bindings, indices, RSS, and union-dependent row
+coalescing. It is not a runtime-time model or a global reoptimization of spine
+choices. There is no largest-first heuristic, sampling, or candidate budget.
+
+The emitted input directly constructs the selected forest and active marker.
+It does not first insert the covered raw tree and delete it afterward. Named
+intermediates needed outside the selected forest remain available; an external
+`Use(inner)` is not discarded because `inner` occurs inside a larger Cell.
+Constructor CSE keeps nested input writes concise. Source rule execution still
+occurs only through the generated `Run!` ruleset; cached closure export is
+unchanged. Whole-state native validation still gates publication of output.
+
+`input-plan.json` records selection/retention and unsupported forms.
+`input-selection.lp` / `.sol` record the initializer optimization when applicable.
+Multi-root/equality-guard seeds and noncanonical storage layouts retain their
+existing input route. Programs with explicit initial unions also retain the
+original input order. This is current-input projection under the baked whitelist,
+not an arbitrary-future-graft guarantee. Tests additionally cover a known late
+boundary fact and a union-enabled late match on a retained intermediate.
+
+The low-level `cellify(data, library)` API remains ordinary ingress when no
+`initial=` recipe is supplied, so callers using an existing library with new
+inputs do not silently assume they have a freshly verified projection.
+See `experiments/cell_spine/input_spine` for native table counts and examples.
+
 ## Multi-parent spine composition
 
 The full Summary argument lists below describe the logical compiler IR before

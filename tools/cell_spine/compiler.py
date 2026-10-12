@@ -528,7 +528,7 @@ def prepare_runtime(candidates, plan, edges, work, destination=None):
     consumers=ast(path,destination/'lowered-consumers.json')['rules']
     from .representation import extend_layouts
     return extend_layouts(dict(chosen=chosen,transitions=transitions,lenses=lenses,blocked=blocked,lowered=lowered,
-                retire=retire,redundant=redundant,consumers=consumers))
+                retire=retire,redundant=redundant,consumers=consumers,supports=supports))
 
 
 def make_library(candidates, plan, edges, environment, signatures, work, prepared=None):
@@ -605,11 +605,12 @@ def compatible_program(data):
     return None
 
 
-def cellify(data, library):
+def cellify(data, library, *, initial=None):
     sig = data['signatures']
     acts = [a['action'] for a in data['actions']]
-    lines = [library, '; Automatic constructor-level ingress; no scan of a materialized original graph.']
-    lines += actions(acts, True, sig)
+    lines = [library, '; Solver-selected input spine initialization.' if initial is not None else
+             '; Automatic constructor-level ingress; no scan of a materialized original graph.']
+    lines += actions(acts, True, sig) if initial is None else initial
     lines += [markers.RUNTIME_SCHEDULE]
     runtime = '\n'.join(lines)+'\n'
     types = {}
@@ -699,7 +700,10 @@ def main():
     emitted=json.loads((work/'marker-runtime.json').read_text())['rules']
     audit(emitted,priced['rule_costs'])
     retirement['cost_audit']=dict(status='exact',rule_costs=priced['rule_costs'],scope='Native parser agrees with pre-solver lowered AST costs')
-    runtime,restore=cellify(data,lib)
+    from .input_spine import project
+    initial,input_plan=project(data,cs,chosen,retirement['marker_layouts'],prepared,a.output)
+    (a.output/'input-plan.json').write_text(json.dumps(input_plan,indent=2)+'\n')
+    runtime,restore=cellify(data,lib,initial=initial)
     cases=[]
     for c in cs:
         # Check the actual staged native entry against flattened spine export.
@@ -726,7 +730,7 @@ def main():
                   source_storage={k:measured[k] for k in ('spine_constructor_rows','native_total_rows_before_export','native_tables_before_export','original_native_total_rows')},
                   storage_scope='Native table rows, including auxiliary relations and subsumed rows; not bytes or RSS. Cellification does not imply compression.',
                   transitions=transitions,retirement=retirement,runtime_schedule=markers.RUNTIME_SCHEDULE,
-                  paths=[dict(id=c['id'],family=c['family'],nodes=c['nodes'],lhs_atoms=c['lhs_atoms'],source_folder=c['source_folder']) for c in cs],
+                  input_plan=input_plan,paths=[dict(id=c['id'],family=c['family'],nodes=c['nodes'],lhs_atoms=c['lhs_atoms'],source_folder=c['source_folder']) for c in cs],
                   guarantees='exact finite constructor closure at explicit export from cached snapshots; original rules do not run on compressed path',
                   boundary='baked path whitelist only; no general hidden-fact matcher or automatic dynamic rebake')
     (a.output/'report.json').write_text(json.dumps(report,indent=2)+'\n')
