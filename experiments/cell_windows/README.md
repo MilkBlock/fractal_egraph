@@ -115,6 +115,63 @@ Tests cover middle-prefix removal, complete multi-producer windows, ordinary
 state discovery, online/offline consistency, occurrence/overlap deduplication,
 unrated unfinished states, and browser selection of the new statistics.
 
+## Bake/runtime comparison: windows are not recursive small-Cell recombination
+
+Run the same source through fresh rooted-only and window-enabled Bake, then
+benchmark its generated programs with the existing native CI harness:
+
+```sh
+out/cell-spine-venv/bin/python experiments/cell_windows/spine_bench.py \
+  --output out/cell-windows-spine-bench --copies 128
+```
+
+It defaults to math tiny and the eggcc If subset. `--cases math_tiny` is the
+quick smoke comparison; `boundary` is also available. It uses existing release
+binaries, SCIP and the default projected layout pricer. Both discovery modes
+use 50 ms / 200K facts per ripen, four steps per sweep, one analysis/query/Rayon
+thread, and no graph rendering. There are no extra candidate caps. Sizes and
+rule-match diagnostics run separately from timing. The original native mode
+uses the same local kernel, not pristine egglog. Every mode is measured once.
+
+Measured 2026-10-13; [`spine_bench_results.json`](spine_bench_results.json) preserves
+the versions, binary hashes, phases, sizes and input-spine/raw-ingress results:
+
+| Input | Discovery | Entries | Certified Cell kinds | Bake s | Library KiB | Physical rows, 128 copies | Input-spine Run ms |
+|---|---|---:|---:|---:|---:|---:|---:|
+| math tiny | rooted | 6 | 3 | 0.630 | 4.90 | 1,152 | 0.342 |
+| math tiny | windows | 9 | 3 | 0.639 | 4.90 | 1,152 | 0.303 |
+| eggcc If | rooted | 8 | 3 | 115.273 | 132.86 | 10,247 | 76.280 |
+| eggcc If | windows | 10 | 5 | 124.977 | 137.73 | 10,247 | 75.641 |
+
+Expanded nodes/classes match native execution in both modes: **1,664 / 896**
+for math, **6,664 / 5,640** for If. These are actual exported counts. Seed/history
+cases additionally pass full native closure checks; replicated workloads use
+count comparison. The three generated math `.egg` files are byte-identical
+between discovery modes. If has 55 vs 59 emitted rules; its library grows by
+4,986 bytes, without reducing physical rows. Single-run sub-millisecond Run
+differences do not establish an inference speedup.
+
+The missing connection is explicit in the audit:
+
+- Rooted If already has two selected multi-parent implementations, lowered to
+  **50 multi-marker merge rules**. Both modes record **512 complete matches**
+  of these rules, in both raw-ingress and direct-input-spine runs. Matches are
+  not new Cell insertions. Distinct marker patterns can belong to one family.
+- Both modes have **zero observed edges using a newly created window as parent**.
+  No chosen parent representation uses a new window. The two extra If closure
+  families participate in **zero** multi-marker merge matches.
+- Thus this measures admission of middle-history Cells plus existing
+  composition, not a completed unrestricted small-Cell + small-Cell algorithm.
+  Windows are not automatically registered into the event/port frontier for
+  subsequent consumers. This missing discovery connection must be completed
+  before attributing benefits to recursive window recombination.
+
+The full output includes `cell-audit.json` per variant with the exact merge-rule
+names and counts, `phases.md` for installation/input/Run/export costs, and per-table
+rows in `report.json`. Overall runtime remains worse than native on this If
+subset; the added windows do not reverse that result. Objective values from
+different catalogs are not compared as if their transition obligations matched.
+
 ## Literature and the specific connection
 
 These motivate the reporting model; this implementation does not import their
