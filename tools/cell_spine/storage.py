@@ -53,6 +53,7 @@ class InstanceStorage:
             [a['action'] for a in self.data['actions']],True,self.data['signatures'])
         environment=runtime_header(bundle['chosen'],selected,self.environment,self.signatures)
         lowered=[markers.lower_ast(r,selected,self.signatures) for r in bundle['consumers']]
+        lowered=[r for r in lowered if not r.get('disabled')]
         # Preserve rule order, tables, guards and input exactly. Only names and
         # local variable spelling can differ; those do not alter stored rows.
         key=json.dumps((environment,inputs,[(r.get('ruleset'),rule_recipe(r)) for r in lowered]),sort_keys=True)

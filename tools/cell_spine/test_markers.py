@@ -64,7 +64,7 @@ class ActiveMarkers(unittest.TestCase):
             audit(emitted,prices)
             self.assertEqual(report['retirement']['cost_audit']['status'],'exact')
             weights=report['plan']['weights'];costs=report['plan']['costs']
-            score=(weights['storage']*(costs['template_nodes']+costs['marker_columns'])+
+            score=(weights['storage']*(costs['template_nodes']+costs['marker_columns']+costs.get('interface_columns',0))+
                    weights['search']*sum(cost(r)['search_atoms'] for r in emitted)+
                    weights['update']*sum(cost(r)['update_actions'] for r in emitted))
             self.assertAlmostEqual(score,report['plan']['objective'])

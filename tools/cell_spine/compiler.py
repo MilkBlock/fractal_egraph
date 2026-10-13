@@ -19,6 +19,7 @@ import time
 from .terms import actions, expressions, text, walk
 from .planner import solve
 from . import takeover, markers, names
+from .interfaces import is_interface
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -546,11 +547,13 @@ def takeover_lenses(candidates, chosen, cuts=()):
         materialized = [takeover.fork(e,params) for root in expressions(c['acts']) for e in walk(root) if e['kind']=='call' and text(e) not in params]
         materialized += [e for a in supports[family][1] for e in expressions([a])]
         definitions[f'Summary-{family}!'] = dict(fields=fields,roots=roots,materialized=materialized,
+            equalities=[[takeover.fork(e,params) for e in a['args']] for a in c['acts'] if a['kind']=='union']
+                + [a['args'] for a in supports[family][1] if a['kind']=='union'],
             aliases=[(i,j) for i in range(len(classes)) for j in range(i) if classes[i]==classes[j]])
     return lenses, blocked, supports, definitions
 
 
-def prepare_runtime(candidates, plan, edges, work, destination=None):
+def prepare_runtime(candidates, plan, edges, work, destination=None, *, interface_mode='auto'):
     chosen = {c['family']: c for c in candidates if c['id'] in plan['selected']}
     emitted, transitions = set(), []
     for edge in edges:
@@ -569,15 +572,18 @@ def prepare_runtime(candidates, plan, edges, work, destination=None):
     path=destination/'lowered-consumers.egg';path.write_text('\n'.join([r['rule'] for r in lowered]+retire))
     consumers=ast(path,destination/'lowered-consumers.json')['rules']
     from .representation import extend_layouts
-    return extend_layouts(dict(chosen=chosen,transitions=transitions,lenses=lenses,blocked=blocked,lowered=lowered,
-                retire=retire,redundant=redundant,consumers=consumers,supports=supports))
+    from .interfaces import extend
+    return extend(extend_layouts(dict(chosen=chosen,transitions=transitions,lenses=lenses,blocked=blocked,lowered=lowered,
+                retire=retire,redundant=redundant,consumers=consumers,supports=supports)),interface_mode)
 
 
 def runtime_header(chosen, selected_layouts, environment, signatures):
+    from .interfaces import declarations
     out=environment + fork_definitions(signatures) + markers.definitions(signatures,fork_definitions(signatures)) + ['(sort Cell!)']
     for family,c in chosen.items():
         types=markers.signature(selected_layouts[family],c)
         out.append(f'(constructor Summary-{family}! ({" ".join(names.raw(s) for s in types)}) Cell!)')
+    out+=declarations(selected_layouts,signatures)
     return out
 
 
@@ -598,19 +604,24 @@ def make_library(candidates, plan, edges, environment, signatures, work, prepare
                 for e in walk(root) if e['kind']=='call'}
         owners=sum(names.is_summary(h) for h in reads.values())
         canonical_reads=sum(names.is_canonical(h) for h in reads.values())
+        interface_reads=sum(is_interface(h) for h in reads.values())
         external_reads=sum(names.is_raw(h,signatures) for h in reads.values())
         if canonical_reads and not owners:raise ValueError(f'{r["name"]}: canonical lookup without an active marker')
+        if interface_reads and not owners:raise ValueError(f'{r["name"]}: shared interface without an active marker')
         if any(names.is_raw(h,signatures) for h in writes.values()):
             raise ValueError(f'{r["name"]}: a runtime rule may not recreate raw ingress constructors')
         gate_audit.append(dict(rule=r['name'],kind='transition' if owners else 'ingress',marker_reads=owners,
-                              canonical_lookups=canonical_reads,external_lookups=external_reads,
+                              canonical_lookups=canonical_reads,interface_lookups=interface_reads,external_lookups=external_reads,
                               canonical_writes=sum(names.is_canonical(h) for h in writes.values())))
     export_path=work/'marker-exports.egg';export_path.write_text('\n'.join(closure_export(c) for c in chosen.values()))
     exported=ast(export_path,work/'marker-exports.json')['rules']
     out += [markers.lower(r,selected_layouts,signatures,export=True) for r in exported]
     retirement=dict(lenses=prepared['lenses'],cyclic_lenses_retained=prepared['blocked'],consumers=prepared['lowered'],retirement_rules=prepared['retire'],
         redundant_inherited_rules_removed=prepared['redundant'],runtime_rules=runtime_rules,marker_layouts=selected_layouts,gate_audit=gate_audit,
-        raw_contracts=prepared.get('raw_contracts',{}),costed_transitions=transitions,scope='active canonical markers; raw constructors are ingress only; no closure-read relations')
+        raw_contracts=prepared.get('raw_contracts',{}),costed_transitions=transitions,
+        interfaces=dict(mode=prepared.get('interface_mode','inline'),selected=[f for f,l in selected_layouts.items() if l.get('interface')=='shared'],
+            scope='shared seed decoders; every consumer retains its active owner marker; rows may remain after retirement'),
+        scope='active canonical markers; raw constructors are ingress only; optional shared seed decoders')
     return '\n'.join(out)+'\n', chosen, prepared['lowered'], retirement
 
 
@@ -638,12 +649,12 @@ def compatible_program(data):
     if any(e['kind']=='call' and e['head'] not in data['signatures']
            for root in expressions([a['action'] for a in data['actions']]) for e in walk(root)):
         return 'primitive computation in initial actions must retain native evaluation'
-    if any(name.endswith('!') or name.startswith(('Spine-','Reified-')) or names.is_summary(names.raw(name))
+    if any(name.endswith('!') or name.startswith(('Spine-','Reified-')) or names.is_summary(names.raw(name)) or is_interface(names.raw(name))
            for name in data['signatures']) or any(
         d.get('name','').endswith('!') or d.get('name')=='Cell' for d in data['declarations']) or any(
         r.endswith('!') for r in data['rule_rulesets']) or any(
         a['action'].get('name','').endswith('!') for a in data['actions']):
-        return 'source name collides with the reserved Cell namespace (! suffix, Summary-N, Reified-, Cell or legacy Spine-)'
+        return 'source name collides with the reserved Cell namespace (! suffix, Summary-N, Interface-N, Reified-, Cell or legacy Spine-)'
     first = min((a['command_ordinal'] for a in data['actions']), default=cut)
     if any(c['kind'] in ('declaration','rule') and c['ordinal']>first for c in data['commands']):
         return 'interleaved declarations/rules may capture earlier global bindings'
@@ -698,6 +709,8 @@ def main():
                    help='exact layout pricing: original enumeration, source reuse, or source reuse plus per-transition projection (default)')
     p.add_argument('--cell-composition',choices=('observed','seed-cuts'),default=os.environ.get('EGG_LAYOUT_CELL_COMPOSITION','seed-cuts'),
                    help='observed parents only, or additionally factor certified constructor boundaries into small Cells (default)')
+    p.add_argument('--cell-interfaces',choices=('inline','auto','shared'),default=os.environ.get('EGG_LAYOUT_CELL_INTERFACES','auto'),
+                   help='inline seed queries, jointly selected shared decoders (default), or force shared where decoding is needed')
     p.add_argument('--keep-duplicate-spines',action='store_true',help='ablation: retain distinct variables for identical physical representations')
     p.add_argument('--skip-build',action='store_true')
     a=p.parse_args()
@@ -764,7 +777,7 @@ def main():
     from .pricing import RuntimePricing,audit
     from .storage import InstanceStorage
     storage=InstanceStorage(data,cs,environment,sig,ROOT/'target/release/examples/native_math_baseline') if a.storage_cost=='instances' else None
-    pricing=RuntimePricing(lambda plan,dest:prepare_runtime(cs,plan,edges,work,dest),sig,work/'pricing',weights,
+    pricing=RuntimePricing(lambda plan,dest:prepare_runtime(cs,plan,edges,work,dest,interface_mode=a.cell_interfaces),sig,work/'pricing',weights,
                            storage=storage,layout_pricing=a.layout_pricing)
     phase('catalog_prepare')
     plan=solve(representations,edges,a.output,weights,pricing=pricing)

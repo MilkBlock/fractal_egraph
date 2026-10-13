@@ -19,6 +19,40 @@ coarse paths. Its output filenames and status are distinct from Cell results.
 `--analysis-dir DIR` applies only to Cell compilation. `--skip-build` requires
 current native binaries. Output must be empty.
 
+## Shared seed interfaces
+
+`--cell-interfaces auto` (default) jointly chooses inline seed decoding or a
+shared `Interface-N!` relation for each selected marker layout. `inline` keeps
+decoding inside each consumer; `shared` restricts layouts with a decoder to the
+shared form, for ablation. Layouts needing no decoder remain direct.
+
+A view stores the complete typed seed binding and the intermediate constructor
+values needed for subtree reuse. Its maintenance rule reads the live canonical
+marker and its seed, and runs in `Run!`. Consumers still require that same live
+marker alongside the view. Retirement never revives a child Summary. Cached
+interface rows can remain after retirement, but do not authorize a match alone.
+Native union/rebuild enables new view bindings through the normal incremental
+schedule; equality guards and correlated argument tuples remain in the producer.
+These are seed views, not expansion of the entire saturated closure.
+
+The joint solver charges each selected interface's schema and maintenance rule
+once, plus each consumer's actual lowered queries. Shared/inline choices use the
+same global layout variables as spine anchors and marker payloads. Independent
+native parsing audits the emitted costs. With `--storage-cost instances`, native
+checkpoint storage also includes interface rows, including stale rows. The
+structural default does not estimate invocation frequencies, index bytes or RSS.
+
+Effect elimination uses only the equations guaranteed by selected spine
+initializers and support recipes. Within one RHS, an earlier retained insertion
+or union can make a later effect redundant, never the reverse. A semantic
+closure row alone does not prove a physical row exists, and equal constructor
+results do not imply equal arguments.
+
+This shares decoding across inherited consumers; it does **not** yet factor the
+Cartesian product of all owner alternatives into one consumer. The late-bridge
+example still has 62 transition/retirement rules and one shared maintenance rule.
+See [the measured ablation](../../experiments/cell_spine/shared_interfaces/README.md).
+
 ## Solver and exact representation sharing
 
 SCIP is the default, via the pinned `pyscipopt` wheel. It requires no Gurobi
@@ -767,7 +801,7 @@ initializer row-cover solution, executes only that compact program in native
 egglog, and prices its actual retained function-table Value slots. The score is:
 
 ```
-storage_weight * (template_nodes + marker_columns + checkpoint_peak_value_slots)
+storage_weight * (template_nodes + marker_columns + interface_columns + checkpoint_peak_value_slots)
   + search_weight * lookup_atoms_and_guards
   + update_weight * write_atoms_and_unions
 ```

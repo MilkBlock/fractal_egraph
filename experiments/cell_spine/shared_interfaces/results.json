@@ -1,0 +1,354 @@
+{
+  "copies": 128,
+  "scope": "small native graphs pre-saturated; compact inputs already represent closed Add2; Run includes bridge insertion; one timing each, diagnostics separate; incomplete observed output is not a speed baseline",
+  "results": [
+    {
+      "mode": "native",
+      "equivalent_counts": true,
+      "run_seconds": 0.007926458,
+      "setup_seconds": 0.008607166,
+      "input_seconds": 0.027598583,
+      "seconds": 0.04413220699999999,
+      "peak_rss_bytes": 68829184,
+      "physical_rows": 4224,
+      "restored": {
+        "eclasses": 1408,
+        "enodes": 3328,
+        "sorts": {
+          "Term": {
+            "eclasses": 1408,
+            "enodes": 3328
+          }
+        },
+        "tables": {
+          "Add": 2816,
+          "Leaf": 512
+        }
+      },
+      "active_markers": 0,
+      "retired_markers": 0,
+      "bake": null,
+      "compiler_seconds": null,
+      "interface_selection": null,
+      "rule_count": 2,
+      "structural_cost": null,
+      "probes": {
+        "  candidate_rows enumerated (for_each)": 9984,
+        "  candidate_rows from lookups": 3584,
+        "  lookup calls (get_subset)": 7424,
+        "cached_column": 2187,
+        "cached_index_hit": 2177,
+        "cached_index_rebuild": 14,
+        "cached_index_rebuild_full": 0,
+        "cached_index_rebuild_rows": 9984,
+        "cached_tuple": 0,
+        "candidate_rows": 13568,
+        "dynamic_column (per-node cache)": 397,
+        "dynamic_tuple (group_by_key)": 0,
+        "probed_keys": 7680,
+        "probes": 5400,
+        "sparse_column": 2816
+      },
+      "tables": {
+        "Add": 2816,
+        "Leaf": 512
+      },
+      "rule_matches": {
+        "(rewrite (Add (Add a b) (Add c d)) (Add a (Add b (Add c d))) :ruleset algebra)": 1024,
+        "(rewrite (Add a b) (Add b a) :ruleset algebra)": 2304
+      },
+      "global_binding_rows": 896
+    },
+    {
+      "mode": "before",
+      "equivalent_counts": true,
+      "run_seconds": 0.014461708,
+      "setup_seconds": 0.017920958,
+      "input_seconds": 0.033409125,
+      "seconds": 0.065791791,
+      "peak_rss_bytes": 73498624,
+      "physical_rows": 2560,
+      "restored": {
+        "eclasses": 1408,
+        "enodes": 3328,
+        "sorts": {
+          "Term": {
+            "eclasses": 1408,
+            "enodes": 3328
+          }
+        },
+        "tables": {
+          "Add": 2816,
+          "Leaf": 512
+        }
+      },
+      "active_markers": 128,
+      "retired_markers": 384,
+      "bake": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/seed-composition-final-bench/add2_pair-recomposed/bake",
+      "compiler_seconds": 3.4526515000034124,
+      "interface_selection": null,
+      "rule_count": 62,
+      "structural_cost": {
+        "template_nodes": 3,
+        "marker_columns": 2,
+        "lookup_atoms_and_guards": 488,
+        "write_atoms_and_unions": 503
+      },
+      "probes": {
+        "  candidate_rows enumerated (for_each)": 26112,
+        "  candidate_rows from lookups": 33792,
+        "  lookup calls (get_subset)": 37120,
+        "cached_column": 3788,
+        "cached_index_hit": 3780,
+        "cached_index_rebuild": 20,
+        "cached_index_rebuild_full": 0,
+        "cached_index_rebuild_rows": 2944,
+        "cached_tuple": 0,
+        "candidate_rows": 59904,
+        "dynamic_column (per-node cache)": 11591,
+        "dynamic_tuple (group_by_key)": 0,
+        "probed_keys": 26112,
+        "probes": 29971,
+        "sparse_column": 14592
+      },
+      "tables": {
+        "Add": 0,
+        "Add!": 128,
+        "Add!!": 512,
+        "Leaf": 0,
+        "Leaf!": 512,
+        "Leaf!!": 0,
+        "Reified-Term!": 0,
+        "RipenInput": 0,
+        "RipenInput!": 0,
+        "RipenInput!!": 0,
+        "Summary-0!": 384,
+        "Summary-1!": 128
+      },
+      "rule_matches": {
+        "cut_3_0_0": 128,
+        "cut_3_0_0_cover_7": 256,
+        "cut_6_0_0": 128,
+        "cut_6_0_0_cover_7": 256,
+        "impl_0_0": 128,
+        "retire_3": 128
+      },
+      "library_sha256": "8e124850041a7ee9d4866c08d85a39dfd17990d7be8f6fe20b15947e2f30e1a6",
+      "source_sha256": "3b94edb5b1191a01d2e058e64a8a6074dbf33e694bd13fab62bfc1b7aa408d1d",
+      "phase_seconds": {
+        "build": 4.5797787606716156e-07,
+        "source_prepare": 0.03904791711829603,
+        "tier0_capture": 0.1411392919253558,
+        "catalog_prepare": 0.15050525008700788,
+        "spine_solve": 2.9433167909737676,
+        "library_emit": 0.042056916980072856,
+        "input_solve": 0.014039166970178485,
+        "validation_prepare": 0.0025504999794065952,
+        "native_validation": 0.11826899996958673,
+        "output_write": 0.001726208021864295
+      },
+      "global_binding_rows": 896
+    },
+    {
+      "mode": "effects",
+      "equivalent_counts": true,
+      "run_seconds": 0.013004,
+      "setup_seconds": 0.016863458,
+      "input_seconds": 0.031477875,
+      "seconds": 0.061345333,
+      "peak_rss_bytes": 72843264,
+      "physical_rows": 2560,
+      "restored": {
+        "eclasses": 1408,
+        "enodes": 3328,
+        "sorts": {
+          "Term": {
+            "eclasses": 1408,
+            "enodes": 3328
+          }
+        },
+        "tables": {
+          "Add": 2816,
+          "Leaf": 512
+        }
+      },
+      "active_markers": 128,
+      "retired_markers": 384,
+      "bake": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-interface-inline-v1",
+      "compiler_seconds": 3.2062619999051094,
+      "interface_selection": {
+        "mode": "inline",
+        "selected": [],
+        "scope": "shared seed decoders; every consumer retains its active owner marker; rows may remain after retirement"
+      },
+      "rule_count": 62,
+      "structural_cost": {
+        "template_nodes": 3,
+        "marker_columns": 2,
+        "interface_columns": 0,
+        "lookup_atoms_and_guards": 488,
+        "write_atoms_and_unions": 443
+      },
+      "probes": {
+        "  candidate_rows enumerated (for_each)": 25984,
+        "  candidate_rows from lookups": 33792,
+        "  lookup calls (get_subset)": 37120,
+        "cached_column": 3788,
+        "cached_index_hit": 3780,
+        "cached_index_rebuild": 20,
+        "cached_index_rebuild_full": 0,
+        "cached_index_rebuild_rows": 2944,
+        "cached_tuple": 0,
+        "candidate_rows": 59776,
+        "dynamic_column (per-node cache)": 11591,
+        "dynamic_tuple (group_by_key)": 0,
+        "probed_keys": 25984,
+        "probes": 29843,
+        "sparse_column": 14464
+      },
+      "tables": {
+        "Add": 0,
+        "Add!": 128,
+        "Add!!": 512,
+        "Leaf": 0,
+        "Leaf!": 512,
+        "Leaf!!": 0,
+        "Reified-Term!": 0,
+        "RipenInput": 0,
+        "RipenInput!": 0,
+        "RipenInput!!": 0,
+        "Summary-0!": 384,
+        "Summary-1!": 128
+      },
+      "rule_matches": {
+        "cut_3_0_0": 128,
+        "cut_3_0_0_cover_7": 128,
+        "cut_6_0_0": 128,
+        "cut_6_0_0_cover_7": 256,
+        "impl_0_0": 128,
+        "retire_3": 128
+      },
+      "library_sha256": "744c49a22209c9c887ba60ab53c9d2a47425b0ab07a685a3ce0810db705bc63c",
+      "source_sha256": "3b94edb5b1191a01d2e058e64a8a6074dbf33e694bd13fab62bfc1b7aa408d1d",
+      "phase_seconds": {
+        "build": 4.998873919248581e-07,
+        "source_prepare": 0.07799841603264213,
+        "tier0_capture": 0.0004805000498890877,
+        "catalog_prepare": 0.20938524999655783,
+        "spine_solve": 2.712443708907813,
+        "library_emit": 0.04099629120901227,
+        "input_solve": 0.013703374890610576,
+        "validation_prepare": 0.0024655000306665897,
+        "native_validation": 0.14714862499386072,
+        "output_write": 0.0016398339066654444
+      },
+      "global_binding_rows": 896
+    },
+    {
+      "mode": "interfaces",
+      "equivalent_counts": true,
+      "run_seconds": 0.009551791,
+      "setup_seconds": 0.013739625,
+      "input_seconds": 0.029645083,
+      "seconds": 0.052936499,
+      "peak_rss_bytes": 71041024,
+      "physical_rows": 2816,
+      "restored": {
+        "eclasses": 1408,
+        "enodes": 3328,
+        "sorts": {
+          "Term": {
+            "eclasses": 1408,
+            "enodes": 3328
+          }
+        },
+        "tables": {
+          "Add": 2816,
+          "Leaf": 512
+        }
+      },
+      "active_markers": 128,
+      "retired_markers": 384,
+      "bake": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-interface-auto-v1",
+      "compiler_seconds": 5.958494292106479,
+      "interface_selection": {
+        "mode": "auto",
+        "selected": [
+          1
+        ],
+        "scope": "shared seed decoders; every consumer retains its active owner marker; rows may remain after retirement"
+      },
+      "rule_count": 63,
+      "structural_cost": {
+        "template_nodes": 3,
+        "marker_columns": 2,
+        "interface_columns": 7,
+        "lookup_atoms_and_guards": 317,
+        "write_atoms_and_unions": 451
+      },
+      "probes": {
+        "  candidate_rows enumerated (for_each)": 21376,
+        "  candidate_rows from lookups": 14976,
+        "  lookup calls (get_subset)": 20736,
+        "cached_column": 4704,
+        "cached_index_hit": 4692,
+        "cached_index_rebuild": 31,
+        "cached_index_rebuild_full": 0,
+        "cached_index_rebuild_rows": 3968,
+        "cached_tuple": 0,
+        "candidate_rows": 36352,
+        "dynamic_column (per-node cache)": 1374,
+        "dynamic_tuple (group_by_key)": 0,
+        "probed_keys": 15872,
+        "probes": 13118,
+        "sparse_column": 7040
+      },
+      "tables": {
+        "Add": 0,
+        "Add!": 128,
+        "Add!!": 512,
+        "Interface-1!": 256,
+        "Leaf": 0,
+        "Leaf!": 512,
+        "Leaf!!": 0,
+        "Reified-Term!": 0,
+        "RipenInput": 0,
+        "RipenInput!": 0,
+        "RipenInput!!": 0,
+        "Summary-0!": 384,
+        "Summary-1!": 128
+      },
+      "rule_matches": {
+        "cut_3_0_0": 128,
+        "cut_3_0_0_cover_7": 128,
+        "cut_6_0_0": 128,
+        "cut_6_0_0_cover_7": 256,
+        "impl_0_0": 128,
+        "interface_1": 256,
+        "retire_3": 128
+      },
+      "library_sha256": "8dba6b73ac53eba5e73aadac8bc8d1cf52837ff7b4791175fa44cf50a39bcb4b",
+      "source_sha256": "3b94edb5b1191a01d2e058e64a8a6074dbf33e694bd13fab62bfc1b7aa408d1d",
+      "phase_seconds": {
+        "build": 7.501803338527679e-07,
+        "source_prepare": 0.04112920886836946,
+        "tier0_capture": 0.0004965001717209816,
+        "catalog_prepare": 0.19216879084706306,
+        "spine_solve": 5.527586834039539,
+        "library_emit": 0.048566624987870455,
+        "input_solve": 0.01367554091848433,
+        "validation_prepare": 0.002268959069624543,
+        "native_validation": 0.1310227911453694,
+        "output_write": 0.00157829187810421
+      },
+      "global_binding_rows": 896
+    }
+  ],
+  "schema": "cell-shared-interface-ablation/v1",
+  "provenance": {
+    "previous_compiler_commit": "da6e8ed",
+    "runtime": "actual local egglog, existing binary; not pristine upstream",
+    "binary_sha256": "6d0328c46bd21feffa2723028339029f4e0b581913d52e67bae32a2b78956901",
+    "date": "2026-10-14"
+  }
+}

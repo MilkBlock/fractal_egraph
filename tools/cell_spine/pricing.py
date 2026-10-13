@@ -10,6 +10,7 @@ import time
 from collections import defaultdict
 from . import markers,names
 from . import takeover
+from .interfaces import storage_columns, is_interface
 from .terms import actions,text,walk
 
 
@@ -27,12 +28,14 @@ def cost(rule):
     changes=sum(a['kind']=='change' for a in rule['head'])
     marker_columns=sum(len(e['args']) for e in writes.values() if names.is_summary(e['head']))
     marker_keys=sum(len(a['args']) for a in rule['head'] if a['kind']=='change' and names.is_summary(a['head']))
-    return dict(search_atoms=len(reads)+guards,update_actions=len(writes)+unions+changes+marker_columns+marker_keys,
+    interface_columns=sum(len(e['args']) for e in writes.values() if is_interface(e['head']))
+    return dict(search_atoms=len(reads)+guards,update_actions=len(writes)+unions+changes+marker_columns+marker_keys+interface_columns,
         canonical_reads=sum(names.is_canonical(e['head']) for e in reads.values()),
         external_reads=sum(names.is_raw(e['head']) for e in reads.values()),
         marker_reads=sum(names.is_summary(e['head']) for e in reads.values()),
         canonical_writes=sum(names.is_canonical(e['head']) for e in writes.values()),
-        marker_columns=marker_columns,marker_key_columns=marker_keys,unions=unions,changes=changes)
+        marker_columns=marker_columns,marker_key_columns=marker_keys,unions=unions,changes=changes,
+        interface_reads=sum(is_interface(e['head']) for e in reads.values()),interface_columns=interface_columns)
 
 
 def audit(rules, expected):
@@ -133,9 +136,9 @@ class RuntimePricing:
         # Path IDs and variable spelling do not change emitted operation
         # counts. Reuse only identical typed lowering recipes, not merely
         # equal costs observed on a few samples. Relabel decision variables.
-        recipe_fields=('roots','fields','terms','decode','anchor','anchor_field','columns','representation','read_storage','stored_roots')
+        recipe_fields=('roots','fields','terms','decode','anchor','anchor_field','columns','representation','read_storage','stored_roots','interface','interface_types','interface_columns')
         recipes=tuple(tuple(json.dumps({k:l.get(k) for k in recipe_fields},sort_keys=True) for l in ls) for ls in domains)
-        key=(rule_recipe(rule),recipes)
+        key=(rule_recipe(rule),'interface_family' in rule,recipes)
         if key in self.profiles:
             root,previous=self.profiles[key]
             return self.diagram.relabel(root,{old:new for olds,news in zip(previous,ids) for old,new in zip(olds,news)})
@@ -176,6 +179,7 @@ class RuntimePricing:
         result={}
         for rule in bundle['consumers']:
             lowered=markers.lower_ast(rule,selected,self.signatures)
+            if lowered.get('disabled'):continue
             result[rule['name']]=dict(cost(lowered),reused_subtrees=lowered['reused_subtrees'])
         return result
     def price_below(self,plan,upper_bound):
@@ -201,7 +205,7 @@ class RuntimePricing:
                 previous,indices=self.equivalent_models[semantic_key]
                 selected={f:chosen[f]['marker_layouts'][i] for f,i in indices.items()}
                 prices=self.prices(bundle,selected)
-                k=sum(l['columns'] for l in selected.values())
+                k=sum(storage_columns(l) for l in selected.values())
                 q=sum(c['search_atoms'] for c in prices.values());w=sum(c['update_actions'] for c in prices.values())
                 value=self.weights[0]*k+self.weights[1]*q+self.weights[2]*w
                 if not math.isclose(value,previous['value'],rel_tol=1e-9,abs_tol=1e-7):
@@ -223,7 +227,7 @@ class RuntimePricing:
             variables={l['id']:model.addVar(vtype=gp.BINARY,name=l['id']) for c in chosen.values() for l in c['marker_layouts']}
             for family,c in chosen.items():model.addConstr(gp.quicksum(variables[l['id']] for l in c['marker_layouts'])==1,name=f'layout_{family}')
             work,nodes=self.diagram.encode(model,variables,profiles)
-            columns=gp.quicksum(l['columns']*variables[l['id']] for c in chosen.values() for l in c['marker_layouts'])
+            columns=gp.quicksum(storage_columns(l)*variables[l['id']] for c in chosen.values() for l in c['marker_layouts'])
             storage_bound=self.storage.lower_bound(bundle) if hasattr(self.storage,'lower_bound') else 0.
             retained=model.addVar(lb=storage_bound,name='instance_storage') if self.storage is not None else 0.
             model.setObjective(self.weights[0]*(columns+retained)+gp.quicksum(work))
@@ -252,7 +256,7 @@ class RuntimePricing:
                 if storage_value<storage_bound:raise ValueError('mandatory input storage bound exceeds native measurement')
                 prices=self.prices(bundle,selected)
                 q=sum(c['search_atoms'] for c in prices.values());w=sum(c['update_actions'] for c in prices.values())
-                k=sum(l['columns'] for l in selected.values())
+                k=sum(storage_columns(l) for l in selected.values())
                 value=self.weights[0]*(k+storage_value)+self.weights[1]*q+self.weights[2]*w
                 history.append(dict(layouts=ids,lower_bound=bound,storage_value=storage_value,value=value))
                 if best is None or value<best[0]:best=value,selected,sample
@@ -266,11 +270,13 @@ class RuntimePricing:
             if model.Status!=gp.OPTIMAL:raise RuntimeError('priced marker solution is infeasible')
             prices=self.prices(bundle,selected)
             q=sum(c['search_atoms'] for c in prices.values());w=sum(c['update_actions'] for c in prices.values())
-            k=sum(l['columns'] for l in selected.values())
+            k=sum(storage_columns(l) for l in selected.values())
             if not math.isclose(value,model.ObjVal,rel_tol=1e-8,abs_tol=1e-6):raise ValueError('cost diagram disagrees with emitted runtime')
             model.write(str(folder/'selection.sol'))
             result=dict(value=value,marker_layouts=[l['id'] for l in selected.values()],
-                costs=dict(marker_columns=k,lookup_atoms_and_guards=q,write_atoms_and_unions=w),rule_costs=prices,
+                costs=dict(marker_columns=sum(l['columns'] for l in selected.values()),
+                           interface_columns=sum(l.get('interface_columns',0) for l in selected.values()),
+                           lookup_atoms_and_guards=q,write_atoms_and_unions=w),rule_costs=prices,
                 variables=model.NumVars,constraints=model.NumConstrs,cost_diagram_nodes=nodes,
                 evaluated_layout_tuples=self.evaluations-before,folder=str(folder),instance_storage=sample,
                 storage_pricing_history=history if self.storage is not None else [],

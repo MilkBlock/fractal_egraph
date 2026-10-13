@@ -37,6 +37,7 @@ def layout_projection(layout,roles):
     canonical=layout.get('representation','canonical')=='canonical'
     if 'read' in roles:
         result['read']=dict(roots=layout['roots'],decode=layout['decode'],
+            interface=layout.get('interface','inline'),
             canonical=canonical,storage=layout.get('read_storage','canonical'),
             anchor=layout['anchor'] if layout['anchor_field']=='anchor' else None)
     if 'create' in roles:
@@ -170,6 +171,9 @@ def resume_source(rule, selected, signatures, source, *, normalizations=None):
 
 def _lower_ast(rule, selected, signatures, *, export=False, source=None, stop_after_source=False, normalizations=None):
     """Logical value identity and physical canonical rows remain distinct."""
+    if 'interface_family' in rule:
+        from .interfaces import producer
+        return {} if stop_after_source else producer(rule,selected,signatures)
     if source is None:
         body=[];known={};certified={};canonical_rows=set();decoded=set();names=set();reused=set()
         for fact in rule['body']:
@@ -273,6 +277,16 @@ def _lower_ast(rule, selected, signatures, *, export=False, source=None, stop_af
                 else:decode(pattern,output,layout.get('read_storage','canonical'))
             decoder_indices.update(i for i in range(decoder_start,len(body))
                                    if any(e['kind']=='call' for r in body[i]['args'] for e in walk(r)))
+            if layout.get('interface')=='shared' and not export:
+                from .interfaces import coordinates, name
+                args=[]
+                for coord in coordinates(layout):
+                    e=t.replace(coord,subst)
+                    args.append(known[text(e)] if e['kind']=='call' else e)
+                # The marker stays in body; a stale cached row alone cannot
+                # enable a consumer after the owner's retirement.
+                body[decoder_start:]=[dict(kind='fact',expr=t.call(name(naming.family(expr['head'])),args))]
+                decoder_indices.difference_update(i for i in list(decoder_indices) if i>=decoder_start)
         for left,right in constraints:
             body.append(dict(kind='eq',args=[left,flatten(right)]))
         for fact in rule['body']:
@@ -350,6 +364,7 @@ def _lower_ast(rule, selected, signatures, *, export=False, source=None, stop_af
 
 def render(rule):
     from .terms import actions
+    if rule.get('disabled'):return ''
     return f'(rule ({" ".join(t.fact_text(f) for f in rule["body"])}) ({" ".join(actions(rule["head"]))}) :ruleset {rule["ruleset"]} :name "{rule["name"]}")'
 
 

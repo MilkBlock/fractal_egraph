@@ -222,6 +222,9 @@ def entailed(body, head, definitions, lenses):
             union(add(e['args'][i]),add(replace(root,bindings)))
         for i,j in d['aliases']: union(add(e['args'][i]),add(e['args'][j]))
         for term in d['materialized']: present(replace(term,bindings))
+        # Only equations installed by every producer/initializer of this
+        # selected spine, never arbitrary equalities in its semantic closure.
+        for a,b in d.get('equalities',[]):union(add(replace(a,bindings)),add(replace(b,bindings)))
     target = head[-1]['expr']
     covers = []
     for e in summaries:
@@ -233,25 +236,32 @@ def entailed(body, head, definitions, lenses):
     for e in covers: add(e)
     for a in head:
         for e in ([a['expr']] if a['kind']=='expr' else a['args']): add(e)
-    while True:
-        found, changed = {}, False
-        for i,(e,children) in enumerate(nodes):
-            if e['kind'] != 'call': continue
-            key = e['head'],tuple(find(c) for c in children)
-            if key in found: changed = union(i,found[key]) or changed
-            else: found[key] = i
-        if not changed: break
+    def close():
+        while True:
+            found, changed = {}, False
+            for i,(e,children) in enumerate(nodes):
+                if e['kind'] != 'call': continue
+                key = e['head'],tuple(find(c) for c in children)
+                if key in found: changed = union(i,found[key]) or changed
+                else: found[key] = i
+            if not changed: break
+    close()
     def same(a,b): return find(ids[text(a)])==find(ids[text(b)])
     covered = any(all(same(a,b) for a,b in zip(e['args'],target['args'])) for e in covers)
-    available = {(nodes[i][0]['head'],tuple(find(c) for c in nodes[i][1])) for i in physical}
     implied = []
     for action in head[:-1]:
         roots = [action['expr']] if action['kind']=='expr' else action['args']
-        known = action['kind'] != 'union' or same(*roots)
+        available = {(nodes[i][0]['head'],tuple(find(c) for c in nodes[i][1])) for i in physical}
+        known = action['kind'] in ('expr','union') and (action['kind'] != 'union' or same(*roots))
         for root in roots:
             for e in walk(root):
                 if e['kind']=='call':
                     i=ids[text(e)]
                     if (e['head'],tuple(find(c) for c in nodes[i][1])) not in available: known = False
         implied.append(known)
+        # Later effects may use earlier retained effects, never the reverse.
+        if action['kind'] in ('expr','union'):
+            for e in roots:present(e)
+            if action['kind']=='union':union(*(add(e) for e in roots))
+            close()
     return covered, implied

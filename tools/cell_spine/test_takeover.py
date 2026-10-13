@@ -13,6 +13,23 @@ from .takeover import ancestors, var, call, entailed, normalize
 
 
 class Proofs(unittest.TestCase):
+    def test_installed_support_equation_removes_only_proved_effect(self):
+        root,x,y=map(var,('root','x','y'))
+        a,b=call('A!',[x]),call('B!',[x])
+        s=call('Summary-0!',[root,x])
+        d={'Summary-0!':dict(fields=['root','x'],roots=[a],aliases=[],
+                            materialized=[a,b],equalities=[[b,root]])}
+        head=[dict(kind='union',args=[b,root]),dict(kind='union',args=[root,y]),dict(kind='expr',expr=s)]
+        self.assertEqual(entailed([dict(kind='fact',expr=s)],head,d,[]),(True,[True,False]))
+        d['Summary-0!']['equalities']=[]
+        self.assertEqual(entailed([dict(kind='fact',expr=s)],head,d,[]),(True,[False,False]))
+
+    def test_effect_order_and_different_instances(self):
+        x,y=map(var,('x','y'));a,b=call('A!',[x]),call('A!',[y]);s=call('Summary-0!',[x])
+        head=[dict(kind='expr',expr=a),dict(kind='expr',expr=a),dict(kind='union',args=[a,b]),
+              dict(kind='union',args=[b,a]),dict(kind='expr',expr=s)]
+        self.assertEqual(entailed([],head,{},[]),(False,[False,True,False,True]))
+
     def test_cyclic_dominance_is_not_retirement(self):
         lenses = [dict(owner=a,child=b,owner_fields=['p'],child_fields=['p'],args=[var('p')],evidence=[])
                   for a,b in [(0,1),(1,0),(2,1)]]
