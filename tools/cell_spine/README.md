@@ -81,6 +81,46 @@ Automatic Bake retains rooted capture for continuity with prior benchmarks.
 Set `EGG_LAYOUT_CELL_WINDOWS=1` to include middle-history Cells during fresh Bake,
 or pass a full `--analysis-dir`; supplied catalogs are never truncated.
 
+## Composing already compact small Cells
+
+`--cell-composition seed-cuts` is the default. After exact closure admission,
+the compiler indexes certified single-root seed patterns by constructor name.
+For every constructor in a known larger seed, it matches the available small
+Cells on its immediate children. Two or more distinct child positions produce
+an additional merge interface. For example, two Add2 instances and the actual
+`Add(left,right)` connector can produce the known Add4 Cell. Operator names are
+not special-cased. Typed bindings, repeated variables, literals and all explicit
+seed equality guards must agree; remaining facts stay on the LHS. Guards are
+checked against the initial seed, never justified by its future saturation.
+
+These interfaces do not depend on the target's historical `composition.parts`.
+An intermediate-window Cell can therefore become a parent where its certified
+seed fits, even if the original trace recorded a larger prefix. Two instances
+of one family share a representation choice but keep separate bindings. Source
+templates reuse the exact representation normalization before matching.
+
+The interfaces are separate obligations in the existing solver. Each keeps all
+compatible endpoint representation choices and uses the same joint marker and
+subtree-reuse cost model. Every admitted historical entry still receives native
+validation. Exact ancestor views allow covered small markers to retire while
+future uses are forwarded through the owner. Views that become identical after
+certified field projection are merged before inherited consumers are expanded.
+
+`transitions.json` labels these additional edges `certified_seed_cut` and records
+the connector, source templates and complete port substitutions. They are
+semantic decompositions of an already certified state, **not invented tier-0
+apply events**. The Rust trace DAG/frontier is unchanged. `report.json` exposes
+their count under `cell_composition`. Use `--cell-composition observed` (or
+`EGG_LAYOUT_CELL_COMPOSITION=observed`) for the earlier parent-only ablation.
+
+This is an immediate-constructor-boundary decomposition, not arbitrary subgraph
+partitioning. New source fragments currently require one root; multi-root
+sources retain their observed paths. A cut cannot bootstrap its own family.
+No new closure is guessed for an unseen larger seed, and no candidate/time cap
+is added. Alternate source contracts can still cause a Cartesian product and
+inherited rules can grow. More supported interfaces do not guarantee faster
+execution. See [native examples and results](../../experiments/cell_spine/seed_composition/README.md).
+
 ## Generated names
 
 The compiler uses `Op!` for forked input constructors and `Op!!` for separately

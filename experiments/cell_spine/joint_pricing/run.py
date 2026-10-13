@@ -50,7 +50,7 @@ def main():
     for case in reference['cases']:
         name=case['fixture'];source=ROOT/case['source'];dest=out/name
         if c.digest(source)!=case['source_sha256']:raise ValueError(f'{name}: reference source changed')
-        command=[sys.executable,'-m','tools.cell_spine.compiler','--source',source,'--output',dest,'--storage-cost','structural','--keep-duplicate-spines']
+        command=[sys.executable,'-m','tools.cell_spine.compiler','--source',source,'--output',dest,'--storage-cost','structural','--keep-duplicate-spines','--cell-composition','observed']
         if a.skip_build or results:command.append('--skip-build')
         subprocess.run(command,cwd=ROOT,check=True,stdout=subprocess.DEVNULL)
         new=json.loads((dest/'report.json').read_text())

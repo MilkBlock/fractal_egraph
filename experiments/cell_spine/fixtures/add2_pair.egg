@@ -1,0 +1,13 @@
+; A four-leaf addition with two separately reusable Add2 subtrees.
+; This small ruleset has commutativity and a balanced use of associativity;
+; it is not the complete associative/commutative closure of arbitrary trees.
+(datatype Term (Leaf String) (Add Term Term))
+(ruleset algebra)
+(rewrite (Add a b) (Add b a) :ruleset algebra)
+(rewrite (Add (Add a b) (Add c d))
+         (Add a (Add b (Add c d))) :ruleset algebra)
+(let left (Add (Leaf "a") (Leaf "b")))
+(let right (Add (Leaf "c") (Leaf "d")))
+(let root (Add left right))
+(run-schedule (saturate algebra))
+(check (= root (Add (Leaf "a") (Add (Leaf "b") (Add (Leaf "c") (Leaf "d"))))))

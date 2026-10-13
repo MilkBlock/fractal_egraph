@@ -1,0 +1,781 @@
+{
+  "date": "2026-10-13",
+  "ordinary_input": {
+    "schema": "cell-window-spine-bench/v1",
+    "copies": 128,
+    "environment": {
+      "os": "Darwin",
+      "arch": "arm64",
+      "cpu": "Apple M3 Max",
+      "python": "3.14.3",
+      "rust": "rustc 1.94.0 (4a4ef493e 2026-03-02)",
+      "solver": {
+        "backend": "scip",
+        "python_package_version": "6.3.0",
+        "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+        "threads": 1
+      },
+      "runner_image": "local",
+      "runner_image_version": "unknown"
+    },
+    "commit": "4fbfd8bc111ba16bec24e9336b6a3334763be635",
+    "dirty": true,
+    "binaries": {
+      "target/release/egg_layout": "ef6d44df0af7d0ce74cc60808f957bf52a8c1e63f0d32dda5d6748d1d07c65f3",
+      "target/release/examples/native_math_baseline": "6d0328c46bd21feffa2723028339029f4e0b581913d52e67bae32a2b78956901"
+    },
+    "cases": {
+      "add2_pair-rooted": {
+        "discovery": "rooted",
+        "source": "experiments/cell_spine/fixtures/add2_pair.egg",
+        "source_sha256": "3b94edb5b1191a01d2e058e64a8a6074dbf33e694bd13fab62bfc1b7aa408d1d",
+        "bake": {
+          "process_seconds": 0.9762059580534697,
+          "phase_seconds": {
+            "build": 7.918570190668106e-07,
+            "source_prepare": 0.038714875001460314,
+            "tier0_capture": 0.08447441714815795,
+            "catalog_prepare": 0.04837924987077713,
+            "spine_solve": 0.6799950411077589,
+            "library_emit": 0.011278916848823428,
+            "input_solve": 0.00811183312907815,
+            "validation_prepare": 0.0009969589300453663,
+            "native_validation": 0.05064870812930167,
+            "output_write": 0.0009657919872552156
+          },
+          "compiler_seconds": 0.9235665840096772,
+          "capture_mode": "fresh"
+        },
+        "bytes": {
+          "library.egg": 7630,
+          "runtime.egg": 7961,
+          "restore.egg": 8090
+        },
+        "cell_audit": {
+          "registered_entries": 15,
+          "states": {
+            "Rejected": 6,
+            "Saturated": 9
+          },
+          "certified_cell_kinds": 2,
+          "history_windows": 0,
+          "new_window_entries": 0,
+          "window_only_families": [],
+          "supported_paths": 9,
+          "rejected_paths": [
+            {
+              "unit": 7,
+              "reason": "no completed exact certificate (Rejected)"
+            },
+            {
+              "unit": 8,
+              "reason": "no completed exact certificate (Rejected)"
+            },
+            {
+              "unit": 11,
+              "reason": "no completed exact certificate (Rejected)"
+            },
+            {
+              "unit": 12,
+              "reason": "no completed exact certificate (Rejected)"
+            },
+            {
+              "unit": 13,
+              "reason": "no completed exact certificate (Rejected)"
+            },
+            {
+              "unit": 14,
+              "reason": "no completed exact certificate (Rejected)"
+            }
+          ],
+          "representations": 3,
+          "observed_edges": 9,
+          "certified_seed_cut_interfaces": 0,
+          "observed_edges_with_new_window_parent": 0,
+          "chosen_multi_parent_implementations": 0,
+          "chosen_implementations_using_window_representation": 0,
+          "emitted_rules": 10,
+          "objective": 105.0,
+          "solver_model": {
+            "variables": 24,
+            "constraints": 43
+          },
+          "all_original_paths_validated": 10,
+          "artifact_sha256": {
+            "library.egg": "91eebb8cbb761b50385509d1b49a4da17d215f717eeeed2db51ab6e8953bc553",
+            "runtime.egg": "b0cee6e90feb286edea32c9eac95d02b92b7624bf335e4d211cf1a96ebda0fde",
+            "restore.egg": "e1c4abbf80a6790bbd48175785a9362e45ba522b9af642d4108e06c1cf60f24b"
+          },
+          "multi_marker_merge_rule_count": 0,
+          "merge_matches": {
+            "raw_ingress": {
+              "all_merge_matches": 0,
+              "window_only_merge_matches": 0
+            },
+            "input_spine": {
+              "all_merge_matches": 0,
+              "window_only_merge_matches": 0
+            }
+          }
+        },
+        "modes": {
+          "native": {
+            "timing": {
+              "process_seconds": 0.02550229080952704,
+              "peak_rss_bytes": 13926400,
+              "read_seconds": 0.000126959,
+              "setup_seconds": 0.001909625,
+              "input_seconds": 0.014310208,
+              "run_seconds": 0.002208584,
+              "export_seconds": 0.0,
+              "drop_seconds": 0.002935542,
+              "seconds": 0.018428417,
+              "matches": 3840,
+              "run_merge_seconds": 0.00012275,
+              "run_rebuild_seconds": 7.5625e-05,
+              "run_search_apply_seconds": 0.001907666,
+              "export_merge_seconds": 0.0,
+              "export_rebuild_seconds": 0.0,
+              "export_search_apply_seconds": 0.0
+            },
+            "size": {
+              "physical_rows": 3712,
+              "raw_enodes": 0,
+              "canonical_enodes": 0,
+              "active_markers": 0,
+              "retired_markers": 0,
+              "restored_enodes": 3328,
+              "restored_eclasses": 1408
+            }
+          },
+          "raw_ingress": {
+            "timing": {
+              "process_seconds": 0.024561667116358876,
+              "peak_rss_bytes": 14434304,
+              "read_seconds": 4.8209e-05,
+              "setup_seconds": 0.003542208,
+              "input_seconds": 0.013496125,
+              "run_seconds": 0.001335916,
+              "export_seconds": 0.0,
+              "drop_seconds": 0.002902667,
+              "seconds": 0.018374249,
+              "matches": 1152,
+              "run_merge_seconds": 8.6001e-05,
+              "run_rebuild_seconds": 9.425e-05,
+              "run_search_apply_seconds": 0.001062501,
+              "export_merge_seconds": 0.0,
+              "export_rebuild_seconds": 0.0,
+              "export_search_apply_seconds": 0.0
+            },
+            "size": {
+              "physical_rows": 2176,
+              "raw_enodes": 896,
+              "canonical_enodes": 384,
+              "active_markers": 128,
+              "retired_markers": 384,
+              "restored_enodes": 3328,
+              "restored_eclasses": 1408
+            }
+          },
+          "input_spine": {
+            "timing": {
+              "process_seconds": 0.039121874840930104,
+              "peak_rss_bytes": 15171584,
+              "read_seconds": 6.0334e-05,
+              "setup_seconds": 0.003100417,
+              "input_seconds": 0.028185291,
+              "run_seconds": 0.001140709,
+              "export_seconds": 0.0,
+              "drop_seconds": 0.003021417,
+              "seconds": 0.032426417,
+              "matches": 512,
+              "run_merge_seconds": 3.7207e-05,
+              "run_rebuild_seconds": 0.000174083,
+              "run_search_apply_seconds": 0.000765458,
+              "export_merge_seconds": 0.0,
+              "export_rebuild_seconds": 0.0,
+              "export_search_apply_seconds": 0.0
+            },
+            "size": {
+              "physical_rows": 1920,
+              "raw_enodes": 768,
+              "canonical_enodes": 384,
+              "active_markers": 128,
+              "retired_markers": 256,
+              "restored_enodes": 3328,
+              "restored_eclasses": 1408
+            }
+          },
+          "input_spine_export": {
+            "timing": {
+              "process_seconds": 0.04854045808315277,
+              "peak_rss_bytes": 16891904,
+              "read_seconds": 0.000130709,
+              "setup_seconds": 0.004094584,
+              "input_seconds": 0.026262834,
+              "run_seconds": 0.001279125,
+              "export_seconds": 0.003903084,
+              "drop_seconds": 0.007228625,
+              "seconds": 0.035539627,
+              "matches": 512,
+              "run_merge_seconds": 0.000123624,
+              "run_rebuild_seconds": 0.000129416,
+              "run_search_apply_seconds": 0.000822376,
+              "export_merge_seconds": 0.000149084,
+              "export_rebuild_seconds": 0.000459,
+              "export_search_apply_seconds": 0.003142874
+            },
+            "size": {
+              "physical_rows": 1920,
+              "raw_enodes": 768,
+              "canonical_enodes": 384,
+              "active_markers": 128,
+              "retired_markers": 256,
+              "restored_enodes": 3328,
+              "restored_eclasses": 1408
+            }
+          }
+        }
+      },
+      "add2_pair-windows": {
+        "discovery": "windows",
+        "source": "experiments/cell_spine/fixtures/add2_pair.egg",
+        "source_sha256": "3b94edb5b1191a01d2e058e64a8a6074dbf33e694bd13fab62bfc1b7aa408d1d",
+        "bake": {
+          "process_seconds": 1.1542970421724021,
+          "phase_seconds": {
+            "build": 5.00120222568512e-07,
+            "source_prepare": 0.04255654104053974,
+            "tier0_capture": 0.1466591248754412,
+            "catalog_prepare": 0.14362620911560953,
+            "spine_solve": 0.649732582969591,
+            "library_emit": 0.013252832926809788,
+            "input_solve": 0.013403709046542645,
+            "validation_prepare": 0.003105957992374897,
+            "native_validation": 0.08348241704516113,
+            "output_write": 0.0012966659851372242
+          },
+          "compiler_seconds": 1.0971165411174297,
+          "capture_mode": "fresh"
+        },
+        "bytes": {
+          "library.egg": 7630,
+          "runtime.egg": 7961,
+          "restore.egg": 8090
+        },
+        "cell_audit": {
+          "registered_entries": 32,
+          "states": {
+            "Rejected": 6,
+            "Saturated": 26
+          },
+          "certified_cell_kinds": 2,
+          "history_windows": 26,
+          "new_window_entries": 17,
+          "window_only_families": [],
+          "supported_paths": 26,
+          "rejected_paths": [
+            {
+              "unit": 7,
+              "reason": "no completed exact certificate (Rejected)"
+            },
+            {
+              "unit": 8,
+              "reason": "no completed exact certificate (Rejected)"
+            },
+            {
+              "unit": 11,
+              "reason": "no completed exact certificate (Rejected)"
+            },
+            {
+              "unit": 12,
+              "reason": "no completed exact certificate (Rejected)"
+            },
+            {
+              "unit": 13,
+              "reason": "no completed exact certificate (Rejected)"
+            },
+            {
+              "unit": 14,
+              "reason": "no completed exact certificate (Rejected)"
+            }
+          ],
+          "representations": 3,
+          "observed_edges": 26,
+          "certified_seed_cut_interfaces": 0,
+          "observed_edges_with_new_window_parent": 0,
+          "chosen_multi_parent_implementations": 0,
+          "chosen_implementations_using_window_representation": 0,
+          "emitted_rules": 10,
+          "objective": 105.0,
+          "solver_model": {
+            "variables": 50,
+            "constraints": 86
+          },
+          "all_original_paths_validated": 27,
+          "artifact_sha256": {
+            "library.egg": "91eebb8cbb761b50385509d1b49a4da17d215f717eeeed2db51ab6e8953bc553",
+            "runtime.egg": "b0cee6e90feb286edea32c9eac95d02b92b7624bf335e4d211cf1a96ebda0fde",
+            "restore.egg": "e1c4abbf80a6790bbd48175785a9362e45ba522b9af642d4108e06c1cf60f24b"
+          },
+          "multi_marker_merge_rule_count": 0,
+          "merge_matches": {
+            "raw_ingress": {
+              "all_merge_matches": 0,
+              "window_only_merge_matches": 0
+            },
+            "input_spine": {
+              "all_merge_matches": 0,
+              "window_only_merge_matches": 0
+            }
+          }
+        },
+        "modes": {
+          "native": {
+            "timing": {
+              "process_seconds": 0.022517041070386767,
+              "peak_rss_bytes": 13795328,
+              "read_seconds": 6.125e-05,
+              "setup_seconds": 0.000483208,
+              "input_seconds": 0.013657708,
+              "run_seconds": 0.002327959,
+              "export_seconds": 0.0,
+              "drop_seconds": 0.002675333,
+              "seconds": 0.016468875,
+              "matches": 3840,
+              "run_merge_seconds": 0.000107333,
+              "run_rebuild_seconds": 0.000125125,
+              "run_search_apply_seconds": 0.001985124,
+              "export_merge_seconds": 0.0,
+              "export_rebuild_seconds": 0.0,
+              "export_search_apply_seconds": 0.0
+            },
+            "size": {
+              "physical_rows": 3712,
+              "raw_enodes": 0,
+              "canonical_enodes": 0,
+              "active_markers": 0,
+              "retired_markers": 0,
+              "restored_enodes": 3328,
+              "restored_eclasses": 1408
+            }
+          },
+          "raw_ingress": {
+            "timing": {
+              "process_seconds": 0.024952250067144632,
+              "peak_rss_bytes": 14139392,
+              "read_seconds": 6.9333e-05,
+              "setup_seconds": 0.003355709,
+              "input_seconds": 0.013690959,
+              "run_seconds": 0.001279875,
+              "export_seconds": 0.0,
+              "drop_seconds": 0.003229042,
+              "seconds": 0.018326543,
+              "matches": 1152,
+              "run_merge_seconds": 8.2999e-05,
+              "run_rebuild_seconds": 9.3292e-05,
+              "run_search_apply_seconds": 0.001019166,
+              "export_merge_seconds": 0.0,
+              "export_rebuild_seconds": 0.0,
+              "export_search_apply_seconds": 0.0
+            },
+            "size": {
+              "physical_rows": 2176,
+              "raw_enodes": 896,
+              "canonical_enodes": 384,
+              "active_markers": 128,
+              "retired_markers": 384,
+              "restored_enodes": 3328,
+              "restored_eclasses": 1408
+            }
+          },
+          "input_spine": {
+            "timing": {
+              "process_seconds": 0.03530087508261204,
+              "peak_rss_bytes": 14811136,
+              "read_seconds": 5.1375e-05,
+              "setup_seconds": 0.003337792,
+              "input_seconds": 0.024957667,
+              "run_seconds": 0.001078833,
+              "export_seconds": 0.0,
+              "drop_seconds": 0.002753334,
+              "seconds": 0.029374292,
+              "matches": 512,
+              "run_merge_seconds": 3.8793e-05,
+              "run_rebuild_seconds": 0.000153792,
+              "run_search_apply_seconds": 0.000744457,
+              "export_merge_seconds": 0.0,
+              "export_rebuild_seconds": 0.0,
+              "export_search_apply_seconds": 0.0
+            },
+            "size": {
+              "physical_rows": 1920,
+              "raw_enodes": 768,
+              "canonical_enodes": 384,
+              "active_markers": 128,
+              "retired_markers": 256,
+              "restored_enodes": 3328,
+              "restored_eclasses": 1408
+            }
+          },
+          "input_spine_export": {
+            "timing": {
+              "process_seconds": 0.038887291913852096,
+              "peak_rss_bytes": 14434304,
+              "read_seconds": 7.0958e-05,
+              "setup_seconds": 0.003276125,
+              "input_seconds": 0.024490541,
+              "run_seconds": 0.000959792,
+              "export_seconds": 0.0033845,
+              "drop_seconds": 0.003144667,
+              "seconds": 0.032110958,
+              "matches": 512,
+              "run_merge_seconds": 3.5e-05,
+              "run_rebuild_seconds": 0.000130083,
+              "run_search_apply_seconds": 0.000667334,
+              "export_merge_seconds": 0.000124667,
+              "export_rebuild_seconds": 0.000261291,
+              "export_search_apply_seconds": 0.002906709
+            },
+            "size": {
+              "physical_rows": 1920,
+              "raw_enodes": 768,
+              "canonical_enodes": 384,
+              "active_markers": 128,
+              "retired_markers": 256,
+              "restored_enodes": 3328,
+              "restored_eclasses": 1408
+            }
+          }
+        }
+      },
+      "add2_pair-recomposed": {
+        "discovery": "recomposed",
+        "source": "experiments/cell_spine/fixtures/add2_pair.egg",
+        "source_sha256": "3b94edb5b1191a01d2e058e64a8a6074dbf33e694bd13fab62bfc1b7aa408d1d",
+        "bake": {
+          "process_seconds": 3.511237832950428,
+          "phase_seconds": {
+            "build": 4.5797787606716156e-07,
+            "source_prepare": 0.03904791711829603,
+            "tier0_capture": 0.1411392919253558,
+            "catalog_prepare": 0.15050525008700788,
+            "spine_solve": 2.9433167909737676,
+            "library_emit": 0.042056916980072856,
+            "input_solve": 0.014039166970178485,
+            "validation_prepare": 0.0025504999794065952,
+            "native_validation": 0.11826899996958673,
+            "output_write": 0.001726208021864295
+          },
+          "compiler_seconds": 3.4526515000034124,
+          "capture_mode": "fresh"
+        },
+        "bytes": {
+          "library.egg": 48589,
+          "runtime.egg": 48992,
+          "restore.egg": 49121
+        },
+        "cell_audit": {
+          "registered_entries": 32,
+          "states": {
+            "Rejected": 6,
+            "Saturated": 26
+          },
+          "certified_cell_kinds": 2,
+          "history_windows": 26,
+          "new_window_entries": 17,
+          "window_only_families": [],
+          "supported_paths": 26,
+          "rejected_paths": [
+            {
+              "unit": 7,
+              "reason": "no completed exact certificate (Rejected)"
+            },
+            {
+              "unit": 8,
+              "reason": "no completed exact certificate (Rejected)"
+            },
+            {
+              "unit": 11,
+              "reason": "no completed exact certificate (Rejected)"
+            },
+            {
+              "unit": 12,
+              "reason": "no completed exact certificate (Rejected)"
+            },
+            {
+              "unit": 13,
+              "reason": "no completed exact certificate (Rejected)"
+            },
+            {
+              "unit": 14,
+              "reason": "no completed exact certificate (Rejected)"
+            }
+          ],
+          "representations": 3,
+          "observed_edges": 26,
+          "certified_seed_cut_interfaces": 15,
+          "observed_edges_with_new_window_parent": 0,
+          "chosen_multi_parent_implementations": 15,
+          "chosen_implementations_using_window_representation": 0,
+          "emitted_rules": 62,
+          "objective": 996.0,
+          "solver_model": {
+            "variables": 80,
+            "constraints": 161
+          },
+          "all_original_paths_validated": 27,
+          "artifact_sha256": {
+            "library.egg": "8e124850041a7ee9d4866c08d85a39dfd17990d7be8f6fe20b15947e2f30e1a6",
+            "runtime.egg": "0c9704a3d3dedefbe2bdbceebaa697ae5baccf62b73455987d027347359776be",
+            "restore.egg": "530e26f87f231993af5079d30d3fc85cb52ed9726e60d5a6c47ffe6dd12d712a"
+          },
+          "multi_marker_merge_rule_count": 50,
+          "merge_matches": {
+            "raw_ingress": {
+              "all_merge_matches": 2560,
+              "window_only_merge_matches": 0
+            },
+            "input_spine": {
+              "all_merge_matches": 0,
+              "window_only_merge_matches": 0
+            }
+          }
+        },
+        "modes": {
+          "native": {
+            "timing": {
+              "process_seconds": 0.021485625067725778,
+              "peak_rss_bytes": 13156352,
+              "read_seconds": 4.275e-05,
+              "setup_seconds": 0.000470542,
+              "input_seconds": 0.013120916,
+              "run_seconds": 0.002185333,
+              "export_seconds": 0.0,
+              "drop_seconds": 0.002488292,
+              "seconds": 0.015776791000000002,
+              "matches": 3840,
+              "run_merge_seconds": 9.8251e-05,
+              "run_rebuild_seconds": 9.7625e-05,
+              "run_search_apply_seconds": 0.001901624,
+              "export_merge_seconds": 0.0,
+              "export_rebuild_seconds": 0.0,
+              "export_search_apply_seconds": 0.0
+            },
+            "size": {
+              "physical_rows": 3712,
+              "raw_enodes": 0,
+              "canonical_enodes": 0,
+              "active_markers": 0,
+              "retired_markers": 0,
+              "restored_enodes": 3328,
+              "restored_eclasses": 1408
+            }
+          },
+          "raw_ingress": {
+            "timing": {
+              "process_seconds": 0.04815704212523997,
+              "peak_rss_bytes": 16465920,
+              "read_seconds": 5.6959e-05,
+              "setup_seconds": 0.017107209,
+              "input_seconds": 0.013151041,
+              "run_seconds": 0.010560583,
+              "export_seconds": 0.0,
+              "drop_seconds": 0.00421325,
+              "seconds": 0.040818833,
+              "matches": 4352,
+              "run_merge_seconds": 0.000172667,
+              "run_rebuild_seconds": 0.000120708,
+              "run_search_apply_seconds": 0.009698208,
+              "export_merge_seconds": 0.0,
+              "export_rebuild_seconds": 0.0,
+              "export_search_apply_seconds": 0.0
+            },
+            "size": {
+              "physical_rows": 2304,
+              "raw_enodes": 896,
+              "canonical_enodes": 512,
+              "active_markers": 128,
+              "retired_markers": 384,
+              "restored_enodes": 3328,
+              "restored_eclasses": 1408
+            }
+          },
+          "input_spine": {
+            "timing": {
+              "process_seconds": 0.06792270811274648,
+              "peak_rss_bytes": 17235968,
+              "read_seconds": 6.8458e-05,
+              "setup_seconds": 0.016773791,
+              "input_seconds": 0.03656575,
+              "run_seconds": 0.007064917,
+              "export_seconds": 0.0,
+              "drop_seconds": 0.004302792,
+              "seconds": 0.06040445800000001,
+              "matches": 768,
+              "run_merge_seconds": 3.6583e-05,
+              "run_rebuild_seconds": 0.000126084,
+              "run_search_apply_seconds": 0.006319459,
+              "export_merge_seconds": 0.0,
+              "export_rebuild_seconds": 0.0,
+              "export_search_apply_seconds": 0.0
+            },
+            "size": {
+              "physical_rows": 2048,
+              "raw_enodes": 768,
+              "canonical_enodes": 512,
+              "active_markers": 128,
+              "retired_markers": 256,
+              "restored_enodes": 3328,
+              "restored_eclasses": 1408
+            }
+          },
+          "input_spine_export": {
+            "timing": {
+              "process_seconds": 0.07457554200664163,
+              "peak_rss_bytes": 18825216,
+              "read_seconds": 6.2667e-05,
+              "setup_seconds": 0.016754958,
+              "input_seconds": 0.037997208,
+              "run_seconds": 0.007952084,
+              "export_seconds": 0.004075541,
+              "drop_seconds": 0.004531959,
+              "seconds": 0.066779791,
+              "matches": 768,
+              "run_merge_seconds": 4.2875e-05,
+              "run_rebuild_seconds": 0.000167083,
+              "run_search_apply_seconds": 0.006978958,
+              "export_merge_seconds": 0.000219375,
+              "export_rebuild_seconds": 0.000436625,
+              "export_search_apply_seconds": 0.003322291
+            },
+            "size": {
+              "physical_rows": 2048,
+              "raw_enodes": 768,
+              "canonical_enodes": 512,
+              "active_markers": 128,
+              "retired_markers": 256,
+              "restored_enodes": 3328,
+              "restored_eclasses": 1408
+            }
+          }
+        }
+      }
+    }
+  },
+  "late_bridge": {
+    "copies": 128,
+    "scope": "small native graphs pre-saturated; compact inputs already represent closed Add2; Run includes bridge insertion; one timing each, diagnostics separate; incomplete observed output is not a speed baseline",
+    "results": [
+      {
+        "mode": "native",
+        "equivalent_counts": true,
+        "run_seconds": 0.005776458,
+        "setup_seconds": 0.000464,
+        "input_seconds": 0.020365958,
+        "seconds": 0.026606416,
+        "peak_rss_bytes": 22986752,
+        "physical_rows": 4224,
+        "restored": {
+          "eclasses": 1408,
+          "enodes": 3328,
+          "sorts": {
+            "Term": {
+              "eclasses": 1408,
+              "enodes": 3328
+            }
+          },
+          "tables": {
+            "Add": 2816,
+            "Leaf": 512
+          }
+        },
+        "active_markers": 0,
+        "retired_markers": 0,
+        "rule_matches": {
+          "(rewrite (Add (Add a b) (Add c d)) (Add a (Add b (Add c d))) :ruleset algebra)": 1024,
+          "(rewrite (Add a b) (Add b a) :ruleset algebra)": 2304
+        }
+      },
+      {
+        "mode": "observed",
+        "equivalent_counts": false,
+        "run_seconds": 0.00433125,
+        "setup_seconds": 0.0032155,
+        "input_seconds": 0.023837875,
+        "seconds": 0.031384625,
+        "peak_rss_bytes": 23281664,
+        "physical_rows": 2304,
+        "restored": {
+          "eclasses": 896,
+          "enodes": 1280,
+          "sorts": {
+            "Term": {
+              "eclasses": 896,
+              "enodes": 1280
+            }
+          },
+          "tables": {
+            "Add": 768,
+            "Leaf": 512
+          }
+        },
+        "active_markers": 384,
+        "retired_markers": 0,
+        "rule_matches": {
+          "impl_0_0": 128
+        }
+      },
+      {
+        "mode": "seed-cuts",
+        "equivalent_counts": true,
+        "run_seconds": 0.0107615,
+        "setup_seconds": 0.01694825,
+        "input_seconds": 0.024173209,
+        "seconds": 0.051882959,
+        "peak_rss_bytes": 27738112,
+        "physical_rows": 2560,
+        "restored": {
+          "eclasses": 1408,
+          "enodes": 3328,
+          "sorts": {
+            "Term": {
+              "eclasses": 1408,
+              "enodes": 3328
+            }
+          },
+          "tables": {
+            "Add": 2816,
+            "Leaf": 512
+          }
+        },
+        "active_markers": 128,
+        "retired_markers": 384,
+        "rule_matches": {
+          "cut_3_0_0": 128,
+          "cut_3_0_0_cover_7": 256,
+          "cut_6_0_0": 128,
+          "cut_6_0_0_cover_7": 256,
+          "impl_0_0": 128,
+          "retire_3": 128
+        }
+      }
+    ]
+  },
+  "standard_ac4": {
+    "status": "fixed_legal_layout_semantics_only",
+    "not_an_optimum": true,
+    "runtime_rules": 2266,
+    "seed_cut_interfaces": 18,
+    "full_native_comparison": "equivalent",
+    "original_constructor_rows": 54,
+    "restored_constructor_rows": 54,
+    "original_rules_executed": false,
+    "physical_rows": 25
+  },
+  "automatic_ac4_attempt": {
+    "status": "manually_stopped_during_first_layout_profile",
+    "optimality_result": null,
+    "note": "extra optimizer exploration did not finish; no candidate/time budget or fixed-layout fallback was added to production"
+  }
+}

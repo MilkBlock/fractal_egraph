@@ -258,8 +258,6 @@ def lower_option(c, target, wirings, chosen):
         parents.append(dict(unit=parent['id'], family=parent['family'], path=representation['id'],
                             slots=binding, roots=roots))
     residual_params = alias_binding(c, params, {**aliases, **projections})
-    # Head materialization remains the selected spine, not its logical views.
-    source_params = alias_binding(c, params, aliases)
     removed = 0
     for i, a in enumerate(c['acts']):
         if a['kind'] == 'expr':
@@ -278,7 +276,10 @@ def lower_option(c, target, wirings, chosen):
             continue  # Reuse the Summary root rather than reconstruct its tree.
         head.extend(actions([a], True, target['signatures'], target_params))
     visible = {}
-    for path, binding in [(c, source_params), (target, target_params)]:
+    # A source-only fact supplied by a certified closure contributes its value,
+    # not another physical row. Target terms still use the materialized spine
+    # recipe, and are explicitly unioned to those source values when needed.
+    for path, binding in [(c, residual_params), (target, target_params)]:
         for root in expressions(path['acts']):
             for e in walk(root):
                 if e['kind'] != 'call':
@@ -319,7 +320,7 @@ def representation_choices(candidates):
     return representatives,aliases
 
 
-def transition_options(candidates, representations=None):
+def transition_options(candidates, representations=None, *, recompose=False):
     """All representation tuples on observed hyperedges; no arbitrary pairs.
 
     Parent instances are never deduplicated by family. Two occurrences of one
@@ -344,6 +345,9 @@ def transition_options(candidates, representations=None):
                 options.append(opt)
         edges.append(dict(id=c['id'], observed_parents=(c['origin'].get('composition') or {}).get('parts', []),
                           options=options))
+    if recompose:
+        from .composition import extend
+        extend(candidates,candidates if representations is None else representations,edges)
     return edges
 
 
@@ -469,12 +473,19 @@ def canonical_subtree_lenses(chosen):
     return result
 
 
-def takeover_lenses(candidates, chosen):
+def takeover_lenses(candidates, chosen, cuts=()):
     direct, by_id = [], {c['id']:c for c in candidates}
+    additional=defaultdict(list)
+    for edge in cuts:
+        if edge.get('kind')=='certified_seed_cut':additional[edge['target_unit']].extend(edge['seed_cut']['parents'])
     for c in candidates:
         owner = chosen[c['family']]
         params = {raw:takeover.var(name) for raw,name in mapping_to(c,owner).items()}
-        for w in parent_wirings(c,mapping_to(c,owner),by_id):
+        ws=parent_wirings(c,mapping_to(c,owner),by_id)
+        if additional[c['id']]:
+            from .composition import wiring
+            ws+= [wiring(c,d,mapping_to(c,owner),by_id) for d in additional[c['id']]]
+        for w in ws:
             parent = w['parent']; child = chosen[parent['family']]
             renamed = mapping_to(parent,child)
             slots = {renamed[raw]:takeover.fork(e,params) for raw,e in w['native_subst'].items()}
@@ -516,6 +527,15 @@ def takeover_lenses(candidates, chosen):
                         extra.append(dict(kind='expr',expr=e)); representatives[value] = e
             lens['args'] = [project(e) for e in lens['args']]
         supports[family] = fields,extra
+    # Distinct proofs may expose the same stored interface after projection.
+    unique={}
+    for lens in lenses:
+        key=(lens['owner'],lens['child'],tuple(lens['owner_fields']),tuple(lens['child_fields']),tuple(map(text,lens['args'])))
+        if key not in unique:unique[key]=dict(lens,evidence=list(lens['evidence']))
+        else:
+            for evidence in lens['evidence']:
+                if evidence not in unique[key]['evidence']:unique[key]['evidence'].append(evidence)
+    lenses=list(unique.values())
     definitions = {}
     for family, c in chosen.items():
         fields = summary_fields(c)
@@ -541,7 +561,7 @@ def prepare_runtime(candidates, plan, edges, work, destination=None):
         emitted.add(key)
         rule = option_rule(opt)
         transitions.append(dict(**opt, rule=rule))
-    lenses, blocked, supports, definitions = takeover_lenses(candidates,chosen)
+    lenses, blocked, supports, definitions = takeover_lenses(candidates,chosen,edges)
     parsed = {r['name']:r for r in json.loads((work/'implementations.json').read_text())['rules']}
     lowered, retire, redundant = takeover.lower([(t,parsed[t['id']]) for t in transitions],lenses,supports,definitions)
     destination=destination or work
@@ -676,6 +696,8 @@ def main():
     p.add_argument('--solver',choices=('scip','gurobi'),default=os.environ.get('EGG_LAYOUT_SOLVER','scip'))
     p.add_argument('--layout-pricing',choices=('enumerate','source-cache','projected'),default='projected',
                    help='exact layout pricing: original enumeration, source reuse, or source reuse plus per-transition projection (default)')
+    p.add_argument('--cell-composition',choices=('observed','seed-cuts'),default=os.environ.get('EGG_LAYOUT_CELL_COMPOSITION','seed-cuts'),
+                   help='observed parents only, or additionally factor certified constructor boundaries into small Cells (default)')
     p.add_argument('--keep-duplicate-spines',action='store_true',help='ablation: retain distinct variables for identical physical representations')
     p.add_argument('--skip-build',action='store_true')
     a=p.parse_args()
@@ -730,7 +752,7 @@ def main():
     for c in cs: c["marker_layouts"]=markers.layouts(c)
     representations,representation_aliases=representation_choices(cs)
     if a.keep_duplicate_spines:representations=cs;representation_aliases={c['id']:c['id'] for c in cs}
-    edges=transition_options(cs,representations)
+    edges=transition_options(cs,representations,recompose=a.cell_composition=='seed-cuts')
     price_options(edges,work)
     # Definitions preserve the source rules. Only opaque parameter constructors are added.
     sig=dict(data['signatures']);environment=commands(data,{'declaration','rule'})
@@ -804,6 +826,9 @@ def main():
                   storage_cost=a.storage_cost,
                   representation_normalization=dict(history_paths=len(cs),representations=len(representations),
                       aliases=representation_aliases,scope='exact typed seed/root/interface identity in certified family coordinates; all original history entries remain transition obligations and validation cases'),
+                  cell_composition=dict(mode=a.cell_composition,observed_interfaces=len(cs),
+                      seed_cut_interfaces=sum(e.get('kind')=='certified_seed_cut' for e in edges),
+                      scope='additional certified initial-fact decompositions; not new observed events or newly inferred closed states'),
                   pricing_work=dict(mode=pricing.layout_pricing,prepared_schemes=pricing.schemes,layout_evaluations=pricing.evaluations,
                       original_cartesian_tuples=pricing.cartesian_tuples,source_preparations=pricing.source_preparations,
                       source_reuses=pricing.evaluations-pricing.source_preparations,

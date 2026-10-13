@@ -120,6 +120,7 @@ def benchmark_case(name,source,out,copies,storage_cost='structural'):
         bytes={f:(bake/f).stat().st_size for f in ('library.egg','runtime.egg','restore.egg')},
         input_plan=report['input_plan']['status'],modes={})
     item['solver']=report['solver'];item['pricing_work']=report.get('pricing_work',{})
+    item['cell_composition']=report.get('cell_composition',{'mode':'observed'})
     item['storage_pricing']=dict(mode=report.get('storage_cost','structural'),
         native_evaluations=(report.get('instance_storage') or {}).get('evaluations',0),
         seconds=(report.get('instance_storage') or {}).get('seconds',0.),

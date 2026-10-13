@@ -18,6 +18,7 @@ from tools.cell_spine.terms import text,walk
 
 CASES={'math_tiny':'experiments/cell_spine/math_tiny/source.egg',
        'eggcc_if':'experiments/cell_spine/eggcc_if_tiny/source.egg',
+       'add2_pair':'experiments/cell_spine/fixtures/add2_pair.egg',
        'boundary':'experiments/cell_spine/fixtures/input_spine_boundary.egg'}
 
 
@@ -56,7 +57,9 @@ def audit(folder):
         history_windows=len(g['windows']),new_window_entries=len(window_ids),
         window_only_families=sorted(window_only),supported_paths=len(r['paths']),
         rejected_paths=r.get('rejected',[]),representations=r['representation_normalization']['representations'],
-        observed_edges=len(edges),observed_edges_with_new_window_parent=sum(bool(window_ids.intersection(e['observed_parents'])) for e in edges),
+        observed_edges=sum(e.get('kind')!='certified_seed_cut' for e in edges),
+        certified_seed_cut_interfaces=sum(e.get('kind')=='certified_seed_cut' for e in edges),
+        observed_edges_with_new_window_parent=sum(bool(window_ids.intersection(e['observed_parents'])) for e in edges),
         chosen_multi_parent_implementations=sum(len(o['parents'])>=2 for o in chosen),
         chosen_implementations_using_window_representation=sum(any(p['path'] in window_ids for p in o['parents']) for o in chosen),
         emitted_rules=len(rules),multi_marker_merge_rules=mergers,merge_matches=matching,
@@ -70,10 +73,10 @@ def audit(folder):
 def render(report):
     lines=['# Root-prefix vs middle-history Cell Bake','',
         'Actual current egglog kernel, not pristine. One fresh Bake per variant, one timing per runtime mode. Runtime counts are collected in separate processes. No timing averages. All original layout choices remain available.',
-        '', '| Input | Discovery | Entries | Certified Cell kinds | Supported paths / representations | Bake s | Runtime rules | Multi-marker merge rules | Window-parent edges |',
-        '|---|---|---:|---:|---:|---:|---:|---:|---:|']
+        '', '| Input | Discovery | Entries | Certified Cell kinds | Supported paths / representations | Bake s | Runtime rules | Multi-marker merge rules | Window-parent edges | Seed-cut interfaces |',
+        '|---|---|---:|---:|---:|---:|---:|---:|---:|---:|']
     for key,row in report['cases'].items():
-        a=row['cell_audit'];lines.append(f'| {key} | {row["discovery"]} | {a["registered_entries"]} | {a["certified_cell_kinds"]} | {a["supported_paths"]} / {a["representations"]} | {row["bake"]["compiler_seconds"]:.3f} | {a["emitted_rules"]} | {len(a["multi_marker_merge_rules"])} | {a["observed_edges_with_new_window_parent"]} |')
+        a=row['cell_audit'];lines.append(f'| {key} | {row["discovery"]} | {a["registered_entries"]} | {a["certified_cell_kinds"]} | {a["supported_paths"]} / {a["representations"]} | {row["bake"]["compiler_seconds"]:.3f} | {a["emitted_rules"]} | {len(a["multi_marker_merge_rules"])} | {a["observed_edges_with_new_window_parent"]} | {a.get("certified_seed_cut_interfaces",0)} |')
     lines+=['','| Input / discovery | Mode | Physical rows | Active / retired markers | Expanded nodes / classes | Run ms | Install + input + run + export ms | RSS MiB | Merge-rule matches / involving new window-only families | Library KiB |',
         '|---|---|---:|---:|---:|---:|---:|---:|---:|---:|']
     for key,row in report['cases'].items():
@@ -85,6 +88,7 @@ def render(report):
             lines.append(f'| {key} | {mode} | {s["physical_rows"]} | {s["active_markers"]} / {s["retired_markers"]} | {s["restored_enodes"]} / {s["restored_eclasses"]} | {1000*t["run_seconds"]:.3f} | {1000*t["seconds"]:.3f} | {t["peak_rss_bytes"]/2**20:.2f} | {matched} | {library} |')
     lines+=['','Rows include auxiliary and retired rows. Expanded nodes/classes are measured after actual export, never inferred by multiplying templates. Logical merge-rule matches are not new Cell insertions. Sub-millisecond differences from single runs are not reliable speed evidence.',
         '', 'The windows switch adds each apply and each complete immediate producer-consumer neighborhood to the exact closure catalog. It does not recursively register every new window in the discovery frontier. A zero window-parent-edge count therefore cannot be presented as a successful experiment in arbitrary small-Cell recombination.',
+        '', 'The recomposed mode additionally derives certified constructor-boundary cuts in the compiler. These are additional semantic interfaces, counted separately from observed history edges; the Rust event frontier is unchanged.',
         '', 'Raw ingress measures the generated matcher from ordinary forked facts. Input spine also uses solver-selected direct initialization; it may avoid merge matches by constructing the chosen Cell immediately. The report exposes both paths.',
         '', 'Seed/history cases receive native full-closure validation. The replicated runtime workload is checked by measured expanded node/class counts against native execution, not by full graph isomorphism.',
         '', 'The two catalogs may impose different transition obligations. Their solver objective values are diagnostic, not a like-for-like runtime quality score. Full per-table and phase results are in `phases.md` / `report.json`.','']
@@ -123,8 +127,8 @@ def main():
         binaries={str(p.relative_to(ROOT)):c.digest(p) for p in [ROOT/'target/release/egg_layout',ROOT/'target/release/examples/native_math_baseline']},cases={})
     for name in a.cases:
         expected=None
-        for mode,enabled in [('rooted','0'),('windows','1')]:
-            os.environ['EGG_LAYOUT_CELL_WINDOWS']=enabled;key=f'{name}-{mode}'
+        for mode,enabled,composition in [('rooted','0','observed'),('windows','1','observed'),('recomposed','1','seed-cuts')]:
+            os.environ['EGG_LAYOUT_CELL_WINDOWS']=enabled;os.environ['EGG_LAYOUT_CELL_COMPOSITION']=composition;key=f'{name}-{mode}'
             row=benchmark_case(key,ROOT/CASES[name],out,a.copies)
             row['discovery']=mode;row['cell_audit']=audit(out/key)
             size=row['modes']['input_spine']['size'];logical=(size['restored_enodes'],size['restored_eclasses'])
