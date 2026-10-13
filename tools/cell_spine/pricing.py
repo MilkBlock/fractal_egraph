@@ -6,6 +6,7 @@ those path choices. No layout-pair binary variables or candidate budgets.
 """
 import json
 import math
+import time
 from collections import defaultdict
 from . import markers,names
 from . import takeover
@@ -84,7 +85,7 @@ class Diagram:
             self.nodes.append(dict(groups=groups,bound=max(self.nodes[c]['bound'] for c,_ in groups)))
         return self.index[key]
     def encode(self,model,variables,roots):
-        import gurobipy as gp
+        from . import solver as gp
         expressions={}
         def visit(i):
             if i in expressions:return expressions[i]
@@ -112,6 +113,8 @@ class RuntimePricing:
         self.prepare=prepare;self.signatures=signatures;self.output=output;self.weights=weights
         self.storage=storage
         self.cache={};self.diagram=Diagram();self.profiles={};self.evaluations=0;self.schemes=0
+        self.equivalent_models={};self.equivalent_model_hits=0
+        self.preparation_seconds=0.;self.profile_seconds=0.
     @staticmethod
     def key(plan):return tuple(sorted(plan['selected'])),tuple(sorted(plan['implementations']))
     def profile(self,rule,chosen):
@@ -149,16 +152,46 @@ class RuntimePricing:
     def price_below(self,plan,upper_bound):
         return self.optimize(plan,upper_bound=upper_bound)
     def optimize(self,plan,*,upper_bound=None):
-        import gurobipy as gp
+        from . import solver as gp
         key=self.key(plan)
         if key in self.cache:return self.cache[key]
         folder=self.output/f'scheme-{self.schemes:04d}';self.schemes+=1;folder.mkdir(parents=True,exist_ok=True)
+        tick=time.perf_counter()
         bundle=self.prepare(plan,folder);chosen=bundle['chosen']
+        preparation_seconds=time.perf_counter()-tick
+        self.preparation_seconds+=preparation_seconds
+        # Reuse a complete conditional minimum only for identical normalized
+        # rule programs and entire layout domains. IDs are labels, not semantics.
+        # Concrete input/storage pricing is deliberately excluded from this key.
+        semantic_key=None
+        if self.storage is None:
+            semantic_key=json.dumps(([rule_recipe(r) for r in bundle['consumers']],
+                [(f,[{k:v for k,v in l.items() if k not in ('id','path')} for l in c['marker_layouts']])
+                 for f,c in sorted(chosen.items())]),sort_keys=True)
+            if semantic_key in self.equivalent_models:
+                previous,indices=self.equivalent_models[semantic_key]
+                selected={f:chosen[f]['marker_layouts'][i] for f,i in indices.items()}
+                prices=self.prices(bundle,selected)
+                k=sum(l['columns'] for l in selected.values())
+                q=sum(c['search_atoms'] for c in prices.values());w=sum(c['update_actions'] for c in prices.values())
+                value=self.weights[0]*k+self.weights[1]*q+self.weights[2]*w
+                if not math.isclose(value,previous['value'],rel_tol=1e-9,abs_tol=1e-7):
+                    raise ValueError('equivalent conditional model changed its optimum')
+                result=dict(previous,marker_layouts=[l['id'] for l in selected.values()],rule_costs=prices,
+                    folder=str(folder),evaluated_layout_tuples=0,preparation_seconds=preparation_seconds,profile_seconds=0.,
+                    isomorphic_pricing_of=previous['folder'],
+                    certificate='identical alpha-normalized rules and full layout domains; structural cost only')
+                self.equivalent_model_hits+=1
+                (folder/'pricing.json').write_text(json.dumps(result,indent=2)+'\n')
+                self.cache[key]=(bundle,result)
+                return bundle,result
         before=self.evaluations
+        tick=time.perf_counter()
         profiles=[self.profile(r,chosen) for r in bundle['consumers']]
+        profile_seconds=time.perf_counter()-tick
+        self.profile_seconds+=profile_seconds
         with gp.Model('cell_marker_value') as model:
-            model.Params.OutputFlag=0;model.Params.MIPGap=0;model.Params.MIPGapAbs=0;model.Params.Threads=1
-            variables={l['id']:model.addVar(vtype=gp.GRB.BINARY,name=l['id']) for c in chosen.values() for l in c['marker_layouts']}
+            variables={l['id']:model.addVar(vtype=gp.BINARY,name=l['id']) for c in chosen.values() for l in c['marker_layouts']}
             for family,c in chosen.items():model.addConstr(gp.quicksum(variables[l['id']] for l in c['marker_layouts'])==1,name=f'layout_{family}')
             work,nodes=self.diagram.encode(model,variables,profiles)
             columns=gp.quicksum(l['columns']*variables[l['id']] for c in chosen.values() for l in c['marker_layouts'])
@@ -170,17 +203,18 @@ class RuntimePricing:
             best=None;history=[];seen=set()
             while True:
                 model.optimize()
-                if model.Status!=gp.GRB.OPTIMAL:raise RuntimeError(f'marker value function not solved: {model.Status}')
+                if model.Status!=gp.OPTIMAL:raise RuntimeError(f'marker value function not solved: {model.Status}')
                 bound=model.ObjVal
                 if best is not None and (bound>=best[0] or math.isclose(bound,best[0],rel_tol=1e-9,abs_tol=1e-7)):break
                 if upper_bound is not None and bound>=upper_bound:
                     # A lower-bound certificate, NOT a measured feasible plan.
                     # The outer solver may safely discard it against its incumbent.
                     result=dict(value=bound,lower_bound_only=True,variables=model.NumVars,
-                                constraints=model.NumConstrs,folder=str(folder))
+                                constraints=model.NumConstrs,folder=str(folder),
+                                preparation_seconds=preparation_seconds,profile_seconds=profile_seconds)
                     (folder/'pricing.json').write_text(json.dumps(result,indent=2)+'\n')
                     return bundle,result
-                selected={f:next(l for l in c['marker_layouts'] if variables[l['id']].X>.5) for f,c in chosen.items()}
+                selected={f:next(l for l in c['marker_layouts'] if model.value(variables[l['id']])>.5) for f,c in chosen.items()}
                 ids=tuple(sorted(l['id'] for l in selected.values()))
                 if ids in seen:raise ValueError('priced layout returned below its certified cost')
                 seen.add(ids)
@@ -198,9 +232,9 @@ class RuntimePricing:
                                 name=f'instance_value_{len(history)}')
             value,selected,sample=best
             model.write(str(folder/'selection.lp'))
-            for name,v in variables.items():v.LB=v.UB=float(name in {l['id'] for l in selected.values()})
+            for name,v in variables.items():model.fix(v,float(name in {l['id'] for l in selected.values()}))
             model.optimize()
-            if model.Status!=gp.GRB.OPTIMAL:raise RuntimeError('priced marker solution is infeasible')
+            if model.Status!=gp.OPTIMAL:raise RuntimeError('priced marker solution is infeasible')
             prices=self.prices(bundle,selected)
             q=sum(c['search_atoms'] for c in prices.values());w=sum(c['update_actions'] for c in prices.values())
             k=sum(l['columns'] for l in selected.values())
@@ -212,8 +246,12 @@ class RuntimePricing:
                 evaluated_layout_tuples=self.evaluations-before,folder=str(folder),instance_storage=sample,
                 storage_pricing_history=history if self.storage is not None else [],
                 mandatory_input_value_slots=storage_bound,
+                preparation_seconds=preparation_seconds,profile_seconds=profile_seconds,
                 storage_cost_scope='checkpoint retained Value slots, including retired markers; not index bytes or RSS' if self.storage is not None else 'structural only')
             if sample is not None:result['costs']['instance_value_slots']=sample['value']
         (folder/'pricing.json').write_text(json.dumps(dict(result,selected=plan['selected'],implementations=plan['implementations']),indent=2)+'\n')
         self.cache[key]=(bundle,result)
+        if semantic_key is not None:
+            indices={f:next(i for i,l in enumerate(c['marker_layouts']) if l['id'] in result['marker_layouts']) for f,c in chosen.items()}
+            self.equivalent_models[semantic_key]=(result,indices)
         return bundle,result

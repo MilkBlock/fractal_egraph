@@ -4,10 +4,11 @@ Workflow: `.github/workflows/cell-benchmark.yml` (**Cell size and phase benchmar
 It runs on relevant pushes to `master`/`main`, pull requests, and manual dispatch.
 No published-site deployment or GitHub PR comments are involved.
 
-The workflow uses Ubuntu 24.04, Rust 1.94.0, Python 3.12, and the pinned Gurobi
-wheel with its bundled limited license. It uses no license secrets. Oversized
-models or license failures fail visibly; there is no solver fallback or candidate
-budget. Native tools build with `--locked` from checked-in sources. The job's
+The workflow uses Ubuntu 24.04, Rust 1.94.0, Python 3.12, and pinned PySCIPOpt
+with its bundled SCIP solver. It needs no license secret or licensed model-size
+allowance. There is no solver fallback, candidate budget, or approximate optimum
+acceptance. Tests include a 2,005-variable / 2,006-constraint model and a fresh
+full-window Bake, retaining validation of every admitted history path. Native tools build with `--locked` from checked-in sources. The job's
 45-minute timeout is an operational CI stop, not a change to the algorithm.
 
 ## Measurements
@@ -46,7 +47,7 @@ The Actions **Summary** contains:
 3. Source preparation, tier-0 capture, catalog preparation, spine solve,
    library emission, input solve, verification preparation, native verification,
    and output phases. Spine solve includes pricing and preparation as well as
-   Gurobi. `--skip-build` excludes compilation; compiler process startup and final
+   native MIP solving. `--skip-build` excludes compilation; compiler process startup and final
    report serialization are visible only in process wall time.
 4. Library/runtime/restore `.egg` bytes. File bytes, row counts and RSS are
    intentionally separate; a small descriptor is not claimed as heap compression.
@@ -68,6 +69,13 @@ candidate-selection limits. CPU, toolchain, source and binary hashes accompany
 all results. The full native Bake validation remains in the compiler; replicated
 workloads use count comparison with the same-input native run.
 
+The summary also reports solver API construction and native solve time separately,
+plus model counts, peak variables/constraints and layout evaluations. API timing
+excludes Python expression construction. Preparation/profile/solver times are
+already included in Bake phases. Equal structural model cache hits do not count
+as new native solves. These measurements concern the actual Cell compiler and
+native egglog validation, not a standalone synthetic optimizer alone.
+
 ## Baseline and regression policy
 
 Only the first successful **default-branch** run establishes the accepted cached
@@ -85,7 +93,9 @@ Default alerts:
 - Runtime RSS: more than 15% **and** 8 MiB growth.
 - Changed expanded node/class counts: fail rather than celebrate apparent shrinkage.
 
-Time/RSS gates apply only when CPU and toolchain/environment fingerprints match;
+Reports now use `cell-ci-bench/v2` and the `cell-bench-v2` cache namespace; v1
+baselines are not silently compared. Solver backend/version participates in the
+environment fingerprint. Time/RSS gates apply only when CPU and toolchain/environment fingerprints match;
 otherwise the report still shows measurements and enforces size gates. Even on
 matching CPUs, shared-runner results are single-run alerts, not a statistical
 significance claim. Missing cases/phases, invalid numbers, failed benchmarks,

@@ -1,1 +1,1 @@
-gurobipy==13.0.3
+pyscipopt==6.3.0

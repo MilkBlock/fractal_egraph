@@ -9,27 +9,26 @@ import math
 
 
 def solve(candidates, edges, output, weights=(1.,1.,1.), *, pricing):
-    import gurobipy as gp
+    from . import solver as gp
     groups=defaultdict(list)
     for c in candidates:groups[c['family']].append(c)
     by_id={c['id']:c for c in candidates}
     minimum_columns={c['id']:min((l['columns'] for l in c.get('marker_layouts',[])),default=0) for c in candidates}
     with gp.Model('cell_spine_master') as model:
-        model.Params.OutputFlag=0;model.Params.MIPGap=0;model.Params.MIPGapAbs=0;model.Params.Threads=1
-        x={c['id']:model.addVar(vtype=gp.GRB.BINARY,name=f'path_{c["id"]}') for c in candidates}
+        x={c['id']:model.addVar(vtype=gp.BINARY,name=f'path_{c["id"]}') for c in candidates}
         for family,paths in groups.items():model.addConstr(gp.quicksum(x[c['id']] for c in paths)==1,name=f'one_path_{family}')
         users=defaultdict(list)
         for c in candidates:
             for node in c['nodes']:users[node].append(x[c['id']])
         ys=[]
         for i,uses in enumerate(users.values()):
-            y=model.addVar(vtype=gp.GRB.BINARY,name=f'shared_node_{i}');ys.append(y)
+            y=model.addVar(vtype=gp.BINARY,name=f'shared_node_{i}');ys.append(y)
             for u in uses:model.addConstr(y>=u)
             model.addConstr(y<=gp.quicksum(uses))
         z={}
         for edge in edges:
             for opt in edge['options']:
-                v=model.addVar(vtype=gp.GRB.BINARY,name=opt['id']);z[opt['id']]=v
+                v=model.addVar(vtype=gp.BINARY,name=opt['id']);z[opt['id']]=v
                 for cid in opt['requires']:model.addConstr(v<=x[cid],name=f'{opt["id"]}_needs_{cid}')
             model.addConstr(gp.quicksum(z[o['id']] for o in edge['options'])==1,name=f'one_impl_{edge["id"]}')
         extra=model.addVar(lb=0,name='conditional_runtime_cost')
@@ -39,12 +38,12 @@ def solve(candidates, edges, output, weights=(1.,1.,1.), *, pricing):
         incumbent=None;history=[];visited=set();inner_vars=0;inner_constraints=0
         while True:
             model.optimize()
-            if model.Status!=gp.GRB.OPTIMAL:raise RuntimeError(f'path master not solved: {model.Status}')
+            if model.Status!=gp.OPTIMAL:raise RuntimeError(f'path master not solved: {model.Status}')
             bound=model.ObjVal
             if incumbent is not None and (bound>=incumbent['objective'] or
                                           math.isclose(bound,incumbent['objective'],rel_tol=1e-9,abs_tol=0)):
                 break
-            plan=dict(selected=[cid for cid,v in x.items() if v.X>.5],implementations=[oid for oid,v in z.items() if v.X>.5])
+            plan=dict(selected=[cid for cid,v in x.items() if model.value(v)>.5],implementations=[oid for oid,v in z.items() if model.value(v)>.5])
             key=tuple(plan['selected']),tuple(plan['implementations'])
             if key in visited:raise RuntimeError('master returned a priced scheme below its certified value')
             visited.add(key)
@@ -71,10 +70,10 @@ def solve(candidates, edges, output, weights=(1.,1.,1.), *, pricing):
         master_vars=model.NumVars;master_constraints=model.NumConstrs
         # Save a solution for the chosen incumbent, even if the final master
         # lower bound was attained by another tied/unpriced spine assignment.
-        for cid,v in x.items():v.LB=v.UB=float(cid in incumbent['selected'])
-        for oid,v in z.items():v.LB=v.UB=float(oid in incumbent['implementations'])
+        for cid,v in x.items():model.fix(v,float(cid in incumbent['selected']))
+        for oid,v in z.items():model.fix(v,float(oid in incumbent['implementations']))
         model.optimize()
-        if model.Status!=gp.GRB.OPTIMAL or not math.isclose(model.ObjVal,incumbent['objective'],rel_tol=1e-8,abs_tol=1e-6):
+        if model.Status!=gp.OPTIMAL or not math.isclose(model.ObjVal,incumbent['objective'],rel_tol=1e-8,abs_tol=1e-6):
             raise ValueError('incumbent is inconsistent with the exact value cuts')
         model.write(str(output/'selection.sol'))
         return dict(incumbent,status='optimal',bound=bound,

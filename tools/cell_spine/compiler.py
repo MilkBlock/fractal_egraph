@@ -1,4 +1,4 @@
-"""Native Bake -> exact catalog -> Gurobi -> multi-node spine .egg.
+"""Native Bake -> exact catalog -> MIP selection -> multi-node spine .egg.
 
 Only positive constructor/equality certificates authorize template substitution.
 Snapshot archives are available only through explicit --mode stages; they are
@@ -298,7 +298,28 @@ def lower_option(c, target, wirings, chosen):
                 equality_guards=sum(a['kind'] == 'union' for a in c['acts']))
 
 
-def transition_options(candidates):
+def representation_choices(candidates):
+    """Quotient identical physical spines, NOT history entries or bindings.
+
+    Compare typed seeds, ordered roots/ports and their certified closure values
+    in one family's coordinates. No commutativity, literal erasure, support
+    frequency, or approximate graph matching is used here.
+    """
+    anchors={};groups={};aliases={};representatives=[]
+    for c in candidates:
+        anchor=anchors.setdefault(c['family'],c)
+        binding=mapping_to(c,anchor)
+        key=json.dumps((c['family'],actions(c['acts'],True,c['signatures'],binding),
+            [text(r,True,c['signatures'],binding) for r in c['roots']],
+            [(binding[p],c['param_sorts'][p]) for p in c['params']],
+            [c['value_map'][resolve(c['snapshot'],r)] for r in c['roots']]),sort_keys=True)
+        if key not in groups:
+            groups[key]=c['id'];representatives.append(c)
+        aliases[c['id']]=groups[key]
+    return representatives,aliases
+
+
+def transition_options(candidates, representations=None):
     """All representation tuples on observed hyperedges; no arbitrary pairs.
 
     Parent instances are never deduplicated by family. Two occurrences of one
@@ -308,7 +329,7 @@ def transition_options(candidates):
     """
     by_id = {c['id']: c for c in candidates}
     groups = defaultdict(list)
-    for c in candidates:
+    for c in candidates if representations is None else representations:
         groups[c['family']].append(c)
     edges = []
     for c in candidates:
@@ -652,8 +673,12 @@ def main():
     p.add_argument('--update-weight',type=float,default=1.)
     p.add_argument('--storage-cost',choices=('instances','structural'),default='structural',
                    help='price current-input retained rows, or retain the inexpensive structural-only objective (default)')
+    p.add_argument('--solver',choices=('scip','gurobi'),default=os.environ.get('EGG_LAYOUT_SOLVER','scip'))
+    p.add_argument('--keep-duplicate-spines',action='store_true',help='ablation: retain distinct variables for identical physical representations')
     p.add_argument('--skip-build',action='store_true')
     a=p.parse_args()
+    from . import solver
+    solver.select(a.solver)
     weights=(a.storage_weight,a.search_weight,a.update_weight)
     if not all(math.isfinite(w) and w>=0 for w in weights) or not any(weights):
         raise ValueError('weights must be finite, nonnegative and not all zero')
@@ -674,23 +699,21 @@ def main():
     if a.mode=='stages':
         from .stages import compile_stages
         report.update(compile_stages(a.source,a.output,ROOT,'explicit snapshot archive export',weights))
+        report['solver']=solver.statistics()
         (a.output/'report.json').write_text(json.dumps(report,indent=2)+'\n')
         print(json.dumps({'status':report['status']})); return
     problem=compatible_program(data)
     if problem:
         raise ValueError('Cell Bake unsupported: '+problem+'. No snapshot fallback was produced; use the explicit snapshot export only for debugging.')
-    try:
-        import gurobipy  # Fail before native analysis if the requested solver is absent.
-    except ImportError as e:
-        raise RuntimeError('install tools/cell_spine/requirements.txt in the Python environment running this command') from e
+    solver.module() # Fail before native analysis; never change backends silently.
     phase('source_prepare')
     analysis=a.analysis_dir.resolve() if a.analysis_dir else a.output/'analysis'
     if not a.analysis_dir:
         env=dict(os.environ,EGG_LAYOUT_GRAPHS='0')
         # Analyze defaults to additional history-window readings. Keep this
-        # compiler's previous rooted capture policy until equivalent entry
-        # alternatives are factored before the limited-license MILP. Explicit
-        # caller configuration and supplied catalogs are never truncated.
+        # compiler's previous rooted capture policy for comparable workloads.
+        # Full windows are supported with exact representation normalization;
+        # explicit caller configuration and supplied catalogs are never truncated.
         env.setdefault('EGG_LAYOUT_CELL_WINDOWS','0')
         run([ROOT/'target/release/egg_layout','analyze','--source',a.source,'--output',analysis],env=env)
     else:
@@ -703,7 +726,9 @@ def main():
     if not cs:
         raise ValueError('Cell Bake found no supported completed Cell paths; snapshot export is a separate explicit operation')
     for c in cs: c["marker_layouts"]=markers.layouts(c)
-    edges=transition_options(cs)
+    representations,representation_aliases=representation_choices(cs)
+    if a.keep_duplicate_spines:representations=cs;representation_aliases={c['id']:c['id'] for c in cs}
+    edges=transition_options(cs,representations)
     price_options(edges,work)
     # Definitions preserve the source rules. Only opaque parameter constructors are added.
     sig=dict(data['signatures']);environment=commands(data,{'declaration','rule'})
@@ -717,7 +742,7 @@ def main():
     storage=InstanceStorage(data,cs,environment,sig,ROOT/'target/release/examples/native_math_baseline') if a.storage_cost=='instances' else None
     pricing=RuntimePricing(lambda plan,dest:prepare_runtime(cs,plan,edges,work,dest),sig,work/'pricing',weights,storage=storage)
     phase('catalog_prepare')
-    plan=solve(cs,edges,a.output,weights,pricing=pricing)
+    plan=solve(representations,edges,a.output,weights,pricing=pricing)
     prepared,priced=pricing.optimize(plan)
     phase('spine_solve')
     lib,chosen,transitions,retirement=make_library(cs,plan,edges,environment,sig,work,prepared)
@@ -774,14 +799,21 @@ def main():
                   transitions=transitions,retirement=retirement,runtime_schedule=markers.RUNTIME_SCHEDULE,
                   input_plan=input_plan,paths=[dict(id=c['id'],family=c['family'],nodes=c['nodes'],lhs_atoms=c['lhs_atoms'],source_folder=c['source_folder']) for c in cs],
                   storage_cost=a.storage_cost,
+                  representation_normalization=dict(history_paths=len(cs),representations=len(representations),
+                      aliases=representation_aliases,scope='exact typed seed/root/interface identity in certified family coordinates; all original history entries remain transition obligations and validation cases'),
+                  pricing_work=dict(prepared_schemes=pricing.schemes,layout_evaluations=pricing.evaluations,
+                      equivalent_model_hits=pricing.equivalent_model_hits,
+                      preparation_seconds=pricing.preparation_seconds,layout_profile_seconds=pricing.profile_seconds,
+                      scope='exact structural-model reuse; no candidate pruning; native instance pricing excluded'),
                   instance_storage=dict(selected=priced['instance_storage'],evaluations=storage.evaluations,seconds=storage.seconds,
                       audit='all emitted pre-export table row counts agree with native pricing') if storage is not None else None,
                   guarantees='exact finite constructor closure at explicit export from cached snapshots; original rules do not run on compressed path',
                   boundary='baked path whitelist only; no general hidden-fact matcher or automatic dynamic rebake')
     phase('output_write')
     report.update(phase_seconds=phases,compiler_seconds=sum(phases.values()),build_included=not a.skip_build,
+                  solver=solver.statistics(),
                   capture_mode='reused' if a.analysis_dir else 'fresh',
-                  phase_scope='sequential wall-clock stages; spine_solve includes preparation, pricing and Gurobi; final report serialization and process startup excluded')
+                  phase_scope='sequential wall-clock stages; spine_solve includes preparation, pricing and MIP solving; solver API build and solve times are subsets, not additive stages; final report serialization and process startup excluded')
     (a.output/'report.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps({k:report[k] for k in ('status','compressed','reason') if k in report}))
 

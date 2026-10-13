@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 def plan(frames, output, weights=(1.,1.,1.)):
-    import gurobipy as gp
+    from . import solver as gp
     streams = [f['environment'] + f['slot_declarations'] + f['actions'] for f in frames]
     choices = []
     for i, stream in enumerate(streams):
@@ -26,20 +26,19 @@ def plan(frames, output, weights=(1.,1.,1.)):
                                 middle=stream[prefix:len(stream)-suffix if suffix else None]))
         choices.append(options)
     with gp.Model('ordered_stage_recipes') as model:
-        model.Params.OutputFlag=0; model.Params.MIPGap=0; model.Params.Threads=1
         variables={}
         for i, options in enumerate(choices):
             for j, choice in enumerate(options):
-                variables[i,j]=model.addVar(vtype=gp.GRB.BINARY,name=f'path_{i}_{j}')
+                variables[i,j]=model.addVar(vtype=gp.BINARY,name=f'path_{i}_{j}')
             model.addConstr(gp.quicksum(variables[i,j] for j in range(len(options)))==1)
         # A dictionary stores each native command once. The chosen recipes pay
         # for command references and prefix/suffix slices, not engine runtime.
         model.setObjective(gp.quicksum((weights[0]*len(c['middle'])+weights[2]*(2 if c['parent'] is not None else 0))*variables[i,j]
                                       for i,opts in enumerate(choices) for j,c in enumerate(opts)))
         model.write(str(output/'selection.lp')); model.optimize()
-        if model.Status != gp.GRB.OPTIMAL:
-            raise RuntimeError(f'Gurobi stage selection status {model.Status}')
-        selected=[next(c for j,c in enumerate(opts) if variables[i,j].X>.5) for i,opts in enumerate(choices)]
+        if model.Status != gp.OPTIMAL:
+            raise RuntimeError(f'Stage selection status {model.Status}')
+        selected=[next(c for j,c in enumerate(opts) if model.value(variables[i,j])>.5) for i,opts in enumerate(choices)]
         report=dict(status='optimal',objective=model.ObjVal,bound=model.ObjBound,
                     scope='ordered concrete checkpoint recipe compression; not parameterized coarse-path inference',
                     variables=model.NumVars,constraints=model.NumConstrs)

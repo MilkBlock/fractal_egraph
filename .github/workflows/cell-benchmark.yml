@@ -10,11 +10,6 @@ on:
       - 'tools/cell_spine/**'
       - 'tools/bench/**'
       - 'experiments/cell_spine/**'
-      - 'experiments/cell_windows/**'
-      - 'tests/cell_windows.rs'
-      - 'tests/observed_state_discovery.rs'
-      - 'tools/egglog_debugger/cell*'
-      - 'tools/egglog_debugger/test_cell*'
       - 'Cargo.toml'
       - 'Cargo.lock'
       - '.github/workflows/cell-benchmark.yml'
@@ -26,11 +21,6 @@ on:
       - 'tools/cell_spine/**'
       - 'tools/bench/**'
       - 'experiments/cell_spine/**'
-      - 'experiments/cell_windows/**'
-      - 'tests/cell_windows.rs'
-      - 'tests/observed_state_discovery.rs'
-      - 'tools/egglog_debugger/cell*'
-      - 'tools/egglog_debugger/test_cell*'
       - 'Cargo.toml'
       - 'Cargo.lock'
       - '.github/workflows/cell-benchmark.yml'
@@ -71,16 +61,15 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           shared-key: cell-bench-rust-1.94
-      - name: Install solver and verify bundled limited license
+      - name: Install and verify open-source SCIP
         run: |
           python -m pip install -r tools/cell_spine/requirements.txt
           python - <<'PY'
-          import gurobipy as gp
+          from tools.cell_spine import solver as gp
           with gp.Model() as model:
-              model.Params.OutputFlag = 0
               model.addVar(lb=1)
               model.optimize()
-              assert model.Status == gp.GRB.OPTIMAL
+              assert model.Status == gp.OPTIMAL
           PY
       - name: Build native tools from committed sources
         run: >-
@@ -90,7 +79,7 @@ jobs:
       - name: Unit and native contract tests
         run: |
           mkdir -p out
-          python -m unittest tools.bench.test_ci_cell_spine tools.bench.test_spine_ablation tools.cell_spine.test_names tools.cell_spine.test_lookups tools.cell_spine.test_markers tools.cell_spine.test_representation tools.cell_spine.test_pricing tools.cell_spine.test_storage tools.cell_spine.test_spine tools.cell_spine.test_takeover tools.cell_spine.test_contract tools.cell_spine.test_input_spine
+          python -m unittest tools.bench.test_ci_cell_spine tools.bench.test_spine_ablation tools.cell_spine.test_names tools.cell_spine.test_lookups tools.cell_spine.test_markers tools.cell_spine.test_representation tools.cell_spine.test_representation_choices tools.cell_spine.test_pricing tools.cell_spine.test_solver tools.cell_spine.test_storage tools.cell_spine.test_spine tools.cell_spine.test_takeover tools.cell_spine.test_contract tools.cell_spine.test_input_spine
       - name: Middle-history Cell and reuse evidence regressions
         run: |
           cargo test --locked --release --lib alternative_proofs_do_not_multiply_bindings
@@ -102,9 +91,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: out/ci-baseline/report.json
-          key: cell-bench-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('tools/bench/ci_cases.json', 'experiments/cell_spine/fixtures/*.egg', 'experiments/cell_spine/eggcc_if_tiny/source.egg', 'tools/cell_spine/requirements.txt') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: cell-bench-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('tools/bench/ci_cases.json', 'experiments/cell_spine/fixtures/*.egg', 'experiments/cell_spine/eggcc_if_tiny/source.egg', 'tools/cell_spine/requirements.txt') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            cell-bench-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('tools/bench/ci_cases.json', 'experiments/cell_spine/fixtures/*.egg', 'experiments/cell_spine/eggcc_if_tiny/source.egg', 'tools/cell_spine/requirements.txt') }}-
+            cell-bench-v2-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('tools/bench/ci_cases.json', 'experiments/cell_spine/fixtures/*.egg', 'experiments/cell_spine/eggcc_if_tiny/source.egg', 'tools/cell_spine/requirements.txt') }}-
       - name: Measure size and all phases (one run per mode)
         id: bench
         run: python tools/bench/ci_cell_spine.py --output out/ci-cell

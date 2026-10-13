@@ -143,7 +143,7 @@ def initializers(data,candidates,chosen,layouts,prepared):
 
 def project(data,candidates,chosen,layouts,prepared,output):
     """Minimum initializer recipe cover for fixed spines, not a time/RSS model."""
-    import gurobipy as gp
+    from . import solver as gp
     if any(a['action']['kind']=='union' for a in data['actions']):
         return None,dict(status='raw_ingress',reason='initial unions retain original identity and ordering')
     dag,options,skipped,obligations=initializers(data,candidates,chosen,layouts,prepared)
@@ -154,9 +154,8 @@ def project(data,candidates,chosen,layouts,prepared,output):
         providers[o['root']].append(o['id'])
         for i in o['covered']:covers[i].append(o['id'])
     with gp.Model('cell_input_spine') as model:
-        model.Params.OutputFlag=0;model.Params.MIPGap=0;model.Params.MIPGapAbs=0;model.Params.Threads=1
-        x={o['id']:model.addVar(vtype=gp.GRB.BINARY,name=f'cell_{o["id"]}') for o in options}
-        raw={i:model.addVar(vtype=gp.GRB.BINARY,name=f'raw_{i}') for i in raw_nodes}
+        x={o['id']:model.addVar(vtype=gp.BINARY,name=f'cell_{o["id"]}') for o in options}
+        raw={i:model.addVar(vtype=gp.BINARY,name=f'raw_{i}') for i in raw_nodes}
         for i in raw_nodes:
             model.addConstr(raw[i]+gp.quicksum(x[j] for j in covers[i])>=1)
             for child in dag.nodes[i][1]:
@@ -168,7 +167,7 @@ def project(data,candidates,chosen,layouts,prepared,output):
         # A known interface must be supplied by a certified ancestor lens, or
         # all its initial facts stay visible to the ordinary ingress rules.
         for n,(key,seed_rows) in enumerate(obligations):
-            retained=model.addVar(vtype=gp.GRB.BINARY,name=f'visible_match_{n}')
+            retained=model.addVar(vtype=gp.BINARY,name=f'visible_match_{n}')
             for i in seed_rows:model.addConstr(retained<=raw[i])
             model.addConstr(retained+gp.quicksum(x[o['id']] for o in options if key in o['provided'])>=1)
         for i in dag.globals.values():
@@ -181,13 +180,13 @@ def project(data,candidates,chosen,layouts,prepared,output):
             for key in o['physical']:uses[key].append(x[o['id']])
         rows=[]
         for i,vs in enumerate(uses.values()):
-            y=model.addVar(vtype=gp.GRB.BINARY,name=f'row_{i}');rows.append(y)
+            y=model.addVar(vtype=gp.BINARY,name=f'row_{i}');rows.append(y)
             for v in vs:model.addConstr(y>=v)
             model.addConstr(y<=gp.quicksum(vs))
         model.setObjective(gp.quicksum(rows))
         model.write(str(output/'input-selection.lp'));model.optimize()
-        if model.Status!=gp.GRB.OPTIMAL:raise RuntimeError(f'input spine selection failed: {model.Status}')
-        selected=[o for o in options if x[o['id']].X>.5];retained={i for i,v in raw.items() if v.X>.5}
+        if model.Status!=gp.OPTIMAL:raise RuntimeError(f'input spine selection failed: {model.Status}')
+        selected=[o for o in options if model.value(x[o['id']])>.5];retained={i for i,v in raw.items() if model.value(v)>.5}
         model.write(str(output/'input-selection.sol'))
         report=dict(status='projected',scope='exact initial row-cover objective for fixed canonical spines and marker layouts; current input, not arbitrary future grafts',
             objective_scope='distinct constructor/marker recipes; excludes constant global bindings, indices, RSS and union-dependent coalescing',

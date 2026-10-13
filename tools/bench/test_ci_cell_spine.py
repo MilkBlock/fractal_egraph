@@ -13,14 +13,20 @@ from tools.bench.check_ci_cell_spine import compare
 
 def fixture():
     timing={k:1. for k in PHASES+ENGINE_PHASES};timing.update(process_seconds=4.,peak_rss_bytes=32*1024**2)
-    return dict(schema='cell-ci-bench/v1',suite_sha256='suite',copies=128,threads=1,
-        environment=dict(os='Linux',arch='x86_64',cpu='cpu',python='3.12',rust='1.94',gurobi='13',runner_image='ubuntu24'),
+    return dict(schema='cell-ci-bench/v2',suite_sha256='suite',copies=128,threads=1,
+        environment=dict(os='Linux',arch='x86_64',cpu='cpu',python='3.12',rust='1.94',solver={'backend':'scip','python_package_version':'6.3.0'},runner_image='ubuntu24'),
         cases={'test':dict(source_sha256='source',copies=128,bytes={'library.egg':100},
             bake=dict(capture_mode='fresh',compiler_seconds=1.,process_seconds=1.2,phase_seconds={'capture':1.}),
             modes={'native':dict(timing=timing,size=dict(physical_rows=100,restored_enodes=80,restored_eclasses=50))})})
 
 
 class RegressionGates(unittest.TestCase):
+    def test_changed_solver_disables_time_gate_but_not_size_gate(self):
+        before=fixture();now=fixture();now['environment']['solver']={'backend':'gurobi'}
+        now['cases']['test']['modes']['native']['timing']['run_seconds']=20
+        r=compare(before,now);self.assertFalse(r['timings_comparable']);self.assertFalse(r['failures'])
+        now['cases']['test']['bytes']['library.egg']=200
+        self.assertTrue(compare(before,now)['failures'])
     def test_cost_policies_cannot_be_silently_mixed(self):
         before=fixture();now=fixture();now['storage_cost']='instances'
         with self.assertRaisesRegex(ValueError,'storage cost policy'):compare(before,now)

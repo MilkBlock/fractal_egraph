@@ -7,7 +7,6 @@ SVG, graph dumps, raw tracing, repeated timing averages, or copied local catalog
 """
 import argparse
 import copy
-import importlib.metadata
 import json
 import math
 import os
@@ -20,6 +19,7 @@ import time
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT))
 from tools.cell_spine import compiler as c,markers
+from tools.cell_spine import solver
 from tools.cell_spine.terms import actions,walk
 
 PHASES=('read_seconds','setup_seconds','input_seconds','run_seconds','export_seconds','drop_seconds','seconds')
@@ -86,7 +86,7 @@ def machine():
         cpu=next((line.split(':',1)[1].strip() for line in Path('/proc/cpuinfo').read_text().splitlines() if line.startswith('model name')),platform.processor())
     else:cpu=subprocess.check_output(['sysctl','-n','machdep.cpu.brand_string'],text=True).strip()
     return dict(os=platform.system(),arch=platform.machine(),cpu=cpu,python=platform.python_version(),
-        rust=subprocess.check_output(['rustc','--version'],text=True).strip(),gurobi=importlib.metadata.version('gurobipy'),
+        rust=subprocess.check_output(['rustc','--version'],text=True).strip(),solver=solver.information(),
         runner_image=os.environ.get('ImageOS','local'),runner_image_version=os.environ.get('ImageVersion','unknown'))
 
 
@@ -119,6 +119,7 @@ def benchmark_case(name,source,out,copies,storage_cost='structural'):
             compiler_seconds=report['compiler_seconds'],capture_mode=report['capture_mode']),
         bytes={f:(bake/f).stat().st_size for f in ('library.egg','runtime.egg','restore.egg')},
         input_plan=report['input_plan']['status'],modes={})
+    item['solver']=report['solver'];item['pricing_work']=report.get('pricing_work',{})
     item['storage_pricing']=dict(mode=report.get('storage_cost','structural'),
         native_evaluations=(report.get('instance_storage') or {}).get('evaluations',0),
         seconds=(report.get('instance_storage') or {}).get('seconds',0.),
@@ -178,7 +179,7 @@ def render(report):
     for name,cse in report['cases'].items():
         for phase,value in cse['bake']['phase_seconds'].items():lines.append(f'| {name} | {phase} | {value:.6f} |')
         lines.append(f'| {name} | compiler / process total | {cse["bake"]["compiler_seconds"]:.6f} / {cse["bake"]["process_seconds"]:.6f} |')
-    lines+=['','Spine solve includes conditional preparation, cost profiling and Gurobi; it is not solver CPU time alone. Capture includes native trace/ripen work. Build is performed before the benchmark and excluded.',
+    lines+=['','Spine solve includes conditional preparation, cost profiling and MIP solving; it is not solver CPU time alone. Capture includes native trace/ripen work. Build is performed before the benchmark and excluded.',
         '', '## Current-input storage pricing (one seed)', '',
         '| Case | Cost mode | Native pricing executions | Pricing seconds | Input/run checkpoint peak Value slots |',
         '|---|---|---:|---:|---:|']
@@ -186,6 +187,17 @@ def render(report):
         s=cse.get('storage_pricing',{})
         lines.append(f'| {name} | {s.get("mode","unavailable")} | {s.get("native_evaluations","—")} | {s.get("seconds","—")} | {s.get("seed_value_slots","—")} |')
     lines+=['','Pricing time is inside spine solve, not an additional runtime phase. Value slots include retained retired-marker rows but exclude index/allocation capacity. This is the seed cost, not the replicated workload or RSS.',
+        '', '## Optimizer work (seconds)', '',
+        '| Case | Model | Backend | Models / solves | API build | Solve | Peak variables / constraints |',
+        '|---|---|---|---:|---:|---:|---:|']
+    for name,cse in report['cases'].items():
+        s=cse.get('solver',{})
+        for model,m in s.get('models',{}).items():
+            lines.append(f'| {name} | {model} | {s["backend"]} | {m["models"]} / {m["solve_calls"]} | {m["api_build_seconds"]:.6f} | {m["solve_seconds"]:.6f} | {m["peak_variables"]} / {m["peak_constraints"]} |')
+    for name,cse in report['cases'].items():
+        p=cse.get('pricing_work',{})
+        lines.append(f'\n{name}: {p.get("layout_evaluations","unknown")} layout evaluations; {p.get("equivalent_model_hits","unknown")} exact conditional-model reuse hits; preparation {p.get("preparation_seconds","unknown")} s, layout profiling {p.get("layout_profile_seconds","unknown")} s.\n')
+    lines+=['','Solver timers are subsets of Bake stages. API build excludes Python expression construction and lowering; solve includes native presolve/search. The full stage timers remain authoritative.',
         '', '## Generated files (bytes)','', '| Case | Library | Runtime | Restore |','|---|---:|---:|---:|']
     for name,cse in report['cases'].items():lines.append('| '+' | '.join([name,*[str(cse['bytes'][f]) for f in ('library.egg','runtime.egg','restore.egg')]])+' |')
     lines+=['','Full per-table counts, environment, binary hash and measurements are in `report.json`. Table rows, serialized bytes and RSS are different metrics; none is substituted for another.','']
@@ -208,7 +220,7 @@ def main():
         EGG_LAYOUT_RIPEN_OBSERVE_FACTS=str(limits['facts']),EGG_LAYOUT_RIPEN_SWEEP_STEPS=str(limits['sweep_steps']))
     for k in ('EGG_LAYOUT_FULL_TRACE','EGG_LAYOUT_RIPEN_HISTORY','EGG_LAYOUT_PROFILE','EGGLOG_JOIN_WORK_RULES'):os.environ.pop(k,None)
     out=a.output.resolve();out.mkdir(parents=True,exist_ok=False)
-    report=dict(schema='cell-ci-bench/v1',suite_sha256=c.digest(a.suite),copies=copies,threads=1,ripen_limits=limits,environment=machine(),storage_cost=a.storage_cost,
+    report=dict(schema='cell-ci-bench/v2',suite_sha256=c.digest(a.suite),copies=copies,threads=1,ripen_limits=limits,environment=machine(),storage_cost=a.storage_cost,
         commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
         dirty=bool(subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True)),
         binary_sha256=c.digest(ROOT/'target/release/examples/native_math_baseline'),cases={})

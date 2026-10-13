@@ -43,10 +43,12 @@ the regular debugger page. Per-round snapshots carry the same evidence.
 
 Use `EGG_LAYOUT_CELL_WINDOWS=0` for the rooted-only ablation. Standalone analyze
 enables windows by default. Automatic **spine Bake** retains rooted capture by
-default because unfactored window alternatives can exceed the restricted Gurobi
-license. An explicit `EGG_LAYOUT_CELL_WINDOWS=1` or supplied analysis catalog is
-respected in full; there is no silent candidate cap. This work does not yet
-factor those additional MILP alternatives.
+default for continuity with prior compiler benchmarks. SCIP is now the default
+solver. Exactly equal typed spine representations share choices while all
+history paths remain obligations and validation cases. An explicit
+`EGG_LAYOUT_CELL_WINDOWS=1` or supplied analysis catalog is respected in full;
+there is no silent candidate cap. Full-window measurements and reproduction
+commands are in [the solver report](../cell_spine/scip/README.md).
 
 For the one-run-per-mode comparison:
 

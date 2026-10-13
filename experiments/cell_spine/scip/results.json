@@ -1,0 +1,256 @@
+{
+  "schema": "cell-scip-comparison/v1",
+  "date": "2026-10-13",
+  "scope": "Actual Cell compiler with native egglog full-closure validation, reused analysis catalogs; one run per backend/input; no pristine comparison",
+  "environment": {
+    "os": "Darwin",
+    "arch": "arm64",
+    "cpu": "Apple M3 Max",
+    "python": "3.14.3"
+  },
+  "native_binaries": {
+    "target/release/egg_layout": "ef6d44df0af7d0ce74cc60808f957bf52a8c1e63f0d32dda5d6748d1d07c65f3",
+    "target/release/examples/lhs_ast": "778023cbca7ce027a6a5f88a223d691db0b63a17cb1b8af6b1e8de67ff5e944d",
+    "target/release/examples/spine_validate": "f67868a5331cefa470f188d7144cdb487c3d992e43be3873ef41ddbab6dc5b05",
+    "target/release/examples/native_math_baseline": "6d0328c46bd21feffa2723028339029f4e0b581913d52e67bae32a2b78956901"
+  },
+  "results": [
+    {
+      "run": "scip-window-boundary-normalized",
+      "source": "experiments/cell_spine/fixtures/input_spine_boundary.egg",
+      "source_sha256": "6e07be08003c038141977497bb91735037780cc6aa85d88a03a716056a025e29",
+      "capture_mode": "reused",
+      "history_paths": 43,
+      "representations": 7,
+      "objective": 332.0,
+      "master": {
+        "variables": 140,
+        "constraints": 219
+      },
+      "inner_peak": {
+        "variables": 145,
+        "constraints": 387
+      },
+      "native_checks": 44,
+      "all_checks_equivalent": true,
+      "native_total_rows_before_export": 24,
+      "compiler_seconds": 9.146352791925892,
+      "phase_seconds": {
+        "build": 6.668269634246826e-07,
+        "source_prepare": 0.054282624972984195,
+        "tier0_capture": 0.00031870813108980656,
+        "catalog_prepare": 0.25162370898760855,
+        "spine_solve": 8.63822245807387,
+        "library_emit": 0.02241649990901351,
+        "input_solve": 0.019127249950543046,
+        "validation_prepare": 0.004360958002507687,
+        "native_validation": 0.15367558412253857,
+        "output_write": 0.0023243329487740993
+      },
+      "solver": {
+        "backend": "scip",
+        "python_package_version": "6.3.0",
+        "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+        "threads": 1,
+        "models": {
+          "cell_marker_value": {
+            "models": 8,
+            "solve_calls": 9,
+            "api_build_seconds": 0.022519293939694762,
+            "solve_seconds": 2.6598844996187836,
+            "peak_variables": 145,
+            "peak_constraints": 387,
+            "engine_version": "10.0.2",
+            "nonoptimal_solves": 0
+          },
+          "cell_spine_master": {
+            "models": 1,
+            "solve_calls": 10,
+            "api_build_seconds": 0.005517953308299184,
+            "solve_seconds": 0.02526812581345439,
+            "peak_variables": 140,
+            "peak_constraints": 219,
+            "engine_version": "10.0.2",
+            "nonoptimal_solves": 0
+          },
+          "cell_input_spine": {
+            "models": 1,
+            "solve_calls": 1,
+            "api_build_seconds": 0.0021683035884052515,
+            "solve_seconds": 0.0011822499800473452,
+            "peak_variables": 47,
+            "peak_constraints": 133,
+            "engine_version": "10.0.2",
+            "nonoptimal_solves": 0
+          }
+        }
+      },
+      "pricing_preparation_seconds": 0.27819729084149003,
+      "layout_profile_seconds": 5.592272622976452,
+      "pricing_work": {
+        "prepared_schemes": 8,
+        "layout_evaluations": 25022,
+        "equivalent_model_hits": 0,
+        "scope": "exact structural-model reuse; no candidate pruning; native instance pricing excluded"
+      }
+    },
+    {
+      "run": "gurobi-window-boundary-normalized",
+      "source": "experiments/cell_spine/fixtures/input_spine_boundary.egg",
+      "source_sha256": "6e07be08003c038141977497bb91735037780cc6aa85d88a03a716056a025e29",
+      "capture_mode": "reused",
+      "history_paths": 43,
+      "representations": 7,
+      "objective": 332.0,
+      "master": {
+        "variables": 140,
+        "constraints": 219
+      },
+      "inner_peak": {
+        "variables": 145,
+        "constraints": 387
+      },
+      "native_checks": 44,
+      "all_checks_equivalent": true,
+      "native_total_rows_before_export": 24,
+      "compiler_seconds": 6.5496792499907315,
+      "phase_seconds": {
+        "build": 5.830079317092896e-07,
+        "source_prepare": 0.019083708059042692,
+        "tier0_capture": 0.0004486669786274433,
+        "catalog_prepare": 0.23702341690659523,
+        "spine_solve": 6.094535541022196,
+        "library_emit": 0.021044209133833647,
+        "input_solve": 0.01512545789591968,
+        "validation_prepare": 0.004066667053848505,
+        "native_validation": 0.1568169160746038,
+        "output_write": 0.0015340838581323624
+      },
+      "solver": {
+        "backend": "gurobi",
+        "python_package_version": "13.0.3",
+        "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+        "threads": 1,
+        "models": {
+          "cell_marker_value": {
+            "models": 8,
+            "solve_calls": 9,
+            "api_build_seconds": 0.015411349013447762,
+            "solve_seconds": 0.14932583435438573,
+            "peak_variables": 145,
+            "peak_constraints": 387,
+            "engine_version": "13.0.3",
+            "nonoptimal_solves": 0
+          },
+          "cell_spine_master": {
+            "models": 1,
+            "solve_calls": 10,
+            "api_build_seconds": 0.0026523740962147713,
+            "solve_seconds": 0.015120541909709573,
+            "peak_variables": 140,
+            "peak_constraints": 219,
+            "engine_version": "13.0.3",
+            "nonoptimal_solves": 0
+          },
+          "cell_input_spine": {
+            "models": 1,
+            "solve_calls": 1,
+            "api_build_seconds": 0.0007344631012529135,
+            "solve_seconds": 0.0003909999504685402,
+            "peak_variables": 47,
+            "peak_constraints": 133,
+            "engine_version": "13.0.3",
+            "nonoptimal_solves": 0
+          }
+        }
+      },
+      "pricing_preparation_seconds": 0.26766170817427337,
+      "layout_profile_seconds": 5.589588458184153,
+      "pricing_work": {
+        "prepared_schemes": 8,
+        "layout_evaluations": 25022,
+        "equivalent_model_hits": 0,
+        "scope": "exact structural-model reuse; no candidate pruning; native instance pricing excluded"
+      }
+    },
+    {
+      "run": "scip-window-if-normalized",
+      "source": "experiments/cell_spine/eggcc_if_tiny/source.egg",
+      "source_sha256": "c7b1592f3e4aa3049fb9d12889ec826e370f4acfd83ad4c6d384d59a71ff0957",
+      "capture_mode": "reused",
+      "history_paths": 10,
+      "representations": 5,
+      "objective": 2830.0,
+      "master": {
+        "variables": 46,
+        "constraints": 115
+      },
+      "inner_peak": {
+        "variables": 389,
+        "constraints": 702
+      },
+      "native_checks": 11,
+      "all_checks_equivalent": true,
+      "native_total_rows_before_export": 87,
+      "compiler_seconds": 187.54866795917042,
+      "phase_seconds": {
+        "build": 7.920898497104645e-07,
+        "source_prepare": 0.04359133285470307,
+        "tier0_capture": 0.0005107920151203871,
+        "catalog_prepare": 0.14898641710169613,
+        "spine_solve": 186.94373025000095,
+        "library_emit": 0.17588529107160866,
+        "input_solve": 0.053749874932691455,
+        "validation_prepare": 0.005945916986092925,
+        "native_validation": 0.17476750002242625,
+        "output_write": 0.0014997920952737331
+      },
+      "solver": {
+        "backend": "scip",
+        "python_package_version": "6.3.0",
+        "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+        "threads": 1,
+        "models": {
+          "cell_marker_value": {
+            "models": 1,
+            "solve_calls": 2,
+            "api_build_seconds": 0.0072492503095418215,
+            "solve_seconds": 2.158106790855527,
+            "peak_variables": 389,
+            "peak_constraints": 702,
+            "engine_version": "10.0.2",
+            "nonoptimal_solves": 0
+          },
+          "cell_spine_master": {
+            "models": 1,
+            "solve_calls": 3,
+            "api_build_seconds": 0.002332920441403985,
+            "solve_seconds": 0.0010472501162439585,
+            "peak_variables": 46,
+            "peak_constraints": 115,
+            "engine_version": "10.0.2",
+            "nonoptimal_solves": 0
+          },
+          "cell_input_spine": {
+            "models": 1,
+            "solve_calls": 1,
+            "api_build_seconds": 0.002747483318671584,
+            "solve_seconds": 0.0007288341876119375,
+            "peak_variables": 120,
+            "peak_constraints": 434,
+            "engine_version": "10.0.2",
+            "nonoptimal_solves": 0
+          }
+        }
+      },
+      "pricing_preparation_seconds": 0.26793533307500184,
+      "layout_profile_seconds": 184.30872620781884,
+      "pricing_work": {
+        "prepared_schemes": 1,
+        "layout_evaluations": 107668,
+        "equivalent_model_hits": 0,
+        "scope": "exact structural-model reuse; no candidate pruning; native instance pricing excluded"
+      }
+    }
+  ]
+}

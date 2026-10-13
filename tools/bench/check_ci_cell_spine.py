@@ -20,9 +20,9 @@ def compare(base,current,time_tolerance=.30,size_tolerance=.05):
         raise ValueError('incompatible benchmark: storage cost policy')
     for key in ('schema','suite_sha256','copies','threads'):
         if key not in base or base[key]!=current.get(key):raise ValueError(f'incompatible benchmark: {key}')
-    if base['schema']!='cell-ci-bench/v1' or not base['cases'] or base['cases'].keys()!=current['cases'].keys():
+    if base['schema']!='cell-ci-bench/v2' or not base['cases'] or base['cases'].keys()!=current['cases'].keys():
         raise ValueError('schema or benchmark case set changed')
-    time_keys=('os','arch','cpu','python','rust','gurobi','runner_image')
+    time_keys=('os','arch','cpu','python','rust','solver','runner_image')
     comparable=all(base['environment'].get(k) and base['environment'][k]==current['environment'].get(k) for k in time_keys)
     changes=[];failures=[]
     def metric(name,a,b,kind):

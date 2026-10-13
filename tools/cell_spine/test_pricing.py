@@ -4,7 +4,7 @@ import tempfile
 import unittest
 import copy
 from pathlib import Path
-import gurobipy as gp
+from . import solver as gp
 from .planner import solve
 from .pricing import Diagram,RuntimePricing,cost,audit,rule_recipe
 from . import markers,takeover
@@ -41,6 +41,23 @@ def solve_table(candidates,edges,output,weights=(1.,1.,1.)):
 
 
 class ExactPricing(unittest.TestCase):
+    def test_identical_conditional_models_share_an_optimum_but_guards_do_not(self):
+        chosen={0:dict(marker_layouts=[dict(id='a',path=0,columns=1),dict(id='b',path=0,columns=2)])}
+        def prepare(plan,folder):
+            cs=copy.deepcopy(chosen)
+            for l in cs[0]['marker_layouts']:l['id']+=str(plan['selected'][0]);l['path']=plan['selected'][0]
+            rule=dict(name='rule-'+str(plan['selected'][0]),body=[],head=[],ruleset='r')
+            if plan['selected']==[2]:rule['body']=[dict(kind='eq',args=[takeover.var('x'),takeover.var('y')])]
+            return dict(chosen=cs,consumers=[rule])
+        with tempfile.TemporaryDirectory() as d:
+            oracle=RuntimePricing(prepare,{},Path(d),(1,1,1))
+            _,first=oracle.optimize(dict(selected=[0],implementations=[]))
+            _,second=oracle.optimize(dict(selected=[1],implementations=[]))
+            self.assertEqual(first['value'],second['value']);self.assertEqual(second['marker_layouts'],['a1'])
+            self.assertEqual(second['isomorphic_pricing_of'],first['folder']);self.assertEqual(oracle.equivalent_model_hits,1)
+            _,third=oracle.optimize(dict(selected=[2],implementations=[]))
+            self.assertNotIn('isomorphic_pricing_of',third);self.assertEqual(oracle.equivalent_model_hits,1)
+
     def test_recipe_cache_does_not_erase_guards_or_duplicate_syntax(self):
         fact=dict(kind='fact',expr=takeover.call('A',[takeover.var('x')]))
         r=dict(body=[fact],head=[])
@@ -75,9 +92,8 @@ class ExactPricing(unittest.TestCase):
             self.assertEqual(oracle.evaluations,n)
             for ls in itertools.product(*(c['marker_layouts'] for c in renamed.values())):
                 with gp.Model() as model:
-                    model.Params.OutputFlag=0
                     selected={l['id'] for l in ls}
-                    variables={l['id']:model.addVar(vtype=gp.GRB.BINARY,lb=float(l['id'] in selected),ub=float(l['id'] in selected))
+                    variables={l['id']:model.addVar(vtype=gp.BINARY,lb=float(l['id'] in selected),ub=float(l['id'] in selected))
                                for c in renamed.values() for l in c['marker_layouts']}
                     expr,_=oracle.diagram.encode(model,variables,[root]);model.setObjective(expr[0]);model.optimize()
                     expected=cost(markers.lower_ast(r,dict(enumerate(ls)),sig))
@@ -112,8 +128,7 @@ class ExactPricing(unittest.TestCase):
         root=d.branch([(f'a{i}',values[i]) for i in range(4)])
         for i,j in itertools.product(range(4),repeat=2):
             with gp.Model() as m:
-                m.Params.OutputFlag=0
-                variables={f'{s}{k}':m.addVar(vtype=gp.GRB.BINARY,lb=float(k==v),ub=float(k==v))
+                variables={f'{s}{k}':m.addVar(vtype=gp.BINARY,lb=float(k==v),ub=float(k==v))
                            for s,v in [('a',i),('b',j)] for k in range(4)}
                 expr,_=d.encode(m,variables,[root]);m.setObjective(expr[0]);m.optimize()
                 self.assertEqual(m.ObjVal,2 if i==j else 9)

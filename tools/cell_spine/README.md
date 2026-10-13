@@ -19,6 +19,43 @@ coarse paths. Its output filenames and status are distinct from Cell results.
 `--analysis-dir DIR` applies only to Cell compilation. `--skip-build` requires
 current native binaries. Output must be empty.
 
+## Solver and exact representation sharing
+
+SCIP is the default, via the pinned `pyscipopt` wheel. It requires no Gurobi
+license and has no licensed variable/constraint count cap. To compare the same
+model with Gurobi, install `requirements-gurobi.txt` and pass `--solver gurobi`.
+`--solver scip` makes the default explicit; `EGG_LAYOUT_SOLVER` also selects the
+backend. There is no automatic backend fallback, MIP time limit, candidate cap,
+or approximate solution acceptance. Every native solve must report OPTIMAL with
+relative and absolute gap limits set to zero; numerical tolerances still apply.
+SCIP is not claimed to outperform Gurobi on every model.
+
+Before optimization, identical physical spine choices share one variable. The
+key contains the certified closure family, complete seed facts/equalities,
+ordered roots, typed ordered ports, and root identities in the family's certified
+coordinates. Slot names may change; literal values, guards and wiring may not.
+All original history entries remain transition obligations and native validation
+cases. This removes redundant representation choices, not intermediate Cells or
+observed paths. `--keep-duplicate-spines` restores the old choice space for an
+explicit ablation. The report exposes the complete alias mapping.
+
+Identical alpha-normalized conditional rule programs with the same full marker
+layout domains also reuse a proven minimum. This cache applies only to structural
+costs, not concrete instance-storage pricing. A reused `pricing.json` points to
+the original proof model using `isomorphic_pricing_of`; no new solve is claimed.
+
+`report.json` separates solver API construction from native solving, with model
+counts, solve counts, peak variables/constraints, and engine versions. These
+are subsets of the existing Bake phases, not extra durations to add to them.
+`pricing_work` additionally reports preparation time, layout profiling time,
+layout evaluations and exact-model cache hits. The first layout profile can
+still enumerate a Cartesian product; model compression alone does not remove
+that work. See [the measured full-window cases](../../experiments/cell_spine/scip/README.md).
+
+Automatic Bake retains rooted capture for continuity with prior benchmarks.
+Set `EGG_LAYOUT_CELL_WINDOWS=1` to include middle-history Cells during fresh Bake,
+or pass a full `--analysis-dir`; supplied catalogs are never truncated.
+
 ## Generated names
 
 The compiler uses `Op!` for forked input constructors and `Op!!` for separately
@@ -78,7 +115,7 @@ with the same cost. Auxiliary tables may appear in full table-size diagnostics;
 original table contents and sizes are preserved.
 
 The stage model chooses all earlier checkpoints as potential recipe parents,
-using exact common prefixes and suffixes. Gurobi selects minimum weighted command
+using exact common prefixes and suffixes. The selected MIP solver minimizes weighted command
 references and slice descriptors. There is no sampling, candidate budget or
 heuristic solver fallback. The command dictionary cost is constant across these
 choices. Search weight has no role in this mode: it is not a Join optimizer.
@@ -131,7 +168,7 @@ A constructible match maps its typed parameters and root through
 the existing closure-equivalence certificate to the **selected** canonical
 spine; it never runs source inference or hard-codes an operator law.
 
-For fixed spine/marker choices, a second Gurobi model selects initializer recipes
+For fixed spine/marker choices, a second MIP model selects initializer recipes
 and retained raw rows. Every matched input region needs a selected initializer
 covering it, possibly a larger one; unmatched facts remain raw. Constructor coverage alone
 does not discharge a specialized binding: each matched Cell interface must be
@@ -204,7 +241,7 @@ SummaryA(root0, x, y) + SummaryA(root1, y, z) + Gate!(x, z)
 ```
 
 Instance identities and port mappings are distinct even though the two Summaries
-use the same relation and Gurobi-selected representation. The external `Gate`
+use the same relation and solver-selected representation. The external `Gate`
 condition remains. A reversed Gate cannot trigger the composition. A new union
 can enable a previously blocked binding, via ordinary egglog canonicalization
 and incremental matching on the Summary constructors.
@@ -267,8 +304,8 @@ export, source input construction and rule installation are outside this score.
 
 The solve is conditional but not greedy:
 
-1. An outer Gurobi model chooses paths and transition implementations.
-2. An inner Gurobi model jointly chooses marker layouts and legal physical
+1. An outer MIP model chooses paths and transition implementations.
+2. An inner MIP model jointly chooses marker layouts and legal physical
    representations (canonical, borrowed, or boundary form), and returns the
    minimum cost of the actual generated runtime, including inherited rules.
 3. An exact conditional value cut feeds this cost back to the outer model.
@@ -301,7 +338,7 @@ budget, sampling or greedy fallback. No search over arbitrary parent subsets is
 introduced: all certified parents of the observed composition are used. For
 hyperedge `e` touching distinct endpoint families `F_e`, the number of compiled
 options is `product(f in F_e) |P_f|`; total options sum over observed hyperedges.
-This can still grow combinatorially with representation alternatives. Gurobi's
+This can still grow combinatorially with representation alternatives. The solver's
 optimality is only for this finite option set and proxy cost. Solver/license
 errors are surfaced, not worked around by quietly dropping options.
 
@@ -310,7 +347,7 @@ For a rule mentioning marker families `F`, profile construction can require
 not this worst-case enumeration cost. The outer solve may visit every legal
 path/implementation assignment. Its conditional cuts also grow with that count.
 This is exact finite optimization, not a polynomial-time or universal
-restricted-license guarantee. Per-model variable and constraint counts are
+tractability guarantee. Per-model variable and constraint counts are
 reported separately for the outer model and peak inner model.
 
 `selection.lp`/`.sol` expose the outer model and certified solution.
@@ -325,7 +362,7 @@ archive sharing and is not used as a substitute for these Cell transitions.
 `experiments/cell_spine/joint_pricing` compares frozen old choices and the joint
 solve using the same emitter, cost formula and native full-state verifier.
 It includes the long-spine graft where the optimal marker moves onto a reusable
-subtree, plus the sparse eggcc If subset. It reports per-model license size.
+subtree, plus the sparse eggcc If subset. It reports per-model variable/constraint counts.
 
 `experiments/cell_spine/joint_runtime` adds native old/marker-only/joint ablations
 on identical catalogs. The structural score improves the long graft but slows
@@ -389,7 +426,7 @@ mutual disappearance is not a proof. No budget or sampled candidate cutoff is us
 The current implementation expands the alternatives for each consumer operand.
 With `k_i` owner projections for operand `i`, it considers `product_i(1+k_i)`
 forms before proven-redundancy removal. This can enlarge rule code and Join work.
-The Gurobi objective prices these forms after redundancy removal and marker
+The MIP objective prices these forms after redundancy removal and marker
 lowering, so they now affect path and marker selection. `retirement` exposes projections, retained cycles,
 emitted consumers, retirement rules and the count of proven-redundant forms.
 
@@ -548,7 +585,7 @@ are no global `Read-*!` or `Wanted-*!` relations in generated programs.
 - `Op!!` is the selected spine. Generated inference never writes raw
   ingress constructors, so normalizing a Cell cannot reopen arbitrary ingress.
 - `Summary-N!` is the **active marker itself**. Its fields and attachment
-  point are selected by Gurobi. There is no second summary-record layer.
+  point are selected by the MIP solver. There is no second summary-record layer.
 
 A transition requires active parent markers. It reads canonical nodes only
 through these markers. Known subtrees become result variables in both LHS and
@@ -576,7 +613,7 @@ are in the report and `library.egg`.
 
 ### Placement and field selection
 
-Gurobi jointly selects canonical paths, transition implementations and marker
+The MIP solver jointly selects canonical paths, transition implementations and marker
 layouts. Every canonical constructor and opaque input can be an attachment
 point. Equivalent stored-field/decoder layouts are deduplicated. Each point
 supports three explicit payload forms: owner roots plus anchor; also carry
@@ -687,8 +724,8 @@ Distinct String keys/tables and retained globals provide the remaining bound.
 A measured layout adds an exact value cut; a scheme whose lower bound cannot beat the incumbent does not need
 native measurement. No candidates are sampled/truncated. This can still be
 expensive: `instance_storage.evaluations` and `.seconds` report that Bake cost.
-The existing limits of the Gurobi license still apply; errors never fall back
-silently to the old objective.
+SCIP is the default; optional Gurobi remains subject to its license. Errors
+never fall back silently to the old objective.
 
 This is optimization **under the existing initializer policy**, not a global
 search over every initializer. For each ABI, that policy minimizes initial

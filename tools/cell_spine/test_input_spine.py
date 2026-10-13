@@ -13,7 +13,7 @@ from .markers import RUNTIME_SCHEDULE
 
 def compile_without_raw_add():
     """Test-only feasible alternative; leave the production recipe objective intact."""
-    import gurobipy as gp
+    from . import solver as gp
     from . import input_spine
     from .compiler import main
     original=input_spine.initializers
