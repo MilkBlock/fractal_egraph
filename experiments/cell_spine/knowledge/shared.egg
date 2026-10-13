@@ -1,0 +1,6 @@
+(datatype T (Leaf String) (Pair T T) (Join T T))
+(ruleset algebra)
+(rewrite (Pair a b) (Pair b a) :ruleset algebra)
+(rewrite (Join (Pair a b) (Pair c d)) (Join (Pair c d) (Pair a b)) :ruleset algebra)
+(let root (Join (Pair (Leaf "a") (Leaf "b")) (Pair (Leaf "b") (Leaf "d"))))
+(run-schedule (saturate algebra))

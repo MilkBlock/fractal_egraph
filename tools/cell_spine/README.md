@@ -19,6 +19,66 @@ coarse paths. Its output filenames and status are distinct from Cell results.
 `--analysis-dir DIR` applies only to Cell compilation. `--skip-build` requires
 current native binaries. Output must be empty.
 
+## Cross-fact project knowledge
+
+Pass `--knowledge-library .egg-fractal/knowledge.json` to reuse and update a
+project's validated Cell contracts. The VS Code **Bake Active .egg** command
+passes this automatically for the workspace (or source directory without a
+workspace). CLI runs without the flag remain isolated and reproducible.
+
+The library partitions native-parser-normalized declarations, ordered rules and
+schedules independently of input facts/checks. Changes to these environment
+commands create a separate namespace. This conservative key preserves names and
+order; it does not prove two differently written rulesets equivalent.
+
+Successful Bakes persist shared saturated graphs, portable seed recipes and
+explicit parent binding substitutions. Imported contracts join the actual
+spine/interface optimization, and EVERY imported seed is checked again by the
+native validator before successful output/publication. Different runs' event
+IDs are never used to connect parent bindings. Source edits during Bake reject
+publication. Atomic replacement under a POSIX file lock preserves concurrent
+updates. The current constructor/equality backend restrictions still apply.
+
+Merge-family learning aligns whole typed source/target/obligation descriptions,
+including shared closure-state identities. Repeated differences share one hole
+across the entire description, preserving alias correlations. Typed structural
+anti-unification proposes common contexts from observed descriptions; no Add,
+Tuple, or operator-specific family is hardcoded. A MIP selects a dictionary and
+residual bindings minimizing structural description size. Stored transitions
+use that dictionary; loading checks exact reconstruction hashes. Closures are
+stored once per exact native equivalence class, independently of seed recipes.
+
+This is finite evidence compression, **not arbitrary-size recursive induction**.
+`observed` templates describe exact admitted transitions;
+`generalized-hypothesis` templates summarize multiple descriptions but do not
+authorize unseen transitions. Historical exact Cells can affect generated code;
+hypotheses do not bypass the matcher or publish unproved unions. Tier0 capture
+still runs on each new input. No tier0 acceleration claim follows from a smaller
+description or a larger sample-support count.
+
+Each successful run writes `merge-families.json` and a readable
+`merge-families.md`. To list CURRENT source evidence without Bake/analyze:
+
+```sh
+out/cell-spine-venv/bin/python -m tools.cell_spine.knowledge list \
+  --source input.egg --library .egg-fractal/knowledge.json
+```
+
+VS Code command: **Egg Fractal Analyzer: List Merge Families for Active .egg**.
+It refuses unsaved/stale input and shows evidence, parameter types and support
+from other inputs. Repeating a fact program does not add another sample. The
+counts describe admitted transition descriptions (including certified seed
+cuts), not runtime matches or committed mutations. Read-only listing does not
+create a missing library.
+
+Current limitations: all historical contracts in a compatible namespace are
+admitted to optimization; the added layouts can increase Bake time. Pairwise
+anti-unification is restricted by typed merge envelopes but has no candidate
+budget; large corpora can be expensive. Only selected previous templates are
+retained as additional proposals. The MIP is optimal over those proposals,
+not over all recursive programs, and its structural cost is not a byte/time
+model. See [the native three-input example](../../experiments/cell_spine/knowledge/README.md).
+
 ## Shared seed interfaces
 
 `--cell-interfaces auto` (default) jointly chooses inline seed decoding or a

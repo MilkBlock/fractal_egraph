@@ -1,0 +1,146 @@
+{
+  "scope": "actual native Cell compilation and revalidation; learning describes witnessed transitions only; no speedup or induction claim; concurrent regression work, not a performance comparison",
+  "library_bytes": 31386,
+  "runs": [
+    {
+      "input": "independent",
+      "source_sha256": "2ab871e2c3bcdde0eb5ccf7e4d9a4206d29a4512dfc309c0c249091c5f025f9a",
+      "knowledge": {
+        "library_path": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-knowledge-final/knowledge.json",
+        "environment_id": "02d8615285724a36a8825e76d7e29b5899258fd8502d3a527affb8f606c7ba6d",
+        "sample_id": "4f0b4c6a67f073745f14b313b6276770b7988ba8f675578954da36305107b8f4",
+        "imported_cells": 0,
+        "imported_recipes": 0,
+        "new_cells": 2,
+        "reused_cells": 0,
+        "family_count": 1,
+        "comparisons": 0,
+        "report_json": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-knowledge-final/independent/merge-families.json",
+        "report_markdown": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-knowledge-final/independent/merge-families.md",
+        "scope": "native-revalidated historical Cell contracts participate in compilation; generalized families are descriptive hypotheses only"
+      },
+      "phase_seconds": {
+        "build": 6.670597940683365e-07,
+        "source_prepare": 0.034416208043694496,
+        "tier0_capture": 0.02285041706636548,
+        "catalog_prepare": 0.02332362486049533,
+        "spine_solve": 1.2686443750280887,
+        "library_emit": 0.012603665934875607,
+        "input_solve": 0.0008678750600665808,
+        "validation_prepare": 0.000571416923776269,
+        "native_validation": 0.018980583176016808,
+        "knowledge_update": 0.007138541899621487,
+        "output_write": 2.4292152374982834e-05
+      },
+      "validation_cases": 4,
+      "all_equivalent": true,
+      "families": [
+        {
+          "id": "6c46a7731dc4ef23bf25986cbb2eb461f07b4dcfb55b65cb4bd4c8cba1e72972",
+          "status": "observed",
+          "support_samples": 1,
+          "current_instances": 1,
+          "parameters": [],
+          "pattern": "states:  [Cell[4a241ef268], Cell[4a241ef268]] -> Cell[aef1be47c6]\nsources: [[(Pair $p0 $p1)], [(Pair $p2 $p3)]]\ntarget:  [(Join (Pair $p0 $p1) (Pair $p2 $p3))]\nrequires: [(expr (Join (Pair $p0 $p1) (Pair $p2 $p3)))]",
+          "definition_nodes": 173,
+          "encoded_nodes": 174,
+          "explicit_nodes": 173
+        }
+      ]
+    },
+    {
+      "input": "small",
+      "source_sha256": "3f9dbde1f54eccd08db04ba83f29ed7673c2fca638c4749fdd832721d4d271d2",
+      "knowledge": {
+        "library_path": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-knowledge-final/knowledge.json",
+        "environment_id": "02d8615285724a36a8825e76d7e29b5899258fd8502d3a527affb8f606c7ba6d",
+        "sample_id": "d2539e18447a4f817b8e138ba10c5b439d227f1daa3e9711535620fb128e43a4",
+        "imported_cells": 1,
+        "imported_recipes": 1,
+        "new_cells": 0,
+        "reused_cells": 1,
+        "family_count": 0,
+        "comparisons": 0,
+        "report_json": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-knowledge-final/small/merge-families.json",
+        "report_markdown": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-knowledge-final/small/merge-families.md",
+        "scope": "native-revalidated historical Cell contracts participate in compilation; generalized families are descriptive hypotheses only"
+      },
+      "phase_seconds": {
+        "build": 5.420297384262085e-07,
+        "source_prepare": 0.03698924998752773,
+        "tier0_capture": 0.01447741687297821,
+        "catalog_prepare": 0.01559845800511539,
+        "spine_solve": 1.2957655421923846,
+        "library_emit": 0.018789415946230292,
+        "input_solve": 0.0010354169644415379,
+        "validation_prepare": 0.00039958301931619644,
+        "native_validation": 0.017838458996266127,
+        "knowledge_update": 0.007780290907248855,
+        "output_write": 3.595906309783459e-05
+      },
+      "validation_cases": 3,
+      "all_equivalent": true,
+      "families": []
+    },
+    {
+      "input": "shared",
+      "source_sha256": "e7b2b4f9ca8e7246ec3621adf6545e0e400de0b67c3bbd015d8812aaaf1fa343",
+      "knowledge": {
+        "library_path": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-knowledge-final/knowledge.json",
+        "environment_id": "02d8615285724a36a8825e76d7e29b5899258fd8502d3a527affb8f606c7ba6d",
+        "sample_id": "13758d173496588ef3b588e4d9c018c5e64716aee0b404f43d791f3c509af395",
+        "imported_cells": 1,
+        "imported_recipes": 1,
+        "new_cells": 1,
+        "reused_cells": 1,
+        "family_count": 1,
+        "comparisons": 0,
+        "report_json": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-knowledge-final/shared/merge-families.json",
+        "report_markdown": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-knowledge-final/shared/merge-families.md",
+        "scope": "native-revalidated historical Cell contracts participate in compilation; generalized families are descriptive hypotheses only"
+      },
+      "phase_seconds": {
+        "build": 6.66128471493721e-07,
+        "source_prepare": 0.03559112502261996,
+        "tier0_capture": 0.027172416914254427,
+        "catalog_prepare": 0.027410374954342842,
+        "spine_solve": 29.914332000073045,
+        "library_emit": 0.03007954196073115,
+        "input_solve": 0.0009436251129955053,
+        "validation_prepare": 0.0010340828448534012,
+        "native_validation": 0.032258500112220645,
+        "knowledge_update": 0.012802375014871359,
+        "output_write": 2.337503246963024e-05
+      },
+      "validation_cases": 5,
+      "all_equivalent": true,
+      "families": [
+        {
+          "id": "a2b8b675f10c8cf9c1f9632e438129c3b9b27d2b4f7c8c08e9b7d51ae017aad2",
+          "status": "generalized-hypothesis",
+          "support_samples": 2,
+          "current_instances": 1,
+          "parameters": [
+            {
+              "name": "h0",
+              "sort": "CellState"
+            },
+            {
+              "name": "h1",
+              "sort": "T"
+            },
+            {
+              "name": "h2",
+              "sort": "T"
+            }
+          ],
+          "pattern": "states:  [Cell[4a241ef268], Cell[4a241ef268]] -> ?h0:CellState\nsources: [[(Pair $p0 $p1)], [(Pair ?h1:T ?h2:T)]]\ntarget:  [(Join (Pair $p0 $p1) (Pair ?h1:T ?h2:T))]\nrequires: [(expr (Join (Pair $p0 $p1) (Pair ?h1:T ?h2:T)))]",
+          "definition_nodes": 173,
+          "encoded_nodes": 193,
+          "explicit_nodes": 346
+        }
+      ]
+    }
+  ],
+  "date": "2026-10-14"
+}

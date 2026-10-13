@@ -188,9 +188,11 @@ def parent_wirings(c, params, by_id):
             continue  # A self Summary cannot bootstrap its own ingress.
         native_tokens = {v['term']: v['token'] for v in parent['origin']['symbolic_values']}
         try:
-            subst = {raw: text(child_exprs[token_terms[native_tokens[raw]]], True, c['signatures'], params)
-                     for raw in parent['params']}
-            if any(parent['param_sorts'][raw] != c['signatures'][child_exprs[token_terms[native_tokens[raw]]]['head']]['output']
+            stored=c['origin'].get('bound_parent_substitutions',{}).get(str(pid))
+            native_subst=stored if stored is not None else {raw:child_exprs[token_terms[native_tokens[raw]]] for raw in parent['params']}
+            if set(native_subst)!=set(parent['params']):continue
+            subst = {raw:text(e,True,c['signatures'],params) for raw,e in native_subst.items()}
+            if any(parent['param_sorts'][raw] != c['signatures'][native_subst[raw]['head']]['output']
                    for raw in parent['params']):
                 continue
         except KeyError:
@@ -203,7 +205,7 @@ def parent_wirings(c, params, by_id):
                    for a in c['acts']):
             continue
         result.append(dict(parent=parent, subst=subst, provided=provided,
-                           native_subst={raw:child_exprs[token_terms[native_tokens[raw]]] for raw in parent['params']}))
+                           native_subst=native_subst))
     return result
 
 
@@ -698,6 +700,8 @@ def main():
     p.add_argument('--source',type=Path,required=True)
     p.add_argument('--output',type=Path,required=True)
     p.add_argument('--analysis-dir',type=Path)
+    p.add_argument('--knowledge-library',type=Path,
+                   help='reuse native-validated Cell contracts and learn merge families across fact programs under the same rules')
     p.add_argument('--mode',choices=('auto','symbolic','stages'),default='auto')
     p.add_argument('--storage-weight',type=float,default=1.)
     p.add_argument('--search-weight',type=float,default=1.)
@@ -762,6 +766,11 @@ def main():
     cs,rejected=load_candidates(analysis,work)
     if not cs:
         raise ValueError('Cell Bake found no supported completed Cell paths; snapshot export is a separate explicit operation')
+    knowledge=None
+    if a.knowledge_library:
+        from .knowledge import Session
+        knowledge=Session(a.knowledge_library,data,a.source,work,report['source_sha256'])
+        cs=knowledge.augment(cs)
     for c in cs: c["marker_layouts"]=markers.layouts(c)
     representations,representation_aliases=representation_choices(cs)
     if a.keep_duplicate_spines:representations=cs;representation_aliases={c['id']:c['id'] for c in cs}
@@ -826,11 +835,16 @@ def main():
         if actual!={k:v['rows'] for k,v in predicted['tables'].items()}:
             raise ValueError('instance-priced and emitted programs retained different native table rows')
     # Publish executable output only after every native differential check.
+    if digest(a.source)!=report['source_sha256']:
+        raise ValueError('source changed during Bake; no executable output or knowledge was published')
     (a.output/'transitions.json').write_text(json.dumps(edges,indent=2)+'\n')
     (a.output/'library.egg').write_text(lib)
     (a.output/'runtime.egg').write_text(runtime)
     (a.output/'restore.egg').write_text(runtime+restore)
+    learned=knowledge.commit(cs,edges,a.output) if knowledge else None
+    if knowledge:phase('knowledge_update')
     report.update(status='compiled',cellified=True,representation='cell_spine',analysis=str(analysis),plan=plan,rejected=rejected,
+                  knowledge=learned,
                   library_bytes=len(lib.encode()), runtime_bytes=len(runtime.encode()),
                   source_storage={k:measured[k] for k in ('spine_constructor_rows','native_total_rows_before_export','native_tables_before_export','original_native_total_rows')},
                   storage_scope='Native table rows, including auxiliary relations and subsumed rows; not bytes or RSS. Cellification does not imply compression.',
@@ -838,7 +852,9 @@ def main():
                   input_plan=input_plan,paths=[dict(id=c['id'],family=c['family'],nodes=c['nodes'],lhs_atoms=c['lhs_atoms'],source_folder=c['source_folder']) for c in cs],
                   storage_cost=a.storage_cost,
                   representation_normalization=dict(history_paths=len(cs),representations=len(representations),
-                      aliases=representation_aliases,scope='exact typed seed/root/interface identity in certified family coordinates; all original history entries remain transition obligations and validation cases'),
+                      current_history_paths=len(knowledge.current_ids) if knowledge else len(cs),
+                      imported_recipes=len(knowledge.imported) if knowledge else 0,
+                      aliases=representation_aliases,scope='exact typed seed/root/interface identity; history_paths is all admitted recipes, including imported historical contracts when a knowledge library is used; every recipe remains a validation case'),
                   cell_composition=dict(mode=a.cell_composition,observed_interfaces=len(cs),
                       seed_cut_interfaces=sum(e.get('kind')=='certified_seed_cut' for e in edges),
                       scope='additional certified initial-fact decompositions; not new observed events or newly inferred closed states'),
