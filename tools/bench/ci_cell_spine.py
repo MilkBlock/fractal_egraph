@@ -197,6 +197,7 @@ def render(report):
     for name,cse in report['cases'].items():
         p=cse.get('pricing_work',{})
         lines.append(f'\n{name}: {p.get("layout_evaluations","unknown")} layout evaluations; {p.get("equivalent_model_hits","unknown")} exact conditional-model reuse hits; preparation {p.get("preparation_seconds","unknown")} s, layout profiling {p.get("layout_profile_seconds","unknown")} s.\n')
+        lines.append(f'Pricing mode {p.get("mode","unknown")}; original product {p.get("original_cartesian_tuples","unknown")}; source compilations {p.get("source_preparations","unknown")}, reused {p.get("source_reuses","unknown")}; LHS normalizations {p.get("normalization_builds","unknown")}, reused {p.get("normalization_reuses","unknown")}.\n')
     lines+=['','Solver timers are subsets of Bake stages. API build excludes Python expression construction and lowering; solve includes native presolve/search. The full stage timers remain authoritative.',
         '', '## Generated files (bytes)','', '| Case | Library | Runtime | Restore |','|---|---:|---:|---:|']
     for name,cse in report['cases'].items():lines.append('| '+' | '.join([name,*[str(cse['bytes'][f]) for f in ('library.egg','runtime.egg','restore.egg')]])+' |')

@@ -48,8 +48,8 @@ def remap_action(a, bindings):
     return dict(a,args=[replace(e,bindings) for e in a['args']])
 
 
-def normalize_ast(body, head):
-    """Unify variable equalities; do not erase constructor-existence checks."""
+def variable_aliases(body):
+    """Substitution implied only by explicit variable equalities."""
     links = {}
     def find(name):
         while name in links:
@@ -60,7 +60,12 @@ def normalize_ast(body, head):
             a,b = sorted(find(e['name']) for e in f['args'])
             if a != b:
                 links[b] = a
-    subst = {name:var(find(name)) for name in links}
+    return {name:var(find(name)) for name in links}
+
+
+def normalize_ast(body, head):
+    """Unify variable equalities; do not erase constructor-existence checks."""
+    subst = variable_aliases(body)
     body = [remap_fact(f, subst) for f in body]
     body = [f for f in body if not (f['kind']=='eq' and f['args'][0]==f['args'][1] and f['args'][0]['kind']=='var')]
     head = [remap_action(a,subst) for a in head]

@@ -75,6 +75,11 @@ excludes Python expression construction. Preparation/profile/solver times are
 already included in Bake phases. Equal structural model cache hits do not count
 as new native solves. These measurements concern the actual Cell compiler and
 native egglog validation, not a standalone synthetic optimizer alone.
+The default layout pricer also reports source compilations/reuses and exact LHS
+normalization reuse. Its exhaustive small-domain tests retain guards, binding
+correlations and physical storage. Per-transition projection never removes a
+global layout choice. The separate layout ablation can compare all three exact
+pricing modes on a shared native analysis directory.
 
 ## Baseline and regression policy
 

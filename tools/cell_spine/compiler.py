@@ -674,6 +674,8 @@ def main():
     p.add_argument('--storage-cost',choices=('instances','structural'),default='structural',
                    help='price current-input retained rows, or retain the inexpensive structural-only objective (default)')
     p.add_argument('--solver',choices=('scip','gurobi'),default=os.environ.get('EGG_LAYOUT_SOLVER','scip'))
+    p.add_argument('--layout-pricing',choices=('enumerate','source-cache','projected'),default='projected',
+                   help='exact layout pricing: original enumeration, source reuse, or source reuse plus per-transition projection (default)')
     p.add_argument('--keep-duplicate-spines',action='store_true',help='ablation: retain distinct variables for identical physical representations')
     p.add_argument('--skip-build',action='store_true')
     a=p.parse_args()
@@ -740,7 +742,8 @@ def main():
     from .pricing import RuntimePricing,audit
     from .storage import InstanceStorage
     storage=InstanceStorage(data,cs,environment,sig,ROOT/'target/release/examples/native_math_baseline') if a.storage_cost=='instances' else None
-    pricing=RuntimePricing(lambda plan,dest:prepare_runtime(cs,plan,edges,work,dest),sig,work/'pricing',weights,storage=storage)
+    pricing=RuntimePricing(lambda plan,dest:prepare_runtime(cs,plan,edges,work,dest),sig,work/'pricing',weights,
+                           storage=storage,layout_pricing=a.layout_pricing)
     phase('catalog_prepare')
     plan=solve(representations,edges,a.output,weights,pricing=pricing)
     prepared,priced=pricing.optimize(plan)
@@ -801,7 +804,12 @@ def main():
                   storage_cost=a.storage_cost,
                   representation_normalization=dict(history_paths=len(cs),representations=len(representations),
                       aliases=representation_aliases,scope='exact typed seed/root/interface identity in certified family coordinates; all original history entries remain transition obligations and validation cases'),
-                  pricing_work=dict(prepared_schemes=pricing.schemes,layout_evaluations=pricing.evaluations,
+                  pricing_work=dict(mode=pricing.layout_pricing,prepared_schemes=pricing.schemes,layout_evaluations=pricing.evaluations,
+                      original_cartesian_tuples=pricing.cartesian_tuples,source_preparations=pricing.source_preparations,
+                      source_reuses=pricing.evaluations-pricing.source_preparations,
+                      layout_choices=pricing.layout_choices,projected_choices=pricing.projected_choices,
+                      normalization_builds=pricing.normalization_builds,
+                      normalization_reuses=pricing.evaluations-pricing.normalization_builds,
                       equivalent_model_hits=pricing.equivalent_model_hits,
                       preparation_seconds=pricing.preparation_seconds,layout_profile_seconds=pricing.profile_seconds,
                       scope='exact structural-model reuse; no candidate pruning; native instance pricing excluded'),

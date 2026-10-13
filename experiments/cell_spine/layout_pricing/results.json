@@ -1,0 +1,231 @@
+{
+  "schema": "cell-layout-pricing/v1",
+  "python": "3.14.3",
+  "os": "macOS-15.3.1-arm64-arm-64bit-Mach-O",
+  "source": "experiments/cell_spine/eggcc_if_tiny/source.egg",
+  "analysis": "out/solver-size-estimate/eggcc_if/analysis",
+  "scope": "actual compiler and native closure validation; reused catalog; one run per mode; native build excluded",
+  "results": [
+    {
+      "mode": "enumerate",
+      "process_seconds": 163.9366581661161,
+      "compiler_seconds": 163.85795895918272,
+      "objective": 2830.0,
+      "model": {
+        "variables": 365,
+        "constraints": 623
+      },
+      "pricing": {
+        "mode": "enumerate",
+        "prepared_schemes": 1,
+        "layout_evaluations": 107668,
+        "original_cartesian_tuples": 107668,
+        "source_preparations": 107668,
+        "source_reuses": 0,
+        "layout_choices": 4076,
+        "projected_choices": 4076,
+        "normalization_builds": 107668,
+        "normalization_reuses": 0,
+        "equivalent_model_hits": 0,
+        "preparation_seconds": 0.2562881668563932,
+        "layout_profile_seconds": 158.2137529591564,
+        "scope": "exact structural-model reuse; no candidate pruning; native instance pricing excluded"
+      },
+      "source_sha256": "c7b1592f3e4aa3049fb9d12889ec826e370f4acfd83ad4c6d384d59a71ff0957",
+      "native_cases": 11,
+      "paths": 10,
+      "physical_rows": 87,
+      "solver": {
+        "backend": "scip",
+        "python_package_version": "6.3.0",
+        "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+        "threads": 1,
+        "models": {
+          "cell_marker_value": {
+            "models": 1,
+            "solve_calls": 2,
+            "api_build_seconds": 0.006528852274641395,
+            "solve_seconds": 4.554619666887447,
+            "peak_variables": 365,
+            "peak_constraints": 623,
+            "engine_version": "10.0.2",
+            "nonoptimal_solves": 0
+          },
+          "cell_spine_master": {
+            "models": 1,
+            "solve_calls": 3,
+            "api_build_seconds": 0.02645171619951725,
+            "solve_seconds": 0.005105167161673307,
+            "peak_variables": 46,
+            "peak_constraints": 115,
+            "engine_version": "10.0.2",
+            "nonoptimal_solves": 0
+          },
+          "cell_input_spine": {
+            "models": 1,
+            "solve_calls": 1,
+            "api_build_seconds": 0.002730072708800435,
+            "solve_seconds": 0.0009255418553948402,
+            "peak_variables": 120,
+            "peak_constraints": 434,
+            "engine_version": "10.0.2",
+            "nonoptimal_solves": 0
+          }
+        }
+      },
+      "artifact_sha256": {
+        "library.egg": "650689239e235e3d8af87d3de6937ec452f2607cc2f67c7e104aee59878e7e79",
+        "runtime.egg": "9556a1b36e8f0327e4e23a70df7aa2254ee5014b6031c6af16b879aee6456699",
+        "restore.egg": "463a1bff20071bd185b8645429b55096afa153b6fe0e32c4c9105ecb6d6fa556"
+      }
+    },
+    {
+      "mode": "source-cache",
+      "process_seconds": 126.33638612483628,
+      "compiler_seconds": 126.24302120809443,
+      "objective": 2830.0,
+      "model": {
+        "variables": 365,
+        "constraints": 623
+      },
+      "pricing": {
+        "mode": "source-cache",
+        "prepared_schemes": 1,
+        "layout_evaluations": 107668,
+        "original_cartesian_tuples": 107668,
+        "source_preparations": 38315,
+        "source_reuses": 69353,
+        "layout_choices": 4076,
+        "projected_choices": 4076,
+        "normalization_builds": 38315,
+        "normalization_reuses": 69353,
+        "equivalent_model_hits": 0,
+        "preparation_seconds": 0.27016004198230803,
+        "layout_profile_seconds": 121.05937133310363,
+        "scope": "exact structural-model reuse; no candidate pruning; native instance pricing excluded"
+      },
+      "source_sha256": "c7b1592f3e4aa3049fb9d12889ec826e370f4acfd83ad4c6d384d59a71ff0957",
+      "native_cases": 11,
+      "paths": 10,
+      "physical_rows": 87,
+      "solver": {
+        "backend": "scip",
+        "python_package_version": "6.3.0",
+        "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+        "threads": 1,
+        "models": {
+          "cell_marker_value": {
+            "models": 1,
+            "solve_calls": 2,
+            "api_build_seconds": 0.006146823754534125,
+            "solve_seconds": 4.087068459019065,
+            "peak_variables": 365,
+            "peak_constraints": 623,
+            "engine_version": "10.0.2",
+            "nonoptimal_solves": 0
+          },
+          "cell_spine_master": {
+            "models": 1,
+            "solve_calls": 3,
+            "api_build_seconds": 0.002609418472275138,
+            "solve_seconds": 0.0012134588323533535,
+            "peak_variables": 46,
+            "peak_constraints": 115,
+            "engine_version": "10.0.2",
+            "nonoptimal_solves": 0
+          },
+          "cell_input_spine": {
+            "models": 1,
+            "solve_calls": 1,
+            "api_build_seconds": 0.00378974387422204,
+            "solve_seconds": 0.0009222498629242182,
+            "peak_variables": 120,
+            "peak_constraints": 434,
+            "engine_version": "10.0.2",
+            "nonoptimal_solves": 0
+          }
+        }
+      },
+      "artifact_sha256": {
+        "library.egg": "650689239e235e3d8af87d3de6937ec452f2607cc2f67c7e104aee59878e7e79",
+        "runtime.egg": "9556a1b36e8f0327e4e23a70df7aa2254ee5014b6031c6af16b879aee6456699",
+        "restore.egg": "463a1bff20071bd185b8645429b55096afa153b6fe0e32c4c9105ecb6d6fa556"
+      }
+    },
+    {
+      "mode": "projected",
+      "process_seconds": 124.22673412482254,
+      "compiler_seconds": 124.1337184170261,
+      "objective": 2830.0,
+      "model": {
+        "variables": 365,
+        "constraints": 623
+      },
+      "pricing": {
+        "mode": "projected",
+        "prepared_schemes": 1,
+        "layout_evaluations": 105976,
+        "original_cartesian_tuples": 107668,
+        "source_preparations": 38315,
+        "source_reuses": 67661,
+        "layout_choices": 4076,
+        "projected_choices": 4054,
+        "normalization_builds": 38315,
+        "normalization_reuses": 67661,
+        "equivalent_model_hits": 0,
+        "preparation_seconds": 0.27196570904925466,
+        "layout_profile_seconds": 118.84306424995884,
+        "scope": "exact structural-model reuse; no candidate pruning; native instance pricing excluded"
+      },
+      "source_sha256": "c7b1592f3e4aa3049fb9d12889ec826e370f4acfd83ad4c6d384d59a71ff0957",
+      "native_cases": 11,
+      "paths": 10,
+      "physical_rows": 87,
+      "solver": {
+        "backend": "scip",
+        "python_package_version": "6.3.0",
+        "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+        "threads": 1,
+        "models": {
+          "cell_marker_value": {
+            "models": 1,
+            "solve_calls": 2,
+            "api_build_seconds": 0.006325661204755306,
+            "solve_seconds": 4.177616041852161,
+            "peak_variables": 365,
+            "peak_constraints": 623,
+            "engine_version": "10.0.2",
+            "nonoptimal_solves": 0
+          },
+          "cell_spine_master": {
+            "models": 1,
+            "solve_calls": 3,
+            "api_build_seconds": 0.002484501339495182,
+            "solve_seconds": 0.0011663748882710934,
+            "peak_variables": 46,
+            "peak_constraints": 115,
+            "engine_version": "10.0.2",
+            "nonoptimal_solves": 0
+          },
+          "cell_input_spine": {
+            "models": 1,
+            "solve_calls": 1,
+            "api_build_seconds": 0.003573040012270212,
+            "solve_seconds": 0.003795791184529662,
+            "peak_variables": 120,
+            "peak_constraints": 434,
+            "engine_version": "10.0.2",
+            "nonoptimal_solves": 0
+          }
+        }
+      },
+      "artifact_sha256": {
+        "library.egg": "650689239e235e3d8af87d3de6937ec452f2607cc2f67c7e104aee59878e7e79",
+        "runtime.egg": "9556a1b36e8f0327e4e23a70df7aa2254ee5014b6031c6af16b879aee6456699",
+        "restore.egg": "463a1bff20071bd185b8645429b55096afa153b6fe0e32c4c9105ecb6d6fa556"
+      }
+    }
+  ],
+  "date": "2026-10-13",
+  "comparison": "same current normalizer and SCIP backend, no timing averages"
+}

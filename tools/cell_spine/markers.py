@@ -4,11 +4,46 @@ Ingress reads raw Spine constructors. Storage contracts either borrow these
 immutable rows or construct Cano rows; neither publishes new raw ingress. A Summary is the
 active marker itself, not an extra provenance record.
 """
-from .terms import text, walk
+from .terms import actions, text, walk
 from . import takeover as t
 from . import names as naming
+import json
 
 RUNTIME_SCHEDULE='(run-schedule (saturate Run!))'
+
+
+def layout_roles(rule):
+    """The only three sites where lowering reads a marker layout."""
+    roles={}
+    def add(expr,role):
+        roles.setdefault(naming.family(expr['head']),set()).add(role)
+    for f in rule['body']:
+        if f['kind']=='fact' and naming.is_summary(f['expr']['head']):add(f['expr'],'read')
+    for a in rule['head']:
+        if a['kind']=='expr' and naming.is_summary(a['expr']['head']):add(a['expr'],'create')
+        elif a['kind']=='change' and naming.is_summary(a['head']):add(a,'retire')
+    return roles
+
+
+def layout_projection(layout,roles):
+    """Exact transition-specific recipe, not observed cost equivalence.
+
+    Reflect _lower_ast's field accesses for read/create/retire independently.
+    Keep binding expressions, guards and physical storage. Global marker-column
+    storage remains priced on the original variables, outside this projection.
+    """
+    if not roles:return 'unused'
+    result=dict(fields=layout['fields'],terms=layout['terms'])
+    canonical=layout.get('representation','canonical')=='canonical'
+    if 'read' in roles:
+        result['read']=dict(roots=layout['roots'],decode=layout['decode'],
+            canonical=canonical,storage=layout.get('read_storage','canonical'),
+            anchor=layout['anchor'] if layout['anchor_field']=='anchor' else None)
+    if 'create' in roles:
+        result['create']=dict(roots=layout['roots'],canonical=canonical,
+            stored=None if canonical else layout['stored_roots'],
+            borrow=layout.get('representation') in ('borrowed','boundary_borrowed'))
+    return json.dumps(result,sort_keys=True)
 
 
 def canonical(e, signatures):
@@ -72,52 +107,88 @@ def signature(layout,c):
     return [sort(e) for e in layout['terms']]
 
 
-def normalize_lookups(body, head, signatures):
-    """Coalesce equal constructor queries after bindings have been normalized.
+def normalize_lookups(body, head, signatures, cache=None):
+    """Cache exact LHS aliases/existence queries, then substitute the new RHS.
 
-    Same table + same arguments implies the same result, never the inverse.
-    Iterate because coalescing a child result can expose equal parent queries.
-    Preserve one existence check and only erase unions of equal bound values;
-    a self-union containing a constructor can still materialize that term.
+    The final decoder decision and target-induced lookups are already in body.
+    Consequently this key cannot merge guarded, raw/canonical or alias variants.
     """
-    constructors={name for op,sig in signatures.items() if sig.get('kind','constructor')=='constructor'
-                  for name in (naming.raw(op),naming.canonical(op))}
-    body=[dict(f,args=list(reversed(f['args']))) if f['kind']=='eq' and
-          f['args'][0]['kind']=='call' and f['args'][1]['kind']=='var' and
-          f['args'][0]['head'] in constructors else f for f in body]
-    body,head,_=t.normalize_ast(body,head)
-    while True:
-        outputs={};aliases=[]
-        for fact in body:
-            if fact['kind']!='eq':continue
-            left,right=fact['args']
-            if left['kind']=='call':left,right=right,left
-            if left['kind']!='var' or right['kind']!='call' or right['head'] not in constructors:continue
-            key=text(right)
-            if key in outputs and outputs[key]!=left:
-                aliases.append(dict(kind='eq',args=[outputs[key],left]))
-            else:outputs[key]=left
-        if not aliases:break
-        body,head,_=t.normalize_ast(body+aliases,head)
+    key=json.dumps(body,sort_keys=True) if cache is not None else None
+    plan=cache.get(key) if cache is not None else None
+    if plan is None:
+        constructors={name for op,sig in signatures.items() if sig.get('kind','constructor')=='constructor'
+                      for name in (naming.raw(op),naming.canonical(op))}
+        body=[dict(f,args=list(reversed(f['args']))) if f['kind']=='eq' and
+              f['args'][0]['kind']=='call' and f['args'][1]['kind']=='var' and
+              f['args'][0]['head'] in constructors else f for f in body]
+        subst={}
+        while True:
+            step=t.variable_aliases(body)
+            subst={k:t.replace(v,step) for k,v in subst.items()};subst.update(step)
+            body=[t.remap_fact(f,step) for f in body]
+            body=[f for f in body if not (f['kind']=='eq' and f['args'][0]==f['args'][1] and f['args'][0]['kind']=='var')]
+            body=list({t.fact_text(f):f for f in body}.values())
+            outputs={};aliases=[]
+            for fact in body:
+                if fact['kind']!='eq':continue
+                left,right=fact['args']
+                if left['kind']=='call':left,right=right,left
+                if left['kind']!='var' or right['kind']!='call' or right['head'] not in constructors:continue
+                row=text(right)
+                if row in outputs and outputs[row]!=left:
+                    aliases.append(dict(kind='eq',args=[outputs[row],left]))
+                else:outputs[row]=left
+            if not aliases:break
+            body=body+aliases
+        plan=(body,subst)
+        if cache is not None:cache[key]=plan
+    body,subst=plan
+    head=[t.remap_action(a,subst) for a in head]
+    head=list({actions([a])[0]:a for a in head}.values())
     head=[a for a in head if not (a['kind']=='union' and a['args'][0]['kind']=='var'
                                   and a['args'][0]==a['args'][1])]
-    return body,head
+    return list(body),head
 
 
 def lower_ast(rule, selected, signatures, *, export=False):
-    """Replace full Summary arguments by the selected active marker layout.
+    """Lower a whole rule; also the uncached oracle for pricing ablations."""
+    return _lower_ast(rule, selected, signatures, export=export)
 
-    Marker decoding follows the selected raw/canonical storage contract. Logical
-    value identity and physical canonical-row existence are tracked separately.
-    A target materializes only the spine required by its selected readers.
+
+def prepare_source(rule, selected, signatures):
+    """Compile owners/LHS once, retaining undecided decoder obligations.
+
+    The returned ASTs are immutable by convention. Resuming copies every mutable
+    collection, so one target cannot alter another target's source certificate.
     """
-    body=[];known={};certified={};canonical_rows=set();decoded=set();names=set();reused=set()
-    for fact in rule['body']:
-        for root in fact['args'] if fact['kind']=='eq' else [fact['expr']]:
-            names.update(e['name'] for e in walk(root) if e['kind']=='var')
-    for action in rule['head']:
-        for root in [action['expr']] if action['kind'] in ('expr','let') else action['args']:
-            names.update(e['name'] for e in walk(root) if e['kind']=='var')
+    return _lower_ast(rule, selected, signatures, stop_after_source=True)
+
+
+def resume_source(rule, selected, signatures, source, *, normalizations=None):
+    return _lower_ast(rule, selected, signatures, source=source, normalizations=normalizations)
+
+
+def _lower_ast(rule, selected, signatures, *, export=False, source=None, stop_after_source=False, normalizations=None):
+    """Logical value identity and physical canonical rows remain distinct."""
+    if source is None:
+        body=[];known={};certified={};canonical_rows=set();decoded=set();names=set();reused=set()
+        for fact in rule['body']:
+            for root in fact['args'] if fact['kind']=='eq' else [fact['expr']]:
+                names.update(e['name'] for e in walk(root) if e['kind']=='var')
+        for action in rule['head']:
+            for root in [action['expr']] if action['kind'] in ('expr','let') else action['args']:
+                names.update(e['name'] for e in walk(root) if e['kind']=='var')
+    else:
+        body=list(source['body'])
+        known=dict(source['known'])
+        certified=dict(source['certified'])
+        canonical_rows=set(source['canonical_rows'])
+        decoded=set(source['decoded'])
+        names=set(source['names'])
+        reused=set(source['reused'])
+        decoder_indices=set(source['decoder_indices'])
+        owners=list(source['owners'])
+        owner_interfaces=list(source['owner_interfaces'])
     def fresh():
         name=f'marker_value_{len(names)}'
         while name in names:name+='x'
@@ -157,56 +228,59 @@ def lower_ast(rule, selected, signatures, *, export=False):
         layout=selected[naming.family(expr['head'])]
         subst=dict(zip(layout['fields'],expr['args']))
         return layout,subst,[t.replace(term,subst) for term in layout['terms']]
-    # Establish active ownership before resolving other atoms. Each decoded
-    # subtree supplies a real canonical value to both LHS and RHS. No lookup
-    # relation is emitted, and a retired marker cannot supply these values.
-    constraints=[];decoder_indices=set();owners=[];owner_interfaces=[]
-    for fact in rule['body']:
-        if fact['kind']!='fact' or not naming.is_summary(fact['expr']['head']):continue
-        expr=fact['expr'];layout,original,_=layout_args(expr)
-        # A compound caller binding is still one opaque slot value. Do not
-        # accidentally unfold that value as a canonical subtree of this Cell.
-        subst={}
-        for field,arg in original.items():
-            if arg['kind']=='call':
-                slot=fresh();constraints.append((slot,arg));subst[field]=slot
-            else:subst[field]=arg
-        values=[t.replace(term,subst) for term in layout['terms']]
-        columns=[]
-        for v in values:
-            if v['kind']=='call':
-                field=fresh();constraints.append((field,v));columns.append(field)
-            else:columns.append(v)
-        owner=dict(kind='fact',expr=t.call(expr['head'],columns));owners.append(owner)
-        body.append(owner)
-        for term,column in zip(layout['terms'],columns):
-            if term['kind']=='var':subst[term['name']]=column
-        for i,root in enumerate(layout['roots']):
-            term=t.replace(root,subst);bind(term,columns[i],True)
-            if layout.get('representation','canonical')=='canonical':canonical_rows.add(text(term))
-        if layout['anchor_field']=='anchor':
-            subst['anchor']=columns[len(layout['roots'])]
-            term=t.replace(layout['anchor'],subst);bind(term,subst['anchor'],True)
-            if layout.get('read_storage','canonical')=='canonical':canonical_rows.add(text(term))
-        exposed=[t.replace(r,subst) for r in layout['roots']]
-        if layout['anchor_field']=='anchor':exposed.append(t.replace(layout['anchor'],subst))
-        owner_interfaces.append(dict(exposed=exposed,roots=[t.replace(r,subst) for r in layout['roots']],
-            roots_only=len(layout['terms'])==len(layout['roots']),
-            storage=layout.get('read_storage','canonical'),guard=any(q.get('guard') for q in layout['decode'])))
-        decoder_start=len(body)
-        for query in layout['decode']:
-            output,pattern=[t.replace(x,subst) for x in query['args']]
-            if query.get('guard'):
-                body.append(dict(kind='eq',args=[flatten(output),flatten(pattern)]))
-            else:decode(pattern,output,layout.get('read_storage','canonical'))
-        decoder_indices.update(i for i in range(decoder_start,len(body))
-                               if any(e['kind']=='call' for r in body[i]['args'] for e in walk(r)))
-    for left,right in constraints:
-        body.append(dict(kind='eq',args=[left,flatten(right)]))
-    for fact in rule['body']:
-        if fact['kind']=='fact' and naming.is_summary(fact['expr']['head']):continue
-        if fact['kind']=='eq':body.append(dict(kind='eq',args=[flatten(x) for x in fact['args']]))
-        else:body.append(dict(kind='fact',expr=flatten(fact['expr'])))
+    if source is None:
+        # Establish active ownership before resolving other atoms. Each decoded
+        # subtree supplies a real canonical value to both LHS and RHS. No lookup
+        # relation is emitted, and a retired marker cannot supply these values.
+        constraints=[];decoder_indices=set();owners=[];owner_interfaces=[]
+        for fact in rule['body']:
+            if fact['kind']!='fact' or not naming.is_summary(fact['expr']['head']):continue
+            expr=fact['expr'];layout,original,_=layout_args(expr)
+            # A compound caller binding is still one opaque slot value. Do not
+            # accidentally unfold that value as a canonical subtree of this Cell.
+            subst={}
+            for field,arg in original.items():
+                if arg['kind']=='call':
+                    slot=fresh();constraints.append((slot,arg));subst[field]=slot
+                else:subst[field]=arg
+            values=[t.replace(term,subst) for term in layout['terms']]
+            columns=[]
+            for v in values:
+                if v['kind']=='call':
+                    field=fresh();constraints.append((field,v));columns.append(field)
+                else:columns.append(v)
+            owner=dict(kind='fact',expr=t.call(expr['head'],columns));owners.append(owner)
+            body.append(owner)
+            for term,column in zip(layout['terms'],columns):
+                if term['kind']=='var':subst[term['name']]=column
+            for i,root in enumerate(layout['roots']):
+                term=t.replace(root,subst);bind(term,columns[i],True)
+                if layout.get('representation','canonical')=='canonical':canonical_rows.add(text(term))
+            if layout['anchor_field']=='anchor':
+                subst['anchor']=columns[len(layout['roots'])]
+                term=t.replace(layout['anchor'],subst);bind(term,subst['anchor'],True)
+                if layout.get('read_storage','canonical')=='canonical':canonical_rows.add(text(term))
+            exposed=[t.replace(r,subst) for r in layout['roots']]
+            if layout['anchor_field']=='anchor':exposed.append(t.replace(layout['anchor'],subst))
+            owner_interfaces.append(dict(exposed=exposed,roots=[t.replace(r,subst) for r in layout['roots']],
+                roots_only=len(layout['terms'])==len(layout['roots']),
+                storage=layout.get('read_storage','canonical'),guard=any(q.get('guard') for q in layout['decode'])))
+            decoder_start=len(body)
+            for query in layout['decode']:
+                output,pattern=[t.replace(x,subst) for x in query['args']]
+                if query.get('guard'):
+                    body.append(dict(kind='eq',args=[flatten(output),flatten(pattern)]))
+                else:decode(pattern,output,layout.get('read_storage','canonical'))
+            decoder_indices.update(i for i in range(decoder_start,len(body))
+                                   if any(e['kind']=='call' for r in body[i]['args'] for e in walk(r)))
+        for left,right in constraints:
+            body.append(dict(kind='eq',args=[left,flatten(right)]))
+        for fact in rule['body']:
+            if fact['kind']=='fact' and naming.is_summary(fact['expr']['head']):continue
+            if fact['kind']=='eq':body.append(dict(kind='eq',args=[flatten(x) for x in fact['args']]))
+            else:body.append(dict(kind='fact',expr=flatten(fact['expr'])))
+    if stop_after_source:
+        return dict(body=body,known=known,certified=certified,canonical_rows=canonical_rows,decoded=decoded,names=names,reused=reused,decoder_indices=decoder_indices,owners=owners,owner_interfaces=owner_interfaces)
     def build(expr):
         if text(expr) in certified and text(expr) in canonical_rows:
             reused.add(text(expr));return certified[text(expr)]
@@ -270,7 +344,7 @@ def lower_ast(rule, selected, signatures, *, export=False):
             if a['kind']=='set':other.append(a['value'])
         if introduced.isdisjoint(variables(other)):
             body=[f for i,f in enumerate(body) if i not in decoder_indices]
-    body,head=normalize_lookups(body,head,signatures)
+    body,head=normalize_lookups(body,head,signatures,normalizations)
     return dict(name=rule['name'],ruleset=rule['ruleset'],body=body,head=head,reused_subtrees=sorted(reused))
 
 

@@ -52,6 +52,31 @@ layout evaluations and exact-model cache hits. The first layout profile can
 still enumerate a Cartesian product; model compression alone does not remove
 that work. See [the measured full-window cases](../../experiments/cell_spine/scip/README.md).
 
+`--layout-pricing projected` is now the default. For each transition, layouts
+with identical read/create/retire recipes share a cost branch. All original
+layout variables, storage-column costs, and emission choices remain in the
+model. Read projections retain roots, decoding guards, binding fields and
+raw/canonical storage; create projections retain construction/borrow recipes;
+retirement needs the complete marker key. If a family has several roles their
+requirements are combined. This is syntactic recipe equality, not sampled equal
+costs or global candidate deletion.
+
+Source layouts are visited first. Their owner bindings and LHS query obligations
+are compiled once and reused for target layouts. Decoder deletion waits until
+the target's variable uses are known. Final LHS normalization plans are cached
+only under exact body equality, after decoder decisions and target-induced
+lookups. Copies of mutable state isolate every continuation. Source snapshots
+and normalization caches are released when that source tuple is finished.
+
+For ablation, `--layout-pricing source-cache` enables only source/normalization
+reuse; `--layout-pricing enumerate` recompiles every full tuple. All three use
+the same final normalizer and require optimal MIP results. `pricing_work`
+reports the original product, evaluated tuples, source compilations/reuses,
+LHS normalization compilations/reuses, and per-rule layout choices before/after
+projection. These count profile work, excluding final emission and native
+validation. Whole-profile and whole-model cache hits do not fabricate additional
+evaluations. See [reproduction and boundaries](../../experiments/cell_spine/layout_pricing/README.md).
+
 Automatic Bake retains rooted capture for continuity with prior benchmarks.
 Set `EGG_LAYOUT_CELL_WINDOWS=1` to include middle-history Cells during fresh Bake,
 or pass a full `--analysis-dir`; supplied catalogs are never truncated.

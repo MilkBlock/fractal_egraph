@@ -109,16 +109,25 @@ class Diagram:
 
 
 class RuntimePricing:
-    def __init__(self,prepare,signatures,output,weights,*,storage=None):
+    def __init__(self,prepare,signatures,output,weights,*,storage=None,layout_pricing='projected'):
         self.prepare=prepare;self.signatures=signatures;self.output=output;self.weights=weights
+        if layout_pricing not in ('enumerate','source-cache','projected'):raise ValueError('invalid layout pricing mode')
+        self.layout_pricing=layout_pricing
         self.storage=storage
         self.cache={};self.diagram=Diagram();self.profiles={};self.evaluations=0;self.schemes=0
         self.equivalent_models={};self.equivalent_model_hits=0
         self.preparation_seconds=0.;self.profile_seconds=0.
+        self.cartesian_tuples=0;self.source_preparations=0
+        self.layout_choices=0;self.projected_choices=0
+        self.normalization_builds=0
     @staticmethod
     def key(plan):return tuple(sorted(plan['selected'])),tuple(sorted(plan['implementations']))
     def profile(self,rule,chosen):
-        scope=families(rule)
+        roles=markers.layout_roles(rule)
+        all_families=families(rule)
+        sources=[f for f in all_families if 'read' in roles.get(f,())]
+        # Keep one source snapshot on the recursive stack for all target choices.
+        scope=sources+[f for f in all_families if f not in sources]
         domains=[chosen[f]['marker_layouts'] for f in scope]
         ids=tuple(tuple(l['id'] for l in ls) for ls in domains)
         # Path IDs and variable spelling do not change emitted operation
@@ -130,15 +139,35 @@ class RuntimePricing:
         if key in self.profiles:
             root,previous=self.profiles[key]
             return self.diagram.relabel(root,{old:new for olds,news in zip(previous,ids) for old,new in zip(olds,news)})
+        self.cartesian_tuples+=math.prod(map(len,domains))
+        grouped=[]
+        for family,domain in zip(scope,domains):
+            groups={}
+            for l in domain:
+                projection=markers.layout_projection(l,roles.get(family,())) if self.layout_pricing=='projected' else l['id']
+                groups.setdefault(projection,[]).append(l)
+            grouped.append(list(groups.values()))
+            self.layout_choices+=len(domain);self.projected_choices+=len(groups)
         assignment={}
-        def build(depth):
+        def build(depth,source=None,normalizations=None):
+            if self.layout_pricing!='enumerate' and depth==len(sources):
+                source=markers.prepare_source(rule,assignment,self.signatures);self.source_preparations+=1
+                normalizations={}
             if depth==len(scope):
-                c=cost(markers.lower_ast(rule,assignment,self.signatures));self.evaluations+=1
+                if self.layout_pricing=='enumerate':
+                    lowered=markers.lower_ast(rule,assignment,self.signatures);self.source_preparations+=1
+                    self.normalization_builds+=1
+                else:
+                    before=len(normalizations)
+                    lowered=markers.resume_source(rule,assignment,self.signatures,source,normalizations=normalizations)
+                    self.normalization_builds+=len(normalizations)-before
+                c=cost(lowered);self.evaluations+=1
                 return self.diagram.leaf(self.weights[1]*c['search_atoms']+self.weights[2]*c['update_actions'])
             choices=[]
-            for layout in domains[depth]:
-                assignment[scope[depth]]=layout
-                choices.append((layout['id'],build(depth+1)))
+            for group in grouped[depth]:
+                assignment[scope[depth]]=group[0]
+                child=build(depth+1,source,normalizations)
+                choices.extend((layout['id'],child) for layout in group)
             del assignment[scope[depth]]
             return self.diagram.branch(choices)
         root=build(0);self.profiles[key]=root,ids
