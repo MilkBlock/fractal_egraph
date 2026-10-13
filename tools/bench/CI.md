@@ -50,6 +50,17 @@ The Actions **Summary** contains:
    report serialization are visible only in process wall time.
 4. Library/runtime/restore `.egg` bytes. File bytes, row counts and RSS are
    intentionally separate; a small descriptor is not claimed as heap compression.
+5. Cost-mode metadata: native instance-pricing execution count,
+   pricing seconds (already inside spine solve), and seed checkpoint Value slots.
+   The seed score is not the replicated runtime RSS. Index shapes are reported
+   in the compiler artifact but index byte capacities are not yet in the objective.
+
+The full timing suite retains the default structural objective. A separate
+small same-catalog `storage_pricing.py` ablation exercises explicit
+`--storage-cost instances`, reports its additional Bake work and validates the
+exported closure. Instance pricing is not yet cheap enough to silently replace
+the full suite's previous optimization policy. Its reports are also uploaded
+and appended to the job Summary; there is no hidden evaluation budget/fallback.
 
 `ci_cases.json` records the workload and existing ripen limits: 50 ms, 200,000
 facts, four steps per sweep. These are explicit benchmark settings, not new

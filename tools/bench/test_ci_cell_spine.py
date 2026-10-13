@@ -21,6 +21,9 @@ def fixture():
 
 
 class RegressionGates(unittest.TestCase):
+    def test_cost_policies_cannot_be_silently_mixed(self):
+        before=fixture();now=fixture();now['storage_cost']='instances'
+        with self.assertRaisesRegex(ValueError,'storage cost policy'):compare(before,now)
     def test_same_measurements_pass(self):self.assertFalse(compare(fixture(),fixture())['failures'])
     def test_size_and_individual_phases_are_gated(self):
         for edit,label in [(lambda c:c['bytes'].update({'library.egg':120}),'bytes'),

@@ -657,6 +657,56 @@ shared **descriptions**, including export recipes, not runtime physical rows.
 The structural objective does not model failed Join-prefix cardinalities, so a
 smaller score is not a speedup guarantee; sparse If remains a counterexample.
 
+### Current-input instance storage in selection
+
+Select `--storage-cost instances` to include current-input storage. For each potentially
+winning spine/implementation/marker assignment, it recomputes the existing exact
+initializer row-cover solution, executes only that compact program in native
+egglog, and prices its actual retained function-table Value slots. The score is:
+
+```
+storage_weight * (template_nodes + marker_columns + checkpoint_peak_value_slots)
+  + search_weight * lookup_atoms_and_guards
+  + update_weight * write_atoms_and_unions
+```
+
+`checkpoint_peak_value_slots` is the maximum at the input and post-saturation
+checkpoints. Each row includes inputs, output, timestamp and the subsume flag
+when applicable. Native hashcons counts a shared row once; different bindings,
+required raw input, leftover canonical rows and retired markers are counted.
+`subsume` does not subtract a row. No second per-instance charge is added on top
+of the marker/binding rows. This remains a structural storage score, not bytes,
+allocated capacity, RSS, a within-sweep peak or a runtime-frequency model.
+Actual materialized index shapes are recorded but index bytes, hashcons capacity,
+union-find, stale backing rows and temporary buffers are explicitly unpriced.
+
+Nonnegative storage and mandatory raw-input rows yield a valid lower bound.
+For mandatory rows, e-class arguments and numeric literals are collapsed when
+counting keys, permitting extra coalescing and hence only undercounting.
+Distinct String keys/tables and retained globals provide the remaining bound.
+A measured layout adds an exact value cut; a scheme whose lower bound cannot beat the incumbent does not need
+native measurement. No candidates are sampled/truncated. This can still be
+expensive: `instance_storage.evaluations` and `.seconds` report that Bake cost.
+The existing limits of the Gurobi license still apply; errors never fall back
+silently to the old objective.
+
+This is optimization **under the existing initializer policy**, not a global
+search over every initializer. For each ABI, that policy minimizes initial
+distinct constructor/marker recipes. Tied initializers, or a more expensive
+initializer that would save later storage, are not exhaustively searched.
+Spine/marker choices now see the storage produced by that policy. The priced
+initializer is emitted verbatim, and native full-closure validation additionally
+checks that every emitted pre-export table row count equals its priced count.
+No export rules or original inference rules execute during compact pricing.
+
+`--storage-cost structural` remains the default: exact instance pricing may
+require many layout evaluations on larger catalogs, so this integration does
+not silently impose that Bake cost on every existing caller. Historical
+structural tests/experiments pin this mode. Native storage tests and a separate
+CI ablation exercise instance pricing. The report's
+`instance_storage.selected.native` contains both checkpoints and per-table
+counts. A lower-bound-only pricing result is never reported as a measured plan.
+
 New raw facts continue through existing ingress; borrowed storage is never
 written by inference. Input union preserves these rows modulo rebuild in the
 supported positive-constructor subset. Deletion, user subsumption of borrowed

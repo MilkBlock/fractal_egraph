@@ -90,10 +90,10 @@ def machine():
         runner_image=os.environ.get('ImageOS','local'),runner_image_version=os.environ.get('ImageVersion','unknown'))
 
 
-def benchmark_case(name,source,out,copies):
+def benchmark_case(name,source,out,copies,storage_cost='structural'):
     folder=out/name;folder.mkdir();bake=folder/'bake'
     print(f'{name}: Bake',flush=True)
-    compiled_process=measure([sys.executable,'-m','tools.cell_spine.compiler','--source',source,'--output',bake,'--skip-build'],folder/'compile')
+    compiled_process=measure([sys.executable,'-m','tools.cell_spine.compiler','--source',source,'--output',bake,'--skip-build','--storage-cost',storage_cost],folder/'compile')
     report=json.loads((bake/'report.json').read_text());data=json.loads((bake/'work/input.json').read_text())
     if report['status']!='compiled' or report['capture_mode']!='fresh':raise ValueError('CI requires a fresh successful Bake')
     library=(bake/'library.egg').read_text();runtime=(bake/'runtime.egg').read_text()
@@ -119,6 +119,10 @@ def benchmark_case(name,source,out,copies):
             compiler_seconds=report['compiler_seconds'],capture_mode=report['capture_mode']),
         bytes={f:(bake/f).stat().st_size for f in ('library.egg','runtime.egg','restore.egg')},
         input_plan=report['input_plan']['status'],modes={})
+    item['storage_pricing']=dict(mode=report.get('storage_cost','structural'),
+        native_evaluations=(report.get('instance_storage') or {}).get('evaluations',0),
+        seconds=(report.get('instance_storage') or {}).get('seconds',0.),
+        seed_value_slots=report['plan']['costs'].get('instance_value_slots'))
     runner=ROOT/'target/release/examples/native_math_baseline'
     for mode,config in configs.items():
         timed_path=folder/f'{mode}.json';timed_path.write_text(json.dumps(dict(config,counts=False)))
@@ -175,6 +179,13 @@ def render(report):
         for phase,value in cse['bake']['phase_seconds'].items():lines.append(f'| {name} | {phase} | {value:.6f} |')
         lines.append(f'| {name} | compiler / process total | {cse["bake"]["compiler_seconds"]:.6f} / {cse["bake"]["process_seconds"]:.6f} |')
     lines+=['','Spine solve includes conditional preparation, cost profiling and Gurobi; it is not solver CPU time alone. Capture includes native trace/ripen work. Build is performed before the benchmark and excluded.',
+        '', '## Current-input storage pricing (one seed)', '',
+        '| Case | Cost mode | Native pricing executions | Pricing seconds | Input/run checkpoint peak Value slots |',
+        '|---|---|---:|---:|---:|']
+    for name,cse in report['cases'].items():
+        s=cse.get('storage_pricing',{})
+        lines.append(f'| {name} | {s.get("mode","unavailable")} | {s.get("native_evaluations","—")} | {s.get("seconds","—")} | {s.get("seed_value_slots","—")} |')
+    lines+=['','Pricing time is inside spine solve, not an additional runtime phase. Value slots include retained retired-marker rows but exclude index/allocation capacity. This is the seed cost, not the replicated workload or RSS.',
         '', '## Generated files (bytes)','', '| Case | Library | Runtime | Restore |','|---|---:|---:|---:|']
     for name,cse in report['cases'].items():lines.append('| '+' | '.join([name,*[str(cse['bytes'][f]) for f in ('library.egg','runtime.egg','restore.egg')]])+' |')
     lines+=['','Full per-table counts, environment, binary hash and measurements are in `report.json`. Table rows, serialized bytes and RSS are different metrics; none is substituted for another.','']
@@ -186,6 +197,7 @@ def main():
     p.add_argument('--output',type=Path,required=True)
     p.add_argument('--suite',type=Path,default=ROOT/'tools/bench/ci_cases.json')
     p.add_argument('--cases',nargs='+');p.add_argument('--copies',type=int)
+    p.add_argument('--storage-cost',choices=('structural','instances'),default='structural')
     a=p.parse_args();suite=json.loads(a.suite.read_text());copies=suite['copies'] if a.copies is None else a.copies
     if copies<1:p.error('copies must be positive')
     selected=a.cases or list(suite['cases'])
@@ -196,12 +208,12 @@ def main():
         EGG_LAYOUT_RIPEN_OBSERVE_FACTS=str(limits['facts']),EGG_LAYOUT_RIPEN_SWEEP_STEPS=str(limits['sweep_steps']))
     for k in ('EGG_LAYOUT_FULL_TRACE','EGG_LAYOUT_RIPEN_HISTORY','EGG_LAYOUT_PROFILE','EGGLOG_JOIN_WORK_RULES'):os.environ.pop(k,None)
     out=a.output.resolve();out.mkdir(parents=True,exist_ok=False)
-    report=dict(schema='cell-ci-bench/v1',suite_sha256=c.digest(a.suite),copies=copies,threads=1,ripen_limits=limits,environment=machine(),
+    report=dict(schema='cell-ci-bench/v1',suite_sha256=c.digest(a.suite),copies=copies,threads=1,ripen_limits=limits,environment=machine(),storage_cost=a.storage_cost,
         commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
         dirty=bool(subprocess.check_output(['git','status','--porcelain'],cwd=ROOT,text=True)),
         binary_sha256=c.digest(ROOT/'target/release/examples/native_math_baseline'),cases={})
     for name in selected:
-        report['cases'][name]=benchmark_case(name,ROOT/suite['cases'][name],out,copies)
+        report['cases'][name]=benchmark_case(name,ROOT/suite['cases'][name],out,copies,a.storage_cost)
         (out/'report.json').write_text(json.dumps(report,indent=2)+'\n')
         (out/'summary.md').write_text(render(report))
         print(f'{name}: complete',flush=True)

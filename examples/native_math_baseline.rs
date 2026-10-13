@@ -5,8 +5,14 @@ use egglog::{
 };
 #[path = "support/phased_bench.rs"]
 mod phased_bench;
+#[path = "support/instance_storage.rs"]
+mod instance_storage;
 fn main() {
     let args: Vec<_> = std::env::args().collect();
+    if args.get(1).is_some_and(|s| s == "storage") {
+        instance_storage::run(&args[2]);
+        return;
+    }
     if args
         .get(1)
         .is_some_and(|s| s == "bench" || s == "bench-probes" || s == "bench-plans")

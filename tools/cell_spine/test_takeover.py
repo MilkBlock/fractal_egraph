@@ -56,7 +56,7 @@ class NativeTakeover(unittest.TestCase):
         for name in ('late_takeover','two_retired_parents','nested_parents','transitive_takeover'):
             out=cls.folder/name
             subprocess.run([sys.executable,'-m','tools.cell_spine.compiler','--source',
-                ROOT/f'experiments/cell_spine/fixtures/{name}.egg','--output',out,'--mode','symbolic','--skip-build'],
+                ROOT/f'experiments/cell_spine/fixtures/{name}.egg','--output',out,'--mode','symbolic','--skip-build','--storage-cost','structural'],
                 check=True,cwd=ROOT,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
             cls.outputs[name]=out
 

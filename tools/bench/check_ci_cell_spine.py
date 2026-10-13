@@ -16,6 +16,8 @@ def number(value,label):
 
 
 def compare(base,current,time_tolerance=.30,size_tolerance=.05):
+    if base.get('storage_cost','structural')!=current.get('storage_cost','structural'):
+        raise ValueError('incompatible benchmark: storage cost policy')
     for key in ('schema','suite_sha256','copies','threads'):
         if key not in base or base[key]!=current.get(key):raise ValueError(f'incompatible benchmark: {key}')
     if base['schema']!='cell-ci-bench/v1' or not base['cases'] or base['cases'].keys()!=current['cases'].keys():

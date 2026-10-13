@@ -21,7 +21,7 @@ class ActiveMarkers(unittest.TestCase):
         for name in ('assoc','root_alias','shared_tail','long_spine_graft'):
             out=cls.folder/name
             r=subprocess.run([sys.executable,'-m','tools.cell_spine.compiler','--source',
-                ROOT/f'experiments/cell_spine/fixtures/{name}.egg','--output',out,'--skip-build',
+                ROOT/f'experiments/cell_spine/fixtures/{name}.egg','--output',out,'--skip-build','--storage-cost','structural',
                 *(['--search-weight','0'] if name=='root_alias' else [])],
                 cwd=ROOT,capture_output=True,text=True)
             if r.returncode:raise AssertionError(r.stdout+r.stderr)

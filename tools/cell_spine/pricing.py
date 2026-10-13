@@ -108,9 +108,10 @@ class Diagram:
 
 
 class RuntimePricing:
-    def __init__(self,prepare,signatures,output,weights):
+    def __init__(self,prepare,signatures,output,weights,*,storage=None):
         self.prepare=prepare;self.signatures=signatures;self.output=output;self.weights=weights
-        self.cache={};self.diagram=Diagram();self.profiles={};self.evaluations=0
+        self.storage=storage
+        self.cache={};self.diagram=Diagram();self.profiles={};self.evaluations=0;self.schemes=0
     @staticmethod
     def key(plan):return tuple(sorted(plan['selected'])),tuple(sorted(plan['implementations']))
     def profile(self,rule,chosen):
@@ -145,11 +146,13 @@ class RuntimePricing:
             lowered=markers.lower_ast(rule,selected,self.signatures)
             result[rule['name']]=dict(cost(lowered),reused_subtrees=lowered['reused_subtrees'])
         return result
-    def optimize(self,plan):
+    def price_below(self,plan,upper_bound):
+        return self.optimize(plan,upper_bound=upper_bound)
+    def optimize(self,plan,*,upper_bound=None):
         import gurobipy as gp
         key=self.key(plan)
         if key in self.cache:return self.cache[key]
-        folder=self.output/f'scheme-{len(self.cache):04d}';folder.mkdir(parents=True,exist_ok=True)
+        folder=self.output/f'scheme-{self.schemes:04d}';self.schemes+=1;folder.mkdir(parents=True,exist_ok=True)
         bundle=self.prepare(plan,folder);chosen=bundle['chosen']
         before=self.evaluations
         profiles=[self.profile(r,chosen) for r in bundle['consumers']]
@@ -159,19 +162,58 @@ class RuntimePricing:
             for family,c in chosen.items():model.addConstr(gp.quicksum(variables[l['id']] for l in c['marker_layouts'])==1,name=f'layout_{family}')
             work,nodes=self.diagram.encode(model,variables,profiles)
             columns=gp.quicksum(l['columns']*variables[l['id']] for c in chosen.values() for l in c['marker_layouts'])
-            model.setObjective(self.weights[0]*columns+gp.quicksum(work))
-            model.write(str(folder/'selection.lp'));model.optimize()
-            if model.Status!=gp.GRB.OPTIMAL:raise RuntimeError(f'marker value function not solved: {model.Status}')
-            selected={f:next(l for l in c['marker_layouts'] if variables[l['id']].X>.5) for f,c in chosen.items()}
+            storage_bound=self.storage.lower_bound(bundle) if hasattr(self.storage,'lower_bound') else 0.
+            retained=model.addVar(lb=storage_bound,name='instance_storage') if self.storage is not None else 0.
+            model.setObjective(self.weights[0]*(columns+retained)+gp.quicksum(work))
+            # Native storage is nonnegative. Exact-layout value cuts refine
+            # this lower bound; no layout is sampled, discarded or budgeted.
+            best=None;history=[];seen=set()
+            while True:
+                model.optimize()
+                if model.Status!=gp.GRB.OPTIMAL:raise RuntimeError(f'marker value function not solved: {model.Status}')
+                bound=model.ObjVal
+                if best is not None and (bound>=best[0] or math.isclose(bound,best[0],rel_tol=1e-9,abs_tol=1e-7)):break
+                if upper_bound is not None and bound>=upper_bound:
+                    # A lower-bound certificate, NOT a measured feasible plan.
+                    # The outer solver may safely discard it against its incumbent.
+                    result=dict(value=bound,lower_bound_only=True,variables=model.NumVars,
+                                constraints=model.NumConstrs,folder=str(folder))
+                    (folder/'pricing.json').write_text(json.dumps(result,indent=2)+'\n')
+                    return bundle,result
+                selected={f:next(l for l in c['marker_layouts'] if variables[l['id']].X>.5) for f,c in chosen.items()}
+                ids=tuple(sorted(l['id'] for l in selected.values()))
+                if ids in seen:raise ValueError('priced layout returned below its certified cost')
+                seen.add(ids)
+                sample=self.storage(bundle,selected,folder/f'instance-{len(history):04d}') if self.storage is not None else None
+                storage_value=sample['value'] if sample is not None else 0.
+                if storage_value<storage_bound:raise ValueError('mandatory input storage bound exceeds native measurement')
+                prices=self.prices(bundle,selected)
+                q=sum(c['search_atoms'] for c in prices.values());w=sum(c['update_actions'] for c in prices.values())
+                k=sum(l['columns'] for l in selected.values())
+                value=self.weights[0]*(k+storage_value)+self.weights[1]*q+self.weights[2]*w
+                history.append(dict(layouts=ids,lower_bound=bound,storage_value=storage_value,value=value))
+                if best is None or value<best[0]:best=value,selected,sample
+                if self.storage is None:break
+                model.addConstr(retained>=storage_value*(gp.quicksum(variables[i] for i in ids)-len(ids)+1),
+                                name=f'instance_value_{len(history)}')
+            value,selected,sample=best
+            model.write(str(folder/'selection.lp'))
+            for name,v in variables.items():v.LB=v.UB=float(name in {l['id'] for l in selected.values()})
+            model.optimize()
+            if model.Status!=gp.GRB.OPTIMAL:raise RuntimeError('priced marker solution is infeasible')
             prices=self.prices(bundle,selected)
             q=sum(c['search_atoms'] for c in prices.values());w=sum(c['update_actions'] for c in prices.values())
-            k=sum(l['columns'] for l in selected.values());value=self.weights[0]*k+self.weights[1]*q+self.weights[2]*w
+            k=sum(l['columns'] for l in selected.values())
             if not math.isclose(value,model.ObjVal,rel_tol=1e-8,abs_tol=1e-6):raise ValueError('cost diagram disagrees with emitted runtime')
             model.write(str(folder/'selection.sol'))
             result=dict(value=value,marker_layouts=[l['id'] for l in selected.values()],
                 costs=dict(marker_columns=k,lookup_atoms_and_guards=q,write_atoms_and_unions=w),rule_costs=prices,
                 variables=model.NumVars,constraints=model.NumConstrs,cost_diagram_nodes=nodes,
-                evaluated_layout_tuples=self.evaluations-before,folder=str(folder))
+                evaluated_layout_tuples=self.evaluations-before,folder=str(folder),instance_storage=sample,
+                storage_pricing_history=history if self.storage is not None else [],
+                mandatory_input_value_slots=storage_bound,
+                storage_cost_scope='checkpoint retained Value slots, including retired markers; not index bytes or RSS' if self.storage is not None else 'structural only')
+            if sample is not None:result['costs']['instance_value_slots']=sample['value']
         (folder/'pricing.json').write_text(json.dumps(dict(result,selected=plan['selected'],implementations=plan['implementations']),indent=2)+'\n')
         self.cache[key]=(bundle,result)
         return bundle,result

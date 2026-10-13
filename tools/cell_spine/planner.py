@@ -48,13 +48,16 @@ def solve(candidates, edges, output, weights=(1.,1.,1.), *, pricing):
             key=tuple(plan['selected']),tuple(plan['implementations'])
             if key in visited:raise RuntimeError('master returned a priced scheme below its certified value')
             visited.add(key)
-            _,value=pricing.optimize(plan)
-            inner_vars=max(inner_vars,value['variables']);inner_constraints=max(inner_constraints,value['constraints'])
             nodes=len({node for cid in plan['selected'] for node in by_id[cid]['nodes']})
+            if incumbent is not None and hasattr(pricing,'price_below'):
+                _,value=pricing.price_below(plan,incumbent['objective']-weights[0]*nodes)
+            else:
+                _,value=pricing.optimize(plan)
+            inner_vars=max(inner_vars,value['variables']);inner_constraints=max(inner_constraints,value['constraints'])
             objective=weights[0]*nodes+value['value']
             history.append(dict(selected=plan['selected'],implementations=plan['implementations'],master_bound=bound,
-                                conditional_value=value['value'],objective=objective))
-            if incumbent is None or objective<incumbent['objective']:
+                                conditional_value=value['value'],objective=objective,lower_bound_only=value.get('lower_bound_only',False)))
+            if not value.get('lower_bound_only') and (incumbent is None or objective<incumbent['objective']):
                 incumbent=dict(plan,objective=objective,marker_layouts=value['marker_layouts'],
                     costs=dict(template_nodes=nodes,**value['costs']),pricing=value)
             # For this exact path/implementation tuple the remaining cost is
@@ -82,4 +85,4 @@ def solve(candidates, edges, output, weights=(1.,1.,1.), *, pricing):
             priced_schemes=len(history),scheme_history=history,
             hyperedges=len(edges),implementations_considered=len(z),
             weights=dict(storage=weights[0],search=weights[1],update=weights[2]),
-            cost_scope='shared template shapes + marker columns + actual lowered runtime lookups/writes/marker keys, including inheritance and retirement; structural work per emitted rule, not runtime frequency or RSS')
+            cost_scope='shared template shapes + marker columns + lowered runtime lookups/writes/marker keys; when enabled, conditional current-input native retained Value slots including retired markers; not runtime frequency, index bytes or RSS')

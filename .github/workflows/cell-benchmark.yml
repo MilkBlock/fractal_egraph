@@ -80,7 +80,7 @@ jobs:
       - name: Unit and native contract tests
         run: |
           mkdir -p out
-          python -m unittest tools.bench.test_ci_cell_spine tools.bench.test_spine_ablation tools.cell_spine.test_names tools.cell_spine.test_lookups tools.cell_spine.test_markers tools.cell_spine.test_representation tools.cell_spine.test_pricing tools.cell_spine.test_spine tools.cell_spine.test_takeover tools.cell_spine.test_contract tools.cell_spine.test_input_spine
+          python -m unittest tools.bench.test_ci_cell_spine tools.bench.test_spine_ablation tools.cell_spine.test_names tools.cell_spine.test_lookups tools.cell_spine.test_markers tools.cell_spine.test_representation tools.cell_spine.test_pricing tools.cell_spine.test_storage tools.cell_spine.test_spine tools.cell_spine.test_takeover tools.cell_spine.test_contract tools.cell_spine.test_input_spine
       - name: Restore accepted baseline (never from a PR save)
         id: baseline
         uses: actions/cache/restore@v4
@@ -92,6 +92,12 @@ jobs:
       - name: Measure size and all phases (one run per mode)
         id: bench
         run: python tools/bench/ci_cell_spine.py --output out/ci-cell
+      - name: Compare structural and instance storage pricing on the same small catalog
+        run: >-
+          python tools/bench/storage_pricing.py
+          --source experiments/cell_spine/fixtures/input_spine_left.egg
+          --analysis-dir out/ci-cell/left/bake/analysis
+          --output out/ci-storage-pricing
       - name: Compare with accepted baseline
         id: regression
         env:
@@ -110,6 +116,9 @@ jobs:
           else
             echo 'Benchmark did not finish. Inspect the failed step and uploaded logs.' >> "$GITHUB_STEP_SUMMARY"
           fi
+          if test -f out/ci-storage-pricing/README.md; then
+            cat out/ci-storage-pricing/README.md >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Preserve reports, generated programs and small logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -118,6 +127,10 @@ jobs:
           retention-days: 30
           if-no-files-found: warn
           path: |
+            out/ci-storage-pricing/README.md
+            out/ci-storage-pricing/report.json
+            out/ci-storage-pricing/*.log
+            out/ci-storage-pricing/*/report.json
             out/ci-cell/report.json
             out/ci-cell/summary.md
             out/ci-cell/regression.json

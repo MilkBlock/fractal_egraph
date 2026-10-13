@@ -532,14 +532,19 @@ def prepare_runtime(candidates, plan, edges, work, destination=None):
                 retire=retire,redundant=redundant,consumers=consumers,supports=supports))
 
 
-def make_library(candidates, plan, edges, environment, signatures, work, prepared=None):
-    prepared=prepared or prepare_runtime(candidates,plan,edges,work)
-    chosen=prepared['chosen'];transitions=prepared['transitions'];consumers=prepared['consumers']
-    selected_layouts={c['family']:next(l for l in c['marker_layouts'] if l['id'] in plan['marker_layouts']) for c in chosen.values()}
+def runtime_header(chosen, selected_layouts, environment, signatures):
     out=environment + fork_definitions(signatures) + markers.definitions(signatures,fork_definitions(signatures)) + ['(sort Cell!)']
     for family,c in chosen.items():
         types=markers.signature(selected_layouts[family],c)
         out.append(f'(constructor Summary-{family}! ({" ".join(names.raw(s) for s in types)}) Cell!)')
+    return out
+
+
+def make_library(candidates, plan, edges, environment, signatures, work, prepared=None):
+    prepared=prepared or prepare_runtime(candidates,plan,edges,work)
+    chosen=prepared['chosen'];transitions=prepared['transitions'];consumers=prepared['consumers']
+    selected_layouts={c['family']:next(l for l in c['marker_layouts'] if l['id'] in plan['marker_layouts']) for c in chosen.values()}
+    out=runtime_header(chosen,selected_layouts,environment,signatures)
     runtime_rules={r['name']:[markers.lower(r,selected_layouts,signatures)] for r in consumers}
     out += [line for group in runtime_rules.values() for line in group]
     emitted_path=work/'marker-runtime.egg'
@@ -645,6 +650,8 @@ def main():
     p.add_argument('--storage-weight',type=float,default=1.)
     p.add_argument('--search-weight',type=float,default=1.)
     p.add_argument('--update-weight',type=float,default=1.)
+    p.add_argument('--storage-cost',choices=('instances','structural'),default='structural',
+                   help='price current-input retained rows, or retain the inexpensive structural-only objective (default)')
     p.add_argument('--skip-build',action='store_true')
     a=p.parse_args()
     weights=(a.storage_weight,a.search_weight,a.update_weight)
@@ -701,7 +708,9 @@ def main():
                 environment.append(f'(constructor {name} ({" ".join(s["input"])}) {s["output"]})')
                 sig[name]=s
     from .pricing import RuntimePricing,audit
-    pricing=RuntimePricing(lambda plan,dest:prepare_runtime(cs,plan,edges,work,dest),sig,work/'pricing',weights)
+    from .storage import InstanceStorage
+    storage=InstanceStorage(data,cs,environment,sig,ROOT/'target/release/examples/native_math_baseline') if a.storage_cost=='instances' else None
+    pricing=RuntimePricing(lambda plan,dest:prepare_runtime(cs,plan,edges,work,dest),sig,work/'pricing',weights,storage=storage)
     phase('catalog_prepare')
     plan=solve(cs,edges,a.output,weights,pricing=pricing)
     prepared,priced=pricing.optimize(plan)
@@ -712,7 +721,16 @@ def main():
     retirement['cost_audit']=dict(status='exact',rule_costs=priced['rule_costs'],scope='Native parser agrees with pre-solver lowered AST costs')
     phase('library_emit')
     from .input_spine import project
-    initial,input_plan=project(data,cs,chosen,retirement['marker_layouts'],prepared,a.output)
+    if storage is None:
+        initial,input_plan=project(data,cs,chosen,retirement['marker_layouts'],prepared,a.output)
+    else:
+        # Emit the very initializer whose storage affected selection. Re-solving
+        # a tied input cover here could silently change the priced program.
+        initial=priced['instance_storage']['initial'];input_plan=priced['instance_storage']['input_plan']
+        import shutil
+        for name in ('input-selection.lp','input-selection.sol'):
+            saved=Path(priced['instance_storage']['folder'])/name
+            if saved.exists():shutil.copyfile(saved,a.output/name)
     (a.output/'input-plan.json').write_text(json.dumps(input_plan,indent=2)+'\n')
     phase('input_solve')
     runtime,restore=cellify(data,lib,initial=initial)
@@ -734,6 +752,11 @@ def main():
     run([ROOT/'target/release/examples/spine_validate',work/'validation.json',a.output/'validation.json'])
     phase('native_validation')
     measured=next(c for c in json.loads((a.output/'validation.json').read_text())['cases'] if c['case']=='source')
+    if storage is not None:
+        predicted=priced['instance_storage']['native']['retained']
+        actual={k:v for k,v in measured['native_tables_before_export'].items() if v}
+        if actual!={k:v['rows'] for k,v in predicted['tables'].items()}:
+            raise ValueError('instance-priced and emitted programs retained different native table rows')
     # Publish executable output only after every native differential check.
     (a.output/'transitions.json').write_text(json.dumps(edges,indent=2)+'\n')
     (a.output/'library.egg').write_text(lib)
@@ -745,6 +768,9 @@ def main():
                   storage_scope='Native table rows, including auxiliary relations and subsumed rows; not bytes or RSS. Cellification does not imply compression.',
                   transitions=transitions,retirement=retirement,runtime_schedule=markers.RUNTIME_SCHEDULE,
                   input_plan=input_plan,paths=[dict(id=c['id'],family=c['family'],nodes=c['nodes'],lhs_atoms=c['lhs_atoms'],source_folder=c['source_folder']) for c in cs],
+                  storage_cost=a.storage_cost,
+                  instance_storage=dict(selected=priced['instance_storage'],evaluations=storage.evaluations,seconds=storage.seconds,
+                      audit='all emitted pre-export table row counts agree with native pricing') if storage is not None else None,
                   guarantees='exact finite constructor closure at explicit export from cached snapshots; original rules do not run on compressed path',
                   boundary='baked path whitelist only; no general hidden-fact matcher or automatic dynamic rebake')
     phase('output_write')

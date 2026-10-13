@@ -39,7 +39,7 @@ class InputProjection(unittest.TestCase):
         cls.folder=Path(cls.tmp.name);cls.outputs={}
         for name in ('left','right','boundary','specialized'):
             out=cls.folder/name;source=ROOT/f'experiments/cell_spine/fixtures/input_spine_{name}.egg'
-            r=subprocess.run([sys.executable,'-m','tools.cell_spine.compiler','--source',source,'--output',out,'--skip-build'],
+            r=subprocess.run([sys.executable,'-m','tools.cell_spine.compiler','--source',source,'--output',out,'--skip-build','--storage-cost','structural'],
                              cwd=ROOT,capture_output=True,text=True)
             if r.returncode:raise AssertionError(r.stdout+r.stderr)
             cls.outputs[name]=out
@@ -48,7 +48,7 @@ class InputProjection(unittest.TestCase):
             out=cls.folder/(name+'-zero-raw');source=ROOT/f'experiments/cell_spine/fixtures/input_spine_{name}.egg'
             r=subprocess.run([sys.executable,'-c',
                 'from tools.cell_spine.test_input_spine import compile_without_raw_add; compile_without_raw_add()',
-                '--source',source,'--output',out,'--skip-build','--analysis-dir',cls.outputs[name]/'analysis'],
+                '--source',source,'--output',out,'--skip-build','--storage-cost','structural','--analysis-dir',cls.outputs[name]/'analysis'],
                 cwd=ROOT,capture_output=True,text=True)
             if r.returncode:raise AssertionError(r.stdout+r.stderr)
             cls.zero_outputs[name]=out
