@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {model,pathTypst,bodyDot} from './cell-egraph-panel.mjs';
+import {model,pathTypst,bodyDot,overviewDot} from './cell-egraph-panel.mjs';
 const m=model({nodes:[
  {unit:0,eclass:0,contract:0,parents:[]},
  {unit:1,eclass:1,contract:1,parents:[0]},
@@ -15,3 +15,7 @@ assert.ok(source.length<3000,'cycle must remain a reference rather than infinite
 assert.ok(source.includes('cell-unit-4'));
 assert.ok(bodyDot({values:[{sort:'E'}],rows:[{op:'A',args:[],result:0}]},[0]).includes('#ffc477'));
 console.log('Cell graph ranking, cycles and coloring passed');
+const valued=model({nodes:[{unit:0,eclass:0,contract:0,parents:[]}],reuse_value:{cells:[{eclass:0,interface_instances:4}]}});
+assert.equal(valued.reuse.get(0).interface_instances,4);
+assert.ok(overviewDot(valued).includes('4 interface bindings'));
+assert.ok(!overviewDot(m).includes('undefined'));

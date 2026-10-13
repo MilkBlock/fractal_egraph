@@ -81,6 +81,12 @@ jobs:
         run: |
           mkdir -p out
           python -m unittest tools.bench.test_ci_cell_spine tools.bench.test_spine_ablation tools.cell_spine.test_names tools.cell_spine.test_lookups tools.cell_spine.test_markers tools.cell_spine.test_representation tools.cell_spine.test_pricing tools.cell_spine.test_storage tools.cell_spine.test_spine tools.cell_spine.test_takeover tools.cell_spine.test_contract tools.cell_spine.test_input_spine
+      - name: Middle-history Cell and reuse evidence regressions
+        run: |
+          cargo test --locked --release --lib alternative_proofs_do_not_multiply_bindings
+          cargo test --locked --release --test cell_windows --test observed_state_discovery
+          python -m unittest discover -s tools/egglog_debugger -p test_cell_egraph.py
+          node tools/egglog_debugger/test_cell_egraph.mjs
       - name: Restore accepted baseline (never from a PR save)
         id: baseline
         uses: actions/cache/restore@v4

@@ -81,19 +81,25 @@ def overview(root, path, snapshot=None):
     mapping = {v['unit']: v['eclass'] for v in registry.get('units', [])}
     jobs = {j.get('cell_unit', j.get('candidate_id')): j for j in queue.get('jobs', [])}
     nodes = []
+    windows = registry.get('windows', [])
+    windows_by_unit = {}
+    for w in windows:
+        windows_by_unit.setdefault(w['unit'], []).append(w)
     for n in registry.get('nodes', []):
         j = jobs.get(n['unit'], {})
         export = j.get('export') or {}
         nodes.append(dict(n, eclass=mapping.get(n['unit']), state=j.get('state', 'Unknown'),
             observed=bool(export.get('observed_state')), reason=j.get('reason'),
+            history_windows=windows_by_unit.get(n['unit'], []),
             symbolic=j.get('origin', {}).get('symbolic_lowering')))
     manifest = folder / 'rounds/manifest.json'
     snapshots = json.loads(manifest.read_text()) if manifest.is_file() else []
     return {'path': str(folder.relative_to(root)), 'snapshot': snapshot, 'snapshots': snapshots, 'nodes': nodes,
             'units': registry.get('units', []), 'certified_unions': registry.get('certified_unions', 0),
             'scope': registry.get('scope'), 'boundary': queue.get('boundary'),
+            'reuse_value': registry.get('reuse_value'), 'windows': windows,
             'dsl': '(CellParents (NoParents) (Parent Cell CellParents))\n(Cell (CoarseApply CellParents i64))',
-            'note': '仅显示已登记构造；未登记路径不推测。前驱入度只影响显示顺序，不代表保证强度。'}
+            'note': '窗口是同一历史的局部入口，独立回放并参与闭包判等。构造数不是全路径数；复用统计只纳入认证闭包。前驱入度只影响显示顺序。'}
 
 
 def parse_term(text):
@@ -186,6 +192,9 @@ def state_detail(root, path, unit, snapshot=None):
     observed = bool(state and state.get('scope', {}).get('observation_only'))
     symbolic = origin.get('symbolic_lowering') or {}
     return {'unit': unit, 'node': node, 'state': state, 'initial': initial,
+        'history_windows': [w for w in registry.get('windows', []) if w['unit']==unit],
+        'reuse_value': next((r for r in (registry.get('reuse_value') or {}).get('cells', [])
+                            if unit in r['units']), None),
         'status': job.get('state', 'Unknown'), 'reason': job.get('reason'),
         'root_record': origin.get('root_member'), 'members': members, 'preview_source': (folder / 'source.egg').read_text() if (folder / 'source.egg').is_file() else None, 'lhs_evidence': local_evidence, 'highlight_rows': highlight,
         'initial_highlight_rows': initial_highlight, 'initial_unresolved_lhs': initial_unresolved, 'unresolved_lhs': unresolved, 'has_lhs_evidence': bool(local_evidence),

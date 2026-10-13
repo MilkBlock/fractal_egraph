@@ -687,6 +687,11 @@ def main():
     analysis=a.analysis_dir.resolve() if a.analysis_dir else a.output/'analysis'
     if not a.analysis_dir:
         env=dict(os.environ,EGG_LAYOUT_GRAPHS='0')
+        # Analyze defaults to additional history-window readings. Keep this
+        # compiler's previous rooted capture policy until equivalent entry
+        # alternatives are factored before the limited-license MILP. Explicit
+        # caller configuration and supplied catalogs are never truncated.
+        env.setdefault('EGG_LAYOUT_CELL_WINDOWS','0')
         run([ROOT/'target/release/egg_layout','analyze','--source',a.source,'--output',analysis],env=env)
     else:
         captured=analysis/'source.egg'

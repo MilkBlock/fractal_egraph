@@ -7,13 +7,14 @@ export function model(data) {
   const degree=c=>classes.get(c)?.length||0;
   const rank=n=>(n.parents||[]).reduce((sum,p)=>sum+degree(units.get(p)?.eclass),0);
   for(const ns of classes.values())ns.sort((a,b)=>rank(b)-rank(a)||a.unit-b.unit);
-  return {units,classes,degree,parents:n=>[...(n.parents||[])].sort((a,b)=>degree(units.get(b)?.eclass)-degree(units.get(a)?.eclass)||a-b)};
+  const reuse=new Map((data.reuse_value?.cells||[]).map(r=>[r.eclass,r]));
+  return {units,classes,degree,reuse,parents:n=>[...(n.parents||[])].sort((a,b)=>degree(units.get(b)?.eclass)-degree(units.get(a)?.eclass)||a-b)};
 }
 const q=JSON.stringify;
 export function overviewDot(m){
   const lines=['digraph Cells {rankdir=TB; node [shape=box,style="rounded,filled",fillcolor="#e8eef9"];'];
-  for(const [c,ns] of m.classes)lines.push(`"c${c}" [label=${q(`Cell e${c}\n${ns.length} constructions`)},URL=${q(`#cell-class-${c}`)}];`);
-  for(const [c,ns] of m.classes)for(const n of ns){lines.push(`"u${n.unit}" [shape=ellipse,fillcolor="#f8edcf",label=${q(`CoarseApply ${n.contract}`)},URL=${q(`#cell-unit-${n.unit}`)}];`);lines.push(`"u${n.unit}" -> "c${c}";`);for(const p of n.parents||[]){const parent=m.units.get(p);if(parent)lines.push(`"c${parent.eclass}" -> "u${n.unit}";`);}}
+  for(const [c,ns] of m.classes){const r=m.reuse.get(c);lines.push(`"c${c}" [label=${q(`Cell e${c}\n${ns.length} constructions${r?`\n${r.interface_instances} interface bindings`:''}`)},URL=${q(`#cell-class-${c}`)}];`);}
+  for(const [c,ns] of m.classes)for(const n of ns){const window=(n.history_windows||[]).some(w=>w.new_entry);lines.push(`"u${n.unit}" [shape=ellipse,fillcolor=${q(window?"#e5def5":"#f8edcf")},label=${q(`CoarseApply ${n.contract}${window?"\n历史窗口":""}`)},URL=${q(`#cell-unit-${n.unit}`)}];`);lines.push(`"u${n.unit}" -> "c${c}";`);for(const p of n.parents||[]){const parent=m.units.get(p);if(parent)lines.push(`"c${parent.eclass}" -> "u${n.unit}";`);}}
   return lines.join('\n')+'\n}';
 }
 export function bodyDot(state,highlight=[]){
@@ -45,6 +46,7 @@ export function installCellPanel(parent,{post,mountSvg,previewRow,standalone=fal
   const panel=document.createElement('section');panel.id='native-cell-egraph';panel.hidden=true;
   panel.innerHTML=`<header data-role="toolbar"><button data-role="fullscreen">打开独立看图页</button><label>快照 <select data-role="snapshot"><option value="">最新（自动跟随）</option></select></label></header><p><b>RipSatCell egraph</b> · 点击状态查看内部图与生成方式</p>
     <div data-role="status"></div><label>Cell e-class <select data-role="class"></select></label>
+    <details open><summary>复用价值 · 按去重接口绑定数排序</summary><p>绑定数保留历史版本，不消除对称性与后续 union 别名。不同 Cell 的覆盖可能重叠，不能直接相加。参考收益是假设实例各自存储完整闭包的描述模型，不是实测内存收益。</p><div data-role="reuse-table" style="overflow:auto"></div></details>
     <label>当前构造路径 <select data-role="unit"></select></label>
     <p data-role="guarantee" style="padding:10px;background:#edf1f7;color:#182338;border-radius:6px"></p>
     <details><summary>整个 Cell egraph（点击节点跳转）</summary><div data-role="overview"></div></details>
@@ -118,12 +120,24 @@ export function installCellPanel(parent,{post,mountSvg,previewRow,standalone=fal
       if(d.root_record!=null)el('member').value=String(d.root_record);
       const g=d.guarantee;
       el('guarantee').textContent=[g.replay?'✓ 原历史回放验证通过':'? 无回放验证记录',g.saturated?'✓ 局部推理完成':`未完成：${d.status}`,g.certified_body?'✓ 导出认证闭包':g.observation_only?'观察性快照，不是认证闭包':'无认证闭包',g.symbolic?.schema?'符号路径条件下的闭包；不是全数值分支饱和':'',g.runtime_adapter].filter(Boolean).join(' ｜ ');
-      el('evidence').textContent=JSON.stringify({guarantee:g,members:d.members,lhs_evidence:d.lhs_evidence},null,2);
+      el('evidence').textContent=JSON.stringify({guarantee:g,reuse_value:d.reuse_value,history_windows:d.history_windows,members:d.members,lhs_evidence:d.lhs_evidence},null,2);
       const url=new URL(location.href);url.searchParams.set('cell_eclass',n.eclass);url.searchParams.set('cell_unit',id);history.replaceState(null,'',url);
       await body();
     }catch(e){if(token===epoch)fail(e);}
   }
   function selectClass(c){const n=choices.get(c)||m.classes.get(c)?.[0];if(n)return selectUnit(n.unit);}
+  function reuseTable(){
+    const host=el('reuse-table');host.replaceChildren();
+    if(!data.reuse_value){host.textContent='旧目录没有复用统计，请重新 analyze。';return;}
+    const table=document.createElement('table');table.style.borderSpacing='12px 5px';
+    const head=table.insertRow();for(const label of ['Cell','构造','接口绑定','窗口读取','历史 effect 去重','外部 fact 去重','闭包行','重复覆盖引用','描述收益（槽）']){const th=document.createElement('th');th.textContent=label;head.append(th);}
+    for(const r of data.reuse_value.cells){
+      const row=table.insertRow(),button=document.createElement('button');button.textContent=`e${r.eclass}`;button.onclick=()=>selectClass(r.eclass);row.insertCell().append(button);
+      for(const value of [r.registered_constructions,r.interface_instances,r.window_readings,r.historical_effect_fact_coverage,r.external_fact_coverage,r.closure_rows,r.overlapping_fact_references,r.isolated_description_gain??'未知'])row.insertCell().textContent=String(value);
+    }
+    host.append(table);
+    if(!data.reuse_value.cells.length)host.append(document.createTextNode('暂无已认证闭包；Pending、Rejected 和 unfinished 不计为可复用 Cell。'));
+  }
   async function renderRule(){const token=epoch;try{const member=detail?.members.find(m=>String(m.record)===el('member').value);if(!member||!detail.preview_source)throw Error('这条路径缺少原始规则源码，无法调用现有模板。');const source=detail.preview_source+'\n'+member.rule;const line=detail.preview_source.split('\n').length+1;const rendered=await previewRow({source,line,mode:'combined',label_style:'recursive',recursive_strategy:'tree-safe'});if(token!==epoch)return;el('source').textContent=rendered.typst;mountSvg(rendered.typst_svg,el('rule-svg'));el('rule-svg').dataset.ready='true';}catch(e){if(token===epoch)fail(e);}};
   el('rule-preview').onclick=renderRule;
   el('snapshot').onchange=()=>api.load(path,el('snapshot').value).catch(fail);
@@ -131,7 +145,8 @@ export function installCellPanel(parent,{post,mountSvg,previewRow,standalone=fal
   el('typst-button').onclick=async()=>{try{if(!selected)return;const root=choices.get(selected.eclass)||selected;const src=pathTypst(m,root,choices);el('source').textContent=src;await svg('typst',src,el('typst'));}catch(e){fail(e);}};
   const all=el('overview').parentElement;all.ontoggle=()=>{if(all.open&&m&&!el('overview').childNodes.length)svg('dot',overviewDot(m),el('overview')).catch(fail);};
   const api={panel,noteSnapshot(frame){if(frame.artifact_directory===path&&frame.stem&&![...el('snapshot').options].some(o=>o.value===frame.stem))el('snapshot').add(new Option(frame.label||frame.stem,frame.stem));},get snapshot(){return snapshot;},get path(){return path;},clear(){epoch++;selected=null;detail=null;m=null;panel.hidden=true;for(const name of ['body','paths','typst','rule-svg','evidence','overview','status','guarantee','error'])el(name).replaceChildren();},get source(){return detail?.preview_source||'';},download(){if(!m)return;const a=document.createElement('a'),u=URL.createObjectURL(new Blob([overviewDot(m)],{type:'text/vnd.graphviz'}));a.href=u;a.download='ripsat-cell-egraph.dot';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);},async load(p,round){if(round!==undefined)snapshot=round;else if(p!==path)snapshot='';path=p;const token=++epoch;const received=await(await post('cell-egraph',{path,snapshot})).json();if(token!==epoch)return;data=received;el('snapshot').replaceChildren(new Option('最新（自动跟随）',''));for(const f of data.snapshots||[])el('snapshot').add(new Option(f.label||`Round ${f.round??f.stem}`,f.stem));el('snapshot').value=snapshot;m=model(data);choices.clear();el('overview').replaceChildren();el('class').replaceChildren();
-    for(const [c,ns] of m.classes)el('class').add(new Option(`e${c} · ${ns.length} 条构造 · 入度 ${m.degree(c)}`,c));
+    reuseTable();
+    for(const [c,ns] of m.classes)el('class').add(new Option(`e${c} · ${ns.length} 条构造 · ${m.reuse.has(c)?`${m.reuse.get(c).interface_instances} 个接口绑定`:'未认证'}`,c));
     el('status').textContent=`${m.classes.size} 个 e-class，${data.nodes.length} 条已登记构造；认证合并 ${data.certified_unions}。${data.note}`;
     if(!m.classes.size){el('guarantee').textContent='此分析目录没有 Cell egraph 登记数据。';for(const name of ['body','paths','typst','evidence'])el(name).replaceChildren();selected=null;detail=null;return;}
     const query=new URLSearchParams(location.search),unit=Number(query.get('cell_unit'));

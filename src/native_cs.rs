@@ -31,6 +31,18 @@ pub(super) struct Composition {
     pub producer_parts: Vec<usize>,
     pub context_parts: Vec<usize>,
 }
+/// A second reading of real history. `container` is evidence, not a dependency:
+/// following it during replay would put the discarded prefix back in the window.
+#[derive(Clone, Serialize)]
+pub(super) struct Window {
+    pub unit: usize,
+    pub container: usize,
+    pub consumer: usize,
+    pub kind: String,
+    pub members: Vec<usize>,
+    pub boundary: usize,
+    pub new_entry: bool,
+}
 #[derive(Default)]
 pub(super) struct Store {
     pub units: Vec<Unit>,
@@ -47,6 +59,9 @@ pub(super) struct Store {
     seen_changes: usize,
     port_frontiers: BTreeMap<usize, BTreeSet<usize>>,
     aliases: BTreeMap<usize, usize>,
+    pub windows: Vec<Window>,
+    windows_enabled: Option<bool>,
+    observed_members: BTreeMap<(u64, usize), Vec<usize>>,
 }
 impl Store {
     fn intern(&mut self, u: Unit) -> Option<usize> {
@@ -69,7 +84,14 @@ impl Store {
             std::env::var("EGG_LAYOUT_COMPOSITION_DISCOVERY").as_deref() != Ok("layers")
         });
         if observed {
-            return self.observe(c, boundary);
+            let first = self.event_states.len();
+            let enabled = *self.windows_enabled.get_or_insert_with(||
+                std::env::var("EGG_LAYOUT_CELL_WINDOWS").as_deref() != Ok("0"));
+            let mut added = self.observe(c, boundary)?;
+            if enabled {
+                self.discover_windows(c, first, boundary, &mut added);
+            }
+            return Ok(added);
         }
         if self.positive.is_none() {
             let mut parser = EGraph::default();
@@ -244,6 +266,41 @@ impl Store {
         }
         token
     }
+    fn discover_windows(&mut self, c: &Captured, first: usize, boundary: usize, added: &mut Vec<(String, usize)>) {
+        for record in first..c.records.len() {
+            let Some(container) = self.event_states[record] else { continue };
+            let mut joined = c.records[record].parents.clone();
+            // All recorded producer antecedents belong together. Do not choose
+            // one parent or manufacture a subset of an AND dependency.
+            if joined.iter().any(|p| *p >= record) { continue }
+            joined.push(record); joined.sort_unstable(); joined.dedup();
+            let mut descriptions = vec![("apply_entry", vec![record])];
+            if joined.len() > 1 { descriptions.push(("producer_consumer", joined)); }
+            for (kind, members) in descriptions {
+                let key=Self::membership_key(members.iter().copied());
+                let existing=self.observed_members.get(&key).into_iter().flatten()
+                    .copied().find(|id|self.members(*id)==members);
+                let (unit, new_entry) = if let Some(id) = existing {
+                    (id, false)
+                } else {
+                    let id = self.units.len();
+                    self.units.push(Unit { coarse_layer: None, coarse: members.clone(), smooth: vec![],
+                        source_composition: None, depth: 0 });
+                    self.observed_members.entry(key).or_default().push(id);
+                    added.push(("HistoryWindow".into(), id));
+                    (id, true)
+                };
+                self.windows.push(Window { unit, container, consumer: record, kind: kind.into(),
+                    members, boundary, new_entry });
+            }
+        }
+    }
+    fn membership_key(members: impl Iterator<Item=usize>) -> (u64,usize) {
+        use std::hash::{Hash,Hasher};
+        let mut hash=std::collections::hash_map::DefaultHasher::new();let mut count=0;
+        for member in members {member.hash(&mut hash);count+=1;}
+        (hash.finish(),count)
+    }
     fn observe(&mut self, c: &Captured, boundary: usize) -> Result<Vec<(String, usize)>> {
         let mut added = vec![];
         if self.event_states.len() == c.records.len() && self.seen_changes == c.changes.len() {
@@ -355,6 +412,14 @@ impl Store {
                 source_composition: Some(comp),
                 depth,
             });
+            // The set is already computed above for the ordinary prefix. It
+            // also lets a window reuse an identical existing entry directly.
+            // Store a fingerprint, not a copied full prefix membership vector.
+            // A hit is always checked by exact DAG membership above.
+            if self.windows_enabled==Some(true) {
+                let key=Self::membership_key(prior.iter().copied().chain(std::iter::once(record)));
+                self.observed_members.entry(key).or_default().push(id);
+            }
             for port in r
                 .values
                 .iter()
@@ -411,6 +476,9 @@ impl Store {
                 v
             })
             .collect();
-        json!({"discovery":if self.observed_mode==Some(true){"committed_apply_dag"}else{"legacy_layers"},"confirmations_without_new_effect":self.confirmations,"members_are_deltas":self.observed_mode==Some(true),"units":units,"compositions":self.compositions,"scope":"one node per witnessed mutation; producer dependencies and external obligations; layer-free discovery; compilation is a separate decision"})
+        json!({"discovery":if self.observed_mode==Some(true){"committed_apply_dag"}else{"legacy_layers"},"confirmations_without_new_effect":self.confirmations,"members_are_deltas":self.observed_mode==Some(true),"units":units,"compositions":self.compositions,"windows":self.windows,
+            "windows_enabled":self.windows_enabled==Some(true),
+            "window_scope":"single-apply entries and complete immediate-producer neighborhoods; external obligations replayed; not all DAG paths; windows never enter prefix frontiers",
+            "scope":"witnessed mutation prefixes plus independently replayed history windows; no partner search or parent-subset enumeration"})
     }
 }

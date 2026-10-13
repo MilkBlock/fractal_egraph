@@ -1,0 +1,10 @@
+; Three shifted readings of the same local B -> C -> Done closure.
+(datatype Term (V i64) (D Term) (A Term) (B Term) (C Term) (Done Term))
+(ruleset demo)
+(rule ((D x)) ((A x)) :ruleset demo :name "d-a")
+(rule ((A x)) ((B x)) :ruleset demo :name "a-b")
+(rule ((B x)) ((C x)) :ruleset demo :name "b-c")
+(rule ((C x)) ((Done x)) :ruleset demo :name "c-done")
+(D (V 1)) (D (V 2)) (B (V 3))
+(run demo 5)
+(check (Done (V 1)) (Done (V 2)) (Done (V 3)))
