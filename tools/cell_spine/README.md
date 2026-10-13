@@ -115,6 +115,15 @@ introduced by either compiler.
 
 ## Direct input spine construction
 
+The input MILP minimizes distinct constructor and marker recipes for the fixed
+selected ABI, not raw `Add!` rows or the final runtime table count. Retaining raw
+input can cost fewer recipes than constructing another certified interface.
+Tests compare the chosen recipe objective with an explicitly constrained
+zero-raw-Add alternative and validate both on the actual egglog runtime. The
+alternative retains the strict zero-raw and size-reduction checks; unrestricted
+selection reports all physical rows honestly, including retained raw rows.
+Benchmark size and regression checks continue to use those measured counts.
+
 Normal symbolic Bake now calls `input_spine.project` before writing the runtime
 input. It matches certified seed patterns on the source AST's finite constructor
 DAG; direct construction currently admits single-root, guard-free patterns.
