@@ -1,0 +1,592 @@
+{
+  "scope": "actual production Bake and generated .egg runtime; same training catalog per ablation, no held-out rebake, complete constructor/equality comparisons; no performance claim",
+  "fixtures": {
+    "train": {
+      "off": {
+        "cells": 1,
+        "historical_paths": 1,
+        "library_bytes": 3601,
+        "coverage": {
+          "mode": "off"
+        },
+        "checks": [
+          {
+            "case": "off-unseen-q",
+            "complete_state_equal": false,
+            "original_rows": 3,
+            "restored_rows": 2,
+            "active_summaries": {
+              "Summary-0!": 0
+            },
+            "comparison": "different",
+            "original_rules_executed": null
+          },
+          {
+            "case": "off-two-q",
+            "complete_state_equal": false,
+            "original_rows": 6,
+            "restored_rows": 4,
+            "active_summaries": {
+              "Summary-0!": 0
+            },
+            "comparison": "different",
+            "original_rules_executed": null
+          },
+          {
+            "case": "off-old-p",
+            "complete_state_equal": true,
+            "original_rows": 3,
+            "restored_rows": 3,
+            "active_summaries": {
+              "Summary-0!": 1
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          },
+          {
+            "case": "off-no-entry",
+            "complete_state_equal": true,
+            "original_rows": 1,
+            "restored_rows": 1,
+            "active_summaries": {
+              "Summary-0!": 0
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          }
+        ]
+      },
+      "entries": {
+        "cells": 1,
+        "historical_paths": 1,
+        "library_bytes": 3748,
+        "coverage": {
+          "mode": "entries",
+          "schema": "cell-lhs-coverage/v1",
+          "positive_environment": true,
+          "fragment": "completed Cell closure; opaque parameter constructors excluded from coverage counts",
+          "counts_scope": "per distinct seed representation; one closure family can have several seed representations",
+          "rule_count": 3,
+          "posting_count": 4,
+          "snapshot_row_visits": 7,
+          "full_matches": 2,
+          "partial_witnesses": 1,
+          "matching_rules": 3,
+          "new_entries": 1,
+          "emitted_entries": 1,
+          "scope": "one-rule predecessor entries for known finite positive closures; no recursive seed search, new closure families, primitive guard evaluation or automatic port-alias transport"
+        },
+        "checks": [
+          {
+            "case": "entries-unseen-q",
+            "complete_state_equal": true,
+            "original_rows": 3,
+            "restored_rows": 3,
+            "active_summaries": {
+              "Summary-0!": 1
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          },
+          {
+            "case": "entries-two-q",
+            "complete_state_equal": true,
+            "original_rows": 6,
+            "restored_rows": 6,
+            "active_summaries": {
+              "Summary-0!": 2
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          },
+          {
+            "case": "entries-old-p",
+            "complete_state_equal": true,
+            "original_rows": 3,
+            "restored_rows": 3,
+            "active_summaries": {
+              "Summary-0!": 1
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          },
+          {
+            "case": "entries-no-entry",
+            "complete_state_equal": true,
+            "original_rows": 1,
+            "restored_rows": 1,
+            "active_summaries": {
+              "Summary-0!": 0
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          }
+        ]
+      }
+    },
+    "permuted": {
+      "off": {
+        "cells": 1,
+        "historical_paths": 1,
+        "library_bytes": 2842,
+        "coverage": {
+          "mode": "off"
+        },
+        "checks": [
+          {
+            "case": "off-unseen-reversed-q",
+            "complete_state_equal": false,
+            "original_rows": 4,
+            "restored_rows": 3,
+            "active_summaries": {
+              "Summary-0!": 0
+            },
+            "comparison": "different",
+            "original_rules_executed": null
+          },
+          {
+            "case": "off-repeated-input",
+            "complete_state_equal": false,
+            "original_rows": 3,
+            "restored_rows": 2,
+            "active_summaries": {
+              "Summary-0!": 0
+            },
+            "comparison": "different",
+            "original_rules_executed": null
+          },
+          {
+            "case": "off-old-p",
+            "complete_state_equal": true,
+            "original_rows": 4,
+            "restored_rows": 4,
+            "active_summaries": {
+              "Summary-0!": 1
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          }
+        ]
+      },
+      "entries": {
+        "cells": 1,
+        "historical_paths": 1,
+        "library_bytes": 3004,
+        "coverage": {
+          "mode": "entries",
+          "schema": "cell-lhs-coverage/v1",
+          "positive_environment": true,
+          "fragment": "completed Cell closure; opaque parameter constructors excluded from coverage counts",
+          "counts_scope": "per distinct seed representation; one closure family can have several seed representations",
+          "rule_count": 2,
+          "posting_count": 2,
+          "snapshot_row_visits": 4,
+          "full_matches": 2,
+          "partial_witnesses": 0,
+          "matching_rules": 2,
+          "new_entries": 1,
+          "emitted_entries": 1,
+          "scope": "one-rule predecessor entries for known finite positive closures; no recursive seed search, new closure families, primitive guard evaluation or automatic port-alias transport"
+        },
+        "checks": [
+          {
+            "case": "entries-unseen-reversed-q",
+            "complete_state_equal": true,
+            "original_rows": 4,
+            "restored_rows": 4,
+            "active_summaries": {
+              "Summary-0!": 1
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          },
+          {
+            "case": "entries-repeated-input",
+            "complete_state_equal": true,
+            "original_rows": 3,
+            "restored_rows": 3,
+            "active_summaries": {
+              "Summary-0!": 1
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          },
+          {
+            "case": "entries-old-p",
+            "complete_state_equal": true,
+            "original_rows": 4,
+            "restored_rows": 4,
+            "active_summaries": {
+              "Summary-0!": 1
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          }
+        ]
+      }
+    },
+    "correlated": {
+      "off": {
+        "cells": 1,
+        "historical_paths": 1,
+        "library_bytes": 3051,
+        "coverage": {
+          "mode": "off"
+        },
+        "checks": [
+          {
+            "case": "off-same-slot",
+            "complete_state_equal": false,
+            "original_rows": 4,
+            "restored_rows": 3,
+            "active_summaries": {
+              "Summary-0!": 0
+            },
+            "comparison": "different",
+            "original_rules_executed": null
+          },
+          {
+            "case": "off-different-slots",
+            "complete_state_equal": true,
+            "original_rows": 4,
+            "restored_rows": 4,
+            "active_summaries": {
+              "Summary-0!": 0
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          },
+          {
+            "case": "off-union-enabled",
+            "complete_state_equal": false,
+            "original_rows": 5,
+            "restored_rows": 4,
+            "active_summaries": {
+              "Summary-0!": 0
+            },
+            "comparison": "different",
+            "original_rules_executed": null
+          }
+        ]
+      },
+      "entries": {
+        "cells": 1,
+        "historical_paths": 1,
+        "library_bytes": 3225,
+        "coverage": {
+          "mode": "entries",
+          "schema": "cell-lhs-coverage/v1",
+          "positive_environment": true,
+          "fragment": "completed Cell closure; opaque parameter constructors excluded from coverage counts",
+          "counts_scope": "per distinct seed representation; one closure family can have several seed representations",
+          "rule_count": 2,
+          "posting_count": 3,
+          "snapshot_row_visits": 6,
+          "full_matches": 2,
+          "partial_witnesses": 0,
+          "matching_rules": 2,
+          "new_entries": 1,
+          "emitted_entries": 1,
+          "scope": "one-rule predecessor entries for known finite positive closures; no recursive seed search, new closure families, primitive guard evaluation or automatic port-alias transport"
+        },
+        "checks": [
+          {
+            "case": "entries-same-slot",
+            "complete_state_equal": true,
+            "original_rows": 4,
+            "restored_rows": 4,
+            "active_summaries": {
+              "Summary-0!": 1
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          },
+          {
+            "case": "entries-different-slots",
+            "complete_state_equal": true,
+            "original_rows": 4,
+            "restored_rows": 4,
+            "active_summaries": {
+              "Summary-0!": 0
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          },
+          {
+            "case": "entries-union-enabled",
+            "complete_state_equal": true,
+            "original_rows": 5,
+            "restored_rows": 5,
+            "active_summaries": {
+              "Summary-0!": 1
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          }
+        ]
+      }
+    },
+    "math": {
+      "off": {
+        "cells": 3,
+        "historical_paths": 6,
+        "library_bytes": 10603,
+        "coverage": {
+          "mode": "off"
+        },
+        "checks": [
+          {
+            "case": "off-expanded",
+            "complete_state_equal": false,
+            "original_rows": 13,
+            "restored_rows": 9,
+            "active_summaries": {
+              "Summary-0!": 1,
+              "Summary-1!": 2,
+              "Summary-2!": 0
+            },
+            "comparison": "different",
+            "original_rules_executed": null
+          },
+          {
+            "case": "off-commuted",
+            "complete_state_equal": true,
+            "original_rows": 13,
+            "restored_rows": 13,
+            "active_summaries": {
+              "Summary-0!": 0,
+              "Summary-1!": 0,
+              "Summary-2!": 1
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          },
+          {
+            "case": "off-factored",
+            "complete_state_equal": true,
+            "original_rows": 13,
+            "restored_rows": 13,
+            "active_summaries": {
+              "Summary-0!": 0,
+              "Summary-1!": 0,
+              "Summary-2!": 1
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          },
+          {
+            "case": "off-different-coefficients",
+            "complete_state_equal": true,
+            "original_rows": 10,
+            "restored_rows": 10,
+            "active_summaries": {
+              "Summary-0!": 1,
+              "Summary-1!": 2,
+              "Summary-2!": 0
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          }
+        ]
+      },
+      "entries": {
+        "cells": 3,
+        "historical_paths": 6,
+        "library_bytes": 11695,
+        "coverage": {
+          "mode": "entries",
+          "schema": "cell-lhs-coverage/v1",
+          "positive_environment": true,
+          "fragment": "completed Cell closure; opaque parameter constructors excluded from coverage counts",
+          "counts_scope": "per distinct seed representation; one closure family can have several seed representations",
+          "rule_count": 4,
+          "posting_count": 6,
+          "snapshot_row_visits": 200,
+          "full_matches": 18,
+          "partial_witnesses": 0,
+          "matching_rules": 4,
+          "new_entries": 4,
+          "emitted_entries": 4,
+          "scope": "one-rule predecessor entries for known finite positive closures; no recursive seed search, new closure families, primitive guard evaluation or automatic port-alias transport"
+        },
+        "checks": [
+          {
+            "case": "entries-expanded",
+            "complete_state_equal": true,
+            "original_rows": 13,
+            "restored_rows": 13,
+            "active_summaries": {
+              "Summary-0!": 1,
+              "Summary-1!": 2,
+              "Summary-2!": 1
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          },
+          {
+            "case": "entries-commuted",
+            "complete_state_equal": true,
+            "original_rows": 13,
+            "restored_rows": 13,
+            "active_summaries": {
+              "Summary-0!": 0,
+              "Summary-1!": 0,
+              "Summary-2!": 1
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          },
+          {
+            "case": "entries-factored",
+            "complete_state_equal": true,
+            "original_rows": 13,
+            "restored_rows": 13,
+            "active_summaries": {
+              "Summary-0!": 0,
+              "Summary-1!": 0,
+              "Summary-2!": 1
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          },
+          {
+            "case": "entries-different-coefficients",
+            "complete_state_equal": true,
+            "original_rows": 10,
+            "restored_rows": 10,
+            "active_summaries": {
+              "Summary-0!": 1,
+              "Summary-1!": 2,
+              "Summary-2!": 0
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          }
+        ]
+      }
+    },
+    "multi": {
+      "off": {
+        "cells": 1,
+        "historical_paths": 1,
+        "library_bytes": 3230,
+        "coverage": {
+          "mode": "off"
+        },
+        "checks": [
+          {
+            "case": "off-unseen-q-r",
+            "complete_state_equal": false,
+            "original_rows": 5,
+            "restored_rows": 4,
+            "active_summaries": {
+              "Summary-0!": 0
+            },
+            "comparison": "different",
+            "original_rules_executed": null
+          },
+          {
+            "case": "off-two-joins",
+            "complete_state_equal": false,
+            "original_rows": 8,
+            "restored_rows": 6,
+            "active_summaries": {
+              "Summary-0!": 0
+            },
+            "comparison": "different",
+            "original_rules_executed": null
+          },
+          {
+            "case": "off-missing-r",
+            "complete_state_equal": true,
+            "original_rows": 2,
+            "restored_rows": 2,
+            "active_summaries": {
+              "Summary-0!": 0
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          },
+          {
+            "case": "off-old-p",
+            "complete_state_equal": true,
+            "original_rows": 5,
+            "restored_rows": 5,
+            "active_summaries": {
+              "Summary-0!": 1
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          }
+        ]
+      },
+      "entries": {
+        "cells": 1,
+        "historical_paths": 1,
+        "library_bytes": 3416,
+        "coverage": {
+          "mode": "entries",
+          "schema": "cell-lhs-coverage/v1",
+          "positive_environment": true,
+          "fragment": "completed Cell closure; opaque parameter constructors excluded from coverage counts",
+          "counts_scope": "per distinct seed representation; one closure family can have several seed representations",
+          "rule_count": 2,
+          "posting_count": 3,
+          "snapshot_row_visits": 8,
+          "full_matches": 2,
+          "partial_witnesses": 2,
+          "matching_rules": 2,
+          "new_entries": 1,
+          "emitted_entries": 1,
+          "scope": "one-rule predecessor entries for known finite positive closures; no recursive seed search, new closure families, primitive guard evaluation or automatic port-alias transport"
+        },
+        "checks": [
+          {
+            "case": "entries-unseen-q-r",
+            "complete_state_equal": true,
+            "original_rows": 5,
+            "restored_rows": 5,
+            "active_summaries": {
+              "Summary-0!": 1
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          },
+          {
+            "case": "entries-two-joins",
+            "complete_state_equal": true,
+            "original_rows": 8,
+            "restored_rows": 8,
+            "active_summaries": {
+              "Summary-0!": 2
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          },
+          {
+            "case": "entries-missing-r",
+            "complete_state_equal": true,
+            "original_rows": 2,
+            "restored_rows": 2,
+            "active_summaries": {
+              "Summary-0!": 0
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          },
+          {
+            "case": "entries-old-p",
+            "complete_state_equal": true,
+            "original_rows": 5,
+            "restored_rows": 5,
+            "active_summaries": {
+              "Summary-0!": 1
+            },
+            "comparison": "equivalent",
+            "original_rules_executed": false
+          }
+        ]
+      }
+    }
+  }
+}

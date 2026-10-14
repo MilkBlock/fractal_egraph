@@ -1,0 +1,10 @@
+; Only P is an initial entry. Q -> P runs as a deduplicated effect,
+; so it does not supply a new committed history entry for Q alone.
+(datatype T (V String) (P T) (Q T) (Gate T) (Out T))
+(ruleset all)
+(rule ((P x)) ((Q x)) :ruleset all :name "p-to-q")
+(rule ((Q x)) ((P x)) :ruleset all :name "q-to-p")
+(rule ((Q x) (Gate x)) ((Out x)) :ruleset all :name "guarded")
+(P (V "train"))
+(run-schedule (saturate all))
+(check (P (V "train")) (Q (V "train")))

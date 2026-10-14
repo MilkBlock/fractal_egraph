@@ -717,6 +717,8 @@ def main():
                    help='observed parents only, or additionally factor certified constructor boundaries into small Cells (default)')
     p.add_argument('--cell-interfaces',choices=('inline','auto','shared'),default=os.environ.get('EGG_LAYOUT_CELL_INTERFACES','auto'),
                    help='inline seed queries, jointly selected shared decoders (default), or force shared where decoding is needed')
+    p.add_argument('--lhs-coverage',choices=('off','report','entries'),default='off',
+                   help='index rule LHS coverage; entries additionally emits certified alternative ingresses into existing Cells')
     p.add_argument('--keep-duplicate-spines',action='store_true',help='ablation: retain distinct variables for identical physical representations')
     p.add_argument('--skip-build',action='store_true')
     a=p.parse_args()
@@ -768,6 +770,7 @@ def main():
     cs,rejected=load_candidates(analysis,work)
     if not cs:
         raise ValueError('Cell Bake found no supported completed Cell paths; snapshot export is a separate explicit operation')
+    coverage_data=json.loads((work/f'path-{cs[0]["id"]}.json').read_text()) if a.lhs_coverage!='off' else None
     knowledge=None
     if a.knowledge_library:
         from .knowledge import Session
@@ -777,6 +780,11 @@ def main():
     representations,representation_aliases=representation_choices(cs)
     if a.keep_duplicate_spines:representations=cs;representation_aliases={c['id']:c['id'] for c in cs}
     edges=transition_options(cs,representations,recompose=a.cell_composition=='seed-cuts')
+    lhs_coverage=None
+    if coverage_data is not None:
+        from .lhs_coverage import extend as extend_lhs
+        lhs_coverage=extend_lhs(coverage_data,cs,representations,edges,emit=a.lhs_coverage=='entries')
+        (work/'lhs-coverage.json').write_text(json.dumps(lhs_coverage,indent=2)+'\n')
     price_options(edges,work)
     # Definitions preserve the source rules. Only opaque parameter constructors are added.
     sig=dict(data['signatures']);environment=commands(data,{'declaration','rule'})
@@ -824,6 +832,13 @@ def main():
         finish='(run-schedule (saturate Export!))\n'
         cases.append(dict(name=f'path-{c["id"]}',reference_path=str(src),reference=f'\n(run-schedule (saturate (run {ruleset})))',compressed=compact,restore=finish,
                           expected_summary=f'Summary-{c["family"]}!'))
+    for edge in edges:
+        if edge.get('kind')!='certified_lhs_entry':continue
+        c=next(c for c in cs if c['id']==edge['target_unit'])
+        ruleset=c['rulesets'][0] if c['rulesets'] else ''
+        native='\n'.join(environment+actions(edge['entry_actions']))+f'\n(run-schedule (saturate (run {ruleset})))'
+        compact='\n'.join(actions(edge['entry_actions'],True,sig))+'\n'+markers.RUNTIME_SCHEDULE
+        cases.append(dict(name=edge['id'],reference=native,compressed=compact,restore='(run-schedule (saturate Export!))',expected_summary=f'Summary-{c["family"]}!'))
     cases.append(dict(name='source',reference_path=str(a.source),reference='',compressed=runtime.removeprefix(lib),restore=restore))
     manifest=dict(constructors=sorted(sig),cases=cases,library=lib)
     (work/'validation.json').write_text(json.dumps(manifest))
@@ -845,6 +860,10 @@ def main():
     (a.output/'restore.egg').write_text(runtime+restore)
     learned=knowledge.commit(cs,edges,a.output) if knowledge else None
     if knowledge:phase('knowledge_update')
+    if lhs_coverage:
+        lhs_coverage['native_validation']='all emitted entries passed complete constructor/equality comparison' if a.lhs_coverage=='entries' else 'report only; no entry runtime generated or tested'
+        (a.output/'lhs-coverage.json').write_text(json.dumps(lhs_coverage,indent=2)+'\n')
+    report['lhs_coverage']=dict(mode=a.lhs_coverage,**{k:v for k,v in (lhs_coverage or {}).items() if k not in ('records','entries','rules','index')})
     report.update(status='compiled',cellified=True,representation='cell_spine',analysis=str(analysis),plan=plan,rejected=rejected,
                   knowledge=learned,
                   library_bytes=len(lib.encode()), runtime_bytes=len(runtime.encode()),

@@ -216,6 +216,9 @@ def observations(candidates,edges,current_ids):
     from .composition import substitute
     by_id={c['id']:c for c in candidates};out=[]
     for edge in edges:
+        # These are inferred raw-fact entrances, not observed Cell merges.
+        # Recompute them from the stored closures and rule environment.
+        if edge.get('kind')=='certified_lhs_entry':continue
         cid=edge.get('target_unit',edge.get('id'))
         if cid not in current_ids:continue
         c=by_id[cid]

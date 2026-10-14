@@ -1,0 +1,6 @@
+(datatype T (V String) (P T T) (Q T) (R T))
+(ruleset all)
+(rule ((P x y)) ((Q x) (R y)) :ruleset all :name "split")
+(rule ((Q x) (R y)) ((P x y)) :ruleset all :name "join")
+(P (V "left") (V "right"))
+(run-schedule (saturate all))

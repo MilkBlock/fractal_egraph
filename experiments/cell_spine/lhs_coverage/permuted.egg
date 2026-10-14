@@ -1,0 +1,6 @@
+(datatype T (V String) (P T T) (Q T T))
+(ruleset all)
+(rule ((P x y)) ((Q y x)) :ruleset all :name "reverse-out")
+(rule ((Q y x)) ((P x y)) :ruleset all :name "reverse-back")
+(P (V "left") (V "right"))
+(run-schedule (saturate all))

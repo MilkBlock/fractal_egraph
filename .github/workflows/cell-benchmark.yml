@@ -88,6 +88,8 @@ jobs:
         run: |
           cargo test --locked --release --test graft_diamond
           python -m unittest tools.cell_spine.test_graft_diamond
+      - name: Alternative LHS entries and held-out Bake coverage
+        run: python -m unittest tools.cell_spine.test_lhs_coverage
       - name: Middle-history Cell and reuse evidence regressions
         run: |
           cargo test --locked --release --lib alternative_proofs_do_not_multiply_bindings
