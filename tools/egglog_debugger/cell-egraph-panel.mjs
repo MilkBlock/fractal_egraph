@@ -1,20 +1,34 @@
 // AND/OR construction choices, not an enumeration of all possible rewrite histories.
 export function model(data) {
-  const units=new Map(data.nodes.map(n=>[n.unit,n]));
-  const classes=new Map();
+  const units=new Map(data.nodes.map(n=>[n.unit,n])),classes=new Map(),routes=new Map();
   for(const n of data.nodes){if(n.eclass==null)continue;if(!classes.has(n.eclass))classes.set(n.eclass,[]);classes.get(n.eclass).push(n);}
-  // In the displayed egraph, each CoarseApply alternative has an edge into its eclass.
+  for(const e of data.graft_interfaces||[]){if(!units.has(e.target)||e.parents.some(p=>!units.has(p)))continue;if(!routes.has(e.target))routes.set(e.target,[]);routes.get(e.target).push(e);}
   const degree=c=>classes.get(c)?.length||0;
-  const rank=n=>(n.parents||[]).reduce((sum,p)=>sum+degree(units.get(p)?.eclass),0);
-  for(const ns of classes.values())ns.sort((a,b)=>rank(b)-rank(a)||a.unit-b.unit);
+  const rank=parents=>parents.reduce((sum,p)=>sum+degree(units.get(p)?.eclass),0);
+  for(const es of routes.values())es.sort((a,b)=>rank(b.parents)-rank(a.parents)||JSON.stringify(a.parents).localeCompare(JSON.stringify(b.parents)));
+  for(const ns of classes.values())ns.sort((a,b)=>rank(b.parents||[])-rank(a.parents||[])||a.unit-b.unit);
   const reuse=new Map((data.reuse_value?.cells||[]).map(r=>[r.eclass,r]));
-  return {units,classes,degree,reuse,parents:n=>[...(n.parents||[])].sort((a,b)=>degree(units.get(b)?.eclass)-degree(units.get(a)?.eclass)||a-b)};
+  const m={units,classes,degree,reuse,routes,mode:'interfaces',routeChoices:new Map()};
+  m.route=n=>routes.get(n.unit)?.[m.routeChoices.get(n.unit)||0];
+  m.parents=n=>[...(m.mode==='history'?(n.history_parents||n.parents||[]):(m.route(n)?.parents||[]))].sort((a,b)=>degree(units.get(b)?.eclass)-degree(units.get(a)?.eclass)||a-b);
+  return m;
 }
 const q=JSON.stringify;
 export function overviewDot(m){
   const lines=['digraph Cells {rankdir=TB; node [shape=box,style="rounded,filled",fillcolor="#e8eef9"];'];
   for(const [c,ns] of m.classes){const r=m.reuse.get(c);lines.push(`"c${c}" [label=${q(`Cell e${c}\n${ns.length} constructions${r?`\n${r.interface_instances} interface bindings`:''}`)},URL=${q(`#cell-class-${c}`)}];`);}
-  for(const [c,ns] of m.classes)for(const n of ns){const window=(n.history_windows||[]).some(w=>w.new_entry);lines.push(`"u${n.unit}" [shape=ellipse,fillcolor=${q(window?"#e5def5":"#f8edcf")},label=${q(`CoarseApply ${n.contract}${window?"\n历史窗口":""}`)},URL=${q(`#cell-unit-${n.unit}`)}];`);lines.push(`"u${n.unit}" -> "c${c}";`);for(const p of n.parents||[]){const parent=m.units.get(p);if(parent)lines.push(`"c${parent.eclass}" -> "u${n.unit}";`);}}
+  for(const [c,ns] of m.classes)for(const n of ns){
+    const window=(n.history_windows||[]).some(w=>w.new_entry);
+    lines.push(`"u${n.unit}" [shape=ellipse,fillcolor=${q(window?"#e5def5":"#f8edcf")},label=${q(`CoarseApply ${n.contract}${window?"\n历史窗口":""}`)},URL=${q(`#cell-unit-${n.unit}`)}];`);
+    lines.push(`"u${n.unit}" -> "c${c}";`);
+    for(const p of n.history_parents||n.parents||[]){const parent=m.units.get(p);if(parent){const producer=(n.producer_parents||[]).includes(p);lines.push(`"c${parent.eclass}" -> "u${n.unit}" [style=dashed,color="#9299a6",label=${q(producer?'producer history':(n.context_parents||[]).includes(p)?'context history':'history')}];`);}}
+    for(const [i,e] of (m.routes.get(n.unit)||[]).entries()){
+      const id=`g${n.unit}_${i}`;
+      lines.push(`"${id}" [shape=diamond,fillcolor="#dceee6",label="认证接口",tooltip=${q(`unit ${e.parents.join('+')} → ${n.unit}; see typed binding and obligations`)},URL=${q(`#cell-interface-${n.unit}-${i}`)}];`);
+      for(const p of e.parents)lines.push(`"c${m.units.get(p).eclass}" -> "${id}" [color="#237450",label=${q(`unit ${p}`)}];`);
+      lines.push(`"${id}" -> "c${c}" [color="#237450"];`);
+    }
+  }
   return lines.join('\n')+'\n}';
 }
 export function bodyDot(state,highlight=[]){
@@ -32,10 +46,10 @@ export function bodyDot(state,highlight=[]){
 export function pathTypst(m,root,choices){
   const seen=new Set(),rows=[];
   function visit(n){
-    if(seen.has(n.eclass))return;seen.add(n.eclass);
-    const parents=m.parents(n).map(id=>m.units.get(id)).filter(Boolean).map(p=>choices.get(p.eclass)??m.classes.get(p.eclass)?.[0]??p);
+    if(seen.has(n.unit))return;seen.add(n.unit);
+    const parents=m.parents(n).map(id=>m.units.get(id)).filter(Boolean);
     for(const p of parents)visit(p);
-    rows.push([parents.length?parents.map(p=>`C${p.eclass}`).join(' + '):'NoParents',`CoarseApply ${n.contract}`,`C${n.eclass}`,n.unit]);
+    rows.push([parents.length?parents.map(p=>`C${p.eclass}@${p.unit}`).join(' + '):'NoParents',m.mode==='history'?`History ${n.contract}`:m.route(n)?`Graft ${n.contract}`:`Seed ${n.contract}`,`C${n.eclass}@${n.unit}`,n.unit]);
   }
   visit(root);
   const items=rows.map(([p,t,c,u])=>`[#box[$ upright(${q(p)}) arrow.r upright(${q(t)}) arrow.r $ #link(${q(`#cell-unit-${u}`)})[#text(${q(c)})]]]`);
@@ -50,7 +64,10 @@ export function installCellPanel(parent,{post,mountSvg,previewRow,standalone=fal
     <label>当前构造路径 <select data-role="unit"></select></label>
     <p data-role="guarantee" style="padding:10px;background:#edf1f7;color:#182338;border-radius:6px"></p>
     <details><summary>整个 Cell egraph（点击节点跳转）</summary><div data-role="overview"></div></details>
-    <p>已登记的 AND/OR 路径：前驱按入度降序排列；展开可选择其他构造，重复状态以引用表示。</p>
+    <p>灰色虚线只表示观测历史；绿色菱形表示有条件的认证接口。端口绑定不同的前驱不会自动互换。</p>
+    <label>路径含义 <select data-role="path-mode"><option value="interfaces">认证接口</option><option value="history">观测历史</option></select></label>
+    <label>此 Cell 的认证接口 <select data-role="route"></select></label>
+    <details data-role="route-proof"><summary>接口绑定、外部注入与有序检查</summary><pre data-role="route-evidence" style="white-space:pre-wrap"></pre></details>
     <div data-role="paths"></div><button data-role="typst-button">渲染当前路径 · Typst</button>
     <div data-role="typst"></div>
     <label>路径中的 apply <select data-role="member"></select></label><button data-role="rule-preview">规则公式 · 现有 Typst 模板</button><div data-role="rule-svg"></div>
@@ -81,7 +98,7 @@ export function installCellPanel(parent,{post,mountSvg,previewRow,standalone=fal
   async function svg(kind,source,host,token=epoch){
     const text=await(await post('render',{kind,source})).text();if(token!==epoch)return;
     host.replaceChildren();mountSvg(text,host);host.dataset.ready='true';
-    host.onclick=e=>{const link=e.target.closest('a');if(!link)return;const href=link.getAttribute('href')||link.getAttribute('xlink:href')||'';const match=href.match(/#cell-(class|unit)-(\d+)$/);if(match){e.preventDefault();if(match[1]==='class'){panel.dataset.focus='body';el('body').closest('details').open=true;selectClass(Number(match[2]));}else{panel.dataset.focus='rule';selectUnit(Number(match[2])).then(()=>{if(selected?.unit===Number(match[2]))renderRule();});}}};
+    host.onclick=e=>{const link=e.target.closest('a');if(!link)return;const href=link.getAttribute('href')||link.getAttribute('xlink:href')||'';const route=href.match(/#cell-interface-(\d+)-(\d+)$/);if(route){e.preventDefault();panel.dataset.focus='body';m.routeChoices.set(Number(route[1]),Number(route[2]));m.mode='interfaces';el('path-mode').value='interfaces';el('route-proof').open=true;selectUnit(Number(route[1]));return;}const match=href.match(/#cell-(class|unit)-(\d+)$/);if(match){e.preventDefault();if(match[1]==='class'){panel.dataset.focus='body';el('body').closest('details').open=true;selectClass(Number(match[2]));}else{panel.dataset.focus='rule';selectUnit(Number(match[2])).then(()=>{if(selected?.unit===Number(match[2]))renderRule();});}}};
   }
   function paths(){
     el('paths').replaceChildren();
@@ -89,38 +106,50 @@ export function installCellPanel(parent,{post,mountSvg,previewRow,standalone=fal
       const item=document.createElement('details'),label=document.createElement('summary');
       label.textContent=`e${node.eclass} · unit ${node.unit} · CoarseApply ${node.contract} · 入度 ${m.degree(node.eclass)}`;item.append(label);host.append(item);
       const button=document.createElement('button');button.textContent='查看这个 RipSat';button.onclick=()=>selectUnit(node.unit);item.append(button);
-      if(ancestors.has(node.eclass)){item.append(document.createTextNode(' 递归／共享引用，不重复展开'));return;}
+      if(ancestors.has(node.unit)){item.append(document.createTextNode(' 递归／共享引用，不重复展开'));return;}
       const selector=document.createElement('select');selector.setAttribute('aria-label',`e${node.eclass} 的构造选择`);
-      for(const n of m.classes.get(node.eclass)||[])selector.add(new Option(`unit ${n.unit} · 前驱 ${n.parents.join(', ')||'无'}`,n.unit));
+      // Only the root may choose another construction. A certificate names
+      // concrete parent units and their wiring, not arbitrary eclass members.
+      for(const n of (host===el('paths')?m.classes.get(node.eclass)||[]:[node]))selector.add(new Option(`unit ${n.unit} · 前驱 ${m.parents(n).join(', ')||'无'}`,n.unit));
+      selector.disabled=host!==el('paths');
       selector.value=String(node.unit);item.append(selector);
       const nested=document.createElement('div');nested.style.marginLeft='18px';item.append(nested);
-      const expand=()=>{nested.replaceChildren();const n=m.units.get(Number(selector.value));choices.set(node.eclass,n);for(const id of m.parents(n)){const p=m.units.get(id);if(p)draw(choices.get(p.eclass)||m.classes.get(p.eclass)[0],nested,new Set([...ancestors,node.eclass]));}};
-      selector.onchange=()=>{if(node.eclass===selected.eclass){selectUnit(Number(selector.value));return;}expand();el('typst').replaceChildren();};item.ontoggle=()=>{if(item.open&&!nested.childNodes.length)expand();};
+      const expand=()=>{nested.replaceChildren();const n=m.units.get(Number(selector.value));if(host===el('paths'))choices.set(node.eclass,n);for(const id of m.parents(n)){const p=m.units.get(id);if(p)draw(p,nested,new Set([...ancestors,node.unit]));}};
+      selector.onchange=()=>{if(host===el('paths')){selectUnit(Number(selector.value));return;}expand();el('typst').replaceChildren();};item.ontoggle=()=>{if(item.open&&!nested.childNodes.length)expand();};
       if(host===el('paths'))item.open=true;
     };
     if(selected)draw(selected,el('paths'),new Set());
   }
+  function routeEvidence(){
+    const routes=m.routes.get(selected.unit)||[];el('route').replaceChildren();
+    for(const [i,r] of routes.entries())el('route').add(new Option(`接口 ${i+1} · unit ${r.parents.join(' + ')} → ${selected.unit}`,i));
+    el('route').disabled=!routes.length;el('route').value=String(m.routeChoices.get(selected.unit)||0);
+    const route=m.route(selected);
+    el('route-evidence').textContent=route?JSON.stringify(route.proof,null,2):'尚无认证接口。这个 Cell 仍可作为独立起始状态；不会把历史上下文当作接口。';
+  }
   async function body(){
-    const token=epoch;el('body').replaceChildren();el('body').dataset.ready='false';
+    const token=++epoch;el('body').replaceChildren();el('body').dataset.ready='false';
     const state=el('body-kind').value==='initial'?detail?.initial:detail?.state;
     if(!state){el('body').textContent='这个构造尚无对应图：'+(detail?.reason||detail?.status||'未导出');return;}
-    const highlights=el('body-kind').value==='state'?detail.highlight_rows:detail.initial_highlight_rows;
+    const route=m.route(selected);
+    const colors=m.mode==='interfaces'&&route?(detail.graft_interfaces||[]).find(e=>JSON.stringify(e.parents)===JSON.stringify(route.parents))||detail:detail;
+    const highlights=el('body-kind').value==='state'?colors.highlight_rows:colors.initial_highlight_rows;
     const src=bodyDot(state,highlights);el('source').textContent=src;
-    el('legend').textContent=detail.has_lhs_evidence?detail.color_note+`；${detail.unresolved_lhs.length} 个 LHS 项未能在当前快照定位。`:'该旧记录没有逐路径 LHS 绑定证据，暂不标橙色。绿色仅表示闭包事实，不能当作 smooth 来源证明。';
+    el('legend').textContent=colors.has_lhs_evidence?detail.color_note+`；${colors.unresolved_lhs.length} 个 LHS 项未能在当前快照定位。`:'该旧记录没有逐路径 LHS 绑定证据，暂不标橙色。绿色仅表示闭包事实，不能当作 smooth 来源证明。';
     await svg('dot',src,el('body'),token);
   }
   async function selectUnit(id){
     const n=m?.units.get(id);if(!n)return;
     const token=++epoch;selected=n;detail=null;choices.set(n.eclass,n);el('error').textContent='';el('typst').replaceChildren();el('body').replaceChildren();
     el('class').value=String(n.eclass);el('unit').replaceChildren();
-    for(const v of m.classes.get(n.eclass))el('unit').add(new Option(`unit ${v.unit} · ${v.state} · 前驱 ${v.parents.join(', ')||'无'}`,v.unit));el('unit').value=String(id);
-    paths();el('guarantee').textContent='正在读取此路径的证据…';
+    for(const v of m.classes.get(n.eclass))el('unit').add(new Option(`unit ${v.unit} · ${v.state} · 历史前驱 ${v.parents.join(', ')||'无'}`,v.unit));el('unit').value=String(id);
+    routeEvidence();paths();el('guarantee').textContent='正在读取此路径的证据…';
     try{
       const d=await(await post('cell-egraph-state',{path,unit:id,snapshot})).json();if(token!==epoch)return;detail=d;el('member').replaceChildren();el('rule-svg').replaceChildren();for(const member of d.members)el('member').add(new Option(`${member.use_kind==='CoarseRuleComposition'?'Coarse':'Smooth'} · record ${member.record}`,member.record));
       if(d.root_record!=null)el('member').value=String(d.root_record);
       const g=d.guarantee;
       el('guarantee').textContent=[g.replay?'✓ 原历史回放验证通过':'? 无回放验证记录',g.saturated?'✓ 局部推理完成':`未完成：${d.status}`,g.certified_body?'✓ 导出认证闭包':g.observation_only?'观察性快照，不是认证闭包':'无认证闭包',g.symbolic?.schema?'符号路径条件下的闭包；不是全数值分支饱和':'',g.runtime_adapter].filter(Boolean).join(' ｜ ');
-      el('evidence').textContent=JSON.stringify({guarantee:g,reuse_value:d.reuse_value,history_windows:d.history_windows,members:d.members,lhs_evidence:d.lhs_evidence},null,2);
+      el('evidence').textContent=JSON.stringify({guarantee:g,graft_interfaces:d.graft_interfaces,reuse_value:d.reuse_value,history_windows:d.history_windows,members:d.members,lhs_evidence:d.lhs_evidence},null,2);
       const url=new URL(location.href);url.searchParams.set('cell_eclass',n.eclass);url.searchParams.set('cell_unit',id);history.replaceState(null,'',url);
       await body();
     }catch(e){if(token===epoch)fail(e);}
@@ -140,11 +169,13 @@ export function installCellPanel(parent,{post,mountSvg,previewRow,standalone=fal
   }
   async function renderRule(){const token=epoch;try{const member=detail?.members.find(m=>String(m.record)===el('member').value);if(!member||!detail.preview_source)throw Error('这条路径缺少原始规则源码，无法调用现有模板。');const source=detail.preview_source+'\n'+member.rule;const line=detail.preview_source.split('\n').length+1;const rendered=await previewRow({source,line,mode:'combined',label_style:'recursive',recursive_strategy:'tree-safe'});if(token!==epoch)return;el('source').textContent=rendered.typst;mountSvg(rendered.typst_svg,el('rule-svg'));el('rule-svg').dataset.ready='true';}catch(e){if(token===epoch)fail(e);}};
   el('rule-preview').onclick=renderRule;
+  el('path-mode').onchange=()=>{m.mode=el('path-mode').value;paths();el('typst').replaceChildren();if(detail)body().catch(fail);};
+  el('route').onchange=()=>{m.routeChoices.set(selected.unit,Number(el('route').value));routeEvidence();paths();el('typst').replaceChildren();if(detail)body().catch(fail);};
   el('snapshot').onchange=()=>api.load(path,el('snapshot').value).catch(fail);
   el('class').onchange=()=>selectClass(Number(el('class').value));el('unit').onchange=()=>selectUnit(Number(el('unit').value));el('body-kind').onchange=()=>body().catch(fail);
-  el('typst-button').onclick=async()=>{try{if(!selected)return;const root=choices.get(selected.eclass)||selected;const src=pathTypst(m,root,choices);el('source').textContent=src;await svg('typst',src,el('typst'));}catch(e){fail(e);}};
+  el('typst-button').onclick=async()=>{try{if(!selected)return;const src=pathTypst(m,selected,choices);el('source').textContent=src;await svg('typst',src,el('typst'));}catch(e){fail(e);}};
   const all=el('overview').parentElement;all.ontoggle=()=>{if(all.open&&m&&!el('overview').childNodes.length)svg('dot',overviewDot(m),el('overview')).catch(fail);};
-  const api={panel,noteSnapshot(frame){if(frame.artifact_directory===path&&frame.stem&&![...el('snapshot').options].some(o=>o.value===frame.stem))el('snapshot').add(new Option(frame.label||frame.stem,frame.stem));},get snapshot(){return snapshot;},get path(){return path;},clear(){epoch++;selected=null;detail=null;m=null;panel.hidden=true;for(const name of ['body','paths','typst','rule-svg','evidence','overview','status','guarantee','error'])el(name).replaceChildren();},get source(){return detail?.preview_source||'';},download(){if(!m)return;const a=document.createElement('a'),u=URL.createObjectURL(new Blob([overviewDot(m)],{type:'text/vnd.graphviz'}));a.href=u;a.download='ripsat-cell-egraph.dot';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);},async load(p,round){if(round!==undefined)snapshot=round;else if(p!==path)snapshot='';path=p;const token=++epoch;const received=await(await post('cell-egraph',{path,snapshot})).json();if(token!==epoch)return;data=received;el('snapshot').replaceChildren(new Option('最新（自动跟随）',''));for(const f of data.snapshots||[])el('snapshot').add(new Option(f.label||`Round ${f.round??f.stem}`,f.stem));el('snapshot').value=snapshot;m=model(data);choices.clear();el('overview').replaceChildren();el('class').replaceChildren();
+  const api={panel,noteSnapshot(frame){if(frame.artifact_directory===path&&frame.stem&&![...el('snapshot').options].some(o=>o.value===frame.stem))el('snapshot').add(new Option(frame.label||frame.stem,frame.stem));},get snapshot(){return snapshot;},get path(){return path;},clear(){epoch++;selected=null;detail=null;m=null;panel.hidden=true;for(const name of ['body','paths','typst','rule-svg','evidence','overview','status','guarantee','error','route-evidence'])el(name).replaceChildren();},get source(){return detail?.preview_source||'';},download(){if(!m)return;const a=document.createElement('a'),u=URL.createObjectURL(new Blob([overviewDot(m)],{type:'text/vnd.graphviz'}));a.href=u;a.download='ripsat-cell-egraph.dot';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);},async load(p,round){if(round!==undefined)snapshot=round;else if(p!==path)snapshot='';path=p;const token=++epoch;const received=await(await post('cell-egraph',{path,snapshot})).json();if(token!==epoch)return;data=received;el('snapshot').replaceChildren(new Option('最新（自动跟随）',''));for(const f of data.snapshots||[])el('snapshot').add(new Option(f.label||`Round ${f.round??f.stem}`,f.stem));el('snapshot').value=snapshot;m=model(data);m.mode=el('path-mode').value;choices.clear();el('overview').replaceChildren();el('class').replaceChildren();
     reuseTable();
     for(const [c,ns] of m.classes)el('class').add(new Option(`e${c} · ${ns.length} 条构造 · ${m.reuse.has(c)?`${m.reuse.get(c).interface_instances} 个接口绑定`:'未认证'}`,c));
     el('status').textContent=`${m.classes.size} 个 e-class，${data.nodes.length} 条已登记构造；认证合并 ${data.certified_unions}。${data.note}`;

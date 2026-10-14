@@ -1,0 +1,202 @@
+{
+  "scope": "actual native capture/ripen, production spine compiler and complete state differential checks; no performance claim",
+  "coverage": {
+    "left-right": {
+      "independent_window_exists": true,
+      "linked_to_base": true,
+      "historical_parents": [],
+      "other_side_effect_absent": true
+    },
+    "right-left": {
+      "independent_window_exists": true,
+      "linked_to_base": true,
+      "historical_parents": [],
+      "other_side_effect_absent": true
+    },
+    "without-windows": {
+      "independent_right_exists": false
+    }
+  },
+  "closure_checks": {
+    "right_window_equals_right_only": {
+      "status": "equivalent",
+      "value_map": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "states": 8
+    },
+    "left_window_equals_left_only": {
+      "status": "equivalent",
+      "value_map": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "states": 8
+    },
+    "both_orders_equal": {
+      "status": "equivalent",
+      "value_map": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "states": 10
+    }
+  },
+  "interfaces": {
+    "left-right": [
+      {
+        "target": 5,
+        "parents": [
+          0
+        ],
+        "parent_bindings": [
+          {
+            "parent": 0,
+            "ports": [
+              {
+                "from": "(RipenInput 0)",
+                "history_token": 0,
+                "sort": "T",
+                "to": "(RipenInput 0)"
+              },
+              {
+                "from": "(RipenInput 1)",
+                "history_token": 1,
+                "sort": "T",
+                "to": "(RipenInput 1)"
+              }
+            ]
+          }
+        ],
+        "external_injections": [
+          {
+            "before_record": 2,
+            "facts": [
+              "(GateR (RipenInput 1))"
+            ],
+            "requires": [
+              "(check (= (Add (RipenInput 0) (RipenInput 1)) (Add (RipenInput 0) (RipenInput 1))))",
+              "(check (= (RipenInput 1) (RipenInput 1)))"
+            ]
+          }
+        ],
+        "retained_unions": [],
+        "residual_command_count": 10,
+        "proof_kind": "positive-replay-extension/v1"
+      }
+    ],
+    "right-left": [
+      {
+        "target": 5,
+        "parents": [
+          0
+        ],
+        "parent_bindings": [
+          {
+            "parent": 0,
+            "ports": [
+              {
+                "from": "(RipenInput 0)",
+                "history_token": 0,
+                "sort": "T",
+                "to": "(RipenInput 0)"
+              },
+              {
+                "from": "(RipenInput 1)",
+                "history_token": 1,
+                "sort": "T",
+                "to": "(RipenInput 1)"
+              }
+            ]
+          }
+        ],
+        "external_injections": [
+          {
+            "before_record": 2,
+            "facts": [
+              "(GateL (RipenInput 0))"
+            ],
+            "requires": [
+              "(check (= (Add (RipenInput 0) (RipenInput 1)) (Add (RipenInput 0) (RipenInput 1))))",
+              "(check (= (RipenInput 0) (RipenInput 0)))"
+            ]
+          }
+        ],
+        "retained_unions": [],
+        "residual_command_count": 10,
+        "proof_kind": "positive-replay-extension/v1"
+      }
+    ],
+    "union-enabled": [
+      {
+        "target": 2,
+        "parents": [
+          0
+        ],
+        "parent_bindings": [
+          {
+            "parent": 0,
+            "ports": [
+              {
+                "from": "(RipenInput 0)",
+                "history_token": 0,
+                "sort": "T",
+                "to": "(RipenInput 0)"
+              },
+              {
+                "from": "(RipenInput 1)",
+                "history_token": 1,
+                "sort": "T",
+                "to": "(RipenInput 1)"
+              }
+            ]
+          }
+        ],
+        "external_injections": [
+          {
+            "before_record": 2,
+            "facts": [
+              "(Add (RipenInput 0) (RipenInput 0))",
+              "(GateR (RipenInput 0))",
+              "(union (Add (RipenInput 0) (RipenInput 1)) (Add (RipenInput 0) (RipenInput 0)))"
+            ],
+            "requires": [
+              "(check (= (RipenInput 0) (RipenInput 0)))"
+            ]
+          }
+        ],
+        "retained_unions": [
+          "(union (Add (RipenInput 0) (RipenInput 1)) (Add (RipenInput 0) (RipenInput 0)))"
+        ],
+        "residual_command_count": 11,
+        "proof_kind": "positive-replay-extension/v1"
+      }
+    ]
+  },
+  "compact_cases": {
+    "symmetric_compact": 4,
+    "union_compact": 2,
+    "delayed_compact": 1
+  }
+}

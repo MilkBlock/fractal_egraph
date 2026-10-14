@@ -84,7 +84,8 @@ def analyze(out,name,source,windows):
         summaries.append(dict(unit=node['unit'],kind=j['candidate_kind'],state=j['state'],
             members=members[node['unit']],parents=[members.get(p,[]) for p in node['parents']],
             effects=sorted({r['op'] for r in state['rows']}) if state else [],snapshot=str(file) if state else None))
-    return dict(transitions=transitions,entries=summaries,windows=report['cs']['windows'])
+    return dict(transitions=transitions,entries=summaries,windows=report['cs']['windows'],
+        graft_interfaces=graph.get('graft_interfaces', []))
 
 
 def find(result,names):
@@ -167,7 +168,9 @@ def main():
     coverage={}
     for order,last in [('left-right','right'),('right-left','left')]:
         entry=find(reports[order],['base',last]);coverage[order]=dict(independent_window_exists=True,
-            linked_to_base=['base'] in entry['parents'],other_side_effect_absent=('Left' if last=='right' else 'Right') not in entry['effects'])
+            linked_to_base=any(e['target']==entry['unit'] and e['parents']==[find(reports[order],['base'])['unit']] for e in reports[order]['graft_interfaces']),
+            historical_parents=entry['parents'],other_side_effect_absent=('Left' if last=='right' else 'Right') not in entry['effects'])
+    if not all(c['linked_to_base'] for c in coverage.values()):raise ValueError('independent graft window lacks a certified base edge')
     coverage['without-windows']=dict(independent_right_exists=any(sorted(e['members'])==['base','right'] for e in reports['without-windows']['entries']))
     result=dict(scope='actual native capture/ripen and generated spine differential checks; graph coverage is separate from soundness',history=reports,closure_checks=checks,coverage=coverage)
     if not a.history_only:

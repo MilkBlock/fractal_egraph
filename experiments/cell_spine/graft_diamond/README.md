@@ -25,7 +25,7 @@ Start with a base application producing `Add(x,y)`. Independent external
 | Right then left | Symmetric extra contextual parent |
 | Both in the same batch | Neither sibling becomes the other's parent |
 | Independent history windows enabled | Both single-side closures exist and pass native validation |
-| Window lineage in Cell egraph | Independent window is a root, not linked back to base |
+| Window lineage before the graph repair | Independent window was a root, not linked back to base |
 | Windows disabled | The later independent branch is absent from this catalog |
 
 The right window from a left-then-right run equals the right-only run's closure;
@@ -101,16 +101,66 @@ cannot. Replacing raw rows with canonical rows is no longer inherently invalid
 once a matching certified boundary exists. Storage-cost checks include the
 selected shared-interface columns.
 
-## Remaining graph work
+## Graph repair: certified interfaces without changing history
 
-The native discovery graph is intentionally not rewritten by this patch.
-Historical context parents and standalone windows remain visible as recorded.
-The compiler (and merge-family evidence) can now expose additional certified
-boundary interfaces without pretending they were observed mutation events.
+The native registry now exports `graft_interfaces` separately from `nodes.parents`.
+An independent producer-consumer window is connected to the single-application
+entries for **all** of its recorded producers. The containing chronological
+prefix is never substituted for those entries. Historical nodes retain separate
+`producer_parents` and `context_parents` fields.
 
-The next graph-level repair should attach an independently validated window to
-candidate base Cells only after checking its typed binding, supplied facts and
-equality obligations. Keep chronological context for provenance/snapshot reuse;
-do not present it as a necessary execution dependency. Union explanations may
-be recorded as events or explicit boundary obligations. Never replace the
-target of `CL -> CLR` with a claimed `C0 -> CLR`; the independent target is CR.
+Each interface carries typed port substitutions, staged external injections,
+an ordered residual replay, and validation checks. Before admission:
+
+1. Both preparations use exactly the same positive constructor/equality rule
+   environment. Functions, updates, subsumption, primitive guards, symbolic
+   lowering and negative checks do not pass this new proof path.
+2. Real history tokens determine the port mapping, including argument order,
+   repeated arguments and sort identity. No permutation is guessed.
+3. Every rebased parent preparation is an ordered subsequence of the child.
+   Parent validation is also present; sibling-only effects cannot disappear.
+4. Both endpoints must be in the exact completed saturation catalog. Pending,
+   rejected and observation-only bodies never authorize an interface.
+
+For the accepted fragment, with target preparation C and mapped parent
+preparations P, P is contained in C. The remaining replay D supplies C when
+combined with P. Monotonicity and idempotence give
+`Sat(Sat(P) union D) = Sat(C)`. Checks and union obligations remain explicit;
+this is not a claim that the target can be reached from just its rule name or
+from any differently bound member of the parent's eclass.
+
+The registry checks only recorded parent sets and new history windows, once per
+pair, with no all-Cell pair enumeration, extra saturation or whole-graph export.
+For each tested parent set it scans the already prepared programs and performs
+port lookup/string comparison. Export size includes the ordered residual proof;
+no speed or memory improvement is claimed. This is an additive analysis graph,
+not a change to the runtime snapshot cache or emitted `.egg` rules.
+
+`graph-results.json` records the actual native rerun. In both left/right orders,
+the independent window now has a certified edge from base and contains no
+opposite-side effect. The union-enabled route retains its output-alias union;
+it is not represented as an unconditional Gate-only transition. All seven
+compact whole-state differential cases still pass.
+
+The website uses gray dashed edges for history and green diamonds for certified
+interfaces. Clicking a diamond displays its exact binding and obligations.
+The inspector can switch between interface paths and historical paths. It never
+silently replaces a certificate's parent with another eclass member. Body LHS
+highlights are computed for the selected route's parent set. Every round exports
+its then-current interfaces; older snapshots cannot read future certificates.
+
+```sh
+# Backend graph regressions, including union enablement and snapshot admission.
+cargo test --offline --release --test graft_diamond --test cell_windows
+node tools/egglog_debugger/test_cell_egraph.mjs
+PYTHONPATH=tools/egglog_debugger python3 -m unittest tools/egglog_debugger/test_cell_egraph.py
+
+# After the probe above, with the local debugger running and Playwright on NODE_PATH:
+node tools/egglog_debugger/test_graft_interfaces_browser.cjs out/my-graft-diamond/left-right
+```
+
+Limits: this does not discover every possible graft. With history windows
+disabled, the independently re-read target may still be absent. Unsupported
+programs retain their history and native replay results but get no new interface
+certificate. The earlier `certified_boundary_cut` compiler path remains a
+separate executable optimization with its own containment proof.

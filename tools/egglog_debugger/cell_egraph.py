@@ -98,8 +98,9 @@ def overview(root, path, snapshot=None):
             'units': registry.get('units', []), 'certified_unions': registry.get('certified_unions', 0),
             'scope': registry.get('scope'), 'boundary': queue.get('boundary'),
             'reuse_value': registry.get('reuse_value'), 'windows': windows,
+            'graft_interfaces': registry.get('graft_interfaces', []),
             'dsl': '(CellParents (NoParents) (Parent Cell CellParents))\n(Cell (CoarseApply CellParents i64))',
-            'note': '窗口是同一历史的局部入口，独立回放并参与闭包判等。构造数不是全路径数；复用统计只纳入认证闭包。前驱入度只影响显示顺序。'}
+            'note': '虚线是观测历史，不代表必要依赖。绿色接口经类型、绑定、回放与两端饱和验证；缺少接口不表示不能嫁接。构造数不是全路径数。'}
 
 
 def parse_term(text):
@@ -179,25 +180,28 @@ def state_detail(root, path, unit, snapshot=None):
     members = origin.get('comb_members') or []
     coarse = {m['record'] for m in members if m.get('use_kind') == 'CoarseRuleComposition'}
     evidence = [e for e in origin.get('lhs_evidence', []) if e['record'] in coarse]
-    # Prefer applications added in this constructor, not inherited parent members.
-    inherited = set()
-    for parent in node.get('parents', []):
-        pj = next((j for j in queue.get('jobs', []) if j.get('cell_unit', j.get('candidate_id')) == parent), {})
-        inherited.update(pj.get('origin', {}).get('members', []))
-    local_evidence = [e for e in evidence if e['record'] not in inherited]
-    terms = [t['term'] for e in local_evidence for t in e.get('calls', [])]
-    shown = state or initial
-    highlight, unresolved = match_terms(shown, terms) if shown is not None else ([], terms)
-    initial_highlight, initial_unresolved = match_terms(initial, terms) if initial is not None else ([], terms)
+    grafts = [e for e in registry.get('graft_interfaces', []) if e['target'] == unit]
+    jobs = {j.get('cell_unit', j.get('candidate_id')): j for j in queue.get('jobs', [])}
+    def colors(parents):
+        inherited = {r for p in parents for r in jobs.get(p, {}).get('origin', {}).get('members', [])}
+        local = [e for e in evidence if e['record'] not in inherited]
+        terms = [t['term'] for e in local for t in e.get('calls', [])]
+        highlight, unresolved = match_terms(state or initial, terms) if state or initial else ([], terms)
+        initial_highlight, initial_unresolved = match_terms(initial, terms) if initial else ([], terms)
+        return dict(lhs_evidence=local, highlight_rows=highlight, unresolved_lhs=unresolved,
+                    initial_highlight_rows=initial_highlight, initial_unresolved_lhs=initial_unresolved,
+                    has_lhs_evidence=bool(local))
+    historical_colors = colors(node.get('parents', []))
+    grafts = [dict(e, **colors(e['parents'])) for e in grafts]
     observed = bool(state and state.get('scope', {}).get('observation_only'))
     symbolic = origin.get('symbolic_lowering') or {}
     return {'unit': unit, 'node': node, 'state': state, 'initial': initial,
+        'graft_interfaces': grafts,
         'history_windows': [w for w in registry.get('windows', []) if w['unit']==unit],
         'reuse_value': next((r for r in (registry.get('reuse_value') or {}).get('cells', [])
                             if unit in r['units']), None),
         'status': job.get('state', 'Unknown'), 'reason': job.get('reason'),
-        'root_record': origin.get('root_member'), 'members': members, 'preview_source': (folder / 'source.egg').read_text() if (folder / 'source.egg').is_file() else None, 'lhs_evidence': local_evidence, 'highlight_rows': highlight,
-        'initial_highlight_rows': initial_highlight, 'initial_unresolved_lhs': initial_unresolved, 'unresolved_lhs': unresolved, 'has_lhs_evidence': bool(local_evidence),
+        'root_record': origin.get('root_member'), 'members': members, 'preview_source': (folder / 'source.egg').read_text() if (folder / 'source.egg').is_file() else None, **historical_colors,
         'guarantee': {'replay': bool(origin.get('validation')), 'validation': origin.get('validation'),
             'saturated': state is not None, 'certified_body': state is not None and not observed,
             'observation_only': observed, 'symbolic': symbolic,

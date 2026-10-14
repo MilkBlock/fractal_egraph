@@ -516,6 +516,7 @@ impl Pipeline {
                 json!({"catalog":cat,"states":states,"dot":if crate::graph_render::graphs_enabled() {Some(std::fs::read_to_string(dir.join("catalog.dot"))?)} else {None}}),
             );
         }
+        self.cells.connect_windows(&self.cs.windows);
         let mut cell_report=self.cells.report();
         cell_report["windows"]=json!(self.cs.windows);
         cell_report["reuse_value"]=self.reuse_census.report(&cell_report,self.catalog.as_ref(),&self.cs);

@@ -10,14 +10,17 @@ class CellTests(unittest.TestCase):
             root=Path(t).resolve();run=root/'out'/'run';run.mkdir(parents=True)
             window={'unit':0,'container':1,'consumer':3,'kind':'apply_entry','members':[3]}
             reuse={'schema':'cell-reuse-value/v1','cells':[{'eclass':0,'units':[0],'interface_instances':2}]}
-            registry={'nodes':[{'unit':0,'parents':[],'contract':0}], 'units':[{'unit':0,'eclass':0}], 'windows':[window], 'reuse_value':reuse}
+            edge={'target':0,'parents':[1],'proof':{'parent_bindings':[{'from':'x','to':'y'}],'ordered_replay':['(union x y)']}}
+            registry={'graft_interfaces':[edge],'nodes':[{'unit':0,'parents':[],'contract':0}], 'units':[{'unit':0,'eclass':0}], 'windows':[window], 'reuse_value':reuse}
             (run/'analysis.json').write_text(json.dumps({'saturated_rule_composition':{'cell_egraph':registry}}))
             data=overview(root,'out/run')
             self.assertEqual(data['reuse_value'],reuse)
+            self.assertEqual(data['graft_interfaces'],[edge])
             self.assertEqual(data['nodes'][0]['history_windows'],[window])
             detail=state_detail(root,'out/run',0)
             self.assertEqual(detail['reuse_value']['interface_instances'],2)
             self.assertFalse(detail['guarantee']['certified_body'])
+            self.assertEqual(detail['graft_interfaces'][0]['proof'],edge['proof'])
     def test_precise_ground_arguments_and_hidden_rows(self):
         s={'values':[{'literal':'0'},{'literal':'1'},{'sort':'E'},{'sort':'E'},{'sort':'E'}],
            'rows':[{'op':'Num','args':[0],'result':2},{'op':'Num','args':[1],'result':3},

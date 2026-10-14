@@ -6,6 +6,8 @@ use egglog::{EGraph, Value};
 use serde_json::{Value as Json, json};
 use std::collections::{BTreeMap, BTreeSet};
 
+#[path = "cell_graft_interfaces.rs"]
+mod graft;
 #[path = "cell_binding_normalize.rs"]
 mod normalize;
 
@@ -21,6 +23,12 @@ pub(super) struct Registry {
     origins: BTreeMap<usize, usize>,
     programs: BTreeMap<usize, Json>,
     interfaces: BTreeMap<usize, Json>,
+    prepared: BTreeMap<usize, graft::Prepared>,
+    grafts: BTreeMap<(usize, Vec<usize>), Json>,
+    checked_grafts: BTreeSet<(usize, Vec<usize>)>,
+    completed: BTreeSet<usize>,
+    apply_entries: BTreeMap<usize, usize>,
+    seen_windows: usize,
     factored: usize,
     contracts: BTreeMap<String, usize>,
     nodes: Vec<Json>,
@@ -40,6 +48,12 @@ impl Registry {
             origins: BTreeMap::new(),
             programs: BTreeMap::new(),
             interfaces: BTreeMap::new(),
+            prepared: BTreeMap::new(),
+            grafts: BTreeMap::new(),
+            checked_grafts: BTreeSet::new(),
+            completed: BTreeSet::new(),
+            apply_entries: BTreeMap::new(),
+            seen_windows: 0,
             factored: 0,
             contracts: BTreeMap::new(),
             nodes: vec![],
@@ -92,6 +106,9 @@ impl Registry {
                 fallback
             }
         };
+        if let Some(prepared) = graft::Prepared::new(origin, source, validation) {
+            self.prepared.insert(unit, prepared);
+        }
         self.interfaces.insert(unit, json!({"parameter_marker":origin["parameter_marker"],"reuse_interface_terms":origin["reuse_interface_terms"],"symbolic_values":origin["symbolic_values"]}));
         self.programs.insert(unit, descriptor.clone());
         let parent_programs: Vec<_> = parents
@@ -133,8 +150,60 @@ impl Registry {
         self.values.insert(unit, value);
         self.origins.insert(unit, contract);
         self.nodes
-            .push(json!({"unit":unit,"parents":parents,"contract":contract}));
+            .push(json!({"unit":unit,"parents":parents,"contract":contract,
+                "history_parents":parents,"producer_parents":origin["composition"]["producer_parts"],
+                "context_parents":origin["composition"]["context_parts"],
+                "parent_scope":"observed history; not a necessary execution dependency"}));
+        self.consider_graft(unit, parents.to_vec());
         Ok(())
+    }
+    fn consider_graft(&mut self, target: usize, mut parents: Vec<usize>) {
+        parents.sort_unstable();
+        parents.dedup();
+        if parents.is_empty()
+            || parents.contains(&target)
+            || !self.checked_grafts.insert((target, parents.clone()))
+        {
+            return;
+        }
+        let Some(child) = self.prepared.get(&target) else {
+            return;
+        };
+        let Some(sources) = parents
+            .iter()
+            .map(|p| self.prepared.get(p).map(|s| (*p, s)))
+            .collect::<Option<Vec<_>>>()
+        else {
+            return;
+        };
+        if let Some(proof) = child.extension(&sources) {
+            self.grafts.insert(
+                (target, parents.clone()),
+                json!({"target":target,"parents":parents,"proof":proof}),
+            );
+        }
+    }
+    /// Inspect only newly observed windows. All recorded producer antecedents
+    /// must participate; no arbitrary parent subsets or graph-wide pair search.
+    pub fn connect_windows(&mut self, windows: &[super::super::cs::Window]) {
+        for w in &windows[self.seen_windows..] {
+            if w.kind == "apply_entry" {
+                self.apply_entries.insert(w.consumer, w.unit);
+            }
+            if w.kind != "producer_consumer" {
+                continue;
+            }
+            let parents: Option<Vec<_>> = w
+                .members
+                .iter()
+                .filter(|r| **r != w.consumer)
+                .map(|r| self.apply_entries.get(r).copied())
+                .collect();
+            if let Some(parents) = parents {
+                self.consider_graft(w.unit, parents);
+            }
+        }
+        self.seen_windows = windows.len();
     }
     /// Only the completed, exact catalog can call this; weak/reentry results never do.
     /// Family IDs are local to a catalog refresh, so representatives are rebuilt each time.
@@ -152,6 +221,7 @@ impl Registry {
             if !self.values.contains_key(&unit) {
                 continue;
             }
+            self.completed.insert(unit);
             if let Some(&owner) = representatives.get(&family) {
                 let pair = (unit.min(owner), unit.max(owner));
                 if unit != owner && !self.certificates.contains(&pair) {
@@ -201,13 +271,54 @@ impl Registry {
                 json!({"unit":unit,"eclass":class})
             })
             .collect();
-        json!({"registered_compositions":self.values.len(),"eclasses":classes.len(),"contracts":self.contracts.len(),"normalized_bindings":self.normalized,"factored_successors":self.factored,"normalization_fallbacks":self.normalization_fallbacks,"certified_unions":self.unions,"nodes":self.nodes,"units":units,"scope":"automatic prepared CS registration; exact completed catalog unions; conservative full binding contracts; no ripen skipped"})
+        let grafts: Vec<_> = self
+            .grafts
+            .iter()
+            .filter(|((target, parents), _)| {
+                self.completed.contains(target)
+                    && parents.iter().all(|p| self.completed.contains(p))
+            })
+            .map(|(_, edge)| edge)
+            .collect();
+        json!({"graft_interfaces":grafts,"graft_interface_scope":"conditional replay extension, independent of historical edges; only exact completed endpoint certificates", "registered_compositions":self.values.len(),"eclasses":classes.len(),"contracts":self.contracts.len(),"normalized_bindings":self.normalized,"factored_successors":self.factored,"normalization_fallbacks":self.normalization_fallbacks,"certified_unions":self.unions,"nodes":self.nodes,"units":units,"scope":"automatic prepared CS registration; exact completed catalog unions; conservative full binding contracts; no ripen skipped"})
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn interface_waits_for_both_exact_endpoints_and_is_idempotent() {
+        let mut r = Registry::new().unwrap();
+        let origin = |members| {
+            json!({"parameter_marker":"Input","members":members,
+            "symbolic_values":[{"token":1,"term":"(Input 0)","sort":"T"}],
+            "reuse_interface_terms":{"lower":["(Input 0)"],"upper":[]},"staged_injections":[]})
+        };
+        let base = "(datatype T (Input i64) (A T) (B T)) (A (Input 0))";
+        r.register(0, &[], &origin(vec![0]), base, "").unwrap();
+        r.register(
+            1,
+            &[0],
+            &origin(vec![0, 1]),
+            &format!("{base} (B (Input 0))"),
+            "",
+        )
+        .unwrap();
+        assert_eq!(r.report()["graft_interfaces"], json!([]));
+        r.admit_catalog(&json!({"triggers":[{"binding_origin":{"candidate_id":1},"saturated_rule_composition":1}]})).unwrap();
+        assert_eq!(r.report()["graft_interfaces"], json!([]));
+        let cat = json!({"triggers":[{"binding_origin":{"candidate_id":0},"saturated_rule_composition":0},{"binding_origin":{"candidate_id":1},"saturated_rule_composition":1}]});
+        r.admit_catalog(&cat).unwrap();
+        assert_eq!(r.report()["graft_interfaces"].as_array().unwrap().len(), 1);
+        r.consider_graft(1, vec![0]);
+        r.admit_catalog(&cat).unwrap();
+        assert_eq!(r.report()["graft_interfaces"].as_array().unwrap().len(), 1);
+        assert_ne!(
+            r.report()["units"][0]["eclass"],
+            r.report()["units"][1]["eclass"]
+        );
+    }
     #[test]
     fn renamed_successors_merge_after_parent_certificate() {
         let mut r = Registry::new().unwrap();

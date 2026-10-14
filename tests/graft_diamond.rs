@@ -98,6 +98,44 @@ fn independent_window_does_not_inherit_the_other_sides_effect() {
             .find(|c| c["consumer"] == 2)
             .unwrap();
         assert_eq!(comp["producer_parts"], serde_json::json!([0]));
+        let graph = &q["cell_egraph"];
+        let edge = graph["graft_interfaces"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|e| e["target"] == window["unit"] && e["parents"] == serde_json::json!([0]))
+            .expect("independent side must have a certified base interface");
+        assert!(
+            !edge["proof"]["ordered_replay"]
+                .to_string()
+                .contains(unwanted)
+        );
+        assert_eq!(
+            edge["proof"]["parent_bindings"][0]["ports"]
+                .as_array()
+                .unwrap()
+                .len(),
+            2
+        );
+        let node = graph["nodes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|n| n["unit"] == window["unit"])
+            .unwrap();
+        assert_eq!(
+            node["history_parents"],
+            serde_json::json!([]),
+            "do not invent an observed prefix"
+        );
+        assert!(
+            !graph["graft_interfaces"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|e| e["target"] == window["unit"] && e["parents"] == serde_json::json!([1])),
+            "other side must not supply the independent window"
+        );
         fs::remove_dir_all(dir).unwrap();
     }
 }
@@ -112,6 +150,54 @@ fn same_batch_siblings_do_not_become_each_others_predecessors() {
         .unwrap();
     for comp in &cs[1..] {
         assert_eq!(comp["parts"], serde_json::json!([0]));
+    }
+    fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn union_enabled_match_keeps_alias_obligations_instead_of_inventing_a_producer() {
+    let source = r#"
+(datatype T (V String) (Seed T T) (Add T T) (MergeGate T T) (GateR T) (Right T))
+(ruleset all)
+(rule ((Seed a b)) ((Add a b)) :ruleset all :name "base")
+(rule ((MergeGate a b)) ((union a b)) :ruleset all :name "enable")
+(rule ((Add a b) (GateR b) (= a b)) ((Right b)) :ruleset all :name "right")
+(let vx (V "x")) (let vy (V "y"))
+(Seed vx vy) (run all 1) (GateR vy) (run all 1)
+(fail (check (Right vy)))
+(MergeGate vx vy) (run all 1) (run all 1) (check (Right vy))
+"#;
+    let (dir, report) = analyze(source);
+    let q = &report["saturated_rule_composition"];
+    let right = q["jobs"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|j| {
+            let ms = j["origin"]["comb_members"].as_array();
+            ms.is_some_and(|ms| {
+                ms.len() == 2 && ms[0]["rule_name"] == "base" && ms[1]["rule_name"] == "right"
+            })
+        })
+        .unwrap();
+    assert_eq!(right["state"], "Saturated");
+    let injections = right["origin"]["staged_injections"].to_string();
+    assert!(
+        injections.contains("(union "),
+        "externalized equality evidence must remain"
+    );
+    for edge in q["cell_egraph"]["graft_interfaces"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|e| e["target"] == right["candidate_id"])
+    {
+        assert!(
+            edge["proof"]["ordered_replay"]
+                .to_string()
+                .contains("(union "),
+            "never certify this graft after erasing the enabling equality"
+        );
     }
     fs::remove_dir_all(dir).unwrap();
 }
