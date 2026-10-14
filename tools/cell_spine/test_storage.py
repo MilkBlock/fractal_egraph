@@ -102,7 +102,7 @@ class NativeStorage(unittest.TestCase):
             if priced['initial'] is not None:
                 for line in priced['initial']:self.assertIn(line,body)
             costs=report['plan']['costs'];w=report['plan']['weights']
-            expected=w['storage']*(costs['template_nodes']+costs['marker_columns']+costs['instance_value_slots'])
+            expected=w['storage']*(costs['template_nodes']+costs['marker_columns']+costs.get('interface_columns',0)+costs['instance_value_slots'])
             expected+=w['search']*costs['lookup_atoms_and_guards']+w['update']*costs['write_atoms_and_unions']
             self.assertEqual(expected,report['plan']['objective'])
             checks=json.loads((out/'validation.json').read_text())['cases']

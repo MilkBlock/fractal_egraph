@@ -81,6 +81,15 @@ model. See [the native three-input example](../../experiments/cell_spine/knowled
 
 ## Shared seed interfaces
 
+In `--cell-composition seed-cuts`, known target seeds can additionally use
+`certified_boundary_cut` interfaces. These expose alternative port-visible rows
+of a parent's certified closure, including orientations absent from its stored
+canonical spine. The target must contain all parent seed facts/guards in its
+closure, under the complete typed binding; source environments must match and
+be positive constructor/equality ASTs. Existing multi-parent bindings are not
+expanded into redundant parent-subset consumers. This also repairs a real
+same-family left/right graft omission. See [the graft audit](../../experiments/cell_spine/graft_diamond/README.md).
+
 `--cell-interfaces auto` (default) jointly chooses inline seed decoding or a
 shared `Interface-N!` relation for each selected marker layout. `inline` keeps
 decoding inside each consumer; `shared` restricts layouts with a decoder to the

@@ -78,11 +78,11 @@ class InputProjection(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):cls.tmp.cleanup()
 
-    def verify(self,fixture,label,compact,extra_reference='',expect_failure=False):
+    def verify(self,fixture,label,compact,extra_reference='',expect_failure=False,reference=None):
         out=self.outputs[fixture];base=json.loads((out/'work/validation.json').read_text())
         manifest=dict(constructors=base['constructors'],library=base['library'],cases=[dict(name=label,
-            reference_path=str(ROOT/f'experiments/cell_spine/fixtures/input_spine_{fixture}.egg'),
-            reference=extra_reference,compressed=compact,restore='(run-schedule (saturate Export!))')])
+            reference_path=str(ROOT/f'experiments/cell_spine/fixtures/input_spine_{fixture}.egg') if reference is None else None,
+            reference=extra_reference if reference is None else reference,compressed=compact,restore='(run-schedule (saturate Export!))')])
         path=self.folder/f'{label}.json';path.write_text(json.dumps(manifest))
         result=self.folder/f'{label}-result.json'
         r=subprocess.run([ROOT/'target/release/examples/spine_validate',path,result],capture_output=True,text=True)
@@ -145,7 +145,9 @@ class InputProjection(unittest.TestCase):
         self.assertIn('(let inner (Add! ',body)
         self.assertIn('(let held_inner (Add! ',body)
         v=json.loads((out/'validation.json').read_text())['cases'][-1]
-        self.assertEqual(v['native_tables_before_export'].get('Add!',0),2)
+        # The two distinct externally held rows must survive. Additional
+        # certified interfaces may change the selected initializer/storage ABI.
+        self.assertGreaterEqual(v['native_tables_before_export'].get('Add!',0),2)
         self.assertEqual(v['comparison']['status'],'equivalent')
 
     def test_late_external_fact_can_still_read_the_intermediate(self):
@@ -171,9 +173,16 @@ class InputProjection(unittest.TestCase):
         self.assertGreater(report['input_plan']['semantic_input_obligations'],0)
         self.assertIn('(Add! ',body)
         self.verify('specialized','repeated-binding',body)
-        # The generic Cell has the same constructors, but does not establish
-        # the additional Repeated(x) effect. Hiding those raw rows loses it.
-        self.verify('specialized','unsafe-shape-only',body.replace('(Add! ', '(Add!! '),expect_failure=True)
+        # A certified repeated-binding boundary can now recover the effect
+        # even from canonical rows. Constructor shapes alone still cannot
+        # authorize Repeated(x) when the two actual arguments differ.
+        self.verify('specialized','certified-canonical-binding',body.replace('(Add! ', '(Add!! '))
+        from .compiler import commands
+        data=json.loads((out/'work/input.json').read_text())
+        reference='\n'.join(commands(data,{'declaration','rule'}))+'''\n(Add (Leaf "x") (Leaf "z"))
+(run-schedule (saturate algebra)) (fail (check (Repeated (Leaf "x"))))'''
+        compact='(Add! (Leaf! "x") (Leaf! "z"))\n'+RUNTIME_SCHEDULE
+        self.verify('specialized','distinct-binding-is-not-repeated',compact,reference=reference)
 
     def test_initial_union_uses_order_preserving_input_path(self):
         data=dict(actions=[dict(action=dict(kind='union',args=[]))])

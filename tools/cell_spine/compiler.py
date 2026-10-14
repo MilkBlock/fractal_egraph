@@ -47,6 +47,7 @@ def shape(acts, params):
 
 
 def load_candidates(analysis, work):
+    from .composition import positive_environment
     report = json.loads((analysis / 'analysis.json').read_text())['saturated_rule_composition']
     catalog = (report.get('catalog') or {}).get('catalog') or {}
     families = {t['binding_origin']['candidate_id']: t['saturated_rule_composition']
@@ -106,6 +107,7 @@ def load_candidates(analysis, work):
                 params=params, param_sorts=param_sorts, nodes=shape(acts, params),
                 lhs_atoms=len(shape(acts, params)) + sum(a['kind']=='union' for a in acts),
                 signatures=data['signatures'], origin=o, snapshot=snapshot,
+                boundary_positive=positive_environment(data),
                 value_map=mappings[cid], source_folder=str(folder),
                 rulesets=r['ripen']['rulesets'], marker=marker, markers=markers))
         except (ValueError, KeyError, FileNotFoundError) as e:
@@ -480,7 +482,7 @@ def takeover_lenses(candidates, chosen, cuts=()):
     direct, by_id = [], {c['id']:c for c in candidates}
     additional=defaultdict(list)
     for edge in cuts:
-        if edge.get('kind')=='certified_seed_cut':additional[edge['target_unit']].extend(edge['seed_cut']['parents'])
+        if edge.get('kind') in ('certified_seed_cut','certified_boundary_cut'):additional[edge['target_unit']].extend(edge['seed_cut']['parents'])
     for c in candidates:
         owner = chosen[c['family']]
         params = {raw:takeover.var(name) for raw,name in mapping_to(c,owner).items()}
@@ -857,6 +859,7 @@ def main():
                       aliases=representation_aliases,scope='exact typed seed/root/interface identity; history_paths is all admitted recipes, including imported historical contracts when a knowledge library is used; every recipe remains a validation case'),
                   cell_composition=dict(mode=a.cell_composition,observed_interfaces=len(cs),
                       seed_cut_interfaces=sum(e.get('kind')=='certified_seed_cut' for e in edges),
+                      boundary_interfaces=sum(e.get('kind')=='certified_boundary_cut' for e in edges),
                       scope='additional certified initial-fact decompositions; not new observed events or newly inferred closed states'),
                   pricing_work=dict(mode=pricing.layout_pricing,prepared_schemes=pricing.schemes,layout_evaluations=pricing.evaluations,
                       original_cartesian_tuples=pricing.cartesian_tuples,source_preparations=pricing.source_preparations,

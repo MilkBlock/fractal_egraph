@@ -27,7 +27,8 @@ class BakeContract(unittest.TestCase):
             self.assertEqual(report['plan']['status'],'optimal')
             self.assertLess(norm['representations'],norm['history_paths'])
             self.assertEqual(norm['history_paths'],len(report['paths']))
-            self.assertEqual(norm['history_paths']+report['cell_composition']['seed_cut_interfaces'],report['plan']['hyperedges'])
+            self.assertEqual(norm['history_paths']+report['cell_composition']['seed_cut_interfaces']+
+                             report['cell_composition'].get('boundary_interfaces',0),report['plan']['hyperedges'])
             self.assertEqual(norm['history_paths'],len(norm['aliases']))
             validation=json.loads((out/'validation.json').read_text())
             self.assertEqual(len(validation['cases']),norm['history_paths']+1)

@@ -11,6 +11,21 @@ import json
 from .terms import text,walk,expressions
 
 
+def positive_environment(data):
+    """Monotone constructor/equality fragment, checked on the native AST."""
+    constructors={op for op,s in data['signatures'].items() if s['kind']=='constructor'}
+    def term(e):
+        return e['kind'] in ('var','literal') or (e['kind']=='call' and e['head'] in constructors and all(term(a) for a in e['args']))
+    if len(data['rules'])!=sum(c['kind']=='rule' for c in data['commands']):return False
+    for rule in data['rules']:
+        for fact in rule['body']:
+            if not all(term(e) for e in (fact['args'] if fact['kind']=='eq' else [fact['expr']])):return False
+        for action in rule['head']:
+            if action['kind'] not in ('expr','let','union'):return False
+            if not all(term(e) for e in ([action['expr']] if action['kind'] in ('expr','let') else action['args'])):return False
+    return True
+
+
 def match(pattern,value,parent,target,binding):
     raw=text(pattern)
     if raw in parent['params']:
@@ -118,5 +133,84 @@ def extend(candidates,representations,edges):
                     opt['proof_kind']='certified_seed_cut';options.append(opt)
             edges.append(dict(id=f'cut_{c["id"]}_{cut_id}',kind='certified_seed_cut',target_unit=c['id'],
                 observed_parents=[],seed_cut=cut,options=options))
+    boundary_count=extend_boundaries(candidates,representations,edges)
     return dict(seed_match_attempts=index.match_attempts,
+        boundary_interfaces=boundary_count,
         scope='typed immediate-child cuts of certified seed constructors; complete guards and residual facts retained; multi-root sources keep observed paths; no new tier0 events or closure families')
+
+
+def extend_boundaries(candidates,representations,edges):
+    """Factor a target through a known Cell's port-visible closure row.
+
+    Unlike a syntactic seed cut, a visible row can be another orientation of
+    the selected spine. Require the target closure to contain the entire parent
+    seed AND its equality guards. The remaining target facts stay explicit.
+    Under the same positive rule environment this admits no extra parent effect.
+    No operator names, parent subsets, or permutations are guessed/enumerated.
+    """
+    from .compiler import mapping_to,lower_option,resolve,parse_param,parent_wirings
+    groups=defaultdict(list);index=defaultdict(list);by_id={c['id']:c for c in candidates}
+    for p in representations:
+        groups[p['family']].append(p)
+        state=p['snapshot']
+        if not p.get('boundary_positive') or len(p['roots'])!=1 or state.get('ports') or state.get('scope',{}).get('semantics')!='positive-constructor-equality/v1':continue
+        # Each visible argument must already be an input port or a literal.
+        # Ambiguous/aliased ports not bound by this row fail the full-binding
+        # check below; absence of a binding is never treated as a wildcard.
+        known={resolve(state,parse_param(p,raw)):parse_param(p,raw) for raw in p['params']}
+        known.update({i:dict(kind='literal',sort=v['sort'],text=v['literal'])
+                      for i,v in enumerate(state['values']) if v.get('literal') is not None})
+        root=resolve(state,p['roots'][0]);seen=set()
+        for row in state['rows']:
+            if row['op'] in p['markers'] or row['result']!=root or any(a not in known for a in row['args']):continue
+            pattern=dict(kind='call',head=row['op'],args=[known[a] for a in row['args']])
+            raw=text(pattern)
+            if raw not in seen:index[row['op']].append((p,pattern));seen.add(raw)
+    def interface_key(parent,binding):
+        renaming=mapping_to(parent,groups[parent['family']][0])
+        return parent['family'],tuple(sorted((renaming[k],parent['param_sorts'][k],text(v)) for k,v in binding.items()))
+    existing=defaultdict(set)
+    for c in candidates:
+        if c.get('origin'):
+            for w in parent_wirings(c,c['params'],by_id):existing[c['id']].add(interface_key(w['parent'],w['native_subst']))
+    for edge in edges:
+        if edge.get('kind')=='certified_seed_cut':
+            for p in edge['seed_cut']['parents']:
+                existing[edge['target_unit']].add(interface_key(by_id[p['parent']],p['bindings']))
+    count=0
+    for c in candidates:
+        if not c.get('boundary_positive') or c['snapshot'].get('ports') or c['snapshot'].get('scope',{}).get('semantics')!='positive-constructor-equality/v1':continue
+        seen=set();cuts=[]
+        for raw,node in constructor_nodes(c).items():
+            for parent,pattern in index[node['head']]:
+                if parent['family']==c['family'] or parent['snapshot']['scope']!=c['snapshot']['scope']:continue
+                binding={}
+                if not match(pattern,node,parent,c,binding) or set(binding)!=set(parent['params']):continue
+                # An existing multi-parent interface already consumes this
+                # exact parent binding. Keep that route instead of generating
+                # all weaker parent subsets with new raw-lookup consumers.
+                if interface_key(parent,binding) in existing[c['id']]:continue
+                try:
+                    for act in parent['acts']:
+                        values=[resolve(c['snapshot'],substitute(e,binding)) for e in expressions([act])]
+                        if act['kind']=='union' and len(set(values))!=1:raise StopIteration
+                except (KeyError,StopIteration):continue
+                identity=(parent['family'],tuple(sorted((parent['params'][k],text(v)) for k,v in binding.items())),raw)
+                if identity in seen:continue
+                seen.add(identity)
+                cuts.append(dict(boundary=raw,parents=[dict(parent=parent['id'],bindings=binding)],
+                    proof=dict(kind='visible-parent-closure-row',row=text(pattern),
+                               environment='native-AST-positive-constructor-equality',
+                               target_contains_parent_seed_and_guards=True)))
+        for i,cut in enumerate(cuts):
+            options=[];descriptor=cut['parents'][0];parent=by_id[descriptor['parent']]
+            for target in groups[c['family']]:
+                ws=[wiring(c,descriptor,mapping_to(c,target),by_id)]
+                for source in groups[parent['family']]:
+                    opt=lower_option(c,target,ws,{parent['family']:source})
+                    opt['id']=f'boundary_{c["id"]}_{i}_{len(options)}';opt['proof_kind']='certified_boundary_cut'
+                    options.append(opt)
+            edges.append(dict(id=f'boundary_{c["id"]}_{i}',kind='certified_boundary_cut',target_unit=c['id'],
+                              observed_parents=[],seed_cut=cut,options=options))
+            count+=1
+    return count

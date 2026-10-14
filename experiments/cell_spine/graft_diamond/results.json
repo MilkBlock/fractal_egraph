@@ -1,0 +1,442 @@
+{
+  "date": "2026-10-14",
+  "scope": "actual native capture/ripen and generated spine differential checks; graph coverage is separate from soundness",
+  "coverage": {
+    "left-right": {
+      "independent_window_exists": true,
+      "linked_to_base": false,
+      "other_side_effect_absent": true
+    },
+    "right-left": {
+      "independent_window_exists": true,
+      "linked_to_base": false,
+      "other_side_effect_absent": true
+    },
+    "without-windows": {
+      "independent_right_exists": false
+    }
+  },
+  "closure_checks": {
+    "right_window_equals_right_only": {
+      "status": "equivalent",
+      "value_map": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "states": 8
+    },
+    "left_window_equals_left_only": {
+      "status": "equivalent",
+      "value_map": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "states": 8
+    },
+    "both_orders_equal": {
+      "status": "equivalent",
+      "value_map": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "states": 10
+    }
+  },
+  "before_fix": {
+    "case": "shared-family right-only",
+    "status": "different",
+    "expected": {
+      "Add": 2,
+      "Gate": 1,
+      "Mark": 1,
+      "V": 2
+    },
+    "actual": {
+      "Add": 2,
+      "Gate": 1,
+      "V": 2
+    }
+  },
+  "runtime_binary_sha256": "f67868a5331cefa470f188d7144cdb487c3d992e43be3873ef41ddbab6dc5b05",
+  "after_fix": {
+    "symmetric_compact": [
+      {
+        "case": "left",
+        "comparison": "equivalent",
+        "active_summary_tables": {
+          "Summary-0!": 0,
+          "Summary-1!": 1
+        },
+        "restored_constructor_rows": 6,
+        "original_rules_executed": false
+      },
+      {
+        "case": "right",
+        "comparison": "equivalent",
+        "active_summary_tables": {
+          "Summary-0!": 0,
+          "Summary-1!": 1
+        },
+        "restored_constructor_rows": 6,
+        "original_rules_executed": false
+      },
+      {
+        "case": "left-right",
+        "comparison": "equivalent",
+        "active_summary_tables": {
+          "Summary-0!": 0,
+          "Summary-1!": 2
+        },
+        "restored_constructor_rows": 8,
+        "original_rules_executed": false
+      },
+      {
+        "case": "right-left",
+        "comparison": "equivalent",
+        "active_summary_tables": {
+          "Summary-0!": 0,
+          "Summary-1!": 2
+        },
+        "restored_constructor_rows": 8,
+        "original_rules_executed": false
+      }
+    ],
+    "union_compact": [
+      {
+        "case": "before-union",
+        "comparison": "equivalent",
+        "active_summary_tables": {
+          "Summary-0!": 0,
+          "Summary-1!": 0
+        },
+        "restored_constructor_rows": 4,
+        "original_rules_executed": false
+      },
+      {
+        "case": "after-union",
+        "comparison": "equivalent",
+        "active_summary_tables": {
+          "Summary-0!": 1,
+          "Summary-1!": 1
+        },
+        "restored_constructor_rows": 6,
+        "original_rules_executed": false
+      }
+    ],
+    "delayed_compact": [
+      {
+        "case": "delayed-right-only",
+        "comparison": "equivalent",
+        "active_summary_tables": {
+          "Summary-0!": 0,
+          "Summary-1!": 0,
+          "Summary-2!": 0,
+          "Summary-3!": 1
+        },
+        "restored_constructor_rows": 8,
+        "original_rules_executed": false
+      }
+    ]
+  },
+  "history": {
+    "left": [
+      {
+        "consumer": "base",
+        "producers": [],
+        "context": [],
+        "all_predecessors": []
+      },
+      {
+        "consumer": "left",
+        "producers": [
+          [
+            "base"
+          ]
+        ],
+        "context": [
+          [
+            "base"
+          ]
+        ],
+        "all_predecessors": [
+          [
+            "base"
+          ]
+        ]
+      }
+    ],
+    "right": [
+      {
+        "consumer": "base",
+        "producers": [],
+        "context": [],
+        "all_predecessors": []
+      },
+      {
+        "consumer": "right",
+        "producers": [
+          [
+            "base"
+          ]
+        ],
+        "context": [
+          [
+            "base"
+          ]
+        ],
+        "all_predecessors": [
+          [
+            "base"
+          ]
+        ]
+      }
+    ],
+    "left-right": [
+      {
+        "consumer": "base",
+        "producers": [],
+        "context": [],
+        "all_predecessors": []
+      },
+      {
+        "consumer": "left",
+        "producers": [
+          [
+            "base"
+          ]
+        ],
+        "context": [
+          [
+            "base"
+          ]
+        ],
+        "all_predecessors": [
+          [
+            "base"
+          ]
+        ]
+      },
+      {
+        "consumer": "right",
+        "producers": [
+          [
+            "base"
+          ]
+        ],
+        "context": [
+          [
+            "base",
+            "left"
+          ]
+        ],
+        "all_predecessors": [
+          [
+            "base"
+          ],
+          [
+            "base",
+            "left"
+          ]
+        ]
+      }
+    ],
+    "right-left": [
+      {
+        "consumer": "base",
+        "producers": [],
+        "context": [],
+        "all_predecessors": []
+      },
+      {
+        "consumer": "right",
+        "producers": [
+          [
+            "base"
+          ]
+        ],
+        "context": [
+          [
+            "base"
+          ]
+        ],
+        "all_predecessors": [
+          [
+            "base"
+          ]
+        ]
+      },
+      {
+        "consumer": "left",
+        "producers": [
+          [
+            "base"
+          ]
+        ],
+        "context": [
+          [
+            "base",
+            "right"
+          ]
+        ],
+        "all_predecessors": [
+          [
+            "base"
+          ],
+          [
+            "base",
+            "right"
+          ]
+        ]
+      }
+    ],
+    "same-batch": [
+      {
+        "consumer": "base",
+        "producers": [],
+        "context": [],
+        "all_predecessors": []
+      },
+      {
+        "consumer": "left",
+        "producers": [
+          [
+            "base"
+          ]
+        ],
+        "context": [
+          [
+            "base"
+          ]
+        ],
+        "all_predecessors": [
+          [
+            "base"
+          ]
+        ]
+      },
+      {
+        "consumer": "right",
+        "producers": [
+          [
+            "base"
+          ]
+        ],
+        "context": [
+          [
+            "base"
+          ]
+        ],
+        "all_predecessors": [
+          [
+            "base"
+          ]
+        ]
+      }
+    ],
+    "without-windows": [
+      {
+        "consumer": "base",
+        "producers": [],
+        "context": [],
+        "all_predecessors": []
+      },
+      {
+        "consumer": "left",
+        "producers": [
+          [
+            "base"
+          ]
+        ],
+        "context": [
+          [
+            "base"
+          ]
+        ],
+        "all_predecessors": [
+          [
+            "base"
+          ]
+        ]
+      },
+      {
+        "consumer": "right",
+        "producers": [
+          [
+            "base"
+          ]
+        ],
+        "context": [
+          [
+            "base",
+            "left"
+          ]
+        ],
+        "all_predecessors": [
+          [
+            "base"
+          ],
+          [
+            "base",
+            "left"
+          ]
+        ]
+      }
+    ],
+    "union-disabled": [
+      {
+        "consumer": "base",
+        "producers": [],
+        "context": [],
+        "all_predecessors": []
+      }
+    ],
+    "union-enabled": [
+      {
+        "consumer": "base",
+        "producers": [],
+        "context": [],
+        "all_predecessors": []
+      },
+      {
+        "consumer": "enable",
+        "producers": [],
+        "context": [],
+        "all_predecessors": []
+      },
+      {
+        "consumer": "right",
+        "producers": [],
+        "context": [
+          [
+            "base"
+          ]
+        ],
+        "all_predecessors": [
+          [
+            "base"
+          ]
+        ]
+      }
+    ]
+  }
+}

@@ -152,6 +152,7 @@ class Session:
         from .compiler import parent_wirings
         cid=c['id'];fields=('acts','roots','params','param_sorts','nodes','lhs_atoms','signatures','rulesets','marker','markers')
         value={k:copy.deepcopy(c[k]) for k in fields};value['markers']=sorted(value['markers'])
+        value['boundary_positive']=c.get('boundary_positive',False)
         value['origin']={k:copy.deepcopy(c['origin'].get(k) or ({} if k=='composition' else [])) for k in ('symbolic_values','composition')}
         value['origin']['composition']['parts']=[]
         return dict(cell=c['knowledge_cell'],candidate=value,
@@ -218,9 +219,9 @@ def observations(candidates,edges,current_ids):
         cid=edge.get('target_unit',edge.get('id'))
         if cid not in current_ids:continue
         c=by_id[cid]
-        if edge.get('kind')=='certified_seed_cut':
+        if edge.get('kind') in ('certified_seed_cut','certified_boundary_cut'):
             pairs=[(by_id[p['parent']],p['bindings']) for p in edge['seed_cut']['parents']]
-            kind='certified-seed-cut'
+            kind=edge['kind'].replace('_','-')
         else:
             pairs=[(w['parent'],w['native_subst']) for w in parent_wirings(c,c['params'],by_id)]
             kind='observed-history'
