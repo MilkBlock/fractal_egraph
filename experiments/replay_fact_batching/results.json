@@ -1,0 +1,114 @@
+{
+  "ordering": {
+    "lift_all_to_start_rejected": "In 1:88-107: (fail (check (N 1)))\nCommand should have failed.",
+    "phase_preserving_passed": true,
+    "set_then_lookup": {
+      "batch_error": "In 1:151-162: (Cost (N 0))\nValue lookup of non-constructor function function in rule is disallowed.",
+      "batched_seen": null,
+      "complete_states_equal": null,
+      "direct_seen": [
+        5
+      ]
+    }
+  },
+  "scope": "standalone batching experiment on the actual local native egglog runtime; production analyze unchanged; no tracing or graph export; one run per variant; environment setup shared and reported separately; file output, full-state verification and compilation of this Rust executable excluded from timings",
+  "threads": 1,
+  "workloads": [
+    {
+      "batched": {
+        "batch_rules": 1,
+        "clone_ms": 0.040917,
+        "eclasses": 6,
+        "execute_ms": 0.6825410000000001,
+        "fact_actions": 6,
+        "generate_ms": 0.013042,
+        "install_ms": 0.025625,
+        "matches": 1,
+        "note": "direct execute includes per-command compilation; batch rule compilation is in install_ms; counts are logical matches, not committed writes",
+        "parse_ms": 0.051958,
+        "rows": 6,
+        "tables": {
+          "Add": 1,
+          "GateL": 0,
+          "GateR": 1,
+          "Left": 0,
+          "Right": 1,
+          "RipenInput": 2,
+          "Seed": 1,
+          "V": 0
+        },
+        "total_ms": 0.8140830000000001
+      },
+      "common_environment_setup_ms": 0.49879199999999996,
+      "complete_states_equal": true,
+      "direct": {
+        "batch_rules": 0,
+        "clone_ms": 0.081666,
+        "eclasses": 6,
+        "execute_ms": 0.87725,
+        "fact_actions": 6,
+        "generate_ms": 0.018125,
+        "install_ms": 0.009875,
+        "matches": 0,
+        "note": "direct execute includes per-command compilation; batch rule compilation is in install_ms; counts are logical matches, not committed writes",
+        "parse_ms": 0.049041,
+        "rows": 6,
+        "tables": {
+          "Add": 1,
+          "GateL": 0,
+          "GateR": 1,
+          "Left": 0,
+          "Right": 1,
+          "RipenInput": 2,
+          "Seed": 1,
+          "V": 0
+        },
+        "total_ms": 1.035957
+      },
+      "name": "real_replay",
+      "total_speedup": 1.2725446913889613
+    },
+    {
+      "batched": {
+        "batch_rules": 1,
+        "clone_ms": 0.032459,
+        "eclasses": 3072,
+        "execute_ms": 1.012041,
+        "fact_actions": 1024,
+        "generate_ms": 0.283875,
+        "install_ms": 14.1395,
+        "matches": 1,
+        "note": "direct execute includes per-command compilation; batch rule compilation is in install_ms; counts are logical matches, not committed writes",
+        "parse_ms": 1.281709,
+        "rows": 3072,
+        "tables": {
+          "Add": 1024,
+          "Num": 2048
+        },
+        "total_ms": 16.749584
+      },
+      "common_environment_setup_ms": 0.344833,
+      "complete_states_equal": true,
+      "direct": {
+        "batch_rules": 0,
+        "clone_ms": 0.027458,
+        "eclasses": 3072,
+        "execute_ms": 21.390875,
+        "fact_actions": 1024,
+        "generate_ms": 0.509667,
+        "install_ms": 0.0005,
+        "matches": 0,
+        "note": "direct execute includes per-command compilation; batch rule compilation is in install_ms; counts are logical matches, not committed writes",
+        "parse_ms": 1.6544590000000001,
+        "rows": 3072,
+        "tables": {
+          "Add": 1024,
+          "Num": 2048
+        },
+        "total_ms": 23.582959000000002
+      },
+      "name": "bulk_1024",
+      "total_speedup": 1.407972818907025
+    }
+  ]
+}
