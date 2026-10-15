@@ -79,6 +79,29 @@ retained as additional proposals. The MIP is optimal over those proposals,
 not over all recursive programs, and its structural cost is not a byte/time
 model. See [the native three-input example](../../experiments/cell_spine/knowledge/README.md).
 
+## Alternative entries from LHS coverage
+
+For the project-level method (history, ripen, closure identity, spine and boundary
+transitions), start with the [main README](../../README.md). This document details
+the compiler's supported contracts and optimization model.
+
+`--lhs-coverage report` indexes complete and anchored partial LHS matches in known
+closed Cells. The table preserves typed bindings, shared variables, remaining
+conditions and seed equality obligations. `--lhs-coverage entries` additionally
+emits one-rule alternative entry contracts; the default is `off`.
+
+For a certified seed K with Sat(K)=D, form E from a matched LHS plus seed facts
+not supplied by that rule's RHS. Admission checks that E and the resulting
+assertions stay inside D, all input ports remain bound and equality obligations
+are retained. E then supplies K after one application. Every emitted entrance
+also passes native full-state comparison before publication. These are inferred
+entrances, not invented history events or new closure families.
+
+The output `lhs-coverage.json` records the index and evidence. Generated runtime
+rules are in `library.egg`. No recursive predecessor search is performed, and
+primitive/destructive environments or automatic aliased-port transport remain
+outside this proof. See [the fixed-library held-out comparisons](../../experiments/cell_spine/lhs_coverage/README.md).
+
 ## Shared seed interfaces
 
 In `--cell-composition seed-cuts`, known target seeds can additionally use
