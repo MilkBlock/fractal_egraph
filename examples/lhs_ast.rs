@@ -211,6 +211,27 @@ fn export(source_name: &str, source: &str) -> Result<Json, Box<dyn Error>> {
         "signatures": signatures,
         "duplicate_signatures": duplicate_signatures,
         "rules": rules,
+        // Surface rewrite patterns are useful for shared matching circuits. Keep
+        // them separate from Rule bodies so existing consumers retain semantics.
+        "rewrites": commands.iter().enumerate().filter_map(|(ordinal, command)| {
+            match command {
+                Command::Rewrite(ruleset, rewrite, subsume) => Some(json!({
+                    "command_ordinal":ordinal,"ruleset":ruleset,"name":rewrite.name,
+                    "lhs":expression(&rewrite.lhs),"rhs":expression(&rewrite.rhs),
+                    "conditions":rewrite.conditions.iter().map(fact).collect::<Vec<_>>(),
+                    "subsume":subsume,"bidirectional":false,
+                    "source":source_location(&rewrite.span),
+                })),
+                Command::BiRewrite(ruleset, rewrite) => Some(json!({
+                    "command_ordinal":ordinal,"ruleset":ruleset,"name":rewrite.name,
+                    "lhs":expression(&rewrite.lhs),"rhs":expression(&rewrite.rhs),
+                    "conditions":rewrite.conditions.iter().map(fact).collect::<Vec<_>>(),
+                    "subsume":false,"bidirectional":true,
+                    "source":source_location(&rewrite.span),
+                })),
+                _ => None,
+            }
+        }).collect::<Vec<_>>(),
         "other_commands": other_commands,
         "actions":actions,
         "checks": commands.iter().enumerate().filter_map(|(ordinal, c)| {
