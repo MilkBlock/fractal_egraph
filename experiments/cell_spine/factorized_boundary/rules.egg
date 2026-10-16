@@ -1,0 +1,7 @@
+; Verbatim rewrites from egglog/tests/math-microbenchmark.egg:19,20,33,34.
+; Only the datatype and inputs are reduced for this experiment.
+(datatype Math (Add Math Math) (Mul Math Math) (Var String))
+(rewrite (Add a b) (Add b a))
+(rewrite (Mul a b) (Mul b a))
+(rewrite (Mul a (Add b c)) (Add (Mul a b) (Mul a c)))
+(rewrite (Add (Mul a b) (Mul a c)) (Mul a (Add b c)))

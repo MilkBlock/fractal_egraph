@@ -1,0 +1,241 @@
+{
+  "scope": "standalone exact CPU factorization/matrix prototype; native egglog correctness oracle; not GPU or runtime acceleration",
+  "cells": [
+    "(Mul (Var \"x\") (Add (Var \"a\") (Var \"b\")))",
+    "(Mul (Var \"x\") (Add (Var \"c\") (Var \"d\")))",
+    "(Mul (Var \"y\") (Add (Var \"a\") (Var \"b\")))",
+    "(Mul (Var \"z\") (Add (Var \"e\") (Var \"f\")))"
+  ],
+  "candidates_per_cell": [
+    12,
+    12,
+    12,
+    12
+  ],
+  "expanded_tree_nodes": 304,
+  "shared_dag_nodes": 70,
+  "ordinary_term_hashcons_nodes": 79,
+  "ordinary_term_hashcons_json_bytes": 1217,
+  "factorized_json_bytes": 938,
+  "flat_json_bytes": 3145,
+  "compact_full_candidates_enumerated": 0,
+  "validation_candidates_enumerated": 48,
+  "naive_candidate_pairs": 2304,
+  "full_root_binding_records": 8,
+  "native_distinct_bindings": 12,
+  "positive_cell_pairs": 8,
+  "complete_native_term_family": true,
+  "brute_force_equal": true,
+  "native_binding_equal": true,
+  "native_graft_checks": 12,
+  "binding_columns": [
+    [
+      "(Add (Var \"a\") (Var \"b\"))",
+      "(Var \"x\")"
+    ],
+    [
+      "(Add (Var \"a\") (Var \"b\"))",
+      "(Var \"y\")"
+    ],
+    [
+      "(Add (Var \"c\") (Var \"d\"))",
+      "(Var \"x\")"
+    ],
+    [
+      "(Add (Var \"e\") (Var \"f\"))",
+      "(Var \"z\")"
+    ],
+    [
+      "(Var \"x\")",
+      "(Add (Var \"a\") (Var \"b\"))"
+    ],
+    [
+      "(Var \"x\")",
+      "(Add (Var \"c\") (Var \"d\"))"
+    ],
+    [
+      "(Var \"y\")",
+      "(Add (Var \"a\") (Var \"b\"))"
+    ],
+    [
+      "(Var \"z\")",
+      "(Add (Var \"e\") (Var \"f\"))"
+    ]
+  ],
+  "Q": [
+    [
+      2,
+      0,
+      0,
+      0,
+      2,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      2,
+      0,
+      0,
+      2,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      0,
+      0,
+      0,
+      0,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      2,
+      0,
+      0,
+      0,
+      2
+    ]
+  ],
+  "factor_columns": [
+    "(Add (Var \"a\") (Var \"b\"))",
+    "(Add (Var \"c\") (Var \"d\"))",
+    "(Add (Var \"e\") (Var \"f\"))",
+    "(Var \"x\")",
+    "(Var \"y\")",
+    "(Var \"z\")"
+  ],
+  "F": [
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      1,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ]
+  ],
+  "V": [
+    [
+      2,
+      0,
+      0,
+      2,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      0,
+      2,
+      0,
+      0
+    ],
+    [
+      2,
+      0,
+      0,
+      0,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      2,
+      0,
+      0,
+      2
+    ]
+  ],
+  "scores": [
+    [
+      8,
+      4,
+      4,
+      0
+    ],
+    [
+      4,
+      8,
+      0,
+      0
+    ],
+    [
+      4,
+      0,
+      8,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      8
+    ]
+  ]
+}

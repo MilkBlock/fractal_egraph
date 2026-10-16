@@ -1,0 +1,13 @@
+; Verbatim rewrites from egglog/tests/math-microbenchmark.egg:19,20,33,34.
+; Only the datatype and inputs are reduced for this experiment.
+(datatype Math (Add Math Math) (Mul Math Math) (Var String))
+(rewrite (Add a b) (Add b a))
+(rewrite (Mul a b) (Mul b a))
+(rewrite (Mul a (Add b c)) (Add (Mul a b) (Mul a c)))
+(rewrite (Add (Mul a b) (Mul a c)) (Mul a (Add b c)))
+
+(let c0 (Mul (Var "x") (Add (Var "a") (Var "b"))))
+(let c1 (Mul (Var "x") (Add (Var "c") (Var "d"))))
+(let c2 (Mul (Var "y") (Add (Var "a") (Var "b"))))
+(let c3 (Mul (Var "z") (Add (Var "e") (Var "f"))))
+(run-schedule (saturate (run)))
