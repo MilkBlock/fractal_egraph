@@ -1,79 +1,143 @@
 {
-  "scope": "standalone exact CPU factorization/matrix prototype; native egglog correctness oracle; not GPU or runtime acceleration",
-  "cells": [
-    "(Mul (Var \"x\") (Add (Var \"a\") (Var \"b\")))",
-    "(Mul (Var \"x\") (Add (Var \"c\") (Var \"d\")))",
-    "(Mul (Var \"y\") (Add (Var \"a\") (Var \"b\")))",
-    "(Mul (Var \"z\") (Add (Var \"e\") (Var \"f\")))"
+  "scope": "standalone parameterized CPU prototype; native closure oracle; no production/GPU acceleration",
+  "template_count": 2,
+  "instance_count": 4,
+  "templates": [
+    "(Mul (RipenInput 0) (Add (RipenInput 1) (RipenInput 2)))",
+    "(Add (Mul (RipenInput 0) (Add (RipenInput 1) (RipenInput 2))) (Mul (RipenInput 0) (RipenInput 3)))"
   ],
-  "candidates_per_cell": [
-    12,
-    12,
-    12,
-    12
+  "instances": [
+    {
+      "template": 0,
+      "binding": [
+        "x",
+        "a",
+        "b"
+      ]
+    },
+    {
+      "template": 1,
+      "binding": [
+        "x",
+        "a",
+        "b",
+        "c"
+      ]
+    },
+    {
+      "template": 0,
+      "binding": [
+        "z",
+        "a",
+        "b"
+      ]
+    },
+    {
+      "template": 1,
+      "binding": [
+        "y",
+        "d",
+        "e",
+        "f"
+      ]
+    }
   ],
-  "expanded_tree_nodes": 304,
-  "shared_dag_nodes": 70,
-  "ordinary_term_hashcons_nodes": 79,
-  "ordinary_term_hashcons_json_bytes": 1217,
-  "factorized_json_bytes": 938,
-  "flat_json_bytes": 3145,
-  "compact_full_candidates_enumerated": 0,
-  "validation_candidates_enumerated": 48,
-  "naive_candidate_pairs": 2304,
-  "full_root_binding_records": 8,
-  "native_distinct_bindings": 12,
-  "positive_cell_pairs": 8,
+  "template_candidates": [
+    12,
+    56
+  ],
+  "template_shapes": [
+    {
+      "eclasses": 7,
+      "enodes": 13,
+      "sorts": {
+        "Math": {
+          "eclasses": 7,
+          "enodes": 13
+        }
+      },
+      "tables": {
+        "Add": 4,
+        "Mul": 6,
+        "RipenInput": 3
+      }
+    },
+    {
+      "eclasses": 11,
+      "enodes": 22,
+      "sorts": {
+        "Math": {
+          "eclasses": 11,
+          "enodes": 22
+        }
+      },
+      "tables": {
+        "Add": 8,
+        "Mul": 10,
+        "RipenInput": 4
+      }
+    }
+  ],
+  "shared_nodes": 17,
+  "smaller_template_is_subcircuit": true,
+  "storage": {
+    "parameterized_term_hashcons_bytes": 1340,
+    "parameterized_term_hashcons_nodes": 84,
+    "independent_factorized_bytes": 638,
+    "independent_factorized_nodes": 46,
+    "shared_factorized_bytes": 403,
+    "shared_factorized_nodes": 29,
+    "ripsat_egraph_bytes": 382,
+    "ripsat_enodes": 22,
+    "ripsat_eclasses": 11,
+    "binding_bytes": 165,
+    "compiled_projection_bytes": 283
+  },
+  "structural_sharing_same_as_ripsat": true,
+  "symbolic_projection_compilations": 2,
+  "compact_candidates_enumerated": 0,
+  "validation_candidates_enumerated": 68,
+  "validation_instance_candidate_pairs": 18496,
   "complete_native_term_family": true,
-  "brute_force_equal": true,
   "native_binding_equal": true,
+  "native_distinct_bindings": 12,
   "native_graft_checks": 12,
   "binding_columns": [
     [
-      "(Add (Var \"a\") (Var \"b\"))",
+      "(Add (Add (Var \"a\") (Var \"b\")) (Var \"c\"))",
       "(Var \"x\")"
     ],
     [
-      "(Add (Var \"a\") (Var \"b\"))",
+      "(Add (Add (Var \"d\") (Var \"e\")) (Var \"f\"))",
       "(Var \"y\")"
     ],
     [
-      "(Add (Var \"c\") (Var \"d\"))",
+      "(Add (Var \"a\") (Var \"b\"))",
       "(Var \"x\")"
     ],
     [
-      "(Add (Var \"e\") (Var \"f\"))",
+      "(Add (Var \"a\") (Var \"b\"))",
       "(Var \"z\")"
     ],
     [
       "(Var \"x\")",
-      "(Add (Var \"a\") (Var \"b\"))"
+      "(Add (Add (Var \"a\") (Var \"b\")) (Var \"c\"))"
     ],
     [
       "(Var \"x\")",
-      "(Add (Var \"c\") (Var \"d\"))"
-    ],
-    [
-      "(Var \"y\")",
       "(Add (Var \"a\") (Var \"b\"))"
     ],
     [
+      "(Var \"y\")",
+      "(Add (Add (Var \"d\") (Var \"e\")) (Var \"f\"))"
+    ],
+    [
       "(Var \"z\")",
-      "(Add (Var \"e\") (Var \"f\"))"
+      "(Add (Var \"a\") (Var \"b\"))"
     ]
   ],
   "Q": [
     [
-      2,
-      0,
-      0,
-      0,
-      2,
-      0,
-      0,
-      0
-    ],
-    [
       0,
       0,
       2,
@@ -84,13 +148,13 @@
       0
     ],
     [
-      0,
-      2,
-      0,
+      4,
       0,
       0,
       0,
-      2,
+      4,
+      0,
+      0,
       0
     ],
     [
@@ -102,12 +166,22 @@
       0,
       0,
       2
+    ],
+    [
+      0,
+      4,
+      0,
+      0,
+      0,
+      0,
+      4,
+      0
     ]
   ],
   "factor_columns": [
+    "(Add (Add (Var \"a\") (Var \"b\")) (Var \"c\"))",
+    "(Add (Add (Var \"d\") (Var \"e\")) (Var \"f\"))",
     "(Add (Var \"a\") (Var \"b\"))",
-    "(Add (Var \"c\") (Var \"d\"))",
-    "(Add (Var \"e\") (Var \"f\"))",
     "(Var \"x\")",
     "(Var \"y\")",
     "(Var \"z\")"
@@ -122,8 +196,8 @@
       0
     ],
     [
-      1,
       0,
+      1,
       0,
       0,
       0,
@@ -131,8 +205,8 @@
     ],
     [
       0,
-      1,
       0,
+      1,
       0,
       0,
       0
@@ -180,27 +254,19 @@
   ],
   "V": [
     [
-      2,
       0,
       0,
       2,
-      0,
-      0
-    ],
-    [
-      0,
-      2,
-      0,
       2,
       0,
       0
     ],
     [
-      2,
+      4,
       0,
       0,
+      4,
       0,
-      2,
       0
     ],
     [
@@ -210,18 +276,26 @@
       0,
       0,
       2
+    ],
+    [
+      0,
+      4,
+      0,
+      0,
+      4,
+      0
     ]
   ],
   "scores": [
     [
       8,
-      4,
-      4,
-      0
-    ],
-    [
-      4,
       8,
+      4,
+      0
+    ],
+    [
+      8,
+      32,
       0,
       0
     ],
@@ -235,7 +309,12 @@
       0,
       0,
       0,
-      8
+      32
     ]
-  ]
+  ],
+  "provenance": {
+    "head": "b6bf07be405652a014fe4e64a0fa6591dc4863a9",
+    "rules_sha256": "91193bb4878d91317efe47a76aa1e4456ff0fc3a281d0b01cb57f39eb5756910",
+    "native_binary_sha256": "6d0328c46bd21feffa2723028339029f4e0b581913d52e67bae32a2b78956901"
+  }
 }

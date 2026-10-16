@@ -7,7 +7,7 @@
 (rewrite (Add (Mul a b) (Mul a c)) (Mul a (Add b c)))
 
 (let c0 (Mul (Var "x") (Add (Var "a") (Var "b"))))
-(let c1 (Mul (Var "x") (Add (Var "c") (Var "d"))))
-(let c2 (Mul (Var "y") (Add (Var "a") (Var "b"))))
-(let c3 (Mul (Var "z") (Add (Var "e") (Var "f"))))
+(let c1 (Add (Mul (Var "x") (Add (Var "a") (Var "b"))) (Mul (Var "x") (Var "c"))))
+(let c2 (Mul (Var "z") (Add (Var "a") (Var "b"))))
+(let c3 (Add (Mul (Var "y") (Add (Var "d") (Var "e"))) (Mul (Var "y") (Var "f"))))
 (run-schedule (saturate (run)))
