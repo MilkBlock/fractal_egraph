@@ -1,0 +1,644 @@
+{
+  "scope": "semantic density and exact rational rank audit; CPU/native correctness; not a GPU benchmark",
+  "response_query": "fix one LHS variable, existentially remove the others, return matching anchors",
+  "responses": [
+    {
+      "cell": 0,
+      "raw": {
+        "shape": [
+          70,
+          7
+        ],
+        "nonzeros": 30,
+        "density": 0.061224489795918366,
+        "exact_rank": 5,
+        "nonzero_distinct_rows": 6,
+        "dense_multiply_adds": 490,
+        "rank_factor_multiply_adds": 385,
+        "shared_row_dot_multiply_adds": 42,
+        "shared_row_nonzero_multiply_adds": 11,
+        "nonzero_multiply_adds": 30
+      },
+      "active": {
+        "shape": [
+          16,
+          6
+        ],
+        "nonzeros": 30,
+        "density": 0.3125,
+        "exact_rank": 5,
+        "nonzero_distinct_rows": 6,
+        "dense_multiply_adds": 96,
+        "rank_factor_multiply_adds": 110,
+        "shared_row_dot_multiply_adds": 36,
+        "shared_row_nonzero_multiply_adds": 11,
+        "nonzero_multiply_adds": 30
+      },
+      "native_equal": true,
+      "batch_query_equal": true
+    },
+    {
+      "cell": 1,
+      "raw": {
+        "shape": [
+          110,
+          11
+        ],
+        "nonzeros": 56,
+        "density": 0.04628099173553719,
+        "exact_rank": 8,
+        "nonzero_distinct_rows": 10,
+        "dense_multiply_adds": 1210,
+        "rank_factor_multiply_adds": 968,
+        "shared_row_dot_multiply_adds": 110,
+        "shared_row_nonzero_multiply_adds": 19,
+        "nonzero_multiply_adds": 56
+      },
+      "active": {
+        "shape": [
+          30,
+          10
+        ],
+        "nonzeros": 56,
+        "density": 0.18666666666666668,
+        "exact_rank": 8,
+        "nonzero_distinct_rows": 10,
+        "dense_multiply_adds": 300,
+        "rank_factor_multiply_adds": 320,
+        "shared_row_dot_multiply_adds": 100,
+        "shared_row_nonzero_multiply_adds": 19,
+        "nonzero_multiply_adds": 56
+      },
+      "native_equal": true,
+      "batch_query_equal": true
+    }
+  ],
+  "interaction": {
+    "raw_channels": 64,
+    "unique_channels": 32,
+    "raw_potential": {
+      "shape": [
+        64,
+        64
+      ],
+      "nonzeros": 462,
+      "density": 0.11279296875,
+      "exact_rank": 15,
+      "nonzero_distinct_rows": 15,
+      "dense_multiply_adds": 4096,
+      "rank_factor_multiply_adds": 1920,
+      "shared_row_dot_multiply_adds": 960,
+      "shared_row_nonzero_multiply_adds": 64,
+      "nonzero_multiply_adds": 462
+    },
+    "potential": {
+      "shape": [
+        32,
+        32
+      ],
+      "nonzeros": 110,
+      "density": 0.107421875,
+      "exact_rank": 15,
+      "nonzero_distinct_rows": 15,
+      "dense_multiply_adds": 1024,
+      "rank_factor_multiply_adds": 960,
+      "shared_row_dot_multiply_adds": 480,
+      "shared_row_nonzero_multiply_adds": 32,
+      "nonzero_multiply_adds": 110
+    },
+    "existing": {
+      "shape": [
+        32,
+        32
+      ],
+      "nonzeros": 14,
+      "density": 0.013671875,
+      "exact_rank": 12,
+      "nonzero_distinct_rows": 12,
+      "dense_multiply_adds": 1024,
+      "rank_factor_multiply_adds": 768,
+      "shared_row_dot_multiply_adds": 384,
+      "shared_row_nonzero_multiply_adds": 14,
+      "nonzero_multiply_adds": 14
+    },
+    "active_existing": {
+      "shape": [
+        12,
+        12
+      ],
+      "nonzeros": 14,
+      "density": 0.09722222222222222,
+      "exact_rank": 12,
+      "nonzero_distinct_rows": 12,
+      "dense_multiply_adds": 144,
+      "rank_factor_multiply_adds": 288,
+      "shared_row_dot_multiply_adds": 144,
+      "shared_row_nonzero_multiply_adds": 14,
+      "nonzero_multiply_adds": 14
+    },
+    "native_existing_matches": 14,
+    "native_equal": true,
+    "synthetic_graft_facts_added": 0
+  },
+  "blocks": [
+    {
+      "factor": "(Var \"z\")",
+      "potential": {
+        "shape": [
+          6,
+          6
+        ],
+        "nonzeros": 36,
+        "density": 1.0,
+        "exact_rank": 1,
+        "nonzero_distinct_rows": 1,
+        "dense_multiply_adds": 36,
+        "rank_factor_multiply_adds": 12,
+        "shared_row_dot_multiply_adds": 6,
+        "shared_row_nonzero_multiply_adds": 6,
+        "nonzero_multiply_adds": 36
+      },
+      "existing": {
+        "shape": [
+          6,
+          6
+        ],
+        "nonzeros": 6,
+        "density": 0.16666666666666666,
+        "exact_rank": 4,
+        "nonzero_distinct_rows": 4,
+        "dense_multiply_adds": 36,
+        "rank_factor_multiply_adds": 48,
+        "shared_row_dot_multiply_adds": 24,
+        "shared_row_nonzero_multiply_adds": 6,
+        "nonzero_multiply_adds": 6
+      }
+    },
+    {
+      "factor": "(Var \"x\")",
+      "potential": {
+        "shape": [
+          5,
+          5
+        ],
+        "nonzeros": 25,
+        "density": 1.0,
+        "exact_rank": 1,
+        "nonzero_distinct_rows": 1,
+        "dense_multiply_adds": 25,
+        "rank_factor_multiply_adds": 10,
+        "shared_row_dot_multiply_adds": 5,
+        "shared_row_nonzero_multiply_adds": 5,
+        "nonzero_multiply_adds": 25
+      },
+      "existing": {
+        "shape": [
+          5,
+          5
+        ],
+        "nonzeros": 4,
+        "density": 0.16,
+        "exact_rank": 4,
+        "nonzero_distinct_rows": 4,
+        "dense_multiply_adds": 25,
+        "rank_factor_multiply_adds": 40,
+        "shared_row_dot_multiply_adds": 20,
+        "shared_row_nonzero_multiply_adds": 4,
+        "nonzero_multiply_adds": 4
+      }
+    },
+    {
+      "factor": "(Var \"y\")",
+      "potential": {
+        "shape": [
+          5,
+          5
+        ],
+        "nonzeros": 25,
+        "density": 1.0,
+        "exact_rank": 1,
+        "nonzero_distinct_rows": 1,
+        "dense_multiply_adds": 25,
+        "rank_factor_multiply_adds": 10,
+        "shared_row_dot_multiply_adds": 5,
+        "shared_row_nonzero_multiply_adds": 5,
+        "nonzero_multiply_adds": 25
+      },
+      "existing": {
+        "shape": [
+          5,
+          5
+        ],
+        "nonzeros": 4,
+        "density": 0.16,
+        "exact_rank": 4,
+        "nonzero_distinct_rows": 4,
+        "dense_multiply_adds": 25,
+        "rank_factor_multiply_adds": 40,
+        "shared_row_dot_multiply_adds": 20,
+        "shared_row_nonzero_multiply_adds": 4,
+        "nonzero_multiply_adds": 4
+      }
+    },
+    {
+      "factor": "(Add (Var \"a\") (Var \"b\"))",
+      "potential": {
+        "shape": [
+          2,
+          2
+        ],
+        "nonzeros": 4,
+        "density": 1.0,
+        "exact_rank": 1,
+        "nonzero_distinct_rows": 1,
+        "dense_multiply_adds": 4,
+        "rank_factor_multiply_adds": 4,
+        "shared_row_dot_multiply_adds": 2,
+        "shared_row_nonzero_multiply_adds": 2,
+        "nonzero_multiply_adds": 4
+      },
+      "existing": {
+        "shape": [
+          2,
+          2
+        ],
+        "nonzeros": 0,
+        "density": 0.0,
+        "exact_rank": 0,
+        "nonzero_distinct_rows": 0,
+        "dense_multiply_adds": 4,
+        "rank_factor_multiply_adds": 0,
+        "shared_row_dot_multiply_adds": 0,
+        "shared_row_nonzero_multiply_adds": 0,
+        "nonzero_multiply_adds": 0
+      }
+    },
+    {
+      "factor": "(Var \"a\")",
+      "potential": {
+        "shape": [
+          2,
+          2
+        ],
+        "nonzeros": 4,
+        "density": 1.0,
+        "exact_rank": 1,
+        "nonzero_distinct_rows": 1,
+        "dense_multiply_adds": 4,
+        "rank_factor_multiply_adds": 4,
+        "shared_row_dot_multiply_adds": 2,
+        "shared_row_nonzero_multiply_adds": 2,
+        "nonzero_multiply_adds": 4
+      },
+      "existing": {
+        "shape": [
+          2,
+          2
+        ],
+        "nonzeros": 0,
+        "density": 0.0,
+        "exact_rank": 0,
+        "nonzero_distinct_rows": 0,
+        "dense_multiply_adds": 4,
+        "rank_factor_multiply_adds": 0,
+        "shared_row_dot_multiply_adds": 0,
+        "shared_row_nonzero_multiply_adds": 0,
+        "nonzero_multiply_adds": 0
+      }
+    },
+    {
+      "factor": "(Var \"b\")",
+      "potential": {
+        "shape": [
+          2,
+          2
+        ],
+        "nonzeros": 4,
+        "density": 1.0,
+        "exact_rank": 1,
+        "nonzero_distinct_rows": 1,
+        "dense_multiply_adds": 4,
+        "rank_factor_multiply_adds": 4,
+        "shared_row_dot_multiply_adds": 2,
+        "shared_row_nonzero_multiply_adds": 2,
+        "nonzero_multiply_adds": 4
+      },
+      "existing": {
+        "shape": [
+          2,
+          2
+        ],
+        "nonzeros": 0,
+        "density": 0.0,
+        "exact_rank": 0,
+        "nonzero_distinct_rows": 0,
+        "dense_multiply_adds": 4,
+        "rank_factor_multiply_adds": 0,
+        "shared_row_dot_multiply_adds": 0,
+        "shared_row_nonzero_multiply_adds": 0,
+        "nonzero_multiply_adds": 0
+      }
+    },
+    {
+      "factor": "(Var \"c\")",
+      "potential": {
+        "shape": [
+          2,
+          2
+        ],
+        "nonzeros": 4,
+        "density": 1.0,
+        "exact_rank": 1,
+        "nonzero_distinct_rows": 1,
+        "dense_multiply_adds": 4,
+        "rank_factor_multiply_adds": 4,
+        "shared_row_dot_multiply_adds": 2,
+        "shared_row_nonzero_multiply_adds": 2,
+        "nonzero_multiply_adds": 4
+      },
+      "existing": {
+        "shape": [
+          2,
+          2
+        ],
+        "nonzeros": 0,
+        "density": 0.0,
+        "exact_rank": 0,
+        "nonzero_distinct_rows": 0,
+        "dense_multiply_adds": 4,
+        "rank_factor_multiply_adds": 0,
+        "shared_row_dot_multiply_adds": 0,
+        "shared_row_nonzero_multiply_adds": 0,
+        "nonzero_multiply_adds": 0
+      }
+    },
+    {
+      "factor": "(Add (Add (Var \"a\") (Var \"b\")) (Var \"c\"))",
+      "potential": {
+        "shape": [
+          1,
+          1
+        ],
+        "nonzeros": 1,
+        "density": 1.0,
+        "exact_rank": 1,
+        "nonzero_distinct_rows": 1,
+        "dense_multiply_adds": 1,
+        "rank_factor_multiply_adds": 2,
+        "shared_row_dot_multiply_adds": 1,
+        "shared_row_nonzero_multiply_adds": 1,
+        "nonzero_multiply_adds": 1
+      },
+      "existing": {
+        "shape": [
+          1,
+          1
+        ],
+        "nonzeros": 0,
+        "density": 0.0,
+        "exact_rank": 0,
+        "nonzero_distinct_rows": 0,
+        "dense_multiply_adds": 1,
+        "rank_factor_multiply_adds": 0,
+        "shared_row_dot_multiply_adds": 0,
+        "shared_row_nonzero_multiply_adds": 0,
+        "nonzero_multiply_adds": 0
+      }
+    },
+    {
+      "factor": "(Add (Add (Var \"a\") (Var \"c\")) (Var \"b\"))",
+      "potential": {
+        "shape": [
+          1,
+          1
+        ],
+        "nonzeros": 1,
+        "density": 1.0,
+        "exact_rank": 1,
+        "nonzero_distinct_rows": 1,
+        "dense_multiply_adds": 1,
+        "rank_factor_multiply_adds": 2,
+        "shared_row_dot_multiply_adds": 1,
+        "shared_row_nonzero_multiply_adds": 1,
+        "nonzero_multiply_adds": 1
+      },
+      "existing": {
+        "shape": [
+          1,
+          1
+        ],
+        "nonzeros": 0,
+        "density": 0.0,
+        "exact_rank": 0,
+        "nonzero_distinct_rows": 0,
+        "dense_multiply_adds": 1,
+        "rank_factor_multiply_adds": 0,
+        "shared_row_dot_multiply_adds": 0,
+        "shared_row_nonzero_multiply_adds": 0,
+        "nonzero_multiply_adds": 0
+      }
+    },
+    {
+      "factor": "(Add (Add (Var \"d\") (Var \"e\")) (Var \"f\"))",
+      "potential": {
+        "shape": [
+          1,
+          1
+        ],
+        "nonzeros": 1,
+        "density": 1.0,
+        "exact_rank": 1,
+        "nonzero_distinct_rows": 1,
+        "dense_multiply_adds": 1,
+        "rank_factor_multiply_adds": 2,
+        "shared_row_dot_multiply_adds": 1,
+        "shared_row_nonzero_multiply_adds": 1,
+        "nonzero_multiply_adds": 1
+      },
+      "existing": {
+        "shape": [
+          1,
+          1
+        ],
+        "nonzeros": 0,
+        "density": 0.0,
+        "exact_rank": 0,
+        "nonzero_distinct_rows": 0,
+        "dense_multiply_adds": 1,
+        "rank_factor_multiply_adds": 0,
+        "shared_row_dot_multiply_adds": 0,
+        "shared_row_nonzero_multiply_adds": 0,
+        "nonzero_multiply_adds": 0
+      }
+    },
+    {
+      "factor": "(Add (Var \"a\") (Var \"c\"))",
+      "potential": {
+        "shape": [
+          1,
+          1
+        ],
+        "nonzeros": 1,
+        "density": 1.0,
+        "exact_rank": 1,
+        "nonzero_distinct_rows": 1,
+        "dense_multiply_adds": 1,
+        "rank_factor_multiply_adds": 2,
+        "shared_row_dot_multiply_adds": 1,
+        "shared_row_nonzero_multiply_adds": 1,
+        "nonzero_multiply_adds": 1
+      },
+      "existing": {
+        "shape": [
+          1,
+          1
+        ],
+        "nonzeros": 0,
+        "density": 0.0,
+        "exact_rank": 0,
+        "nonzero_distinct_rows": 0,
+        "dense_multiply_adds": 1,
+        "rank_factor_multiply_adds": 0,
+        "shared_row_dot_multiply_adds": 0,
+        "shared_row_nonzero_multiply_adds": 0,
+        "nonzero_multiply_adds": 0
+      }
+    },
+    {
+      "factor": "(Add (Var \"d\") (Var \"e\"))",
+      "potential": {
+        "shape": [
+          1,
+          1
+        ],
+        "nonzeros": 1,
+        "density": 1.0,
+        "exact_rank": 1,
+        "nonzero_distinct_rows": 1,
+        "dense_multiply_adds": 1,
+        "rank_factor_multiply_adds": 2,
+        "shared_row_dot_multiply_adds": 1,
+        "shared_row_nonzero_multiply_adds": 1,
+        "nonzero_multiply_adds": 1
+      },
+      "existing": {
+        "shape": [
+          1,
+          1
+        ],
+        "nonzeros": 0,
+        "density": 0.0,
+        "exact_rank": 0,
+        "nonzero_distinct_rows": 0,
+        "dense_multiply_adds": 1,
+        "rank_factor_multiply_adds": 0,
+        "shared_row_dot_multiply_adds": 0,
+        "shared_row_nonzero_multiply_adds": 0,
+        "nonzero_multiply_adds": 0
+      }
+    },
+    {
+      "factor": "(Var \"d\")",
+      "potential": {
+        "shape": [
+          1,
+          1
+        ],
+        "nonzeros": 1,
+        "density": 1.0,
+        "exact_rank": 1,
+        "nonzero_distinct_rows": 1,
+        "dense_multiply_adds": 1,
+        "rank_factor_multiply_adds": 2,
+        "shared_row_dot_multiply_adds": 1,
+        "shared_row_nonzero_multiply_adds": 1,
+        "nonzero_multiply_adds": 1
+      },
+      "existing": {
+        "shape": [
+          1,
+          1
+        ],
+        "nonzeros": 0,
+        "density": 0.0,
+        "exact_rank": 0,
+        "nonzero_distinct_rows": 0,
+        "dense_multiply_adds": 1,
+        "rank_factor_multiply_adds": 0,
+        "shared_row_dot_multiply_adds": 0,
+        "shared_row_nonzero_multiply_adds": 0,
+        "nonzero_multiply_adds": 0
+      }
+    },
+    {
+      "factor": "(Var \"e\")",
+      "potential": {
+        "shape": [
+          1,
+          1
+        ],
+        "nonzeros": 1,
+        "density": 1.0,
+        "exact_rank": 1,
+        "nonzero_distinct_rows": 1,
+        "dense_multiply_adds": 1,
+        "rank_factor_multiply_adds": 2,
+        "shared_row_dot_multiply_adds": 1,
+        "shared_row_nonzero_multiply_adds": 1,
+        "nonzero_multiply_adds": 1
+      },
+      "existing": {
+        "shape": [
+          1,
+          1
+        ],
+        "nonzeros": 0,
+        "density": 0.0,
+        "exact_rank": 0,
+        "nonzero_distinct_rows": 0,
+        "dense_multiply_adds": 1,
+        "rank_factor_multiply_adds": 0,
+        "shared_row_dot_multiply_adds": 0,
+        "shared_row_nonzero_multiply_adds": 0,
+        "nonzero_multiply_adds": 0
+      }
+    },
+    {
+      "factor": "(Var \"f\")",
+      "potential": {
+        "shape": [
+          1,
+          1
+        ],
+        "nonzeros": 1,
+        "density": 1.0,
+        "exact_rank": 1,
+        "nonzero_distinct_rows": 1,
+        "dense_multiply_adds": 1,
+        "rank_factor_multiply_adds": 2,
+        "shared_row_dot_multiply_adds": 1,
+        "shared_row_nonzero_multiply_adds": 1,
+        "nonzero_multiply_adds": 1
+      },
+      "existing": {
+        "shape": [
+          1,
+          1
+        ],
+        "nonzeros": 0,
+        "density": 0.0,
+        "exact_rank": 0,
+        "nonzero_distinct_rows": 0,
+        "dense_multiply_adds": 1,
+        "rank_factor_multiply_adds": 0,
+        "shared_row_dot_multiply_adds": 0,
+        "shared_row_nonzero_multiply_adds": 0,
+        "nonzero_multiply_adds": 0
+      }
+    }
+  ],
+  "outcome": "potential complete blocks are rank one; existing-context and query-response matrices are not rich dense operators",
+  "provenance": {
+    "head": "50ea909da12103ba775f6854af473fab73068f7c"
+  }
+}
