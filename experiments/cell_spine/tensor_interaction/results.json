@@ -1,0 +1,218 @@
+{
+  "scope": "exact finite-domain TPR CPU prototype; numerical pairing only; no GPU speed or general union claim",
+  "alphabet": [
+    "x",
+    "a",
+    "b",
+    "c",
+    "z",
+    "y",
+    "d",
+    "e",
+    "f",
+    "g",
+    "h",
+    "i",
+    "j",
+    "k",
+    "l",
+    "m"
+  ],
+  "dimension": 16,
+  "template_count": 2,
+  "instance_count": 8,
+  "cases": [
+    {
+      "template": 0,
+      "binding": [
+        "x",
+        "a",
+        "b"
+      ]
+    },
+    {
+      "template": 1,
+      "binding": [
+        "x",
+        "a",
+        "b",
+        "c"
+      ]
+    },
+    {
+      "template": 0,
+      "binding": [
+        "z",
+        "a",
+        "b"
+      ]
+    },
+    {
+      "template": 1,
+      "binding": [
+        "y",
+        "d",
+        "e",
+        "f"
+      ]
+    },
+    {
+      "template": 0,
+      "binding": [
+        "x",
+        "b",
+        "a"
+      ]
+    },
+    {
+      "template": 1,
+      "binding": [
+        "y",
+        "e",
+        "d",
+        "f"
+      ]
+    },
+    {
+      "template": 1,
+      "binding": [
+        "z",
+        "a",
+        "c",
+        "b"
+      ]
+    },
+    {
+      "template": 0,
+      "binding": [
+        "y",
+        "d",
+        "e"
+      ]
+    }
+  ],
+  "candidate_counts": [
+    12,
+    56
+  ],
+  "recipe_count": 6,
+  "encoded_numeric_entries": 512,
+  "dense_validation_feature_entries": 19264,
+  "port_count": 32,
+  "channel_count": 64,
+  "kernel_stats": {
+    "gram_multiply_adds": 16384,
+    "gram_calls": 1,
+    "tuple_keys_constructed": 0,
+    "constructor_queries": 0,
+    "spine_candidates_expanded": 0,
+    "contraction_scalar_products": 3408,
+    "contraction_terms": 3024,
+    "static_shape_zero_pairs": 1312
+  },
+  "root_matrix": [
+    [
+      2,
+      1,
+      1,
+      0,
+      2,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      2,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      2,
+      0,
+      1,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      2,
+      0,
+      2,
+      0,
+      1
+    ],
+    [
+      2,
+      1,
+      1,
+      0,
+      2,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      2,
+      0,
+      2,
+      0,
+      1
+    ],
+    [
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      2,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      1,
+      0,
+      1,
+      0,
+      2
+    ]
+  ],
+  "native_full_binding_equal": true,
+  "dense_tensor_equal": true,
+  "encoding_roundtrip": true,
+  "matches": 462,
+  "matches_by_location": {
+    "non-root/non-root": 282,
+    "non-root/root": 71,
+    "root/non-root": 71,
+    "root/root": 38
+  },
+  "global_rule_bindings": 110,
+  "original_rule_target_checks": 462,
+  "preparation": {
+    "native_bakes": 2,
+    "compiled_before_concrete_inputs": true,
+    "all_recipe_pairs": 36,
+    "codebook_entries": 256,
+    "input_codewords_selected": 28,
+    "padding_scalar_entries": 64
+  },
+  "provenance": {
+    "head": "89e08844ea28fc14dfca9704449307edee396b37"
+  }
+}
