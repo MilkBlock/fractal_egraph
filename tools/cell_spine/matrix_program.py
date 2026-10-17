@@ -53,4 +53,3 @@ def transition_program(p,c,jobs,ports,active):
             stage.append(len(channels));channels.append(dict(label=str(t['branch']),sources=t['sources'],alternatives=[reqs],target=dict(cell=t['target'],bindings=t['bindings'])))
         stages.append(stage)
     return base(c,cells,channels,conditions,stages,dict(source='transition_program retained-context Bake',scope='supplied finite two-stage boundary connections; pending alias target is not rejection'),p.bake.templates)
-
