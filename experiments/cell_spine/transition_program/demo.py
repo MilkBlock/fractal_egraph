@@ -63,11 +63,12 @@ def example(bake,ast):
     return p
 
 
-def reference(c,jobs,ports,initial):
+def reference(c,jobs,ports,initial,skip_inactive=False):
     codes=[[tuple(v) for v in cell] for cell in ports];live=list(initial);stages=[]
     for job in jobs:
         before_codes=[[tuple(v) for v in cell] for cell in codes];before_live=live[:]
-        tapes=[c.evaluate(cell)[0] for cell in codes]
+        tapes=[c.evaluate(cell)[0] if live[i] or not skip_inactive else
+               [(0,)*n['width'] for n in c.nodes] for i,cell in enumerate(codes)]
         # Newly allocated target rows are inactive, and may not satisfy their
         # future partition. Transitions below check every active target guard.
         answers=execute(job['plan'],tapes,validate=False)
@@ -173,7 +174,7 @@ def run(out,gpu=True,skip_build=False):
         values=inst['binding'] or []
         ports.append([bit_code(v,c.bits) for v in values]+[bit_code(0,c.bits)]*(c.slots-len(values)))
         initial.append(int(inst['initial']))
-    payload=dict(circuit=c.serialize(),ports=ports,active=initial,jobs=jobs)
+    payload=dict(circuit=c.serialize(),ports=ports,active=initial,jobs=jobs,chain_stages=True)
     (out/'program.json').write_text(json.dumps(payload,indent=2)+'\n')
     states=reference(c,jobs,ports,initial)
     audit=native_audit(out,binary,source,p,jobs,states)

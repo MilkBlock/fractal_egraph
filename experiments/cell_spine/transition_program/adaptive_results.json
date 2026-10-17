@@ -1,0 +1,364 @@
+{
+  "scope": "adaptive local constructor-Cell runtime; native fallback/Bake; not a full GPU egglog engine",
+  "backends": [
+    "CPU integer reference",
+    "Metal/MPS adaptive batches"
+  ],
+  "summary": {
+    "constructor_facts": 16,
+    "resolved_facts": 16,
+    "templates": 34,
+    "live_cells": 27,
+    "retired_handles": 6,
+    "library": {
+      "native_bakes": 35,
+      "seed_hits": 27,
+      "projection_cache_hits": 19,
+      "alias_variants_baked": 15,
+      "alias_cache_hits": 6,
+      "whole_closure_template_hits": 1
+    },
+    "cells": {
+      "ground_closure_keys": 34,
+      "exact_instance_hits": 1,
+      "descriptor_hits": 13,
+      "input_unions": 1,
+      "cells_recanonicalized": 6
+    },
+    "runtime": {
+      "constructor_fact_hits": 1,
+      "alias_targets_resumed": 16,
+      "native_context_fallbacks": 1,
+      "no_match_contexts_retained": 1,
+      "transition_cache_hits": 2
+    },
+    "batches": [
+      {
+        "source_rows": 9,
+        "temporary_rows": 17,
+        "bits": 6,
+        "slots": 5,
+        "matrices": 2,
+        "branches": 8,
+        "half_inputs": true,
+        "feature_rows_built": 9,
+        "feature_rows_zeroed": 8,
+        "ready_nodes": [
+          0,
+          5,
+          6,
+          7,
+          13
+        ],
+        "statuses": {
+          "0": 4,
+          "2": 2,
+          "1": 2
+        },
+        "aliases_resumed": 2,
+        "unsupported": []
+      },
+      {
+        "source_rows": 6,
+        "temporary_rows": 9,
+        "bits": 6,
+        "slots": 6,
+        "matrices": 2,
+        "branches": 3,
+        "half_inputs": true,
+        "feature_rows_built": 6,
+        "feature_rows_zeroed": 3,
+        "ready_nodes": [
+          1,
+          8,
+          14
+        ],
+        "statuses": {
+          "2": 1,
+          "1": 2
+        },
+        "aliases_resumed": 1,
+        "unsupported": []
+      },
+      {
+        "source_rows": 4,
+        "temporary_rows": 6,
+        "bits": 5,
+        "slots": 7,
+        "matrices": 2,
+        "branches": 2,
+        "half_inputs": true,
+        "feature_rows_built": 4,
+        "feature_rows_zeroed": 2,
+        "ready_nodes": [
+          2,
+          9
+        ],
+        "statuses": {
+          "2": 1,
+          "1": 1
+        },
+        "aliases_resumed": 1,
+        "unsupported": []
+      },
+      {
+        "source_rows": 4,
+        "temporary_rows": 6,
+        "bits": 5,
+        "slots": 8,
+        "matrices": 2,
+        "branches": 2,
+        "half_inputs": true,
+        "feature_rows_built": 4,
+        "feature_rows_zeroed": 2,
+        "ready_nodes": [
+          3,
+          10
+        ],
+        "statuses": {
+          "2": 1,
+          "1": 1
+        },
+        "aliases_resumed": 1,
+        "unsupported": []
+      },
+      {
+        "source_rows": 2,
+        "temporary_rows": 3,
+        "bits": 3,
+        "slots": 9,
+        "matrices": 1,
+        "branches": 1,
+        "half_inputs": true,
+        "feature_rows_built": 2,
+        "feature_rows_zeroed": 1,
+        "ready_nodes": [
+          4
+        ],
+        "statuses": {
+          "2": 1
+        },
+        "aliases_resumed": 1,
+        "unsupported": []
+      },
+      {
+        "source_rows": 9,
+        "temporary_rows": 21,
+        "bits": 3,
+        "slots": 8,
+        "matrices": 2,
+        "branches": 12,
+        "half_inputs": true,
+        "feature_rows_built": 9,
+        "feature_rows_zeroed": 12,
+        "ready_nodes": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ],
+        "statuses": {
+          "1": 2,
+          "0": 2,
+          "2": 8
+        },
+        "aliases_resumed": 8,
+        "unsupported": []
+      },
+      {
+        "source_rows": 2,
+        "temporary_rows": 4,
+        "bits": 4,
+        "slots": 9,
+        "matrices": 1,
+        "branches": 2,
+        "half_inputs": true,
+        "feature_rows_built": 2,
+        "feature_rows_zeroed": 2,
+        "ready_nodes": [
+          15
+        ],
+        "statuses": {
+          "2": 2
+        },
+        "aliases_resumed": 2,
+        "unsupported": []
+      }
+    ],
+    "events": [
+      {
+        "kind": "input_union",
+        "left": 1,
+        "right": 3,
+        "affected_cells": 6
+      }
+    ],
+    "drivers": {
+      "factor": "(rewrite (Add (Mul a b) (Mul a c)) (Mul a (Add b c)))",
+      "powers": "(rewrite (Mul (Pow a b) (Pow a c)) (Pow a (Add b c)))",
+      "diff-sin": "(rewrite (Diff x (Sin x)) (Cos x))",
+      "integral-cos": "(rewrite (Integral (Cos x) x) (Sin x))"
+    },
+    "bake_only": [
+      {
+        "source": "(rewrite (Add a b) (Add b a))",
+        "reason": "not a shared-variable binary boundary"
+      },
+      {
+        "source": "(rewrite (Mul a b) (Mul b a))",
+        "reason": "not a shared-variable binary boundary"
+      },
+      {
+        "source": "(rewrite (Mul a (Add b c)) (Add (Mul a b) (Mul a c)))",
+        "reason": "not a shared-variable binary boundary"
+      }
+    ]
+  },
+  "verification": {
+    "cpu_gpu_states_equal": true,
+    "native_checks_per_backend": {
+      "before": 15,
+      "after": 15,
+      "late": 16
+    },
+    "native_whole_states_equal": true,
+    "union_touched_nodes": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "independent_untouched": true,
+    "cycle_cells": [
+      16,
+      20,
+      23,
+      20,
+      23,
+      20
+    ],
+    "quiescent_repeat_no_work": true
+  },
+  "final_native_sizes": [
+    {
+      "node": 0,
+      "label": "alias-target",
+      "exact_equal": true,
+      "enodes": 39,
+      "eclasses": 15
+    },
+    {
+      "node": 1,
+      "label": "factor-4",
+      "exact_equal": true,
+      "enodes": 58,
+      "eclasses": 22
+    },
+    {
+      "node": 2,
+      "label": "factor-5",
+      "exact_equal": true,
+      "enodes": 77,
+      "eclasses": 29
+    },
+    {
+      "node": 3,
+      "label": "factor-6",
+      "exact_equal": true,
+      "enodes": 96,
+      "eclasses": 36
+    },
+    {
+      "node": 4,
+      "label": "factor-7",
+      "exact_equal": true,
+      "enodes": 115,
+      "eclasses": 43
+    },
+    {
+      "node": 5,
+      "label": "independent-alias",
+      "exact_equal": true,
+      "enodes": 30,
+      "eclasses": 14
+    },
+    {
+      "node": 6,
+      "label": "no-shared-factor",
+      "exact_equal": true,
+      "enodes": 29,
+      "eclasses": 15
+    },
+    {
+      "node": 7,
+      "label": "integral-0",
+      "exact_equal": true,
+      "enodes": 9,
+      "eclasses": 6
+    },
+    {
+      "node": 8,
+      "label": "diff-1",
+      "exact_equal": true,
+      "enodes": 10,
+      "eclasses": 6
+    },
+    {
+      "node": 9,
+      "label": "integral-2",
+      "exact_equal": true,
+      "enodes": 10,
+      "eclasses": 6
+    },
+    {
+      "node": 10,
+      "label": "diff-3",
+      "exact_equal": true,
+      "enodes": 10,
+      "eclasses": 6
+    },
+    {
+      "node": 11,
+      "label": "integral-4",
+      "exact_equal": true,
+      "enodes": 10,
+      "eclasses": 6
+    },
+    {
+      "node": 12,
+      "label": "diff-5",
+      "exact_equal": true,
+      "enodes": 10,
+      "eclasses": 6
+    },
+    {
+      "node": 13,
+      "label": "powers",
+      "exact_equal": true,
+      "enodes": 15,
+      "eclasses": 10
+    },
+    {
+      "node": 14,
+      "label": "powers-again",
+      "exact_equal": true,
+      "enodes": 22,
+      "eclasses": 14
+    },
+    {
+      "node": 15,
+      "label": "late-factor",
+      "exact_equal": true,
+      "enodes": 134,
+      "eclasses": 50
+    }
+  ],
+  "provenance": {
+    "base_head": "38fadc2282bfa17b9319d8b83513030da7a22540",
+    "native_binary_sha256": "6d0328c46bd21feffa2723028339029f4e0b581913d52e67bae32a2b78956901",
+    "runtime_sha256": "0306483830e3100d934a0a8234dd450901812a186b4afa571416adffebb3368a",
+    "gpu_source_sha256": "e93920799ecf7d09c14fc565a62428bd3fc2915319689b3c515c6800c33a7aa2"
+  }
+}

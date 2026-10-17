@@ -13,6 +13,10 @@ occurs between the stages. Device snapshots are collected for later verification
 This is **not** a general GPU egglog runtime. The experiment supplies the external
 connections and a finite two-stage schedule. Native egglog still performs Bake.
 
+The newer [adaptive runtime](RUNTIME.md) adds observed alias specialization,
+whole-state interning, input-union invalidation, and fact-driven continuation.
+The two-stage demo below remains the fixed-program regression baseline.
+
 ## What is generated automatically
 
 The input is the selected `.egg` source, a few parameterized source Cells, and a

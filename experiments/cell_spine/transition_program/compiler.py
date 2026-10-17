@@ -26,14 +26,15 @@ def variables(t):
     return list(dict.fromkeys(v for c in t[1:] for v in variables(c)))
 
 
-def minimum_terms(graph):
+def minimum_terms(graph,input_labels=None):
     """Grounded minimum representatives, also for cyclic saturated classes."""
     result={}
     while True:
         changed=False
         for row in graph.rows:
             if row['op']=='RipenInput':
-                term=('Input',int(row['args'][0][1]))
+                slot=int(row['args'][0][1])
+                term=('Input',slot) if input_labels is None else ('Var',str(input_labels[slot]))
             elif row['op']=='Var':
                 term=('Var',row['args'][0][1])
             elif all(v in result for s,v in row['args'] if s=='Math'):
@@ -136,14 +137,26 @@ class Bake:
 
 
 class Program:
-    def __init__(self,bake,ast,bits=4):
+    def __init__(self,bake,ast,bits=4,rule_mode='fixture'):
         self.bake,self.ast,self.bits=bake,ast,bits
         self.instances=[];self.branches=[];self.stages=[]
-        self.rules={}
+        self.rules={};self.bake_only=[]
         selected={('Add','Mul'):'factor',('Mul','Pow'):'powers',('Diff','Cos'):'diff-sin',('Integral','Sin'):'integral-cos'}
         for r in ast['rewrites']:
-            lhs,rhs=ast_term(r['lhs']),ast_term(r['rhs'])
+            try:
+                lhs,rhs=ast_term(r['lhs']),ast_term(r['rhs'])
+            except ValueError as e:
+                if rule_mode=='fixture':raise
+                self.bake_only.append(dict(source=r['source']['text'],reason=str(e)));continue
             name=selected.get((lhs[0],rhs[0]))
+            if rule_mode=='boundary':
+                reason=None
+                if r['conditions'] or r['subsume'] or r['bidirectional']:reason='effect/guard requires native fallback'
+                elif len(lhs)!=3 or not set(variables(lhs[1])) & set(variables(lhs[2])):reason='not a shared-variable binary boundary'
+                if reason:
+                    self.bake_only.append(dict(source=r['source']['text'],reason=reason));continue
+                name=r.get('name') or name or f'rewrite-{r["command_ordinal"]}'
+                if name in self.rules:name=f'{name}-{r["command_ordinal"]}'
             if name:
                 if r['conditions'] or r['subsume'] or r['bidirectional']:
                     raise ValueError('only unconditional positive rewrites')
@@ -196,7 +209,7 @@ class Program:
         return self.branches[selected[0]]['target']
 
     def lower(self):
-        slots=max(t['arity'] for t in self.bake.templates)
+        slots=max(self.bake.templates[i['template']]['arity'] for i in self.instances)
         c=Circuit(self.bits,slots,certify_commutative(self.ast,'Add'))
         jobs=[]
         for stage in self.stages:

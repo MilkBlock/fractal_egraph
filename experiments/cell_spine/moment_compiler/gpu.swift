@@ -12,7 +12,7 @@ struct Query: Decodable { let wires: [[Int]]; let terms: [Term] }
 struct Plan: Decodable { let blocks: [Block]; let queries: [Query]; let guards: [[Int]] }
 struct Transition: Decodable { let target: Int; let sources: [Int]; let conditions: [[Int]]; let bindings: [[Int]]; let partition: [Int] }
 struct Job: Decodable { let name: String; let plan: Plan; let masks: [[Int]]?; let emits: [[Int]]?; let transitions: [Transition]? }
-struct Input: Decodable { let circuit: Circuit; let ports: [[[Float]]]; let jobs: [Job]; let half_inputs: Bool?; let active: [UInt8]? }
+struct Input: Decodable { let circuit: Circuit; let ports: [[[Float]]]; let jobs: [Job]; let half_inputs: Bool?; let active: [UInt8]?; let skip_inactive: Bool?; let chain_stages: Bool? }
 struct Result: Encodable { let name: String; let outputs: [[UInt8]]; let emitted: [[UInt8]]; let gpu_seconds: Double?; let submit_wait_seconds: Double?; let feature_values: [Float]; let transition_status: [UInt8]; let cell_values: [Float]?; let cell_valid: [UInt8]? }
 struct Report: Encodable { let device: String; let backend: String; let results: [Result]; let chained: Bool; let program_gpu_seconds: Double?; let program_submit_wait_seconds: Double? }
 
@@ -25,10 +25,12 @@ let metalSource = """
 using namespace metal;
 // instruction = op, offset, width, a_offset, a_width, b_offset, slot
 kernel void build(device const float *input [[buffer(0)]], device float *tape [[buffer(1)]],
-                  device const uint *ops [[buffer(2)]], constant uint4 &cfg [[buffer(3)]],
-                  constant uint &op_count [[buffer(4)]], uint id [[thread_position_in_grid]]) {
+                  device const uint *ops [[buffer(2)]], device const uchar *live [[buffer(3)]],
+                  constant uint4 &cfg [[buffer(4)]], constant uint &op_count [[buffer(5)]],
+                  constant uint &skip [[buffer(6)]], uint id [[thread_position_in_grid]]) {
     if (id >= cfg.x) return;
     uint bits=cfg.y, slots=cfg.z, stride=cfg.w, base=id*stride;
+    if(skip && !live[id]){for(uint i=0;i<stride;i++)tape[base+i]=0;return;}
     for (uint n=0;n<op_count;n++) {
         uint p=n*7, op=ops[p], out=base+ops[p+1], w=ops[p+2];
         uint a=base+ops[p+3], aw=ops[p+4], b=base+ops[p+5];
@@ -137,9 +139,9 @@ do {
         let a=n.args.isEmpty ? nil : c.nodes[n.args[0]], b=n.args.count<2 ? nil : c.nodes[n.args[1]]
         return [opIDs[n.op]!,n.offset,n.width,a?.offset ?? 0,a?.width ?? 0,b?.offset ?? 0,max(n.slot,0)].map{UInt32($0)}
     })
-    let chained=input.active != nil
+    let chained=input.chain_stages ?? false
     let chain=chained ? queue.makeCommandBuffer() : nil
-    var pending=[() -> Result](), retained=[MTLBuffer]()
+    var results=[Result](), pending=[() -> Result](), retained=[MTLBuffer]()
     for job in input.jobs {
         try require(job.plan.guards.count==count,"Cell guard count mismatch")
         for (i,expected) in job.plan.guards.enumerated() {
@@ -159,7 +161,7 @@ do {
             enc.dispatchThreads(MTLSize(width:size,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(128,pipeline.maxTotalThreadsPerThreadgroup),height:1,depth:1))
             enc.endEncoding()
         }
-        dispatch("build",[codes,tape,ops],[[UInt32(count),UInt32(c.bits),UInt32(c.slots),UInt32(c.tape_width)],[UInt32(c.nodes.count)]],count)
+        dispatch("build",[codes,tape,ops,live],[[UInt32(count),UInt32(c.bits),UInt32(c.slots),UInt32(c.tape_width)],[UInt32(c.nodes.count)],[input.skip_inactive == true ? 1 : 0]],count)
         var grams=[MPSMatrix](), norms=[MTLBuffer]()
         for b in job.plan.blocks {
             try require(b.max_norm*4 < 1<<24, "FP32 exactness bound exceeded")
@@ -229,16 +231,13 @@ do {
             dispatch("transition",[codes,live,answers,op,so,co,bi,pa,statuses],[[UInt32(transitions.count),UInt32(c.bits),UInt32(c.slots)]],transitions.count)
             claimed.formUnion(targets)
         }
-        // Snapshot only for the audit, using device-to-device copies. No host
-        // reads or decisions occur between chained stages.
-        let stateSnapshot=chained ? empty(count*c.slots*c.bits*4) : nil
-        let liveSnapshot=chained ? empty(count) : nil
-        if chained {
+        let stateSnapshot=input.active == nil ? nil : empty(count*c.slots*c.bits*4)
+        let liveSnapshot=input.active == nil ? nil : empty(count)
+        if let stateSnapshot=stateSnapshot, let liveSnapshot=liveSnapshot {
             let blit=cmd.makeBlitCommandEncoder()!
-            blit.copy(from:codes,sourceOffset:0,to:stateSnapshot!,destinationOffset:0,size:count*c.slots*c.bits*4)
-            blit.copy(from:live,sourceOffset:0,to:liveSnapshot!,destinationOffset:0,size:count)
-            blit.endEncoding()
-            keep += [stateSnapshot!,liveSnapshot!]
+            blit.copy(from:codes,sourceOffset:0,to:stateSnapshot,destinationOffset:0,size:count*c.slots*c.bits*4)
+            blit.copy(from:live,sourceOffset:0,to:liveSnapshot,destinationOffset:0,size:count)
+            blit.endEncoding();keep += [stateSnapshot,liveSnapshot]
         }
         var elapsed:Double?=nil
         if !chained {
@@ -247,7 +246,7 @@ do {
             elapsed=ProcessInfo.processInfo.systemUptime-start
             if let error=cmd.error{throw error}
         }
-        pending.append {
+        let readback: () -> Result = {
         let rows=zip(outputs,sizes).map{b,n in Array(UnsafeBufferPointer(start:b.contents().assumingMemoryBound(to:UInt8.self),count:n))}
         // Debug readback is outside GPU matching time, deliberately explicit.
         let features=Array(UnsafeBufferPointer(start:tape.contents().assumingMemoryBound(to:Float.self),count:count*c.tape_width))
@@ -257,7 +256,8 @@ do {
         let validity=liveSnapshot.map{Array(UnsafeBufferPointer(start:$0.contents().assumingMemoryBound(to:UInt8.self),count:count))}
         return Result(name:job.name,outputs:rows,emitted:selected,gpu_seconds:chained ? nil : cmd.gpuEndTime-cmd.gpuStartTime,submit_wait_seconds:elapsed,feature_values:features,transition_status:status,cell_values:state,cell_valid:validity)
         }
-        retained += keep+[tape,statuses]+outputs+emitted
+        if chained {pending.append(readback);retained += keep+[tape,statuses]+outputs+emitted}
+        else {results.append(readback());withExtendedLifetime(keep){}}
     }
     var programElapsed:Double?=nil
     if let chain=chain {
@@ -266,8 +266,7 @@ do {
         programElapsed=ProcessInfo.processInfo.systemUptime-start
         if let error=chain.error{throw error}
     }
-    let results=pending.map{$0()}
-    withExtendedLifetime(retained){}
+    results += pending.map{$0()};withExtendedLifetime(retained){}
     let report=Report(device:device.name,backend:"Metal feature circuit + MPS \(half ? "FP16 inputs / FP32 output" : "FP32") GEMM + exact distance kernels",results:results,chained:chained,program_gpu_seconds:chain.map{$0.gpuEndTime-$0.gpuStartTime},program_submit_wait_seconds:programElapsed)
     try JSONEncoder().encode(report).write(to:URL(fileURLWithPath:CommandLine.arguments[2]))
     print("Metal verified pipeline completed on \(device.name); \(results.count) plans")
