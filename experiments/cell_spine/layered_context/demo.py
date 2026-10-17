@@ -172,10 +172,11 @@ def summary_states(states):
     return {name:sum(s==name for s in states) for name in ('complete','rejected','continue')}
 
 
-def staged(library,prepared,cells,mode='all',eager=False):
+def staged(library,prepared,cells,mode='all',eager=False,*,
+           candidate_builder=candidates,engine_factory=EqualityBatch):
     ports,channels,context=batch_layout(library,prepared,cells,mode)
-    jobs=candidates(library,prepared,channels)
-    engine=EqualityBatch(cells,library['width'])
+    jobs=candidate_builder(library,prepared,channels)
+    engine=engine_factory(cells,library['width'])
     states,live=zip(*(classify(j,engine) for j in jobs))
     states,live=list(states),list(live)
     trace=[dict(depth='Bake guarantees',**summary_states(states),new_complete=states.count('complete'),
