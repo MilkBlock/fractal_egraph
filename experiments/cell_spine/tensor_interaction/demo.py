@@ -93,9 +93,9 @@ def term_recipe(term):
     return dict(shape='A('+a['shape']+','+b['shape']+')',components=components)
 
 
-def bake(out,binary):
+def bake(out,binary,parser=None):
     out.mkdir(parents=True)
-    subprocess.run([ROOT/'target/release/examples/lhs_ast',RULES,out/'rules.json'],cwd=ROOT,check=True)
+    subprocess.run([parser or ROOT/'target/release/examples/lhs_ast',RULES,out/'rules.json'],cwd=ROOT,check=True)
     ast = json.loads((out/'rules.json').read_text())
     patterns = Patterns.from_ast(ast)
     selected = [p for p in patterns.nodes if p['text']=='(Add (Mul v0 v1) (Mul v0 v2))']

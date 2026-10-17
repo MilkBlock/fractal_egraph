@@ -51,6 +51,30 @@ fn snapshot(eg: &EGraph) -> Result<Json> {
 }
 fn run() -> Result<()> {
     let a = args()?;
+    if a.get("--mode").map(String::as_str) == Some("matrix") {
+        let input = PathBuf::from(required(&a, "--program")?);
+        let program: cell_assisted_egglog::program::Program =
+            serde_json::from_slice(&std::fs::read(&input)?)?;
+        let checked = program.check()?;
+        let report = PathBuf::from(required(&a, "--output")?);
+        match a.get("--backend").map(String::as_str).unwrap_or("cpu") {
+            "cpu" => std::fs::write(&report, serde_json::to_vec_pretty(&checked.execute())?)?,
+            "metal" => {
+                let lowered = report.with_extension("lowered.json");
+                std::fs::write(&lowered, serde_json::to_vec(&checked.lower()?)?)?;
+                let status = std::process::Command::new(required(&a, "--gpu-worker")?)
+                    .arg(&lowered)
+                    .arg(&report)
+                    .status()?;
+                if !status.success() {
+                    return Err("matrix GPU worker failed".into());
+                }
+            }
+            _ => return Err("matrix backend must be cpu or metal".into()),
+        }
+        println!("{}", report.display());
+        return Ok(());
+    }
     let dir = PathBuf::from(required(&a, "--analysis")?);
     let ruleset = a.get("--ruleset").map(String::as_str).unwrap_or("");
     let consumer = required(&a, "--consumer")?;
