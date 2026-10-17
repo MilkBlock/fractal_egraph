@@ -218,3 +218,12 @@ late/reinserted facts, overlap after union, and lossless buffer growth. Separate
 native binding audits report `[0,0,0]` for the getter and both If workloads. The
 neighboring-Cell case reports **`[2,0,0,0]`**: two first-round native matches wait
 for the helper closure to complete. This coverage gap is retained in the report.
+
+## Larger, production-derived reference
+
+The [raytrace Pass-3 checkpoint benchmark](snapshot-bench/README.md) exercises
+14 unmodified candidate-extraction rules on 421K initial table rows. It takes
+8.406 seconds, with independently measured sparse keyed results and exact native
+replay checks. This is the new substantial reference; the tiny If cases above
+remain correctness controls. The resident compiler accepts only 3/14 rule bodies
+syntactically, so a complete GPU comparison is explicitly unavailable.

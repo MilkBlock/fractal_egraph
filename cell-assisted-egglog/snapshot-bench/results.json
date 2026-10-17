@@ -1,0 +1,6255 @@
+{
+  "after": {
+    "constructor_sorts": {
+      "Assumption": {
+        "eclasses": 2,
+        "enodes_per_eclass": 1.5,
+        "singleton_eclasses": 1,
+        "visible_constructor_enodes": 3
+      },
+      "BaseType": {
+        "eclasses": 9,
+        "enodes_per_eclass": 573.1111111111111,
+        "singleton_eclasses": 0,
+        "visible_constructor_enodes": 5158
+      },
+      "BinaryOp": {
+        "eclasses": 31,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 31,
+        "visible_constructor_enodes": 31
+      },
+      "Bound": {
+        "eclasses": 11,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 11,
+        "visible_constructor_enodes": 11
+      },
+      "Constant": {
+        "eclasses": 27,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 27,
+        "visible_constructor_enodes": 27
+      },
+      "Expr": {
+        "eclasses": 23155,
+        "enodes_per_eclass": 2.999568127834161,
+        "singleton_eclasses": 6354,
+        "visible_constructor_enodes": 69455
+      },
+      "Term": {
+        "eclasses": 62749,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 62749,
+        "visible_constructor_enodes": 62749
+      },
+      "TermAndCost": {
+        "eclasses": 62749,
+        "enodes_per_eclass": 2.148209533219653,
+        "singleton_eclasses": 25219,
+        "visible_constructor_enodes": 134798
+      },
+      "TernaryOp": {
+        "eclasses": 2,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 2,
+        "visible_constructor_enodes": 2
+      },
+      "Type": {
+        "eclasses": 911,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 911,
+        "visible_constructor_enodes": 911
+      },
+      "TypeList": {
+        "eclasses": 903,
+        "enodes_per_eclass": 3.992248062015504,
+        "singleton_eclasses": 3,
+        "visible_constructor_enodes": 3605
+      },
+      "UnaryOp": {
+        "eclasses": 3,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 3,
+        "visible_constructor_enodes": 3
+      },
+      "___AccumBopSort": {
+        "eclasses": 3,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 3,
+        "visible_constructor_enodes": 3
+      },
+      "___AddAllGetsSort": {
+        "eclasses": 6966,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 6966,
+        "visible_constructor_enodes": 6966
+      },
+      "___AddGetsSort": {
+        "eclasses": 18341,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 18341,
+        "visible_constructor_enodes": 18341
+      },
+      "___BinaryOpIsPureSort": {
+        "eclasses": 28,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 28,
+        "visible_constructor_enodes": 28
+      },
+      "___BodyContainsExprSort": {
+        "eclasses": 50095,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 50095,
+        "visible_constructor_enodes": 50095
+      },
+      "___ContextOfSort": {
+        "eclasses": 18636,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 18636,
+        "visible_constructor_enodes": 18636
+      },
+      "___ExpectTypeSort": {
+        "eclasses": 2239,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 2239,
+        "visible_constructor_enodes": 2239
+      },
+      "___ExprIsPureSort": {
+        "eclasses": 4960,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 4960,
+        "visible_constructor_enodes": 4960
+      },
+      "___ExprIsResolvedSort": {
+        "eclasses": 18727,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 18727,
+        "visible_constructor_enodes": 18727
+      },
+      "___ExtractedExprCacheSort": {
+        "eclasses": 7712,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 7712,
+        "visible_constructor_enodes": 7712
+      },
+      "___FunctionHasTypeSort": {
+        "eclasses": 29,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 29,
+        "visible_constructor_enodes": 29
+      },
+      "___HasArgTypeSort": {
+        "eclasses": 18698,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 18698,
+        "visible_constructor_enodes": 18698
+      },
+      "___HasTypeSort": {
+        "eclasses": 18698,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 18698,
+        "visible_constructor_enodes": 18698
+      },
+      "___LoopIsFiniteSort": {
+        "eclasses": 2,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 2,
+        "visible_constructor_enodes": 2
+      },
+      "___NoAliasSort": {
+        "eclasses": 1414,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 1414,
+        "visible_constructor_enodes": 1414
+      },
+      "___NotJustConcatSort": {
+        "eclasses": 4323,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 4323,
+        "visible_constructor_enodes": 4323
+      },
+      "___PointerishTypeListSort": {
+        "eclasses": 873,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 873,
+        "visible_constructor_enodes": 873
+      },
+      "___PointerishTypeSort": {
+        "eclasses": 878,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 878,
+        "visible_constructor_enodes": 878
+      },
+      "___PotentialExtractedExprSort": {
+        "eclasses": 68804,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 68804,
+        "visible_constructor_enodes": 68804
+      },
+      "___PureBaseTypeSort": {
+        "eclasses": 2,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 2,
+        "visible_constructor_enodes": 2
+      },
+      "___PureTypeListSort": {
+        "eclasses": 5,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 5,
+        "visible_constructor_enodes": 5
+      },
+      "___PureTypeSort": {
+        "eclasses": 6,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 6,
+        "visible_constructor_enodes": 6
+      },
+      "___TernaryOpIsPureSort": {
+        "eclasses": 1,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 1,
+        "visible_constructor_enodes": 1
+      },
+      "___UnaryOpIsPureSort": {
+        "eclasses": 3,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 3,
+        "visible_constructor_enodes": 3
+      },
+      "___bop>stringSort": {
+        "eclasses": 24,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 24,
+        "visible_constructor_enodes": 24
+      },
+      "___bopoftypeSort": {
+        "eclasses": 13,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 13,
+        "visible_constructor_enodes": 13
+      },
+      "___bpredoftypeSort": {
+        "eclasses": 12,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 12,
+        "visible_constructor_enodes": 12
+      },
+      "___isinvExprSort": {
+        "eclasses": 1387,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 1387,
+        "visible_constructor_enodes": 1387
+      },
+      "___leadingExprSort": {
+        "eclasses": 540,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 540,
+        "visible_constructor_enodes": 540
+      },
+      "___lsrinvSort": {
+        "eclasses": 91680,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 91680,
+        "visible_constructor_enodes": 91680
+      }
+    },
+    "table_rows": 655832,
+    "tables": {
+      "Abs": {
+        "constructor": true,
+        "output_sort": "UnaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Accum-Bop": {
+        "constructor": true,
+        "output_sort": "___AccumBopSort",
+        "stored_rows": 3,
+        "visible_rows": 3
+      },
+      "Add": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Add-All-Gets": {
+        "constructor": true,
+        "output_sort": "___AddAllGetsSort",
+        "stored_rows": 6966,
+        "visible_rows": 6966
+      },
+      "Add-Gets": {
+        "constructor": true,
+        "output_sort": "___AddGetsSort",
+        "stored_rows": 18341,
+        "visible_rows": 18341
+      },
+      "AddContext": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 11925,
+        "visible_rows": 11925
+      },
+      "AddContextList": {
+        "constructor": true,
+        "output_sort": "ListExpr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "AddIntInterval": {
+        "constructor": true,
+        "output_sort": "IntInterval",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "AddIntIntervalToAll": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "AddIntIntervalToPtrPointees": {
+        "constructor": true,
+        "output_sort": "PtrPointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "AddIntOrInfinity": {
+        "constructor": true,
+        "output_sort": "IntOrInfinity",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "All<PointsNowhere-PtrPointees>": {
+        "constructor": true,
+        "output_sort": "___All<PointsNowherePtrPointees>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Alloc": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 137,
+        "visible_rows": 137
+      },
+      "And": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Append": {
+        "constructor": true,
+        "output_sort": "ListExpr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Arg": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 76,
+        "visible_rows": 76
+      },
+      "At-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "___AtList<PtrPointees>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "At-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "___AtList<i64+IntInterval>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Base": {
+        "constructor": true,
+        "output_sort": "Type",
+        "stored_rows": 9,
+        "visible_rows": 9
+      },
+      "BaseTypeToPtrPointees": {
+        "constructor": true,
+        "output_sort": "PtrPointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "BinaryOpIsPure": {
+        "constructor": true,
+        "output_sort": "___BinaryOpIsPureSort",
+        "stored_rows": 28,
+        "visible_rows": 28
+      },
+      "Bitand": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "BodyContainsExpr": {
+        "constructor": true,
+        "output_sort": "___BodyContainsExprSort",
+        "stored_rows": 50095,
+        "visible_rows": 50095
+      },
+      "BodyContainsListExpr": {
+        "constructor": true,
+        "output_sort": "___BodyContainsListExprSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Bool": {
+        "constructor": true,
+        "output_sort": "Constant",
+        "stored_rows": 2,
+        "visible_rows": 2
+      },
+      "BoolB": {
+        "constructor": true,
+        "output_sort": "Bound",
+        "stored_rows": 2,
+        "visible_rows": 2
+      },
+      "BoolT": {
+        "constructor": true,
+        "output_sort": "BaseType",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Bop": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 3209,
+        "visible_rows": 3209
+      },
+      "Call": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 121,
+        "visible_rows": 121
+      },
+      "Concat": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 8058,
+        "visible_rows": 8058
+      },
+      "Concat-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "List<PtrPointees>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Concat-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Cons": {
+        "constructor": true,
+        "output_sort": "ListExpr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Cons-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "List<PtrPointees>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Cons-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ConsIfNonEmpty": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Const": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 1156,
+        "visible_rows": 1156
+      },
+      "ContextOf": {
+        "constructor": true,
+        "output_sort": "___ContextOfSort",
+        "stored_rows": 18636,
+        "visible_rows": 18636
+      },
+      "DUMMYCTX": {
+        "constructor": false,
+        "output_sort": "Assumption",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Dead": {
+        "constructor": true,
+        "output_sort": "Bound",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "DebugExpr": {
+        "constructor": true,
+        "output_sort": "___DebugExprSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "DelayedDropUnion": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "DelayedSubstUnion": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 4428,
+        "visible_rows": 4428
+      },
+      "DemandAt-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "___DemandAtList<PtrPointees>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "DemandAt-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "___DemandAtList<i64+IntInterval>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "DemandDontAlias": {
+        "constructor": true,
+        "output_sort": "___DemandDontAliasSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "DidMemOptimization": {
+        "constructor": true,
+        "output_sort": "___DidMemOptimizationSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Div": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "DoWhile": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 82,
+        "visible_rows": 82
+      },
+      "DontAlias": {
+        "constructor": true,
+        "output_sort": "___DontAliasSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "DropAt": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "DropAtInternal": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ES": {
+        "constructor": true,
+        "output_sort": "ExprSet",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Empty": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Eq": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "ExpectType": {
+        "constructor": true,
+        "output_sort": "___ExpectTypeSort",
+        "stored_rows": 2239,
+        "visible_rows": 2239
+      },
+      "Expr-size": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 18628,
+        "visible_rows": 18628
+      },
+      "ExprIsPure": {
+        "constructor": true,
+        "output_sort": "___ExprIsPureSort",
+        "stored_rows": 4960,
+        "visible_rows": 4960
+      },
+      "ExprIsResolved": {
+        "constructor": true,
+        "output_sort": "___ExprIsResolvedSort",
+        "stored_rows": 18727,
+        "visible_rows": 18727
+      },
+      "ExprIsValid": {
+        "constructor": true,
+        "output_sort": "___ExprIsValidSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ExprSet-insert": {
+        "constructor": true,
+        "output_sort": "ExprSet",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ExprSet-intersect": {
+        "constructor": true,
+        "output_sort": "ExprSet",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ExprSet-length": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ExprSet-union": {
+        "constructor": true,
+        "output_sort": "ExprSet",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ExtractedExpr": {
+        "constructor": false,
+        "output_sort": "TermAndCost",
+        "stored_rows": 6985,
+        "visible_rows": 6985
+      },
+      "ExtractedExprCache": {
+        "constructor": true,
+        "output_sort": "___ExtractedExprCacheSort",
+        "stored_rows": 7712,
+        "visible_rows": 7712
+      },
+      "FAdd": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "FDiv": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "FEq": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "FGreaterEq": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "FGreaterThan": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "FLessEq": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "FLessThan": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "FMul": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "FSub": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Float": {
+        "constructor": true,
+        "output_sort": "Constant",
+        "stored_rows": 16,
+        "visible_rows": 16
+      },
+      "FloatT": {
+        "constructor": true,
+        "output_sort": "BaseType",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Fmax": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Fmin": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Free": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Function": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 29,
+        "visible_rows": 29
+      },
+      "FunctionHasType": {
+        "constructor": true,
+        "output_sort": "___FunctionHasTypeSort",
+        "stored_rows": 29,
+        "visible_rows": 29
+      },
+      "Get": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 13189,
+        "visible_rows": 13189
+      },
+      "GetPointees": {
+        "constructor": true,
+        "output_sort": "Pointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "GreaterEq": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "GreaterThan": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "HasArgType": {
+        "constructor": true,
+        "output_sort": "___HasArgTypeSort",
+        "stored_rows": 18698,
+        "visible_rows": 18698
+      },
+      "HasType": {
+        "constructor": true,
+        "output_sort": "___HasTypeSort",
+        "stored_rows": 18698,
+        "visible_rows": 18698
+      },
+      "I": {
+        "constructor": true,
+        "output_sort": "IntOrInfinity",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IVTAnalysisRes": {
+        "constructor": true,
+        "output_sort": "IVTRes",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IVTMin": {
+        "constructor": true,
+        "output_sort": "IVTRes",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IVTNewInputsAnalysis": {
+        "constructor": false,
+        "output_sort": "IVTRes",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IVTNewInputsAnalysisDemand": {
+        "constructor": true,
+        "output_sort": "___IVTNewInputsAnalysisDemandSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IVTNewInputsAnalysisImpl": {
+        "constructor": false,
+        "output_sort": "IVTRes",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "If": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 168,
+        "visible_rows": 168
+      },
+      "IfNode": {
+        "constructor": true,
+        "output_sort": "Node",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IfSubst": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "InFunc": {
+        "constructor": true,
+        "output_sort": "Assumption",
+        "stored_rows": 2,
+        "visible_rows": 2
+      },
+      "InIf": {
+        "constructor": true,
+        "output_sort": "Assumption",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "InLoop": {
+        "constructor": true,
+        "output_sort": "Assumption",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "InSwitch": {
+        "constructor": true,
+        "output_sort": "Assumption",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Infinity": {
+        "constructor": true,
+        "output_sort": "IntOrInfinity",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "InlinedCall": {
+        "constructor": true,
+        "output_sort": "___InlinedCallSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Int": {
+        "constructor": true,
+        "output_sort": "Constant",
+        "stored_rows": 9,
+        "visible_rows": 9
+      },
+      "IntB": {
+        "constructor": true,
+        "output_sort": "Bound",
+        "stored_rows": 9,
+        "visible_rows": 9
+      },
+      "IntIntervalValid": {
+        "constructor": true,
+        "output_sort": "MyBool",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IntT": {
+        "constructor": true,
+        "output_sort": "BaseType",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Intersect-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Intersect-PtrPointees": {
+        "constructor": true,
+        "output_sort": "PtrPointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IntersectHelper-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IntersectIntInterval": {
+        "constructor": true,
+        "output_sort": "IntInterval",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IntersectPointees": {
+        "constructor": true,
+        "output_sort": "Pointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "InvCodeMotionCandidate": {
+        "constructor": true,
+        "output_sort": "___InvCodeMotionCandidateSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IsEmpty-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "___IsEmptyList<PtrPointees>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IsEmpty-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "___IsEmptyList<i64+IntInterval>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IsIsEven": {
+        "constructor": true,
+        "output_sort": "___IsIsEvenSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IsNonEmpty-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "___IsNonEmptyList<PtrPointees>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IsNonEmpty-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "___IsNonEmptyList<i64+IntInterval>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Length-List<PtrPointees>": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Length-List<i64+IntInterval>": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "LessEq": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "LessThan": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "ListExpr-ith": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ListExpr-length": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ListExpr-size": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ListExpr-suffix": {
+        "constructor": true,
+        "output_sort": "ListExpr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ListExprIsPure": {
+        "constructor": true,
+        "output_sort": "___ListExprIsPureSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ListExprIsResolved": {
+        "constructor": true,
+        "output_sort": "___ListExprIsResolvedSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ListExprIsValid": {
+        "constructor": true,
+        "output_sort": "___ListExprIsValidSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Load": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "LoopIsFinite": {
+        "constructor": true,
+        "output_sort": "___LoopIsFiniteSort",
+        "stored_rows": 2,
+        "visible_rows": 2
+      },
+      "LoopNumItersGuess": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 81,
+        "visible_rows": 81
+      },
+      "MaxIntOrInfinity": {
+        "constructor": true,
+        "output_sort": "IntOrInfinity",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "MinIntOrInfinity": {
+        "constructor": true,
+        "output_sort": "IntOrInfinity",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "MkIntInterval": {
+        "constructor": true,
+        "output_sort": "IntInterval",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Mul": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "MyFalse": {
+        "constructor": true,
+        "output_sort": "MyBool",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "MyTrue": {
+        "constructor": true,
+        "output_sort": "MyBool",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "NTZIterations": {
+        "constructor": true,
+        "output_sort": "___NTZIterationsSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Neg": {
+        "constructor": true,
+        "output_sort": "UnaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "NegInfinity": {
+        "constructor": true,
+        "output_sort": "IntOrInfinity",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Nil": {
+        "constructor": true,
+        "output_sort": "ListExpr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Nil-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "List<PtrPointees>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Nil-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "NoAlias": {
+        "constructor": true,
+        "output_sort": "___NoAliasSort",
+        "stored_rows": 1414,
+        "visible_rows": 1414
+      },
+      "NoTerm": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Not": {
+        "constructor": true,
+        "output_sort": "UnaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Not-Just-Concat": {
+        "constructor": true,
+        "output_sort": "___NotJustConcatSort",
+        "stored_rows": 4323,
+        "visible_rows": 4323
+      },
+      "Or": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "PointeesDropFirst": {
+        "constructor": true,
+        "output_sort": "Pointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "PointerT": {
+        "constructor": true,
+        "output_sort": "BaseType",
+        "stored_rows": 5,
+        "visible_rows": 5
+      },
+      "PointerishType": {
+        "constructor": true,
+        "output_sort": "___PointerishTypeSort",
+        "stored_rows": 878,
+        "visible_rows": 878
+      },
+      "PointerishTypeList": {
+        "constructor": true,
+        "output_sort": "___PointerishTypeListSort",
+        "stored_rows": 873,
+        "visible_rows": 873
+      },
+      "PointsAnywhere": {
+        "constructor": true,
+        "output_sort": "PtrPointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "PointsNowhere": {
+        "constructor": true,
+        "output_sort": "___PointsNowhereSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "PointsNowhere-PtrPointees": {
+        "constructor": true,
+        "output_sort": "___PointsNowherePtrPointeesSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "PointsTo": {
+        "constructor": true,
+        "output_sort": "PtrPointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "PointsToCells": {
+        "constructor": true,
+        "output_sort": "Pointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "PointsToCellsAtIter": {
+        "constructor": true,
+        "output_sort": "Pointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "PointsToExpr": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "PotentialExtractedExpr": {
+        "constructor": true,
+        "output_sort": "___PotentialExtractedExprSort",
+        "stored_rows": 68804,
+        "visible_rows": 68804
+      },
+      "Print": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Program": {
+        "constructor": true,
+        "output_sort": "ProgramType",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "PtrAdd": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "PtrPointsTo": {
+        "constructor": true,
+        "output_sort": "Pointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "PureBaseType": {
+        "constructor": true,
+        "output_sort": "___PureBaseTypeSort",
+        "stored_rows": 2,
+        "visible_rows": 2
+      },
+      "PureType": {
+        "constructor": true,
+        "output_sort": "___PureTypeSort",
+        "stored_rows": 6,
+        "visible_rows": 6
+      },
+      "PureTypeList": {
+        "constructor": true,
+        "output_sort": "___PureTypeListSort",
+        "stored_rows": 5,
+        "visible_rows": 5
+      },
+      "RELIESONCONTEXT": {
+        "constructor": true,
+        "output_sort": "___RELIESONCONTEXTSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Resolved-IntInterval": {
+        "constructor": true,
+        "output_sort": "___ResolvedIntIntervalSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Resolved-IntOrInfinity": {
+        "constructor": true,
+        "output_sort": "___ResolvedIntOrInfinitySort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Resolved-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "___ResolvedList<PtrPointees>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Resolved-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "___ResolvedList<i64+IntInterval>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Resolved-Pointees": {
+        "constructor": true,
+        "output_sort": "___ResolvedPointeesSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Resolved-PtrPointees": {
+        "constructor": true,
+        "output_sort": "___ResolvedPtrPointeesSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Rev-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "List<PtrPointees>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Rev-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "RevConcat-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "List<PtrPointees>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "RevConcat-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Select": {
+        "constructor": true,
+        "output_sort": "TernaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Shl": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Shr": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Single": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 4347,
+        "visible_rows": 4347
+      },
+      "Smaller": {
+        "constructor": true,
+        "output_sort": "TermAndCost",
+        "stored_rows": 72049,
+        "visible_rows": 72049
+      },
+      "Smax": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Smin": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "StateT": {
+        "constructor": true,
+        "output_sort": "BaseType",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Sub": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "SubTuple": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 20954,
+        "visible_rows": 20954
+      },
+      "Subst": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 4849,
+        "visible_rows": 0
+      },
+      "SuffixAt-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "___SuffixAtList<PtrPointees>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "SuffixAt-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "___SuffixAtList<i64+IntInterval>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Switch": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "TCPair": {
+        "constructor": true,
+        "output_sort": "TermAndCost",
+        "stored_rows": 62749,
+        "visible_rows": 62749
+      },
+      "TCons": {
+        "constructor": true,
+        "output_sort": "TypeList",
+        "stored_rows": 902,
+        "visible_rows": 902
+      },
+      "TLConcat": {
+        "constructor": true,
+        "output_sort": "TypeList",
+        "stored_rows": 2702,
+        "visible_rows": 2702
+      },
+      "TNil": {
+        "constructor": true,
+        "output_sort": "TypeList",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "TermAlloc": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "TermArg": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "TermBop": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 13621,
+        "visible_rows": 13621
+      },
+      "TermCall": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "TermConcat": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 3574,
+        "visible_rows": 3574
+      },
+      "TermCons": {
+        "constructor": true,
+        "output_sort": "ListTerm",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "TermConst": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 27,
+        "visible_rows": 27
+      },
+      "TermEmpty": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "TermGet": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 31062,
+        "visible_rows": 31062
+      },
+      "TermNil": {
+        "constructor": true,
+        "output_sort": "ListTerm",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "TermSingle": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 10742,
+        "visible_rows": 10742
+      },
+      "TermSubst": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 635,
+        "visible_rows": 635
+      },
+      "TermTop": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 3718,
+        "visible_rows": 3718
+      },
+      "TermUop": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 3,
+        "visible_rows": 3
+      },
+      "TernaryOpIsPure": {
+        "constructor": true,
+        "output_sort": "___TernaryOpIsPureSort",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "TmpType": {
+        "constructor": true,
+        "output_sort": "Type",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ToSubsumeIf": {
+        "constructor": true,
+        "output_sort": "___ToSubsumeIfSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Top": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 938,
+        "visible_rows": 938
+      },
+      "TuplePointsTo": {
+        "constructor": true,
+        "output_sort": "Pointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "TupleRemoveAt": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "TupleT": {
+        "constructor": true,
+        "output_sort": "Type",
+        "stored_rows": 902,
+        "visible_rows": 902
+      },
+      "TypeList-ith": {
+        "constructor": true,
+        "output_sort": "BaseType",
+        "stored_rows": 5149,
+        "visible_rows": 5149
+      },
+      "TypeList-length": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 903,
+        "visible_rows": 903
+      },
+      "TypeListRemoveAt": {
+        "constructor": true,
+        "output_sort": "TypeList",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "TypeListToList<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "List<PtrPointees>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "TypeToPointees": {
+        "constructor": true,
+        "output_sort": "Pointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "UnaryOpIsPure": {
+        "constructor": true,
+        "output_sort": "___UnaryOpIsPureSort",
+        "stored_rows": 3,
+        "visible_rows": 3
+      },
+      "Union-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Union-PtrPointees": {
+        "constructor": true,
+        "output_sort": "PtrPointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "UnionHelper-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "UnionIntInterval": {
+        "constructor": true,
+        "output_sort": "IntInterval",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "UnionPointees": {
+        "constructor": true,
+        "output_sort": "Pointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "UnwrapPtrPointsTo": {
+        "constructor": true,
+        "output_sort": "PtrPointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "UnwrapTuplePointsTo": {
+        "constructor": true,
+        "output_sort": "List<PtrPointees>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Uop": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 3,
+        "visible_rows": 3
+      },
+      "Write": {
+        "constructor": true,
+        "output_sort": "TernaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Zip<Intersect-PtrPointees>": {
+        "constructor": true,
+        "output_sort": "List<PtrPointees>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Zip<Union-PtrPointees>": {
+        "constructor": true,
+        "output_sort": "List<PtrPointees>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "___GeneratedFreshTable": {
+        "constructor": true,
+        "output_sort": "Assumption",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "___GeneratedFreshTable1": {
+        "constructor": true,
+        "output_sort": "Assumption",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "___GeneratedFreshTable2": {
+        "constructor": true,
+        "output_sort": "Assumption",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "___GeneratedFreshTable3": {
+        "constructor": true,
+        "output_sort": "Assumption",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "___GeneratedFreshTable4": {
+        "constructor": true,
+        "output_sort": "Assumption",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "___GeneratedFreshTable5": {
+        "constructor": true,
+        "output_sort": "Assumption",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "bop->string": {
+        "constructor": true,
+        "output_sort": "___bop>stringSort",
+        "stored_rows": 24,
+        "visible_rows": 24
+      },
+      "bop-of-type": {
+        "constructor": true,
+        "output_sort": "___bopoftypeSort",
+        "stored_rows": 13,
+        "visible_rows": 13
+      },
+      "bound-max": {
+        "constructor": true,
+        "output_sort": "Bound",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "bound-min": {
+        "constructor": true,
+        "output_sort": "Bound",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "bpred-of-type": {
+        "constructor": true,
+        "output_sort": "___bpredoftypeSort",
+        "stored_rows": 12,
+        "visible_rows": 12
+      },
+      "hi-bound": {
+        "constructor": false,
+        "output_sort": "Bound",
+        "stored_rows": 504,
+        "visible_rows": 504
+      },
+      "is-inv-Expr": {
+        "constructor": true,
+        "output_sort": "___isinvExprSort",
+        "stored_rows": 1387,
+        "visible_rows": 1387
+      },
+      "is-inv-ListExpr": {
+        "constructor": true,
+        "output_sort": "___isinvListExprSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "is-inv-ListExpr-helper": {
+        "constructor": true,
+        "output_sort": "___isinvListExprhelperSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "leading-Expr": {
+        "constructor": true,
+        "output_sort": "___leadingExprSort",
+        "stored_rows": 540,
+        "visible_rows": 540
+      },
+      "leading-Expr-list": {
+        "constructor": true,
+        "output_sort": "___leadingExprlistSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "lo-bound": {
+        "constructor": false,
+        "output_sort": "Bound",
+        "stored_rows": 504,
+        "visible_rows": 504
+      },
+      "lsr-inv": {
+        "constructor": true,
+        "output_sort": "___lsrinvSort",
+        "stored_rows": 91680,
+        "visible_rows": 91680
+      },
+      "succ": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "to-hoist": {
+        "constructor": false,
+        "output_sort": "Expr",
+        "stored_rows": 80,
+        "visible_rows": 80
+      },
+      "to-hoist-size": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 80,
+        "visible_rows": 80
+      },
+      "top->string": {
+        "constructor": true,
+        "output_sort": "___top>stringSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "tuple-length": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 11365,
+        "visible_rows": 11365
+      },
+      "uop->string": {
+        "constructor": true,
+        "output_sort": "___uop>stringSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      }
+    }
+  },
+  "before": {
+    "constructor_sorts": {
+      "Assumption": {
+        "eclasses": 2,
+        "enodes_per_eclass": 1.5,
+        "singleton_eclasses": 1,
+        "visible_constructor_enodes": 3
+      },
+      "BaseType": {
+        "eclasses": 9,
+        "enodes_per_eclass": 573.1111111111111,
+        "singleton_eclasses": 0,
+        "visible_constructor_enodes": 5158
+      },
+      "BinaryOp": {
+        "eclasses": 31,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 31,
+        "visible_constructor_enodes": 31
+      },
+      "Bound": {
+        "eclasses": 11,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 11,
+        "visible_constructor_enodes": 11
+      },
+      "Constant": {
+        "eclasses": 27,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 27,
+        "visible_constructor_enodes": 27
+      },
+      "Expr": {
+        "eclasses": 23155,
+        "enodes_per_eclass": 2.999568127834161,
+        "singleton_eclasses": 6354,
+        "visible_constructor_enodes": 69455
+      },
+      "Term": {
+        "eclasses": 6789,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 6789,
+        "visible_constructor_enodes": 6789
+      },
+      "TermAndCost": {
+        "eclasses": 7698,
+        "enodes_per_eclass": 1.7114835022083659,
+        "singleton_eclasses": 3767,
+        "visible_constructor_enodes": 13175
+      },
+      "TernaryOp": {
+        "eclasses": 2,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 2,
+        "visible_constructor_enodes": 2
+      },
+      "Type": {
+        "eclasses": 911,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 911,
+        "visible_constructor_enodes": 911
+      },
+      "TypeList": {
+        "eclasses": 903,
+        "enodes_per_eclass": 3.992248062015504,
+        "singleton_eclasses": 3,
+        "visible_constructor_enodes": 3605
+      },
+      "UnaryOp": {
+        "eclasses": 3,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 3,
+        "visible_constructor_enodes": 3
+      },
+      "___AccumBopSort": {
+        "eclasses": 3,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 3,
+        "visible_constructor_enodes": 3
+      },
+      "___AddAllGetsSort": {
+        "eclasses": 6966,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 6966,
+        "visible_constructor_enodes": 6966
+      },
+      "___AddGetsSort": {
+        "eclasses": 18341,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 18341,
+        "visible_constructor_enodes": 18341
+      },
+      "___BinaryOpIsPureSort": {
+        "eclasses": 28,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 28,
+        "visible_constructor_enodes": 28
+      },
+      "___BodyContainsExprSort": {
+        "eclasses": 50095,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 50095,
+        "visible_constructor_enodes": 50095
+      },
+      "___ContextOfSort": {
+        "eclasses": 18636,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 18636,
+        "visible_constructor_enodes": 18636
+      },
+      "___ExpectTypeSort": {
+        "eclasses": 2239,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 2239,
+        "visible_constructor_enodes": 2239
+      },
+      "___ExprIsPureSort": {
+        "eclasses": 4960,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 4960,
+        "visible_constructor_enodes": 4960
+      },
+      "___ExprIsResolvedSort": {
+        "eclasses": 18727,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 18727,
+        "visible_constructor_enodes": 18727
+      },
+      "___ExtractedExprCacheSort": {
+        "eclasses": 7712,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 7712,
+        "visible_constructor_enodes": 7712
+      },
+      "___FunctionHasTypeSort": {
+        "eclasses": 29,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 29,
+        "visible_constructor_enodes": 29
+      },
+      "___HasArgTypeSort": {
+        "eclasses": 18698,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 18698,
+        "visible_constructor_enodes": 18698
+      },
+      "___HasTypeSort": {
+        "eclasses": 18698,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 18698,
+        "visible_constructor_enodes": 18698
+      },
+      "___LoopIsFiniteSort": {
+        "eclasses": 2,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 2,
+        "visible_constructor_enodes": 2
+      },
+      "___NoAliasSort": {
+        "eclasses": 1414,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 1414,
+        "visible_constructor_enodes": 1414
+      },
+      "___NotJustConcatSort": {
+        "eclasses": 4323,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 4323,
+        "visible_constructor_enodes": 4323
+      },
+      "___PointerishTypeListSort": {
+        "eclasses": 873,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 873,
+        "visible_constructor_enodes": 873
+      },
+      "___PointerishTypeSort": {
+        "eclasses": 878,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 878,
+        "visible_constructor_enodes": 878
+      },
+      "___PotentialExtractedExprSort": {
+        "eclasses": 12179,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 12179,
+        "visible_constructor_enodes": 12179
+      },
+      "___PureBaseTypeSort": {
+        "eclasses": 2,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 2,
+        "visible_constructor_enodes": 2
+      },
+      "___PureTypeListSort": {
+        "eclasses": 5,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 5,
+        "visible_constructor_enodes": 5
+      },
+      "___PureTypeSort": {
+        "eclasses": 6,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 6,
+        "visible_constructor_enodes": 6
+      },
+      "___TernaryOpIsPureSort": {
+        "eclasses": 1,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 1,
+        "visible_constructor_enodes": 1
+      },
+      "___UnaryOpIsPureSort": {
+        "eclasses": 3,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 3,
+        "visible_constructor_enodes": 3
+      },
+      "___bop>stringSort": {
+        "eclasses": 24,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 24,
+        "visible_constructor_enodes": 24
+      },
+      "___bopoftypeSort": {
+        "eclasses": 13,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 13,
+        "visible_constructor_enodes": 13
+      },
+      "___bpredoftypeSort": {
+        "eclasses": 12,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 12,
+        "visible_constructor_enodes": 12
+      },
+      "___isinvExprSort": {
+        "eclasses": 1387,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 1387,
+        "visible_constructor_enodes": 1387
+      },
+      "___leadingExprSort": {
+        "eclasses": 540,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 540,
+        "visible_constructor_enodes": 540
+      },
+      "___lsrinvSort": {
+        "eclasses": 91680,
+        "enodes_per_eclass": 1.0,
+        "singleton_eclasses": 91680,
+        "visible_constructor_enodes": 91680
+      }
+    },
+    "table_rows": 421397,
+    "tables": {
+      "Abs": {
+        "constructor": true,
+        "output_sort": "UnaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Accum-Bop": {
+        "constructor": true,
+        "output_sort": "___AccumBopSort",
+        "stored_rows": 3,
+        "visible_rows": 3
+      },
+      "Add": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Add-All-Gets": {
+        "constructor": true,
+        "output_sort": "___AddAllGetsSort",
+        "stored_rows": 6966,
+        "visible_rows": 6966
+      },
+      "Add-Gets": {
+        "constructor": true,
+        "output_sort": "___AddGetsSort",
+        "stored_rows": 18341,
+        "visible_rows": 18341
+      },
+      "AddContext": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 11925,
+        "visible_rows": 11925
+      },
+      "AddContextList": {
+        "constructor": true,
+        "output_sort": "ListExpr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "AddIntInterval": {
+        "constructor": true,
+        "output_sort": "IntInterval",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "AddIntIntervalToAll": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "AddIntIntervalToPtrPointees": {
+        "constructor": true,
+        "output_sort": "PtrPointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "AddIntOrInfinity": {
+        "constructor": true,
+        "output_sort": "IntOrInfinity",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "All<PointsNowhere-PtrPointees>": {
+        "constructor": true,
+        "output_sort": "___All<PointsNowherePtrPointees>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Alloc": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 137,
+        "visible_rows": 137
+      },
+      "And": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Append": {
+        "constructor": true,
+        "output_sort": "ListExpr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Arg": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 76,
+        "visible_rows": 76
+      },
+      "At-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "___AtList<PtrPointees>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "At-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "___AtList<i64+IntInterval>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Base": {
+        "constructor": true,
+        "output_sort": "Type",
+        "stored_rows": 9,
+        "visible_rows": 9
+      },
+      "BaseTypeToPtrPointees": {
+        "constructor": true,
+        "output_sort": "PtrPointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "BinaryOpIsPure": {
+        "constructor": true,
+        "output_sort": "___BinaryOpIsPureSort",
+        "stored_rows": 28,
+        "visible_rows": 28
+      },
+      "Bitand": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "BodyContainsExpr": {
+        "constructor": true,
+        "output_sort": "___BodyContainsExprSort",
+        "stored_rows": 50095,
+        "visible_rows": 50095
+      },
+      "BodyContainsListExpr": {
+        "constructor": true,
+        "output_sort": "___BodyContainsListExprSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Bool": {
+        "constructor": true,
+        "output_sort": "Constant",
+        "stored_rows": 2,
+        "visible_rows": 2
+      },
+      "BoolB": {
+        "constructor": true,
+        "output_sort": "Bound",
+        "stored_rows": 2,
+        "visible_rows": 2
+      },
+      "BoolT": {
+        "constructor": true,
+        "output_sort": "BaseType",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Bop": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 3209,
+        "visible_rows": 3209
+      },
+      "Call": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 121,
+        "visible_rows": 121
+      },
+      "Concat": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 8058,
+        "visible_rows": 8058
+      },
+      "Concat-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "List<PtrPointees>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Concat-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Cons": {
+        "constructor": true,
+        "output_sort": "ListExpr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Cons-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "List<PtrPointees>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Cons-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ConsIfNonEmpty": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Const": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 1156,
+        "visible_rows": 1156
+      },
+      "ContextOf": {
+        "constructor": true,
+        "output_sort": "___ContextOfSort",
+        "stored_rows": 18636,
+        "visible_rows": 18636
+      },
+      "DUMMYCTX": {
+        "constructor": false,
+        "output_sort": "Assumption",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Dead": {
+        "constructor": true,
+        "output_sort": "Bound",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "DebugExpr": {
+        "constructor": true,
+        "output_sort": "___DebugExprSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "DelayedDropUnion": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "DelayedSubstUnion": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 4428,
+        "visible_rows": 4428
+      },
+      "DemandAt-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "___DemandAtList<PtrPointees>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "DemandAt-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "___DemandAtList<i64+IntInterval>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "DemandDontAlias": {
+        "constructor": true,
+        "output_sort": "___DemandDontAliasSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "DidMemOptimization": {
+        "constructor": true,
+        "output_sort": "___DidMemOptimizationSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Div": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "DoWhile": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 82,
+        "visible_rows": 82
+      },
+      "DontAlias": {
+        "constructor": true,
+        "output_sort": "___DontAliasSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "DropAt": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "DropAtInternal": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ES": {
+        "constructor": true,
+        "output_sort": "ExprSet",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Empty": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Eq": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "ExpectType": {
+        "constructor": true,
+        "output_sort": "___ExpectTypeSort",
+        "stored_rows": 2239,
+        "visible_rows": 2239
+      },
+      "Expr-size": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 18628,
+        "visible_rows": 18628
+      },
+      "ExprIsPure": {
+        "constructor": true,
+        "output_sort": "___ExprIsPureSort",
+        "stored_rows": 4960,
+        "visible_rows": 4960
+      },
+      "ExprIsResolved": {
+        "constructor": true,
+        "output_sort": "___ExprIsResolvedSort",
+        "stored_rows": 18727,
+        "visible_rows": 18727
+      },
+      "ExprIsValid": {
+        "constructor": true,
+        "output_sort": "___ExprIsValidSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ExprSet-insert": {
+        "constructor": true,
+        "output_sort": "ExprSet",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ExprSet-intersect": {
+        "constructor": true,
+        "output_sort": "ExprSet",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ExprSet-length": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ExprSet-union": {
+        "constructor": true,
+        "output_sort": "ExprSet",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ExtractedExpr": {
+        "constructor": false,
+        "output_sort": "TermAndCost",
+        "stored_rows": 6758,
+        "visible_rows": 6758
+      },
+      "ExtractedExprCache": {
+        "constructor": true,
+        "output_sort": "___ExtractedExprCacheSort",
+        "stored_rows": 7712,
+        "visible_rows": 7712
+      },
+      "FAdd": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "FDiv": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "FEq": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "FGreaterEq": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "FGreaterThan": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "FLessEq": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "FLessThan": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "FMul": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "FSub": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Float": {
+        "constructor": true,
+        "output_sort": "Constant",
+        "stored_rows": 16,
+        "visible_rows": 16
+      },
+      "FloatT": {
+        "constructor": true,
+        "output_sort": "BaseType",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Fmax": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Fmin": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Free": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Function": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 29,
+        "visible_rows": 29
+      },
+      "FunctionHasType": {
+        "constructor": true,
+        "output_sort": "___FunctionHasTypeSort",
+        "stored_rows": 29,
+        "visible_rows": 29
+      },
+      "Get": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 13189,
+        "visible_rows": 13189
+      },
+      "GetPointees": {
+        "constructor": true,
+        "output_sort": "Pointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "GreaterEq": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "GreaterThan": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "HasArgType": {
+        "constructor": true,
+        "output_sort": "___HasArgTypeSort",
+        "stored_rows": 18698,
+        "visible_rows": 18698
+      },
+      "HasType": {
+        "constructor": true,
+        "output_sort": "___HasTypeSort",
+        "stored_rows": 18698,
+        "visible_rows": 18698
+      },
+      "I": {
+        "constructor": true,
+        "output_sort": "IntOrInfinity",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IVTAnalysisRes": {
+        "constructor": true,
+        "output_sort": "IVTRes",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IVTMin": {
+        "constructor": true,
+        "output_sort": "IVTRes",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IVTNewInputsAnalysis": {
+        "constructor": false,
+        "output_sort": "IVTRes",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IVTNewInputsAnalysisDemand": {
+        "constructor": true,
+        "output_sort": "___IVTNewInputsAnalysisDemandSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IVTNewInputsAnalysisImpl": {
+        "constructor": false,
+        "output_sort": "IVTRes",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "If": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 168,
+        "visible_rows": 168
+      },
+      "IfNode": {
+        "constructor": true,
+        "output_sort": "Node",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IfSubst": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "InFunc": {
+        "constructor": true,
+        "output_sort": "Assumption",
+        "stored_rows": 2,
+        "visible_rows": 2
+      },
+      "InIf": {
+        "constructor": true,
+        "output_sort": "Assumption",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "InLoop": {
+        "constructor": true,
+        "output_sort": "Assumption",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "InSwitch": {
+        "constructor": true,
+        "output_sort": "Assumption",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Infinity": {
+        "constructor": true,
+        "output_sort": "IntOrInfinity",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "InlinedCall": {
+        "constructor": true,
+        "output_sort": "___InlinedCallSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Int": {
+        "constructor": true,
+        "output_sort": "Constant",
+        "stored_rows": 9,
+        "visible_rows": 9
+      },
+      "IntB": {
+        "constructor": true,
+        "output_sort": "Bound",
+        "stored_rows": 9,
+        "visible_rows": 9
+      },
+      "IntIntervalValid": {
+        "constructor": true,
+        "output_sort": "MyBool",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IntT": {
+        "constructor": true,
+        "output_sort": "BaseType",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Intersect-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Intersect-PtrPointees": {
+        "constructor": true,
+        "output_sort": "PtrPointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IntersectHelper-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IntersectIntInterval": {
+        "constructor": true,
+        "output_sort": "IntInterval",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IntersectPointees": {
+        "constructor": true,
+        "output_sort": "Pointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "InvCodeMotionCandidate": {
+        "constructor": true,
+        "output_sort": "___InvCodeMotionCandidateSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IsEmpty-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "___IsEmptyList<PtrPointees>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IsEmpty-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "___IsEmptyList<i64+IntInterval>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IsIsEven": {
+        "constructor": true,
+        "output_sort": "___IsIsEvenSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IsNonEmpty-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "___IsNonEmptyList<PtrPointees>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "IsNonEmpty-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "___IsNonEmptyList<i64+IntInterval>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Length-List<PtrPointees>": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Length-List<i64+IntInterval>": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "LessEq": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "LessThan": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "ListExpr-ith": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ListExpr-length": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ListExpr-size": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ListExpr-suffix": {
+        "constructor": true,
+        "output_sort": "ListExpr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ListExprIsPure": {
+        "constructor": true,
+        "output_sort": "___ListExprIsPureSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ListExprIsResolved": {
+        "constructor": true,
+        "output_sort": "___ListExprIsResolvedSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ListExprIsValid": {
+        "constructor": true,
+        "output_sort": "___ListExprIsValidSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Load": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "LoopIsFinite": {
+        "constructor": true,
+        "output_sort": "___LoopIsFiniteSort",
+        "stored_rows": 2,
+        "visible_rows": 2
+      },
+      "LoopNumItersGuess": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 81,
+        "visible_rows": 81
+      },
+      "MaxIntOrInfinity": {
+        "constructor": true,
+        "output_sort": "IntOrInfinity",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "MinIntOrInfinity": {
+        "constructor": true,
+        "output_sort": "IntOrInfinity",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "MkIntInterval": {
+        "constructor": true,
+        "output_sort": "IntInterval",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Mul": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "MyFalse": {
+        "constructor": true,
+        "output_sort": "MyBool",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "MyTrue": {
+        "constructor": true,
+        "output_sort": "MyBool",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "NTZIterations": {
+        "constructor": true,
+        "output_sort": "___NTZIterationsSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Neg": {
+        "constructor": true,
+        "output_sort": "UnaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "NegInfinity": {
+        "constructor": true,
+        "output_sort": "IntOrInfinity",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Nil": {
+        "constructor": true,
+        "output_sort": "ListExpr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Nil-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "List<PtrPointees>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Nil-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "NoAlias": {
+        "constructor": true,
+        "output_sort": "___NoAliasSort",
+        "stored_rows": 1414,
+        "visible_rows": 1414
+      },
+      "NoTerm": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Not": {
+        "constructor": true,
+        "output_sort": "UnaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Not-Just-Concat": {
+        "constructor": true,
+        "output_sort": "___NotJustConcatSort",
+        "stored_rows": 4323,
+        "visible_rows": 4323
+      },
+      "Or": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "PointeesDropFirst": {
+        "constructor": true,
+        "output_sort": "Pointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "PointerT": {
+        "constructor": true,
+        "output_sort": "BaseType",
+        "stored_rows": 5,
+        "visible_rows": 5
+      },
+      "PointerishType": {
+        "constructor": true,
+        "output_sort": "___PointerishTypeSort",
+        "stored_rows": 878,
+        "visible_rows": 878
+      },
+      "PointerishTypeList": {
+        "constructor": true,
+        "output_sort": "___PointerishTypeListSort",
+        "stored_rows": 873,
+        "visible_rows": 873
+      },
+      "PointsAnywhere": {
+        "constructor": true,
+        "output_sort": "PtrPointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "PointsNowhere": {
+        "constructor": true,
+        "output_sort": "___PointsNowhereSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "PointsNowhere-PtrPointees": {
+        "constructor": true,
+        "output_sort": "___PointsNowherePtrPointeesSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "PointsTo": {
+        "constructor": true,
+        "output_sort": "PtrPointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "PointsToCells": {
+        "constructor": true,
+        "output_sort": "Pointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "PointsToCellsAtIter": {
+        "constructor": true,
+        "output_sort": "Pointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "PointsToExpr": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "PotentialExtractedExpr": {
+        "constructor": true,
+        "output_sort": "___PotentialExtractedExprSort",
+        "stored_rows": 12179,
+        "visible_rows": 12179
+      },
+      "Print": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Program": {
+        "constructor": true,
+        "output_sort": "ProgramType",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "PtrAdd": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "PtrPointsTo": {
+        "constructor": true,
+        "output_sort": "Pointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "PureBaseType": {
+        "constructor": true,
+        "output_sort": "___PureBaseTypeSort",
+        "stored_rows": 2,
+        "visible_rows": 2
+      },
+      "PureType": {
+        "constructor": true,
+        "output_sort": "___PureTypeSort",
+        "stored_rows": 6,
+        "visible_rows": 6
+      },
+      "PureTypeList": {
+        "constructor": true,
+        "output_sort": "___PureTypeListSort",
+        "stored_rows": 5,
+        "visible_rows": 5
+      },
+      "RELIESONCONTEXT": {
+        "constructor": true,
+        "output_sort": "___RELIESONCONTEXTSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Resolved-IntInterval": {
+        "constructor": true,
+        "output_sort": "___ResolvedIntIntervalSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Resolved-IntOrInfinity": {
+        "constructor": true,
+        "output_sort": "___ResolvedIntOrInfinitySort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Resolved-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "___ResolvedList<PtrPointees>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Resolved-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "___ResolvedList<i64+IntInterval>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Resolved-Pointees": {
+        "constructor": true,
+        "output_sort": "___ResolvedPointeesSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Resolved-PtrPointees": {
+        "constructor": true,
+        "output_sort": "___ResolvedPtrPointeesSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Rev-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "List<PtrPointees>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Rev-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "RevConcat-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "List<PtrPointees>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "RevConcat-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Select": {
+        "constructor": true,
+        "output_sort": "TernaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Shl": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Shr": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Single": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 4347,
+        "visible_rows": 4347
+      },
+      "Smaller": {
+        "constructor": true,
+        "output_sort": "TermAndCost",
+        "stored_rows": 6386,
+        "visible_rows": 6386
+      },
+      "Smax": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Smin": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "StateT": {
+        "constructor": true,
+        "output_sort": "BaseType",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Sub": {
+        "constructor": true,
+        "output_sort": "BinaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "SubTuple": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 20954,
+        "visible_rows": 20954
+      },
+      "Subst": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 4849,
+        "visible_rows": 0
+      },
+      "SuffixAt-List<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "___SuffixAtList<PtrPointees>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "SuffixAt-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "___SuffixAtList<i64+IntInterval>Sort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Switch": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "TCPair": {
+        "constructor": true,
+        "output_sort": "TermAndCost",
+        "stored_rows": 6789,
+        "visible_rows": 6789
+      },
+      "TCons": {
+        "constructor": true,
+        "output_sort": "TypeList",
+        "stored_rows": 902,
+        "visible_rows": 902
+      },
+      "TLConcat": {
+        "constructor": true,
+        "output_sort": "TypeList",
+        "stored_rows": 2702,
+        "visible_rows": 2702
+      },
+      "TNil": {
+        "constructor": true,
+        "output_sort": "TypeList",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "TermAlloc": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "TermArg": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "TermBop": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 929,
+        "visible_rows": 929
+      },
+      "TermCall": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "TermConcat": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 1962,
+        "visible_rows": 1962
+      },
+      "TermCons": {
+        "constructor": true,
+        "output_sort": "ListTerm",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "TermConst": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 27,
+        "visible_rows": 27
+      },
+      "TermEmpty": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "TermGet": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 2655,
+        "visible_rows": 2655
+      },
+      "TermNil": {
+        "constructor": true,
+        "output_sort": "ListTerm",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "TermSingle": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 942,
+        "visible_rows": 942
+      },
+      "TermSubst": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 635,
+        "visible_rows": 635
+      },
+      "TermTop": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 270,
+        "visible_rows": 270
+      },
+      "TermUop": {
+        "constructor": true,
+        "output_sort": "Term",
+        "stored_rows": 2,
+        "visible_rows": 2
+      },
+      "TernaryOpIsPure": {
+        "constructor": true,
+        "output_sort": "___TernaryOpIsPureSort",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "TmpType": {
+        "constructor": true,
+        "output_sort": "Type",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "ToSubsumeIf": {
+        "constructor": true,
+        "output_sort": "___ToSubsumeIfSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Top": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 938,
+        "visible_rows": 938
+      },
+      "TuplePointsTo": {
+        "constructor": true,
+        "output_sort": "Pointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "TupleRemoveAt": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "TupleT": {
+        "constructor": true,
+        "output_sort": "Type",
+        "stored_rows": 902,
+        "visible_rows": 902
+      },
+      "TypeList-ith": {
+        "constructor": true,
+        "output_sort": "BaseType",
+        "stored_rows": 5149,
+        "visible_rows": 5149
+      },
+      "TypeList-length": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 903,
+        "visible_rows": 903
+      },
+      "TypeListRemoveAt": {
+        "constructor": true,
+        "output_sort": "TypeList",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "TypeListToList<PtrPointees>": {
+        "constructor": true,
+        "output_sort": "List<PtrPointees>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "TypeToPointees": {
+        "constructor": true,
+        "output_sort": "Pointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "UnaryOpIsPure": {
+        "constructor": true,
+        "output_sort": "___UnaryOpIsPureSort",
+        "stored_rows": 3,
+        "visible_rows": 3
+      },
+      "Union-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Union-PtrPointees": {
+        "constructor": true,
+        "output_sort": "PtrPointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "UnionHelper-List<i64+IntInterval>": {
+        "constructor": true,
+        "output_sort": "List<i64+IntInterval>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "UnionIntInterval": {
+        "constructor": true,
+        "output_sort": "IntInterval",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "UnionPointees": {
+        "constructor": true,
+        "output_sort": "Pointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "UnwrapPtrPointsTo": {
+        "constructor": true,
+        "output_sort": "PtrPointees",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "UnwrapTuplePointsTo": {
+        "constructor": true,
+        "output_sort": "List<PtrPointees>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Uop": {
+        "constructor": true,
+        "output_sort": "Expr",
+        "stored_rows": 3,
+        "visible_rows": 3
+      },
+      "Write": {
+        "constructor": true,
+        "output_sort": "TernaryOp",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "Zip<Intersect-PtrPointees>": {
+        "constructor": true,
+        "output_sort": "List<PtrPointees>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "Zip<Union-PtrPointees>": {
+        "constructor": true,
+        "output_sort": "List<PtrPointees>",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "___GeneratedFreshTable": {
+        "constructor": true,
+        "output_sort": "Assumption",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "___GeneratedFreshTable1": {
+        "constructor": true,
+        "output_sort": "Assumption",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "___GeneratedFreshTable2": {
+        "constructor": true,
+        "output_sort": "Assumption",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "___GeneratedFreshTable3": {
+        "constructor": true,
+        "output_sort": "Assumption",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "___GeneratedFreshTable4": {
+        "constructor": true,
+        "output_sort": "Assumption",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "___GeneratedFreshTable5": {
+        "constructor": true,
+        "output_sort": "Assumption",
+        "stored_rows": 1,
+        "visible_rows": 1
+      },
+      "bop->string": {
+        "constructor": true,
+        "output_sort": "___bop>stringSort",
+        "stored_rows": 24,
+        "visible_rows": 24
+      },
+      "bop-of-type": {
+        "constructor": true,
+        "output_sort": "___bopoftypeSort",
+        "stored_rows": 13,
+        "visible_rows": 13
+      },
+      "bound-max": {
+        "constructor": true,
+        "output_sort": "Bound",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "bound-min": {
+        "constructor": true,
+        "output_sort": "Bound",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "bpred-of-type": {
+        "constructor": true,
+        "output_sort": "___bpredoftypeSort",
+        "stored_rows": 12,
+        "visible_rows": 12
+      },
+      "hi-bound": {
+        "constructor": false,
+        "output_sort": "Bound",
+        "stored_rows": 504,
+        "visible_rows": 504
+      },
+      "is-inv-Expr": {
+        "constructor": true,
+        "output_sort": "___isinvExprSort",
+        "stored_rows": 1387,
+        "visible_rows": 1387
+      },
+      "is-inv-ListExpr": {
+        "constructor": true,
+        "output_sort": "___isinvListExprSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "is-inv-ListExpr-helper": {
+        "constructor": true,
+        "output_sort": "___isinvListExprhelperSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "leading-Expr": {
+        "constructor": true,
+        "output_sort": "___leadingExprSort",
+        "stored_rows": 540,
+        "visible_rows": 540
+      },
+      "leading-Expr-list": {
+        "constructor": true,
+        "output_sort": "___leadingExprlistSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "lo-bound": {
+        "constructor": false,
+        "output_sort": "Bound",
+        "stored_rows": 504,
+        "visible_rows": 504
+      },
+      "lsr-inv": {
+        "constructor": true,
+        "output_sort": "___lsrinvSort",
+        "stored_rows": 91680,
+        "visible_rows": 91680
+      },
+      "succ": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "to-hoist": {
+        "constructor": false,
+        "output_sort": "Expr",
+        "stored_rows": 80,
+        "visible_rows": 80
+      },
+      "to-hoist-size": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 80,
+        "visible_rows": 80
+      },
+      "top->string": {
+        "constructor": true,
+        "output_sort": "___top>stringSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      },
+      "tuple-length": {
+        "constructor": false,
+        "output_sort": "i64",
+        "stored_rows": 11365,
+        "visible_rows": 11365
+      },
+      "uop->string": {
+        "constructor": true,
+        "output_sort": "___uop>stringSort",
+        "stored_rows": 0,
+        "visible_rows": 0
+      }
+    }
+  },
+  "checks": {
+    "exact_final_rows_equivalence_and_visibility": true,
+    "parent_unchanged": true,
+    "same_rule_match_counts": true,
+    "timing_probe_counter_increments": 0
+  },
+  "clone_seconds_excluded": 0.018357667,
+  "diagnostic": {
+    "probe_counters": {
+      "  candidate_rows enumerated (for_each)": 8044656,
+      "  candidate_rows from lookups": 5919083,
+      "  lookup calls (get_subset)": 5143505,
+      "cached_column": 111951,
+      "cached_index_hit": 111401,
+      "cached_index_rebuild": 2969,
+      "cached_index_rebuild_full": 62,
+      "cached_index_rebuild_rows": 1970407,
+      "cached_tuple": 0,
+      "candidate_rows": 13963739,
+      "dynamic_column (per-node cache)": 987287,
+      "dynamic_tuple (group_by_key)": 0,
+      "probed_keys": 7901150,
+      "probes": 5166731,
+      "sparse_column": 4067493
+    },
+    "stage_work_by_rule": null,
+    "table_reads": [
+      [
+        "$uf",
+        null
+      ],
+      [
+        "Cons",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Nil",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "IntT",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "BoolT",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "FloatT",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "PointerT",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "StateT",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Base",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TupleT",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TmpType",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TNil",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TCons",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "InFunc",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "InLoop",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "InSwitch",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "InIf",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Arg",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 1,
+          "scan_rows": 1
+        }
+      ],
+      [
+        "Int",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Bool",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Float",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Const",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 1,
+          "scan_rows": 157
+        }
+      ],
+      [
+        "Empty",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Write",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Select",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Bitand",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Add",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Sub",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Div",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Mul",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "LessThan",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "GreaterThan",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "LessEq",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "GreaterEq",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Eq",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Smin",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Smax",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Shl",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Shr",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "FAdd",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "FSub",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "FDiv",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "FMul",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "FLessThan",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "FGreaterThan",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "FLessEq",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "FGreaterEq",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "FEq",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Fmin",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Fmax",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "And",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Or",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Load",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "PtrAdd",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Print",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Free",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Neg",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Abs",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Not",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Top",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 48504,
+          "scan_rows": 961478
+        }
+      ],
+      [
+        "Bop",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 28770,
+          "scan_rows": 1705283
+        }
+      ],
+      [
+        "Uop",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 644,
+          "scan_rows": 1418
+        }
+      ],
+      [
+        "Get",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 17984,
+          "scan_rows": 3442551
+        }
+      ],
+      [
+        "Alloc",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Call",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Single",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 11324,
+          "scan_rows": 1137403
+        }
+      ],
+      [
+        "Concat",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 4142,
+          "scan_rows": 4643621
+        }
+      ],
+      [
+        "Switch",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "If",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "DoWhile",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Program",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Function",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "FunctionHasType",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "bop->string",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "uop->string",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "top->string",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "DebugExpr",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TermCons",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TermNil",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TermArg",
+        {
+          "key_lookups": 1,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TermConst",
+        {
+          "key_lookups": 155,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TermEmpty",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TermTop",
+        {
+          "key_lookups": 3659,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TermBop",
+        {
+          "key_lookups": 14179,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TermUop",
+        {
+          "key_lookups": 3,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TermGet",
+        {
+          "key_lookups": 29256,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TermAlloc",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TermCall",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TermSingle",
+        {
+          "key_lookups": 10988,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TermConcat",
+        {
+          "key_lookups": 1745,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "LoopNumItersGuess",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "LoopIsFinite",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "RELIESONCONTEXT",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "DUMMYCTX",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TLConcat",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TypeList-length",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TypeList-ith",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "HasType",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "ExpectType",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "HasArgType",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "bop-of-type",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "bpred-of-type",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "PureBaseType",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "PureType",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "PureTypeList",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "ListExpr-length",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "ListExpr-ith",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "ListExpr-suffix",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Append",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "tuple-length",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "leading-Expr",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "leading-Expr-list",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Add-Gets",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Not-Just-Concat",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Add-All-Gets",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "ToSubsumeIf",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Smaller",
+        {
+          "key_lookups": 0,
+          "refine_rows": 14575,
+          "scan_calls": 796834,
+          "scan_rows": 61695023
+        }
+      ],
+      [
+        "ExtractedExpr",
+        {
+          "key_lookups": 0,
+          "refine_rows": 584859,
+          "scan_calls": 460890,
+          "scan_rows": 2066289
+        }
+      ],
+      [
+        "PotentialExtractedExpr",
+        {
+          "key_lookups": 59986,
+          "refine_rows": 0,
+          "scan_calls": 94160,
+          "scan_rows": 22869009
+        }
+      ],
+      [
+        "TCPair",
+        {
+          "key_lookups": 152193,
+          "refine_rows": 0,
+          "scan_calls": 5302792,
+          "scan_rows": 208745907
+        }
+      ],
+      [
+        "NoTerm",
+        {
+          "key_lookups": 58145,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "IfNode",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "ExprIsValid",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "ListExprIsValid",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "ExprIsResolved",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "ListExprIsResolved",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "BodyContainsExpr",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "BodyContainsListExpr",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "ExprIsPure",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "ListExprIsPure",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "BinaryOpIsPure",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "UnaryOpIsPure",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TernaryOpIsPure",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "AddContext",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "AddContextList",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TermSubst",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "ContextOf",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Subst",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "IfSubst",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "DelayedSubstUnion",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "SubTuple",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TupleRemoveAt",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TypeListRemoveAt",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Expr-size",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "ListExpr-size",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "DropAt",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "DelayedDropUnion",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "DropAtInternal",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "IntB",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "BoolB",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Dead",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "bound-max",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "bound-min",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "lo-bound",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "hi-bound",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Infinity",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "NegInfinity",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "I",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "MaxIntOrInfinity",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "MinIntOrInfinity",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "AddIntOrInfinity",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "MkIntInterval",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "UnionIntInterval",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "IntersectIntInterval",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "AddIntInterval",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Nil-List<i64+IntInterval>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Cons-List<i64+IntInterval>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Length-List<i64+IntInterval>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "IsEmpty-List<i64+IntInterval>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "IsNonEmpty-List<i64+IntInterval>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "RevConcat-List<i64+IntInterval>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Rev-List<i64+IntInterval>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Concat-List<i64+IntInterval>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "DemandAt-List<i64+IntInterval>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "SuffixAt-List<i64+IntInterval>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "At-List<i64+IntInterval>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Union-List<i64+IntInterval>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "UnionHelper-List<i64+IntInterval>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Intersect-List<i64+IntInterval>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "IntersectHelper-List<i64+IntInterval>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "MyTrue",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "MyFalse",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "IntIntervalValid",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "ConsIfNonEmpty",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "AddIntIntervalToAll",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "PointsTo",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "PointsAnywhere",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "AddIntIntervalToPtrPointees",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Union-PtrPointees",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Intersect-PtrPointees",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "PointsNowhere-PtrPointees",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Nil-List<PtrPointees>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Cons-List<PtrPointees>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Length-List<PtrPointees>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "IsEmpty-List<PtrPointees>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "IsNonEmpty-List<PtrPointees>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "RevConcat-List<PtrPointees>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Rev-List<PtrPointees>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Concat-List<PtrPointees>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "DemandAt-List<PtrPointees>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "SuffixAt-List<PtrPointees>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "At-List<PtrPointees>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "All<PointsNowhere-PtrPointees>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Zip<Union-PtrPointees>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Zip<Intersect-PtrPointees>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "ES",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "ExprSet-intersect",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "ExprSet-union",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "ExprSet-insert",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "ExprSet-length",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TuplePointsTo",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "PtrPointsTo",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "UnwrapPtrPointsTo",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "UnwrapTuplePointsTo",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "PointsNowhere",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "UnionPointees",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "IntersectPointees",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "GetPointees",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "PointeesDropFirst",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Resolved-IntOrInfinity",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Resolved-IntInterval",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Resolved-List<i64+IntInterval>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Resolved-PtrPointees",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Resolved-List<PtrPointees>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Resolved-Pointees",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "BaseTypeToPtrPointees",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TypeListToList<PtrPointees>",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "TypeToPointees",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "PointerishType",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "PointerishTypeList",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "PointsToCells",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "PointsToCellsAtIter",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "succ",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "DemandDontAlias",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "DontAlias",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "PointsToExpr",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "NoAlias",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "DidMemOptimization",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "is-inv-Expr",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "is-inv-ListExpr",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "is-inv-ListExpr-helper",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "to-hoist",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "to-hoist-size",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "___GeneratedFreshTable",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "___GeneratedFreshTable1",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "Accum-Bop",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "___GeneratedFreshTable2",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "lsr-inv",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "___GeneratedFreshTable3",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "IVTNewInputsAnalysisDemand",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "IVTAnalysisRes",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "IVTMin",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "IVTNewInputsAnalysisImpl",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "IVTNewInputsAnalysis",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "___GeneratedFreshTable4",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "InvCodeMotionCandidate",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "ExtractedExprCache",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "IsIsEven",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "NTZIterations",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "___GeneratedFreshTable5",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ],
+      [
+        "InlinedCall",
+        {
+          "key_lookups": 0,
+          "refine_rows": 0,
+          "scan_calls": 0,
+          "scan_rows": 0
+        }
+      ]
+    ],
+    "stage_work_status": "Unavailable: native plan reports contain no per-stage row statistics. Not zero work."
+  },
+  "label": "command1158/3/repeat0/4: (saturate (seq (run terms) (saturate (seq (run terms-helpers) (saturate (seq (run terms-helpers-helpers)))))))",
+  "limits": "No extraction in this isolated packet. Search/apply includes RHS and is not pure Join time. Candidate visits repeat across stages, not a single rejection funnel. Net rows and union displacements are distinct; neither measures per-match new enodes.",
+  "native": {
+    "can_stop": false,
+    "insert_merge_seconds": 0.06779313599999999,
+    "iterations": 1017,
+    "matches": 285337,
+    "rebuild_seconds": 1.17744405,
+    "rules": [
+      {
+        "matches": 34062,
+        "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (= (ExtractedExpr expr) (TCPair oldterm oldcost))\n       (< cost oldcost))\n      ((set (ExtractedExpr expr) (TCPair term cost)))\n        :ruleset terms-helpers )",
+        "search_and_apply_seconds": 1.553476224
+      },
+      {
+        "matches": 70,
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (= cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+        "search_and_apply_seconds": 1.095973299
+      },
+      {
+        "matches": 65562,
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (< cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+        "search_and_apply_seconds": 1.023982203
+      },
+      {
+        "matches": 67512,
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (> cost1 cost2))\n      ((union lhs (TCPair t2 cost2)))\n        :ruleset terms-helpers-helpers )",
+        "search_and_apply_seconds": 1.0125057
+      },
+      {
+        "matches": 14179,
+        "rule": "(rule ((= lhs (Bop o e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermBop o t1 t2) (+ 1 (+ c1 c2)))))\n        :ruleset terms )",
+        "search_and_apply_seconds": 0.660053548
+      },
+      {
+        "matches": 1745,
+        "rule": "(rule ((= lhs (Concat e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))\n        :ruleset terms )",
+        "search_and_apply_seconds": 0.551391716
+      },
+      {
+        "matches": 3659,
+        "rule": "(rule ((= lhs (Top o e1 e2 e3))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2))\n       (= (TCPair t3 c3) (ExtractedExpr e3)))\n      ((PotentialExtractedExpr lhs (TCPair (TermTop o t1 t2 t3) (+ (+ 1 c1) (+ c2 c3)))))\n        :ruleset terms )",
+        "search_and_apply_seconds": 0.47240537
+      },
+      {
+        "matches": 0,
+        "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (< cost 0))\n      ((panic 'Negative cost'))\n        :ruleset terms-helpers )",
+        "search_and_apply_seconds": 0.275579537
+      },
+      {
+        "matches": 29256,
+        "rule": "(rule ((= lhs (Get tup i))\n       (= (TCPair t1 c1) (ExtractedExpr tup)))\n      ((PotentialExtractedExpr lhs (TCPair (TermGet t1 i) c1)))\n        :ruleset terms )",
+        "search_and_apply_seconds": 0.213294455
+      },
+      {
+        "matches": 10988,
+        "rule": "(rule ((= lhs (Single e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermSingle t1) c1)))\n        :ruleset terms )",
+        "search_and_apply_seconds": 0.157821714
+      },
+      {
+        "matches": 58145,
+        "rule": "(rule ((PotentialExtractedExpr expr termandcost))\n      ((set (ExtractedExpr expr) (TCPair (NoTerm ) 10000000000000000)))\n        :ruleset terms-helpers )",
+        "search_and_apply_seconds": 0.004336916
+      },
+      {
+        "matches": 3,
+        "rule": "(rule ((= lhs (Uop o e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermUop o t1) (+ 1 c1))))\n        :ruleset terms )",
+        "search_and_apply_seconds": 0.003923206
+      },
+      {
+        "matches": 155,
+        "rule": "(rule ((= lhs (Const c ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConst c) 1)))\n        :ruleset terms )",
+        "search_and_apply_seconds": 4.2333e-05
+      },
+      {
+        "matches": 1,
+        "rule": "(rule ((= lhs (Arg ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermArg ) 1)))\n        :ruleset terms )",
+        "search_and_apply_seconds": 1.208e-06
+      }
+    ],
+    "rulesets": {
+      "terms": 2.096811844,
+      "terms-helpers": 1.848933988,
+      "terms-helpers-helpers": 3.154079003
+    },
+    "search_and_apply_seconds": 7.099824835
+  },
+  "resident_support": {
+    "baked_cell_coverage": null,
+    "resident_executed": false,
+    "rules": [
+      {
+        "atoms": null,
+        "logical_matches": 34062,
+        "reason": "custom function/global evidence is not supported",
+        "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (= (ExtractedExpr expr) (TCPair oldterm oldcost))\n       (< cost oldcost))\n      ((set (ExtractedExpr expr) (TCPair term cost)))\n        :ruleset terms-helpers )",
+        "search_and_apply_seconds": 1.553476224,
+        "sink_supported": false
+      },
+      {
+        "atoms": 3,
+        "logical_matches": 70,
+        "reason": "native sink accepts syntax; baked template coverage has NOT been established",
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (= cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+        "search_and_apply_seconds": 1.095973299,
+        "sink_supported": true
+      },
+      {
+        "atoms": null,
+        "logical_matches": 65562,
+        "reason": "primitive LHS requires an explicit residual implementation",
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (< cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+        "search_and_apply_seconds": 1.023982203,
+        "sink_supported": false
+      },
+      {
+        "atoms": null,
+        "logical_matches": 67512,
+        "reason": "primitive LHS requires an explicit residual implementation",
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (> cost1 cost2))\n      ((union lhs (TCPair t2 cost2)))\n        :ruleset terms-helpers-helpers )",
+        "search_and_apply_seconds": 1.0125057,
+        "sink_supported": false
+      },
+      {
+        "atoms": null,
+        "logical_matches": 14179,
+        "reason": "custom function/global evidence is not supported",
+        "rule": "(rule ((= lhs (Bop o e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermBop o t1 t2) (+ 1 (+ c1 c2)))))\n        :ruleset terms )",
+        "search_and_apply_seconds": 0.660053548,
+        "sink_supported": false
+      },
+      {
+        "atoms": null,
+        "logical_matches": 1745,
+        "reason": "custom function/global evidence is not supported",
+        "rule": "(rule ((= lhs (Concat e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))\n        :ruleset terms )",
+        "search_and_apply_seconds": 0.551391716,
+        "sink_supported": false
+      },
+      {
+        "atoms": null,
+        "logical_matches": 3659,
+        "reason": "custom function/global evidence is not supported",
+        "rule": "(rule ((= lhs (Top o e1 e2 e3))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2))\n       (= (TCPair t3 c3) (ExtractedExpr e3)))\n      ((PotentialExtractedExpr lhs (TCPair (TermTop o t1 t2 t3) (+ (+ 1 c1) (+ c2 c3)))))\n        :ruleset terms )",
+        "search_and_apply_seconds": 0.47240537,
+        "sink_supported": false
+      },
+      {
+        "atoms": null,
+        "logical_matches": 0,
+        "reason": "primitive LHS requires an explicit residual implementation",
+        "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (< cost 0))\n      ((panic 'Negative cost'))\n        :ruleset terms-helpers )",
+        "search_and_apply_seconds": 0.275579537,
+        "sink_supported": false
+      },
+      {
+        "atoms": null,
+        "logical_matches": 29256,
+        "reason": "custom function/global evidence is not supported",
+        "rule": "(rule ((= lhs (Get tup i))\n       (= (TCPair t1 c1) (ExtractedExpr tup)))\n      ((PotentialExtractedExpr lhs (TCPair (TermGet t1 i) c1)))\n        :ruleset terms )",
+        "search_and_apply_seconds": 0.213294455,
+        "sink_supported": false
+      },
+      {
+        "atoms": null,
+        "logical_matches": 10988,
+        "reason": "custom function/global evidence is not supported",
+        "rule": "(rule ((= lhs (Single e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermSingle t1) c1)))\n        :ruleset terms )",
+        "search_and_apply_seconds": 0.157821714,
+        "sink_supported": false
+      },
+      {
+        "atoms": null,
+        "logical_matches": 58145,
+        "reason": "only positive constructor/relation RHS and union are supported",
+        "rule": "(rule ((PotentialExtractedExpr expr termandcost))\n      ((set (ExtractedExpr expr) (TCPair (NoTerm ) 10000000000000000)))\n        :ruleset terms-helpers )",
+        "search_and_apply_seconds": 0.004336916,
+        "sink_supported": false
+      },
+      {
+        "atoms": null,
+        "logical_matches": 3,
+        "reason": "custom function/global evidence is not supported",
+        "rule": "(rule ((= lhs (Uop o e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermUop o t1) (+ 1 c1))))\n        :ruleset terms )",
+        "search_and_apply_seconds": 0.003923206,
+        "sink_supported": false
+      },
+      {
+        "atoms": 1,
+        "logical_matches": 155,
+        "reason": "native sink accepts syntax; baked template coverage has NOT been established",
+        "rule": "(rule ((= lhs (Const c ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConst c) 1)))\n        :ruleset terms )",
+        "search_and_apply_seconds": 4.2333e-05,
+        "sink_supported": true
+      },
+      {
+        "atoms": 1,
+        "logical_matches": 1,
+        "reason": "native sink accepts syntax; baked template coverage has NOT been established",
+        "rule": "(rule ((= lhs (Arg ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermArg ) 1)))\n        :ruleset terms )",
+        "search_and_apply_seconds": 1.208e-06,
+        "sink_supported": true
+      }
+    ]
+  },
+  "schedule": [
+    "(run-schedule (saturate (seq (run terms) (saturate (seq (run terms-helpers) (saturate (seq (run terms-helpers-helpers))))))))"
+  ],
+  "scope": "one original native schedule packet from a production-derived checkpoint; one timed replay plus separate diagnostics; same fork, not pristine or GPU acceleration",
+  "successful_union_displacements": 81353,
+  "visible_rows_net_change": 234435,
+  "wall_seconds": 8.405736749999999,
+  "provenance": {
+    "snapshot": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+    "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "binary_sha256": "4672e3bd1180817b327b20ce92388cc1f6cf98a1c7cfd6d47773f5a3328f687d",
+    "source_head": "76505dcc8a6496129014581dcbfa1093a76a78e0",
+    "source_diff": " Cargo.lock                                     |  1 +\n Cargo.toml                                     |  3 +++\n egglog/core-relations/src/free_join/execute.rs | 11 ++++-------\n egglog/core-relations/src/hash_index/mod.rs    |  6 ++----\n egglog/core-relations/src/lib.rs               | 14 ++++++++++++--\n egglog/src/lib.rs                              |  6 ++++++\n examples/rule_repl.rs                          | 17 ++++++++++++++++-\n 7 files changed, 44 insertions(+), 14 deletions(-)\n",
+    "breakpoint": "/3/repeat0/4",
+    "scope": "Replay captured production pass initialization and original schedule prefix. Not a new production frontend/extraction run.",
+    "capture_metadata": {
+      "source": "/Users/mineralsteins/Repos/egg_related/check_statewalk/benchmarks/passing/raytrace/raytrace.rs",
+      "source_sha256": "a0cc2caf63bded3e280ea23c9395358a60f4b9fa63a19949dd28159cc6638f22",
+      "profile_binary_sha256": "eb37c80b39288ca23143bb33dc9fe1571b2e65e5ed45350f213da602144cc9d4",
+      "measurement": "One production three-pass optimization, all pass timings saved. Subsequent Graphviz dot rendering was terminated; process exited 101 during SVG rendering. Not a successful end-to-end CLI timing.",
+      "run_mode": "dag-optimize",
+      "future_runner_mode": "optimized-pretty-print (same optimize entry, no Graphviz)",
+      "production_checkout_head": "ae80f82a403c1209fb084b115ee89470c7e66d0e"
+    },
+    "current_workload_sha256": "a0cc2caf63bded3e280ea23c9395358a60f4b9fa63a19949dd28159cc6638f22"
+  },
+  "date": "2026-10-18",
+  "raw_report_sha256": "dcaf8f6ecd86017c56a5afec256a22c2206b95913a03935ff2f26e55f907ae4d",
+  "derived": {
+    "enumerated_rows_per_key": 1.0181626725223543,
+    "lookup_rows_per_call": 1.1507878382542645,
+    "search_apply_fraction": 0.8446403981185826,
+    "syntactically_supported_rules": 3,
+    "syntactically_supported_logical_matches": 226,
+    "note": "Syntax admission is not certified Cell coverage or GPU execution. Per-key fanout is distinct from eclass density. Global counters include internal rebuild queries; table reads are search/apply instrumentation."
+  }
+}

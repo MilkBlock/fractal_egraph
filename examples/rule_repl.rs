@@ -14,6 +14,9 @@ use std::{
     path::PathBuf,
 };
 
+#[path = "support/ruleset_bench.rs"]
+mod ruleset_bench;
+
 struct Packet {
     label: String,
     commands: Vec<Command>,
@@ -197,6 +200,9 @@ fn main() -> Result<()> {
     std::fs::create_dir_all(&output)?;
     let text = std::fs::read_to_string(&source)?;
     EGraph::set_num_threads(1);
+    if std::env::var_os("EGGLOG_PROBE_COUNTS_OFF").is_some() {
+        egglog::set_probe_counts_enabled(false);
+    }
     let mut eg = EGraph::default();
     eg.set_report_level(Default::default());
     let commands = eg.parse_program(Some(source.display().to_string()), &text)?;
@@ -253,7 +259,7 @@ fn main() -> Result<()> {
         serde_json::to_vec_pretty(&plan)?,
     )?;
     println!(
-        "{} schedule packets. :next [n], :until TEXT, :finish, :stats NAME, :last, :tables, :quit. Native one-line .egg commands are accepted.",
+        "{} schedule packets. :next [n], :until TEXT, :bench NAME, :finish, :stats NAME, :last, :tables, :quit. Native one-line .egg commands are accepted.",
         packets.len()
     );
     let mut cursor = 0;
@@ -314,6 +320,15 @@ fn main() -> Result<()> {
                     .get(cursor)
                     .map(|p| p.label.as_str())
                     .unwrap_or("end")
+            );
+        } else if let Some(name) = command.strip_prefix(":bench ") {
+            let packet = packets.get(cursor).ok_or("no next schedule packet")?;
+            let result = ruleset_bench::benchmark(&eg, &packet.commands, &packet.label)?;
+            let path = output.join(format!("{name}.json"));
+            std::fs::write(&path, serde_json::to_vec_pretty(&result)?)?;
+            println!(
+                "bench saved {}; checkpoint remains unchanged",
+                path.display()
             );
         } else if let Some(name) = command.strip_prefix(":stats ") {
             let path = output.join(format!("{name}.json"));

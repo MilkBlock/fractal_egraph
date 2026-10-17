@@ -21,6 +21,9 @@ getrandom = { version = "0.3", features = ["wasm_js"] }
 name = "egg_layout"
 path = "src/main.rs"
 
+[dev-dependencies]
+egglog-reports = { path = "egglog/egglog-reports" }
+
 [profile.release]
 lto = "thin"
 codegen-units = 1
