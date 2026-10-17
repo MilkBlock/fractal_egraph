@@ -517,6 +517,7 @@ impl Pipeline {
             );
         }
         self.cells.connect_windows(&self.cs.windows);
+        self.cells.observe_history(c, &self.cs)?;
         let mut cell_report=self.cells.report();
         cell_report["windows"]=json!(self.cs.windows);
         cell_report["reuse_value"]=self.reuse_census.report(&cell_report,self.catalog.as_ref(),&self.cs);

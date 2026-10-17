@@ -8,7 +8,8 @@ export function model(data) {
   for(const es of routes.values())es.sort((a,b)=>rank(b.parents)-rank(a.parents)||JSON.stringify(a.parents).localeCompare(JSON.stringify(b.parents)));
   for(const ns of classes.values())ns.sort((a,b)=>rank(b.parents||[])-rank(a.parents||[])||a.unit-b.unit);
   const reuse=new Map((data.reuse_value?.cells||[]).map(r=>[r.eclass,r]));
-  const m={units,classes,degree,reuse,routes,mode:'interfaces',routeChoices:new Map()};
+  const families=new Map((data.repetition_families?.families||[]).map(f=>[f.id,f]));
+  const m={units,classes,degree,reuse,routes,families,mode:'interfaces',routeChoices:new Map()};
   m.route=n=>routes.get(n.unit)?.[m.routeChoices.get(n.unit)||0];
   m.parents=n=>[...(m.mode==='history'?(n.history_parents||n.parents||[]):(m.route(n)?.parents||[]))].sort((a,b)=>degree(units.get(b)?.eclass)-degree(units.get(a)?.eclass)||a-b);
   return m;
@@ -29,7 +30,18 @@ export function overviewDot(m){
       lines.push(`"${id}" -> "c${c}" [color="#237450"];`);
     }
   }
+  for(const f of m.families.values()){
+    lines.push(`"family${f.id}" [shape=hexagon,fillcolor="#eee2ff",color="#8054ad",label=${q(`观察重复族 F${f.id}\n${f.occurrences.length} 次有来源的再入`)},URL=${q(`#cell-family-${f.id}`)}];`);
+    for(const u of f.units||[])if(m.units.has(u))lines.push(`"family${f.id}" -> "u${u}" [style=dotted,arrowhead=none,color="#8054ad",constraint=false];`);
+  }
   return lines.join('\n')+'\n}';
+}
+export function familyDot(m,id){
+  const f=m.families.get(id);if(!f)return overviewDot(m);
+  const units=new Set(f.units);
+  return overviewDot(model({nodes:[...m.units.values()].filter(n=>units.has(n.unit)),
+    graft_interfaces:[...m.routes.values()].flat().filter(e=>units.has(e.target)&&e.parents.every(p=>units.has(p))),
+    repetition_families:{families:[f]}}));
 }
 export function bodyDot(state,highlight=[]){
   const selected=new Set(highlight),hidden=new Set(state.subsumed_rows||[]);
@@ -61,6 +73,7 @@ export function installCellPanel(parent,{post,mountSvg,previewRow,standalone=fal
   panel.innerHTML=`<header data-role="toolbar"><button data-role="fullscreen">打开独立看图页</button><label>快照 <select data-role="snapshot"><option value="">最新（自动跟随）</option></select></label></header><p><b>RipSatCell egraph</b> · 点击状态查看内部图与生成方式</p>
     <div data-role="status"></div><label>Cell e-class <select data-role="class"></select></label>
     <details open><summary>复用价值 · 按去重接口绑定数排序</summary><p>绑定数保留历史版本，不消除对称性与后续 union 别名。不同 Cell 的覆盖可能重叠，不能直接相加。参考收益是假设实例各自存储完整闭包的描述模型，不是实测内存收益。</p><div data-role="reuse-table" style="overflow:auto"></div></details>
+    <details open data-role="family-panel"><summary>Fractal 候选族 · 仅 analyze 历史证据</summary><p>紫色关系表示已观察到的重复依赖路径，不表示 Cell 判等、已证明无限展开或饱和。点击族可查看原始 binding、参数表达式及外部义务。</p><div data-role="families"></div><button data-role="family-focus" hidden>图中只看本族成员</button><button data-role="family-all" hidden>恢复完整图</button><div data-role="family-members"></div><div data-role="family-samples"></div><details><summary>完整事件、binding 与 effect 证据</summary><pre data-role="family-evidence" style="white-space:pre-wrap"></pre></details></details>
     <label>当前构造路径 <select data-role="unit"></select></label>
     <p data-role="guarantee" style="padding:10px;background:#edf1f7;color:#182338;border-radius:6px"></p>
     <details><summary>整个 Cell egraph（点击节点跳转）</summary><div data-role="overview"></div></details>
@@ -98,7 +111,7 @@ export function installCellPanel(parent,{post,mountSvg,previewRow,standalone=fal
   async function svg(kind,source,host,token=epoch){
     const text=await(await post('render',{kind,source})).text();if(token!==epoch)return;
     host.replaceChildren();mountSvg(text,host);host.dataset.ready='true';
-    host.onclick=e=>{const link=e.target.closest('a');if(!link)return;const href=link.getAttribute('href')||link.getAttribute('xlink:href')||'';const route=href.match(/#cell-interface-(\d+)-(\d+)$/);if(route){e.preventDefault();panel.dataset.focus='body';m.routeChoices.set(Number(route[1]),Number(route[2]));m.mode='interfaces';el('path-mode').value='interfaces';el('route-proof').open=true;selectUnit(Number(route[1]));return;}const match=href.match(/#cell-(class|unit)-(\d+)$/);if(match){e.preventDefault();if(match[1]==='class'){panel.dataset.focus='body';el('body').closest('details').open=true;selectClass(Number(match[2]));}else{panel.dataset.focus='rule';selectUnit(Number(match[2])).then(()=>{if(selected?.unit===Number(match[2]))renderRule();});}}};
+    host.onclick=e=>{const link=e.target.closest('a');if(!link)return;const href=link.getAttribute('href')||link.getAttribute('xlink:href')||'';const family=href.match(/#cell-family-(\d+)$/);if(family){e.preventDefault();selectFamily(Number(family[1]));return;}const route=href.match(/#cell-interface-(\d+)-(\d+)$/);if(route){e.preventDefault();panel.dataset.focus='body';m.routeChoices.set(Number(route[1]),Number(route[2]));m.mode='interfaces';el('path-mode').value='interfaces';el('route-proof').open=true;selectUnit(Number(route[1]));return;}const match=href.match(/#cell-(class|unit)-(\d+)$/);if(match){e.preventDefault();if(match[1]==='class'){panel.dataset.focus='body';el('body').closest('details').open=true;selectClass(Number(match[2]));}else{panel.dataset.focus='rule';selectUnit(Number(match[2])).then(()=>{if(selected?.unit===Number(match[2]))renderRule();});}}};
   }
   function paths(){
     el('paths').replaceChildren();
@@ -149,12 +162,32 @@ export function installCellPanel(parent,{post,mountSvg,previewRow,standalone=fal
       if(d.root_record!=null)el('member').value=String(d.root_record);
       const g=d.guarantee;
       el('guarantee').textContent=[g.replay?'✓ 原历史回放验证通过':'? 无回放验证记录',g.saturated?'✓ 局部推理完成':`未完成：${d.status}`,g.certified_body?'✓ 导出认证闭包':g.observation_only?'观察性快照，不是认证闭包':'无认证闭包',g.symbolic?.schema?'符号路径条件下的闭包；不是全数值分支饱和':'',g.runtime_adapter].filter(Boolean).join(' ｜ ');
-      el('evidence').textContent=JSON.stringify({guarantee:g,graft_interfaces:d.graft_interfaces,reuse_value:d.reuse_value,history_windows:d.history_windows,members:d.members,lhs_evidence:d.lhs_evidence},null,2);
+      el('evidence').textContent=JSON.stringify({guarantee:g,repetition_families:d.repetition_families,graft_interfaces:d.graft_interfaces,reuse_value:d.reuse_value,history_windows:d.history_windows,members:d.members,lhs_evidence:d.lhs_evidence},null,2);
       const url=new URL(location.href);url.searchParams.set('cell_eclass',n.eclass);url.searchParams.set('cell_unit',id);history.replaceState(null,'',url);
       await body();
     }catch(e){if(token===epoch)fail(e);}
   }
   function selectClass(c){const n=choices.get(c)||m.classes.get(c)?.[0];if(n)return selectUnit(n.unit);}
+  function selectFamily(id){
+    const f=m.families.get(id);if(!f)return;
+    el('family-panel').open=true;const host=el('family-members');host.replaceChildren();
+    for(const u of f.units||[]){const n=m.units.get(u);if(!n)continue;const b=document.createElement('button');b.textContent=`e${n.eclass} · unit ${u}`;b.onclick=()=>{panel.dataset.focus='body';selectUnit(u);};host.append(b);}
+    const evidence=data.repetition_families||{},records=new Set(f.records),bindings=new Set(f.binding_cycle);
+    const events=(evidence.events||[]).filter(e=>records.has(e.record));const contracts=new Set(events.map(e=>e.contract));
+    el('family-evidence').textContent=JSON.stringify({family:f,events,contracts:[...contracts].map(i=>({id:i,...evidence.contracts[i]})),binding_contracts:[...bindings].map(i=>({id:i,...evidence.binding_contracts[i]}))},null,2);
+    const samples=el('family-samples');samples.replaceChildren();
+    for(const o of f.occurrences){const line=document.createElement('p');const a=events.find(e=>e.record===o.start_record),b=events.find(e=>e.record===o.end_record);const values=e=>(e?.values?.inputs||[]).filter(v=>v.literal!=null).map(v=>v.literal).join(', ');line.textContent=`event ${o.start_event} [${values(a)}] → event ${o.end_event} [${values(b)}] · ${o.steps.length} 条真实依赖`;samples.append(line);}
+    el('family-focus').hidden=false;el('family-all').hidden=false;
+    el('family-focus').onclick=async()=>{try{graphPane.open=true;const src=familyDot(m,id);el('source').textContent=src;await svg('dot',src,el('overview'));const graph=el('overview').querySelector('svg');if(graph){graph.style.maxWidth='100%';graph.style.height='auto';}}catch(e){fail(e);}};
+    el('family-all').onclick=()=>svg('dot',overviewDot(m),el('overview')).catch(fail);
+  }
+  function familyTable(){
+    el('families').replaceChildren();el('family-members').replaceChildren();el('family-evidence').replaceChildren();el('family-samples').replaceChildren();el('family-focus').hidden=true;el('family-all').hidden=true;
+    const evidence=data.repetition_families;
+    if(!evidence){el('families').textContent='旧快照没有分析证据；不从源码补猜重复族。';return;}
+    for(const f of m.families.values()){const b=document.createElement('button');b.dataset.family=String(f.id);b.textContent=`F${f.id} · ${f.rules.join(' / ')} · ${f.occurrences.length} 次再入`;b.onclick=()=>selectFamily(f.id);el('families').append(b);}
+    if(!m.families.size)el('families').textContent='本轮尚无满足真实 producer 接线的再入。';
+  }
   function reuseTable(){
     const host=el('reuse-table');host.replaceChildren();
     if(!data.reuse_value){host.textContent='旧目录没有复用统计，请重新 analyze。';return;}
@@ -176,7 +209,7 @@ export function installCellPanel(parent,{post,mountSvg,previewRow,standalone=fal
   el('typst-button').onclick=async()=>{try{if(!selected)return;const src=pathTypst(m,selected,choices);el('source').textContent=src;await svg('typst',src,el('typst'));}catch(e){fail(e);}};
   const all=el('overview').parentElement;all.ontoggle=()=>{if(all.open&&m&&!el('overview').childNodes.length)svg('dot',overviewDot(m),el('overview')).catch(fail);};
   const api={panel,noteSnapshot(frame){if(frame.artifact_directory===path&&frame.stem&&![...el('snapshot').options].some(o=>o.value===frame.stem))el('snapshot').add(new Option(frame.label||frame.stem,frame.stem));},get snapshot(){return snapshot;},get path(){return path;},clear(){epoch++;selected=null;detail=null;m=null;panel.hidden=true;for(const name of ['body','paths','typst','rule-svg','evidence','overview','status','guarantee','error','route-evidence'])el(name).replaceChildren();},get source(){return detail?.preview_source||'';},download(){if(!m)return;const a=document.createElement('a'),u=URL.createObjectURL(new Blob([overviewDot(m)],{type:'text/vnd.graphviz'}));a.href=u;a.download='ripsat-cell-egraph.dot';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);},async load(p,round){if(round!==undefined)snapshot=round;else if(p!==path)snapshot='';path=p;const token=++epoch;const received=await(await post('cell-egraph',{path,snapshot})).json();if(token!==epoch)return;data=received;el('snapshot').replaceChildren(new Option('最新（自动跟随）',''));for(const f of data.snapshots||[])el('snapshot').add(new Option(f.label||`Round ${f.round??f.stem}`,f.stem));el('snapshot').value=snapshot;m=model(data);m.mode=el('path-mode').value;choices.clear();el('overview').replaceChildren();el('class').replaceChildren();
-    reuseTable();
+    reuseTable();familyTable();
     for(const [c,ns] of m.classes)el('class').add(new Option(`e${c} · ${ns.length} 条构造 · ${m.reuse.has(c)?`${m.reuse.get(c).interface_instances} 个接口绑定`:'未认证'}`,c));
     el('status').textContent=`${m.classes.size} 个 e-class，${data.nodes.length} 条已登记构造；认证合并 ${data.certified_unions}。${data.note}`;
     if(!m.classes.size){el('guarantee').textContent='此分析目录没有 Cell egraph 登记数据。';for(const name of ['body','paths','typst','evidence'])el(name).replaceChildren();selected=null;detail=null;return;}

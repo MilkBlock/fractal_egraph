@@ -12,14 +12,18 @@ class CellTests(unittest.TestCase):
             reuse={'schema':'cell-reuse-value/v1','cells':[{'eclass':0,'units':[0],'interface_instances':2}]}
             edge={'target':0,'parents':[1],'proof':{'parent_bindings':[{'from':'x','to':'y'}],'ordered_replay':['(union x y)']}}
             registry={'graft_interfaces':[edge],'nodes':[{'unit':0,'parents':[],'contract':0}], 'units':[{'unit':0,'eclass':0}], 'windows':[window], 'reuse_value':reuse}
+            family={'id':0,'units':[0],'occurrences':[{'start_event':1,'end_event':3}]}
+            registry['repetition_families']={'source':'analyze captured committed applications','families':[family]}
             (run/'analysis.json').write_text(json.dumps({'saturated_rule_composition':{'cell_egraph':registry}}))
             data=overview(root,'out/run')
             self.assertEqual(data['reuse_value'],reuse)
             self.assertEqual(data['graft_interfaces'],[edge])
             self.assertEqual(data['nodes'][0]['history_windows'],[window])
+            self.assertEqual(data['repetition_families']['families'],[family])
             detail=state_detail(root,'out/run',0)
             self.assertEqual(detail['reuse_value']['interface_instances'],2)
             self.assertFalse(detail['guarantee']['certified_body'])
+            self.assertEqual(detail['repetition_families'],[family])
             self.assertEqual(detail['graft_interfaces'][0]['proof'],edge['proof'])
     def test_precise_ground_arguments_and_hidden_rows(self):
         s={'values':[{'literal':'0'},{'literal':'1'},{'sort':'E'},{'sort':'E'},{'sort':'E'}],
@@ -48,10 +52,13 @@ class CellTests(unittest.TestCase):
             root=Path(t).resolve();run=root/'out'/'run';(run/'rounds').mkdir(parents=True)
             early={'cell_egraph':{'units':[{'unit':0,'eclass':0}],'nodes':[{'unit':0,'parents':[],'contract':0}]},'jobs':[{'candidate_id':0,'state':'Pending'}]}
             final={'cell_egraph':{'units':[{'unit':1,'eclass':1}],'nodes':[{'unit':1,'parents':[],'contract':1}]},'jobs':[]}
+            final['cell_egraph']['repetition_families']={'families':[{'id':0,'units':[1]}]}
             (run/'rounds/manifest.json').write_text(json.dumps([{'stem':'round-0001','label':'round 1'}]))
             (run/'rounds/round-0001.json').write_text(json.dumps({'saturated_rule_composition':early}))
             (run/'analysis.json').write_text(json.dumps({'saturated_rule_composition':final}))
             self.assertEqual(overview(root,'out/run','round-0001')['nodes'][0]['unit'],0)
+            self.assertIsNone(overview(root,'out/run','round-0001')['repetition_families'])
+            self.assertEqual(overview(root,'out/run')['repetition_families']['families'][0]['id'],0)
             self.assertEqual(overview(root,'out/run')['nodes'][0]['unit'],1)
             self.assertIsNone(state_detail(root,'out/run',0,'round-0001')['state'])
             with self.assertRaises(ValueError):overview(root,'out/run','../../analysis')

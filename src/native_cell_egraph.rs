@@ -1,4 +1,5 @@
-//! Online normalization of prepared CS compositions. No candidate discovery or ripen here.
+//! Online normalization of prepared compositions and observed-family annotations.
+//! No new composition candidates or ripen are created here.
 //! Opaque inputs are alpha-normalized using ordered interfaces. Positive exact
 //! sequential prefixes can be factored; other compositions retain full preparations.
 use crate::pipeline::Result;
@@ -10,11 +11,15 @@ use std::collections::{BTreeMap, BTreeSet};
 mod graft;
 #[path = "cell_binding_normalize.rs"]
 mod normalize;
+#[path = "native_cell_families.rs"]
+mod families;
 
 const DSL: &str = r#"
 (datatype*
  (CellParents (NoParents) (Parent Cell CellParents))
  (Cell (CoarseApply CellParents i64)))
+(datatype CellFamily (ObservedFamily i64))
+(relation ObservedFamilyMember (CellFamily Cell))
 "#;
 
 pub(super) struct Registry {
@@ -36,6 +41,8 @@ pub(super) struct Registry {
     unions: usize,
     normalized: usize,
     normalization_fallbacks: usize,
+    families: families::Census,
+    family_members: BTreeSet<(usize, usize)>,
 }
 impl Registry {
     pub fn new() -> Result<Self> {
@@ -61,10 +68,24 @@ impl Registry {
             unions: 0,
             normalized: 0,
             normalization_fallbacks: 0,
+            families: families::Census::default(),
+            family_members: BTreeSet::new(),
         })
     }
     pub fn contains(&self, unit: usize) -> bool {
         self.values.contains_key(&unit)
+    }
+    pub fn observe_history(&mut self, c: &super::super::Captured, store: &super::super::cs::Store) -> Result<()> {
+        self.families.observe(c, store);
+        let additions:Vec<_>=self.families.memberships().into_iter()
+            .filter(|(f,u)|self.values.contains_key(u) && !self.family_members.contains(&(*f,*u))).collect();
+        if !additions.is_empty() {
+            let text=additions.iter().map(|(f,u)|format!("(ObservedFamilyMember (ObservedFamily {f}) cell_{u})")).collect::<Vec<_>>().join("\n");
+            let commands=self.eg.parse_program(None,&text)?;
+            self.eg.run_program(commands)?;
+            self.family_members.extend(additions);
+        }
+        Ok(())
     }
     pub fn register(
         &mut self,
@@ -280,7 +301,12 @@ impl Registry {
             })
             .map(|(_, edge)| edge)
             .collect();
-        json!({"graft_interfaces":grafts,"graft_interface_scope":"conditional replay extension, independent of historical edges; only exact completed endpoint certificates", "registered_compositions":self.values.len(),"eclasses":classes.len(),"contracts":self.contracts.len(),"normalized_bindings":self.normalized,"factored_successors":self.factored,"normalization_fallbacks":self.normalization_fallbacks,"certified_unions":self.unions,"nodes":self.nodes,"units":units,"scope":"automatic prepared CS registration; exact completed catalog unions; conservative full binding contracts; no ripen skipped"})
+        let mut repetition = self.families.report(&units, &self.completed);
+        let mut membership_rows = 0;
+        self.eg.function_for_each("ObservedFamilyMember", |_| membership_rows += 1)
+            .expect("family membership relation is declared");
+        repetition["membership_rows"] = json!(membership_rows);
+        json!({"repetition_families":repetition,"graft_interfaces":grafts,"graft_interface_scope":"conditional replay extension, independent of historical edges; only exact completed endpoint certificates", "registered_compositions":self.values.len(),"eclasses":classes.len(),"contracts":self.contracts.len(),"normalized_bindings":self.normalized,"factored_successors":self.factored,"normalization_fallbacks":self.normalization_fallbacks,"certified_unions":self.unions,"nodes":self.nodes,"units":units,"scope":"automatic prepared CS registration; exact completed catalog unions; conservative full binding contracts; no ripen skipped"})
     }
 }
 

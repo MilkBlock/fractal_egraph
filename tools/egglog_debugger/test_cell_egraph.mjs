@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {model,pathTypst,bodyDot,overviewDot} from './cell-egraph-panel.mjs';
+import {model,pathTypst,bodyDot,overviewDot,familyDot} from './cell-egraph-panel.mjs';
 const m=model({nodes:[
  {unit:0,eclass:0,contract:0,parents:[]},
  {unit:1,eclass:1,contract:1,parents:[0]},
@@ -37,3 +37,11 @@ assert.ok(overviewDot(routed).includes('context history'));
 assert.ok(overviewDot(routed).includes('#cell-interface-2-0'));
 routed.mode='history';assert.deepEqual(routed.parents(routed.units.get(3)),[0,1]);
 console.log('Conditional routes, history distinction and exact parent wiring passed');
+const family=model({nodes:[{unit:0,eclass:0,contract:0,parents:[]}],repetition_families:{families:[{id:2,units:[0,99],occurrences:[{}],rules:['step']}]}});
+assert.equal(family.families.size,1);
+assert.ok(overviewDot(family).includes('#cell-family-2'));
+assert.ok(overviewDot(family).includes('constraint=false'));
+assert.ok(!overviewDot(family).includes('"u99"'),'unregistered unit cannot become a Cell node');
+assert.equal(family.classes.size,1,'family annotations never merge Cells');
+assert.ok(familyDot(family,2).includes('#cell-family-2'));
+console.log('Analyze-only observed families annotate existing Cell nodes');

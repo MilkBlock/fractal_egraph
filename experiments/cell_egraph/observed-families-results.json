@@ -1,0 +1,232 @@
+{
+  "scope": "actual native analyze pipeline, not standalone AST recursion discovery",
+  "source": "experiments/cell_egraph/observed-families.egg",
+  "source_sha256": "66ae31a74fedb8d7751817df5e1bd4285eeed306bbef9706ce8dbd76c1f54c5c",
+  "base_head": "afae9a89d06c283fae70b8dca83cd9dfeababd92",
+  "records": 19,
+  "cell_units": 50,
+  "cell_eclasses": 50,
+  "certified_unions": 0,
+  "native_membership_rows": 22,
+  "ancestor_visits": 23,
+  "unsupported": {},
+  "families": [
+    {
+      "id": 0,
+      "status": "observed-reentry",
+      "rules": [
+        "fib-expand"
+      ],
+      "units": [
+        2,
+        5,
+        8,
+        11,
+        12
+      ],
+      "records": [
+        2,
+        5
+      ],
+      "occurrences": [
+        {
+          "boundary": 3,
+          "end_event": 34,
+          "end_record": 5,
+          "start_event": 13,
+          "start_record": 2,
+          "steps": [
+            {
+              "binding": 3,
+              "source_record": 2,
+              "target_record": 5
+            }
+          ]
+        }
+      ],
+      "certified_saturated_units": []
+    },
+    {
+      "id": 1,
+      "status": "observed-reentry",
+      "rules": [
+        "a-to-b",
+        "b-to-a"
+      ],
+      "units": [
+        4,
+        7,
+        10,
+        15,
+        16,
+        19,
+        24,
+        25,
+        28,
+        33,
+        34,
+        37,
+        42,
+        43,
+        45,
+        48,
+        49
+      ],
+      "records": [
+        4,
+        7,
+        10,
+        13,
+        16,
+        18
+      ],
+      "occurrences": [
+        {
+          "boundary": 4,
+          "end_event": 63,
+          "end_record": 10,
+          "start_event": 21,
+          "start_record": 4,
+          "steps": [
+            {
+              "binding": 5,
+              "source_record": 4,
+              "target_record": 7
+            },
+            {
+              "binding": 8,
+              "source_record": 7,
+              "target_record": 10
+            }
+          ]
+        },
+        {
+          "boundary": 5,
+          "end_event": 84,
+          "end_record": 13,
+          "start_event": 42,
+          "start_record": 7,
+          "steps": [
+            {
+              "binding": 8,
+              "source_record": 7,
+              "target_record": 10
+            },
+            {
+              "binding": 5,
+              "source_record": 10,
+              "target_record": 13
+            }
+          ]
+        },
+        {
+          "boundary": 6,
+          "end_event": 105,
+          "end_record": 16,
+          "start_event": 63,
+          "start_record": 10,
+          "steps": [
+            {
+              "binding": 5,
+              "source_record": 10,
+              "target_record": 13
+            },
+            {
+              "binding": 8,
+              "source_record": 13,
+              "target_record": 16
+            }
+          ]
+        },
+        {
+          "boundary": 7,
+          "end_event": 121,
+          "end_record": 18,
+          "start_event": 84,
+          "start_record": 13,
+          "steps": [
+            {
+              "binding": 8,
+              "source_record": 13,
+              "target_record": 16
+            },
+            {
+              "binding": 5,
+              "source_record": 16,
+              "target_record": 18
+            }
+          ]
+        }
+      ],
+      "certified_saturated_units": []
+    }
+  ],
+  "snapshots": [
+    {
+      "file": "round-0001.json",
+      "families": 0
+    },
+    {
+      "file": "round-0002.json",
+      "families": 0
+    },
+    {
+      "file": "round-0003.json",
+      "families": 1
+    },
+    {
+      "file": "round-0004.json",
+      "families": 2
+    },
+    {
+      "file": "round-0005.json",
+      "families": 2
+    },
+    {
+      "file": "round-0006.json",
+      "families": 2
+    },
+    {
+      "file": "round-0007.json",
+      "families": 2
+    },
+    {
+      "file": "round-0008.json",
+      "families": 2
+    },
+    {
+      "file": "round-0009.json",
+      "families": 2
+    },
+    {
+      "file": "round-0010.json",
+      "families": 2
+    },
+    {
+      "file": "round-0011.json",
+      "families": 2
+    },
+    {
+      "file": "round-0012.json",
+      "families": 2
+    },
+    {
+      "file": "round-0013.json",
+      "families": 2
+    },
+    {
+      "file": "round-0014.json",
+      "families": 2
+    }
+  ],
+  "validation": [
+    "unexecuted source recursion excluded",
+    "source deleted before saved-history replay",
+    "same replayed contracts and families",
+    "no equality certificates from membership",
+    "DABCABC and branching binding tests",
+    "early snapshot isolation",
+    "browser graph and member clicks"
+  ],
+  "limits": "Observed typed dependency paths only. No universal parameterization, complete motif search, termination, or infinity proof. Numeric guarded cells are observation-only closures in the existing ripen exporter."
+}

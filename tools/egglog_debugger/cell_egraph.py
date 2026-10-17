@@ -98,8 +98,9 @@ def overview(root, path, snapshot=None):
             'units': registry.get('units', []), 'certified_unions': registry.get('certified_unions', 0),
             'scope': registry.get('scope'), 'boundary': queue.get('boundary'),
             'reuse_value': registry.get('reuse_value'), 'windows': windows,
+            'repetition_families': registry.get('repetition_families'),
             'graft_interfaces': registry.get('graft_interfaces', []),
-            'dsl': '(CellParents (NoParents) (Parent Cell CellParents))\n(Cell (CoarseApply CellParents i64))',
+            'dsl': '(CellParents (NoParents) (Parent Cell CellParents))\n(Cell (CoarseApply CellParents i64))\n(CellFamily (ObservedFamily i64))\n(relation ObservedFamilyMember (CellFamily Cell))',
             'note': '虚线是观测历史，不代表必要依赖。绿色接口经类型、绑定、回放与两端饱和验证；缺少接口不表示不能嫁接。构造数不是全路径数。'}
 
 
@@ -198,6 +199,7 @@ def state_detail(root, path, unit, snapshot=None):
     return {'unit': unit, 'node': node, 'state': state, 'initial': initial,
         'graft_interfaces': grafts,
         'history_windows': [w for w in registry.get('windows', []) if w['unit']==unit],
+        'repetition_families': [f for f in (registry.get('repetition_families') or {}).get('families', []) if unit in f.get('units', [])],
         'reuse_value': next((r for r in (registry.get('reuse_value') or {}).get('cells', [])
                             if unit in r['units']), None),
         'status': job.get('state', 'Unknown'), 'reason': job.get('reason'),

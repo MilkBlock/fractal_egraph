@@ -1,0 +1,10 @@
+; Discovery reads only analyze records. The uncalled rule is a negative control.
+(datatype Math (Fib i64) (Add Math Math) (Num i64) (A i64) (B i64) (Unused i64))
+(rewrite (Fib n) (Add (Fib (- n 1)) (Fib (- n 2))) :when ((> n 1)) :name "fib-expand")
+(rewrite (Fib n) (Num n) :when ((<= n 1)) :name "fib-base")
+(rewrite (A n) (B (- n 1)) :when ((> n 0)) :name "a-to-b")
+(rewrite (B n) (A (- n 1)) :when ((> n 0)) :name "b-to-a")
+(rewrite (Unused n) (Unused (+ n 1)) :name "never-executed")
+(Fib 11)
+(A 7)
+(run 12)

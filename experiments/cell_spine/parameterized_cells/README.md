@@ -1,5 +1,11 @@
 # Parameterized Cell repetition
 
+**Discovery boundary:** this historical AST experiment is not the FractalRule
+discovery frontend. Authoritative observed families now come exclusively from
+[analyze evidence](../../cell_egraph/OBSERVED_FAMILIES.md), including real producer
+links and committed effects. The syntactic recursion examples below validate
+parameter lowering only; they must not be imported as observed Cell families.
+
 This standalone experiment extends Cell specialization from **copying opaque
 input slots** to **guarded numeric parameter updates and child-Cell connections**.
 It does not modify egglog's engine or claim an eggcc speedup. The existing math
