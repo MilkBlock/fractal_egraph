@@ -118,6 +118,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72f5acc6cb2ba439de613abc23857ec3d78374d8ed5ac84e9d11336e87da8649"
 
 [[package]]
+name = "cell-assisted-egglog"
+version = "0.1.0"
+dependencies = [
+ "egglog",
+ "egglog-numeric-id",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "cfg-if"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -285,6 +295,7 @@ checksum = "d0881ea181b1df73ff77ffaaf9c7544ecc11e82fba9b5f27b262a3c73a332555"
 name = "egg_layout"
 version = "0.1.0"
 dependencies = [
+ "cell-assisted-egglog",
  "egglog",
  "egglog-reports",
  "getrandom 0.3.4",

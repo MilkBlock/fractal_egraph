@@ -108,7 +108,7 @@ These scans include index construction and revisits; they are neither distinct
 facts nor the same counter as candidate-row visits. Per-stage row statistics are
 not populated by the native plan reporter; JSON records them as unavailable.
 
-## Why this exposes a real gap
+## Original admission result (before function support)
 
 The current assisted sink accepts only **3/14 rule bodies**, representing **226**
 of 285,337 logical matches. Even that is only syntactic admission, not proven
@@ -156,3 +156,8 @@ CARGO_PROFILE_DEV_DEBUG=0 cargo test --offline --example rule_repl \
 ```
 
 The single test thread is required for process-global profiling counters.
+
+The [function-support follow-up](../function-support/README.md) removes those
+11 compiler rejections and validates all 14 query binding sets on this native
+checkpoint. This does not replace the native timing above with a GPU speedup or
+turn syntactic admission into certified Cell coverage.

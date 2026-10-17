@@ -14,6 +14,8 @@ use std::{
     path::PathBuf,
 };
 
+#[path = "support/cell_query_validation.rs"]
+mod cell_query_validation;
 #[path = "support/ruleset_bench.rs"]
 mod ruleset_bench;
 
@@ -321,6 +323,20 @@ fn main() -> Result<()> {
                     .map(|p| p.label.as_str())
                     .unwrap_or("end")
             );
+        } else if let Some(args) = command.strip_prefix(":check-assisted ") {
+            let args = args.split_whitespace().collect::<Vec<_>>();
+            if args.len() != 2 {
+                return Err("usage: :check-assisted NAME METAL_WORKER".into());
+            }
+            let packet = packets.get(cursor).ok_or("no next packet")?;
+            let dest = output.join(format!("{}.json", args[0]));
+            cell_query_validation::check(
+                &eg,
+                &packet.commands,
+                std::path::Path::new(args[1]),
+                &dest,
+            )?;
+            println!("assisted query conformance saved {}", dest.display());
         } else if let Some(name) = command.strip_prefix(":bench ") {
             let packet = packets.get(cursor).ok_or("no next schedule packet")?;
             let result = ruleset_bench::benchmark(&eg, &packet.commands, &packet.label)?;

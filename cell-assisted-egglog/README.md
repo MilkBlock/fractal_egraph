@@ -106,11 +106,12 @@ score matrices for CPU binding assembly. The new path changes **both maintenance
 and matching algorithm**, so their timing difference does not isolate residency.
 The old report is preserved in `results.json`.
 
-All paths currently support positive constructor/relation consumer queries and
-constructor/relation/union actions. Primitive filters, custom function lookups,
-globals and containers are outside the resident consumer compiler. The compact
-native journal itself is tested with function updates/custom merges, but that
-alone does not add those operations to the GPU query compiler.
+The compiler now supports constructor/relation/custom-function table reads,
+table-bound i64 comparisons, and native RHS arithmetic, set/merge, union and panic.
+See [function support](function-support/README.md) for exact GPU comparison,
+update invalidation, real raytrace conformance and the independent analyzer
+certification boundary. Other computed LHS primitives, globals, containers and
+destructive RHS actions remain unsupported.
 
 Templates come from actual analyze output, including non-root projections and
 conditional aliases. The loader currently accepts single-application triggers
@@ -225,5 +226,7 @@ The [raytrace Pass-3 checkpoint benchmark](snapshot-bench/README.md) exercises
 14 unmodified candidate-extraction rules on 421K initial table rows. It takes
 8.406 seconds, with independently measured sparse keyed results and exact native
 replay checks. This is the new substantial reference; the tiny If cases above
-remain correctness controls. The resident compiler accepts only 3/14 rule bodies
-syntactically, so a complete GPU comparison is explicitly unavailable.
+remain correctness controls. The original report found 3/14 rule bodies syntactically accepted. The
+[updated query backend](function-support/README.md) now passes exact GPU/native
+matching for all 14; complete Cell-assisted saturation and an end-to-end GPU
+speedup comparison remain unavailable.

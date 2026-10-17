@@ -21,12 +21,17 @@ def main():
     p.add_argument('--breakpoint',default='/3/repeat0/4')
     p.add_argument('--output',type=Path,required=True)
     p.add_argument('--skip-build',action='store_true')
+    p.add_argument('--pre-query-run',help='in conformance mode, execute this native schedule expression at the checkpoint before checking queries')
+    p.add_argument('--assisted-worker',type=Path,help='validate all packet queries on GPU against native snapshot matches, instead of timing the packet')
     a=p.parse_args();source=a.snapshot.resolve();out=a.output.resolve();out.mkdir(parents=True,exist_ok=False)
     if not source.is_file():raise SystemExit('Missing production pass capture: use the eggcc-pass-benchmark skill to capture/flatten a real pass first.')
     binary=ROOT/'target/analyzer/release/examples/rule_repl'
     if not a.skip_build:
         subprocess.run(['cargo','build','--offline','--release','--example','rule_repl','--features','native-read-profile','--target-dir','target/analyzer'],cwd=ROOT,check=True)
-    commands=f':until {a.breakpoint}\n:bench measured\n:quit\n'
+    operation=f':check-assisted measured {a.assisted_worker.resolve()}' if a.assisted_worker else ':bench measured'
+    if a.pre_query_run and not a.assisted_worker:raise SystemExit('--pre-query-run requires --assisted-worker')
+    advance=f'(run-schedule {a.pre_query_run})\n' if a.pre_query_run else ''
+    commands=f':until {a.breakpoint}\n{advance}{operation}\n:quit\n'
     (out/'commands.txt').write_text(commands)
     provenance=dict(snapshot=str(source),snapshot_sha256=sha(source),binary_sha256=sha(binary),
         source_head=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
@@ -42,10 +47,16 @@ def main():
         subprocess.run([str(binary),str(source),str(out)],input=commands,text=True,cwd=ROOT,
             env=dict(os.environ,RAYON_NUM_THREADS='1',EGGLOG_PROBE_COUNTS_OFF='1'),stdout=log,stderr=log,check=True)
     r=json.loads((out/'measured.json').read_text())
+    if a.assisted_worker:
+        final=json.loads((out/'final.json').read_text());plan=json.loads((out/'schedule.json').read_text())
+        r['label']=plan[final['cursor']]['label']
+        r['worker_sha256']=sha(a.assisted_worker)
+        r['pre_query_run']=a.pre_query_run
     assert a.breakpoint in r['label'], 'requested checkpoint was skipped by native Repeat early termination'
     r['provenance']=provenance
     (out/'report.json').write_text(json.dumps(r,indent=2)+'\n')
-    print(json.dumps({k:r[k] for k in ['label','wall_seconds','native','checks']},indent=2))
+    keys=['label','complete','rule_count','matched_bindings'] if a.assisted_worker else ['label','wall_seconds','native','checks']
+    print(json.dumps({k:r[k] for k in keys},indent=2))
     print(out/'report.json')
 
 if __name__=='__main__':main()
