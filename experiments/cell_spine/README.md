@@ -4,6 +4,12 @@ The general automatic Bake/Gurobi compiler is now in
 [`tools/cell_spine`](../../tools/cell_spine/README.md). The files in this directory
 retain the original small Add demonstration and provide its regression fixtures.
 
+The [moment coordinate compiler](moment_compiler/README.md) explores a separate
+numerical execution path: certified Cell interfaces become shared matrix
+programs, checked against native matching and executed on Metal/MPS. It includes
+an input-alias counterexample and specialized re-Bake repair. This is a standalone
+experiment, not an integration into the automatic Bake/Gurobi production path.
+
 The original `demo.egg` is a standalone generated-rule prototype executed by
 the actual local egglog runtime. `automatic.egg` is produced by the new native
 Bake/Gurobi pipeline from `fixtures/assoc.egg`; `automatic-results.json` records

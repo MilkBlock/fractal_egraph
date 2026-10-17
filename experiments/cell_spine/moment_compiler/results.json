@@ -1,0 +1,377 @@
+{
+  "scope": "standalone certified interface compiler; native Bake/oracle; not production engine acceleration",
+  "certificate": {
+    "head": "Add",
+    "command_ordinal": 1,
+    "source": "(rewrite (Add a b) (Add b a))"
+  },
+  "bits": 4,
+  "templates": 2,
+  "instances": 8,
+  "circuit_nodes": 8,
+  "tape_components_per_cell": 60,
+  "base_components_per_cell": 16,
+  "construction": {
+    "port_components_read": 128,
+    "computed_nodes": 64,
+    "products": 96,
+    "adds": 80,
+    "half_scales": 80,
+    "copied_components": 112
+  },
+  "baselines": {
+    "root": {
+      "state_classifications": 338,
+      "evidence_reads": 687,
+      "marker_inference_attempts": 72,
+      "marker_inference_literal_reads": 288,
+      "condition_requests": 82,
+      "missing_unique_conditions": 41,
+      "matrix_calls": 4,
+      "matrix_cells": 68,
+      "multiply_adds": 1088,
+      "batch_input_elements": 448,
+      "speculative_matrix_cells": 10,
+      "already_known_matrix_cells": 27
+    },
+    "all": {
+      "state_classifications": 6512,
+      "evidence_reads": 9208,
+      "marker_inference_attempts": 164,
+      "marker_inference_literal_reads": 648,
+      "condition_requests": 2416,
+      "missing_unique_conditions": 370,
+      "matrix_calls": 16,
+      "matrix_cells": 546,
+      "multiply_adds": 8736,
+      "batch_input_elements": 2880,
+      "speculative_matrix_cells": 221,
+      "already_known_matrix_cells": 204,
+      "marker_equalities_inferred": 28,
+      "batches_eliminated_by_existing_evidence": 4
+    }
+  },
+  "plans": {
+    "root-fused": {
+      "blocks": 3,
+      "matrix_macs": 640,
+      "matrix_cells": 96,
+      "feature_components": 128,
+      "norm_products": 128,
+      "norm_adds": 112,
+      "output_cells": 96,
+      "retained_channels": 16,
+      "condition_pair_objects": 0,
+      "elementwise_distance_terms": 96
+    },
+    "root-shared": {
+      "blocks": 4,
+      "matrix_macs": 640,
+      "matrix_cells": 112,
+      "feature_components": 128,
+      "norm_products": 128,
+      "norm_adds": 108,
+      "output_cells": 96,
+      "retained_channels": 16,
+      "condition_pair_objects": 0,
+      "elementwise_distance_terms": 112
+    },
+    "all-fused": {
+      "blocks": 3,
+      "matrix_macs": 4000,
+      "matrix_cells": 864,
+      "feature_components": 248,
+      "norm_products": 248,
+      "norm_adds": 208,
+      "output_cells": 864,
+      "retained_channels": 64,
+      "condition_pair_objects": 0,
+      "elementwise_distance_terms": 864
+    },
+    "all-shared": {
+      "blocks": 2,
+      "matrix_macs": 3776,
+      "matrix_cells": 848,
+      "feature_components": 192,
+      "norm_products": 192,
+      "norm_adds": 156,
+      "output_cells": 864,
+      "retained_channels": 64,
+      "condition_pair_objects": 0,
+      "elementwise_distance_terms": 880
+    }
+  },
+  "blocks": {
+    "root-fused": [
+      {
+        "rows": 8,
+        "width": 4
+      },
+      {
+        "rows": 4,
+        "width": 10
+      },
+      {
+        "rows": 4,
+        "width": 14
+      }
+    ],
+    "root-shared": [
+      {
+        "rows": 8,
+        "width": 4
+      },
+      {
+        "rows": 4,
+        "width": 10
+      },
+      {
+        "rows": 4,
+        "width": 4
+      },
+      {
+        "rows": 4,
+        "width": 10
+      }
+    ],
+    "all-fused": [
+      {
+        "rows": 28,
+        "width": 4
+      },
+      {
+        "rows": 8,
+        "width": 10
+      },
+      {
+        "rows": 4,
+        "width": 14
+      }
+    ],
+    "all-shared": [
+      {
+        "rows": 28,
+        "width": 4
+      },
+      {
+        "rows": 8,
+        "width": 10
+      }
+    ]
+  },
+  "full_binding_matches": 462,
+  "global_bindings": 110,
+  "native_exact": true,
+  "existing_canonical_matches": 14,
+  "consumers": {
+    "root-fused": {
+      "external_connections": 0,
+      "successful_connections": 0
+    },
+    "root-shared": {
+      "external_connections": 0,
+      "successful_connections": 0
+    },
+    "all-fused": {
+      "external_connections": 236,
+      "successful_connections": 70
+    },
+    "all-shared": {
+      "external_connections": 236,
+      "successful_connections": 70
+    }
+  },
+  "update": {
+    "t0_to_t1": {
+      "reused_nodes": 6,
+      "port_components_read": 4,
+      "computed_nodes": 2,
+      "copied_components": 14
+    },
+    "reused_pair_object": true,
+    "alias_coordinate_only": {
+      "reused_nodes": 4,
+      "port_components_read": 4,
+      "computed_nodes": 4,
+      "products": 6,
+      "adds": 10,
+      "half_scales": 10,
+      "copied_components": 14
+    }
+  },
+  "union": {
+    "event": "union Var(a) Var(b)",
+    "native_equal": true,
+    "stale_plan_canonical_bindings": 512,
+    "native_canonical_bindings": 618,
+    "missed_by_stale_plan": 106,
+    "missing_example_k_u_v": [
+      "(Var \"a\")",
+      "(Var \"x\")",
+      "(Add (Var \"x\") (Var \"x\"))"
+    ],
+    "specialized_plan_canonical_bindings": 618,
+    "alias_specializations_baked": 3,
+    "projected_binding_rows": 618,
+    "coordinate_update": {
+      "reused_nodes": 46,
+      "port_components_read": 20,
+      "computed_nodes": 18,
+      "products": 24,
+      "adds": 40,
+      "half_scales": 40,
+      "copied_components": 70
+    },
+    "same_compiled_plan": false,
+    "old_guard_rejected": true,
+    "plan_stats": {
+      "blocks": 2,
+      "matrix_macs": 3556,
+      "matrix_cells": 673,
+      "feature_components": 212,
+      "norm_products": 212,
+      "norm_adds": 177,
+      "output_cells": 689,
+      "retained_channels": 72,
+      "condition_pair_objects": 0,
+      "elementwise_distance_terms": 705
+    },
+    "gpu_exact": true
+  },
+  "algebra": {
+    "pair_exhaustive": [
+      {
+        "bits": 1,
+        "width": 1,
+        "unordered_pairs_including_aliases": 3
+      },
+      {
+        "bits": 2,
+        "width": 3,
+        "unordered_pairs_including_aliases": 10
+      },
+      {
+        "bits": 3,
+        "width": 6,
+        "unordered_pairs_including_aliases": 36
+      },
+      {
+        "bits": 4,
+        "width": 10,
+        "unordered_pairs_including_aliases": 136
+      },
+      {
+        "bits": 5,
+        "width": 15,
+        "unordered_pairs_including_aliases": 528
+      },
+      {
+        "bits": 6,
+        "width": 21,
+        "unordered_pairs_including_aliases": 2080
+      }
+    ],
+    "first_moment_collision": [
+      [
+        0,
+        3
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "second_moment_four_leaf_collision": [
+      [
+        0,
+        3,
+        5,
+        6
+      ],
+      [
+        1,
+        2,
+        4,
+        7
+      ]
+    ]
+  },
+  "gpu": {
+    "device": "Apple M3 Max",
+    "backend": "Metal feature circuit + MPS FP32 GEMM + exact distance kernels",
+    "all_bits_equal": true,
+    "all_features_equal": true,
+    "consumer_gather_equal": true,
+    "stale_plan_rejected_by_host_preflight": true,
+    "mixed_precision": [
+      {
+        "case": "mixed",
+        "backend": "Metal feature circuit + MPS FP16 inputs / FP32 output GEMM + exact distance kernels",
+        "all_bits_equal": true,
+        "timings": [
+          {
+            "name": "root-fused",
+            "gpu_seconds": 0.00012708362191915512,
+            "submit_wait_seconds": 0.005103041417896748
+          },
+          {
+            "name": "root-shared",
+            "gpu_seconds": 0.000475333072245121,
+            "submit_wait_seconds": 0.000729875173419714
+          },
+          {
+            "name": "all-fused",
+            "gpu_seconds": 0.00014287512749433517,
+            "submit_wait_seconds": 0.0006443746387958527
+          },
+          {
+            "name": "all-shared",
+            "gpu_seconds": 0.00013920804485678673,
+            "submit_wait_seconds": 0.0006210417486727238
+          }
+        ]
+      },
+      {
+        "case": "union-mixed",
+        "backend": "Metal feature circuit + MPS FP16 inputs / FP32 output GEMM + exact distance kernels",
+        "all_bits_equal": true,
+        "timings": [
+          {
+            "name": "union-specialized",
+            "gpu_seconds": 0.0001788754016160965,
+            "submit_wait_seconds": 0.005073833279311657
+          }
+        ]
+      }
+    ],
+    "timings": [
+      {
+        "name": "root-fused",
+        "gpu_seconds": 0.00012308359146118164,
+        "submit_wait_seconds": 0.006627333350479603
+      },
+      {
+        "name": "root-shared",
+        "gpu_seconds": 0.0001393747515976429,
+        "submit_wait_seconds": 0.00034954166039824486
+      },
+      {
+        "name": "all-fused",
+        "gpu_seconds": 0.00014241645112633705,
+        "submit_wait_seconds": 0.00033841701224446297
+      },
+      {
+        "name": "all-shared",
+        "gpu_seconds": 0.00012512505054473877,
+        "submit_wait_seconds": 0.0003105415962636471
+      }
+    ]
+  },
+  "provenance": {
+    "base_head": "220b08160796c7bf36593751205bc09b41d8781a",
+    "native_binary_sha256": "6d0328c46bd21feffa2723028339029f4e0b581913d52e67bae32a2b78956901",
+    "rules_sha256": "91193bb4878d91317efe47a76aa1e4456ff0fc3a281d0b01cb57f39eb5756910",
+    "compiler_sha256": "6f116b3c74f602a617beeb83b8092d748507a466c460a6fb57ea9356e7c62b5d",
+    "gpu_source_sha256": "568df47925f42e53a9adef3c172def78a737706d9695435d04cc351040c99872"
+  }
+}

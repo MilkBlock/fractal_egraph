@@ -1,0 +1,74 @@
+{
+  "fp32": {
+    "scope": "one synthetic operator batch; not native egglog work or network throughput comparison",
+    "count": 512,
+    "bits": 32,
+    "device": "Apple M3 Max",
+    "backend": "Metal feature circuit + MPS FP32 GEMM + exact distance kernels",
+    "plan": {
+      "blocks": 2,
+      "matrix_macs": 241172480,
+      "matrix_cells": 3473408,
+      "feature_components": 327680,
+      "norm_products": 327680,
+      "norm_adds": 325376,
+      "output_cells": 3538944,
+      "retained_channels": 4096,
+      "condition_pair_objects": 0,
+      "elementwise_distance_terms": 3604480
+    },
+    "blocks": [
+      {
+        "rows": 1792,
+        "width": 32
+      },
+      {
+        "rows": 512,
+        "width": 528
+      }
+    ],
+    "all_bits_equal": true,
+    "all_feature_values_equal": true,
+    "successful_condition_pairs": 13312,
+    "gpu_seconds": 0.0027873748913407326,
+    "submit_wait_seconds": 0.011252083349972963,
+    "logical_matrix_gflop_per_second": 173.046317342692,
+    "timing_note": "single first dispatch; includes feature/projection/distance kernels; excludes Swift/JSON compilation/readback; no inference about production throughput"
+  },
+  "fp16": {
+    "scope": "one synthetic operator batch; not native egglog work or network throughput comparison",
+    "count": 512,
+    "bits": 32,
+    "device": "Apple M3 Max",
+    "backend": "Metal feature circuit + MPS FP16 inputs / FP32 output GEMM + exact distance kernels",
+    "plan": {
+      "blocks": 2,
+      "matrix_macs": 241172480,
+      "matrix_cells": 3473408,
+      "feature_components": 327680,
+      "norm_products": 327680,
+      "norm_adds": 325376,
+      "output_cells": 3538944,
+      "retained_channels": 4096,
+      "condition_pair_objects": 0,
+      "elementwise_distance_terms": 3604480
+    },
+    "blocks": [
+      {
+        "rows": 1792,
+        "width": 32
+      },
+      {
+        "rows": 512,
+        "width": 528
+      }
+    ],
+    "all_bits_equal": true,
+    "all_feature_values_equal": true,
+    "successful_condition_pairs": 13312,
+    "gpu_seconds": 0.0029083751142024994,
+    "submit_wait_seconds": 0.00880150031298399,
+    "logical_matrix_gflop_per_second": 165.84688737176978,
+    "timing_note": "single first dispatch; includes feature/projection/distance kernels; excludes Swift/JSON compilation/readback; no inference about production throughput"
+  }
+}
