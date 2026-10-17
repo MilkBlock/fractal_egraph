@@ -1,0 +1,234 @@
+{
+  "scope": "CPU depth-frontier reference for the factoring boundary; not a GPU or native speed benchmark",
+  "depth_definition": "depth inside the common-factor expression; graft Add and child Mul topology are already baked",
+  "batch_group": "same code dimension and left/right relative input-slot layout",
+  "native_full_binding_equal": true,
+  "eager_equal": true,
+  "legacy_tensor_equal": true,
+  "matches": 462,
+  "global_rule_bindings": 110,
+  "complete_candidates_never_restarted": true,
+  "unknown_never_treated_as_false": true,
+  "candidate_budget": null,
+  "provenance": {
+    "head": "462d142a7e8c257e6749060686ecbb32b44faa4a"
+  },
+  "studies": {
+    "root": {
+      "context": {
+        "offered_contexts": 64,
+        "constructor_rejected": 0,
+        "constructor_continued": 64
+      },
+      "channels": 16,
+      "condition_alternatives": 128,
+      "trace": [
+        {
+          "depth": "Bake guarantees",
+          "complete": 16,
+          "rejected": 160,
+          "continue": 80,
+          "new_complete": 16,
+          "new_rejected": 160,
+          "continued": 80,
+          "work": {
+            "state_classifications": 256,
+            "evidence_reads": 204
+          },
+          "batches": 0,
+          "branch_rows": 104
+        },
+        {
+          "depth": 0,
+          "complete": 30,
+          "rejected": 202,
+          "continue": 24,
+          "new_complete": 14,
+          "new_rejected": 42,
+          "continued": 24,
+          "branch_rows": 48,
+          "work": {
+            "state_classifications": 80,
+            "evidence_reads": 281,
+            "condition_requests": 56,
+            "missing_unique_conditions": 28,
+            "matrix_calls": 1,
+            "matrix_cells": 49,
+            "multiply_adds": 784,
+            "batch_input_elements": 224,
+            "speculative_matrix_cells": 6,
+            "already_known_matrix_cells": 21
+          },
+          "batches": 1
+        },
+        {
+          "depth": 1,
+          "complete": 36,
+          "rejected": 218,
+          "continue": 2,
+          "new_complete": 6,
+          "new_rejected": 16,
+          "continued": 2,
+          "branch_rows": 4,
+          "work": {
+            "state_classifications": 24,
+            "evidence_reads": 233,
+            "condition_requests": 72,
+            "missing_unique_conditions": 30,
+            "matrix_calls": 5,
+            "matrix_cells": 45,
+            "multiply_adds": 720,
+            "batch_input_elements": 480,
+            "speculative_matrix_cells": 12,
+            "already_known_matrix_cells": 15
+          },
+          "batches": 5
+        },
+        {
+          "depth": 2,
+          "complete": 38,
+          "rejected": 218,
+          "continue": 0,
+          "new_complete": 2,
+          "new_rejected": 0,
+          "continued": 0,
+          "branch_rows": 0,
+          "work": {
+            "state_classifications": 2,
+            "evidence_reads": 24,
+            "condition_requests": 8,
+            "missing_unique_conditions": 4,
+            "matrix_calls": 4,
+            "matrix_cells": 4,
+            "multiply_adds": 64,
+            "batch_input_elements": 128
+          },
+          "batches": 4
+        }
+      ],
+      "layered": {
+        "state_classifications": 362,
+        "evidence_reads": 742,
+        "condition_requests": 136,
+        "missing_unique_conditions": 62,
+        "matrix_calls": 10,
+        "matrix_cells": 98,
+        "multiply_adds": 1568,
+        "batch_input_elements": 832,
+        "speculative_matrix_cells": 18,
+        "already_known_matrix_cells": 36
+      },
+      "eager": {
+        "state_classifications": 336,
+        "evidence_reads": 754,
+        "condition_requests": 176,
+        "missing_unique_conditions": 82,
+        "matrix_calls": 6,
+        "matrix_cells": 202,
+        "multiply_adds": 3232,
+        "batch_input_elements": 1088,
+        "speculative_matrix_cells": 100,
+        "already_known_matrix_cells": 64
+      },
+      "matches": 38
+    },
+    "all": {
+      "context": {
+        "offered_contexts": 5184,
+        "constructor_rejected": 4160,
+        "constructor_continued": 1024
+      },
+      "channels": 64,
+      "condition_alternatives": 2864,
+      "trace": [
+        {
+          "depth": "Bake guarantees",
+          "complete": 168,
+          "rejected": 1512,
+          "continue": 2416,
+          "new_complete": 168,
+          "new_rejected": 1512,
+          "continued": 2416,
+          "work": {
+            "state_classifications": 4096,
+            "evidence_reads": 3028
+          },
+          "batches": 0,
+          "branch_rows": 2484
+        },
+        {
+          "depth": 0,
+          "complete": 462,
+          "rejected": 3634,
+          "continue": 0,
+          "new_complete": 294,
+          "new_rejected": 2122,
+          "continued": 0,
+          "branch_rows": 0,
+          "work": {
+            "state_classifications": 2416,
+            "evidence_reads": 5570,
+            "condition_requests": 2348,
+            "missing_unique_conditions": 342,
+            "matrix_calls": 16,
+            "matrix_cells": 594,
+            "multiply_adds": 9504,
+            "batch_input_elements": 3072,
+            "speculative_matrix_cells": 206,
+            "already_known_matrix_cells": 252
+          },
+          "batches": 16
+        },
+        {
+          "depth": 1,
+          "complete": 462,
+          "rejected": 3634,
+          "continue": 0,
+          "new_complete": 0,
+          "new_rejected": 0,
+          "continued": 0,
+          "branch_rows": 0,
+          "work": {},
+          "batches": 0
+        },
+        {
+          "depth": 2,
+          "complete": 462,
+          "rejected": 3634,
+          "continue": 0,
+          "new_complete": 0,
+          "new_rejected": 0,
+          "continued": 0,
+          "branch_rows": 0,
+          "work": {},
+          "batches": 0
+        }
+      ],
+      "layered": {
+        "state_classifications": 6512,
+        "evidence_reads": 8598,
+        "condition_requests": 2348,
+        "missing_unique_conditions": 342,
+        "matrix_calls": 16,
+        "matrix_cells": 594,
+        "multiply_adds": 9504,
+        "batch_input_elements": 3072,
+        "speculative_matrix_cells": 206,
+        "already_known_matrix_cells": 252
+      },
+      "eager": {
+        "state_classifications": 6512,
+        "evidence_reads": 8894,
+        "condition_requests": 2644,
+        "missing_unique_conditions": 342,
+        "matrix_calls": 16,
+        "matrix_cells": 594,
+        "multiply_adds": 9504,
+        "batch_input_elements": 3072,
+        "speculative_matrix_cells": 206,
+        "already_known_matrix_cells": 252
+      },
+      "matches": 462
+    }
+  }
+}
