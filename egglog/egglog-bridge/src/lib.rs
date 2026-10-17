@@ -310,6 +310,24 @@ impl EGraph {
         Value::from_usize(self.db.inc_counter(self.id_counter))
     }
 
+    /// Opt in to coalesced committed-key events, without enabling provenance.
+    pub fn enable_function_journal(&mut self, func: FunctionId) -> bool {
+        self.db
+            .get_table_mut(self.funcs[func].table)
+            .enable_commit_journal(true)
+    }
+    pub fn drain_function_changes(&self, func: FunctionId) -> core_relations::CommittedChanges {
+        self.db
+            .get_table(self.funcs[func].table)
+            .drain_committed_changes()
+    }
+    pub fn canonical_changes_since(&self, cursor: usize) -> Option<(usize, Vec<(Value, Value)>)> {
+        self.db
+            .get_table(self.uf_table)
+            .as_any()
+            .downcast_ref::<DisplacedTable>()?
+            .canonical_changes_since(cursor)
+    }
     /// Current displaced roots: counts successful UF merges, including merge
     /// callbacks and rebuild. Monotone within a branch, but rollback may reduce it.
     pub fn native_union_count(&self) -> usize {

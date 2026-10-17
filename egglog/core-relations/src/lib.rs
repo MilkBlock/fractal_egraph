@@ -47,6 +47,7 @@ pub use table::virtual_rows::{
 };
 pub use table::{MergeFn, SortedWritesTable};
 pub use table_spec::{
+    CommittedChanges,
     ColumnId, Constraint, MutationBuffer, Offset, Rebuilder, Row, Table, TableChange, TableSpec,
     TableVersion, WrappedTable,
 };

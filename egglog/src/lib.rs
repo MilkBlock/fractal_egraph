@@ -20,6 +20,7 @@ mod exec_state;
 pub mod extract;
 mod ground_import;
 pub mod cell_assist;
+pub mod cell_events;
 mod virtual_facts;
 pub use core_relations::NativeVirtualStats;
 pub use virtual_facts::{

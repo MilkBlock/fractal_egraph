@@ -127,7 +127,7 @@ impl EGraph {
             output.lock().unwrap().push(values.to_vec());Some(unit)
         })));
         let mut builder=BackendRule::new(self.backend.new_rule("cell-audit",false),&self.functions,&self.type_info,false);
-        builder.query(&sink.body,true);
+        builder.query(&sink.body,false);
         let entries=sink.vars.iter().map(|v|builder.entry(&ResolvedAtomTerm::Var(span!(),v.clone()))).collect::<Vec<_>>();
         builder.rb.call_external_func(external,&entries,ColumnTy::Base(unit_type),||"cell audit".into());
         let id=builder.build();

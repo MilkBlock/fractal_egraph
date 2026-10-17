@@ -127,6 +127,11 @@ pub struct RuleBuilder<'a> {
 }
 
 impl EGraph {
+    /// Preserve the compiled rule's evaluation mode when adding instrumentation.
+    pub fn rule_is_seminaive(&self, rule: RuleId) -> bool {
+        self.rules[rule].query.seminaive
+    }
+
     /// Add a rewrite rule for this [`EGraph`] using a [`RuleBuilder`].
     /// If you aren't sure, use `egraph.new_rule("", true)`.
     pub fn new_rule(&mut self, desc: &str, seminaive: bool) -> RuleBuilder<'_> {

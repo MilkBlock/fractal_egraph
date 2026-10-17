@@ -428,6 +428,23 @@ impl Table for SortedWritesTable {
     fn materialize_virtual_rows(&mut self) -> bool {
         self.materialize_virtual()
     }
+    fn enable_commit_journal(&mut self, enabled: bool) -> bool {
+        if enabled && self.virtual_rows.is_some() {
+            return false;
+        }
+        self.pending_state
+            .journal_enabled
+            .store(enabled, Ordering::Relaxed);
+        *self.pending_state.journal.lock().unwrap() = CommitJournal::default();
+        true
+    }
+    fn drain_committed_changes(&self) -> crate::CommittedChanges {
+        let journal = std::mem::take(&mut *self.pending_state.journal.lock().unwrap());
+        crate::CommittedChanges {
+            cleared: journal.cleared,
+            rows: journal.rows.into_iter().collect(),
+        }
+    }
     fn supports_row_provenance(&self) -> bool {
         true
     }
@@ -1218,6 +1235,7 @@ impl SortedWritesTable {
                                             debug_assert!(!_was_stale);
                                         }
                                         occ.get_mut().row = cur_row;
+                                        self.pending_state.record_commit(key, Some(row));
                                         changed = true;
                                     } else {
                                         // Mark the new row as stale: we didn't end up needing it.
@@ -1231,6 +1249,7 @@ impl SortedWritesTable {
                                 }
                                 Entry::Vacant(v) => {
                                     changed = true;
+                                    self.pending_state.record_commit(key, Some(row));
                                     v.insert(TableEntry {
                                         hashcode: hc as HashCode,
                                         row: cur_row,
@@ -1600,7 +1619,14 @@ fn hash_code(shard_data: ShardData, row: &[Value], n_keys: usize) -> (ShardId, u
 }
 
 /// A simple struct for packaging up pending mutations to a `SortedWritesTable`.
+#[derive(Clone, Default)]
+struct CommitJournal {
+    cleared: bool,
+    rows: HashMap<Vec<Value>, Option<Vec<Value>>>,
+}
 struct PendingState {
+    journal_enabled: AtomicBool,
+    journal: Mutex<CommitJournal>,
     has_provenance: AtomicBool,
     producers: Mutex<HashMap<Vec<Value>, (Vec<Value>, crate::trace::TraceCause)>>,
     pending_rows: DenseIdMap<ShardId, SegQueue<PendingBatch>>,
@@ -1610,7 +1636,15 @@ struct PendingState {
 }
 
 impl PendingState {
+    fn record_commit(&self, key: &[Value], row: Option<&[Value]>) {
+        if self.journal_enabled.load(Ordering::Relaxed) {
+            self.journal.lock().unwrap().rows
+                .insert(key.to_vec(), row.map(<[Value]>::to_vec));
+        }
+    }
+
     fn invalidate_origin(&self, key: &[Value], reason: crate::trace::OriginInvalidationReason) {
+        self.record_commit(key, None);
         if !self.has_provenance.load(Ordering::Relaxed) {
             return;
         }
@@ -1636,6 +1670,9 @@ impl PendingState {
         n_keys: usize,
     ) {
         use crate::trace::WriteOutcome;
+        if matches!(outcome, WriteOutcome::Inserted | WriteOutcome::Updated) {
+            self.record_commit(&actual[..n_keys], Some(actual));
+        }
         let commit_event = cause.map(|cause| cause.finish_with_before(proposed, actual, outcome, before));
         if !self.has_provenance.load(Ordering::Relaxed) {
             return;
@@ -1670,6 +1707,8 @@ impl PendingState {
         }
 
         PendingState {
+            journal_enabled: AtomicBool::new(false),
+            journal: Mutex::new(CommitJournal::default()),
             has_provenance: AtomicBool::new(false),
             producers: Mutex::new(HashMap::default()),
             pending_rows,
@@ -1679,6 +1718,12 @@ impl PendingState {
         }
     }
     fn clear(&self) {
+        if self.journal_enabled.load(Ordering::Relaxed) {
+            *self.journal.lock().unwrap() = CommitJournal {
+                cleared: true,
+                rows: HashMap::default(),
+            };
+        }
         self.invalidate_origins(crate::trace::OriginInvalidationReason::TableCleared);
         self.has_provenance.store(false, Ordering::Relaxed);
         for (_, queue) in self.pending_rows.iter() {
@@ -1726,6 +1771,8 @@ impl PendingState {
         }
 
         PendingState {
+            journal_enabled: AtomicBool::new(self.journal_enabled.load(Ordering::Relaxed)),
+            journal: Mutex::new(self.journal.lock().unwrap().clone()),
             has_provenance: AtomicBool::new(self.has_provenance.load(Ordering::Relaxed)),
             producers: Mutex::new(self.producers.lock().unwrap().clone()),
             pending_rows,

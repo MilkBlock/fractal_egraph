@@ -50,6 +50,15 @@ pub struct TableVersion {
     // NB: we may want to make `Offset` and `RowId` the same.
 }
 
+/// Final committed state of changed keys since the last drain. No logical match
+/// events or proposed writes. Rebuild removal/insertion and visibility updates
+/// use the same channel; consumers drain only after commit and rebuild finish.
+#[derive(Clone, Default, Debug)]
+pub struct CommittedChanges {
+    pub cleared: bool,
+    pub rows: Vec<(Vec<Value>, Option<Vec<Value>>)>,
+}
+
 #[derive(Clone)]
 pub struct TableSpec {
     /// The number of key columns for the table.
@@ -374,6 +383,12 @@ pub trait Table: Any + Send + Sync {
     /// Only concrete keyed tables opt in; virtual union-find reads remain unsupported.
     fn supports_row_provenance(&self) -> bool {
         false
+    }
+    fn enable_commit_journal(&mut self, _enabled: bool) -> bool {
+        false
+    }
+    fn drain_committed_changes(&self) -> CommittedChanges {
+        CommittedChanges::default()
     }
     fn row_producer(&self, _key: &[Value], _row: &[Value]) -> Option<crate::trace::TraceCause> {
         None

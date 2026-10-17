@@ -476,6 +476,14 @@ impl Table for DisplacedTable {
 }
 
 impl DisplacedTable {
+    /// Displacements append monotonically within one execution scope. Values in
+    /// the returned map are canonical *now*, after all merge/rebuild work.
+    pub fn canonical_changes_since(&self, cursor: usize) -> Option<(usize, Vec<(Value, Value)>)> {
+        let changes = self.displaced.get(cursor..)?.iter()
+            .map(|(v, _)| (*v, self.uf.find_naive(*v)))
+            .collect();
+        Some((self.displaced.len(), changes))
+    }
     pub fn underlying_uf(&self) -> &UnionFind {
         &self.uf
     }
