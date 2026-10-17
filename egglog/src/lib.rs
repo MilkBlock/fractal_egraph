@@ -19,6 +19,7 @@ mod core;
 mod exec_state;
 pub mod extract;
 mod ground_import;
+pub mod cell_assist;
 mod virtual_facts;
 pub use core_relations::NativeVirtualStats;
 pub use virtual_facts::{
@@ -270,6 +271,7 @@ impl std::fmt::Display for CommandOutput {
 #[derive(Clone)]
 pub struct EGraph {
     program_trace: Option<TraceSession>,
+    cell_trace_actions: bool,
     backend: egglog_bridge::EGraph,
     pub parser: Parser,
     names: check_shadowing::Names,
@@ -375,6 +377,7 @@ impl Default for EGraph {
         let proof_state = EncodingState::new(&mut parser.symbol_gen);
         let mut eg = Self {
             program_trace: None,
+            cell_trace_actions: false,
             backend: Default::default(),
             parser,
             names: Default::default(),
@@ -1247,7 +1250,12 @@ impl EGraph {
         );
         translator.actions(&actions)?;
         let id = translator.build();
-        let result = self.backend.run_rules(&[id]);
+        // A Cell provider must also see committed facts inserted between rule
+        // steps. Otherwise a late external row is invisible to its boundary index.
+        let result = match (&self.program_trace, self.cell_trace_actions) {
+            (Some(trace), true) => self.backend.run_rules_with_trace(&[id], trace),
+            _ => self.backend.run_rules(&[id]),
+        };
         self.backend.free_rule(id);
 
         match result {
