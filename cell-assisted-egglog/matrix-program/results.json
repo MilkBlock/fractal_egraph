@@ -1,0 +1,324 @@
+{
+  "scope": "integration of existing bounded Bake programs into shared Rust IR and Metal/MPS executor; no general egglog speedup or FractalComb discovery claim",
+  "cases": [
+    {
+      "name": "root-eager",
+      "exact_cpu_gpu": true,
+      "epochs": 1,
+      "matrix_macs": 3136,
+      "matrix_calls": 1,
+      "computed_features": 28,
+      "reused_features": 0,
+      "feature_components_written": 112,
+      "feature_adds": 0,
+      "feature_multiplies": 0,
+      "gpu_seconds": 0.0004992908798158169,
+      "host_count_reads": 1,
+      "matrix_bytes": 24980,
+      "intermediate_binding_readbacks": 0
+    },
+    {
+      "name": "root-staged",
+      "exact_cpu_gpu": true,
+      "epochs": 1,
+      "matrix_macs": 896,
+      "matrix_calls": 3,
+      "computed_features": 24,
+      "reused_features": 0,
+      "feature_components_written": 96,
+      "feature_adds": 0,
+      "feature_multiplies": 0,
+      "gpu_seconds": 0.002732792403548956,
+      "host_count_reads": 3,
+      "matrix_bytes": 24980,
+      "intermediate_binding_readbacks": 0
+    },
+    {
+      "name": "root-marker",
+      "exact_cpu_gpu": true,
+      "epochs": 1,
+      "matrix_macs": 912,
+      "matrix_calls": 3,
+      "computed_features": 50,
+      "reused_features": 0,
+      "feature_components_written": 344,
+      "feature_adds": 80,
+      "feature_multiplies": 176,
+      "gpu_seconds": 0.0007781665772199631,
+      "host_count_reads": 4,
+      "matrix_bytes": 21016,
+      "intermediate_binding_readbacks": 0
+    },
+    {
+      "name": "all-eager",
+      "exact_cpu_gpu": true,
+      "epochs": 1,
+      "matrix_macs": 3136,
+      "matrix_calls": 1,
+      "computed_features": 28,
+      "reused_features": 0,
+      "feature_components_written": 112,
+      "feature_adds": 0,
+      "feature_multiplies": 0,
+      "gpu_seconds": 0.0018081660382449627,
+      "host_count_reads": 1,
+      "matrix_bytes": 262948,
+      "intermediate_binding_readbacks": 0
+    },
+    {
+      "name": "all-staged",
+      "exact_cpu_gpu": true,
+      "epochs": 1,
+      "matrix_macs": 3136,
+      "matrix_calls": 1,
+      "computed_features": 28,
+      "reused_features": 0,
+      "feature_components_written": 112,
+      "feature_adds": 0,
+      "feature_multiplies": 0,
+      "gpu_seconds": 0.0015034587122499943,
+      "host_count_reads": 3,
+      "matrix_bytes": 262948,
+      "intermediate_binding_readbacks": 0
+    },
+    {
+      "name": "all-marker",
+      "exact_cpu_gpu": true,
+      "epochs": 1,
+      "matrix_macs": 3776,
+      "matrix_calls": 2,
+      "computed_features": 52,
+      "reused_features": 16,
+      "feature_components_written": 352,
+      "feature_adds": 80,
+      "feature_multiplies": 176,
+      "gpu_seconds": 0.0007119164802134037,
+      "host_count_reads": 4,
+      "matrix_bytes": 263848,
+      "intermediate_binding_readbacks": 0
+    },
+    {
+      "name": "transitions",
+      "exact_cpu_gpu": true,
+      "epochs": 1,
+      "matrix_macs": 1914,
+      "matrix_calls": 3,
+      "computed_features": 94,
+      "reused_features": 1,
+      "feature_components_written": 700,
+      "feature_adds": 180,
+      "feature_multiplies": 396,
+      "gpu_seconds": 0.002943917643278837,
+      "host_count_reads": 4,
+      "matrix_bytes": 23320,
+      "intermediate_binding_readbacks": 0
+    },
+    {
+      "name": "transitions-incremental",
+      "exact_cpu_gpu": true,
+      "epochs": 4,
+      "matrix_macs": 2298,
+      "matrix_calls": 6,
+      "computed_features": 111,
+      "reused_features": 10,
+      "feature_components_written": 828,
+      "feature_adds": 220,
+      "feature_multiplies": 472,
+      "gpu_seconds": 0.0023554149083793163,
+      "host_count_reads": 16,
+      "matrix_bytes": 23336,
+      "intermediate_binding_readbacks": 0
+    },
+    {
+      "name": "transitions-fresh-update",
+      "exact_cpu_gpu": true,
+      "epochs": 1,
+      "matrix_macs": 1524,
+      "matrix_calls": 3,
+      "computed_features": 79,
+      "reused_features": 1,
+      "feature_components_written": 586,
+      "feature_adds": 150,
+      "feature_multiplies": 330,
+      "gpu_seconds": 0.0006564166396856308,
+      "host_count_reads": 4,
+      "matrix_bytes": 23320,
+      "intermediate_binding_readbacks": 0
+    }
+  ],
+  "native": [
+    {
+      "kind": "root and non-root full factoring bindings",
+      "bindings": 462,
+      "exact": true
+    },
+    {
+      "matches": [
+        {
+          "stage": 0,
+          "native_full_bindings": 6,
+          "by_rule": {
+            "factor": 3,
+            "powers": 1,
+            "integral-cos": 1,
+            "diff-sin": 1
+          },
+          "exact": true
+        },
+        {
+          "stage": 1,
+          "native_full_bindings": 4,
+          "by_rule": {
+            "factor": 1,
+            "powers": 1,
+            "diff-sin": 1,
+            "integral-cos": 1
+          },
+          "exact": true
+        }
+      ],
+      "full_closure_checks": [
+        {
+          "label": "factor",
+          "exact_equal": true,
+          "enodes": 38,
+          "eclasses": 15
+        },
+        {
+          "label": "powers",
+          "exact_equal": true,
+          "enodes": 13,
+          "eclasses": 9
+        },
+        {
+          "label": "integral",
+          "exact_equal": true,
+          "enodes": 7,
+          "eclasses": 5
+        },
+        {
+          "label": "derivative",
+          "exact_equal": true,
+          "enodes": 7,
+          "eclasses": 5
+        },
+        {
+          "label": "factor-again",
+          "exact_equal": true,
+          "enodes": 63,
+          "eclasses": 23
+        },
+        {
+          "label": "powers-again",
+          "exact_equal": true,
+          "enodes": 20,
+          "eclasses": 13
+        },
+        {
+          "label": "different-rule-after-integral",
+          "exact_equal": true,
+          "enodes": 8,
+          "eclasses": 5
+        },
+        {
+          "label": "different-rule-after-derivative",
+          "exact_equal": true,
+          "enodes": 8,
+          "eclasses": 5
+        }
+      ],
+      "rhs_only_negative_ablation": [
+        {
+          "label": "powers",
+          "full_enodes": 13,
+          "rhs_only_enodes": 9,
+          "full_eclasses": 9,
+          "rhs_only_eclasses": 7,
+          "exact_equal": false
+        }
+      ]
+    }
+  ],
+  "native_binary_sha256": "cffb656e30437ed60ceab0a8b7f63649b7e120910cc6da92aba8eb6c858881a6",
+  "incremental_matches_fresh": true,
+  "updated_native_audit": {
+    "matches": [
+      {
+        "stage": 0,
+        "native_full_bindings": 3,
+        "by_rule": {
+          "powers": 1,
+          "integral-cos": 1,
+          "diff-sin": 1
+        },
+        "exact": true
+      },
+      {
+        "stage": 1,
+        "native_full_bindings": 3,
+        "by_rule": {
+          "powers": 1,
+          "diff-sin": 1,
+          "integral-cos": 1
+        },
+        "exact": true
+      }
+    ],
+    "full_closure_checks": [
+      {
+        "label": "powers",
+        "exact_equal": true,
+        "enodes": 13,
+        "eclasses": 9
+      },
+      {
+        "label": "integral",
+        "exact_equal": true,
+        "enodes": 7,
+        "eclasses": 5
+      },
+      {
+        "label": "derivative",
+        "exact_equal": true,
+        "enodes": 7,
+        "eclasses": 5
+      },
+      {
+        "label": "powers-again",
+        "exact_equal": true,
+        "enodes": 20,
+        "eclasses": 13
+      },
+      {
+        "label": "different-rule-after-integral",
+        "exact_equal": true,
+        "enodes": 8,
+        "eclasses": 5
+      },
+      {
+        "label": "different-rule-after-derivative",
+        "exact_equal": true,
+        "enodes": 8,
+        "eclasses": 5
+      }
+    ],
+    "rhs_only_negative_ablation": [
+      {
+        "label": "powers",
+        "full_enodes": 13,
+        "rhs_only_enodes": 9,
+        "full_eclasses": 9,
+        "rhs_only_eclasses": 7,
+        "exact_equal": false
+      }
+    ]
+  },
+  "date": "2026-10-18",
+  "raw_report_sha256": "6d57984000dfe95a0979e659c050b0be992ee59cd89cb332a72e9a194459bcb6",
+  "notes": [
+    "The adapters import finite baked interface programs; not a new AST-based FractalComb detector.",
+    "Host reads compacted dimensions for MPS. No intermediate bindings are read to make match decisions.",
+    "Inactive matrix rows may retain nonsemantic cached coordinates.",
+    "Logical GEMM MACs include the submitted dense blocks; hardware padding and feature arithmetic are separate."
+  ]
+}

@@ -177,3 +177,17 @@ binding/effect/必要中间状态一致。未知域、额外外部义务和不�
 仅重新规划并确定已有代码的迁移职责；没有改写或宣称完成统一矩阵运行时。
 后续第一项实施任务是第 1 步及其回归适配，随后立即接第 2 步；不先扩写
 旧哈希 matcher，也不另起一个只证明输入 ID 相等的孤立 demo。
+
+## 实施记录：统一矩阵程序首段
+
+已实现 `src/program.rs`、`src/compile.rs`、`matrix.metal`、`matrix.swift` 和
+`--mode matrix`。旧 marker/分级接口与两阶段转移通过
+`tools/cell_spine/matrix_program.py` 导入同一 IR；CPU/GPU/native 的核对见
+[matrix-program/README.md](matrix-program/README.md)。
+
+已经接通的部分：共享坐标和模板描述、GPU 三态推进、按需特征维护、实际 MPS、
+目标 gather、目标 alias-pending、增量更新。MPS 紧凑尺寸仍由主机读取计数后提交。
+
+没有将整个路线标为完成：analyze 的直接前端和认证拆分、自动 specialization 回流、
+原生事件到矩阵路径的接入、FractalComb 压缩、真实 eggcc 完整加速均仍待实现。
+下一步应接 analyze 证据与目标专化，不再增加一个平行的身份编码 demo。

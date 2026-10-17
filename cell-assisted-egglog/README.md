@@ -230,3 +230,12 @@ remain correctness controls. The original report found 3/14 rule bodies syntacti
 [updated query backend](function-support/README.md) now passes exact GPU/native
 matching for all 14; complete Cell-assisted saturation and an end-to-end GPU
 speedup comparison remain unavailable.
+
+## Unified matrix program
+
+`--mode matrix` executes the [shared matrix IR](matrix-program/README.md): marker
+coordinates, staged whole-binding conditions, target gathers and alias guards use
+one generated layout and real Metal/MPS computation. Existing Bake experiments
+now feed that same executable path. It is the first implementation slice of
+[MATRIX_PLAN.md](MATRIX_PLAN.md), not yet an automatic replacement for the native
+resident runtime or a completed FractalComb compressor.
