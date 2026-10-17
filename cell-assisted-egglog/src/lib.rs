@@ -13,6 +13,7 @@ use std::path::Path;
 use std::time::Instant;
 
 pub mod matrix;
+pub mod resident;
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 fn json(p: &Path) -> Result<Json> {
     Ok(serde_json::from_slice(&std::fs::read(p)?)?)

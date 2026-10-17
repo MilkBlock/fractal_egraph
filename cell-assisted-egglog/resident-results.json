@@ -1,0 +1,824 @@
+{
+  "date": "2026-10-18",
+  "device": "Apple M3 Max",
+  "source_base": "f0400c5",
+  "pristine_measured": false,
+  "execution": "one release execution per control; real native engine commits and real Metal; no timing averages",
+  "timing": "run_seconds excludes setup/input/export/audit; helper rules plus assisted rounds included; both maintenance and matcher changed vs legacy gpu",
+  "machine": "macOS-15.3.1-arm64-arm-64bit",
+  "binary_sha256": "91307bea5773e2e61b8b70decc8e91afcc8f68883ca952f98ca84a2716ca6300",
+  "cases": [
+    {
+      "name": "eggcc-getters",
+      "source_sha256": "8e9c7b841f52bd3d119634cb84f68e5dde5a297dd583bfc79f166872f851d3ba",
+      "controls": {
+        "off": {
+          "setup_seconds": 0.003831791,
+          "input_seconds": 0.000530125,
+          "run_seconds": 0.000124417,
+          "native_matches": 4
+        },
+        "cpu": {
+          "setup_seconds": 0.002386333,
+          "input_seconds": 0.000316833,
+          "run_seconds": 0.000172458,
+          "stats": {
+            "accepted_bindings": 6,
+            "action_seconds": 8.4958e-05,
+            "admission_seconds": 2.2584000000000003e-05,
+            "assisted_full_lhs_queries": 0,
+            "audit_native_bindings": 0,
+            "audit_queries": 0,
+            "audit_uncovered_bindings": 0,
+            "audit_uncovered_per_round": [],
+            "candidate_pairs": 24,
+            "cell_point_reads": 16,
+            "cell_projections": 6,
+            "epochs": 4,
+            "equality_columns": 3,
+            "external_bootstrap_rows": 3,
+            "external_point_reads": 9,
+            "native_matches": 2,
+            "native_seconds": 4.7583e-05,
+            "observed_instances": 4,
+            "pending_instances": 2,
+            "raw_events_drained": 53,
+            "residual_seconds": 1.1541e-05,
+            "unique_dispatched_bindings": 6,
+            "valid_instances": 2
+          }
+        },
+        "gpu": {
+          "setup_seconds": 0.172677958,
+          "input_seconds": 0.000351125,
+          "run_seconds": 0.024835834,
+          "stats": {
+            "accepted_bindings": 6,
+            "action_seconds": 0.000114417,
+            "admission_seconds": 2.4874e-05,
+            "assisted_full_lhs_queries": 0,
+            "audit_native_bindings": 0,
+            "audit_queries": 0,
+            "audit_uncovered_bindings": 0,
+            "audit_uncovered_per_round": [],
+            "candidate_pairs": 24,
+            "cell_point_reads": 16,
+            "cell_projections": 6,
+            "epochs": 4,
+            "equality_columns": 3,
+            "external_bootstrap_rows": 3,
+            "external_point_reads": 9,
+            "native_matches": 2,
+            "native_seconds": 5.25e-05,
+            "observed_instances": 4,
+            "pending_instances": 2,
+            "raw_events_drained": 53,
+            "residual_seconds": 0.024638168000000002,
+            "unique_dispatched_bindings": 6,
+            "valid_instances": 2
+          }
+        },
+        "resident": {
+          "setup_seconds": 0.3456685,
+          "input_seconds": 0.0002165,
+          "run_seconds": 0.004162291,
+          "stats": {
+            "audit_queries": 0,
+            "audit_uncovered_per_round": [],
+            "batches": 2,
+            "cpu_cell_point_reads": 0,
+            "cpu_cell_validations": 0,
+            "device_roundtrip_seconds": 0.004100708,
+            "diagnostic_trace_events": 0,
+            "dispatched_bindings": 2,
+            "downloaded_bytes": 40,
+            "event_seconds": 5.9579999999999995e-06,
+            "gpu": {
+              "active_instances": 2,
+              "bindings": 0,
+              "buffer_resizes": 4,
+              "cell_validations": 4,
+              "delta_anchors": 5,
+              "device_fact_lookups": 12,
+              "emitted_total": 2,
+              "epoch": 2,
+              "external_refs": 3,
+              "facts_stored": 9,
+              "fragment_bindings_stored": 5,
+              "gpu_seconds": 0.0003871661610901356,
+              "instances": 4,
+              "join_candidates": 2,
+              "kernel_dispatches": 23,
+              "ok": true,
+              "pending_instances": 2,
+              "query_runs": 1,
+              "resident_bytes": 13404,
+              "seed_reuses": 0,
+              "watch_hits": 0,
+              "watches_stored": 22
+            },
+            "native_matches": 2,
+            "native_seconds": 1.9709e-05,
+            "producer_events": 4,
+            "quiet_rounds": 1,
+            "rhs_seconds": 3.2874e-05,
+            "row_deltas": 9,
+            "setup_seconds": 0.344402209,
+            "union_deltas": 0,
+            "uploaded_bytes": 424
+          }
+        }
+      },
+      "graph_equality": {
+        "cpu": {
+          "exact_equal": true,
+          "enodes": 15,
+          "eclasses": 11,
+          "sorts": {
+            "@AddGetsSort": {
+              "enodes": 3,
+              "eclasses": 3
+            },
+            "Expr": {
+              "enodes": 12,
+              "eclasses": 8
+            }
+          }
+        },
+        "gpu": {
+          "exact_equal": true,
+          "enodes": 15,
+          "eclasses": 11,
+          "sorts": {
+            "@AddGetsSort": {
+              "enodes": 3,
+              "eclasses": 3
+            },
+            "Expr": {
+              "enodes": 12,
+              "eclasses": 8
+            }
+          }
+        },
+        "resident": {
+          "exact_equal": true,
+          "enodes": 15,
+          "eclasses": 11,
+          "sorts": {
+            "@AddGetsSort": {
+              "enodes": 3,
+              "eclasses": 3
+            },
+            "Expr": {
+              "enodes": 12,
+              "eclasses": 8
+            }
+          }
+        }
+      },
+      "resident_audit_uncovered_per_round": [
+        0,
+        0,
+        0
+      ],
+      "branch_checks": null
+    },
+    {
+      "name": "eggcc-if",
+      "source_sha256": "b9f226e53d1c5ce0cd1cdb239d6cb8d6b533acb2b0ea0e336c62a9b95bb70be5",
+      "controls": {
+        "off": {
+          "setup_seconds": 0.002376958,
+          "input_seconds": 0.001500958,
+          "run_seconds": 0.000466292,
+          "native_matches": 8
+        },
+        "cpu": {
+          "setup_seconds": 0.0044305,
+          "input_seconds": 0.001588375,
+          "run_seconds": 0.000971625,
+          "stats": {
+            "accepted_bindings": 3,
+            "action_seconds": 0.000116916,
+            "admission_seconds": 0.00014983300000000001,
+            "assisted_full_lhs_queries": 0,
+            "audit_native_bindings": 0,
+            "audit_queries": 0,
+            "audit_uncovered_bindings": 0,
+            "audit_uncovered_per_round": [],
+            "candidate_pairs": 1103,
+            "cell_point_reads": 100,
+            "cell_projections": 92,
+            "epochs": 4,
+            "equality_columns": 66,
+            "external_bootstrap_rows": 34,
+            "external_point_reads": 347,
+            "native_matches": 7,
+            "native_seconds": 0.0006174160000000001,
+            "observed_instances": 8,
+            "pending_instances": 0,
+            "raw_events_drained": 116,
+            "residual_seconds": 7.7666e-05,
+            "unique_dispatched_bindings": 3,
+            "valid_instances": 8
+          }
+        },
+        "gpu": {
+          "setup_seconds": 0.045457458,
+          "input_seconds": 0.001731625,
+          "run_seconds": 0.03419225,
+          "stats": {
+            "accepted_bindings": 3,
+            "action_seconds": 0.000229292,
+            "admission_seconds": 0.000183542,
+            "assisted_full_lhs_queries": 0,
+            "audit_native_bindings": 0,
+            "audit_queries": 0,
+            "audit_uncovered_bindings": 0,
+            "audit_uncovered_per_round": [],
+            "candidate_pairs": 1103,
+            "cell_point_reads": 100,
+            "cell_projections": 92,
+            "epochs": 4,
+            "equality_columns": 66,
+            "external_bootstrap_rows": 34,
+            "external_point_reads": 347,
+            "native_matches": 7,
+            "native_seconds": 0.000708459,
+            "observed_instances": 8,
+            "pending_instances": 0,
+            "raw_events_drained": 116,
+            "residual_seconds": 0.033058832999999996,
+            "unique_dispatched_bindings": 3,
+            "valid_instances": 8
+          }
+        },
+        "resident": {
+          "setup_seconds": 0.132364041,
+          "input_seconds": 0.0017105,
+          "run_seconds": 0.008865291,
+          "stats": {
+            "audit_queries": 0,
+            "audit_uncovered_per_round": [],
+            "batches": 2,
+            "cpu_cell_point_reads": 0,
+            "cpu_cell_validations": 0,
+            "device_roundtrip_seconds": 0.0083895,
+            "diagnostic_trace_events": 0,
+            "dispatched_bindings": 1,
+            "downloaded_bytes": 72,
+            "event_seconds": 1.9916e-05,
+            "gpu": {
+              "active_instances": 8,
+              "bindings": 0,
+              "buffer_resizes": 7,
+              "cell_validations": 8,
+              "delta_anchors": 145,
+              "device_fact_lookups": 44,
+              "emitted_total": 1,
+              "epoch": 2,
+              "external_refs": 119,
+              "facts_stored": 52,
+              "fragment_bindings_stored": 145,
+              "gpu_seconds": 0.0016277497634291649,
+              "instances": 8,
+              "join_candidates": 50,
+              "kernel_dispatches": 37,
+              "ok": true,
+              "pending_instances": 0,
+              "query_runs": 2,
+              "resident_bytes": 208372,
+              "seed_reuses": 0,
+              "watch_hits": 0,
+              "watches_stored": 90
+            },
+            "native_matches": 7,
+            "native_seconds": 0.00035229299999999994,
+            "producer_events": 8,
+            "quiet_rounds": 1,
+            "rhs_seconds": 9.825e-05,
+            "row_deltas": 52,
+            "setup_seconds": 0.127542958,
+            "union_deltas": 2,
+            "uploaded_bytes": 2536
+          }
+        }
+      },
+      "graph_equality": {
+        "cpu": {
+          "exact_equal": true,
+          "enodes": 60,
+          "eclasses": 52,
+          "sorts": {
+            "Assumption": {
+              "enodes": 9,
+              "eclasses": 9
+            },
+            "BaseType": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "BinaryOp": {
+              "enodes": 3,
+              "eclasses": 3
+            },
+            "Expr": {
+              "enodes": 43,
+              "eclasses": 35
+            },
+            "Type": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "TypeList": {
+              "enodes": 3,
+              "eclasses": 3
+            }
+          }
+        },
+        "gpu": {
+          "exact_equal": true,
+          "enodes": 60,
+          "eclasses": 52,
+          "sorts": {
+            "Assumption": {
+              "enodes": 9,
+              "eclasses": 9
+            },
+            "BaseType": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "BinaryOp": {
+              "enodes": 3,
+              "eclasses": 3
+            },
+            "Expr": {
+              "enodes": 43,
+              "eclasses": 35
+            },
+            "Type": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "TypeList": {
+              "enodes": 3,
+              "eclasses": 3
+            }
+          }
+        },
+        "resident": {
+          "exact_equal": true,
+          "enodes": 60,
+          "eclasses": 52,
+          "sorts": {
+            "Assumption": {
+              "enodes": 9,
+              "eclasses": 9
+            },
+            "BaseType": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "BinaryOp": {
+              "enodes": 3,
+              "eclasses": 3
+            },
+            "Expr": {
+              "enodes": 43,
+              "eclasses": 35
+            },
+            "Type": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "TypeList": {
+              "enodes": 3,
+              "eclasses": 3
+            }
+          }
+        }
+      },
+      "resident_audit_uncovered_per_round": [
+        0,
+        0,
+        0
+      ],
+      "branch_checks": null
+    },
+    {
+      "name": "two-cells",
+      "source_sha256": "2bc3d5166fd89eb08e9a5b490184cf223ed4ac108d910c9a9671aeafbff50fbc",
+      "controls": {
+        "off": {
+          "setup_seconds": 0.001194167,
+          "input_seconds": 0.000126542,
+          "run_seconds": 6.5875e-05,
+          "native_matches": 14
+        },
+        "cpu": {
+          "setup_seconds": 0.002437042,
+          "input_seconds": 0.000121583,
+          "run_seconds": 0.0001945,
+          "stats": {
+            "accepted_bindings": 6,
+            "action_seconds": 4.795899999999999e-05,
+            "admission_seconds": 4.987600000000001e-05,
+            "assisted_full_lhs_queries": 0,
+            "audit_native_bindings": 0,
+            "audit_queries": 0,
+            "audit_uncovered_bindings": 0,
+            "audit_uncovered_per_round": [],
+            "candidate_pairs": 36,
+            "cell_point_reads": 134,
+            "cell_projections": 82,
+            "epochs": 5,
+            "equality_columns": 3,
+            "external_bootstrap_rows": 0,
+            "external_point_reads": 0,
+            "native_matches": 12,
+            "native_seconds": 7.874999999999999e-05,
+            "observed_instances": 14,
+            "pending_instances": 0,
+            "raw_events_drained": 81,
+            "residual_seconds": 8.124e-06,
+            "unique_dispatched_bindings": 6,
+            "valid_instances": 14
+          }
+        },
+        "gpu": {
+          "setup_seconds": 0.040316709,
+          "input_seconds": 0.000186709,
+          "run_seconds": 0.01571175,
+          "stats": {
+            "accepted_bindings": 6,
+            "action_seconds": 0.0001675,
+            "admission_seconds": 7.095800000000001e-05,
+            "assisted_full_lhs_queries": 0,
+            "audit_native_bindings": 0,
+            "audit_queries": 0,
+            "audit_uncovered_bindings": 0,
+            "audit_uncovered_per_round": [],
+            "candidate_pairs": 36,
+            "cell_point_reads": 134,
+            "cell_projections": 82,
+            "epochs": 5,
+            "equality_columns": 3,
+            "external_bootstrap_rows": 0,
+            "external_point_reads": 0,
+            "native_matches": 12,
+            "native_seconds": 0.00010683400000000001,
+            "observed_instances": 14,
+            "pending_instances": 0,
+            "raw_events_drained": 81,
+            "residual_seconds": 0.015353083,
+            "unique_dispatched_bindings": 6,
+            "valid_instances": 14
+          }
+        },
+        "resident": {
+          "setup_seconds": 0.124904958,
+          "input_seconds": 0.000169833,
+          "run_seconds": 0.008393792,
+          "stats": {
+            "audit_queries": 0,
+            "audit_uncovered_per_round": [],
+            "batches": 3,
+            "cpu_cell_point_reads": 0,
+            "cpu_cell_validations": 0,
+            "device_roundtrip_seconds": 0.008255499999999999,
+            "diagnostic_trace_events": 0,
+            "dispatched_bindings": 2,
+            "downloaded_bytes": 40,
+            "event_seconds": 8.792e-06,
+            "gpu": {
+              "active_instances": 14,
+              "bindings": 0,
+              "buffer_resizes": 5,
+              "cell_validations": 17,
+              "delta_anchors": 6,
+              "device_fact_lookups": 59,
+              "emitted_total": 2,
+              "epoch": 3,
+              "external_refs": 0,
+              "facts_stored": 11,
+              "fragment_bindings_stored": 6,
+              "gpu_seconds": 0.002540791407227516,
+              "instances": 14,
+              "join_candidates": 2,
+              "kernel_dispatches": 39,
+              "ok": true,
+              "pending_instances": 0,
+              "query_runs": 2,
+              "resident_bytes": 23564,
+              "seed_reuses": 0,
+              "watch_hits": 3,
+              "watches_stored": 98
+            },
+            "native_matches": 12,
+            "native_seconds": 6.475000000000002e-05,
+            "producer_events": 14,
+            "quiet_rounds": 1,
+            "rhs_seconds": 5.8540000000000005e-05,
+            "row_deltas": 11,
+            "setup_seconds": 0.122241541,
+            "union_deltas": 0,
+            "uploaded_bytes": 748
+          }
+        }
+      },
+      "graph_equality": {
+        "cpu": {
+          "exact_equal": true,
+          "enodes": 15,
+          "eclasses": 9,
+          "sorts": {
+            "E": {
+              "enodes": 15,
+              "eclasses": 9
+            }
+          }
+        },
+        "gpu": {
+          "exact_equal": true,
+          "enodes": 15,
+          "eclasses": 9,
+          "sorts": {
+            "E": {
+              "enodes": 15,
+              "eclasses": 9
+            }
+          }
+        },
+        "resident": {
+          "exact_equal": true,
+          "enodes": 15,
+          "eclasses": 9,
+          "sorts": {
+            "E": {
+              "enodes": 15,
+              "eclasses": 9
+            }
+          }
+        }
+      },
+      "resident_audit_uncovered_per_round": [
+        2,
+        0,
+        0,
+        0
+      ],
+      "branch_checks": null
+    },
+    {
+      "name": "eggcc-if-sparse",
+      "source_sha256": "b9f226e53d1c5ce0cd1cdb239d6cb8d6b533acb2b0ea0e336c62a9b95bb70be5",
+      "controls": {
+        "off": {
+          "setup_seconds": 0.002406625,
+          "input_seconds": 0.149274917,
+          "run_seconds": 0.00936925,
+          "native_matches": 630
+        },
+        "cpu": {
+          "setup_seconds": 0.004765917,
+          "input_seconds": 0.159100625,
+          "run_seconds": 0.043322833,
+          "stats": {
+            "accepted_bindings": 45,
+            "action_seconds": 0.000407791,
+            "admission_seconds": 0.013622459,
+            "assisted_full_lhs_queries": 0,
+            "audit_native_bindings": 0,
+            "audit_queries": 0,
+            "audit_uncovered_bindings": 0,
+            "audit_uncovered_per_round": [],
+            "candidate_pairs": 10125900,
+            "cell_point_reads": 4560,
+            "cell_projections": 4440,
+            "epochs": 4,
+            "equality_columns": 66,
+            "external_bootstrap_rows": 3301,
+            "external_point_reads": 32703,
+            "native_matches": 615,
+            "native_seconds": 0.006376832,
+            "observed_instances": 630,
+            "pending_instances": 0,
+            "raw_events_drained": 7748,
+            "residual_seconds": 0.022681208,
+            "unique_dispatched_bindings": 45,
+            "valid_instances": 630
+          }
+        },
+        "gpu": {
+          "setup_seconds": 0.032398958,
+          "input_seconds": 0.160128417,
+          "run_seconds": 0.262484667,
+          "stats": {
+            "accepted_bindings": 45,
+            "action_seconds": 0.000522584,
+            "admission_seconds": 0.014315958,
+            "assisted_full_lhs_queries": 0,
+            "audit_native_bindings": 0,
+            "audit_queries": 0,
+            "audit_uncovered_bindings": 0,
+            "audit_uncovered_per_round": [],
+            "candidate_pairs": 10125900,
+            "cell_point_reads": 4560,
+            "cell_projections": 4440,
+            "epochs": 4,
+            "equality_columns": 66,
+            "external_bootstrap_rows": 3301,
+            "external_point_reads": 32703,
+            "native_matches": 615,
+            "native_seconds": 0.0065000430000000005,
+            "observed_instances": 630,
+            "pending_instances": 0,
+            "raw_events_drained": 7748,
+            "residual_seconds": 0.240908958,
+            "unique_dispatched_bindings": 45,
+            "valid_instances": 630
+          }
+        },
+        "resident": {
+          "setup_seconds": 0.122804,
+          "input_seconds": 0.149650833,
+          "run_seconds": 0.037537167,
+          "stats": {
+            "audit_queries": 0,
+            "audit_uncovered_per_round": [],
+            "batches": 2,
+            "cpu_cell_point_reads": 0,
+            "cpu_cell_validations": 0,
+            "device_roundtrip_seconds": 0.030710959000000003,
+            "diagnostic_trace_events": 0,
+            "dispatched_bindings": 15,
+            "downloaded_bytes": 1080,
+            "event_seconds": 0.0011920840000000002,
+            "gpu": {
+              "active_instances": 630,
+              "bindings": 0,
+              "buffer_resizes": 6,
+              "cell_validations": 1230,
+              "delta_anchors": 11851,
+              "device_fact_lookups": 2880,
+              "emitted_total": 15,
+              "epoch": 2,
+              "external_refs": 10951,
+              "facts_stored": 4563,
+              "fragment_bindings_stored": 11851,
+              "gpu_seconds": 0.01822825102135539,
+              "instances": 630,
+              "join_candidates": 30693,
+              "kernel_dispatches": 36,
+              "ok": true,
+              "pending_instances": 0,
+              "query_runs": 2,
+              "resident_bytes": 13523716,
+              "seed_reuses": 0,
+              "watch_hits": 0,
+              "watches_stored": 3390
+            },
+            "native_matches": 615,
+            "native_seconds": 0.005359792,
+            "producer_events": 630,
+            "quiet_rounds": 1,
+            "rhs_seconds": 0.000254749,
+            "row_deltas": 4563,
+            "setup_seconds": 0.118343333,
+            "union_deltas": 30,
+            "uploaded_bytes": 212428
+          }
+        }
+      },
+      "graph_equality": {
+        "cpu": {
+          "exact_equal": true,
+          "enodes": 4868,
+          "eclasses": 4238,
+          "sorts": {
+            "Assumption": {
+              "enodes": 900,
+              "eclasses": 900
+            },
+            "BaseType": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "BinaryOp": {
+              "enodes": 3,
+              "eclasses": 3
+            },
+            "Expr": {
+              "enodes": 3960,
+              "eclasses": 3330
+            },
+            "Type": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "TypeList": {
+              "enodes": 3,
+              "eclasses": 3
+            }
+          }
+        },
+        "gpu": {
+          "exact_equal": true,
+          "enodes": 4868,
+          "eclasses": 4238,
+          "sorts": {
+            "Assumption": {
+              "enodes": 900,
+              "eclasses": 900
+            },
+            "BaseType": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "BinaryOp": {
+              "enodes": 3,
+              "eclasses": 3
+            },
+            "Expr": {
+              "enodes": 3960,
+              "eclasses": 3330
+            },
+            "Type": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "TypeList": {
+              "enodes": 3,
+              "eclasses": 3
+            }
+          }
+        },
+        "resident": {
+          "exact_equal": true,
+          "enodes": 4868,
+          "eclasses": 4238,
+          "sorts": {
+            "Assumption": {
+              "enodes": 900,
+              "eclasses": 900
+            },
+            "BaseType": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "BinaryOp": {
+              "enodes": 3,
+              "eclasses": 3
+            },
+            "Expr": {
+              "enodes": 3960,
+              "eclasses": 3330
+            },
+            "Type": {
+              "enodes": 1,
+              "eclasses": 1
+            },
+            "TypeList": {
+              "enodes": 3,
+              "eclasses": 3
+            }
+          }
+        }
+      },
+      "resident_audit_uncovered_per_round": [
+        0,
+        0,
+        0
+      ],
+      "branch_checks": {
+        "off": {
+          "min": 15,
+          "max": 15,
+          "miss": 270
+        },
+        "cpu": {
+          "min": 15,
+          "max": 15,
+          "miss": 270
+        },
+        "gpu": {
+          "min": 15,
+          "max": 15,
+          "miss": 270
+        },
+        "resident": {
+          "min": 15,
+          "max": 15,
+          "miss": 270
+        }
+      }
+    }
+  ],
+  "source_sha256": {
+    "src/resident.rs": "b35ef4eb6d8bb3c1bb367323d970ca982a61139aabc535f9d8214b5f44c81311",
+    "resident.metal": "8f74419b4f2cf7126d68902ec32dc2f4debbbb1ddcab328554f2b19cbea461db",
+    "resident.swift": "0c86073ad3be9bb048b293ff957928a2a6f50441773a2451899091f75f377c59",
+    "validate.py": "62b121c2539a85f744765889b436e7e831f7c30d9f6907e4bc1cf66679f7d788"
+  }
+}

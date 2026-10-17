@@ -1,230 +1,220 @@
 # cell-assisted-egglog
 
-A local research fork of the existing egglog kernel at parent repository commit
-`9ea85e47824fcef4e4336fe2f2e3160d37169f73`. It runs **analyze-backed partial queries
-before the original consumer Join**, then executes the original egglog RHS.
-It is not yet an automatic replacement for the eggcc planner, and the tiny
-controls below do **not** demonstrate a speedup.
+A local research fork that uses **completed analyze Cells to replace parts of a
+consumer query**, then runs the original egglog RHS. The native kernel is real;
+this is not a simulation. It is not yet a complete eggcc planner replacement.
+Work lives on `codex/cell-assisted-egglog`; the pristine `egglog-baseline` tag is
+unchanged. Initial fork base: `9ea85e47824fcef4e4336fe2f2e3160d37169f73`.
 
-The main workspace is unchanged. This fork lives on `codex/cell-assisted-egglog`.
-The imported kernel keeps its `egglog` crate API; this executable is named
-`cell-assisted-egglog`. The immutable `egglog-baseline` tag is unchanged. Nothing
-was published or fetched.
+## Resident GPU path
 
-## What actually runs
+`--mode resident` moves Cell instance maintenance and residual matching onto
+Metal. There is **no runtime diagnostic TraceSession and no CPU Cell registry**.
 
 ```text
-analyze/history.json + catalog completed Cell states
-  │ source-match names, parameter roles, typed facts, equalities, literal values
-  ▼
-finite Cell projections (compiled once, including non-root positions)
-  │
-native producer match + committed facts/rebuild
-  ▼
-Cell instance: template ID + native parameter bindings
-  │ keyed validation of the Cell body; no recognition by a whole-graph query
-  ▼
-cached fragment bindings ─── external committed row notifications
-  │                        (one bootstrap scan, then updates)
-  ▼
-CPU / Metal residual compatibility matrices
-  │ accepted complete bindings; exact CPU check of returned shared coordinates
-  ▼
-original compiled RHS → native inserts / union / rebuild
+startup (CPU, once)
+  analyze history + completed RipSat states + selected consumer/partitions
+    → typed template program, forward reads, projections, join interfaces
+    → upload static program
+
+native execution (CPU)                     persistent device state (GPU)
+  original helper rules                     tracked fact rows + canonical IDs
+  committed insert/update/delete/subsume ───→ dirty Cell dependencies
+  committed union/rebuild redirects     ───→ invalidate / revalidate proofs
+  compact producer bindings             ───→ intern pending Cell instances
+                                             ↓ exact keyed validation
+                                            valid Cell instances
+                                             ↓ projection + alias checks
+                                            fragment bindings + tuple indexes
+                                             ↓ delta matching
+  original consumer RHS ←────────────────── new complete bindings only
+  native insert / union / rebuild             (no full score matrix download)
 ```
 
-The assisted consumer is excluded from native rule execution. Native helper rules
-still run, with dependency tracing. Its original actions are compiled once into
-a one-relation worklist consumer, using egglog's existing `BackendRule` machinery.
-There is no second full-LHS consumer competing with the assisted path.
+A producer event is a **possible occurrence**, not proof of a mutation or of a
+closed Cell. The device admits it only after all required visible rows, literals
+and equalities agree with committed native facts. Pending instances watch missing
+keys. Union or row changes wake dependent instances; deletion/subsumption can
+revoke admission. The native engine remains authoritative for union and rebuild.
+The device receives canonical redirects; it does not independently implement
+congruence closure.
 
-A logical producer match alone does **not** admit a Cell. Every required visible
-Cell row and equality must be present after native commit/rebuild. Admission is a
-sequence of exact, forward hashcons lookups from known parameters; it cannot
-materialize missing terms. Failed admissions remain pending. Runtime recognition
-is driven by producer events; it is not a scan over all possible Cell occurrences.
+Reverse watches, Cell values, fragment projection, duplicate elimination, tuple
+indexes and binding assembly reside on the GPU. The CPU transports compact event
+packets, schedules Metal commands, and executes accepted RHS bindings. Thus this
+removes **CPU semantic Cell maintenance**, not all host involvement. Swift is a
+persistent Metal worker process; transport and host dispatch still have a cost.
 
-This implementation still stores ordinary explicit egglog facts. It is a search
-experiment, not a virtual-fact storage or memory-compression claim.
+The consumer is omitted from the native helper run. Its original RHS is compiled
+once against a one-relation binding worklist. No second full-LHS consumer searches
+in parallel. Every returned binding uses the same native typed values; the
+engine is frozen during device matching and batches carry checked epoch IDs.
 
-## A real eggcc example
+## What changed in the kernel
 
-`eggcc-if` uses the existing min/max/Single subset from
-`experiments/cell_spine/eggcc_if_tiny/source.egg`, retaining all branch/context/type
-conditions. Training has min, max and a near miss; execution uses new `InFunc`
-values. Rules and schedules are explicitly named for this test.
+- Opt-in, per-table committed-key journals coalesce actual mutations to their
+  final row/visibility. They include serial and parallel writes, removals and
+  rebuild changes. Proposed writes and duplicate no-ops are not new facts.
+- Union-find exports new displacements since a cursor, with their current roots.
+- Native producer queries can add a callback containing only the requested
+  canonical binding fields. The original seminaive / `:naive` mode is retained.
+- Journals are independent across EGraph clones. A subscription is exclusive to
+  one engine scope; it is not a push/pop or multi-subscriber protocol.
 
-The min rule has **13 lowered atoms**. The two atoms reading `Get(thn,k)` and
-`Get(els,k)` can come from analyzed Cells. Other atoms, including the predicate,
-input positions, branch contexts and types, remain external fragments. Matching
-Cell fragments does not imply the min rule applies: all remaining shared bindings
-must agree. The near miss does not produce a min or max result.
+With journals disabled, the normal execution path retains its original behavior;
+there is an extra opt-in branch at commit sites. No zero-overhead claim is made.
+Existing tables and native hashcons remain explicit. This is **not** a virtual
+fact storage or RSS-compression result.
 
-The second real-rule fixture uses `Single/Get` and `Add-Gets` from eggcc
-`dag_in_context/src/utility/util.egg`; only names/scheduling and an opaque `Leaf`
-input constructor are added. Upstream license and attribution are retained in
-`../experiments/cell_spine/eggcc_if_tiny/UPSTREAM-LICENSE`.
+## Matching and resource behavior
 
-## Matrix meaning
+The new resident matcher uses **exact integer tuple indexes**, not MPS GEMM.
+Each changed fragment starts a baked query plan. Earlier parts must be unchanged;
+this partitions matches by their first changed part and avoids duplicate binding
+emission across anchors. Shared-variable interfaces are compiled once per query,
+not cached per historical application path. Native rule predicates unsupported by
+the compiler are rejected, not guessed.
 
-A row holds the **current canonical native IDs of shared, typed binding slots**.
-It does not encode a Cell's permutation symmetry or interpret an ID as a numeric
-parameter. Each 32-bit ID is represented by 32 entries in `{−1,+1}`. For `s` shared
-slots, a compatibility matrix is:
+Only dirty Cells perform proof lookups, although the resolver still scans their
+dirty flags. When fragment membership changes, projection and index construction
+still scan resident references. An idle round submits no GPU work. Output/watch
+buffers grow and retry without candidate truncation. Moving a buffer preserves
+index links; only a change in hash bucket count requires rehashing.
 
-```text
-A: left fragment bindings × (32*s)
-B: right fragment bindings × (32*s)
-C = A * transpose(B)
-compatible(i,j) iff C[i,j] == 32*s
-```
+The current implementation retains old instance keys, watchers and fragment
+bindings. Inactive entries are filtered but not garbage-collected. The reported
+`resident_bytes` is the allocated mutable GPU heap, **not process RSS**; it excludes
+the static program, shader/compiler, command buffers and native engine.
 
-Unequal IDs differ in at least one signed bit, reducing the score. FP32 inputs,
-products and sums in the supported dimension range represent these integer
-scores exactly; no identity is first converted to an imprecise float. Types are
-fixed by the query schema. Literal tests are checked when constructing fragments.
-A zero-width interface is an all-compatible block and needs no GEMM.
+A finite baked library does not cover every future instance. In particular,
+helper closure may establish a Cell only in a later driver round. Repeated
+unchanged bindings are suppressed; this is not a promise to reproduce arbitrary
+native schedules, destructive delete/reinsert histories, or every logical match.
 
-`gpu.swift` is a persistent **Metal/MPS** worker, actually executed on the GPU.
-256×256 tiles bound transport buffers; they do not truncate candidates. The CPU
-reference evaluates the identical candidate space. Neither path performs a native
-full-LHS query to generate its candidates. Returned GPU positives are also checked
-by exact CPU ID equality before any RHS can execute. GPU failure is an error,
-not an unreported CPU fallback. Tests compare complete GPU and CPU pair sets.
+## Controls and limitations
 
-This version still enumerates the Cartesian product of fragment rows at each
-stage. Multiple stages produce intermediate binding rows. Removing this work,
-sharing more conditions and batching larger useful tasks are outstanding
-optimizations; fewer LHS atoms alone does not establish lower total search cost.
-
-## Correctness and coverage boundaries
-
-- Only positive constructor/relation queries and constructor/relation/union
-  actions are accepted by the native sink. Primitive LHS filters, custom function
-  lookups, globals and nonpositive actions are explicitly rejected. This is not
-  all of eggcc.
-- All query atoms must belong to exactly one explicit part. Internal Cell query
-  projections are computed from completed analyze states, not a speculative
-  parser call graph. Atom partitions and the assisted rule are currently selected
-  explicitly; there is no automatic bottleneck detector or partition optimizer.
-- The library loader currently admits single-application triggers with a direct
-  source-variable interface and an identity catalog coordinate adapter. Unsupported
-  trigger shapes are not silently promoted to guarantees. Concrete literals are
-  retained, so a Cell baked at index 3 is not assumed to close an index-7 instance.
-- Cell projection preserves alternatives and defers equality of different symbolic
-  inputs. A later native union can enable a projection that was previously false.
-- The Session exclusively owns its EGraph. Each residual batch is frozen through
-  GPU completion and action admission. Following a native step, certificates are
-  revalidated, including subsumption visibility and canonicalized keys. This is
-  conservative whole-registry revalidation, **not** fine-grained invalidation yet.
-- Input facts added between steps have opt-in committed-action receipts. Ordinary
-  tracing and nonassisted execution keep their previous behavior. The trace batch
-  is drained; no complete history is retained by this runtime.
-- Unknown/not-yet-closed instances are pending, not negative matches. There is no
-  claim of native semi-naive completeness at each step. A driver round runs native
-  helpers then an assisted batch; it need not correspond to one original ruleset
-  iteration. Fixed-point equivalence is checked on these finite fixtures; finite
-  eggcc pass scheduling requires further integration.
-- The sink is a documented trusted optimizer interface. Session constructs full
-  typed bindings from validated facts; it never submits arbitrary GPU guesses.
-  Callers of the lower-level sink API bear the same proof obligation.
-
-`--audit true` runs a separate native full-LHS query at each batch boundary and
-compares complete binding sets. It is a diagnostic oracle, never an input to
-candidate generation. Do not include it in a speed measurement.
-
-## Verified controls
-
-All comparisons use the **actual forked egglog runtime**. `off` runs native rules
-without Cell assistance or tracing; it is not a pristine-upstream measurement.
-The assisted paths include producer tracing, Cell admission, residual calculation,
-original RHS execution and rebuild. `results.json` records one release execution
-per control; graph export and full-LHS audits are separate from `run_seconds`.
-GPU time includes first-dispatch MPS overhead; setup and input times are also
-reported. These tiny runs are correctness controls, not sustained-throughput tests.
-
-| Input | Complete graph equality, CPU and GPU | Snapshot bindings missed per diagnostic round |
+| Mode | Cell maintenance | Residual matching |
 |---|---|---|
-| eggcc getter rules | 12 Expr nodes / 8 Expr classes; also all 3 relation rows | 0, 0, 0 |
-| eggcc If min/max | 60 nodes / 52 classes, all six sorts | 0, 0, 0 |
-| two neighboring Cells | 15 nodes / 9 classes | **2, 0, 0, 0** |
+| `off` | none | native egglog query, no tracing |
+| `cpu` | CPU, dependency trace + keyed reads | CPU Cartesian compatibility |
+| `gpu` | same CPU maintenance | Metal/MPS Cartesian compatibility |
+| `resident` | GPU, compact native events | GPU indexed delta matching |
 
-The two early uncovered bindings are important: the first producer wave has not
-yet established the entire completed Cell body. Admission waits. They are found
-once the helper closure is present, and the final graph is identical. A single
-rule's ability to *eventually* form a Cell is not proof that the runtime already
-has that Cell certificate.
+The legacy `gpu` path encodes each shared 32-bit ID using 32 signed bits. The dot
+product reaches `32 * shared_slots` exactly iff all IDs agree. It returns tiled
+score matrices for CPU binding assembly. The new path changes **both maintenance
+and matching algorithm**, so their timing difference does not isolate residency.
+The old report is preserved in `results.json`.
 
-The If run was approximately **0.565 ms native, 0.947 ms assisted CPU, 30.743 ms
-assisted GPU**. This is **slower**, not an acceleration result. The important
-verified change is that the consumer's full native query is replaced by proven
-Cell fragments and residual wiring. Current point-read revalidation, full native
-producer tracing, Cartesian stages, repeated dispatch across rounds, and small
-GPU submissions remain costs. No storage-compression ratio substitutes for these
-measurements. No pristine or complete eggcc pass speedup is claimed.
+All paths currently support positive constructor/relation consumer queries and
+constructor/relation/union actions. Primitive filters, custom function lookups,
+globals and containers are outside the resident consumer compiler. The compact
+native journal itself is tested with function updates/custom merges, but that
+alone does not add those operations to the GPU query compiler.
 
-Counters such as `candidate_pairs` sum `left_rows * right_rows` over stages and
-rounds, including initial one-row expansion. `accepted_bindings` and
-`unique_dispatched_bindings` are totals over batches, deduplicated **within** each
-batch; they are not distinct historical mutations. `assisted_full_lhs_queries=0`
-is enforced by lane construction, not a new Free Join profiler. Audit queries
-have their own counter. Native helper matches are also logical matches.
+Templates come from actual analyze output, including non-root projections and
+conditional aliases. The loader currently accepts single-application triggers
+with direct source-variable interfaces and identity catalog adapters. Concrete
+literals are retained: baking index 3 does not authorize index 7. Cell projections
+and atom partitions must cover every atom of the selected consumer exactly once.
+Consumer selection and partitioning remain explicit. This is **not yet** a
+Free Join mid-query handoff, arbitrary graft-state execution, or automatic
+construction of new Cell families on the GPU.
+
+The native helpers and GPU consumer run in explicit driver rounds. Correctness
+controls compare final typed graphs and complete binding sets; they do not assert
+one driver round equals one original ruleset iteration. `--audit true` queries the
+full native LHS separately, rejects duplicate/invalid emissions, and counts
+current bindings not yet observed. The oracle never supplies candidates. Audits
+and graph dumps are excluded from reported execution timing.
 
 ## Reproduce offline
 
-From the parent worktree root:
+From this worktree root, on macOS with Metal and the Xcode toolchain:
 
 ```sh
 CARGO_PROFILE_DEV_DEBUG=0 cargo build --offline --bin egg_layout --target-dir target/analyzer
-python3 cell-assisted-egglog/validate.py --output out/cell-assisted-new
+python3 cell-assisted-egglog/validate.py --output out/cell-resident-new --if-instances 300
+
+CELL_RESIDENT_WORKER="$PWD/out/cell-resident-new/metal-resident" \
+CELL_METAL_WORKER="$PWD/out/cell-resident-new/metal-residual" \
+RAYON_NUM_THREADS=4 cargo test --offline \
+  --manifest-path cell-assisted-egglog/Cargo.toml --target-dir target/cell-assisted
 ```
 
-The script builds the release executable, freshly runs analyze for three small
-programs, builds the Metal worker, compares full typed graphs, and separately
-checks full native binding sets. Use `--cpu-only` where Metal is unavailable.
-Output directories must be new; no prior results are overwritten.
-
-```sh
-CELL_METAL_WORKER="$PWD/out/cell-assisted-new/metal-residual" RAYON_NUM_THREADS=1 \
-  cargo test --offline --manifest-path cell-assisted-egglog/Cargo.toml \
-  --target-dir target/cell-assisted
-```
-
-There are 16 passing tests: Cell/boundary behavior, union, late fact insertion,
-subsumption, alias-dependent non-root projections, duplicate instances, malformed
-partitions, unsupported guards, false GPU positives, real Metal cross-tile equality,
-and five reused native tracing regressions. Without `CELL_METAL_WORKER`, the Metal
-integration test does not execute; the verified run supplied it.
-
-Inspect a lowered rule or run it directly:
+The script freshly analyzes three small programs, builds both workers and the
+release executable, then runs each control once with the same held-out input.
+The optional sparse If case reuses the original min/max/Single rules: 10% of
+inputs enable min/max, 90% are near misses. Final graph equality includes all
+six sorts; an independent check validates every If result and every near miss.
+Separate audit runs compare bindings. `--cpu-only` omits both GPU paths. Output
+directories must be new. GPU tests require their worker environment variables;
+without them those integration tests return without exercising Metal.
 
 ```sh
 target/cell-assisted/release/cell-assisted-egglog \
-  --analysis out/cell-assisted-new/eggcc-getters/analyze \
-  --consumer route-get --mode inspect
-
-target/cell-assisted/release/cell-assisted-egglog \
-  --analysis out/cell-assisted-new/eggcc-getters/analyze \
+  --analysis out/cell-resident-new/eggcc-getters/analyze \
   --consumer route-get --native single-get \
   --parts '[{"atoms":[0],"cell":true},{"atoms":[1],"cell":false}]' \
-  --input out/cell-assisted-new/eggcc-getters/input.egg --rounds 3 --mode cpu
+  --input out/cell-resident-new/eggcc-getters/input.egg --rounds 3 \
+  --mode resident --gpu-worker out/cell-resident-new/metal-resident
 ```
 
-`--mode off` selects the native control. `--mode gpu --gpu-worker PATH` uses Metal.
-`--rounds` counts explicit driver rounds, not a promise of native semi-naive
-iteration equivalence. The small checked-in `fixtures/analyze` directory is the
-actual analyzer output for the getter fixture, retained for fast regression tests.
+`off` is the same fork without assistance, **not pristine upstream**. Setup,
+input and run times are reported separately. These controls include native
+helpers, event capture, GPU round trips, original RHS and rebuild. Startup shader
+compilation is real cost even though it is not part of `run_seconds`. Neither a
+faster device kernel nor fewer emitted matches implies end-to-end acceleration.
 
-## Code boundary
+## Code map
 
-- `../egglog/src/cell_assist.rs`: typed native query schema, positive-action sink,
-  exact visible reads, selected native rules, diagnostic binding oracle.
-- `src/lib.rs`: analyze import, historical producer-to-Cell admission, symbolic
-  projections, frozen residual batches, evidence revalidation.
-- `src/matrix.rs` and `gpu.swift`: CPU reference and GPU dot products.
-- `validate.py`, `fixtures`, `tests`: reproducible actual-engine controls.
+- `../egglog/src/cell_events.rs`: compact producer callbacks and committed deltas.
+- `../egglog/src/cell_assist.rs`: typed query schema, original RHS sink, audit.
+- `src/lib.rs`: analyze import and symbolic projections; legacy CPU runtime.
+- `src/resident.rs`: one-time program compilation and event/RHS transport.
+- `resident.metal`: persistent Cells, exact proof validation and delta matching.
+- `resident.swift`: Metal buffers, commands, lossless allocation/retry, binary I/O.
+- `src/matrix.rs`, `gpu.swift`: legacy CPU/MPS compatibility controls.
+- `validate.py`, `tests/`: full-graph, native-binding and lifecycle regressions.
 
-The next implementation target is narrower runtime maintenance and larger shared
-residual programs. Automatic rule selection, arbitrary primitive/function guards,
-all catalog coordinate adapters, and production eggcc pass integration remain
-explicitly outside this first executable slice.
+## Resident verification, 2026-10-18
+
+`resident-results.json` records the latest single release executions on an Apple
+M3 Max (one native worker thread). All four modes produce the same final graphs.
+Separate lifecycle tests use four native worker threads.
+
+| Input | Native fork | Auxiliary CPU | Legacy GPU | Resident GPU |
+|---|---:|---:|---:|---:|
+| getter rules | 0.124 ms | 0.172 ms | 24.836 ms | 4.162 ms |
+| three If inputs | 0.466 ms | 0.972 ms | 34.192 ms | 8.865 ms |
+| two neighboring Cells | 0.066 ms | 0.195 ms | 15.712 ms | 8.394 ms |
+| 300 sparse If inputs | 9.369 ms | 43.323 ms | 262.485 ms | 37.537 ms |
+
+The 300-If case has **4,868 constructor nodes / 4,238 e-classes** across six sorts;
+Expr alone has 3,960 / 3,330. Every mode produces 15 min, 15 max and 270 near misses
+without a result. The resident GPU is about 7 times faster than the legacy GPU
+path here, but remains about 4 times slower than native. It is not an eggcc speedup.
+
+For that case, the resident path maintains 630 active Cell instances, mirrors
+4,563 required rows, and returns 15 consumer bindings (1,080 binding bytes). It
+uploads 212,428 event-packet bytes and allocates a 13,523,716-byte mutable GPU heap.
+No complete score matrices or fragment tables return to Rust. These byte counters
+exclude startup and small JSON control/metrics frames. Native helpers still
+perform 615 matches. Producer observations and dispatched bindings are **not**
+committed mutation counts.
+
+CPU semantic Cell validations, CPU Cell point reads and diagnostic trace events
+are absent on this path. The GPU performs 1,230 validations including allocation
+retries, and 2,880 exact fact lookups. There are two device batches and one idle
+round. GPU command time is 18.23 ms; host/device round-trip time is 30.71 ms,
+native helpers 5.36 ms, event packaging 1.19 ms, RHS 0.25 ms. Device command time
+is contained in round-trip time, not added to it. Setup costs another 122.80 ms
+for this run (including 118.34 ms resident compilation/worker setup); input parsing/import costs another 149.65 ms. These startup costs are excluded
+from the execution table; full phase timings are in the JSON.
+
+All 27 tests passed with both Metal workers enabled, including parallel native
+commits, update/merge/rebuild feeds, `:naive` preservation, late union, subsumption,
+late/reinserted facts, overlap after union, and lossless buffer growth. Separate
+native binding audits report `[0,0,0]` for the getter and both If workloads. The
+neighboring-Cell case reports **`[2,0,0,0]`**: two first-round native matches wait
+for the helper closure to complete. This coverage gap is retained in the report.

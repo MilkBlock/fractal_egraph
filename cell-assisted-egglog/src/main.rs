@@ -99,28 +99,49 @@ fn run() -> Result<()> {
         let mut session = Session::new(&dir, ruleset, consumer, native, parts)?;
         session.set_audit(a.get("--audit").is_some_and(|v| v == "true"));
         let description = session.describe();
-        let mut backend: Box<dyn matrix::Matcher> = match mode {
-            "cpu" => Box::new(matrix::Cpu),
-            "gpu" => Box::new(matrix::Metal::new(Path::new(required(
-                &a,
-                "--gpu-worker",
-            )?))?),
-            _ => return Err("mode must be off, cpu, gpu or inspect".into()),
-        };
-        let setup = start.elapsed().as_secs_f64();
-        let t = Instant::now();
-        session.input(&input)?;
-        let input_time = t.elapsed().as_secs_f64();
-        let t = Instant::now();
-        let mut progress = vec![];
-        for _ in 0..rounds {
-            progress.push(session.round(&mut *backend)?);
+        if mode == "resident" {
+            let mut resident = cell_assisted_egglog::resident::ResidentSession::new(
+                session,
+                Path::new(required(&a, "--gpu-worker")?),
+            )?;
+            let setup = start.elapsed().as_secs_f64();
+            let t = Instant::now();
+            resident.input(&input)?;
+            let input_time = t.elapsed().as_secs_f64();
+            let t = Instant::now();
+            let mut progress = vec![];
+            for _ in 0..rounds {
+                progress.push(resident.round()?);
+            }
+            let elapsed = t.elapsed().as_secs_f64();
+            (
+                json!({"mode":mode,"setup_seconds":setup,"input_seconds":input_time,"run_seconds":elapsed,"work_progress":progress,"plan":resident.describe(),"stats":resident.stats,"scope":"resident GPU Cell proof maintenance and delta matching; native RHS and commits"}),
+                snapshot(resident.engine())?,
+            )
+        } else {
+            let mut backend: Box<dyn matrix::Matcher> = match mode {
+                "cpu" => Box::new(matrix::Cpu),
+                "gpu" => Box::new(matrix::Metal::new(Path::new(required(
+                    &a,
+                    "--gpu-worker",
+                )?))?),
+                _ => return Err("mode must be off, cpu, gpu, resident or inspect".into()),
+            };
+            let setup = start.elapsed().as_secs_f64();
+            let t = Instant::now();
+            session.input(&input)?;
+            let input_time = t.elapsed().as_secs_f64();
+            let t = Instant::now();
+            let mut progress = vec![];
+            for _ in 0..rounds {
+                progress.push(session.round(&mut *backend)?);
+            }
+            let elapsed = t.elapsed().as_secs_f64();
+            (
+                json!({"mode":mode,"setup_seconds":setup,"input_seconds":input_time,"run_seconds":elapsed,"semantic_progress":progress,"stats":session.stats,"plan":description,"scope":"analyze-covered positive Cell fragments; uncovered instances remain pending, not failed matches; no claim of arbitrary-rule completeness"}),
+                snapshot(session.engine())?,
+            )
         }
-        let elapsed = t.elapsed().as_secs_f64();
-        (
-            json!({"mode":mode,"setup_seconds":setup,"input_seconds":input_time,"run_seconds":elapsed,"semantic_progress":progress,"stats":session.stats,"plan":description,"scope":"analyze-covered positive Cell fragments; uncovered instances remain pending, not failed matches; no claim of arbitrary-rule completeness"}),
-            snapshot(session.engine())?,
-        )
     };
     if let Some(path) = a.get("--dump") {
         std::fs::write(path, serde_json::to_vec(&graph)?)?;
