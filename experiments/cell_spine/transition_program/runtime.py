@@ -4,6 +4,7 @@ CPU owns Bake, exact interning, and worklist routing. The optional GPU backend
 decides matches and constructs target coordinates. This is not global egglog.
 """
 from collections import Counter,defaultdict,deque
+from copy import deepcopy
 import json
 from pathlib import Path
 import subprocess
@@ -15,30 +16,16 @@ from experiments.cell_spine.moment_compiler.compiler import bit_code
 
 
 def validate_environment(ast):
-    """Erasure is sound here only for a positive constructor-rewrite domain.
-
-    In particular, native fallback must not pretend that erasing literal data
-    also preserves arbitrary guards, functions, or relation effects.
-    """
-    if ast.get('rules') or ast.get('actions') or any(c['kind'] not in ('declaration','rule') for c in ast['commands']):
-        raise ValueError('local Cell runtime requires an input-free constructor-rewrite environment')
-    def expression(t):
-        if t['kind']=='var':return
-        sig=ast['signatures'].get(t.get('head'),{})
-        if t['kind']!='call' or sig.get('kind')!='constructor' or sig.get('output')!='Math' or any(s!='Math' for s in sig.get('input',[])):
-            raise ValueError('literal/primitive/analysis-data erasure needs a separate Cell contract')
-        for child in t['args']:expression(child)
-    for rule in ast['rewrites']:
-        if rule['conditions'] or rule['subsume'] or rule['bidirectional'] or rule['ruleset']:
-            raise ValueError('guarded/effectful/nondefault rulesets need a separate Cell contract')
-        expression(rule['lhs']);expression(rule['rhs'])
+    """Compatibility entry point; transport-proof checks live with the cache."""
+    from .specializations import validate_environment as validate
+    return validate(ast)
 
 
 def partition(values):
-    unique=[];indices=[]
+    unique=[];indices=[];positions={}
     for v in values:
-        if v not in unique:unique.append(v)
-        indices.append(unique.index(v))
+        if v not in positions:positions[v]=len(unique);unique.append(v)
+        indices.append(positions[v])
     return tuple(indices),tuple(unique)
 
 
@@ -180,8 +167,7 @@ class Cells:
 
 
 class Runtime:
-    def __init__(self,output,binary,source,ast,backend='cpu',gpu_binary=None):
-        validate_environment(ast)
+    def __init__(self,output,binary,source,ast,backend='cpu',gpu_binary=None,specialize_facts=True):
         self.output=Path(output);self.output.mkdir(parents=True,exist_ok=False)
         constructors=['RipenInput']+[name for name,sig in ast['signatures'].items()
             if sig.get('kind')=='constructor' and sig.get('output')=='Math' and name!='Var']
@@ -196,6 +182,10 @@ class Runtime:
         self.rules=catalog.rules;self.bake_only=catalog.bake_only
         self.by_head=defaultdict(list)
         for name,r in self.rules.items():self.by_head[r['lhs'][0]].append(name)
+        # Local import avoids a module cycle: the proof helper reuses the exact
+        # closure key and equality-partition operations above.
+        from .specializations import FactSpecializations
+        self.specializations=FactSpecializations(self.library,self.cells,self.context,self.ast) if specialize_facts else None
 
     def seed(self,term,values):
         if any(not isinstance(v,int) or v<0 for v in values):raise ValueError('input IDs must be nonnegative integers')
@@ -279,6 +269,11 @@ class Runtime:
                     self.stats['transition_cache_hits']+=1
                     self.signatures[n]=signature
                     self.publish(n,self.edge_cache[signature]);continue
+                if self.specializations is not None:
+                    h=self.specializations.apply(*signature)
+                    if h is not None:
+                        self.stats['fact_specialization_hits']+=1
+                        self.remember(n,left,right,h,learn=False);continue
                 ready.append((n,left,right))
             if not ready:continue
             try:self.process(ready)
@@ -348,6 +343,7 @@ class Runtime:
                 if status==2:pending+=1;self.stats['alias_targets_resumed']+=1
             work=dict(source_rows=len(source_handles),temporary_rows=len(p.instances),bits=bits,slots=c.slots,
                       matrices=len(jobs[0]['plan']['blocks']),branches=len(stage),half_inputs=half,
+                      logical_matrix_macs=sum(len(b['wires'])**2*b['width'] for b in jobs[0]['plan']['blocks']),
                       feature_rows_built=sum(active),feature_rows_zeroed=len(active)-sum(active))
         else:work=dict(source_rows=len(source_handles),temporary_rows=0,bits=bits,slots=0,matrices=0,branches=0)
         for n,left,right in ready:
@@ -359,17 +355,20 @@ class Runtime:
         self.batches.append(dict(**work,ready_nodes=[n for n,_,_ in ready],statuses=dict(counts),
                                  aliases_resumed=pending,unsupported=unrepresented))
 
-    def remember(self,n,left,right,h):
+    def remember(self,n,left,right,h,learn=True):
         signature=(self.nodes[n]['op'],left,right)
+        if learn and self.specializations is not None:
+            self.specializations.observe(*signature,h)
         self.edge_cache[signature]=h
         for endpoint in (left,right):self.cache_uses[endpoint].add(signature)
         self.signatures[n]=signature
         self.publish(n,h)
 
     def summary(self):
-        return dict(backend=self.backend,constructor_facts=len(self.nodes),resolved_facts=len(self.outputs),
+        return deepcopy(dict(backend=self.backend,constructor_facts=len(self.nodes),resolved_facts=len(self.outputs),
                     templates=len(self.library.templates),live_cells=len(self.cells.keys),
                     retired_handles=sum('redirect' in r for r in self.cells.records),
                     library=dict(self.library.stats),cells=dict(self.cells.stats),runtime=dict(self.stats),
                     batches=self.batches,events=self.events,
-                    drivers={name:r['source'] for name,r in self.rules.items()},bake_only=self.bake_only)
+                    drivers={name:r['source'] for name,r in self.rules.items()},bake_only=self.bake_only,
+                    fact_specializations=None if self.specializations is None else self.specializations.report()))

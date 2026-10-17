@@ -3,6 +3,11 @@
 `runtime.py` closes several gaps of the fixed two-stage prototype. It remains a
 CPU/GPU local-closure runtime, not a replacement for global egglog execution.
 
+It now also learns [parameterized fact transitions](SPECIALIZATION.md), allowing
+new input identities with the same fact guard to reuse a proved target directly.
+The original numbers below describe the adaptive-runtime workload; the new
+document separates cold proof overhead and warm transfer from GPU matching.
+
 ## What now runs automatically
 
 **Alias repair.** A GPU status-2 target retains its actual input coordinates.

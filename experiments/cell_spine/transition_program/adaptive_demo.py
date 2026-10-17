@@ -15,26 +15,27 @@ from experiments.cell_spine.factorized_boundary.demo import native,sexpr
 from tools.bench.math_graph_equal import verify
 
 
-def fixture(rt):
+def fixture(rt,offset=0):
+    def seed(term,values):return rt.seed(term,[v+offset for v in values])
     pair=('Add',('Input',0),('Input',1));mul=('Mul',pair,('Input',2));power=('Pow',pair,('Input',2))
-    a=rt.seed(mul,[0,1,2]);b=rt.seed(mul,[0,3,2])
-    swapped=rt.seed(mul,[1,0,2])
+    a=seed(mul,[0,1,2]);b=seed(mul,[0,3,2])
+    swapped=seed(mul,[1,0,2])
     assert rt.resolve(a)==rt.resolve(swapped), 'whole grounded closure must absorb this symmetry'
     first=rt.construct('Add',a,b,'alias-target')
     duplicate=rt.construct('Add',swapped,b,'duplicate-boundary')
     assert duplicate==first
     chain=first
     for value in (4,5,6,7):
-        other=rt.seed(mul,[0,value,2])
+        other=seed(mul,[0,value,2])
         chain=rt.construct('Add',chain,other,f'factor-{value}')
-    independent=rt.construct('Add',rt.seed(mul,[10,11,12]),rt.seed(mul,[10,13,12]),'independent-alias')
-    no_match=rt.construct('Add',a,rt.seed(mul,[30,31,32]),'no-shared-factor')
-    angles=rt.seed(pair,[20,21]);cos=rt.seed(('Cos',pair),[20,21]);loop=cos;cycle=[]
+    independent=rt.construct('Add',seed(mul,[10,11,12]),seed(mul,[10,13,12]),'independent-alias')
+    no_match=rt.construct('Add',a,seed(mul,[30,31,32]),'no-shared-factor')
+    angles=seed(pair,[20,21]);cos=seed(('Cos',pair),[20,21]);loop=cos;cycle=[]
     for step in range(6):
         loop=rt.construct('Integral',loop,angles,f'integral-{step}') if step%2==0 else rt.construct('Diff',angles,loop,f'diff-{step}')
         cycle.append(loop)
-    powers=rt.construct('Mul',rt.seed(power,[40,41,42]),rt.seed(power,[41,40,43]),'powers')
-    powers=rt.construct('Mul',powers,rt.seed(power,[40,41,44]),'powers-again')
+    powers=rt.construct('Mul',seed(power,[40,41,42]),seed(power,[41,40,43]),'powers')
+    powers=rt.construct('Mul',powers,seed(power,[40,41,44]),'powers-again')
     return dict(first=first,factor=chain,independent=independent,no_match=no_match,
                 cycle=cycle,powers=powers,source=a)
 
@@ -47,11 +48,11 @@ def original(rt,ref):
     return (n['op'],original(rt,n['left']),original(rt,n['right']))
 
 
-def audit(rt,out,binary,source):
+def audit(rt,out,binary,source,nodes=None):
     checks=[]
     unions='\n'.join(f'(union (Var "v{a}") (Var "v{b}"))' for a,b in rt.input_unions)
     constructors=['Var']+[c for c in rt.library.constructors if c!='RipenInput']
-    for n in range(len(rt.nodes)):
+    for n in range(len(rt.nodes)) if nodes is None else nodes:
         h=rt.resolve(('node',n))
         if h is None:raise AssertionError('unresolved constructor fact')
         row=rt.cells.get(h);t=rt.library.templates[row['template']]

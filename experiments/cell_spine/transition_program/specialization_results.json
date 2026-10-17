@@ -1,0 +1,1270 @@
+{
+  "scope": "fact-guarded local Cell specialization; native cold proof; no global egglog speedup claim",
+  "all_phase_states_equal": true,
+  "native_whole_state_checks": 50,
+  "variants": {
+    "baseline": {
+      "backend": "cpu",
+      "fact_only": false,
+      "phases": [
+        {
+          "phase": "cold",
+          "native_bakes": 22,
+          "matrix_batches": 5,
+          "logical_matrix_macs": 2383,
+          "fact_replays": 0,
+          "certificates": 0,
+          "certificate_native_bakes": 0,
+          "ground_closure_keys": 27,
+          "native_fallbacks": 1
+        },
+        {
+          "phase": "new-bindings",
+          "native_bakes": 0,
+          "matrix_batches": 5,
+          "logical_matrix_macs": 4032,
+          "fact_replays": 0,
+          "certificates": 0,
+          "certificate_native_bakes": 0,
+          "ground_closure_keys": 27,
+          "native_fallbacks": 1
+        },
+        {
+          "phase": "new-equality",
+          "native_bakes": 11,
+          "matrix_batches": 1,
+          "logical_matrix_macs": 1015,
+          "fact_replays": 0,
+          "certificates": 0,
+          "certificate_native_bakes": 0,
+          "ground_closure_keys": 5,
+          "native_fallbacks": 0
+        },
+        {
+          "phase": "transferred-equality",
+          "native_bakes": 0,
+          "matrix_batches": 5,
+          "logical_matrix_macs": 8238,
+          "fact_replays": 0,
+          "certificates": 0,
+          "certificate_native_bakes": 0,
+          "ground_closure_keys": 27,
+          "native_fallbacks": 1
+        }
+      ]
+    },
+    "specialized": {
+      "backend": "cpu",
+      "fact_only": false,
+      "phases": [
+        {
+          "phase": "cold",
+          "native_bakes": 23,
+          "matrix_batches": 5,
+          "logical_matrix_macs": 2383,
+          "fact_replays": 0,
+          "certificates": 12,
+          "certificate_native_bakes": 1,
+          "ground_closure_keys": 27,
+          "native_fallbacks": 1
+        },
+        {
+          "phase": "new-bindings",
+          "native_bakes": 0,
+          "matrix_batches": 0,
+          "logical_matrix_macs": 0,
+          "fact_replays": 13,
+          "certificates": 0,
+          "certificate_native_bakes": 0,
+          "ground_closure_keys": 27,
+          "native_fallbacks": 0
+        },
+        {
+          "phase": "new-equality",
+          "native_bakes": 11,
+          "matrix_batches": 1,
+          "logical_matrix_macs": 1015,
+          "fact_replays": 0,
+          "certificates": 5,
+          "certificate_native_bakes": 0,
+          "ground_closure_keys": 5,
+          "native_fallbacks": 0
+        },
+        {
+          "phase": "transferred-equality",
+          "native_bakes": 0,
+          "matrix_batches": 0,
+          "logical_matrix_macs": 0,
+          "fact_replays": 13,
+          "certificates": 0,
+          "certificate_native_bakes": 0,
+          "ground_closure_keys": 27,
+          "native_fallbacks": 0
+        }
+      ]
+    },
+    "direct_fact": {
+      "backend": "cpu",
+      "fact_only": true,
+      "phases": [
+        {
+          "phase": "cold",
+          "native_bakes": 16,
+          "matrix_batches": 0,
+          "logical_matrix_macs": 0,
+          "fact_replays": 0,
+          "certificates": 12,
+          "certificate_native_bakes": 0,
+          "ground_closure_keys": 27,
+          "native_fallbacks": 0
+        },
+        {
+          "phase": "new-bindings",
+          "native_bakes": 0,
+          "matrix_batches": 0,
+          "logical_matrix_macs": 0,
+          "fact_replays": 13,
+          "certificates": 0,
+          "certificate_native_bakes": 0,
+          "ground_closure_keys": 27,
+          "native_fallbacks": 0
+        },
+        {
+          "phase": "new-equality",
+          "native_bakes": 5,
+          "matrix_batches": 0,
+          "logical_matrix_macs": 0,
+          "fact_replays": 0,
+          "certificates": 5,
+          "certificate_native_bakes": 0,
+          "ground_closure_keys": 5,
+          "native_fallbacks": 0
+        },
+        {
+          "phase": "transferred-equality",
+          "native_bakes": 0,
+          "matrix_batches": 0,
+          "logical_matrix_macs": 0,
+          "fact_replays": 13,
+          "certificates": 0,
+          "certificate_native_bakes": 0,
+          "ground_closure_keys": 27,
+          "native_fallbacks": 0
+        }
+      ]
+    },
+    "gpu": {
+      "backend": "gpu",
+      "fact_only": false,
+      "phases": [
+        {
+          "phase": "cold",
+          "native_bakes": 23,
+          "matrix_batches": 5,
+          "logical_matrix_macs": 2383,
+          "fact_replays": 0,
+          "certificates": 12,
+          "certificate_native_bakes": 1,
+          "ground_closure_keys": 27,
+          "native_fallbacks": 1
+        },
+        {
+          "phase": "new-bindings",
+          "native_bakes": 0,
+          "matrix_batches": 0,
+          "logical_matrix_macs": 0,
+          "fact_replays": 13,
+          "certificates": 0,
+          "certificate_native_bakes": 0,
+          "ground_closure_keys": 27,
+          "native_fallbacks": 0
+        },
+        {
+          "phase": "new-equality",
+          "native_bakes": 11,
+          "matrix_batches": 1,
+          "logical_matrix_macs": 1015,
+          "fact_replays": 0,
+          "certificates": 5,
+          "certificate_native_bakes": 0,
+          "ground_closure_keys": 5,
+          "native_fallbacks": 0
+        },
+        {
+          "phase": "transferred-equality",
+          "native_bakes": 0,
+          "matrix_batches": 0,
+          "logical_matrix_macs": 0,
+          "fact_replays": 13,
+          "certificates": 0,
+          "certificate_native_bakes": 0,
+          "ground_closure_keys": 27,
+          "native_fallbacks": 0
+        }
+      ]
+    }
+  },
+  "specialization_stats": {
+    "misses": 18,
+    "certificate_native_bakes": 1,
+    "certificates": 17,
+    "repeat_observations": 1,
+    "replays": 26,
+    "input_slots_classified": 158,
+    "output_slots_copied": 109
+  },
+  "recipes": [
+    {
+      "id": 0,
+      "operator": "Add",
+      "source_templates": [
+        0,
+        0
+      ],
+      "source_arities": [
+        3,
+        3
+      ],
+      "equality_partition": [
+        0,
+        1,
+        2,
+        0,
+        3,
+        2
+      ],
+      "equal_groups": [
+        [
+          "L0",
+          "R0"
+        ],
+        [
+          "L1"
+        ],
+        [
+          "L2",
+          "R2"
+        ],
+        [
+          "R1"
+        ]
+      ],
+      "groups_must_remain_distinct": true,
+      "target_template": 8,
+      "output_sources": [
+        0,
+        1,
+        2,
+        4
+      ],
+      "output_ports": [
+        "L0",
+        "L1",
+        "L2",
+        "R1"
+      ],
+      "fact_seed": "(Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 0) (RipenInput 3)) (RipenInput 2)))",
+      "environment_sha256": "22563705eba7ea96b2893a516ec270f346639e84c0eb3d42f19e71a24e054c9b",
+      "proof": {
+        "native_rooted_whole_closure_equal": true,
+        "transport": "bijection of opaque inputs in a fixed positive constructor-rewrite environment"
+      },
+      "observations": 2,
+      "replays": 3
+    },
+    {
+      "id": 1,
+      "operator": "Add",
+      "source_templates": [
+        0,
+        0
+      ],
+      "source_arities": [
+        3,
+        3
+      ],
+      "equality_partition": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "equal_groups": [
+        [
+          "L0"
+        ],
+        [
+          "L1"
+        ],
+        [
+          "L2"
+        ],
+        [
+          "R0"
+        ],
+        [
+          "R1"
+        ],
+        [
+          "R2"
+        ]
+      ],
+      "groups_must_remain_distinct": true,
+      "target_template": 9,
+      "output_sources": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "output_ports": [
+        "L0",
+        "L1",
+        "L2",
+        "R0",
+        "R1",
+        "R2"
+      ],
+      "fact_seed": "(Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 3) (RipenInput 4)) (RipenInput 5)))",
+      "environment_sha256": "22563705eba7ea96b2893a516ec270f346639e84c0eb3d42f19e71a24e054c9b",
+      "proof": {
+        "native_rooted_whole_closure_equal": true,
+        "transport": "bijection of opaque inputs in a fixed positive constructor-rewrite environment"
+      },
+      "observations": 1,
+      "replays": 2
+    },
+    {
+      "id": 2,
+      "operator": "Integral",
+      "source_templates": [
+        2,
+        1
+      ],
+      "source_arities": [
+        2,
+        2
+      ],
+      "equality_partition": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "equal_groups": [
+        [
+          "L0",
+          "R0"
+        ],
+        [
+          "L1",
+          "R1"
+        ]
+      ],
+      "groups_must_remain_distinct": true,
+      "target_template": 6,
+      "output_sources": [
+        0,
+        1
+      ],
+      "output_ports": [
+        "L0",
+        "L1"
+      ],
+      "fact_seed": "(Integral (Cos (Add (RipenInput 0) (RipenInput 1))) (Add (RipenInput 0) (RipenInput 1)))",
+      "environment_sha256": "22563705eba7ea96b2893a516ec270f346639e84c0eb3d42f19e71a24e054c9b",
+      "proof": {
+        "native_rooted_whole_closure_equal": true,
+        "transport": "bijection of opaque inputs in a fixed positive constructor-rewrite environment"
+      },
+      "observations": 1,
+      "replays": 2
+    },
+    {
+      "id": 3,
+      "operator": "Mul",
+      "source_templates": [
+        3,
+        3
+      ],
+      "source_arities": [
+        3,
+        3
+      ],
+      "equality_partition": [
+        0,
+        1,
+        2,
+        1,
+        0,
+        3
+      ],
+      "equal_groups": [
+        [
+          "L0",
+          "R1"
+        ],
+        [
+          "L1",
+          "R0"
+        ],
+        [
+          "L2"
+        ],
+        [
+          "R2"
+        ]
+      ],
+      "groups_must_remain_distinct": true,
+      "target_template": 7,
+      "output_sources": [
+        0,
+        1,
+        2,
+        5
+      ],
+      "output_ports": [
+        "L0",
+        "L1",
+        "L2",
+        "R2"
+      ],
+      "fact_seed": "(Mul (Pow (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Pow (Add (RipenInput 1) (RipenInput 0)) (RipenInput 3)))",
+      "environment_sha256": "22563705eba7ea96b2893a516ec270f346639e84c0eb3d42f19e71a24e054c9b",
+      "proof": {
+        "native_rooted_whole_closure_equal": true,
+        "transport": "bijection of opaque inputs in a fixed positive constructor-rewrite environment"
+      },
+      "observations": 1,
+      "replays": 2
+    },
+    {
+      "id": 4,
+      "operator": "Add",
+      "source_templates": [
+        8,
+        0
+      ],
+      "source_arities": [
+        4,
+        3
+      ],
+      "equality_partition": [
+        0,
+        1,
+        2,
+        3,
+        0,
+        4,
+        2
+      ],
+      "equal_groups": [
+        [
+          "L0",
+          "R0"
+        ],
+        [
+          "L1"
+        ],
+        [
+          "L2",
+          "R2"
+        ],
+        [
+          "L3"
+        ],
+        [
+          "R1"
+        ]
+      ],
+      "groups_must_remain_distinct": true,
+      "target_template": 13,
+      "output_sources": [
+        0,
+        1,
+        2,
+        3,
+        5
+      ],
+      "output_ports": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "R1"
+      ],
+      "fact_seed": "(Add (Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 0) (RipenInput 3)) (RipenInput 2))) (Mul (Add (RipenInput 0) (RipenInput 4)) (RipenInput 2)))",
+      "environment_sha256": "22563705eba7ea96b2893a516ec270f346639e84c0eb3d42f19e71a24e054c9b",
+      "proof": {
+        "native_rooted_whole_closure_equal": true,
+        "transport": "bijection of opaque inputs in a fixed positive constructor-rewrite environment"
+      },
+      "observations": 1,
+      "replays": 1
+    },
+    {
+      "id": 5,
+      "operator": "Diff",
+      "source_templates": [
+        1,
+        6
+      ],
+      "source_arities": [
+        2,
+        2
+      ],
+      "equality_partition": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "equal_groups": [
+        [
+          "L0",
+          "R0"
+        ],
+        [
+          "L1",
+          "R1"
+        ]
+      ],
+      "groups_must_remain_distinct": true,
+      "target_template": 11,
+      "output_sources": [
+        0,
+        1
+      ],
+      "output_ports": [
+        "L0",
+        "L1"
+      ],
+      "fact_seed": "(Diff (Add (RipenInput 0) (RipenInput 1)) (Integral (Cos (Add (RipenInput 0) (RipenInput 1))) (Add (RipenInput 0) (RipenInput 1))))",
+      "environment_sha256": "22563705eba7ea96b2893a516ec270f346639e84c0eb3d42f19e71a24e054c9b",
+      "proof": {
+        "native_rooted_whole_closure_equal": true,
+        "transport": "bijection of opaque inputs in a fixed positive constructor-rewrite environment"
+      },
+      "observations": 1,
+      "replays": 2
+    },
+    {
+      "id": 6,
+      "operator": "Mul",
+      "source_templates": [
+        7,
+        3
+      ],
+      "source_arities": [
+        4,
+        3
+      ],
+      "equality_partition": [
+        0,
+        1,
+        2,
+        3,
+        0,
+        1,
+        4
+      ],
+      "equal_groups": [
+        [
+          "L0",
+          "R0"
+        ],
+        [
+          "L1",
+          "R1"
+        ],
+        [
+          "L2"
+        ],
+        [
+          "L3"
+        ],
+        [
+          "R2"
+        ]
+      ],
+      "groups_must_remain_distinct": true,
+      "target_template": 12,
+      "output_sources": [
+        0,
+        1,
+        2,
+        3,
+        6
+      ],
+      "output_ports": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "R2"
+      ],
+      "fact_seed": "(Mul (Mul (Pow (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Pow (Add (RipenInput 0) (RipenInput 1)) (RipenInput 3))) (Pow (Add (RipenInput 0) (RipenInput 1)) (RipenInput 4)))",
+      "environment_sha256": "22563705eba7ea96b2893a516ec270f346639e84c0eb3d42f19e71a24e054c9b",
+      "proof": {
+        "native_rooted_whole_closure_equal": true,
+        "transport": "bijection of opaque inputs in a fixed positive constructor-rewrite environment"
+      },
+      "observations": 1,
+      "replays": 2
+    },
+    {
+      "id": 7,
+      "operator": "Add",
+      "source_templates": [
+        13,
+        0
+      ],
+      "source_arities": [
+        5,
+        3
+      ],
+      "equality_partition": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        0,
+        5,
+        2
+      ],
+      "equal_groups": [
+        [
+          "L0",
+          "R0"
+        ],
+        [
+          "L1"
+        ],
+        [
+          "L2",
+          "R2"
+        ],
+        [
+          "L3"
+        ],
+        [
+          "L4"
+        ],
+        [
+          "R1"
+        ]
+      ],
+      "groups_must_remain_distinct": true,
+      "target_template": 16,
+      "output_sources": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        6
+      ],
+      "output_ports": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "R1"
+      ],
+      "fact_seed": "(Add (Add (Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 0) (RipenInput 3)) (RipenInput 2))) (Mul (Add (RipenInput 0) (RipenInput 4)) (RipenInput 2))) (Mul (Add (RipenInput 0) (RipenInput 5)) (RipenInput 2)))",
+      "environment_sha256": "22563705eba7ea96b2893a516ec270f346639e84c0eb3d42f19e71a24e054c9b",
+      "proof": {
+        "native_rooted_whole_closure_equal": true,
+        "transport": "bijection of opaque inputs in a fixed positive constructor-rewrite environment"
+      },
+      "observations": 1,
+      "replays": 1
+    },
+    {
+      "id": 8,
+      "operator": "Integral",
+      "source_templates": [
+        11,
+        1
+      ],
+      "source_arities": [
+        2,
+        2
+      ],
+      "equality_partition": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "equal_groups": [
+        [
+          "L0",
+          "R0"
+        ],
+        [
+          "L1",
+          "R1"
+        ]
+      ],
+      "groups_must_remain_distinct": true,
+      "target_template": 15,
+      "output_sources": [
+        0,
+        1
+      ],
+      "output_ports": [
+        "L0",
+        "L1"
+      ],
+      "fact_seed": "(Integral (Diff (Add (RipenInput 0) (RipenInput 1)) (Integral (Cos (Add (RipenInput 0) (RipenInput 1))) (Add (RipenInput 0) (RipenInput 1)))) (Add (RipenInput 0) (RipenInput 1)))",
+      "environment_sha256": "22563705eba7ea96b2893a516ec270f346639e84c0eb3d42f19e71a24e054c9b",
+      "proof": {
+        "native_rooted_whole_closure_equal": true,
+        "transport": "bijection of opaque inputs in a fixed positive constructor-rewrite environment"
+      },
+      "observations": 1,
+      "replays": 2
+    },
+    {
+      "id": 9,
+      "operator": "Add",
+      "source_templates": [
+        16,
+        0
+      ],
+      "source_arities": [
+        6,
+        3
+      ],
+      "equality_partition": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        0,
+        6,
+        2
+      ],
+      "equal_groups": [
+        [
+          "L0",
+          "R0"
+        ],
+        [
+          "L1"
+        ],
+        [
+          "L2",
+          "R2"
+        ],
+        [
+          "L3"
+        ],
+        [
+          "L4"
+        ],
+        [
+          "L5"
+        ],
+        [
+          "R1"
+        ]
+      ],
+      "groups_must_remain_distinct": true,
+      "target_template": 18,
+      "output_sources": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        7
+      ],
+      "output_ports": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5",
+        "R1"
+      ],
+      "fact_seed": "(Add (Add (Add (Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 0) (RipenInput 3)) (RipenInput 2))) (Mul (Add (RipenInput 0) (RipenInput 4)) (RipenInput 2))) (Mul (Add (RipenInput 0) (RipenInput 5)) (RipenInput 2))) (Mul (Add (RipenInput 0) (RipenInput 6)) (RipenInput 2)))",
+      "environment_sha256": "22563705eba7ea96b2893a516ec270f346639e84c0eb3d42f19e71a24e054c9b",
+      "proof": {
+        "native_rooted_whole_closure_equal": true,
+        "transport": "bijection of opaque inputs in a fixed positive constructor-rewrite environment"
+      },
+      "observations": 1,
+      "replays": 1
+    },
+    {
+      "id": 10,
+      "operator": "Diff",
+      "source_templates": [
+        1,
+        15
+      ],
+      "source_arities": [
+        2,
+        2
+      ],
+      "equality_partition": [
+        0,
+        1,
+        0,
+        1
+      ],
+      "equal_groups": [
+        [
+          "L0",
+          "R0"
+        ],
+        [
+          "L1",
+          "R1"
+        ]
+      ],
+      "groups_must_remain_distinct": true,
+      "target_template": 11,
+      "output_sources": [
+        0,
+        1
+      ],
+      "output_ports": [
+        "L0",
+        "L1"
+      ],
+      "fact_seed": "(Diff (Add (RipenInput 0) (RipenInput 1)) (Integral (Diff (Add (RipenInput 0) (RipenInput 1)) (Integral (Cos (Add (RipenInput 0) (RipenInput 1))) (Add (RipenInput 0) (RipenInput 1)))) (Add (RipenInput 0) (RipenInput 1))))",
+      "environment_sha256": "22563705eba7ea96b2893a516ec270f346639e84c0eb3d42f19e71a24e054c9b",
+      "proof": {
+        "native_rooted_whole_closure_equal": true,
+        "transport": "bijection of opaque inputs in a fixed positive constructor-rewrite environment"
+      },
+      "observations": 1,
+      "replays": 2
+    },
+    {
+      "id": 11,
+      "operator": "Add",
+      "source_templates": [
+        18,
+        0
+      ],
+      "source_arities": [
+        7,
+        3
+      ],
+      "equality_partition": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        0,
+        7,
+        2
+      ],
+      "equal_groups": [
+        [
+          "L0",
+          "R0"
+        ],
+        [
+          "L1"
+        ],
+        [
+          "L2",
+          "R2"
+        ],
+        [
+          "L3"
+        ],
+        [
+          "L4"
+        ],
+        [
+          "L5"
+        ],
+        [
+          "L6"
+        ],
+        [
+          "R1"
+        ]
+      ],
+      "groups_must_remain_distinct": true,
+      "target_template": 20,
+      "output_sources": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        8
+      ],
+      "output_ports": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5",
+        "L6",
+        "R1"
+      ],
+      "fact_seed": "(Add (Add (Add (Add (Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 0) (RipenInput 3)) (RipenInput 2))) (Mul (Add (RipenInput 0) (RipenInput 4)) (RipenInput 2))) (Mul (Add (RipenInput 0) (RipenInput 5)) (RipenInput 2))) (Mul (Add (RipenInput 0) (RipenInput 6)) (RipenInput 2))) (Mul (Add (RipenInput 0) (RipenInput 7)) (RipenInput 2)))",
+      "environment_sha256": "22563705eba7ea96b2893a516ec270f346639e84c0eb3d42f19e71a24e054c9b",
+      "proof": {
+        "native_rooted_whole_closure_equal": true,
+        "transport": "bijection of opaque inputs in a fixed positive constructor-rewrite environment"
+      },
+      "observations": 1,
+      "replays": 1
+    },
+    {
+      "id": 12,
+      "operator": "Add",
+      "source_templates": [
+        21,
+        0
+      ],
+      "source_arities": [
+        3,
+        3
+      ],
+      "equality_partition": [
+        0,
+        1,
+        2,
+        0,
+        3,
+        2
+      ],
+      "equal_groups": [
+        [
+          "L0",
+          "R0"
+        ],
+        [
+          "L1"
+        ],
+        [
+          "L2",
+          "R2"
+        ],
+        [
+          "R1"
+        ]
+      ],
+      "groups_must_remain_distinct": true,
+      "target_template": 22,
+      "output_sources": [
+        0,
+        1,
+        2,
+        4
+      ],
+      "output_ports": [
+        "L0",
+        "L1",
+        "L2",
+        "R1"
+      ],
+      "fact_seed": "(Add (Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2))) (Mul (Add (RipenInput 0) (RipenInput 3)) (RipenInput 2)))",
+      "environment_sha256": "22563705eba7ea96b2893a516ec270f346639e84c0eb3d42f19e71a24e054c9b",
+      "proof": {
+        "native_rooted_whole_closure_equal": true,
+        "transport": "bijection of opaque inputs in a fixed positive constructor-rewrite environment"
+      },
+      "observations": 1,
+      "replays": 1
+    },
+    {
+      "id": 13,
+      "operator": "Add",
+      "source_templates": [
+        22,
+        0
+      ],
+      "source_arities": [
+        4,
+        3
+      ],
+      "equality_partition": [
+        0,
+        1,
+        2,
+        3,
+        0,
+        4,
+        2
+      ],
+      "equal_groups": [
+        [
+          "L0",
+          "R0"
+        ],
+        [
+          "L1"
+        ],
+        [
+          "L2",
+          "R2"
+        ],
+        [
+          "L3"
+        ],
+        [
+          "R1"
+        ]
+      ],
+      "groups_must_remain_distinct": true,
+      "target_template": 23,
+      "output_sources": [
+        0,
+        1,
+        2,
+        3,
+        5
+      ],
+      "output_ports": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "R1"
+      ],
+      "fact_seed": "(Add (Add (Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2))) (Mul (Add (RipenInput 0) (RipenInput 3)) (RipenInput 2))) (Mul (Add (RipenInput 0) (RipenInput 4)) (RipenInput 2)))",
+      "environment_sha256": "22563705eba7ea96b2893a516ec270f346639e84c0eb3d42f19e71a24e054c9b",
+      "proof": {
+        "native_rooted_whole_closure_equal": true,
+        "transport": "bijection of opaque inputs in a fixed positive constructor-rewrite environment"
+      },
+      "observations": 1,
+      "replays": 1
+    },
+    {
+      "id": 14,
+      "operator": "Add",
+      "source_templates": [
+        23,
+        0
+      ],
+      "source_arities": [
+        5,
+        3
+      ],
+      "equality_partition": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        0,
+        5,
+        2
+      ],
+      "equal_groups": [
+        [
+          "L0",
+          "R0"
+        ],
+        [
+          "L1"
+        ],
+        [
+          "L2",
+          "R2"
+        ],
+        [
+          "L3"
+        ],
+        [
+          "L4"
+        ],
+        [
+          "R1"
+        ]
+      ],
+      "groups_must_remain_distinct": true,
+      "target_template": 24,
+      "output_sources": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        6
+      ],
+      "output_ports": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "R1"
+      ],
+      "fact_seed": "(Add (Add (Add (Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2))) (Mul (Add (RipenInput 0) (RipenInput 3)) (RipenInput 2))) (Mul (Add (RipenInput 0) (RipenInput 4)) (RipenInput 2))) (Mul (Add (RipenInput 0) (RipenInput 5)) (RipenInput 2)))",
+      "environment_sha256": "22563705eba7ea96b2893a516ec270f346639e84c0eb3d42f19e71a24e054c9b",
+      "proof": {
+        "native_rooted_whole_closure_equal": true,
+        "transport": "bijection of opaque inputs in a fixed positive constructor-rewrite environment"
+      },
+      "observations": 1,
+      "replays": 1
+    },
+    {
+      "id": 15,
+      "operator": "Add",
+      "source_templates": [
+        24,
+        0
+      ],
+      "source_arities": [
+        6,
+        3
+      ],
+      "equality_partition": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        0,
+        6,
+        2
+      ],
+      "equal_groups": [
+        [
+          "L0",
+          "R0"
+        ],
+        [
+          "L1"
+        ],
+        [
+          "L2",
+          "R2"
+        ],
+        [
+          "L3"
+        ],
+        [
+          "L4"
+        ],
+        [
+          "L5"
+        ],
+        [
+          "R1"
+        ]
+      ],
+      "groups_must_remain_distinct": true,
+      "target_template": 25,
+      "output_sources": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        7
+      ],
+      "output_ports": [
+        "L0",
+        "L1",
+        "L2",
+        "L3",
+        "L4",
+        "L5",
+        "R1"
+      ],
+      "fact_seed": "(Add (Add (Add (Add (Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2))) (Mul (Add (RipenInput 0) (RipenInput 3)) (RipenInput 2))) (Mul (Add (RipenInput 0) (RipenInput 4)) (RipenInput 2))) (Mul (Add (RipenInput 0) (RipenInput 5)) (RipenInput 2))) (Mul (Add (RipenInput 0) (RipenInput 6)) (RipenInput 2)))",
+      "environment_sha256": "22563705eba7ea96b2893a516ec270f346639e84c0eb3d42f19e71a24e054c9b",
+      "proof": {
+        "native_rooted_whole_closure_equal": true,
+        "transport": "bijection of opaque inputs in a fixed positive constructor-rewrite environment"
+      },
+      "observations": 1,
+      "replays": 1
+    },
+    {
+      "id": 16,
+      "operator": "Add",
+      "source_templates": [
+        0,
+        0
+      ],
+      "source_arities": [
+        3,
+        3
+      ],
+      "equality_partition": [
+        0,
+        1,
+        2,
+        0,
+        1,
+        2
+      ],
+      "equal_groups": [
+        [
+          "L0",
+          "R0"
+        ],
+        [
+          "L1",
+          "R1"
+        ],
+        [
+          "L2",
+          "R2"
+        ]
+      ],
+      "groups_must_remain_distinct": true,
+      "target_template": 21,
+      "output_sources": [
+        0,
+        1,
+        2
+      ],
+      "output_ports": [
+        "L0",
+        "L1",
+        "L2"
+      ],
+      "fact_seed": "(Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)))",
+      "environment_sha256": "22563705eba7ea96b2893a516ec270f346639e84c0eb3d42f19e71a24e054c9b",
+      "proof": {
+        "native_rooted_whole_closure_equal": true,
+        "transport": "bijection of opaque inputs in a fixed positive constructor-rewrite environment"
+      },
+      "observations": 1,
+      "replays": 1
+    }
+  ],
+  "provenance": {
+    "base_head": "ffb80a2ea06cbd178f67894c7eae43e2ce7f659a",
+    "rules_sha256": "22563705eba7ea96b2893a516ec270f346639e84c0eb3d42f19e71a24e054c9b",
+    "specialization_sha256": "7e73edb19a9f2ec7e5e7666b93d6e7082d7a6b8796e453f7d7da54ce54b3772f",
+    "runtime_sha256": "ee40877de2ac8568559e693bc289ce112b7916784b36dcc90082da0273525ea8",
+    "gpu_source_sha256": "e93920799ecf7d09c14fc565a62428bd3fc2915319689b3c515c6800c33a7aa2",
+    "native_binary_sha256": "6d0328c46bd21feffa2723028339029f4e0b581913d52e67bae32a2b78956901"
+  }
+}
