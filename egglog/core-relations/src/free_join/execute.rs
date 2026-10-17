@@ -249,10 +249,8 @@ impl Prober {
         crate::probe_counters::bump(&crate::probe_counters::LOOKUP_CALLS);
         if let Some(sub) = &out {
             let n = sub.size();
-            crate::probe_counters::CANDIDATE_ROWS
-                .fetch_add(n, std::sync::atomic::Ordering::Relaxed);
-            crate::probe_counters::LOOKUP_ROWS
-                .fetch_add(n, std::sync::atomic::Ordering::Relaxed);
+            crate::probe_counters::add(&crate::probe_counters::CANDIDATE_ROWS, n);
+            crate::probe_counters::add(&crate::probe_counters::LOOKUP_ROWS, n);
         }
         out
     }
@@ -303,9 +301,8 @@ impl Prober {
         let mut f = |k: &[Value], v: PotentiallyStale<SubsetRef>| {
             crate::probe_counters::bump(&crate::probe_counters::PROBED_KEYS);
             let n = v.size();
-            crate::probe_counters::CANDIDATE_ROWS
-                .fetch_add(n, std::sync::atomic::Ordering::Relaxed);
-            crate::probe_counters::ENUM_ROWS.fetch_add(n, std::sync::atomic::Ordering::Relaxed);
+            crate::probe_counters::add(&crate::probe_counters::CANDIDATE_ROWS, n);
+            crate::probe_counters::add(&crate::probe_counters::ENUM_ROWS, n);
             f(k, v)
         };
         match &self.ix {

@@ -65,7 +65,19 @@ pub use table::cell_rows::{NativeCellBatch, NativeCellRow, NativeCellStats};
 
 /// Read-only probe-path counters (profiling only; relaxed atomics, no behaviour change).
 pub mod probe_counters {
-    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+
+    // Enabled by default for existing diagnostics. Timed controls can suppress
+    // per-row atomic increments while a separate replay measures the work.
+    static ENABLED: AtomicBool = AtomicBool::new(true);
+    pub fn set_enabled(enabled: bool) -> bool {
+        ENABLED.swap(enabled, Ordering::Relaxed)
+    }
+    pub fn add(c: &AtomicUsize, n: usize) {
+        if ENABLED.load(Ordering::Relaxed) {
+            c.fetch_add(n, Ordering::Relaxed);
+        }
+    }
 
     pub static PROBES: AtomicUsize = AtomicUsize::new(0);
     pub static SPARSE_COLUMN: AtomicUsize = AtomicUsize::new(0);
@@ -100,7 +112,7 @@ pub mod probe_counters {
     pub static LOOKUP_ROWS: AtomicUsize = AtomicUsize::new(0);
 
     pub fn bump(c: &AtomicUsize) {
-        c.fetch_add(1, Ordering::Relaxed);
+        add(c, 1);
     }
 
     pub fn snapshot() -> Vec<(&'static str, usize)> {

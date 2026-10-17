@@ -2830,3 +2830,9 @@ pub use virtual_facts::CompactCellsReport;
 pub fn probe_counts() -> Vec<(&'static str, usize)> {
     egglog_core_relations::probe_counters::snapshot()
 }
+
+/// Process-wide profiling toggle. Disable only outside concurrent execution.
+/// Returns the old setting; does not reset counters or affect query semantics.
+pub fn set_probe_counts_enabled(enabled: bool) -> bool {
+    egglog_core_relations::probe_counters::set_enabled(enabled)
+}

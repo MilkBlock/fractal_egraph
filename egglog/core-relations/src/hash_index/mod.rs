@@ -77,11 +77,9 @@ impl<TI: IndexBase> Index<TI> {
         };
         // rows actually (re)scanned by index construction: the delta for an
         // incremental refresh, the whole table for a full one
-        crate::probe_counters::INDEX_REBUILD_ROWS
-            .fetch_add(subset.size(), std::sync::atomic::Ordering::Relaxed);
+        crate::probe_counters::add(&crate::probe_counters::INDEX_REBUILD_ROWS, subset.size());
         if is_full {
-            crate::probe_counters::INDEX_REBUILD_FULL
-                .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            crate::probe_counters::add(&crate::probe_counters::INDEX_REBUILD_FULL, 1);
         }
         if parallelize_index_construction(subset.size()) {
             self.table.merge_parallel(&self.key, table, subset.as_ref());
