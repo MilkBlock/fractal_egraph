@@ -14,6 +14,8 @@ class CellTests(unittest.TestCase):
             registry={'graft_interfaces':[edge],'nodes':[{'unit':0,'parents':[],'contract':0}], 'units':[{'unit':0,'eclass':0}], 'windows':[window], 'reuse_value':reuse}
             family={'id':0,'units':[0],'occurrences':[{'start_event':1,'end_event':3}]}
             registry['repetition_families']={'source':'analyze captured committed applications','families':[family]}
+            port_family={'id':0,'units':[0],'contract':{'width':2,'shift':1}}
+            registry['repetition_families']['port_progressions']={'families':[port_family]}
             (run/'analysis.json').write_text(json.dumps({'saturated_rule_composition':{'cell_egraph':registry}}))
             data=overview(root,'out/run')
             self.assertEqual(data['reuse_value'],reuse)
@@ -24,6 +26,7 @@ class CellTests(unittest.TestCase):
             self.assertEqual(detail['reuse_value']['interface_instances'],2)
             self.assertFalse(detail['guarantee']['certified_body'])
             self.assertEqual(detail['repetition_families'],[family])
+            self.assertEqual(detail['port_progressions'],[port_family])
             self.assertEqual(detail['graft_interfaces'][0]['proof'],edge['proof'])
     def test_precise_ground_arguments_and_hidden_rows(self):
         s={'values':[{'literal':'0'},{'literal':'1'},{'sort':'E'},{'sort':'E'},{'sort':'E'}],

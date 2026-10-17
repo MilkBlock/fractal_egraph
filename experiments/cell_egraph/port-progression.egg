@@ -1,0 +1,13 @@
+; No Array/Index/Next constructor. Adjacent closed pieces are witnessed by joins.
+(datatype E (Atom i64) (L E E) (R E E) (Pair E E) (Out E E E))
+(rewrite (L x y) (Pair x y) :name "left-to-pair")
+(rewrite (R x y) (Pair x y) :name "right-to-pair")
+(rewrite (Pair x y) (L x y) :name "pair-to-left")
+(rewrite (Pair x y) (R x y) :name "pair-to-right")
+(rule ((= p (Pair a b)) (= q (Pair b c)))
+      ((Out a b c)) :name "overlap")
+; Deliberately not in coordinate order, with unordered scalar labels.
+(L (Atom 2) (Atom 91))
+(L (Atom 83) (Atom 17))
+(R (Atom 17) (Atom 2))
+(run 4)

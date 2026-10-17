@@ -1,5 +1,10 @@
 # Fractal candidates from analyze evidence only
 
+The next layer, [closure-backed port progressions](PORT_PROGRESSIONS.md), uses
+completed RipSat equivalence to remove internal-history differences and recover
+finite index coordinates from actual overlaps. It is distinct from the
+event-contract re-entry detector described below.
+
 Ordinary `egg_layout analyze` now records observed re-entry families in its native
 RipSatCell egraph and in each emitted snapshot. The old numeric AST experiment is
 an expression-lowering test, not the discovery frontend for these families.

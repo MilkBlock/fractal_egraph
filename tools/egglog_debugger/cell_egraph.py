@@ -200,6 +200,7 @@ def state_detail(root, path, unit, snapshot=None):
         'graft_interfaces': grafts,
         'history_windows': [w for w in registry.get('windows', []) if w['unit']==unit],
         'repetition_families': [f for f in (registry.get('repetition_families') or {}).get('families', []) if unit in f.get('units', [])],
+        'port_progressions': [f for f in ((registry.get('repetition_families') or {}).get('port_progressions') or {}).get('families', []) if unit in f.get('units', [])],
         'reuse_value': next((r for r in (registry.get('reuse_value') or {}).get('cells', [])
                             if unit in r['units']), None),
         'status': job.get('state', 'Unknown'), 'reason': job.get('reason'),

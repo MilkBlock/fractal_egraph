@@ -1,0 +1,270 @@
+{
+  "scope": "actual native analyze with exact completed RipSat certificates; finite observed indexed views only",
+  "source": "experiments/cell_egraph/port-progression.egg",
+  "base_head": "2462a830b6f1cbdecaa3a16c3cffd1c677b067b5",
+  "source_sha256": "2bc3d5166fd89eb08e9a5b490184cf223ed4ac108d910c9a9671aeafbff50fbc",
+  "native_binary_sha256": "84d4d1703fa464b5a99112b77418fe90ba7fc6d19a8c96266c821f595d15cdf7",
+  "implementation_sha256": "0f1da769926590d8ed081d46193c76b4e4359f2ca4bee8bb6e457e07ea0c628c",
+  "cell_units": 13,
+  "cell_eclasses": 3,
+  "certified_unions": 10,
+  "historical_reentry_families": 0,
+  "port_families": 1,
+  "source_history_arrangements": 2,
+  "source_closure": 0,
+  "target_closure": 2,
+  "preserved_rows_per_source": [
+    3,
+    3
+  ],
+  "contract": {
+    "read_columns": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "shift": 1,
+    "source_closure": 0,
+    "source_parameter_markers": [
+      [
+        "RipenInput"
+      ],
+      [
+        "RipenInput"
+      ]
+    ],
+    "source_port_values": [
+      [
+        0,
+        1
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "target_closure": 2,
+    "target_port_maps": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        2
+      ]
+    ],
+    "target_port_values": [
+      0,
+      1,
+      3
+    ],
+    "width": 2
+  },
+  "components": [
+    {
+      "affine_accesses": [
+        {
+          "coefficient": 1,
+          "offset": 0,
+          "port": 0,
+          "source": 0
+        },
+        {
+          "coefficient": 1,
+          "offset": 1,
+          "port": 0,
+          "source": 1
+        },
+        {
+          "coefficient": 1,
+          "offset": 1,
+          "port": 1,
+          "source": 0
+        },
+        {
+          "coefficient": 1,
+          "offset": 2,
+          "port": 1,
+          "source": 1
+        }
+      ],
+      "coordinates": [
+        {
+          "base": 0,
+          "i": 0,
+          "instance": 1
+        },
+        {
+          "base": 1,
+          "i": 1,
+          "instance": 2
+        },
+        {
+          "base": 2,
+          "i": 2,
+          "instance": 0
+        }
+      ],
+      "domain": {
+        "interaction_i": [
+          0,
+          1
+        ],
+        "window_i": [
+          0,
+          2
+        ]
+      },
+      "element_count": 4,
+      "elements": [
+        {
+          "index": 0,
+          "sort": "E",
+          "token": 5
+        },
+        {
+          "index": 1,
+          "sort": "E",
+          "token": 6
+        },
+        {
+          "index": 2,
+          "sort": "E",
+          "token": 0
+        },
+        {
+          "index": 3,
+          "sort": "E",
+          "token": 1
+        }
+      ],
+      "instances": [
+        1,
+        2,
+        0
+      ],
+      "interactions": [
+        {
+          "event": 24,
+          "i": 1,
+          "record": 9
+        },
+        {
+          "event": 27,
+          "i": 0,
+          "record": 10
+        }
+      ],
+      "origin_instance": 1,
+      "scope": "snapshot-local coordinates for this observed finite chain; origin may move with new evidence; no arbitrary-length recurrence or memory layout proof",
+      "status": "observed-indexed-chain",
+      "target_affine_accesses": [
+        {
+          "coefficient": 1,
+          "offsets": [
+            0
+          ],
+          "target_port": 0
+        },
+        {
+          "coefficient": 1,
+          "offsets": [
+            1
+          ],
+          "target_port": 1
+        },
+        {
+          "coefficient": 1,
+          "offsets": [
+            2
+          ],
+          "target_port": 2
+        }
+      ],
+      "window_count": 3
+    }
+  ],
+  "witnesses": [
+    {
+      "event": 24,
+      "from": 2,
+      "producer_records": [
+        2,
+        0
+      ],
+      "producer_rules": [
+        "right-to-pair",
+        "left-to-pair"
+      ],
+      "read_slots": [
+        3,
+        4
+      ],
+      "record": 9,
+      "rule": "overlap",
+      "source_units": [
+        2,
+        0
+      ],
+      "target": 3,
+      "target_unit": 11,
+      "to": 0,
+      "versioned_facts": [
+        11,
+        3
+      ]
+    },
+    {
+      "event": 27,
+      "from": 1,
+      "producer_records": [
+        1,
+        2
+      ],
+      "producer_rules": [
+        "left-to-pair",
+        "right-to-pair"
+      ],
+      "read_slots": [
+        3,
+        4
+      ],
+      "record": 10,
+      "rule": "overlap",
+      "source_units": [
+        1,
+        2
+      ],
+      "target": 4,
+      "target_unit": 12,
+      "to": 2,
+      "versioned_facts": [
+        8,
+        11
+      ]
+    }
+  ],
+  "negative_control": {
+    "change": "remove pair-to-left",
+    "actual_overlap_applications": 2,
+    "recognized_port_families": 0,
+    "reason": "source closures not certified equivalent"
+  },
+  "checks": [
+    "source deleted before replay; same report",
+    "all affine source and target accesses match actual bindings",
+    "two full source bodies retained",
+    "missing/hidden internal rows rejected",
+    "internal equality conflict rejected",
+    "target union quotient accepted",
+    "repeated values keep separate positions",
+    "branch/cycle/inconsistent overlap rejected",
+    "browser graph links and snapshot isolation"
+  ]
+}

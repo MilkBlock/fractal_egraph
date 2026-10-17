@@ -13,6 +13,8 @@ mod graft;
 mod normalize;
 #[path = "native_cell_families.rs"]
 mod families;
+#[path = "native_cell_ports.rs"]
+mod ports;
 
 const DSL: &str = r#"
 (datatype*
@@ -43,6 +45,9 @@ pub(super) struct Registry {
     normalization_fallbacks: usize,
     families: families::Census,
     family_members: BTreeSet<(usize, usize)>,
+    port_progressions: Json,
+    catalog_revision: usize,
+    port_version: Option<(usize, usize, usize, usize)>,
 }
 impl Registry {
     pub fn new() -> Result<Self> {
@@ -70,13 +75,21 @@ impl Registry {
             normalization_fallbacks: 0,
             families: families::Census::default(),
             family_members: BTreeSet::new(),
+            port_progressions: json!({"families":[]}),
+            catalog_revision: 0,
+            port_version: None,
         })
     }
     pub fn contains(&self, unit: usize) -> bool {
         self.values.contains_key(&unit)
     }
-    pub fn observe_history(&mut self, c: &super::super::Captured, store: &super::super::cs::Store) -> Result<()> {
+    pub fn observe_history(&mut self, c: &super::super::Captured, store: &super::super::cs::Store, catalog: Option<&Json>) -> Result<()> {
         self.families.observe(c, store);
+        let version=(c.records.len(),c.changes.len(),store.windows.len(),self.catalog_revision);
+        if self.port_version!=Some(version) {
+            self.port_progressions = ports::report(c, store, catalog);
+            self.port_version=Some(version);
+        }
         let additions:Vec<_>=self.families.memberships().into_iter()
             .filter(|(f,u)|self.values.contains_key(u) && !self.family_members.contains(&(*f,*u))).collect();
         if !additions.is_empty() {
@@ -277,6 +290,7 @@ impl Registry {
                 representatives.insert(family, unit);
             }
         }
+        self.catalog_revision += 1;
         Ok(())
     }
     pub fn report(&self) -> Json {
@@ -306,6 +320,9 @@ impl Registry {
         self.eg.function_for_each("ObservedFamilyMember", |_| membership_rows += 1)
             .expect("family membership relation is declared");
         repetition["membership_rows"] = json!(membership_rows);
+        // Observation-specific coordinates are rebuilt from this snapshot's
+        // catalog, whose class numbers need not be stable across refreshes.
+        repetition["port_progressions"] = self.port_progressions.clone();
         json!({"repetition_families":repetition,"graft_interfaces":grafts,"graft_interface_scope":"conditional replay extension, independent of historical edges; only exact completed endpoint certificates", "registered_compositions":self.values.len(),"eclasses":classes.len(),"contracts":self.contracts.len(),"normalized_bindings":self.normalized,"factored_successors":self.factored,"normalization_fallbacks":self.normalization_fallbacks,"certified_unions":self.unions,"nodes":self.nodes,"units":units,"scope":"automatic prepared CS registration; exact completed catalog unions; conservative full binding contracts; no ripen skipped"})
     }
 }

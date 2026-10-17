@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {model,pathTypst,bodyDot,overviewDot,familyDot} from './cell-egraph-panel.mjs';
+import {model,pathTypst,bodyDot,overviewDot,familyDot,portFamilyDot} from './cell-egraph-panel.mjs';
 const m=model({nodes:[
  {unit:0,eclass:0,contract:0,parents:[]},
  {unit:1,eclass:1,contract:1,parents:[0]},
@@ -45,3 +45,10 @@ assert.ok(!overviewDot(family).includes('"u99"'),'unregistered unit cannot becom
 assert.equal(family.classes.size,1,'family annotations never merge Cells');
 assert.ok(familyDot(family,2).includes('#cell-family-2'));
 console.log('Analyze-only observed families annotate existing Cell nodes');
+const portModel=model({nodes:[{unit:0,eclass:0,contract:0,parents:[]},{unit:1,eclass:0,contract:1,parents:[]},{unit:2,eclass:1,contract:2,parents:[0,1]}],
+ repetition_families:{port_progressions:{instances:[{id:0,units:[0],ports:[{port:0},{port:1}]},{id:1,units:[1],ports:[{port:0},{port:1}]}],
+ families:[{id:0,units:[0,1,2],contract:{width:2,shift:1},witnesses:[{event:7,from:0,to:1,rule:'join',target_unit:2}],components:[{status:'observed-indexed-chain',instances:[0,1],coordinates:[{i:0,instance:0,base:0},{i:1,instance:1,base:1}]}]}]}}});
+assert.ok(overviewDot(portModel).includes('#cell-port-family-0'));
+assert.ok(portFamilyDot(portModel,0).includes('port 1 = X[2]'));
+assert.ok(portFamilyDot(portModel,0).includes('#cell-port-unit-0'));
+assert.equal(portModel.classes.size,2,'coordinates do not change equality');
