@@ -9,6 +9,7 @@ pub struct CellTable {
     pub name: String,
     pub keys: usize,
     pub eq_columns: Vec<bool>,
+    pub i64_columns: Vec<bool>,
     function: FunctionId,
     subsume: bool,
 }
@@ -78,6 +79,13 @@ impl EGraph {
                 name: name.clone(),
                 keys: f.schema.input.len(),
                 eq_columns,
+                i64_columns: f
+                    .schema
+                    .input
+                    .iter()
+                    .chain([&f.schema.output])
+                    .map(|s| s.name() == "i64")
+                    .collect(),
                 function: f.backend_id,
                 subsume: f.can_subsume,
             };

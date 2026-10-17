@@ -1,7 +1,7 @@
 //! CPU owns native commits; the device owns instances, proofs, reverse watches,
 //! fragment indexes and delta matching. Only numeric native events cross this ABI.
 use super::*;
-use egglog::cell_events::{CellCommitFeed, CellProducerEvent, CellProducerTap};
+use egglog::cell_events::{CellCommitBatch, CellCommitFeed, CellProducerEvent, CellProducerTap};
 use serde_json::json;
 use std::io::{BufReader, Read, Write};
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
@@ -68,7 +68,7 @@ impl Device {
         let mut output = BufReader::new(child.stdout.take().unwrap());
         write_json(&mut input, config)?;
         let ready = read_json(&mut output)?;
-        if ready["ready"] != true {
+        if ready["ready"] != true || ready["protocol"] != 2 {
             return Err(format!("resident GPU initialization failed: {ready}").into());
         }
         Ok(Self {
@@ -86,6 +86,10 @@ pub struct ResidentSession {
     ruleset: String,
     tap: CellProducerTap,
     feed: CellCommitFeed,
+    bootstrap: Option<CellCommitBatch>,
+    event_i64: Vec<Vec<usize>>,
+    event_eq: Vec<Vec<usize>>,
+    numeric_sent: BTreeSet<u32>,
     events: Vec<CellProducerEvent>,
     device: Device,
     max_cols: usize,
@@ -119,9 +123,6 @@ impl ResidentSession {
         }
         let names: Vec<_> = names.into_iter().collect();
         let (feed, pending) = source.eg.subscribe_cell_commits(&names)?;
-        if !pending.rows.is_empty() || !pending.unions.is_empty() {
-            return Err("attach resident executor to a fresh environment before input".into());
-        }
         let table_id = names
             .iter()
             .enumerate()
@@ -162,21 +163,21 @@ impl ResidentSession {
             .iter()
             .map(|t| t.eq_columns.len())
             .max()
-            .unwrap()
+            .unwrap_or(1)
             .max(1);
         let max_vals = source
             .templates
             .iter()
             .map(|t| t.state["values"].as_array().unwrap().len())
             .max()
-            .unwrap()
+            .unwrap_or(1)
             .max(1);
         let max_params = source
             .templates
             .iter()
             .map(|t| t.parameters.len())
             .max()
-            .unwrap()
+            .unwrap_or(1)
             .max(1);
         let reads = source
             .templates
@@ -191,13 +192,13 @@ impl ResidentSession {
                     .collect::<Vec<_>>()
             })
             .collect::<Vec<_>>();
-        let max_reads = reads.iter().map(Vec::len).max().unwrap().max(1);
+        let max_reads = reads.iter().map(Vec::len).max().unwrap_or(1).max(1);
         let max_lenses = source
             .lenses
             .iter()
             .map(|ps| ps.iter().map(Vec::len).sum::<usize>())
             .max()
-            .unwrap()
+            .unwrap_or(1)
             .max(1);
         let max_alias = source
             .lenses
@@ -211,6 +212,51 @@ impl ResidentSession {
         let max_fields = fields.iter().map(Vec::len).max().unwrap_or(0).max(1);
         let mut program = vec![];
         let mut offsets = BTreeMap::new();
+        offsets.insert("GUARD_OFF", program.len());
+        for guard in &source.sink.guards {
+            program.push(guard.opcode);
+            for operand in &guard.operands {
+                match operand {
+                    CellOperand::Slot(i) => program.extend([*i as u32, 0, 0]),
+                    CellOperand::Constant { value, .. } => {
+                        let n = source.eg.value_to_base::<i64>(*value) as u64;
+                        program.extend([NONE, n as u32, (n >> 32) as u32]);
+                    }
+                }
+            }
+        }
+        let mut event_i64 = vec![BTreeSet::new(); rule_names.len()];
+        let mut event_eq = vec![BTreeSet::new(); rule_names.len()];
+        for t in &source.templates {
+            let rid = rule_names.iter().position(|r| r == &t.producer).unwrap();
+            for (slot, name) in &t.parameters {
+                if source
+                    .eg
+                    .cell_sort_is_equality(t.state["values"][*slot]["sort"].as_str().unwrap())?
+                {
+                    event_eq[rid].insert(fields[rid].iter().position(|n| n == name).unwrap());
+                }
+                if t.state["values"][*slot]["sort"] == "i64" {
+                    event_i64[rid].insert(fields[rid].iter().position(|n| n == name).unwrap());
+                }
+            }
+        }
+        for (i, (_, sort)) in source.sink.slots().iter().enumerate() {
+            if source.eg.cell_sort_is_equality(sort)? {
+                event_eq[consumer_id].insert(i);
+            }
+            if *sort == "i64" {
+                event_i64[consumer_id].insert(i);
+            }
+        }
+        let event_eq = event_eq
+            .into_iter()
+            .map(|s| s.into_iter().collect())
+            .collect();
+        let event_i64 = event_i64
+            .into_iter()
+            .map(|s| s.into_iter().collect())
+            .collect();
         offsets.insert("TABLE_OFF", program.len());
         for (i, t) in feed.tables.iter().enumerate() {
             let ext: Vec<_> = source
@@ -358,10 +404,15 @@ impl ResidentSession {
         for anchor in 0..source.parts.len() {
             let mut bound = masks[anchor].clone();
             let mut steps = vec![];
-            for p in 0..source.parts.len() {
-                if p == anchor {
-                    continue;
-                }
+            let mut remaining = (0..source.parts.len())
+                .filter(|p| *p != anchor)
+                .collect::<Vec<_>>();
+            while !remaining.is_empty() {
+                let next = remaining
+                    .iter()
+                    .position(|p| !masks[*p].is_disjoint(&bound))
+                    .unwrap_or(0);
+                let p = remaining.remove(next);
                 let key = masks[p].intersection(&bound).copied().collect::<Vec<_>>();
                 let id = if let Some(i) = indexes.iter().position(|x| *x == (p, key.clone())) {
                     i
@@ -383,10 +434,10 @@ impl ResidentSession {
         for p in &plans {
             program.extend(p);
         }
-        let definitions = json!({"MAX_COLS":max_cols,"MAX_VALUES":max_vals,"MAX_PARAMS":max_params,"MAX_READS":max_reads,"MAX_LENSES":max_lenses,"MAX_ALIASES":max_alias,"MAX_FIELDS":max_fields,"VARS":k,"PART_COUNT":source.parts.len(),"TABLE_COUNT":names.len(),"TEMPLATE_COUNT":source.templates.len(),"INDEX_COUNT":indexes.len()});
-        let config = json!({"version":1,"shader":include_str!("../resident.metal"),"definitions":definitions,"offsets":offsets,"program":program});
+        let definitions = json!({"MAX_COLS":max_cols,"MAX_VALUES":max_vals,"MAX_PARAMS":max_params,"MAX_READS":max_reads,"MAX_LENSES":max_lenses,"MAX_ALIASES":max_alias,"MAX_FIELDS":max_fields,"VARS":k,"PART_COUNT":source.parts.len(),"TABLE_COUNT":names.len(),"TEMPLATE_COUNT":source.templates.len(),"INDEX_COUNT":indexes.len(),"GUARD_COUNT":source.sink.guards.len()});
+        let config = json!({"version":2,"shader":include_str!("../resident.metal"),"definitions":definitions,"offsets":offsets,"program":program});
         let device = Device::new(worker, &config)?;
-        let description = json!({"device":device.device,"definitions":definitions,"tables":names,"index_interfaces":indexes,"rule_fields":rule_names.iter().zip(&fields).collect::<Vec<_>>(),"producer_trace":"compact callbacks, no TraceSession","scope":"same positive analyzed templates; current native facts authoritative"});
+        let description = json!({"device":device.device,"definitions":definitions,"tables":names,"index_interfaces":indexes,"rule_fields":rule_names.iter().zip(&fields).collect::<Vec<_>>(),"cell_templates":source.templates.len(),"residual_guards":source.sink.guards.len(),"producer_trace":"compact callbacks, no TraceSession","scope":"same positive analyzed templates; current native facts authoritative"});
         let mut stats = ResidentStats::default();
         stats.setup_seconds = t0.elapsed().as_secs_f64();
         Ok(Self {
@@ -395,6 +446,10 @@ impl ResidentSession {
             ruleset: source.ruleset,
             tap,
             feed,
+            bootstrap: Some(pending),
+            event_i64,
+            event_eq,
+            numeric_sent: BTreeSet::new(),
             events: vec![],
             device,
             max_cols,
@@ -429,12 +484,37 @@ impl ResidentSession {
         Ok(())
     }
     pub fn round(&mut self) -> Result<bool> {
+        Ok(self.advance(true)?.0)
+    }
+    /// Diagnostic backend entry: collect new bindings without executing RHS.
+    /// The full native oracle is used only by audit, never to generate candidates.
+    pub fn drain_matches(&mut self) -> Result<Vec<Vec<Value>>> {
+        Ok(self.advance(false)?.1)
+    }
+    fn advance(&mut self, apply: bool) -> Result<(bool, Vec<Vec<Value>>)> {
         let start = Instant::now();
         let report = self.eg.step_cell_producers(&self.tap, &self.ruleset)?;
         self.stats.native_seconds += start.elapsed().as_secs_f64();
         self.stats.native_matches += report.num_matches_per_rule.values().sum::<usize>();
         let start = Instant::now();
         let mut delta = self.eg.drain_cell_commits(&mut self.feed)?;
+        if let Some(initial) = self.bootstrap.take() {
+            // Final row wins for each key. Never send conflicting bootstrap and
+            // later updates as unordered GPU writes to the same bucket.
+            let mut rows = initial
+                .rows
+                .into_iter()
+                .map(|r| ((r.table, r.key.clone()), r))
+                .collect::<BTreeMap<_, _>>();
+            for t in &delta.clears {
+                rows.retain(|(table, _), _| table != t);
+            }
+            for r in delta.rows.drain(..) {
+                rows.insert((r.table, r.key.clone()), r);
+            }
+            delta.rows = rows.into_values().collect();
+            delta.unions.splice(0..0, initial.unions);
+        }
         self.events.extend(self.tap.drain());
         if delta.rows.is_empty()
             && delta.clears.is_empty()
@@ -443,15 +523,54 @@ impl ResidentSession {
         {
             self.stats.quiet_rounds += 1;
             self.audit_rows(&[])?;
-            return Ok(report.updated);
+            return Ok((report.updated, vec![]));
         }
         self.epoch = self.epoch.checked_add(1).ok_or("GPU epoch exhausted")?;
+        let mut numeric = vec![];
+        for r in &delta.rows {
+            if let Some(row) = &r.row {
+                for (v, is_i64) in row.iter().zip(&self.feed.tables[r.table].i64_columns) {
+                    if *is_i64 && self.numeric_sent.insert(v.rep()) {
+                        let n = self.eg.value_to_base::<i64>(*v) as u64;
+                        numeric.extend([v.rep(), n as u32, (n >> 32) as u32]);
+                    }
+                }
+            }
+        }
+        for e in &self.events {
+            for &i in &self.event_i64[e.rule] {
+                let v = e.values[i];
+                if self.numeric_sent.insert(v.rep()) {
+                    let n = self.eg.value_to_base::<i64>(v) as u64;
+                    numeric.extend([v.rep(), n as u32, (n >> 32) as u32]);
+                }
+            }
+        }
+        let mut max_eq = 0;
+        for row in &delta.rows {
+            let values = row.row.as_deref().unwrap_or(&row.key);
+            for (v, eq) in values.iter().zip(&self.feed.tables[row.table].eq_columns) {
+                if *eq {
+                    max_eq = max_eq.max(v.rep());
+                }
+            }
+        }
+        for (a, b) in &delta.unions {
+            max_eq = max_eq.max(a.rep()).max(b.rep());
+        }
+        for e in &self.events {
+            for &i in &self.event_eq[e.rule] {
+                max_eq = max_eq.max(e.values[i].rep());
+            }
+        }
         let mut frame = vec![
             self.epoch,
             delta.rows.len() as u32,
             delta.unions.len() as u32,
             self.events.len() as u32,
             delta.clears.len() as u32,
+            (numeric.len() / 3) as u32,
+            max_eq,
         ];
         self.stats.row_deltas += delta.rows.len();
         self.stats.union_deltas += delta.unions.len();
@@ -474,6 +593,7 @@ impl ResidentSession {
             frame.extend((0..self.max_fields).map(|i| e.values.get(i).map_or(NONE, |v| v.rep())));
         }
         frame.extend(delta.clears.iter().map(|i| *i as u32));
+        frame.extend(numeric);
         let bytes = frame
             .iter()
             .flat_map(|v| v.to_le_bytes())
@@ -512,6 +632,9 @@ impl ResidentSession {
         self.stats.gpu = response;
         self.stats.device_roundtrip_seconds += start.elapsed().as_secs_f64();
         self.audit_rows(&bindings)?;
+        if !apply {
+            return Ok((report.updated, bindings));
+        }
         let start = Instant::now();
         self.eg.apply_cell_bindings(&self.sink, &bindings)?;
         self.stats.rhs_seconds += start.elapsed().as_secs_f64();
@@ -521,7 +644,7 @@ impl ResidentSession {
                 rule: self.consumer_id,
                 values,
             }));
-        Ok(report.updated || count != 0)
+        Ok((report.updated || count != 0, vec![]))
     }
     fn audit_rows(&mut self, rows: &[Vec<Value>]) -> Result<()> {
         if !self.audit {

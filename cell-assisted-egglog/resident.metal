@@ -25,6 +25,9 @@ enum Section {
   INDEX,
   XH,
   OUTPUT,
+  NUM,
+  NUM_UPDATES,
+  NH,
   NS
 };
 enum Metric {
@@ -46,11 +49,14 @@ enum Metric {
   ERROR,
   EMITTED,
   ANCHORS,
-  ACTIVE
+  ACTIVE,
+  GUARD_CHECKS,
+  GUARD_REJECTS,
+  NN
 };
 struct Params {
   uint off[NS], cap[NS];
-  uint epoch, nrows, nunions, nevents, nclears, oldparents;
+  uint epoch, nrows, nunions, nevents, nclears, oldparents, nnums;
 };
 struct Fact {
   uint table, active, next, spare;
@@ -243,6 +249,7 @@ kernel void clear_heads(CONTEXT, uint i [[thread_position_in_grid]]) {
     A(PH, uint)[i] = NO;
     A(WORK, uint)[i] = NO;
     A(XH, uint)[i] = NO;
+    A(NH, uint)[i] = NO;
   }
 }
 kernel void rehash(CONTEXT, uint i [[thread_position_in_grid]]) {
@@ -274,11 +281,32 @@ kernel void rehash(CONTEXT, uint i [[thread_position_in_grid]]) {
       v[c] = r.v[c];
     r.next = exchange(A(PH, uint) + (parthash(r.part, v) & (p.cap[PH] - 1)), i);
   }
+  if (i < load(g, NN)) {
+    device uint *n = A(NUM, uint) + 4 * i;
+    n[3] = exchange(A(NH, uint) + (mix(n[0]) & (p.cap[NH] - 1)), i);
+  }
 }
 kernel void clear_work(CONTEXT, uint i [[thread_position_in_grid]]) {
   GCTX;
   if (i < p.cap[WORK])
     A(WORK, uint)[i] = NO;
+}
+// Exact signed i64 payloads as two uint32 limbs. Never compare intern IDs,
+// cast costs to float, or depend on Metal's optional int64 arithmetic support.
+kernel void load_numbers(CONTEXT, uint i [[thread_position_in_grid]]) {
+  GCTX;
+  if (i >= p.nnums)
+    return;
+  uint id = A(NUM_UPDATES, uint)[3 * i], index = inc(g, NN);
+  if (index >= p.cap[NUM]) {
+    set(g, ERROR, 8);
+    return;
+  }
+  device uint *n = A(NUM, uint) + 4 * index;
+  n[0] = id;
+  n[1] = A(NUM_UPDATES, uint)[3 * i + 1];
+  n[2] = A(NUM_UPDATES, uint)[3 * i + 2];
+  n[3] = exchange(A(NH, uint) + (mix(id) & (p.cap[NH] - 1)), index);
 }
 kernel void apply_unions(CONTEXT, uint i [[thread_position_in_grid]]) {
   GCTX;
@@ -383,7 +411,8 @@ kernel void seed_heads(CONTEXT, uint i [[thread_position_in_grid]]) {
   GCTX;
   if (i >= p.nevents * TEMPLATE_COUNT)
     return;
-  uint t = i % TEMPLATE_COUNT, e = i / TEMPLATE_COUNT;
+  uint t = i % max(1u, uint(TEMPLATE_COUNT)),
+       e = i / max(1u, uint(TEMPLATE_COUNT));
   device const Template &spec = C(TEMPLATE_OFF, Template)[t];
   device Event &ev = A(EVENTS, Event)[e];
   if (ev.rule != spec.rule)
@@ -633,12 +662,52 @@ kernel void build_indexes(CONTEXT, uint i [[thread_position_in_grid]]) {
           exchange(A(XH, uint) + (indexhash(g, s, v) & (p.cap[XH] - 1)), j);
     }
 }
+bool i64_operand(G g, device const uint *o, thread const uint *v,
+                 thread uint2 &value) {
+  if (o[0] == NO) {
+    value = uint2(o[1], o[2]);
+    return true;
+  }
+  uint id = v[o[0]];
+  for (uint i = A(NH, uint)[mix(id) & (g.p->cap[NH] - 1)]; i != NO;
+       i = A(NUM, uint)[4 * i + 3]) {
+    device uint *n = A(NUM, uint) + 4 * i;
+    if (n[0] == id) {
+      value = uint2(n[1], n[2]);
+      return true;
+    }
+  }
+  set(g, ERROR, 8);
+  return false;
+}
+bool i64_less(uint2 a, uint2 b) {
+  int hi_a = as_type<int>(a.y), hi_b = as_type<int>(b.y);
+  return hi_a < hi_b || (hi_a == hi_b && a.x < b.x);
+}
+bool guards_hold(G g, thread const uint *v) {
+  for (uint i = 0; i < GUARD_COUNT; i++) {
+    device const uint *o = g.code + GUARD_OFF + 7 * i;
+    uint2 a, b;
+    if (!i64_operand(g, o + 1, v, a) || !i64_operand(g, o + 4, v, b))
+      return false;
+    inc(g, GUARD_CHECKS);
+    bool lt = i64_less(a, b), gt = i64_less(b, a);
+    bool pass = o[0] == 0 ? lt : o[0] == 1 ? gt : o[0] == 2 ? !gt : !lt;
+    if (!pass) {
+      inc(g, GUARD_REJECTS);
+      return false;
+    }
+  }
+  return true;
+}
 void emit(G g, thread const uint *v) {
   for (uint c = 0; c < VARS; c++)
     if (v[c] == NO) {
       set(g, ERROR, 7);
       return;
     }
+  if (!guards_hold(g, v))
+    return;
   uint i = inc(g, NOUT);
   if (i >= g.p->cap[OUTPUT]) {
     set(g, OVERFLOW, 2);

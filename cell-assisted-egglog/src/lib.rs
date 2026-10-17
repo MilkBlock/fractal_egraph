@@ -65,6 +65,7 @@ pub struct Stats {
     pub candidate_pairs: usize,
     pub equality_columns: usize,
     pub accepted_bindings: usize,
+    pub guard_rejected_bindings: usize,
     pub unique_dispatched_bindings: usize,
     pub assisted_full_lhs_queries: usize,
     pub audit_queries: usize,
@@ -134,6 +135,46 @@ pub fn environment(dir: &Path) -> Result<(String, Json)> {
 }
 
 impl Session {
+    /// Backend conformance entry: all atoms read explicit rows of this native
+    /// snapshot. No Cells are inferred here and this is not a Cell coverage claim.
+    pub fn for_query_validation(mut eg: EGraph, ruleset: &str, consumer: &str) -> Result<Self> {
+        let sink = eg.prepare_cell_action(ruleset, consumer)?;
+        let parts = (0..sink.atoms.len())
+            .map(|i| Part {
+                atoms: vec![i],
+                cell: false,
+            })
+            .collect::<Vec<_>>();
+        let mut external = sink
+            .atoms
+            .iter()
+            .map(|a| (a.function.clone(), BTreeSet::new()))
+            .collect::<BTreeMap<_, _>>();
+        let mut stats = Stats::default();
+        for (name, keys) in &mut external {
+            let width = eg.get_function(name).unwrap().schema().input.len();
+            eg.function_for_each(name, |r| {
+                keys.insert(r.vals[..width].to_vec());
+                stats.external_bootstrap_rows += 1;
+            })?;
+        }
+        Ok(Self {
+            eg,
+            sink,
+            ruleset: ruleset.into(),
+            native: vec![],
+            templates: vec![],
+            instances: vec![],
+            instance_keys: BTreeSet::new(),
+            lenses: vec![],
+            parts,
+            external,
+            trace: TraceSession::with_dependencies(),
+            audit: true,
+            stats,
+        })
+    }
+
     pub fn new(
         dir: &Path,
         ruleset: &str,
@@ -339,7 +380,7 @@ impl Session {
     }
     pub fn describe(&self) -> Json {
         serde_json::json!({"rule":self.sink.name,"native_rules":self.native,"slots":self.sink.slots(),"atoms":self.sink.atoms.iter().enumerate().map(|(i,a)|serde_json::json!({"index":i,"function":a.function,"columns":format!("{:?}",a.columns),"sorts":a.sorts})).collect::<Vec<_>>(),
-            "parts":self.parts,"templates":self.templates.iter().enumerate().map(|(i,t)|serde_json::json!({"state":t.id,"producer":t.producer,"parameters":t.parameters,"projection_counts":self.lenses[i].iter().map(Vec::len).collect::<Vec<_>>()})).collect::<Vec<_>>()})
+            "guards":format!("{:?}",self.sink.guards),"parts":self.parts,"templates":self.templates.iter().enumerate().map(|(i,t)|serde_json::json!({"state":t.id,"producer":t.producer,"parameters":t.parameters,"projection_counts":self.lenses[i].iter().map(Vec::len).collect::<Vec<_>>()})).collect::<Vec<_>>()})
     }
     fn observe(&mut self, batch: TraceBatch) {
         self.stats.raw_events_drained += batch.len();
@@ -504,7 +545,7 @@ impl Session {
             joined = next.into_iter().collect();
         }
         self.stats.residual_seconds += t.elapsed().as_secs_f64();
-        self.stats.accepted_bindings += joined.len();
+        let residual_candidates = joined.len();
         let bindings = joined
             .into_iter()
             .map(|b| {
@@ -513,6 +554,16 @@ impl Session {
                     .ok_or("incomplete RHS binding")
             })
             .collect::<std::result::Result<Vec<_>, _>>()?;
+        let bindings = bindings
+            .into_iter()
+            .filter_map(|b| match self.eg.cell_guards_hold(&self.sink, &b) {
+                Ok(true) => Some(Ok(b)),
+                Ok(false) => None,
+                Err(e) => Some(Err(e)),
+            })
+            .collect::<std::result::Result<Vec<_>, _>>()?;
+        self.stats.guard_rejected_bindings += residual_candidates - bindings.len();
+        self.stats.accepted_bindings += bindings.len();
         self.stats.unique_dispatched_bindings += bindings.len();
         if self.audit {
             let expected: BTreeSet<_> = self

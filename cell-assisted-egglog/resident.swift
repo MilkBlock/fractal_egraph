@@ -27,7 +27,7 @@ func pow2(_ x: Int) -> Int {
   while v < x { v *= 2 }
   return v
 }
-let NS = 22
+let NS = 25
 let META = 0
 let PARENT = 1
 let FACT = 2
@@ -50,6 +50,9 @@ let REF_NEXT = 18
 let INDEX = 19
 let XH = 20
 let OUTPUT = 21
+let NUM = 22
+let NUM_UPDATES = 23
+let NH = 24
 
 final class Resident {
   let device: MTLDevice, queue: MTLCommandQueue, library: MTLLibrary, program: MTLBuffer
@@ -57,9 +60,12 @@ final class Resident {
   var kernels = [String: MTLComputePipelineState]()
   var heap: MTLBuffer!, caps = [Int](repeating: 0, count: NS),
     offsets = [Int](repeating: 0, count: NS)
-  var epoch = 0, nrows = 0, nunions = 0, nevents = 0, nclears = 0, oldparents = 0
+  var epoch = 0, nrows = 0, nunions = 0, nevents = 0, nclears = 0, oldparents = 0, nnums = 0
   var gpuSeconds = 0.0, dispatches = 0, resizeCount = 0, queryRuns = 0
   init(_ config: [String: Any]) throws {
+    guard (config["version"] as? NSNumber)?.intValue == 2 else {
+      throw NSError(domain:"resident protocol mismatch; rebuild Rust and Swift together",code:1)
+    }
     guard let d = MTLCreateSystemDefaultDevice(), let q = d.makeCommandQueue() else {
       throw NSError(domain: "Metal unavailable", code: 1)
     }
@@ -73,6 +79,7 @@ final class Resident {
     let F = defs["MAX_FIELDS"]!
     strides = [
       1, 1, 4 + C, 1, 4 + P + V, 1, 4, 1, 2, 4 + C, 2, 1, 1 + F, 2 + P, 1, 2, 4 + K, 1, 1, 3, 1, K,
+      4, 3, 1,
     ]
     var source = ""
     for (name, value) in defs { source += "#define \(name) \(value)\n" }
@@ -93,7 +100,8 @@ final class Resident {
     }
     for name in [
       "init_parents", "clear_heads", "rehash", "clear_work", "apply_unions", "apply_clears",
-      "row_heads", "apply_rows", "seed_heads", "apply_seeds", "resolve_cells", "projection_heads",
+      "load_numbers", "row_heads", "apply_rows", "seed_heads", "apply_seeds", "resolve_cells",
+      "projection_heads",
       "intern_parts", "clear_indexes", "build_indexes", "match_delta", "finish_query",
     ] {
       kernels[name] = try d.makeComputePipelineState(function: library.makeFunction(name: name)!)
@@ -115,7 +123,7 @@ final class Resident {
   }
   func encode(_ steps: [(String, Int)], into cb: MTLCommandBuffer) {
     var args = offsets.map { UInt32($0) } + caps.map { UInt32($0) }
-    args += [epoch, nrows, nunions, nevents, nclears, oldparents].map { UInt32($0) }
+    args += [epoch, nrows, nunions, nevents, nclears, oldparents, nnums].map { UInt32($0) }
     let parameters = args.withUnsafeBytes {
       device.makeBuffer(bytes: $0.baseAddress!, length: $0.count, options: .storageModeShared)!
     }
@@ -152,8 +160,8 @@ final class Resident {
     var next = caps
     for i in 0..<NS { next[i] = max(caps[i], pow2(max(1, requested[i]))) }
     next[WS] = max(next[WS], next[INST] * (defs["MAX_READS"]! + defs["MAX_VALUES"]!))
-    let buckets = pow2(max(64, 2 * max(next[FACT], next[INST], next[PART])))
-    for i in [FH, IH, WH, PH, WORK, XH] { next[i] = buckets }
+    let buckets = pow2(max(64, 2 * max(next[FACT], next[INST], next[PART], next[NUM])))
+    for i in [FH, IH, WH, PH, WORK, XH, NH] { next[i] = buckets }
     if next == caps { return }
     var no = [Int](repeating: 0, count: NS)
     var words = 0
@@ -165,7 +173,7 @@ final class Resident {
       let nh = device.makeBuffer(length: words * 4, options: .storageModeShared)
     else { throw NSError(domain: "GPU allocation too large", code: 1) }
     let rehash = next[FH] != caps[FH]
-    let count = heap == nil ? 0 : max(meta(0), meta(1), meta(2), meta(3))
+    let count = heap == nil ? 0 : max(meta(0), meta(1), meta(2), meta(3), meta(21))
     let cb = queue.makeCommandBuffer()!
     let blit = cb.makeBlitCommandEncoder()!
     blit.fill(buffer: nh, range: 0..<words * 4, value: 0)
@@ -199,7 +207,7 @@ final class Resident {
   }
   func batch(_ bytes: Data) throws {
     let words = bytes.withUnsafeBytes { Array($0.bindMemory(to: UInt32.self)) }
-    guard words.count >= 5 else { throw NSError(domain: "short event packet", code: 1) }
+    guard words.count >= 7 else { throw NSError(domain: "short event packet", code: 1) }
     let newEpoch = Int(words[0])
     guard newEpoch > epoch else { throw NSError(domain: "stale event packet", code: 1) }
     epoch = newEpoch
@@ -207,15 +215,18 @@ final class Resident {
     nunions = Int(words[2])
     nevents = Int(words[3])
     nclears = Int(words[4])
+    nnums = Int(words[5])
     let rowWords = nrows * strides[ROWS]
     let unionWords = nunions * 2
     let eventWords = nevents * strides[EVENTS]
-    guard words.count == 5 + rowWords + unionWords + eventWords + nclears else {
+    guard words.count == 7 + rowWords + unionWords + eventWords + nclears + 3 * nnums else {
       throw NSError(domain: "bad event packet shape", code: 1)
     }
-    let maxValue = words.dropFirst(5).filter { $0 != UInt32.max }.max() ?? 0
+    let maxValue = words[6]  // equality-sort IDs only, never primitive payload IDs
     var want = caps
     want[PARENT] = max(want[PARENT], Int(maxValue) + 1)
+    want[NUM] = max(want[NUM], meta(21) + nnums)
+    want[NUM_UPDATES] = max(1, nnums)
     want[FACT] = max(want[FACT], meta(0) + nrows)
     want[INST] = max(want[INST], meta(1) + nevents * defs["TEMPLATE_COUNT"]!)
     want[EXT] = max(want[EXT], meta(4) + nrows * defs["PART_COUNT"]!)
@@ -225,7 +236,7 @@ final class Resident {
     want[CLEARS] = max(1, nclears)
     want[SEEDS] = max(1, nevents * defs["TEMPLATE_COUNT"]!)
     try ensure(want)
-    var at = 5
+    var at = 7
     copy(words, at, rowWords, ROWS)
     at += rowWords
     copy(words, at, unionWords, UNIONS)
@@ -233,11 +244,14 @@ final class Resident {
     copy(words, at, eventWords, EVENTS)
     at += eventWords
     copy(words, at, nclears, CLEARS)
+    at += nclears
+    copy(words, at, 3 * nnums, NUM_UPDATES)
     set(5, 0)
     set(6, 0)
     set(7, 0)
     try run([
-      ("apply_unions", nunions), ("apply_clears", nclears == 0 ? 0 : meta(0)),
+      ("load_numbers", nnums), ("apply_unions", nunions),
+      ("apply_clears", nclears == 0 ? 0 : meta(0)),
       ("clear_work", caps[WORK]), ("row_heads", nrows), ("apply_rows", nrows == 0 ? 0 : caps[WORK]),
       ("clear_work", caps[WORK]), ("seed_heads", nevents * defs["TEMPLATE_COUNT"]!),
       ("apply_seeds", nevents == 0 ? 0 : caps[WORK]), ("resolve_cells", caps[INST]),
@@ -286,6 +300,7 @@ final class Resident {
       "ok": true, "epoch": epoch, "bindings": n, "facts_stored": meta(0), "instances": meta(1),
       "active_instances": meta(18), "pending_instances": meta(1) - meta(18),
       "watches_stored": meta(2), "fragment_bindings_stored": meta(3), "external_refs": meta(4),
+      "numeric_values": meta(21), "guard_checks": meta(19), "guard_rejected": meta(20),
       "watch_hits": meta(8), "cell_validations": meta(9), "device_fact_lookups": meta(10),
       "seed_reuses": meta(11), "join_candidates": meta(13), "emitted_total": meta(16),
       "delta_anchors": meta(17), "query_runs": queryRuns, "kernel_dispatches": dispatches,
@@ -300,7 +315,7 @@ final class Resident {
 do {
   let config = try JSONSerialization.jsonObject(with: frame()) as! [String: Any]
   let runtime = try Resident(config)
-  try send(["ready": true, "device": runtime.device.name])
+  try send(["ready": true, "protocol":2, "device": runtime.device.name])
   while true {
     let packet: Data
     do { packet = try frame() } catch { break }

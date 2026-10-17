@@ -111,11 +111,11 @@ fn invalid_partition_and_overlapping_execution_lanes_fail() {
     assert!(Session::new(&dir, "", "route-get", vec!["route-get".into()], vec![]).is_err());
 }
 #[test]
-fn unsupported_primitive_query_does_not_silently_become_a_fact() {
+fn unsupported_computed_primitive_does_not_silently_become_a_fact() {
     let mut eg = EGraph::default();
     eg.parse_and_run_program(
         None,
-        "(relation P (i64)) (relation Q (i64)) (rule ((P x) (> x 0)) ((Q x)) :name \"guarded\")",
+        "(relation P (i64)) (relation Q (i64)) (rule ((P x) (= y (+ x 1))) ((Q y)) :name \"guarded\")",
     )
     .unwrap();
     assert!(eg.prepare_cell_action("", "guarded").is_err());

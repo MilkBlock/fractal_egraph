@@ -64,7 +64,7 @@ fn run() -> Result<()> {
         println!(
             "{}",
             serde_json::to_string_pretty(
-                &json!({"slots":sink.slots(),"atoms":sink.atoms.iter().enumerate().map(|(i,x)|json!({"id":i,"table":x.function,"columns":x.columns.iter().map(|c|match c{CellOperand::Slot(i)=>json!({"slot":i}),CellOperand::Constant{text,..}=>json!({"literal":text})}).collect::<Vec<_>>()})).collect::<Vec<_>>()})
+                &json!({"guards":format!("{:?}",sink.guards),"slots":sink.slots(),"atoms":sink.atoms.iter().enumerate().map(|(i,x)|json!({"id":i,"table":x.function,"columns":x.columns.iter().map(|c|match c{CellOperand::Slot(i)=>json!({"slot":i}),CellOperand::Constant{text,..}=>json!({"literal":text})}).collect::<Vec<_>>()})).collect::<Vec<_>>()})
             )?
         );
         return Ok(());
