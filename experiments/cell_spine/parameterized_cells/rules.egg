@@ -1,0 +1,13 @@
+; Numeric recursion: parameters are values, never opaque RipenInput identities.
+(datatype Math (Num i64) (Add Math Math) (Fib i64) (StepA i64) (StepB i64))
+(rewrite (Fib n) (Add (Fib (- n 1)) (Fib (- n 2)))
+         :when ((> n 1)) :name "fib-expand")
+(rewrite (Fib n) (Num n) :when ((<= n 1)) :name "fib-base")
+(rewrite (StepA n) (StepB (- n 1)) :when ((> n 0)) :name "a-to-b")
+; k is defined by the guard; composition must substitute its definition.
+(rewrite (StepB m) (StepA (- k 1))
+         :when ((= k (- m 1)) (> k 0)) :name "b-to-a")
+(rewrite (StepA n) (Num n) :when ((<= n 0)) :name "a-base")
+(rewrite (StepB m) (Num m) :when ((<= m 1)) :name "b-base")
+; Residual smooth computation stays native in this prototype.
+(rewrite (Add (Num a) (Num b)) (Num (+ a b)) :name "fold")

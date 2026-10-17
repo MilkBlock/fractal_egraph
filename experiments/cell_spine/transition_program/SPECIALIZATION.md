@@ -160,3 +160,11 @@ No weakest-guard discovery, arbitrary conditional-effect lowering, global hidden
 e-class union protocol, or persistent GPU service is claimed. These recipes
 transport exact already-proved contexts; they do not prove unseen structural
 families are covered.
+
+## Numeric parameters and recursive families
+
+The separate [parameterized Cell experiment](../parameterized_cells/README.md)
+retains numeric guards, parameter-update expressions and child connections. It
+uses checked integer Metal execution and native whole-state validation. This does
+not relax this component's opaque-input proof or silently admit primitive rules
+to `FactSpecializations`.

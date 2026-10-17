@@ -1,0 +1,352 @@
+{
+  "scope": "standalone parameterized Cell family prototype; not generic egglog acceleration",
+  "recursive_components": [
+    [
+      "Fib"
+    ],
+    [
+      "StepA",
+      "StepB"
+    ]
+  ],
+  "baked_templates": 6,
+  "phases": [
+    {
+      "name": "bake",
+      "seeds": [
+        [
+          "Fib",
+          [
+            5
+          ]
+        ],
+        [
+          "StepA",
+          [
+            6
+          ]
+        ],
+        [
+          "StepB",
+          [
+            6
+          ]
+        ]
+      ],
+      "instances": 16,
+      "logical_bindings": 16,
+      "child_occurrences": 16,
+      "pending": [],
+      "by_family": {
+        "Fib": 6,
+        "StepA": 5,
+        "StepB": 5
+      },
+      "native": [
+        {
+          "phase": "recurrence-only",
+          "logical_bindings": 16,
+          "exact_equal": true,
+          "enodes": 22,
+          "eclasses": 6
+        },
+        {
+          "phase": "with-smooth-fold",
+          "logical_bindings": 16,
+          "exact_equal": true,
+          "enodes": 25,
+          "eclasses": 5
+        }
+      ],
+      "gpu": {
+        "device": "Apple M3 Max",
+        "exact_equal": true
+      }
+    },
+    {
+      "name": "held-out",
+      "seeds": [
+        [
+          "Fib",
+          [
+            8
+          ]
+        ],
+        [
+          "StepA",
+          [
+            11
+          ]
+        ],
+        [
+          "StepB",
+          [
+            10
+          ]
+        ]
+      ],
+      "instances": 17,
+      "logical_bindings": 17,
+      "child_occurrences": 21,
+      "pending": [],
+      "by_family": {
+        "Fib": 9,
+        "StepA": 4,
+        "StepB": 4
+      },
+      "native": [
+        {
+          "phase": "recurrence-only",
+          "logical_bindings": 17,
+          "exact_equal": true,
+          "enodes": 26,
+          "eclasses": 9
+        },
+        {
+          "phase": "with-smooth-fold",
+          "logical_bindings": 17,
+          "exact_equal": true,
+          "enodes": 32,
+          "eclasses": 8
+        }
+      ],
+      "gpu": {
+        "device": "Apple M3 Max",
+        "exact_equal": true
+      }
+    },
+    {
+      "name": "shared-subproblems",
+      "seeds": [
+        [
+          "Fib",
+          [
+            9
+          ]
+        ],
+        [
+          "Fib",
+          [
+            8
+          ]
+        ],
+        [
+          "Fib",
+          [
+            5
+          ]
+        ],
+        [
+          "StepA",
+          [
+            3
+          ]
+        ],
+        [
+          "StepB",
+          [
+            2
+          ]
+        ]
+      ],
+      "instances": 13,
+      "logical_bindings": 13,
+      "child_occurrences": 18,
+      "pending": [],
+      "by_family": {
+        "Fib": 10,
+        "StepA": 2,
+        "StepB": 1
+      },
+      "native": [
+        {
+          "phase": "recurrence-only",
+          "logical_bindings": 13,
+          "exact_equal": true,
+          "enodes": 23,
+          "eclasses": 10
+        },
+        {
+          "phase": "with-smooth-fold",
+          "logical_bindings": 13,
+          "exact_equal": true,
+          "enodes": 30,
+          "eclasses": 9
+        }
+      ],
+      "gpu": {
+        "device": "Apple M3 Max",
+        "exact_equal": true
+      }
+    }
+  ],
+  "composition": {
+    "source": "StepA",
+    "via": "StepB",
+    "child_path": [],
+    "rules": [
+      "a-to-b",
+      "b-to-a"
+    ],
+    "guards": [
+      [
+        ">",
+        [
+          "slot",
+          0
+        ],
+        [
+          "lit",
+          0
+        ]
+      ],
+      [
+        ">",
+        [
+          "-",
+          [
+            "-",
+            [
+              "slot",
+              0
+            ],
+            [
+              "lit",
+              1
+            ]
+          ],
+          [
+            "lit",
+            1
+          ]
+        ],
+        [
+          "lit",
+          0
+        ]
+      ]
+    ],
+    "children": [
+      {
+        "family": "StepA",
+        "path": [],
+        "parameters": [
+          [
+            "-",
+            [
+              "-",
+              [
+                "-",
+                [
+                  "slot",
+                  0
+                ],
+                [
+                  "lit",
+                  1
+                ]
+              ],
+              [
+                "lit",
+                1
+              ]
+            ],
+            [
+              "lit",
+              1
+            ]
+          ]
+        ],
+        "affine_rows": [
+          [
+            1,
+            -3
+          ]
+        ]
+      }
+    ],
+    "retained_effects": "both original rewrites, including the intermediate child"
+  },
+  "gpu_dispatches": 16,
+  "math_graft": {
+    "native": [
+      {
+        "stage": 0,
+        "native_full_bindings": 6,
+        "by_rule": {
+          "factor": 3,
+          "powers": 1,
+          "integral-cos": 1,
+          "diff-sin": 1
+        },
+        "exact": true
+      },
+      {
+        "stage": 1,
+        "native_full_bindings": 4,
+        "by_rule": {
+          "factor": 1,
+          "powers": 1,
+          "diff-sin": 1,
+          "integral-cos": 1
+        },
+        "exact": true
+      }
+    ],
+    "heldout": [
+      {
+        "stage": 0,
+        "native_full_bindings": 6,
+        "by_rule": {
+          "factor": 3,
+          "powers": 1,
+          "integral-cos": 1,
+          "diff-sin": 1
+        },
+        "exact": true
+      },
+      {
+        "stage": 1,
+        "native_full_bindings": 4,
+        "by_rule": {
+          "powers": 1,
+          "diff-sin": 1,
+          "integral-cos": 1,
+          "factor": 1
+        },
+        "exact": true
+      }
+    ],
+    "gpu": [
+      {
+        "backend": "Metal feature circuit + MPS FP32 GEMM + exact distance kernels",
+        "device": "Apple M3 Max",
+        "all_values_equal": true,
+        "heldout_same_program_equal": true
+      },
+      {
+        "backend": "Metal feature circuit + MPS FP16 inputs / FP32 output GEMM + exact distance kernels",
+        "device": "Apple M3 Max",
+        "all_values_equal": true,
+        "heldout_same_program_equal": true
+      }
+    ]
+  },
+  "tests": {
+    "parameterized": 16,
+    "existing_transition_regression": 33,
+    "gpu_arithmetic_cases": 990
+  },
+  "provenance": {
+    "base_head": "7a1eb58082465cf5a10d31d1dbed0e95ab4b9c39",
+    "source_sha256": "0dbca7cc5cf725b80cca6edbd4aebffeda15f8545fc7ad73936e5569a6916560",
+    "environment": "48a388b1c8f94368819566bbe3fac268be571764c7eb7f3d2ad9c15bc4525199",
+    "implementation_sha256": {
+      "compiler.py": "648f1c05cac04663b334c194cf9bc2ff9ef81541487fd80db90c6b7cc2557888",
+      "runtime.py": "9e703a5735bc2c7bd0711957992fcee9a668f2d63d0d466e97f2985d34b2ad76",
+      "gpu.swift": "5c09dcb5038f7404c4966c72be2cd505975d2a6fe9d208edcc620483e47adf69",
+      "demo.py": "cd9d666010008d7bc3511c31531cf2cfef320f214e372d77cf0ad704840d2758"
+    },
+    "native_binary_sha256": "6d0328c46bd21feffa2723028339029f4e0b581913d52e67bae32a2b78956901"
+  }
+}
