@@ -1,0 +1,17 @@
+[package]
+name = "cell-assisted-egglog"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+egglog = { path = "../egglog", default-features = false }
+egglog-numeric-id = { path = "../egglog/numeric-id" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+
+[profile.dev]
+debug = 0

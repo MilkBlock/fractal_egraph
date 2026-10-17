@@ -1,4 +1,6 @@
 /target
+/egglog/target/
+/cell-assisted-egglog/target/
 /tools/.deps/
 /tools/babble_adapter/target/
 /experiments/babble/*.programs.json

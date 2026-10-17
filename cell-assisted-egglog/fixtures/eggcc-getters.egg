@@ -1,0 +1,12 @@
+; Actual eggcc utility/util.egg rules (MIT, Oliver Flatt), names and schedule
+; added for this isolated test. Leaf is solely an opaque input constructor.
+(datatype Expr (Leaf i64) (Single Expr) (Get Expr i64))
+(relation Add-Gets (Expr Expr i64))
+(rule ((Single expr))
+      ((union (Get (Single expr) 0) expr)) :name "single-get")
+(rule ((Add-Gets orig (Single e) n))
+      ((union (Get orig n) e)) :name "route-get")
+(Single (Leaf 1))
+(Add-Gets (Leaf 10) (Single (Leaf 1)) 3)
+(run 3)
+(check (= (Get (Leaf 10) 3) (Leaf 1)))

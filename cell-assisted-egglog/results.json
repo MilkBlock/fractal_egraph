@@ -1,0 +1,151 @@
+{
+  "schema": "cell-assisted-validation/v1",
+  "scope": "actual forked egglog RHS/union/rebuild; positive constructor/relation Cell fragments; fresh held-out inputs; fixed diagnostic macro rounds, not arbitrary schedule equivalence",
+  "fork_base": "9ea85e47824fcef4e4336fe2f2e3160d37169f73",
+  "pristine_measured": false,
+  "profile": "release; single diagnostic run per control; includes first MPS dispatch",
+  "binary_sha256": "50550d435271d0dfb643b6c334a949ea894169230bd4fda9bcd58ab9a00b259b",
+  "device": "Apple M3 Max",
+  "regressions": 16,
+  "cases": [
+    {
+      "name": "eggcc-getters",
+      "graph": {
+        "exact_equal": true,
+        "enodes": 15,
+        "eclasses": 11,
+        "sorts": {
+          "@AddGetsSort": {
+            "enodes": 3,
+            "eclasses": 3
+          },
+          "Expr": {
+            "enodes": 12,
+            "eclasses": 8
+          }
+        }
+      },
+      "cpu_gpu_same_candidates": true,
+      "candidate_pairs": 24,
+      "audit_uncovered_per_round": [
+        0,
+        0,
+        0
+      ],
+      "controls": {
+        "off": {
+          "setup_seconds": 0.002435208,
+          "input_seconds": 0.00030675,
+          "run_seconds": 7.575e-05
+        },
+        "cpu": {
+          "setup_seconds": 0.001517208,
+          "input_seconds": 0.000191583,
+          "run_seconds": 9.6541e-05
+        },
+        "gpu": {
+          "setup_seconds": 0.325755,
+          "input_seconds": 0.00024675,
+          "run_seconds": 0.024175083
+        }
+      }
+    },
+    {
+      "name": "eggcc-if",
+      "graph": {
+        "exact_equal": true,
+        "enodes": 60,
+        "eclasses": 52,
+        "sorts": {
+          "Assumption": {
+            "enodes": 9,
+            "eclasses": 9
+          },
+          "BaseType": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "BinaryOp": {
+            "enodes": 3,
+            "eclasses": 3
+          },
+          "Expr": {
+            "enodes": 43,
+            "eclasses": 35
+          },
+          "Type": {
+            "enodes": 1,
+            "eclasses": 1
+          },
+          "TypeList": {
+            "enodes": 3,
+            "eclasses": 3
+          }
+        }
+      },
+      "cpu_gpu_same_candidates": true,
+      "candidate_pairs": 1103,
+      "audit_uncovered_per_round": [
+        0,
+        0,
+        0
+      ],
+      "controls": {
+        "off": {
+          "setup_seconds": 0.00263075,
+          "input_seconds": 0.001558083,
+          "run_seconds": 0.000565084
+        },
+        "cpu": {
+          "setup_seconds": 0.004926125,
+          "input_seconds": 0.0016355,
+          "run_seconds": 0.000946666
+        },
+        "gpu": {
+          "setup_seconds": 0.05049825,
+          "input_seconds": 0.001872416,
+          "run_seconds": 0.030742667
+        }
+      }
+    },
+    {
+      "name": "two-cells",
+      "graph": {
+        "exact_equal": true,
+        "enodes": 15,
+        "eclasses": 9,
+        "sorts": {
+          "E": {
+            "enodes": 15,
+            "eclasses": 9
+          }
+        }
+      },
+      "cpu_gpu_same_candidates": true,
+      "candidate_pairs": 36,
+      "audit_uncovered_per_round": [
+        2,
+        0,
+        0,
+        0
+      ],
+      "controls": {
+        "off": {
+          "setup_seconds": 0.001069875,
+          "input_seconds": 0.000109208,
+          "run_seconds": 6.1042e-05
+        },
+        "cpu": {
+          "setup_seconds": 0.002431667,
+          "input_seconds": 0.000108,
+          "run_seconds": 0.000177167
+        },
+        "gpu": {
+          "setup_seconds": 0.036323667,
+          "input_seconds": 0.000174125,
+          "run_seconds": 0.014692834
+        }
+      }
+    }
+  ]
+}
