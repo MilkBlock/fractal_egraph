@@ -9,6 +9,9 @@ numerical execution path: certified Cell interfaces become shared matrix
 programs, checked against native matching and executed on Metal/MPS. It includes
 an input-alias counterexample and specialized re-Bake repair. This is a standalone
 experiment, not an integration into the automatic Bake/Gurobi production path.
+The [transition program](transition_program/README.md) extends it to four rule
+families and two dependent GPU stages, retaining complete parent closures and
+checking both original and new input bindings against native execution.
 
 The original `demo.egg` is a standalone generated-rule prototype executed by
 the actual local egglog runtime. `automatic.egg` is produced by the new native

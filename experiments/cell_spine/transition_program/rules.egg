@@ -1,0 +1,12 @@
+; Exact rewrite bodies from egglog/tests/math-microbenchmark.egg.
+; Only declarations and the selected finite rule subset are reduced.
+(datatype Math (Add Math Math) (Mul Math Math) (Pow Math Math)
+               (Sin Math) (Cos Math) (Diff Math Math) (Integral Math Math)
+               (Var String))
+(rewrite (Add a b) (Add b a))
+(rewrite (Mul a b) (Mul b a))
+(rewrite (Mul a (Add b c)) (Add (Mul a b) (Mul a c)))
+(rewrite (Add (Mul a b) (Mul a c)) (Mul a (Add b c)))
+(rewrite (Mul (Pow a b) (Pow a c)) (Pow a (Add b c)))
+(rewrite (Diff x (Sin x)) (Cos x))
+(rewrite (Integral (Cos x) x) (Sin x))

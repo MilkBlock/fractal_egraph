@@ -1,0 +1,993 @@
+{
+  "scope": "finite two-stage, supplied-boundary program; no global egglog hashcons/union runtime",
+  "source_rules": {
+    "factor": "(rewrite (Add (Mul a b) (Mul a c)) (Mul a (Add b c)))",
+    "powers": "(rewrite (Mul (Pow a b) (Pow a c)) (Pow a (Add b c)))",
+    "diff-sin": "(rewrite (Diff x (Sin x)) (Cos x))",
+    "integral-cos": "(rewrite (Integral (Cos x) x) (Sin x))"
+  },
+  "source_instances": 13,
+  "reserved_cells": 33,
+  "baked_templates": 15,
+  "bits": 4,
+  "slots": 5,
+  "stages": [
+    {
+      "stage": 0,
+      "branches": 11,
+      "statuses": {
+        "1": 4,
+        "0": 5,
+        "2": 2
+      },
+      "shared_matrices": 2,
+      "logical_macs": 1274
+    },
+    {
+      "stage": 1,
+      "branches": 9,
+      "statuses": {
+        "1": 4,
+        "0": 5
+      },
+      "shared_matrices": 1,
+      "logical_macs": 1440
+    }
+  ],
+  "transitions": [
+    {
+      "branch": 0,
+      "stage": 0,
+      "label": "factor",
+      "rule": "factor",
+      "status": 1,
+      "target": 13,
+      "template": 5,
+      "source_cells": [
+        0,
+        1
+      ],
+      "seed": "(Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 3)))",
+      "rhs": "(Mul (Add (RipenInput 0) (RipenInput 1)) (Add (RipenInput 2) (RipenInput 3)))",
+      "bindings": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          2
+        ]
+      ]
+    },
+    {
+      "branch": 1,
+      "stage": 0,
+      "label": "factor",
+      "rule": "factor",
+      "status": 0,
+      "target": 14,
+      "template": 6,
+      "source_cells": [
+        0,
+        1
+      ],
+      "seed": "(Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 3) (RipenInput 4)) (RipenInput 2)))",
+      "rhs": "(Mul (RipenInput 2) (Add (Add (RipenInput 0) (RipenInput 1)) (Add (RipenInput 3) (RipenInput 4))))",
+      "bindings": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ]
+      ]
+    },
+    {
+      "branch": 2,
+      "stage": 0,
+      "label": "wrong-factor",
+      "rule": "factor",
+      "status": 0,
+      "target": 15,
+      "template": 5,
+      "source_cells": [
+        0,
+        2
+      ],
+      "seed": "(Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 3)))",
+      "rhs": "(Mul (Add (RipenInput 0) (RipenInput 1)) (Add (RipenInput 2) (RipenInput 3)))",
+      "bindings": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          2,
+          2
+        ]
+      ]
+    },
+    {
+      "branch": 3,
+      "stage": 0,
+      "label": "wrong-factor",
+      "rule": "factor",
+      "status": 0,
+      "target": 16,
+      "template": 6,
+      "source_cells": [
+        0,
+        2
+      ],
+      "seed": "(Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 3) (RipenInput 4)) (RipenInput 2)))",
+      "rhs": "(Mul (RipenInput 2) (Add (Add (RipenInput 0) (RipenInput 1)) (Add (RipenInput 3) (RipenInput 4))))",
+      "bindings": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ]
+      ]
+    },
+    {
+      "branch": 4,
+      "stage": 0,
+      "label": "alias-factor",
+      "rule": "factor",
+      "status": 2,
+      "target": 17,
+      "template": 5,
+      "source_cells": [
+        0,
+        4
+      ],
+      "seed": "(Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 3)))",
+      "rhs": "(Mul (Add (RipenInput 0) (RipenInput 1)) (Add (RipenInput 2) (RipenInput 3)))",
+      "bindings": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          4,
+          2
+        ]
+      ]
+    },
+    {
+      "branch": 5,
+      "stage": 0,
+      "label": "alias-factor",
+      "rule": "factor",
+      "status": 2,
+      "target": 18,
+      "template": 6,
+      "source_cells": [
+        0,
+        4
+      ],
+      "seed": "(Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 3) (RipenInput 4)) (RipenInput 2)))",
+      "rhs": "(Mul (RipenInput 2) (Add (Add (RipenInput 0) (RipenInput 1)) (Add (RipenInput 3) (RipenInput 4))))",
+      "bindings": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          4,
+          1
+        ]
+      ]
+    },
+    {
+      "branch": 6,
+      "stage": 0,
+      "label": "powers",
+      "rule": "powers",
+      "status": 1,
+      "target": 19,
+      "template": 7,
+      "source_cells": [
+        5,
+        6
+      ],
+      "seed": "(Mul (Pow (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Pow (Add (RipenInput 0) (RipenInput 1)) (RipenInput 3)))",
+      "rhs": "(Pow (Add (RipenInput 0) (RipenInput 1)) (Add (RipenInput 2) (RipenInput 3)))",
+      "bindings": [
+        [
+          5,
+          0
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          6,
+          2
+        ]
+      ]
+    },
+    {
+      "branch": 7,
+      "stage": 0,
+      "label": "wrong-powers",
+      "rule": "powers",
+      "status": 0,
+      "target": 20,
+      "template": 7,
+      "source_cells": [
+        5,
+        7
+      ],
+      "seed": "(Mul (Pow (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Pow (Add (RipenInput 0) (RipenInput 1)) (RipenInput 3)))",
+      "rhs": "(Pow (Add (RipenInput 0) (RipenInput 1)) (Add (RipenInput 2) (RipenInput 3)))",
+      "bindings": [
+        [
+          5,
+          0
+        ],
+        [
+          5,
+          1
+        ],
+        [
+          5,
+          2
+        ],
+        [
+          7,
+          2
+        ]
+      ]
+    },
+    {
+      "branch": 8,
+      "stage": 0,
+      "label": "integral",
+      "rule": "integral-cos",
+      "status": 1,
+      "target": 21,
+      "template": 8,
+      "source_cells": [
+        12,
+        9
+      ],
+      "seed": "(Integral (Cos (Add (RipenInput 0) (RipenInput 1))) (Add (RipenInput 0) (RipenInput 1)))",
+      "rhs": "(Sin (Add (RipenInput 0) (RipenInput 1)))",
+      "bindings": [
+        [
+          12,
+          0
+        ],
+        [
+          12,
+          1
+        ]
+      ]
+    },
+    {
+      "branch": 9,
+      "stage": 0,
+      "label": "derivative",
+      "rule": "diff-sin",
+      "status": 1,
+      "target": 22,
+      "template": 9,
+      "source_cells": [
+        9,
+        11
+      ],
+      "seed": "(Diff (Add (RipenInput 0) (RipenInput 1)) (Sin (Add (RipenInput 0) (RipenInput 1))))",
+      "rhs": "(Cos (Add (RipenInput 0) (RipenInput 1)))",
+      "bindings": [
+        [
+          9,
+          0
+        ],
+        [
+          9,
+          1
+        ]
+      ]
+    },
+    {
+      "branch": 10,
+      "stage": 0,
+      "label": "wrong-derivative",
+      "rule": "diff-sin",
+      "status": 0,
+      "target": 23,
+      "template": 9,
+      "source_cells": [
+        10,
+        11
+      ],
+      "seed": "(Diff (Add (RipenInput 0) (RipenInput 1)) (Sin (Add (RipenInput 0) (RipenInput 1))))",
+      "rhs": "(Cos (Add (RipenInput 0) (RipenInput 1)))",
+      "bindings": [
+        [
+          10,
+          0
+        ],
+        [
+          10,
+          1
+        ]
+      ]
+    },
+    {
+      "branch": 11,
+      "stage": 1,
+      "label": "factor-again",
+      "rule": "factor",
+      "status": 1,
+      "target": 24,
+      "template": 10,
+      "source_cells": [
+        13,
+        3
+      ],
+      "seed": "(Add (Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 3))) (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 4)))",
+      "rhs": "(Mul (Add (RipenInput 0) (RipenInput 1)) (Add (Add (RipenInput 2) (RipenInput 3)) (RipenInput 4)))",
+      "bindings": [
+        [
+          13,
+          0
+        ],
+        [
+          13,
+          1
+        ],
+        [
+          13,
+          2
+        ],
+        [
+          13,
+          3
+        ],
+        [
+          3,
+          2
+        ]
+      ]
+    },
+    {
+      "branch": 12,
+      "stage": 1,
+      "label": "factor-again",
+      "rule": "factor",
+      "status": 0,
+      "target": 25,
+      "template": 11,
+      "source_cells": [
+        13,
+        3
+      ],
+      "seed": "(Add (Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 3))) (Mul (Add (RipenInput 2) (RipenInput 3)) (RipenInput 4)))",
+      "rhs": "(Mul (Add (RipenInput 2) (RipenInput 3)) (Add (Add (RipenInput 0) (RipenInput 1)) (RipenInput 4)))",
+      "bindings": [
+        [
+          13,
+          0
+        ],
+        [
+          13,
+          1
+        ],
+        [
+          13,
+          2
+        ],
+        [
+          13,
+          3
+        ],
+        [
+          3,
+          2
+        ]
+      ]
+    },
+    {
+      "branch": 13,
+      "stage": 1,
+      "label": "powers-again",
+      "rule": "powers",
+      "status": 1,
+      "target": 26,
+      "template": 12,
+      "source_cells": [
+        19,
+        8
+      ],
+      "seed": "(Mul (Mul (Pow (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Pow (Add (RipenInput 0) (RipenInput 1)) (RipenInput 3))) (Pow (Add (RipenInput 0) (RipenInput 1)) (RipenInput 4)))",
+      "rhs": "(Pow (Add (RipenInput 0) (RipenInput 1)) (Add (Add (RipenInput 2) (RipenInput 3)) (RipenInput 4)))",
+      "bindings": [
+        [
+          19,
+          0
+        ],
+        [
+          19,
+          1
+        ],
+        [
+          19,
+          2
+        ],
+        [
+          19,
+          3
+        ],
+        [
+          8,
+          2
+        ]
+      ]
+    },
+    {
+      "branch": 14,
+      "stage": 1,
+      "label": "different-rule-after-integral",
+      "rule": "diff-sin",
+      "status": 1,
+      "target": 27,
+      "template": 13,
+      "source_cells": [
+        9,
+        21
+      ],
+      "seed": "(Diff (Add (RipenInput 0) (RipenInput 1)) (Integral (Cos (Add (RipenInput 0) (RipenInput 1))) (Add (RipenInput 0) (RipenInput 1))))",
+      "rhs": "(Cos (Add (RipenInput 0) (RipenInput 1)))",
+      "bindings": [
+        [
+          9,
+          0
+        ],
+        [
+          9,
+          1
+        ]
+      ]
+    },
+    {
+      "branch": 15,
+      "stage": 1,
+      "label": "different-rule-after-derivative",
+      "rule": "integral-cos",
+      "status": 1,
+      "target": 28,
+      "template": 14,
+      "source_cells": [
+        22,
+        9
+      ],
+      "seed": "(Integral (Diff (Add (RipenInput 0) (RipenInput 1)) (Sin (Add (RipenInput 0) (RipenInput 1)))) (Add (RipenInput 0) (RipenInput 1)))",
+      "rhs": "(Sin (Add (RipenInput 0) (RipenInput 1)))",
+      "bindings": [
+        [
+          22,
+          0
+        ],
+        [
+          22,
+          1
+        ]
+      ]
+    },
+    {
+      "branch": 16,
+      "stage": 1,
+      "label": "blocked-after-mismatch",
+      "rule": "factor",
+      "status": 0,
+      "target": 29,
+      "template": 10,
+      "source_cells": [
+        15,
+        3
+      ],
+      "seed": "(Add (Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 3))) (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 4)))",
+      "rhs": "(Mul (Add (RipenInput 0) (RipenInput 1)) (Add (Add (RipenInput 2) (RipenInput 3)) (RipenInput 4)))",
+      "bindings": [
+        [
+          15,
+          0
+        ],
+        [
+          15,
+          1
+        ],
+        [
+          15,
+          2
+        ],
+        [
+          15,
+          3
+        ],
+        [
+          3,
+          2
+        ]
+      ]
+    },
+    {
+      "branch": 17,
+      "stage": 1,
+      "label": "blocked-after-mismatch",
+      "rule": "factor",
+      "status": 0,
+      "target": 30,
+      "template": 11,
+      "source_cells": [
+        15,
+        3
+      ],
+      "seed": "(Add (Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 3))) (Mul (Add (RipenInput 2) (RipenInput 3)) (RipenInput 4)))",
+      "rhs": "(Mul (Add (RipenInput 2) (RipenInput 3)) (Add (Add (RipenInput 0) (RipenInput 1)) (RipenInput 4)))",
+      "bindings": [
+        [
+          15,
+          0
+        ],
+        [
+          15,
+          1
+        ],
+        [
+          15,
+          2
+        ],
+        [
+          15,
+          3
+        ],
+        [
+          3,
+          2
+        ]
+      ]
+    },
+    {
+      "branch": 18,
+      "stage": 1,
+      "label": "blocked-after-alias",
+      "rule": "factor",
+      "status": 0,
+      "target": 31,
+      "template": 10,
+      "source_cells": [
+        17,
+        3
+      ],
+      "seed": "(Add (Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 3))) (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 4)))",
+      "rhs": "(Mul (Add (RipenInput 0) (RipenInput 1)) (Add (Add (RipenInput 2) (RipenInput 3)) (RipenInput 4)))",
+      "bindings": [
+        [
+          17,
+          0
+        ],
+        [
+          17,
+          1
+        ],
+        [
+          17,
+          2
+        ],
+        [
+          17,
+          3
+        ],
+        [
+          3,
+          2
+        ]
+      ]
+    },
+    {
+      "branch": 19,
+      "stage": 1,
+      "label": "blocked-after-alias",
+      "rule": "factor",
+      "status": 0,
+      "target": 32,
+      "template": 11,
+      "source_cells": [
+        17,
+        3
+      ],
+      "seed": "(Add (Add (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 2)) (Mul (Add (RipenInput 0) (RipenInput 1)) (RipenInput 3))) (Mul (Add (RipenInput 2) (RipenInput 3)) (RipenInput 4)))",
+      "rhs": "(Mul (Add (RipenInput 2) (RipenInput 3)) (Add (Add (RipenInput 0) (RipenInput 1)) (RipenInput 4)))",
+      "bindings": [
+        [
+          17,
+          0
+        ],
+        [
+          17,
+          1
+        ],
+        [
+          17,
+          2
+        ],
+        [
+          17,
+          3
+        ],
+        [
+          3,
+          2
+        ]
+      ]
+    }
+  ],
+  "native": {
+    "matches": [
+      {
+        "stage": 0,
+        "native_full_bindings": 6,
+        "by_rule": {
+          "factor": 3,
+          "powers": 1,
+          "integral-cos": 1,
+          "diff-sin": 1
+        },
+        "exact": true
+      },
+      {
+        "stage": 1,
+        "native_full_bindings": 4,
+        "by_rule": {
+          "factor": 1,
+          "powers": 1,
+          "diff-sin": 1,
+          "integral-cos": 1
+        },
+        "exact": true
+      }
+    ],
+    "full_closure_checks": [
+      {
+        "label": "factor",
+        "exact_equal": true,
+        "enodes": 38,
+        "eclasses": 15
+      },
+      {
+        "label": "powers",
+        "exact_equal": true,
+        "enodes": 13,
+        "eclasses": 9
+      },
+      {
+        "label": "integral",
+        "exact_equal": true,
+        "enodes": 7,
+        "eclasses": 5
+      },
+      {
+        "label": "derivative",
+        "exact_equal": true,
+        "enodes": 7,
+        "eclasses": 5
+      },
+      {
+        "label": "factor-again",
+        "exact_equal": true,
+        "enodes": 63,
+        "eclasses": 23
+      },
+      {
+        "label": "powers-again",
+        "exact_equal": true,
+        "enodes": 20,
+        "eclasses": 13
+      },
+      {
+        "label": "different-rule-after-integral",
+        "exact_equal": true,
+        "enodes": 8,
+        "eclasses": 5
+      },
+      {
+        "label": "different-rule-after-derivative",
+        "exact_equal": true,
+        "enodes": 8,
+        "eclasses": 5
+      }
+    ],
+    "rhs_only_negative_ablation": [
+      {
+        "label": "powers",
+        "full_enodes": 13,
+        "rhs_only_enodes": 9,
+        "full_eclasses": 9,
+        "rhs_only_eclasses": 7,
+        "exact_equal": false
+      }
+    ]
+  },
+  "gpu": [
+    {
+      "backend": "Metal feature circuit + MPS FP32 GEMM + exact distance kernels",
+      "device": "Apple M3 Max",
+      "all_values_equal": true,
+      "heldout_same_program_equal": true,
+      "single_submission": true,
+      "program_gpu_seconds": 0.00025237491354346275,
+      "stages": [
+        {
+          "name": "stage-0",
+          "status": [
+            1,
+            0,
+            0,
+            0,
+            2,
+            2,
+            1,
+            0,
+            1,
+            1,
+            0
+          ]
+        },
+        {
+          "name": "stage-1",
+          "status": [
+            1,
+            0,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "backend": "Metal feature circuit + MPS FP16 inputs / FP32 output GEMM + exact distance kernels",
+      "device": "Apple M3 Max",
+      "all_values_equal": true,
+      "heldout_same_program_equal": true,
+      "single_submission": true,
+      "program_gpu_seconds": 0.000343875028192997,
+      "stages": [
+        {
+          "name": "stage-0",
+          "status": [
+            1,
+            0,
+            0,
+            0,
+            2,
+            2,
+            1,
+            0,
+            1,
+            1,
+            0
+          ]
+        },
+        {
+          "name": "stage-1",
+          "status": [
+            1,
+            0,
+            1,
+            1,
+            1,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  ],
+  "heldout": {
+    "same_compiled_program": true,
+    "changed_input_instances": [
+      "m1",
+      "m_bad"
+    ],
+    "statuses": [
+      [
+        0,
+        0,
+        1,
+        0,
+        2,
+        2,
+        1,
+        0,
+        1,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0
+      ]
+    ],
+    "native": {
+      "matches": [
+        {
+          "stage": 0,
+          "native_full_bindings": 6,
+          "by_rule": {
+            "factor": 3,
+            "powers": 1,
+            "integral-cos": 1,
+            "diff-sin": 1
+          },
+          "exact": true
+        },
+        {
+          "stage": 1,
+          "native_full_bindings": 4,
+          "by_rule": {
+            "powers": 1,
+            "diff-sin": 1,
+            "integral-cos": 1,
+            "factor": 1
+          },
+          "exact": true
+        }
+      ],
+      "full_closure_checks": [
+        {
+          "label": "wrong-factor",
+          "exact_equal": true,
+          "enodes": 38,
+          "eclasses": 15
+        },
+        {
+          "label": "powers",
+          "exact_equal": true,
+          "enodes": 13,
+          "eclasses": 9
+        },
+        {
+          "label": "integral",
+          "exact_equal": true,
+          "enodes": 7,
+          "eclasses": 5
+        },
+        {
+          "label": "derivative",
+          "exact_equal": true,
+          "enodes": 7,
+          "eclasses": 5
+        },
+        {
+          "label": "powers-again",
+          "exact_equal": true,
+          "enodes": 20,
+          "eclasses": 13
+        },
+        {
+          "label": "different-rule-after-integral",
+          "exact_equal": true,
+          "enodes": 8,
+          "eclasses": 5
+        },
+        {
+          "label": "different-rule-after-derivative",
+          "exact_equal": true,
+          "enodes": 8,
+          "eclasses": 5
+        },
+        {
+          "label": "blocked-after-mismatch",
+          "exact_equal": true,
+          "enodes": 63,
+          "eclasses": 23
+        }
+      ],
+      "rhs_only_negative_ablation": [
+        {
+          "label": "powers",
+          "full_enodes": 13,
+          "rhs_only_enodes": 9,
+          "full_eclasses": 9,
+          "rhs_only_eclasses": 7,
+          "exact_equal": false
+        }
+      ]
+    }
+  },
+  "provenance": {
+    "base_head": "13a0e08f7024b642d0103bedc123d1f8aced43d4",
+    "rules_sha256": "22563705eba7ea96b2893a516ec270f346639e84c0eb3d42f19e71a24e054c9b",
+    "native_binary_sha256": "6d0328c46bd21feffa2723028339029f4e0b581913d52e67bae32a2b78956901",
+    "compiler_sha256": "1c0cdb7bcc3a1382f8bb69cb6ca7826bca8dd54b8b7388dab68a18ef8977ca57",
+    "gpu_source_sha256": "60cd08ff914dd29017c38289f45372e16189da33d209641f965205d94829108c"
+  }
+}

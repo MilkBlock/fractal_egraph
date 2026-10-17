@@ -10,6 +10,10 @@ No external Python dependencies or network access are needed. CPU tests require
 the repository's native examples to have been built. GPU execution requires macOS,
 Metal/MPS, and the installed Swift compiler; no CUDA/Tensor Core claim is made.
 
+The shared Metal backend now also accepts optional Cell validity and transition
+instructions for the [two-stage transition experiment](../transition_program/README.md).
+Without those fields this experiment retains its independent comparison jobs.
+
 ## What changed
 
 1. **Input identity uses bits, not a domain-sized orthogonal basis.** A q-bit ID
