@@ -1,14 +1,21 @@
 //! One static ruleset-family program over shared native tables and tuple indexes.
-use egglog_numeric_id::NumericId;
 use crate::Result;
 use egglog::{
     EGraph,
     cell_assist::{CellActionSink, CellOperand},
     cell_events::CellTable,
 };
+use egglog_numeric_id::NumericId;
 use serde_json::{Value as Json, json};
 use std::collections::{BTreeMap, BTreeSet};
-pub fn compile(eg: &EGraph, sinks: &[CellActionSink], tables: &[CellTable]) -> Result<Json> {
+pub fn compile(
+    eg: &EGraph,
+    sinks: &[CellActionSink],
+    tables: &[CellTable],
+    cells: Option<&crate::cell_prefix::Library>,
+    profile: bool,
+    certificates: bool,
+) -> Result<Json> {
     let c = tables.iter().map(|t| t.keys + 1).max().unwrap_or(1);
     let p = sinks.iter().map(|q| q.atoms.len()).max().unwrap_or(1);
     let s = sinks.iter().map(|q| q.slots().len()).max().unwrap_or(1);
@@ -32,7 +39,18 @@ pub fn compile(eg: &EGraph, sinks: &[CellActionSink], tables: &[CellTable]) -> R
     let mut specs = BTreeMap::new();
     let mut index = vec![];
     let mut guards = vec![];
+    let mut orders = vec![];
     for q in sinks {
+        let mut local_pairs = BTreeSet::new();
+        if let Some(lib) = cells {
+            for i in 0..q.atoms.len() {
+                for j in 0..q.atoms.len() {
+                    if i != j && !lib.alternatives(q, &[i, j]).is_empty() {
+                        local_pairs.insert((i, j));
+                    }
+                }
+            }
+        }
         meta.extend([
             q.atoms.len() as u32,
             q.slots().len() as u32,
@@ -53,6 +71,7 @@ pub fn compile(eg: &EGraph, sinks: &[CellActionSink], tables: &[CellTable]) -> R
             }
         }
         for anchor in 0..p {
+            let mut order = vec![anchor];
             let mut bound = BTreeSet::new();
             if anchor < q.atoms.len() {
                 for o in &q.atoms[anchor].columns {
@@ -69,14 +88,18 @@ pub fn compile(eg: &EGraph, sinks: &[CellActionSink], tables: &[CellTable]) -> R
                     plans.extend([0, 0]);
                     continue;
                 }
-                let part = remain
+                let internal = remain
                     .iter()
                     .copied()
-                    .find(|i| {
-                        q.atoms[*i]
-                            .columns
-                            .iter()
-                            .any(|o| matches!(o,CellOperand::Slot(s) if bound.contains(s)))
+                    .find(|i| local_pairs.contains(&(*order.last().unwrap(), *i)));
+                let part = internal
+                    .or_else(|| {
+                        remain.iter().copied().find(|i| {
+                            q.atoms[*i]
+                                .columns
+                                .iter()
+                                .any(|o| matches!(o,CellOperand::Slot(s) if bound.contains(s)))
+                        })
                     })
                     .unwrap_or(*remain.first().unwrap());
                 let a = &q.atoms[part];
@@ -99,6 +122,7 @@ pub fn compile(eg: &EGraph, sinks: &[CellActionSink], tables: &[CellTable]) -> R
                     next
                 });
                 plans.extend([part as u32, spec as u32]);
+                order.push(part);
                 remain.remove(&part);
                 for o in &a.columns {
                     if let CellOperand::Slot(v) = o {
@@ -106,6 +130,7 @@ pub fn compile(eg: &EGraph, sinks: &[CellActionSink], tables: &[CellTable]) -> R
                     }
                 }
             }
+            orders.push(order);
         }
         for j in 0..g {
             if let Some(guard) = q.guards.get(j) {
@@ -124,6 +149,155 @@ pub fn compile(eg: &EGraph, sinks: &[CellActionSink], tables: &[CellTable]) -> R
             }
         }
     }
+    // One shared certificate per alpha-renamed prefix, even when several
+    // consumers have different guards/RHS. The route transports its slots back
+    // to the original rule's complete binding, without changing that rule.
+    let mut route = vec![];
+    let mut cell_meta = vec![];
+    let mut variants = vec![];
+    let mut cell_specs = BTreeMap::<String, usize>::new();
+    let mut cell_fields = vec![];
+    let (mut max_cell_steps, mut max_cell_vars) = (1, 1);
+    let mut cell_steps = vec![];
+    let mut cell_evidence = vec![];
+    for (qi, q) in sinks.iter().enumerate() {
+        for anchor in 0..p {
+            for position in 0..p {
+                let full_order = &orders[qi * p + anchor];
+                let order = if position < full_order.len() && anchor < q.atoms.len() {
+                    &full_order[position..]
+                } else {
+                    &[]
+                };
+                let found = cells.and_then(|lib| {
+                    let mut longest = None;
+                    for n in 2..=order.len() {
+                        let alts = lib.alternatives(q, &order[..n]);
+                        if alts.is_empty() {
+                            break;
+                        } // A longer conjunction cannot repair an absent prefix.
+                        longest = Some((n, alts));
+                    }
+                    longest
+                });
+                let Some((n, alts)) = found else {
+                    route.extend([u32::MAX, 0]);
+                    route.extend(std::iter::repeat_n(u32::MAX, s));
+                    continue;
+                };
+                let mut renaming = BTreeMap::new();
+                let mut key_atoms = vec![];
+                for &part in &order[..n] {
+                    let a = &q.atoms[part];
+                    let cols = a
+                        .columns
+                        .iter()
+                        .map(|o| match o {
+                            CellOperand::Slot(v) => {
+                                let next = renaming.len();
+                                [0, *renaming.entry(*v).or_insert(next) as u32]
+                            }
+                            CellOperand::Constant { value, .. } => [1, value.rep()],
+                        })
+                        .collect::<Vec<_>>();
+                    key_atoms.push(json!([a.function, a.sorts, cols]));
+                }
+                let normalized = alts
+                    .iter()
+                    .map(|(_, cs)| {
+                        let mut out = vec![[0, 0]; renaming.len()];
+                        for (&old, &new) in &renaming {
+                            let mut c = cs[old];
+                            if c[0] == 1 {
+                                c[1] = renaming[&(c[1] as usize)] as u32;
+                            }
+                            out[new] = c;
+                        }
+                        out
+                    })
+                    .collect::<BTreeSet<_>>();
+                let key = serde_json::to_string(&json!([key_atoms, normalized]))?;
+                let id = if let Some(v) = cell_specs.get(&key) {
+                    *v
+                } else {
+                    let id = cell_specs.len();
+                    cell_meta.extend([
+                        qi as u32,
+                        order[0] as u32,
+                        (n - 1) as u32,
+                        variants.len() as u32,
+                        alts.len() as u32,
+                        renaming.len() as u32,
+                    ]);
+                    max_cell_steps = max_cell_steps.max(n - 1);
+                    max_cell_vars = max_cell_vars.max(renaming.len());
+                    let fields = renaming
+                        .iter()
+                        .map(|(o, n)| (*n, *o))
+                        .collect::<BTreeMap<_, _>>();
+                    for i in 0..s {
+                        cell_fields.push(fields.get(&i).map_or(u32::MAX, |v| *v as u32));
+                    }
+                    for (_, c) in &alts {
+                        for i in 0..s {
+                            variants.extend(c.get(i).copied().unwrap_or([0, 0]));
+                        }
+                    }
+                    let mut bound = q.atoms[order[0]]
+                        .columns
+                        .iter()
+                        .filter_map(|o| match o {
+                            CellOperand::Slot(v) => Some(*v),
+                            _ => None,
+                        })
+                        .collect::<BTreeSet<_>>();
+                    for depth in 0..p - 1 {
+                        if depth >= n - 1 {
+                            cell_steps.extend([0, 0]);
+                            continue;
+                        }
+                        let part = order[depth + 1];
+                        let a = &q.atoms[part];
+                        let cols = a
+                            .columns
+                            .iter()
+                            .enumerate()
+                            .filter_map(|(c, o)| match o {
+                                CellOperand::Constant { .. } => Some(c),
+                                CellOperand::Slot(v) if bound.contains(v) => Some(c),
+                                _ => None,
+                            })
+                            .collect::<Vec<_>>();
+                        let next = specs.len();
+                        let sp = *specs
+                            .entry((tids[&a.function], cols.clone()))
+                            .or_insert_with(|| {
+                                index.extend([tids[&a.function] as u32, cols.len() as u32]);
+                                index.extend(cols.iter().map(|c| *c as u32));
+                                index.extend(std::iter::repeat_n(0, c - cols.len()));
+                                next
+                            });
+                        cell_steps.extend([part as u32, sp as u32]);
+                        bound.extend(a.columns.iter().filter_map(|o| match o {
+                            CellOperand::Slot(v) => Some(*v),
+                            _ => None,
+                        }));
+                    }
+                    cell_evidence.push(json!({"plan":id,"rule":q.name,"atoms":&order[..n],"states":alts.iter().map(|(id,_)|id).collect::<BTreeSet<_>>(),"internal_joins":n-1}));
+                    cell_specs.insert(key, id);
+                    id
+                };
+                let inverse = renaming
+                    .iter()
+                    .map(|(o, n)| (*n, *o))
+                    .collect::<BTreeMap<_, _>>();
+                route.extend([id as u32, (n - 1) as u32]);
+                for i in 0..s {
+                    route.push(inverse.get(&i).map_or(u32::MAX, |n| *n as u32));
+                }
+            }
+        }
+    }
     if specs.is_empty() {
         index.extend([u32::MAX, 0]);
         index.extend(std::iter::repeat_n(0, c));
@@ -134,12 +308,24 @@ pub fn compile(eg: &EGraph, sinks: &[CellActionSink], tables: &[CellTable]) -> R
         sinks.len(),
         specs.len().max(1)
     );
+    shader += &format!(
+        "#define NC {}\n#define PROFILE_JOIN {}\n#define CELL_CERTIFICATES {}\n",
+        cell_specs.len().max(1),
+        u32::from(profile),
+        u32::from(certificates && !cell_specs.is_empty())
+    );
+    shader += &format!("#define CK {max_cell_steps}\n#define CF {max_cell_vars}\n");
     for (name, values) in [
         ("QMETA", meta),
         ("ATOM", atoms),
         ("PLAN", plans),
         ("SPEC", index),
         ("GUARD", guards),
+        ("CELL_ROUTE", route),
+        ("CELL_META", cell_meta),
+        ("CELL_STEP", cell_steps),
+        ("CELL_FIELDS", cell_fields),
+        ("CELL_VARIANT", variants),
     ] {
         shader += &format!("#define {name} {}u\n", code.len());
         code.extend(values);
@@ -147,7 +333,8 @@ pub fn compile(eg: &EGraph, sinks: &[CellActionSink], tables: &[CellTable]) -> R
     // Empty index set (all unary queries) is represented by one disabled spec.
     shader += include_str!("../integer.metal");
     shader += include_str!("../family.metal");
+    shader += include_str!("../family_cells.metal");
     Ok(
-        json!({"version":1,"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader}),
+        json!({"version":1,"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":2+2*max_cell_steps+3*max_cell_vars,"profile":profile}),
     )
 }

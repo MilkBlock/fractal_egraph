@@ -117,7 +117,7 @@ target/cell-assisted/release/cell-assisted-egglog \
   --marker-layout device --matrix-layout tables
 ```
 
-Live worker protocol is **8**, while offline lowered matrix ABI remains **5**.
+Live worker protocol is **9**, while offline lowered matrix ABI remains **5**.
 Rebuild the worker when updating the Rust executable. Bulk frames use little
 endian u32 words and a u32 byte-length header. Small controls/counters remain JSON.
 For tables, schema/code/shader metadata is installed once. Each delta is:

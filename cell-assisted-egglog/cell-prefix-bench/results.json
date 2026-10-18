@@ -1,0 +1,2080 @@
+{
+  "timed": {
+    "analysis": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-resident-verified/eggcc-if-sparse/analyze",
+    "audit": false,
+    "complete": true,
+    "cpu": {
+      "audit": false,
+      "backend": "native-sorted-commit",
+      "cell_work": {},
+      "cells": null,
+      "device": null,
+      "live_rows": 0,
+      "row_slots": 0,
+      "rules": [
+        {
+          "rule": "(rule ((Single expr))\n      ((union (Get (Single expr) 0) expr))\n        :ruleset if-tiny )",
+          "ruleset": "if-tiny",
+          "stats": {
+            "audit_queries": 0,
+            "dispatches": 0,
+            "emitted_bindings": 600,
+            "quiet_runs": 0
+          }
+        },
+        {
+          "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+          "ruleset": "if-tiny",
+          "stats": {
+            "audit_queries": 0,
+            "dispatches": 0,
+            "emitted_bindings": 15,
+            "quiet_runs": 0
+          }
+        },
+        {
+          "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) j))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) i)))\n      ((union (Get if_e k) (Bop (Smax ) a b)))\n        :ruleset if-tiny )",
+          "ruleset": "if-tiny",
+          "stats": {
+            "audit_queries": 0,
+            "dispatches": 0,
+            "emitted_bindings": 15,
+            "quiet_runs": 0
+          }
+        }
+      ],
+      "runtime": {
+        "audit_seconds": 0.0,
+        "bootstrap_events": 0,
+        "decode_seconds": 0.0,
+        "device_seconds": 0.0,
+        "dispatches": 0,
+        "downloaded_bytes": 0,
+        "event_seconds": 1.26e-07,
+        "first_upload_bytes": 0,
+        "native_action_search_apply_seconds": 7.670800000000001e-05,
+        "native_insert_merge_seconds": 4.4834e-05,
+        "native_query_seconds": 0.009206667,
+        "native_rebuild_seconds": 5.2417e-05,
+        "native_rhs_seconds": 0.000339251,
+        "output_high_water": 0,
+        "peak_live_rows": 0,
+        "prepare_seconds": 0.0,
+        "reused_slots": 0,
+        "roundtrip_seconds": 0.0,
+        "row_events": 0,
+        "ruleset_runs": 3,
+        "run_seconds": 0.009584167,
+        "setup_seconds": 0.001234084,
+        "shader_compiles": 0,
+        "unchanged_notifications": 0,
+        "union_events": 0,
+        "uploaded_bytes": 0,
+        "workers": 0
+      },
+      "scope": "Shared native rows and sorted native RHS commit; optional analyzed Cell projections skip certified unique local prefixes. Every uncertified anchor uses the complete query. No virtual storage or arbitrary-Cell coverage claim.",
+      "shared_tables": 0
+    },
+    "label": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-prefix-v9-time/heldout.egg",
+    "profile": false,
+    "scope": "Actual native schedule and RHS, same sorted commit; analyzed positive projections plus exhaustive current singleton checks. No pristine or full-eggcc speedup claim. All unknown/ambiguous instances retain full queries.",
+    "variants": [
+      {
+        "name": "full_gpu",
+        "report": {
+          "audit": false,
+          "backend": "shared-gpu",
+          "cell_work": {
+            "certificate_reuses": 0,
+            "certification_attempts": 0,
+            "certification_probes": 0,
+            "certified_anchor_hits": 0,
+            "invalidated_certificates": 0,
+            "join_probes": 0,
+            "shape_fallbacks": 0,
+            "skipped_join_probes": 0
+          },
+          "cells": {
+            "library": null,
+            "plan_only": false,
+            "plans": [],
+            "profile": false
+          },
+          "device": {
+            "bindings": 0,
+            "cell_cache_bytes": 4,
+            "cell_plans": 0,
+            "cell_work": {
+              "certificate_reuses": 0,
+              "certification_attempts": 0,
+              "certification_probes": 0,
+              "certified_anchor_hits": 0,
+              "invalidated_certificates": 0,
+              "join_probes": 0,
+              "shape_fallbacks": 0,
+              "skipped_join_probes": 0
+            },
+            "compacted": false,
+            "compactions": 1,
+            "device": "Apple M3 Max",
+            "device_bytes": 3766868,
+            "epoch": 3,
+            "event_capacity": 16384,
+            "events": 4561,
+            "gpu_seconds": 0.019851416815072295,
+            "old_events": 4501,
+            "queries": 2,
+            "retained_matches": 0,
+            "retries": 0,
+            "row_capacity": 8192,
+            "row_slots": 4561
+          },
+          "live_rows": 4561,
+          "row_slots": 4561,
+          "rules": [
+            {
+              "rule": "(rule ((Single expr))\n      ((union (Get (Single expr) 0) expr))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 0,
+                "dispatches": 1,
+                "emitted_bindings": 600,
+                "quiet_runs": 2
+              }
+            },
+            {
+              "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 0,
+                "dispatches": 3,
+                "emitted_bindings": 15,
+                "quiet_runs": 0
+              }
+            },
+            {
+              "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) j))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) i)))\n      ((union (Get if_e k) (Bop (Smax ) a b)))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 0,
+                "dispatches": 3,
+                "emitted_bindings": 15,
+                "quiet_runs": 0
+              }
+            }
+          ],
+          "runtime": {
+            "audit_seconds": 0.0,
+            "bootstrap_events": 3901,
+            "decode_seconds": 6.8582e-05,
+            "device_seconds": 0.06316125020384789,
+            "dispatches": 3,
+            "downloaded_bytes": 47880,
+            "event_seconds": 0.00020483300000000002,
+            "first_upload_bytes": 312132,
+            "native_action_search_apply_seconds": 9.433400000000001e-05,
+            "native_insert_merge_seconds": 0.000124126,
+            "native_query_seconds": 0.0,
+            "native_rebuild_seconds": 5.0959e-05,
+            "native_rhs_seconds": 0.000471292,
+            "output_high_water": 600,
+            "peak_live_rows": 4561,
+            "prepare_seconds": 0.000111084,
+            "reused_slots": 0,
+            "roundtrip_seconds": 0.17266362500000002,
+            "row_events": 4561,
+            "ruleset_runs": 3,
+            "run_seconds": 0.173638916,
+            "setup_seconds": 0.046615667,
+            "shader_compiles": 1,
+            "unchanged_notifications": 0,
+            "union_events": 30,
+            "uploaded_bytes": 365012,
+            "workers": 1
+          },
+          "scope": "Shared native rows and sorted native RHS commit; optional analyzed Cell projections skip certified unique local prefixes. Every uncertified anchor uses the complete query. No virtual storage or arbitrary-Cell coverage claim.",
+          "shared_tables": 7
+        },
+        "verification": {
+          "eclass_mapping": 4238,
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 4868,
+          "tables": {
+            "Arg": 900,
+            "Bop": 330,
+            "Get": 1830,
+            "If": 300,
+            "InFunc": 300,
+            "InIf": 600,
+            "IntT": 1,
+            "LessThan": 1,
+            "Single": 600,
+            "Smax": 1,
+            "Smin": 1,
+            "TCons": 2,
+            "TNil": 1,
+            "TupleT": 1
+          }
+        }
+      },
+      {
+        "name": "cell_order_only",
+        "report": {
+          "audit": false,
+          "backend": "shared-gpu",
+          "cell_work": {
+            "certificate_reuses": 0,
+            "certification_attempts": 0,
+            "certification_probes": 0,
+            "certified_anchor_hits": 0,
+            "invalidated_certificates": 0,
+            "join_probes": 0,
+            "shape_fallbacks": 0,
+            "skipped_join_probes": 0
+          },
+          "cells": {
+            "library": {
+              "analysis_directory": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-resident-verified/eggcc-if-sparse/analyze",
+              "contract": "positive projection plus fully keyed versioned witnesses; no saturation or completeness inferred from a historical match",
+              "loaded_states": [
+                0,
+                1,
+                2,
+                3,
+                4
+              ],
+              "rejected": []
+            },
+            "plan_only": true,
+            "plans": [
+              {
+                "atoms": [
+                  2,
+                  6,
+                  10
+                ],
+                "internal_joins": 2,
+                "plan": 0,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              {
+                "atoms": [
+                  6,
+                  10
+                ],
+                "internal_joins": 1,
+                "plan": 1,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              {
+                "atoms": [
+                  1,
+                  0
+                ],
+                "internal_joins": 1,
+                "plan": 2,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              {
+                "atoms": [
+                  10,
+                  6
+                ],
+                "internal_joins": 1,
+                "plan": 3,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              }
+            ],
+            "profile": false
+          },
+          "device": {
+            "bindings": 0,
+            "cell_cache_bytes": 4,
+            "cell_plans": 0,
+            "cell_work": {
+              "certificate_reuses": 0,
+              "certification_attempts": 0,
+              "certification_probes": 0,
+              "certified_anchor_hits": 0,
+              "invalidated_certificates": 0,
+              "join_probes": 0,
+              "shape_fallbacks": 0,
+              "skipped_join_probes": 0
+            },
+            "compacted": false,
+            "compactions": 1,
+            "device": "Apple M3 Max",
+            "device_bytes": 3769940,
+            "epoch": 3,
+            "event_capacity": 16384,
+            "events": 4561,
+            "gpu_seconds": 0.020570583175867796,
+            "old_events": 4501,
+            "queries": 2,
+            "retained_matches": 0,
+            "retries": 0,
+            "row_capacity": 8192,
+            "row_slots": 4561
+          },
+          "live_rows": 4561,
+          "row_slots": 4561,
+          "rules": [
+            {
+              "rule": "(rule ((Single expr))\n      ((union (Get (Single expr) 0) expr))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 0,
+                "dispatches": 1,
+                "emitted_bindings": 600,
+                "quiet_runs": 2
+              }
+            },
+            {
+              "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 0,
+                "dispatches": 3,
+                "emitted_bindings": 15,
+                "quiet_runs": 0
+              }
+            },
+            {
+              "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) j))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) i)))\n      ((union (Get if_e k) (Bop (Smax ) a b)))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 0,
+                "dispatches": 3,
+                "emitted_bindings": 15,
+                "quiet_runs": 0
+              }
+            }
+          ],
+          "runtime": {
+            "audit_seconds": 0.0,
+            "bootstrap_events": 3901,
+            "decode_seconds": 4.5709e-05,
+            "device_seconds": 0.07197399949654937,
+            "dispatches": 3,
+            "downloaded_bytes": 47880,
+            "event_seconds": 0.0002325,
+            "first_upload_bytes": 312132,
+            "native_action_search_apply_seconds": 0.0001655,
+            "native_insert_merge_seconds": 0.000139833,
+            "native_query_seconds": 0.0,
+            "native_rebuild_seconds": 4.6584e-05,
+            "native_rhs_seconds": 0.000554166,
+            "output_high_water": 600,
+            "peak_live_rows": 4561,
+            "prepare_seconds": 0.000129749,
+            "reused_slots": 0,
+            "roundtrip_seconds": 0.092156209,
+            "row_events": 4561,
+            "ruleset_runs": 3,
+            "run_seconds": 0.093231666,
+            "setup_seconds": 0.043096959,
+            "shader_compiles": 1,
+            "unchanged_notifications": 0,
+            "union_events": 30,
+            "uploaded_bytes": 365012,
+            "workers": 1
+          },
+          "scope": "Shared native rows and sorted native RHS commit; optional analyzed Cell projections skip certified unique local prefixes. Every uncertified anchor uses the complete query. No virtual storage or arbitrary-Cell coverage claim.",
+          "shared_tables": 7
+        },
+        "verification": {
+          "eclass_mapping": 4238,
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 4868,
+          "tables": {
+            "Arg": 900,
+            "Bop": 330,
+            "Get": 1830,
+            "If": 300,
+            "InFunc": 300,
+            "InIf": 600,
+            "IntT": 1,
+            "LessThan": 1,
+            "Single": 600,
+            "Smax": 1,
+            "Smin": 1,
+            "TCons": 2,
+            "TNil": 1,
+            "TupleT": 1
+          }
+        }
+      },
+      {
+        "name": "cell_certificates",
+        "report": {
+          "audit": false,
+          "backend": "shared-gpu",
+          "cell_work": {
+            "certificate_reuses": 0,
+            "certification_attempts": 0,
+            "certification_probes": 0,
+            "certified_anchor_hits": 0,
+            "invalidated_certificates": 0,
+            "join_probes": 0,
+            "shape_fallbacks": 0,
+            "skipped_join_probes": 0
+          },
+          "cells": {
+            "library": {
+              "analysis_directory": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-resident-verified/eggcc-if-sparse/analyze",
+              "contract": "positive projection plus fully keyed versioned witnesses; no saturation or completeness inferred from a historical match",
+              "loaded_states": [
+                0,
+                1,
+                2,
+                3,
+                4
+              ],
+              "rejected": []
+            },
+            "plan_only": false,
+            "plans": [
+              {
+                "atoms": [
+                  2,
+                  6,
+                  10
+                ],
+                "internal_joins": 2,
+                "plan": 0,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              {
+                "atoms": [
+                  6,
+                  10
+                ],
+                "internal_joins": 1,
+                "plan": 1,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              {
+                "atoms": [
+                  1,
+                  0
+                ],
+                "internal_joins": 1,
+                "plan": 2,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              {
+                "atoms": [
+                  10,
+                  6
+                ],
+                "internal_joins": 1,
+                "plan": 3,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              }
+            ],
+            "profile": false
+          },
+          "device": {
+            "bindings": 0,
+            "cell_cache_bytes": 3538944,
+            "cell_plans": 4,
+            "cell_work": {
+              "certificate_reuses": 0,
+              "certification_attempts": 0,
+              "certification_probes": 0,
+              "certified_anchor_hits": 0,
+              "invalidated_certificates": 0,
+              "join_probes": 0,
+              "shape_fallbacks": 0,
+              "skipped_join_probes": 0
+            },
+            "compacted": false,
+            "compactions": 1,
+            "device": "Apple M3 Max",
+            "device_bytes": 7308880,
+            "epoch": 3,
+            "event_capacity": 16384,
+            "events": 4561,
+            "gpu_seconds": 0.02277775015681982,
+            "old_events": 4501,
+            "queries": 2,
+            "retained_matches": 0,
+            "retries": 0,
+            "row_capacity": 8192,
+            "row_slots": 4561
+          },
+          "live_rows": 4561,
+          "row_slots": 4561,
+          "rules": [
+            {
+              "rule": "(rule ((Single expr))\n      ((union (Get (Single expr) 0) expr))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 0,
+                "dispatches": 1,
+                "emitted_bindings": 600,
+                "quiet_runs": 2
+              }
+            },
+            {
+              "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 0,
+                "dispatches": 3,
+                "emitted_bindings": 15,
+                "quiet_runs": 0
+              }
+            },
+            {
+              "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) j))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) i)))\n      ((union (Get if_e k) (Bop (Smax ) a b)))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 0,
+                "dispatches": 3,
+                "emitted_bindings": 15,
+                "quiet_runs": 0
+              }
+            }
+          ],
+          "runtime": {
+            "audit_seconds": 0.0,
+            "bootstrap_events": 3901,
+            "decode_seconds": 5.0751e-05,
+            "device_seconds": 0.07183975027874112,
+            "dispatches": 3,
+            "downloaded_bytes": 47880,
+            "event_seconds": 0.000195375,
+            "first_upload_bytes": 312132,
+            "native_action_search_apply_seconds": 0.000124417,
+            "native_insert_merge_seconds": 0.000113,
+            "native_query_seconds": 0.0,
+            "native_rebuild_seconds": 4.525e-05,
+            "native_rhs_seconds": 0.000480459,
+            "output_high_water": 600,
+            "peak_live_rows": 4561,
+            "prepare_seconds": 0.00010291699999999999,
+            "reused_slots": 0,
+            "roundtrip_seconds": 0.092255417,
+            "row_events": 4561,
+            "ruleset_runs": 3,
+            "run_seconds": 0.093200709,
+            "setup_seconds": 0.049775291,
+            "shader_compiles": 1,
+            "unchanged_notifications": 0,
+            "union_events": 30,
+            "uploaded_bytes": 365012,
+            "workers": 1
+          },
+          "scope": "Shared native rows and sorted native RHS commit; optional analyzed Cell projections skip certified unique local prefixes. Every uncertified anchor uses the complete query. No virtual storage or arbitrary-Cell coverage claim.",
+          "shared_tables": 7
+        },
+        "verification": {
+          "eclass_mapping": 4238,
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 4868,
+          "tables": {
+            "Arg": 900,
+            "Bop": 330,
+            "Get": 1830,
+            "If": 300,
+            "InFunc": 300,
+            "InIf": 600,
+            "IntT": 1,
+            "LessThan": 1,
+            "Single": 600,
+            "Smax": 1,
+            "Smin": 1,
+            "TCons": 2,
+            "TNil": 1,
+            "TupleT": 1
+          }
+        }
+      }
+    ],
+    "provenance": {
+      "hashes": {
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/experiments/cell_spine/eggcc_if_tiny/source.egg": "c7b1592f3e4aa3049fb9d12889ec826e370f4acfd83ad4c6d384d59a71ff0957",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/target/analyzer/release/examples/cell_prefix_bench": "babab579e6ff08f531215a1b10770cbbeffddd4197456e876cdf76bf28898342",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/shared-family/matrix-cell-final": "2b6307a1730bd7abb428b0fa5864143d05a9c422f25730542fac8f83f31e1f5a",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-prefix-v9-time/heldout.egg": "1f01ffd6ad3f46dc37bc33297d695aeeb2b0321d55d137f89faf7d75b6f2ef8f",
+        "out/cell-resident-verified/eggcc-if-sparse/analyze/catalog/catalog.json": "25684cec6b74cb12c3248aae9cf5771d207efe6e03dfeeb90ae0aaabf07e42a8",
+        "out/cell-resident-verified/eggcc-if-sparse/analyze/catalog/states/state-0000.json": "bba14b1e92619e19da26e76df9857495532a57f994fee5d184253bcc455df570",
+        "out/cell-resident-verified/eggcc-if-sparse/analyze/catalog/states/state-0001.json": "169b34d245121e7cc7c06b5cebb9862b04ec714af7fe850c56f36467f70f8e66",
+        "out/cell-resident-verified/eggcc-if-sparse/analyze/catalog/states/state-0002.json": "8f3d1ca924390f71a1d8e6cb69b2ae4ebea6eeba9dbc30a673cf6f41446b0449",
+        "out/cell-resident-verified/eggcc-if-sparse/analyze/catalog/states/state-0003.json": "2a5a029cd27656e2ed17605264a10beb4a3518aff245f940f317b310a80265b2",
+        "out/cell-resident-verified/eggcc-if-sparse/analyze/catalog/states/state-0004.json": "47035881c3ecd894bc55a4f8a71934f31fe001da8bf7b17cac864bb87ab395b9",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/analyze_program.rs": "66124f2723619f359a80b7cb98e298a918f9411c21f59946c66b2225885b3a6d",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/cell_prefix.rs": "697815bbc211fc884b96ece1337c4238119b10e9bf80332b2f3300e0510c868e",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/compile.rs": "1a5620744bc7d4452fa710f9f97dcd4285d001279f78d3d6b465deae52d8df9a",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/family_program.rs": "76c77f7c22db3ecdfc3cb11603d40360b1a197042cff5dc4e4197cadfb100dc0",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/layout.rs": "4afaa249b461997445666dd8b775c5f7517b021ce2caed813db54f15feba3104",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/lib.rs": "12934438923270c16a810dcdfbc1bef50f849c5426611a582207f3f9e6e6adb8",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/live.rs": "987e4406114999d9abdb2b04c7d53ec4a51fb6efe5a9c7ec55d5c0aeae950fc2",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/live_bake.rs": "cf4705d8b5baa86e456c748578be92ca2114836bb69e846f4f628e71a77a2ee9",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/main.rs": "45f9e76e094f6dc494cab2a22d5a05361e9b1cb877663aeb4f0a4837a6b66096",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/marker_layout.rs": "4a02f1a7785b685f0ca34a85fe81c1e0c43fa02d4573372af128bc53521de2d1",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/matrix.rs": "78cf5f350447ba4be83a11a49e60f046a0cb837f309eef85c2daff3ab4c9ccbc",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/matrix_service.rs": "d469b6957d99233c5c1f29b9e2f995167e55b88f2cf0fdea80a1e3b1fc624ae8",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/numeric.rs": "5001a6b4741b3cdb0922fbd1b937d2ccd7432644e3321fae748bb581e6575b05",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/numeric_lower.rs": "efb014e709d73174d1fc2c46691f4d1eff90c73bedea91482543e9af0537fe1e",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/numeric_native.rs": "9b674ef6b44b56223bf39870c76609b6c53d2779b00ea54b08dff03f1ee9fe30",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/program.rs": "ecf5eccf154360be5b32a9778074cc359686c2c962a29a586425779ce64afbdb",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/public_snapshot.rs": "54666f0d64f9a92710fb4a00fcef3f8a91a9b13cb3f2217baa60dec50433faf7",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/resident.rs": "c32c8705d4a0c3e31230646f46aeb4e1dfe9ae45593b3e539ae983dda6fac945",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/table_live.rs": "ecfb77cae58270f3eb43edf7de2447740f0b9d48eae43f085ca9ee74e17beb39",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/table_native.rs": "bbeef31a75d55552986d68ab0ba0e23a4a843ea5da6b606dcc8497a8ce25430c",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/table_program.rs": "dfa3489f3a1a19b5d98dd55484b6964bb50412067e320bdd74d7bc4036f4c302",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/table_query.rs": "b6a53a584d7f914c8c94a80891fd2b9fed43a727baaa6afeaaf5d67d55f84267",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/matrix.swift": "f9898d93fe853a84e613e2bd8e7c8b59375dd2b188caa80289241abb61c86ae4",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/family.metal": "8d3db95eefc80303f7e09d8de96c59622b5a5286d458da92a51cb00daf8fa4f0",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/family_cells.metal": "693ba1dadbb0878d886c66a7306cf5483d7f59bd7795d61e451f61d42849d898",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/cell-prefix-bench/run.py": "a6af2efe317a4be27a699e2960064e8f9bbb2ec2698541d8d12d10344adedf5d",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/examples/cell_prefix_bench.rs": "8f5af87a32552199cffa35872b7295155c57cbd9092123a445ac7b9617a03c8e",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/examples/support/live_table_bench.rs": "6553992962ea444436182defd13b997cedb54ab6d57f3c86125b27f59094aba3"
+      },
+      "head": "5f46b926ca14047198757627c008b0e5d9ea5625",
+      "instances": 300,
+      "original_rules": 3,
+      "scope": "Original isolated eggcc If/util rules and held-out inputs; not whole raytrace or compiler. Frozen analyzed library, not a new bake."
+    }
+  },
+  "checked": {
+    "analysis": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-resident-verified/eggcc-if-sparse/analyze",
+    "audit": true,
+    "complete": true,
+    "cpu": {
+      "audit": false,
+      "backend": "native-sorted-commit",
+      "cell_work": {},
+      "cells": null,
+      "device": null,
+      "live_rows": 0,
+      "row_slots": 0,
+      "rules": [
+        {
+          "rule": "(rule ((Single expr))\n      ((union (Get (Single expr) 0) expr))\n        :ruleset if-tiny )",
+          "ruleset": "if-tiny",
+          "stats": {
+            "audit_queries": 0,
+            "dispatches": 0,
+            "emitted_bindings": 600,
+            "quiet_runs": 0
+          }
+        },
+        {
+          "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+          "ruleset": "if-tiny",
+          "stats": {
+            "audit_queries": 0,
+            "dispatches": 0,
+            "emitted_bindings": 15,
+            "quiet_runs": 0
+          }
+        },
+        {
+          "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) j))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) i)))\n      ((union (Get if_e k) (Bop (Smax ) a b)))\n        :ruleset if-tiny )",
+          "ruleset": "if-tiny",
+          "stats": {
+            "audit_queries": 0,
+            "dispatches": 0,
+            "emitted_bindings": 15,
+            "quiet_runs": 0
+          }
+        }
+      ],
+      "runtime": {
+        "audit_seconds": 0.0,
+        "bootstrap_events": 0,
+        "decode_seconds": 0.0,
+        "device_seconds": 0.0,
+        "dispatches": 0,
+        "downloaded_bytes": 0,
+        "event_seconds": 8.3e-08,
+        "first_upload_bytes": 0,
+        "native_action_search_apply_seconds": 6.4542e-05,
+        "native_insert_merge_seconds": 4.2291e-05,
+        "native_query_seconds": 0.008747041,
+        "native_rebuild_seconds": 3.775e-05,
+        "native_rhs_seconds": 0.000282917,
+        "output_high_water": 0,
+        "peak_live_rows": 0,
+        "prepare_seconds": 0.0,
+        "reused_slots": 0,
+        "roundtrip_seconds": 0.0,
+        "row_events": 0,
+        "ruleset_runs": 3,
+        "run_seconds": 0.009049958,
+        "setup_seconds": 0.001246583,
+        "shader_compiles": 0,
+        "unchanged_notifications": 0,
+        "union_events": 0,
+        "uploaded_bytes": 0,
+        "workers": 0
+      },
+      "scope": "Shared native rows and sorted native RHS commit; optional analyzed Cell projections skip certified unique local prefixes. Every uncertified anchor uses the complete query. No virtual storage or arbitrary-Cell coverage claim.",
+      "shared_tables": 0
+    },
+    "label": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-prefix-v9-check/heldout.egg",
+    "profile": false,
+    "scope": "Actual native schedule and RHS, same sorted commit; analyzed positive projections plus exhaustive current singleton checks. No pristine or full-eggcc speedup claim. All unknown/ambiguous instances retain full queries.",
+    "variants": [
+      {
+        "name": "full_gpu",
+        "report": {
+          "audit": true,
+          "backend": "shared-gpu",
+          "cell_work": {
+            "certificate_reuses": 0,
+            "certification_attempts": 0,
+            "certification_probes": 0,
+            "certified_anchor_hits": 0,
+            "invalidated_certificates": 0,
+            "join_probes": 0,
+            "shape_fallbacks": 0,
+            "skipped_join_probes": 0
+          },
+          "cells": {
+            "library": null,
+            "plan_only": false,
+            "plans": [],
+            "profile": false
+          },
+          "device": {
+            "bindings": 0,
+            "cell_cache_bytes": 4,
+            "cell_plans": 0,
+            "cell_work": {
+              "certificate_reuses": 0,
+              "certification_attempts": 0,
+              "certification_probes": 0,
+              "certified_anchor_hits": 0,
+              "invalidated_certificates": 0,
+              "join_probes": 0,
+              "shape_fallbacks": 0,
+              "skipped_join_probes": 0
+            },
+            "compacted": false,
+            "compactions": 1,
+            "device": "Apple M3 Max",
+            "device_bytes": 3766868,
+            "epoch": 3,
+            "event_capacity": 16384,
+            "events": 4561,
+            "gpu_seconds": 0.01922445837408304,
+            "old_events": 4501,
+            "queries": 2,
+            "retained_matches": 0,
+            "retries": 0,
+            "row_capacity": 8192,
+            "row_slots": 4561
+          },
+          "live_rows": 4561,
+          "row_slots": 4561,
+          "rules": [
+            {
+              "rule": "(rule ((Single expr))\n      ((union (Get (Single expr) 0) expr))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 3,
+                "dispatches": 1,
+                "emitted_bindings": 600,
+                "quiet_runs": 2
+              }
+            },
+            {
+              "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 3,
+                "dispatches": 3,
+                "emitted_bindings": 15,
+                "quiet_runs": 0
+              }
+            },
+            {
+              "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) j))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) i)))\n      ((union (Get if_e k) (Bop (Smax ) a b)))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 3,
+                "dispatches": 3,
+                "emitted_bindings": 15,
+                "quiet_runs": 0
+              }
+            }
+          ],
+          "runtime": {
+            "audit_seconds": 0.008835374,
+            "bootstrap_events": 3901,
+            "decode_seconds": 5.3917e-05,
+            "device_seconds": 0.06456554168835282,
+            "dispatches": 3,
+            "downloaded_bytes": 47880,
+            "event_seconds": 0.00021141699999999999,
+            "first_upload_bytes": 312132,
+            "native_action_search_apply_seconds": 7.4709e-05,
+            "native_insert_merge_seconds": 9.4958e-05,
+            "native_query_seconds": 0.0,
+            "native_rebuild_seconds": 4.4167e-05,
+            "native_rhs_seconds": 0.000372999,
+            "output_high_water": 600,
+            "peak_live_rows": 4561,
+            "prepare_seconds": 0.00010058300000000001,
+            "reused_slots": 0,
+            "roundtrip_seconds": 0.091209625,
+            "row_events": 4561,
+            "ruleset_runs": 3,
+            "run_seconds": 0.10088825,
+            "setup_seconds": 0.038421791,
+            "shader_compiles": 1,
+            "unchanged_notifications": 0,
+            "union_events": 30,
+            "uploaded_bytes": 365012,
+            "workers": 1
+          },
+          "scope": "Shared native rows and sorted native RHS commit; optional analyzed Cell projections skip certified unique local prefixes. Every uncertified anchor uses the complete query. No virtual storage or arbitrary-Cell coverage claim.",
+          "shared_tables": 7
+        },
+        "verification": {
+          "eclass_mapping": 4238,
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 4868,
+          "tables": {
+            "Arg": 900,
+            "Bop": 330,
+            "Get": 1830,
+            "If": 300,
+            "InFunc": 300,
+            "InIf": 600,
+            "IntT": 1,
+            "LessThan": 1,
+            "Single": 600,
+            "Smax": 1,
+            "Smin": 1,
+            "TCons": 2,
+            "TNil": 1,
+            "TupleT": 1
+          }
+        }
+      },
+      {
+        "name": "cell_order_only",
+        "report": {
+          "audit": true,
+          "backend": "shared-gpu",
+          "cell_work": {
+            "certificate_reuses": 0,
+            "certification_attempts": 0,
+            "certification_probes": 0,
+            "certified_anchor_hits": 0,
+            "invalidated_certificates": 0,
+            "join_probes": 0,
+            "shape_fallbacks": 0,
+            "skipped_join_probes": 0
+          },
+          "cells": {
+            "library": {
+              "analysis_directory": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-resident-verified/eggcc-if-sparse/analyze",
+              "contract": "positive projection plus fully keyed versioned witnesses; no saturation or completeness inferred from a historical match",
+              "loaded_states": [
+                0,
+                1,
+                2,
+                3,
+                4
+              ],
+              "rejected": []
+            },
+            "plan_only": true,
+            "plans": [
+              {
+                "atoms": [
+                  2,
+                  6,
+                  10
+                ],
+                "internal_joins": 2,
+                "plan": 0,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              {
+                "atoms": [
+                  6,
+                  10
+                ],
+                "internal_joins": 1,
+                "plan": 1,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              {
+                "atoms": [
+                  1,
+                  0
+                ],
+                "internal_joins": 1,
+                "plan": 2,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              {
+                "atoms": [
+                  10,
+                  6
+                ],
+                "internal_joins": 1,
+                "plan": 3,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              }
+            ],
+            "profile": false
+          },
+          "device": {
+            "bindings": 0,
+            "cell_cache_bytes": 4,
+            "cell_plans": 0,
+            "cell_work": {
+              "certificate_reuses": 0,
+              "certification_attempts": 0,
+              "certification_probes": 0,
+              "certified_anchor_hits": 0,
+              "invalidated_certificates": 0,
+              "join_probes": 0,
+              "shape_fallbacks": 0,
+              "skipped_join_probes": 0
+            },
+            "compacted": false,
+            "compactions": 1,
+            "device": "Apple M3 Max",
+            "device_bytes": 3769940,
+            "epoch": 3,
+            "event_capacity": 16384,
+            "events": 4561,
+            "gpu_seconds": 0.02037025010213256,
+            "old_events": 4501,
+            "queries": 2,
+            "retained_matches": 0,
+            "retries": 0,
+            "row_capacity": 8192,
+            "row_slots": 4561
+          },
+          "live_rows": 4561,
+          "row_slots": 4561,
+          "rules": [
+            {
+              "rule": "(rule ((Single expr))\n      ((union (Get (Single expr) 0) expr))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 3,
+                "dispatches": 1,
+                "emitted_bindings": 600,
+                "quiet_runs": 2
+              }
+            },
+            {
+              "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 3,
+                "dispatches": 3,
+                "emitted_bindings": 15,
+                "quiet_runs": 0
+              }
+            },
+            {
+              "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) j))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) i)))\n      ((union (Get if_e k) (Bop (Smax ) a b)))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 3,
+                "dispatches": 3,
+                "emitted_bindings": 15,
+                "quiet_runs": 0
+              }
+            }
+          ],
+          "runtime": {
+            "audit_seconds": 0.008635459,
+            "bootstrap_events": 3901,
+            "decode_seconds": 5.2917e-05,
+            "device_seconds": 0.06799962464720011,
+            "dispatches": 3,
+            "downloaded_bytes": 47880,
+            "event_seconds": 0.000185584,
+            "first_upload_bytes": 312132,
+            "native_action_search_apply_seconds": 8.3625e-05,
+            "native_insert_merge_seconds": 0.00010237500000000001,
+            "native_query_seconds": 0.0,
+            "native_rebuild_seconds": 4.7917e-05,
+            "native_rhs_seconds": 0.00038358299999999995,
+            "output_high_water": 600,
+            "peak_live_rows": 4561,
+            "prepare_seconds": 0.00010241599999999999,
+            "reused_slots": 0,
+            "roundtrip_seconds": 0.086307207,
+            "row_events": 4561,
+            "ruleset_runs": 3,
+            "run_seconds": 0.095781875,
+            "setup_seconds": 0.042992791,
+            "shader_compiles": 1,
+            "unchanged_notifications": 0,
+            "union_events": 30,
+            "uploaded_bytes": 365012,
+            "workers": 1
+          },
+          "scope": "Shared native rows and sorted native RHS commit; optional analyzed Cell projections skip certified unique local prefixes. Every uncertified anchor uses the complete query. No virtual storage or arbitrary-Cell coverage claim.",
+          "shared_tables": 7
+        },
+        "verification": {
+          "eclass_mapping": 4238,
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 4868,
+          "tables": {
+            "Arg": 900,
+            "Bop": 330,
+            "Get": 1830,
+            "If": 300,
+            "InFunc": 300,
+            "InIf": 600,
+            "IntT": 1,
+            "LessThan": 1,
+            "Single": 600,
+            "Smax": 1,
+            "Smin": 1,
+            "TCons": 2,
+            "TNil": 1,
+            "TupleT": 1
+          }
+        }
+      },
+      {
+        "name": "cell_certificates",
+        "report": {
+          "audit": true,
+          "backend": "shared-gpu",
+          "cell_work": {
+            "certificate_reuses": 0,
+            "certification_attempts": 0,
+            "certification_probes": 0,
+            "certified_anchor_hits": 0,
+            "invalidated_certificates": 0,
+            "join_probes": 0,
+            "shape_fallbacks": 0,
+            "skipped_join_probes": 0
+          },
+          "cells": {
+            "library": {
+              "analysis_directory": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-resident-verified/eggcc-if-sparse/analyze",
+              "contract": "positive projection plus fully keyed versioned witnesses; no saturation or completeness inferred from a historical match",
+              "loaded_states": [
+                0,
+                1,
+                2,
+                3,
+                4
+              ],
+              "rejected": []
+            },
+            "plan_only": false,
+            "plans": [
+              {
+                "atoms": [
+                  2,
+                  6,
+                  10
+                ],
+                "internal_joins": 2,
+                "plan": 0,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              {
+                "atoms": [
+                  6,
+                  10
+                ],
+                "internal_joins": 1,
+                "plan": 1,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              {
+                "atoms": [
+                  1,
+                  0
+                ],
+                "internal_joins": 1,
+                "plan": 2,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              {
+                "atoms": [
+                  10,
+                  6
+                ],
+                "internal_joins": 1,
+                "plan": 3,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              }
+            ],
+            "profile": false
+          },
+          "device": {
+            "bindings": 0,
+            "cell_cache_bytes": 3538944,
+            "cell_plans": 4,
+            "cell_work": {
+              "certificate_reuses": 0,
+              "certification_attempts": 0,
+              "certification_probes": 0,
+              "certified_anchor_hits": 0,
+              "invalidated_certificates": 0,
+              "join_probes": 0,
+              "shape_fallbacks": 0,
+              "skipped_join_probes": 0
+            },
+            "compacted": false,
+            "compactions": 1,
+            "device": "Apple M3 Max",
+            "device_bytes": 7308880,
+            "epoch": 3,
+            "event_capacity": 16384,
+            "events": 4561,
+            "gpu_seconds": 0.02140425005927682,
+            "old_events": 4501,
+            "queries": 2,
+            "retained_matches": 0,
+            "retries": 0,
+            "row_capacity": 8192,
+            "row_slots": 4561
+          },
+          "live_rows": 4561,
+          "row_slots": 4561,
+          "rules": [
+            {
+              "rule": "(rule ((Single expr))\n      ((union (Get (Single expr) 0) expr))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 3,
+                "dispatches": 1,
+                "emitted_bindings": 600,
+                "quiet_runs": 2
+              }
+            },
+            {
+              "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 3,
+                "dispatches": 3,
+                "emitted_bindings": 15,
+                "quiet_runs": 0
+              }
+            },
+            {
+              "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) j))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) i)))\n      ((union (Get if_e k) (Bop (Smax ) a b)))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 3,
+                "dispatches": 3,
+                "emitted_bindings": 15,
+                "quiet_runs": 0
+              }
+            }
+          ],
+          "runtime": {
+            "audit_seconds": 0.00913625,
+            "bootstrap_events": 3901,
+            "decode_seconds": 4.7792e-05,
+            "device_seconds": 0.06594091700389981,
+            "dispatches": 3,
+            "downloaded_bytes": 47880,
+            "event_seconds": 0.00017645899999999999,
+            "first_upload_bytes": 312132,
+            "native_action_search_apply_seconds": 8.6375e-05,
+            "native_insert_merge_seconds": 9.3125e-05,
+            "native_query_seconds": 0.0,
+            "native_rebuild_seconds": 4.5375e-05,
+            "native_rhs_seconds": 0.000370833,
+            "output_high_water": 600,
+            "peak_live_rows": 4561,
+            "prepare_seconds": 0.00011133399999999999,
+            "reused_slots": 0,
+            "roundtrip_seconds": 0.08600525,
+            "row_events": 4561,
+            "ruleset_runs": 3,
+            "run_seconds": 0.095958625,
+            "setup_seconds": 0.040354541,
+            "shader_compiles": 1,
+            "unchanged_notifications": 0,
+            "union_events": 30,
+            "uploaded_bytes": 365012,
+            "workers": 1
+          },
+          "scope": "Shared native rows and sorted native RHS commit; optional analyzed Cell projections skip certified unique local prefixes. Every uncertified anchor uses the complete query. No virtual storage or arbitrary-Cell coverage claim.",
+          "shared_tables": 7
+        },
+        "verification": {
+          "eclass_mapping": 4238,
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 4868,
+          "tables": {
+            "Arg": 900,
+            "Bop": 330,
+            "Get": 1830,
+            "If": 300,
+            "InFunc": 300,
+            "InIf": 600,
+            "IntT": 1,
+            "LessThan": 1,
+            "Single": 600,
+            "Smax": 1,
+            "Smin": 1,
+            "TCons": 2,
+            "TNil": 1,
+            "TupleT": 1
+          }
+        }
+      }
+    ],
+    "provenance": {
+      "hashes": {
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/experiments/cell_spine/eggcc_if_tiny/source.egg": "c7b1592f3e4aa3049fb9d12889ec826e370f4acfd83ad4c6d384d59a71ff0957",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/target/analyzer/release/examples/cell_prefix_bench": "babab579e6ff08f531215a1b10770cbbeffddd4197456e876cdf76bf28898342",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/shared-family/matrix-cell-final": "2b6307a1730bd7abb428b0fa5864143d05a9c422f25730542fac8f83f31e1f5a",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-prefix-v9-check/heldout.egg": "1f01ffd6ad3f46dc37bc33297d695aeeb2b0321d55d137f89faf7d75b6f2ef8f",
+        "out/cell-resident-verified/eggcc-if-sparse/analyze/catalog/catalog.json": "25684cec6b74cb12c3248aae9cf5771d207efe6e03dfeeb90ae0aaabf07e42a8",
+        "out/cell-resident-verified/eggcc-if-sparse/analyze/catalog/states/state-0000.json": "bba14b1e92619e19da26e76df9857495532a57f994fee5d184253bcc455df570",
+        "out/cell-resident-verified/eggcc-if-sparse/analyze/catalog/states/state-0001.json": "169b34d245121e7cc7c06b5cebb9862b04ec714af7fe850c56f36467f70f8e66",
+        "out/cell-resident-verified/eggcc-if-sparse/analyze/catalog/states/state-0002.json": "8f3d1ca924390f71a1d8e6cb69b2ae4ebea6eeba9dbc30a673cf6f41446b0449",
+        "out/cell-resident-verified/eggcc-if-sparse/analyze/catalog/states/state-0003.json": "2a5a029cd27656e2ed17605264a10beb4a3518aff245f940f317b310a80265b2",
+        "out/cell-resident-verified/eggcc-if-sparse/analyze/catalog/states/state-0004.json": "47035881c3ecd894bc55a4f8a71934f31fe001da8bf7b17cac864bb87ab395b9",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/analyze_program.rs": "66124f2723619f359a80b7cb98e298a918f9411c21f59946c66b2225885b3a6d",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/cell_prefix.rs": "697815bbc211fc884b96ece1337c4238119b10e9bf80332b2f3300e0510c868e",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/compile.rs": "1a5620744bc7d4452fa710f9f97dcd4285d001279f78d3d6b465deae52d8df9a",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/family_program.rs": "76c77f7c22db3ecdfc3cb11603d40360b1a197042cff5dc4e4197cadfb100dc0",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/layout.rs": "4afaa249b461997445666dd8b775c5f7517b021ce2caed813db54f15feba3104",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/lib.rs": "12934438923270c16a810dcdfbc1bef50f849c5426611a582207f3f9e6e6adb8",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/live.rs": "987e4406114999d9abdb2b04c7d53ec4a51fb6efe5a9c7ec55d5c0aeae950fc2",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/live_bake.rs": "cf4705d8b5baa86e456c748578be92ca2114836bb69e846f4f628e71a77a2ee9",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/main.rs": "45f9e76e094f6dc494cab2a22d5a05361e9b1cb877663aeb4f0a4837a6b66096",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/marker_layout.rs": "4a02f1a7785b685f0ca34a85fe81c1e0c43fa02d4573372af128bc53521de2d1",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/matrix.rs": "78cf5f350447ba4be83a11a49e60f046a0cb837f309eef85c2daff3ab4c9ccbc",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/matrix_service.rs": "d469b6957d99233c5c1f29b9e2f995167e55b88f2cf0fdea80a1e3b1fc624ae8",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/numeric.rs": "5001a6b4741b3cdb0922fbd1b937d2ccd7432644e3321fae748bb581e6575b05",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/numeric_lower.rs": "efb014e709d73174d1fc2c46691f4d1eff90c73bedea91482543e9af0537fe1e",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/numeric_native.rs": "9b674ef6b44b56223bf39870c76609b6c53d2779b00ea54b08dff03f1ee9fe30",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/program.rs": "ecf5eccf154360be5b32a9778074cc359686c2c962a29a586425779ce64afbdb",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/public_snapshot.rs": "54666f0d64f9a92710fb4a00fcef3f8a91a9b13cb3f2217baa60dec50433faf7",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/resident.rs": "c32c8705d4a0c3e31230646f46aeb4e1dfe9ae45593b3e539ae983dda6fac945",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/table_live.rs": "ecfb77cae58270f3eb43edf7de2447740f0b9d48eae43f085ca9ee74e17beb39",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/table_native.rs": "bbeef31a75d55552986d68ab0ba0e23a4a843ea5da6b606dcc8497a8ce25430c",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/table_program.rs": "dfa3489f3a1a19b5d98dd55484b6964bb50412067e320bdd74d7bc4036f4c302",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/table_query.rs": "b6a53a584d7f914c8c94a80891fd2b9fed43a727baaa6afeaaf5d67d55f84267",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/matrix.swift": "f9898d93fe853a84e613e2bd8e7c8b59375dd2b188caa80289241abb61c86ae4",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/family.metal": "8d3db95eefc80303f7e09d8de96c59622b5a5286d458da92a51cb00daf8fa4f0",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/family_cells.metal": "693ba1dadbb0878d886c66a7306cf5483d7f59bd7795d61e451f61d42849d898",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/cell-prefix-bench/run.py": "a6af2efe317a4be27a699e2960064e8f9bbb2ec2698541d8d12d10344adedf5d",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/examples/cell_prefix_bench.rs": "8f5af87a32552199cffa35872b7295155c57cbd9092123a445ac7b9617a03c8e",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/examples/support/live_table_bench.rs": "6553992962ea444436182defd13b997cedb54ab6d57f3c86125b27f59094aba3"
+      },
+      "head": "5f46b926ca14047198757627c008b0e5d9ea5625",
+      "instances": 300,
+      "original_rules": 3,
+      "scope": "Original isolated eggcc If/util rules and held-out inputs; not whole raytrace or compiler. Frozen analyzed library, not a new bake."
+    }
+  },
+  "profiled": {
+    "analysis": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-resident-verified/eggcc-if-sparse/analyze",
+    "audit": false,
+    "complete": true,
+    "cpu": {
+      "audit": false,
+      "backend": "native-sorted-commit",
+      "cell_work": {},
+      "cells": null,
+      "device": null,
+      "live_rows": 0,
+      "row_slots": 0,
+      "rules": [
+        {
+          "rule": "(rule ((Single expr))\n      ((union (Get (Single expr) 0) expr))\n        :ruleset if-tiny )",
+          "ruleset": "if-tiny",
+          "stats": {
+            "audit_queries": 0,
+            "dispatches": 0,
+            "emitted_bindings": 600,
+            "quiet_runs": 0
+          }
+        },
+        {
+          "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+          "ruleset": "if-tiny",
+          "stats": {
+            "audit_queries": 0,
+            "dispatches": 0,
+            "emitted_bindings": 15,
+            "quiet_runs": 0
+          }
+        },
+        {
+          "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) j))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) i)))\n      ((union (Get if_e k) (Bop (Smax ) a b)))\n        :ruleset if-tiny )",
+          "ruleset": "if-tiny",
+          "stats": {
+            "audit_queries": 0,
+            "dispatches": 0,
+            "emitted_bindings": 15,
+            "quiet_runs": 0
+          }
+        }
+      ],
+      "runtime": {
+        "audit_seconds": 0.0,
+        "bootstrap_events": 0,
+        "decode_seconds": 0.0,
+        "device_seconds": 0.0,
+        "dispatches": 0,
+        "downloaded_bytes": 0,
+        "event_seconds": 4.2e-08,
+        "first_upload_bytes": 0,
+        "native_action_search_apply_seconds": 7.55e-05,
+        "native_insert_merge_seconds": 4.1959e-05,
+        "native_query_seconds": 0.009440500000000001,
+        "native_rebuild_seconds": 4.225e-05,
+        "native_rhs_seconds": 0.000313416,
+        "output_high_water": 0,
+        "peak_live_rows": 0,
+        "prepare_seconds": 0.0,
+        "reused_slots": 0,
+        "roundtrip_seconds": 0.0,
+        "row_events": 0,
+        "ruleset_runs": 3,
+        "run_seconds": 0.00977625,
+        "setup_seconds": 0.001444,
+        "shader_compiles": 0,
+        "unchanged_notifications": 0,
+        "union_events": 0,
+        "uploaded_bytes": 0,
+        "workers": 0
+      },
+      "scope": "Shared native rows and sorted native RHS commit; optional analyzed Cell projections skip certified unique local prefixes. Every uncertified anchor uses the complete query. No virtual storage or arbitrary-Cell coverage claim.",
+      "shared_tables": 0
+    },
+    "label": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-prefix-v9-profile/heldout.egg",
+    "profile": true,
+    "scope": "Actual native schedule and RHS, same sorted commit; analyzed positive projections plus exhaustive current singleton checks. No pristine or full-eggcc speedup claim. All unknown/ambiguous instances retain full queries.",
+    "variants": [
+      {
+        "name": "full_gpu",
+        "report": {
+          "audit": false,
+          "backend": "shared-gpu",
+          "cell_work": {
+            "certificate_reuses": 0,
+            "certification_attempts": 0,
+            "certification_probes": 0,
+            "certified_anchor_hits": 0,
+            "invalidated_certificates": 0,
+            "join_probes": 3842672,
+            "shape_fallbacks": 0,
+            "skipped_join_probes": 0
+          },
+          "cells": {
+            "library": null,
+            "plan_only": false,
+            "plans": [],
+            "profile": true
+          },
+          "device": {
+            "bindings": 0,
+            "cell_cache_bytes": 4,
+            "cell_plans": 0,
+            "cell_work": {
+              "certificate_reuses": 0,
+              "certification_attempts": 0,
+              "certification_probes": 0,
+              "certified_anchor_hits": 0,
+              "invalidated_certificates": 0,
+              "join_probes": 276270,
+              "shape_fallbacks": 0,
+              "skipped_join_probes": 0
+            },
+            "compacted": false,
+            "compactions": 1,
+            "device": "Apple M3 Max",
+            "device_bytes": 3766868,
+            "epoch": 3,
+            "event_capacity": 16384,
+            "events": 4561,
+            "gpu_seconds": 0.02087150001898408,
+            "old_events": 4501,
+            "queries": 2,
+            "retained_matches": 0,
+            "retries": 0,
+            "row_capacity": 8192,
+            "row_slots": 4561
+          },
+          "live_rows": 4561,
+          "row_slots": 4561,
+          "rules": [
+            {
+              "rule": "(rule ((Single expr))\n      ((union (Get (Single expr) 0) expr))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 0,
+                "dispatches": 1,
+                "emitted_bindings": 600,
+                "quiet_runs": 2
+              }
+            },
+            {
+              "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 0,
+                "dispatches": 3,
+                "emitted_bindings": 15,
+                "quiet_runs": 0
+              }
+            },
+            {
+              "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) j))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) i)))\n      ((union (Get if_e k) (Bop (Smax ) a b)))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 0,
+                "dispatches": 3,
+                "emitted_bindings": 15,
+                "quiet_runs": 0
+              }
+            }
+          ],
+          "runtime": {
+            "audit_seconds": 0.0,
+            "bootstrap_events": 3901,
+            "decode_seconds": 5.1209e-05,
+            "device_seconds": 0.06656591687351465,
+            "dispatches": 3,
+            "downloaded_bytes": 47880,
+            "event_seconds": 0.00024475,
+            "first_upload_bytes": 312132,
+            "native_action_search_apply_seconds": 8.595900000000001e-05,
+            "native_insert_merge_seconds": 0.000142916,
+            "native_query_seconds": 0.0,
+            "native_rebuild_seconds": 4.0666e-05,
+            "native_rhs_seconds": 0.000451792,
+            "output_high_water": 600,
+            "peak_live_rows": 4561,
+            "prepare_seconds": 0.00012475099999999999,
+            "reused_slots": 0,
+            "roundtrip_seconds": 0.09180812499999999,
+            "row_events": 4561,
+            "ruleset_runs": 3,
+            "run_seconds": 0.0927865,
+            "setup_seconds": 0.050380958,
+            "shader_compiles": 1,
+            "unchanged_notifications": 0,
+            "union_events": 30,
+            "uploaded_bytes": 365012,
+            "workers": 1
+          },
+          "scope": "Shared native rows and sorted native RHS commit; optional analyzed Cell projections skip certified unique local prefixes. Every uncertified anchor uses the complete query. No virtual storage or arbitrary-Cell coverage claim.",
+          "shared_tables": 7
+        },
+        "verification": {
+          "eclass_mapping": 4238,
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 4868,
+          "tables": {
+            "Arg": 900,
+            "Bop": 330,
+            "Get": 1830,
+            "If": 300,
+            "InFunc": 300,
+            "InIf": 600,
+            "IntT": 1,
+            "LessThan": 1,
+            "Single": 600,
+            "Smax": 1,
+            "Smin": 1,
+            "TCons": 2,
+            "TNil": 1,
+            "TupleT": 1
+          }
+        }
+      },
+      {
+        "name": "cell_order_only",
+        "report": {
+          "audit": false,
+          "backend": "shared-gpu",
+          "cell_work": {
+            "certificate_reuses": 0,
+            "certification_attempts": 0,
+            "certification_probes": 0,
+            "certified_anchor_hits": 0,
+            "invalidated_certificates": 0,
+            "join_probes": 4594172,
+            "shape_fallbacks": 0,
+            "skipped_join_probes": 0
+          },
+          "cells": {
+            "library": {
+              "analysis_directory": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-resident-verified/eggcc-if-sparse/analyze",
+              "contract": "positive projection plus fully keyed versioned witnesses; no saturation or completeness inferred from a historical match",
+              "loaded_states": [
+                0,
+                1,
+                2,
+                3,
+                4
+              ],
+              "rejected": []
+            },
+            "plan_only": true,
+            "plans": [
+              {
+                "atoms": [
+                  2,
+                  6,
+                  10
+                ],
+                "internal_joins": 2,
+                "plan": 0,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              {
+                "atoms": [
+                  6,
+                  10
+                ],
+                "internal_joins": 1,
+                "plan": 1,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              {
+                "atoms": [
+                  1,
+                  0
+                ],
+                "internal_joins": 1,
+                "plan": 2,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              {
+                "atoms": [
+                  10,
+                  6
+                ],
+                "internal_joins": 1,
+                "plan": 3,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              }
+            ],
+            "profile": true
+          },
+          "device": {
+            "bindings": 0,
+            "cell_cache_bytes": 4,
+            "cell_plans": 0,
+            "cell_work": {
+              "certificate_reuses": 0,
+              "certification_attempts": 0,
+              "certification_probes": 0,
+              "certified_anchor_hits": 0,
+              "invalidated_certificates": 0,
+              "join_probes": 303270,
+              "shape_fallbacks": 0,
+              "skipped_join_probes": 0
+            },
+            "compacted": false,
+            "compactions": 1,
+            "device": "Apple M3 Max",
+            "device_bytes": 3769940,
+            "epoch": 3,
+            "event_capacity": 16384,
+            "events": 4561,
+            "gpu_seconds": 0.02254062471911311,
+            "old_events": 4501,
+            "queries": 2,
+            "retained_matches": 0,
+            "retries": 0,
+            "row_capacity": 8192,
+            "row_slots": 4561
+          },
+          "live_rows": 4561,
+          "row_slots": 4561,
+          "rules": [
+            {
+              "rule": "(rule ((Single expr))\n      ((union (Get (Single expr) 0) expr))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 0,
+                "dispatches": 1,
+                "emitted_bindings": 600,
+                "quiet_runs": 2
+              }
+            },
+            {
+              "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 0,
+                "dispatches": 3,
+                "emitted_bindings": 15,
+                "quiet_runs": 0
+              }
+            },
+            {
+              "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) j))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) i)))\n      ((union (Get if_e k) (Bop (Smax ) a b)))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 0,
+                "dispatches": 3,
+                "emitted_bindings": 15,
+                "quiet_runs": 0
+              }
+            }
+          ],
+          "runtime": {
+            "audit_seconds": 0.0,
+            "bootstrap_events": 3901,
+            "decode_seconds": 4.525e-05,
+            "device_seconds": 0.07461708318442106,
+            "dispatches": 3,
+            "downloaded_bytes": 47880,
+            "event_seconds": 0.00019504,
+            "first_upload_bytes": 312132,
+            "native_action_search_apply_seconds": 0.000117958,
+            "native_insert_merge_seconds": 0.00010424999999999999,
+            "native_query_seconds": 0.0,
+            "native_rebuild_seconds": 4.2667e-05,
+            "native_rhs_seconds": 0.00045183399999999997,
+            "output_high_water": 600,
+            "peak_live_rows": 4561,
+            "prepare_seconds": 0.00011491600000000001,
+            "reused_slots": 0,
+            "roundtrip_seconds": 0.094062749,
+            "row_events": 4561,
+            "ruleset_runs": 3,
+            "run_seconds": 0.094976292,
+            "setup_seconds": 0.051808959,
+            "shader_compiles": 1,
+            "unchanged_notifications": 0,
+            "union_events": 30,
+            "uploaded_bytes": 365012,
+            "workers": 1
+          },
+          "scope": "Shared native rows and sorted native RHS commit; optional analyzed Cell projections skip certified unique local prefixes. Every uncertified anchor uses the complete query. No virtual storage or arbitrary-Cell coverage claim.",
+          "shared_tables": 7
+        },
+        "verification": {
+          "eclass_mapping": 4238,
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 4868,
+          "tables": {
+            "Arg": 900,
+            "Bop": 330,
+            "Get": 1830,
+            "If": 300,
+            "InFunc": 300,
+            "InIf": 600,
+            "IntT": 1,
+            "LessThan": 1,
+            "Single": 600,
+            "Smax": 1,
+            "Smin": 1,
+            "TCons": 2,
+            "TNil": 1,
+            "TupleT": 1
+          }
+        }
+      },
+      {
+        "name": "cell_certificates",
+        "report": {
+          "audit": false,
+          "backend": "shared-gpu",
+          "cell_work": {
+            "certificate_reuses": 2400,
+            "certification_attempts": 1230,
+            "certification_probes": 1530,
+            "certified_anchor_hits": 760200,
+            "invalidated_certificates": 0,
+            "join_probes": 3452372,
+            "shape_fallbacks": 0,
+            "skipped_join_probes": 1140600
+          },
+          "cells": {
+            "library": {
+              "analysis_directory": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-resident-verified/eggcc-if-sparse/analyze",
+              "contract": "positive projection plus fully keyed versioned witnesses; no saturation or completeness inferred from a historical match",
+              "loaded_states": [
+                0,
+                1,
+                2,
+                3,
+                4
+              ],
+              "rejected": []
+            },
+            "plan_only": false,
+            "plans": [
+              {
+                "atoms": [
+                  2,
+                  6,
+                  10
+                ],
+                "internal_joins": 2,
+                "plan": 0,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              {
+                "atoms": [
+                  6,
+                  10
+                ],
+                "internal_joins": 1,
+                "plan": 1,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              {
+                "atoms": [
+                  1,
+                  0
+                ],
+                "internal_joins": 1,
+                "plan": 2,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              },
+              {
+                "atoms": [
+                  10,
+                  6
+                ],
+                "internal_joins": 1,
+                "plan": 3,
+                "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+                "states": [
+                  1,
+                  2,
+                  3,
+                  4
+                ]
+              }
+            ],
+            "profile": true
+          },
+          "device": {
+            "bindings": 0,
+            "cell_cache_bytes": 3538944,
+            "cell_plans": 4,
+            "cell_work": {
+              "certificate_reuses": 1200,
+              "certification_attempts": 30,
+              "certification_probes": 30,
+              "certified_anchor_hits": 36000,
+              "invalidated_certificates": 0,
+              "join_probes": 249270,
+              "shape_fallbacks": 0,
+              "skipped_join_probes": 54000
+            },
+            "compacted": false,
+            "compactions": 1,
+            "device": "Apple M3 Max",
+            "device_bytes": 7308880,
+            "epoch": 3,
+            "event_capacity": 16384,
+            "events": 4561,
+            "gpu_seconds": 0.023715583607554436,
+            "old_events": 4501,
+            "queries": 2,
+            "retained_matches": 0,
+            "retries": 0,
+            "row_capacity": 8192,
+            "row_slots": 4561
+          },
+          "live_rows": 4561,
+          "row_slots": 4561,
+          "rules": [
+            {
+              "rule": "(rule ((Single expr))\n      ((union (Get (Single expr) 0) expr))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 0,
+                "dispatches": 1,
+                "emitted_bindings": 600,
+                "quiet_runs": 2
+              }
+            },
+            {
+              "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) i))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) j)))\n      ((union (Get if_e k) (Bop (Smin ) a b)))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 0,
+                "dispatches": 3,
+                "emitted_bindings": 15,
+                "quiet_runs": 0
+              }
+            },
+            {
+              "rule": "(rule ((= pred (Bop (LessThan ) a b))\n       (= if_e (If pred inputs thn els))\n       (= a (Get inputs i))\n       (= b (Get inputs j))\n       (= (Get thn k) (Get (Arg ty (InIf true pred inputs)) j))\n       (= (Get els k) (Get (Arg ty (InIf false pred inputs)) i)))\n      ((union (Get if_e k) (Bop (Smax ) a b)))\n        :ruleset if-tiny )",
+              "ruleset": "if-tiny",
+              "stats": {
+                "audit_queries": 0,
+                "dispatches": 3,
+                "emitted_bindings": 15,
+                "quiet_runs": 0
+              }
+            }
+          ],
+          "runtime": {
+            "audit_seconds": 0.0,
+            "bootstrap_events": 3901,
+            "decode_seconds": 5.0916000000000005e-05,
+            "device_seconds": 0.07421824987977743,
+            "dispatches": 3,
+            "downloaded_bytes": 47880,
+            "event_seconds": 0.00018954199999999998,
+            "first_upload_bytes": 312132,
+            "native_action_search_apply_seconds": 0.000108708,
+            "native_insert_merge_seconds": 0.00010604100000000001,
+            "native_query_seconds": 0.0,
+            "native_rebuild_seconds": 4.1667e-05,
+            "native_rhs_seconds": 0.000444417,
+            "output_high_water": 600,
+            "peak_live_rows": 4561,
+            "prepare_seconds": 9.983399999999999e-05,
+            "reused_slots": 0,
+            "roundtrip_seconds": 0.095300834,
+            "row_events": 4561,
+            "ruleset_runs": 3,
+            "run_seconds": 0.096177042,
+            "setup_seconds": 0.050665875,
+            "shader_compiles": 1,
+            "unchanged_notifications": 0,
+            "union_events": 30,
+            "uploaded_bytes": 365012,
+            "workers": 1
+          },
+          "scope": "Shared native rows and sorted native RHS commit; optional analyzed Cell projections skip certified unique local prefixes. Every uncertified anchor uses the complete query. No virtual storage or arbitrary-Cell coverage claim.",
+          "shared_tables": 7
+        },
+        "verification": {
+          "eclass_mapping": 4238,
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 4868,
+          "tables": {
+            "Arg": 900,
+            "Bop": 330,
+            "Get": 1830,
+            "If": 300,
+            "InFunc": 300,
+            "InIf": 600,
+            "IntT": 1,
+            "LessThan": 1,
+            "Single": 600,
+            "Smax": 1,
+            "Smin": 1,
+            "TCons": 2,
+            "TNil": 1,
+            "TupleT": 1
+          }
+        }
+      }
+    ],
+    "provenance": {
+      "hashes": {
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/experiments/cell_spine/eggcc_if_tiny/source.egg": "c7b1592f3e4aa3049fb9d12889ec826e370f4acfd83ad4c6d384d59a71ff0957",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/target/analyzer/release/examples/cell_prefix_bench": "babab579e6ff08f531215a1b10770cbbeffddd4197456e876cdf76bf28898342",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/shared-family/matrix-cell-final": "2b6307a1730bd7abb428b0fa5864143d05a9c422f25730542fac8f83f31e1f5a",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-prefix-v9-profile/heldout.egg": "1f01ffd6ad3f46dc37bc33297d695aeeb2b0321d55d137f89faf7d75b6f2ef8f",
+        "out/cell-resident-verified/eggcc-if-sparse/analyze/catalog/catalog.json": "25684cec6b74cb12c3248aae9cf5771d207efe6e03dfeeb90ae0aaabf07e42a8",
+        "out/cell-resident-verified/eggcc-if-sparse/analyze/catalog/states/state-0000.json": "bba14b1e92619e19da26e76df9857495532a57f994fee5d184253bcc455df570",
+        "out/cell-resident-verified/eggcc-if-sparse/analyze/catalog/states/state-0001.json": "169b34d245121e7cc7c06b5cebb9862b04ec714af7fe850c56f36467f70f8e66",
+        "out/cell-resident-verified/eggcc-if-sparse/analyze/catalog/states/state-0002.json": "8f3d1ca924390f71a1d8e6cb69b2ae4ebea6eeba9dbc30a673cf6f41446b0449",
+        "out/cell-resident-verified/eggcc-if-sparse/analyze/catalog/states/state-0003.json": "2a5a029cd27656e2ed17605264a10beb4a3518aff245f940f317b310a80265b2",
+        "out/cell-resident-verified/eggcc-if-sparse/analyze/catalog/states/state-0004.json": "47035881c3ecd894bc55a4f8a71934f31fe001da8bf7b17cac864bb87ab395b9",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/analyze_program.rs": "66124f2723619f359a80b7cb98e298a918f9411c21f59946c66b2225885b3a6d",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/cell_prefix.rs": "697815bbc211fc884b96ece1337c4238119b10e9bf80332b2f3300e0510c868e",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/compile.rs": "1a5620744bc7d4452fa710f9f97dcd4285d001279f78d3d6b465deae52d8df9a",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/family_program.rs": "76c77f7c22db3ecdfc3cb11603d40360b1a197042cff5dc4e4197cadfb100dc0",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/layout.rs": "4afaa249b461997445666dd8b775c5f7517b021ce2caed813db54f15feba3104",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/lib.rs": "12934438923270c16a810dcdfbc1bef50f849c5426611a582207f3f9e6e6adb8",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/live.rs": "987e4406114999d9abdb2b04c7d53ec4a51fb6efe5a9c7ec55d5c0aeae950fc2",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/live_bake.rs": "cf4705d8b5baa86e456c748578be92ca2114836bb69e846f4f628e71a77a2ee9",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/main.rs": "45f9e76e094f6dc494cab2a22d5a05361e9b1cb877663aeb4f0a4837a6b66096",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/marker_layout.rs": "4a02f1a7785b685f0ca34a85fe81c1e0c43fa02d4573372af128bc53521de2d1",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/matrix.rs": "78cf5f350447ba4be83a11a49e60f046a0cb837f309eef85c2daff3ab4c9ccbc",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/matrix_service.rs": "d469b6957d99233c5c1f29b9e2f995167e55b88f2cf0fdea80a1e3b1fc624ae8",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/numeric.rs": "5001a6b4741b3cdb0922fbd1b937d2ccd7432644e3321fae748bb581e6575b05",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/numeric_lower.rs": "efb014e709d73174d1fc2c46691f4d1eff90c73bedea91482543e9af0537fe1e",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/numeric_native.rs": "9b674ef6b44b56223bf39870c76609b6c53d2779b00ea54b08dff03f1ee9fe30",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/program.rs": "ecf5eccf154360be5b32a9778074cc359686c2c962a29a586425779ce64afbdb",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/public_snapshot.rs": "54666f0d64f9a92710fb4a00fcef3f8a91a9b13cb3f2217baa60dec50433faf7",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/resident.rs": "c32c8705d4a0c3e31230646f46aeb4e1dfe9ae45593b3e539ae983dda6fac945",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/table_live.rs": "ecfb77cae58270f3eb43edf7de2447740f0b9d48eae43f085ca9ee74e17beb39",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/table_native.rs": "bbeef31a75d55552986d68ab0ba0e23a4a843ea5da6b606dcc8497a8ce25430c",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/table_program.rs": "dfa3489f3a1a19b5d98dd55484b6964bb50412067e320bdd74d7bc4036f4c302",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/src/table_query.rs": "b6a53a584d7f914c8c94a80891fd2b9fed43a727baaa6afeaaf5d67d55f84267",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/matrix.swift": "f9898d93fe853a84e613e2bd8e7c8b59375dd2b188caa80289241abb61c86ae4",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/family.metal": "8d3db95eefc80303f7e09d8de96c59622b5a5286d458da92a51cb00daf8fa4f0",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/family_cells.metal": "693ba1dadbb0878d886c66a7306cf5483d7f59bd7795d61e451f61d42849d898",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/cell-assisted-egglog/cell-prefix-bench/run.py": "a6af2efe317a4be27a699e2960064e8f9bbb2ec2698541d8d12d10344adedf5d",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/examples/cell_prefix_bench.rs": "8f5af87a32552199cffa35872b7295155c57cbd9092123a445ac7b9617a03c8e",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/examples/support/live_table_bench.rs": "6553992962ea444436182defd13b997cedb54ab6d57f3c86125b27f59094aba3"
+      },
+      "head": "5f46b926ca14047198757627c008b0e5d9ea5625",
+      "instances": 300,
+      "original_rules": 3,
+      "scope": "Original isolated eggcc If/util rules and held-out inputs; not whole raytrace or compiler. Frozen analyzed library, not a new bake."
+    }
+  },
+  "raw_reports": [
+    {
+      "path": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-prefix-v9-time/results.json",
+      "sha256": "c5c54c44b6c566f957208eaf091851833f7e949af8e22e158305f642972b19df"
+    },
+    {
+      "path": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-prefix-v9-check/results.json",
+      "sha256": "0668cab86abf2e19ca32d5d82752f9c3236c3d7d13e03ba758675d388366aebf"
+    },
+    {
+      "path": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-prefix-v9-profile/results.json",
+      "sha256": "35625e97b4f33f7507a2df87894a991e8259b295d00ff1fc5f3e24b9286ec4aa"
+    }
+  ]
+}

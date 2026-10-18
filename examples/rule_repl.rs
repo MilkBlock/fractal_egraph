@@ -351,6 +351,12 @@ fn main() -> Result<()> {
                 std::path::Path::new(args[1]),
                 &output.join(format!("{}.json", args[0])),
             )?;
+        } else if let Some(args) = command.strip_prefix(":bench-cells ") {
+            let args=args.split_whitespace().collect::<Vec<_>>();
+            if !(3..=4).contains(&args.len()) {return Err("usage: :bench-cells NAME WORKER ANALYSIS [check|profile]".into())}
+            let packet=packets.get(cursor).ok_or("no next packet")?;
+            live_table_bench::benchmark_cells(&eg,&packet.commands,&packet.label,args[1].as_ref(),args[2].as_ref(),
+                args.get(3)==Some(&"check"),args.get(3)==Some(&"profile"),&output.join(format!("{}.json",args[0])))?;
         } else if let Some(args) = command.strip_prefix(":bench-live ") {
             let args = args.split_whitespace().collect::<Vec<_>>();
             if args.len() < 2 || args.len() > 3 {

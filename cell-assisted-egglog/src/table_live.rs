@@ -61,6 +61,13 @@ struct Row {
     live: bool,
     values: Vec<Value>,
 }
+#[derive(Default)]
+pub struct Options<'a> {
+    pub analysis: Option<&'a Path>,
+    /// Keep the same Cell-guided order but disable reuse for a fair ablation.
+    pub plan_only: bool,
+    pub profile: bool,
+}
 pub struct Runtime {
     eg: EGraph,
     sinks: Vec<CellActionSink>,
@@ -84,6 +91,8 @@ pub struct Runtime {
     cpu: bool,
     failed: bool,
     last_device: Json,
+    cell_evidence: Json,
+    cell_work: BTreeMap<String, u64>,
     pub stats: Stats,
 }
 fn collect(s: &Schedule, out: &mut BTreeSet<String>) -> Result<()> {
@@ -105,18 +114,54 @@ fn collect(s: &Schedule, out: &mut BTreeSet<String>) -> Result<()> {
 }
 impl Runtime {
     pub fn new(eg: EGraph, commands: &[Command], worker: &Path, audit: bool) -> Result<Self> {
-        Self::create(eg, commands, Some(worker), audit)
+        Self::create(eg, commands, Some(worker), audit, Options::default())
     }
     pub fn new_cpu(eg: EGraph, commands: &[Command]) -> Result<Self> {
-        Self::create(eg, commands, None, false)
+        Self::create(eg, commands, None, false, Options::default())
+    }
+    /// Optional analyze-backed projections. The complete query remains the
+    /// fallback for every uncertified occurrence, including new union aliases.
+    pub fn new_with_cells(
+        eg: EGraph,
+        commands: &[Command],
+        worker: &Path,
+        audit: bool,
+        analysis: Option<&Path>,
+        profile: bool,
+    ) -> Result<Self> {
+        Self::configured(
+            eg,
+            commands,
+            worker,
+            audit,
+            Options {
+                analysis,
+                profile,
+                plan_only: false,
+            },
+        )
+    }
+    pub fn configured(
+        eg: EGraph,
+        commands: &[Command],
+        worker: &Path,
+        audit: bool,
+        options: Options<'_>,
+    ) -> Result<Self> {
+        Self::create(eg, commands, Some(worker), audit, options)
     }
     fn create(
         mut eg: EGraph,
         commands: &[Command],
         worker: Option<&Path>,
         audit: bool,
+        options: Options<'_>,
     ) -> Result<Self> {
         let t = Instant::now();
+        let cells = options
+            .analysis
+            .map(|dir| crate::cell_prefix::Library::load(&mut eg, dir))
+            .transpose()?;
         let mut names = BTreeSet::new();
         for c in commands {
             let Command::RunSchedule(s) = c else {
@@ -169,6 +214,8 @@ impl Runtime {
             cpu: worker.is_none(),
             failed: false,
             last_device: Json::Null,
+            cell_evidence: Json::Null,
+            cell_work: BTreeMap::new(),
             stats: Stats::default(),
         };
         runtime.qstats = runtime
@@ -217,7 +264,15 @@ impl Runtime {
                 .collect();
             runtime.keys = feed.tables.iter().map(|_| BTreeMap::new()).collect();
             runtime.max_stamp = vec![0; feed.tables.len()];
-            let config = family_program::compile(&runtime.eg, &runtime.sinks, &feed.tables)?;
+            let config = family_program::compile(
+                &runtime.eg,
+                &runtime.sinks,
+                &feed.tables,
+                cells.as_ref(),
+                options.profile,
+                !options.plan_only,
+            )?;
+            runtime.cell_evidence = json!({"library":cells.as_ref().map(|c|&c.evidence),"plans":config["cell_evidence"],"profile":options.profile,"plan_only":options.plan_only});
             let mut device = Service::new(worker)?;
             device.family_init(config)?;
             runtime.device = Some(device);
@@ -425,6 +480,12 @@ impl Runtime {
             self.stats.first_upload_bytes = 4 * words.len();
         }
         self.last_device = r.clone();
+        if let Some(work) = r["cell_work"].as_object() {
+            for (k, v) in work {
+                *self.cell_work.entry(k.clone()).or_default() +=
+                    v.as_u64().ok_or("invalid Cell work counter")?;
+            }
+        }
         let t = Instant::now();
         let count = r["bindings"].as_u64().ok_or("missing binding count")? as usize;
         if count.checked_mul(1 + self.slots) != Some(body.len()) {
@@ -576,6 +637,6 @@ impl Runtime {
         result
     }
     pub fn report(&self) -> Json {
-        json!({"runtime":self.stats,"audit":self.audit,"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"rules":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|json!({"ruleset":set,"rule":self.sinks[*id].name,"stats":self.qstats[*id]}))).collect::<Vec<_>>(),"scope":"One shared row/index store, batched rulesets, native timestamps, no retained match history; sorted native RHS commit. Explicit rows, not baked Cell shortcuts."})
+        json!({"runtime":self.stats,"audit":self.audit,"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"rules":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|json!({"ruleset":set,"rule":self.sinks[*id].name,"stats":self.qstats[*id]}))).collect::<Vec<_>>(),"scope":"Shared native rows and sorted native RHS commit; optional analyzed Cell projections skip certified unique local prefixes. Every uncertified anchor uses the complete query. No virtual storage or arbitrary-Cell coverage claim."})
     }
 }

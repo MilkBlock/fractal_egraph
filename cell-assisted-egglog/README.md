@@ -42,6 +42,13 @@ This is an indexed GPU backend, not a GEMM acceleration claim. See
 
 ## Continuous original-schedule table runtime
 
+The shared loop now optionally accepts **analyze-backed Cell projections**.
+Certified, fully keyed internal fragments can replace join stages, including
+after a query enters a Cell from an external boundary. Multiple consumers share
+the projected binding; row generations revoke stale guarantees. Reverse or
+uncovered fragments retain the full query. See the [Cell projection ablation](cell-prefix-bench/README.md)
+for the exact contract, generation checks, memory costs and controls.
+
 The [shared table benchmark](shared-table-bench/README.md) runs the real raytrace
 packet with one shared GPU worker, native committed deltas and original native
 RHS/merge/rebuild. It preserves semi-naive watermarks on attachment and handback.

@@ -22,6 +22,7 @@ pub mod layout;
 mod marker_layout;
 mod table_program;
 mod family_program;
+pub mod cell_prefix;
 pub mod table_query;
 pub mod table_live;
 pub mod program;
@@ -650,6 +651,9 @@ fn bind_atom(atom: &CellQueryAtom, row: &[Value], slots: usize) -> Option<Bindin
 // Offline only: finite positive query projection on the analyzed symbolic Cell.
 // All matching rows and alias alternatives are retained, including non-root rows.
 fn project(t: &Template, sink: &CellActionSink, p: &Part) -> Vec<Lens> {
+    project_mode(t, sink, p, true)
+}
+fn project_mode(t: &Template, sink: &CellActionSink, p: &Part, allow_new_aliases: bool) -> Vec<Lens> {
     let hidden: BTreeSet<_> = t.state["subsumed_rows"]
         .as_array()
         .into_iter()
@@ -693,6 +697,10 @@ fn project(t: &Template, sink: &CellActionSink, p: &Part) -> Vec<Lens> {
                         CellOperand::Slot(i) => {
                             if let Some(x) = row.binding[*i] {
                                 if x != v {
+                                    if !allow_new_aliases {
+                                        valid = false;
+                                        break;
+                                    }
                                     row.aliases.push((x, v));
                                 }
                             } else {

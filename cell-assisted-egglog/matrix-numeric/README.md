@@ -1,6 +1,6 @@
 # Typed numeric guards and merge in the shared matrix program
 
-Live transport update: the worker handshake is protocol **8**. Rebuild
+Live transport update: the worker handshake is protocol **9**. Rebuild
 `matrix.swift`; bulk live heaps now use binary frames. Offline lowered ABI **5**
 and replayable JSON files are unchanged. Numeric workloads also support the
 [resident fragment-table backend](../table-runtime/README.md), which sends deltas

@@ -297,6 +297,61 @@ pub fn benchmark(
     std::fs::write(dest, serde_json::to_vec_pretty(&output)?)?;
     Ok(())
 }
+
+/// Four executions from the identical checkpoint. Plan-only isolates query
+/// ordering from actual reuse; work counters are a separate diagnostic run.
+pub fn benchmark_cells(
+    base: &EGraph,
+    commands: &[Command],
+    label: &str,
+    worker: &Path,
+    analysis: &Path,
+    checked: bool,
+    profile: bool,
+    dest: &Path,
+) -> Result<()> {
+    use cell_assisted_egglog::table_live::Options;
+    let mut cpu = Runtime::new_cpu(base.clone(), commands)?;
+    cpu.run(commands)?;
+    let mut variants = vec![];
+    for (name, options) in [
+        (
+            "full_gpu",
+            Options {
+                profile,
+                ..Options::default()
+            },
+        ),
+        (
+            "cell_order_only",
+            Options {
+                analysis: Some(analysis),
+                plan_only: true,
+                profile,
+            },
+        ),
+        (
+            "cell_certificates",
+            Options {
+                analysis: Some(analysis),
+                plan_only: false,
+                profile,
+            },
+        ),
+    ] {
+        let mut run = Runtime::configured(base.clone(), commands, worker, checked, options)?;
+        run.run(commands)?;
+        let verification = equal(base, cpu.engine(), run.engine())?;
+        variants.push(json!({"name":name,"report":run.report(),"verification":verification}));
+    }
+    std::fs::write(
+        dest,
+        serde_json::to_vec_pretty(&json!({"label":label,"complete":true,
+        "analysis":analysis,"audit":checked,"profile":profile,"cpu":cpu.report(),"variants":variants,
+        "scope":"Actual native schedule and RHS, same sorted commit; analyzed positive projections plus exhaustive current singleton checks. No pristine or full-eggcc speedup claim. All unknown/ambiguous instances retain full queries."}))?,
+    )?;
+    Ok(())
+}
 #[cfg(test)]
 mod tests {
     use super::*;

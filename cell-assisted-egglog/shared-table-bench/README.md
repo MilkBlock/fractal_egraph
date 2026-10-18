@@ -96,7 +96,7 @@ changes and unsupported schedules are not guessed.
 
 ## Reproduce
 
-From the `codex/cell-assisted-egglog` worktree, using live protocol **8**:
+From the `codex/cell-assisted-egglog` worktree, using the current live protocol **9** (the recorded measurement used protocol 8):
 
 ```sh
 mkdir -p out/shared-family
