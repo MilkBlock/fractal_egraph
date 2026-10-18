@@ -24,6 +24,12 @@ fields remain outside the baked structural proof. See [semantics, tests and
 commands](matrix-numeric/README.md). Arbitrary custom merge and effectful Bake are
 not inferred from a min/max example.
 
+`--gpu-check on` enables egglog's strict pre-commit oracle for `matrix-numeric`:
+native bindings/guards, individual RHS values and native merged results must
+agree before GPU writes are submitted. `--gpu-check off` is the default and does
+not run that oracle or replay clones. This is separate from `--audit` coverage
+statistics. Verification failures stop the batch before target writes.
+
 ## Resident GPU path
 
 `--mode resident` moves Cell instance maintenance and residual matching onto

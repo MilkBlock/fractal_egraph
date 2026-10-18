@@ -84,6 +84,14 @@ fn snapshot(eg: &EGraph) -> Result<Json> {
 }
 fn run() -> Result<()> {
     let a = args()?;
+    let gpu_check = match a.get("--gpu-check").map(String::as_str).unwrap_or("off") {
+        "on" | "true" => true,
+        "off" | "false" => false,
+        _ => return Err("--gpu-check expects on/off (or true/false)".into()),
+    };
+    if gpu_check && a.get("--mode").map(String::as_str) != Some("matrix-numeric") {
+        return Err("--gpu-check currently requires --mode matrix-numeric".into());
+    }
     if a.get("--mode").map(String::as_str) == Some("matrix") {
         let report = PathBuf::from(required(&a, "--output")?);
         let program = match (a.get("--program"), a.get("--analysis")) {
@@ -179,6 +187,7 @@ fn run() -> Result<()> {
                 &env,
                 Path::new(required(&a, "--gpu-worker")?),
             )?;
+            numeric.set_gpu_check(gpu_check)?;
             numeric.input(&input)?;
             let t = Instant::now();
             let mut progress = vec![];

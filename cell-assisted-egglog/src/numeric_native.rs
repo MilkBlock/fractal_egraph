@@ -5,6 +5,7 @@ use super::*;
 use crate::{matrix_service::Service, numeric as n, program as ir};
 use egglog::{
     ast::Action,
+    cell_assist::{CellI64Check, CellI64Group, CellI64Proposal},
     cell_events::{CellCommitFeed, CellProducerTap},
 };
 use serde_json::json;
@@ -59,6 +60,15 @@ impl Compiler {
     }
 }
 #[derive(Default, Serialize)]
+pub struct VerificationStats {
+    pub enabled: bool,
+    pub batches: usize,
+    pub native_bindings: usize,
+    pub proposals: usize,
+    pub groups: usize,
+    pub failures: usize,
+}
+#[derive(Default, Serialize)]
 pub struct Stats {
     pub native_matches: usize,
     pub producer_events: usize,
@@ -71,6 +81,7 @@ pub struct Stats {
     pub native_sets: usize,
     pub quiet_rounds: usize,
     pub audit_uncovered: Vec<usize>,
+    pub verification: VerificationStats,
     pub device: Json,
 }
 struct Frame {
@@ -100,6 +111,8 @@ pub struct NumericSession {
     retired: Vec<usize>,
     epoch: usize,
     acknowledged: BTreeSet<usize>,
+    checker: Option<CellI64Check>,
+    check_failed: bool,
     pub stats: Stats,
 }
 impl NumericSession {
@@ -336,11 +349,33 @@ impl NumericSession {
             retired: vec![],
             epoch: 0,
             acknowledged: BTreeSet::new(),
+            checker: None,
+            check_failed: false,
             stats: Stats::default(),
         })
     }
     pub fn engine(&self) -> &EGraph {
         &self.source.eg
+    }
+    /// Optional strict native oracle. Off means no checker query, RHS replay or
+    /// shadow graph. A failed check poisons this session before any batch write.
+    pub fn set_gpu_check(&mut self, enabled: bool) -> Result<()> {
+        if self.check_failed {
+            return Err("GPU check failed; start a new session".into());
+        }
+        if enabled && self.checker.is_none() {
+            self.checker = Some(
+                self.source
+                    .eg
+                    .prepare_cell_i64_check(&self.source.ruleset, &self.source.sink)?,
+            );
+        } else if !enabled {
+            if let Some(checker) = self.checker.take() {
+                self.source.eg.free_cell_i64_check(checker);
+            }
+        }
+        self.stats.verification.enabled = enabled;
+        Ok(())
     }
     pub fn input(&mut self, text: &str) -> Result<()> {
         let c = self.source.eg.parse_program(None, text)?;
@@ -498,7 +533,120 @@ impl NumericSession {
             .push(expected.difference(&actual).count());
         Ok(())
     }
+    fn verify_gpu(&mut self, result: &Json) -> Result<()> {
+        let Some(checker) = &self.checker else {
+            return Ok(());
+        };
+        let decisions = result["decisions"]
+            .as_array()
+            .ok_or("GPU check: missing decisions")?;
+        if decisions.len() != self.program.channels.len() {
+            return Err("GPU check: decision shape mismatch".into());
+        }
+        let active = |i: usize| {
+            self.program.channels[i]
+                .sources
+                .iter()
+                .all(|c| self.active.contains(c))
+        };
+        let accepted = decisions
+            .iter()
+            .enumerate()
+            .filter(|(i, d)| **d == 1 && active(*i))
+            .map(|(i, _)| self.bindings[i].clone())
+            .collect::<Vec<_>>();
+        let plan = self.program.numeric.as_ref().unwrap();
+        let numeric = &result["numeric"];
+        let values = numeric["values"]
+            .as_array()
+            .ok_or("GPU check: missing numeric values")?;
+        let versions = numeric["versions"]
+            .as_array()
+            .ok_or("GPU check: missing numeric versions")?;
+        let proposals = numeric["proposals"]
+            .as_array()
+            .ok_or("GPU check: missing proposals")?;
+        let statuses = numeric["status"]
+            .as_array()
+            .ok_or("GPU check: missing proposal statuses")?;
+        if values.len() != plan.groups.len()
+            || versions.len() != plan.groups.len()
+            || proposals.len() != plan.writes.len()
+            || statuses.len() != plan.writes.len()
+        {
+            return Err("GPU check: numeric shape mismatch".into());
+        }
+        let mut grouped = (0..plan.groups.len())
+            .map(|_| vec![])
+            .collect::<Vec<Vec<CellI64Proposal>>>();
+        for (w, write) in plan.writes.iter().enumerate() {
+            if self.acknowledged.contains(&write.group) {
+                continue;
+            }
+            let c = write.channel;
+            if decisions[c] == 1 && active(c) {
+                if statuses[w] != 1 {
+                    return Err(format!("GPU check: missing proposal {w}").into());
+                }
+                grouped[write.group].push(CellI64Proposal {
+                    binding: self.bindings[c].clone(),
+                    value: proposals[w].as_i64().ok_or("GPU check: invalid RHS i64")?,
+                });
+            } else if statuses[w] == 1 {
+                return Err(
+                    format!("GPU check: proposal {w} has no active accepted binding").into(),
+                );
+            }
+        }
+        let mut groups = vec![];
+        for (g, proposals) in grouped.into_iter().enumerate() {
+            if self.acknowledged.contains(&g) {
+                continue;
+            }
+            let value = if values[g].is_null() {
+                None
+            } else {
+                Some(values[g].as_i64().ok_or("GPU check: invalid merged i64")?)
+            };
+            let initial = plan.groups[g].initial;
+            let version = versions[g].as_u64().ok_or("GPU check: invalid version")?;
+            // Each group is immutable and reduced once, including hot resume.
+            if version != u64::from(value != initial) {
+                return Err(format!("GPU check: group {g} change/version mismatch").into());
+            }
+            groups.push(CellI64Group {
+                key: self.group_keys[g].clone(),
+                initial,
+                proposals,
+                result: value,
+            });
+        }
+        let report =
+            self.source
+                .eg
+                .check_cell_i64_batch(&self.source.sink, checker, &accepted, &groups)?;
+        self.stats.verification.batches += 1;
+        self.stats.verification.native_bindings += report.native_bindings;
+        self.stats.verification.proposals += report.proposals;
+        self.stats.verification.groups += report.groups;
+        if self.source.audit {
+            self.stats.audit_uncovered.push(0);
+        }
+        Ok(())
+    }
+    fn check_before_commit(&mut self, result: &Json) -> Result<()> {
+        if let Err(e) = self.verify_gpu(result) {
+            self.check_failed = true;
+            self.stats.verification.failures += 1;
+            self.stats.device = result.clone();
+            return Err(e);
+        }
+        Ok(())
+    }
     pub fn round(&mut self) -> Result<bool> {
+        if self.check_failed {
+            return Err("GPU check failed; start a new session".into());
+        }
         let native = self
             .source
             .eg
@@ -659,6 +807,15 @@ impl NumericSession {
         if self.program.cells.is_empty()
             || (self.program.channels.len() == old_channels && self.retired.is_empty())
         {
+            if self.checker.is_some() {
+                let result = if self.stats.device.is_null() {
+                    json!({"decisions":[], "numeric":{"values":[], "versions":[], "proposals":[], "status":[]}})
+                } else {
+                    self.stats.device.clone()
+                };
+                self.check_before_commit(&result)?;
+                return Ok(native.updated);
+            }
             let decisions = self.stats.device["decisions"]
                 .as_array()
                 .cloned()
@@ -679,7 +836,10 @@ impl NumericSession {
         let decisions = result["decisions"]
             .as_array()
             .ok_or("missing numeric decisions")?;
-        self.audit_current(decisions)?;
+        self.check_before_commit(&result)?;
+        if self.checker.is_none() {
+            self.audit_current(decisions)?;
+        }
         self.stats.accepted_bindings += decisions[old_channels..]
             .iter()
             .filter(|d| **d == 1)

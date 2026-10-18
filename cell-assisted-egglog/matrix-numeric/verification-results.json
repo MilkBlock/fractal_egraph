@@ -1,0 +1,117 @@
+{
+  "scope": "real analyzed Cell fragments + native function rows; GPU guards, checked i64 RHS and min/max reductions; native final set/canonicalization; correctness, not speedup",
+  "equivalence_graph": {
+    "exact_equal": true,
+    "enodes": 10,
+    "eclasses": 9,
+    "sorts": {
+      "@OfferSort": {
+        "enodes": 4,
+        "eclasses": 4
+      },
+      "Expr": {
+        "enodes": 6,
+        "eclasses": 5
+      }
+    }
+  },
+  "checked_vs_unchecked": {
+    "exact_equal": true,
+    "enodes": 10,
+    "eclasses": 9,
+    "sorts": {
+      "@OfferSort": {
+        "enodes": 4,
+        "eclasses": 4
+      },
+      "Expr": {
+        "enodes": 6,
+        "eclasses": 5
+      }
+    }
+  },
+  "unchecked_verification": {
+    "batches": 0,
+    "enabled": false,
+    "failures": 0,
+    "groups": 0,
+    "native_bindings": 0,
+    "proposals": 0
+  },
+  "native_total_rows": 13,
+  "primitive_function_rows": 3,
+  "primitive_functions_exact": true,
+  "final_function_rows": [
+    [
+      "Best",
+      "[\"[\\\"Leaf\\\",[[\\\"i64\\\",\\\"200\\\"]]]\"]",
+      "i64",
+      "9999999999999999",
+      false
+    ],
+    [
+      "Best",
+      "[\"[\\\"Leaf\\\",[[\\\"i64\\\",\\\"201\\\"]]]\"]",
+      "i64",
+      "2",
+      false
+    ],
+    [
+      "Best",
+      "[\"[\\\"Leaf\\\",[[\\\"i64\\\",\\\"202\\\"]]]\"]",
+      "i64",
+      "1",
+      false
+    ]
+  ],
+  "stats": {
+    "accepted_bindings": 3,
+    "audit_uncovered": [],
+    "channels": 20,
+    "external_point_reads": 14,
+    "native_matches": 1,
+    "native_sets": 2,
+    "producer_events": 1,
+    "quiet_rounds": 2,
+    "row_events": 11,
+    "source_point_reads": 4,
+    "union_events": 0,
+    "verification": {
+      "batches": 2,
+      "enabled": true,
+      "failures": 0,
+      "groups": 6,
+      "native_bindings": 3,
+      "proposals": 3
+    }
+  },
+  "gpu": {
+    "device": "Apple M3 Max",
+    "matrix_bytes": 19584,
+    "numeric_state": [
+      9999999999999999,
+      2,
+      1,
+      9999999999999999,
+      2,
+      1
+    ],
+    "max_completions_per_channel": 1
+  },
+  "source_sha256": "41047e23ed9d88f1eab9fb81c50fdf1dfbb196765ad8d6e3297c9e2787ca1122",
+  "binary_sha256": "afebf9b11fe720d70cbc88ac7e6f4542137cbd0188c78ad3f772ba6020b4a0f5",
+  "worker_sha256": "aa73d535820b67f5135d2c1af1238bc16548e297d90cf38c08ecfa06a9a66327",
+  "verification_scope": "Actual native egglog submission; checked and unchecked GPU runs plus native oracle. Not a performance result.",
+  "regressions": {
+    "package_tests_passed": 71,
+    "gpu_workers_enabled": true,
+    "real_gpu_faults_rejected": [
+      "losing_rhs_value",
+      "merged_value",
+      "missing_accepted_bindings",
+      "changed_value_version"
+    ],
+    "missing_cell_coverage_without_dispatch_rejected": true,
+    "native_target_unchanged_after_rejection": true
+  }
+}

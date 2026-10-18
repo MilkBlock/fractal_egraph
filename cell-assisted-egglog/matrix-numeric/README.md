@@ -111,6 +111,41 @@ The previous constructor-only automatic Bake gate remains in place. General
 numeric/guarded Cell specialization, arbitrary merge proofs, and all-rule eggcc
 acceleration are not completed by this change.
 
+## Optional native verification before commit
+
+Use `--gpu-check on` (also accepts `true`) with `--mode matrix-numeric`.
+The default is `--gpu-check off`. This is independent of the older `--audit`
+coverage diagnostic. A normal unchecked run should leave both off.
+
+The checker lives in `egglog/src/cell_assist_check.rs`. It compiles and reuses a
+native oracle from the **original resolved rule**, not from the GPU instruction
+stream. The oracle runs the full LHS, including numerical guards, and computes
+the native RHS primitives without writing the target function. Before any GPU
+update from that batch is submitted, it checks:
+
+1. Active accepted bindings equal the native match set. Missing matches also
+   fail: this is strict diagnostic mode for the selected consumer, not a claim
+   that an incomplete Cell library covers it.
+2. Every pending proposal has the right binding, destination key and exact i64
+   RHS value, including proposals that lose a min/max reduction.
+3. Each key snapshot still has its original physical value. Native RHS/merge
+   replay on an isolated clone must produce the GPU's merged value, including
+   unchanged or absent outputs. Changed-value/version flags must agree.
+
+The full query is compiled once. Verification uses native replay clones per key
+snapshot with proposals; these deliberate debug costs are absent when disabled.
+It does not modify the live target table. Any discrepancy rejects **all GPU
+writes in that batch**, reports the mismatch, and makes that session unusable for
+further rounds. Already committed helper work/earlier batches are not rolled back.
+Reports include `stats.verification` with enabled state, verified batches,
+bindings/proposals/groups and failures. Turning checking on/off is also supported
+through `NumericSession::set_gpu_check`; a failed session cannot bypass rejection
+by turning it off.
+
+Tests corrupt the actual Metal response (losing RHS, merged value, accepted
+matches, and change version), assert zero native sets and unchanged target
+values, and cover union/rekey, late function updates, max merge and resume.
+
 ## Reproduce
 
 ```sh
@@ -131,7 +166,7 @@ cargo run --offline --manifest-path cell-assisted-egglog/Cargo.toml \
   --ruleset '' --consumer cost-improve --native single-get \
   --parts '[{"atoms":[0],"cell":true},{"atoms":[1],"cell":false},{"atoms":[2],"cell":false}]' \
   --input cell-assisted-egglog/matrix-numeric/input.egg --rounds 4 \
-  --gpu-worker out/matrix-numeric-check/matrix-metal --audit true
+  --gpu-worker out/matrix-numeric-check/matrix-metal --gpu-check on
 ```
 
 The fixture has **3 accepted bindings and 2 native function updates**. Final values
@@ -140,11 +175,15 @@ primitive result payloads separately from graph identity: 6 Expr enodes / 5 Expr
 eclasses, 4 Offer relation rows, and 3 numeric function rows. Primitive numbers
 are not counted as eclasses. See [results.json](results.json).
 
+The reproduction script compares native egglog, GPU with verification on, and
+GPU with verification off, including final graph equivalence and primitive values.
+It asserts that the unchecked run has zero verification batches and no audit.
+
 Tests include all comparisons on i64 extremes and adjacent large integers,
 checked add/sub/mul against native primitives, false guards with overflowing RHS,
 missing old state, multi-stage read-after-merge, min/max conflicts, hot state
 extension, no replay, union/rekey, late updates, rejected custom merges, and
-failure recovery preserving already-completed matching. All 67 package tests
+failure recovery preserving already-completed matching. All 71 package tests
 passed with the numerical workers enabled. Older constructor/Bake matrix paths
 remain regression controls.
 

@@ -33,18 +33,27 @@ def main():
     worker=out/'matrix-metal';subprocess.run(['swiftc','-O',ROOT/'cell-assisted-egglog/matrix.swift','-o',worker],check=True)
     binary=ROOT/'target/cell-assisted/debug/cell-assisted-egglog';source=ROOT/'cell-assisted-egglog/matrix-numeric/consumer.egg';data=ROOT/'cell-assisted-egglog/matrix-numeric/input.egg';analysis=ROOT/'cell-assisted-egglog/fixtures/analyze'
     base=[binary,'--analysis',analysis,'--consumer-source',source,'--ruleset','','--consumer','cost-improve','--native','single-get','--parts','[{"atoms":[0],"cell":true},{"atoms":[1],"cell":false},{"atoms":[2],"cell":false}]','--input',data,'--rounds','4']
-    for mode in ['off','matrix-numeric']:
-        with (out/f'{mode}.json').open('w') as f:subprocess.run(base+['--mode',mode,'--gpu-worker',worker,'--audit','true','--dump',out/f'{mode}-graph.json'],cwd=ROOT,check=True,stdout=f)
+    runs=[('off','off','off'),('matrix-numeric','matrix-numeric','on'),('matrix-numeric-unchecked','matrix-numeric','off')]
+    for name,mode,checked in runs:
+        with (out/f'{name}.json').open('w') as f:subprocess.run(base+['--mode',mode,'--gpu-worker',worker,'--audit','false','--gpu-check',checked,'--dump',out/f'{name}-graph.json'],cwd=ROOT,check=True,stdout=f)
     native=json.loads((out/'off-graph.json').read_text());actual=json.loads((out/'matrix-numeric-graph.json').read_text())
     primitive={'i64','bool','String','Unit'};eq={r['sort'] for r in native if r['sort'] not in primitive}
     assert primitive_rows(native,eq)==primitive_rows(actual,eq),'primitive result payload mismatch'
     for name,rows in [('native',native),('matrix',actual)]:
         (out/f'{name}-equivalence-rows.json').write_text(json.dumps([r for r in rows if r['sort'] in eq]))
     graph=verify(out/'native-equivalence-rows.json',out/'matrix-equivalence-rows.json',eq_sorts=eq)
-    r=json.loads((out/'matrix-numeric.json').read_text());stats=r['stats'];device=stats.pop('device');assert stats['accepted_bindings']==3 and stats['native_sets']==2;assert all(x==0 for x in stats['audit_uncovered']);assert not device['numeric']['arithmetic_error']
+    unchecked=json.loads((out/'matrix-numeric-unchecked-graph.json').read_text())
+    assert primitive_rows(actual,eq)==primitive_rows(unchecked,eq),'checking changed function values'
+    (out/'unchecked-equivalence-rows.json').write_text(json.dumps([r for r in unchecked if r['sort'] in eq]))
+    check_modes_graph=verify(out/'matrix-equivalence-rows.json',out/'unchecked-equivalence-rows.json',eq_sorts=eq)
+    r=json.loads((out/'matrix-numeric.json').read_text());stats=r['stats'];device=stats.pop('device');assert stats['accepted_bindings']==3 and stats['native_sets']==2;assert not device['numeric']['arithmetic_error']
+    assert stats['verification']['enabled'] and stats['verification']['batches']>0 and stats['verification']['proposals']==3 and stats['verification']['failures']==0
+    off=json.loads((out/'matrix-numeric-unchecked.json').read_text())['stats']
+    assert not off['verification']['enabled'] and off['verification']['batches']==0 and not off['audit_uncovered']
+    assert off['accepted_bindings']==3 and off['native_sets']==2
     assert all(c[1]<=1 for c in device['execution_counts'])
     report=dict(scope='real analyzed Cell fragments + native function rows; GPU guards, checked i64 RHS and min/max reductions; native final set/canonicalization; correctness, not speedup',
-        equivalence_graph=graph,native_total_rows=len(native),primitive_function_rows=sum(r['sort'] not in eq for r in native),primitive_functions_exact=True,final_function_rows=primitive_rows(actual,eq),stats=stats,
+        equivalence_graph=graph,checked_vs_unchecked=check_modes_graph,unchecked_verification=off['verification'],native_total_rows=len(native),primitive_function_rows=sum(r['sort'] not in eq for r in native),primitive_functions_exact=True,final_function_rows=primitive_rows(actual,eq),stats=stats,
         gpu=dict(device=device['device'],matrix_bytes=device['matrix_bytes'],numeric_state=device['numeric']['values'],max_completions_per_channel=max(c[1] for c in device['execution_counts'])),
         source_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),binary_sha256=hashlib.sha256(binary.read_bytes()).hexdigest(),worker_sha256=hashlib.sha256(worker.read_bytes()).hexdigest())
     (out/'report.json').write_text(json.dumps(report,indent=2)+'\n');print(out/'report.json')

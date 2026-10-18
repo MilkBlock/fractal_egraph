@@ -6,6 +6,10 @@
 use super::*;
 use egglog_bridge::{DefaultVal, FunctionConfig, FunctionId, MergeFn, RuleId, TableAction};
 
+#[path = "cell_assist_check.rs"]
+mod check;
+pub use check::{CellI64Check, CellI64CheckReport, CellI64Group, CellI64Proposal};
+
 #[derive(Clone, Debug)]
 pub enum CellOperand {
     Slot(usize),
