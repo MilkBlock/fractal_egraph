@@ -132,7 +132,30 @@ fn run() -> Result<()> {
         let mut session = Session::new(&dir, ruleset, consumer, native, parts)?;
         session.set_audit(a.get("--audit").is_some_and(|v| v == "true"));
         let description = session.describe();
-        if mode == "resident" {
+        if mode == "matrix-live" {
+            let mut live = cell_assisted_egglog::live::LiveSession::new(
+                session,
+                &env,
+                Path::new(required(&a, "--gpu-worker")?),
+            )?;
+            if let Some(ms) = a.get("--bake-ms") {
+                live.milliseconds = ms.parse()?;
+            }
+            if let Some(n) = a.get("--bake-facts") {
+                live.facts = n.parse()?;
+            }
+            let setup = start.elapsed().as_secs_f64();
+            live.input(&input)?;
+            let t = Instant::now();
+            let mut progress = vec![];
+            for _ in 0..rounds {
+                progress.push(live.round()?);
+            }
+            (
+                json!({"mode":mode,"setup_seconds":setup,"run_seconds":t.elapsed().as_secs_f64(),"progress":progress,"live":live.report()}),
+                snapshot(live.engine())?,
+            )
+        } else if mode == "resident" {
             let mut resident = cell_assisted_egglog::resident::ResidentSession::new(
                 session,
                 Path::new(required(&a, "--gpu-worker")?),

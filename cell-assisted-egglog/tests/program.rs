@@ -201,6 +201,7 @@ fn successful_match_with_alias_target_is_preserved_and_blocks_consumers() {
         depth: 0,
     }]];
     p.channels[0].target = Some(Target {
+        certified: true,
         cell: 2,
         bindings: vec![Wire(0, 0), Wire(1, 0)],
         specializations: vec![],
@@ -244,6 +245,7 @@ fn unsafe_shape_and_effect_wiring_are_rejected() {
     assert!(p.check().is_err());
     let mut p = base();
     p.channels[0].target = Some(Target {
+        certified: true,
         cell: 0,
         bindings: vec![Wire(0, 0), Wire(0, 1)],
         specializations: vec![],
@@ -292,6 +294,7 @@ fn specialization() -> Program {
     ]);
     p.channels[0].alternatives[0].truncate(1);
     p.channels[0].target = Some(Target {
+        certified: true,
         cell: 2,
         bindings: vec![Wire(0, 0), Wire(1, 0)],
         specializations: vec![Specialization {
@@ -358,4 +361,55 @@ fn specialization_requires_unique_safe_frames_and_distinct_targets() {
     let mut p = specialization();
     p.channels[0].target.as_mut().unwrap().specializations[0].certificate = serde_json::Value::Null;
     assert!(p.check().is_err());
+}
+
+#[test]
+fn live_install_preserves_a_completed_match_and_resumes_only_the_target() {
+    let Some(worker) = std::env::var_os("CELL_MATRIX_WORKER") else {
+        return;
+    };
+    let mut service =
+        cell_assisted_egglog::matrix_service::Service::new(Path::new(&worker)).unwrap();
+    let mut p = specialization();
+    p.stages.truncate(1);
+    p.channels.truncate(1);
+    p.conditions.truncate(2);
+    p.cells.truncate(3);
+    p.channels[0]
+        .target
+        .as_mut()
+        .unwrap()
+        .specializations
+        .clear();
+    p.channels[0].target.as_mut().unwrap().certified = false;
+    service.install(&p).unwrap();
+    let before = service.step(false, &[]).unwrap();
+    assert_eq!(before["outputs"][0]["status"], 2);
+    assert_eq!(before["execution_counts"][0][1], 1);
+    // Real runtime performs native Bake at this boundary. The already matched
+    // target and both source bindings stay in the same worker.
+    p.cells.push(Cell {
+        template: 1,
+        binding: None,
+        partition: vec![0],
+    });
+    p.channels[0].target.as_mut().unwrap().specializations = vec![Specialization {
+        cell: 3,
+        partition: vec![0, 0],
+        projection: vec![0],
+        certificate: json!({"scope":"unit contract"}),
+    }];
+    service.install(&p).unwrap();
+    let after = service.step(true, &[]).unwrap();
+    assert_eq!(after["outputs"][0]["status"], 3);
+    assert_eq!(after["outputs"][0]["specialized"], 3);
+    assert_eq!(after["execution_counts"], before["execution_counts"]);
+    assert_eq!(after["host_count_reads"], 0);
+    let mut bad = p.clone();
+    bad.channels[0].alternatives.clear();
+    assert!(service.install(&bad).is_err());
+    let retired = service.step(true, &[0]).unwrap();
+    assert!(retired["outputs"].as_array().unwrap().is_empty());
+    assert_eq!(retired["live"][3], 0);
+    assert_eq!(retired["execution_counts"], before["execution_counts"]);
 }

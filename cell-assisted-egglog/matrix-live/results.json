@@ -1,0 +1,72 @@
+{
+  "scope": "actual fork native events, automatic native Bake, persistent MPS resume and original RHS; positive constructor scope only; not a speedup benchmark",
+  "source_sha256": "3c208142a4d41ad676611739ba3712787fea9d714cedcea1d3e28880ee87c583",
+  "binary_sha256": "64e36e9b810a9b217f34b1502085c3c75e15bdbc765071790db23f020fbde0ac",
+  "analyzer_sha256": "f70e44bc4e07f6646eb7f0e22a2fc2a9c8a11c79811e45bbf020ec47f2251d93",
+  "worker_sha256": "6eeb5c2a93cec4ffc2bd0d4b819528cbd9e3567711b5130884d56bc3363f9f2b",
+  "graph_equality": {
+    "exact_equal": true,
+    "enodes": 11,
+    "eclasses": 6,
+    "sorts": {
+      "Math": {
+        "enodes": 11,
+        "eclasses": 6
+      }
+    }
+  },
+  "stats": {
+    "already_committed_bindings": 0,
+    "audit_queries": 6,
+    "audit_uncovered": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "bake_cache_hits": 0,
+    "bake_completed": 2,
+    "bake_polls": 2,
+    "bake_started": 2,
+    "cancelled_matches": 0,
+    "dispatched_bindings": 2,
+    "fragment_occurrences": 182,
+    "frame_point_reads": 112,
+    "learned_frames": 2,
+    "learned_instances": 2,
+    "matrix_advances": 3,
+    "matrix_installs": 4,
+    "native_matches": 9,
+    "new_frames": 13,
+    "offered_channels": 108,
+    "producer_events": 9,
+    "quiet_rounds": 3,
+    "retired_frames": 0,
+    "row_events": 11,
+    "shared_pending_bakes": 0,
+    "target_resumes": 4,
+    "union_events": 0,
+    "unique_fragments": 35
+  },
+  "matrix": {
+    "device": "Apple M3 Max",
+    "channels": 108,
+    "logical_completions": 2,
+    "max_completions_per_channel": 1,
+    "bytes": 503060
+  },
+  "caveats": [
+    "CPU keyed source proof admission and fragment enumeration remain",
+    "Native oracle queries enabled only for this audit",
+    "Local Bake may be unfinished; never certified on timeout",
+    "Not whole eggcc coverage"
+  ],
+  "regression": {
+    "passed": 53,
+    "matrix_worker_enabled": true,
+    "resident_worker_source": "committed resident.swift; unrelated working tree edit excluded",
+    "legacy_shared_matrix_validation": "all 11 imported workloads passed; 462 native root/non-root bindings retained"
+  }
+}

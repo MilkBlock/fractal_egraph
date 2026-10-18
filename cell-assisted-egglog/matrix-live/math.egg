@@ -1,0 +1,6 @@
+(datatype Math (Var String) (Add Math Math) (Mul Math Math))
+(rewrite (Add a b) (Add b a) :name "add-commute")
+(rewrite (Mul a b) (Mul b a) :name "mul-commute")
+(rewrite (Add (Mul a b) (Mul a c)) (Mul a (Add b c)) :name "factor")
+(Add (Mul (Var "x") (Var "a")) (Mul (Var "x") (Var "b")))
+(run 4)

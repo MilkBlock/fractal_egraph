@@ -437,6 +437,7 @@ pub fn import(ports: &Json, history: &Json, states: &BTreeMap<usize, Json>) -> R
                     sources,
                     alternatives: vec![],
                     target: Some(Target {
+                        certified: true,
                         cell: dst,
                         bindings: gathers,
                         specializations: vec![],

@@ -226,6 +226,7 @@ impl Checked {
                 c.target.as_ref().map_or(0, |t| t.bindings.len() as u32),
                 sp_start as u32,
                 (specializations.len() - sp_start) as u32,
+                u32::from(c.target.as_ref().is_some_and(|t| t.certified)),
             ]);
         }
         a.table(
@@ -257,10 +258,16 @@ impl Checked {
                 "gather_count",
                 "specialization_start",
                 "specialization_count",
+                "certified",
             ],
             chans,
         )?;
         a.zero("decisions", "u32", p.channels.len(), 1)?;
+        a.table(
+            "execution_counts",
+            &["classifications", "matches"],
+            vec![vec![0, 0]; p.channels.len()],
+        )?;
         a.zero("target_status", "u32", p.channels.len(), 1)?;
         a.add(
             "specialization_targets",
@@ -423,7 +430,7 @@ impl Checked {
         }
         shader += include_str!("../matrix.metal");
         Ok(GpuProgram {
-            version: 2,
+            version: 3,
             layout: a.layout,
             data: a.data,
             shader,

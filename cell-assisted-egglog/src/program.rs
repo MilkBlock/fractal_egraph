@@ -47,12 +47,18 @@ pub struct Requirement {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Target {
+    /// False for a runtime request whose closure has not completed Bake yet.
+    #[serde(default = "yes")]
+    pub certified: bool,
     pub cell: usize,
     pub bindings: Vec<Wire>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub specializations: Vec<Specialization>,
 }
-/// An offline-certified alias case. The exact partition guards the whole raw
+fn yes() -> bool {
+    true
+}
+/// A certified alias case, installed offline or by the live native Baker. The exact partition guards the whole raw
 /// target frame, before quotienting slots. The target owns a distinct template
 /// and coordinate frame; we never relabel an unproved old Cell as valid.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -343,7 +349,10 @@ impl Program {
                     {
                         return Err("target gather/order violation".into());
                     }
-                    let mut partitions = BTreeSet::from([target.partition.clone()]);
+                    let mut partitions = BTreeSet::new();
+                    if t.certified {
+                        partitions.insert(target.partition.clone());
+                    }
                     for sp in &t.specializations {
                         let out = self
                             .cells
@@ -718,7 +727,9 @@ impl Checked {
                                 }
                                 s.binding[t.cell][slot] = v;
                             }
-                            status = if self.partition(&vals, &p.cells[t.cell].partition) {
+                            status = if t.certified
+                                && self.partition(&vals, &p.cells[t.cell].partition)
+                            {
                                 1
                             } else {
                                 2

@@ -42,8 +42,9 @@ A complete binding with an unsupported target alias pattern is preserved as a
 **needs-specialization target**, distinct from rejected matching. A downstream
 consumer of that target remains pending. Known certified alias recipes can now
 select a distinct target template and project its own slots directly on GPU.
-The original match evidence is retained. First-time native re-Bake is an offline
-compiler step; hot installation of unseen specializations is not connected.
+The original match evidence is retained. The standalone validation performs first-time Bake offline. The new
+[`matrix-live` loop](../matrix-live/README.md) can Bake and hot-install unknown
+constructor specializations while retaining the completed match.
 
 The feature algebra is migrated from `moment_compiler`. Signed-bit IDs use no
 float interpretation of the identity itself. The binary-pair moment codec keeps
@@ -148,7 +149,7 @@ CELL_MATRIX_WORKER="$PWD/out/matrix-run/matrix-metal" \
   --target-dir target/cell-assisted --test program
 ```
 
-All 47 package tests pass with the numerical workers enabled, including the
+The prior integration passed 47 package tests with the numerical workers enabled, including the
 34 pre-existing runtime checks. The resident controls used a worker built from
 the committed source; the unrelated working-tree edit to `resident.swift` was
 left untouched.
@@ -219,7 +220,7 @@ cargo run --offline --manifest-path cell-assisted-egglog/Cargo.toml \
 
 This emits `report.program.json` for offline replay and `report.lowered.json`
 with generated matrix layouts. Source IR remains version 1; the lowered worker
-ABI is version 2. Old lowered files must be regenerated from their source IR.
+ABI is version 3. Old lowered files must be regenerated from their source IR.
 
 A target can now carry **offline-certified alias alternatives**. Each alternative
 has an exact whole-frame equality partition, a target template, and a projection
@@ -261,3 +262,10 @@ cases, post-specialization matches and direct analyze import. Relevant results:
 [analyze-specialization-results.json](analyze-specialization-results.json).
 The checked-in `tests/data/analyze_ports.json` is a trimmed real analysis fixture;
 no runtime result from that fixture is uploaded as a matrix match answer.
+
+
+Live continuation is now available separately through `--mode matrix-live`; see
+[the native event loop](../matrix-live/README.md). The preceding offline experiment
+remains reproducible. Its old statement that hot resume was future work describes
+that experiment's boundary, not the newly implemented runtime mode. Numeric and
+general effectful specialization remain unsupported by the live matrix compiler.

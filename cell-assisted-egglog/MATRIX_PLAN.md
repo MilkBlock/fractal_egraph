@@ -209,3 +209,17 @@ binding/effect/必要中间状态一致。未知域、额外外部义务和不�
 analyze 导入只执行已观察连接，尚未接全局原生事件服务。数值专化、一般 union
 后新增触点的自动发现，以及 FractalComb 子程序压缩都没有因此自动完成。
 验证与复现命令见 matrix-program/README.md；旧哈希事件后端继续作为语义对照。
+
+
+## 实施记录：原生事件循环与首次专化的热恢复
+
+`--mode matrix-live` 已接通原生 producer/commit/rebuild 事件、常驻 MPS 匹配、
+未知上下文的自动 native Bake、热安装及原始 RHS 提交。设备缓冲在扩展程序时保留
+已完成匹配、binding、条件和特征；resume 只构造目标，测试直接检查匹配和分类
+计数没有增加。未完成的 Bake 保留局部 egraph，失效源版本取消待提交任务。
+
+当前首版明确限于已认证的正向 constructor 片段，source 证据的 keyed admission
+和 fragment 枚举仍在 CPU。按完整部分 binding/别名条件精确共享重复 fragment；
+没有增加候选预算，但独立片段组合仍可增长。尚未宣称一般 eggcc 支持、整个设备端
+Cell 维护或端到端加速。数值/merge 专化、FractalComb 程序压缩仍未完成。
+详见 matrix-live/README.md，复现入口为 validate_live.py。

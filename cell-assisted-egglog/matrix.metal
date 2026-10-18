@@ -49,7 +49,7 @@ kernel void clear_dirty(CONTEXT, uint i [[thread_position_in_grid]]) {
   if (i < CELL_COUNT * BINDINGS_COLS)
     h[DIRTY_PORTS_OFF + i] = 0;
 }
-kernel void admit(CONTEXT, uint i [[thread_position_in_grid]]) {
+void admit_cell(device uint *h, uint i) {
   if (i >= CELL_COUNT)
     return;
   if (!U(CELL_META, i, CELL_META_INITIAL)) {
@@ -65,6 +65,10 @@ kernel void admit(CONTEXT, uint i [[thread_position_in_grid]]) {
         live = 2;
   U(LIVE, i, 0) = live;
 }
+kernel void admit(CONTEXT, uint i [[thread_position_in_grid]]) { admit_cell(h,i); }
+kernel void admit_new(CONTEXT, uint i [[thread_position_in_grid]]) {
+  if(i<cfg.y) admit_cell(h,cfg.x+i);
+}
 kernel void clear_requests(CONTEXT, uint i [[thread_position_in_grid]]) {
   if (i < CONDITION_COUNT)
     U(REQUESTED, i, 0) = 0;
@@ -79,6 +83,7 @@ kernel void classify(CONTEXT, uint i [[thread_position_in_grid]]) {
   uint ci = U(STAGE_CHANNELS, cfg.x + i, 0);
   if (U(DECISIONS, ci, 0) != 0)
     return;
+  U(EXECUTION_COUNTS, ci, EXECUTION_COUNTS_CLASSIFICATIONS)++;
   uint ss = CH(ci, SOURCE_START), sn = CH(ci, SOURCE_COUNT);
   bool pending = false;
   for (uint j = 0; j < sn; j++) {
@@ -104,6 +109,7 @@ kernel void classify(CONTEXT, uint i [[thread_position_in_grid]]) {
     }
     if (complete) {
       U(DECISIONS, ci, 0) = 1;
+      U(EXECUTION_COUNTS, ci, EXECUTION_COUNTS_MATCHES)++;
       return;
     }
     any |= !failed;
@@ -276,7 +282,7 @@ kernel void targets(CONTEXT, uint i [[thread_position_in_grid]]) {
   U(LIVE, target, 0) = decision == 0 ? 2 : 0;
   if (decision != 1)
     return;
-  uint gs = CH(ci, GATHER_START), n = CH(ci, GATHER_COUNT), status = 1;
+  uint gs = CH(ci, GATHER_START), n = CH(ci, GATHER_COUNT), status = CH(ci, CERTIFIED) ? 1 : 2;
   for (uint j = 0; j < n; j++) {
     uint v = U(BINDINGS, U(GATHERS, gs + j, GATHERS_CELL),
                U(GATHERS, gs + j, GATHERS_SLOT));
@@ -322,4 +328,22 @@ kernel void histogram(CONTEXT, uint i [[thread_position_in_grid]]) {
   uint s = U(DECISIONS, U(STAGE_CHANNELS, cfg.x + i, 0), 0);
   atomic_fetch_add_explicit((device atomic_uint *)(h + HISTOGRAM_OFF + s), 1,
                             memory_order_relaxed);
+}
+
+// In a live session native event invalidation retires a versioned source row.
+// Propagate revocation in stage order before exposing any retained completion.
+kernel void revoke(CONTEXT, uint i [[thread_position_in_grid]]) {
+  if (i >= cfg.y) return;
+  uint ci = U(STAGE_CHANNELS, cfg.x + i, 0);
+  for (uint j=0; j<CH(ci,SOURCE_COUNT); j++) {
+    if (U(LIVE,U(SOURCES,CH(ci,SOURCE_START)+j,0),0) != 0) continue;
+    U(DECISIONS,ci,0)=2;
+    U(TARGET_STATUS,ci,0)=0;
+    U(SPECIALIZATION_TARGETS,ci,0)=NO;
+    uint target=CH(ci,TARGET);
+    if(target != NO) U(LIVE,target,0)=0;
+    for(uint k=0;k<CH(ci,SPECIALIZATION_COUNT);k++)
+      U(LIVE,U(SPECIALIZATIONS,CH(ci,SPECIALIZATION_START)+k,SPECIALIZATIONS_TARGET),0)=0;
+    break;
+  }
 }

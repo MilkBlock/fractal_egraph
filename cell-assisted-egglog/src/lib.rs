@@ -13,9 +13,12 @@ use std::path::Path;
 use std::time::Instant;
 
 pub mod analyze_program;
-pub mod matrix;
-pub mod program;
 pub mod compile;
+pub mod live;
+mod live_bake;
+pub mod matrix;
+pub mod matrix_service;
+pub mod program;
 pub mod resident;
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 fn json(p: &Path) -> Result<Json> {

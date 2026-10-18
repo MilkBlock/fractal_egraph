@@ -6,6 +6,15 @@ this is not a simulation. It is not yet a complete eggcc planner replacement.
 Work lives on `codex/cell-assisted-egglog`; the pristine `egglog-baseline` tag is
 unchanged. Initial fork base: `9ea85e47824fcef4e4336fe2f2e3160d37169f73`.
 
+## Live matrix path
+
+`--mode matrix-live` now connects native events to the shared MPS program and
+performs automatic native Bake of unknown contexts/aliases. Hot installation
+preserves device match state; resumption executes only target construction before
+submitting the original RHS. This mode currently has a narrower constructor-only
+domain and CPU source-proof admission; it is distinct from the indexed resident
+backend below. See [runtime behavior, boundaries and commands](matrix-live/README.md).
+
 ## Resident GPU path
 
 `--mode resident` moves Cell instance maintenance and residual matching onto
@@ -99,6 +108,7 @@ native schedules, destructive delete/reinsert histories, or every logical match.
 | `cpu` | CPU, dependency trace + keyed reads | CPU Cartesian compatibility |
 | `gpu` | same CPU maintenance | Metal/MPS Cartesian compatibility |
 | `resident` | GPU, compact native events | GPU indexed delta matching |
+| `matrix-live` | CPU keyed admission, compact native events | persistent MPS; automatic native Bake and target-only resume |
 
 The legacy `gpu` path encodes each shared 32-bit ID using 32 signed bits. The dot
 product reaches `32 * shared_slots` exactly iff all IDs agree. It returns tiled
