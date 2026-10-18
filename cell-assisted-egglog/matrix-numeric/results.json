@@ -1,0 +1,83 @@
+{
+  "scope": "real analyzed Cell fragments + native function rows; GPU guards, checked i64 RHS and min/max reductions; native final set/canonicalization; correctness, not speedup",
+  "equivalence_graph": {
+    "exact_equal": true,
+    "enodes": 10,
+    "eclasses": 9,
+    "sorts": {
+      "@OfferSort": {
+        "enodes": 4,
+        "eclasses": 4
+      },
+      "Expr": {
+        "enodes": 6,
+        "eclasses": 5
+      }
+    }
+  },
+  "native_total_rows": 13,
+  "primitive_function_rows": 3,
+  "primitive_functions_exact": true,
+  "final_function_rows": [
+    [
+      "Best",
+      "[\"[\\\"Leaf\\\",[[\\\"i64\\\",\\\"200\\\"]]]\"]",
+      "i64",
+      "9999999999999999",
+      false
+    ],
+    [
+      "Best",
+      "[\"[\\\"Leaf\\\",[[\\\"i64\\\",\\\"201\\\"]]]\"]",
+      "i64",
+      "2",
+      false
+    ],
+    [
+      "Best",
+      "[\"[\\\"Leaf\\\",[[\\\"i64\\\",\\\"202\\\"]]]\"]",
+      "i64",
+      "1",
+      false
+    ]
+  ],
+  "stats": {
+    "accepted_bindings": 3,
+    "audit_uncovered": [
+      0,
+      0
+    ],
+    "channels": 20,
+    "external_point_reads": 14,
+    "native_matches": 1,
+    "native_sets": 2,
+    "producer_events": 1,
+    "quiet_rounds": 2,
+    "row_events": 11,
+    "source_point_reads": 4,
+    "union_events": 0
+  },
+  "gpu": {
+    "device": "Apple M3 Max",
+    "matrix_bytes": 19584,
+    "numeric_state": [
+      9999999999999999,
+      2,
+      1,
+      9999999999999999,
+      2,
+      1
+    ],
+    "max_completions_per_channel": 1
+  },
+  "source_sha256": "41047e23ed9d88f1eab9fb81c50fdf1dfbb196765ad8d6e3297c9e2787ca1122",
+  "binary_sha256": "8ed0801b1303133d5e41138dcb0cba367c97193ecacdcd8a4ba83bbe87e16dca",
+  "worker_sha256": "aa73d535820b67f5135d2c1af1238bc16548e297d90cf38c08ecfa06a9a66327",
+  "regression": {
+    "passed": 67,
+    "matrix_worker_enabled": true,
+    "resident_control": "committed resident.swift; unrelated working tree edit excluded",
+    "legacy_matrix_cases": 11,
+    "legacy_automatic_bake_exact_graph": true
+  }
+}

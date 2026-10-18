@@ -223,3 +223,17 @@ analyze 导入只执行已观察连接，尚未接全局原生事件服务。数
 没有增加候选预算，但独立片段组合仍可增长。尚未宣称一般 eggcc 支持、整个设备端
 Cell 维护或端到端加速。数值/merge 专化、FractalComb 程序压缩仍未完成。
 详见 matrix-live/README.md，复现入口为 validate_live.py。
+
+
+## 实施记录：数值 guard 与 min/max merge
+
+共享 IR 增加类型化 i64 输入、算术 DAG、数值 guard、状态槽和按 canonical key
+归约的 min/max 写入。它们和结构矩阵共用分阶段调度、设备缓冲和热安装；guard
+读取阶段旧状态，下一阶段读取 merge 后的新状态。精确整数用两个 u32 表示，
+不把 intern ID 当数值，也不使用浮点近似。失败 RHS 不提交该数值批次。
+
+`--mode matrix-numeric` 已接实际 Cell/native 事件、一个 set RHS 的源规则编译、
+GPU 守卫/算术/归约，以及每个变化组一次原生 set。三条有效 binding 合成两次
+函数更新，与原生数值及图结构相同；67 项测试通过。CPU 仍做源证据和候选准备，
+union/rebuild 仍原生；自定义 merge、数值条件下的闭包专化并未自动获得证明。
+详见 matrix-numeric/README.md。

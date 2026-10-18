@@ -1,0 +1,5 @@
+; Mutable numerical state is an external payload, not a baked Cell constant.
+(function Best (Expr) i64 :merge (min old new))
+(relation Offer (Expr Expr i64))
+(rule ((Offer dst (Single x) cost) (= old (Best dst)) (< cost old))
+      ((set (Best dst) (- cost 1))) :name "cost-improve")

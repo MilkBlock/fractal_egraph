@@ -88,6 +88,42 @@ fn extension(old: &Program, new: &Program) -> Result<()> {
             return Err("live install changed a completed match or its binding".into());
         }
     }
+    match (&old.numeric, &new.numeric) {
+        (Some(_), None) => return Err("cannot remove numeric semantics".into()),
+        (a, Some(n)) => {
+            if a.is_some() {
+                for field in [
+                    "inputs",
+                    "state_bindings",
+                    "exprs",
+                    "guards",
+                    "groups",
+                    "writes",
+                ] {
+                    if !prefix(
+                        &serde_json::to_value(a.as_ref().unwrap())?[field],
+                        &serde_json::to_value(n)?[field],
+                    ) {
+                        return Err(format!("live install changed numeric {field}").into());
+                    }
+                }
+            }
+            let guards = a.as_ref().map_or(0, |a| a.guards.len());
+            let writes = a.as_ref().map_or(0, |a| a.writes.len());
+            if n.guards[guards..]
+                .iter()
+                .any(|g| g.channel < old.channels.len())
+                || n.writes[writes..]
+                    .iter()
+                    .any(|w| w.channel < old.channels.len())
+            {
+                return Err(
+                    "cannot add numeric guards/effects to an already matched channel".into(),
+                );
+            }
+        }
+        _ => (),
+    }
     for (a, b) in old.stages.iter().zip(&new.stages) {
         if !b.starts_with(a) {
             return Err("live install reordered old stages".into());
@@ -112,7 +148,7 @@ impl Service {
             program: None,
         };
         let ready = read(&mut s.output)?;
-        if ready["ready"] != true || ready["protocol"] != 3 {
+        if ready["ready"] != true || ready["protocol"] != 4 {
             return Err("live matrix protocol mismatch".into());
         }
         Ok(s)

@@ -220,7 +220,7 @@ cargo run --offline --manifest-path cell-assisted-egglog/Cargo.toml \
 
 This emits `report.program.json` for offline replay and `report.lowered.json`
 with generated matrix layouts. Source IR remains version 1; the lowered worker
-ABI is version 3. Old lowered files must be regenerated from their source IR.
+ABI is version 4. Old lowered files must be regenerated from their source IR.
 
 A target can now carry **offline-certified alias alternatives**. Each alternative
 has an exact whole-frame equality partition, a target template, and a projection
@@ -269,3 +269,14 @@ Live continuation is now available separately through `--mode matrix-live`; see
 remains reproducible. Its old statement that hot resume was future work describes
 that experiment's boundary, not the newly implemented runtime mode. Numeric and
 general effectful specialization remain unsupported by the live matrix compiler.
+
+
+## Typed numerical dataflow
+
+`Program.numeric` now carries exact i64 expression columns, guards, state reads,
+and masked min/max proposal reductions in the same generated matrix allocation.
+Numeric conditions participate in the existing depth classifier; following stages
+can consume merged state. The native function-update path is `--mode matrix-numeric`.
+See [the numeric contract](../matrix-numeric/README.md) for supported operators,
+error/commit behavior, remaining CPU work and exact native comparisons. It does not
+relax the constructor-only assumptions of automatic closure Bake.

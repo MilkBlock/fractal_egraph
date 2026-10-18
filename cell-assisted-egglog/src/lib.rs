@@ -19,6 +19,9 @@ mod live_bake;
 pub mod matrix;
 pub mod matrix_service;
 pub mod program;
+pub mod numeric;
+pub mod numeric_native;
+mod numeric_lower;
 pub mod resident;
 pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 fn json(p: &Path) -> Result<Json> {
@@ -188,11 +191,23 @@ impl Session {
         native: Vec<String>,
         parts: Vec<Part>,
     ) -> Result<Self> {
+        Self::with_extension(dir,ruleset,consumer,native,parts,"")
+    }
+    /// Additional runtime function/consumer definitions do not become baked
+    /// facts. Existing constructor projections still require native witnesses.
+    pub fn with_extension(
+        dir:&Path,ruleset:&str,consumer:&str,native:Vec<String>,parts:Vec<Part>,extension:&str,
+    )->Result<Self> {
         if native.iter().any(|r| r == consumer) {
             return Err("native and assisted lanes overlap".into());
         }
-        let (env, history) = environment(dir)?;
+        let (mut env, history) = environment(dir)?;
         let mut eg = EGraph::default();
+        let added=eg.parse_program(None,extension)?;
+        if added.iter().any(|c|!matches!(c,Command::Rule{..}|Command::Function{..}|Command::Relation{..}|Command::AddRuleset(..))) {
+            return Err("runtime extension accepts only function/relation/ruleset/rule declarations".into());
+        }
+        env.push_str("\n");env.push_str(extension);
         eg.parse_and_run_program(None, &env)?;
         let sink = eg.prepare_cell_action(ruleset, consumer)?;
         let mut coverage = vec![0; sink.atoms.len()];

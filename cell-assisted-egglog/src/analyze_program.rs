@@ -216,6 +216,7 @@ pub fn import(ports: &Json, history: &Json, states: &BTreeMap<usize, Json>) -> R
         channels: vec![],
         stages: vec![],
         updates: vec![],
+        numeric: None,
         evidence: json!({"source":"analyze committed producer-read witnesses and exact completed closure certificates","scope":"observed connections only; not a whole-runtime matcher or a proof of unbounded recurrence","identities":identities.iter().map(|((s,t),v)|json!({"sort":s,"token":t,"coordinate":v})).collect::<Vec<_>>(),"channels":[],"excluded":[]}),
     };
     let mut parser = EGraph::default();

@@ -11,7 +11,7 @@ struct Matrix: Decodable {
 struct Stage: Decodable { let start: Int, count: Int, levels: [Int] }
 struct Program: Decodable {
   let version: Int, layout: [String: Matrix], data: [UInt32], shader: String, stages: [Stage],
-    epochs: [[Int]], groups: Int
+    epochs: [[Int]], groups: Int, numeric: Bool
 }
 func require(_ b: Bool, _ s: String) throws { if !b { throw NSError(domain: s, code: 1) } }
 final class Executor {
@@ -20,7 +20,7 @@ final class Executor {
   var calls = 0, positions = 0, macs = 0
   init(_ p: Program) throws {
     self.p = p
-    try require(p.version == 3, "lowered matrix ABI version (recompile source program)")
+    try require(p.version == 4, "lowered matrix ABI version (recompile source program)")
     guard let d = MTLCreateSystemDefaultDevice(), let q = d.makeCommandQueue() else {
       throw NSError(domain: "Metal unavailable", code: 1)
     }
@@ -40,8 +40,10 @@ final class Executor {
       "update_ports", "invalidate_features", "invalidate_conditions", "clear_dirty", "admit",
       "clear_requests", "reset_channels", "classify", "prepare_group", "build_features", "project",
       "collect", "targets", "histogram", "revoke", "admit_new",
+      "numeric_begin", "numeric_guard", "numeric_propose", "numeric_reduce", "numeric_clear_selected",
     ] {
-      kernels[n] = try d.makeComputePipelineState(function: library.makeFunction(name: n)!)
+      do { kernels[n] = try d.makeComputePipelineState(function: library.makeFunction(name: n)!) }
+      catch { throw NSError(domain:"pipeline \(n): \(error)",code:1) }
     }
   }
   func m(_ name: String) -> Matrix { p.layout[name]! }
@@ -108,12 +110,21 @@ final class Executor {
   func matchStage(_ stage: Stage, reset: Bool) throws -> [[String:Any]] {
     let start = queue.makeCommandBuffer()!
     let cfg = [UInt32(stage.start), UInt32(stage.count), UInt32.max, 0]
-    if reset { encode("reset_channels", stage.count, cfg, start) }
+    if reset {
+      encode("reset_channels", stage.count, cfg, start)
+      if p.numeric { encode("numeric_begin",stage.count,cfg,start) }
+    }
+    if p.numeric { zero("numeric_counters"); zero("numeric_error") }
     try submit(start)
     zero("counters")
     var levels = [try summary(stage, nil)]
     for depth in stage.levels {
       zero("counters")
+      if p.numeric {
+        let cb=queue.makeCommandBuffer()!
+        encode("numeric_guard",stage.count,[UInt32(stage.start),UInt32(stage.count),UInt32(depth),0],cb)
+        try submit(cb)
+      }
       for group in 0..<p.groups {
         let cfg = [UInt32(stage.start), UInt32(stage.count), UInt32(depth), UInt32(group)]
         let prepare = queue.makeCommandBuffer()!
@@ -153,10 +164,36 @@ final class Executor {
     }
     return levels
   }
+  func numericCommit(_ stage:Stage,_ cb:MTLCommandBuffer) {
+    if !p.numeric {return}
+    let cfg=[UInt32(stage.start),UInt32(stage.count),0,0]
+    encode("numeric_clear_selected",m("numeric_selected").rows,cfg,cb)
+    encode("numeric_propose",stage.count,cfg,cb)
+    encode("numeric_reduce",m("numeric_groups").rows,cfg,cb)
+  }
+  let numericNames=["numeric_state","numeric_evidence","numeric_proposals","numeric_error","numeric_counters"]
+  func numericReport(_ read:(String)->[UInt32])->[String:Any] {
+    let state=read("numeric_state"),props=read("numeric_proposals")
+    func column(_ name:String,_ field:String)->Int {m(name).fields.firstIndex(of:field)!}
+    func word(_ data:[UInt32],_ name:String,_ row:Int,_ field:String)->UInt32 {
+      data[row*m(name).cols+column(name,field)]
+    }
+    func value(_ data:[UInt32],_ name:String,_ row:Int)->Int64 {
+      Int64(bitPattern:UInt64(word(data,name,row,"lo")) | UInt64(word(data,name,row,"hi"))<<32)
+    }
+    var work=[String:Int]()
+    for (i,key) in m("numeric_counters").fields.enumerated(){work[key]=Int(read("numeric_counters")[i])}
+    return ["values":(0..<m("numeric_state").rows).map {word(state,"numeric_state",$0,"present")==0 ? NSNull() as Any : value(state,"numeric_state",$0) as Any},
+      "versions":(0..<m("numeric_state").rows).map {word(state,"numeric_state",$0,"version")},
+      "guards":read("numeric_evidence"),
+      "proposals":(0..<m("numeric_proposals").rows).map {word(props,"numeric_proposals",$0,"status")==1 ? value(props,"numeric_proposals",$0) as Any : NSNull() as Any},
+      "status":(0..<m("numeric_proposals").rows).map {word(props,"numeric_proposals",$0,"status")},
+      "arithmetic_error":read("numeric_error")[0] != 0,"work":work]
+  }
   func run() throws -> [String: Any] {
     var saved = [[[String: Any]]]()
     var snapshots = [[[String: MTLBuffer]]]()
-    for epoch in p.epochs {
+    epochs: for epoch in p.epochs {
       let cb = queue.makeCommandBuffer()!
       let cfg = [UInt32(epoch[0]), UInt32(epoch[1]), 0, 0]
       encode("update_ports", epoch[1], cfg, cb)
@@ -169,12 +206,13 @@ final class Executor {
         let cfg = [UInt32(stage.start), UInt32(stage.count), UInt32.max, 0]
         let levels = try matchStage(stage, reset: true)
         let commit = queue.makeCommandBuffer()!
+        numericCommit(stage,commit)
         encode("targets", stage.count, cfg, commit)
         invalidation(commit)
         // Audit snapshots stay on the device until the full program has completed.
         var snap = [String: MTLBuffer]()
         let blit = commit.makeBlitCommandEncoder()!
-        for name in ["bindings", "live", "decisions", "target_status", "specialization_targets"] {
+        for name in ["bindings", "live", "decisions", "target_status", "specialization_targets"] + (p.numeric ? numericNames : []) {
           let x = m(name)
           let b = device.makeBuffer(
             length: max(4, x.rows * x.cols * 4), options: .storageModeShared)!
@@ -189,6 +227,9 @@ final class Executor {
         try submit(commit)
         stageResults.append(["levels": levels])
         stageSnapshots.append(snap)
+        if p.numeric && words("numeric_error")[0] != 0 {
+          saved.append(stageResults); snapshots.append(stageSnapshots);break epochs
+        }
       }
       saved.append(stageResults)
       snapshots.append(stageSnapshots)
@@ -203,13 +244,15 @@ final class Executor {
         ))
     }
     for epoch in 0..<saved.count {
-      for (si, stage) in p.stages.enumerated() {
+      for si in 0..<saved[epoch].count {
+        let stage=p.stages[si]
         let s = snapshots[epoch][si]
         let v = read(s, "bindings")
         let d = read(s, "decisions")
         let t = read(s, "target_status")
         let sp = read(s, "specialization_targets")
         let selected = Array(ids[stage.start..<stage.start + stage.count]).map { Int($0) }
+        if p.numeric {saved[epoch][si]["numeric"]=numericReport {read(s,$0)}}
         saved[epoch][si]["decisions"] = selected.map { d[$0] }
         saved[epoch][si]["target_status"] = selected.map { t[$0] }
         saved[epoch][si]["specialization_targets"] = selected.map {
@@ -235,7 +278,7 @@ final class Executor {
     let cb = queue.makeCommandBuffer()!
     if let old = old {
       let blit = cb.makeBlitCommandEncoder()!
-      for name in ["bindings","live","features","valid","evidence","decisions","target_status","specialization_targets","execution_counts"] {
+      for name in ["bindings","live","features","valid","evidence","decisions","target_status","specialization_targets","execution_counts","numeric_values","numeric_defined","numeric_valid","numeric_state","numeric_evidence","numeric_proposals"] {
         let a=old.m(name), b=m(name)
         try require(b.rows>=a.rows && b.cols>=a.cols,"shrinking live matrix")
         for row in 0..<a.rows where a.cols>0 {
@@ -262,11 +305,14 @@ final class Executor {
       let revoke=queue.makeCommandBuffer()!
       encode("revoke",stage.count,cfg,revoke)
       try submit(revoke)
+      if resume && p.numeric {zero("numeric_counters");zero("numeric_error")}
       allLevels.append(resume ? [] : try matchStage(stage,reset:false))
       let commit=queue.makeCommandBuffer()!
+      numericCommit(stage,commit)
       encode("targets",stage.count,cfg,commit)
       invalidation(commit)
       try submit(commit)
+      if p.numeric && words("numeric_error")[0] != 0 {break}
     }
     // These are terminal/pending outputs needed for native commits or Bake.
     // No feature matrix is returned to the host.
@@ -282,10 +328,12 @@ final class Executor {
       outputs.append(["channel":ci,"status":Int(ts[ci]),"binding":Array(vals[target*m("bindings").cols..<target*m("bindings").cols+arity]),
         "specialized":sp[ci]==UInt32.max ? NSNull() as Any : Int(sp[ci]) as Any])
     }
-    return ["outputs":outputs,"decisions":ds,"live":live,"levels":allLevels,
+    var result:[String:Any] = ["outputs":outputs,"decisions":ds,"live":live,"levels":allLevels,
       "execution_counts":stride(from:0,to:counts.count,by:2).map{Array(counts[$0..<$0+2])},
       "resume_only":resume,"gpu_seconds":gpuSeconds-beforeGpu,"host_count_reads":hostCountReads-beforeReads,
       "matrix_bytes":heap.length,"device":device.name]
+    if p.numeric {result["numeric"]=numericReport {words($0)}}
+    return result
   }
 
 }
@@ -309,7 +357,7 @@ func sendFrame(_ object:[String:Any]) throws {
 do {
   if CommandLine.arguments.count==2 && CommandLine.arguments[1]=="--serve" {
     var current:Executor? = nil
-    try sendFrame(["ready":true,"protocol":3])
+    try sendFrame(["ready":true,"protocol":4])
     while true {
       let message=try JSONSerialization.jsonObject(with:readFrame()) as! [String:Any]
       do {

@@ -219,6 +219,7 @@ impl LiveSession {
                 channels: vec![],
                 stages: vec![vec![]],
                 updates: vec![],
+                numeric: None,
                 evidence: json!({"source":"native committed rows plus compact producer callbacks; analyze certified templates","scope":"covered positive constructor fragments; CPU keyed proof admission; no global completeness claim"}),
             },
             dirty: false,

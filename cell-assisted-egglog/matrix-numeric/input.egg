@@ -1,0 +1,8 @@
+(Single (Leaf 100))
+(set (Best (Leaf 200)) 10000000000000001)
+(Offer (Leaf 200) (Single (Leaf 100)) 10000000000000000)
+(set (Best (Leaf 201)) 100)
+(Offer (Leaf 201) (Single (Leaf 100)) 3)
+(Offer (Leaf 201) (Single (Leaf 100)) 5)
+(set (Best (Leaf 202)) 1)
+(Offer (Leaf 202) (Single (Leaf 100)) 9)

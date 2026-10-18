@@ -38,13 +38,46 @@ fn snapshot(eg: &EGraph) -> Result<Json> {
         if f.is_let_binding() {
             continue;
         }
-        eg.function_for_each(&name,|r|{
-            let args=r.vals.iter().zip(&f.schema().input).map(|(v,t)|{
-                let value=if eq.contains(t.name()){format!("{}:{:?}",t.name(),eg.get_canonical_value(*v,t))}else{
-                    match t.name(){"i64"=>eg.value_to_base::<i64>(*v).to_string(),"bool"=>eg.value_to_base::<bool>(*v).to_string(),"String"=>eg.value_to_base::<egglog::sort::S>(*v).to_string(),"Unit"=>"()".into(),other=>panic!("unsupported snapshot sort {other}")}
-                };json!([t.name(),value])
-            }).collect::<Vec<_>>();
-            rows.push(json!({"op":name,"sort":f.schema().output.name(),"args":args,"result":format!("{}:{:?}",f.schema().output.name(),eg.get_canonical_value(*r.vals.last().unwrap(),&f.schema().output)),"subsumed":r.subsumed}));
+        eg.function_for_each(&name, |r| {
+            let args = r
+                .vals
+                .iter()
+                .zip(&f.schema().input)
+                .map(|(v, t)| {
+                    let value = if eq.contains(t.name()) {
+                        format!("{}:{:?}", t.name(), eg.get_canonical_value(*v, t))
+                    } else {
+                        match t.name() {
+                            "i64" => eg.value_to_base::<i64>(*v).to_string(),
+                            "bool" => eg.value_to_base::<bool>(*v).to_string(),
+                            "String" => eg.value_to_base::<egglog::sort::S>(*v).to_string(),
+                            "Unit" => "()".into(),
+                            other => panic!("unsupported snapshot sort {other}"),
+                        }
+                    };
+                    json!([t.name(), value])
+                })
+                .collect::<Vec<_>>();
+            let v = *r.vals.last().unwrap();
+            let sort = f.schema().output.name();
+            let result = if eq.contains(sort) {
+                format!(
+                    "{}:{:?}",
+                    sort,
+                    eg.get_canonical_value(v, &f.schema().output)
+                )
+            } else {
+                match sort {
+                    "i64" => eg.value_to_base::<i64>(v).to_string(),
+                    "bool" => eg.value_to_base::<bool>(v).to_string(),
+                    "String" => eg.value_to_base::<egglog::sort::S>(v).to_string(),
+                    "Unit" => "()".into(),
+                    other => panic!("unsupported snapshot sort {other}"),
+                }
+            };
+            rows.push(
+                json!({"op":name,"sort":sort,"args":args,"result":result,"subsumed":r.subsumed}),
+            );
         })?;
     }
     Ok(json!(rows))
@@ -89,7 +122,14 @@ fn run() -> Result<()> {
     let consumer = required(&a, "--consumer")?;
     let mode = a.get("--mode").map(String::as_str).unwrap_or("cpu");
     let start = Instant::now();
-    let (env, _) = environment(&dir)?;
+    let (mut env, _) = environment(&dir)?;
+    let extension = a
+        .get("--consumer-source")
+        .map(std::fs::read_to_string)
+        .transpose()?
+        .unwrap_or_default();
+    env.push_str("\n");
+    env.push_str(&extension);
     if mode == "inspect" {
         let mut eg = EGraph::default();
         eg.parse_and_run_program(None, &env)?;
@@ -129,10 +169,27 @@ fn run() -> Result<()> {
             .map(str::to_owned)
             .collect();
         let parts: Vec<Part> = serde_json::from_str(required(&a, "--parts")?)?;
-        let mut session = Session::new(&dir, ruleset, consumer, native, parts)?;
+        let mut session =
+            Session::with_extension(&dir, ruleset, consumer, native, parts, &extension)?;
         session.set_audit(a.get("--audit").is_some_and(|v| v == "true"));
         let description = session.describe();
-        if mode == "matrix-live" {
+        if mode == "matrix-numeric" {
+            let mut numeric = cell_assisted_egglog::numeric_native::NumericSession::new(
+                session,
+                &env,
+                Path::new(required(&a, "--gpu-worker")?),
+            )?;
+            numeric.input(&input)?;
+            let t = Instant::now();
+            let mut progress = vec![];
+            for _ in 0..rounds {
+                progress.push(numeric.round()?);
+            }
+            (
+                json!({"mode":mode,"run_seconds":t.elapsed().as_secs_f64(),"progress":progress,"stats":numeric.stats,"scope":"shared matrix matching, exact GPU i64 guards/RHS/min-max; one native set per changed key; no general effectful Bake claim"}),
+                snapshot(numeric.engine())?,
+            )
+        } else if mode == "matrix-live" {
             let mut live = cell_assisted_egglog::live::LiveSession::new(
                 session,
                 &env,

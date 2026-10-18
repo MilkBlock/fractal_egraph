@@ -98,6 +98,8 @@ pub struct Program {
     pub stages: Vec<Vec<usize>>,
     #[serde(default)]
     pub updates: Vec<Vec<Update>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub numeric: Option<crate::numeric::Plan>,
     /// Scope/provenance comes from the compiler's baked evidence. This field is
     /// not itself a proof and does not authorize an unknown semantic domain.
     pub evidence: Value,
@@ -134,6 +136,9 @@ impl Program {
             || self.cells.is_empty()
         {
             return Err("invalid matrix program dimensions/version".into());
+        }
+        if let Some(n) = &self.numeric {
+            n.check(&self)?;
         }
         let mut features: Vec<Feature> = vec![];
         let mut width = 0usize;
@@ -391,6 +396,14 @@ impl Program {
                     }
                 }
             }
+            if let Some(n) = &self.numeric {
+                ds.extend(
+                    n.guards
+                        .iter()
+                        .filter(|g| stage.contains(&g.channel))
+                        .map(|g| g.depth),
+                );
+            }
             claimed.extend(targets);
             levels.push(ds.into_iter().collect());
         }
@@ -449,6 +462,8 @@ pub struct Stage {
     pub live: Vec<u32>,
     pub target_status: Vec<u32>,
     pub specialization_targets: Vec<Option<usize>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub numeric: Option<crate::numeric::Snapshot>,
 }
 #[derive(Clone, Debug, Serialize, PartialEq)]
 pub struct Report {
@@ -462,6 +477,7 @@ struct State {
     valid: Vec<Vec<bool>>,
     evidence: Vec<u32>,
     decision: Vec<u32>,
+    numeric: Option<crate::numeric::State>,
 }
 impl Checked {
     fn invalidate(&self, s: &mut State, dirty: &[BTreeSet<usize>]) {
@@ -495,6 +511,15 @@ impl Checked {
             if c.sources.iter().any(|x| s.live[*x] != 1) {
                 continue;
             }
+            let numeric = s
+                .numeric
+                .as_ref()
+                .zip(self.program.numeric.as_ref())
+                .map_or(2, |(s, p)| s.gate(p, ci));
+            if numeric == 1 {
+                s.decision[ci] = 2;
+                continue;
+            }
             let alive = c
                 .alternatives
                 .iter()
@@ -508,7 +533,9 @@ impl Checked {
                 .iter()
                 .any(|b| b.iter().all(|r| s.evidence[r.condition] == 2))
             {
-                s.decision[ci] = 1;
+                if numeric == 2 {
+                    s.decision[ci] = 1;
+                }
                 continue;
             }
             if let Some(d) = depth {
@@ -634,9 +661,10 @@ impl Checked {
             valid: vec![vec![false; p.nodes.len()]; p.cells.len()],
             evidence: self.known.clone(),
             decision: vec![0; p.channels.len()],
+            numeric: p.numeric.as_ref().map(|n| n.new_state()),
         };
         let mut epochs = vec![];
-        for epoch in 0..=p.updates.len() {
+        'epochs: for epoch in 0..=p.updates.len() {
             let mut dirty = vec![BTreeSet::new(); p.cells.len()];
             if epoch > 0 {
                 for u in &p.updates[epoch - 1] {
@@ -661,6 +689,9 @@ impl Checked {
             }
             let mut stages = vec![];
             for (si, stage) in p.stages.iter().enumerate() {
+                if let Some(n) = &mut s.numeric {
+                    n.begin(p.numeric.as_ref().unwrap(), stage);
+                }
                 for c in stage {
                     s.decision[*c] = 0;
                 }
@@ -668,6 +699,16 @@ impl Checked {
                 let mut levels = vec![self.level(&s, stage, None, Work::default())];
                 for &depth in &self.levels[si] {
                     let mut work = Work::default();
+                    if let Some(n) = &mut s.numeric {
+                        n.guards(
+                            p.numeric.as_ref().unwrap(),
+                            p,
+                            stage,
+                            depth,
+                            &s.decision,
+                            &s.live,
+                        );
+                    }
                     for g in &self.groups {
                         let needed = self.classify(&mut s, stage, Some(depth));
                         let selected = g
@@ -702,6 +743,9 @@ impl Checked {
                     }
                     self.classify(&mut s, stage, None);
                     levels.push(self.level(&s, stage, Some(depth), work));
+                }
+                if let Some(n) = &mut s.numeric {
+                    n.commit(p.numeric.as_ref().unwrap(), stage, &s.decision);
                 }
                 let mut target_status = vec![];
                 let mut specialization_targets = vec![];
@@ -767,7 +811,12 @@ impl Checked {
                     live: s.live.clone(),
                     target_status,
                     specialization_targets,
+                    numeric: s.numeric.as_ref().map(|n| n.snapshot()),
                 });
+                if s.numeric.as_ref().is_some_and(|n| n.failed()) {
+                    epochs.push(stages);
+                    break 'epochs;
+                }
             }
             epochs.push(stages);
         }

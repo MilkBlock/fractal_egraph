@@ -77,6 +77,7 @@ kernel void reset_channels(CONTEXT, uint i [[thread_position_in_grid]]) {
   if (i < cfg.y)
     U(DECISIONS, U(STAGE_CHANNELS, cfg.x + i, 0), 0) = 0;
 }
+uint numeric_guard_state(device uint *h, uint ci);
 kernel void classify(CONTEXT, uint i [[thread_position_in_grid]]) {
   if (i >= cfg.y)
     return;
@@ -96,6 +97,8 @@ kernel void classify(CONTEXT, uint i [[thread_position_in_grid]]) {
   }
   if (pending)
     return;
+  uint numeric = numeric_guard_state(h,ci);
+  if(numeric==1) {U(DECISIONS,ci,0)=2;return;}
   uint bs = CH(ci, BRANCH_START), bn = CH(ci, BRANCH_COUNT);
   bool any = false;
   for (uint b = bs; b < bs + bn; b++) {
@@ -108,8 +111,10 @@ kernel void classify(CONTEXT, uint i [[thread_position_in_grid]]) {
       complete &= e == 2;
     }
     if (complete) {
-      U(DECISIONS, ci, 0) = 1;
-      U(EXECUTION_COUNTS, ci, EXECUTION_COUNTS_MATCHES)++;
+      if(numeric==2) {
+        U(DECISIONS, ci, 0) = 1;
+        U(EXECUTION_COUNTS, ci, EXECUTION_COUNTS_MATCHES)++;
+      }
       return;
     }
     any |= !failed;

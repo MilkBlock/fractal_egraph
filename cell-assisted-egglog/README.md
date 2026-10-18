@@ -15,6 +15,15 @@ submitting the original RHS. This mode currently has a narrower constructor-only
 domain and CPU source-proof admission; it is distinct from the indexed resident
 backend below. See [runtime behavior, boundaries and commands](matrix-live/README.md).
 
+## Numeric matrix path
+
+`--mode matrix-numeric` uses that same matrix IR/worker for exact i64 guards,
+checked arithmetic and min/max function merges. The GPU reduces accepted proposals
+by canonical key; native egglog performs the final set/rebuild. Mutable numerical
+fields remain outside the baked structural proof. See [semantics, tests and
+commands](matrix-numeric/README.md). Arbitrary custom merge and effectful Bake are
+not inferred from a min/max example.
+
 ## Resident GPU path
 
 `--mode resident` moves Cell instance maintenance and residual matching onto
@@ -109,6 +118,7 @@ native schedules, destructive delete/reinsert histories, or every logical match.
 | `gpu` | same CPU maintenance | Metal/MPS Cartesian compatibility |
 | `resident` | GPU, compact native events | GPU indexed delta matching |
 | `matrix-live` | CPU keyed admission, compact native events | persistent MPS; automatic native Bake and target-only resume |
+| `matrix-numeric` | analyzed Cell projections plus native state snapshots | same MPS plan + exact i64 guard/RHS and segmented min/max |
 
 The legacy `gpu` path encodes each shared 32-bit ID using 32 signed bits. The dot
 product reaches `32 * shared_slots` exactly iff all IDs agree. It returns tiled

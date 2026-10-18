@@ -62,6 +62,7 @@ fn base() -> Program {
         }],
         stages: vec![vec![0]],
         updates: vec![],
+        numeric: None,
         evidence: json!({"scope":"unit coordinate contract"}),
     }
 }

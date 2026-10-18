@@ -18,12 +18,12 @@ pub struct Matrix {
     pub fields: Vec<String>,
 }
 #[derive(Default)]
-struct Arena {
+pub(crate) struct Arena {
     data: Vec<u32>,
     layout: BTreeMap<String, Matrix>,
 }
 impl Arena {
-    fn add(
+    pub(crate) fn add(
         &mut self,
         name: &str,
         dtype: &'static str,
@@ -58,7 +58,12 @@ impl Arena {
         );
         Ok(off)
     }
-    fn table(&mut self, name: &str, fields: &[&str], rows: Vec<Vec<u32>>) -> Result<usize> {
+    pub(crate) fn table(
+        &mut self,
+        name: &str,
+        fields: &[&str],
+        rows: Vec<Vec<u32>>,
+    ) -> Result<usize> {
         if rows.iter().any(|r| r.len() != fields.len()) {
             return Err("record field/schema mismatch".into());
         }
@@ -71,7 +76,13 @@ impl Arena {
             rows.into_iter().flatten().collect(),
         )
     }
-    fn zero(&mut self, name: &str, dtype: &'static str, r: usize, c: usize) -> Result<usize> {
+    pub(crate) fn zero(
+        &mut self,
+        name: &str,
+        dtype: &'static str,
+        r: usize,
+        c: usize,
+    ) -> Result<usize> {
         self.add(name, dtype, r, c, &[], vec![])
     }
 }
@@ -91,6 +102,7 @@ pub struct GpuProgram {
     pub epochs: Vec<[usize; 2]>,
     pub groups: usize,
     pub evidence: Value,
+    pub numeric: bool,
 }
 const NO: u32 = u32::MAX;
 const WIRE_FIELDS: &[&str] = &["cell", "node"];
@@ -405,6 +417,7 @@ impl Checked {
             ],
             groups,
         )?;
+        crate::numeric_lower::lower(&mut a, p.numeric.as_ref(), p.channels.len())?;
         if a.data.len() >= u32::MAX as usize {
             return Err("matrix address space exhausted".into());
         }
@@ -428,15 +441,21 @@ impl Checked {
                 shader += &format!("#define {name}_{} {}u\n", f.to_uppercase(), i);
             }
         }
+        shader += &format!(
+            "#define NUMERIC_ENABLED {}u\n",
+            u32::from(p.numeric.is_some())
+        );
         shader += include_str!("../matrix.metal");
+        shader += include_str!("../numeric.metal");
         Ok(GpuProgram {
-            version: 3,
+            version: 4,
             layout: a.layout,
             data: a.data,
             shader,
             stages,
             epochs,
             groups: self.groups.len(),
+            numeric: p.numeric.is_some(),
             evidence: json!({"source":p.evidence,"templates":p.templates,"scope":"finite baked coordinate program; explicit boundary channels; no global egglog claim"}),
         })
     }
