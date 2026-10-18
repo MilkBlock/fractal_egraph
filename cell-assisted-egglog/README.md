@@ -40,6 +40,14 @@ combination routing. CPU Cell admission and native canonicalization/commit remai
 This is an indexed GPU backend, not a GEMM acceleration claim. See
 [implementation, reproduction and verified release results](table-runtime/README.md).
 
+## Continuous original-schedule table runtime
+
+The [live table benchmark](live-table-bench/README.md) runs the real raytrace
+packet with persistent GPU sessions, native committed deltas and original native
+RHS/merge/rebuild. It preserves semi-naive watermarks on attachment and handback.
+Its final-graph and extraction-cost checks are reported separately; the earlier
+one-state query timings are not an incremental-runtime result.
+
 ## Marker and matrix layout optimization
 
 `--marker-layout indexed --matrix-layout solver` enables incremental typed port

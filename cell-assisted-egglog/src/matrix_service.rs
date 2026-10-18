@@ -158,7 +158,18 @@ impl Service {
         read(&mut self.output)
     }
     pub(crate) fn table_delta(&mut self, words: &[u32], audit: bool) -> Result<(Json, Vec<u32>)> {
-        write(&mut self.input, &json!({"op":"table_delta","audit":audit}))?;
+        self.table_delta_seeded(words, audit, 0)
+    }
+    pub(crate) fn table_delta_seeded(
+        &mut self,
+        words: &[u32],
+        audit: bool,
+        seeded: usize,
+    ) -> Result<(Json, Vec<u32>)> {
+        write(
+            &mut self.input,
+            &json!({"op":"table_delta","audit":audit,"seeded":seeded}),
+        )?;
         write_words(&mut self.input, words)?;
         let report = read(&mut self.output)?;
         let data = read_words(&mut self.output)?;
@@ -188,7 +199,7 @@ impl Service {
             install_times: InstallTimes::default(),
         };
         let ready = read(&mut s.output)?;
-        if ready["ready"] != true || ready["protocol"] != 6 {
+        if ready["ready"] != true || ready["protocol"] != 7 {
             return Err("live matrix protocol mismatch".into());
         }
         Ok(s)

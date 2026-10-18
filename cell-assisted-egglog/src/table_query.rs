@@ -13,11 +13,10 @@ use std::{
     time::Instant,
 };
 
-pub fn benchmark(base: &EGraph, ruleset: &str, name: &str, worker: &Path) -> Result<Json> {
-    let t = Instant::now();
-    let mut eg = base.clone();
-    let sink = eg.prepare_cell_action(ruleset, name)?;
-    let common_prepare = t.elapsed().as_secs_f64();
+pub(crate) fn plan(
+    eg: &EGraph,
+    sink: &egglog::cell_assist::CellActionSink,
+) -> Result<(Json, Vec<usize>)> {
     let slots = sink.slots();
     let columns = sink
         .atoms
@@ -37,7 +36,6 @@ pub fn benchmark(base: &EGraph, ruleset: &str, name: &str, worker: &Path) -> Res
                 .collect::<Vec<_>>()
         })
         .collect::<Vec<_>>();
-    let t = Instant::now();
     let mut numbers = Vec::new();
     let mut exprs = vec![Expr::Const { value: 0 }];
     let mut guards = Vec::new();
@@ -86,6 +84,17 @@ pub fn benchmark(base: &EGraph, ruleset: &str, name: &str, worker: &Path) -> Res
         Merge::Min,
     )?;
     code["query_only"] = json!(true);
+    Ok((code, numbers))
+}
+
+pub fn benchmark(base: &EGraph, ruleset: &str, name: &str, worker: &Path) -> Result<Json> {
+    let t = Instant::now();
+    let mut eg = base.clone();
+    let sink = eg.prepare_cell_action(ruleset, name)?;
+    let common_prepare = t.elapsed().as_secs_f64();
+    let slots = sink.slots();
+    let t = Instant::now();
+    let (code, numbers) = plan(&eg, &sink)?;
     let compile_seconds = t.elapsed().as_secs_f64();
     let t = Instant::now();
     let mut device = Service::new(worker)?;

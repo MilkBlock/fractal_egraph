@@ -40,6 +40,7 @@ pub struct CellActionSink {
     vars: Vec<ResolvedVar>,
     decided: FunctionId,
     action: RuleId,
+    original: RuleId,
     body: crate::core::Query<ResolvedCall, ResolvedVar>,
 }
 impl CellActionSink {
@@ -102,6 +103,7 @@ impl EGraph {
             .get(name)
             .ok_or_else(|| fail("unknown assisted rule"))?;
         let action_seminaive = self.backend.rule_is_seminaive(*id);
+        let original = *id;
         let rule = rule.clone();
         let table_body = crate::core::Query {
             atoms: rule
@@ -242,8 +244,46 @@ impl EGraph {
             vars,
             decided,
             action,
+            original,
             body: rule.body,
         })
+    }
+
+    /// Keys already older than the original query watermark. Used only once
+    /// when handing a live native checkpoint to a different matcher.
+    pub fn cell_query_old_keys(
+        &self,
+        ruleset: &str,
+        sink: &CellActionSink,
+    ) -> Result<Vec<Vec<Vec<Value>>>, Error> {
+        let Some(Ruleset::Rules(rules)) = self.rulesets.get(ruleset) else {
+            return Err(Error::BackendError("expected direct ruleset".into()));
+        };
+        let (_, id) = rules
+            .get(&sink.name)
+            .ok_or_else(|| Error::BackendError("unknown rule".into()))?;
+        if !self.backend.rule_is_seminaive(*id) {
+            return Err(Error::BackendError(
+                "incremental handoff requires a seminaive rule".into(),
+            ));
+        }
+        let watermark = self.backend.rule_last_run_value(*id);
+        let mut result = vec![];
+        for atom in &sink.atoms {
+            let f = &self.functions[&atom.function];
+            let width = f.schema.input.len();
+            let mut keys = vec![];
+            self.backend.for_each(f.backend_id, |r| {
+                let key = &r.vals[..width];
+                if let Some(full) = self.backend.lookup_row(f.backend_id, key) {
+                    if full[width + 1] < watermark {
+                        keys.push(key.to_vec());
+                    }
+                }
+            });
+            result.push(keys);
+        }
+        Ok(result)
     }
 
     /// CPU reference for the residual bytecode; no native table query.
@@ -335,28 +375,77 @@ impl EGraph {
         bindings: &[Vec<Value>],
         trace: Option<&TraceSession>,
     ) -> Result<RunReport, Error> {
-        let rows = bindings
+        self.apply_cell_binding_batches_with_trace(&[(sink, bindings)], trace)
+    }
+
+    /// Stage bindings for all rules at one frozen ruleset boundary before any
+    /// original RHS executes. No original relational LHS is rerun here.
+    pub fn apply_cell_binding_batches(
+        &mut self,
+        batches: &[(&CellActionSink, &[Vec<Value>])],
+    ) -> Result<RunReport, Error> {
+        self.apply_cell_binding_batches_with_trace(batches, None)
+    }
+    /// Only for a provider of the COMPLETE incremental query frontier. Unlike
+    /// partial Cell coverage, this also advances the original native cursors,
+    /// including rules whose complete query produced no bindings.
+    pub fn apply_completed_cell_ruleset(
+        &mut self,
+        batches: &[(&CellActionSink, &[Vec<Value>])],
+    ) -> Result<RunReport, Error> {
+        let epoch = self.backend.external_query_epoch();
+        let report = self.apply_cell_binding_batches(batches)?;
+        let original = batches
             .iter()
-            .map(|b| sink.canonicalize(self, b))
-            .collect::<Result<Vec<_>, _>>()?;
-        for row in &rows {
-            if !self.cell_guards_hold(sink, row)? {
-                return Err(Error::BackendError(
-                    "submitted Cell binding violates residual guard".into(),
-                ));
+            .map(|(sink, _)| sink.original)
+            .collect::<Vec<_>>();
+        self.backend.complete_external_queries(&original, epoch);
+        Ok(report)
+    }
+
+    fn apply_cell_binding_batches_with_trace(
+        &mut self,
+        batches: &[(&CellActionSink, &[Vec<Value>])],
+        trace: Option<&TraceSession>,
+    ) -> Result<RunReport, Error> {
+        let mut prepared = Vec::new();
+        for (sink, bindings) in batches {
+            if bindings.is_empty() {
+                continue;
             }
+            let rows = bindings
+                .iter()
+                .map(|b| sink.canonicalize(self, b))
+                .collect::<Result<Vec<_>, _>>()?;
+            for row in &rows {
+                if !self.cell_guards_hold(sink, row)? {
+                    return Err(Error::BackendError(
+                        "submitted Cell binding violates residual guard".into(),
+                    ));
+                }
+            }
+            prepared.push((*sink, rows));
         }
-        let table = TableAction::new(&self.backend, sink.decided);
-        self.backend.with_execution_state(|state| {
-            let unit = state.base_values().get(());
-            for b in &rows {
-                table.insert(state, b.iter().copied().chain([unit]));
-            }
-        });
+        if prepared.is_empty() {
+            return Ok(RunReport::default());
+        }
+        for (sink, rows) in &prepared {
+            let table = TableAction::new(&self.backend, sink.decided);
+            self.backend.with_execution_state(|state| {
+                let unit = state.base_values().get(());
+                for row in rows {
+                    table.insert(state, row.iter().copied().chain([unit]));
+                }
+            });
+        }
         self.backend.flush_updates();
+        let actions = prepared
+            .iter()
+            .map(|(sink, _)| sink.action)
+            .collect::<Vec<_>>();
         let report = match trace {
-            Some(t) => self.backend.run_rules_with_trace(&[sink.action], t),
-            None => self.backend.run_rules(&[sink.action]),
+            Some(t) => self.backend.run_rules_with_trace(&actions, t),
+            None => self.backend.run_rules(&actions),
         }
         .map_err(|e| Error::BackendError(e.to_string()))?;
         Ok(RunReport::singleton("cell-assisted", report))

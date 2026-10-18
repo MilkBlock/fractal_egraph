@@ -132,6 +132,19 @@ impl EGraph {
         self.rules[rule].query.seminaive
     }
 
+    /// Read-only handoff watermark for an already executed seminaive rule.
+    pub fn rule_last_run_value(&self, rule: RuleId) -> Value {
+        self.rules[rule].last_run_at.to_value()
+    }
+
+    pub fn external_query_epoch(&self) -> Value { self.next_ts().to_value() }
+
+    /// Trusted complete-query executor: preserve native cursors on handback.
+    pub fn complete_external_queries(&mut self, rules: &[RuleId], epoch: Value) {
+        assert!(epoch <= self.next_ts().to_value());
+        for id in rules {self.rules[*id].last_run_at = Timestamp::new(epoch.rep());}
+    }
+
     /// Add a rewrite rule for this [`EGraph`] using a [`RuleBuilder`].
     /// If you aren't sure, use `egraph.new_rule("", true)`.
     pub fn new_rule(&mut self, desc: &str, seminaive: bool) -> RuleBuilder<'_> {

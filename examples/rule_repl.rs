@@ -16,6 +16,8 @@ use std::{
 
 #[path = "support/cell_query_validation.rs"]
 mod cell_query_validation;
+#[path = "support/live_table_bench.rs"]
+mod live_table_bench;
 #[path = "support/ruleset_bench.rs"]
 mod ruleset_bench;
 
@@ -347,6 +349,20 @@ fn main() -> Result<()> {
                 &eg,
                 &packet.commands,
                 std::path::Path::new(args[1]),
+                &output.join(format!("{}.json", args[0])),
+            )?;
+        } else if let Some(args) = command.strip_prefix(":bench-live ") {
+            let args = args.split_whitespace().collect::<Vec<_>>();
+            if args.len() < 2 || args.len() > 3 {
+                return Err("usage: :bench-live NAME WORKER [check]".into());
+            }
+            let packet = packets.get(cursor).ok_or("no next packet")?;
+            live_table_bench::benchmark(
+                &eg,
+                &packet.commands,
+                &packet.label,
+                std::path::Path::new(args[1]),
+                args.get(2) == Some(&"check"),
                 &output.join(format!("{}.json", args[0])),
             )?;
         } else if let Some(name) = command.strip_prefix(":bench ") {

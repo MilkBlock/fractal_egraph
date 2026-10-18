@@ -16,7 +16,7 @@ uint thash(device const uint* code,uint spec,thread const uint* v){
 kernel void table_patch(CTX,uint i [[thread_position_in_grid]]){
   if(i<cfg[2]){
     uint row=cfg[1]+i,at=4+i*(1+SLOTS+2*NUMS);
-    ROW(row,0)=patch[at];ROW(row,1)=1;ROW(row,2)=cfg[3];
+    ROW(row,0)=patch[at];ROW(row,1)=1;ROW(row,2)=i<cfg[10]?0:cfg[3];
     for(uint j=0;j<SLOTS+2*NUMS;j++)ROW(row,3+j)=patch[at+1+j];
   }
   if(i<patch[2])ROW(patch[4+cfg[2]*(1+SLOTS+2*NUMS)+i],1)=0;
@@ -59,7 +59,7 @@ void temit(device const uint*code,device uint*rows,device uint*matches,device at
 }
 kernel void table_join(CTX,uint index [[thread_position_in_grid]]){
   if(index>=cfg[2])return;
-  uint i=cfg[1]+index;if(!ROW(i,1))return;
+  uint i=cfg[1]+index;if(!ROW(i,1) || ROW(i,2)!=cfg[3])return;
   uint anchor=ROW(i,0),frames[PARTS][SLOTS],cursor[PARTS],started[PARTS],src[PARTS];
   for(uint s=0;s<SLOTS;s++)frames[0][s]=ROW(i,3+s);
   for(uint p=0;p<PARTS;p++)started[p]=0;src[anchor]=i;

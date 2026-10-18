@@ -373,7 +373,7 @@ final class TableExecutor {
   var kernels=[String:MTLComputePipelineState]()
   var rowCount=0,rowCap=0,buckets=1,matchCount=0,matchCap=1,groupBuckets=1,epoch=0,ackEpoch=0
   var compileSeconds=0.0,gpuSeconds=0.0,totalRetries=0
-  var args=[UInt32](repeating:0,count:10)
+  var args=[UInt32](repeating:0,count:11)
   init(_ config:[String:Any]) throws {
     try require(config["version"] as? Int == 1,"table protocol")
     queryOnly=config["query_only"] as? Bool ?? false
@@ -424,11 +424,12 @@ final class TableExecutor {
     args.withUnsafeBytes{e.setBytes($0.baseAddress!,length:$0.count,index:8)};e.setBuffer(patch,offset:0,index:9)
     e.dispatchThreads(MTLSize(width:count,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(128,k.maxTotalThreadsPerThreadgroup),height:1,depth:1));e.endEncoding()
   }
-  func advance(_ data:Data,audit:Bool)throws->([String:Any],[UInt32]){
+  func advance(_ data:Data,audit:Bool,seeded:Int=0)throws->([String:Any],[UInt32]){
     try require(data.count>=16 && data.count%4==0,"malformed table delta")
     func read(_ i:Int)->UInt32{data.withUnsafeBytes{$0.loadUnaligned(fromByteOffset:i*4,as:UInt32.self).littleEndian}}
     let nextEpoch=Int(read(0)),added=Int(read(1)),removed=Int(read(2)),total=Int(read(3)),ps=1+slots+2*numbers
     try require(nextEpoch>epoch && total==rowCount+added && data.count/4==4+added*ps+removed,"table epoch/length mismatch")
+    try require(seeded>=0 && seeded<=added && (seeded==0 || rowCount==0),"seed rows only at initial handoff")
     for i in 0..<added{try require(read(4+i*ps)<parts,"table part outside schema")}
     for i in 0..<removed{try require(read(4+added*ps+i)<rowCount,"retired row outside previous snapshot")}
     let beforeGpu=gpuSeconds,oldRows=rowCount,oldMatches=matchCount
@@ -439,7 +440,7 @@ final class TableExecutor {
     if rehash{heads=try allocate(nextBuckets*max(1,indexes));buckets=nextBuckets}
     patch=data.withUnsafeBytes{device.makeBuffer(bytes:$0.baseAddress!,length:$0.count,options:.storageModeShared)!}
     epoch=nextEpoch;rowCount=total
-    args=[UInt32(total),UInt32(oldRows),UInt32(added),UInt32(epoch),UInt32(buckets),UInt32(matchCap),UInt32(oldMatches),UInt32(matchCount),1,rehash ? 1:0]
+    args=[UInt32(total),UInt32(oldRows),UInt32(added),UInt32(epoch),UInt32(buckets),UInt32(matchCap),UInt32(oldMatches),UInt32(matchCount),1,rehash ? 1:0,UInt32(seeded)]
     memset(meta.contents(),0,32)
     let update=queue.makeCommandBuffer()!;encode("table_patch",max(added,removed),update)
     if rehash{encode("table_clear_indexes",buckets*indexes,update)}
@@ -467,8 +468,8 @@ final class TableExecutor {
     try submit(reduce)
     let ng=Int(word(meta,3)),error=word(meta,2) != 0
     var body=[UInt32](),na=0
-    if audit {
-      for i in 0..<matchCount where word(scratch,2*matchCap+i) != 0 {
+    if audit || queryOnly {
+      for i in 0..<matchCount where word(scratch,2*matchCap+i) != 0 && (audit || word(matches,i*ms) != 0) {
         body.append(UInt32(i));for j in 0..<ms{body.append(word(matches,i*ms+j))};na+=1
       }
     }
@@ -479,7 +480,7 @@ final class TableExecutor {
     try require(body.count<=Int(UInt32.max)/4,"binary table response exceeds frame range")
     return (["epoch":epoch,"rows":rowCount,"new_rows":added,"retired_rows":removed,"match_records":matchCount,
       "new_matches":matchCount-oldMatches,"active_matches":Int(word(meta,7)),"pending_matches":Int(word(meta,6)),
-      "audit_rows":na,"groups":ng,"query_only":queryOnly,"arithmetic_error":error,"index_lookups":Int(word(meta,5)),"candidate_row_visits":Int(word(meta,4)),
+      "audit_rows":na,"groups":ng,"seeded_rows":seeded,"query_only":queryOnly,"pending_only_supported":true,"arithmetic_error":error,"index_lookups":Int(word(meta,5)),"candidate_row_visits":Int(word(meta,4)),
       "retry_count":retries,"shader_compiles":1,"gpu_seconds":gpuSeconds-beforeGpu,
       "matrix_bytes":[code,rows!,links!,heads!,matches!,scratch!,groups!,meta!,patch!].reduce(0){$0+$1.length},"device":device.name],body)
   }
@@ -514,7 +515,7 @@ do {
   if CommandLine.arguments.count==2 && CommandLine.arguments[1]=="--serve" {
     var current:Executor? = nil
     var tables:TableExecutor? = nil
-    try sendFrame(["ready":true,"protocol":6])
+    try sendFrame(["ready":true,"protocol":7])
     while true {
       let raw=try readFrame()
       let parseStart=ProcessInfo.processInfo.systemUptime
@@ -546,7 +547,7 @@ do {
           try sendFrame(["installed":true,"shader_compiles":1,"compile_seconds":tables!.compileSeconds])
         case "table_delta":
           guard let t=tables else{throw NSError(domain:"missing table plan",code:1)}
-          let (report,body)=try t.advance(readFrame(),audit:message["audit"] as? Bool ?? false)
+          let (report,body)=try t.advance(readFrame(),audit:message["audit"] as? Bool ?? false,seeded:message["seeded"] as? Int ?? 0)
           try sendFrame(report);sendBinary(body)
         case "table_ack":
           guard let t=tables else{throw NSError(domain:"missing table plan",code:1)}
