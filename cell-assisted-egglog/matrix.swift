@@ -493,22 +493,28 @@ final class TableExecutor {
 // One device/queue/store for a whole family. Output is scoped to one frozen
 // ruleset boundary; native row timestamps replace historical match receipts.
 final class FamilyExecutor {
- let d:MTLDevice,q:MTLCommandQueue,code:MTLBuffer,c:Int,p:Int,s:Int,ni:Int,nq:Int,rs:Int,nc:Int,cs:Int
- var rows:MTLBuffer!,events:MTLBuffer!,links:MTLBuffer!,heads:MTLBuffer!,output:MTLBuffer!,counts:MTLBuffer!,packet:MTLBuffer!,cells:MTLBuffer!
- var kernels=[String:MTLComputePipelineState](),args=[UInt32](repeating:0,count:9)
+ let d:MTLDevice,q:MTLCommandQueue,code:MTLBuffer,c:Int,p:Int,s:Int,ni:Int,nq:Int,rs:Int,nc:Int,cs:Int,ck:Int,ec:Bool
+ let cellTables:Set<UInt32>,portMeta:[UInt32]
+ var rows:MTLBuffer!,events:MTLBuffer!,links:MTLBuffer!,heads:MTLBuffer!,output:MTLBuffer!,counts:MTLBuffer!,packet:MTLBuffer!,cells:MTLBuffer!,watches:MTLBuffer!,wheads:MTLBuffer!,dirty:MTLBuffer!,state:MTLBuffer!,ports:MTLBuffer!,previous:MTLBuffer!
+ var kernels=[String:MTLComputePipelineState](),args=[UInt32](repeating:0,count:16)
  var rowSlots=0,rowCap=0,eventCount=0,eventCap=0,buckets=1,outCap=1,epoch=0
+ var watchCount=0,watchCap=0,watchBuckets=1,portCount=0,portCap=0,watchGCs=0,portGCs=0
+ var pcursors:[Int],pendingPortEnd=0
  var cursors:[Int],pending:[Int]=[],pendingEnd=0,compactions=0,gpu=0.0,compileSeconds=0.0
  init(_ x:[String:Any])throws{
-  try require(x["version"] as? Int==1,"family protocol")
-  c=x["columns"] as! Int;p=x["parts"] as! Int;s=x["slots"] as! Int;ni=x["indexes"] as! Int;nq=x["queries"] as! Int;rs=4+3*c;nc=x["cell_plans"] as? Int ?? 0;cs=x["cell_stride"] as? Int ?? 1
+  try require(x["version"] as? Int==2,"family protocol")
+  c=x["columns"] as! Int;p=x["parts"] as! Int;s=x["slots"] as! Int;ni=x["indexes"] as! Int;nq=x["queries"] as! Int;rs=4+3*c;nc=x["cell_plans"] as? Int ?? 0;cs=x["cell_stride"] as? Int ?? 1;ck=x["cell_steps"] as! Int;ec=(x["event_cells"] as? Bool ?? false) && nc>0
+  cellTables=Set(x["cell_tables"] as! [UInt32]);portMeta=x["port_meta"] as! [UInt32]
   guard let device=MTLCreateSystemDefaultDevice(),let queue=device.makeCommandQueue()else{throw NSError(domain:"Metal unavailable",code:1)}
-  d=device;q=queue;cursors=Array(repeating:0,count:nq)
+  d=device;q=queue;cursors=Array(repeating:0,count:nq);pcursors=Array(repeating:0,count:nq)
   let words=x["code"] as! [UInt32];code=words.withUnsafeBytes{device.makeBuffer(bytes:$0.baseAddress!,length:$0.count,options:.storageModeShared)!}
-  rows=try alloc(1);events=try alloc(2);links=try alloc(1);heads=try alloc(1);output=try alloc(1+s);counts=try alloc(10);packet=try alloc(1);cells=try alloc(1);memset(cells.contents(),0,cells.length)
+  rows=try alloc(1);events=try alloc(2);links=try alloc(1);heads=try alloc(1);output=try alloc(1+s);counts=try alloc(20);packet=try alloc(1);cells=try alloc(1);memset(cells.contents(),0,cells.length)
+  watches=try alloc(1);wheads=try alloc(1);dirty=try alloc(1);state=try alloc(16);memset(state.contents(),0,state.length);ports=try alloc(2);previous=try alloc(1)
   let t=ProcessInfo.processInfo.systemUptime,options=MTLCompileOptions()
   if #available(macOS 15.0, *) {options.mathMode = .safe}else{options.fastMathEnabled=false}
   let lib=try d.makeLibrary(source:x["shader"] as! String,options:options)
-  for name in ["family_patch","family_rebase","family_clear","family_index","family_cells","family_join"]{kernels[name]=try d.makeComputePipelineState(function:lib.makeFunction(name:name)!)}
+  let names=["family_patch","family_rebase","family_clear","family_index","family_join"] + (ec ? ["family_wake","family_watch_clear","family_watch_compact","family_cell_dispatch","family_cell_events","family_port_compact","family_port_dispatch","family_port_join"] : (nc>0 ? ["family_cells"] : []))
+  for name in names{kernels[name]=try d.makeComputePipelineState(function:lib.makeFunction(name:name)!)}
   compileSeconds=ProcessInfo.processInfo.systemUptime-t
  }
  func alloc(_ n:Int)throws->MTLBuffer{try require(n>=0 && n<Int(UInt32.max),"family address space exhausted");guard let b=d.makeBuffer(length:max(1,n)*4,options:.storageModeShared)else{throw NSError(domain:"family allocation",code:1)};return b}
@@ -518,21 +524,27 @@ final class FamilyExecutor {
   if old.length>=max(1,words)*4{return old};let next=try alloc(words)
   if preserve>0{let cb=q.makeCommandBuffer()!,e=cb.makeBlitCommandEncoder()!;e.copy(from:old,sourceOffset:0,to:next,destinationOffset:0,size:preserve*4);e.endEncoding();try submit(cb)};return next
  }
- func encode(_ name:String,_ n:Int,_ cb:MTLCommandBuffer){
+ func encode(_ name:String,_ n:Int,_ cb:MTLCommandBuffer,_ indirect:Int?=nil){
   if n==0{return};let e=cb.makeComputeCommandEncoder()!,k=kernels[name]!
   e.setComputePipelineState(k)
   for (i,b) in [code,rows!,events!,links!,heads!,output!,counts!].enumerated(){e.setBuffer(b,offset:0,index:i)}
   args.withUnsafeBytes{e.setBytes($0.baseAddress!,length:$0.count,index:7)};e.setBuffer(packet,offset:0,index:8);e.setBuffer(cells,offset:0,index:9)
-  e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(128,k.maxTotalThreadsPerThreadgroup),height:1,depth:1));e.endEncoding()
+  for(i,b) in [watches!,wheads!,dirty!,state!,ports!,previous!].enumerated(){e.setBuffer(b,offset:0,index:10+i)}
+  if let off=indirect {e.dispatchThreadgroups(indirectBuffer:state,indirectBufferOffset:off,threadsPerThreadgroup:MTLSize(width:128,height:1,depth:1))}
+  else{e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(128,k.maxTotalThreadsPerThreadgroup),height:1,depth:1))};e.endEncoding()
  }
  func advance(_ data:Data,ack:Int)throws->([String:Any],[UInt32]){
   try require(ack==epoch,"missing native commit acknowledgment")
-  for id in pending{cursors[id]=pendingEnd};pending=[]
+  for id in pending{cursors[id]=pendingEnd;pcursors[id]=pendingPortEnd};pending=[]
   try require(data.count>=16 && data.count%4==0,"family packet size")
   let w=data.withUnsafeBytes{Array($0.bindMemory(to:UInt32.self))};let total=Int(w[0]),changes=Int(w[1]),n=Int(w[2]),nextEpoch=Int(w[3])
-  try require(nextEpoch==epoch+1 && total>=rowSlots && w.count==4+3*n+changes*(1+rs),"family epoch/shape")
-  let ids=(0..<n).map{Int(w[4+3*$0])};try require(Set(ids).count==n && ids.allSatisfy{$0<nq},"family query IDs")
-  for i in 0..<changes{try require(w[4+3*n+i*(1+rs)]<total,"family row slot")}
+  try require(nextEpoch==epoch+1 && total>=rowSlots && w.count==4+4*n+changes*(1+rs),"family epoch/shape")
+  let ids=(0..<n).map{Int(w[4+4*$0])};try require(Set(ids).count==n && ids.allSatisfy{$0<nq},"family query IDs")
+  for i in 0..<changes{try require(w[4+4*n+i*(1+rs)]<total,"family row slot")}
+  let oldRowSlots=rowSlots,oldData=rows.contents().assumingMemoryBound(to:UInt32.self)
+  let relevant=ec && (0..<changes).contains{ i in
+   let at=4+4*n+i*(1+rs),r=Int(w[at]);return cellTables.contains(w[at+1]) || (r<oldRowSlots && cellTables.contains(oldData[r*rs]))
+  }
   let before=gpu,newRowCap=try pow2(max(1,total)),newEventCap=try pow2(max(2,2*newRowCap)),newBuckets=try pow2(max(1,2*total))
   // At capacity, rebuild from live row slots, not historical versions. Doubling
   // leaves amortized room for another live-set-sized wave of changes.
@@ -549,36 +561,55 @@ final class FamilyExecutor {
    events=try alloc(2*eventCap);links=try alloc(eventCap*ni);heads=try alloc(buckets*ni)
    eventCount=total;cursors=Array(repeating:0,count:nq)
   }else{eventCount+=changes}
+  let oldWatch=watches!,oldPorts=ports!,oldWatchCount=watchCount,oldPortCount=portCount,cellCap=newRowCap*nc
+  var wgc=false,pgc=false
+  if relevant {
+   let nextWatchCap=try pow2(max(2,4*cellCap*ck)),nextWatchBuckets=try pow2(max(1,2*cellCap)),nextPortCap=try pow2(max(2,4*cellCap))
+   wgc=watchCap==0 || watchCount+total*nc*ck>watchCap || nextWatchCap>watchCap || nextWatchBuckets != watchBuckets
+   pgc=portCap==0 || portCount+total*nc>portCap || nextPortCap>portCap
+   dirty=try grow(dirty,max(1,cellCap),0)
+   if wgc {if watchCap>0{watchGCs+=1};watchCap=nextWatchCap;watchBuckets=nextWatchBuckets;watches=try alloc(watchCap*(6+c));wheads=try alloc(watchBuckets);watchCount=0}
+   if pgc {if portCap>0{portGCs+=1};portCap=nextPortCap;ports=try alloc(2*portCap);portCount=0;pcursors=Array(repeating:0,count:nq)}
+  }
+  let ctrl=state.contents().assumingMemoryBound(to:UInt32.self);ctrl[0]=UInt32(watchCount);ctrl[1]=0;ctrl[2]=UInt32(portCount)
   rowSlots=total;rowCap=newRowCap;epoch=nextEpoch
   packet=data.withUnsafeBytes{d.makeBuffer(bytes:$0.baseAddress!,length:$0.count,options:.storageModeShared)!}
-  args=[UInt32(total),UInt32(oldEvents),UInt32(changes),UInt32(n),UInt32(buckets),UInt32(outCap),UInt32(eventCount),compact ? 1:0,0]
+  args=[UInt32(total),UInt32(oldEvents),UInt32(changes),UInt32(n),UInt32(buckets),UInt32(outCap),UInt32(eventCount),compact ? 1:0,0,UInt32(epoch),UInt32(watchBuckets),UInt32(oldRowSlots),UInt32(oldWatchCount),0,UInt32(oldPortCount),0]
   let words=packet.contents().assumingMemoryBound(to:UInt32.self)
-  var span=0;for (i,id) in ids.enumerated(){words[6+3*i]=UInt32(cursors[id]);span=max(span,eventCount-cursors[id])}
+  var span=0;for (i,id) in ids.enumerated(){words[6+4*i]=UInt32(cursors[id]);words[7+4*i]=UInt32(pcursors[id]);span=max(span,eventCount-cursors[id])}
   args[8]=UInt32(span);args[6]=UInt32(eventCount);args[4]=UInt32(buckets)
+  let portWork=ec && ids.enumerated().contains{ i,id in portMeta[id*3] != UInt32.max && (words[5+4*i]>0 || portMeta[id*3+2]==0) && (relevant || pcursors[id]<portCount) }
   var retries=0,count=0
   memset(counts.contents(),0,counts.length)
   while true{
-   memset(counts.contents(),0,5*4);args[5]=UInt32(outCap)
+   memset(counts.contents(),0,5*4);memset(counts.contents().advanced(by:13*4),0,3*4);args[5]=UInt32(outCap)
    let cb=q.makeCommandBuffer()!
    if retries==0 {
+    if relevant {
+     if wgc {previous=oldWatch;encode("family_watch_clear",watchBuckets,cb);encode("family_watch_compact",oldWatchCount,cb)}
+     if pgc {previous=oldPorts;encode("family_port_compact",oldPortCount,cb)}
+     encode("family_wake",changes,cb)
+    }
     encode("family_patch",changes,cb)
     if compact{encode("family_rebase",total,cb);encode("family_clear",buckets*ni,cb)}
     encode("family_index",compact ? eventCount : changes,cb)
-    if nc>0 && (changes>0 || compact){encode("family_cells",total*nc,cb)}
+    if relevant {encode("family_cell_dispatch",1,cb);encode("family_cell_events",1,cb,16)}
+    else if !ec && nc>0 && (changes>0 || compact){encode("family_cells",total*nc,cb)}
    }
-   encode("family_join",span*p*n,cb);try submit(cb)
+   encode("family_join",span*p*n,cb);if portWork {encode("family_port_dispatch",1,cb);encode("family_port_join",1,cb,32)};try submit(cb)
    let flags=counts.contents().assumingMemoryBound(to:UInt32.self)[1]
-   try require(flags&2==0,"family match count overflow");count=Int(counts.contents().assumingMemoryBound(to:UInt32.self)[0])
+   try require(flags&(~UInt32(1))==0,"family count or revision overflow");count=Int(counts.contents().assumingMemoryBound(to:UInt32.self)[0])
    if flags==0{break};outCap=try pow2(max(1,count));output=try alloc(outCap*(1+s));retries+=1
   }
   let result=Array(UnsafeBufferPointer(start:output.contents().assumingMemoryBound(to:UInt32.self),count:count*(1+s)))
   try require(result.count<=Int(UInt32.max)/4,"family response too large")
-  pending=ids;pendingEnd=eventCount
+  watchCount=Int(ctrl[0]);portCount=Int(ctrl[2]);pending=ids;pendingEnd=eventCount;pendingPortEnd=portCount
+  previous=code // completed GC must not retain an otherwise dead old log
   return (["epoch":epoch,"queries":n,"bindings":count,"row_slots":rowSlots,"row_capacity":rowCap,"events":eventCount,"event_capacity":eventCap,
    "compactions":compactions,"compacted":compact,"old_events":oldEvents,"retries":retries,"gpu_seconds":gpu-before,
-   "cell_cache_bytes":cells.length,"cell_plans":nc,
-   "cell_work":["join_probes":counts.contents().assumingMemoryBound(to:UInt32.self)[2],"skipped_join_probes":counts.contents().assumingMemoryBound(to:UInt32.self)[3],"certified_anchor_hits":counts.contents().assumingMemoryBound(to:UInt32.self)[4],"certification_attempts":counts.contents().assumingMemoryBound(to:UInt32.self)[5],"certificate_reuses":counts.contents().assumingMemoryBound(to:UInt32.self)[6],"shape_fallbacks":counts.contents().assumingMemoryBound(to:UInt32.self)[7],"invalidated_certificates":counts.contents().assumingMemoryBound(to:UInt32.self)[8],"certification_probes":counts.contents().assumingMemoryBound(to:UInt32.self)[9]],
-   "device_bytes":[code,rows!,events!,links!,heads!,output!,counts!,packet!,cells!].reduce(0){$0+$1.length},"device":d.name,"retained_matches":0],result)
+   "cell_cache_bytes":cells.length,"cell_plans":nc,"event_cells":ec,"cell_tables_affected":relevant,"port_work":portWork,"watch_count":watchCount,"watch_capacity":watchCap,"port_count":portCount,"port_capacity":portCap,"watch_compactions":watchGCs,"port_compactions":portGCs,"dirty_cells":ctrl[1],
+   "cell_work":["join_probes":counts.contents().assumingMemoryBound(to:UInt32.self)[2],"skipped_join_probes":counts.contents().assumingMemoryBound(to:UInt32.self)[3],"certified_anchor_hits":counts.contents().assumingMemoryBound(to:UInt32.self)[4],"certification_attempts":counts.contents().assumingMemoryBound(to:UInt32.self)[5],"certificate_reuses":counts.contents().assumingMemoryBound(to:UInt32.self)[6],"shape_fallbacks":counts.contents().assumingMemoryBound(to:UInt32.self)[7],"invalidated_certificates":counts.contents().assumingMemoryBound(to:UInt32.self)[8],"certification_probes":counts.contents().assumingMemoryBound(to:UInt32.self)[9],"watch_wakes":counts.contents().assumingMemoryBound(to:UInt32.self)[10],"dirty_cells":counts.contents().assumingMemoryBound(to:UInt32.self)[11],"prefix_rows_reused":counts.contents().assumingMemoryBound(to:UInt32.self)[12],"port_bindings":counts.contents().assumingMemoryBound(to:UInt32.self)[13],"delegated_branches":counts.contents().assumingMemoryBound(to:UInt32.self)[14],"port_probes":counts.contents().assumingMemoryBound(to:UInt32.self)[15],"ports_published":counts.contents().assumingMemoryBound(to:UInt32.self)[16],"missing_key_waits":counts.contents().assumingMemoryBound(to:UInt32.self)[17],"watch_entries_checked":counts.contents().assumingMemoryBound(to:UInt32.self)[18],"direct_row_reuses":counts.contents().assumingMemoryBound(to:UInt32.self)[19]],
+   "device_bytes":[code,rows!,events!,links!,heads!,output!,counts!,packet!,cells!,watches!,wheads!,dirty!,state!,ports!].reduce(0){$0+$1.length},"device":d.name,"retained_matches":0],result)
  }
 }
 
@@ -608,7 +639,7 @@ do {
     var current:Executor? = nil
     var tables:TableExecutor? = nil
     var family:FamilyExecutor? = nil
-    try sendFrame(["ready":true,"protocol":9])
+    try sendFrame(["ready":true,"protocol":10])
     while true {
       let raw=try readFrame()
       let parseStart=ProcessInfo.processInfo.systemUptime

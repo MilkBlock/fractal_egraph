@@ -1,6 +1,6 @@
 # Shared Cell matrix program
 
-Live transport update: the worker handshake is protocol **9**. Rebuild
+Live transport update: the worker handshake is protocol **10**. Rebuild
 `matrix.swift`; bulk live heaps now use binary frames. Offline lowered ABI **5**
 and replayable JSON files are unchanged. Numeric workloads also support the
 [resident fragment-table backend](../table-runtime/README.md), which sends deltas

@@ -15,6 +15,7 @@ pub fn compile(
     cells: Option<&crate::cell_prefix::Library>,
     profile: bool,
     certificates: bool,
+    event_cells: bool,
 ) -> Result<Json> {
     let c = tables.iter().map(|t| t.keys + 1).max().unwrap_or(1);
     let p = sinks.iter().map(|q| q.atoms.len()).max().unwrap_or(1);
@@ -160,6 +161,8 @@ pub fn compile(
     let (mut max_cell_steps, mut max_cell_vars) = (1, 1);
     let mut cell_steps = vec![];
     let mut cell_evidence = vec![];
+    let mut cell_tables = BTreeSet::new();
+    let mut drivers: Vec<Option<(usize, Vec<usize>, Vec<u32>)>> = vec![None; sinks.len()];
     for (qi, q) in sinks.iter().enumerate() {
         for anchor in 0..p {
             for position in 0..p {
@@ -221,6 +224,7 @@ pub fn compile(
                     *v
                 } else {
                     let id = cell_specs.len();
+                    cell_tables.extend(order[..n].iter().map(|i| tids[&q.atoms[*i].function]));
                     cell_meta.extend([
                         qi as u32,
                         order[0] as u32,
@@ -291,11 +295,105 @@ pub fn compile(
                     .iter()
                     .map(|(o, n)| (*n, *o))
                     .collect::<BTreeMap<_, _>>();
+                let wiring = (0..s)
+                    .map(|i| inverse.get(&i).map_or(u32::MAX, |n| *n as u32))
+                    .collect::<Vec<_>>();
+                // One driving relation per consumer, with all remaining atoms
+                // retained. Choose the largest witnessed functional fragment;
+                // ties keep deterministic source order, never sample bindings.
+                if drivers[qi]
+                    .as_ref()
+                    .is_none_or(|(_, parts, _)| parts.len() < n)
+                {
+                    drivers[qi] = Some((id, order[..n].to_vec(), wiring.clone()));
+                }
                 route.extend([id as u32, (n - 1) as u32]);
                 for i in 0..s {
                     route.push(inverse.get(&i).map_or(u32::MAX, |n| *n as u32));
                 }
             }
+        }
+    }
+    let (mut port_meta, mut port_map, mut port_group, mut port_plan, mut owner) =
+        (vec![], vec![], vec![], vec![], vec![]);
+    for (qi, q) in sinks.iter().enumerate() {
+        let driver = drivers[qi].as_ref().filter(|_| event_cells && certificates);
+        let group = driver.map(|(_, g, _)| g.clone()).unwrap_or_default();
+        let outside = (0..q.atoms.len())
+            .filter(|i| !group.contains(i))
+            .collect::<Vec<_>>();
+        let priority = outside
+            .iter()
+            .copied()
+            .chain(group.iter().copied())
+            .collect::<Vec<_>>();
+        for i in 0..p {
+            owner.push(priority.iter().position(|x| *x == i).unwrap_or(i) as u32);
+        }
+        port_meta.extend([
+            driver.map_or(u32::MAX, |d| d.0 as u32),
+            group.first().copied().unwrap_or(0) as u32,
+            outside.len() as u32,
+        ]);
+        port_map.extend(driver.map(|d| d.2.clone()).unwrap_or(vec![u32::MAX; s]));
+        for i in 0..p {
+            port_group.push(u32::from(group.contains(&i)));
+        }
+        if driver.is_none() {
+            port_plan.extend(std::iter::repeat_n(0, 2 * p));
+            continue;
+        }
+        let mut bound = group
+            .iter()
+            .flat_map(|i| {
+                q.atoms[*i].columns.iter().filter_map(|o| match o {
+                    CellOperand::Slot(v) => Some(*v),
+                    _ => None,
+                })
+            })
+            .collect::<BTreeSet<_>>();
+        let mut remain = outside.into_iter().collect::<BTreeSet<_>>();
+        for _ in 0..p {
+            let Some(part) = remain
+                .iter()
+                .copied()
+                .find(|i| {
+                    q.atoms[*i]
+                        .columns
+                        .iter()
+                        .any(|o| matches!(o,CellOperand::Slot(v) if bound.contains(v)))
+                })
+                .or_else(|| remain.first().copied())
+            else {
+                port_plan.extend([0, 0]);
+                continue;
+            };
+            let a = &q.atoms[part];
+            let cols = a
+                .columns
+                .iter()
+                .enumerate()
+                .filter_map(|(j, o)| match o {
+                    CellOperand::Constant { .. } => Some(j),
+                    CellOperand::Slot(v) if bound.contains(v) => Some(j),
+                    _ => None,
+                })
+                .collect::<Vec<_>>();
+            let next = specs.len();
+            let sp = *specs
+                .entry((tids[&a.function], cols.clone()))
+                .or_insert_with(|| {
+                    index.extend([tids[&a.function] as u32, cols.len() as u32]);
+                    index.extend(cols.iter().map(|x| *x as u32));
+                    index.extend(std::iter::repeat_n(0, c - cols.len()));
+                    next
+                });
+            port_plan.extend([part as u32, sp as u32]);
+            remain.remove(&part);
+            bound.extend(a.columns.iter().filter_map(|o| match o {
+                CellOperand::Slot(v) => Some(*v),
+                _ => None,
+            }));
         }
     }
     if specs.is_empty() {
@@ -314,7 +412,18 @@ pub fn compile(
         u32::from(profile),
         u32::from(certificates && !cell_specs.is_empty())
     );
-    shader += &format!("#define CK {max_cell_steps}\n#define CF {max_cell_vars}\n");
+    let cell_header = if event_cells && certificates && !cell_specs.is_empty() {
+        8
+    } else {
+        2
+    };
+    shader += &format!(
+        "#define CK {max_cell_steps}\n#define CF {max_cell_vars}\n#define CH {cell_header}\n"
+    );
+    shader += &format!(
+        "#define CELL_EVENTS {}\n",
+        u32::from(event_cells && certificates && !cell_specs.is_empty())
+    );
     for (name, values) in [
         ("QMETA", meta),
         ("ATOM", atoms),
@@ -326,6 +435,12 @@ pub fn compile(
         ("CELL_STEP", cell_steps),
         ("CELL_FIELDS", cell_fields),
         ("CELL_VARIANT", variants),
+        ("TABLE_KEYS", tables.iter().map(|t| t.keys as u32).collect()),
+        ("PORT_META", port_meta.clone()),
+        ("PORT_MAP", port_map),
+        ("PORT_GROUP", port_group),
+        ("PORT_PLAN", port_plan),
+        ("OWNER", owner),
     ] {
         shader += &format!("#define {name} {}u\n", code.len());
         code.extend(values);
@@ -334,7 +449,9 @@ pub fn compile(
     shader += include_str!("../integer.metal");
     shader += include_str!("../family.metal");
     shader += include_str!("../family_cells.metal");
+    shader += include_str!("../family_events.metal");
+    shader += include_str!("../family_ports.metal");
     Ok(
-        json!({"version":1,"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":2+2*max_cell_steps+3*max_cell_vars,"profile":profile}),
+        json!({"version":2,"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
     )
 }

@@ -211,7 +211,7 @@ impl Service {
             install_times: InstallTimes::default(),
         };
         let ready = read(&mut s.output)?;
-        if ready["ready"] != true || ready["protocol"] != 9 {
+        if ready["ready"] != true || ready["protocol"] != 10 {
             return Err("live matrix protocol mismatch".into());
         }
         Ok(s)

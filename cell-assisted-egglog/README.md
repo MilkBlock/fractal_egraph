@@ -43,6 +43,9 @@ This is an indexed GPU backend, not a GEMM acceleration claim. See
 ## Continuous original-schedule table runtime
 
 The shared loop now optionally accepts **analyze-backed Cell projections**.
+Its default Cell path now uses [committed events and ready-port queries](cell-event-bench/README.md):
+keyed GPU watches resume partial bindings and drive consumer residuals. The
+previous cached path remains an explicit ablation control.
 Certified, fully keyed internal fragments can replace join stages, including
 after a query enters a Cell from an external boundary. Multiple consumers share
 the projected binding; row generations revoke stale guarantees. Reverse or

@@ -66,6 +66,7 @@ pub struct Options<'a> {
     pub analysis: Option<&'a Path>,
     /// Keep the same Cell-guided order but disable reuse for a fair ablation.
     pub plan_only: bool,
+    pub cache_only: bool,
     pub profile: bool,
 }
 pub struct Runtime {
@@ -138,6 +139,7 @@ impl Runtime {
                 analysis,
                 profile,
                 plan_only: false,
+                cache_only: false,
             },
         )
     }
@@ -271,8 +273,9 @@ impl Runtime {
                 cells.as_ref(),
                 options.profile,
                 !options.plan_only,
+                !options.cache_only,
             )?;
-            runtime.cell_evidence = json!({"library":cells.as_ref().map(|c|&c.evidence),"plans":config["cell_evidence"],"profile":options.profile,"plan_only":options.plan_only});
+            runtime.cell_evidence = json!({"library":cells.as_ref().map(|c|&c.evidence),"plans":config["cell_evidence"],"profile":options.profile,"plan_only":options.plan_only,"cache_only":options.cache_only});
             let mut device = Service::new(worker)?;
             device.family_init(config)?;
             runtime.device = Some(device);
@@ -433,6 +436,7 @@ impl Runtime {
                 *id as u32,
                 self.eg.cell_query_watermark(&self.sinks[*id]),
                 0,
+                0,
             ]);
             self.qstats[*id].dispatches += 1;
         }
@@ -504,10 +508,17 @@ impl Runtime {
             let n = self.sinks[q].slots().len();
             matches[i].push(record[1..1 + n].iter().map(|v| Value::new(*v)).collect());
         }
-        for bindings in &mut matches {
+        for (id, bindings) in ids.iter().zip(&mut matches) {
             bindings.sort_unstable();
-            if bindings.windows(2).any(|p| p[0] == p[1]) {
-                return Err("duplicate family binding".into());
+            if let Some(pair) = bindings.windows(2).find(|p| p[0] == p[1]) {
+                return Err(format!(
+                    "duplicate family binding for {}: {:?} among {} rows; device counters {}",
+                    self.sinks[*id].name,
+                    pair[0],
+                    bindings.len(),
+                    self.last_device["cell_work"]
+                )
+                .into());
             }
         }
         self.stats.decode_seconds += t.elapsed().as_secs_f64();
@@ -637,6 +648,6 @@ impl Runtime {
         result
     }
     pub fn report(&self) -> Json {
-        json!({"runtime":self.stats,"audit":self.audit,"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"rules":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|json!({"ruleset":set,"rule":self.sinks[*id].name,"stats":self.qstats[*id]}))).collect::<Vec<_>>(),"scope":"Shared native rows and sorted native RHS commit; optional analyzed Cell projections skip certified unique local prefixes. Every uncertified anchor uses the complete query. No virtual storage or arbitrary-Cell coverage claim."})
+        json!({"runtime":self.stats,"audit":self.audit,"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"rules":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|json!({"ruleset":set,"rule":self.sinks[*id].name,"stats":self.qstats[*id]}))).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interface states and ready-port residual queries; unknown interfaces retain complete queries. Cached-only control is explicit. This is not arbitrary whole-RipSatCell graft execution or virtual storage."})
     }
 }

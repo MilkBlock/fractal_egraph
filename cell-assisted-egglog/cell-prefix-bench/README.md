@@ -1,5 +1,9 @@
 # Analyze-backed Cell projections in the shared GPU runtime
 
+The recorded results here are the cached implementation at `588464e` (protocol
+9). The current default adds [commit-driven interface states](../cell-event-bench/README.md)
+and uses protocol 10; the runner retains the old behavior as `cell_cached`.
+
 This is the **actual native event/schedule/RHS loop**, with an optional Cell
 shortcut. It does not replace native facts, union, merge, rebuild or extraction.
 The existing full-query GPU path remains the baseline and the fallback.

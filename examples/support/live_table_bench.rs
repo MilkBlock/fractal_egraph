@@ -298,7 +298,7 @@ pub fn benchmark(
     Ok(())
 }
 
-/// Four executions from the identical checkpoint. Plan-only isolates query
+/// Five executions from the identical checkpoint. Plan-only isolates query
 /// ordering from actual reuse; work counters are a separate diagnostic run.
 pub fn benchmark_cells(
     base: &EGraph,
@@ -327,6 +327,16 @@ pub fn benchmark_cells(
             Options {
                 analysis: Some(analysis),
                 plan_only: true,
+                cache_only: false,
+                profile,
+            },
+        ),
+        (
+            "cell_cached",
+            Options {
+                analysis: Some(analysis),
+                plan_only: false,
+                cache_only: true,
                 profile,
             },
         ),
@@ -335,6 +345,7 @@ pub fn benchmark_cells(
             Options {
                 analysis: Some(analysis),
                 plan_only: false,
+                cache_only: false,
                 profile,
             },
         ),
@@ -348,7 +359,7 @@ pub fn benchmark_cells(
         dest,
         serde_json::to_vec_pretty(&json!({"label":label,"complete":true,
         "analysis":analysis,"audit":checked,"profile":profile,"cpu":cpu.report(),"variants":variants,
-        "scope":"Actual native schedule and RHS, same sorted commit; analyzed positive projections plus exhaustive current singleton checks. No pristine or full-eggcc speedup claim. All unknown/ambiguous instances retain full queries."}))?,
+        "scope":"Actual native schedule and RHS, same sorted commit; analyzed positive fully keyed projections, cached and commit-driven controls. No pristine or full-eggcc speedup claim. All unknown/ambiguous instances retain full queries."}))?,
     )?;
     Ok(())
 }

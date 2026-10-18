@@ -42,6 +42,7 @@ fn boundary_deltas_reuse_cell_projection_in_the_middle_of_full_queries() {
     let before = r.report()["cell_work"]["skipped_join_probes"]
         .as_u64()
         .unwrap();
+    let validations = r.report()["cell_work"]["certification_attempts"].clone();
     r.input("(Boundary s 1) (Boundary s 2) (Boundary s 3)")
         .unwrap();
     r.run(&cmds).unwrap();
@@ -52,7 +53,11 @@ fn boundary_deltas_reuse_cell_projection_in_the_middle_of_full_queries() {
         report["cell_work"]["skipped_join_probes"].as_u64().unwrap() > before,
         "external-only delta must use the internal shortcut: {report}"
     );
-    assert!(report["cell_work"]["certificate_reuses"].as_u64().unwrap() > 0);
+    assert_eq!(
+        report["cell_work"]["certification_attempts"], validations,
+        "external changes must not revalidate unrelated Cell interiors"
+    );
+    assert_eq!(report["device"]["dirty_cells"], 0);
     assert_eq!(r.engine().get_size("Seen"), 5);
     assert_eq!(r.engine().get_size("SeenAgain"), 5);
     // Two rules and all their seminaive anchors share the forward
@@ -71,7 +76,7 @@ fn new_union_alternative_falls_back_without_losing_a_binding_then_recertifies() 
     let report = r.report();
     // Reverse alternatives are enumerated by the ordinary query, not cached.
     assert_eq!(report["device"]["cell_plans"], 1);
-    assert!(report["cell_work"]["shape_fallbacks"].as_u64().unwrap()>0);
+    assert!(report["cell_work"]["shape_fallbacks"].as_u64().unwrap() > 0);
     r.input("(union x y) (Boundary s 2)").unwrap();
     r.run(&cmds).unwrap();
     check(&r, "(check (Seen x x 2))");
@@ -85,7 +90,12 @@ fn subsume_and_slot_recycling_do_not_leave_a_false_cell_guarantee() {
     r.input("(subsume (Get s 0)) (Boundary s 1)").unwrap();
     r.run(&cmds).unwrap();
     assert_eq!(r.engine().get_size("Seen"), 1);
-    assert!(r.report()["cell_work"]["invalidated_certificates"].as_u64().unwrap()>0);
+    assert!(
+        r.report()["cell_work"]["invalidated_certificates"]
+            .as_u64()
+            .unwrap()
+            > 0
+    );
     // Restore a genuinely different instance; old native row slots can be reused.
     r.input("(let t (Single y)) (union (Get t 0) y) (Boundary t 2)")
         .unwrap();

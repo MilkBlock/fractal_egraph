@@ -33,7 +33,7 @@ with (out/'run.log').open('w') as log:
 r=json.loads((out/'raw.json').read_text())
 sha=lambda f:hashlib.sha256(Path(f).read_bytes()).hexdigest()
 files=[source,binary,a.worker.resolve(),program,*sorted((a.analysis/'catalog').rglob('*.json'))]
-files += [*sorted((ROOT/'cell-assisted-egglog/src').glob('*.rs')),ROOT/'cell-assisted-egglog/matrix.swift',ROOT/'cell-assisted-egglog/family.metal',ROOT/'cell-assisted-egglog/family_cells.metal',Path(__file__).resolve(),ROOT/'examples/cell_prefix_bench.rs',ROOT/'examples/support/live_table_bench.rs']
+files += [*sorted((ROOT/'cell-assisted-egglog/src').glob('*.rs')),ROOT/'cell-assisted-egglog/matrix.swift',ROOT/'cell-assisted-egglog/family.metal',ROOT/'cell-assisted-egglog/family_cells.metal',ROOT/'cell-assisted-egglog/family_events.metal',ROOT/'cell-assisted-egglog/family_ports.metal',Path(__file__).resolve(),ROOT/'examples/cell_prefix_bench.rs',ROOT/'examples/support/live_table_bench.rs']
 r['provenance']={'hashes':{str(f):sha(f) for f in files},'head':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'instances':a.instances,'original_rules':3,'scope':'Original isolated eggcc If/util rules and held-out inputs; not whole raytrace or compiler. Frozen analyzed library, not a new bake.'}
 for v in r['variants']:
     assert v['verification']['exact_rows_values_equivalence_visibility']

@@ -6,9 +6,9 @@ kernel void family_cells(CTX,uint lane [[thread_position_in_grid]]){
  uint r=lane/NC,cp=lane%NC;if(r>=cfg[0])return;
  uint base=(r*NC+cp)*CS,m=CELL_META+cp*6,q=code[m],anchor=code[m+1],k=code[m+2];
  if(R(r,1)==0 || R(r,0)!=code[ATOM+(q*P+anchor)*(2+2*C)]){cells[base]=0;return;}
- bool fresh=cells[base] && cells[base+1]==R(r,2);
+ bool fresh=cells[base]==2 && cells[base+1]==R(r,2);
  if(fresh)for(uint j=0;j<k;j++){
-  uint at=base+2+j*2,row=cells[at];
+  uint at=base+CH+j*2,row=cells[at];
   if(R(row,1)==0 || R(row,2)!=cells[at+1]){fresh=false;break;}
  }
  if(fresh){if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+6,1,memory_order_relaxed);return;}
@@ -30,7 +30,7 @@ kernel void family_cells(CTX,uint lane [[thread_position_in_grid]]){
   }
   if(chosen==NO)return;
   bind_atom(code,rows,q,t,chosen,v,lo,hi,b);
-  uint save=base+2+j*2;cells[save]=chosen;cells[save+1]=R(chosen,2);
+  uint save=base+CH+j*2;cells[save]=chosen;cells[save+1]=R(chosen,2);
  }
  bool shape=false;
  for(uint a=0;a<code[m+4];a++){
@@ -40,5 +40,5 @@ kernel void family_cells(CTX,uint lane [[thread_position_in_grid]]){
  }
  if(!shape){if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+7,1,memory_order_relaxed);return;}
  for(uint i=0;i<code[m+5];i++){uint f=code[CELL_FIELDS+cp*S+i];cells[base+CV+i*3]=v[f];cells[base+CV+i*3+1]=lo[f];cells[base+CV+i*3+2]=hi[f];}
- cells[base+1]=R(r,2);cells[base]=1;
+ cells[base+1]=R(r,2);cells[base]=2;
 }
