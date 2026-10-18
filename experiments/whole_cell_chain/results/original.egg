@@ -1,0 +1,22 @@
+; Pure arithmetic subset: no analysis functions, guards or invented summary nodes.
+(datatype Math (Var i64) (Add Math Math) (Mul Math Math))
+(ruleset math)
+(rewrite (Add a b) (Add b a) :ruleset math :name "add-comm")
+(rewrite (Mul a b) (Mul b a) :ruleset math :name "mul-comm")
+(rewrite (Mul k (Add a b)) (Add (Mul k a) (Mul k b))
+         :ruleset math :name "distribute")
+(rewrite (Add (Mul k a) (Mul k b)) (Mul k (Add a b))
+         :ruleset math :name "factor")
+
+; Bake uses fresh symbolic ports, never these concrete leaf identities.
+(let x (Var 101))
+(let y (Var 203))
+(let k (Var 307))
+(let z (Var 409))
+
+(let wc_reference_A (Add x y))
+(run-schedule (saturate math))
+(let wc_reference_B (Mul k (Add x y)))
+(run-schedule (saturate math))
+(let wc_reference_C (Add (Mul k (Add x y)) (Mul k z)))
+(run-schedule (saturate math))

@@ -6,6 +6,10 @@
 项目希望复用一整段推理已经得到的知识，减少重复匹配、重复构造和中间状态转换。
 当前可执行主线是 **RipSatCell → canonical spine → 生成 `.egg`**；压缩率和速度需要分别实测。
 
+新增[完整 RipSatCell 转移执行对照](experiments/whole_cell_chain/README.md)：原生 Bake 自动生成
+A → B → C 的完整闭包增量，运行时跳过原始 smooth 匹配，并逐阶段核对全量事实、等价关系与 extraction。
+这是 CPU/native 提交后端，不是接口缓存或 GPU 加速比结论。
+
 ## 方法总览
 
 ```text

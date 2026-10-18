@@ -1,0 +1,28 @@
+{
+  "source_head": "26a06a1ff94011b93f996c29155d64448a1494d8",
+  "run": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/whole-cell-abc-verified",
+  "hashes": {
+    "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/src/whole_cell.rs": "cecbb0b2af358c49fd9757cad80b23bbcfc64d49a51194a6f4b38e1383bb1f89",
+    "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/src/main.rs": "82f00cd0b8591dc6984fd34a2cd49e1df2653b22f42c00148b7cace7721c7bff",
+    "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/src/lib.rs": "1ce585ac17efa4b7cfa1e19e3fdf5a2fcb4651a63e122fa82cb539a78d1898f0",
+    "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/tests/whole_cell.rs": "9eb73aa80c71477b86655d21dc41b0dc2c930b020f1e6d25bab0225e687808bf",
+    "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/experiments/whole_cell_chain/summarize.py": "87375f5b147f79e1968428216b01b2fbd24650b4037b51d2c08880e1a268c04c",
+    "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/experiments/whole_cell_chain/math.egg": "4ad8aa303493df6834bbc9d74df9c7cb8b99fd1a78b55469c295f545bc6c0755",
+    "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/experiments/whole_cell_chain/plan.json": "bbf78b6ecf5925aa018cf565948162ea99dd5a971b93c279369107348c519b72",
+    "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/experiments/whole_cell_chain/heldout.egg": "e9d393e4c83b2bc63b469cca62d74fbe695b79ea2f3d46f381f3c463212265c1",
+    "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/target/analyzer/release/egg_layout": "546b6dc7b4e78e1fd952126f12203fb568fa5d38544e4c560a77a90ddc73130a"
+  },
+  "artifact_hashes": {
+    "report.json": "38135a5f0208163546b1923831a53e773be49c22f42461479ea2d4fe30756c84",
+    "library.json": "3d45e1e0d5dbc0898caf7cd5ed7a2f61d55ac5bbb9d3dceb8426009910dc7f69",
+    "original.egg": "7b894ad43f36d913e2b69111644836f24e782bf337dd05da1e8435d5088aa14b",
+    "compiled-deltas.egg": "79edf2fa6b03d8ce26357f0f1642fdd4b444f4a9206aeab284644c5dc40a6e94",
+    "A-native.json": "896e0531cc5f7fa12cf9a0dae5502c7f63b864ec85e823ca1d1cb585746c6a68",
+    "A-cell.json": "896e0531cc5f7fa12cf9a0dae5502c7f63b864ec85e823ca1d1cb585746c6a68",
+    "B-native.json": "f7080460a266cf9823f534273f32903d404d300f1fb64f5af04b8b6487d0264d",
+    "B-cell.json": "f7080460a266cf9823f534273f32903d404d300f1fb64f5af04b8b6487d0264d",
+    "C-native.json": "4f83a099e374bc1d124bdac47a341cc0812e87c2e9b7a461b5c450fe3d9ed9ae",
+    "C-cell.json": "11efa935ea86ace524fe7cf9fdfa9bfa3c09e8ffef470a132531b569e9a3decc"
+  },
+  "scope": "actual native backend, unassisted same-fork reference; no pristine or GPU speedup claim"
+}

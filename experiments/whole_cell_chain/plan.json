@@ -1,0 +1,8 @@
+{
+  "ruleset": "math",
+  "stages": [
+    {"name":"A","parent":null,"parameters":[{"name":"x","sort":"Math"},{"name":"y","sort":"Math"}],"graft":"(Add x y)"},
+    {"name":"B","parent":"A","parameters":[{"name":"k","sort":"Math"}],"graft":"(Mul k parent)"},
+    {"name":"C","parent":"B","parameters":[{"name":"z","sort":"Math"}],"graft":"(Add parent (Mul k z))"}
+  ]
+}

@@ -1,0 +1,9 @@
+; Pure arithmetic subset: no analysis functions, guards or invented summary nodes.
+(datatype Math (Var i64) (Add Math Math) (Mul Math Math))
+(ruleset math)
+(rewrite (Add a b) (Add b a) :ruleset math :name "add-comm")
+(rewrite (Mul a b) (Mul b a) :ruleset math :name "mul-comm")
+(rewrite (Mul k (Add a b)) (Add (Mul k a) (Mul k b))
+         :ruleset math :name "distribute")
+(rewrite (Add (Mul k a) (Mul k b)) (Mul k (Add a b))
+         :ruleset math :name "factor")

@@ -1,0 +1,89 @@
+; wc_receipt_* are typed Rust write primitives returning the whole target frame.
+; The wc_gate_* LHS is a dispatch signature; the action-only API bypasses it.
+; Pure arithmetic subset: no analysis functions, guards or invented summary nodes.
+(datatype Math (Var i64) (Add Math Math) (Mul Math Math))
+(ruleset math)
+(rewrite (Add a b) (Add b a) :ruleset math :name "add-comm")
+(rewrite (Mul a b) (Mul b a) :ruleset math :name "mul-comm")
+(rewrite (Mul k (Add a b)) (Add (Mul k a) (Mul k b))
+         :ruleset math :name "distribute")
+(rewrite (Add (Mul k a) (Mul k b)) (Mul k (Add a b))
+         :ruleset math :name "factor")
+
+; A: complete RipSatCell None -> 0
+; in0: external x -> target v0
+; in1: external y -> target v1
+; target roles: {"input:x": 0, "input:y": 1, "root": 2}
+(ruleset wc_emit_0)
+(function wc_gate_0 (Math Math) i64 :merge old)
+(rule ((= 0 (wc_gate_0 in0 in1)))
+  ((let v0 in0)
+   (let v1 in1)
+   (let v2 (Add v0 v1))
+   (let made0 (Add v1 v0))
+   (union v2 made0)
+   (wc_receipt_0 v0 v1 v2 in0 in1)) :ruleset wc_emit_0 :name "wc_delta_0")
+
+; B: complete RipSatCell 0 -> 1
+; in0: input:x -> target v1
+; in1: input:y -> target v2
+; in2: root -> target v4
+; in3: external k -> target v0
+; target roles: {"input:k": 0, "input:x": 1, "input:y": 2, "root": 3}
+(ruleset wc_emit_1)
+(function wc_gate_1 (Math Math Math Math) i64 :merge old)
+(rule ((= 0 (wc_gate_1 in0 in1 in2 in3)))
+  ((let v1 in0)
+   (let v2 in1)
+   (let v4 in2)
+   (let v0 in3)
+   (let v5 (Mul v0 v1))
+   (let v6 (Mul v0 v2))
+   (let v3 (Mul v0 v4))
+   (let made0 (Mul v1 v0))
+   (union v5 made0)
+   (let made1 (Mul v2 v0))
+   (union v6 made1)
+   (let made2 (Mul v4 v0))
+   (union v3 made2)
+   (let made3 (Add v5 v6))
+   (union v3 made3)
+   (let made4 (Add v6 v5))
+   (union v3 made4)
+   (wc_receipt_1 v0 v1 v2 v3 v4 v5 v6 in0 in1 in2 in3)) :ruleset wc_emit_1 :name "wc_delta_1")
+
+; C: complete RipSatCell 1 -> 2
+; in0: input:k -> target v0
+; in1: input:x -> target v1
+; in2: input:y -> target v2
+; in3: root -> target v8
+; in4: internal slot 4 -> target v5
+; in5: internal slot 5 -> target v6
+; in6: internal slot 6 -> target v7
+; in7: external z -> target v3
+; target roles: {"input:k": 0, "input:x": 1, "input:y": 2, "input:z": 3, "root": 4}
+(ruleset wc_emit_2)
+(function wc_gate_2 (Math Math Math Math Math Math Math Math) i64 :merge old)
+(rule ((= 0 (wc_gate_2 in0 in1 in2 in3 in4 in5 in6 in7)))
+  ((let v0 in0)
+   (let v1 in1)
+   (let v2 in2)
+   (let v8 in3)
+   (let v5 in4)
+   (let v6 in5)
+   (let v7 in6)
+   (let v3 in7)
+   (let v10 (Add v3 v5))
+   (let made0 (Add v5 v3))
+   (union v10 made0)
+   (let v9 (Mul v0 v3))
+   (let v4 (Mul v0 v10))
+   (let made1 (Mul v3 v0))
+   (union v9 made1)
+   (let made2 (Mul v10 v0))
+   (union v4 made2)
+   (let made3 (Add v8 v9))
+   (union v4 made3)
+   (let made4 (Add v9 v8))
+   (union v4 made4)
+   (wc_receipt_2 v0 v1 v2 v3 v4 v5 v6 v7 v8 v9 v10 in0 in1 in2 in3 in4 in5 in6 in7)) :ruleset wc_emit_2 :name "wc_delta_2")

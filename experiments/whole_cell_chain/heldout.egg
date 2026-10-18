@@ -1,0 +1,5 @@
+; Bake uses fresh symbolic ports, never these concrete leaf identities.
+(let x (Var 101))
+(let y (Var 203))
+(let k (Var 307))
+(let z (Var 409))
