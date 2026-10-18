@@ -30,6 +30,14 @@ agree before GPU writes are submitted. `--gpu-check off` is the default and does
 not run that oracle or replay clones. This is separate from `--audit` coverage
 statistics. Verification failures stop the batch before target writes.
 
+## Marker and matrix layout optimization
+
+`--marker-layout indexed --matrix-layout solver` enables incremental typed port
+alignment and solver-selected paired/rectangular GPU blocks in `matrix-numeric`.
+Use `--gpu-check on` for strict native validation. SCIP and Gurobi are supported;
+solver selection changes physical layout only. The current cost model uses explicit
+work units, not calibrated timings. See [commands, scope and ablation](matrix-layout/README.md).
+
 ## Resident GPU path
 
 `--mode resident` moves Cell instance maintenance and residual matching onto

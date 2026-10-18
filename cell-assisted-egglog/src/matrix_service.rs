@@ -13,6 +13,8 @@ pub struct Service {
     input: ChildStdin,
     output: BufReader<ChildStdout>,
     program: Option<Program>,
+    pub planner: crate::layout::Planner,
+    pub layout_report: Json,
 }
 impl Drop for Service {
     fn drop(&mut self) {
@@ -146,9 +148,11 @@ impl Service {
             input,
             output,
             program: None,
+            planner: crate::layout::Planner::default(),
+            layout_report: Json::Null,
         };
         let ready = read(&mut s.output)?;
-        if ready["ready"] != true || ready["protocol"] != 4 {
+        if ready["ready"] != true || ready["protocol"] != 5 {
             return Err("live matrix protocol mismatch".into());
         }
         Ok(s)
@@ -160,7 +164,10 @@ impl Service {
         if let Some(old) = &self.program {
             extension(old, p)?;
         }
-        let lower = p.clone().check()?.lower()?;
+        let checked = p.clone().check()?;
+        let plan = self.planner.plan(&checked)?;
+        let lower = checked.lower_with_layout(&plan)?;
+        self.layout_report = json!({"plan":plan,"solver_calls":self.planner.solves,"cache_hits":self.planner.cache_hits});
         write(&mut self.input, &json!({"op":"install","program":lower}))?;
         let r = read(&mut self.output)?;
         self.program = Some(p.clone());

@@ -20,7 +20,7 @@ final class Executor {
   var calls = 0, positions = 0, macs = 0
   init(_ p: Program) throws {
     self.p = p
-    try require(p.version == 4, "lowered matrix ABI version (recompile source program)")
+    try require(p.version == 5, "lowered matrix ABI version (recompile source program)")
     guard let d = MTLCreateSystemDefaultDevice(), let q = d.makeCommandQueue() else {
       throw NSError(domain: "Metal unavailable", code: 1)
     }
@@ -39,7 +39,7 @@ final class Executor {
     for n in [
       "update_ports", "invalidate_features", "invalidate_conditions", "clear_dirty", "admit",
       "clear_requests", "reset_channels", "classify", "prepare_group", "build_features", "project",
-      "collect", "targets", "histogram", "revoke", "admit_new",
+      "collect", "compare_pairs", "targets", "histogram", "revoke", "admit_new",
       "numeric_begin", "numeric_guard", "numeric_propose", "numeric_reduce", "numeric_clear_selected",
     ] {
       do { kernels[n] = try d.makeComputePipelineState(function: library.makeFunction(name: n)!) }
@@ -131,34 +131,47 @@ final class Executor {
         encode("clear_requests", m("requested").rows, cfg, prepare)
         encode("classify", stage.count, cfg, prepare)
         encode("prepare_group", 1, cfg, prepare)
+        let groups = words("groups")
+        let gs = m("groups")
+        func meta(_ field:String)->Int {Int(groups[group*gs.cols+gs.fields.firstIndex(of:field)!])}
+        let method=meta("method")
+        if method == 1 {
+          encode("build_features",m("live").rows,cfg,prepare)
+          encode("compare_pairs",meta("condition_count"),cfg,prepare)
+          try submit(prepare)
+          continue
+        }
         try submit(prepare)
         hostCountReads += 1
-        let n = Int(words("g\(group)_count")[0])
+        let counts=words("g\(group)_count")
+        let n = Int(counts[0])
         if n == 0 { continue }
         let rows = m("g\(group)_rows")
         let gram = m("g\(group)_gram")
-        let groups = words("groups")
-        let gs = m("groups")
-        let wi = gs.fields.firstIndex(of: "width")!
-        let width = Int(groups[group * gs.cols + wi])
+        let width = meta("width")
+        let left=method==2 ? Int(counts[1]) : n
+        let right=method==2 ? n-left : n
         let mul = queue.makeCommandBuffer()!
         encode("build_features", m("live").rows, cfg, mul)
         encode("project", n, cfg, mul)
         let xd = MPSMatrixDescriptor(
-          rows: n, columns: width, rowBytes: rows.cols * 4, dataType: .float32)
+          rows: left, columns: width, rowBytes: rows.cols * 4, dataType: .float32)
+        let yd = MPSMatrixDescriptor(
+          rows: right, columns: width, rowBytes: rows.cols * 4, dataType: .float32)
         let gd = MPSMatrixDescriptor(
-          rows: n, columns: n, rowBytes: gram.cols * 4, dataType: .float32)
+          rows: left, columns: right, rowBytes: gram.cols * 4, dataType: .float32)
         let x = MPSMatrix(buffer: heap, offset: rows.offset * 4, descriptor: xd)
+        let y = MPSMatrix(buffer: heap, offset: (rows.offset + (method==2 ? left*rows.cols : 0))*4,descriptor:yd)
         let g = MPSMatrix(buffer: heap, offset: gram.offset * 4, descriptor: gd)
         let gemm = MPSMatrixMultiplication(
-          device: device, transposeLeft: false, transposeRight: true, resultRows: n,
-          resultColumns: n, interiorColumns: width, alpha: 1, beta: 0)
-        gemm.encode(commandBuffer: mul, leftMatrix: x, rightMatrix: x, resultMatrix: g)
+          device: device, transposeLeft: false, transposeRight: true, resultRows: left,
+          resultColumns: right, interiorColumns: width, alpha: 1, beta: 0)
+        gemm.encode(commandBuffer: mul, leftMatrix: x, rightMatrix: y, resultMatrix: g)
         encode("collect", m("g\(group)_conditions").rows, cfg, mul)
         try submit(mul)
         calls += 1
-        positions += n * n
-        macs += n * n * width
+        positions += left * right
+        macs += left * right * width
       }
       levels.append(try summary(stage, depth))
     }
@@ -172,6 +185,10 @@ final class Executor {
     encode("numeric_reduce",m("numeric_groups").rows,cfg,cb)
   }
   let numericNames=["numeric_state","numeric_evidence","numeric_proposals","numeric_error","numeric_counters"]
+  func layoutWork()->[String:Int] {
+    let c=words("layout_counters")
+    return ["paired_comparisons":Int(c[0]),"paired_components":Int(c[1]),"packed_components":Int(c[2])]
+  }
   func numericReport(_ read:(String)->[UInt32])->[String:Any] {
     let state=read("numeric_state"),props=read("numeric_proposals")
     func column(_ name:String,_ field:String)->Int {m(name).fields.firstIndex(of:field)!}
@@ -268,6 +285,7 @@ final class Executor {
       "backend": "metal-mps", "epochs": saved, "device": device.name, "gpu_seconds": gpuSeconds,
       "host_count_reads": hostCountReads, "intermediate_binding_readbacks": 0,
       "matrix_bytes": heap.length,
+      "layout_work":layoutWork(),
       "scope":
         "generated matrix program, GPU predicates/frontier/targets; host reads dimensions for compact MPS dispatch; no native runtime speedup claim",
     ]
@@ -294,6 +312,7 @@ final class Executor {
   }
 
   func step(resume:Bool, disable:[Int]) throws -> [String:Any] {
+    zero("layout_counters")
     for i in disable {
       try require(i>=0 && i<m("live").rows,"invalid retired Cell")
       heap.contents().assumingMemoryBound(to:UInt32.self)[m("live").offset+i]=0
@@ -331,7 +350,7 @@ final class Executor {
     var result:[String:Any] = ["outputs":outputs,"decisions":ds,"live":live,"levels":allLevels,
       "execution_counts":stride(from:0,to:counts.count,by:2).map{Array(counts[$0..<$0+2])},
       "resume_only":resume,"gpu_seconds":gpuSeconds-beforeGpu,"host_count_reads":hostCountReads-beforeReads,
-      "matrix_bytes":heap.length,"device":device.name]
+      "matrix_bytes":heap.length,"device":device.name,"layout_work":layoutWork()]
     if p.numeric {result["numeric"]=numericReport {words($0)}}
     return result
   }
@@ -357,7 +376,7 @@ func sendFrame(_ object:[String:Any]) throws {
 do {
   if CommandLine.arguments.count==2 && CommandLine.arguments[1]=="--serve" {
     var current:Executor? = nil
-    try sendFrame(["ready":true,"protocol":4])
+    try sendFrame(["ready":true,"protocol":5])
     while true {
       let message=try JSONSerialization.jsonObject(with:readFrame()) as! [String:Any]
       do {

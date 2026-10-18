@@ -188,5 +188,5 @@ passed with the numerical workers enabled. Older constructor/Bake matrix paths
 remain regression controls.
 
 Source IR version remains 1 (the numeric component is optional). Lowered/worker
-ABI is now **4**; regenerate old lowered JSON with the new executable. Core files:
+ABI is now **5**; regenerate old lowered JSON with the new executable. Core files:
 `src/numeric.rs`, `src/numeric_lower.rs`, `numeric.metal`, `src/numeric_native.rs`.

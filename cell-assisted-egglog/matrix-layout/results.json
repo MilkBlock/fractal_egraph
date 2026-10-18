@@ -1,0 +1,251 @@
+{
+  "scope": "real native Cell/event submission, strict per-batch checks; work counts, not end-to-end speedup",
+  "cases": [
+    {
+      "name": "cartesian-gram",
+      "exact_graph": true,
+      "primitive_values_exact": true,
+      "channels": 10368,
+      "accepted_bindings": 24,
+      "native_sets": 12,
+      "cartesian_combinations_bound": 10368,
+      "markers": null,
+      "matrix_calls": 1,
+      "matrix_positions": 5184,
+      "matrix_macs": 165888,
+      "paired_comparisons": 0,
+      "paired_components": 0,
+      "packed_components": 2304,
+      "host_count_reads": 2,
+      "final_gpu_buffer_bytes": 3612704,
+      "verification": {
+        "batches": 2,
+        "enabled": true,
+        "failures": 0,
+        "groups": 24,
+        "native_bindings": 24,
+        "proposals": 24
+      },
+      "selected_methods": [
+        "gram"
+      ],
+      "solver_calls": 0,
+      "solver_report": false,
+      "reference_objective": null
+    },
+    {
+      "name": "marker-gram",
+      "exact_graph": true,
+      "primitive_values_exact": true,
+      "channels": 72,
+      "accepted_bindings": 24,
+      "native_sets": 12,
+      "cartesian_combinations_bound": 10368,
+      "markers": {
+        "emitted_combinations": 72,
+        "index_probes": 252,
+        "indexed_rows_visited": 432,
+        "live_index_entries": 108,
+        "marker_rows_added": 72,
+        "marker_rows_removed": 12
+      },
+      "matrix_calls": 1,
+      "matrix_positions": 5184,
+      "matrix_macs": 165888,
+      "paired_comparisons": 0,
+      "paired_components": 0,
+      "packed_components": 2304,
+      "host_count_reads": 2,
+      "final_gpu_buffer_bytes": 151808,
+      "verification": {
+        "batches": 2,
+        "enabled": true,
+        "failures": 0,
+        "groups": 24,
+        "native_bindings": 24,
+        "proposals": 24
+      },
+      "selected_methods": [
+        "gram"
+      ],
+      "solver_calls": 0,
+      "solver_report": false,
+      "reference_objective": null
+    },
+    {
+      "name": "marker-paired",
+      "exact_graph": true,
+      "primitive_values_exact": true,
+      "channels": 72,
+      "accepted_bindings": 24,
+      "native_sets": 12,
+      "cartesian_combinations_bound": 10368,
+      "markers": {
+        "emitted_combinations": 72,
+        "index_probes": 252,
+        "indexed_rows_visited": 432,
+        "live_index_entries": 108,
+        "marker_rows_added": 72,
+        "marker_rows_removed": 12
+      },
+      "matrix_calls": 0,
+      "matrix_positions": 0,
+      "matrix_macs": 0,
+      "paired_comparisons": 48,
+      "paired_components": 1536,
+      "packed_components": 0,
+      "host_count_reads": 0,
+      "final_gpu_buffer_bytes": 90944,
+      "verification": {
+        "batches": 2,
+        "enabled": true,
+        "failures": 0,
+        "groups": 24,
+        "native_bindings": 24,
+        "proposals": 24
+      },
+      "selected_methods": [
+        "paired"
+      ],
+      "solver_calls": 0,
+      "solver_report": false,
+      "reference_objective": null
+    },
+    {
+      "name": "marker-scip",
+      "exact_graph": true,
+      "primitive_values_exact": true,
+      "channels": 72,
+      "accepted_bindings": 24,
+      "native_sets": 12,
+      "cartesian_combinations_bound": 10368,
+      "markers": {
+        "emitted_combinations": 72,
+        "index_probes": 252,
+        "indexed_rows_visited": 432,
+        "live_index_entries": 108,
+        "marker_rows_added": 72,
+        "marker_rows_removed": 12
+      },
+      "matrix_calls": 0,
+      "matrix_positions": 0,
+      "matrix_macs": 0,
+      "paired_comparisons": 48,
+      "paired_components": 1536,
+      "packed_components": 0,
+      "host_count_reads": 0,
+      "final_gpu_buffer_bytes": 90944,
+      "verification": {
+        "batches": 2,
+        "enabled": true,
+        "failures": 0,
+        "groups": 24,
+        "native_bindings": 24,
+        "proposals": 24
+      },
+      "selected_methods": [
+        "paired"
+      ],
+      "solver_calls": 2,
+      "solver_report": {
+        "backend": "scip",
+        "models": {
+          "matrix_layout": {
+            "api_build_seconds": 0.03019220381975174,
+            "engine_version": "10.0.2",
+            "models": 1,
+            "nonoptimal_solves": 0,
+            "peak_constraints": 108,
+            "peak_variables": 390,
+            "solve_calls": 1,
+            "solve_seconds": 0.003021959215402603
+          }
+        },
+        "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+        "python_package_version": "6.3.0",
+        "threads": 1
+      },
+      "reference_objective": 10929.12
+    },
+    {
+      "name": "marker-gurobi",
+      "exact_graph": true,
+      "primitive_values_exact": true,
+      "channels": 72,
+      "accepted_bindings": 24,
+      "native_sets": 12,
+      "cartesian_combinations_bound": 10368,
+      "markers": {
+        "emitted_combinations": 72,
+        "index_probes": 252,
+        "indexed_rows_visited": 432,
+        "live_index_entries": 108,
+        "marker_rows_added": 72,
+        "marker_rows_removed": 12
+      },
+      "matrix_calls": 0,
+      "matrix_positions": 0,
+      "matrix_macs": 0,
+      "paired_comparisons": 48,
+      "paired_components": 1536,
+      "packed_components": 0,
+      "host_count_reads": 0,
+      "final_gpu_buffer_bytes": 90944,
+      "verification": {
+        "batches": 2,
+        "enabled": true,
+        "failures": 0,
+        "groups": 24,
+        "native_bindings": 24,
+        "proposals": 24
+      },
+      "selected_methods": [
+        "paired"
+      ],
+      "solver_calls": 2,
+      "solver_report": {
+        "backend": "gurobi",
+        "models": {
+          "matrix_layout": {
+            "api_build_seconds": 0.009998111985623837,
+            "engine_version": "13.0.3",
+            "models": 1,
+            "nonoptimal_solves": 0,
+            "peak_constraints": 108,
+            "peak_variables": 390,
+            "solve_calls": 1,
+            "solve_seconds": 0.005539792124181986
+          }
+        },
+        "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+        "python_package_version": "13.0.3",
+        "threads": 1
+      },
+      "reference_objective": 10929.12
+    }
+  ],
+  "native_graph": {
+    "exact_equal": true,
+    "enodes": 84,
+    "eclasses": 72,
+    "sorts": {
+      "@OfferSort": {
+        "enodes": 36,
+        "eclasses": 36
+      },
+      "Expr": {
+        "enodes": 48,
+        "eclasses": 36
+      }
+    }
+  },
+  "validation": {
+    "rust_tests_passed": 78,
+    "solver_optimum_checked_by_tiny_exhaustive_enumeration": [
+      "scip",
+      "gurobi"
+    ],
+    "mixed_dense_sparse_gpu_layout_verified": true,
+    "native_update_union_delete_no_replay_verified": true
+  }
+}

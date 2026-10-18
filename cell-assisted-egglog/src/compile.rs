@@ -109,6 +109,14 @@ const WIRE_FIELDS: &[&str] = &["cell", "node"];
 const PAIR_FIELDS: &[&str] = &["condition", "left", "right"];
 impl Checked {
     pub fn lower(&self) -> Result<GpuProgram> {
+        self.lower_with_layout(&crate::layout::Plan::uniform(
+            self,
+            crate::layout::Method::Gram,
+        ))
+    }
+    pub fn lower_with_layout(&self, plan: &crate::layout::Plan) -> Result<GpuProgram> {
+        use crate::layout::Method;
+        plan.validate(self)?;
         let p = &self.program;
         let mut a = Arena::default();
         let cells = p.cells.len();
@@ -344,42 +352,95 @@ impl Checked {
             vec![],
         )?;
         let mut groups = vec![];
-        for (gi, g) in self.groups.iter().enumerate() {
-            let w = g.wires.len();
-            let rc = (g.width + 3) / 4 * 4;
-            let gc = (w + 3) / 4 * 4;
+        a.zero("layout_counters", "u32", 1, 3)?;
+        for (gi, block) in plan.blocks.iter().enumerate() {
+            let mut left = block
+                .conditions
+                .iter()
+                .map(|i| p.conditions[*i].left)
+                .collect::<Vec<_>>();
+            let mut right = block
+                .conditions
+                .iter()
+                .map(|i| p.conditions[*i].right)
+                .collect::<Vec<_>>();
+            left.sort();
+            left.dedup();
+            right.sort();
+            right.dedup();
+            let nl = left.len();
+            let nr = right.len();
+            let mut ws = left.clone();
+            ws.extend(&right);
+            if block.method != Method::Rectangular {
+                ws.sort();
+                ws.dedup();
+            }
+            let width = self.features[ws[0].1].width;
+            let w = ws.len();
+            let rc = (width + 3) / 4 * 4;
+            let gc = (if block.method == Method::Rectangular {
+                nr
+            } else {
+                w
+            } + 3)
+                / 4
+                * 4;
+            let paired = block.method == Method::Paired;
             let wires = a.table(
                 &format!("g{gi}_wires"),
                 WIRE_FIELDS,
-                g.wires
-                    .iter()
-                    .map(|w| vec![w.0 as u32, w.1 as u32])
-                    .collect(),
+                ws.iter().map(|w| vec![w.0 as u32, w.1 as u32]).collect(),
             )?;
             let map = a.zero(&format!("g{gi}_map"), "u32", w, 1)?;
             let packed = a.zero(&format!("g{gi}_packed"), "u32", w, 1)?;
-            let count = a.zero(&format!("g{gi}_count"), "u32", 1, 1)?;
-            let rows = a.zero(&format!("g{gi}_rows"), "f32", w, rc)?;
-            let norm = a.zero(&format!("g{gi}_norm"), "f32", w, 1)?;
-            let gram = a.zero(&format!("g{gi}_gram"), "f32", w, gc)?;
+            let count = a.zero(&format!("g{gi}_count"), "u32", 1, 2)?;
+            let rows = a.zero(
+                &format!("g{gi}_rows"),
+                "f32",
+                if paired { 0 } else { w },
+                rc,
+            )?;
+            let norm = a.zero(&format!("g{gi}_norm"), "f32", if paired { 0 } else { w }, 1)?;
+            let gram = a.zero(
+                &format!("g{gi}_gram"),
+                "f32",
+                if paired {
+                    0
+                } else if block.method == Method::Rectangular {
+                    nl
+                } else {
+                    w
+                },
+                gc,
+            )?;
             let pairs = a.table(
                 &format!("g{gi}_conditions"),
                 PAIR_FIELDS,
-                g.conditions
+                block
+                    .conditions
                     .iter()
                     .map(|i| {
                         let c = &p.conditions[*i];
                         vec![
                             *i as u32,
-                            g.wires.binary_search(&c.left).unwrap() as u32,
-                            g.wires.binary_search(&c.right).unwrap() as u32,
+                            if block.method == Method::Rectangular {
+                                left.binary_search(&c.left).unwrap()
+                            } else {
+                                ws.binary_search(&c.left).unwrap()
+                            } as u32,
+                            if block.method == Method::Rectangular {
+                                nl + right.binary_search(&c.right).unwrap()
+                            } else {
+                                ws.binary_search(&c.right).unwrap()
+                            } as u32,
                         ]
                     })
                     .collect(),
             )?;
             groups.push(
                 vec![
-                    g.width,
+                    width,
                     w,
                     wires,
                     map,
@@ -391,7 +452,13 @@ impl Checked {
                     gram,
                     gc,
                     pairs,
-                    g.conditions.len(),
+                    block.conditions.len(),
+                    match block.method {
+                        Method::Gram => 0,
+                        Method::Paired => 1,
+                        Method::Rectangular => 2,
+                    },
+                    nl,
                 ]
                 .into_iter()
                 .map(|v| v as u32)
@@ -414,6 +481,8 @@ impl Checked {
                 "gram_cols",
                 "conditions",
                 "condition_count",
+                "method",
+                "left_size",
             ],
             groups,
         )?;
@@ -448,15 +517,15 @@ impl Checked {
         shader += include_str!("../matrix.metal");
         shader += include_str!("../numeric.metal");
         Ok(GpuProgram {
-            version: 4,
+            version: 5,
             layout: a.layout,
             data: a.data,
             shader,
             stages,
             epochs,
-            groups: self.groups.len(),
+            groups: plan.blocks.len(),
             numeric: p.numeric.is_some(),
-            evidence: json!({"source":p.evidence,"templates":p.templates,"scope":"finite baked coordinate program; explicit boundary channels; no global egglog claim"}),
+            evidence: json!({"source":p.evidence,"templates":p.templates,"physical_layout":plan,"scope":"finite baked coordinate program; explicit boundary channels; no global egglog claim"}),
         })
     }
 }

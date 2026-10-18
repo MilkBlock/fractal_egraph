@@ -146,7 +146,7 @@ unfinished Bake followed by resume, pending-task cancellation on subsume, late
 union and late external facts. The service test verifies that hot installation
 and target-only resume leave **both classification and match counts unchanged**;
 a source retirement revokes the result. Ordinary static matrix validation is
-retained. Lowered matrix/worker ABI is now version **4**; regenerate old lowered
+retained. Lowered matrix/worker ABI is now version **5**; regenerate old lowered
 files from their unchanged source IR.
 
 All **53 package tests** passed with numerical workers enabled. The previous

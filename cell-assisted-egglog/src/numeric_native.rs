@@ -82,6 +82,10 @@ pub struct Stats {
     pub quiet_rounds: usize,
     pub audit_uncovered: Vec<usize>,
     pub verification: VerificationStats,
+    pub marker_work: Json,
+    pub physical_layout: Json,
+    pub round_work: Vec<Json>,
+    pub cartesian_combinations_bound: u64,
     pub device: Json,
 }
 struct Frame {
@@ -113,6 +117,9 @@ pub struct NumericSession {
     acknowledged: BTreeSet<usize>,
     checker: Option<CellI64Check>,
     check_failed: bool,
+    markers: crate::marker_layout::Markers,
+    indexed_markers: bool,
+    condition_ids: BTreeMap<(ir::Wire, ir::Wire), usize>,
     pub stats: Stats,
 }
 impl NumericSession {
@@ -326,6 +333,22 @@ impl NumericSession {
             }),
             evidence: json!({"source":"analyze Cell projections and current native function rows","scope":"one original set action, exact i64 guards/arithmetic, min/max merge; native canonical keys pinned during dispatch"}),
         };
+        let marker_columns = source
+            .parts
+            .iter()
+            .map(|p| {
+                p.atoms
+                    .iter()
+                    .flat_map(|i| source.sink.atoms[*i].columns.iter())
+                    .filter_map(|v| match v {
+                        CellOperand::Slot(i) => Some(*i),
+                        _ => None,
+                    })
+                    .collect::<BTreeSet<_>>()
+                    .into_iter()
+                    .collect()
+            })
+            .collect();
         Ok(Self {
             source,
             tap,
@@ -351,11 +374,30 @@ impl NumericSession {
             acknowledged: BTreeSet::new(),
             checker: None,
             check_failed: false,
+            markers: crate::marker_layout::Markers::new(marker_columns),
+            indexed_markers: false,
+            condition_ids: BTreeMap::new(),
             stats: Stats::default(),
         })
     }
     pub fn engine(&self) -> &EGraph {
         &self.source.eg
+    }
+    pub fn configure_layout(
+        &mut self,
+        marker: &str,
+        planner: crate::layout::Planner,
+    ) -> Result<()> {
+        if self.epoch != 0 || !self.program.cells.is_empty() {
+            return Err("configure layout before execution".into());
+        }
+        self.indexed_markers = match marker {
+            "indexed" => true,
+            "cartesian" => false,
+            _ => return Err("marker layout must be indexed or cartesian".into()),
+        };
+        self.device.planner = planner;
+        Ok(())
     }
     /// Optional strict native oracle. Off means no checker query, RHS replay or
     /// shadow graph. A failed check poisons this session before any batch write.
@@ -687,18 +729,35 @@ impl NumericSession {
         self.epoch += 1;
         let choices = self.fragments()?;
         let old_channels = self.program.channels.len();
-        let mut combinations = vec![vec![]];
-        for choices in choices {
-            let mut next = vec![];
-            for c in combinations {
-                for i in &choices {
-                    let mut c = c.clone();
-                    c.push(*i);
-                    next.push(c);
+        self.stats.cartesian_combinations_bound =
+            self.stats.cartesian_combinations_bound.saturating_add(
+                choices
+                    .iter()
+                    .fold(1u64, |a, c| a.saturating_mul(c.len() as u64)),
+            );
+        let combinations = if self.indexed_markers {
+            let combinations = self.markers.combinations(
+                self.active
+                    .iter()
+                    .map(|id| (*id, self.frames[id].part, &self.frames[id].binding)),
+            );
+            self.stats.marker_work = serde_json::to_value(&self.markers.stats)?;
+            combinations
+        } else {
+            let mut combinations = vec![vec![]];
+            for choices in choices {
+                let mut next = vec![];
+                for c in combinations {
+                    for i in &choices {
+                        let mut c = c.clone();
+                        c.push(*i);
+                        next.push(c);
+                    }
                 }
+                combinations = next;
             }
-            combinations = next;
-        }
+            combinations
+        };
         let mut groups = BTreeMap::new();
         let slots = self.source.sink.slots();
         for sources in combinations {
@@ -766,8 +825,24 @@ impl NumericSession {
             let ci = self.program.channels.len();
             let mut req = vec![];
             for (left, right) in equalities {
-                let condition = self.program.conditions.len();
-                self.program.conditions.push(ir::Condition { left, right });
+                let key = if left < right {
+                    (left, right)
+                } else {
+                    (right, left)
+                };
+                let condition = if self.indexed_markers {
+                    self.condition_ids.get(&key).copied()
+                } else {
+                    None
+                };
+                let condition = condition.unwrap_or_else(|| {
+                    let i = self.program.conditions.len();
+                    self.program.conditions.push(ir::Condition { left, right });
+                    if self.indexed_markers {
+                        self.condition_ids.insert(key, i);
+                    }
+                    i
+                });
                 req.push(ir::Requirement {
                     condition,
                     depth: 0,
@@ -826,7 +901,9 @@ impl NumericSession {
         // Every old scalar/key snapshot stays immutable. A changed native row
         // creates new fragments/channels and a new canonical-key group version.
         self.device.install(&self.program)?;
+        self.stats.physical_layout = self.device.layout_report.clone();
         let result = self.device.step(false, &self.retired)?;
+        self.stats.round_work.push(json!({"new_channels":self.program.channels.len()-old_channels,"levels":result["levels"],"layout_work":result["layout_work"],"matrix_bytes":result["matrix_bytes"],"host_count_reads":result["host_count_reads"]}));
         if result["numeric"]["arithmetic_error"] == true {
             self.stats.device = result;
             return Err(

@@ -160,15 +160,17 @@ kernel void prepare_group(CONTEXT, uint id [[thread_position_in_grid]]) {
       requested++;
     }
   }
-  uint count = 0, wires = G(g, WIRES), packed = G(g, PACKED);
+  uint count = 0, left_count=0, wires = G(g, WIRES), packed = G(g, PACKED);
   for (uint i = 0; i < n; i++)
     if (h[map + i] != NO) {
       h[map + i] = count;
       h[packed + count++] = i;
+      if (i<G(g,LEFT_SIZE)) left_count++;
       need(h, h[wires + i * WIRE_COLS + WIRE_CELL],
            h[wires + i * WIRE_COLS + WIRE_NODE]);
     }
   h[G(g, COUNT)] = count;
+  h[G(g, COUNT)+1] = left_count;
   if (count) {
     inc(h, COUNTERS_REQUESTED_CONDITIONS, requested);
   }
@@ -258,6 +260,7 @@ kernel void project(CONTEXT, uint i [[thread_position_in_grid]]) {
     norm += v * v;
   }
   ((device float *)(h + G(g, NORM)))[i] = norm;
+  atomic_fetch_add_explicit((device atomic_uint*)(h+LAYOUT_COUNTERS_OFF+2),w,memory_order_relaxed);
 }
 kernel void collect(CONTEXT, uint i [[thread_position_in_grid]]) {
   uint g = cfg.w;
@@ -269,8 +272,25 @@ kernel void collect(CONTEXT, uint i [[thread_position_in_grid]]) {
     return;
   device float *norm = (device float *)(h + G(g, NORM));
   device float *gram = (device float *)(h + G(g, GRAM));
-  float d = norm[a] + norm[b] - 2 * gram[a * G(g, GRAM_COLS) + b];
+  uint col=G(g,METHOD)==2 ? b-h[G(g,COUNT)+1] : b;
+  float d = norm[a] + norm[b] - 2 * gram[a * G(g, GRAM_COLS) + col];
   U(EVIDENCE, h[pair + PAIR_CONDITION], 0) = d == 0 ? 2 : 1;
+}
+// Only demanded pairs, no N x N scratch and no host dimension readback.
+kernel void compare_pairs(CONTEXT, uint i [[thread_position_in_grid]]) {
+  uint g=cfg.w;
+  if(i>=G(g,CONDITION_COUNT))return;
+  uint p=G(g,CONDITIONS)+i*PAIR_COLS,c=h[p+PAIR_CONDITION];
+  if(!U(REQUESTED,c,0) || U(EVIDENCE,c,0)!=0)return;
+  uint a=G(g,WIRES)+h[p+PAIR_LEFT]*WIRE_COLS,b=G(g,WIRES)+h[p+PAIR_RIGHT]*WIRE_COLS;
+  uint lc=h[a+WIRE_CELL],ln=h[a+WIRE_NODE],rc=h[b+WIRE_CELL],rn=h[b+WIRE_NODE];
+  float d=0;
+  for(uint j=0;j<G(g,WIDTH);j++){
+    float v=F(FEATURES,lc,OP(ln,OFFSET)+j)-F(FEATURES,rc,OP(rn,OFFSET)+j);d+=v*v;
+  }
+  U(EVIDENCE,c,0)=d==0?2:1;
+  atomic_fetch_add_explicit((device atomic_uint*)(h+LAYOUT_COUNTERS_OFF),1,memory_order_relaxed);
+  atomic_fetch_add_explicit((device atomic_uint*)(h+LAYOUT_COUNTERS_OFF+1),G(g,WIDTH),memory_order_relaxed);
 }
 kernel void targets(CONTEXT, uint i [[thread_position_in_grid]]) {
   if (i >= cfg.y)

@@ -266,6 +266,63 @@ fn gpu_check_can_be_disabled_and_reenabled_without_replaying_completed_matches()
 }
 
 #[test]
+fn indexed_markers_and_paired_layout_preserve_native_results_and_incremental_changes() {
+    let Some(worker) = std::env::var_os("CELL_MATRIX_WORKER") else {
+        return;
+    };
+    let mut baseline = setup_with_worker(&extension(), Path::new(&worker), true, false);
+    let mut optimized = setup_with_worker(&extension(), Path::new(&worker), true, false);
+    let mut planner = cell_assisted_egglog::layout::Planner::default();
+    planner.mode = "paired".into();
+    optimized.configure_layout("indexed", planner).unwrap();
+    let input=(0..12).map(|i|format!("(Single (Leaf {i})) (set (Best (Leaf {})) 100) (Offer (Leaf {}) (Single (Leaf {i})) 5) (Offer (Leaf {}) (Single (Leaf {i})) 3)",100+i,100+i,100+i)).collect::<Vec<_>>().join("\n");
+    for s in [&mut baseline, &mut optimized] {
+        s.input(&input).unwrap();
+        rounds(s);
+    }
+    assert_eq!(
+        optimized.stats.accepted_bindings,
+        baseline.stats.accepted_bindings
+    );
+    assert_eq!(optimized.stats.native_sets, baseline.stats.native_sets);
+    assert!(optimized.stats.channels * 10 < baseline.stats.channels);
+    assert!(
+        optimized
+            .stats
+            .round_work
+            .iter()
+            .all(|r| r["host_count_reads"] == 0)
+    );
+    let counts = optimized.stats.device["execution_counts"].clone();
+    for s in [&mut baseline, &mut optimized] {
+        s.input("(union (Leaf 100) (Leaf 101)) (Offer (Leaf 101) (Single (Leaf 0)) 1)")
+            .unwrap();
+        rounds(s);
+        check(
+            s,
+            "(check (= (Best (Leaf 100)) 0)) (check (= (Best (Leaf 101)) 0))",
+        );
+        s.input("(delete (Offer (Leaf 101) (Single (Leaf 0)) 1)) (Offer (Leaf 102) (Single (Leaf 3)) 0)").unwrap();
+        rounds(s);
+        check(s, "(check (= (Best (Leaf 102)) -1))");
+    }
+    assert_eq!(optimized.stats.native_sets, baseline.stats.native_sets);
+    assert_eq!(
+        optimized.stats.accepted_bindings,
+        baseline.stats.accepted_bindings
+    );
+    assert!(
+        optimized.stats.marker_work["marker_rows_removed"]
+            .as_u64()
+            .unwrap()
+            > 0
+    );
+    for (i, c) in counts.as_array().unwrap().iter().enumerate() {
+        assert_eq!(*c, optimized.stats.device["execution_counts"][i]);
+    }
+}
+
+#[test]
 fn strict_check_detects_missing_cell_coverage_even_without_a_gpu_dispatch() {
     let Some(worker) = std::env::var_os("CELL_MATRIX_WORKER") else {
         return;

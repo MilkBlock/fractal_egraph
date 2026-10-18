@@ -21,6 +21,20 @@ fn args() -> Result<BTreeMap<String, String>> {
 fn required<'a>(a: &'a BTreeMap<String, String>, key: &str) -> Result<&'a str> {
     Ok(a.get(key).ok_or_else(|| format!("missing {key}"))?.as_str())
 }
+fn planner(a: &BTreeMap<String, String>) -> cell_assisted_egglog::layout::Planner {
+    let mut p = cell_assisted_egglog::layout::Planner::default();
+    if let Some(mode) = a.get("--matrix-layout") {
+        p.mode = mode.clone();
+    }
+    if let Some(python) = a.get("--layout-python") {
+        p.python = python.into();
+    }
+    if let Some(solver) = a.get("--layout-solver") {
+        p.solver = solver.clone();
+    }
+    p.costs = a.get("--layout-costs").map(PathBuf::from);
+    p
+}
 fn snapshot(eg: &EGraph) -> Result<Json> {
     let mut rows = vec![];
     let names = eg.get_function_names();
@@ -111,7 +125,15 @@ fn run() -> Result<()> {
             "cpu" => std::fs::write(&report, serde_json::to_vec_pretty(&checked.execute())?)?,
             "metal" => {
                 let lowered = report.with_extension("lowered.json");
-                std::fs::write(&lowered, serde_json::to_vec(&checked.lower()?)?)?;
+                let plan = planner(&a).plan(&checked)?;
+                std::fs::write(
+                    report.with_extension("layout.json"),
+                    serde_json::to_vec_pretty(&plan)?,
+                )?;
+                std::fs::write(
+                    &lowered,
+                    serde_json::to_vec(&checked.lower_with_layout(&plan)?)?,
+                )?;
                 let status = std::process::Command::new(required(&a, "--gpu-worker")?)
                     .arg(&lowered)
                     .arg(&report)
@@ -188,6 +210,12 @@ fn run() -> Result<()> {
                 Path::new(required(&a, "--gpu-worker")?),
             )?;
             numeric.set_gpu_check(gpu_check)?;
+            numeric.configure_layout(
+                a.get("--marker-layout")
+                    .map(String::as_str)
+                    .unwrap_or("cartesian"),
+                planner(&a),
+            )?;
             numeric.input(&input)?;
             let t = Instant::now();
             let mut progress = vec![];

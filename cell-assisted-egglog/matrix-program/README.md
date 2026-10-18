@@ -220,7 +220,7 @@ cargo run --offline --manifest-path cell-assisted-egglog/Cargo.toml \
 
 This emits `report.program.json` for offline replay and `report.lowered.json`
 with generated matrix layouts. Source IR remains version 1; the lowered worker
-ABI is version 4. Old lowered files must be regenerated from their source IR.
+ABI is version 5. Old lowered files must be regenerated from their source IR.
 
 A target can now carry **offline-certified alias alternatives**. Each alternative
 has an exact whole-frame equality partition, a target template, and a projection
