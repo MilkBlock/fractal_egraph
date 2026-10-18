@@ -165,3 +165,9 @@ contract tests reject incorrect values, equivalence, visibility, timing overlaps
 and enabled oracles in timed runs. [RESULTS.md](RESULTS.md) and `results.json`
 record fresh release measurements; raw run artifacts remain in the output path
 shown there. Timing excludes neither setup nor CPU admission from the core metric.
+
+A subsequent [real raytrace search benchmark](../raytrace-table-bench/README.md)
+uses the unchanged 14-rule candidate-extraction family and its production-derived
+checkpoint. It reports full native packet phases and a separate exact GPU/native
+query comparison. It does not substitute the controlled local/sparse cases for
+real eggcc search or claim raw table queries establish Cell coverage.

@@ -337,6 +337,18 @@ fn main() -> Result<()> {
                 &dest,
             )?;
             println!("assisted query conformance saved {}", dest.display());
+        } else if let Some(args) = command.strip_prefix(":bench-tables ") {
+            let args = args.split_whitespace().collect::<Vec<_>>();
+            if args.len() != 2 {
+                return Err("usage: :bench-tables NAME MATRIX_WORKER".into());
+            }
+            let packet = packets.get(cursor).ok_or("no next packet")?;
+            cell_query_validation::bench_tables(
+                &eg,
+                &packet.commands,
+                std::path::Path::new(args[1]),
+                &output.join(format!("{}.json", args[0])),
+            )?;
         } else if let Some(name) = command.strip_prefix(":bench ") {
             let packet = packets.get(cursor).ok_or("no next schedule packet")?;
             let result = ruleset_bench::benchmark(&eg, &packet.commands, &packet.label)?;

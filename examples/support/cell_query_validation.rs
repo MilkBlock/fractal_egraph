@@ -62,3 +62,32 @@ pub fn check(base: &EGraph, commands: &[Command], worker: &Path, dest: &Path) ->
     )?;
     Ok(())
 }
+
+pub fn bench_tables(base: &EGraph, commands: &[Command], worker: &Path, dest: &Path) -> Result<()> {
+    let mut rulesets = BTreeSet::new();
+    for c in commands {
+        if let Command::RunSchedule(s) = c {
+            sets(s, &mut rulesets);
+        }
+    }
+    let mut rows = vec![];
+    for set in rulesets {
+        for name in base.cell_rule_names(&set)? {
+            let row = cell_assisted_egglog::table_query::benchmark(base, &set, &name, worker)?;
+            println!("table query {}: {} bindings", name, row["matched_bindings"]);
+            rows.push(row);
+            std::fs::write(
+                dest,
+                serde_json::to_vec_pretty(&json!({"complete":false,"rules":rows}))?,
+            )?;
+        }
+    }
+    std::fs::write(
+        dest,
+        serde_json::to_vec_pretty(
+            &json!({"complete":true,"rule_count":rows.len(),"matched_bindings":rows.iter().map(|r|r["matched_bindings"].as_u64().unwrap()).sum::<u64>(),"rules":rows,
+        "scope":"Real frozen native tables; same binary table GPU join backend. Complete LHS query microbenchmark, no Cell admission or original RHS execution. Not whole-packet acceleration."}),
+        )?,
+    )?;
+    Ok(())
+}

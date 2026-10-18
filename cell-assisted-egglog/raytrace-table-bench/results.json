@@ -1,0 +1,1921 @@
+{
+  "complete": true,
+  "matched_bindings": 28373,
+  "rule_count": 14,
+  "rules": [
+    {
+      "cell_templates": 0,
+      "common_clone_and_sink_seconds_excluded": 0.01113075,
+      "compile_seconds": 5.225e-05,
+      "decode_seconds": 0.000126292,
+      "device": {
+        "active_matches": 1156,
+        "arithmetic_error": false,
+        "audit_rows": 1156,
+        "candidate_row_visits": 0,
+        "device": "Apple M3 Max",
+        "epoch": 1,
+        "gpu_seconds": 4.479195922613144e-05,
+        "groups": 0,
+        "index_lookups": 0,
+        "match_records": 1156,
+        "matrix_bytes": 170680,
+        "new_matches": 1156,
+        "new_rows": 1156,
+        "pending_matches": 1156,
+        "query_only": true,
+        "retired_rows": 0,
+        "retry_count": 0,
+        "rows": 1156,
+        "shader_compiles": 1
+      },
+      "downloaded_bytes": 27744,
+      "exact_native_binding_set": true,
+      "gpu_cold_query_seconds": 0.129335125,
+      "gpu_resident_compute_and_return_seconds": 0.016300626,
+      "guards": 0,
+      "install": {
+        "compile_seconds": 0.05976754147559405,
+        "installed": true,
+        "shader_compiles": 1
+      },
+      "matched_bindings": 1156,
+      "native_query_including_compile_seconds": 0.000353834,
+      "roundtrip_seconds": 0.016174334,
+      "rule": "(rule ((= lhs (Const c ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConst c) 1)))\n        :ruleset terms )",
+      "ruleset": "terms",
+      "scope": "Complete frozen LHS query on explicit real table rows; no Cell certificate, no original RHS/merge/rebuild. The unused RHS record field is constant; proposal reduction is disabled. GPU compute/return excludes host preparation and is not an end-to-end speedup.",
+      "table_atoms": 1,
+      "table_prepare_seconds": 0.000514458,
+      "tables": [
+        {
+          "fragment_rows": 1156,
+          "part": 0,
+          "physical_rows_scanned": 1156,
+          "table": "Const"
+        }
+      ],
+      "uploaded_bytes": 23136,
+      "worker_setup_seconds": 0.112467791
+    },
+    {
+      "cell_templates": 0,
+      "common_clone_and_sink_seconds_excluded": 0.0107305,
+      "compile_seconds": 6.292e-06,
+      "decode_seconds": 9.458e-06,
+      "device": {
+        "active_matches": 76,
+        "arithmetic_error": false,
+        "audit_rows": 76,
+        "candidate_row_visits": 0,
+        "device": "Apple M3 Max",
+        "epoch": 1,
+        "gpu_seconds": 2.516619861125946e-05,
+        "groups": 0,
+        "index_lookups": 0,
+        "match_records": 76,
+        "matrix_bytes": 10020,
+        "new_matches": 76,
+        "new_rows": 76,
+        "pending_matches": 76,
+        "query_only": true,
+        "retired_rows": 0,
+        "retry_count": 0,
+        "rows": 76,
+        "shader_compiles": 1
+      },
+      "downloaded_bytes": 1824,
+      "exact_native_binding_set": true,
+      "gpu_cold_query_seconds": 0.10336587500000001,
+      "gpu_resident_compute_and_return_seconds": 0.005608917000000001,
+      "guards": 0,
+      "install": {
+        "compile_seconds": 0.04337733332067728,
+        "installed": true,
+        "shader_compiles": 1
+      },
+      "matched_bindings": 76,
+      "native_query_including_compile_seconds": 7.7583e-05,
+      "roundtrip_seconds": 0.005599459,
+      "rule": "(rule ((= lhs (Arg ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermArg ) 1)))\n        :ruleset terms )",
+      "ruleset": "terms",
+      "scope": "Complete frozen LHS query on explicit real table rows; no Cell certificate, no original RHS/merge/rebuild. The unused RHS record field is constant; proposal reduction is disabled. GPU compute/return excludes host preparation and is not an end-to-end speedup.",
+      "table_atoms": 1,
+      "table_prepare_seconds": 4.6375e-05,
+      "tables": [
+        {
+          "fragment_rows": 76,
+          "part": 0,
+          "physical_rows_scanned": 76,
+          "table": "Arg"
+        }
+      ],
+      "uploaded_bytes": 1232,
+      "worker_setup_seconds": 0.097704291
+    },
+    {
+      "cell_templates": 0,
+      "common_clone_and_sink_seconds_excluded": 0.009862833,
+      "compile_seconds": 1.4792e-05,
+      "decode_seconds": 0.000111417,
+      "device": {
+        "active_matches": 541,
+        "arithmetic_error": false,
+        "audit_rows": 541,
+        "candidate_row_visits": 24507,
+        "device": "Apple M3 Max",
+        "epoch": 1,
+        "gpu_seconds": 0.0027924166060984135,
+        "groups": 0,
+        "index_lookups": 46694,
+        "match_records": 541,
+        "matrix_bytes": 7772188,
+        "new_matches": 541,
+        "new_rows": 30657,
+        "pending_matches": 541,
+        "query_only": true,
+        "retired_rows": 0,
+        "retry_count": 0,
+        "rows": 30657,
+        "shader_compiles": 1
+      },
+      "downloaded_bytes": 21640,
+      "exact_native_binding_set": true,
+      "gpu_cold_query_seconds": 0.12402137599999999,
+      "gpu_resident_compute_and_return_seconds": 0.011159001,
+      "guards": 0,
+      "install": {
+        "compile_seconds": 0.04762304155156016,
+        "installed": true,
+        "shader_compiles": 1
+      },
+      "matched_bindings": 541,
+      "native_query_including_compile_seconds": 0.001742833,
+      "roundtrip_seconds": 0.011047584,
+      "rule": "(rule ((= lhs (Bop o e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermBop o t1 t2) (+ 1 (+ c1 c2)))))\n        :ruleset terms )",
+      "ruleset": "terms",
+      "scope": "Complete frozen LHS query on explicit real table rows; no Cell certificate, no original RHS/merge/rebuild. The unused RHS record field is constant; proposal reduction is disabled. GPU compute/return excludes host preparation and is not an end-to-end speedup.",
+      "table_atoms": 5,
+      "table_prepare_seconds": 0.015453583,
+      "tables": [
+        {
+          "fragment_rows": 3209,
+          "part": 0,
+          "physical_rows_scanned": 3209,
+          "table": "Bop"
+        },
+        {
+          "fragment_rows": 6808,
+          "part": 1,
+          "physical_rows_scanned": 6808,
+          "table": "TCPair"
+        },
+        {
+          "fragment_rows": 6916,
+          "part": 2,
+          "physical_rows_scanned": 6916,
+          "table": "ExtractedExpr"
+        },
+        {
+          "fragment_rows": 6808,
+          "part": 3,
+          "physical_rows_scanned": 6808,
+          "table": "TCPair"
+        },
+        {
+          "fragment_rows": 6916,
+          "part": 4,
+          "physical_rows_scanned": 6916,
+          "table": "ExtractedExpr"
+        }
+      ],
+      "uploaded_bytes": 1348924,
+      "worker_setup_seconds": 0.097394
+    },
+    {
+      "cell_templates": 0,
+      "common_clone_and_sink_seconds_excluded": 0.010761333,
+      "compile_seconds": 2.3375e-05,
+      "decode_seconds": 7.3917e-05,
+      "device": {
+        "active_matches": 182,
+        "arithmetic_error": false,
+        "audit_rows": 182,
+        "candidate_row_visits": 24620,
+        "device": "Apple M3 Max",
+        "epoch": 1,
+        "gpu_seconds": 0.004411458503454924,
+        "groups": 0,
+        "index_lookups": 62996,
+        "match_records": 182,
+        "matrix_bytes": 20091664,
+        "new_matches": 182,
+        "new_rows": 42110,
+        "pending_matches": 182,
+        "query_only": true,
+        "retired_rows": 0,
+        "retry_count": 0,
+        "rows": 42110,
+        "shader_compiles": 1
+      },
+      "downloaded_bytes": 8736,
+      "exact_native_binding_set": true,
+      "gpu_cold_query_seconds": 0.13406825,
+      "gpu_resident_compute_and_return_seconds": 0.014833667,
+      "guards": 0,
+      "install": {
+        "compile_seconds": 0.05170729150995612,
+        "installed": true,
+        "shader_compiles": 1
+      },
+      "matched_bindings": 182,
+      "native_query_including_compile_seconds": 0.000985542,
+      "roundtrip_seconds": 0.01475975,
+      "rule": "(rule ((= lhs (Top o e1 e2 e3))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2))\n       (= (TCPair t3 c3) (ExtractedExpr e3)))\n      ((PotentialExtractedExpr lhs (TCPair (TermTop o t1 t2 t3) (+ (+ 1 c1) (+ c2 c3)))))\n        :ruleset terms )",
+      "ruleset": "terms",
+      "scope": "Complete frozen LHS query on explicit real table rows; no Cell certificate, no original RHS/merge/rebuild. The unused RHS record field is constant; proposal reduction is disabled. GPU compute/return excludes host preparation and is not an end-to-end speedup.",
+      "table_atoms": 7,
+      "table_prepare_seconds": 0.02165575,
+      "tables": [
+        {
+          "fragment_rows": 938,
+          "part": 0,
+          "physical_rows_scanned": 938,
+          "table": "Top"
+        },
+        {
+          "fragment_rows": 6808,
+          "part": 1,
+          "physical_rows_scanned": 6808,
+          "table": "TCPair"
+        },
+        {
+          "fragment_rows": 6916,
+          "part": 2,
+          "physical_rows_scanned": 6916,
+          "table": "ExtractedExpr"
+        },
+        {
+          "fragment_rows": 6808,
+          "part": 3,
+          "physical_rows_scanned": 6808,
+          "table": "TCPair"
+        },
+        {
+          "fragment_rows": 6916,
+          "part": 4,
+          "physical_rows_scanned": 6916,
+          "table": "ExtractedExpr"
+        },
+        {
+          "fragment_rows": 6808,
+          "part": 5,
+          "physical_rows_scanned": 6808,
+          "table": "TCPair"
+        },
+        {
+          "fragment_rows": 6916,
+          "part": 6,
+          "physical_rows_scanned": 6916,
+          "table": "ExtractedExpr"
+        }
+      ],
+      "uploaded_bytes": 2526616,
+      "worker_setup_seconds": 0.097555458
+    },
+    {
+      "cell_templates": 0,
+      "common_clone_and_sink_seconds_excluded": 0.0107245,
+      "compile_seconds": 1.2708e-05,
+      "decode_seconds": 2.084e-06,
+      "device": {
+        "active_matches": 1,
+        "arithmetic_error": false,
+        "audit_rows": 1,
+        "candidate_row_visits": 7815,
+        "device": "Apple M3 Max",
+        "epoch": 1,
+        "gpu_seconds": 0.0013497085310518742,
+        "groups": 0,
+        "index_lookups": 20250,
+        "match_records": 1,
+        "matrix_bytes": 2416284,
+        "new_matches": 1,
+        "new_rows": 13727,
+        "pending_matches": 1,
+        "query_only": true,
+        "retired_rows": 0,
+        "retry_count": 0,
+        "rows": 13727,
+        "shader_compiles": 1
+      },
+      "downloaded_bytes": 32,
+      "exact_native_binding_set": true,
+      "gpu_cold_query_seconds": 0.119249959,
+      "gpu_resident_compute_and_return_seconds": 0.008366917,
+      "guards": 0,
+      "install": {
+        "compile_seconds": 0.05602962523698806,
+        "installed": true,
+        "shader_compiles": 1
+      },
+      "matched_bindings": 1,
+      "native_query_including_compile_seconds": 0.000253,
+      "roundtrip_seconds": 0.008364833,
+      "rule": "(rule ((= lhs (Uop o e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermUop o t1) (+ 1 c1))))\n        :ruleset terms )",
+      "ruleset": "terms",
+      "scope": "Complete frozen LHS query on explicit real table rows; no Cell certificate, no original RHS/merge/rebuild. The unused RHS record field is constant; proposal reduction is disabled. GPU compute/return excludes host preparation and is not an end-to-end speedup.",
+      "table_atoms": 3,
+      "table_prepare_seconds": 0.006953667,
+      "tables": [
+        {
+          "fragment_rows": 3,
+          "part": 0,
+          "physical_rows_scanned": 3,
+          "table": "Uop"
+        },
+        {
+          "fragment_rows": 6808,
+          "part": 1,
+          "physical_rows_scanned": 6808,
+          "table": "TCPair"
+        },
+        {
+          "fragment_rows": 6916,
+          "part": 2,
+          "physical_rows_scanned": 6916,
+          "table": "ExtractedExpr"
+        }
+      ],
+      "uploaded_bytes": 384372,
+      "worker_setup_seconds": 0.103916667
+    },
+    {
+      "cell_templates": 0,
+      "common_clone_and_sink_seconds_excluded": 0.010760292,
+      "compile_seconds": 1.1292e-05,
+      "decode_seconds": 0.000255625,
+      "device": {
+        "active_matches": 3604,
+        "arithmetic_error": false,
+        "audit_rows": 3604,
+        "candidate_row_visits": 26850,
+        "device": "Apple M3 Max",
+        "epoch": 1,
+        "gpu_seconds": 0.003165083471685648,
+        "groups": 0,
+        "index_lookups": 37306,
+        "match_records": 3604,
+        "matrix_bytes": 4817108,
+        "new_matches": 3604,
+        "new_rows": 26913,
+        "pending_matches": 3604,
+        "query_only": true,
+        "retired_rows": 0,
+        "retry_count": 0,
+        "rows": 26913,
+        "shader_compiles": 1
+      },
+      "downloaded_bytes": 115328,
+      "exact_native_binding_set": true,
+      "gpu_cold_query_seconds": 0.08315170899999999,
+      "gpu_resident_compute_and_return_seconds": 0.011591,
+      "guards": 0,
+      "install": {
+        "compile_seconds": 0.002186791505664587,
+        "installed": true,
+        "shader_compiles": 1
+      },
+      "matched_bindings": 3604,
+      "native_query_including_compile_seconds": 0.002941542,
+      "roundtrip_seconds": 0.011335375,
+      "rule": "(rule ((= lhs (Get tup i))\n       (= (TCPair t1 c1) (ExtractedExpr tup)))\n      ((PotentialExtractedExpr lhs (TCPair (TermGet t1 i) c1)))\n        :ruleset terms )",
+      "ruleset": "terms",
+      "scope": "Complete frozen LHS query on explicit real table rows; no Cell certificate, no original RHS/merge/rebuild. The unused RHS record field is constant; proposal reduction is disabled. GPU compute/return excludes host preparation and is not an end-to-end speedup.",
+      "table_atoms": 3,
+      "table_prepare_seconds": 0.014202708,
+      "tables": [
+        {
+          "fragment_rows": 13189,
+          "part": 0,
+          "physical_rows_scanned": 13189,
+          "table": "Get"
+        },
+        {
+          "fragment_rows": 6808,
+          "part": 1,
+          "physical_rows_scanned": 6808,
+          "table": "TCPair"
+        },
+        {
+          "fragment_rows": 6916,
+          "part": 2,
+          "physical_rows_scanned": 6916,
+          "table": "ExtractedExpr"
+        }
+      ],
+      "uploaded_bytes": 753580,
+      "worker_setup_seconds": 0.057346709
+    },
+    {
+      "cell_templates": 0,
+      "common_clone_and_sink_seconds_excluded": 0.01034875,
+      "compile_seconds": 9.792e-06,
+      "decode_seconds": 0.000132,
+      "device": {
+        "active_matches": 1294,
+        "arithmetic_error": false,
+        "audit_rows": 1294,
+        "candidate_row_visits": 14108,
+        "device": "Apple M3 Max",
+        "epoch": 1,
+        "gpu_seconds": 0.001813457813113928,
+        "groups": 0,
+        "index_lookups": 26056,
+        "match_records": 1294,
+        "matrix_bytes": 4366148,
+        "new_matches": 1294,
+        "new_rows": 18071,
+        "pending_matches": 1294,
+        "query_only": true,
+        "retired_rows": 0,
+        "retry_count": 0,
+        "rows": 18071,
+        "shader_compiles": 1
+      },
+      "downloaded_bytes": 41408,
+      "exact_native_binding_set": true,
+      "gpu_cold_query_seconds": 0.11278545799999999,
+      "gpu_resident_compute_and_return_seconds": 0.009777791000000001,
+      "guards": 0,
+      "install": {
+        "compile_seconds": 0.04752433346584439,
+        "installed": true,
+        "shader_compiles": 1
+      },
+      "matched_bindings": 1294,
+      "native_query_including_compile_seconds": 0.001434208,
+      "roundtrip_seconds": 0.009645791,
+      "rule": "(rule ((= lhs (Single e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermSingle t1) c1)))\n        :ruleset terms )",
+      "ruleset": "terms",
+      "scope": "Complete frozen LHS query on explicit real table rows; no Cell certificate, no original RHS/merge/rebuild. The unused RHS record field is constant; proposal reduction is disabled. GPU compute/return excludes host preparation and is not an end-to-end speedup.",
+      "table_atoms": 3,
+      "table_prepare_seconds": 0.008726792,
+      "tables": [
+        {
+          "fragment_rows": 4347,
+          "part": 0,
+          "physical_rows_scanned": 4347,
+          "table": "Single"
+        },
+        {
+          "fragment_rows": 6808,
+          "part": 1,
+          "physical_rows_scanned": 6808,
+          "table": "TCPair"
+        },
+        {
+          "fragment_rows": 6916,
+          "part": 2,
+          "physical_rows_scanned": 6916,
+          "table": "ExtractedExpr"
+        }
+      ],
+      "uploaded_bytes": 433720,
+      "worker_setup_seconds": 0.094271083
+    },
+    {
+      "cell_templates": 0,
+      "common_clone_and_sink_seconds_excluded": 0.010366875,
+      "compile_seconds": 1.3958e-05,
+      "decode_seconds": 0.000491125,
+      "device": {
+        "active_matches": 3172,
+        "arithmetic_error": false,
+        "audit_rows": 3172,
+        "candidate_row_visits": 48078,
+        "device": "Apple M3 Max",
+        "epoch": 1,
+        "gpu_seconds": 0.004078833386301994,
+        "groups": 0,
+        "index_lookups": 60635,
+        "match_records": 3172,
+        "matrix_bytes": 14003852,
+        "new_matches": 3172,
+        "new_rows": 35506,
+        "pending_matches": 3172,
+        "query_only": true,
+        "retired_rows": 0,
+        "retry_count": 0,
+        "rows": 35506,
+        "shader_compiles": 1
+      },
+      "downloaded_bytes": 126880,
+      "exact_native_binding_set": true,
+      "gpu_cold_query_seconds": 0.13340054199999998,
+      "gpu_resident_compute_and_return_seconds": 0.013631542,
+      "guards": 0,
+      "install": {
+        "compile_seconds": 0.04948279168456793,
+        "installed": true,
+        "shader_compiles": 1
+      },
+      "matched_bindings": 3172,
+      "native_query_including_compile_seconds": 0.005186959,
+      "roundtrip_seconds": 0.013140417,
+      "rule": "(rule ((= lhs (Concat e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))\n        :ruleset terms )",
+      "ruleset": "terms",
+      "scope": "Complete frozen LHS query on explicit real table rows; no Cell certificate, no original RHS/merge/rebuild. The unused RHS record field is constant; proposal reduction is disabled. GPU compute/return excludes host preparation and is not an end-to-end speedup.",
+      "table_atoms": 5,
+      "table_prepare_seconds": 0.020079459,
+      "tables": [
+        {
+          "fragment_rows": 8058,
+          "part": 0,
+          "physical_rows_scanned": 8058,
+          "table": "Concat"
+        },
+        {
+          "fragment_rows": 6808,
+          "part": 1,
+          "physical_rows_scanned": 6808,
+          "table": "TCPair"
+        },
+        {
+          "fragment_rows": 6916,
+          "part": 2,
+          "physical_rows_scanned": 6916,
+          "table": "ExtractedExpr"
+        },
+        {
+          "fragment_rows": 6808,
+          "part": 3,
+          "physical_rows_scanned": 6808,
+          "table": "TCPair"
+        },
+        {
+          "fragment_rows": 6916,
+          "part": 4,
+          "physical_rows_scanned": 6916,
+          "table": "ExtractedExpr"
+        }
+      ],
+      "uploaded_bytes": 1420256,
+      "worker_setup_seconds": 0.099675583
+    },
+    {
+      "cell_templates": 0,
+      "common_clone_and_sink_seconds_excluded": 0.01069625,
+      "compile_seconds": 7.375e-06,
+      "decode_seconds": 0.000488708,
+      "device": {
+        "active_matches": 12356,
+        "arithmetic_error": false,
+        "audit_rows": 12356,
+        "candidate_row_visits": 0,
+        "device": "Apple M3 Max",
+        "epoch": 1,
+        "gpu_seconds": 4.424992948770523e-05,
+        "groups": 0,
+        "index_lookups": 0,
+        "match_records": 12356,
+        "matrix_bytes": 1311908,
+        "new_matches": 12356,
+        "new_rows": 12356,
+        "pending_matches": 12356,
+        "query_only": true,
+        "retired_rows": 0,
+        "retry_count": 0,
+        "rows": 12356,
+        "shader_compiles": 1
+      },
+      "downloaded_bytes": 296544,
+      "exact_native_binding_set": true,
+      "gpu_cold_query_seconds": 0.06317525,
+      "gpu_resident_compute_and_return_seconds": 0.008037124999999999,
+      "guards": 0,
+      "install": {
+        "compile_seconds": 0.0019459999166429045,
+        "installed": true,
+        "shader_compiles": 1
+      },
+      "matched_bindings": 12356,
+      "native_query_including_compile_seconds": 0.001476958,
+      "roundtrip_seconds": 0.007548417,
+      "rule": "(rule ((PotentialExtractedExpr expr termandcost))\n      ((set (ExtractedExpr expr) (TCPair (NoTerm ) 10000000000000000)))\n        :ruleset terms-helpers )",
+      "ruleset": "terms-helpers",
+      "scope": "Complete frozen LHS query on explicit real table rows; no Cell certificate, no original RHS/merge/rebuild. The unused RHS record field is constant; proposal reduction is disabled. GPU compute/return excludes host preparation and is not an end-to-end speedup.",
+      "table_atoms": 1,
+      "table_prepare_seconds": 0.006786875,
+      "tables": [
+        {
+          "fragment_rows": 12356,
+          "part": 0,
+          "physical_rows_scanned": 12356,
+          "table": "PotentialExtractedExpr"
+        }
+      ],
+      "uploaded_bytes": 197712,
+      "worker_setup_seconds": 0.048343875
+    },
+    {
+      "cell_templates": 0,
+      "common_clone_and_sink_seconds_excluded": 0.009901333,
+      "compile_seconds": 1.4333e-05,
+      "decode_seconds": 3.9875e-05,
+      "device": {
+        "active_matches": 158,
+        "arithmetic_error": false,
+        "audit_rows": 158,
+        "candidate_row_visits": 69478,
+        "device": "Apple M3 Max",
+        "epoch": 1,
+        "gpu_seconds": 0.0041459170170128345,
+        "groups": 0,
+        "index_lookups": 57600,
+        "match_records": 158,
+        "matrix_bytes": 13245084,
+        "new_matches": 158,
+        "new_rows": 32888,
+        "pending_matches": 158,
+        "query_only": true,
+        "retired_rows": 0,
+        "retry_count": 0,
+        "rows": 32888,
+        "shader_compiles": 1
+      },
+      "downloaded_bytes": 5688,
+      "exact_native_binding_set": true,
+      "gpu_cold_query_seconds": 0.12141308299999999,
+      "gpu_resident_compute_and_return_seconds": 0.012762125,
+      "guards": 1,
+      "install": {
+        "compile_seconds": 0.048062500078231096,
+        "installed": true,
+        "shader_compiles": 1
+      },
+      "matched_bindings": 158,
+      "native_query_including_compile_seconds": 0.012092709,
+      "roundtrip_seconds": 0.01272225,
+      "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (= (ExtractedExpr expr) (TCPair oldterm oldcost))\n       (< cost oldcost))\n      ((set (ExtractedExpr expr) (TCPair term cost)))\n        :ruleset terms-helpers )",
+      "ruleset": "terms-helpers",
+      "scope": "Complete frozen LHS query on explicit real table rows; no Cell certificate, no original RHS/merge/rebuild. The unused RHS record field is constant; proposal reduction is disabled. GPU compute/return excludes host preparation and is not an end-to-end speedup.",
+      "table_atoms": 4,
+      "table_prepare_seconds": 0.017119083,
+      "tables": [
+        {
+          "fragment_rows": 6808,
+          "part": 0,
+          "physical_rows_scanned": 6808,
+          "table": "TCPair"
+        },
+        {
+          "fragment_rows": 12356,
+          "part": 1,
+          "physical_rows_scanned": 12356,
+          "table": "PotentialExtractedExpr"
+        },
+        {
+          "fragment_rows": 6916,
+          "part": 2,
+          "physical_rows_scanned": 6916,
+          "table": "ExtractedExpr"
+        },
+        {
+          "fragment_rows": 6808,
+          "part": 3,
+          "physical_rows_scanned": 6808,
+          "table": "TCPair"
+        }
+      ],
+      "uploaded_bytes": 1710192,
+      "worker_setup_seconds": 0.091517542
+    },
+    {
+      "cell_templates": 0,
+      "common_clone_and_sink_seconds_excluded": 0.010313542,
+      "compile_seconds": 1.1792e-05,
+      "decode_seconds": 1.542e-06,
+      "device": {
+        "active_matches": 0,
+        "arithmetic_error": false,
+        "audit_rows": 0,
+        "candidate_row_visits": 26990,
+        "device": "Apple M3 Max",
+        "epoch": 1,
+        "gpu_seconds": 0.0002576666884124279,
+        "groups": 0,
+        "index_lookups": 19164,
+        "match_records": 0,
+        "matrix_bytes": 3890304,
+        "new_matches": 0,
+        "new_rows": 19164,
+        "pending_matches": 0,
+        "query_only": true,
+        "retired_rows": 0,
+        "retry_count": 0,
+        "rows": 19164,
+        "shader_compiles": 1
+      },
+      "downloaded_bytes": 0,
+      "exact_native_binding_set": true,
+      "gpu_cold_query_seconds": 0.12097270799999998,
+      "gpu_resident_compute_and_return_seconds": 0.007972167,
+      "guards": 1,
+      "install": {
+        "compile_seconds": 0.05183891672641039,
+        "installed": true,
+        "shader_compiles": 1
+      },
+      "matched_bindings": 0,
+      "native_query_including_compile_seconds": 0.003719917,
+      "roundtrip_seconds": 0.007970625,
+      "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (< cost 0))\n      ((panic 'Negative cost'))\n        :ruleset terms-helpers )",
+      "ruleset": "terms-helpers",
+      "scope": "Complete frozen LHS query on explicit real table rows; no Cell certificate, no original RHS/merge/rebuild. The unused RHS record field is constant; proposal reduction is disabled. GPU compute/return excludes host preparation and is not an end-to-end speedup.",
+      "table_atoms": 2,
+      "table_prepare_seconds": 0.010705833,
+      "tables": [
+        {
+          "fragment_rows": 6808,
+          "part": 0,
+          "physical_rows_scanned": 6808,
+          "table": "TCPair"
+        },
+        {
+          "fragment_rows": 12356,
+          "part": 1,
+          "physical_rows_scanned": 12356,
+          "table": "PotentialExtractedExpr"
+        }
+      ],
+      "uploaded_bytes": 613264,
+      "worker_setup_seconds": 0.102282916
+    },
+    {
+      "cell_templates": 0,
+      "common_clone_and_sink_seconds_excluded": 0.010446,
+      "compile_seconds": 1.2667e-05,
+      "decode_seconds": 0.000195875,
+      "device": {
+        "active_matches": 1563,
+        "arithmetic_error": false,
+        "audit_rows": 1563,
+        "candidate_row_visits": 33316,
+        "device": "Apple M3 Max",
+        "epoch": 1,
+        "gpu_seconds": 0.033932916820049286,
+        "groups": 0,
+        "index_lookups": 35105,
+        "match_records": 1563,
+        "matrix_bytes": 5748312,
+        "new_matches": 1563,
+        "new_rows": 21444,
+        "pending_matches": 1563,
+        "query_only": true,
+        "retired_rows": 0,
+        "retry_count": 0,
+        "rows": 21444,
+        "shader_compiles": 1
+      },
+      "downloaded_bytes": 50016,
+      "exact_native_binding_set": true,
+      "gpu_cold_query_seconds": 0.15408333400000002,
+      "gpu_resident_compute_and_return_seconds": 0.041909417,
+      "guards": 1,
+      "install": {
+        "compile_seconds": 0.04970695823431015,
+        "installed": true,
+        "shader_compiles": 1
+      },
+      "matched_bindings": 1563,
+      "native_query_including_compile_seconds": 0.004698959,
+      "roundtrip_seconds": 0.041713542,
+      "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (< cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+      "ruleset": "terms-helpers-helpers",
+      "scope": "Complete frozen LHS query on explicit real table rows; no Cell certificate, no original RHS/merge/rebuild. The unused RHS record field is constant; proposal reduction is disabled. GPU compute/return excludes host preparation and is not an end-to-end speedup.",
+      "table_atoms": 3,
+      "table_prepare_seconds": 0.0112145,
+      "tables": [
+        {
+          "fragment_rows": 6808,
+          "part": 0,
+          "physical_rows_scanned": 6808,
+          "table": "TCPair"
+        },
+        {
+          "fragment_rows": 6808,
+          "part": 1,
+          "physical_rows_scanned": 6808,
+          "table": "TCPair"
+        },
+        {
+          "fragment_rows": 7828,
+          "part": 2,
+          "physical_rows_scanned": 7828,
+          "table": "Smaller"
+        }
+      ],
+      "uploaded_bytes": 1029328,
+      "worker_setup_seconds": 0.10094675
+    },
+    {
+      "cell_templates": 0,
+      "common_clone_and_sink_seconds_excluded": 0.010793916,
+      "compile_seconds": 1.1916e-05,
+      "decode_seconds": 0.000430167,
+      "device": {
+        "active_matches": 4023,
+        "arithmetic_error": false,
+        "audit_rows": 4023,
+        "candidate_row_visits": 33316,
+        "device": "Apple M3 Max",
+        "epoch": 1,
+        "gpu_seconds": 0.01990995788946748,
+        "groups": 0,
+        "index_lookups": 35105,
+        "match_records": 4023,
+        "matrix_bytes": 5748312,
+        "new_matches": 4023,
+        "new_rows": 21444,
+        "pending_matches": 4023,
+        "query_only": true,
+        "retired_rows": 0,
+        "retry_count": 0,
+        "rows": 21444,
+        "shader_compiles": 1
+      },
+      "downloaded_bytes": 128736,
+      "exact_native_binding_set": true,
+      "gpu_cold_query_seconds": 0.097445791,
+      "gpu_resident_compute_and_return_seconds": 0.029011916999999998,
+      "guards": 1,
+      "install": {
+        "compile_seconds": 0.0022604167461395264,
+        "installed": true,
+        "shader_compiles": 1
+      },
+      "matched_bindings": 4023,
+      "native_query_including_compile_seconds": 0.005040167,
+      "roundtrip_seconds": 0.02858175,
+      "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (> cost1 cost2))\n      ((union lhs (TCPair t2 cost2)))\n        :ruleset terms-helpers-helpers )",
+      "ruleset": "terms-helpers-helpers",
+      "scope": "Complete frozen LHS query on explicit real table rows; no Cell certificate, no original RHS/merge/rebuild. The unused RHS record field is constant; proposal reduction is disabled. GPU compute/return excludes host preparation and is not an end-to-end speedup.",
+      "table_atoms": 3,
+      "table_prepare_seconds": 0.012611333,
+      "tables": [
+        {
+          "fragment_rows": 6808,
+          "part": 0,
+          "physical_rows_scanned": 6808,
+          "table": "TCPair"
+        },
+        {
+          "fragment_rows": 6808,
+          "part": 1,
+          "physical_rows_scanned": 6808,
+          "table": "TCPair"
+        },
+        {
+          "fragment_rows": 7828,
+          "part": 2,
+          "physical_rows_scanned": 7828,
+          "table": "Smaller"
+        }
+      ],
+      "uploaded_bytes": 1029328,
+      "worker_setup_seconds": 0.055810625
+    },
+    {
+      "cell_templates": 0,
+      "common_clone_and_sink_seconds_excluded": 0.010649875,
+      "compile_seconds": 1.1584e-05,
+      "decode_seconds": 4.2459e-05,
+      "device": {
+        "active_matches": 247,
+        "arithmetic_error": false,
+        "audit_rows": 247,
+        "candidate_row_visits": 1797412,
+        "device": "Apple M3 Max",
+        "epoch": 1,
+        "gpu_seconds": 0.0016363332979381084,
+        "groups": 0,
+        "index_lookups": 866336,
+        "match_records": 247,
+        "matrix_bytes": 5057224,
+        "new_matches": 247,
+        "new_rows": 21444,
+        "pending_matches": 247,
+        "query_only": true,
+        "retired_rows": 0,
+        "retry_count": 0,
+        "rows": 21444,
+        "shader_compiles": 1
+      },
+      "downloaded_bytes": 7904,
+      "exact_native_binding_set": true,
+      "gpu_cold_query_seconds": 0.12085246,
+      "gpu_resident_compute_and_return_seconds": 0.009396376,
+      "guards": 0,
+      "install": {
+        "compile_seconds": 0.0482963752001524,
+        "installed": true,
+        "shader_compiles": 1
+      },
+      "matched_bindings": 247,
+      "native_query_including_compile_seconds": 0.0016885,
+      "roundtrip_seconds": 0.009353917,
+      "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (= cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+      "ruleset": "terms-helpers-helpers",
+      "scope": "Complete frozen LHS query on explicit real table rows; no Cell certificate, no original RHS/merge/rebuild. The unused RHS record field is constant; proposal reduction is disabled. GPU compute/return excludes host preparation and is not an end-to-end speedup.",
+      "table_atoms": 3,
+      "table_prepare_seconds": 0.010978209,
+      "tables": [
+        {
+          "fragment_rows": 6808,
+          "part": 0,
+          "physical_rows_scanned": 6808,
+          "table": "TCPair"
+        },
+        {
+          "fragment_rows": 6808,
+          "part": 1,
+          "physical_rows_scanned": 6808,
+          "table": "TCPair"
+        },
+        {
+          "fragment_rows": 7828,
+          "part": 2,
+          "physical_rows_scanned": 7828,
+          "table": "Smaller"
+        }
+      ],
+      "uploaded_bytes": 600448,
+      "worker_setup_seconds": 0.100466291
+    }
+  ],
+  "scope": "Real frozen native tables; same binary table GPU join backend. Complete LHS query microbenchmark, no Cell admission or original RHS execution. Not whole-packet acceleration.",
+  "label": "command1158/3/repeat0/4: (saturate (seq (run terms) (saturate (seq (run terms-helpers) (saturate (seq (run terms-helpers-helpers)))))))",
+  "worker_sha256": "5147fb53ad092df064bc8be3ebd5a806723c27da2b0273934b38fc4250dc28fc",
+  "pre_query_run": "(seq terms terms-helpers)",
+  "native_packet": {
+    "after": {
+      "constructor_sorts": {
+        "Assumption": {
+          "eclasses": 2,
+          "enodes_per_eclass": 1.5,
+          "singleton_eclasses": 1,
+          "visible_constructor_enodes": 3
+        },
+        "BaseType": {
+          "eclasses": 9,
+          "enodes_per_eclass": 573.1111111111111,
+          "singleton_eclasses": 0,
+          "visible_constructor_enodes": 5158
+        },
+        "BinaryOp": {
+          "eclasses": 31,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 31,
+          "visible_constructor_enodes": 31
+        },
+        "Bound": {
+          "eclasses": 11,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 11,
+          "visible_constructor_enodes": 11
+        },
+        "Constant": {
+          "eclasses": 27,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 27,
+          "visible_constructor_enodes": 27
+        },
+        "Expr": {
+          "eclasses": 23155,
+          "enodes_per_eclass": 2.999568127834161,
+          "singleton_eclasses": 6354,
+          "visible_constructor_enodes": 69455
+        },
+        "Term": {
+          "eclasses": 62749,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 62749,
+          "visible_constructor_enodes": 62749
+        },
+        "TermAndCost": {
+          "eclasses": 62749,
+          "enodes_per_eclass": 2.148209533219653,
+          "singleton_eclasses": 25219,
+          "visible_constructor_enodes": 134798
+        },
+        "TernaryOp": {
+          "eclasses": 2,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 2,
+          "visible_constructor_enodes": 2
+        },
+        "Type": {
+          "eclasses": 911,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 911,
+          "visible_constructor_enodes": 911
+        },
+        "TypeList": {
+          "eclasses": 903,
+          "enodes_per_eclass": 3.992248062015504,
+          "singleton_eclasses": 3,
+          "visible_constructor_enodes": 3605
+        },
+        "UnaryOp": {
+          "eclasses": 3,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 3,
+          "visible_constructor_enodes": 3
+        },
+        "___AccumBopSort": {
+          "eclasses": 3,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 3,
+          "visible_constructor_enodes": 3
+        },
+        "___AddAllGetsSort": {
+          "eclasses": 6966,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 6966,
+          "visible_constructor_enodes": 6966
+        },
+        "___AddGetsSort": {
+          "eclasses": 18341,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 18341,
+          "visible_constructor_enodes": 18341
+        },
+        "___BinaryOpIsPureSort": {
+          "eclasses": 28,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 28,
+          "visible_constructor_enodes": 28
+        },
+        "___BodyContainsExprSort": {
+          "eclasses": 50095,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 50095,
+          "visible_constructor_enodes": 50095
+        },
+        "___ContextOfSort": {
+          "eclasses": 18636,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 18636,
+          "visible_constructor_enodes": 18636
+        },
+        "___ExpectTypeSort": {
+          "eclasses": 2239,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 2239,
+          "visible_constructor_enodes": 2239
+        },
+        "___ExprIsPureSort": {
+          "eclasses": 4960,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 4960,
+          "visible_constructor_enodes": 4960
+        },
+        "___ExprIsResolvedSort": {
+          "eclasses": 18727,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 18727,
+          "visible_constructor_enodes": 18727
+        },
+        "___ExtractedExprCacheSort": {
+          "eclasses": 7712,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 7712,
+          "visible_constructor_enodes": 7712
+        },
+        "___FunctionHasTypeSort": {
+          "eclasses": 29,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 29,
+          "visible_constructor_enodes": 29
+        },
+        "___HasArgTypeSort": {
+          "eclasses": 18698,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 18698,
+          "visible_constructor_enodes": 18698
+        },
+        "___HasTypeSort": {
+          "eclasses": 18698,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 18698,
+          "visible_constructor_enodes": 18698
+        },
+        "___LoopIsFiniteSort": {
+          "eclasses": 2,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 2,
+          "visible_constructor_enodes": 2
+        },
+        "___NoAliasSort": {
+          "eclasses": 1414,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 1414,
+          "visible_constructor_enodes": 1414
+        },
+        "___NotJustConcatSort": {
+          "eclasses": 4323,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 4323,
+          "visible_constructor_enodes": 4323
+        },
+        "___PointerishTypeListSort": {
+          "eclasses": 873,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 873,
+          "visible_constructor_enodes": 873
+        },
+        "___PointerishTypeSort": {
+          "eclasses": 878,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 878,
+          "visible_constructor_enodes": 878
+        },
+        "___PotentialExtractedExprSort": {
+          "eclasses": 68804,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 68804,
+          "visible_constructor_enodes": 68804
+        },
+        "___PureBaseTypeSort": {
+          "eclasses": 2,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 2,
+          "visible_constructor_enodes": 2
+        },
+        "___PureTypeListSort": {
+          "eclasses": 5,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 5,
+          "visible_constructor_enodes": 5
+        },
+        "___PureTypeSort": {
+          "eclasses": 6,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 6,
+          "visible_constructor_enodes": 6
+        },
+        "___TernaryOpIsPureSort": {
+          "eclasses": 1,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 1,
+          "visible_constructor_enodes": 1
+        },
+        "___UnaryOpIsPureSort": {
+          "eclasses": 3,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 3,
+          "visible_constructor_enodes": 3
+        },
+        "___bop>stringSort": {
+          "eclasses": 24,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 24,
+          "visible_constructor_enodes": 24
+        },
+        "___bopoftypeSort": {
+          "eclasses": 13,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 13,
+          "visible_constructor_enodes": 13
+        },
+        "___bpredoftypeSort": {
+          "eclasses": 12,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 12,
+          "visible_constructor_enodes": 12
+        },
+        "___isinvExprSort": {
+          "eclasses": 1387,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 1387,
+          "visible_constructor_enodes": 1387
+        },
+        "___leadingExprSort": {
+          "eclasses": 540,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 540,
+          "visible_constructor_enodes": 540
+        },
+        "___lsrinvSort": {
+          "eclasses": 91680,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 91680,
+          "visible_constructor_enodes": 91680
+        }
+      },
+      "table_rows": 655832,
+      "tables": {
+        "Arg": {
+          "constructor": true,
+          "output_sort": "Expr",
+          "stored_rows": 76,
+          "visible_rows": 76
+        },
+        "Bop": {
+          "constructor": true,
+          "output_sort": "Expr",
+          "stored_rows": 3209,
+          "visible_rows": 3209
+        },
+        "Concat": {
+          "constructor": true,
+          "output_sort": "Expr",
+          "stored_rows": 8058,
+          "visible_rows": 8058
+        },
+        "Const": {
+          "constructor": true,
+          "output_sort": "Expr",
+          "stored_rows": 1156,
+          "visible_rows": 1156
+        },
+        "ExtractedExpr": {
+          "constructor": false,
+          "output_sort": "TermAndCost",
+          "stored_rows": 6985,
+          "visible_rows": 6985
+        },
+        "Get": {
+          "constructor": true,
+          "output_sort": "Expr",
+          "stored_rows": 13189,
+          "visible_rows": 13189
+        },
+        "PotentialExtractedExpr": {
+          "constructor": true,
+          "output_sort": "___PotentialExtractedExprSort",
+          "stored_rows": 68804,
+          "visible_rows": 68804
+        },
+        "Single": {
+          "constructor": true,
+          "output_sort": "Expr",
+          "stored_rows": 4347,
+          "visible_rows": 4347
+        },
+        "Smaller": {
+          "constructor": true,
+          "output_sort": "TermAndCost",
+          "stored_rows": 72049,
+          "visible_rows": 72049
+        },
+        "TCPair": {
+          "constructor": true,
+          "output_sort": "TermAndCost",
+          "stored_rows": 62749,
+          "visible_rows": 62749
+        },
+        "Top": {
+          "constructor": true,
+          "output_sort": "Expr",
+          "stored_rows": 938,
+          "visible_rows": 938
+        },
+        "Uop": {
+          "constructor": true,
+          "output_sort": "Expr",
+          "stored_rows": 3,
+          "visible_rows": 3
+        }
+      },
+      "other_table_count_omitted": 248
+    },
+    "before": {
+      "constructor_sorts": {
+        "Assumption": {
+          "eclasses": 2,
+          "enodes_per_eclass": 1.5,
+          "singleton_eclasses": 1,
+          "visible_constructor_enodes": 3
+        },
+        "BaseType": {
+          "eclasses": 9,
+          "enodes_per_eclass": 573.1111111111111,
+          "singleton_eclasses": 0,
+          "visible_constructor_enodes": 5158
+        },
+        "BinaryOp": {
+          "eclasses": 31,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 31,
+          "visible_constructor_enodes": 31
+        },
+        "Bound": {
+          "eclasses": 11,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 11,
+          "visible_constructor_enodes": 11
+        },
+        "Constant": {
+          "eclasses": 27,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 27,
+          "visible_constructor_enodes": 27
+        },
+        "Expr": {
+          "eclasses": 23155,
+          "enodes_per_eclass": 2.999568127834161,
+          "singleton_eclasses": 6354,
+          "visible_constructor_enodes": 69455
+        },
+        "Term": {
+          "eclasses": 6789,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 6789,
+          "visible_constructor_enodes": 6789
+        },
+        "TermAndCost": {
+          "eclasses": 7698,
+          "enodes_per_eclass": 1.7114835022083659,
+          "singleton_eclasses": 3767,
+          "visible_constructor_enodes": 13175
+        },
+        "TernaryOp": {
+          "eclasses": 2,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 2,
+          "visible_constructor_enodes": 2
+        },
+        "Type": {
+          "eclasses": 911,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 911,
+          "visible_constructor_enodes": 911
+        },
+        "TypeList": {
+          "eclasses": 903,
+          "enodes_per_eclass": 3.992248062015504,
+          "singleton_eclasses": 3,
+          "visible_constructor_enodes": 3605
+        },
+        "UnaryOp": {
+          "eclasses": 3,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 3,
+          "visible_constructor_enodes": 3
+        },
+        "___AccumBopSort": {
+          "eclasses": 3,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 3,
+          "visible_constructor_enodes": 3
+        },
+        "___AddAllGetsSort": {
+          "eclasses": 6966,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 6966,
+          "visible_constructor_enodes": 6966
+        },
+        "___AddGetsSort": {
+          "eclasses": 18341,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 18341,
+          "visible_constructor_enodes": 18341
+        },
+        "___BinaryOpIsPureSort": {
+          "eclasses": 28,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 28,
+          "visible_constructor_enodes": 28
+        },
+        "___BodyContainsExprSort": {
+          "eclasses": 50095,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 50095,
+          "visible_constructor_enodes": 50095
+        },
+        "___ContextOfSort": {
+          "eclasses": 18636,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 18636,
+          "visible_constructor_enodes": 18636
+        },
+        "___ExpectTypeSort": {
+          "eclasses": 2239,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 2239,
+          "visible_constructor_enodes": 2239
+        },
+        "___ExprIsPureSort": {
+          "eclasses": 4960,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 4960,
+          "visible_constructor_enodes": 4960
+        },
+        "___ExprIsResolvedSort": {
+          "eclasses": 18727,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 18727,
+          "visible_constructor_enodes": 18727
+        },
+        "___ExtractedExprCacheSort": {
+          "eclasses": 7712,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 7712,
+          "visible_constructor_enodes": 7712
+        },
+        "___FunctionHasTypeSort": {
+          "eclasses": 29,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 29,
+          "visible_constructor_enodes": 29
+        },
+        "___HasArgTypeSort": {
+          "eclasses": 18698,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 18698,
+          "visible_constructor_enodes": 18698
+        },
+        "___HasTypeSort": {
+          "eclasses": 18698,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 18698,
+          "visible_constructor_enodes": 18698
+        },
+        "___LoopIsFiniteSort": {
+          "eclasses": 2,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 2,
+          "visible_constructor_enodes": 2
+        },
+        "___NoAliasSort": {
+          "eclasses": 1414,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 1414,
+          "visible_constructor_enodes": 1414
+        },
+        "___NotJustConcatSort": {
+          "eclasses": 4323,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 4323,
+          "visible_constructor_enodes": 4323
+        },
+        "___PointerishTypeListSort": {
+          "eclasses": 873,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 873,
+          "visible_constructor_enodes": 873
+        },
+        "___PointerishTypeSort": {
+          "eclasses": 878,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 878,
+          "visible_constructor_enodes": 878
+        },
+        "___PotentialExtractedExprSort": {
+          "eclasses": 12179,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 12179,
+          "visible_constructor_enodes": 12179
+        },
+        "___PureBaseTypeSort": {
+          "eclasses": 2,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 2,
+          "visible_constructor_enodes": 2
+        },
+        "___PureTypeListSort": {
+          "eclasses": 5,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 5,
+          "visible_constructor_enodes": 5
+        },
+        "___PureTypeSort": {
+          "eclasses": 6,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 6,
+          "visible_constructor_enodes": 6
+        },
+        "___TernaryOpIsPureSort": {
+          "eclasses": 1,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 1,
+          "visible_constructor_enodes": 1
+        },
+        "___UnaryOpIsPureSort": {
+          "eclasses": 3,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 3,
+          "visible_constructor_enodes": 3
+        },
+        "___bop>stringSort": {
+          "eclasses": 24,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 24,
+          "visible_constructor_enodes": 24
+        },
+        "___bopoftypeSort": {
+          "eclasses": 13,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 13,
+          "visible_constructor_enodes": 13
+        },
+        "___bpredoftypeSort": {
+          "eclasses": 12,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 12,
+          "visible_constructor_enodes": 12
+        },
+        "___isinvExprSort": {
+          "eclasses": 1387,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 1387,
+          "visible_constructor_enodes": 1387
+        },
+        "___leadingExprSort": {
+          "eclasses": 540,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 540,
+          "visible_constructor_enodes": 540
+        },
+        "___lsrinvSort": {
+          "eclasses": 91680,
+          "enodes_per_eclass": 1.0,
+          "singleton_eclasses": 91680,
+          "visible_constructor_enodes": 91680
+        }
+      },
+      "table_rows": 421397,
+      "tables": {
+        "Arg": {
+          "constructor": true,
+          "output_sort": "Expr",
+          "stored_rows": 76,
+          "visible_rows": 76
+        },
+        "Bop": {
+          "constructor": true,
+          "output_sort": "Expr",
+          "stored_rows": 3209,
+          "visible_rows": 3209
+        },
+        "Concat": {
+          "constructor": true,
+          "output_sort": "Expr",
+          "stored_rows": 8058,
+          "visible_rows": 8058
+        },
+        "Const": {
+          "constructor": true,
+          "output_sort": "Expr",
+          "stored_rows": 1156,
+          "visible_rows": 1156
+        },
+        "ExtractedExpr": {
+          "constructor": false,
+          "output_sort": "TermAndCost",
+          "stored_rows": 6758,
+          "visible_rows": 6758
+        },
+        "Get": {
+          "constructor": true,
+          "output_sort": "Expr",
+          "stored_rows": 13189,
+          "visible_rows": 13189
+        },
+        "PotentialExtractedExpr": {
+          "constructor": true,
+          "output_sort": "___PotentialExtractedExprSort",
+          "stored_rows": 12179,
+          "visible_rows": 12179
+        },
+        "Single": {
+          "constructor": true,
+          "output_sort": "Expr",
+          "stored_rows": 4347,
+          "visible_rows": 4347
+        },
+        "Smaller": {
+          "constructor": true,
+          "output_sort": "TermAndCost",
+          "stored_rows": 6386,
+          "visible_rows": 6386
+        },
+        "TCPair": {
+          "constructor": true,
+          "output_sort": "TermAndCost",
+          "stored_rows": 6789,
+          "visible_rows": 6789
+        },
+        "Top": {
+          "constructor": true,
+          "output_sort": "Expr",
+          "stored_rows": 938,
+          "visible_rows": 938
+        },
+        "Uop": {
+          "constructor": true,
+          "output_sort": "Expr",
+          "stored_rows": 3,
+          "visible_rows": 3
+        }
+      },
+      "other_table_count_omitted": 248
+    },
+    "checks": {
+      "exact_final_rows_equivalence_and_visibility": true,
+      "parent_unchanged": true,
+      "same_rule_match_counts": true,
+      "timing_probe_counter_increments": 0
+    },
+    "clone_seconds_excluded": 0.019084958,
+    "diagnostic": {
+      "probe_counters": {
+        "  candidate_rows enumerated (for_each)": 8044656,
+        "  candidate_rows from lookups": 5919083,
+        "  lookup calls (get_subset)": 5143505,
+        "cached_column": 111951,
+        "cached_index_hit": 111401,
+        "cached_index_rebuild": 2969,
+        "cached_index_rebuild_full": 62,
+        "cached_index_rebuild_rows": 1970407,
+        "cached_tuple": 0,
+        "candidate_rows": 13963739,
+        "dynamic_column (per-node cache)": 987287,
+        "dynamic_tuple (group_by_key)": 0,
+        "probed_keys": 7901150,
+        "probes": 5166731,
+        "sparse_column": 4067493
+      },
+      "stage_work_by_rule": null,
+      "table_reads": [
+        [
+          "Arg",
+          {
+            "key_lookups": 0,
+            "refine_rows": 0,
+            "scan_calls": 1,
+            "scan_rows": 1
+          }
+        ],
+        [
+          "Const",
+          {
+            "key_lookups": 0,
+            "refine_rows": 0,
+            "scan_calls": 1,
+            "scan_rows": 157
+          }
+        ],
+        [
+          "Top",
+          {
+            "key_lookups": 0,
+            "refine_rows": 0,
+            "scan_calls": 48504,
+            "scan_rows": 961478
+          }
+        ],
+        [
+          "Bop",
+          {
+            "key_lookups": 0,
+            "refine_rows": 0,
+            "scan_calls": 28770,
+            "scan_rows": 1705283
+          }
+        ],
+        [
+          "Uop",
+          {
+            "key_lookups": 0,
+            "refine_rows": 0,
+            "scan_calls": 644,
+            "scan_rows": 1418
+          }
+        ],
+        [
+          "Get",
+          {
+            "key_lookups": 0,
+            "refine_rows": 0,
+            "scan_calls": 17984,
+            "scan_rows": 3442551
+          }
+        ],
+        [
+          "Single",
+          {
+            "key_lookups": 0,
+            "refine_rows": 0,
+            "scan_calls": 11324,
+            "scan_rows": 1137403
+          }
+        ],
+        [
+          "Concat",
+          {
+            "key_lookups": 0,
+            "refine_rows": 0,
+            "scan_calls": 4142,
+            "scan_rows": 4643621
+          }
+        ],
+        [
+          "Smaller",
+          {
+            "key_lookups": 0,
+            "refine_rows": 14575,
+            "scan_calls": 796834,
+            "scan_rows": 61695023
+          }
+        ],
+        [
+          "ExtractedExpr",
+          {
+            "key_lookups": 0,
+            "refine_rows": 584859,
+            "scan_calls": 460890,
+            "scan_rows": 2066289
+          }
+        ],
+        [
+          "PotentialExtractedExpr",
+          {
+            "key_lookups": 59986,
+            "refine_rows": 0,
+            "scan_calls": 94160,
+            "scan_rows": 22869009
+          }
+        ],
+        [
+          "TCPair",
+          {
+            "key_lookups": 152193,
+            "refine_rows": 0,
+            "scan_calls": 5302792,
+            "scan_rows": 208745907
+          }
+        ]
+      ]
+    },
+    "label": "command1158/3/repeat0/4: (saturate (seq (run terms) (saturate (seq (run terms-helpers) (saturate (seq (run terms-helpers-helpers)))))))",
+    "limits": "No extraction in this isolated packet. Search/apply includes RHS and is not pure Join time. Candidate visits repeat across stages, not a single rejection funnel. Net rows and union displacements are distinct; neither measures per-match new enodes.",
+    "native": {
+      "can_stop": false,
+      "insert_merge_seconds": 0.049361257000000006,
+      "iterations": 1017,
+      "matches": 285337,
+      "rebuild_seconds": 1.06873825,
+      "rules": [
+        {
+          "matches": 34062,
+          "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (= (ExtractedExpr expr) (TCPair oldterm oldcost))\n       (< cost oldcost))\n      ((set (ExtractedExpr expr) (TCPair term cost)))\n        :ruleset terms-helpers )",
+          "search_and_apply_seconds": 1.4441694219999999
+        },
+        {
+          "matches": 70,
+          "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (= cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+          "search_and_apply_seconds": 1.056715504
+        },
+        {
+          "matches": 65562,
+          "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (< cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+          "search_and_apply_seconds": 0.988921052
+        },
+        {
+          "matches": 67512,
+          "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (> cost1 cost2))\n      ((union lhs (TCPair t2 cost2)))\n        :ruleset terms-helpers-helpers )",
+          "search_and_apply_seconds": 0.984531329
+        },
+        {
+          "matches": 14179,
+          "rule": "(rule ((= lhs (Bop o e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermBop o t1 t2) (+ 1 (+ c1 c2)))))\n        :ruleset terms )",
+          "search_and_apply_seconds": 0.629497824
+        },
+        {
+          "matches": 1745,
+          "rule": "(rule ((= lhs (Concat e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))\n        :ruleset terms )",
+          "search_and_apply_seconds": 0.528317126
+        },
+        {
+          "matches": 3659,
+          "rule": "(rule ((= lhs (Top o e1 e2 e3))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2))\n       (= (TCPair t3 c3) (ExtractedExpr e3)))\n      ((PotentialExtractedExpr lhs (TCPair (TermTop o t1 t2 t3) (+ (+ 1 c1) (+ c2 c3)))))\n        :ruleset terms )",
+          "search_and_apply_seconds": 0.456534882
+        },
+        {
+          "matches": 0,
+          "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (< cost 0))\n      ((panic 'Negative cost'))\n        :ruleset terms-helpers )",
+          "search_and_apply_seconds": 0.265343337
+        },
+        {
+          "matches": 29256,
+          "rule": "(rule ((= lhs (Get tup i))\n       (= (TCPair t1 c1) (ExtractedExpr tup)))\n      ((PotentialExtractedExpr lhs (TCPair (TermGet t1 i) c1)))\n        :ruleset terms )",
+          "search_and_apply_seconds": 0.204206628
+        },
+        {
+          "matches": 10988,
+          "rule": "(rule ((= lhs (Single e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermSingle t1) c1)))\n        :ruleset terms )",
+          "search_and_apply_seconds": 0.150890628
+        },
+        {
+          "matches": 58145,
+          "rule": "(rule ((PotentialExtractedExpr expr termandcost))\n      ((set (ExtractedExpr expr) (TCPair (NoTerm ) 10000000000000000)))\n        :ruleset terms-helpers )",
+          "search_and_apply_seconds": 0.003857174
+        },
+        {
+          "matches": 3,
+          "rule": "(rule ((= lhs (Uop o e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermUop o t1) (+ 1 c1))))\n        :ruleset terms )",
+          "search_and_apply_seconds": 0.00318362
+        },
+        {
+          "matches": 155,
+          "rule": "(rule ((= lhs (Const c ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConst c) 1)))\n        :ruleset terms )",
+          "search_and_apply_seconds": 5.8125e-05
+        },
+        {
+          "matches": 1,
+          "rule": "(rule ((= lhs (Arg ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermArg ) 1)))\n        :ruleset terms )",
+          "search_and_apply_seconds": 1.209e-06
+        }
+      ],
+      "rulesets": {
+        "terms": 2.004806664,
+        "terms-helpers": 1.72391238,
+        "terms-helpers-helpers": 3.046528679
+      },
+      "search_and_apply_seconds": 6.775247723
+    },
+    "schedule": [
+      "(run-schedule (saturate (seq (run terms) (saturate (seq (run terms-helpers) (saturate (seq (run terms-helpers-helpers))))))))"
+    ],
+    "scope": "one original native schedule packet from a production-derived checkpoint; one timed replay plus separate diagnostics; same fork, not pristine or GPU acceleration",
+    "successful_union_displacements": 81353,
+    "visible_rows_net_change": 234435,
+    "wall_seconds": 7.940514958
+  },
+  "source_hashes": {
+    "cell-assisted-egglog/src/analyze_program.rs": "66124f2723619f359a80b7cb98e298a918f9411c21f59946c66b2225885b3a6d",
+    "cell-assisted-egglog/src/compile.rs": "1a5620744bc7d4452fa710f9f97dcd4285d001279f78d3d6b465deae52d8df9a",
+    "cell-assisted-egglog/src/layout.rs": "4afaa249b461997445666dd8b775c5f7517b021ce2caed813db54f15feba3104",
+    "cell-assisted-egglog/src/lib.rs": "692a716cbc5f65ff3026700f73e33e54cf671a6dcb4c514ae2977fe7a364bbc4",
+    "cell-assisted-egglog/src/live.rs": "987e4406114999d9abdb2b04c7d53ec4a51fb6efe5a9c7ec55d5c0aeae950fc2",
+    "cell-assisted-egglog/src/live_bake.rs": "cf4705d8b5baa86e456c748578be92ca2114836bb69e846f4f628e71a77a2ee9",
+    "cell-assisted-egglog/src/main.rs": "45f9e76e094f6dc494cab2a22d5a05361e9b1cb877663aeb4f0a4837a6b66096",
+    "cell-assisted-egglog/src/marker_layout.rs": "4a02f1a7785b685f0ca34a85fe81c1e0c43fa02d4573372af128bc53521de2d1",
+    "cell-assisted-egglog/src/matrix.rs": "78cf5f350447ba4be83a11a49e60f046a0cb837f309eef85c2daff3ab4c9ccbc",
+    "cell-assisted-egglog/src/matrix_service.rs": "878f9855c0ac348cbdacdbb85f8dca463abc640403b96037560eb7ab644e8ff0",
+    "cell-assisted-egglog/src/numeric.rs": "5001a6b4741b3cdb0922fbd1b937d2ccd7432644e3321fae748bb581e6575b05",
+    "cell-assisted-egglog/src/numeric_lower.rs": "efb014e709d73174d1fc2c46691f4d1eff90c73bedea91482543e9af0537fe1e",
+    "cell-assisted-egglog/src/numeric_native.rs": "9b674ef6b44b56223bf39870c76609b6c53d2779b00ea54b08dff03f1ee9fe30",
+    "cell-assisted-egglog/src/program.rs": "ecf5eccf154360be5b32a9778074cc359686c2c962a29a586425779ce64afbdb",
+    "cell-assisted-egglog/src/public_snapshot.rs": "54666f0d64f9a92710fb4a00fcef3f8a91a9b13cb3f2217baa60dec50433faf7",
+    "cell-assisted-egglog/src/resident.rs": "c32c8705d4a0c3e31230646f46aeb4e1dfe9ae45593b3e539ae983dda6fac945",
+    "cell-assisted-egglog/src/table_native.rs": "bbeef31a75d55552986d68ab0ba0e23a4a843ea5da6b606dcc8497a8ce25430c",
+    "cell-assisted-egglog/src/table_program.rs": "dfa3489f3a1a19b5d98dd55484b6964bb50412067e320bdd74d7bc4036f4c302",
+    "cell-assisted-egglog/src/table_query.rs": "787a8c4b46184fc5e3e1dbd302d6cb1b62a575992f433dd947e0e8274d736f43",
+    "cell-assisted-egglog/matrix.swift": "a7ec9bece63ae20613a1904c1b6e6befa84556dfcca7ea02752316d280903814",
+    "cell-assisted-egglog/tables.metal": "f7ecd8789f30dc582bfd32fd61cdf37d4b241f4888290c8670119fd6faf6b923",
+    "cell-assisted-egglog/integer.metal": "3da85defd1a37c4c660bdf545a8c9e2b0ed33685ba3c51b7ae3aca88eebe385e",
+    "examples/support/cell_query_validation.rs": "ae8f8614fc0cf4eef9e715bd10cdaa7178aa9adb3afbba56268aaeb836fc3905"
+  },
+  "provenance": {
+    "snapshot": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+    "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "binary_sha256": "15f90d36fa72409c784ab0151e28a64c46d2737f201e956a2a1245c57809bce4",
+    "source_head": "aa97c14ffcadb0e5ce88377f268001bb857f1e7a",
+    "source_diff": " cell-assisted-egglog/bench_snapshot.py       | 20 +++++++++---\n cell-assisted-egglog/matrix.swift            | 11 ++++---\n cell-assisted-egglog/resident.swift          |  5 +--\n cell-assisted-egglog/src/lib.rs              |  1 +\n cell-assisted-egglog/tests/bench_snapshot.rs | 46 ++++++++++++++++++++++++++++\n examples/rule_repl.rs                        | 12 ++++++++\n examples/support/cell_query_validation.rs    | 29 ++++++++++++++++++\n 7 files changed, 111 insertions(+), 13 deletions(-)\n",
+    "breakpoint": "/3/repeat0/4",
+    "scope": "Replay captured production pass initialization and original schedule prefix. Not a new production frontend/extraction run.",
+    "harness_sha256": {
+      "examples/rule_repl.rs": "51e8ec084134aeea4d855cca4123a3a5949379fe4ac2233364d70999d50fb769",
+      "examples/support/ruleset_bench.rs": "f97c3dc41d7b3e936087b2fbb2667c3c54e1c162c48937156d18e1eb2c647e3b",
+      "cell-assisted-egglog/bench_snapshot.py": "86c944197501a050538595ed95575fb07aafaf84ed8218c7d1b76475b8b2599d"
+    },
+    "capture_metadata": {
+      "source": "/Users/mineralsteins/Repos/egg_related/check_statewalk/benchmarks/passing/raytrace/raytrace.rs",
+      "source_sha256": "a0cc2caf63bded3e280ea23c9395358a60f4b9fa63a19949dd28159cc6638f22",
+      "profile_binary_sha256": "eb37c80b39288ca23143bb33dc9fe1571b2e65e5ed45350f213da602144cc9d4",
+      "measurement": "One production three-pass optimization, all pass timings saved. Subsequent Graphviz dot rendering was terminated; process exited 101 during SVG rendering. Not a successful end-to-end CLI timing.",
+      "run_mode": "dag-optimize",
+      "future_runner_mode": "optimized-pretty-print (same optimize entry, no Graphviz)",
+      "production_checkout_head": "ae80f82a403c1209fb084b115ee89470c7e66d0e"
+    },
+    "current_workload_sha256": "a0cc2caf63bded3e280ea23c9395358a60f4b9fa63a19949dd28159cc6638f22"
+  },
+  "totals": {
+    "compile_seconds": 0.000214126,
+    "worker_setup_seconds": 1.259699581,
+    "table_prepare_seconds": 0.157048625,
+    "roundtrip_seconds": 0.19795804399999997,
+    "decode_seconds": 0.002400544,
+    "gpu_cold_query_seconds": 1.61732092,
+    "native_query_including_compile_seconds": 0.041692711,
+    "uploaded_bytes": 12072108,
+    "downloaded_bytes": 832480,
+    "gpu_device_seconds": 0.07760795811191201
+  },
+  "raw_report_sha256": "94e52aac9eba12ae5cac05396addd40a14c4195c166ae8ac4e8e0589ec5f42d9",
+  "raw_report": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/raytrace-table-search-verified/report.json"
+}

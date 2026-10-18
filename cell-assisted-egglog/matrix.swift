@@ -368,6 +368,7 @@ final class Executor {
 final class TableExecutor {
   let device:MTLDevice,queue:MTLCommandQueue,code:MTLBuffer
   let parts:Int,slots:Int,numbers:Int,indexes:Int,rs:Int,ms:Int
+  let queryOnly:Bool
   var rows:MTLBuffer!,links:MTLBuffer!,heads:MTLBuffer!,matches:MTLBuffer!,scratch:MTLBuffer!,groups:MTLBuffer!,meta:MTLBuffer!,patch:MTLBuffer!
   var kernels=[String:MTLComputePipelineState]()
   var rowCount=0,rowCap=0,buckets=1,matchCount=0,matchCap=1,groupBuckets=1,epoch=0,ackEpoch=0
@@ -375,6 +376,7 @@ final class TableExecutor {
   var args=[UInt32](repeating:0,count:10)
   init(_ config:[String:Any]) throws {
     try require(config["version"] as? Int == 1,"table protocol")
+    queryOnly=config["query_only"] as? Bool ?? false
     parts=config["parts"] as! Int;slots=config["slots"] as! Int;numbers=config["numbers"] as! Int;indexes=config["indexes"] as! Int
     try require(parts>0 && slots>0,"empty table schema")
     rs=3+slots+2*numbers;ms=4+parts
@@ -456,12 +458,13 @@ final class TableExecutor {
       if word(meta,1)==0{break}
       matchCap=try pow2(max(1,matchCount));matches=try grow(matches,matchCap*ms,oldMatches*ms);retries+=1
     }
-    totalRetries+=retries;groupBuckets=try pow2(max(1,matchCount*2))
-    scratch=try grow(scratch,3*matchCap+groupBuckets,0);groups=try grow(groups,3*matchCap,0)
+    totalRetries+=retries;groupBuckets=queryOnly ? 1 : try pow2(max(1,matchCount*2))
+    scratch=try grow(scratch,3*matchCap+groupBuckets,0);groups=try grow(groups,queryOnly ? 1 : 3*matchCap,0)
     args[5]=UInt32(matchCap);args[7]=UInt32(matchCount);args[8]=UInt32(groupBuckets)
     let reduce=queue.makeCommandBuffer()!
     encode("table_pending",matchCount,reduce);encode("table_clear_groups",groupBuckets,reduce)
-    encode("table_group_links",matchCount,reduce);encode("table_reduce",groupBuckets,reduce);try submit(reduce)
+    if !queryOnly {encode("table_group_links",matchCount,reduce);encode("table_reduce",groupBuckets,reduce)}
+    try submit(reduce)
     let ng=Int(word(meta,3)),error=word(meta,2) != 0
     var body=[UInt32](),na=0
     if audit {
@@ -476,7 +479,7 @@ final class TableExecutor {
     try require(body.count<=Int(UInt32.max)/4,"binary table response exceeds frame range")
     return (["epoch":epoch,"rows":rowCount,"new_rows":added,"retired_rows":removed,"match_records":matchCount,
       "new_matches":matchCount-oldMatches,"active_matches":Int(word(meta,7)),"pending_matches":Int(word(meta,6)),
-      "audit_rows":na,"groups":ng,"arithmetic_error":error,"index_lookups":Int(word(meta,5)),"candidate_row_visits":Int(word(meta,4)),
+      "audit_rows":na,"groups":ng,"query_only":queryOnly,"arithmetic_error":error,"index_lookups":Int(word(meta,5)),"candidate_row_visits":Int(word(meta,4)),
       "retry_count":retries,"shader_compiles":1,"gpu_seconds":gpuSeconds-beforeGpu,
       "matrix_bytes":[code,rows!,links!,heads!,matches!,scratch!,groups!,meta!,patch!].reduce(0){$0+$1.length},"device":device.name],body)
   }

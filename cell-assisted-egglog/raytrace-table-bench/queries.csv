@@ -1,0 +1,59 @@
+ruleset,rule,table_atoms,guards,matched_bindings,compile_seconds,worker_setup_seconds,table_prepare_seconds,roundtrip_seconds,decode_seconds,gpu_cold_query_seconds,native_query_including_compile_seconds,uploaded_bytes,downloaded_bytes
+terms,"(rule ((= lhs (Const c ty ass)))
+      ((PotentialExtractedExpr lhs (TCPair (TermConst c) 1)))
+        :ruleset terms )",1,0,1156,5.225e-05,0.112467791,0.000514458,0.016174334,0.000126292,0.129335125,0.000353834,23136,27744
+terms,"(rule ((= lhs (Arg ty ass)))
+      ((PotentialExtractedExpr lhs (TCPair (TermArg ) 1)))
+        :ruleset terms )",1,0,76,6.292e-06,0.097704291,4.6375e-05,0.005599459,9.458e-06,0.10336587500000001,7.7583e-05,1232,1824
+terms,"(rule ((= lhs (Bop o e1 e2))
+       (= (TCPair t1 c1) (ExtractedExpr e1))
+       (= (TCPair t2 c2) (ExtractedExpr e2)))
+      ((PotentialExtractedExpr lhs (TCPair (TermBop o t1 t2) (+ 1 (+ c1 c2)))))
+        :ruleset terms )",5,0,541,1.4792e-05,0.097394,0.015453583,0.011047584,0.000111417,0.12402137599999999,0.001742833,1348924,21640
+terms,"(rule ((= lhs (Top o e1 e2 e3))
+       (= (TCPair t1 c1) (ExtractedExpr e1))
+       (= (TCPair t2 c2) (ExtractedExpr e2))
+       (= (TCPair t3 c3) (ExtractedExpr e3)))
+      ((PotentialExtractedExpr lhs (TCPair (TermTop o t1 t2 t3) (+ (+ 1 c1) (+ c2 c3)))))
+        :ruleset terms )",7,0,182,2.3375e-05,0.097555458,0.02165575,0.01475975,7.3917e-05,0.13406825,0.000985542,2526616,8736
+terms,"(rule ((= lhs (Uop o e1))
+       (= (TCPair t1 c1) (ExtractedExpr e1)))
+      ((PotentialExtractedExpr lhs (TCPair (TermUop o t1) (+ 1 c1))))
+        :ruleset terms )",3,0,1,1.2708e-05,0.103916667,0.006953667,0.008364833,2.084e-06,0.119249959,0.000253,384372,32
+terms,"(rule ((= lhs (Get tup i))
+       (= (TCPair t1 c1) (ExtractedExpr tup)))
+      ((PotentialExtractedExpr lhs (TCPair (TermGet t1 i) c1)))
+        :ruleset terms )",3,0,3604,1.1292e-05,0.057346709,0.014202708,0.011335375,0.000255625,0.08315170899999999,0.002941542,753580,115328
+terms,"(rule ((= lhs (Single e1))
+       (= (TCPair t1 c1) (ExtractedExpr e1)))
+      ((PotentialExtractedExpr lhs (TCPair (TermSingle t1) c1)))
+        :ruleset terms )",3,0,1294,9.792e-06,0.094271083,0.008726792,0.009645791,0.000132,0.11278545799999999,0.001434208,433720,41408
+terms,"(rule ((= lhs (Concat e1 e2))
+       (= (TCPair t1 c1) (ExtractedExpr e1))
+       (= (TCPair t2 c2) (ExtractedExpr e2)))
+      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))
+        :ruleset terms )",5,0,3172,1.3958e-05,0.099675583,0.020079459,0.013140417,0.000491125,0.13340054199999998,0.005186959,1420256,126880
+terms-helpers,"(rule ((PotentialExtractedExpr expr termandcost))
+      ((set (ExtractedExpr expr) (TCPair (NoTerm ) 10000000000000000)))
+        :ruleset terms-helpers )",1,0,12356,7.375e-06,0.048343875,0.006786875,0.007548417,0.000488708,0.06317525,0.001476958,197712,296544
+terms-helpers,"(rule ((PotentialExtractedExpr expr (TCPair term cost))
+       (= (ExtractedExpr expr) (TCPair oldterm oldcost))
+       (< cost oldcost))
+      ((set (ExtractedExpr expr) (TCPair term cost)))
+        :ruleset terms-helpers )",4,1,158,1.4333e-05,0.091517542,0.017119083,0.01272225,3.9875e-05,0.12141308299999999,0.012092709,1710192,5688
+terms-helpers,"(rule ((PotentialExtractedExpr expr (TCPair term cost))
+       (< cost 0))
+      ((panic 'Negative cost'))
+        :ruleset terms-helpers )",2,1,0,1.1792e-05,0.102282916,0.010705833,0.007970625,1.542e-06,0.12097270799999998,0.003719917,613264,0
+terms-helpers-helpers,"(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))
+       (< cost1 cost2))
+      ((union lhs (TCPair t1 cost1)))
+        :ruleset terms-helpers-helpers )",3,1,1563,1.2667e-05,0.10094675,0.0112145,0.041713542,0.000195875,0.15408333400000002,0.004698959,1029328,50016
+terms-helpers-helpers,"(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))
+       (> cost1 cost2))
+      ((union lhs (TCPair t2 cost2)))
+        :ruleset terms-helpers-helpers )",3,1,4023,1.1916e-05,0.055810625,0.012611333,0.02858175,0.000430167,0.097445791,0.005040167,1029328,128736
+terms-helpers-helpers,"(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))
+       (= cost1 cost2))
+      ((union lhs (TCPair t1 cost1)))
+        :ruleset terms-helpers-helpers )",3,0,247,1.1584e-05,0.100466291,0.010978209,0.009353917,4.2459e-05,0.12085246,0.0016885,600448,7904

@@ -161,3 +161,8 @@ The [function-support follow-up](../function-support/README.md) removes those
 11 compiler rejections and validates all 14 query binding sets on this native
 checkpoint. This does not replace the native timing above with a GPU speedup or
 turn syntactic admission into certified Cell coverage.
+
+The [binary table follow-up](../raytrace-table-bench/README.md) freshly measures
+this same native packet, then benchmarks all 14 complete queries on an actual
+intermediate state. It includes table preparation, transfer, device work and
+exact binding comparisons. Query time is not presented as full GPU saturation.
