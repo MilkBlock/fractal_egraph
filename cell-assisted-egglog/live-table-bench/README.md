@@ -1,4 +1,6 @@
-# Continuous GPU table queries driving the real raytrace packet
+# Archived per-rule continuous runtime (7d6d9fc)
+
+The current implementation is documented in [shared-table-bench](../shared-table-bench/README.md). The results and architecture below describe commit `7d6d9fc`; current `--live-worker` runs the shared backend.
 
 This replaces the earlier cold-query measurement as the test of the **incremental
 runtime**. It starts from the same actual raytrace Pass-3 checkpoint, executes the

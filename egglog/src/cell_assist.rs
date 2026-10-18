@@ -5,6 +5,7 @@
 //! No original LHS query is compiled or executed by the action sink.
 use super::*;
 use egglog_bridge::{DefaultVal, FunctionConfig, FunctionId, MergeFn, RuleId, TableAction};
+use egglog_numeric_id::NumericId;
 
 #[path = "cell_assist_check.rs"]
 mod check;
@@ -40,8 +41,16 @@ pub struct CellActionSink {
     vars: Vec<ResolvedVar>,
     decided: FunctionId,
     action: RuleId,
+    traced_action: RuleId,
     original: RuleId,
     body: crate::core::Query<ResolvedCall, ResolvedVar>,
+}
+/// Prepared native seminaive query used as an independent cached reference.
+/// Owned by the same EGraph; no original RHS is executed by this query.
+pub struct CellQuery {
+    rule: RuleId,
+    vars: Vec<ResolvedVar>,
+    rows: Arc<std::sync::Mutex<Vec<Vec<Value>>>>,
 }
 impl CellActionSink {
     pub fn slots(&self) -> Vec<(&str, &str)> {
@@ -207,43 +216,51 @@ impl EGraph {
             name: format!("cell-bindings:{name}"),
             can_subsume: false,
         });
-        let unit_type = self.backend.base_values().get_ty::<()>();
-        let mut builder = BackendRule::new(
-            self.backend.new_rule(&format!("cell-action:{name}"), false),
-            &self.functions,
-            &self.type_info,
-            action_seminaive,
-        );
-        let entries: Vec<_> = vars
-            .iter()
-            .map(|v| builder.entry(&ResolvedAtomTerm::Var(span!(), v.clone())))
-            .collect();
-        let mut query = entries.clone();
-        query.push(QueryEntry::Const {
-            val: unit,
-            ty: ColumnTy::Base(unit_type),
-        });
-        builder.rb.query_table(decided, &query, None).unwrap();
-        // Defense at the native effect boundary: recheck only the residual
-        // predicates, never the relational Join. This also binds Unit outputs.
-        builder.query(
-            &crate::core::Query {
-                atoms: residual_atoms,
-            },
-            false,
-        );
-        // Consume the private work item before fallible RHS primitives. A failed
-        // checked-add must not leave a binding queued for all later batches.
-        builder.rb.remove(decided, &entries);
-        builder.actions(&rule.head)?;
-        let action = builder.build();
+        let mut actions = Vec::new();
+        for trace_lane in [false, true] {
+            let unit_type = self.backend.base_values().get_ty::<()>();
+            let mut builder = BackendRule::new(
+                self.backend
+                    .new_rule(&format!("cell-action:{trace_lane}:{name}"), false),
+                &self.functions,
+                &self.type_info,
+                action_seminaive,
+            );
+            let entries: Vec<_> = vars
+                .iter()
+                .map(|v| builder.entry(&ResolvedAtomTerm::Var(span!(), v.clone())))
+                .collect();
+            let mut query = entries.clone();
+            query.push(QueryEntry::Const {
+                val: unit,
+                ty: ColumnTy::Base(unit_type),
+            });
+            builder.rb.query_table(decided, &query, None).unwrap();
+            // Defense at the native effect boundary: recheck only the residual
+            // predicates, never the relational Join. This also binds Unit outputs.
+            builder.query(
+                &crate::core::Query {
+                    atoms: residual_atoms.clone(),
+                },
+                false,
+            );
+            // The caller clears this private worklist on both success and error.
+            // Removing it inside the rule would falsely report a graph update for
+            // an otherwise idempotent/no-op RHS and alter saturation stopping.
+            if trace_lane {
+                builder.rb.remove(decided, &entries);
+            }
+            builder.actions(&rule.head)?;
+            actions.push(builder.build());
+        }
         Ok(CellActionSink {
             name: name.into(),
             atoms,
             guards,
             vars,
             decided,
-            action,
+            action: actions[0],
+            traced_action: actions[1],
             original,
             body: rule.body,
         })
@@ -284,6 +301,73 @@ impl EGraph {
             result.push(keys);
         }
         Ok(result)
+    }
+
+    pub fn cell_query_is_seminaive(&self, sink: &CellActionSink) -> bool {
+        self.backend.rule_is_seminaive(sink.original)
+    }
+    pub fn cell_query_watermark(&self, sink: &CellActionSink) -> u32 {
+        self.backend.rule_last_run_value(sink.original).rep()
+    }
+    pub fn prepare_cell_query(&mut self, sink: &CellActionSink) -> Result<CellQuery, Error> {
+        let rows = Arc::new(std::sync::Mutex::new(Vec::new()));
+        let output = rows.clone();
+        let unit = self.backend.base_values().get(());
+        let unit_type = self.backend.base_values().get_ty::<()>();
+        let callback = self
+            .backend
+            .register_external_func(Box::new(make_external_func(move |_, v| {
+                output.lock().unwrap().push(v.to_vec());
+                Some(unit)
+            })));
+        let mut builder = BackendRule::new(
+            self.backend.new_rule("cell-native-query", true),
+            &self.functions,
+            &self.type_info,
+            true,
+        );
+        builder.query(&sink.body, false);
+        let entries = sink
+            .vars
+            .iter()
+            .map(|v| builder.entry(&ResolvedAtomTerm::Var(span!(), v.clone())))
+            .collect::<Vec<_>>();
+        builder
+            .rb
+            .call_external_func(callback, &entries, ColumnTy::Base(unit_type), || {
+                "cell native query".into()
+            });
+        let rule = builder.build();
+        let epoch = self.backend.rule_last_run_value(sink.original);
+        self.backend.complete_external_queries(&[rule], epoch);
+        Ok(CellQuery {
+            rule,
+            rows,
+            vars: sink.vars.clone(),
+        })
+    }
+    pub fn run_cell_queries(
+        &mut self,
+        queries: &[&CellQuery],
+    ) -> Result<Vec<Vec<Vec<Value>>>, Error> {
+        let ids = queries.iter().map(|q| q.rule).collect::<Vec<_>>();
+        self.backend
+            .run_rules(&ids)
+            .map_err(|e| Error::BackendError(e.to_string()))?;
+        Ok(queries
+            .iter()
+            .map(|q| {
+                std::mem::take(&mut *q.rows.lock().unwrap())
+                    .into_iter()
+                    .map(|row| {
+                        row.iter()
+                            .zip(&q.vars)
+                            .map(|(v, s)| self.get_canonical_value(*v, &s.sort))
+                            .collect()
+                    })
+                    .collect()
+            })
+            .collect())
     }
 
     /// CPU reference for the residual bytecode; no native table query.
@@ -441,13 +525,36 @@ impl EGraph {
         self.backend.flush_updates();
         let actions = prepared
             .iter()
-            .map(|(sink, _)| sink.action)
+            .map(|(sink, _)| {
+                if trace.is_some() {
+                    sink.traced_action
+                } else {
+                    sink.action
+                }
+            })
             .collect::<Vec<_>>();
-        let report = match trace {
+        let result = match trace {
             Some(t) => self.backend.run_rules_with_trace(&actions, t),
             None => self.backend.run_rules(&actions),
+        };
+        if trace.is_none() {
+            // Union/rebuild may have canonicalized private keys. Read their current
+            // keys, rather than trying to delete stale pre-RHS bindings.
+            for (sink, _) in &prepared {
+                let mut keys = Vec::new();
+                self.backend.for_each(sink.decided, |r| {
+                    keys.push(r.vals[..sink.vars.len()].to_vec())
+                });
+                let table = TableAction::new(&self.backend, sink.decided);
+                self.backend.with_execution_state(|state| {
+                    for key in &keys {
+                        table.remove(state, key);
+                    }
+                });
+            }
+            self.backend.flush_updates();
         }
-        .map_err(|e| Error::BackendError(e.to_string()))?;
+        let report = result.map_err(|e| Error::BackendError(e.to_string()))?;
         Ok(RunReport::singleton("cell-assisted", report))
     }
 

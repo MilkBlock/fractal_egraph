@@ -550,6 +550,7 @@ impl EGraph {
                     if !f(FunctionRow {
                         vals: &row[0..schema_math.func_cols],
                         subsumed,
+                        timestamp: row[schema_math.ts_col()],
                     }) {
                         return;
                     }
@@ -1742,6 +1743,7 @@ struct RowVals<T> {
 pub struct FunctionRow<'a> {
     pub vals: &'a [Value],
     pub subsumed: bool,
+    pub timestamp: Value,
 }
 
 impl SchemaMath {

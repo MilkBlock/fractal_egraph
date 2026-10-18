@@ -62,7 +62,7 @@ codegen-units=1
         registry_versions_pinned=True,commands=commands,
         binaries={name:dict(path=str(path.resolve()),sha256=sha(path)) for name,path in binaries.items()},
         sources={str(p.relative_to(ROOT)):sha(p) for p in [*sorted((ROOT/'cell-assisted-egglog/src').glob('*.rs')),
-            *[ROOT/'cell-assisted-egglog'/n for n in ['bench/native.rs','bench/build.py','matrix.swift','matrix.metal','numeric.metal','integer.metal','tables.metal','layout_solver.py','Cargo.toml','Cargo.lock']],ROOT/'tools/cell_spine/solver.py']},
+            *[ROOT/'cell-assisted-egglog'/n for n in ['bench/native.rs','bench/build.py','matrix.swift','matrix.metal','numeric.metal','integer.metal','tables.metal','family.metal','layout_solver.py','Cargo.toml','Cargo.lock']],ROOT/'tools/cell_spine/solver.py']},
         source_head=git('rev-parse','HEAD'),rustc=subprocess.check_output(['rustc','-Vv'],text=True))
     (output/'build.json').write_text(json.dumps(manifest,indent=2)+'\n')
     return manifest

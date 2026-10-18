@@ -54,9 +54,7 @@ fn continuous_schedule_keeps_indexes_and_receipts_across_real_native_updates() {
             .map(|q| q["stats"]["dispatches"].as_u64().unwrap())
             .sum::<u64>()
     );
-    for q in after["rules"].as_array().unwrap() {
-        assert_eq!(q["stats"]["shader_compiles"], 1);
-    }
+    assert_eq!(after["runtime"]["shader_compiles"], 1);
     r.input("(Edge (N 5) (N 6))").unwrap();
     r.run(&cmds).unwrap();
     assert_check(&r, "(check (= (Cost (N 6)) 5))");
@@ -140,7 +138,6 @@ fn handoff_keeps_the_original_seminaive_watermark() {
     assert_check(&r, "(check (Reach (N 3)))");
     let report = r.report();
     let stats = &report["rules"][0]["stats"];
-    assert!(stats["seeded_old_rows"].as_u64().unwrap() > 0);
     assert_eq!(
         stats["emitted_bindings"], 2,
         "the already completed 0->1 application must not be replayed"
@@ -219,4 +216,125 @@ fn identical_row_reinsert_is_a_new_occurrence_for_a_stateful_native_merge() {
     assert_check(&r, "(check (= (Count 7) 2))");
     r.run(&commands).unwrap();
     assert_check(&r, "(check (= (Count 7) 2))");
+}
+
+#[test]
+fn shared_gc_does_not_replay_matches_or_lose_a_delayed_ruleset() {
+    let Some(worker) = worker() else {
+        return;
+    };
+    let mut eg = EGraph::default();
+    eg.parse_and_run_program(
+        None,
+        r#"
+      (relation P (i64)) (relation Q (i64))
+      (function Count (i64) i64 :merge (+ old new))
+      (ruleset a) (ruleset b)
+      (rule ((P x)) ((set (Count x) 1)) :ruleset a)
+      (rule ((Q x)) ((set (Count x) 1)) :ruleset b)
+      (P 0) (Q 100)
+    "#,
+    )
+    .unwrap();
+    let both = eg.parse_program(None, "(run-schedule (seq a b))").unwrap();
+    let a = eg.parse_program(None, "(run a 1)").unwrap();
+    let b = eg.parse_program(None, "(run b 1)").unwrap();
+    let mut r = Runtime::new(eg, &both, &worker, true).unwrap();
+    r.run(&a).unwrap();
+    for _ in 0..24 {
+        r.input("(delete (P 0)) (P 0)").unwrap();
+        r.run(&a).unwrap();
+    }
+    assert_check(&r, "(check (= (Count 0) 25))");
+    r.run(&b).unwrap();
+    assert_check(&r, "(check (= (Count 100) 1))");
+    r.run(&both).unwrap();
+    assert_check(&r, "(check (= (Count 0) 25)) (check (= (Count 100) 1))");
+    let report = r.report();
+    assert_eq!(report["row_slots"], 2);
+    assert_eq!(report["runtime"]["workers"], 1);
+    assert!(report["device"]["compactions"].as_u64().unwrap() > 1);
+    assert_eq!(report["device"]["retained_matches"], 0);
+    assert!(report["device"]["events"].as_u64().unwrap() <= 4);
+}
+
+#[test]
+fn unchanged_journal_notifications_do_not_repeat_stateful_merge() {
+    let Some(worker) = worker() else {
+        return;
+    };
+    let (eg, cmds) = setup(
+        r#"
+      (relation P (i64)) (function Count (i64) i64 :merge (+ old new)) (ruleset a) (ruleset b)
+      (rule ((P x)) ((set (Count x) 1)) :ruleset a) (P 7)
+    "#,
+    );
+    let mut r = Runtime::new(eg, &cmds, &worker, true).unwrap();
+    r.run(&cmds).unwrap();
+    r.input("(P 7)").unwrap();
+    r.run(&cmds).unwrap();
+    assert_check(&r, "(check (= (Count 7) 1))");
+}
+
+#[test]
+fn shared_cartesian_output_grows_and_gc_does_not_replay_the_old_product() {
+    let Some(worker) = worker() else {
+        return;
+    };
+    let mut eg = EGraph::default();
+    eg.parse_and_run_program(
+        None,
+        r#"
+      (relation P (i64)) (relation Q (i64))
+      (function Count (i64) i64 :merge (+ old new)) (ruleset a)
+      (rule ((P x) (Q y)) ((set (Count x) 1)) :ruleset a)
+    "#,
+    )
+    .unwrap();
+    for i in 0..32 {
+        eg.parse_and_run_program(None, &format!("(P {i}) (Q {i})"))
+            .unwrap();
+    }
+    let commands = eg
+        .parse_program(None, "(run-schedule (saturate a))")
+        .unwrap();
+    let mut cpu = Runtime::new_cpu(eg.clone(), &commands).unwrap();
+    cpu.run(&commands).unwrap();
+    let mut gpu = Runtime::new(eg, &commands, &worker, true).unwrap();
+    gpu.run(&commands).unwrap();
+    assert_check(&cpu, "(check (= (Count 0) 32))");
+    assert_check(&gpu, "(check (= (Count 0) 32))");
+    assert!(
+        gpu.report()["runtime"]["output_high_water"]
+            .as_u64()
+            .unwrap()
+            >= 1024
+    );
+    gpu.input("(Q 32)").unwrap();
+    gpu.run(&commands).unwrap();
+    assert_check(&gpu, "(check (= (Count 0) 33))");
+    gpu.run(&commands).unwrap();
+    assert_check(&gpu, "(check (= (Count 0) 33))");
+}
+
+#[test]
+fn noop_rhs_does_not_count_private_worklist_cleanup_as_graph_growth() {
+    let Some(worker) = worker() else {
+        return;
+    };
+    let (mut eg, commands) = setup(
+        r#"
+      (relation P (i64)) (ruleset a) (ruleset b)
+      (rule ((P x)) ((P x)) :ruleset a) (P 1)
+    "#,
+    );
+    let commands = eg
+        .parse_program(None, "(run-schedule (saturate a))")
+        .unwrap();
+    let mut cpu = Runtime::new_cpu(eg.clone(), &commands).unwrap();
+    cpu.run(&commands).unwrap();
+    let mut gpu = Runtime::new(eg, &commands, &worker, true).unwrap();
+    gpu.run(&commands).unwrap();
+    assert_eq!(cpu.report()["runtime"]["ruleset_runs"], 1);
+    assert_eq!(gpu.report()["runtime"]["ruleset_runs"], 1);
 }

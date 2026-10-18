@@ -153,6 +153,18 @@ fn extension(old: &Program, new: &Program) -> Result<()> {
 }
 
 impl Service {
+    pub(crate) fn family_init(&mut self, config: Json) -> Result<Json> {
+        write(
+            &mut self.input,
+            &json!({"op":"family_init","config":config}),
+        )?;
+        read(&mut self.output)
+    }
+    pub(crate) fn family_step(&mut self, words: &[u32], ack: usize) -> Result<(Json, Vec<u32>)> {
+        write(&mut self.input, &json!({"op":"family_step","ack":ack}))?;
+        write_words(&mut self.input, words)?;
+        Ok((read(&mut self.output)?, read_words(&mut self.output)?))
+    }
     pub(crate) fn table_init(&mut self, config: Json) -> Result<Json> {
         write(&mut self.input, &json!({"op":"table_init","config":config}))?;
         read(&mut self.output)
@@ -199,7 +211,7 @@ impl Service {
             install_times: InstallTimes::default(),
         };
         let ready = read(&mut s.output)?;
-        if ready["ready"] != true || ready["protocol"] != 7 {
+        if ready["ready"] != true || ready["protocol"] != 8 {
             return Err("live matrix protocol mismatch".into());
         }
         Ok(s)

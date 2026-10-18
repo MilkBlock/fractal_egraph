@@ -1,0 +1,783 @@
+{
+  "benchmark_finished": true,
+  "complete": false,
+  "continuation_error": null,
+  "continuation_seconds_excluded": 4.6875e-05,
+  "extraction": "not inside this packet; exact final fact/equality comparison is the correctness gate",
+  "gpu": {
+    "audit": false,
+    "backend": "shared-gpu",
+    "device": {
+      "bindings": 0,
+      "compacted": false,
+      "compactions": 2,
+      "device": "Apple M3 Max",
+      "device_bytes": 108259712,
+      "epoch": 854,
+      "event_capacity": 524288,
+      "events": 367693,
+      "gpu_seconds": 7.708091288805008e-06,
+      "old_events": 367693,
+      "queries": 6,
+      "retained_matches": 0,
+      "retries": 0,
+      "row_capacity": 262144,
+      "row_slots": 242748
+    },
+    "live_rows": 242748,
+    "row_slots": 242748,
+    "rules": [
+      {
+        "rule": "(rule ((= lhs (Const c ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConst c) 1)))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 1,
+          "emitted_bindings": 155,
+          "quiet_runs": 128
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Arg ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermArg ) 1)))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 1,
+          "emitted_bindings": 1,
+          "quiet_runs": 128
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Bop o e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermBop o t1 t2) (+ 1 (+ c1 c2)))))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 129,
+          "emitted_bindings": 14069,
+          "quiet_runs": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Top o e1 e2 e3))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2))\n       (= (TCPair t3 c3) (ExtractedExpr e3)))\n      ((PotentialExtractedExpr lhs (TCPair (TermTop o t1 t2 t3) (+ (+ 1 c1) (+ c2 c3)))))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 129,
+          "emitted_bindings": 3633,
+          "quiet_runs": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Uop o e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermUop o t1) (+ 1 c1))))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 129,
+          "emitted_bindings": 3,
+          "quiet_runs": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Get tup i))\n       (= (TCPair t1 c1) (ExtractedExpr tup)))\n      ((PotentialExtractedExpr lhs (TCPair (TermGet t1 i) c1)))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 129,
+          "emitted_bindings": 29256,
+          "quiet_runs": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Single e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermSingle t1) c1)))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 129,
+          "emitted_bindings": 10908,
+          "quiet_runs": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Concat e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 129,
+          "emitted_bindings": 1753,
+          "quiet_runs": 0
+        }
+      },
+      {
+        "rule": "(rule ((PotentialExtractedExpr expr termandcost))\n      ((set (ExtractedExpr expr) (TCPair (NoTerm ) 10000000000000000)))\n        :ruleset terms-helpers )",
+        "ruleset": "terms-helpers",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 128,
+          "emitted_bindings": 58145,
+          "quiet_runs": 140
+        }
+      },
+      {
+        "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (= (ExtractedExpr expr) (TCPair oldterm oldcost))\n       (< cost oldcost))\n      ((set (ExtractedExpr expr) (TCPair term cost)))\n        :ruleset terms-helpers )",
+        "ruleset": "terms-helpers",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 267,
+          "emitted_bindings": 34062,
+          "quiet_runs": 1
+        }
+      },
+      {
+        "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (< cost 0))\n      ((panic 'Negative cost'))\n        :ruleset terms-helpers )",
+        "ruleset": "terms-helpers",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 128,
+          "emitted_bindings": 0,
+          "quiet_runs": 140
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (< cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+        "ruleset": "terms-helpers-helpers",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 458,
+          "emitted_bindings": 67932,
+          "quiet_runs": 130
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (> cost1 cost2))\n      ((union lhs (TCPair t2 cost2)))\n        :ruleset terms-helpers-helpers )",
+        "ruleset": "terms-helpers-helpers",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 458,
+          "emitted_bindings": 67512,
+          "quiet_runs": 130
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (= cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+        "ruleset": "terms-helpers-helpers",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 458,
+          "emitted_bindings": 70,
+          "quiet_runs": 130
+        }
+      }
+    ],
+    "runtime": {
+      "audit_seconds": 0.0,
+      "bootstrap_events": 63088,
+      "decode_seconds": 0.028780828000000033,
+      "device_seconds": 0.6332576996646821,
+      "dispatches": 854,
+      "downloaded_bytes": 17249940,
+      "event_seconds": 0.14324044799999952,
+      "first_upload_bytes": 5047152,
+      "native_action_search_apply_seconds": 0.057283375000000004,
+      "native_insert_merge_seconds": 0.0714420149999999,
+      "native_query_seconds": 0.0,
+      "native_rebuild_seconds": 1.1536311320000003,
+      "native_rhs_seconds": 1.3786016899999987,
+      "output_high_water": 2300,
+      "peak_live_rows": 242748,
+      "prepare_seconds": 0.010733379999999999,
+      "reused_slots": 48376,
+      "roundtrip_seconds": 1.1447542220000002,
+      "row_events": 478047,
+      "ruleset_runs": 985,
+      "run_seconds": 2.723649375,
+      "setup_seconds": 0.077886417,
+      "shader_compiles": 1,
+      "unchanged_notifications": 0,
+      "union_events": 243740,
+      "uploaded_bytes": 35643420,
+      "workers": 1
+    },
+    "scope": "One shared row/index store, batched rulesets, native timestamps, no retained match history; sorted native RHS commit. Explicit rows, not baked Cell shortcuts.",
+    "shared_tables": 12
+  },
+  "gpu_clone_seconds_excluded": 0.010065209,
+  "gpu_graph": {
+    "sorts": {
+      "Expr": {
+        "eclasses": 23155,
+        "enodes": 69455
+      },
+      "Term": {
+        "eclasses": 62749,
+        "enodes": 62749
+      },
+      "TermAndCost": {
+        "eclasses": 62749,
+        "enodes": 135983
+      }
+    },
+    "table_rows": 657017
+  },
+  "label": "command1158/3/repeat0/4: (saturate (seq (run terms) (saturate (seq (run terms-helpers) (saturate (seq (run terms-helpers-helpers)))))))",
+  "native": {
+    "insert_merge_seconds": 0.047506807,
+    "iterations": 1017,
+    "logical_matches": 285337,
+    "rebuild_seconds": 1.047155294,
+    "run_seconds": 7.964194667,
+    "search_apply_seconds": 6.825080078
+  },
+  "native_clone_seconds_excluded": 0.019960708,
+  "native_continuation_unchanged": true,
+  "native_graph": {
+    "sorts": {
+      "Expr": {
+        "eclasses": 23155,
+        "enodes": 69455
+      },
+      "Term": {
+        "eclasses": 62749,
+        "enodes": 62749
+      },
+      "TermAndCost": {
+        "eclasses": 62749,
+        "enodes": 134798
+      }
+    },
+    "table_rows": 655832
+  },
+  "projection_error": "missing final fact TermSingle [Eq(\"Term\", Value(491516))]",
+  "projection_without_smaller": null,
+  "quality": {
+    "different_keys": 0,
+    "gpu_expr_keys": 6985,
+    "gpu_unresolved": 0,
+    "native_expr_keys": 6985,
+    "native_unresolved": 0,
+    "same_extracted_costs": true,
+    "scope": "Every ExtractedExpr key uses its unchanged checkpoint Expr identity; compare the complete TCPair cost set. Equal cost is not identical selected Term syntax."
+  },
+  "quality_error": null,
+  "same_commit_verification": {
+    "eclass_mapping": 485651,
+    "exact_rows_values_equivalence_visibility": true,
+    "rows": 657016,
+    "tables": {
+      "Abs": 1,
+      "Accum-Bop": 3,
+      "Add": 1,
+      "Add-All-Gets": 6966,
+      "Add-Gets": 18341,
+      "AddContext": 11925,
+      "Alloc": 137,
+      "And": 1,
+      "Arg": 76,
+      "Base": 9,
+      "BinaryOpIsPure": 28,
+      "Bitand": 1,
+      "BodyContainsExpr": 50095,
+      "Bool": 2,
+      "BoolB": 2,
+      "BoolT": 1,
+      "Bop": 3209,
+      "Call": 121,
+      "Concat": 8058,
+      "Const": 1156,
+      "ContextOf": 18636,
+      "DelayedSubstUnion": 4428,
+      "Div": 1,
+      "DoWhile": 82,
+      "Eq": 1,
+      "ExpectType": 2239,
+      "Expr-size": 18628,
+      "ExprIsPure": 4960,
+      "ExprIsResolved": 18727,
+      "ExtractedExpr": 6985,
+      "ExtractedExprCache": 7712,
+      "FAdd": 1,
+      "FDiv": 1,
+      "FEq": 1,
+      "FGreaterEq": 1,
+      "FGreaterThan": 1,
+      "FLessEq": 1,
+      "FLessThan": 1,
+      "FMul": 1,
+      "FSub": 1,
+      "Float": 16,
+      "FloatT": 1,
+      "Fmax": 1,
+      "Fmin": 1,
+      "Free": 1,
+      "Function": 29,
+      "FunctionHasType": 29,
+      "Get": 13189,
+      "GreaterEq": 1,
+      "GreaterThan": 1,
+      "HasArgType": 18698,
+      "HasType": 18698,
+      "If": 168,
+      "InFunc": 2,
+      "Int": 9,
+      "IntB": 9,
+      "IntT": 1,
+      "LessEq": 1,
+      "LessThan": 1,
+      "Load": 1,
+      "LoopIsFinite": 2,
+      "LoopNumItersGuess": 81,
+      "Mul": 1,
+      "Neg": 1,
+      "NoAlias": 1414,
+      "NoTerm": 1,
+      "Not": 1,
+      "Not-Just-Concat": 4323,
+      "Or": 1,
+      "PointerT": 5,
+      "PointerishType": 878,
+      "PointerishTypeList": 873,
+      "PotentialExtractedExpr": 68804,
+      "Print": 1,
+      "PtrAdd": 1,
+      "PureBaseType": 2,
+      "PureType": 6,
+      "PureTypeList": 5,
+      "Select": 1,
+      "Shl": 1,
+      "Shr": 1,
+      "Single": 4347,
+      "Smaller": 73234,
+      "Smax": 1,
+      "Smin": 1,
+      "StateT": 1,
+      "Sub": 1,
+      "SubTuple": 20954,
+      "Subst": 4849,
+      "TCPair": 62749,
+      "TCons": 902,
+      "TLConcat": 2702,
+      "TNil": 1,
+      "TermArg": 1,
+      "TermBop": 13621,
+      "TermConcat": 3574,
+      "TermConst": 27,
+      "TermGet": 31062,
+      "TermSingle": 10742,
+      "TermSubst": 635,
+      "TermTop": 3718,
+      "TermUop": 3,
+      "TernaryOpIsPure": 1,
+      "Top": 938,
+      "TupleT": 902,
+      "TypeList-ith": 5149,
+      "TypeList-length": 903,
+      "UnaryOpIsPure": 3,
+      "Uop": 3,
+      "Write": 1,
+      "___GeneratedFreshTable5": 1,
+      "bop->string": 24,
+      "bop-of-type": 13,
+      "bpred-of-type": 12,
+      "hi-bound": 504,
+      "is-inv-Expr": 1387,
+      "leading-Expr": 540,
+      "lo-bound": 504,
+      "lsr-inv": 91680,
+      "to-hoist": 80,
+      "to-hoist-size": 80,
+      "tuple-length": 11365
+    }
+  },
+  "same_commit_verification_error": null,
+  "schedule": [
+    "(run-schedule (saturate (seq (run terms) (saturate (seq (run terms-helpers) (saturate (seq (run terms-helpers-helpers))))))))"
+  ],
+  "scope": "Full original schedule; GPU persistent table joins drive original native RHS/merge/rebuild. Explicit tables, not certified Cell shortcuts. Same native fork, not pristine. Preparation included separately; no repeated cold queries.",
+  "sorted_commit_cpu": {
+    "audit": false,
+    "backend": "native-sorted-commit",
+    "device": null,
+    "live_rows": 0,
+    "row_slots": 0,
+    "rules": [
+      {
+        "rule": "(rule ((= lhs (Const c ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConst c) 1)))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 0,
+          "emitted_bindings": 155,
+          "quiet_runs": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Arg ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermArg ) 1)))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 0,
+          "emitted_bindings": 1,
+          "quiet_runs": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Bop o e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermBop o t1 t2) (+ 1 (+ c1 c2)))))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 0,
+          "emitted_bindings": 14069,
+          "quiet_runs": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Top o e1 e2 e3))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2))\n       (= (TCPair t3 c3) (ExtractedExpr e3)))\n      ((PotentialExtractedExpr lhs (TCPair (TermTop o t1 t2 t3) (+ (+ 1 c1) (+ c2 c3)))))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 0,
+          "emitted_bindings": 3633,
+          "quiet_runs": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Uop o e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermUop o t1) (+ 1 c1))))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 0,
+          "emitted_bindings": 3,
+          "quiet_runs": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Get tup i))\n       (= (TCPair t1 c1) (ExtractedExpr tup)))\n      ((PotentialExtractedExpr lhs (TCPair (TermGet t1 i) c1)))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 0,
+          "emitted_bindings": 29256,
+          "quiet_runs": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Single e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermSingle t1) c1)))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 0,
+          "emitted_bindings": 10908,
+          "quiet_runs": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Concat e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 0,
+          "emitted_bindings": 1753,
+          "quiet_runs": 0
+        }
+      },
+      {
+        "rule": "(rule ((PotentialExtractedExpr expr termandcost))\n      ((set (ExtractedExpr expr) (TCPair (NoTerm ) 10000000000000000)))\n        :ruleset terms-helpers )",
+        "ruleset": "terms-helpers",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 0,
+          "emitted_bindings": 58145,
+          "quiet_runs": 0
+        }
+      },
+      {
+        "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (= (ExtractedExpr expr) (TCPair oldterm oldcost))\n       (< cost oldcost))\n      ((set (ExtractedExpr expr) (TCPair term cost)))\n        :ruleset terms-helpers )",
+        "ruleset": "terms-helpers",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 0,
+          "emitted_bindings": 34062,
+          "quiet_runs": 0
+        }
+      },
+      {
+        "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (< cost 0))\n      ((panic 'Negative cost'))\n        :ruleset terms-helpers )",
+        "ruleset": "terms-helpers",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 0,
+          "emitted_bindings": 0,
+          "quiet_runs": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (< cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+        "ruleset": "terms-helpers-helpers",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 0,
+          "emitted_bindings": 67932,
+          "quiet_runs": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (> cost1 cost2))\n      ((union lhs (TCPair t2 cost2)))\n        :ruleset terms-helpers-helpers )",
+        "ruleset": "terms-helpers-helpers",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 0,
+          "emitted_bindings": 67512,
+          "quiet_runs": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (= cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+        "ruleset": "terms-helpers-helpers",
+        "stats": {
+          "audit_queries": 0,
+          "dispatches": 0,
+          "emitted_bindings": 70,
+          "quiet_runs": 0
+        }
+      }
+    ],
+    "runtime": {
+      "audit_seconds": 0.0,
+      "bootstrap_events": 0,
+      "decode_seconds": 0.0,
+      "device_seconds": 0.0,
+      "dispatches": 0,
+      "downloaded_bytes": 0,
+      "event_seconds": 2.9285999999999984e-05,
+      "first_upload_bytes": 0,
+      "native_action_search_apply_seconds": 0.05937268399999999,
+      "native_insert_merge_seconds": 0.04522715900000006,
+      "native_query_seconds": 7.1665066730000015,
+      "native_rebuild_seconds": 1.1424940519999995,
+      "native_rhs_seconds": 1.3413643030000004,
+      "output_high_water": 0,
+      "peak_live_rows": 0,
+      "prepare_seconds": 0.0,
+      "reused_slots": 0,
+      "roundtrip_seconds": 0.0,
+      "row_events": 0,
+      "ruleset_runs": 985,
+      "run_seconds": 8.517649167,
+      "setup_seconds": 0.0018925,
+      "shader_compiles": 0,
+      "unchanged_notifications": 0,
+      "union_events": 0,
+      "uploaded_bytes": 0,
+      "workers": 0
+    },
+    "scope": "One shared row/index store, batched rulesets, native timestamps, no retained match history; sorted native RHS commit. Explicit rows, not baked Cell shortcuts.",
+    "shared_tables": 0
+  },
+  "verification": null,
+  "verification_error": "different final table counts: [(\"Smaller\", Some(72049), Some(73234))]",
+  "worker_sha256": "a624c057ac03270042cd2753ea4236bd9fd2b0cba8aab72d7914e6cd37d262e5",
+  "source_hashes": {
+    "cell-assisted-egglog/src/analyze_program.rs": "66124f2723619f359a80b7cb98e298a918f9411c21f59946c66b2225885b3a6d",
+    "cell-assisted-egglog/src/compile.rs": "1a5620744bc7d4452fa710f9f97dcd4285d001279f78d3d6b465deae52d8df9a",
+    "cell-assisted-egglog/src/family_program.rs": "8886ff1a8a2da94681d4ac198c71d8974de7427051a42fdeb8cecd4f6e65eaf2",
+    "cell-assisted-egglog/src/layout.rs": "4afaa249b461997445666dd8b775c5f7517b021ce2caed813db54f15feba3104",
+    "cell-assisted-egglog/src/lib.rs": "8835726d934b0abe3bf85760ee5266412e4cf297b98458ee3d1ff6f5e320d688",
+    "cell-assisted-egglog/src/live.rs": "987e4406114999d9abdb2b04c7d53ec4a51fb6efe5a9c7ec55d5c0aeae950fc2",
+    "cell-assisted-egglog/src/live_bake.rs": "cf4705d8b5baa86e456c748578be92ca2114836bb69e846f4f628e71a77a2ee9",
+    "cell-assisted-egglog/src/main.rs": "45f9e76e094f6dc494cab2a22d5a05361e9b1cb877663aeb4f0a4837a6b66096",
+    "cell-assisted-egglog/src/marker_layout.rs": "4a02f1a7785b685f0ca34a85fe81c1e0c43fa02d4573372af128bc53521de2d1",
+    "cell-assisted-egglog/src/matrix.rs": "78cf5f350447ba4be83a11a49e60f046a0cb837f309eef85c2daff3ab4c9ccbc",
+    "cell-assisted-egglog/src/matrix_service.rs": "f46077d1e32290e961d44e575f6b191900bc8f943d06a10cddd9f91111bfe5d9",
+    "cell-assisted-egglog/src/numeric.rs": "5001a6b4741b3cdb0922fbd1b937d2ccd7432644e3321fae748bb581e6575b05",
+    "cell-assisted-egglog/src/numeric_lower.rs": "efb014e709d73174d1fc2c46691f4d1eff90c73bedea91482543e9af0537fe1e",
+    "cell-assisted-egglog/src/numeric_native.rs": "9b674ef6b44b56223bf39870c76609b6c53d2779b00ea54b08dff03f1ee9fe30",
+    "cell-assisted-egglog/src/program.rs": "ecf5eccf154360be5b32a9778074cc359686c2c962a29a586425779ce64afbdb",
+    "cell-assisted-egglog/src/public_snapshot.rs": "54666f0d64f9a92710fb4a00fcef3f8a91a9b13cb3f2217baa60dec50433faf7",
+    "cell-assisted-egglog/src/resident.rs": "c32c8705d4a0c3e31230646f46aeb4e1dfe9ae45593b3e539ae983dda6fac945",
+    "cell-assisted-egglog/src/table_live.rs": "ed6f4655502f4b0be99ca58753ff8047cf1dfa2c2749b680c10721498dba2aca",
+    "cell-assisted-egglog/src/table_native.rs": "bbeef31a75d55552986d68ab0ba0e23a4a843ea5da6b606dcc8497a8ce25430c",
+    "cell-assisted-egglog/src/table_program.rs": "dfa3489f3a1a19b5d98dd55484b6964bb50412067e320bdd74d7bc4036f4c302",
+    "cell-assisted-egglog/src/table_query.rs": "b6a53a584d7f914c8c94a80891fd2b9fed43a727baaa6afeaaf5d67d55f84267",
+    "cell-assisted-egglog/matrix.swift": "835c9b1844161c7a61529771adaec3043582d31800fc4b8e78250d0407d4a79b",
+    "cell-assisted-egglog/tables.metal": "54f5fde55ac443b83699966728c01719d9be1e76607578fc11030a13ef434f00",
+    "cell-assisted-egglog/family.metal": "0dba569678d5c6e7301e82651eaa49a108ca955e6309fe5fd4dd5dcb2db0db75",
+    "cell-assisted-egglog/integer.metal": "3da85defd1a37c4c660bdf545a8c9e2b0ed33685ba3c51b7ae3aca88eebe385e",
+    "egglog/src/cell_assist.rs": "4d68990642c602011f3a23b9bda086d9d5d90bd1ea99c2a667aafae990e13480",
+    "egglog/src/cell_events.rs": "244b65a1d1f06213f43c53a8e001d98213e8b97af456bfac969d3361106e1b00",
+    "egglog/egglog-bridge/src/lib.rs": "028763d7529bdd7729479fe2ed96e9dd2560f10d5a430be152b254beda4bc05d",
+    "egglog/egglog-bridge/src/rule.rs": "863025a5c66975ed58eb6e0a385c6c2d81b05c5d0edfaa1c45abcd39190a3d12",
+    "examples/support/live_table_bench.rs": "2f758f7611f9545ba7e9d056cac58122fd790cc93fe6d5c056527f7104107e37"
+  },
+  "strict_same_result_speedup_eligible": false,
+  "same_commit_speedup_eligible": true,
+  "provenance": {
+    "snapshot": "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+    "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+    "binary_sha256": "7e11229b8177d5390ab5589615208a9a7e3e45c40e304b577ad27c9921a94cd2",
+    "source_head": "7d6d9fc81ce4e6b2cbd0831749a176bd77df9d01",
+    "source_diff": " cell-assisted-egglog/README.md                  |   2 +-\n cell-assisted-egglog/bench/build.py             |   2 +-\n cell-assisted-egglog/bench_snapshot.py          |   4 +-\n cell-assisted-egglog/live-table-bench/README.md |   4 +-\n cell-assisted-egglog/matrix-live/README.md      |   2 +-\n cell-assisted-egglog/matrix-numeric/README.md   |   2 +-\n cell-assisted-egglog/matrix-program/README.md   |   2 +-\n cell-assisted-egglog/matrix.swift               |  95 ++-\n cell-assisted-egglog/resident.swift             |   5 +-\n cell-assisted-egglog/src/lib.rs                 |   1 +\n cell-assisted-egglog/src/matrix_service.rs      |  14 +-\n cell-assisted-egglog/src/table_live.rs          | 853 ++++++++++++------------\n cell-assisted-egglog/table-runtime/README.md    |   2 +-\n cell-assisted-egglog/tests/table_live.rs        | 126 +++-\n egglog/egglog-bridge/src/lib.rs                 |   2 +\n egglog/src/cell_assist.rs                       | 175 ++++-\n egglog/src/cell_events.rs                       |   5 +\n examples/support/live_table_bench.rs            |   5 +\n 18 files changed, 810 insertions(+), 491 deletions(-)\n",
+    "breakpoint": "/3/repeat0/4",
+    "scope": "Replay captured production pass initialization and original schedule prefix. Not a new production frontend/extraction run.",
+    "harness_sha256": {
+      "examples/rule_repl.rs": "93614e7ec00c5f5a8fa62c17050794e2e914d37fc7e5f37deac6a500a06be512",
+      "examples/support/ruleset_bench.rs": "f97c3dc41d7b3e936087b2fbb2667c3c54e1c162c48937156d18e1eb2c647e3b",
+      "cell-assisted-egglog/bench_snapshot.py": "dd1dedd352773bea9d0a7cf978499312eed934dfb1c22906c3bf86ff268b8206"
+    },
+    "capture_metadata": {
+      "source": "/Users/mineralsteins/Repos/egg_related/check_statewalk/benchmarks/passing/raytrace/raytrace.rs",
+      "source_sha256": "a0cc2caf63bded3e280ea23c9395358a60f4b9fa63a19949dd28159cc6638f22",
+      "profile_binary_sha256": "eb37c80b39288ca23143bb33dc9fe1571b2e65e5ed45350f213da602144cc9d4",
+      "measurement": "One production three-pass optimization, all pass timings saved. Subsequent Graphviz dot rendering was terminated; process exited 101 during SVG rendering. Not a successful end-to-end CLI timing.",
+      "run_mode": "dag-optimize",
+      "future_runner_mode": "optimized-pretty-print (same optimize entry, no Graphviz)",
+      "production_checkout_head": "ae80f82a403c1209fb084b115ee89470c7e66d0e"
+    },
+    "current_workload_sha256": "a0cc2caf63bded3e280ea23c9395358a60f4b9fa63a19949dd28159cc6638f22"
+  },
+  "checked_replay": {
+    "raw": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/shared-family-checked-final/report.json",
+    "sha256": "5e9c7070547dfcb90a3cf02b13f300619a9a6532fa8d3f208d70342ae9a57df6",
+    "audit_queries": 3600,
+    "same_commit_verification": {
+      "eclass_mapping": 485651,
+      "exact_rows_values_equivalence_visibility": true,
+      "rows": 657016,
+      "tables": {
+        "Abs": 1,
+        "Accum-Bop": 3,
+        "Add": 1,
+        "Add-All-Gets": 6966,
+        "Add-Gets": 18341,
+        "AddContext": 11925,
+        "Alloc": 137,
+        "And": 1,
+        "Arg": 76,
+        "Base": 9,
+        "BinaryOpIsPure": 28,
+        "Bitand": 1,
+        "BodyContainsExpr": 50095,
+        "Bool": 2,
+        "BoolB": 2,
+        "BoolT": 1,
+        "Bop": 3209,
+        "Call": 121,
+        "Concat": 8058,
+        "Const": 1156,
+        "ContextOf": 18636,
+        "DelayedSubstUnion": 4428,
+        "Div": 1,
+        "DoWhile": 82,
+        "Eq": 1,
+        "ExpectType": 2239,
+        "Expr-size": 18628,
+        "ExprIsPure": 4960,
+        "ExprIsResolved": 18727,
+        "ExtractedExpr": 6985,
+        "ExtractedExprCache": 7712,
+        "FAdd": 1,
+        "FDiv": 1,
+        "FEq": 1,
+        "FGreaterEq": 1,
+        "FGreaterThan": 1,
+        "FLessEq": 1,
+        "FLessThan": 1,
+        "FMul": 1,
+        "FSub": 1,
+        "Float": 16,
+        "FloatT": 1,
+        "Fmax": 1,
+        "Fmin": 1,
+        "Free": 1,
+        "Function": 29,
+        "FunctionHasType": 29,
+        "Get": 13189,
+        "GreaterEq": 1,
+        "GreaterThan": 1,
+        "HasArgType": 18698,
+        "HasType": 18698,
+        "If": 168,
+        "InFunc": 2,
+        "Int": 9,
+        "IntB": 9,
+        "IntT": 1,
+        "LessEq": 1,
+        "LessThan": 1,
+        "Load": 1,
+        "LoopIsFinite": 2,
+        "LoopNumItersGuess": 81,
+        "Mul": 1,
+        "Neg": 1,
+        "NoAlias": 1414,
+        "NoTerm": 1,
+        "Not": 1,
+        "Not-Just-Concat": 4323,
+        "Or": 1,
+        "PointerT": 5,
+        "PointerishType": 878,
+        "PointerishTypeList": 873,
+        "PotentialExtractedExpr": 68804,
+        "Print": 1,
+        "PtrAdd": 1,
+        "PureBaseType": 2,
+        "PureType": 6,
+        "PureTypeList": 5,
+        "Select": 1,
+        "Shl": 1,
+        "Shr": 1,
+        "Single": 4347,
+        "Smaller": 73234,
+        "Smax": 1,
+        "Smin": 1,
+        "StateT": 1,
+        "Sub": 1,
+        "SubTuple": 20954,
+        "Subst": 4849,
+        "TCPair": 62749,
+        "TCons": 902,
+        "TLConcat": 2702,
+        "TNil": 1,
+        "TermArg": 1,
+        "TermBop": 13621,
+        "TermConcat": 3574,
+        "TermConst": 27,
+        "TermGet": 31062,
+        "TermSingle": 10742,
+        "TermSubst": 635,
+        "TermTop": 3718,
+        "TermUop": 3,
+        "TernaryOpIsPure": 1,
+        "Top": 938,
+        "TupleT": 902,
+        "TypeList-ith": 5149,
+        "TypeList-length": 903,
+        "UnaryOpIsPure": 3,
+        "Uop": 3,
+        "Write": 1,
+        "___GeneratedFreshTable5": 1,
+        "bop->string": 24,
+        "bop-of-type": 13,
+        "bpred-of-type": 12,
+        "hi-bound": 504,
+        "is-inv-Expr": 1387,
+        "leading-Expr": 540,
+        "lo-bound": 504,
+        "lsr-inv": 91680,
+        "to-hoist": 80,
+        "to-hoist-size": 80,
+        "tuple-length": 11365
+      }
+    },
+    "original_graph_equal": false
+  },
+  "raw_report": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/shared-family-bench-final/report.json",
+  "raw_sha256": "9d4164b11802c7d04d98adb0635a18f818b04f08e19a67247e06810f0ccbf1c5",
+  "speedup_same_commit_run": 3.1272928318829587,
+  "speedup_same_commit_setup_run": 3.041025458724534,
+  "historical_per_rule": {
+    "commit": "7d6d9fc",
+    "gpu_run_seconds": 11.276160792,
+    "device_buffer_peak_sum": 465991324,
+    "rpc_batches": 2673,
+    "uploads": 105545072,
+    "note": "Previous implementation and separate run; not a single-change ablation."
+  }
+}

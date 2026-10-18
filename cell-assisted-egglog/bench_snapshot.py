@@ -71,9 +71,11 @@ def main():
         assert r['complete'] and all(x['exact_native_binding_set'] for x in r['rules']), 'query validation failed'
     if a.live_worker:
         r['worker_sha256']=sha(a.live_worker)
-        r['source_hashes']={str(p.relative_to(ROOT)):sha(p) for p in [*sorted((ROOT/'cell-assisted-egglog/src').glob('*.rs')),ROOT/'cell-assisted-egglog/matrix.swift',ROOT/'cell-assisted-egglog/tables.metal',ROOT/'cell-assisted-egglog/integer.metal',ROOT/'egglog/src/cell_assist.rs',ROOT/'egglog/egglog-bridge/src/rule.rs',ROOT/'examples/support/live_table_bench.rs']}
+        r['source_hashes']={str(p.relative_to(ROOT)):sha(p) for p in [*sorted((ROOT/'cell-assisted-egglog/src').glob('*.rs')),ROOT/'cell-assisted-egglog/matrix.swift',ROOT/'cell-assisted-egglog/tables.metal',ROOT/'cell-assisted-egglog/family.metal',ROOT/'cell-assisted-egglog/integer.metal',ROOT/'egglog/src/cell_assist.rs',ROOT/'egglog/src/cell_events.rs',ROOT/'egglog/egglog-bridge/src/lib.rs',ROOT/'egglog/egglog-bridge/src/rule.rs',ROOT/'examples/support/live_table_bench.rs']}
         assert r['benchmark_finished'], 'live execution did not finish'
         r['strict_same_result_speedup_eligible']=bool(r['complete'])
+        r['same_commit_speedup_eligible']=r.get('same_commit_verification') is not None
+        assert r['same_commit_speedup_eligible'], r.get('same_commit_verification_error')
     r['provenance']=provenance
     (out/'report.json').write_text(json.dumps(r,indent=2)+'\n')
     keys=['label','complete','rule_count','matched_bindings'] if (a.assisted_worker or a.table_worker) else ['label','wall_seconds','native','checks']

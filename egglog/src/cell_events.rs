@@ -1,5 +1,6 @@
 //! Compact native events for a resident Cell executor. No diagnostic trace,
 //! table-row origin history or CPU Cell registry is constructed on this path.
+use egglog_numeric_id::NumericId;
 use super::*;
 use egglog_bridge::{FunctionId, RuleId};
 use std::sync::Mutex;
@@ -19,6 +20,8 @@ pub struct CellRowDelta {
     pub key: Vec<Value>,
     pub row: Option<Vec<Value>>,
     pub visible: bool,
+    /// Native table version, not the fact that a journal key was touched.
+    pub timestamp: Option<u32>,
 }
 #[derive(Default, Debug)]
 pub struct CellCommitBatch {
@@ -101,6 +104,7 @@ impl EGraph {
                     key: r.vals[..table.keys].to_vec(),
                     row: Some(r.vals.to_vec()),
                     visible: !r.subsumed,
+                    timestamp: Some(r.timestamp.rep()),
                 })
             });
             tables.push(table);
@@ -135,6 +139,7 @@ impl EGraph {
                 batch.rows.push(CellRowDelta {
                     table: i,
                     key,
+                    timestamp: row.as_ref().map(|r| r[cols].rep()),
                     row: row.map(|r| r[..cols].to_vec()),
                     visible,
                 });

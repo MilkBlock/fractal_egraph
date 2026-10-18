@@ -42,8 +42,8 @@ This is an indexed GPU backend, not a GEMM acceleration claim. See
 
 ## Continuous original-schedule table runtime
 
-The [live table benchmark](live-table-bench/README.md) runs the real raytrace
-packet with persistent GPU sessions, native committed deltas and original native
+The [shared table benchmark](shared-table-bench/README.md) runs the real raytrace
+packet with one shared GPU worker, native committed deltas and original native
 RHS/merge/rebuild. It preserves semi-naive watermarks on attachment and handback.
 Its final-graph and extraction-cost checks are reported separately; the earlier
 one-state query timings are not an incremental-runtime result.

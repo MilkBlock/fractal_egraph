@@ -490,6 +490,90 @@ final class TableExecutor {
     let cb=queue.makeCommandBuffer()!;encode("table_acknowledge",matchCount,cb);try submit(cb);ackEpoch=e
   }
 }
+// One device/queue/store for a whole family. Output is scoped to one frozen
+// ruleset boundary; native row timestamps replace historical match receipts.
+final class FamilyExecutor {
+ let d:MTLDevice,q:MTLCommandQueue,code:MTLBuffer,c:Int,p:Int,s:Int,ni:Int,nq:Int,rs:Int
+ var rows:MTLBuffer!,events:MTLBuffer!,links:MTLBuffer!,heads:MTLBuffer!,output:MTLBuffer!,counts:MTLBuffer!,packet:MTLBuffer!
+ var kernels=[String:MTLComputePipelineState](),args=[UInt32](repeating:0,count:9)
+ var rowSlots=0,rowCap=0,eventCount=0,eventCap=0,buckets=1,outCap=1,epoch=0
+ var cursors:[Int],pending:[Int]=[],pendingEnd=0,compactions=0,gpu=0.0,compileSeconds=0.0
+ init(_ x:[String:Any])throws{
+  try require(x["version"] as? Int==1,"family protocol")
+  c=x["columns"] as! Int;p=x["parts"] as! Int;s=x["slots"] as! Int;ni=x["indexes"] as! Int;nq=x["queries"] as! Int;rs=4+3*c
+  guard let device=MTLCreateSystemDefaultDevice(),let queue=device.makeCommandQueue()else{throw NSError(domain:"Metal unavailable",code:1)}
+  d=device;q=queue;cursors=Array(repeating:0,count:nq)
+  let words=x["code"] as! [UInt32];code=words.withUnsafeBytes{device.makeBuffer(bytes:$0.baseAddress!,length:$0.count,options:.storageModeShared)!}
+  rows=try alloc(1);events=try alloc(2);links=try alloc(1);heads=try alloc(1);output=try alloc(1+s);counts=try alloc(2);packet=try alloc(1)
+  let t=ProcessInfo.processInfo.systemUptime,options=MTLCompileOptions()
+  if #available(macOS 15.0, *) {options.mathMode = .safe}else{options.fastMathEnabled=false}
+  let lib=try d.makeLibrary(source:x["shader"] as! String,options:options)
+  for name in ["family_patch","family_rebase","family_clear","family_index","family_join"]{kernels[name]=try d.makeComputePipelineState(function:lib.makeFunction(name:name)!)}
+  compileSeconds=ProcessInfo.processInfo.systemUptime-t
+ }
+ func alloc(_ n:Int)throws->MTLBuffer{try require(n>=0 && n<Int(UInt32.max),"family address space exhausted");guard let b=d.makeBuffer(length:max(1,n)*4,options:.storageModeShared)else{throw NSError(domain:"family allocation",code:1)};return b}
+ func pow2(_ n:Int)throws->Int{try require(n>0 && n<Int(UInt32.max)/2,"family capacity exhausted");var k=1;while k<n{k*=2};return k}
+ func submit(_ b:MTLCommandBuffer)throws{b.commit();b.waitUntilCompleted();if let e=b.error{throw e};if b.gpuEndTime>b.gpuStartTime{gpu+=b.gpuEndTime-b.gpuStartTime}}
+ func grow(_ old:MTLBuffer,_ words:Int,_ preserve:Int)throws->MTLBuffer{
+  if old.length>=max(1,words)*4{return old};let next=try alloc(words)
+  if preserve>0{let cb=q.makeCommandBuffer()!,e=cb.makeBlitCommandEncoder()!;e.copy(from:old,sourceOffset:0,to:next,destinationOffset:0,size:preserve*4);e.endEncoding();try submit(cb)};return next
+ }
+ func encode(_ name:String,_ n:Int,_ cb:MTLCommandBuffer){
+  if n==0{return};let e=cb.makeComputeCommandEncoder()!,k=kernels[name]!
+  e.setComputePipelineState(k)
+  for (i,b) in [code,rows!,events!,links!,heads!,output!,counts!].enumerated(){e.setBuffer(b,offset:0,index:i)}
+  args.withUnsafeBytes{e.setBytes($0.baseAddress!,length:$0.count,index:7)};e.setBuffer(packet,offset:0,index:8)
+  e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(128,k.maxTotalThreadsPerThreadgroup),height:1,depth:1));e.endEncoding()
+ }
+ func advance(_ data:Data,ack:Int)throws->([String:Any],[UInt32]){
+  try require(ack==epoch,"missing native commit acknowledgment")
+  for id in pending{cursors[id]=pendingEnd};pending=[]
+  try require(data.count>=16 && data.count%4==0,"family packet size")
+  let w=data.withUnsafeBytes{Array($0.bindMemory(to:UInt32.self))};let total=Int(w[0]),changes=Int(w[1]),n=Int(w[2]),nextEpoch=Int(w[3])
+  try require(nextEpoch==epoch+1 && total>=rowSlots && w.count==4+3*n+changes*(1+rs),"family epoch/shape")
+  let ids=(0..<n).map{Int(w[4+3*$0])};try require(Set(ids).count==n && ids.allSatisfy{$0<nq},"family query IDs")
+  for i in 0..<changes{try require(w[4+3*n+i*(1+rs)]<total,"family row slot")}
+  let before=gpu,newRowCap=try pow2(max(1,total)),newEventCap=try pow2(max(2,2*newRowCap)),newBuckets=try pow2(max(1,2*total))
+  // At capacity, rebuild from live row slots, not historical versions. Doubling
+  // leaves amortized room for another live-set-sized wave of changes.
+  let compact=eventCap==0 || eventCount+changes>eventCap || newEventCap>eventCap || newBuckets != buckets
+  rows=try grow(rows,newRowCap*rs,rowSlots*rs)
+  let oldEvents=eventCount
+  if compact {
+   if eventCap>0{compactions+=1}
+   eventCap=max(eventCap,newEventCap);buckets=newBuckets
+   events=try alloc(2*eventCap);links=try alloc(eventCap*ni);heads=try alloc(buckets*ni)
+   eventCount=total;cursors=Array(repeating:0,count:nq)
+  }else{eventCount+=changes}
+  rowSlots=total;rowCap=newRowCap;epoch=nextEpoch
+  packet=data.withUnsafeBytes{d.makeBuffer(bytes:$0.baseAddress!,length:$0.count,options:.storageModeShared)!}
+  args=[UInt32(total),UInt32(oldEvents),UInt32(changes),UInt32(n),UInt32(buckets),UInt32(outCap),UInt32(eventCount),compact ? 1:0,0]
+  let words=packet.contents().assumingMemoryBound(to:UInt32.self)
+  var span=0;for (i,id) in ids.enumerated(){words[6+3*i]=UInt32(cursors[id]);span=max(span,eventCount-cursors[id])}
+  args[8]=UInt32(span);args[6]=UInt32(eventCount);args[4]=UInt32(buckets)
+  var retries=0,count=0
+  while true{
+   memset(counts.contents(),0,8);args[5]=UInt32(outCap)
+   let cb=q.makeCommandBuffer()!
+   if retries==0 {
+    encode("family_patch",changes,cb)
+    if compact{encode("family_rebase",total,cb);encode("family_clear",buckets*ni,cb)}
+    encode("family_index",compact ? eventCount : changes,cb)
+   }
+   encode("family_join",span*p*n,cb);try submit(cb)
+   let flags=counts.contents().assumingMemoryBound(to:UInt32.self)[1]
+   try require(flags&2==0,"family match count overflow");count=Int(counts.contents().assumingMemoryBound(to:UInt32.self)[0])
+   if flags==0{break};outCap=try pow2(max(1,count));output=try alloc(outCap*(1+s));retries+=1
+  }
+  let result=Array(UnsafeBufferPointer(start:output.contents().assumingMemoryBound(to:UInt32.self),count:count*(1+s)))
+  try require(result.count<=Int(UInt32.max)/4,"family response too large")
+  pending=ids;pendingEnd=eventCount
+  return (["epoch":epoch,"queries":n,"bindings":count,"row_slots":rowSlots,"row_capacity":rowCap,"events":eventCount,"event_capacity":eventCap,
+   "compactions":compactions,"compacted":compact,"old_events":oldEvents,"retries":retries,"gpu_seconds":gpu-before,
+   "device_bytes":[code,rows!,events!,links!,heads!,output!,counts!,packet!].reduce(0){$0+$1.length},"device":d.name,"retained_matches":0],result)
+ }
+}
+
 func sendBinary(_ words:[UInt32]) {
   var n=UInt32(words.count*4).littleEndian
   FileHandle.standardOutput.write(Data(bytes:&n,count:4));words.withUnsafeBytes{FileHandle.standardOutput.write(Data($0))}
@@ -515,7 +599,8 @@ do {
   if CommandLine.arguments.count==2 && CommandLine.arguments[1]=="--serve" {
     var current:Executor? = nil
     var tables:TableExecutor? = nil
-    try sendFrame(["ready":true,"protocol":7])
+    var family:FamilyExecutor? = nil
+    try sendFrame(["ready":true,"protocol":8])
     while true {
       let raw=try readFrame()
       let parseStart=ProcessInfo.processInfo.systemUptime
@@ -541,6 +626,14 @@ do {
         case "advance","resume":
           guard let e=current else {throw NSError(domain:"no matrix program",code:1)}
           try sendFrame(e.step(resume:message["op"] as? String == "resume",disable:message["disable"] as? [Int] ?? []))
+        case "family_init":
+          try require(family==nil && tables==nil && current==nil,"family already installed")
+          family=try FamilyExecutor(message["config"] as! [String:Any])
+          try sendFrame(["installed":true,"compile_seconds":family!.compileSeconds,"workers":1])
+        case "family_step":
+          guard let f=family else{throw NSError(domain:"no family",code:1)}
+          let (report,body)=try f.advance(readFrame(),ack:message["ack"] as! Int)
+          try sendFrame(report);sendBinary(body)
         case "table_init":
           try require(tables == nil && current == nil,"table plan already installed")
           tables=try TableExecutor(message["config"] as! [String:Any])

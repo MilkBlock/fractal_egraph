@@ -263,6 +263,9 @@ pub fn benchmark(
             report.union(r);
         }
     }
+    let mut ordered = Runtime::new_cpu(base.clone(), commands)?;
+    ordered.run(commands)?;
+    let sorted_stats = ordered.report();
     let t = Instant::now();
     let copy = base.clone();
     let gpu_clone = t.elapsed().as_secs_f64();
@@ -271,6 +274,7 @@ pub fn benchmark(
     egglog::set_probe_counts_enabled(old);
     let stats = runtime.report();
     let verification = equal(base, &native, runtime.engine());
+    let same_commit_verification = equal(base, ordered.engine(), runtime.engine());
     let costs = extraction_costs(&native, runtime.engine());
     let projected = equal_projected(base, &native, runtime.engine(), true);
     let mut continued = runtime.engine().clone();
@@ -285,6 +289,7 @@ pub fn benchmark(
    "search_apply_seconds":report.search_and_apply_time_per_ruleset.values().map(|t|t.as_secs_f64()).sum::<f64>(),
    "insert_merge_seconds":report.merge_time_per_ruleset.values().map(|t|t.as_secs_f64()).sum::<f64>(),
    "rebuild_seconds":report.rebuild_time_per_ruleset.values().map(|t|t.as_secs_f64()).sum::<f64>()},
+  "sorted_commit_cpu":sorted_stats,"same_commit_verification":same_commit_verification.as_ref().ok(),"same_commit_verification_error":same_commit_verification.as_ref().err().map(ToString::to_string),
   "gpu":stats,"native_clone_seconds_excluded":native_clone,"gpu_clone_seconds_excluded":gpu_clone,
   "projection_without_smaller":projected.as_ref().ok(),"projection_error":projected.as_ref().err().map(ToString::to_string),"native_graph":graph_sizes(&native)?,"gpu_graph":graph_sizes(runtime.engine())?,"verification":verification.as_ref().ok(),"quality":costs.as_ref().ok(),"quality_error":costs.as_ref().err().map(ToString::to_string),
         "native_continuation_unchanged":closure.is_ok(),"continuation_error":closure.as_ref().err().map(ToString::to_string),"continuation_seconds_excluded":closure_seconds,"verification_error":verification.as_ref().err().map(ToString::to_string),
