@@ -128,6 +128,7 @@ def main():
     ap.add_argument('--build',type=Path,required=True);ap.add_argument('--output',type=Path,required=True)
     ap.add_argument('--layout-python',type=Path,required=True);ap.add_argument('--solver',choices=['scip','gurobi'],default='scip')
     ap.add_argument('--sizes',default='16,64,256');ap.add_argument('--cases',default='local,sparse-cycle');ap.add_argument('--threads',type=int,default=4)
+    ap.add_argument('--variants',default='pristine,fork,marker-paired,marker-solver,device-tables')
     ap.add_argument('--legacy-small',action='store_true',help='also time old Cartesian/Gram on the fixed 16-instance three-table local diagnostic')
     a=ap.parse_args();sizes=[int(x) for x in a.sizes.split(',')]
     if not sizes or min(sizes)<1 or a.threads<1:ap.error('positive sizes/threads required')
@@ -164,7 +165,11 @@ def main():
         parts=[dict(atoms=[row['id']],cell=row['table']=='Single') for row in inspect['atoms']]
         base=common+['--parts',json.dumps(parts),'--native','single-get','--input',data,'--rounds','4','--gpu-worker',bins['worker'],
             '--layout-python',a.layout_python,'--layout-solver',a.solver,'--audit','false']
-        variants=[('pristine',None),('fork',None),('marker-paired',['indexed','paired']),('marker-solver',['indexed','solver'])]
+        choices={'pristine':None,'fork':None,'marker-paired':['indexed','paired'],'marker-solver':['indexed','solver'],'device-tables':['device','tables']}
+        selected=a.variants.split(',')
+        if not selected or selected[0]!='pristine' or len(set(selected))!=len(selected) or any(v not in choices for v in selected):
+            ap.error('variants must start with pristine and contain distinct supported names')
+        variants=[(v,choices[v]) for v in selected]
         if a.legacy_small and n==16 and kind=='local':variants += [('cartesian-gram',['cartesian','legacy']),('marker-gram',['indexed','legacy'])]
         entry=dict(kind=kind,instances=n,lhs_atoms=len(parts),expected_effective_bindings=2*successes,expected_native_sets=successes,
             input_sha256=sha(data),environment_sha256=sha(environment),parts=parts,runs=[])

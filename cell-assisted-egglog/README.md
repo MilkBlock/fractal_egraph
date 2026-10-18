@@ -30,6 +30,16 @@ agree before GPU writes are submitted. `--gpu-check off` is the default and does
 not run that oracle or replay clones. This is separate from `--audit` coverage
 statistics. Verification failures stop the batch before target writes.
 
+## Binary table delta path
+
+For the numeric runtime, `--marker-layout device --matrix-layout tables` installs
+one rule-shaped plan, then uploads only binary fragment-row additions and
+retirements. The GPU performs indexed delta joins, exact guard/RHS arithmetic and
+keyed proposal reduction. It avoids per-instance online solving and CPU marker
+combination routing. CPU Cell admission and native canonicalization/commit remain.
+This is an indexed GPU backend, not a GEMM acceleration claim. See
+[implementation, reproduction and verified release results](table-runtime/README.md).
+
 ## Marker and matrix layout optimization
 
 `--marker-layout indexed --matrix-layout solver` enables incremental typed port
@@ -132,7 +142,7 @@ native schedules, destructive delete/reinsert histories, or every logical match.
 | `gpu` | same CPU maintenance | Metal/MPS Cartesian compatibility |
 | `resident` | GPU, compact native events | GPU indexed delta matching |
 | `matrix-live` | CPU keyed admission, compact native events | persistent MPS; automatic native Bake and target-only resume |
-| `matrix-numeric` | analyzed Cell projections plus native state snapshots | same MPS plan + exact i64 guard/RHS and segmented min/max |
+| `matrix-numeric` | CPU analyzed Cell projections plus native state snapshots | MPS plan or resident indexed tables + exact i64 guard/RHS and keyed min/max |
 
 The legacy `gpu` path encodes each shared 32-bit ID using 32 signed bits. The dot
 product reaches `32 * shared_slots` exactly iff all IDs agree. It returns tiled

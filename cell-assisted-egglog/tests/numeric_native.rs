@@ -403,7 +403,11 @@ try:
     while True:
         q=read(sys.stdin.buffer)
         if q is None: break
-        write(p.stdin,q);r=read(p.stdout)
+        write(p.stdin,q)
+        if q['op']=='install_binary':
+            h=sys.stdin.buffer.read(4);n=struct.unpack('<I',h)[0]
+            p.stdin.write(h+sys.stdin.buffer.read(n));p.stdin.flush()
+        r=read(p.stdout)
         if q['op']=='advance' and 'numeric' in r:
             n=r['numeric']
             if '{fault}'=='rhs':

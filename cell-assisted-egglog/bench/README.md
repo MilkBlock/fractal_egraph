@@ -104,7 +104,7 @@ compact JSON/CSV/Markdown results and optional matplotlib PNG/SVG plots.
 Use a new run directory. `--cases sparse-cycle --sizes 1024,4096` selects a subset;
 it changes the workloads, never truncates candidate matches.
 
-## Findings
+## Earlier baseline findings
 
 See [RESULTS.md](RESULTS.md) and `results.json`. All 42 final variant/case pairs
 passed verification. Current GPU assistance is slower than pristine in this
@@ -121,3 +121,27 @@ The next targets suggested by the measurements are binary/incremental program
 transport, reusing compiled kernels/layouts, avoiding disconnected marker-prefix
 enumeration, and compiling repeated layout families rather than repeatedly
 solving expanded instance graphs. These optimizations are not claimed here.
+
+## Binary table follow-up
+
+The harness also supports `device-tables`, selected by
+`--marker-layout device --matrix-layout tables`. Its static compilation happens
+in setup; run includes table deltas, GPU joins, guards/reduction and native commits.
+The ordinary paired control now uses binary heap transport too. This isolates
+the additional benefit of eliminating CPU combination routing and expanded plans.
+The archived results above predate both changes and remain historical evidence.
+
+Select variants explicitly to avoid repeating the expensive old online solver:
+
+```sh
+python3 cell-assisted-egglog/bench/run.py \
+  --build out/cell-bench-build/build.json --output out/cell-table-bench \
+  --layout-python /Users/mineralsteins/Repos/egg_related/egg_layout/out/cell-spine-venv/bin/python \
+  --sizes 16,256,4096 --variants pristine,fork,marker-paired,device-tables
+```
+
+`--layout-python` is retained by the shared harness, but the table backend does
+not invoke Python or any solver. The summarizer accepts the selected variants
+and retains table upload/download bytes, index visits and resident match counts.
+See [new results](../table-runtime/RESULTS.md). The same pristine graph/value gates
+apply to every new variant; unsupported or failed cases do not become speedups.

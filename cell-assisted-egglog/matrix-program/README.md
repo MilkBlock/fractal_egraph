@@ -1,5 +1,11 @@
 # Shared Cell matrix program
 
+Live transport update: the worker handshake is protocol **6**. Rebuild
+`matrix.swift`; bulk live heaps now use binary frames. Offline lowered ABI **5**
+and replayable JSON files are unchanged. Numeric workloads also support the
+[resident fragment-table backend](../table-runtime/README.md), which sends deltas
+and does not rebuild per-instance channels or solve online.
+
 This implements the first executable slice of `MATRIX_PLAN.md`: one IR joins
 existing coordinate/marker, staged matching and target-gather work. It is a mode
 of the `cell-assisted-egglog` executable, not another rule-family detector.

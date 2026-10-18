@@ -14,7 +14,7 @@ pub enum Op {
     Concat,
     Moments,
 }
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Node {
     pub op: Op,
@@ -23,7 +23,7 @@ pub struct Node {
     #[serde(default)]
     pub slot: usize,
 }
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Cell {
     pub template: usize,
@@ -32,19 +32,19 @@ pub struct Cell {
 }
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Wire(pub usize, pub usize);
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Condition {
     pub left: Wire,
     pub right: Wire,
 }
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Requirement {
     pub condition: usize,
     pub depth: usize,
 }
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Target {
     /// False for a runtime request whose closure has not completed Bake yet.
@@ -61,7 +61,7 @@ fn yes() -> bool {
 /// A certified alias case, installed offline or by the live native Baker. The exact partition guards the whole raw
 /// target frame, before quotienting slots. The target owns a distinct template
 /// and coordinate frame; we never relabel an unproved old Cell as valid.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Specialization {
     pub cell: usize,
@@ -69,7 +69,7 @@ pub struct Specialization {
     pub projection: Vec<usize>,
     pub certificate: Value,
 }
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Channel {
     pub label: String,
@@ -77,14 +77,14 @@ pub struct Channel {
     pub alternatives: Vec<Vec<Requirement>>,
     pub target: Option<Target>,
 }
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Update {
     pub cell: usize,
     pub slot: usize,
     pub value: u32,
 }
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Program {
     pub version: u32,

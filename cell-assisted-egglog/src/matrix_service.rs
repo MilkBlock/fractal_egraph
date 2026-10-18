@@ -56,82 +56,81 @@ fn read(r: &mut impl Read) -> Result<Json> {
     }
     Ok(v)
 }
-fn prefix(a: &Json, b: &Json) -> bool {
-    a.as_array()
-        .zip(b.as_array())
-        .is_some_and(|(a, b)| b.starts_with(a))
+fn write_words(w: &mut impl Write, words: &[u32]) -> Result<()> {
+    let bytes = words.len().checked_mul(4).ok_or("binary frame overflow")?;
+    w.write_all(&u32::try_from(bytes)?.to_le_bytes())?;
+    let mut buffer = [0u8; 16384];
+    for chunk in words.chunks(buffer.len() / 4) {
+        for (i, v) in chunk.iter().enumerate() {
+            buffer[4 * i..4 * i + 4].copy_from_slice(&v.to_le_bytes());
+        }
+        w.write_all(&buffer[..chunk.len() * 4])?;
+    }
+    w.flush()?;
+    Ok(())
+}
+fn read_words(r: &mut impl Read) -> Result<Vec<u32>> {
+    let mut n = [0u8; 4];
+    r.read_exact(&mut n)?;
+    let n = u32::from_le_bytes(n) as usize;
+    if n % 4 != 0 {
+        return Err("unaligned binary response".into());
+    }
+    let mut data = vec![0; n];
+    r.read_exact(&mut data)?;
+    Ok(data
+        .chunks_exact(4)
+        .map(|b| u32::from_le_bytes(b.try_into().unwrap()))
+        .collect())
 }
 fn extension(old: &Program, new: &Program) -> Result<()> {
-    let a = serde_json::to_value(old)?;
-    let b = serde_json::to_value(new)?;
     if old.bits != new.bits || new.slots < old.slots || !new.updates.is_empty() {
-        return Err(
-            "live install cannot change coordinate semantics; retire source versions instead"
-                .into(),
-        );
+        return Err("live install cannot change coordinate semantics".into());
     }
-    for field in ["nodes", "cells", "templates", "conditions"] {
-        if !prefix(&a[field], &b[field]) {
-            return Err(format!("live install changed existing {field}").into());
-        }
+    if !new.nodes.starts_with(&old.nodes)
+        || !new.cells.starts_with(&old.cells)
+        || !new.templates.starts_with(&old.templates)
+        || !new.conditions.starts_with(&old.conditions)
+        || new.channels.len() < old.channels.len()
+        || new.stages.len() < old.stages.len()
+    {
+        return Err("live program changed immutable prefixes".into());
     }
-    if new.channels.len() < old.channels.len() || new.stages.len() < old.stages.len() {
-        return Err("live program cannot shrink".into());
-    }
-    for (i, old) in a["channels"].as_array().unwrap().iter().enumerate() {
-        let mut expected = old.clone();
-        let mut actual = b["channels"][i].clone();
-        if !old["target"].is_null() {
-            let os = old["target"]
-                .get("specializations")
-                .cloned()
-                .unwrap_or(json!([]));
-            let ns = actual["target"]
-                .get("specializations")
-                .cloned()
-                .unwrap_or(json!([]));
-            if !prefix(&os, &ns) {
-                return Err("cannot replace a specialization certificate".into());
-            }
-            expected["target"]
-                .as_object_mut()
-                .unwrap()
-                .remove("specializations");
-            actual["target"]
-                .as_object_mut()
-                .unwrap()
-                .remove("specializations");
-        }
-        if expected != actual {
+    for (a, b) in old.channels.iter().zip(&new.channels) {
+        if a.label != b.label || a.sources != b.sources || a.alternatives != b.alternatives {
             return Err("live install changed a completed match or its binding".into());
+        }
+        match (&a.target, &b.target) {
+            (None, None) => (),
+            (Some(a), Some(b))
+                if a.certified == b.certified
+                    && a.cell == b.cell
+                    && a.bindings == b.bindings
+                    && b.specializations.starts_with(&a.specializations) =>
+            {
+                ()
+            }
+            _ => return Err("cannot replace a specialization certificate".into()),
         }
     }
     match (&old.numeric, &new.numeric) {
         (Some(_), None) => return Err("cannot remove numeric semantics".into()),
         (a, Some(n)) => {
-            if a.is_some() {
-                for field in [
-                    "inputs",
-                    "state_bindings",
-                    "exprs",
-                    "guards",
-                    "groups",
-                    "writes",
-                ] {
-                    if !prefix(
-                        &serde_json::to_value(a.as_ref().unwrap())?[field],
-                        &serde_json::to_value(n)?[field],
-                    ) {
-                        return Err(format!("live install changed numeric {field}").into());
-                    }
+            if let Some(a) = a {
+                if !n.inputs.starts_with(&a.inputs)
+                    || !n.state_bindings.starts_with(&a.state_bindings)
+                    || !n.exprs.starts_with(&a.exprs)
+                    || !n.guards.starts_with(&a.guards)
+                    || !n.groups.starts_with(&a.groups)
+                    || !n.writes.starts_with(&a.writes)
+                {
+                    return Err("live install changed numeric semantics".into());
                 }
             }
-            let guards = a.as_ref().map_or(0, |a| a.guards.len());
-            let writes = a.as_ref().map_or(0, |a| a.writes.len());
-            if n.guards[guards..]
+            if n.guards[a.as_ref().map_or(0, |a| a.guards.len())..]
                 .iter()
                 .any(|g| g.channel < old.channels.len())
-                || n.writes[writes..]
+                || n.writes[a.as_ref().map_or(0, |a| a.writes.len())..]
                     .iter()
                     .any(|w| w.channel < old.channels.len())
             {
@@ -142,14 +141,34 @@ fn extension(old: &Program, new: &Program) -> Result<()> {
         }
         _ => (),
     }
-    for (a, b) in old.stages.iter().zip(&new.stages) {
-        if !b.starts_with(a) {
-            return Err("live install reordered old stages".into());
-        }
+    if old
+        .stages
+        .iter()
+        .zip(&new.stages)
+        .any(|(a, b)| !b.starts_with(a))
+    {
+        return Err("live install reordered old stages".into());
     }
     Ok(())
 }
+
 impl Service {
+    pub(crate) fn table_init(&mut self, config: Json) -> Result<Json> {
+        write(&mut self.input, &json!({"op":"table_init","config":config}))?;
+        read(&mut self.output)
+    }
+    pub(crate) fn table_delta(&mut self, words: &[u32], audit: bool) -> Result<(Json, Vec<u32>)> {
+        write(&mut self.input, &json!({"op":"table_delta","audit":audit}))?;
+        write_words(&mut self.input, words)?;
+        let report = read(&mut self.output)?;
+        let data = read_words(&mut self.output)?;
+        Ok((report, data))
+    }
+    pub(crate) fn table_ack(&mut self, epoch: usize) -> Result<()> {
+        write(&mut self.input, &json!({"op":"table_ack","epoch":epoch}))?;
+        read(&mut self.output)?;
+        Ok(())
+    }
     pub fn new(worker: &Path) -> Result<Self> {
         let mut child = Command::new(worker)
             .arg("--serve")
@@ -169,7 +188,7 @@ impl Service {
             install_times: InstallTimes::default(),
         };
         let ready = read(&mut s.output)?;
-        if ready["ready"] != true || ready["protocol"] != 5 {
+        if ready["ready"] != true || ready["protocol"] != 6 {
             return Err("live matrix protocol mismatch".into());
         }
         Ok(s)
@@ -188,11 +207,16 @@ impl Service {
         let plan = self.planner.plan(&checked)?;
         self.install_times.planner_seconds += t.elapsed().as_secs_f64();
         let t = Instant::now();
-        let lower = checked.lower_with_layout(&plan)?;
+        let mut lower = checked.lower_with_layout(&plan)?;
+        let data = std::mem::take(&mut lower.data);
         self.layout_report = json!({"plan":plan,"solver_calls":self.planner.solves,"cache_hits":self.planner.cache_hits});
         self.install_times.lower_seconds += t.elapsed().as_secs_f64();
         let t = Instant::now();
-        write(&mut self.input, &json!({"op":"install","program":lower}))?;
+        write(
+            &mut self.input,
+            &json!({"op":"install_binary","program":lower,"word_count":data.len()}),
+        )?;
+        write_words(&mut self.input, &data)?;
         let r = read(&mut self.output)?;
         let profile = &r["install_profile"];
         self.install_times.worker_decode_seconds +=

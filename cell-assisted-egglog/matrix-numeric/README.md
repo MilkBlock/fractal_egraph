@@ -1,5 +1,11 @@
 # Typed numeric guards and merge in the shared matrix program
 
+Live transport update: the worker handshake is protocol **6**. Rebuild
+`matrix.swift`; bulk live heaps now use binary frames. Offline lowered ABI **5**
+and replayable JSON files are unchanged. Numeric workloads also support the
+[resident fragment-table backend](../table-runtime/README.md), which sends deltas
+and does not rebuild per-instance channels or solve online.
+
 The existing Cell matrix IR now carries numerical dataflow as well as identity
 features. The same generated allocation and persistent Metal worker execute both.
 This is **MPS structural matching plus exact integer vector operations and segmented

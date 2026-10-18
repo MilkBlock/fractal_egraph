@@ -1,0 +1,1549 @@
+{
+  "schema": "cell-layout-bench/v1",
+  "platform": "macOS-15.3.1-arm64-arm-64bit",
+  "baseline_commit": "c7553a6c2b16c529c13f3eb7eecd742495b992d3",
+  "binary_provenance": {
+    "assisted": {
+      "path": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/target/cell-assisted/release/cell-assisted-egglog",
+      "sha256": "4f5bd746079da04e51dc432b1f9a4cfd986be122edce5609b3d49a446c26072e"
+    },
+    "worker": {
+      "path": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/table-runtime/final-build/matrix-metal",
+      "sha256": "3b5e3d6e9d6f91d29491fd2871f785943757f60ef2177f52b271e7941e71f438"
+    },
+    "pristine": {
+      "path": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/table-runtime/final-build/native-pristine",
+      "sha256": "fdf6f26e2a1c8f4d75c5a8c29ac35e411d166bcbd429c91c11af37cd230f07b2"
+    },
+    "fork": {
+      "path": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/table-runtime/final-build/native-fork",
+      "sha256": "75146485476a4c265fb8ba7d7de306fa0b5ad89cfdeb0a3f9ba0450c5160c59d"
+    }
+  },
+  "rustc": "rustc 1.94.0 (4a4ef493e 2026-03-02)\nbinary: rustc\ncommit-hash: 4a4ef493e3a1488c6e321570238084b38948f6db\ncommit-date: 2026-03-02\nhost: aarch64-apple-darwin\nrelease: 1.94.0\nLLVM version: 21.1.8\n",
+  "profile": "release ThinLTO codegen-units=1; System allocator",
+  "source_hashes": {
+    "cell-assisted-egglog/src/analyze_program.rs": "66124f2723619f359a80b7cb98e298a918f9411c21f59946c66b2225885b3a6d",
+    "cell-assisted-egglog/src/compile.rs": "1a5620744bc7d4452fa710f9f97dcd4285d001279f78d3d6b465deae52d8df9a",
+    "cell-assisted-egglog/src/layout.rs": "4afaa249b461997445666dd8b775c5f7517b021ce2caed813db54f15feba3104",
+    "cell-assisted-egglog/src/lib.rs": "79d37f894592a175752de00e6807dc4d447c7710c91ee5adaf0dfabe2880222c",
+    "cell-assisted-egglog/src/live.rs": "987e4406114999d9abdb2b04c7d53ec4a51fb6efe5a9c7ec55d5c0aeae950fc2",
+    "cell-assisted-egglog/src/live_bake.rs": "cf4705d8b5baa86e456c748578be92ca2114836bb69e846f4f628e71a77a2ee9",
+    "cell-assisted-egglog/src/main.rs": "45f9e76e094f6dc494cab2a22d5a05361e9b1cb877663aeb4f0a4837a6b66096",
+    "cell-assisted-egglog/src/marker_layout.rs": "4a02f1a7785b685f0ca34a85fe81c1e0c43fa02d4573372af128bc53521de2d1",
+    "cell-assisted-egglog/src/matrix.rs": "78cf5f350447ba4be83a11a49e60f046a0cb837f309eef85c2daff3ab4c9ccbc",
+    "cell-assisted-egglog/src/matrix_service.rs": "878f9855c0ac348cbdacdbb85f8dca463abc640403b96037560eb7ab644e8ff0",
+    "cell-assisted-egglog/src/numeric.rs": "5001a6b4741b3cdb0922fbd1b937d2ccd7432644e3321fae748bb581e6575b05",
+    "cell-assisted-egglog/src/numeric_lower.rs": "efb014e709d73174d1fc2c46691f4d1eff90c73bedea91482543e9af0537fe1e",
+    "cell-assisted-egglog/src/numeric_native.rs": "9b674ef6b44b56223bf39870c76609b6c53d2779b00ea54b08dff03f1ee9fe30",
+    "cell-assisted-egglog/src/program.rs": "ecf5eccf154360be5b32a9778074cc359686c2c962a29a586425779ce64afbdb",
+    "cell-assisted-egglog/src/public_snapshot.rs": "54666f0d64f9a92710fb4a00fcef3f8a91a9b13cb3f2217baa60dec50433faf7",
+    "cell-assisted-egglog/src/resident.rs": "c32c8705d4a0c3e31230646f46aeb4e1dfe9ae45593b3e539ae983dda6fac945",
+    "cell-assisted-egglog/src/table_native.rs": "bbeef31a75d55552986d68ab0ba0e23a4a843ea5da6b606dcc8497a8ce25430c",
+    "cell-assisted-egglog/src/table_program.rs": "dfa3489f3a1a19b5d98dd55484b6964bb50412067e320bdd74d7bc4036f4c302",
+    "cell-assisted-egglog/bench/native.rs": "a072bb1b8232823272d64f4aa7435717ec3fcc04ff4e19245dab48a83afeeb83",
+    "cell-assisted-egglog/bench/build.py": "078b772ab4d64111379d0271e3e84268965a356c1a68f1921826f34d779730e2",
+    "cell-assisted-egglog/matrix.swift": "a4cacb91e3618642d061af0a4ea649649c01c47497606190d207060af76bbd39",
+    "cell-assisted-egglog/matrix.metal": "8bb441670e91da872d4acaa79562aa59028aa2ba193e8fd8277ee8d4862704e7",
+    "cell-assisted-egglog/numeric.metal": "8f5164120009b0fc563e8a3a7ce7974a5b915cfed33fa0faf5754efabfbd38dc",
+    "cell-assisted-egglog/integer.metal": "3da85defd1a37c4c660bdf545a8c9e2b0ed33685ba3c51b7ae3aca88eebe385e",
+    "cell-assisted-egglog/tables.metal": "f7ecd8789f30dc582bfd32fd61cdf37d4b241f4888290c8670119fd6faf6b923",
+    "cell-assisted-egglog/layout_solver.py": "8a84d5ae3d1166f22c244609cd34bcef5e50c7a61ed97634f4f4ce62ed54b2ee",
+    "cell-assisted-egglog/Cargo.toml": "42a5d99f83f550a7cddd75c971894190ed55a60bd02bff63afd3f2110d9a93b8",
+    "cell-assisted-egglog/Cargo.lock": "35f6e41fbd40196389beb6f3033ebf9087edfe9a9f9e3f52046cca8ee6c4dcd3",
+    "tools/cell_spine/solver.py": "164f72220dade65d670891ed1c488e521214857039b14309dfd6ba1b86a2d86b"
+  },
+  "harness_sha256": "88a20a024fd04086183d5201570fa17fd96505df28c62b367fb8134a73f5a355",
+  "library_bytes": 20244,
+  "library": {
+    "catalog/catalog.json": {
+      "bytes": 13422,
+      "sha256": "b8b7597fbc39804408eff4d0e443b174f9a2e880d503c6daf155217c068acf73"
+    },
+    "catalog/states/state-0000.json": {
+      "bytes": 1075,
+      "sha256": "4332dfff46c7da9f66a1aabb116e9e20206761abe9c5aa3e7126bb6d91b0efbd"
+    },
+    "catalog/states/state-0001.json": {
+      "bytes": 1352,
+      "sha256": "fcc308d4cad863bf45e3edb37a72836dd9359161e31ecb03d64c7cba5616b736"
+    },
+    "history.json": {
+      "bytes": 4395,
+      "sha256": "1c05814e7a63e62b46209d879280135dfecf32fafd8974d3945b9f35c42ba9c3"
+    }
+  },
+  "threads": 4,
+  "notes": [
+    "Single/Get Cell comes from real analyze; Offer/Best and sparse-cycle consumers are controlled workloads, not a full eggcc pass.",
+    "All binaries release; verification and graph dumps are separate fresh processes; build and old offline Bake are excluded.",
+    "Core includes setup/input/all driver rounds; run includes event/marker maintenance, solving, shader install, transfer, GPU execution and native commits.",
+    "Process wall includes startup/report/teardown; wait is independent of the RSS sampler. GPU device time is only a subset of dispatch time.",
+    "RSS is a 10ms sampled sum over currently live processes; can miss peaks and double-count shared pages. It is not GPU buffer size.",
+    "One fresh process per variant; OS/Metal compiler caches are not flushed. No averaging or confidence interval; sub-millisecond differences are not stable speedups.",
+    "The old Cartesian assistant is only a small local-case diagnostic, never the native reference. Multi-table cases compare pristine/fork with indexed variants."
+  ],
+  "cases": [
+    {
+      "kind": "local",
+      "instances": 16,
+      "lhs_atoms": 3,
+      "input_sha256": "17985b3ff2d035a221b1d6f8a6a7f227705d86427142abaa0df31d8300978e3c",
+      "environment_sha256": "ccd36275f000e1ffbd1ebc1140fb16c5608d6eb7f2c9b1871d3a52b18fe694bc",
+      "graph": {
+        "exact_equal": true,
+        "enodes": 112,
+        "eclasses": 96,
+        "sorts": {
+          "@OfferSort": {
+            "enodes": 48,
+            "eclasses": 48
+          },
+          "Expr": {
+            "enodes": 64,
+            "eclasses": 48
+          }
+        },
+        "primitive_values_exact": true,
+        "total_rows": 128
+      },
+      "runs": {
+        "pristine": {
+          "core_seconds": 0.004481,
+          "setup_seconds": 0.002176208,
+          "input_seconds": 0.0021565,
+          "run_seconds": 0.000148292,
+          "process_wall_seconds": 0.274596625,
+          "sampled_peak_process_tree_rss_bytes": 262144,
+          "rss_samples": 11,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.008295708000000013,
+            "stats": null
+          },
+          "native_matches": 48,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null,
+          "device": null,
+          "table_runtime": null,
+          "table_counters": {}
+        },
+        "fork": {
+          "core_seconds": 0.0047843339999999995,
+          "setup_seconds": 0.002376167,
+          "input_seconds": 0.002222334,
+          "run_seconds": 0.000185833,
+          "process_wall_seconds": 0.26684041599999997,
+          "sampled_peak_process_tree_rss_bytes": 212992,
+          "rss_samples": 11,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.007930875000000004,
+            "stats": null
+          },
+          "native_matches": 48,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null,
+          "device": null,
+          "table_runtime": null,
+          "table_counters": {}
+        },
+        "marker-paired": {
+          "core_seconds": 0.323578335,
+          "setup_seconds": 0.112464709,
+          "input_seconds": 0.001768084,
+          "run_seconds": 0.209345542,
+          "process_wall_seconds": 0.331031375,
+          "sampled_peak_process_tree_rss_bytes": 20840448,
+          "rss_samples": 14,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 0.0819878329999999,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 32,
+              "native_bindings": 32,
+              "proposals": 32
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 32,
+          "native_sets": 16,
+          "phase_seconds": {
+            "admission_seconds": 0.000177126,
+            "commit_seconds": 8.925e-05,
+            "device_seconds": 0.0016065826639533043,
+            "dispatch_seconds": 0.008779874,
+            "install_seconds": 0.19996325,
+            "native_events_seconds": 5.7041e-05,
+            "program_seconds": 9.774999999999999e-05,
+            "result_seconds": 0.0,
+            "routing_seconds": 0.000163333,
+            "verification_seconds": 8.33e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.000108542,
+            "lower_seconds": 0.000388167,
+            "planner_seconds": 9.666999999999999e-06,
+            "worker_buffer_seconds": 5.38751482963562e-05,
+            "worker_decode_seconds": 0.0014512916095554829,
+            "worker_inherit_seconds": 0.006533749867230654,
+            "worker_install_seconds": 0.199334125,
+            "worker_shader_compile_seconds": 0.14665387524291873
+          },
+          "marker_work": {
+            "emitted_combinations": 96,
+            "index_probes": 400,
+            "indexed_rows_visited": 704,
+            "live_index_entries": 144,
+            "marker_rows_added": 96,
+            "marker_rows_removed": 16
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": false,
+            "solver_calls": 0
+          },
+          "device": {
+            "device": "Apple M3 Max",
+            "matrix_bytes": 121024
+          },
+          "table_runtime": null,
+          "table_counters": {
+            "table_batches": 0,
+            "table_candidate_rows": 0,
+            "table_downloaded_bytes": 0,
+            "table_index_lookups": 0,
+            "table_match_records": 0,
+            "table_retries": 0,
+            "table_uploaded_bytes": 0
+          }
+        },
+        "device-tables": {
+          "core_seconds": 0.10221983300000001,
+          "setup_seconds": 0.092134083,
+          "input_seconds": 0.001826083,
+          "run_seconds": 0.008259667,
+          "process_wall_seconds": 0.10687808300000001,
+          "sampled_peak_process_tree_rss_bytes": 15302656,
+          "rss_samples": 5,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 0.06700562499999996,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 16,
+              "native_bindings": 32,
+              "proposals": 32
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 32,
+          "native_sets": 16,
+          "phase_seconds": {
+            "admission_seconds": 0.000192251,
+            "commit_seconds": 0.000861084,
+            "device_seconds": 0.0004025413654744625,
+            "dispatch_seconds": 0.007102833,
+            "install_seconds": 0.0,
+            "native_events_seconds": 4.879200000000001e-05,
+            "program_seconds": 1.1042e-05,
+            "result_seconds": 2.1e-05,
+            "routing_seconds": 0.0,
+            "verification_seconds": 4.2e-08
+          },
+          "install_breakdown": {
+            "compile_seconds": 0.04890454141423106,
+            "installed": true,
+            "shader_compiles": 1
+          },
+          "marker_work": null,
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": null,
+            "solver_calls": 0
+          },
+          "device": {
+            "device": "Apple M3 Max",
+            "matrix_bytes": 20880
+          },
+          "table_runtime": {
+            "active_matches": 0,
+            "arithmetic_error": false,
+            "audit_rows": 0,
+            "candidate_row_visits": 114,
+            "device": "Apple M3 Max",
+            "epoch": 2,
+            "gpu_seconds": 0.0001949165016412735,
+            "groups": 0,
+            "index_lookups": 64,
+            "match_records": 32,
+            "matrix_bytes": 20880,
+            "new_matches": 0,
+            "new_rows": 16,
+            "pending_matches": 0,
+            "retired_rows": 16,
+            "retry_count": 0,
+            "rows": 96,
+            "shader_compiles": 1
+          },
+          "table_counters": {
+            "table_batches": 2,
+            "table_candidate_rows": 342,
+            "table_downloaded_bytes": 384,
+            "table_index_lookups": 192,
+            "table_match_records": 32,
+            "table_retries": 0,
+            "table_uploaded_bytes": 4320
+          }
+        }
+      }
+    },
+    {
+      "kind": "local",
+      "instances": 256,
+      "lhs_atoms": 3,
+      "input_sha256": "276a2177a24e9e59e7eec9b48500de1fb5c39b40bbf7fa49c69f4b5c51dd70db",
+      "environment_sha256": "ccd36275f000e1ffbd1ebc1140fb16c5608d6eb7f2c9b1871d3a52b18fe694bc",
+      "graph": {
+        "exact_equal": true,
+        "enodes": 1792,
+        "eclasses": 1536,
+        "sorts": {
+          "@OfferSort": {
+            "enodes": 768,
+            "eclasses": 768
+          },
+          "Expr": {
+            "enodes": 1024,
+            "eclasses": 768
+          }
+        },
+        "primitive_values_exact": true,
+        "total_rows": 2048
+      },
+      "runs": {
+        "pristine": {
+          "core_seconds": 0.025588125,
+          "setup_seconds": 0.000734083,
+          "input_seconds": 0.024193417,
+          "run_seconds": 0.000660625,
+          "process_wall_seconds": 0.03407370799999998,
+          "sampled_peak_process_tree_rss_bytes": 8552448,
+          "rss_samples": 2,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.03662891700000004,
+            "stats": null
+          },
+          "native_matches": 768,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null,
+          "device": null,
+          "table_runtime": null,
+          "table_counters": {}
+        },
+        "fork": {
+          "core_seconds": 0.027108417000000003,
+          "setup_seconds": 0.000734917,
+          "input_seconds": 0.025638125,
+          "run_seconds": 0.000735375,
+          "process_wall_seconds": 0.036187624999999946,
+          "sampled_peak_process_tree_rss_bytes": 8781824,
+          "rss_samples": 2,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.03632379199999991,
+            "stats": null
+          },
+          "native_matches": 768,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null,
+          "device": null,
+          "table_runtime": null,
+          "table_counters": {}
+        },
+        "marker-paired": {
+          "core_seconds": 0.270450043,
+          "setup_seconds": 0.006549625,
+          "input_seconds": 0.026633459,
+          "run_seconds": 0.237266959,
+          "process_wall_seconds": 0.2783020409999999,
+          "sampled_peak_process_tree_rss_bytes": 41025536,
+          "rss_samples": 12,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 0.19290816700000013,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 512,
+              "native_bindings": 512,
+              "proposals": 512
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 512,
+          "native_sets": 256,
+          "phase_seconds": {
+            "admission_seconds": 0.002699543,
+            "commit_seconds": 0.000297792,
+            "device_seconds": 0.004300583153963089,
+            "dispatch_seconds": 0.016736624,
+            "install_seconds": 0.201014792,
+            "native_events_seconds": 0.00019729199999999998,
+            "program_seconds": 0.001477375,
+            "result_seconds": 0.0,
+            "routing_seconds": 0.014776625,
+            "verification_seconds": 7.5e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.001140834,
+            "lower_seconds": 0.005467292,
+            "planner_seconds": 3.4579999999999998e-06,
+            "worker_buffer_seconds": 0.00047462526708841324,
+            "worker_decode_seconds": 0.0036677089519798756,
+            "worker_inherit_seconds": 0.014386583585292101,
+            "worker_install_seconds": 0.193670417,
+            "worker_shader_compile_seconds": 0.1276317504234612
+          },
+          "marker_work": {
+            "emitted_combinations": 1536,
+            "index_probes": 67840,
+            "indexed_rows_visited": 134144,
+            "live_index_entries": 2304,
+            "marker_rows_added": 1536,
+            "marker_rows_removed": 256
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": false,
+            "solver_calls": 0
+          },
+          "device": {
+            "device": "Apple M3 Max",
+            "matrix_bytes": 1925824
+          },
+          "table_runtime": null,
+          "table_counters": {
+            "table_batches": 0,
+            "table_candidate_rows": 0,
+            "table_downloaded_bytes": 0,
+            "table_index_lookups": 0,
+            "table_match_records": 0,
+            "table_retries": 0,
+            "table_uploaded_bytes": 0
+          }
+        },
+        "device-tables": {
+          "core_seconds": 0.093133917,
+          "setup_seconds": 0.051555167,
+          "input_seconds": 0.026705,
+          "run_seconds": 0.01487375,
+          "process_wall_seconds": 0.09818841700000025,
+          "sampled_peak_process_tree_rss_bytes": 22413312,
+          "rss_samples": 4,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 0.13620937499999997,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 256,
+              "native_bindings": 512,
+              "proposals": 512
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 512,
+          "native_sets": 256,
+          "phase_seconds": {
+            "admission_seconds": 0.002552251,
+            "commit_seconds": 0.001315292,
+            "device_seconds": 0.0005338736809790134,
+            "dispatch_seconds": 0.010452167,
+            "install_seconds": 0.0,
+            "native_events_seconds": 0.000214875,
+            "program_seconds": 0.00014383200000000001,
+            "result_seconds": 0.000155957,
+            "routing_seconds": 0.0,
+            "verification_seconds": 8.4e-08
+          },
+          "install_breakdown": {
+            "compile_seconds": 0.001927416305989027,
+            "installed": true,
+            "shader_compiles": 1
+          },
+          "marker_work": null,
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": null,
+            "solver_calls": 0
+          },
+          "device": {
+            "device": "Apple M3 Max",
+            "matrix_bytes": 328080
+          },
+          "table_runtime": {
+            "active_matches": 0,
+            "arithmetic_error": false,
+            "audit_rows": 0,
+            "candidate_row_visits": 1602,
+            "device": "Apple M3 Max",
+            "epoch": 2,
+            "gpu_seconds": 0.00023608235642313957,
+            "groups": 0,
+            "index_lookups": 1024,
+            "match_records": 512,
+            "matrix_bytes": 328080,
+            "new_matches": 0,
+            "new_rows": 256,
+            "pending_matches": 0,
+            "retired_rows": 256,
+            "retry_count": 0,
+            "rows": 1536,
+            "shader_compiles": 1
+          },
+          "table_counters": {
+            "table_batches": 2,
+            "table_candidate_rows": 4806,
+            "table_downloaded_bytes": 6144,
+            "table_index_lookups": 3072,
+            "table_match_records": 512,
+            "table_retries": 0,
+            "table_uploaded_bytes": 68640
+          }
+        }
+      }
+    },
+    {
+      "kind": "local",
+      "instances": 4096,
+      "lhs_atoms": 3,
+      "input_sha256": "f0ca3aa2d39a14b8ced377c9c1fb3e5d8b73023bd0da14898f8a69dfe4a75e21",
+      "environment_sha256": "ccd36275f000e1ffbd1ebc1140fb16c5608d6eb7f2c9b1871d3a52b18fe694bc",
+      "graph": {
+        "exact_equal": true,
+        "enodes": 28672,
+        "eclasses": 24576,
+        "sorts": {
+          "@OfferSort": {
+            "enodes": 12288,
+            "eclasses": 12288
+          },
+          "Expr": {
+            "enodes": 16384,
+            "eclasses": 12288
+          }
+        },
+        "primitive_values_exact": true,
+        "total_rows": 32768
+      },
+      "runs": {
+        "pristine": {
+          "core_seconds": 0.6526947909999999,
+          "setup_seconds": 0.0008265,
+          "input_seconds": 0.644354333,
+          "run_seconds": 0.007513958,
+          "process_wall_seconds": 0.656177375,
+          "sampled_peak_process_tree_rss_bytes": 72859648,
+          "rss_samples": 26,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.7508652080000005,
+            "stats": null
+          },
+          "native_matches": 12288,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null,
+          "device": null,
+          "table_runtime": null,
+          "table_counters": {}
+        },
+        "fork": {
+          "core_seconds": 0.6897167909999999,
+          "setup_seconds": 0.000939708,
+          "input_seconds": 0.679018583,
+          "run_seconds": 0.0097585,
+          "process_wall_seconds": 0.6934957080000004,
+          "sampled_peak_process_tree_rss_bytes": 70516736,
+          "rss_samples": 27,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.7862085419999998,
+            "stats": null
+          },
+          "native_matches": 12288,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null,
+          "device": null,
+          "table_runtime": null,
+          "table_counters": {}
+        },
+        "marker-paired": {
+          "core_seconds": 5.813499874,
+          "setup_seconds": 0.006664833,
+          "input_seconds": 0.690326333,
+          "run_seconds": 5.116508708,
+          "process_wall_seconds": 5.8557556250000005,
+          "sampled_peak_process_tree_rss_bytes": 338395136,
+          "rss_samples": 243,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 7.529306332999999,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 8192,
+              "native_bindings": 8192,
+              "proposals": 8192
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 8192,
+          "native_sets": 4096,
+          "phase_seconds": {
+            "admission_seconds": 0.049847708000000004,
+            "commit_seconds": 0.003771708,
+            "device_seconds": 0.03721337532624602,
+            "dispatch_seconds": 0.105427666,
+            "install_seconds": 0.9840356240000001,
+            "native_events_seconds": 0.005213751,
+            "program_seconds": 0.023082834,
+            "result_seconds": 0.0,
+            "routing_seconds": 3.9443940420000003,
+            "verification_seconds": 7.5e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.047210583,
+            "lower_seconds": 0.614175375,
+            "planner_seconds": 3.0292e-05,
+            "worker_buffer_seconds": 0.006990958470851183,
+            "worker_decode_seconds": 0.025140834040939808,
+            "worker_inherit_seconds": 0.09446112485602498,
+            "worker_install_seconds": 0.304721708,
+            "worker_shader_compile_seconds": 0.12082216655835509
+          },
+          "marker_work": {
+            "emitted_combinations": 24576,
+            "index_probes": 16814080,
+            "indexed_rows_visited": 33603584,
+            "live_index_entries": 36864,
+            "marker_rows_added": 24576,
+            "marker_rows_removed": 4096
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": false,
+            "solver_calls": 0
+          },
+          "device": {
+            "device": "Apple M3 Max",
+            "matrix_bytes": 30802624
+          },
+          "table_runtime": null,
+          "table_counters": {
+            "table_batches": 0,
+            "table_candidate_rows": 0,
+            "table_downloaded_bytes": 0,
+            "table_index_lookups": 0,
+            "table_match_records": 0,
+            "table_retries": 0,
+            "table_uploaded_bytes": 0
+          }
+        },
+        "device-tables": {
+          "core_seconds": 0.8195560009999999,
+          "setup_seconds": 0.052375459,
+          "input_seconds": 0.693720417,
+          "run_seconds": 0.073460125,
+          "process_wall_seconds": 0.8340789999999991,
+          "sampled_peak_process_tree_rss_bytes": 85540864,
+          "rss_samples": 33,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 2.2013582919999983,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 4096,
+              "native_bindings": 8192,
+              "proposals": 8192
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 8192,
+          "native_sets": 4096,
+          "phase_seconds": {
+            "admission_seconds": 0.048783249,
+            "commit_seconds": 0.003163625,
+            "device_seconds": 0.0008174167014658451,
+            "dispatch_seconds": 0.011940165999999999,
+            "install_seconds": 0.0,
+            "native_events_seconds": 0.0037049149999999996,
+            "program_seconds": 0.002409043,
+            "result_seconds": 0.003229083,
+            "routing_seconds": 0.0,
+            "verification_seconds": 8.4e-08
+          },
+          "install_breakdown": {
+            "compile_seconds": 0.0019218749366700647,
+            "installed": true,
+            "shader_compiles": 1
+          },
+          "marker_work": null,
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": null,
+            "solver_calls": 0
+          },
+          "device": {
+            "device": "Apple M3 Max",
+            "matrix_bytes": 5243280
+          },
+          "table_runtime": {
+            "active_matches": 0,
+            "arithmetic_error": false,
+            "audit_rows": 0,
+            "candidate_row_visits": 26046,
+            "device": "Apple M3 Max",
+            "epoch": 2,
+            "gpu_seconds": 0.0004866253584623337,
+            "groups": 0,
+            "index_lookups": 16384,
+            "match_records": 8192,
+            "matrix_bytes": 5243280,
+            "new_matches": 0,
+            "new_rows": 4096,
+            "pending_matches": 0,
+            "retired_rows": 4096,
+            "retry_count": 0,
+            "rows": 24576,
+            "shader_compiles": 1
+          },
+          "table_counters": {
+            "table_batches": 2,
+            "table_candidate_rows": 78138,
+            "table_downloaded_bytes": 98304,
+            "table_index_lookups": 49152,
+            "table_match_records": 8192,
+            "table_retries": 0,
+            "table_uploaded_bytes": 1097760
+          }
+        }
+      }
+    },
+    {
+      "kind": "sparse-cycle",
+      "instances": 16,
+      "lhs_atoms": 6,
+      "input_sha256": "1a4b6e89727ddfd873c734cb8aefbbb488d8c81b816966e6e4327c8eb57f58e6",
+      "environment_sha256": "126b6eed191c9a51cef551924bf6d2a54cbd8faa2769a9f4f22dda9ecd4ddaa1",
+      "graph": {
+        "exact_equal": true,
+        "enodes": 192,
+        "eclasses": 176,
+        "sorts": {
+          "@L1Sort": {
+            "enodes": 16,
+            "eclasses": 16
+          },
+          "@L2Sort": {
+            "enodes": 16,
+            "eclasses": 16
+          },
+          "@L3Sort": {
+            "enodes": 16,
+            "eclasses": 16
+          },
+          "@OfferSort": {
+            "enodes": 48,
+            "eclasses": 48
+          },
+          "Expr": {
+            "enodes": 96,
+            "eclasses": 80
+          }
+        },
+        "primitive_values_exact": true,
+        "total_rows": 208
+      },
+      "runs": {
+        "pristine": {
+          "core_seconds": 0.010675582999999999,
+          "setup_seconds": 0.007332875,
+          "input_seconds": 0.003129833,
+          "run_seconds": 0.000212875,
+          "process_wall_seconds": 0.014898708000000482,
+          "sampled_peak_process_tree_rss_bytes": 212992,
+          "rss_samples": 1,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.00764091599999972,
+            "stats": null
+          },
+          "native_matches": 18,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null,
+          "device": null,
+          "table_runtime": null,
+          "table_counters": {}
+        },
+        "fork": {
+          "core_seconds": 0.012304375,
+          "setup_seconds": 0.008491792,
+          "input_seconds": 0.003368208,
+          "run_seconds": 0.000444375,
+          "process_wall_seconds": 0.01757295900000244,
+          "sampled_peak_process_tree_rss_bytes": 229376,
+          "rss_samples": 1,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.013646416000000272,
+            "stats": null
+          },
+          "native_matches": 18,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null,
+          "device": null,
+          "table_runtime": null,
+          "table_counters": {}
+        },
+        "marker-paired": {
+          "core_seconds": 0.197148625,
+          "setup_seconds": 0.007090458,
+          "input_seconds": 0.0029355,
+          "run_seconds": 0.187122667,
+          "process_wall_seconds": 0.2068248749999988,
+          "sampled_peak_process_tree_rss_bytes": 21594112,
+          "rss_samples": 9,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 0.0839439170000027,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 2,
+              "native_bindings": 2,
+              "proposals": 2
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 2,
+          "native_sets": 1,
+          "phase_seconds": {
+            "admission_seconds": 0.00028812499999999997,
+            "commit_seconds": 7.6875e-05,
+            "device_seconds": 0.001495332457125187,
+            "dispatch_seconds": 0.009121292,
+            "install_seconds": 0.177346208,
+            "native_events_seconds": 5.2916999999999995e-05,
+            "program_seconds": 1.6209e-05,
+            "result_seconds": 0.0,
+            "routing_seconds": 0.000198249,
+            "verification_seconds": 2.333e-06
+          },
+          "install_breakdown": {
+            "check_seconds": 4.5542e-05,
+            "lower_seconds": 0.000240125,
+            "planner_seconds": 1.833e-06,
+            "worker_buffer_seconds": 7.983343675732613e-05,
+            "worker_decode_seconds": 0.0016688751056790352,
+            "worker_inherit_seconds": 0.006468083243817091,
+            "worker_install_seconds": 0.176976791,
+            "worker_shader_compile_seconds": 0.1225861250422895
+          },
+          "marker_work": {
+            "emitted_combinations": 6,
+            "index_probes": 301,
+            "indexed_rows_visited": 1010,
+            "live_index_entries": 224,
+            "marker_rows_added": 129,
+            "marker_rows_removed": 1
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": false,
+            "solver_calls": 0
+          },
+          "device": {
+            "device": "Apple M3 Max",
+            "matrix_bytes": 216144
+          },
+          "table_runtime": null,
+          "table_counters": {
+            "table_batches": 0,
+            "table_candidate_rows": 0,
+            "table_downloaded_bytes": 0,
+            "table_index_lookups": 0,
+            "table_match_records": 0,
+            "table_retries": 0,
+            "table_uploaded_bytes": 0
+          }
+        },
+        "device-tables": {
+          "core_seconds": 0.111248958,
+          "setup_seconds": 0.095372458,
+          "input_seconds": 0.002898125,
+          "run_seconds": 0.012978375,
+          "process_wall_seconds": 0.1158893749999983,
+          "sampled_peak_process_tree_rss_bytes": 18415616,
+          "rss_samples": 5,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 0.0819117079999998,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 1,
+              "native_bindings": 2,
+              "proposals": 2
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 2,
+          "native_sets": 1,
+          "phase_seconds": {
+            "admission_seconds": 0.000298875,
+            "commit_seconds": 0.0010807500000000001,
+            "device_seconds": 0.0007104589603841305,
+            "dispatch_seconds": 0.011479875,
+            "install_seconds": 0.0,
+            "native_events_seconds": 5.7706999999999995e-05,
+            "program_seconds": 1.525e-05,
+            "result_seconds": 1.4542e-05,
+            "routing_seconds": 0.0,
+            "verification_seconds": 1.25e-07
+          },
+          "install_breakdown": {
+            "compile_seconds": 0.04873329168185592,
+            "installed": true,
+            "shader_compiles": 1
+          },
+          "marker_work": null,
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": null,
+            "solver_calls": 0
+          },
+          "device": {
+            "device": "Apple M3 Max",
+            "matrix_bytes": 55384
+          },
+          "table_runtime": {
+            "active_matches": 0,
+            "arithmetic_error": false,
+            "audit_rows": 0,
+            "candidate_row_visits": 15,
+            "device": "Apple M3 Max",
+            "epoch": 2,
+            "gpu_seconds": 0.00029625045135617256,
+            "groups": 0,
+            "index_lookups": 13,
+            "match_records": 2,
+            "matrix_bytes": 55384,
+            "new_matches": 0,
+            "new_rows": 1,
+            "pending_matches": 0,
+            "retired_rows": 1,
+            "retry_count": 0,
+            "rows": 129,
+            "shader_compiles": 1
+          },
+          "table_counters": {
+            "table_batches": 2,
+            "table_candidate_rows": 404,
+            "table_downloaded_bytes": 36,
+            "table_index_lookups": 288,
+            "table_match_records": 2,
+            "table_retries": 0,
+            "table_uploaded_bytes": 8292
+          }
+        }
+      }
+    },
+    {
+      "kind": "sparse-cycle",
+      "instances": 256,
+      "lhs_atoms": 6,
+      "input_sha256": "833e40d1a06fa75384ec73b4a63be75789096814ebf094623dd8f3f5958828d0",
+      "environment_sha256": "126b6eed191c9a51cef551924bf6d2a54cbd8faa2769a9f4f22dda9ecd4ddaa1",
+      "graph": {
+        "exact_equal": true,
+        "enodes": 3072,
+        "eclasses": 2816,
+        "sorts": {
+          "@L1Sort": {
+            "enodes": 256,
+            "eclasses": 256
+          },
+          "@L2Sort": {
+            "enodes": 256,
+            "eclasses": 256
+          },
+          "@L3Sort": {
+            "enodes": 256,
+            "eclasses": 256
+          },
+          "@OfferSort": {
+            "enodes": 768,
+            "eclasses": 768
+          },
+          "Expr": {
+            "enodes": 1536,
+            "eclasses": 1280
+          }
+        },
+        "primitive_values_exact": true,
+        "total_rows": 3328
+      },
+      "runs": {
+        "pristine": {
+          "core_seconds": 0.043666959,
+          "setup_seconds": 0.000914792,
+          "input_seconds": 0.042014917,
+          "run_seconds": 0.00073725,
+          "process_wall_seconds": 0.04606074999999876,
+          "sampled_peak_process_tree_rss_bytes": 10682368,
+          "rss_samples": 2,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.06050895899999986,
+            "stats": null
+          },
+          "native_matches": 274,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null,
+          "device": null,
+          "table_runtime": null,
+          "table_counters": {}
+        },
+        "fork": {
+          "core_seconds": 0.045773208999999995,
+          "setup_seconds": 0.000987334,
+          "input_seconds": 0.0440355,
+          "run_seconds": 0.000750375,
+          "process_wall_seconds": 0.04946504099999771,
+          "sampled_peak_process_tree_rss_bytes": 10928128,
+          "rss_samples": 2,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.06059454200000047,
+            "stats": null
+          },
+          "native_matches": 274,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null,
+          "device": null,
+          "table_runtime": null,
+          "table_counters": {}
+        },
+        "marker-paired": {
+          "core_seconds": 0.260562999,
+          "setup_seconds": 0.006809833,
+          "input_seconds": 0.0474815,
+          "run_seconds": 0.206271666,
+          "process_wall_seconds": 0.2743973329999996,
+          "sampled_peak_process_tree_rss_bytes": 51986432,
+          "rss_samples": 12,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 0.16410662499999873,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 18,
+              "native_bindings": 18,
+              "proposals": 18
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 18,
+          "native_sets": 9,
+          "phase_seconds": {
+            "admission_seconds": 0.004308291,
+            "commit_seconds": 6.2417e-05,
+            "device_seconds": 0.001533458475023508,
+            "dispatch_seconds": 0.009896084,
+            "install_seconds": 0.18655254200000002,
+            "native_events_seconds": 0.00028820900000000005,
+            "program_seconds": 0.00010016699999999999,
+            "result_seconds": 0.0,
+            "routing_seconds": 0.0050444999999999995,
+            "verification_seconds": 9.170000000000001e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.000355084,
+            "lower_seconds": 0.001165292,
+            "planner_seconds": 1.958e-06,
+            "worker_buffer_seconds": 0.0008844588883221149,
+            "worker_decode_seconds": 0.004609708674252033,
+            "worker_inherit_seconds": 0.011611833237111568,
+            "worker_install_seconds": 0.184581,
+            "worker_shader_compile_seconds": 0.12267762515693903
+          },
+          "marker_work": {
+            "emitted_combinations": 54,
+            "index_probes": 6773,
+            "indexed_rows_visited": 202402,
+            "live_index_entries": 3584,
+            "marker_rows_added": 2057,
+            "marker_rows_removed": 9
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": false,
+            "solver_calls": 0
+          },
+          "device": {
+            "device": "Apple M3 Max",
+            "matrix_bytes": 3407344
+          },
+          "table_runtime": null,
+          "table_counters": {
+            "table_batches": 0,
+            "table_candidate_rows": 0,
+            "table_downloaded_bytes": 0,
+            "table_index_lookups": 0,
+            "table_match_records": 0,
+            "table_retries": 0,
+            "table_uploaded_bytes": 0
+          }
+        },
+        "device-tables": {
+          "core_seconds": 0.11002833299999999,
+          "setup_seconds": 0.051227,
+          "input_seconds": 0.044970333,
+          "run_seconds": 0.013831,
+          "process_wall_seconds": 0.11613604099999719,
+          "sampled_peak_process_tree_rss_bytes": 25427968,
+          "rss_samples": 5,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 0.1338344169999992,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 9,
+              "native_bindings": 18,
+              "proposals": 18
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 18,
+          "native_sets": 9,
+          "phase_seconds": {
+            "admission_seconds": 0.004158291,
+            "commit_seconds": 0.00054475,
+            "device_seconds": 0.00038899946957826614,
+            "dispatch_seconds": 0.008603791999999999,
+            "install_seconds": 0.0,
+            "native_events_seconds": 0.000277832,
+            "program_seconds": 0.0001875,
+            "result_seconds": 3.404e-05,
+            "routing_seconds": 0.0,
+            "verification_seconds": 1.26e-07
+          },
+          "install_breakdown": {
+            "compile_seconds": 0.0019257916137576103,
+            "installed": true,
+            "shader_compiles": 1
+          },
+          "marker_work": null,
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": null,
+            "solver_calls": 0
+          },
+          "device": {
+            "device": "Apple M3 Max",
+            "matrix_bytes": 870248
+          },
+          "table_runtime": {
+            "active_matches": 0,
+            "arithmetic_error": false,
+            "audit_rows": 0,
+            "candidate_row_visits": 138,
+            "device": "Apple M3 Max",
+            "epoch": 2,
+            "gpu_seconds": 0.00018816674128174785,
+            "groups": 0,
+            "index_lookups": 117,
+            "match_records": 18,
+            "matrix_bytes": 870248,
+            "new_matches": 0,
+            "new_rows": 9,
+            "pending_matches": 0,
+            "retired_rows": 9,
+            "retry_count": 0,
+            "rows": 2057,
+            "shader_compiles": 1
+          },
+          "table_counters": {
+            "table_batches": 2,
+            "table_candidate_rows": 5561,
+            "table_downloaded_bytes": 324,
+            "table_index_lookups": 4496,
+            "table_match_records": 18,
+            "table_retries": 0,
+            "table_uploaded_bytes": 131716
+          }
+        }
+      }
+    },
+    {
+      "kind": "sparse-cycle",
+      "instances": 4096,
+      "lhs_atoms": 6,
+      "input_sha256": "1e99f75212b86034b7aca6a2c0a358892d62a46dbdd72504c637a223919edce8",
+      "environment_sha256": "126b6eed191c9a51cef551924bf6d2a54cbd8faa2769a9f4f22dda9ecd4ddaa1",
+      "graph": {
+        "exact_equal": true,
+        "enodes": 49152,
+        "eclasses": 45056,
+        "sorts": {
+          "@L1Sort": {
+            "enodes": 4096,
+            "eclasses": 4096
+          },
+          "@L2Sort": {
+            "enodes": 4096,
+            "eclasses": 4096
+          },
+          "@L3Sort": {
+            "enodes": 4096,
+            "eclasses": 4096
+          },
+          "@OfferSort": {
+            "enodes": 12288,
+            "eclasses": 12288
+          },
+          "Expr": {
+            "enodes": 24576,
+            "eclasses": 20480
+          }
+        },
+        "primitive_values_exact": true,
+        "total_rows": 53248
+      },
+      "runs": {
+        "pristine": {
+          "core_seconds": 1.1859768750000002,
+          "setup_seconds": 0.001076,
+          "input_seconds": 1.16799125,
+          "run_seconds": 0.016909625,
+          "process_wall_seconds": 1.1952138750000003,
+          "sampled_peak_process_tree_rss_bytes": 93028352,
+          "rss_samples": 47,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 1.328807832999999,
+            "stats": null
+          },
+          "native_matches": 4362,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null,
+          "device": null,
+          "table_runtime": null,
+          "table_counters": {}
+        },
+        "fork": {
+          "core_seconds": 1.2284022490000002,
+          "setup_seconds": 0.001105125,
+          "input_seconds": 1.209532583,
+          "run_seconds": 0.017764541,
+          "process_wall_seconds": 1.232566624999997,
+          "sampled_peak_process_tree_rss_bytes": 103612416,
+          "rss_samples": 48,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 1.3741986249999982,
+            "stats": null
+          },
+          "native_matches": 4362,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null,
+          "device": null,
+          "table_runtime": null,
+          "table_counters": {}
+        },
+        "marker-paired": {
+          "core_seconds": 2.654935667,
+          "setup_seconds": 0.008574292,
+          "input_seconds": 1.238943042,
+          "run_seconds": 1.407418333,
+          "process_wall_seconds": 2.6883924590000063,
+          "sampled_peak_process_tree_rss_bytes": 429457408,
+          "rss_samples": 108,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 2.712242791999998,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 266,
+              "native_bindings": 266,
+              "proposals": 266
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 266,
+          "native_sets": 133,
+          "phase_seconds": {
+            "admission_seconds": 0.077394332,
+            "commit_seconds": 0.000298416,
+            "device_seconds": 0.003408249467611313,
+            "dispatch_seconds": 0.020077167,
+            "install_seconds": 0.338576999,
+            "native_events_seconds": 0.005981708,
+            "program_seconds": 0.001565459,
+            "result_seconds": 0.0,
+            "routing_seconds": 0.963461291,
+            "verification_seconds": 7.909999999999999e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.005905459,
+            "lower_seconds": 0.018758084,
+            "planner_seconds": 4.291e-06,
+            "worker_buffer_seconds": 0.015221666544675827,
+            "worker_decode_seconds": 0.03213812503963709,
+            "worker_inherit_seconds": 0.08513650018721819,
+            "worker_install_seconds": 0.307938709,
+            "worker_shader_compile_seconds": 0.12175270821899176
+          },
+          "marker_work": {
+            "emitted_combinations": 798,
+            "index_probes": 616129,
+            "indexed_rows_visited": 50932058,
+            "live_index_entries": 57344,
+            "marker_rows_added": 32901,
+            "marker_rows_removed": 133
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": false,
+            "solver_calls": 0
+          },
+          "device": {
+            "device": "Apple M3 Max",
+            "matrix_bytes": 54449184
+          },
+          "table_runtime": null,
+          "table_counters": {
+            "table_batches": 0,
+            "table_candidate_rows": 0,
+            "table_downloaded_bytes": 0,
+            "table_index_lookups": 0,
+            "table_match_records": 0,
+            "table_retries": 0,
+            "table_uploaded_bytes": 0
+          }
+        },
+        "device-tables": {
+          "core_seconds": 1.3753910830000002,
+          "setup_seconds": 0.052454041,
+          "input_seconds": 1.220696417,
+          "run_seconds": 0.102240625,
+          "process_wall_seconds": 1.4016252500000022,
+          "sampled_peak_process_tree_rss_bytes": 114737152,
+          "rss_samples": 55,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 1.658113291999996,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 133,
+              "native_bindings": 266,
+              "proposals": 266
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 266,
+          "native_sets": 133,
+          "phase_seconds": {
+            "admission_seconds": 0.07773375,
+            "commit_seconds": 0.001350042,
+            "device_seconds": 0.0008843755349516869,
+            "dispatch_seconds": 0.013275292000000001,
+            "install_seconds": 0.0,
+            "native_events_seconds": 0.00565,
+            "program_seconds": 0.003707833,
+            "result_seconds": 0.000390167,
+            "routing_seconds": 0.0,
+            "verification_seconds": 2.08e-07
+          },
+          "install_breakdown": {
+            "compile_seconds": 0.0018762918189167976,
+            "installed": true,
+            "shader_compiles": 1
+          },
+          "marker_work": null,
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": null,
+            "solver_calls": 0
+          },
+          "device": {
+            "device": "Apple M3 Max",
+            "matrix_bytes": 13907800
+          },
+          "table_runtime": {
+            "active_matches": 0,
+            "arithmetic_error": false,
+            "audit_rows": 0,
+            "candidate_row_visits": 2067,
+            "device": "Apple M3 Max",
+            "epoch": 2,
+            "gpu_seconds": 0.0003437506966292858,
+            "groups": 0,
+            "index_lookups": 1729,
+            "match_records": 266,
+            "matrix_bytes": 13907800,
+            "new_matches": 0,
+            "new_rows": 133,
+            "pending_matches": 0,
+            "retired_rows": 133,
+            "retry_count": 0,
+            "rows": 32901,
+            "shader_compiles": 1
+          },
+          "table_counters": {
+            "table_batches": 2,
+            "table_candidate_rows": 90712,
+            "table_downloaded_bytes": 4788,
+            "table_index_lookups": 71760,
+            "table_match_records": 266,
+            "table_retries": 0,
+            "table_uploaded_bytes": 2106228
+          }
+        }
+      }
+    }
+  ],
+  "gpu_devices": [
+    "Apple M3 Max"
+  ]
+}

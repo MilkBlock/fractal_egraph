@@ -10,6 +10,8 @@ use egglog::{
 };
 use serde_json::json;
 use std::time::Instant;
+#[path = "table_native.rs"]
+mod table_execution;
 
 struct Compiler {
     exprs: Vec<n::Expr>,
@@ -77,6 +79,7 @@ pub struct PhaseTimes {
     pub program_seconds: f64,
     pub install_seconds: f64,
     pub dispatch_seconds: f64,
+    pub result_seconds: f64,
     pub verification_seconds: f64,
     pub commit_seconds: f64,
     /// Subset of dispatch_seconds, not an additive phase.
@@ -102,6 +105,14 @@ pub struct Stats {
     pub cartesian_combinations_bound: u64,
     pub phase_seconds: PhaseTimes,
     pub install_breakdown: Json,
+    pub table_runtime: Json,
+    pub table_uploaded_bytes: usize,
+    pub table_downloaded_bytes: usize,
+    pub table_batches: usize,
+    pub table_index_lookups: u64,
+    pub table_candidate_rows: u64,
+    pub table_match_records: u64,
+    pub table_retries: u64,
     pub device: Json,
 }
 struct Frame {
@@ -136,6 +147,9 @@ pub struct NumericSession {
     markers: crate::marker_layout::Markers,
     indexed_markers: bool,
     condition_ids: BTreeMap<(ir::Wire, ir::Wire), usize>,
+    table_mode: bool,
+    table_uploaded: usize,
+    table_ack_count: usize,
     pub stats: Stats,
 }
 impl NumericSession {
@@ -393,6 +407,9 @@ impl NumericSession {
             markers: crate::marker_layout::Markers::new(marker_columns),
             indexed_markers: false,
             condition_ids: BTreeMap::new(),
+            table_mode: false,
+            table_uploaded: 0,
+            table_ack_count: 0,
             stats: Stats::default(),
         })
     }
@@ -406,6 +423,15 @@ impl NumericSession {
     ) -> Result<()> {
         if self.epoch != 0 || !self.program.cells.is_empty() {
             return Err("configure layout before execution".into());
+        }
+        if self.table_mode {
+            return Err("table program already frozen".into());
+        }
+        if marker == "device" {
+            if planner.mode != "tables" {
+                return Err("device markers require --matrix-layout tables".into());
+            }
+            return self.init_tables();
         }
         self.indexed_markers = match marker {
             "indexed" => true,
@@ -748,6 +774,9 @@ impl NumericSession {
         self.epoch += 1;
         let choices = self.fragments()?;
         self.stats.phase_seconds.admission_seconds += t.elapsed().as_secs_f64();
+        if self.table_mode {
+            return self.advance_tables(native.updated);
+        }
         let t = Instant::now();
         let old_channels = self.program.channels.len();
         self.stats.cartesian_combinations_bound =

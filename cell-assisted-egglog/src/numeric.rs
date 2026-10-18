@@ -5,7 +5,7 @@ use crate::{Result, program::Program};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(tag = "op", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Expr {
     Input { slot: usize },
@@ -57,7 +57,7 @@ pub enum Merge {
     Min,
     Max,
 }
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Group {
     pub scope: String,
@@ -65,7 +65,7 @@ pub struct Group {
     pub merge: Merge,
     pub initial: Option<i64>,
 }
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Guard {
     pub channel: usize,
@@ -74,14 +74,14 @@ pub struct Guard {
     pub compare: Compare,
     pub depth: usize,
 }
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Write {
     pub channel: usize,
     pub group: usize,
     pub value: usize,
 }
-#[derive(Clone, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Plan {
     /// rows = binding channels, columns = typed i64 inputs / current-state slots

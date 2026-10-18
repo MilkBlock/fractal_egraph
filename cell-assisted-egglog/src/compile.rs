@@ -515,6 +515,7 @@ impl Checked {
             u32::from(p.numeric.is_some())
         );
         shader += include_str!("../matrix.metal");
+        shader += include_str!("../integer.metal");
         shader += include_str!("../numeric.metal");
         Ok(GpuProgram {
             version: 5,

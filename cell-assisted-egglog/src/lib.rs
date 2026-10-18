@@ -20,6 +20,7 @@ pub mod matrix;
 pub mod matrix_service;
 pub mod layout;
 mod marker_layout;
+mod table_program;
 pub mod program;
 pub mod numeric;
 pub mod numeric_native;

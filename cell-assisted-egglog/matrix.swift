@@ -19,7 +19,7 @@ final class Executor {
   var kernels = [String: MTLComputePipelineState](), gpuSeconds = 0.0, hostCountReads = 0
   var calls = 0, positions = 0, macs = 0
   var compileSeconds=0.0, bufferSeconds=0.0
-  init(_ p: Program) throws {
+  init(_ p: Program, binary:Data? = nil) throws {
     self.p = p
     try require(p.version == 5, "lowered matrix ABI version (recompile source program)")
     guard let d = MTLCreateSystemDefaultDevice(), let q = d.makeCommandQueue() else {
@@ -28,7 +28,9 @@ final class Executor {
     device = d
     queue = q
     let bufferStart=ProcessInfo.processInfo.systemUptime
-    heap = p.data.withUnsafeBytes {
+    let initial=binary ?? p.data.withUnsafeBytes{Data($0)}
+    for m in p.layout.values {try require(m.offset>=0 && m.rows>=0 && m.cols>0 && (m.offset+max(1,m.rows*m.cols))*4<=initial.count,"matrix outside binary frame")}
+    heap = initial.withUnsafeBytes {
       d.makeBuffer(bytes: $0.baseAddress!, length: $0.count, options: .storageModeShared)!
     }
     bufferSeconds=ProcessInfo.processInfo.systemUptime-bufferStart
@@ -362,6 +364,133 @@ final class Executor {
 
 }
 
+// Resident fragment tables: static rule program once, binary row deltas after it.
+final class TableExecutor {
+  let device:MTLDevice,queue:MTLCommandQueue,code:MTLBuffer
+  let parts:Int,slots:Int,numbers:Int,indexes:Int,rs:Int,ms:Int
+  var rows:MTLBuffer!,links:MTLBuffer!,heads:MTLBuffer!,matches:MTLBuffer!,scratch:MTLBuffer!,groups:MTLBuffer!,meta:MTLBuffer!,patch:MTLBuffer!
+  var kernels=[String:MTLComputePipelineState]()
+  var rowCount=0,rowCap=0,buckets=1,matchCount=0,matchCap=1,groupBuckets=1,epoch=0,ackEpoch=0
+  var compileSeconds=0.0,gpuSeconds=0.0,totalRetries=0
+  var args=[UInt32](repeating:0,count:10)
+  init(_ config:[String:Any]) throws {
+    try require(config["version"] as? Int == 1,"table protocol")
+    parts=config["parts"] as! Int;slots=config["slots"] as! Int;numbers=config["numbers"] as! Int;indexes=config["indexes"] as! Int
+    try require(parts>0 && slots>0,"empty table schema")
+    rs=3+slots+2*numbers;ms=4+parts
+    guard let d=MTLCreateSystemDefaultDevice(),let q=d.makeCommandQueue() else{throw NSError(domain:"Metal unavailable",code:1)}
+    device=d;queue=q
+    let words=config["code"] as! [UInt32]
+    code=words.withUnsafeBytes{d.makeBuffer(bytes:$0.baseAddress!,length:$0.count,options:.storageModeShared)!}
+    rows=try allocate(1);links=try allocate(1);heads=try allocate(1);matches=try allocate(ms);scratch=try allocate(4);groups=try allocate(3);meta=try allocate(8);patch=try allocate(1)
+    let start=ProcessInfo.processInfo.systemUptime
+    let options=MTLCompileOptions()
+    if #available(macOS 15.0, *) {options.mathMode = .safe}else{options.fastMathEnabled=false}
+    let library=try d.makeLibrary(source:config["shader"] as! String,options:options)
+    for name in ["table_patch","table_clear_indexes","table_index","table_join","table_pending","table_clear_groups","table_group_links","table_reduce","table_acknowledge"] {
+      kernels[name]=try d.makeComputePipelineState(function:library.makeFunction(name:name)!)
+    }
+    compileSeconds=ProcessInfo.processInfo.systemUptime-start
+  }
+  func allocate(_ words:Int)throws->MTLBuffer {
+    try require(words>=0 && words<Int(UInt32.max),"table buffer address range exhausted")
+    guard let b=device.makeBuffer(length:max(1,words)*4,options:.storageModeShared)else{throw NSError(domain:"table allocation failed",code:1)}
+    return b
+  }
+  func pow2(_ n:Int)throws->Int {
+    try require(n>0 && n<Int(UInt32.max)/2,"table dimension exhausted")
+    var p=1;while p<n{p*=2};return p
+  }
+  func submit(_ cb:MTLCommandBuffer)throws {
+    cb.commit();cb.waitUntilCompleted();if let e=cb.error{throw e}
+    if cb.gpuEndTime>cb.gpuStartTime {gpuSeconds+=cb.gpuEndTime-cb.gpuStartTime}
+  }
+  func grow(_ old:MTLBuffer,_ words:Int,_ preserve:Int)throws->MTLBuffer {
+    if old.length>=max(1,words)*4{return old}
+    let next=try allocate(words)
+    if preserve>0 {
+      let cb=queue.makeCommandBuffer()!,blit=cb.makeBlitCommandEncoder()!
+      blit.copy(from:old,sourceOffset:0,to:next,destinationOffset:0,size:preserve*4);blit.endEncoding();try submit(cb)
+    }
+    return next
+  }
+  func word(_ b:MTLBuffer,_ i:Int)->UInt32{b.contents().assumingMemoryBound(to:UInt32.self)[i]}
+  func encode(_ name:String,_ count:Int,_ cb:MTLCommandBuffer){
+    if count==0{return};let e=cb.makeComputeCommandEncoder()!,k=kernels[name]!
+    e.setComputePipelineState(k)
+    for (i,b) in [code,rows!,links!,heads!,matches!,scratch!,groups!,meta!].enumerated(){e.setBuffer(b,offset:0,index:i)}
+    args.withUnsafeBytes{e.setBytes($0.baseAddress!,length:$0.count,index:8)};e.setBuffer(patch,offset:0,index:9)
+    e.dispatchThreads(MTLSize(width:count,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(128,k.maxTotalThreadsPerThreadgroup),height:1,depth:1));e.endEncoding()
+  }
+  func advance(_ data:Data,audit:Bool)throws->([String:Any],[UInt32]){
+    try require(data.count>=16 && data.count%4==0,"malformed table delta")
+    func read(_ i:Int)->UInt32{data.withUnsafeBytes{$0.loadUnaligned(fromByteOffset:i*4,as:UInt32.self).littleEndian}}
+    let nextEpoch=Int(read(0)),added=Int(read(1)),removed=Int(read(2)),total=Int(read(3)),ps=1+slots+2*numbers
+    try require(nextEpoch>epoch && total==rowCount+added && data.count/4==4+added*ps+removed,"table epoch/length mismatch")
+    for i in 0..<added{try require(read(4+i*ps)<parts,"table part outside schema")}
+    for i in 0..<removed{try require(read(4+added*ps+i)<rowCount,"retired row outside previous snapshot")}
+    let beforeGpu=gpuSeconds,oldRows=rowCount,oldMatches=matchCount
+    let capacity=try pow2(max(1,total)),nextBuckets=try pow2(max(1,total*2))
+    let rehash=nextBuckets != buckets || rowCap==0
+    rows=try grow(rows,capacity*rs,rowCount*rs);links=try grow(links,capacity*max(1,indexes),rowCount*max(1,indexes))
+    rowCap=capacity
+    if rehash{heads=try allocate(nextBuckets*max(1,indexes));buckets=nextBuckets}
+    patch=data.withUnsafeBytes{device.makeBuffer(bytes:$0.baseAddress!,length:$0.count,options:.storageModeShared)!}
+    epoch=nextEpoch;rowCount=total
+    args=[UInt32(total),UInt32(oldRows),UInt32(added),UInt32(epoch),UInt32(buckets),UInt32(matchCap),UInt32(oldMatches),UInt32(matchCount),1,rehash ? 1:0]
+    memset(meta.contents(),0,32)
+    let update=queue.makeCommandBuffer()!;encode("table_patch",max(added,removed),update)
+    if rehash{encode("table_clear_indexes",buckets*indexes,update)}
+    encode("table_index",total,update);try submit(update)
+    // Storage grows losslessly. Overflow retries only the uncommitted new batch;
+    // previously completed match records and their receipt flags are preserved.
+    matchCap=max(matchCap,try pow2(max(1,oldMatches+added)))
+    matches=try grow(matches,matchCap*ms,oldMatches*ms)
+    var retries=0
+    while true {
+      args[5]=UInt32(matchCap);meta.contents().assumingMemoryBound(to:UInt32.self)[0]=UInt32(oldMatches)
+      meta.contents().assumingMemoryBound(to:UInt32.self)[1]=0
+      let cb=queue.makeCommandBuffer()!;encode("table_join",added,cb);try submit(cb)
+      try require(word(meta,1)&2==0,"too many concrete matches for table address space")
+      matchCount=Int(word(meta,0))
+      if word(meta,1)==0{break}
+      matchCap=try pow2(max(1,matchCount));matches=try grow(matches,matchCap*ms,oldMatches*ms);retries+=1
+    }
+    totalRetries+=retries;groupBuckets=try pow2(max(1,matchCount*2))
+    scratch=try grow(scratch,3*matchCap+groupBuckets,0);groups=try grow(groups,3*matchCap,0)
+    args[5]=UInt32(matchCap);args[7]=UInt32(matchCount);args[8]=UInt32(groupBuckets)
+    let reduce=queue.makeCommandBuffer()!
+    encode("table_pending",matchCount,reduce);encode("table_clear_groups",groupBuckets,reduce)
+    encode("table_group_links",matchCount,reduce);encode("table_reduce",groupBuckets,reduce);try submit(reduce)
+    let ng=Int(word(meta,3)),error=word(meta,2) != 0
+    var body=[UInt32](),na=0
+    if audit {
+      for i in 0..<matchCount where word(scratch,2*matchCap+i) != 0 {
+        body.append(UInt32(i));for j in 0..<ms{body.append(word(matches,i*ms+j))};na+=1
+      }
+    }
+    for g in 0..<ng {
+      let m=Int(word(groups,g*3));body += [UInt32(m),word(groups,g*3+1),word(groups,g*3+2)]
+      for p in 0..<parts {body.append(word(matches,m*ms+4+p))}
+    }
+    try require(body.count<=Int(UInt32.max)/4,"binary table response exceeds frame range")
+    return (["epoch":epoch,"rows":rowCount,"new_rows":added,"retired_rows":removed,"match_records":matchCount,
+      "new_matches":matchCount-oldMatches,"active_matches":Int(word(meta,7)),"pending_matches":Int(word(meta,6)),
+      "audit_rows":na,"groups":ng,"arithmetic_error":error,"index_lookups":Int(word(meta,5)),"candidate_row_visits":Int(word(meta,4)),
+      "retry_count":retries,"shader_compiles":1,"gpu_seconds":gpuSeconds-beforeGpu,
+      "matrix_bytes":[code,rows!,links!,heads!,matches!,scratch!,groups!,meta!,patch!].reduce(0){$0+$1.length},"device":device.name],body)
+  }
+  func ack(_ e:Int)throws {
+    try require(e==epoch && word(meta,2)==0,"cannot acknowledge failed/stale table batch")
+    if ackEpoch==e{return}
+    let cb=queue.makeCommandBuffer()!;encode("table_acknowledge",matchCount,cb);try submit(cb);ackEpoch=e
+  }
+}
+func sendBinary(_ words:[UInt32]) {
+  var n=UInt32(words.count*4).littleEndian
+  FileHandle.standardOutput.write(Data(bytes:&n,count:4));words.withUnsafeBytes{FileHandle.standardOutput.write(Data($0))}
+}
+
 func readFrame() throws -> Data {
   func exact(_ n:Int) throws -> Data {
     var d=Data()
@@ -381,7 +510,8 @@ func sendFrame(_ object:[String:Any]) throws {
 do {
   if CommandLine.arguments.count==2 && CommandLine.arguments[1]=="--serve" {
     var current:Executor? = nil
-    try sendFrame(["ready":true,"protocol":5])
+    var tables:TableExecutor? = nil
+    try sendFrame(["ready":true,"protocol":6])
     while true {
       let raw=try readFrame()
       let parseStart=ProcessInfo.processInfo.systemUptime
@@ -389,12 +519,14 @@ do {
       let parseSeconds=ProcessInfo.processInfo.systemUptime-parseStart
       do {
         switch message["op"] as? String {
-        case "install":
+        case "install","install_binary":
           let decodeStart=ProcessInfo.processInfo.systemUptime
           let data=try JSONSerialization.data(withJSONObject:message["program"]!)
           let p=try JSONDecoder().decode(Program.self,from:data)
+          let binary = message["op"] as? String == "install_binary" ? try readFrame() : nil
+          if let binary=binary {try require(binary.count==(message["word_count"] as! Int)*4,"binary word count mismatch")}
           let decodeSeconds=parseSeconds+ProcessInfo.processInfo.systemUptime-decodeStart
-          let next=try Executor(p)
+          let next=try Executor(p,binary:binary)
           let inheritStart=ProcessInfo.processInfo.systemUptime
           try next.inherit(current)
           let inheritSeconds=ProcessInfo.processInfo.systemUptime-inheritStart
@@ -405,6 +537,17 @@ do {
         case "advance","resume":
           guard let e=current else {throw NSError(domain:"no matrix program",code:1)}
           try sendFrame(e.step(resume:message["op"] as? String == "resume",disable:message["disable"] as? [Int] ?? []))
+        case "table_init":
+          try require(tables == nil && current == nil,"table plan already installed")
+          tables=try TableExecutor(message["config"] as! [String:Any])
+          try sendFrame(["installed":true,"shader_compiles":1,"compile_seconds":tables!.compileSeconds])
+        case "table_delta":
+          guard let t=tables else{throw NSError(domain:"missing table plan",code:1)}
+          let (report,body)=try t.advance(readFrame(),audit:message["audit"] as? Bool ?? false)
+          try sendFrame(report);sendBinary(body)
+        case "table_ack":
+          guard let t=tables else{throw NSError(domain:"missing table plan",code:1)}
+          try t.ack(message["epoch"] as! Int);try sendFrame(["acknowledged":true])
         case "close": try sendFrame(["closed":true]); exit(0)
         default: throw NSError(domain:"unknown live matrix operation",code:1)
         }

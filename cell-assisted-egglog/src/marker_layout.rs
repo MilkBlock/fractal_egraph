@@ -24,6 +24,9 @@ pub struct Markers {
     pub stats: Stats,
 }
 impl Markers {
+    pub fn columns(&self) -> &[Vec<usize>] {
+        &self.columns
+    }
     pub fn new(columns: Vec<Vec<usize>>) -> Self {
         Self {
             columns,
