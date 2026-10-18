@@ -9,6 +9,7 @@ use egglog::{
     cell_events::{CellCommitFeed, CellProducerTap},
 };
 use serde_json::json;
+use std::time::Instant;
 
 struct Compiler {
     exprs: Vec<n::Expr>,
@@ -69,6 +70,19 @@ pub struct VerificationStats {
     pub failures: usize,
 }
 #[derive(Default, Serialize)]
+pub struct PhaseTimes {
+    pub native_events_seconds: f64,
+    pub admission_seconds: f64,
+    pub routing_seconds: f64,
+    pub program_seconds: f64,
+    pub install_seconds: f64,
+    pub dispatch_seconds: f64,
+    pub verification_seconds: f64,
+    pub commit_seconds: f64,
+    /// Subset of dispatch_seconds, not an additive phase.
+    pub device_seconds: f64,
+}
+#[derive(Default, Serialize)]
 pub struct Stats {
     pub native_matches: usize,
     pub producer_events: usize,
@@ -86,6 +100,8 @@ pub struct Stats {
     pub physical_layout: Json,
     pub round_work: Vec<Json>,
     pub cartesian_combinations_bound: u64,
+    pub phase_seconds: PhaseTimes,
+    pub install_breakdown: Json,
     pub device: Json,
 }
 struct Frame {
@@ -689,6 +705,7 @@ impl NumericSession {
         if self.check_failed {
             return Err("GPU check failed; start a new session".into());
         }
+        let t = Instant::now();
         let native = self
             .source
             .eg
@@ -699,6 +716,7 @@ impl NumericSession {
         self.stats.row_events += delta.rows.len();
         self.stats.union_events += delta.unions.len();
         self.stats.producer_events += events.len();
+        self.stats.phase_seconds.native_events_seconds += t.elapsed().as_secs_f64();
         if delta.rows.is_empty()
             && delta.unions.is_empty()
             && delta.clears.is_empty()
@@ -707,6 +725,7 @@ impl NumericSession {
             self.stats.quiet_rounds += 1;
             return Ok(native.updated);
         }
+        let t = Instant::now();
         for e in events {
             self.observe(e.rule, &e.values)
         }
@@ -728,6 +747,8 @@ impl NumericSession {
         }
         self.epoch += 1;
         let choices = self.fragments()?;
+        self.stats.phase_seconds.admission_seconds += t.elapsed().as_secs_f64();
+        let t = Instant::now();
         let old_channels = self.program.channels.len();
         self.stats.cartesian_combinations_bound =
             self.stats.cartesian_combinations_bound.saturating_add(
@@ -758,6 +779,8 @@ impl NumericSession {
             }
             combinations
         };
+        self.stats.phase_seconds.routing_seconds += t.elapsed().as_secs_f64();
+        let t = Instant::now();
         let mut groups = BTreeMap::new();
         let slots = self.source.sink.slots();
         for sources in combinations {
@@ -879,6 +902,8 @@ impl NumericSession {
             self.bindings.push(binding);
             self.stats.channels += 1;
         }
+        self.stats.phase_seconds.program_seconds += t.elapsed().as_secs_f64();
+        let t = Instant::now();
         if self.program.cells.is_empty()
             || (self.program.channels.len() == old_channels && self.retired.is_empty())
         {
@@ -889,6 +914,7 @@ impl NumericSession {
                     self.stats.device.clone()
                 };
                 self.check_before_commit(&result)?;
+                self.stats.phase_seconds.verification_seconds += t.elapsed().as_secs_f64();
                 return Ok(native.updated);
             }
             let decisions = self.stats.device["decisions"]
@@ -896,13 +922,19 @@ impl NumericSession {
                 .cloned()
                 .unwrap_or_default();
             self.audit_current(&decisions)?;
+            self.stats.phase_seconds.verification_seconds += t.elapsed().as_secs_f64();
             return Ok(native.updated);
         }
         // Every old scalar/key snapshot stays immutable. A changed native row
         // creates new fragments/channels and a new canonical-key group version.
         self.device.install(&self.program)?;
         self.stats.physical_layout = self.device.layout_report.clone();
+        self.stats.install_breakdown = serde_json::to_value(&self.device.install_times)?;
+        self.stats.phase_seconds.install_seconds += t.elapsed().as_secs_f64();
+        let t = Instant::now();
         let result = self.device.step(false, &self.retired)?;
+        self.stats.phase_seconds.dispatch_seconds += t.elapsed().as_secs_f64();
+        self.stats.phase_seconds.device_seconds += result["gpu_seconds"].as_f64().unwrap_or(0.0);
         self.stats.round_work.push(json!({"new_channels":self.program.channels.len()-old_channels,"levels":result["levels"],"layout_work":result["layout_work"],"matrix_bytes":result["matrix_bytes"],"host_count_reads":result["host_count_reads"]}));
         if result["numeric"]["arithmetic_error"] == true {
             self.stats.device = result;
@@ -913,10 +945,13 @@ impl NumericSession {
         let decisions = result["decisions"]
             .as_array()
             .ok_or("missing numeric decisions")?;
+        let t = Instant::now();
         self.check_before_commit(&result)?;
         if self.checker.is_none() {
             self.audit_current(decisions)?;
         }
+        self.stats.phase_seconds.verification_seconds += t.elapsed().as_secs_f64();
+        let t = Instant::now();
         self.stats.accepted_bindings += decisions[old_channels..]
             .iter()
             .filter(|d| **d == 1)
@@ -967,6 +1002,7 @@ impl NumericSession {
         self.acknowledged.extend(0..self.group_keys.len());
         self.stats.native_sets += count;
         self.stats.device = result;
+        self.stats.phase_seconds.commit_seconds += t.elapsed().as_secs_f64();
         Ok(native.updated || count > 0)
     }
 }

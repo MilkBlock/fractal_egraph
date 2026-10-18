@@ -18,6 +18,7 @@ final class Executor {
   let p: Program, device: MTLDevice, queue: MTLCommandQueue, heap: MTLBuffer
   var kernels = [String: MTLComputePipelineState](), gpuSeconds = 0.0, hostCountReads = 0
   var calls = 0, positions = 0, macs = 0
+  var compileSeconds=0.0, bufferSeconds=0.0
   init(_ p: Program) throws {
     self.p = p
     try require(p.version == 5, "lowered matrix ABI version (recompile source program)")
@@ -26,15 +27,18 @@ final class Executor {
     }
     device = d
     queue = q
+    let bufferStart=ProcessInfo.processInfo.systemUptime
     heap = p.data.withUnsafeBytes {
       d.makeBuffer(bytes: $0.baseAddress!, length: $0.count, options: .storageModeShared)!
     }
+    bufferSeconds=ProcessInfo.processInfo.systemUptime-bufferStart
     let options = MTLCompileOptions()
     if #available(macOS 15.0, *) {
       options.mathMode = .safe
     } else {
       options.fastMathEnabled = false
     }
+    let compileStart=ProcessInfo.processInfo.systemUptime
     let library = try d.makeLibrary(source: p.shader, options: options)
     for n in [
       "update_ports", "invalidate_features", "invalidate_conditions", "clear_dirty", "admit",
@@ -45,6 +49,7 @@ final class Executor {
       do { kernels[n] = try d.makeComputePipelineState(function: library.makeFunction(name: n)!) }
       catch { throw NSError(domain:"pipeline \(n): \(error)",code:1) }
     }
+    compileSeconds=ProcessInfo.processInfo.systemUptime-compileStart
   }
   func m(_ name: String) -> Matrix { p.layout[name]! }
   func words(_ name: String) -> [UInt32] {
@@ -378,16 +383,25 @@ do {
     var current:Executor? = nil
     try sendFrame(["ready":true,"protocol":5])
     while true {
-      let message=try JSONSerialization.jsonObject(with:readFrame()) as! [String:Any]
+      let raw=try readFrame()
+      let parseStart=ProcessInfo.processInfo.systemUptime
+      let message=try JSONSerialization.jsonObject(with:raw) as! [String:Any]
+      let parseSeconds=ProcessInfo.processInfo.systemUptime-parseStart
       do {
         switch message["op"] as? String {
         case "install":
+          let decodeStart=ProcessInfo.processInfo.systemUptime
           let data=try JSONSerialization.data(withJSONObject:message["program"]!)
           let p=try JSONDecoder().decode(Program.self,from:data)
+          let decodeSeconds=parseSeconds+ProcessInfo.processInfo.systemUptime-decodeStart
           let next=try Executor(p)
+          let inheritStart=ProcessInfo.processInfo.systemUptime
           try next.inherit(current)
+          let inheritSeconds=ProcessInfo.processInfo.systemUptime-inheritStart
           current=next
-          try sendFrame(["installed":true,"cells":next.m("live").rows,"channels":next.m("decisions").rows])
+          try sendFrame(["installed":true,"cells":next.m("live").rows,"channels":next.m("decisions").rows,
+            "install_profile":["decode_seconds":decodeSeconds,"buffer_seconds":next.bufferSeconds,
+              "shader_compile_seconds":next.compileSeconds,"inherit_seconds":inheritSeconds]])
         case "advance","resume":
           guard let e=current else {throw NSError(domain:"no matrix program",code:1)}
           try sendFrame(e.step(resume:message["op"] as? String == "resume",disable:message["disable"] as? [Int] ?? []))

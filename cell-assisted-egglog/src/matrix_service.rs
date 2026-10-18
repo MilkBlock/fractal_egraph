@@ -1,12 +1,27 @@
 //! Persistent matrix worker. Installation extends immutable coordinates; device
 //! buffers, cached predicates and completed match decisions survive on the GPU.
 use crate::{Result, program::Program};
+use serde::Serialize;
 use serde_json::{Value as Json, json};
 use std::{
     io::{BufReader, Read, Write},
     path::Path,
     process::{Child, ChildStdin, ChildStdout, Command, Stdio},
+    time::Instant,
 };
+
+#[derive(Default, Serialize)]
+pub struct InstallTimes {
+    pub check_seconds: f64,
+    pub planner_seconds: f64,
+    pub lower_seconds: f64,
+    pub worker_install_seconds: f64,
+    /// The following are subsets of worker_install_seconds, not additive phases.
+    pub worker_decode_seconds: f64,
+    pub worker_buffer_seconds: f64,
+    pub worker_shader_compile_seconds: f64,
+    pub worker_inherit_seconds: f64,
+}
 
 pub struct Service {
     child: Child,
@@ -15,6 +30,7 @@ pub struct Service {
     program: Option<Program>,
     pub planner: crate::layout::Planner,
     pub layout_report: Json,
+    pub install_times: InstallTimes,
 }
 impl Drop for Service {
     fn drop(&mut self) {
@@ -150,6 +166,7 @@ impl Service {
             program: None,
             planner: crate::layout::Planner::default(),
             layout_report: Json::Null,
+            install_times: InstallTimes::default(),
         };
         let ready = read(&mut s.output)?;
         if ready["ready"] != true || ready["protocol"] != 5 {
@@ -158,6 +175,7 @@ impl Service {
         Ok(s)
     }
     pub fn install(&mut self, p: &Program) -> Result<Json> {
+        let t = Instant::now();
         if !p.updates.is_empty() {
             return Err("live inputs use immutable event versions, not replay epochs".into());
         }
@@ -165,12 +183,28 @@ impl Service {
             extension(old, p)?;
         }
         let checked = p.clone().check()?;
+        self.install_times.check_seconds += t.elapsed().as_secs_f64();
+        let t = Instant::now();
         let plan = self.planner.plan(&checked)?;
+        self.install_times.planner_seconds += t.elapsed().as_secs_f64();
+        let t = Instant::now();
         let lower = checked.lower_with_layout(&plan)?;
         self.layout_report = json!({"plan":plan,"solver_calls":self.planner.solves,"cache_hits":self.planner.cache_hits});
+        self.install_times.lower_seconds += t.elapsed().as_secs_f64();
+        let t = Instant::now();
         write(&mut self.input, &json!({"op":"install","program":lower}))?;
         let r = read(&mut self.output)?;
+        let profile = &r["install_profile"];
+        self.install_times.worker_decode_seconds +=
+            profile["decode_seconds"].as_f64().unwrap_or(0.0);
+        self.install_times.worker_buffer_seconds +=
+            profile["buffer_seconds"].as_f64().unwrap_or(0.0);
+        self.install_times.worker_shader_compile_seconds +=
+            profile["shader_compile_seconds"].as_f64().unwrap_or(0.0);
+        self.install_times.worker_inherit_seconds +=
+            profile["inherit_seconds"].as_f64().unwrap_or(0.0);
         self.program = Some(p.clone());
+        self.install_times.worker_install_seconds += t.elapsed().as_secs_f64();
         Ok(r)
     }
     pub fn step(&mut self, resume: bool, disable: &[usize]) -> Result<Json> {

@@ -160,8 +160,9 @@ The native helpers and GPU consumer run in explicit driver rounds. Correctness
 controls compare final typed graphs and complete binding sets; they do not assert
 one driver round equals one original ruleset iteration. `--audit true` queries the
 full native LHS separately, rejects duplicate/invalid emissions, and counts
-current bindings not yet observed. The oracle never supplies candidates. Audits
-and graph dumps are excluded from reported execution timing.
+current bindings not yet observed. The oracle never supplies candidates. Enabled audits/checkers run inside the driver and therefore contribute to execution
+time. Performance measurements must disable them and verify in separate runs.
+Graph dumps run afterward and are skipped entirely without `--dump`.
 
 ## Reproduce offline
 
@@ -273,3 +274,12 @@ one generated layout and real Metal/MPS computation. Existing Bake experiments
 now feed that same executable path. It is the first implementation slice of
 [MATRIX_PLAN.md](MATRIX_PLAN.md), not yet an automatic replacement for the native
 resident runtime or a completed FractalComb compressor.
+
+## Matched-result release benchmarks
+
+The [benchmark harness](bench/README.md) builds the same public-API consumer against
+pristine `egglog-baseline` and the current fork, then compares GPU variants on
+identical inputs and exact final results. It separates checking from timing,
+accounts for setup/input/solver/transport/commit, and reports library bytes and
+sampled process-tree RSS. The current [results](bench/RESULTS.md) show no pristine
+speedup; worker JSON conversion, marker routing and layout solving dominate.

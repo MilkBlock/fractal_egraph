@@ -35,69 +35,17 @@ fn planner(a: &BTreeMap<String, String>) -> cell_assisted_egglog::layout::Planne
     p.costs = a.get("--layout-costs").map(PathBuf::from);
     p
 }
-fn snapshot(eg: &EGraph) -> Result<Json> {
-    let mut rows = vec![];
-    let names = eg.get_function_names();
-    let eq: std::collections::BTreeSet<_> = names
-        .iter()
-        .filter_map(|n| eg.get_function(n))
-        .filter(|f| f.is_constructor())
-        .map(|f| f.schema().output.name().to_owned())
-        .collect();
-    for name in names {
-        if name.starts_with('@') {
-            continue;
-        }
-        let f = eg.get_function(&name).unwrap();
-        if f.is_let_binding() {
-            continue;
-        }
-        eg.function_for_each(&name, |r| {
-            let args = r
-                .vals
-                .iter()
-                .zip(&f.schema().input)
-                .map(|(v, t)| {
-                    let value = if eq.contains(t.name()) {
-                        format!("{}:{:?}", t.name(), eg.get_canonical_value(*v, t))
-                    } else {
-                        match t.name() {
-                            "i64" => eg.value_to_base::<i64>(*v).to_string(),
-                            "bool" => eg.value_to_base::<bool>(*v).to_string(),
-                            "String" => eg.value_to_base::<egglog::sort::S>(*v).to_string(),
-                            "Unit" => "()".into(),
-                            other => panic!("unsupported snapshot sort {other}"),
-                        }
-                    };
-                    json!([t.name(), value])
-                })
-                .collect::<Vec<_>>();
-            let v = *r.vals.last().unwrap();
-            let sort = f.schema().output.name();
-            let result = if eq.contains(sort) {
-                format!(
-                    "{}:{:?}",
-                    sort,
-                    eg.get_canonical_value(v, &f.schema().output)
-                )
-            } else {
-                match sort {
-                    "i64" => eg.value_to_base::<i64>(v).to_string(),
-                    "bool" => eg.value_to_base::<bool>(v).to_string(),
-                    "String" => eg.value_to_base::<egglog::sort::S>(v).to_string(),
-                    "Unit" => "()".into(),
-                    other => panic!("unsupported snapshot sort {other}"),
-                }
-            };
-            rows.push(
-                json!({"op":name,"sort":sort,"args":args,"result":result,"subsumed":r.subsumed}),
-            );
-        })?;
-    }
-    Ok(json!(rows))
-}
+mod public_snapshot;
+use public_snapshot::snapshot;
+
 fn run() -> Result<()> {
     let a = args()?;
+    if !matches!(
+        a.get("--report-detail").map(String::as_str),
+        None | Some("full" | "summary")
+    ) {
+        return Err("--report-detail expects full or summary".into());
+    }
     let gpu_check = match a.get("--gpu-check").map(String::as_str).unwrap_or("off") {
         "on" | "true" => true,
         "off" | "false" => false,
@@ -160,6 +108,10 @@ fn run() -> Result<()> {
         .unwrap_or_default();
     env.push_str("\n");
     env.push_str(&extension);
+    if mode == "environment" {
+        println!("{env}");
+        return Ok(());
+    }
     if mode == "inspect" {
         let mut eg = EGraph::default();
         eg.parse_and_run_program(None, &env)?;
@@ -174,7 +126,7 @@ fn run() -> Result<()> {
     }
     let rounds: usize = required(&a, "--rounds")?.parse()?;
     let input = std::fs::read_to_string(required(&a, "--input")?)?;
-    let (report, graph) = if mode == "off" {
+    let (mut report, graph) = if mode == "off" {
         let mut eg = EGraph::default();
         eg.parse_and_run_program(None, &env)?;
         let setup = start.elapsed().as_secs_f64();
@@ -190,7 +142,7 @@ fn run() -> Result<()> {
         let elapsed = t.elapsed().as_secs_f64();
         (
             json!({"mode":mode,"setup_seconds":setup,"input_seconds":input_time,"run_seconds":elapsed,"native_matches":matches,"scope":"fork native rules, no Cell assistance or tracing"}),
-            snapshot(&eg)?,
+            snapshot(&eg, a.contains_key("--dump"))?,
         )
     } else {
         let native = required(&a, "--native")?
@@ -216,15 +168,18 @@ fn run() -> Result<()> {
                     .unwrap_or("cartesian"),
                 planner(&a),
             )?;
+            let setup = start.elapsed().as_secs_f64();
+            let t = Instant::now();
             numeric.input(&input)?;
+            let input_time = t.elapsed().as_secs_f64();
             let t = Instant::now();
             let mut progress = vec![];
             for _ in 0..rounds {
                 progress.push(numeric.round()?);
             }
             (
-                json!({"mode":mode,"run_seconds":t.elapsed().as_secs_f64(),"progress":progress,"stats":numeric.stats,"scope":"shared matrix matching, exact GPU i64 guards/RHS/min-max; one native set per changed key; no general effectful Bake claim"}),
-                snapshot(numeric.engine())?,
+                json!({"mode":mode,"setup_seconds":setup,"input_seconds":input_time,"run_seconds":t.elapsed().as_secs_f64(),"progress":progress,"stats":numeric.stats,"scope":"shared matrix matching, exact GPU i64 guards/RHS/min-max; one native set per changed key; no general effectful Bake claim"}),
+                snapshot(numeric.engine(), a.contains_key("--dump"))?,
             )
         } else if mode == "matrix-live" {
             let mut live = cell_assisted_egglog::live::LiveSession::new(
@@ -239,15 +194,17 @@ fn run() -> Result<()> {
                 live.facts = n.parse()?;
             }
             let setup = start.elapsed().as_secs_f64();
+            let input_tick = Instant::now();
             live.input(&input)?;
+            let input_time = input_tick.elapsed().as_secs_f64();
             let t = Instant::now();
             let mut progress = vec![];
             for _ in 0..rounds {
                 progress.push(live.round()?);
             }
             (
-                json!({"mode":mode,"setup_seconds":setup,"run_seconds":t.elapsed().as_secs_f64(),"progress":progress,"live":live.report()}),
-                snapshot(live.engine())?,
+                json!({"mode":mode,"setup_seconds":setup,"input_seconds":input_time,"run_seconds":t.elapsed().as_secs_f64(),"progress":progress,"live":live.report()}),
+                snapshot(live.engine(), a.contains_key("--dump"))?,
             )
         } else if mode == "resident" {
             let mut resident = cell_assisted_egglog::resident::ResidentSession::new(
@@ -266,7 +223,7 @@ fn run() -> Result<()> {
             let elapsed = t.elapsed().as_secs_f64();
             (
                 json!({"mode":mode,"setup_seconds":setup,"input_seconds":input_time,"run_seconds":elapsed,"work_progress":progress,"plan":resident.describe(),"stats":resident.stats,"scope":"resident GPU Cell proof maintenance and delta matching; native RHS and commits"}),
-                snapshot(resident.engine())?,
+                snapshot(resident.engine(), a.contains_key("--dump"))?,
             )
         } else {
             let mut backend: Box<dyn matrix::Matcher> = match mode {
@@ -289,10 +246,30 @@ fn run() -> Result<()> {
             let elapsed = t.elapsed().as_secs_f64();
             (
                 json!({"mode":mode,"setup_seconds":setup,"input_seconds":input_time,"run_seconds":elapsed,"semantic_progress":progress,"stats":session.stats,"plan":description,"scope":"analyze-covered positive Cell fragments; uncovered instances remain pending, not failed matches; no claim of arbitrary-rule completeness"}),
-                snapshot(session.engine())?,
+                snapshot(session.engine(), a.contains_key("--dump"))?,
             )
         }
     };
+    report["core_seconds"] = json!(
+        report["setup_seconds"].as_f64().unwrap_or(0.0)
+            + report["input_seconds"].as_f64().unwrap_or(0.0)
+            + report["run_seconds"].as_f64().unwrap_or(0.0)
+    );
+    report["graph_snapshot_requested"] = json!(a.contains_key("--dump"));
+    if a.get("--report-detail").map(String::as_str) == Some("summary") {
+        if let Some(stats) = report.get_mut("stats").and_then(Json::as_object_mut) {
+            let device = stats.remove("device").unwrap_or(Json::Null);
+            stats.insert(
+                "device_summary".into(),
+                json!({"device":device["device"],"matrix_bytes":device["matrix_bytes"]}),
+            );
+            stats.remove("round_work");
+            if let Some(layout) = stats.get_mut("physical_layout") {
+                let r = layout["plan"]["report"].clone();
+                *layout = json!({"solver_calls":layout["solver_calls"],"cache_hits":layout["cache_hits"],"reference_objective":r["objective"],"solver":r["solver"]});
+            }
+        }
+    }
     if let Some(path) = a.get("--dump") {
         std::fs::write(path, serde_json::to_vec(&graph)?)?;
     }

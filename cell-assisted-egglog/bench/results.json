@@ -1,0 +1,2372 @@
+{
+  "schema": "cell-layout-bench/v1",
+  "platform": "macOS-15.3.1-arm64-arm-64bit",
+  "baseline_commit": "c7553a6c2b16c529c13f3eb7eecd742495b992d3",
+  "binary_provenance": {
+    "assisted": {
+      "path": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/target/cell-assisted/release/cell-assisted-egglog",
+      "sha256": "01699dd115a53f549b641a04ec88356f249033bcc94710194701e0e0ed861a70"
+    },
+    "worker": {
+      "path": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-layout-bench-build-profiled/matrix-metal",
+      "sha256": "7e80d18427338829eb913ce1b500d8f658eb7f3074e86472f283b0e70bd66959"
+    },
+    "pristine": {
+      "path": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-layout-bench-build-profiled/native-pristine",
+      "sha256": "fdf6f26e2a1c8f4d75c5a8c29ac35e411d166bcbd429c91c11af37cd230f07b2"
+    },
+    "fork": {
+      "path": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-layout-bench-build-profiled/native-fork",
+      "sha256": "75146485476a4c265fb8ba7d7de306fa0b5ad89cfdeb0a3f9ba0450c5160c59d"
+    }
+  },
+  "rustc": "rustc 1.94.0 (4a4ef493e 2026-03-02)\nbinary: rustc\ncommit-hash: 4a4ef493e3a1488c6e321570238084b38948f6db\ncommit-date: 2026-03-02\nhost: aarch64-apple-darwin\nrelease: 1.94.0\nLLVM version: 21.1.8\n",
+  "profile": "release ThinLTO codegen-units=1; System allocator",
+  "source_hashes": {
+    "cell-assisted-egglog/src/analyze_program.rs": "66124f2723619f359a80b7cb98e298a918f9411c21f59946c66b2225885b3a6d",
+    "cell-assisted-egglog/src/compile.rs": "95bfa2f32d640c9b4bfced1ece73a7eedfb93a3c9a72ad3d1530ba21d5f58409",
+    "cell-assisted-egglog/src/layout.rs": "4afaa249b461997445666dd8b775c5f7517b021ce2caed813db54f15feba3104",
+    "cell-assisted-egglog/src/lib.rs": "7bdbd3098cd2919941fc972437bfef7da278099e7b61e6f1c5406d7d6fac2e9d",
+    "cell-assisted-egglog/src/live.rs": "987e4406114999d9abdb2b04c7d53ec4a51fb6efe5a9c7ec55d5c0aeae950fc2",
+    "cell-assisted-egglog/src/live_bake.rs": "cf4705d8b5baa86e456c748578be92ca2114836bb69e846f4f628e71a77a2ee9",
+    "cell-assisted-egglog/src/main.rs": "45f9e76e094f6dc494cab2a22d5a05361e9b1cb877663aeb4f0a4837a6b66096",
+    "cell-assisted-egglog/src/marker_layout.rs": "5121c8072f6c497fc7a5a260f84d58ffeb70b1c0515e932062d8b0af025539a5",
+    "cell-assisted-egglog/src/matrix.rs": "78cf5f350447ba4be83a11a49e60f046a0cb837f309eef85c2daff3ab4c9ccbc",
+    "cell-assisted-egglog/src/matrix_service.rs": "7ee6fe99e902c37764f16148b4ce0176e0597827d38c34f4a9b92c898ec85ef1",
+    "cell-assisted-egglog/src/numeric.rs": "340b4352c179f80cbb1751e10b2a20fc3a835c1dad03a3f7f70760a25c18fd95",
+    "cell-assisted-egglog/src/numeric_lower.rs": "efb014e709d73174d1fc2c46691f4d1eff90c73bedea91482543e9af0537fe1e",
+    "cell-assisted-egglog/src/numeric_native.rs": "c6913faeff49182592cc8e8514cfa052a4ecf480e91dac20aad56cfc5ec2d8de",
+    "cell-assisted-egglog/src/program.rs": "76909e5d95629e6c43b9d9ac3a6da803d5061e0a2db22a2b02f7eb0b0046b7d1",
+    "cell-assisted-egglog/src/public_snapshot.rs": "54666f0d64f9a92710fb4a00fcef3f8a91a9b13cb3f2217baa60dec50433faf7",
+    "cell-assisted-egglog/src/resident.rs": "c32c8705d4a0c3e31230646f46aeb4e1dfe9ae45593b3e539ae983dda6fac945",
+    "cell-assisted-egglog/bench/native.rs": "a072bb1b8232823272d64f4aa7435717ec3fcc04ff4e19245dab48a83afeeb83",
+    "cell-assisted-egglog/bench/build.py": "1dd233b717b660f674b4fba9b3e68e050d58249fdda0f2abdd13487504f67d93",
+    "cell-assisted-egglog/matrix.swift": "aa864ea729f14f6a9745178d34e6276b39ba4811ddbab12890639dc696963ad2",
+    "cell-assisted-egglog/matrix.metal": "8bb441670e91da872d4acaa79562aa59028aa2ba193e8fd8277ee8d4862704e7",
+    "cell-assisted-egglog/numeric.metal": "6163492ec49ecb7be3b4d8789d6049a110eca469c19ec1e6f3d43aee297e4792",
+    "cell-assisted-egglog/layout_solver.py": "8a84d5ae3d1166f22c244609cd34bcef5e50c7a61ed97634f4f4ce62ed54b2ee",
+    "cell-assisted-egglog/Cargo.toml": "42a5d99f83f550a7cddd75c971894190ed55a60bd02bff63afd3f2110d9a93b8",
+    "cell-assisted-egglog/Cargo.lock": "35f6e41fbd40196389beb6f3033ebf9087edfe9a9f9e3f52046cca8ee6c4dcd3",
+    "tools/cell_spine/solver.py": "164f72220dade65d670891ed1c488e521214857039b14309dfd6ba1b86a2d86b"
+  },
+  "harness_sha256": "b430544ac03dcdd9edd46c9aba31156480fde8e2b99ca4901c4dcbadbfce6614",
+  "library_bytes": 20244,
+  "library": {
+    "catalog/catalog.json": {
+      "bytes": 13422,
+      "sha256": "b8b7597fbc39804408eff4d0e443b174f9a2e880d503c6daf155217c068acf73"
+    },
+    "catalog/states/state-0000.json": {
+      "bytes": 1075,
+      "sha256": "4332dfff46c7da9f66a1aabb116e9e20206761abe9c5aa3e7126bb6d91b0efbd"
+    },
+    "catalog/states/state-0001.json": {
+      "bytes": 1352,
+      "sha256": "fcc308d4cad863bf45e3edb37a72836dd9359161e31ecb03d64c7cba5616b736"
+    },
+    "history.json": {
+      "bytes": 4395,
+      "sha256": "1c05814e7a63e62b46209d879280135dfecf32fafd8974d3945b9f35c42ba9c3"
+    }
+  },
+  "threads": 4,
+  "notes": [
+    "Single/Get Cell comes from real analyze; Offer/Best and sparse-cycle consumers are controlled workloads, not a full eggcc pass.",
+    "All binaries release; verification and graph dumps are separate fresh processes; build and old offline Bake are excluded.",
+    "Core includes setup/input/all driver rounds; run includes event/marker maintenance, solving, shader install, transfer, GPU execution and native commits.",
+    "Process wall includes startup/report/teardown; wait is independent of the RSS sampler. GPU device time is only a subset of dispatch time.",
+    "RSS is a 10ms sampled sum over currently live processes; can miss peaks and double-count shared pages. It is not GPU buffer size.",
+    "One fresh process per variant; OS/Metal compiler caches are not flushed. No averaging or confidence interval; sub-millisecond differences are not stable speedups.",
+    "The old Cartesian assistant is only a small local-case diagnostic, never the native reference. Multi-table cases compare pristine/fork with indexed variants."
+  ],
+  "cases": [
+    {
+      "kind": "local",
+      "instances": 16,
+      "lhs_atoms": 3,
+      "input_sha256": "17985b3ff2d035a221b1d6f8a6a7f227705d86427142abaa0df31d8300978e3c",
+      "environment_sha256": "ccd36275f000e1ffbd1ebc1140fb16c5608d6eb7f2c9b1871d3a52b18fe694bc",
+      "graph": {
+        "exact_equal": true,
+        "enodes": 112,
+        "eclasses": 96,
+        "sorts": {
+          "@OfferSort": {
+            "enodes": 48,
+            "eclasses": 48
+          },
+          "Expr": {
+            "enodes": 64,
+            "eclasses": 48
+          }
+        },
+        "primitive_values_exact": true,
+        "total_rows": 128
+      },
+      "runs": {
+        "pristine": {
+          "core_seconds": 0.004843251,
+          "setup_seconds": 0.002234792,
+          "input_seconds": 0.002451042,
+          "run_seconds": 0.000157417,
+          "process_wall_seconds": 0.05246091599999997,
+          "sampled_peak_process_tree_rss_bytes": 32768,
+          "rss_samples": 2,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.008110958000000057,
+            "stats": null
+          },
+          "native_matches": 48,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null
+        },
+        "fork": {
+          "core_seconds": 0.004930958,
+          "setup_seconds": 0.002527209,
+          "input_seconds": 0.002228708,
+          "run_seconds": 0.000175041,
+          "process_wall_seconds": 0.046953416000000026,
+          "sampled_peak_process_tree_rss_bytes": 32768,
+          "rss_samples": 2,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.014298457999999958,
+            "stats": null
+          },
+          "native_matches": 48,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null
+        },
+        "marker-paired": {
+          "core_seconds": 0.47623166699999997,
+          "setup_seconds": 0.25337775,
+          "input_seconds": 0.001983625,
+          "run_seconds": 0.220870292,
+          "process_wall_seconds": 0.488022584,
+          "sampled_peak_process_tree_rss_bytes": 26443776,
+          "rss_samples": 20,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 0.0937663339999999,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 32,
+              "native_bindings": 32,
+              "proposals": 32
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 32,
+          "native_sets": 16,
+          "phase_seconds": {
+            "admission_seconds": 0.000192124,
+            "commit_seconds": 8.7959e-05,
+            "device_seconds": 0.0007236660458147526,
+            "dispatch_seconds": 0.003951375,
+            "install_seconds": 0.216302958,
+            "native_events_seconds": 5.0002e-05,
+            "program_seconds": 8.866700000000001e-05,
+            "routing_seconds": 0.000180625,
+            "verification_seconds": 8.749999999999999e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.0014248750000000001,
+            "lower_seconds": 0.000410957,
+            "planner_seconds": 1.0876e-05,
+            "worker_buffer_seconds": 4.3208710849285126e-05,
+            "worker_decode_seconds": 0.02029849961400032,
+            "worker_inherit_seconds": 0.007370333652943373,
+            "worker_install_seconds": 0.214301208,
+            "worker_shader_compile_seconds": 0.1545307501219213
+          },
+          "marker_work": {
+            "emitted_combinations": 96,
+            "index_probes": 400,
+            "indexed_rows_visited": 704,
+            "live_index_entries": 144,
+            "marker_rows_added": 96,
+            "marker_rows_removed": 16
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": false,
+            "solver_calls": 0
+          }
+        },
+        "marker-solver": {
+          "core_seconds": 0.349303417,
+          "setup_seconds": 0.007586542,
+          "input_seconds": 0.002025333,
+          "run_seconds": 0.339691542,
+          "process_wall_seconds": 0.3604775,
+          "sampled_peak_process_tree_rss_bytes": 58212352,
+          "rss_samples": 15,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 0.25006366599999996,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 32,
+              "native_bindings": 32,
+              "proposals": 32
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 32,
+          "native_sets": 16,
+          "phase_seconds": {
+            "admission_seconds": 0.0001955,
+            "commit_seconds": 8.237400000000001e-05,
+            "device_seconds": 0.0015039155259728432,
+            "dispatch_seconds": 0.0054484170000000005,
+            "install_seconds": 0.333603625,
+            "native_events_seconds": 5.0459999999999995e-05,
+            "program_seconds": 0.000109791,
+            "routing_seconds": 0.000180542,
+            "verification_seconds": 8.33e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.001459625,
+            "lower_seconds": 0.000451209,
+            "planner_seconds": 0.270952875,
+            "worker_buffer_seconds": 3.795791417360306e-05,
+            "worker_decode_seconds": 0.020800208672881126,
+            "worker_inherit_seconds": 0.006915041711181402,
+            "worker_install_seconds": 0.060571999,
+            "worker_shader_compile_seconds": 0.0028919163160026073
+          },
+          "marker_work": {
+            "emitted_combinations": 96,
+            "index_probes": 400,
+            "indexed_rows_visited": 704,
+            "live_index_entries": 144,
+            "marker_rows_added": 96,
+            "marker_rows_removed": 16
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": 14444.16,
+            "solver": {
+              "backend": "scip",
+              "models": {
+                "matrix_layout": {
+                  "api_build_seconds": 0.03546434920281172,
+                  "engine_version": "10.0.2",
+                  "models": 1,
+                  "nonoptimal_solves": 0,
+                  "peak_constraints": 144,
+                  "peak_variables": 518,
+                  "solve_calls": 1,
+                  "solve_seconds": 0.004627583082765341
+                }
+              },
+              "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+              "python_package_version": "6.3.0",
+              "threads": 1
+            },
+            "solver_calls": 2
+          }
+        },
+        "cartesian-gram": {
+          "core_seconds": 2.544962042,
+          "setup_seconds": 0.007302084,
+          "input_seconds": 0.001944833,
+          "run_seconds": 2.535715125,
+          "process_wall_seconds": 2.5715822500000005,
+          "sampled_peak_process_tree_rss_bytes": 409862144,
+          "rss_samples": 103,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 2.3626320420000004,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 32,
+              "native_bindings": 32,
+              "proposals": 32
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 32,
+          "native_sets": 16,
+          "phase_seconds": {
+            "admission_seconds": 0.000192375,
+            "commit_seconds": 0.0011868739999999999,
+            "device_seconds": 0.028868417255580425,
+            "dispatch_seconds": 0.098981458,
+            "install_seconds": 2.419687209,
+            "native_events_seconds": 5.8459000000000004e-05,
+            "program_seconds": 0.014007751,
+            "routing_seconds": 0.0015761669999999998,
+            "verification_seconds": 6.66e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.464046708,
+            "lower_seconds": 0.5518959170000001,
+            "planner_seconds": 5.1083e-05,
+            "worker_buffer_seconds": 0.0017629582434892654,
+            "worker_decode_seconds": 1.1221740413457155,
+            "worker_inherit_seconds": 0.06416487507522106,
+            "worker_install_seconds": 1.397497708,
+            "worker_shader_compile_seconds": 0.13864087499678135
+          },
+          "marker_work": null,
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": false,
+            "solver_calls": 0
+          }
+        },
+        "marker-gram": {
+          "core_seconds": 0.224652251,
+          "setup_seconds": 0.006611542,
+          "input_seconds": 0.001867667,
+          "run_seconds": 0.216173042,
+          "process_wall_seconds": 0.2345339580000001,
+          "sampled_peak_process_tree_rss_bytes": 30474240,
+          "rss_samples": 10,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 0.11481550000000063,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 32,
+              "native_bindings": 32,
+              "proposals": 32
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 32,
+          "native_sets": 16,
+          "phase_seconds": {
+            "admission_seconds": 0.00018350000000000002,
+            "commit_seconds": 8.3833e-05,
+            "device_seconds": 0.0002793329767882824,
+            "dispatch_seconds": 0.017617,
+            "install_seconds": 0.19794725,
+            "native_events_seconds": 4.733199999999999e-05,
+            "program_seconds": 9.8792e-05,
+            "routing_seconds": 0.000177542,
+            "verification_seconds": 8.749999999999999e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.0013534579999999999,
+            "lower_seconds": 0.000430375,
+            "planner_seconds": 1.8750000000000003e-06,
+            "worker_buffer_seconds": 5.929172039031982e-05,
+            "worker_decode_seconds": 0.03510558372363448,
+            "worker_inherit_seconds": 0.0066224997863173485,
+            "worker_install_seconds": 0.19601000000000002,
+            "worker_shader_compile_seconds": 0.12621324975043535
+          },
+          "marker_work": {
+            "emitted_combinations": 96,
+            "index_probes": 400,
+            "indexed_rows_visited": 704,
+            "live_index_entries": 144,
+            "marker_rows_added": 96,
+            "marker_rows_removed": 16
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": false,
+            "solver_calls": 0
+          }
+        }
+      }
+    },
+    {
+      "kind": "local",
+      "instances": 64,
+      "lhs_atoms": 3,
+      "input_sha256": "3a4cb849e09b27aae8ef668340cbdb632d481ff8f2a4f3a7ec85766830df7daa",
+      "environment_sha256": "ccd36275f000e1ffbd1ebc1140fb16c5608d6eb7f2c9b1871d3a52b18fe694bc",
+      "graph": {
+        "exact_equal": true,
+        "enodes": 448,
+        "eclasses": 384,
+        "sorts": {
+          "@OfferSort": {
+            "enodes": 192,
+            "eclasses": 192
+          },
+          "Expr": {
+            "enodes": 256,
+            "eclasses": 192
+          }
+        },
+        "primitive_values_exact": true,
+        "total_rows": 512
+      },
+      "runs": {
+        "pristine": {
+          "core_seconds": 0.007279458000000001,
+          "setup_seconds": 0.000727583,
+          "input_seconds": 0.006331375,
+          "run_seconds": 0.0002205,
+          "process_wall_seconds": 0.01352758300000012,
+          "sampled_peak_process_tree_rss_bytes": 212992,
+          "rss_samples": 1,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.013712874999999514,
+            "stats": null
+          },
+          "native_matches": 192,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null
+        },
+        "fork": {
+          "core_seconds": 0.007690916,
+          "setup_seconds": 0.000794416,
+          "input_seconds": 0.006664875,
+          "run_seconds": 0.000231625,
+          "process_wall_seconds": 0.014278084000000746,
+          "sampled_peak_process_tree_rss_bytes": 229376,
+          "rss_samples": 1,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.013112125000000141,
+            "stats": null
+          },
+          "native_matches": 192,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null
+        },
+        "marker-paired": {
+          "core_seconds": 0.271782584,
+          "setup_seconds": 0.006769458,
+          "input_seconds": 0.006741792,
+          "run_seconds": 0.258271334,
+          "process_wall_seconds": 0.2841022500000001,
+          "sampled_peak_process_tree_rss_bytes": 44662784,
+          "rss_samples": 12,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 0.16242866700000036,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 128,
+              "native_bindings": 128,
+              "proposals": 128
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 128,
+          "native_sets": 64,
+          "phase_seconds": {
+            "admission_seconds": 0.000663875,
+            "commit_seconds": 0.000142374,
+            "device_seconds": 0.0013121669180691242,
+            "dispatch_seconds": 0.00794425,
+            "install_seconds": 0.247897708,
+            "native_events_seconds": 7.7084e-05,
+            "program_seconds": 0.00032204200000000003,
+            "routing_seconds": 0.001202916,
+            "verification_seconds": 7.5e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.005690666,
+            "lower_seconds": 0.001248458,
+            "planner_seconds": 2.2909999999999997e-06,
+            "worker_buffer_seconds": 0.00010004173964262009,
+            "worker_decode_seconds": 0.07524445885792375,
+            "worker_inherit_seconds": 0.009934583213180304,
+            "worker_install_seconds": 0.240633792,
+            "worker_shader_compile_seconds": 0.12646850012242797
+          },
+          "marker_work": {
+            "emitted_combinations": 384,
+            "index_probes": 4672,
+            "indexed_rows_visited": 8960,
+            "live_index_entries": 576,
+            "marker_rows_added": 384,
+            "marker_rows_removed": 64
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": false,
+            "solver_calls": 0
+          }
+        },
+        "marker-solver": {
+          "core_seconds": 0.343916458,
+          "setup_seconds": 0.006420583,
+          "input_seconds": 0.006471667,
+          "run_seconds": 0.331024208,
+          "process_wall_seconds": 0.3563079999999994,
+          "sampled_peak_process_tree_rss_bytes": 95010816,
+          "rss_samples": 15,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 0.3598425840000008,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 128,
+              "native_bindings": 128,
+              "proposals": 128
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 128,
+          "native_sets": 64,
+          "phase_seconds": {
+            "admission_seconds": 0.000678043,
+            "commit_seconds": 0.000142042,
+            "device_seconds": 0.0019711670465767384,
+            "dispatch_seconds": 0.0091,
+            "install_seconds": 0.319427459,
+            "native_events_seconds": 7.5124e-05,
+            "program_seconds": 0.00035400000000000004,
+            "routing_seconds": 0.001215333,
+            "verification_seconds": 9.99e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.005393292,
+            "lower_seconds": 0.001279416,
+            "planner_seconds": 0.197552291,
+            "worker_buffer_seconds": 0.0001327916979789734,
+            "worker_decode_seconds": 0.0748182088136673,
+            "worker_inherit_seconds": 0.008369541261345148,
+            "worker_install_seconds": 0.114822459,
+            "worker_shader_compile_seconds": 0.003009083680808544
+          },
+          "marker_work": {
+            "emitted_combinations": 384,
+            "index_probes": 4672,
+            "indexed_rows_visited": 8960,
+            "live_index_entries": 576,
+            "marker_rows_added": 384,
+            "marker_rows_removed": 64
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": 56624.64,
+            "solver": {
+              "backend": "scip",
+              "models": {
+                "matrix_layout": {
+                  "api_build_seconds": 0.039943878538906574,
+                  "engine_version": "10.0.2",
+                  "models": 1,
+                  "nonoptimal_solves": 0,
+                  "peak_constraints": 576,
+                  "peak_variables": 2054,
+                  "solve_calls": 1,
+                  "solve_seconds": 0.02352404175326228
+                }
+              },
+              "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+              "python_package_version": "6.3.0",
+              "threads": 1
+            },
+            "solver_calls": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "local",
+      "instances": 256,
+      "lhs_atoms": 3,
+      "input_sha256": "276a2177a24e9e59e7eec9b48500de1fb5c39b40bbf7fa49c69f4b5c51dd70db",
+      "environment_sha256": "ccd36275f000e1ffbd1ebc1140fb16c5608d6eb7f2c9b1871d3a52b18fe694bc",
+      "graph": {
+        "exact_equal": true,
+        "enodes": 1792,
+        "eclasses": 1536,
+        "sorts": {
+          "@OfferSort": {
+            "enodes": 768,
+            "eclasses": 768
+          },
+          "Expr": {
+            "enodes": 1024,
+            "eclasses": 768
+          }
+        },
+        "primitive_values_exact": true,
+        "total_rows": 2048
+      },
+      "runs": {
+        "pristine": {
+          "core_seconds": 0.026299749999999997,
+          "setup_seconds": 0.000744625,
+          "input_seconds": 0.024872875,
+          "run_seconds": 0.00068225,
+          "process_wall_seconds": 0.03502341699999967,
+          "sampled_peak_process_tree_rss_bytes": 8552448,
+          "rss_samples": 2,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.03824058300000033,
+            "stats": null
+          },
+          "native_matches": 768,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null
+        },
+        "fork": {
+          "core_seconds": 0.027808335,
+          "setup_seconds": 0.000755667,
+          "input_seconds": 0.026338959,
+          "run_seconds": 0.000713709,
+          "process_wall_seconds": 0.0373481249999994,
+          "sampled_peak_process_tree_rss_bytes": 8781824,
+          "rss_samples": 2,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.03804066599999878,
+            "stats": null
+          },
+          "native_matches": 768,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null
+        },
+        "marker-paired": {
+          "core_seconds": 0.5776438319999999,
+          "setup_seconds": 0.006525208,
+          "input_seconds": 0.026973666,
+          "run_seconds": 0.544144958,
+          "process_wall_seconds": 0.5853625409999985,
+          "sampled_peak_process_tree_rss_bytes": 71876608,
+          "rss_samples": 24,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 0.5152379589999985,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 512,
+              "native_bindings": 512,
+              "proposals": 512
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 512,
+          "native_sets": 256,
+          "phase_seconds": {
+            "admission_seconds": 0.002835459,
+            "commit_seconds": 0.000299666,
+            "device_seconds": 0.0058559998869895935,
+            "dispatch_seconds": 0.014095334000000001,
+            "install_seconds": 0.510438167,
+            "native_events_seconds": 0.000241418,
+            "program_seconds": 0.001370208,
+            "routing_seconds": 0.014813459,
+            "verification_seconds": 5.83e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.023898000000000003,
+            "lower_seconds": 0.005829875,
+            "planner_seconds": 3.291e-06,
+            "worker_buffer_seconds": 0.00025345897302031517,
+            "worker_decode_seconds": 0.2905972497537732,
+            "worker_inherit_seconds": 0.013960083480924368,
+            "worker_install_seconds": 0.48003604200000005,
+            "worker_shader_compile_seconds": 0.13339837500825524
+          },
+          "marker_work": {
+            "emitted_combinations": 1536,
+            "index_probes": 67840,
+            "indexed_rows_visited": 134144,
+            "live_index_entries": 2304,
+            "marker_rows_added": 1536,
+            "marker_rows_removed": 256
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": false,
+            "solver_calls": 0
+          }
+        },
+        "marker-solver": {
+          "core_seconds": 1.272996167,
+          "setup_seconds": 0.006806167,
+          "input_seconds": 0.026865958,
+          "run_seconds": 1.239324042,
+          "process_wall_seconds": 1.2802974159999998,
+          "sampled_peak_process_tree_rss_bytes": 166182912,
+          "rss_samples": 52,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 1.329763583,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 512,
+              "native_bindings": 512,
+              "proposals": 512
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 512,
+          "native_sets": 256,
+          "phase_seconds": {
+            "admission_seconds": 0.0027572910000000003,
+            "commit_seconds": 0.000293958,
+            "device_seconds": 0.004622291307896376,
+            "dispatch_seconds": 0.0145675,
+            "install_seconds": 1.205747792,
+            "native_events_seconds": 0.0002515,
+            "program_seconds": 0.001325833,
+            "routing_seconds": 0.014327583,
+            "verification_seconds": 8.75e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.022759375000000002,
+            "lower_seconds": 0.006121125,
+            "planner_seconds": 0.836332333,
+            "worker_buffer_seconds": 0.0003027496859431267,
+            "worker_decode_seconds": 0.2873497921973467,
+            "worker_inherit_seconds": 0.012489833403378725,
+            "worker_install_seconds": 0.33978975,
+            "worker_shader_compile_seconds": 0.003028667066246271
+          },
+          "marker_work": {
+            "emitted_combinations": 1536,
+            "index_probes": 67840,
+            "indexed_rows_visited": 134144,
+            "live_index_entries": 2304,
+            "marker_rows_added": 1536,
+            "marker_rows_removed": 256
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": 225346.56,
+            "solver": {
+              "backend": "scip",
+              "models": {
+                "matrix_layout": {
+                  "api_build_seconds": 0.054345188196748495,
+                  "engine_version": "10.0.2",
+                  "models": 1,
+                  "nonoptimal_solves": 0,
+                  "peak_constraints": 2304,
+                  "peak_variables": 8198,
+                  "solve_calls": 1,
+                  "solve_seconds": 0.5923492922447622
+                }
+              },
+              "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+              "python_package_version": "6.3.0",
+              "threads": 1
+            },
+            "solver_calls": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "local",
+      "instances": 1024,
+      "lhs_atoms": 3,
+      "input_sha256": "714a87b474986bb18df9509d4f7befb5cac27e9039b862539ccaf50bd723768a",
+      "environment_sha256": "ccd36275f000e1ffbd1ebc1140fb16c5608d6eb7f2c9b1871d3a52b18fe694bc",
+      "graph": {
+        "exact_equal": true,
+        "enodes": 7168,
+        "eclasses": 6144,
+        "sorts": {
+          "@OfferSort": {
+            "enodes": 3072,
+            "eclasses": 3072
+          },
+          "Expr": {
+            "enodes": 4096,
+            "eclasses": 3072
+          }
+        },
+        "primitive_values_exact": true,
+        "total_rows": 8192
+      },
+      "runs": {
+        "pristine": {
+          "core_seconds": 0.11978862500000001,
+          "setup_seconds": 0.000807625,
+          "input_seconds": 0.11639025,
+          "run_seconds": 0.00259075,
+          "process_wall_seconds": 0.12290212499999953,
+          "sampled_peak_process_tree_rss_bytes": 23183360,
+          "rss_samples": 5,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.14620458399999947,
+            "stats": null
+          },
+          "native_matches": 3072,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null
+        },
+        "fork": {
+          "core_seconds": 0.152862792,
+          "setup_seconds": 0.000828083,
+          "input_seconds": 0.149254042,
+          "run_seconds": 0.002780667,
+          "process_wall_seconds": 0.15947558399999906,
+          "sampled_peak_process_tree_rss_bytes": 20676608,
+          "rss_samples": 7,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.16299095799999996,
+            "stats": null
+          },
+          "native_matches": 3072,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null
+        },
+        "marker-paired": {
+          "core_seconds": 1.873795291,
+          "setup_seconds": 0.007395291,
+          "input_seconds": 0.145186625,
+          "run_seconds": 1.721213375,
+          "process_wall_seconds": 1.892550667,
+          "sampled_peak_process_tree_rss_bytes": 207503360,
+          "rss_samples": 76,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 2.200778833000001,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 2048,
+              "native_bindings": 2048,
+              "proposals": 2048
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 2048,
+          "native_sets": 1024,
+          "phase_seconds": {
+            "admission_seconds": 0.011648209,
+            "commit_seconds": 0.001017751,
+            "device_seconds": 0.014196124859154224,
+            "dispatch_seconds": 0.035606833,
+            "install_seconds": 1.428548958,
+            "native_events_seconds": 0.0009939999999999999,
+            "program_seconds": 0.005490874999999999,
+            "routing_seconds": 0.237738541,
+            "verification_seconds": 8.34e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.110588042,
+            "lower_seconds": 0.053894251000000004,
+            "planner_seconds": 9.5e-06,
+            "worker_buffer_seconds": 0.0011931671760976312,
+            "worker_decode_seconds": 1.1536338338628411,
+            "worker_inherit_seconds": 0.03392933355644345,
+            "worker_install_seconds": 1.261102208,
+            "worker_shader_compile_seconds": 0.003337208181619644
+          },
+          "marker_work": {
+            "emitted_combinations": 6144,
+            "index_probes": 1057792,
+            "indexed_rows_visited": 2109440,
+            "live_index_entries": 9216,
+            "marker_rows_added": 6144,
+            "marker_rows_removed": 1024
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": false,
+            "solver_calls": 0
+          }
+        },
+        "marker-solver": {
+          "core_seconds": 38.433948959,
+          "setup_seconds": 0.007919834,
+          "input_seconds": 0.123365875,
+          "run_seconds": 38.30266325,
+          "process_wall_seconds": 38.456552959,
+          "sampled_peak_process_tree_rss_bytes": 360595456,
+          "rss_samples": 1554,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 38.165805792,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 2048,
+              "native_bindings": 2048,
+              "proposals": 2048
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 2048,
+          "native_sets": 1024,
+          "phase_seconds": {
+            "admission_seconds": 0.011643958,
+            "commit_seconds": 0.001006249,
+            "device_seconds": 0.014369165059179068,
+            "dispatch_seconds": 0.034912916,
+            "install_seconds": 38.010029709,
+            "native_events_seconds": 0.001053999,
+            "program_seconds": 0.005809583,
+            "routing_seconds": 0.237907374,
+            "verification_seconds": 1.208e-06
+          },
+          "install_breakdown": {
+            "check_seconds": 0.115307667,
+            "lower_seconds": 0.053249333999999995,
+            "planner_seconds": 36.563970000000005,
+            "worker_buffer_seconds": 0.0013680001720786095,
+            "worker_decode_seconds": 1.1590380421839654,
+            "worker_inherit_seconds": 0.03871095832437277,
+            "worker_install_seconds": 1.274642042,
+            "worker_shader_compile_seconds": 0.003324792254716158
+          },
+          "marker_work": {
+            "emitted_combinations": 6144,
+            "index_probes": 1057792,
+            "indexed_rows_visited": 2109440,
+            "live_index_entries": 9216,
+            "marker_rows_added": 6144,
+            "marker_rows_removed": 1024
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": 900234.24,
+            "solver": {
+              "backend": "scip",
+              "models": {
+                "matrix_layout": {
+                  "api_build_seconds": 0.14095182856544852,
+                  "engine_version": "10.0.2",
+                  "models": 1,
+                  "nonoptimal_solves": 0,
+                  "peak_constraints": 9216,
+                  "peak_variables": 32774,
+                  "solve_calls": 1,
+                  "solve_seconds": 35.82358854217455
+                }
+              },
+              "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+              "python_package_version": "6.3.0",
+              "threads": 1
+            },
+            "solver_calls": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "local",
+      "instances": 4096,
+      "lhs_atoms": 3,
+      "input_sha256": "f0ca3aa2d39a14b8ced377c9c1fb3e5d8b73023bd0da14898f8a69dfe4a75e21",
+      "environment_sha256": "ccd36275f000e1ffbd1ebc1140fb16c5608d6eb7f2c9b1871d3a52b18fe694bc",
+      "graph": {
+        "exact_equal": true,
+        "enodes": 28672,
+        "eclasses": 24576,
+        "sorts": {
+          "@OfferSort": {
+            "enodes": 12288,
+            "eclasses": 12288
+          },
+          "Expr": {
+            "enodes": 16384,
+            "eclasses": 12288
+          }
+        },
+        "primitive_values_exact": true,
+        "total_rows": 32768
+      },
+      "runs": {
+        "pristine": {
+          "core_seconds": 0.7301057080000001,
+          "setup_seconds": 0.008181542,
+          "input_seconds": 0.712419875,
+          "run_seconds": 0.009504291,
+          "process_wall_seconds": 0.7365832910000023,
+          "sampled_peak_process_tree_rss_bytes": 61489152,
+          "rss_samples": 29,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.8200889999999958,
+            "stats": null
+          },
+          "native_matches": 12288,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null
+        },
+        "fork": {
+          "core_seconds": 0.7490316659999999,
+          "setup_seconds": 0.008135583,
+          "input_seconds": 0.728381791,
+          "run_seconds": 0.012514292,
+          "process_wall_seconds": 0.7608402500000011,
+          "sampled_peak_process_tree_rss_bytes": 68075520,
+          "rss_samples": 31,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.841367500000004,
+            "stats": null
+          },
+          "native_matches": 12288,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null
+        },
+        "marker-paired": {
+          "core_seconds": 11.249577251,
+          "setup_seconds": 0.007979083,
+          "input_seconds": 0.741723834,
+          "run_seconds": 10.499874334,
+          "process_wall_seconds": 11.296349333999999,
+          "sampled_peak_process_tree_rss_bytes": 628932608,
+          "rss_samples": 465,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 13.253775750000003,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 8192,
+              "native_bindings": 8192,
+              "proposals": 8192
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 8192,
+          "native_sets": 4096,
+          "phase_seconds": {
+            "admission_seconds": 0.054056208,
+            "commit_seconds": 0.004210042,
+            "device_seconds": 0.03079637512564659,
+            "dispatch_seconds": 0.09846674999999999,
+            "install_seconds": 6.147533416,
+            "native_events_seconds": 0.0058676250000000004,
+            "program_seconds": 0.026118500000000003,
+            "routing_seconds": 4.162962959,
+            "verification_seconds": 7.92e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.521384291,
+            "lower_seconds": 0.637391708,
+            "planner_seconds": 4.4918e-05,
+            "worker_buffer_seconds": 0.005639625247567892,
+            "worker_decode_seconds": 4.666898542549461,
+            "worker_inherit_seconds": 0.09669908322393894,
+            "worker_install_seconds": 4.977577625,
+            "worker_shader_compile_seconds": 0.0040040831081569195
+          },
+          "marker_work": {
+            "emitted_combinations": 24576,
+            "index_probes": 16814080,
+            "indexed_rows_visited": 33603584,
+            "live_index_entries": 36864,
+            "marker_rows_added": 24576,
+            "marker_rows_removed": 4096
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": false,
+            "solver_calls": 0
+          }
+        },
+        "marker-solver": {
+          "core_seconds": 20.262342625,
+          "setup_seconds": 0.008717333,
+          "input_seconds": 0.80778625,
+          "run_seconds": 19.445839042,
+          "process_wall_seconds": 20.311228958,
+          "sampled_peak_process_tree_rss_bytes": 1048526848,
+          "rss_samples": 833,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 21.971162167000017,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 8192,
+              "native_bindings": 8192,
+              "proposals": 8192
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 8192,
+          "native_sets": 4096,
+          "phase_seconds": {
+            "admission_seconds": 0.05280875,
+            "commit_seconds": 0.004516458,
+            "device_seconds": 0.03165612602606416,
+            "dispatch_seconds": 0.099740708,
+            "install_seconds": 15.042133499999998,
+            "native_events_seconds": 0.005643375,
+            "program_seconds": 0.027114,
+            "routing_seconds": 4.213059792,
+            "verification_seconds": 7.92e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.514907208,
+            "lower_seconds": 0.629361126,
+            "planner_seconds": 8.913354416999999,
+            "worker_buffer_seconds": 0.00557541660964489,
+            "worker_decode_seconds": 4.648537416942418,
+            "worker_inherit_seconds": 0.10397154185920952,
+            "worker_install_seconds": 4.9681341670000005,
+            "worker_shader_compile_seconds": 0.004144583363085985
+          },
+          "marker_work": {
+            "emitted_combinations": 24576,
+            "index_probes": 16814080,
+            "indexed_rows_visited": 33603584,
+            "live_index_entries": 36864,
+            "marker_rows_added": 24576,
+            "marker_rows_removed": 4096
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": 3599784.960004244,
+            "solver": {
+              "backend": "scip",
+              "models": {
+                "matrix_layout": {
+                  "api_build_seconds": 0.4488217830657959,
+                  "engine_version": "10.0.2",
+                  "models": 1,
+                  "nonoptimal_solves": 0,
+                  "peak_constraints": 36864,
+                  "peak_variables": 131078,
+                  "solve_calls": 1,
+                  "solve_seconds": 5.738230832852423
+                }
+              },
+              "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+              "python_package_version": "6.3.0",
+              "threads": 1
+            },
+            "solver_calls": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "sparse-cycle",
+      "instances": 16,
+      "lhs_atoms": 6,
+      "input_sha256": "1a4b6e89727ddfd873c734cb8aefbbb488d8c81b816966e6e4327c8eb57f58e6",
+      "environment_sha256": "126b6eed191c9a51cef551924bf6d2a54cbd8faa2769a9f4f22dda9ecd4ddaa1",
+      "graph": {
+        "exact_equal": true,
+        "enodes": 192,
+        "eclasses": 176,
+        "sorts": {
+          "@L1Sort": {
+            "enodes": 16,
+            "eclasses": 16
+          },
+          "@L2Sort": {
+            "enodes": 16,
+            "eclasses": 16
+          },
+          "@L3Sort": {
+            "enodes": 16,
+            "eclasses": 16
+          },
+          "@OfferSort": {
+            "enodes": 48,
+            "eclasses": 48
+          },
+          "Expr": {
+            "enodes": 96,
+            "eclasses": 80
+          }
+        },
+        "primitive_values_exact": true,
+        "total_rows": 208
+      },
+      "runs": {
+        "pristine": {
+          "core_seconds": 0.011795582999999998,
+          "setup_seconds": 0.008175208,
+          "input_seconds": 0.003373208,
+          "run_seconds": 0.000247167,
+          "process_wall_seconds": 0.017596042000008083,
+          "sampled_peak_process_tree_rss_bytes": 229376,
+          "rss_samples": 1,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.01434070900000961,
+            "stats": null
+          },
+          "native_matches": 18,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null
+        },
+        "fork": {
+          "core_seconds": 0.012287958,
+          "setup_seconds": 0.008489208,
+          "input_seconds": 0.003348667,
+          "run_seconds": 0.000450083,
+          "process_wall_seconds": 0.01825162500000488,
+          "sampled_peak_process_tree_rss_bytes": 229376,
+          "rss_samples": 1,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.014014500000001817,
+            "stats": null
+          },
+          "native_matches": 18,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null
+        },
+        "marker-paired": {
+          "core_seconds": 0.228466291,
+          "setup_seconds": 0.007072666,
+          "input_seconds": 0.002906542,
+          "run_seconds": 0.218487083,
+          "process_wall_seconds": 0.23359054200000173,
+          "sampled_peak_process_tree_rss_bytes": 26820608,
+          "rss_samples": 10,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 0.11305120800000168,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 2,
+              "native_bindings": 2,
+              "proposals": 2
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 2,
+          "native_sets": 1,
+          "phase_seconds": {
+            "admission_seconds": 0.000282876,
+            "commit_seconds": 7.079200000000001e-05,
+            "device_seconds": 0.0004906659014523029,
+            "dispatch_seconds": 0.0037923339999999996,
+            "install_seconds": 0.214064375,
+            "native_events_seconds": 4.9874e-05,
+            "program_seconds": 1.6209e-05,
+            "routing_seconds": 0.000193083,
+            "verification_seconds": 9.17e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.000329167,
+            "lower_seconds": 0.000268041,
+            "planner_seconds": 2.208e-06,
+            "worker_buffer_seconds": 5.8166682720184326e-05,
+            "worker_decode_seconds": 0.0379353747703135,
+            "worker_inherit_seconds": 0.006887124851346016,
+            "worker_install_seconds": 0.213337751,
+            "worker_shader_compile_seconds": 0.14103212486952543
+          },
+          "marker_work": {
+            "emitted_combinations": 6,
+            "index_probes": 301,
+            "indexed_rows_visited": 1010,
+            "live_index_entries": 224,
+            "marker_rows_added": 129,
+            "marker_rows_removed": 1
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": false,
+            "solver_calls": 0
+          }
+        },
+        "marker-solver": {
+          "core_seconds": 0.382173625,
+          "setup_seconds": 0.006861709,
+          "input_seconds": 0.002853458,
+          "run_seconds": 0.372458458,
+          "process_wall_seconds": 0.38809208300000364,
+          "sampled_peak_process_tree_rss_bytes": 69156864,
+          "rss_samples": 16,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 0.26466129199999955,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 2,
+              "native_bindings": 2,
+              "proposals": 2
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 2,
+          "native_sets": 1,
+          "phase_seconds": {
+            "admission_seconds": 0.000299708,
+            "commit_seconds": 5.425e-05,
+            "device_seconds": 0.0005389186553657055,
+            "dispatch_seconds": 0.013273624000000001,
+            "install_seconds": 0.358531124,
+            "native_events_seconds": 5.1333e-05,
+            "program_seconds": 1.475e-05,
+            "routing_seconds": 0.000211333,
+            "verification_seconds": 8.75e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.000328291,
+            "lower_seconds": 0.000290792,
+            "planner_seconds": 0.141147084,
+            "worker_buffer_seconds": 6.38752244412899e-05,
+            "worker_decode_seconds": 0.03851812519133091,
+            "worker_inherit_seconds": 0.0066765001974999905,
+            "worker_install_seconds": 0.216629499,
+            "worker_shader_compile_seconds": 0.12274262495338918
+          },
+          "marker_work": {
+            "emitted_combinations": 6,
+            "index_probes": 301,
+            "indexed_rows_visited": 1010,
+            "live_index_entries": 224,
+            "marker_rows_added": 129,
+            "marker_rows_removed": 1
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": 1077.34,
+            "solver": {
+              "backend": "scip",
+              "models": {
+                "matrix_layout": {
+                  "api_build_seconds": 0.03126495657488704,
+                  "engine_version": "10.0.2",
+                  "models": 1,
+                  "nonoptimal_solves": 0,
+                  "peak_constraints": 15,
+                  "peak_variables": 50,
+                  "solve_calls": 1,
+                  "solve_seconds": 0.0008132075890898705
+                }
+              },
+              "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+              "python_package_version": "6.3.0",
+              "threads": 1
+            },
+            "solver_calls": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "sparse-cycle",
+      "instances": 64,
+      "lhs_atoms": 6,
+      "input_sha256": "b78396efabfcc852ed179f9d81f55b2282dc39b13bfcc57ce851a70a2813453d",
+      "environment_sha256": "126b6eed191c9a51cef551924bf6d2a54cbd8faa2769a9f4f22dda9ecd4ddaa1",
+      "graph": {
+        "exact_equal": true,
+        "enodes": 768,
+        "eclasses": 704,
+        "sorts": {
+          "@L1Sort": {
+            "enodes": 64,
+            "eclasses": 64
+          },
+          "@L2Sort": {
+            "enodes": 64,
+            "eclasses": 64
+          },
+          "@L3Sort": {
+            "enodes": 64,
+            "eclasses": 64
+          },
+          "@OfferSort": {
+            "enodes": 192,
+            "eclasses": 192
+          },
+          "Expr": {
+            "enodes": 384,
+            "eclasses": 320
+          }
+        },
+        "primitive_values_exact": true,
+        "total_rows": 832
+      },
+      "runs": {
+        "pristine": {
+          "core_seconds": 0.011358958,
+          "setup_seconds": 0.000924708,
+          "input_seconds": 0.010182042,
+          "run_seconds": 0.000252208,
+          "process_wall_seconds": 0.013812166999997544,
+          "sampled_peak_process_tree_rss_bytes": 229376,
+          "rss_samples": 1,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.01607000000001335,
+            "stats": null
+          },
+          "native_matches": 70,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null
+        },
+        "fork": {
+          "core_seconds": 0.011848583,
+          "setup_seconds": 0.000978,
+          "input_seconds": 0.010604083,
+          "run_seconds": 0.0002665,
+          "process_wall_seconds": 0.01512775000000488,
+          "sampled_peak_process_tree_rss_bytes": 212992,
+          "rss_samples": 1,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.016638959000005116,
+            "stats": null
+          },
+          "native_matches": 70,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null
+        },
+        "marker-paired": {
+          "core_seconds": 0.360843916,
+          "setup_seconds": 0.006765125,
+          "input_seconds": 0.011204375,
+          "run_seconds": 0.342874416,
+          "process_wall_seconds": 0.36662599999999657,
+          "sampled_peak_process_tree_rss_bytes": 56705024,
+          "rss_samples": 15,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 0.2361611670000059,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 6,
+              "native_bindings": 6,
+              "proposals": 6
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 6,
+          "native_sets": 3,
+          "phase_seconds": {
+            "admission_seconds": 0.0011427920000000001,
+            "commit_seconds": 7.4709e-05,
+            "device_seconds": 0.0005632503889501095,
+            "dispatch_seconds": 0.003439834,
+            "install_seconds": 0.33719020899999996,
+            "native_events_seconds": 0.00011816599999999999,
+            "program_seconds": 4.1501e-05,
+            "routing_seconds": 0.000851416,
+            "verification_seconds": 7.92e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.001065501,
+            "lower_seconds": 0.000476292,
+            "planner_seconds": 2.0830000000000002e-06,
+            "worker_buffer_seconds": 0.0002042916603386402,
+            "worker_decode_seconds": 0.14613591646775603,
+            "worker_inherit_seconds": 0.007318833377212286,
+            "worker_install_seconds": 0.33526275,
+            "worker_shader_compile_seconds": 0.12838983349502087
+          },
+          "marker_work": {
+            "emitted_combinations": 18,
+            "index_probes": 1319,
+            "indexed_rows_visited": 13366,
+            "live_index_entries": 896,
+            "marker_rows_added": 515,
+            "marker_rows_removed": 3
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": false,
+            "solver_calls": 0
+          }
+        },
+        "marker-solver": {
+          "core_seconds": 0.5112858339999999,
+          "setup_seconds": 0.009045875,
+          "input_seconds": 0.011134167,
+          "run_seconds": 0.491105792,
+          "process_wall_seconds": 0.524401499999982,
+          "sampled_peak_process_tree_rss_bytes": 72007680,
+          "rss_samples": 22,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 0.38572666700000013,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 6,
+              "native_bindings": 6,
+              "proposals": 6
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 6,
+          "native_sets": 3,
+          "phase_seconds": {
+            "admission_seconds": 0.001058292,
+            "commit_seconds": 5.6624e-05,
+            "device_seconds": 0.001511415932327509,
+            "dispatch_seconds": 0.017199083,
+            "install_seconds": 0.47179779200000005,
+            "native_events_seconds": 0.000101082,
+            "program_seconds": 4.1209e-05,
+            "routing_seconds": 0.0008313750000000001,
+            "verification_seconds": 6.669999999999999e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.001054083,
+            "lower_seconds": 0.000543459,
+            "planner_seconds": 0.150281583,
+            "worker_buffer_seconds": 0.00016316678375005722,
+            "worker_decode_seconds": 0.15086087537929416,
+            "worker_inherit_seconds": 0.007833833806216717,
+            "worker_install_seconds": 0.319549833,
+            "worker_shader_compile_seconds": 0.12736979126930237
+          },
+          "marker_work": {
+            "emitted_combinations": 18,
+            "index_probes": 1319,
+            "indexed_rows_visited": 13366,
+            "live_index_entries": 896,
+            "marker_rows_added": 515,
+            "marker_rows_removed": 3
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": 3159.9300000000003,
+            "solver": {
+              "backend": "scip",
+              "models": {
+                "matrix_layout": {
+                  "api_build_seconds": 0.03246924793347716,
+                  "engine_version": "10.0.2",
+                  "models": 1,
+                  "nonoptimal_solves": 0,
+                  "peak_constraints": 45,
+                  "peak_variables": 146,
+                  "solve_calls": 1,
+                  "solve_seconds": 0.0015022503212094307
+                }
+              },
+              "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+              "python_package_version": "6.3.0",
+              "threads": 1
+            },
+            "solver_calls": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "sparse-cycle",
+      "instances": 256,
+      "lhs_atoms": 6,
+      "input_sha256": "833e40d1a06fa75384ec73b4a63be75789096814ebf094623dd8f3f5958828d0",
+      "environment_sha256": "126b6eed191c9a51cef551924bf6d2a54cbd8faa2769a9f4f22dda9ecd4ddaa1",
+      "graph": {
+        "exact_equal": true,
+        "enodes": 3072,
+        "eclasses": 2816,
+        "sorts": {
+          "@L1Sort": {
+            "enodes": 256,
+            "eclasses": 256
+          },
+          "@L2Sort": {
+            "enodes": 256,
+            "eclasses": 256
+          },
+          "@L3Sort": {
+            "enodes": 256,
+            "eclasses": 256
+          },
+          "@OfferSort": {
+            "enodes": 768,
+            "eclasses": 768
+          },
+          "Expr": {
+            "enodes": 1536,
+            "eclasses": 1280
+          }
+        },
+        "primitive_values_exact": true,
+        "total_rows": 3328
+      },
+      "runs": {
+        "pristine": {
+          "core_seconds": 0.043680540999999996,
+          "setup_seconds": 0.000939666,
+          "input_seconds": 0.041972958,
+          "run_seconds": 0.000767917,
+          "process_wall_seconds": 0.04645991600000343,
+          "sampled_peak_process_tree_rss_bytes": 10649600,
+          "rss_samples": 2,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.06087433299998679,
+            "stats": null
+          },
+          "native_matches": 274,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null
+        },
+        "fork": {
+          "core_seconds": 0.046901751000000005,
+          "setup_seconds": 0.001006542,
+          "input_seconds": 0.045098625,
+          "run_seconds": 0.000796584,
+          "process_wall_seconds": 0.05668741699997781,
+          "sampled_peak_process_tree_rss_bytes": 10878976,
+          "rss_samples": 3,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.06198370799998543,
+            "stats": null
+          },
+          "native_matches": 274,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null
+        },
+        "marker-paired": {
+          "core_seconds": 0.84204525,
+          "setup_seconds": 0.006937792,
+          "input_seconds": 0.044668875,
+          "run_seconds": 0.790438583,
+          "process_wall_seconds": 0.8524565830000199,
+          "sampled_peak_process_tree_rss_bytes": 100040704,
+          "rss_samples": 36,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 0.7489185419999842,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 18,
+              "native_bindings": 18,
+              "proposals": 18
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 18,
+          "native_sets": 9,
+          "phase_seconds": {
+            "admission_seconds": 0.004233458,
+            "commit_seconds": 8.0333e-05,
+            "device_seconds": 0.0008704168722033501,
+            "dispatch_seconds": 0.010451375,
+            "install_seconds": 0.77028875,
+            "native_events_seconds": 0.0002823759999999999,
+            "program_seconds": 0.00010549999999999999,
+            "routing_seconds": 0.004979875,
+            "verification_seconds": 6.66e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.003282501,
+            "lower_seconds": 0.001182167,
+            "planner_seconds": 1.9590000000000002e-06,
+            "worker_buffer_seconds": 0.0005219578742980957,
+            "worker_decode_seconds": 0.571693666279316,
+            "worker_inherit_seconds": 0.011716666631400585,
+            "worker_install_seconds": 0.765372709,
+            "worker_shader_compile_seconds": 0.12328945798799396
+          },
+          "marker_work": {
+            "emitted_combinations": 54,
+            "index_probes": 6773,
+            "indexed_rows_visited": 202402,
+            "live_index_entries": 3584,
+            "marker_rows_added": 2057,
+            "marker_rows_removed": 9
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": false,
+            "solver_calls": 0
+          }
+        },
+        "marker-solver": {
+          "core_seconds": 0.989034667,
+          "setup_seconds": 0.007228459,
+          "input_seconds": 0.044798583,
+          "run_seconds": 0.937007625,
+          "process_wall_seconds": 1.0044251250000116,
+          "sampled_peak_process_tree_rss_bytes": 104792064,
+          "rss_samples": 42,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 0.9049610419999965,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 18,
+              "native_bindings": 18,
+              "proposals": 18
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 18,
+          "native_sets": 9,
+          "phase_seconds": {
+            "admission_seconds": 0.004323917,
+            "commit_seconds": 9.0875e-05,
+            "device_seconds": 0.0012707910500466824,
+            "dispatch_seconds": 0.017382041,
+            "install_seconds": 0.90987225,
+            "native_events_seconds": 0.00027779100000000005,
+            "program_seconds": 0.000101667,
+            "routing_seconds": 0.004939125,
+            "verification_seconds": 1.042e-06
+          },
+          "install_breakdown": {
+            "check_seconds": 0.003342332,
+            "lower_seconds": 0.001303084,
+            "planner_seconds": 0.152500875,
+            "worker_buffer_seconds": 0.0009025833569467068,
+            "worker_decode_seconds": 0.5681432918645442,
+            "worker_inherit_seconds": 0.012243958190083504,
+            "worker_install_seconds": 0.752160084,
+            "worker_shader_compile_seconds": 0.12743645813316107
+          },
+          "marker_work": {
+            "emitted_combinations": 54,
+            "index_probes": 6773,
+            "indexed_rows_visited": 202402,
+            "live_index_entries": 3584,
+            "marker_rows_added": 2057,
+            "marker_rows_removed": 9
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": 11817.25,
+            "solver": {
+              "backend": "scip",
+              "models": {
+                "matrix_layout": {
+                  "api_build_seconds": 0.03254992933943868,
+                  "engine_version": "10.0.2",
+                  "models": 1,
+                  "nonoptimal_solves": 0,
+                  "peak_constraints": 135,
+                  "peak_variables": 422,
+                  "solve_calls": 1,
+                  "solve_seconds": 0.003628249745815992
+                }
+              },
+              "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+              "python_package_version": "6.3.0",
+              "threads": 1
+            },
+            "solver_calls": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "sparse-cycle",
+      "instances": 1024,
+      "lhs_atoms": 6,
+      "input_sha256": "de5fe2e97c06692f3a1c02d486fef6573ea44b27622eb7c5653b593f06fa2d72",
+      "environment_sha256": "126b6eed191c9a51cef551924bf6d2a54cbd8faa2769a9f4f22dda9ecd4ddaa1",
+      "graph": {
+        "exact_equal": true,
+        "enodes": 12288,
+        "eclasses": 11264,
+        "sorts": {
+          "@L1Sort": {
+            "enodes": 1024,
+            "eclasses": 1024
+          },
+          "@L2Sort": {
+            "enodes": 1024,
+            "eclasses": 1024
+          },
+          "@L3Sort": {
+            "enodes": 1024,
+            "eclasses": 1024
+          },
+          "@OfferSort": {
+            "enodes": 3072,
+            "eclasses": 3072
+          },
+          "Expr": {
+            "enodes": 6144,
+            "eclasses": 5120
+          }
+        },
+        "primitive_values_exact": true,
+        "total_rows": 13312
+      },
+      "runs": {
+        "pristine": {
+          "core_seconds": 0.21071441600000002,
+          "setup_seconds": 0.000957916,
+          "input_seconds": 0.205005292,
+          "run_seconds": 0.004751208,
+          "process_wall_seconds": 0.2135754579999798,
+          "sampled_peak_process_tree_rss_bytes": 31096832,
+          "rss_samples": 9,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.25619599999998854,
+            "stats": null
+          },
+          "native_matches": 1092,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null
+        },
+        "fork": {
+          "core_seconds": 0.21641654100000002,
+          "setup_seconds": 0.000991583,
+          "input_seconds": 0.210477708,
+          "run_seconds": 0.00494725,
+          "process_wall_seconds": 0.21999929200001134,
+          "sampled_peak_process_tree_rss_bytes": 29442048,
+          "rss_samples": 9,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 0.2599658329999954,
+            "stats": null
+          },
+          "native_matches": 1092,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null
+        },
+        "marker-paired": {
+          "core_seconds": 2.765847291,
+          "setup_seconds": 0.007018666,
+          "input_seconds": 0.226104417,
+          "run_seconds": 2.532724208,
+          "process_wall_seconds": 2.779341875,
+          "sampled_peak_process_tree_rss_bytes": 326320128,
+          "rss_samples": 114,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 2.8454941669999982,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 68,
+              "native_bindings": 68,
+              "proposals": 68
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 68,
+          "native_sets": 34,
+          "phase_seconds": {
+            "admission_seconds": 0.017918291,
+            "commit_seconds": 0.000151333,
+            "device_seconds": 0.0013135420158505438,
+            "dispatch_seconds": 0.010529667,
+            "install_seconds": 2.451433292,
+            "native_events_seconds": 0.0011273350000000001,
+            "program_seconds": 0.000416459,
+            "routing_seconds": 0.05111525,
+            "verification_seconds": 5.84e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.014468,
+            "lower_seconds": 0.004519792,
+            "planner_seconds": 2.459e-06,
+            "worker_buffer_seconds": 0.003069000318646431,
+            "worker_decode_seconds": 2.2854030411690474,
+            "worker_inherit_seconds": 0.031202458310872316,
+            "worker_install_seconds": 2.430754501,
+            "worker_shader_compile_seconds": 0.0029676249250769615
+          },
+          "marker_work": {
+            "emitted_combinations": 204,
+            "index_probes": 52666,
+            "indexed_rows_visited": 3194468,
+            "live_index_entries": 14336,
+            "marker_rows_added": 8226,
+            "marker_rows_removed": 34
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": false,
+            "solver_calls": 0
+          }
+        },
+        "marker-solver": {
+          "core_seconds": 2.9758149580000004,
+          "setup_seconds": 0.00706375,
+          "input_seconds": 0.22785275,
+          "run_seconds": 2.740898458,
+          "process_wall_seconds": 2.9912505839999994,
+          "sampled_peak_process_tree_rss_bytes": 306757632,
+          "rss_samples": 124,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 3.0901905000000056,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 68,
+              "native_bindings": 68,
+              "proposals": 68
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 68,
+          "native_sets": 34,
+          "phase_seconds": {
+            "admission_seconds": 0.018298750000000003,
+            "commit_seconds": 0.00016841799999999999,
+            "device_seconds": 0.0016165804117918015,
+            "dispatch_seconds": 0.015876417,
+            "install_seconds": 2.652302959,
+            "native_events_seconds": 0.001152209,
+            "program_seconds": 0.000451166,
+            "routing_seconds": 0.052614791999999994,
+            "verification_seconds": 6.660000000000001e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.014506333,
+            "lower_seconds": 0.004707042,
+            "planner_seconds": 0.18892295799999997,
+            "worker_buffer_seconds": 0.0018678749911487105,
+            "worker_decode_seconds": 2.2816569581627846,
+            "worker_inherit_seconds": 0.033519166987389326,
+            "worker_install_seconds": 2.442444541,
+            "worker_shader_compile_seconds": 0.003264374565333128
+          },
+          "marker_work": {
+            "emitted_combinations": 204,
+            "index_probes": 52666,
+            "indexed_rows_visited": 3194468,
+            "live_index_entries": 14336,
+            "marker_rows_added": 8226,
+            "marker_rows_removed": 34
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": 44962.9,
+            "solver": {
+              "backend": "scip",
+              "models": {
+                "matrix_layout": {
+                  "api_build_seconds": 0.03580573154613376,
+                  "engine_version": "10.0.2",
+                  "models": 1,
+                  "nonoptimal_solves": 0,
+                  "peak_constraints": 510,
+                  "peak_variables": 1572,
+                  "solve_calls": 1,
+                  "solve_seconds": 0.017022083047777414
+                }
+              },
+              "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+              "python_package_version": "6.3.0",
+              "threads": 1
+            },
+            "solver_calls": 2
+          }
+        }
+      }
+    },
+    {
+      "kind": "sparse-cycle",
+      "instances": 4096,
+      "lhs_atoms": 6,
+      "input_sha256": "1e99f75212b86034b7aca6a2c0a358892d62a46dbdd72504c637a223919edce8",
+      "environment_sha256": "126b6eed191c9a51cef551924bf6d2a54cbd8faa2769a9f4f22dda9ecd4ddaa1",
+      "graph": {
+        "exact_equal": true,
+        "enodes": 49152,
+        "eclasses": 45056,
+        "sorts": {
+          "@L1Sort": {
+            "enodes": 4096,
+            "eclasses": 4096
+          },
+          "@L2Sort": {
+            "enodes": 4096,
+            "eclasses": 4096
+          },
+          "@L3Sort": {
+            "enodes": 4096,
+            "eclasses": 4096
+          },
+          "@OfferSort": {
+            "enodes": 12288,
+            "eclasses": 12288
+          },
+          "Expr": {
+            "enodes": 24576,
+            "eclasses": 20480
+          }
+        },
+        "primitive_values_exact": true,
+        "total_rows": 53248
+      },
+      "runs": {
+        "pristine": {
+          "core_seconds": 1.2804411670000002,
+          "setup_seconds": 0.00115725,
+          "input_seconds": 1.259788042,
+          "run_seconds": 0.019495875,
+          "process_wall_seconds": 1.2851962089999915,
+          "sampled_peak_process_tree_rss_bytes": 96239616,
+          "rss_samples": 51,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 1.422392666999997,
+            "stats": null
+          },
+          "native_matches": 4362,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null
+        },
+        "fork": {
+          "core_seconds": 1.322266208,
+          "setup_seconds": 0.001180125,
+          "input_seconds": 1.298786916,
+          "run_seconds": 0.022299167,
+          "process_wall_seconds": 1.3278328750000128,
+          "sampled_peak_process_tree_rss_bytes": 96845824,
+          "rss_samples": 53,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": false,
+            "seconds": 1.501657707999982,
+            "stats": null
+          },
+          "native_matches": 4362,
+          "consumer_bindings": null,
+          "native_sets": null,
+          "phase_seconds": null,
+          "install_breakdown": null,
+          "marker_work": null,
+          "solver": null
+        },
+        "marker-paired": {
+          "core_seconds": 12.046060125,
+          "setup_seconds": 0.007001792,
+          "input_seconds": 1.255354125,
+          "run_seconds": 10.783704208,
+          "process_wall_seconds": 12.08852195899999,
+          "sampled_peak_process_tree_rss_bytes": 1044676608,
+          "rss_samples": 496,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 12.13934820899999,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 266,
+              "native_bindings": 266,
+              "proposals": 266
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 266,
+          "native_sets": 133,
+          "phase_seconds": {
+            "admission_seconds": 0.087606375,
+            "commit_seconds": 0.000305501,
+            "device_seconds": 0.0026138336397707462,
+            "dispatch_seconds": 0.017683875,
+            "install_seconds": 9.776727709,
+            "native_events_seconds": 0.007439626,
+            "program_seconds": 0.001709416,
+            "routing_seconds": 0.892156666,
+            "verification_seconds": 7.5e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.066211042,
+            "lower_seconds": 0.018960624000000002,
+            "planner_seconds": 3.8329999999999996e-06,
+            "worker_buffer_seconds": 0.010412749834358692,
+            "worker_decode_seconds": 9.23547499999404,
+            "worker_inherit_seconds": 0.08685887465253472,
+            "worker_install_seconds": 9.684356291,
+            "worker_shader_compile_seconds": 0.003506416454911232
+          },
+          "marker_work": {
+            "emitted_combinations": 798,
+            "index_probes": 616129,
+            "indexed_rows_visited": 50932058,
+            "live_index_entries": 57344,
+            "marker_rows_added": 32901,
+            "marker_rows_removed": 133
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": null,
+            "solver": false,
+            "solver_calls": 0
+          }
+        },
+        "marker-solver": {
+          "core_seconds": 12.619742333,
+          "setup_seconds": 0.007096625,
+          "input_seconds": 1.233711125,
+          "run_seconds": 11.378934583,
+          "process_wall_seconds": 12.667272541999978,
+          "sampled_peak_process_tree_rss_bytes": 1212563456,
+          "rss_samples": 533,
+          "validation": {
+            "exact_equal": true,
+            "primitive_values_exact": true,
+            "strict_gpu_check": true,
+            "seconds": 12.930140459000029,
+            "stats": {
+              "batches": 2,
+              "enabled": true,
+              "failures": 0,
+              "groups": 266,
+              "native_bindings": 266,
+              "proposals": 266
+            }
+          },
+          "native_matches": null,
+          "consumer_bindings": 266,
+          "native_sets": 133,
+          "phase_seconds": {
+            "admission_seconds": 0.079395709,
+            "commit_seconds": 0.000341292,
+            "device_seconds": 0.0053077456541359425,
+            "dispatch_seconds": 0.043398374,
+            "install_seconds": 10.254947583,
+            "native_events_seconds": 0.006162625000000001,
+            "program_seconds": 0.0017118749999999999,
+            "routing_seconds": 0.992899333,
+            "verification_seconds": 4.17e-07
+          },
+          "install_breakdown": {
+            "check_seconds": 0.059024666999999996,
+            "lower_seconds": 0.018248708000000002,
+            "planner_seconds": 0.6726446260000001,
+            "worker_buffer_seconds": 0.011172625236213207,
+            "worker_decode_seconds": 9.055609290953726,
+            "worker_inherit_seconds": 0.08864945871755481,
+            "worker_install_seconds": 9.498829209,
+            "worker_shader_compile_seconds": 0.003409875091165304
+          },
+          "marker_work": {
+            "emitted_combinations": 798,
+            "index_probes": 616129,
+            "indexed_rows_visited": 50932058,
+            "live_index_entries": 57344,
+            "marker_rows_added": 32901,
+            "marker_rows_removed": 133
+          },
+          "solver": {
+            "cache_hits": 0,
+            "reference_objective": 173648.05000000002,
+            "solver": {
+              "backend": "scip",
+              "models": {
+                "matrix_layout": {
+                  "api_build_seconds": 0.04870047001168132,
+                  "engine_version": "10.0.2",
+                  "models": 1,
+                  "nonoptimal_solves": 0,
+                  "peak_constraints": 1995,
+                  "peak_variables": 6126,
+                  "solve_calls": 1,
+                  "solve_seconds": 0.3284692079760134
+                }
+              },
+              "optimality": "solver OPTIMAL required; relative and absolute gaps zero; numerical tolerances apply",
+              "python_package_version": "6.3.0",
+              "threads": 1
+            },
+            "solver_calls": 2
+          }
+        }
+      }
+    }
+  ],
+  "gpu_devices": [
+    "Apple M3 Max"
+  ]
+}
