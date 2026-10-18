@@ -20,7 +20,7 @@ final class Executor {
   var calls = 0, positions = 0, macs = 0
   init(_ p: Program) throws {
     self.p = p
-    try require(p.version == 1, "matrix program version")
+    try require(p.version == 2, "lowered matrix ABI version (recompile source program)")
     guard let d = MTLCreateSystemDefaultDevice(), let q = d.makeCommandQueue() else {
       throw NSError(domain: "Metal unavailable", code: 1)
     }
@@ -169,7 +169,7 @@ final class Executor {
         // Audit snapshots stay on the device until the full program has completed.
         var snap = [String: MTLBuffer]()
         let blit = commit.makeBlitCommandEncoder()!
-        for name in ["bindings", "live", "decisions", "target_status"] {
+        for name in ["bindings", "live", "decisions", "target_status", "specialization_targets"] {
           let x = m(name)
           let b = device.makeBuffer(
             length: max(4, x.rows * x.cols * 4), options: .storageModeShared)!
@@ -203,9 +203,13 @@ final class Executor {
         let v = read(s, "bindings")
         let d = read(s, "decisions")
         let t = read(s, "target_status")
+        let sp = read(s, "specialization_targets")
         let selected = Array(ids[stage.start..<stage.start + stage.count]).map { Int($0) }
         saved[epoch][si]["decisions"] = selected.map { d[$0] }
         saved[epoch][si]["target_status"] = selected.map { t[$0] }
+        saved[epoch][si]["specialization_targets"] = selected.map {
+          sp[$0] == UInt32.max ? NSNull() as Any : Int(sp[$0]) as Any
+        }
         saved[epoch][si]["live"] = read(s, "live")
         saved[epoch][si]["cells"] = (0..<cells.rows).map {
           Array(v[$0 * cells.cols..<($0 + 1) * cells.cols])

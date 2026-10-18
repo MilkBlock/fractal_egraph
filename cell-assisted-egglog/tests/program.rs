@@ -203,6 +203,7 @@ fn successful_match_with_alias_target_is_preserved_and_blocks_consumers() {
     p.channels[0].target = Some(Target {
         cell: 2,
         bindings: vec![Wire(0, 0), Wire(1, 0)],
+        specializations: vec![],
     });
     p.channels.push(Channel {
         label: "next".into(),
@@ -245,6 +246,7 @@ fn unsafe_shape_and_effect_wiring_are_rejected() {
     p.channels[0].target = Some(Target {
         cell: 0,
         bindings: vec![Wire(0, 0), Wire(0, 1)],
+        specializations: vec![],
     });
     assert!(p.check().is_err());
     let mut p = base();
@@ -270,4 +272,90 @@ fn layout_is_generated_from_matrix_shapes() {
             m.cols
         )));
     }
+}
+
+fn specialization() -> Program {
+    let mut p = base();
+    p.templates
+        .push(json!({"domain":"unit alias specialization"}));
+    p.cells.extend([
+        Cell {
+            template: 0,
+            binding: None,
+            partition: vec![0, 1],
+        },
+        Cell {
+            template: 1,
+            binding: None,
+            partition: vec![0],
+        },
+    ]);
+    p.channels[0].alternatives[0].truncate(1);
+    p.channels[0].target = Some(Target {
+        cell: 2,
+        bindings: vec![Wire(0, 0), Wire(1, 0)],
+        specializations: vec![Specialization {
+            cell: 3,
+            partition: vec![0, 0],
+            projection: vec![0],
+            certificate: json!({"scope":"unit coordinate contract; native math proof is checked separately"}),
+        }],
+    });
+    p.conditions.push(Condition {
+        left: Wire(3, 0),
+        right: Wire(0, 0),
+    });
+    p.channels.push(Channel {
+        label: "consume-specialized-target".into(),
+        sources: vec![3, 0],
+        alternatives: vec![vec![Requirement {
+            condition: 2,
+            depth: 0,
+        }]],
+        target: None,
+    });
+    p.stages.push(vec![1]);
+    p
+}
+#[test]
+fn certified_alias_resumes_without_repeating_the_match() {
+    let mut p = specialization();
+    p.updates = vec![
+        vec![],
+        vec![Update {
+            cell: 1,
+            slot: 0,
+            value: 4,
+        }],
+    ];
+    let r = compare_gpu(p);
+    assert_eq!(r.epochs[0][0].decisions, vec![1]);
+    assert_eq!(r.epochs[0][0].target_status, vec![3]);
+    assert_eq!(r.epochs[0][0].specialization_targets, vec![Some(3)]);
+    assert_eq!(r.epochs[0][1].decisions, vec![1]);
+    assert!(
+        r.epochs[1]
+            .iter()
+            .flat_map(|s| &s.levels)
+            .all(|l| l.work.matrix_calls == 0 && l.work.computed_features == 0)
+    );
+    assert_eq!(r.epochs[2][0].decisions, vec![2]);
+    assert_eq!(r.epochs[2][0].specialization_targets, vec![None]);
+    assert_eq!(r.epochs[2][1].live[3], 0);
+    assert_eq!(r.epochs[2][1].decisions, vec![2]);
+}
+#[test]
+fn specialization_requires_unique_safe_frames_and_distinct_targets() {
+    let mut p = specialization();
+    p.channels[0].target.as_mut().unwrap().specializations[0].partition = vec![0, 1];
+    assert!(p.check().is_err());
+    let mut p = specialization();
+    p.channels[0].target.as_mut().unwrap().specializations[0].cell = 2;
+    assert!(p.check().is_err());
+    let mut p = specialization();
+    p.channels[0].target.as_mut().unwrap().specializations[0].projection = vec![2];
+    assert!(p.check().is_err());
+    let mut p = specialization();
+    p.channels[0].target.as_mut().unwrap().specializations[0].certificate = serde_json::Value::Null;
+    assert!(p.check().is_err());
 }

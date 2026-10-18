@@ -189,6 +189,7 @@ impl Checked {
         a.zero("requested", "u32", conds, 1)?;
         let (mut sources, mut branches, mut reqs, mut gathers, mut chans) =
             (vec![], vec![], vec![], vec![], vec![]);
+        let (mut specializations, mut alias_partitions, mut projections) = (vec![], vec![], vec![]);
         for c in &p.channels {
             let so = sources.len();
             sources.extend(c.sources.iter().map(|v| vec![*v as u32]));
@@ -201,6 +202,20 @@ impl Checked {
             if let Some(t) = &c.target {
                 gathers.extend(t.bindings.iter().map(|w| vec![w.0 as u32, w.1 as u32]));
             }
+            let sp_start = specializations.len();
+            if let Some(t) = &c.target {
+                for sp in &t.specializations {
+                    specializations.push(vec![
+                        sp.cell as u32,
+                        alias_partitions.len() as u32,
+                        sp.partition.len() as u32,
+                        projections.len() as u32,
+                        sp.projection.len() as u32,
+                    ]);
+                    alias_partitions.extend(sp.partition.iter().map(|v| vec![*v as u32]));
+                    projections.extend(sp.projection.iter().map(|v| vec![*v as u32]));
+                }
+            }
             chans.push(vec![
                 so as u32,
                 c.sources.len() as u32,
@@ -209,8 +224,23 @@ impl Checked {
                 c.target.as_ref().map_or(NO, |t| t.cell as u32),
                 go as u32,
                 c.target.as_ref().map_or(0, |t| t.bindings.len() as u32),
+                sp_start as u32,
+                (specializations.len() - sp_start) as u32,
             ]);
         }
+        a.table(
+            "specializations",
+            &[
+                "target",
+                "partition_start",
+                "arity",
+                "projection_start",
+                "output_arity",
+            ],
+            specializations,
+        )?;
+        a.table("alias_partitions", &["group"], alias_partitions)?;
+        a.table("projections", &["slot"], projections)?;
         a.table("sources", &["cell"], sources)?;
         a.table("branches", &["start", "count"], branches)?;
         a.table("requirements", &["condition", "depth"], reqs)?;
@@ -225,11 +255,21 @@ impl Checked {
                 "target",
                 "gather_start",
                 "gather_count",
+                "specialization_start",
+                "specialization_count",
             ],
             chans,
         )?;
         a.zero("decisions", "u32", p.channels.len(), 1)?;
         a.zero("target_status", "u32", p.channels.len(), 1)?;
+        a.add(
+            "specialization_targets",
+            "u32",
+            p.channels.len(),
+            1,
+            &[],
+            vec![NO; p.channels.len()],
+        )?;
         let mut stages = vec![];
         let mut channel_ids = vec![];
         for (i, stage) in p.stages.iter().enumerate() {
@@ -383,7 +423,7 @@ impl Checked {
         }
         shader += include_str!("../matrix.metal");
         Ok(GpuProgram {
-            version: 1,
+            version: 2,
             layout: a.layout,
             data: a.data,
             shader,

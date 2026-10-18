@@ -12,6 +12,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 use std::time::Instant;
 
+pub mod analyze_program;
 pub mod matrix;
 pub mod program;
 pub mod compile;

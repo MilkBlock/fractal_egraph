@@ -1,0 +1,502 @@
+{
+  "scope": "integration of existing bounded Bake programs into shared Rust IR and Metal/MPS executor; no general egglog speedup or FractalComb discovery claim",
+  "cases": [
+    {
+      "name": "root-eager",
+      "exact_cpu_gpu": true,
+      "epochs": 1,
+      "matrix_macs": 3136,
+      "matrix_calls": 1,
+      "computed_features": 28,
+      "reused_features": 0,
+      "feature_components_written": 112,
+      "feature_adds": 0,
+      "feature_multiplies": 0,
+      "gpu_seconds": 0.00039462465792894363,
+      "host_count_reads": 1,
+      "matrix_bytes": 28100,
+      "intermediate_binding_readbacks": 0
+    },
+    {
+      "name": "root-staged",
+      "exact_cpu_gpu": true,
+      "epochs": 1,
+      "matrix_macs": 896,
+      "matrix_calls": 3,
+      "computed_features": 24,
+      "reused_features": 0,
+      "feature_components_written": 96,
+      "feature_adds": 0,
+      "feature_multiplies": 0,
+      "gpu_seconds": 0.0013631661422550678,
+      "host_count_reads": 3,
+      "matrix_bytes": 28100,
+      "intermediate_binding_readbacks": 0
+    },
+    {
+      "name": "root-marker",
+      "exact_cpu_gpu": true,
+      "epochs": 1,
+      "matrix_macs": 912,
+      "matrix_calls": 3,
+      "computed_features": 50,
+      "reused_features": 0,
+      "feature_components_written": 344,
+      "feature_adds": 80,
+      "feature_multiplies": 176,
+      "gpu_seconds": 0.0011625410988926888,
+      "host_count_reads": 4,
+      "matrix_bytes": 24136,
+      "intermediate_binding_readbacks": 0
+    },
+    {
+      "name": "all-eager",
+      "exact_cpu_gpu": true,
+      "epochs": 1,
+      "matrix_macs": 3136,
+      "matrix_calls": 1,
+      "computed_features": 28,
+      "reused_features": 0,
+      "feature_components_written": 112,
+      "feature_adds": 0,
+      "feature_multiplies": 0,
+      "gpu_seconds": 0.0007133325561881065,
+      "host_count_reads": 1,
+      "matrix_bytes": 312148,
+      "intermediate_binding_readbacks": 0
+    },
+    {
+      "name": "all-staged",
+      "exact_cpu_gpu": true,
+      "epochs": 1,
+      "matrix_macs": 3136,
+      "matrix_calls": 1,
+      "computed_features": 28,
+      "reused_features": 0,
+      "feature_components_written": 112,
+      "feature_adds": 0,
+      "feature_multiplies": 0,
+      "gpu_seconds": 0.0006228331476449966,
+      "host_count_reads": 3,
+      "matrix_bytes": 312148,
+      "intermediate_binding_readbacks": 0
+    },
+    {
+      "name": "all-marker",
+      "exact_cpu_gpu": true,
+      "epochs": 1,
+      "matrix_macs": 3776,
+      "matrix_calls": 2,
+      "computed_features": 52,
+      "reused_features": 16,
+      "feature_components_written": 352,
+      "feature_adds": 80,
+      "feature_multiplies": 176,
+      "gpu_seconds": 0.001154417172074318,
+      "host_count_reads": 4,
+      "matrix_bytes": 313048,
+      "intermediate_binding_readbacks": 0
+    },
+    {
+      "name": "transitions",
+      "exact_cpu_gpu": true,
+      "epochs": 1,
+      "matrix_macs": 1914,
+      "matrix_calls": 3,
+      "computed_features": 94,
+      "reused_features": 1,
+      "feature_components_written": 700,
+      "feature_adds": 180,
+      "feature_multiplies": 396,
+      "gpu_seconds": 0.0013326243497431278,
+      "host_count_reads": 4,
+      "matrix_bytes": 23608,
+      "intermediate_binding_readbacks": 0
+    },
+    {
+      "name": "transitions-incremental",
+      "exact_cpu_gpu": true,
+      "epochs": 4,
+      "matrix_macs": 2298,
+      "matrix_calls": 6,
+      "computed_features": 111,
+      "reused_features": 10,
+      "feature_components_written": 828,
+      "feature_adds": 220,
+      "feature_multiplies": 472,
+      "gpu_seconds": 0.001110415905714035,
+      "host_count_reads": 16,
+      "matrix_bytes": 23624,
+      "intermediate_binding_readbacks": 0
+    },
+    {
+      "name": "transitions-fresh-update",
+      "exact_cpu_gpu": true,
+      "epochs": 1,
+      "matrix_macs": 1524,
+      "matrix_calls": 3,
+      "computed_features": 79,
+      "reused_features": 1,
+      "feature_components_written": 586,
+      "feature_adds": 150,
+      "feature_multiplies": 330,
+      "gpu_seconds": 0.0005806670524179935,
+      "host_count_reads": 4,
+      "matrix_bytes": 23608,
+      "intermediate_binding_readbacks": 0
+    },
+    {
+      "name": "observed-alias-specializations",
+      "exact_cpu_gpu": true,
+      "epochs": 2,
+      "matrix_macs": 2200,
+      "matrix_calls": 5,
+      "computed_features": 111,
+      "reused_features": 4,
+      "feature_components_written": 828,
+      "feature_adds": 220,
+      "feature_multiplies": 472,
+      "gpu_seconds": 0.001796669326722622,
+      "host_count_reads": 12,
+      "matrix_bytes": 33112,
+      "intermediate_binding_readbacks": 0
+    },
+    {
+      "name": "analyze-import",
+      "exact_cpu_gpu": true,
+      "epochs": 1,
+      "matrix_macs": 32,
+      "matrix_calls": 1,
+      "computed_features": 4,
+      "reused_features": 0,
+      "feature_components_written": 8,
+      "feature_adds": 0,
+      "feature_multiplies": 0,
+      "gpu_seconds": 0.0009100823663175106,
+      "host_count_reads": 1,
+      "matrix_bytes": 1428,
+      "intermediate_binding_readbacks": 0
+    }
+  ],
+  "native": [
+    {
+      "kind": "root and non-root full factoring bindings",
+      "bindings": 462,
+      "exact": true
+    },
+    {
+      "matches": [
+        {
+          "stage": 0,
+          "native_full_bindings": 6,
+          "by_rule": {
+            "factor": 3,
+            "powers": 1,
+            "integral-cos": 1,
+            "diff-sin": 1
+          },
+          "exact": true
+        },
+        {
+          "stage": 1,
+          "native_full_bindings": 4,
+          "by_rule": {
+            "factor": 1,
+            "powers": 1,
+            "diff-sin": 1,
+            "integral-cos": 1
+          },
+          "exact": true
+        }
+      ],
+      "full_closure_checks": [
+        {
+          "label": "factor",
+          "exact_equal": true,
+          "enodes": 38,
+          "eclasses": 15
+        },
+        {
+          "label": "powers",
+          "exact_equal": true,
+          "enodes": 13,
+          "eclasses": 9
+        },
+        {
+          "label": "integral",
+          "exact_equal": true,
+          "enodes": 7,
+          "eclasses": 5
+        },
+        {
+          "label": "derivative",
+          "exact_equal": true,
+          "enodes": 7,
+          "eclasses": 5
+        },
+        {
+          "label": "factor-again",
+          "exact_equal": true,
+          "enodes": 63,
+          "eclasses": 23
+        },
+        {
+          "label": "powers-again",
+          "exact_equal": true,
+          "enodes": 20,
+          "eclasses": 13
+        },
+        {
+          "label": "different-rule-after-integral",
+          "exact_equal": true,
+          "enodes": 8,
+          "eclasses": 5
+        },
+        {
+          "label": "different-rule-after-derivative",
+          "exact_equal": true,
+          "enodes": 8,
+          "eclasses": 5
+        }
+      ],
+      "rhs_only_negative_ablation": [
+        {
+          "label": "powers",
+          "full_enodes": 13,
+          "rhs_only_enodes": 9,
+          "full_eclasses": 9,
+          "rhs_only_eclasses": 7,
+          "exact_equal": false
+        }
+      ]
+    }
+  ],
+  "native_binary_sha256": "cffb656e30437ed60ceab0a8b7f63649b7e120910cc6da92aba8eb6c858881a6",
+  "runtime_binary_sha256": "fb0ef14815ffd2cde6c4645c6aabfa65fe8aa2f007b3a903eaeb286fe6336194",
+  "worker_sha256": "3595880434c843aa50fb649eb63053ead2b433732ce07f95aef1656e92fc4f18",
+  "incremental_matches_fresh": true,
+  "updated_native_audit": {
+    "matches": [
+      {
+        "stage": 0,
+        "native_full_bindings": 3,
+        "by_rule": {
+          "powers": 1,
+          "integral-cos": 1,
+          "diff-sin": 1
+        },
+        "exact": true
+      },
+      {
+        "stage": 1,
+        "native_full_bindings": 3,
+        "by_rule": {
+          "powers": 1,
+          "diff-sin": 1,
+          "integral-cos": 1
+        },
+        "exact": true
+      }
+    ],
+    "full_closure_checks": [
+      {
+        "label": "powers",
+        "exact_equal": true,
+        "enodes": 13,
+        "eclasses": 9
+      },
+      {
+        "label": "integral",
+        "exact_equal": true,
+        "enodes": 7,
+        "eclasses": 5
+      },
+      {
+        "label": "derivative",
+        "exact_equal": true,
+        "enodes": 7,
+        "eclasses": 5
+      },
+      {
+        "label": "powers-again",
+        "exact_equal": true,
+        "enodes": 20,
+        "eclasses": 13
+      },
+      {
+        "label": "different-rule-after-integral",
+        "exact_equal": true,
+        "enodes": 8,
+        "eclasses": 5
+      },
+      {
+        "label": "different-rule-after-derivative",
+        "exact_equal": true,
+        "enodes": 8,
+        "eclasses": 5
+      }
+    ],
+    "rhs_only_negative_ablation": [
+      {
+        "label": "powers",
+        "full_enodes": 13,
+        "rhs_only_enodes": 9,
+        "full_eclasses": 9,
+        "rhs_only_eclasses": 7,
+        "exact_equal": false
+      }
+    ]
+  },
+  "specialized_native_audit": {
+    "matches": [
+      {
+        "stage": 0,
+        "native_full_bindings": 6,
+        "by_rule": {
+          "factor": 3,
+          "powers": 1,
+          "integral-cos": 1,
+          "diff-sin": 1
+        },
+        "exact": true
+      },
+      {
+        "stage": 1,
+        "native_full_bindings": 4,
+        "by_rule": {
+          "factor": 1,
+          "powers": 1,
+          "diff-sin": 1,
+          "integral-cos": 1
+        },
+        "exact": true
+      },
+      {
+        "stage": 2,
+        "native_full_bindings": 2,
+        "by_rule": {
+          "factor": 2
+        },
+        "exact": true
+      }
+    ],
+    "full_closure_checks": [
+      {
+        "label": "factor",
+        "exact_equal": true,
+        "enodes": 38,
+        "eclasses": 15
+      },
+      {
+        "label": "powers",
+        "exact_equal": true,
+        "enodes": 13,
+        "eclasses": 9
+      },
+      {
+        "label": "integral",
+        "exact_equal": true,
+        "enodes": 7,
+        "eclasses": 5
+      },
+      {
+        "label": "derivative",
+        "exact_equal": true,
+        "enodes": 7,
+        "eclasses": 5
+      },
+      {
+        "label": "factor-again",
+        "exact_equal": true,
+        "enodes": 63,
+        "eclasses": 23
+      },
+      {
+        "label": "powers-again",
+        "exact_equal": true,
+        "enodes": 20,
+        "eclasses": 13
+      },
+      {
+        "label": "different-rule-after-integral",
+        "exact_equal": true,
+        "enodes": 8,
+        "eclasses": 5
+      },
+      {
+        "label": "different-rule-after-derivative",
+        "exact_equal": true,
+        "enodes": 8,
+        "eclasses": 5
+      },
+      {
+        "label": "after-specialization-4",
+        "exact_equal": true,
+        "enodes": 63,
+        "eclasses": 23
+      },
+      {
+        "label": "after-specialization-5",
+        "exact_equal": true,
+        "enodes": 63,
+        "eclasses": 23
+      }
+    ],
+    "rhs_only_negative_ablation": [
+      {
+        "label": "powers",
+        "full_enodes": 13,
+        "rhs_only_enodes": 9,
+        "full_eclasses": 9,
+        "rhs_only_eclasses": 7,
+        "exact_equal": false
+      }
+    ]
+  },
+  "alias_specializations": {
+    "observed_cases": 2,
+    "native_whole_closure_checks": [
+      {
+        "channel": "4",
+        "exact_equal": true,
+        "enodes": 38,
+        "eclasses": 15
+      },
+      {
+        "channel": "5",
+        "exact_equal": true,
+        "enodes": 38,
+        "eclasses": 15
+      }
+    ],
+    "resumed_native_bindings": 2,
+    "unchanged_epoch_matrix_macs": 0,
+    "scope": "observed aliases baked once; recipes selected and applied entirely on GPU; no automatic discovery of unseen alias cases"
+  },
+  "analyze_import": {
+    "cells": 5,
+    "templates": 2,
+    "observed_channels": 2,
+    "excluded": [],
+    "decisions": [
+      [
+        1,
+        1
+      ]
+    ],
+    "scope": "observed connections only; not a whole-runtime matcher or a proof of unbounded recurrence",
+    "input_sha256": {
+      "history.json": "a03d1826702569b71fb59b63bb8ec9cd50ef252816e9f5ee612814947ab3c46d",
+      "cell-egraph.json": "db22955be1d35ab7df4772e843a4977824620948d1a2bbaf016a74cd8ab867ce",
+      "catalog/states/state-0000.json": "dc2b05abaeb12e461bbfe0a26f3bbc9e437de1c9428a11ec5d2d2f96bdac13b3",
+      "catalog/states/state-0001.json": "9487fcfba8b417cbbd6aecb575e99b20e1498e75d6d0e49a71655a3c97ab60bb",
+      "catalog/states/state-0002.json": "709064b2f18a6912cdbac7ffe5c98bb79d63b6bcdbf5ac05c403af33f40e7673"
+    }
+  },
+  "regression": {
+    "package_tests_passed": 47,
+    "matrix_worker_enabled": true,
+    "resident_worker_source": "committed resident.swift; unrelated working tree edit not included",
+    "extra_native_oracle_cases": "positive and broken analyze connections; two aliases; ten post-transition full closures"
+  }
+}

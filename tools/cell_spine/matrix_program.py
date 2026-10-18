@@ -53,3 +53,37 @@ def transition_program(p,c,jobs,ports,active):
             stage.append(len(channels));channels.append(dict(label=str(t['branch']),sources=t['sources'],alternatives=[reqs],target=dict(cell=t['target'],bindings=t['bindings'])))
         stages.append(stage)
     return base(c,cells,channels,conditions,stages,dict(source='transition_program retained-context Bake',scope='supplied finite two-stage boundary connections; pending alias target is not rejection'),p.bake.templates)
+
+
+def observed_alias_specializations(p, program, report):
+    """Bake only successful targets whose alias premise actually failed.
+
+    Return certified target variants for the shared IR, without changing any
+    match condition. This is the fixed positive constructor environment proof
+    from transition_program, not alias erasure for primitive/merge programs.
+    """
+    import hashlib
+    from experiments.cell_spine.transition_program.runtime import remap, partition
+    from experiments.cell_spine.transition_program.specializations import validate_environment
+    validate_environment(p.ast)
+    recipes = {}
+    for stage, result in zip(program['stages'], report['epochs'][0]):
+        for ci, decision, status in zip(stage, result['decisions'], result['target_status']):
+            if decision != 1 or status != 2:
+                continue
+            ch = program['channels'][ci]
+            raw = ch['target']['cell']
+            old = p.bake.templates[p.instances[raw]['template']]
+            values = result['cells'][raw][:old['arity']]
+            compact, unique = partition(values)
+            guard = [values.index(v) for v in values]
+            target = p.bake.add(remap(old['seed'], compact))
+            cell = p.instance(f"alias:{ch['label']}:{guard}", target)
+            projection = [values.index(v) for v in unique]
+            recipes[ch['label']] = dict(cell=cell, partition=guard, projection=projection,
+                certificate=dict(environment_sha256=hashlib.sha256(p.bake.source.encode()).hexdigest(),
+                    generic_template=p.instances[raw]['template'], specialized_template=target,
+                    specialized_seed=p.bake.templates[target]['seed'],
+                    native_saturated_enodes=p.bake.templates[target]['enodes'],
+                    proof='native closure of the complete retained seed with the observed alias substitution; opaque input renaming in the validated constructor-only environment'))
+    return recipes

@@ -13,12 +13,12 @@ from experiments.cell_spine.moment_compiler.compiler import bit_code
 from experiments.cell_spine.transition_program import compiler as tc,demo as td
 
 
-from tools.cell_spine.matrix_program import root_program,transition_program
+from tools.cell_spine.matrix_program import root_program,transition_program,observed_alias_specializations
 
 def main():
-    ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--output',type=Path,required=True);ap.add_argument('--skip-build',action='store_true');a=ap.parse_args();out=a.output.resolve();out.mkdir(parents=True,exist_ok=False)
+    ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--output',type=Path,required=True);ap.add_argument('--skip-build',action='store_true');ap.add_argument('--analysis',type=Path);opts=ap.parse_args();out=opts.output.resolve();out.mkdir(parents=True,exist_ok=False)
     binary=ROOT/'target/cell-assisted/debug/cell-assisted-egglog';worker=out/'matrix-metal';native=ROOT/'target/analyzer/release/examples/native_math_baseline';parser=ROOT/'target/analyzer/release/examples/lhs_ast'
-    if not a.skip_build:
+    if not opts.skip_build:
         subprocess.run(['cargo','build','--offline','--manifest-path','cell-assisted-egglog/Cargo.toml','--target-dir','target/cell-assisted'],cwd=ROOT,check=True)
         subprocess.run(['cargo','build','--offline','--release','--example','lhs_ast','--example','native_math_baseline','--target-dir','target/analyzer'],cwd=ROOT,check=True)
     subprocess.run(['swiftc','-O',ROOT/'cell-assisted-egglog/matrix.swift','-o',worker],check=True)
@@ -50,7 +50,7 @@ def main():
     ports=[];active=[]
     for inst in p.instances:
         values=inst['binding'] or [];ports.append([bit_code(v,c.bits) for v in values]+[bit_code(0,c.bits)]*(c.slots-len(values)));active.append(int(inst['initial']))
-    spec=transition_program(p,c,jobs,ports,active);result=run('transitions',spec);expected=td.reference(c,jobs,ports,active)
+    spec=transition_program(p,c,jobs,ports,active);result=run('transitions',spec);initial_result=result;expected=td.reference(c,jobs,ports,active)
     actual=[]
     for si,s in enumerate(result['epochs'][0]):
         assert s['target_status']==expected[si]['transition_status']
@@ -75,5 +75,60 @@ def main():
         assert [int(v==1) for v in state['live']]==fresh_expected[si]['cell_valid']
         assert [v for cell in state['cells'] for x in cell for v in bit_code(x,c.bits)]==fresh_expected[si]['cell_values']
     report['updated_native_audit']=td.native_audit(out/'updated-native-audit',native,source,p,jobs,fresh_expected)
+    # Preserve successful pending bindings, certify the observed alias cases,
+    # and continue from their own template/frame in the same GPU program.
+    recipes=observed_alias_specializations(p,spec,initial_result)
+    assert len(recipes)==2
+    extra=[]
+    m2=next(i for i,x in enumerate(p.instances) if x['name']=='m2')
+    for label,recipe in recipes.items():
+        extra+=p.edge('after-specialization-'+label,'factor',recipe['cell'],m2)
+    p.stages.append(extra)
+    c,jobs=p.lower();p.c=c
+    ports=[];active=[]
+    for inst in p.instances:
+        values=inst['binding'] or [];ports.append([bit_code(v,c.bits) for v in values]+[bit_code(0,c.bits)]*(c.slots-len(values)));active.append(int(inst['initial']))
+    specialized=transition_program(p,c,jobs,ports,active)
+    for ch in specialized['channels']:
+        if ch['label'] in recipes:ch['target']['specializations']=[recipes[ch['label']]]
+    # Identical second epoch checks that resumption reuses match evidence.
+    specialized['updates']=[[]]
+    sr=run('observed-alias-specializations',specialized)
+    assert sum(v==3 for s in sr['epochs'][0] for v in s['target_status'])==len(recipes)
+    assert any(v==1 for v in sr['epochs'][0][-1]['target_status'])
+    assert all(l['work']['matrix_calls']==l['work']['computed_features']==0 for s in sr['epochs'][1] for l in s['levels'])
+    stages=[]
+    before=[[sum((x==1)<<j for j,x in enumerate(v)) for v in cell] for cell in ports];live=active
+    for state in sr['epochs'][0]:
+        stages.append(dict(before_codes=[[bit_code(v,c.bits) for v in row] for row in before],before_live=live,
+            transition_status=[2 if x==3 else x for x in state['target_status']],
+            cell_values=[v for row in state['cells'] for x in row for v in bit_code(x,c.bits)]))
+        before=state['cells'];live=[int(v==1) for v in state['live']]
+    report['specialized_native_audit']=td.native_audit(out/'specialized-native-audit',native,source,p,jobs,stages)
+    closure_checks=[]
+    from tools.bench.math_graph_equal import verify
+    from experiments.cell_spine.factorized_boundary.demo import native as run_native,sexpr
+    for label,recipe in recipes.items():
+        ch=next(x for x in specialized['channels'] if x['label']==label)
+        raw=ch['target']['cell'];raw_template=p.bake.templates[p.instances[raw]['template']]
+        dst=recipe['cell'];dst_template=p.bake.templates[p.instances[dst]['template']]
+        values=sr['epochs'][0][0]['cells']
+        paths=[]
+        for kind,template,row in [('original',raw_template,values[raw]),('specialized',dst_template,values[dst])]:
+            dest=out/'alias-closures'/label/kind;paths.append(dest/'graph.json')
+            run_native(native,dest,source,f'(let root {sexpr(td.input_term(template["seed"],row))})','',td.CONSTRUCTORS)
+        closure_checks.append(dict(channel=label,**verify(*paths)))
+    report['alias_specializations']=dict(observed_cases=len(recipes),native_whole_closure_checks=closure_checks,
+        resumed_native_bindings=report['specialized_native_audit']['matches'][-1]['native_full_bindings'],
+        unchanged_epoch_matrix_macs=0,scope='observed aliases baked once; recipes selected and applied entirely on GPU; no automatic discovery of unseen alias cases')
+    if opts.analysis:
+        dest=out/'analyze-import.json'
+        subprocess.run([binary,'--mode','matrix','--analysis',opts.analysis.resolve(),'--backend','cpu','--output',dest],cwd=ROOT,check=True,stdout=subprocess.DEVNULL)
+        imported=json.loads(dest.with_suffix('.program.json').read_text())
+        ir=run('analyze-import',imported)
+        report['analyze_import']=dict(cells=len(imported['cells']),templates=len(imported['templates']),
+            observed_channels=len(imported['channels']),excluded=imported['evidence']['excluded'],
+            input_sha256={str(f.relative_to(opts.analysis.resolve())):hashlib.sha256(f.read_bytes()).hexdigest() for f in [opts.analysis.resolve()/'history.json',opts.analysis.resolve()/'cell-egraph.json',*sorted((opts.analysis.resolve()/'catalog/states').glob('state-*.json'))]},
+            decisions=[s['decisions'] for s in ir['epochs'][0]],scope=imported['evidence']['scope'])
     (out/'report.json').write_text(json.dumps(report,indent=2)+'\n');print(out/'report.json')
 if __name__=='__main__':main()

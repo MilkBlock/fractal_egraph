@@ -52,11 +52,20 @@ fn snapshot(eg: &EGraph) -> Result<Json> {
 fn run() -> Result<()> {
     let a = args()?;
     if a.get("--mode").map(String::as_str) == Some("matrix") {
-        let input = PathBuf::from(required(&a, "--program")?);
-        let program: cell_assisted_egglog::program::Program =
-            serde_json::from_slice(&std::fs::read(&input)?)?;
-        let checked = program.check()?;
         let report = PathBuf::from(required(&a, "--output")?);
+        let program = match (a.get("--program"), a.get("--analysis")) {
+            (Some(input), None) => serde_json::from_slice(&std::fs::read(input)?)?,
+            (None, Some(dir)) => {
+                let p = cell_assisted_egglog::analyze_program::load(Path::new(dir))?;
+                std::fs::write(
+                    report.with_extension("program.json"),
+                    serde_json::to_vec_pretty(&p)?,
+                )?;
+                p
+            }
+            _ => return Err("matrix mode requires exactly one of --program or --analysis".into()),
+        };
+        let checked = program.check()?;
         match a.get("--backend").map(String::as_str).unwrap_or("cpu") {
             "cpu" => std::fs::write(&report, serde_json::to_vec_pretty(&checked.execute())?)?,
             "metal" => {

@@ -191,3 +191,21 @@ binding/effect/必要中间状态一致。未知域、额外外部义务和不�
 没有将整个路线标为完成：analyze 的直接前端和认证拆分、自动 specialization 回流、
 原生事件到矩阵路径的接入、FractalComb 压缩、真实 eggcc 完整加速均仍待实现。
 下一步应接 analyze 证据与目标专化，不再增加一个平行的身份编码 demo。
+
+
+## 实施记录：analyze 前端与已认证专化接续
+
+`--mode matrix --analysis DIR` 已直接导入 analyze 的 closure-port-progressions：
+真实 producer/read 版本、完整 LHS、共享输入接线和父闭包保留证明都经过校验。
+当前范围是两读端口契约，未覆盖的 guard、内部结果等式、额外义务不会被擦除。
+三段源 Cell 的实际样例导入了两个边界转移，CPU/MPS 与原生查询核对通过。
+
+目标构造新增已认证 alias 专化表。同一 GPU 程序在成功匹配后检查完整参数分区，
+投影到专化模板的新槽位，然后继续后继匹配；不以修改旧模板标签冒充闭包修复。
+两个 tiny-math 专化的完整闭包与原生相同，并恢复两个后继 factoring binding。
+未变化的下一轮不重新计算 GEMM 或特征，仍有控制和 guard/gather 成本。
+
+边界仍然明确：首次专化由离线 native Bake 证明后重新编译，尚未热插入常驻程序；
+analyze 导入只执行已观察连接，尚未接全局原生事件服务。数值专化、一般 union
+后新增触点的自动发现，以及 FractalComb 子程序压缩都没有因此自动完成。
+验证与复现命令见 matrix-program/README.md；旧哈希事件后端继续作为语义对照。

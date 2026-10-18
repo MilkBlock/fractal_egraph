@@ -40,8 +40,10 @@ baked interfaces + actual/offered external connections
 
 A complete binding with an unsupported target alias pattern is preserved as a
 **needs-specialization target**, distinct from rejected matching. A downstream
-consumer of that target remains pending. Automatic native re-Bake and resumption
-of a newly compiled specialization are not connected in this slice.
+consumer of that target remains pending. Known certified alias recipes can now
+select a distinct target template and project its own slots directly on GPU.
+The original match evidence is retained. First-time native re-Bake is an offline
+compiler step; hot installation of unseen specializations is not connected.
 
 The feature algebra is migrated from `moment_compiler`. Signed-bit IDs use no
 float interpretation of the identity itself. The binary-pair moment codec keeps
@@ -146,12 +148,12 @@ CELL_MATRIX_WORKER="$PWD/out/matrix-run/matrix-metal" \
   --target-dir target/cell-assisted --test program
 ```
 
-All 42 package tests pass with the numerical workers enabled, including the
+All 47 package tests pass with the numerical workers enabled, including the
 34 pre-existing runtime checks. The resident controls used a worker built from
 the committed source; the unrelated working-tree edit to `resident.swift` was
 left untouched.
 
-Eight new tests cover deferred depth, OR-branch separation, exact swapped/repeated
+The original eight coordinate tests cover deferred depth, OR-branch separation, exact swapped/repeated
 pair markers, stale source partitions, successful matches needing specialization,
 incremental feature/evidence invalidation, invalid wiring and generated layouts.
 With `CELL_MATRIX_WORKER`, numerical/state results are checked against real MPS.
@@ -164,10 +166,98 @@ This is a bounded compiled Cell program, not automatic matrix lowering of any
 use the existing finite Bake/interface and supplied-boundary contracts. They do
 not discover FractalComb from source syntax or prove unobserved transfer domains.
 
-Still outstanding: direct analyze evidence import and the sharing/transfer
-certification split; automatic alias/numeric specialization in this new executor;
+Still outstanding: a general analyze frontend beyond the supported two-read
+contracts and the sharing/transfer certification split; hot installation of unseen
+alias cases and numeric specialization in this executor;
 real native-event-driven routing and global commit synchronization; FractalComb
 program compression from analyze evidence; checked numeric update instructions
 in this IR; and full real-eggcc same-state performance tests. The existing resident
 hash backend and i64/function tests remain controls, not claims that these gaps
 have been solved by renaming storage to matrices.
+
+
+## Analyze evidence and certified specialization continuation
+
+The shared executable now accepts `--mode matrix --analysis DIR` instead of
+`--program FILE`. `src/analyze_program.rs` imports **only witnessed connections**
+from `cell-egraph.json.repetition_families.port_progressions`, plus `history.json`
+and the exact completed `catalog/states/` certificates. It checks:
+
+- Typed port identities, parameter marker positions, exact alias frames.
+- Actual committed producer facts, consumer read versions, both full LHS atoms.
+- All logical variable equalities, including repeated occurrences within an atom.
+- Equal rule environments and complete visible parent-body transport into the target.
+- Complete target gathers and the observed dependency order.
+
+The source rule AST is parsed with egglog only to validate those existing
+witnesses. It does not discover families. Additional guards, computed/literal
+reads, cross-atom result equalities without an exported coordinate, incidental
+alias quotients, unversioned target cycles and missing certificates are explicit
+unsupported cases. They cannot silently vanish into a supposedly complete plan.
+The original analyzer report remains unchanged; import exclusions are included
+in the generated program. If nothing qualifies, compilation fails with reasons.
+
+Freshly analyzing `experiments/cell_egraph/port-progression.egg` produced three
+source instances and two target instances, sharing two certified templates.
+The two witnessed boundary channels compile to one 4-by-4 Gram block (32 logical
+MACs). Both CPU and MPS return the same two target bindings. A separate native
+query checks the positive connections and a broken-connection negative case.
+This is a finite observed-edge result, **not** full future Cell coverage or an
+infinite FractalComb proof.
+
+```sh
+EGG_LAYOUT_GRAPHS=0 target/analyzer/debug/egg_layout analyze \
+  --source experiments/cell_egraph/port-progression.egg \
+  --output out/matrix-analyze --save-history
+mkdir -p out/matrix-run
+swiftc -O cell-assisted-egglog/matrix.swift -o out/matrix-run/matrix-metal
+cargo run --offline --manifest-path cell-assisted-egglog/Cargo.toml \
+  --target-dir target/cell-assisted -- --mode matrix \
+  --analysis out/matrix-analyze --backend metal \
+  --gpu-worker out/matrix-run/matrix-metal --output out/matrix-run/report.json
+```
+
+This emits `report.program.json` for offline replay and `report.lowered.json`
+with generated matrix layouts. Source IR remains version 1; the lowered worker
+ABI is version 2. Old lowered files must be regenerated from their source IR.
+
+A target can now carry **offline-certified alias alternatives**. Each alternative
+has an exact whole-frame equality partition, a target template, and a projection
+from the gathered frame into that template's compact parameters. The matrices
+for these guards and projections are generated by the same compiler. Alternatives
+must be disjoint, have unique fresh target slots, and agree with their target
+partition. A certificate field records provenance; JSON metadata by itself is
+not a proof. The trusted offline compiler must establish the transfer contract.
+
+For the tiny math workload, `observed_alias_specializations` reuses the existing
+constructor-only environment validator and native Bake. It specializes the
+**complete retained parent seed**, never just the rewrite RHS. Two observed
+alias cases produce 38-node / 15-class closures, each exactly equal to a separate
+native run. GPU recipe selection then enables two further native-checked
+factoring bindings; the resulting target closures each have 63 nodes / 23 classes.
+The three stages have 6, 4 and 2 distinct native full bindings. An unchanged
+second epoch uses zero GEMMs and computes zero feature rows; guard/gather and
+control work still runs. No runtime speedup is inferred from these tiny counts.
+
+`target_status` is 0 (no published target), 1 (original template), 2 (matched but
+needs an unknown specialization), or 3 (a certified alternative was published).
+`specialization_targets` records the chosen target. A rejected match invalidates
+all its alternative outputs, so a stale specialized Cell cannot enable consumers.
+The original incompatible target stays unavailable; consumers explicitly use the
+specialized frame. Unresolved sources remain pending.
+
+First discovery in this experiment performs native Bake and recompiles the
+program. **Already-installed** recipes run without host binding readback or
+repeating the completed match. Unseen alias cases are not learned inside Metal;
+general union repair, numerical conditions and hot resume remain future work.
+
+```sh
+python3 cell-assisted-egglog/validate_matrix.py --skip-build \
+  --analysis out/matrix-analyze --output out/matrix-validation
+```
+
+The validation includes all earlier marker/depth/whole-closure checks, both alias
+cases, post-specialization matches and direct analyze import. Relevant results:
+[analyze-specialization-results.json](analyze-specialization-results.json).
+The checked-in `tests/data/analyze_ports.json` is a trimmed real analysis fixture;
+no runtime result from that fixture is uploaded as a matrix match answer.

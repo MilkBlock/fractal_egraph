@@ -49,6 +49,19 @@ pub struct Requirement {
 pub struct Target {
     pub cell: usize,
     pub bindings: Vec<Wire>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub specializations: Vec<Specialization>,
+}
+/// An offline-certified alias case. The exact partition guards the whole raw
+/// target frame, before quotienting slots. The target owns a distinct template
+/// and coordinate frame; we never relabel an unproved old Cell as valid.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Specialization {
+    pub cell: usize,
+    pub partition: Vec<usize>,
+    pub projection: Vec<usize>,
+    pub certificate: Value,
 }
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -330,6 +343,43 @@ impl Program {
                     {
                         return Err("target gather/order violation".into());
                     }
+                    let mut partitions = BTreeSet::from([target.partition.clone()]);
+                    for sp in &t.specializations {
+                        let out = self
+                            .cells
+                            .get(sp.cell)
+                            .ok_or("invalid specialization target")?;
+                        if claimed.contains(&sp.cell)
+                            || !targets.insert(sp.cell)
+                            || sp.partition.len() != t.bindings.len()
+                            || sp
+                                .partition
+                                .iter()
+                                .enumerate()
+                                .any(|(i, v)| *v > i || sp.partition[*v] != *v)
+                            || !partitions.insert(sp.partition.clone())
+                            || sp.projection.len() != out.partition.len()
+                            || sp.projection.iter().any(|v| *v >= t.bindings.len())
+                            || sp.certificate.is_null()
+                        {
+                            return Err(
+                                "invalid specialization frame/projection/certificate".into()
+                            );
+                        }
+                        for i in 0..sp.projection.len() {
+                            for j in 0..i {
+                                if (sp.partition[sp.projection[i]]
+                                    == sp.partition[sp.projection[j]])
+                                    != (out.partition[i] == out.partition[j])
+                                {
+                                    return Err(
+                                        "specialized target partition differs from projected frame"
+                                            .into(),
+                                    );
+                                }
+                            }
+                        }
+                    }
                 }
             }
             claimed.extend(targets);
@@ -389,6 +439,7 @@ pub struct Stage {
     pub cells: Vec<Vec<u32>>,
     pub live: Vec<u32>,
     pub target_status: Vec<u32>,
+    pub specialization_targets: Vec<Option<usize>>,
 }
 #[derive(Clone, Debug, Serialize, PartialEq)]
 pub struct Report {
@@ -644,12 +695,17 @@ impl Checked {
                     levels.push(self.level(&s, stage, Some(depth), work));
                 }
                 let mut target_status = vec![];
+                let mut specialization_targets = vec![];
                 let mut dirty = vec![BTreeSet::new(); p.cells.len()];
                 for &ci in stage {
                     let c = &p.channels[ci];
                     let mut status = 0;
+                    let mut specialized = None;
                     if let Some(t) = &c.target {
                         s.live[t.cell] = 0;
+                        for sp in &t.specializations {
+                            s.live[sp.cell] = if s.decision[ci] == 0 { 2 } else { 0 };
+                        }
                         if s.decision[ci] == 1 {
                             let vals = t
                                 .bindings
@@ -668,11 +724,29 @@ impl Checked {
                                 2
                             };
                             s.live[t.cell] = status;
+                            if status == 2 {
+                                for sp in &t.specializations {
+                                    if !self.partition(&vals, &sp.partition) {
+                                        continue;
+                                    }
+                                    for (slot, from) in sp.projection.iter().enumerate() {
+                                        let v = vals[*from];
+                                        if s.binding[sp.cell][slot] != v {
+                                            dirty[sp.cell].insert(slot);
+                                        }
+                                        s.binding[sp.cell][slot] = v;
+                                    }
+                                    s.live[sp.cell] = 1;
+                                    specialized = Some(sp.cell);
+                                    status = 3;
+                                }
+                            }
                         } else if s.decision[ci] == 0 {
                             s.live[t.cell] = 2;
                         }
                     }
                     target_status.push(status);
+                    specialization_targets.push(specialized);
                 }
                 self.invalidate(&mut s, &dirty);
                 stages.push(Stage {
@@ -681,6 +755,7 @@ impl Checked {
                     cells: s.binding.clone(),
                     live: s.live.clone(),
                     target_status,
+                    specialization_targets,
                 });
             }
             epochs.push(stages);

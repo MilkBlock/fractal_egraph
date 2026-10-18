@@ -266,9 +266,13 @@ kernel void targets(CONTEXT, uint i [[thread_position_in_grid]]) {
     return;
   uint ci = U(STAGE_CHANNELS, cfg.x + i, 0), target = CH(ci, TARGET);
   U(TARGET_STATUS, ci, 0) = 0;
+  U(SPECIALIZATION_TARGETS, ci, 0) = NO;
   if (target == NO)
     return;
   uint decision = U(DECISIONS, ci, 0);
+  uint ss = CH(ci, SPECIALIZATION_START), sn = CH(ci, SPECIALIZATION_COUNT);
+  for (uint i = ss; i < ss + sn; i++)
+    U(LIVE, U(SPECIALIZATIONS, i, SPECIALIZATIONS_TARGET), 0) = decision == 0 ? 2 : 0;
   U(LIVE, target, 0) = decision == 0 ? 2 : 0;
   if (decision != 1)
     return;
@@ -287,6 +291,29 @@ kernel void targets(CONTEXT, uint i [[thread_position_in_grid]]) {
         status = 2;
   U(LIVE, target, 0) = status;
   U(TARGET_STATUS, ci, 0) = status;
+  if (status != 2) return;
+  // Whole-frame alias guard selects a certified template and its own frame.
+  // The match decision/evidence stays intact; no second Join or GEMM.
+  for (uint i = ss; i < ss + sn; i++) {
+    uint ps = U(SPECIALIZATIONS, i, SPECIALIZATIONS_PARTITION_START);
+    bool valid = true;
+    for (uint a = 0; a < n; a++)
+      for (uint b = 0; b < a; b++)
+        valid &= (U(BINDINGS, target, a) == U(BINDINGS, target, b)) ==
+                 (U(ALIAS_PARTITIONS, ps + a, 0) == U(ALIAS_PARTITIONS, ps + b, 0));
+    if (!valid) continue;
+    uint out = U(SPECIALIZATIONS, i, SPECIALIZATIONS_TARGET);
+    uint begin = U(SPECIALIZATIONS, i, SPECIALIZATIONS_PROJECTION_START);
+    uint size = U(SPECIALIZATIONS, i, SPECIALIZATIONS_OUTPUT_ARITY);
+    for (uint j = 0; j < size; j++) {
+      uint v = U(BINDINGS, target, U(PROJECTIONS, begin + j, 0));
+      if (U(BINDINGS, out, j) != v) U(DIRTY_PORTS, out, j) = 1;
+      U(BINDINGS, out, j) = v;
+    }
+    U(LIVE, out, 0) = 1;
+    U(SPECIALIZATION_TARGETS, ci, 0) = out;
+    U(TARGET_STATUS, ci, 0) = 3;
+  }
 }
 
 kernel void histogram(CONTEXT, uint i [[thread_position_in_grid]]) {
