@@ -123,6 +123,7 @@ version = "0.1.0"
 dependencies = [
  "egglog",
  "egglog-numeric-id",
+ "egglog-reports",
  "serde",
  "serde_json",
 ]

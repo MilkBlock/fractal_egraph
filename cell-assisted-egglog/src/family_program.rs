@@ -17,6 +17,7 @@ pub fn compile(
     certificates: bool,
     event_cells: bool,
 ) -> Result<Json> {
+    if sinks.iter().any(|s|s.native_residuals){return Err("native residual candidates are not a GPU match program".into())}
     let c = tables.iter().map(|t| t.keys + 1).max().unwrap_or(1);
     let p = sinks.iter().map(|q| q.atoms.len()).max().unwrap_or(1);
     let s = sinks.iter().map(|q| q.slots().len()).max().unwrap_or(1);

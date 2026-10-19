@@ -13,6 +13,7 @@ use serde::Serialize;
 use serde_json::{Value as Json, json};
 use std::collections::{BTreeMap, BTreeSet};
 pub mod joint;
+mod scalar;
 
 type Key = Vec<Value>;
 type Binding = Vec<Option<Value>>;
@@ -72,6 +73,9 @@ struct Kernel {
     subscribers: BTreeMap<Read, BTreeSet<Key>>,
     executions: usize,
     bindings: usize,
+    watch: bool,
+    slot_count: usize,
+    linear: bool,
 }
 fn known(o: &CellOperand, b: &[bool]) -> bool {
     match o {
@@ -158,6 +162,8 @@ impl Kernel {
             .into());
         }
         let (seed, steps) = plans.pop().unwrap();
+        let slot_count = sink.slots().len();
+        let linear = steps.iter().all(|(_, a)| matches!(a, Access::Key));
         Ok(Self {
             sink,
             tables,
@@ -168,6 +174,9 @@ impl Kernel {
             subscribers: BTreeMap::new(),
             executions: 0,
             bindings: 0,
+            watch: true,
+            slot_count,
+            linear,
         })
     }
     fn wake(&mut self, read: &Read) {
@@ -192,13 +201,45 @@ impl Kernel {
         out: &mut Vec<Vec<Value>>,
         lookups: &mut usize,
     ) -> Result<()> {
+        if step == 0 && self.linear && !self.steps.is_empty() {
+            let mut b = b;
+            let mut stamp = stamp;
+            for (i, _) in &self.steps {
+                let atom = &self.sink.atoms[*i];
+                let table = self.tables[*i];
+                let key = atom.columns[..atom.columns.len() - 1]
+                    .iter()
+                    .map(|x| value(x, &b))
+                    .collect::<Vec<_>>();
+                deps.insert(Read::Key(table, key.clone()));
+                *lookups += 1;
+                let Some(row) = rows.keys.get(&(table, key)) else {
+                    return Ok(());
+                };
+                if !unify(&atom.columns, &row.values, &mut b) {
+                    return Ok(());
+                }
+                stamp = stamp.max(row.stamp);
+            }
+            return self.read_program(
+                eg,
+                rows,
+                self.steps.len(),
+                b,
+                stamp,
+                watermark,
+                deps,
+                out,
+                lookups,
+            );
+        }
         if step == self.steps.len() {
             if stamp >= watermark {
                 let b = b
                     .into_iter()
                     .collect::<Option<Vec<_>>>()
                     .ok_or("unbound interface")?;
-                if eg.cell_guards_hold(&self.sink, &b)? {
+                if self.sink.native_residuals || eg.cell_guards_hold(&self.sink, &b)? {
                     out.push(b)
                 }
             }
@@ -244,6 +285,31 @@ impl Kernel {
         }
         Ok(())
     }
+    fn install_dependencies(&mut self, seed: Key, deps: Option<BTreeSet<Read>>) {
+        if self.dependencies.get(&seed) == deps.as_ref() {
+            return;
+        }
+        let old = self.dependencies.remove(&seed).unwrap_or_default();
+        let empty = BTreeSet::new();
+        let new = deps.as_ref().unwrap_or(&empty);
+        for d in old.difference(new) {
+            if let Some(s) = self.subscribers.get_mut(d) {
+                s.remove(&seed);
+                if s.is_empty() {
+                    self.subscribers.remove(d);
+                }
+            }
+        }
+        for d in new.difference(&old) {
+            self.subscribers
+                .entry(d.clone())
+                .or_default()
+                .insert(seed.clone());
+        }
+        if let Some(deps) = deps {
+            self.dependencies.insert(seed, deps);
+        }
+    }
     fn matches(
         &mut self,
         eg: &EGraph,
@@ -254,34 +320,20 @@ impl Kernel {
         let watermark = eg.cell_query_watermark(&self.sink);
         for seed in std::mem::take(&mut self.dirty) {
             self.executions += 1;
-            if let Some(old) = self.dependencies.remove(&seed) {
-                for d in old {
-                    if let Some(s) = self.subscribers.get_mut(&d) {
-                        s.remove(&seed);
-                        if s.is_empty() {
-                            self.subscribers.remove(&d);
-                        }
-                    }
-                }
-            }
             let Some(row) = rows.keys.get(&(self.tables[self.seed], seed.clone())) else {
+                self.install_dependencies(seed, None);
                 continue;
             };
-            let mut b = vec![None; self.sink.slots().len()];
+            let mut b = vec![None; self.slot_count];
             if !unify(&self.sink.atoms[self.seed].columns, &row.values, &mut b) {
+                self.install_dependencies(seed, None);
                 continue;
             }
             let mut deps = BTreeSet::new();
             self.read_program(
                 eg, rows, 0, b, row.stamp, watermark, &mut deps, &mut out, lookups,
             )?;
-            for d in &deps {
-                self.subscribers
-                    .entry(d.clone())
-                    .or_default()
-                    .insert(seed.clone());
-            }
-            self.dependencies.insert(seed, deps);
+            self.install_dependencies(seed, Some(deps));
         }
         out.sort_unstable();
         if out.windows(2).any(|p| p[0] == p[1]) {
@@ -308,10 +360,11 @@ pub struct Runtime {
     names: Vec<String>,
     feed: CellCommitFeed,
     rows: Rows,
-    identity: Vec<(String, String)>,
+    identity: u64,
     failed: bool,
     epoch: u64,
     joint: Option<joint::Joint>,
+    scalar: BTreeMap<String, scalar::Group>,
     forwarded: Option<Vec<CellCommitBatch>>,
     pub last_updated: bool,
     pub stats: Stats,
@@ -320,10 +373,14 @@ impl Runtime {
     pub fn new(eg: EGraph, sets: &[&str]) -> Result<Self> {
         Self::new_with_seeds(eg, sets, &BTreeMap::new())
     }
-    fn new_with_seeds(
+    fn new_with_seeds(eg: EGraph, sets: &[&str], seeds: &BTreeMap<String, String>) -> Result<Self> {
+        Self::new_with_scalar(eg, sets, seeds, vec![])
+    }
+    fn new_with_scalar(
         mut eg: EGraph,
         sets: &[&str],
         seeds: &BTreeMap<String, String>,
+        specs: Vec<scalar::Spec>,
     ) -> Result<Self> {
         let mut sinks = vec![];
         let mut groups = BTreeMap::new();
@@ -341,18 +398,51 @@ impl Runtime {
             }
             groups.insert(set.to_string(), ids);
         }
+        let mut scalar = BTreeMap::<String, scalar::Group>::new();
+        let mut scalar_seeds = BTreeMap::new();
+        for spec in specs {
+            names.insert(spec.field.clone());
+            let sink = eg.prepare_cell_candidate_action(&spec.set, &spec.name)?;
+            if !eg.cell_query_is_seminaive(&sink) {
+                return Err("scalar transfer requires seminaive rule".into());
+            }
+            names.extend(sink.atoms.iter().map(|a| a.function.clone()));
+            let plan = scalar::Plan::compile(&spec, &sink)?;
+            scalar_seeds.insert(sinks.len(), spec.seed.clone());
+            scalar
+                .entry(spec.set)
+                .or_default()
+                .plans
+                .push((sinks.len(), plan));
+            sinks.push(sink);
+        }
+        for (set, g) in &mut scalar {
+            let selected = g
+                .plans
+                .iter()
+                .map(|(id, _)| sinks[*id].name.clone())
+                .collect::<BTreeSet<_>>();
+            g.others = eg
+                .cell_rule_names(set)?
+                .into_iter()
+                .filter(|n| !selected.contains(n))
+                .collect();
+        }
         let names = names.into_iter().collect::<Vec<_>>();
         let mut kernels = vec![];
-        for sink in sinks {
+        for (id, sink) in sinks.into_iter().enumerate() {
             let tables = sink
                 .atoms
                 .iter()
                 .map(|a| names.iter().position(|n| n == &a.function).unwrap())
                 .collect();
-            let seed = seeds.get(&sink.name).map(String::as_str);
+            let seed = scalar_seeds
+                .get(&id)
+                .or_else(|| seeds.get(&sink.name))
+                .map(String::as_str);
             kernels.push(Kernel::compile(&eg, sink, tables, seed)?);
         }
-        let identity = eg.cell_rule_environment_identity();
+        let identity = eg.cell_rule_environment_stamp();
         let (feed, initial) = eg.subscribe_cell_commits(&names)?;
         let mut r = Self {
             eg,
@@ -365,6 +455,7 @@ impl Runtime {
             failed: false,
             epoch: 0,
             joint: None,
+            scalar,
             forwarded: None,
             last_updated: false,
             stats: Stats {
@@ -434,9 +525,9 @@ impl Runtime {
                 .checked_add(1)
                 .ok_or("joint generation exhausted")?;
         }
-        if self.forwarded.is_none() {
+        {
             for read in changed {
-                for k in &mut self.kernels {
+                for k in self.kernels.iter_mut().filter(|k| k.watch) {
                     k.wake(&read)
                 }
             }
@@ -500,6 +591,11 @@ impl Runtime {
     }
     fn step(&mut self, s: &Schedule) -> Result<bool> {
         match s {
+            GenericSchedule::Run(_, r)
+                if r.until.is_none() && self.scalar.contains_key(&r.ruleset) =>
+            {
+                Ok(self.run_scalar(&r.ruleset)?.updated)
+            }
             GenericSchedule::Run(_, r)
                 if self.sets.contains_key(&r.ruleset) && r.until.is_none() =>
             {
@@ -588,7 +684,7 @@ impl Runtime {
         if self.failed {
             return Err("failed update program cannot resume".into());
         }
-        if self.eg.cell_rule_environment_identity() != self.identity {
+        if self.eg.cell_rule_environment_stamp() != self.identity {
             return Err("rule environment changed".into());
         }
         let result = (|| {
@@ -607,6 +703,6 @@ impl Runtime {
         result
     }
     pub fn report(&self) -> Json {
-        json!({"stats":self.stats,"joint":self.joint.as_ref().map(|j|j.report()),"programs":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|{let k=&self.kernels[*id];json!({"ruleset":set,"rule":k.sink.name,"seed":k.sink.atoms[k.seed].function,"accesses":k.steps.iter().map(|(i,a)|json!({"table":k.sink.atoms[*i].function,"access":a})).collect::<Vec<_>>(),"seed_evaluations":k.executions,"emitted_bindings":k.bindings,"live_seed_instances":k.dependencies.len()})})).collect::<Vec<_>>(),"watched_rows":self.rows.keys.len(),"dependency_edges":self.kernels.iter().map(|k|k.subscribers.values().map(BTreeSet::len).sum::<usize>()).sum::<usize>(),"concrete_closure_catalog_entries":0,"scope":"Parameterized native update program with optional guarded joint saturation transfers. Original schedule and native effects; unsupported boundary states use the ordinary parameterized path. Not a GPU benchmark."})
+        json!({"stats":self.stats,"scalar_cells":self.scalar.iter().map(|(set,g)|json!({"ruleset":set,"rules":g.plans.len(),"stats":g.stats})).collect::<Vec<_>>(),"joint":self.joint.as_ref().map(|j|j.report()),"programs":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|{let k=&self.kernels[*id];json!({"ruleset":set,"rule":k.sink.name,"seed":k.sink.atoms[k.seed].function,"accesses":k.steps.iter().map(|(i,a)|json!({"table":k.sink.atoms[*i].function,"access":a})).collect::<Vec<_>>(),"seed_evaluations":k.executions,"emitted_bindings":k.bindings,"live_seed_instances":k.dependencies.len()})})).collect::<Vec<_>>(),"watched_rows":self.rows.keys.len(),"dependency_edges":self.kernels.iter().map(|k|k.subscribers.values().map(BTreeSet::len).sum::<usize>()).sum::<usize>(),"concrete_closure_catalog_entries":0,"scope":"Parameterized native update program with optional guarded joint saturation transfers. Original schedule and native effects; unsupported boundary states use the ordinary parameterized path. Not a GPU benchmark."})
     }
 }

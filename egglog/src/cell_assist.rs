@@ -7,6 +7,12 @@ use super::*;
 use egglog_bridge::{DefaultVal, FunctionConfig, FunctionId, MergeFn, RuleId, TableAction};
 use egglog_numeric_id::NumericId;
 
+pub(crate) fn next_cell_environment_stamp()->u64{
+    use std::sync::atomic::{AtomicU64,Ordering};
+    static NEXT:AtomicU64=AtomicU64::new(1);
+    NEXT.fetch_update(Ordering::Relaxed,Ordering::Relaxed,|n|n.checked_add(1)).expect("Cell environment generation exhausted")
+}
+
 #[path = "cell_assist_check.rs"]
 mod check;
 pub use check::{CellI64Check, CellI64CheckReport, CellI64Group, CellI64Proposal};
@@ -38,6 +44,9 @@ pub struct CellActionSink {
     pub name: String,
     pub atoms: Vec<CellQueryAtom>,
     pub guards: Vec<CellI64Guard>,
+    /// Structural candidate interface: all pure numeric residuals are evaluated
+    /// by the original native query inside the action sink, not on the caller.
+    pub native_residuals: bool,
     vars: Vec<ResolvedVar>,
     decided: FunctionId,
     action: RuleId,
@@ -72,6 +81,9 @@ impl CellActionSink {
 }
 
 impl EGraph {
+    /// Exact engine-environment generation, shared by clones but changed by
+    /// original rule/ruleset edits. Preparing private query sinks does not bump it.
+    pub fn cell_rule_environment_stamp(&self)->u64{self.cell_environment_stamp}
     /// Opt-in external action receipts for the Cell boundary index. Ordinary
     /// `run_program_with_trace` retains its existing scope and event counts.
     pub fn run_cell_input_with_trace(
@@ -138,6 +150,15 @@ impl EGraph {
         ruleset: &str,
         name: &str,
     ) -> Result<CellActionSink, Error> {
+        self.prepare_cell_action_impl(ruleset,name,false)
+    }
+
+    /// Compile an exact table-part frontier. Native +/comparison primitives
+    /// bind derived values and filter candidates before the original RHS runs.
+    pub fn prepare_cell_candidate_action(&mut self,ruleset:&str,name:&str)->Result<CellActionSink,Error>{
+        self.prepare_cell_action_impl(ruleset,name,true)
+    }
+    fn prepare_cell_action_impl(&mut self,ruleset:&str,name:&str,native_residuals:bool)->Result<CellActionSink,Error>{
         let fail = |s: &str| Error::BackendError(s.into());
         if self.are_proofs_enabled() || self.proof_state.original_typechecking.is_some() {
             return Err(fail("Cell assistance does not support proof/term encoding"));
@@ -198,6 +219,13 @@ impl EGraph {
                     });
                 }
                 ResolvedCall::Primitive(p) => {
+                    if native_residuals {
+                        if !matches!(p.name(),"+"|"<"|">"|"<="|">=") || p.input().len()!=2 || p.input().iter().any(|s|s.name()!="i64") || (p.output().name()!="i64" && p.output().name()!="Unit") {
+                            return Err(fail("unsupported native candidate residual"));
+                        }
+                        residual_atoms.push(atom.clone());
+                        continue;
+                    }
                     let opcode = match p.name() {
                         "<" => 0,
                         ">" => 1,
@@ -294,6 +322,7 @@ impl EGraph {
             name: name.into(),
             atoms,
             guards,
+            native_residuals,
             vars,
             decided,
             action: actions[0],
@@ -420,6 +449,7 @@ impl EGraph {
         sink: &CellActionSink,
         binding: &[Value],
     ) -> Result<bool, Error> {
+        if sink.native_residuals{return Err(Error::BackendError("candidate sink requires native residual evaluation".into()))}
         if binding.len() != sink.vars.len() {
             return Err(Error::BackendError("Cell binding arity mismatch".into()));
         }
@@ -536,6 +566,24 @@ impl EGraph {
         batches: &[(&CellActionSink, &[Vec<Value>])],
         trace: Option<&TraceSession>,
     ) -> Result<RunReport, Error> {
+        self.apply_cell_batches_impl(batches,trace,None)
+    }
+    /// Supply the complete structural frontier for selected rules; run every
+    /// other original rule in the SAME native action/merge/rebuild batch. Numeric
+    /// residual failures stay native LHS failures, including checked overflow.
+    pub fn step_cell_mixed_candidates(&mut self,ruleset:&str,batches:&[(&CellActionSink,&[Vec<Value>])])->Result<RunReport,Error>{
+        let Some(Ruleset::Rules(rules))=self.rulesets.get(ruleset) else{return Err(Error::BackendError("expected direct ruleset".into()))};
+        let ids=rules.values().map(|(_,id)|*id).collect::<Vec<_>>();
+        let originals=batches.iter().map(|(s,_)|s.original).collect::<Vec<_>>();
+        if originals.iter().any(|id|!ids.contains(id)) || originals.iter().collect::<std::collections::HashSet<_>>().len()!=originals.len(){return Err(Error::BackendError("foreign or duplicate candidate rule".into()))}
+        let epoch=self.backend.external_query_epoch();
+        let result=self.apply_cell_batches_impl(batches,None,Some((ruleset,&ids)))?;
+        self.backend.complete_external_queries(&originals,epoch);
+        Ok(result)
+    }
+    fn apply_cell_batches_impl(
+        &mut self,batches:&[(&CellActionSink,&[Vec<Value>])],trace:Option<&TraceSession>,mixed:Option<(&str,&[RuleId])>
+    )->Result<RunReport,Error>{
         let mut prepared = Vec::new();
         for (sink, bindings) in batches {
             if bindings.is_empty() {
@@ -545,7 +593,7 @@ impl EGraph {
                 .iter()
                 .map(|b| sink.canonicalize(self, b))
                 .collect::<Result<Vec<_>, _>>()?;
-            for row in &rows {
+            for row in rows.iter().filter(|_|mixed.is_none()) {
                 if !self.cell_guards_hold(sink, row)? {
                     return Err(Error::BackendError(
                         "submitted Cell binding violates residual guard".into(),
@@ -554,7 +602,7 @@ impl EGraph {
             }
             prepared.push((*sink, rows));
         }
-        if prepared.is_empty() {
+        if prepared.is_empty() && mixed.is_none() {
             return Ok(RunReport::default());
         }
         for (sink, rows) in &prepared {
@@ -567,7 +615,13 @@ impl EGraph {
             });
         }
         self.backend.flush_updates();
-        let actions = prepared
+        let actions = if let Some((_,ids))=mixed {
+            ids.iter().filter_map(|id|{
+                if let Some((s,rows))=batches.iter().find(|(s,_)|s.original==*id){
+                    (!rows.is_empty()).then_some(s.action)
+                }else{Some(*id)}
+            }).collect::<Vec<_>>()
+        }else{prepared
             .iter()
             .map(|(sink, _)| {
                 if trace.is_some() {
@@ -576,7 +630,7 @@ impl EGraph {
                     sink.action
                 }
             })
-            .collect::<Vec<_>>();
+            .collect::<Vec<_>>()};
         let result = match trace {
             Some(t) => self.backend.run_rules_with_trace(&actions, t),
             None => self.backend.run_rules(&actions),
@@ -599,7 +653,7 @@ impl EGraph {
             self.backend.flush_updates();
         }
         let report = result.map_err(|e| Error::BackendError(e.to_string()))?;
-        Ok(RunReport::singleton("cell-assisted", report))
+        Ok(RunReport::singleton(mixed.map(|m|m.0).unwrap_or("cell-assisted"), report))
     }
 
     /// Exact keyed read used to admit/revalidate Cell evidence. Includes native

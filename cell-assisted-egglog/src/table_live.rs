@@ -67,6 +67,7 @@ struct NativeStats {
 /// `complete=false` requires the ordinary backend to finish saturation.
 /// Only invoked for explicit Saturate bodies, never for an ordinary Run.
 pub trait SaturationHook {
+    fn try_run(&mut self,_eg:&mut EGraph,_set:&str)->Result<Option<egglog_reports::RunReport>>{Ok(None)}
     fn handles(&self,_body:&Schedule)->bool{true}
     fn diagnostics(&self) -> Json {
         Json::Null
@@ -750,9 +751,8 @@ impl Runtime {
             GenericSchedule::Run(_, r) if self.native_sets.contains(&r.ruleset) => {
                 let start = Instant::now();
                 let outputs = if r.until.is_none() {
-                    vec![egglog::CommandOutput::RunSchedule(
-                        self.eg.step_rules(&r.ruleset)?,
-                    )]
+                    let assisted=if let Some(hook)=self.saturation_hook.as_mut(){hook.try_run(&mut self.eg,&r.ruleset)?}else{None};
+                    vec![egglog::CommandOutput::RunSchedule(match assisted{Some(report)=>report,None=>self.eg.step_rules(&r.ruleset)?})]
                 } else {
                     self.eg.run_program(vec![Command::RunSchedule(s.clone())])?
                 };

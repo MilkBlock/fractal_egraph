@@ -281,6 +281,7 @@ pub struct EGraph {
     pushed_egraph: Option<Box<Self>>,
     functions: IndexMap<String, Function>,
     rulesets: IndexMap<String, Ruleset>,
+    cell_environment_stamp: u64,
     pub fact_directory: Option<PathBuf>,
     pub seminaive: bool,
     type_info: TypeInfo,
@@ -385,6 +386,7 @@ impl Default for EGraph {
             pushed_egraph: Default::default(),
             functions: Default::default(),
             rulesets: Default::default(),
+            cell_environment_stamp: cell_assist::next_cell_environment_stamp(),
             fact_directory: None,
             seminaive: true,
             overall_run_report: Default::default(),
@@ -1224,6 +1226,7 @@ impl EGraph {
                         }
                         indexmap::map::Entry::Vacant(e) => e.insert((core_rule, rule_id)),
                     };
+                    self.cell_environment_stamp = cell_assist::next_cell_environment_stamp();
                     Ok(rule.name)
                 }
                 Ruleset::Combined(_) => Err(Error::CombinedRulesetError(rule.ruleset, rule.span)),
@@ -1375,6 +1378,7 @@ impl EGraph {
             Entry::Occupied(_) => panic!("Ruleset '{name}' was already present"),
             Entry::Vacant(e) => e.insert(Ruleset::Combined(rulesets)),
         };
+        self.cell_environment_stamp = cell_assist::next_cell_environment_stamp();
     }
 
     fn add_ruleset(&mut self, name: String) {
@@ -1382,6 +1386,7 @@ impl EGraph {
             Entry::Occupied(_) => panic!("Ruleset '{name}' was already present"),
             Entry::Vacant(e) => e.insert(Ruleset::Rules(Default::default())),
         };
+        self.cell_environment_stamp = cell_assist::next_cell_environment_stamp();
     }
 
     fn check_facts(&mut self, span: &Span, facts: &[ResolvedFact]) -> Result<(), Error> {

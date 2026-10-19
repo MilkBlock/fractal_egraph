@@ -639,7 +639,8 @@ impl Runtime {
             .iter()
             .map(|p| (p.name.clone(), p.constructor.clone()))
             .collect();
-        let mut r = Self::new_with_seeds(eg, SETS, &seeds)?;
+        let scalar = super::scalar::discover(&eg, &commands);
+        let mut r = Self::new_with_scalar(eg, SETS, &seeds, scalar)?;
         r.joint = Some(joint);
         Ok(r)
     }
@@ -648,8 +649,11 @@ impl Runtime {
             return Err("no joint proof installed".into());
         }
         self.forwarded = Some(vec![]);
-        for k in &mut self.kernels {
-            k.dirty.clear();
+        for ids in self.sets.values() {
+            for id in ids {
+                self.kernels[*id].watch = false;
+                self.kernels[*id].dirty.clear();
+            }
         }
         let eg = std::mem::take(&mut self.eg);
         Ok((eg, Observer(self)))
@@ -668,6 +672,17 @@ impl Observer {
     }
 }
 impl crate::table_live::SaturationHook for Observer {
+    fn try_run(&mut self, eg: &mut EGraph, set: &str) -> Result<Option<egglog_reports::RunReport>> {
+        if !self.0.scalar.contains_key(set) {
+            return Ok(None);
+        }
+        self.with(eg, |r| {
+            if r.eg.cell_rule_environment_stamp() != r.identity {
+                return Ok(None);
+            }
+            r.run_scalar(set).map(Some)
+        })
+    }
     fn handles(&self, s: &Schedule) -> bool {
         self.0.joint.as_ref().is_some_and(|j| j.accepts(s))
     }
@@ -676,7 +691,7 @@ impl crate::table_live::SaturationHook for Observer {
     }
     fn try_boundary(&mut self, eg: &mut EGraph, s: &Schedule) -> Result<Option<Json>> {
         self.with(eg,|r|{
-            if r.eg.cell_rule_environment_identity()!=r.identity{return Ok(None)}
+            if r.eg.cell_rule_environment_stamp()!=r.identity{return Ok(None)}
             r.sync()?;
             if !r.joint.as_ref().is_some_and(|j|j.accepts(s)){return Ok(None)}
             let mut j=r.joint.take().unwrap();let result=j.try_close(r);r.joint=Some(j);
@@ -685,7 +700,7 @@ impl crate::table_live::SaturationHook for Observer {
     }
     fn after_boundary(&mut self, eg: &mut EGraph, s: &Schedule) -> Result<()> {
         self.with(eg, |r| {
-            if r.eg.cell_rule_environment_identity() != r.identity {
+            if r.eg.cell_rule_environment_stamp() != r.identity {
                 return Ok(());
             }
             r.sync()?;
