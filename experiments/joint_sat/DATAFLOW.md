@@ -80,3 +80,25 @@ Reproduce with `skills/cell-assisted-egglog-bench/scripts/bench.py run
 Production Tiger also passed for the retirement run: the three extracted
 programs are byte-identical, with 29 functions and 8,018 compared public rows.
 SHA256: `c48fe2b212d341b1c3f3de3ef94e77e3252b661e68be3bf60fbd417bb5ad3ce9`.
+
+## Identity-only helper effects
+
+The union helper's target is derived from its checked source LHS/RHS. If a
+Smaller row's output already equals that target argument, every possible
+completion of this prefix performs an already-satisfied union of an existing
+TCPair. It is safe to omit the remainder of that query even without the cost
+invariant; the root row itself remains watched. Within the certified cost
+scope, failed comparison helpers can also retire their subscriptions.
+
+`out/raytrace-joint-identity-v1` passes both strict graph gates: 15.159 s assisted
+versus 18.332 s GPU-off (~1.209x). Helper action bindings fell from
+70,656/75,534/554 to 35,328/37,767/277; these counts are submitted bindings, not
+committed mutations. Keyed reads are 2,572,792. Most remaining helper time is
+productive native effects/rebuild, so halving no-op bindings gives only a small
+additional wall-clock improvement.
+
+A separate trial ran the productive scalar frontier directly in native egglog:
+`out/raytrace-native-frontier-v1`, 15.421 s versus 18.363 s GPU-off, with exact
+public graphs. It provided no clear benefit over the compact compiled frontier
+and was removed. Finite-Run-after-closure and explicit overflow-state tests
+were retained; the extra runtime path was not.

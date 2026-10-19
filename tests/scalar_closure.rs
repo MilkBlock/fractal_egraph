@@ -92,19 +92,28 @@ fn input_aliases_preserve_partial_lhs_overflow() {
     r.input(&chain(8, 5_000_000_000_000_000_000)).unwrap();
     let mut native = r.engine().clone();
     let base = native.clone();
+    native
+        .clone()
+        .parse_and_run_program(
+            None,
+            "(run work 1) (check (= (Size (V 2000)) 5000000000000000000))",
+        )
+        .unwrap();
     let commands = native
         .parse_program(None, "(run-schedule (saturate work))")
         .unwrap();
     native.run_program(commands.clone()).unwrap();
     r.run(&commands).unwrap();
     compare::equal(&base, &native, r.engine()).unwrap();
+    r.engine()
+        .clone()
+        .parse_and_run_program(None, "(check (= (Size (V 2000)) 1))")
+        .unwrap();
     assert!(
-        r.report()["scalar_cells"][0]["stats"]["lhs_filtered"]
+        r.report()["scalar_cells"][0]["closure"]["updates"]
             .as_u64()
             .unwrap()
-            > 0,
-        "{}",
-        r.report()
+            > 0
     );
 }
 #[test]
@@ -241,5 +250,33 @@ fn missing_ports_are_enabled_by_local_waves_without_requiring_a_full_component()
     r.engine()
         .clone()
         .parse_and_run_program(None, "(fail (check (Size (Copy (V 1000)))))")
+        .unwrap();
+}
+
+#[test]
+fn a_finite_run_after_a_closure_stays_one_step() {
+    let mut r = Runtime::new_joint(&source(false)).unwrap();
+    r.input(&chain(8, 1000)).unwrap();
+    let mut native = r.engine().clone();
+    let base = native.clone();
+    let sat = native
+        .parse_program(None, "(run-schedule (saturate work))")
+        .unwrap();
+    native.run_program(sat.clone()).unwrap();
+    r.run(&sat).unwrap();
+    let input = "(set (Size (V 1000)) -1)";
+    native.parse_and_run_program(None, input).unwrap();
+    r.input(input).unwrap();
+    let once = native.parse_program(None, "(run work 1)").unwrap();
+    native.run_program(once.clone()).unwrap();
+    r.run(&once).unwrap();
+    compare::equal(&base, &native, r.engine()).unwrap();
+    r.audit_mirror().unwrap();
+    r.engine()
+        .clone()
+        .parse_and_run_program(
+            None,
+            "(check (= (Size (V 1)) -1)) (check (= (Size (V 2)) 0))",
+        )
         .unwrap();
 }

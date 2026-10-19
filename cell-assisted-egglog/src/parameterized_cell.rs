@@ -100,6 +100,8 @@ struct Kernel {
     retire_guard_failures: bool,
     retired: BTreeSet<Key>,
     retired_total: usize,
+    noop_union_column: Option<usize>,
+    identity_noops: usize,
 }
 fn known(o: &CellOperand, b: &[bool]) -> bool {
     match o {
@@ -202,6 +204,8 @@ impl Kernel {
             retire_guard_failures: false,
             retired: BTreeSet::new(),
             retired_total: 0,
+            noop_union_column: None,
+            identity_noops: 0,
         })
     }
     fn wake(&mut self, read: &Read) {
@@ -210,7 +214,9 @@ impl Kernel {
         }
         if let Read::Key(table, key) = read {
             if *table == self.tables[self.seed] {
-                self.dirty.insert(key.clone());
+                if !self.retire_guard_failures || !self.retired.contains(key) {
+                    self.dirty.insert(key.clone());
+                }
             }
         }
     }
@@ -336,6 +342,14 @@ impl Kernel {
                 self.install_dependencies(seed, None);
                 continue;
             };
+            if self
+                .noop_union_column
+                .is_some_and(|column| row.values[column] == *row.values.last().unwrap())
+            {
+                self.identity_noops += 1;
+                self.install_dependencies(seed, None);
+                continue;
+            }
             let mut b = smallvec![None; self.slot_count];
             if !unify(&self.sink.atoms[self.seed].columns, &row.values, &mut b) {
                 self.install_dependencies(seed, None);
@@ -777,6 +791,6 @@ impl Runtime {
         result
     }
     pub fn report(&self) -> Json {
-        json!({"stats":self.stats,"scalar_cells":self.scalar.iter().map(|(set,g)|json!({"ruleset":set,"rules":g.plans.len(),"stats":g.stats,"scope_allowed":g.scope.allowed,"closure":g.scope.stats})).collect::<Vec<_>>(),"joint":self.joint.as_ref().map(|j|j.report()),"programs":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|{let k=&self.kernels[*id];json!({"ruleset":set,"rule":k.sink.name,"seed":k.sink.atoms[k.seed].function,"accesses":k.steps.iter().map(|(i,a)|json!({"table":k.sink.atoms[*i].function,"access":a})).collect::<Vec<_>>(),"seed_evaluations":k.executions,"emitted_bindings":k.bindings,"live_seed_instances":k.dependencies.len(),"retired_guard_seeds":k.retired_total})})).collect::<Vec<_>>(),"watched_rows":self.rows.keys.len(),"dependency_edges":self.kernels.iter().map(|k|k.subscribers.values().map(|s|s.len()).sum::<usize>()).sum::<usize>(),"concrete_closure_catalog_entries":0,"scope":"Parameterized native update program with optional guarded joint saturation transfers. Original schedule and native effects; unsupported boundary states use the ordinary parameterized path. Not a GPU benchmark."})
+        json!({"stats":self.stats,"scalar_cells":self.scalar.iter().map(|(set,g)|json!({"ruleset":set,"rules":g.plans.len(),"stats":g.stats,"scope_allowed":g.scope.allowed,"closure":g.scope.stats})).collect::<Vec<_>>(),"joint":self.joint.as_ref().map(|j|j.report()),"programs":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|{let k=&self.kernels[*id];json!({"ruleset":set,"rule":k.sink.name,"seed":k.sink.atoms[k.seed].function,"accesses":k.steps.iter().map(|(i,a)|json!({"table":k.sink.atoms[*i].function,"access":a})).collect::<Vec<_>>(),"seed_evaluations":k.executions,"emitted_bindings":k.bindings,"live_seed_instances":k.dependencies.len(),"retired_guard_seeds":k.retired_total,"identity_noop_seeds":k.identity_noops})})).collect::<Vec<_>>(),"watched_rows":self.rows.keys.len(),"dependency_edges":self.kernels.iter().map(|k|k.subscribers.values().map(|s|s.len()).sum::<usize>()).sum::<usize>(),"concrete_closure_catalog_entries":0,"scope":"Parameterized native update program with optional guarded joint saturation transfers. Original schedule and native effects; unsupported boundary states use the ordinary parameterized path. Not a GPU benchmark."})
     }
 }

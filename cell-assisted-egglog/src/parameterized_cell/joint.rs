@@ -35,6 +35,7 @@ pub(super) struct Joint {
     producers: Vec<Producer>,
     improve_rule: String,
     cost_universe_closed: bool,
+    noop_unions: BTreeMap<String, usize>,
     body: String,
     stable: BTreeSet<Value>,
     extendable: bool,
@@ -186,6 +187,29 @@ impl Joint {
         }
         if !commands.iter().any(|c|matches!(c,Command::Function{name,merge:Some(m),..} if name=="ExtractedExpr" && m.to_string()=="(Smaller old new)")){
             return Err("joint contract requires the original Smaller merge".into())
+        }
+        let mut noop_unions = BTreeMap::new();
+        for command in commands {
+            let Command::Rule { rule } = command else {
+                continue;
+            };
+            if rule.ruleset != SETS[2] {
+                continue;
+            }
+            let [Action::Union(_, root, target)] = rule.head.0.as_slice() else {
+                continue;
+            };
+            let Some(Fact::Eq(_, lhs, Expr::Call(_, op, args))) = rule.body.first() else {
+                continue;
+            };
+            if op == "Smaller" && root.to_string() == lhs.to_string() {
+                if let Some(column) = args
+                    .iter()
+                    .position(|x| x.to_string() == target.to_string())
+                {
+                    noop_unions.insert(rule.name.clone(), column);
+                }
+            }
         }
         let improve_signature = expected
             .iter()
@@ -383,6 +407,7 @@ impl Joint {
             producers,
             improve_rule,
             cost_universe_closed,
+            noop_unions,
             body: schedule_key(body(schedule)),
             stable: BTreeSet::new(),
             extendable: true,
@@ -705,7 +730,11 @@ impl Joint {
             .find(|id| r.kernels[*id].sink.name == self.improve_rule)
             .unwrap();
         let uniform = self.uniform_costs(r);
-        r.kernels[improve].retire_guard_failures = uniform;
+        let mut guarded = r.sets[SETS[2]].clone();
+        guarded.push(improve);
+        for id in &guarded {
+            r.kernels[*id].retire_guard_failures = uniform;
+        }
         self.counters.uniform_cost_boundaries += usize::from(uniform);
         let before = r.stats.ruleset_runs;
         let run = (|| {
@@ -719,9 +748,11 @@ impl Joint {
             }
             Ok::<_, Box<dyn std::error::Error>>(updated)
         })();
-        let k = &mut r.kernels[improve];
-        k.retire_guard_failures = false;
-        k.dirty.append(&mut k.retired);
+        for id in guarded {
+            let k = &mut r.kernels[id];
+            k.retire_guard_failures = false;
+            k.dirty.append(&mut k.retired);
+        }
         let updated = run?;
         self.complete(r)?;
         self.counters.dataflow_boundaries += 1;
@@ -795,6 +826,12 @@ impl Runtime {
             .collect();
         let scalar = super::scalar::discover(&eg, &commands);
         let mut r = Self::new_with_scalar(eg, SETS, &seeds, scalar)?;
+        for id in &r.sets[SETS[2]] {
+            let k = &mut r.kernels[*id];
+            if k.sink.atoms[k.seed].function == "Smaller" {
+                k.noop_union_column = joint.noop_unions.get(&k.sink.name).copied();
+            }
+        }
         r.joint = Some(joint);
         r.configure_scalar_closure(&commands)?;
         Ok(r)

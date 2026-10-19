@@ -260,6 +260,8 @@ fn shared_cpu_and_gpu_receive_joint_macro_rows_and_handback() {
             "{}",
             r.report()
         );
+        let noops:u64=r.report()["saturation_diagnostics"]["programs"].as_array().unwrap().iter().map(|p|p["identity_noop_seeds"].as_u64().unwrap()).sum();
+        assert!(noops>0,"{}",r.report());
         let mut handed = r.into_engine();
         for set in ["terms", "terms-helpers", "terms-helpers-helpers"] {
             assert_eq!(
