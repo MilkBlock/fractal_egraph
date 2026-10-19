@@ -1,0 +1,129 @@
+{
+  "certified_saturation_boundaries": 0,
+  "initialization_seconds_excluded": 0.248249542,
+  "initialized_rows": 13457,
+  "queries": [
+    {
+      "i64_guards": 0,
+      "non_constructor_reads": [],
+      "rule": "(rule ((= lhs (Const c ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConst c) 1)))\n        :ruleset terms )",
+      "ruleset": "terms",
+      "table_atoms": 1
+    },
+    {
+      "i64_guards": 0,
+      "non_constructor_reads": [],
+      "rule": "(rule ((= lhs (Arg ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermArg ) 1)))\n        :ruleset terms )",
+      "ruleset": "terms",
+      "table_atoms": 1
+    },
+    {
+      "i64_guards": 0,
+      "non_constructor_reads": [
+        "ExtractedExpr"
+      ],
+      "rule": "(rule ((= lhs (Bop o e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermBop o t1 t2) (+ 1 (+ c1 c2)))))\n        :ruleset terms )",
+      "ruleset": "terms",
+      "table_atoms": 5
+    },
+    {
+      "i64_guards": 0,
+      "non_constructor_reads": [
+        "ExtractedExpr"
+      ],
+      "rule": "(rule ((= lhs (Top o e1 e2 e3))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2))\n       (= (TCPair t3 c3) (ExtractedExpr e3)))\n      ((PotentialExtractedExpr lhs (TCPair (TermTop o t1 t2 t3) (+ (+ 1 c1) (+ c2 c3)))))\n        :ruleset terms )",
+      "ruleset": "terms",
+      "table_atoms": 7
+    },
+    {
+      "i64_guards": 0,
+      "non_constructor_reads": [
+        "ExtractedExpr"
+      ],
+      "rule": "(rule ((= lhs (Uop o e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermUop o t1) (+ 1 c1))))\n        :ruleset terms )",
+      "ruleset": "terms",
+      "table_atoms": 3
+    },
+    {
+      "i64_guards": 0,
+      "non_constructor_reads": [
+        "ExtractedExpr"
+      ],
+      "rule": "(rule ((= lhs (Get tup i))\n       (= (TCPair t1 c1) (ExtractedExpr tup)))\n      ((PotentialExtractedExpr lhs (TCPair (TermGet t1 i) c1)))\n        :ruleset terms )",
+      "ruleset": "terms",
+      "table_atoms": 3
+    },
+    {
+      "i64_guards": 0,
+      "non_constructor_reads": [
+        "ExtractedExpr"
+      ],
+      "rule": "(rule ((= lhs (Single e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermSingle t1) c1)))\n        :ruleset terms )",
+      "ruleset": "terms",
+      "table_atoms": 3
+    },
+    {
+      "i64_guards": 0,
+      "non_constructor_reads": [
+        "ExtractedExpr"
+      ],
+      "rule": "(rule ((= lhs (Concat e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))\n        :ruleset terms )",
+      "ruleset": "terms",
+      "table_atoms": 5
+    },
+    {
+      "i64_guards": 0,
+      "non_constructor_reads": [],
+      "rule": "(rule ((PotentialExtractedExpr expr termandcost))\n      ((set (ExtractedExpr expr) (TCPair (NoTerm ) 10000000000000000)))\n        :ruleset terms-helpers )",
+      "ruleset": "terms-helpers",
+      "table_atoms": 1
+    },
+    {
+      "i64_guards": 1,
+      "non_constructor_reads": [
+        "ExtractedExpr"
+      ],
+      "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (= (ExtractedExpr expr) (TCPair oldterm oldcost))\n       (< cost oldcost))\n      ((set (ExtractedExpr expr) (TCPair term cost)))\n        :ruleset terms-helpers )",
+      "ruleset": "terms-helpers",
+      "table_atoms": 4
+    },
+    {
+      "i64_guards": 1,
+      "non_constructor_reads": [],
+      "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (< cost 0))\n      ((panic 'Negative cost'))\n        :ruleset terms-helpers )",
+      "ruleset": "terms-helpers",
+      "table_atoms": 2
+    },
+    {
+      "i64_guards": 1,
+      "non_constructor_reads": [],
+      "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (< cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+      "ruleset": "terms-helpers-helpers",
+      "table_atoms": 3
+    },
+    {
+      "i64_guards": 1,
+      "non_constructor_reads": [],
+      "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (> cost1 cost2))\n      ((union lhs (TCPair t2 cost2)))\n        :ruleset terms-helpers-helpers )",
+      "ruleset": "terms-helpers-helpers",
+      "table_atoms": 3
+    },
+    {
+      "i64_guards": 0,
+      "non_constructor_reads": [],
+      "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (= cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+      "ruleset": "terms-helpers-helpers",
+      "table_atoms": 3
+    }
+  ],
+  "reason": "No verified whole-closure library for the captured environment; the current certificate contract is positive constructor/union and a single direct ruleset. Query compilation coverage is not Cell coverage.",
+  "sat_skip_timing_seconds": null,
+  "scope": "All original Pass-3 rules execute. Terms family uses GPU/cached-CPU matching; other rulesets remain native. No trace, re-Bake, fake rejecting hook, or timed identical third GPU lane.",
+  "selected_rulesets": [
+    "terms",
+    "terms-helpers",
+    "terms-helpers-helpers"
+  ],
+  "status": "whole_cell_skip_not_installed",
+  "whole_cell_environment_error": "whole-Cell proof does not cover this declaration/effect: (function LoopNumItersGuess (Expr Expr) i64 :merge (max 1 (min old new)) :unextractable)"
+}

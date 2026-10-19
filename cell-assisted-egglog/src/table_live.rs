@@ -50,6 +50,17 @@ pub struct Stats {
     pub skipped_saturations: usize,
     pub partial_saturations: usize,
     pub saturation_hook_seconds: f64,
+    pub native_only_runs: usize,
+    pub native_only_seconds: f64,
+}
+#[derive(Default, Serialize)]
+struct NativeStats {
+    runs: usize,
+    seconds: f64,
+    search_apply_seconds: f64,
+    insert_merge_seconds: f64,
+    rebuild_seconds: f64,
+    matches: usize,
 }
 /// Trusted saturation compiler, analogous to the complete-frontier provider.
 /// `None` declines WITHOUT effects. Some may publish proven positive closure
@@ -109,6 +120,8 @@ pub struct Runtime {
     sinks: Vec<CellActionSink>,
     reference: Vec<CellQuery>,
     sets: BTreeMap<String, Vec<usize>>,
+    native_sets: BTreeSet<String>,
+    native_stats: BTreeMap<String, NativeStats>,
     qstats: Vec<QueryStats>,
     device: Option<Service>,
     feed: Option<CellCommitFeed>,
@@ -134,20 +147,26 @@ pub struct Runtime {
     last_saturation: Json,
     pub stats: Stats,
 }
-fn collect(s: &Schedule, out: &mut BTreeSet<String>) -> Result<()> {
+fn collect(
+    s: &Schedule,
+    out: &mut BTreeSet<String>,
+    selected: Option<&BTreeSet<String>>,
+) -> Result<()> {
     match s {
         GenericSchedule::Run(_, r) => {
-            if r.until.is_some() {
+            if r.until.is_some() && selected.is_none_or(|sets| sets.contains(&r.ruleset)) {
                 return Err("until schedule unsupported".into());
             }
             out.insert(r.ruleset.clone());
         }
         GenericSchedule::Sequence(_, xs) => {
             for s in xs {
-                collect(s, out)?;
+                collect(s, out, selected)?;
             }
         }
-        GenericSchedule::Repeat(_, _, s) | GenericSchedule::Saturate(_, s) => collect(s, out)?,
+        GenericSchedule::Repeat(_, _, s) | GenericSchedule::Saturate(_, s) => {
+            collect(s, out, selected)?
+        }
     }
     Ok(())
 }
@@ -167,10 +186,23 @@ impl Runtime {
         self.saturation_hook = Some(hook);
     }
     pub fn new(eg: EGraph, commands: &[Command], worker: &Path, audit: bool) -> Result<Self> {
-        Self::create(eg, commands, Some(worker), audit, Options::default())
+        Self::create(eg, commands, Some(worker), audit, Options::default(), None)
     }
     pub fn new_cpu(eg: EGraph, commands: &[Command]) -> Result<Self> {
-        Self::create(eg, commands, None, false, Options::default())
+        Self::create(eg, commands, None, false, Options::default(), None)
+    }
+    /// Exact explicit partition: selected rulesets use cached queries (CPU or
+    /// GPU); all other scheduled rulesets execute natively, in their original
+    /// position. Native commits feed the same persistent device tables.
+    pub fn new_hybrid(
+        eg: EGraph,
+        commands: &[Command],
+        worker: Option<&Path>,
+        audit: bool,
+        selected: &[String],
+    ) -> Result<Self> {
+        let sets = selected.iter().cloned().collect();
+        Self::create(eg, commands, worker, audit, Options::default(), Some(&sets))
     }
     /// Optional analyze-backed projections. The complete query remains the
     /// fallback for every uncertified occurrence, including new union aliases.
@@ -204,7 +236,7 @@ impl Runtime {
         audit: bool,
         options: Options<'_>,
     ) -> Result<Self> {
-        Self::create(eg, commands, Some(worker), audit, options)
+        Self::create(eg, commands, Some(worker), audit, options, None)
     }
     fn create(
         mut eg: EGraph,
@@ -212,6 +244,7 @@ impl Runtime {
         worker: Option<&Path>,
         audit: bool,
         options: Options<'_>,
+        selected: Option<&BTreeSet<String>>,
     ) -> Result<Self> {
         let t = Instant::now();
         let cells = options
@@ -223,12 +256,31 @@ impl Runtime {
             let Command::RunSchedule(s) = c else {
                 return Err("schedule-only packet required".into());
             };
-            collect(s, &mut names)?;
+            collect(s, &mut names, selected)?;
         }
+        if selected.is_some_and(|s| !s.is_subset(&names)) {
+            return Err("selected ruleset absent from schedule".into());
+        }
+        if selected.is_some() {
+            let available = eg
+                .cell_rule_environment_identity()
+                .into_iter()
+                .map(|(n, _)| n)
+                .collect::<BTreeSet<_>>();
+            if !names.is_subset(&available) {
+                return Err("scheduled native ruleset is not installed".into());
+            }
+        }
+        let native_sets = selected
+            .map(|s| names.difference(s).cloned().collect())
+            .unwrap_or_default();
         let mut sinks = vec![];
         let mut sets = BTreeMap::new();
         let mut tables = BTreeSet::new();
         for set in names {
+            if selected.is_some_and(|s| !s.contains(&set)) {
+                continue;
+            }
             let mut ids = vec![];
             for name in eg.cell_rule_names(&set)? {
                 let sink = eg.prepare_cell_action(&set, &name)?;
@@ -252,6 +304,8 @@ impl Runtime {
             sinks,
             reference,
             sets,
+            native_sets,
+            native_stats: BTreeMap::new(),
             qstats: vec![],
             device: None,
             feed: None,
@@ -687,6 +741,49 @@ impl Runtime {
     }
     fn schedule(&mut self, s: &Schedule) -> Result<bool> {
         match s {
+            GenericSchedule::Run(_, r) if self.native_sets.contains(&r.ruleset) => {
+                let start = Instant::now();
+                let outputs = if r.until.is_none() {
+                    vec![egglog::CommandOutput::RunSchedule(
+                        self.eg.step_rules(&r.ruleset)?,
+                    )]
+                } else {
+                    self.eg.run_program(vec![Command::RunSchedule(s.clone())])?
+                };
+                let seconds = start.elapsed().as_secs_f64();
+                let totals = self.native_stats.entry(r.ruleset.clone()).or_default();
+                totals.runs += 1;
+                totals.seconds += seconds;
+                let mut changed = false;
+                for o in outputs {
+                    if let egglog::CommandOutput::RunSchedule(report) = o {
+                        changed |= report.updated;
+                        totals.search_apply_seconds += report
+                            .search_and_apply_time_per_ruleset
+                            .values()
+                            .map(|d| d.as_secs_f64())
+                            .sum::<f64>();
+                        totals.insert_merge_seconds += report
+                            .merge_time_per_ruleset
+                            .values()
+                            .map(|d| d.as_secs_f64())
+                            .sum::<f64>();
+                        totals.rebuild_seconds += report
+                            .rebuild_time_per_ruleset
+                            .values()
+                            .map(|d| d.as_secs_f64())
+                            .sum::<f64>();
+                        totals.matches += report.num_matches_per_rule.values().sum::<usize>();
+                    }
+                }
+                self.stats.native_only_runs += 1;
+                self.stats.native_only_seconds += seconds;
+                self.stats.ruleset_runs += 1;
+                let start = Instant::now();
+                self.collect_commits()?;
+                self.stats.event_seconds += start.elapsed().as_secs_f64();
+                Ok(changed)
+            }
             GenericSchedule::Run(_, r) => self.run_set(&r.ruleset),
             GenericSchedule::Sequence(_, xs) => {
                 let mut changed = false;
@@ -777,6 +874,6 @@ impl Runtime {
         result
     }
     pub fn report(&self) -> Json {
-        json!({"runtime":self.stats,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit,"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"rules":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|json!({"ruleset":set,"rule":self.sinks[*id].name,"stats":self.qstats[*id]}))).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
+        json!({"runtime":self.stats,"native_only_rulesets":self.native_stats,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit,"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"rules":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|json!({"ruleset":set,"rule":self.sinks[*id].name,"stats":self.qstats[*id]}))).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
     }
 }

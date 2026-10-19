@@ -111,3 +111,8 @@ compares all original facts, primitive values, equivalence and visibility after
 See [RESULTS.md](RESULTS.md) for timing, including unfavorable results. The first
 unbatched implementation is retained as a storage/report artifact for comparison;
 it is not averaged with the final implementation.
+
+The [complete captured raytrace Pass-3 benchmark](../raytrace_pass3_gpu/README.md)
+now checks admission explicitly and measures the hybrid runtime. It currently
+has no admissible whole-Cell certificate and fails strict final graph equality;
+its lower GPU execution time is not a verified sat-skip speedup.

@@ -115,7 +115,7 @@ fn environment(
 ) -> Result<(EGraph, Vec<String>, BTreeSet<String>, Vec<String>)> {
     let mut eg = EGraph::default();
     let cmds = eg.parse_program(None, src)?;
-    if cmds.iter().any(|c| {
+    if let Some(command) = cmds.iter().find(|c| {
         !matches!(
             c,
             Command::Datatype { .. }
@@ -130,7 +130,11 @@ fn environment(
                 | Command::BiRewrite(..)
         )
     }) {
-        return Err("whole-Cell environment must not execute schedules or effects".into());
+        return Err(format!(
+            "whole-Cell proof does not cover this declaration/effect: {}",
+            command.to_string().chars().take(240).collect::<String>()
+        )
+        .into());
     }
     eg.run_program(cmds.clone())?;
     let constructors = eg
@@ -571,6 +575,11 @@ impl Emitter {
 }
 
 impl Library {
+    /// Check the current executable-certificate contract without saturation,
+    /// candidate discovery or constructing an unchecked library.
+    pub fn validate_environment(src: &str, ruleset: &str) -> Result<()> {
+        environment(src, ruleset).map(|_| ())
+    }
     pub fn bake(src: &str, plan: &Plan) -> Result<Self> {
         let (base, names, inert, rules) = environment(src, &plan.ruleset)?;
         let mut lib = Self {

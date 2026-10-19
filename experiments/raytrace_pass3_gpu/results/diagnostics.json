@@ -1,0 +1,32 @@
+{
+  "rejected_clock_only_alignment": {
+    "status": "reverted before final timing",
+    "same_commit_verification": null,
+    "error": "different equality partition at Eq(\"Expr\", Value(1972)) -> Eq(\"Expr\", Value(1991))",
+    "input_anchor_quality": {
+      "different_anchors": 0,
+      "gpu_unresolved": 7779,
+      "input_expr_anchors": 12701,
+      "native_unresolved": 7779,
+      "new_expr_keys_compared": false,
+      "same_extracted_costs": true,
+      "scope": "Each initial Expr anchor is canonicalized independently in each final graph before looking up ExtractedExpr/TCPair. Newly allocated IDs are never compared directly. Equal cost is not identical selected Term syntax or a new Tiger extraction."
+    },
+    "conclusion": "Advancing the native timestamp without native query execution did not remove the full-graph discrepancy."
+  },
+  "measurement_correction": {
+    "withdrawn": "Comparing newly allocated Expr IDs directly across full-pass runs; the previous count of 2329 differing cost keys is not a valid quality comparison.",
+    "replacement": "Use initial Expr anchors and canonicalize independently in each final graph.",
+    "regression": "extraction_quality_uses_input_anchors_not_fresh_numeric_ids"
+  },
+  "audit_queries": 13250,
+  "audit_note": "Native oracle runs on the GPU execution state and affects native query caches/bookkeeping; it is not an independent full-schedule equivalence test.",
+  "current_checks": {
+    "backend_hybrid": 1,
+    "backend_table_live": 11,
+    "sat_skip": 6,
+    "graph_and_anchor_comparison": 2,
+    "passed": 20
+  },
+  "known_failure": "Full real-workload graph equality vs same-commit CPU still fails; no strict speedup claim."
+}

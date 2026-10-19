@@ -1,0 +1,556 @@
+{
+  "complete": true,
+  "error": null,
+  "runtime": {
+    "audit": true,
+    "backend": "shared-gpu",
+    "cell_work": {
+      "certificate_reuses": 0,
+      "certification_attempts": 0,
+      "certification_probes": 0,
+      "certified_anchor_hits": 0,
+      "delegated_branches": 0,
+      "direct_row_reuses": 0,
+      "dirty_cells": 0,
+      "invalidated_certificates": 0,
+      "join_probes": 0,
+      "missing_key_waits": 0,
+      "port_bindings": 0,
+      "port_candidate_rows": 0,
+      "port_consumer_checks": 0,
+      "port_context_loads": 0,
+      "port_context_words": 0,
+      "port_join_executions": 0,
+      "port_probes": 0,
+      "port_shared_joins_saved": 0,
+      "ports_published": 0,
+      "prefix_rows_reused": 0,
+      "ready_covered_atom_sum": 0,
+      "ready_matches": 0,
+      "ready_productive_seeds": 0,
+      "ready_query_atom_sum": 0,
+      "ready_reuse_seeds": 0,
+      "ready_reused_atoms": 0,
+      "routed_ready": 0,
+      "routed_suspected": 0,
+      "routed_unmapped": 0,
+      "routing_ambiguous": 0,
+      "routing_delegated_to_port": 0,
+      "routing_earlier_delta_owner": 0,
+      "routing_locator_probes": 0,
+      "routing_locator_rows": 0,
+      "routing_no_next_atom": 0,
+      "routing_unique_hints": 0,
+      "routing_valid_seeds": 0,
+      "shape_fallbacks": 0,
+      "skipped_join_probes": 0,
+      "suspected_matches": 0,
+      "suspected_productive_seeds": 0,
+      "suspected_reuse_seeds": 0,
+      "suspected_reused_atoms": 0,
+      "unmapped_matches": 0,
+      "unmapped_productive_seeds": 0,
+      "unmapped_reuse_seeds": 0,
+      "unmapped_reused_atoms": 0,
+      "watch_entries_checked": 0,
+      "watch_wakes": 0
+    },
+    "cells": {
+      "cache_only": false,
+      "library": null,
+      "plan_only": false,
+      "plans": [],
+      "port_join_groups": 14,
+      "port_locality": 0,
+      "profile": false,
+      "query_routing": 0
+    },
+    "device": {
+      "bindings": 3,
+      "cell_cache_bytes": 52,
+      "cell_directory_bytes": 60,
+      "cell_dirty_bytes": 4,
+      "cell_free_slots": 0,
+      "cell_instance_capacity": 1,
+      "cell_instance_slots": 0,
+      "cell_instances": 0,
+      "cell_plans": 0,
+      "cell_port_bytes": 8,
+      "cell_slots_reused": 0,
+      "cell_tables_affected": false,
+      "cell_watch_bytes": 8,
+      "cell_work": {
+        "certificate_reuses": 0,
+        "certification_attempts": 0,
+        "certification_probes": 0,
+        "certified_anchor_hits": 0,
+        "delegated_branches": 0,
+        "direct_row_reuses": 0,
+        "dirty_cells": 0,
+        "invalidated_certificates": 0,
+        "join_probes": 0,
+        "missing_key_waits": 0,
+        "port_bindings": 0,
+        "port_candidate_rows": 0,
+        "port_consumer_checks": 0,
+        "port_context_loads": 0,
+        "port_context_words": 0,
+        "port_join_executions": 0,
+        "port_probes": 0,
+        "port_shared_joins_saved": 0,
+        "ports_published": 0,
+        "prefix_rows_reused": 0,
+        "ready_covered_atom_sum": 0,
+        "ready_matches": 0,
+        "ready_productive_seeds": 0,
+        "ready_query_atom_sum": 0,
+        "ready_reuse_seeds": 0,
+        "ready_reused_atoms": 0,
+        "routed_ready": 0,
+        "routed_suspected": 0,
+        "routed_unmapped": 0,
+        "routing_ambiguous": 0,
+        "routing_delegated_to_port": 0,
+        "routing_earlier_delta_owner": 0,
+        "routing_locator_probes": 0,
+        "routing_locator_rows": 0,
+        "routing_no_next_atom": 0,
+        "routing_unique_hints": 0,
+        "routing_valid_seeds": 0,
+        "shape_fallbacks": 0,
+        "skipped_join_probes": 0,
+        "suspected_matches": 0,
+        "suspected_productive_seeds": 0,
+        "suspected_reuse_seeds": 0,
+        "suspected_reused_atoms": 0,
+        "unmapped_matches": 0,
+        "unmapped_productive_seeds": 0,
+        "unmapped_reuse_seeds": 0,
+        "unmapped_reused_atoms": 0,
+        "watch_entries_checked": 0,
+        "watch_wakes": 0
+      },
+      "compacted": false,
+      "compactions": 3,
+      "device": "Apple M3 Max",
+      "device_bytes": 108308516,
+      "dirty_cells": 0,
+      "epoch": 3200,
+      "event_capacity": 524288,
+      "event_cells": false,
+      "events": 372343,
+      "gpu_seconds": 0.00005287500061967876,
+      "old_events": 372343,
+      "port_capacity": 0,
+      "port_compactions": 0,
+      "port_count": 0,
+      "port_locality": 0,
+      "port_work": false,
+      "queries": 6,
+      "query_routing": 0,
+      "retained_matches": 0,
+      "retries": 0,
+      "route_retries": 0,
+      "routed_seeds": 0,
+      "row_capacity": 262144,
+      "row_slots": 245399,
+      "sparse_cells": true,
+      "watch_capacity": 0,
+      "watch_compactions": 0,
+      "watch_count": 0
+    },
+    "live_rows": 245398,
+    "native_only_rulesets": {
+      "add-to-debug-expr": {
+        "insert_merge_seconds": 0.0,
+        "matches": 0,
+        "rebuild_seconds": 0.0,
+        "runs": 1,
+        "search_apply_seconds": 0.0,
+        "seconds": 2.92e-7
+      },
+      "all-optimizations": {
+        "insert_merge_seconds": 0.00019999999999999998,
+        "matches": 863,
+        "rebuild_seconds": 0.0039952500000000005,
+        "runs": 2,
+        "search_apply_seconds": 0.065560916,
+        "seconds": 0.07176012600000001
+      },
+      "always-run": {
+        "insert_merge_seconds": 0.27905827900000046,
+        "matches": 2406982,
+        "rebuild_seconds": 0.221842956,
+        "runs": 1798,
+        "search_apply_seconds": 5.804007088000007,
+        "seconds": 6.653101559999987
+      },
+      "apply-drop-unions": {
+        "insert_merge_seconds": 0.000013999,
+        "matches": 53,
+        "rebuild_seconds": 0.001294042,
+        "runs": 24,
+        "search_apply_seconds": 6.25e-6,
+        "seconds": 0.0013504979999999997
+      },
+      "apply-subst-unions": {
+        "insert_merge_seconds": 0.00048641600000000004,
+        "matches": 14577,
+        "rebuild_seconds": 0.030277959,
+        "runs": 24,
+        "search_apply_seconds": 0.0007272089999999999,
+        "seconds": 0.031705958
+      },
+      "boundary-analysis": {
+        "insert_merge_seconds": 0.00007924799999999998,
+        "matches": 689,
+        "rebuild_seconds": 0.0,
+        "runs": 12,
+        "search_apply_seconds": 0.015242165999999998,
+        "seconds": 0.015547542000000001
+      },
+      "boundary-analysis-prep": {
+        "insert_merge_seconds": 0.00010854200000000002,
+        "matches": 915,
+        "rebuild_seconds": 0.0,
+        "runs": 12,
+        "search_apply_seconds": 0.015361250000000002,
+        "seconds": 0.015721627
+      },
+      "canon": {
+        "insert_merge_seconds": 0.000127333,
+        "matches": 550,
+        "rebuild_seconds": 0.0,
+        "runs": 19,
+        "search_apply_seconds": 0.001514625,
+        "seconds": 0.002345997
+      },
+      "cheap-optimizations": {
+        "insert_merge_seconds": 0.000173208,
+        "matches": 846,
+        "rebuild_seconds": 0.0038046670000000003,
+        "runs": 4,
+        "search_apply_seconds": 0.048637916999999996,
+        "seconds": 0.053976334
+      },
+      "cicm-index": {
+        "insert_merge_seconds": 0.0004672479999999999,
+        "matches": 10021,
+        "rebuild_seconds": 0.0,
+        "runs": 23,
+        "search_apply_seconds": 0.024191044,
+        "seconds": 0.024979623
+      },
+      "cleanup-drop": {
+        "insert_merge_seconds": 0.000013958000000000001,
+        "matches": 42,
+        "rebuild_seconds": 0.0,
+        "runs": 24,
+        "search_apply_seconds": 0.000794832,
+        "seconds": 0.000906335
+      },
+      "context": {
+        "insert_merge_seconds": 0.015133916000000006,
+        "matches": 130541,
+        "rebuild_seconds": 1.766145793000001,
+        "runs": 172,
+        "search_apply_seconds": 0.3364343780000002,
+        "seconds": 2.1315438310000006
+      },
+      "drop": {
+        "insert_merge_seconds": 0.00023833399999999999,
+        "matches": 108,
+        "rebuild_seconds": 0.0,
+        "runs": 33,
+        "search_apply_seconds": 0.03684849900000001,
+        "seconds": 0.03863175
+      },
+      "error-checking": {
+        "insert_merge_seconds": 0.00027041299999999995,
+        "matches": 0,
+        "rebuild_seconds": 0.0,
+        "runs": 49,
+        "search_apply_seconds": 0.15962204400000005,
+        "seconds": 0.16474883299999998
+      },
+      "interval-analysis": {
+        "insert_merge_seconds": 0.0004821699999999999,
+        "matches": 2685,
+        "rebuild_seconds": 0.020643126000000005,
+        "runs": 31,
+        "search_apply_seconds": 0.10191921100000001,
+        "seconds": 0.127991665
+      },
+      "is-resolved": {
+        "insert_merge_seconds": 0.003880234000000002,
+        "matches": 41504,
+        "rebuild_seconds": 0.005477332,
+        "runs": 782,
+        "search_apply_seconds": 0.45591778200000016,
+        "seconds": 0.49881929600000086
+      },
+      "loop-iters-analysis": {
+        "insert_merge_seconds": 0.000168499,
+        "matches": 87,
+        "rebuild_seconds": 0.0,
+        "runs": 12,
+        "search_apply_seconds": 0.18349270599999998,
+        "seconds": 0.18588379
+      },
+      "mem-simple": {
+        "insert_merge_seconds": 0.00039029000000000006,
+        "matches": 2851,
+        "rebuild_seconds": 0.015714792,
+        "runs": 25,
+        "search_apply_seconds": 0.06678704099999999,
+        "seconds": 0.085102494
+      },
+      "non-weakly-linear": {
+        "insert_merge_seconds": 0.000288208,
+        "matches": 1613,
+        "rebuild_seconds": 0.024226084,
+        "runs": 1,
+        "search_apply_seconds": 0.006947459,
+        "seconds": 0.03156925
+      },
+      "passthrough": {
+        "insert_merge_seconds": 0.000131417,
+        "matches": 618,
+        "rebuild_seconds": 0.022677832999999998,
+        "runs": 6,
+        "search_apply_seconds": 0.048703457,
+        "seconds": 0.072077957
+      },
+      "state-edge-passthrough": {
+        "insert_merge_seconds": 0.00007595800000000001,
+        "matches": 4,
+        "rebuild_seconds": 0.00218925,
+        "runs": 6,
+        "search_apply_seconds": 0.036087917,
+        "seconds": 0.038659543
+      },
+      "subst": {
+        "insert_merge_seconds": 0.004128789000000001,
+        "matches": 15020,
+        "rebuild_seconds": 0.007440166999999999,
+        "runs": 158,
+        "search_apply_seconds": 0.2744424190000001,
+        "seconds": 0.29730408399999997
+      },
+      "subsume-after-helpers": {
+        "insert_merge_seconds": 5.792e-6,
+        "matches": 4,
+        "rebuild_seconds": 0.0,
+        "runs": 12,
+        "search_apply_seconds": 0.000026833,
+        "seconds": 0.000073915
+      },
+      "term-subst": {
+        "insert_merge_seconds": 0.000286585,
+        "matches": 2596,
+        "rebuild_seconds": 0.008068667,
+        "runs": 30,
+        "search_apply_seconds": 0.007946623,
+        "seconds": 0.017672419999999994
+      },
+      "type-analysis": {
+        "insert_merge_seconds": 0.007560310000000004,
+        "matches": 108256,
+        "rebuild_seconds": 0.011202586,
+        "runs": 476,
+        "search_apply_seconds": 2.0719900019999984,
+        "seconds": 2.174904077000001
+      },
+      "type-helpers": {
+        "insert_merge_seconds": 0.002269952000000002,
+        "matches": 16775,
+        "rebuild_seconds": 0.15788757200000003,
+        "runs": 2694,
+        "search_apply_seconds": 0.020779864000000002,
+        "seconds": 0.20494186200000047
+      }
+    },
+    "row_slots": 245399,
+    "rules": [
+      {
+        "rule": "(rule ((= lhs (Const c ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConst c) 1)))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 454,
+          "dispatches": 8,
+          "emitted_bindings": 1550,
+          "quiet_runs": 446
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Arg ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermArg ) 1)))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 454,
+          "dispatches": 4,
+          "emitted_bindings": 77,
+          "quiet_runs": 450
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Bop o e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermBop o t1 t2) (+ 1 (+ c1 c2)))))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 454,
+          "dispatches": 453,
+          "emitted_bindings": 16617,
+          "quiet_runs": 1
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Top o e1 e2 e3))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2))\n       (= (TCPair t3 c3) (ExtractedExpr e3)))\n      ((PotentialExtractedExpr lhs (TCPair (TermTop o t1 t2 t3) (+ (+ 1 c1) (+ c2 c3)))))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 454,
+          "dispatches": 453,
+          "emitted_bindings": 4044,
+          "quiet_runs": 1
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Uop o e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermUop o t1) (+ 1 c1))))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 454,
+          "dispatches": 452,
+          "emitted_bindings": 9,
+          "quiet_runs": 2
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Get tup i))\n       (= (TCPair t1 c1) (ExtractedExpr tup)))\n      ((PotentialExtractedExpr lhs (TCPair (TermGet t1 i) c1)))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 454,
+          "dispatches": 454,
+          "emitted_bindings": 33806,
+          "quiet_runs": 0
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Single e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermSingle t1) c1)))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 454,
+          "dispatches": 452,
+          "emitted_bindings": 14610,
+          "quiet_runs": 2
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Concat e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))\n        :ruleset terms )",
+        "ruleset": "terms",
+        "stats": {
+          "audit_queries": 454,
+          "dispatches": 454,
+          "emitted_bindings": 6173,
+          "quiet_runs": 0
+        }
+      },
+      {
+        "rule": "(rule ((PotentialExtractedExpr expr termandcost))\n      ((set (ExtractedExpr expr) (TCPair (NoTerm ) 10000000000000000)))\n        :ruleset terms-helpers )",
+        "ruleset": "terms-helpers",
+        "stats": {
+          "audit_queries": 1185,
+          "dispatches": 442,
+          "emitted_bindings": 71204,
+          "quiet_runs": 743
+        }
+      },
+      {
+        "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (= (ExtractedExpr expr) (TCPair oldterm oldcost))\n       (< cost oldcost))\n      ((set (ExtractedExpr expr) (TCPair term cost)))\n        :ruleset terms-helpers )",
+        "ruleset": "terms-helpers",
+        "stats": {
+          "audit_queries": 1185,
+          "dispatches": 1173,
+          "emitted_bindings": 42713,
+          "quiet_runs": 12
+        }
+      },
+      {
+        "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (< cost 0))\n      ((panic 'Negative cost'))\n        :ruleset terms-helpers )",
+        "ruleset": "terms-helpers",
+        "stats": {
+          "audit_queries": 1185,
+          "dispatches": 443,
+          "emitted_bindings": 0,
+          "quiet_runs": 742
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (< cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+        "ruleset": "terms-helpers-helpers",
+        "stats": {
+          "audit_queries": 2021,
+          "dispatches": 1573,
+          "emitted_bindings": 70656,
+          "quiet_runs": 448
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (> cost1 cost2))\n      ((union lhs (TCPair t2 cost2)))\n        :ruleset terms-helpers-helpers )",
+        "ruleset": "terms-helpers-helpers",
+        "stats": {
+          "audit_queries": 2021,
+          "dispatches": 1573,
+          "emitted_bindings": 75534,
+          "quiet_runs": 448
+        }
+      },
+      {
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (= cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+        "ruleset": "terms-helpers-helpers",
+        "stats": {
+          "audit_queries": 2021,
+          "dispatches": 1573,
+          "emitted_bindings": 554,
+          "quiet_runs": 448
+        }
+      }
+    ],
+    "runtime": {
+      "audit_seconds": 9.862071270999989,
+      "bootstrap_events": 12262,
+      "decode_seconds": 0.04763411700000005,
+      "device_seconds": 1.8417945000528562,
+      "dispatches": 3200,
+      "downloaded_bytes": 20252820,
+      "event_seconds": 0.29339880399999835,
+      "first_upload_bytes": 2218384,
+      "native_action_search_apply_seconds": 0.08874940199999995,
+      "native_insert_merge_seconds": 0.107645846,
+      "native_only_runs": 6430,
+      "native_only_seconds": 12.941320659000011,
+      "native_query_seconds": 0.0,
+      "native_rebuild_seconds": 1.9470682630000014,
+      "native_rhs_seconds": 2.303636237000003,
+      "output_high_water": 2300,
+      "partial_saturations": 0,
+      "peak_live_rows": 245399,
+      "prepare_seconds": 0.013974501999999977,
+      "reused_slots": 102231,
+      "roundtrip_seconds": 4.055698441000002,
+      "row_events": 658202,
+      "ruleset_runs": 10090,
+      "run_seconds": 29.645958542,
+      "saturation_boundaries": 4263,
+      "saturation_hook_seconds": 0.0,
+      "setup_seconds": 0.064653,
+      "shader_compiles": 1,
+      "skipped_saturations": 0,
+      "unchanged_notifications": 0,
+      "union_events": 248106,
+      "uploaded_bytes": 40152352,
+      "workers": 1
+    },
+    "saturation_diagnostics": null,
+    "saturation_hook": null,
+    "scope": "Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage.",
+    "shared_tables": 12
+  }
+}
