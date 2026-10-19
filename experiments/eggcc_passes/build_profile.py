@@ -2,8 +2,19 @@
 Uses the already cached production dependency, never substitutes egg_layout's kernel.
 """
 import pathlib, subprocess, shutil, difflib, json
+import argparse
 root=pathlib.Path(__file__).resolve().parents[2]
 repo=root.parent/'check_statewalk'
+p=argparse.ArgumentParser(description=__doc__)
+p.add_argument('--schedule-only',action='store_true',help='Measure native Run/Saturate boundaries without per-match counters')
+p.add_argument('--production-repo',type=pathlib.Path,default=repo)
+p.add_argument('--output',type=pathlib.Path)
+args=p.parse_args()
+repo=args.production_repo.resolve()
+if args.schedule_only:
+    from schedule_build import build
+    build(root,repo,(args.output or root/'out/eggcc-schedule-profiler').resolve())
+    raise SystemExit(0)
 core=pathlib.Path.home()/'.cargo/git/checkouts/egg-smol-65fdca4a5529f39b/ebba7bb'
 files={}
 written={}

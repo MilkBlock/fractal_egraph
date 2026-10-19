@@ -1,5 +1,11 @@
 # Production eggcc: per-pass timing and frozen Cell-pattern coverage
 
+For the proportion of time under `saturate`, use the new
+[production schedule-boundary profiler](raytrace_saturation/README.md).
+It reuses this runner with `--timing-only`, skips coverage/trace/Bake, and measures
+the actual three-pass extraction chain. It distinguishes ordinary native
+schedules from egglog-experimental's `run-schedule` command.
+
 Measured 2026-10-07, one instrumented run per workload, no averaging. Both programs
 execute all three actual production passes; Tiger extraction from a pass feeds
 the next pass's newly built egraph. `--eggcc-schedule parallel`, default context

@@ -1,0 +1,392 @@
+{
+  "scope": "One fresh production 3-pass pipeline, extraction feeds the next pass. Outermost Saturate is atomic; nested time counted once. No GPU/Cell acceleration, no coverage audit, no raw trace. Includes native per-command preparation; search+apply includes RHS.",
+  "workloads": [
+    {
+      "workload": "raytrace",
+      "measurement": {
+        "source": "/Users/mineralsteins/Repos/egg_related/check_statewalk/benchmarks/passing/raytrace/raytrace.rs",
+        "source_sha256": "a0cc2caf63bded3e280ea23c9395358a60f4b9fa63a19949dd28159cc6638f22",
+        "binary_sha256": "e08467acacf50309518c9ef8d9de1c3182266a4cc8e17dfa74cf19c62b219def",
+        "cli_wall_seconds": 50.7926417499998,
+        "timing_only": true,
+        "production_head": "ae80f82a403c1209fb084b115ee89470c7e66d0e"
+      },
+      "passes": [
+        {
+          "pass": 1,
+          "saturate_seconds": 4.301630541,
+          "run_seconds": 0.08613678899999996,
+          "saturate_share_of_schedule": 0.980368879541295,
+          "execution_seconds": 4.476449083,
+          "saturate_share_of_execution": 0.9609470500482401,
+          "extraction_wall_seconds": 1.185053458,
+          "serialization_seconds": 0.303917834,
+          "saturate_calls": 273,
+          "run_calls": 143,
+          "nodes": 247299,
+          "eclasses": 180802,
+          "native_totals": {
+            "search_and_apply_seconds": 3.5879092890000006,
+            "insert_merge_seconds": 0.05154269400000002,
+            "rebuild_seconds": 0.5671773040000001,
+            "matches": 924153
+          }
+        },
+        {
+          "pass": 2,
+          "saturate_seconds": 12.093962494999996,
+          "run_seconds": 0.16392108099999997,
+          "saturate_share_of_schedule": 0.9866272933672706,
+          "execution_seconds": 12.332556459,
+          "saturate_share_of_execution": 0.9806533248160495,
+          "extraction_wall_seconds": 3.2505939169999998,
+          "serialization_seconds": 0.773698541,
+          "saturate_calls": 159,
+          "run_calls": 80,
+          "nodes": 653093,
+          "eclasses": 427739,
+          "native_totals": {
+            "search_and_apply_seconds": 10.335308581,
+            "insert_merge_seconds": 0.07724966600000001,
+            "rebuild_seconds": 1.4839524039999998,
+            "matches": 1767688
+          }
+        },
+        {
+          "pass": 3,
+          "saturate_seconds": 22.628289292000016,
+          "run_seconds": 0.49438570899999973,
+          "saturate_share_of_schedule": 0.9786190088742492,
+          "execution_seconds": 23.224759708,
+          "saturate_share_of_execution": 0.9743174774034573,
+          "extraction_wall_seconds": 3.452396917,
+          "serialization_seconds": 0.922872667,
+          "saturate_calls": 468,
+          "run_calls": 249,
+          "nodes": 716893,
+          "eclasses": 543572,
+          "native_totals": {
+            "search_and_apply_seconds": 18.667854715,
+            "insert_merge_seconds": 0.25757488600000006,
+            "rebuild_seconds": 3.639205445,
+            "matches": 3093789
+          }
+        }
+      ],
+      "total": {
+        "saturate_seconds": 39.02388232800001,
+        "run_seconds": 0.7444435789999997,
+        "execution_seconds": 40.03376525,
+        "extraction_wall_seconds": 7.888044292,
+        "serialization_seconds": 2.000489042,
+        "saturate_calls": 900,
+        "run_calls": 472,
+        "saturate_share_of_schedule": 0.9812804898868283,
+        "saturate_share_of_execution": 0.974774220818513,
+        "saturate_share_of_cli": 0.7682979459913634
+      },
+      "schedule_groups": [
+        {
+          "kind": "saturate",
+          "schedule": "(saturate terms (saturate terms-helpers (saturate terms-helpers-helpers)))",
+          "calls": 23,
+          "wall_seconds": 16.374103998,
+          "search_and_apply_seconds": 13.884331062000005,
+          "insert_merge_seconds": 0.091508041,
+          "rebuild_seconds": 2.1421988609999993,
+          "logical_matches": 512529
+        },
+        {
+          "kind": "saturate",
+          "schedule": "(saturate (saturate (saturate type-helpers) type-analysis) (saturate (saturate type-helpers) always-run) error-checking)",
+          "calls": 46,
+          "wall_seconds": 14.933282124000003,
+          "search_and_apply_seconds": 13.048603103999998,
+          "insert_merge_seconds": 0.254586085,
+          "rebuild_seconds": 1.004186338,
+          "logical_matches": 4404478
+        },
+        {
+          "kind": "saturate",
+          "schedule": "(saturate context)",
+          "calls": 115,
+          "wall_seconds": 3.1896962509999987,
+          "search_and_apply_seconds": 0.977683206,
+          "insert_merge_seconds": 0.014584679,
+          "rebuild_seconds": 2.16019224,
+          "logical_matches": 319988
+        },
+        {
+          "kind": "saturate",
+          "schedule": "(saturate (saturate type-helpers) type-analysis)",
+          "calls": 138,
+          "wall_seconds": 1.7837323790000004,
+          "search_and_apply_seconds": 1.6425983370000004,
+          "insert_merge_seconds": 0.0040065809999999995,
+          "rebuild_seconds": 0.08063633399999999,
+          "logical_matches": 182946
+        },
+        {
+          "kind": "saturate",
+          "schedule": "(saturate is-resolved)",
+          "calls": 138,
+          "wall_seconds": 1.3039200420000014,
+          "search_and_apply_seconds": 1.2337122370000002,
+          "insert_merge_seconds": 0.005654354,
+          "rebuild_seconds": 0.014839497000000002,
+          "logical_matches": 131708
+        },
+        {
+          "kind": "saturate",
+          "schedule": "(saturate subst)",
+          "calls": 115,
+          "wall_seconds": 0.8850819969999997,
+          "search_and_apply_seconds": 0.812395805,
+          "insert_merge_seconds": 0.009609745999999999,
+          "rebuild_seconds": 0.034197336999999994,
+          "logical_matches": 92619
+        },
+        {
+          "kind": "run",
+          "schedule": "loop-iters-analysis",
+          "calls": 23,
+          "wall_seconds": 0.22866858399999998,
+          "search_and_apply_seconds": 0.220381415,
+          "insert_merge_seconds": 0.00011146099999999998,
+          "rebuild_seconds": 0.0,
+          "logical_matches": 209
+        },
+        {
+          "kind": "saturate",
+          "schedule": "(saturate interval-analysis)",
+          "calls": 23,
+          "wall_seconds": 0.20364370599999998,
+          "search_and_apply_seconds": 0.173850247,
+          "insert_merge_seconds": 0.000478714,
+          "rebuild_seconds": 0.022800167,
+          "logical_matches": 4796
+        },
+        {
+          "kind": "saturate",
+          "schedule": "(saturate ivt-analysis)",
+          "calls": 3,
+          "wall_seconds": 0.16491820899999998,
+          "search_and_apply_seconds": 0.15132157899999998,
+          "insert_merge_seconds": 0.0005372500000000001,
+          "rebuild_seconds": 0.003743334,
+          "logical_matches": 1165
+        },
+        {
+          "kind": "run",
+          "schedule": "apply-subst-unions",
+          "calls": 115,
+          "wall_seconds": 0.14607720800000007,
+          "search_and_apply_seconds": 0.004599041000000002,
+          "insert_merge_seconds": 0.002046665,
+          "rebuild_seconds": 0.138005501,
+          "logical_matches": 89065
+        },
+        {
+          "kind": "run",
+          "schedule": "passthrough",
+          "calls": 9,
+          "wall_seconds": 0.10485475,
+          "search_and_apply_seconds": 0.071672791,
+          "insert_merge_seconds": 0.000135167,
+          "rebuild_seconds": 0.031787417,
+          "logical_matches": 1525
+        },
+        {
+          "kind": "saturate",
+          "schedule": "(saturate mem-simple)",
+          "calls": 23,
+          "wall_seconds": 0.077173166,
+          "search_and_apply_seconds": 0.060178794000000015,
+          "insert_merge_seconds": 0.00029320800000000004,
+          "rebuild_seconds": 0.013657835,
+          "logical_matches": 4664
+        },
+        {
+          "kind": "run",
+          "schedule": "all-optimizations",
+          "calls": 2,
+          "wall_seconds": 0.07069175,
+          "search_and_apply_seconds": 0.063011542,
+          "insert_merge_seconds": 8.687500000000001e-05,
+          "rebuild_seconds": 0.003481876,
+          "logical_matches": 863
+        },
+        {
+          "kind": "saturate",
+          "schedule": "(saturate drop)",
+          "calls": 115,
+          "wall_seconds": 0.054132335000000004,
+          "search_and_apply_seconds": 0.050106667,
+          "insert_merge_seconds": 0.00026320600000000004,
+          "rebuild_seconds": 0.001062583,
+          "logical_matches": 495
+        },
+        {
+          "kind": "run",
+          "schedule": "cheap-optimizations",
+          "calls": 4,
+          "wall_seconds": 0.052377708,
+          "search_and_apply_seconds": 0.046675125,
+          "insert_merge_seconds": 0.000114542,
+          "rebuild_seconds": 0.0032822499999999996,
+          "logical_matches": 846
+        },
+        {
+          "kind": "run",
+          "schedule": "state-edge-passthrough",
+          "calls": 9,
+          "wall_seconds": 0.048696372999999994,
+          "search_and_apply_seconds": 0.044054708,
+          "insert_merge_seconds": 0.00011116699999999999,
+          "rebuild_seconds": 0.003797417,
+          "logical_matches": 11
+        },
+        {
+          "kind": "saturate",
+          "schedule": "(saturate cicm-index)",
+          "calls": 23,
+          "wall_seconds": 0.033774956,
+          "search_and_apply_seconds": 0.032492704,
+          "insert_merge_seconds": 0.0006558759999999999,
+          "rebuild_seconds": 0.0,
+          "logical_matches": 28540
+        },
+        {
+          "kind": "run",
+          "schedule": "non-weakly-linear",
+          "calls": 1,
+          "wall_seconds": 0.025679375,
+          "search_and_apply_seconds": 0.006256333,
+          "insert_merge_seconds": 0.0001955,
+          "rebuild_seconds": 0.019135,
+          "logical_matches": 1613
+        },
+        {
+          "kind": "run",
+          "schedule": "boundary-analysis",
+          "calls": 23,
+          "wall_seconds": 0.022295459000000004,
+          "search_and_apply_seconds": 0.021794499,
+          "insert_merge_seconds": 0.00011658199999999999,
+          "rebuild_seconds": 0.0,
+          "logical_matches": 1454
+        },
+        {
+          "kind": "run",
+          "schedule": "boundary-analysis-prep",
+          "calls": 23,
+          "wall_seconds": 0.022071503999999995,
+          "search_and_apply_seconds": 0.021532253,
+          "insert_merge_seconds": 0.000131374,
+          "rebuild_seconds": 0.0,
+          "logical_matches": 1814
+        },
+        {
+          "kind": "saturate",
+          "schedule": "(saturate term-subst)",
+          "calls": 115,
+          "wall_seconds": 0.017093123,
+          "search_and_apply_seconds": 0.007495752999999998,
+          "insert_merge_seconds": 0.000160376,
+          "rebuild_seconds": 0.007378583000000001,
+          "logical_matches": 2596
+        },
+        {
+          "kind": "run",
+          "schedule": "(run initialization)",
+          "calls": 3,
+          "wall_seconds": 0.008452999,
+          "search_and_apply_seconds": 0.007059876,
+          "insert_merge_seconds": 0.000698959,
+          "rebuild_seconds": 0.0,
+          "logical_matches": 3
+        },
+        {
+          "kind": "run",
+          "schedule": "loop-inversion",
+          "calls": 3,
+          "wall_seconds": 0.006617208000000001,
+          "search_and_apply_seconds": 0.004914876,
+          "insert_merge_seconds": 3.9584e-05,
+          "rebuild_seconds": 0.001403709,
+          "logical_matches": 40
+        },
+        {
+          "kind": "run",
+          "schedule": "apply-drop-unions",
+          "calls": 115,
+          "wall_seconds": 0.004130749000000001,
+          "search_and_apply_seconds": 2.5294000000000002e-05,
+          "insert_merge_seconds": 3.8209999999999995e-05,
+          "rebuild_seconds": 0.0037415829999999997,
+          "logical_matches": 244
+        },
+        {
+          "kind": "saturate",
+          "schedule": "(saturate canon)",
+          "calls": 23,
+          "wall_seconds": 0.0033300420000000005,
+          "search_and_apply_seconds": 0.002049585,
+          "insert_merge_seconds": 0.000122376,
+          "rebuild_seconds": 0.0,
+          "logical_matches": 1045
+        },
+        {
+          "kind": "run",
+          "schedule": "cleanup-drop",
+          "calls": 115,
+          "wall_seconds": 0.0013690390000000003,
+          "search_and_apply_seconds": 0.0009463779999999999,
+          "insert_merge_seconds": 4.050000000000001e-05,
+          "rebuild_seconds": 0.0,
+          "logical_matches": 185
+        },
+        {
+          "kind": "run",
+          "schedule": "rec-to-loop",
+          "calls": 1,
+          "wall_seconds": 0.001201833,
+          "search_and_apply_seconds": 0.001138708,
+          "insert_merge_seconds": 1.917e-06,
+          "rebuild_seconds": 0.0,
+          "logical_matches": 0
+        },
+        {
+          "kind": "run",
+          "schedule": "swap-if",
+          "calls": 2,
+          "wall_seconds": 0.00105575,
+          "search_and_apply_seconds": 0.000111875,
+          "insert_merge_seconds": 1.7792000000000002e-05,
+          "rebuild_seconds": 0.0008072909999999999,
+          "logical_matches": 134
+        },
+        {
+          "kind": "run",
+          "schedule": "subsume-after-helpers",
+          "calls": 23,
+          "wall_seconds": 0.000201081,
+          "search_and_apply_seconds": 7.8791e-05,
+          "insert_merge_seconds": 2.0459e-05,
+          "rebuild_seconds": 0.0,
+          "logical_matches": 55
+        },
+        {
+          "kind": "run",
+          "schedule": "add-to-debug-expr",
+          "calls": 1,
+          "wall_seconds": 2.209e-06,
+          "search_and_apply_seconds": 0.0,
+          "insert_merge_seconds": 0.0,
+          "rebuild_seconds": 0.0,
+          "logical_matches": 0
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "source": "/Users/mineralsteins/Repos/egg_related/check_statewalk/benchmarks/passing/raytrace/raytrace.rs",
+  "source_sha256": "a0cc2caf63bded3e280ea23c9395358a60f4b9fa63a19949dd28159cc6638f22",
+  "binary_sha256": "e08467acacf50309518c9ef8d9de1c3182266a4cc8e17dfa74cf19c62b219def",
+  "cli_wall_seconds": 50.7926417499998,
+  "timing_only": true,
+  "production_head": "ae80f82a403c1209fb084b115ee89470c7e66d0e"
+}

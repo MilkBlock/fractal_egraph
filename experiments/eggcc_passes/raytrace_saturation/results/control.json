@@ -1,0 +1,34 @@
+{
+  "production_extended_scheduler_self_tests": 5,
+  "local_native_scheduler_cases": 5,
+  "same_final_optimized_program": true,
+  "optimized_program_sha256": "066191481588858cfd71568ab2ac989be39edab5ec17e860bff12e029b47916e",
+  "passes": [
+    {
+      "pass": 1,
+      "original_input_sha256": "11a636a97b9a4295c792ca830a27e3f4d33e31dddc5297827a1a23546348bf2d",
+      "measured_input_sha256": "11a636a97b9a4295c792ca830a27e3f4d33e31dddc5297827a1a23546348bf2d",
+      "nodes": 247299,
+      "eclasses": 180802,
+      "logical_matches": 924153
+    },
+    {
+      "pass": 2,
+      "original_input_sha256": "539030a9809bfb5518d3b6a0da3a6ad796312359c9ad74a17d0c149538d0545c",
+      "measured_input_sha256": "539030a9809bfb5518d3b6a0da3a6ad796312359c9ad74a17d0c149538d0545c",
+      "nodes": 653093,
+      "eclasses": 427739,
+      "logical_matches": 1767688
+    },
+    {
+      "pass": 3,
+      "original_input_sha256": "146b2c333847e019dd8fd4f3b09fb2aeedb56305bd053cd8c8b02cf13423a0eb",
+      "measured_input_sha256": "146b2c333847e019dd8fd4f3b09fb2aeedb56305bd053cd8c8b02cf13423a0eb",
+      "nodes": 716893,
+      "eclasses": 543572,
+      "logical_matches": 3093789
+    }
+  ],
+  "full_graph_isomorphism_checked": false,
+  "control_scope": "Initial attempt executed experimental schedules intact but failed to time inside UserDefined run-schedule. Its schedule timing breakdown is invalid; only actual source, counts and final program serve as a semantic control. No time averaging."
+}

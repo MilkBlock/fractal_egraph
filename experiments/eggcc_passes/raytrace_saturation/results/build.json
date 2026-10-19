@@ -1,0 +1,7 @@
+{
+  "production_head": "ae80f82a403c1209fb084b115ee89470c7e66d0e",
+  "original_driver_sha256": "814dd8c66fe837e2b2964713b83768e1cf61d53a9338156fe41a1f44fdc6cd8d",
+  "profile_driver_sha256": "2cf08b20633928417f0ba79d36e371776168db223471a91ff7236e62ed3becef",
+  "profile_binary_sha256": "e08467acacf50309518c9ef8d9de1c3182266a4cc8e17dfa74cf19c62b219def",
+  "scope": "Only production pass driver instrumented; original native engine/dependencies, actual extraction chain. Saturate remains atomic; no per-match counters, no coverage analysis."
+}
