@@ -73,6 +73,10 @@ pub fn equal(base: &EGraph, a: &EGraph, b: &EGraph) -> Result<Json> {
     equal_projected(base, a, b, false)
 }
 fn equal_projected(base: &EGraph, a: &EGraph, b: &EGraph, omit_smaller: bool) -> Result<Json> {
+    equal_except(base, a, b, if omit_smaller { &["Smaller"] } else { &[] })
+}
+/// Diagnostic projection only. The strict benchmark gate always uses `equal`.
+pub fn equal_except(base: &EGraph, a: &EGraph, b: &EGraph, omitted: &[&str]) -> Result<Json> {
     let mut map = BTreeMap::new();
     let mut inverse = BTreeMap::new();
     // Shared old IDs anchor cycles and pre-existing open inputs. Never assume IDs
@@ -92,11 +96,11 @@ fn equal_projected(base: &EGraph, a: &EGraph, b: &EGraph, omit_smaller: bool) ->
     }
     let left = snapshot(a)?
         .into_iter()
-        .filter(|r| !omit_smaller || r.0 != "Smaller")
+        .filter(|r| !omitted.contains(&r.0.as_str()))
         .collect::<Vec<_>>();
     let right = snapshot(b)?
         .into_iter()
-        .filter(|r| !omit_smaller || r.0 != "Smaller")
+        .filter(|r| !omitted.contains(&r.0.as_str()))
         .collect::<Vec<_>>();
     let counts = |rows: &[Row]| {
         let mut out = BTreeMap::<String, usize>::new();
@@ -150,7 +154,8 @@ fn equal_projected(base: &EGraph, a: &EGraph, b: &EGraph, omit_smaller: bool) ->
             }
             match (&result, target) {
                 (Atom::Eq(s, _), Atom::Eq(t, _)) if s == t => {
-                    pair(result, target.clone(), &mut map, &mut inverse)?
+                    pair(result, target.clone(), &mut map, &mut inverse)
+                        .map_err(|e| format!("result mapping conflict in {op} {args:?}: {e}"))?
                 }
                 (Atom::Base(..), Atom::Base(..)) if &result == target => (),
                 _ => {
@@ -429,6 +434,24 @@ pub fn benchmark_cells(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn order_sensitive_function_choice_is_not_a_changed_union_partition() {
+        let mut base = EGraph::default();
+        base.parse_and_run_program(
+            None,
+            "(datatype E (N i64)) (function Pick () E :merge new) (N 1) (N 2)",
+        )
+        .unwrap();
+        let mut a = base.clone();
+        let mut b = base.clone();
+        a.parse_and_run_program(None, "(set (Pick) (N 1)) (set (Pick) (N 2))")
+            .unwrap();
+        b.parse_and_run_program(None, "(set (Pick) (N 2)) (set (Pick) (N 1))")
+            .unwrap();
+        let error = equal(&base, &a, &b).unwrap_err().to_string();
+        assert!(error.contains("result mapping conflict in Pick"), "{error}");
+        assert!(equal_except(&base, &a, &b, &["Pick"]).is_ok());
+    }
     #[test]
     fn extraction_quality_uses_input_anchors_not_fresh_numeric_ids() {
         let mut base = EGraph::default();

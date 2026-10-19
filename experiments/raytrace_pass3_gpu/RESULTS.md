@@ -1,5 +1,11 @@
 # Raytrace Pass 3: timing obtained, strict result gate fails
 
+Follow-up: [the first divergence has now been isolated](FIRST_DIVERGENCE.md) to
+native `boundary-analysis` choosing a different equal-size invariant through
+`to-hoist :merge new`. The old error text did not distinguish this function-value
+choice from a changed union partition. The timing and strict failure below are
+preserved; the follow-up does not retroactively certify a speedup.
+
 One final release run per lane on Apple M3 Max, one native thread, probe counters
 and query audits off. Full captured Pass-3 main schedule, with only the 14 terms
 family rules assisted. This is the modified native runtime, not pristine egglog.

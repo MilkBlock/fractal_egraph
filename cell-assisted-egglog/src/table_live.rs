@@ -873,6 +873,20 @@ impl Runtime {
         }
         result
     }
+    /// Execute one original schedule boundary and expose its public change flag
+    /// for lockstep diagnostics. Keeps the same failure and timing semantics.
+    pub fn run_schedule(&mut self, schedule: &Schedule) -> Result<bool> {
+        if self.failed {
+            return Err("failed shared runtime cannot resume".into());
+        }
+        let start = Instant::now();
+        let result = self.schedule(schedule);
+        self.stats.run_seconds += start.elapsed().as_secs_f64();
+        if result.is_err() {
+            self.failed = true;
+        }
+        result
+    }
     pub fn report(&self) -> Json {
         json!({"runtime":self.stats,"native_only_rulesets":self.native_stats,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit,"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"rules":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|json!({"ruleset":set,"rule":self.sinks[*id].name,"stats":self.qstats[*id]}))).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
     }
