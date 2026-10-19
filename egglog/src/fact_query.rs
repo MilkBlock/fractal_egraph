@@ -16,6 +16,54 @@ struct QueryRows {
     excluded: Option<std::collections::HashSet<Vec<Value>>>,
     matched: Option<Vec<Value>>,
     fresh: Option<Vec<Value>>,
+    matched_excluded: Option<std::collections::HashSet<Vec<Value>>>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn existence_callback_runs_on_the_first_binding_not_a_full_rhs_batch() {
+        let mut eg = EGraph::default();
+        eg.parse_and_run_program(None, "(relation Edge (i64 i64))")
+            .unwrap();
+        for i in 0..12 {
+            for j in 0..12 {
+                eg.parse_and_run_program(None, &format!("(Edge {i} {j})"))
+                    .unwrap();
+            }
+        }
+        let query = eg
+            .compile_fact_query(
+                &vec![("i64".into(), None); 3],
+                &[("Edge".into(), vec![0, 1]), ("Edge".into(), vec![1, 2])],
+                &[0, 1, 2],
+            )
+            .unwrap();
+        *query.rows.lock().unwrap() = QueryRows {
+            excluded: Some(Default::default()),
+            ..Default::default()
+        };
+        let report = eg
+            .backend
+            .run_read_only_rules_until(&[query.rule], &query.stop)
+            .unwrap();
+        let evaluated: usize = report
+            .rule_reports
+            .values()
+            .flatten()
+            .map(|r| r.num_matches)
+            .sum();
+        assert_eq!(
+            evaluated, 1,
+            "existence queries must not wait for a batch of matches"
+        );
+        assert!(query.rows.lock().unwrap().fresh.is_some());
+        // A later exhaustive run still sees the complete query result.
+        assert_eq!(eg.run_fact_query(&query).unwrap().len(), 12 * 12 * 12);
+        eg.free_fact_query(query);
+    }
 }
 
 impl EGraph {
@@ -96,7 +144,13 @@ impl EGraph {
             .register_external_func(Box::new(make_external_func(move |_, args| {
                 let mut sink = buffer.lock().unwrap();
                 if let Some(excluded) = &sink.excluded {
-                    let fresh = sink.fresh.is_none() && !excluded.contains(args);
+                    let old = excluded.contains(args);
+                    let fresh = sink.fresh.is_none() && !old;
+                    if old {
+                        if let Some(seen) = &mut sink.matched_excluded {
+                            seen.insert(args.to_vec());
+                        }
+                    }
                     if fresh {
                         sink.fresh = Some(args.to_vec());
                         success.store(true, std::sync::atomic::Ordering::Relaxed);
@@ -164,8 +218,44 @@ impl EGraph {
         query: &CompiledFactQuery,
         excluded: std::collections::HashSet<Vec<Value>>,
     ) -> Result<(Option<Vec<Value>>, Option<Vec<Value>>), Error> {
+        let (matched, fresh, _) = self.run_fact_query_partition_impl(query, excluded, false)?;
+        Ok((matched, fresh))
+    }
+
+    /// Like difference, but retains the distinct excluded tuples encountered.
+    /// If no fresh tuple exists, this set is the complete projected result.
+    /// Storage is bounded by the exclusion set, not by join fanout.
+    pub fn run_fact_query_partition(
+        &mut self,
+        query: &CompiledFactQuery,
+        excluded: std::collections::HashSet<Vec<Value>>,
+    ) -> Result<
+        (
+            Option<Vec<Value>>,
+            Option<Vec<Value>>,
+            std::collections::HashSet<Vec<Value>>,
+        ),
+        Error,
+    > {
+        self.run_fact_query_partition_impl(query, excluded, true)
+    }
+
+    fn run_fact_query_partition_impl(
+        &mut self,
+        query: &CompiledFactQuery,
+        excluded: std::collections::HashSet<Vec<Value>>,
+        retain_excluded: bool,
+    ) -> Result<
+        (
+            Option<Vec<Value>>,
+            Option<Vec<Value>>,
+            std::collections::HashSet<Vec<Value>>,
+        ),
+        Error,
+    > {
         *query.rows.lock().unwrap() = QueryRows {
             excluded: Some(excluded),
+            matched_excluded: retain_excluded.then(Default::default),
             ..Default::default()
         };
         query
@@ -177,7 +267,11 @@ impl EGraph {
             .map_err(|e| Error::BackendError(e.to_string()));
         let rows = std::mem::take(&mut *query.rows.lock().unwrap());
         result?;
-        Ok((rows.matched, rows.fresh))
+        Ok((
+            rows.matched,
+            rows.fresh,
+            rows.matched_excluded.unwrap_or_default(),
+        ))
     }
 
     pub fn fact_query_unique_subset_bytes(&self, query: &CompiledFactQuery) -> Option<usize> {

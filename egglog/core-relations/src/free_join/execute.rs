@@ -1433,6 +1433,12 @@ impl<'a> JoinState<'a> {
                 return;
             }
             action_buf.push_bindings(action, &binding_info.bindings, || self.exec_state.clone());
+            // A collector-only query must observe its witness immediately. Waiting
+            // for a normal RHS batch can keep searching a huge Cartesian product
+            // even after the first satisfying binding already exists.
+            if self.query_stop.is_some() {
+                action_buf.flush(&mut self.exec_state.clone());
+            }
             return;
         }
         let chunk_size = action_buf.morsel_size(cur, instr_order.len());
@@ -1478,6 +1484,9 @@ impl<'a> JoinState<'a> {
                                 action_buf.push_bindings(action, &binding_info.bindings, || {
                                     self.exec_state.clone()
                                 });
+                                if self.query_stop.is_some() {
+                                    action_buf.flush(&mut self.exec_state.clone());
+                                }
                             } else {
                                 self.run_plan(
                                     stages,
