@@ -1,5 +1,7 @@
 # First divergence is a native order-sensitive choice
 
+Follow-up: [stable structural selection is implemented and measured](STABLE_CHOICE.md).
+
 The earlier message `different equality partition` was too broad. The comparator
 also used that message when a **function selected a different existing Expr**.
 It did not establish that the GPU performed an invalid union. The diagnostic now

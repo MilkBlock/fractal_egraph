@@ -1,0 +1,27 @@
+{
+  "tiger": "/Users/mineralsteins/Repos/egg_related/check_statewalk/target/release/tiger",
+  "tiger_sha256": "2e17243d4d66b959871b4c37ff8a18204c8b8b1e04450a19c8c5dd6a2bb1b646",
+  "runs": [
+    {
+      "lane": "native",
+      "seconds": 2.642755708999175,
+      "returncode": 0,
+      "input_sha256": "e36bd71e7f25a2e25960825a44243d1fcd6b9018a72b0dcb3c383a0b5e5d95d0",
+      "output_sha256": "c48fe2b212d341b1c3f3de3ef94e77e3252b661e68be3bf60fbd417bb5ad3ce9"
+    },
+    {
+      "lane": "cpu",
+      "seconds": 2.7365348749990517,
+      "returncode": 0,
+      "input_sha256": "8b712ea2662be31bb9e35d603e8c782a6aeb21444ac714190e845abf8d11ee5f",
+      "output_sha256": "c48fe2b212d341b1c3f3de3ef94e77e3252b661e68be3bf60fbd417bb5ad3ce9"
+    },
+    {
+      "lane": "gpu",
+      "seconds": 3.0516472090002935,
+      "returncode": 0,
+      "input_sha256": "3f52cb3f27c555d6d1e8357c3a659df65c52d5373103c69dcf3c802f45a0453c",
+      "output_sha256": "c48fe2b212d341b1c3f3de3ef94e77e3252b661e68be3bf60fbd417bb5ad3ce9"
+    }
+  ]
+}

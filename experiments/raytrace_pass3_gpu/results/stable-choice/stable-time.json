@@ -1,0 +1,1224 @@
+{
+  "complete": false,
+  "benchmark_finished": true,
+  "label": "complete raytrace Pass 3, shared structural choice",
+  "assisted_rulesets": [
+    "terms",
+    "terms-helpers",
+    "terms-helpers-helpers"
+  ],
+  "schedule": [
+    "(run-schedule (seq (repeat 3 (seq (saturate (seq (saturate (seq (saturate (seq (run type-helpers))) (run type-analysis))) (saturate (seq (saturate (seq (run type-helpers))) (run always-run))) (run error-checking))) (repeat 5 (seq (saturate (seq (saturate (seq (run type-helpers))) (run type-analysis))) (saturate (seq (run is-resolved))) (saturate (seq (run term-subst))) (saturate (seq (run subst))) (run apply-subst-unions) (saturate (seq (run context))) (saturate (seq (run drop))) (run apply-drop-unions) (run cleanup-drop))) (saturate (seq (saturate (seq (run type-helpers))) (run type-analysis))) (saturate (seq (run is-resolved))) (saturate (seq (run terms) (saturate (seq (run terms-helpers) (saturate (seq (run terms-helpers-helpers))))))) (saturate (seq (saturate (seq (saturate (seq (run type-helpers))) (run type-analysis))) (saturate (seq (saturate (seq (run type-helpers))) (run always-run))) (run error-checking))) (saturate (seq (run canon))) (saturate (seq (run interval-analysis))) (saturate (seq (run mem-simple))) (saturate (seq (run cicm-index))) (run subsume-after-helpers) (run boundary-analysis-prep) (seq (seq (saturate (seq (run cell-stable-keys)))) (run boundary-analysis)) (run loop-iters-analysis) (run passthrough) (run state-edge-passthrough))) (repeat 2 (seq (saturate (seq (saturate (seq (saturate (seq (run type-helpers))) (run type-analysis))) (saturate (seq (saturate (seq (run type-helpers))) (run always-run))) (run error-checking))) (repeat 5 (seq (saturate (seq (saturate (seq (run type-helpers))) (run type-analysis))) (saturate (seq (run is-resolved))) (saturate (seq (run term-subst))) (saturate (seq (run subst))) (run apply-subst-unions) (saturate (seq (run context))) (saturate (seq (run drop))) (run apply-drop-unions) (run cleanup-drop))) (saturate (seq (saturate (seq (run type-helpers))) (run type-analysis))) (saturate (seq (run is-resolved))) (saturate (seq (run terms) (saturate (seq (run terms-helpers) (saturate (seq (run terms-helpers-helpers))))))) (saturate (seq (saturate (seq (saturate (seq (run type-helpers))) (run type-analysis))) (saturate (seq (saturate (seq (run type-helpers))) (run always-run))) (run error-checking))) (saturate (seq (run canon))) (saturate (seq (run interval-analysis))) (saturate (seq (run mem-simple))) (saturate (seq (run cicm-index))) (run subsume-after-helpers) (run boundary-analysis-prep) (seq (seq (saturate (seq (run cell-stable-keys)))) (run boundary-analysis)) (run loop-iters-analysis) (run all-optimizations))) (run non-weakly-linear) (repeat 4 (seq (saturate (seq (saturate (seq (saturate (seq (run type-helpers))) (run type-analysis))) (saturate (seq (saturate (seq (run type-helpers))) (run always-run))) (run error-checking))) (repeat 5 (seq (saturate (seq (saturate (seq (run type-helpers))) (run type-analysis))) (saturate (seq (run is-resolved))) (saturate (seq (run term-subst))) (saturate (seq (run subst))) (run apply-subst-unions) (saturate (seq (run context))) (saturate (seq (run drop))) (run apply-drop-unions) (run cleanup-drop))) (saturate (seq (saturate (seq (run type-helpers))) (run type-analysis))) (saturate (seq (run is-resolved))) (saturate (seq (run terms) (saturate (seq (run terms-helpers) (saturate (seq (run terms-helpers-helpers))))))) (saturate (seq (saturate (seq (saturate (seq (run type-helpers))) (run type-analysis))) (saturate (seq (saturate (seq (run type-helpers))) (run always-run))) (run error-checking))) (saturate (seq (run canon))) (saturate (seq (run interval-analysis))) (saturate (seq (run mem-simple))) (saturate (seq (run cicm-index))) (run subsume-after-helpers) (run boundary-analysis-prep) (seq (seq (saturate (seq (run cell-stable-keys)))) (run boundary-analysis)) (run loop-iters-analysis) (run cheap-optimizations))) (repeat 3 (seq (saturate (seq (saturate (seq (saturate (seq (run type-helpers))) (run type-analysis))) (saturate (seq (saturate (seq (run type-helpers))) (run always-run))) (run error-checking))) (repeat 5 (seq (saturate (seq (saturate (seq (run type-helpers))) (run type-analysis))) (saturate (seq (run is-resolved))) (saturate (seq (run term-subst))) (saturate (seq (run subst))) (run apply-subst-unions) (saturate (seq (run context))) (saturate (seq (run drop))) (run apply-drop-unions) (run cleanup-drop))) (saturate (seq (saturate (seq (run type-helpers))) (run type-analysis))) (saturate (seq (run is-resolved))) (saturate (seq (run terms) (saturate (seq (run terms-helpers) (saturate (seq (run terms-helpers-helpers))))))) (saturate (seq (saturate (seq (saturate (seq (run type-helpers))) (run type-analysis))) (saturate (seq (saturate (seq (run type-helpers))) (run always-run))) (run error-checking))) (saturate (seq (run canon))) (saturate (seq (run interval-analysis))) (saturate (seq (run mem-simple))) (saturate (seq (run cicm-index))) (run subsume-after-helpers) (run boundary-analysis-prep) (seq (seq (saturate (seq (run cell-stable-keys)))) (run boundary-analysis)) (run loop-iters-analysis) (run passthrough) (run state-edge-passthrough))) (run add-to-debug-expr)))"
+  ],
+  "scope": "Full original schedule; GPU persistent table joins drive original native RHS/merge/rebuild. Explicit tables, not certified Cell shortcuts. Same native fork, not pristine. Preparation included separately; no repeated cold queries.",
+  "native": {
+    "run_seconds": 24.316069708,
+    "iterations": 10582,
+    "logical_matches": 3542866,
+    "search_apply_seconds": 19.294603332999994,
+    "insert_merge_seconds": 0.470679859,
+    "rebuild_seconds": 3.9382897690000003,
+    "search_apply_per_ruleset": {
+      "add-to-debug-expr": 0.0,
+      "all-optimizations": 0.060525542,
+      "always-run": 5.510664431,
+      "apply-drop-unions": 8.417e-6,
+      "apply-subst-unions": 0.000755957,
+      "boundary-analysis": 0.016231376,
+      "boundary-analysis-prep": 0.015203665,
+      "canon": 0.001320043,
+      "cell-stable-keys": 1.174116872,
+      "cheap-optimizations": 0.045921042,
+      "cicm-index": 0.023814584,
+      "cleanup-drop": 0.000785499,
+      "context": 0.323944293,
+      "drop": 0.036643918,
+      "error-checking": 0.156832625,
+      "interval-analysis": 0.097002496,
+      "is-resolved": 0.448192874,
+      "loop-iters-analysis": 0.184142041,
+      "mem-simple": 0.067604001,
+      "non-weakly-linear": 0.006032708,
+      "passthrough": 0.049660376,
+      "state-edge-passthrough": 0.036553375,
+      "subst": 0.274311411,
+      "subsume-after-helpers": 0.00001675,
+      "term-subst": 0.007753376,
+      "terms": 2.601366901,
+      "terms-helpers": 2.293985912,
+      "terms-helpers-helpers": 3.9039498569999997,
+      "type-analysis": 1.9387962399999998,
+      "type-helpers": 0.018466751
+    }
+  },
+  "sorted_commit_cpu": {
+    "runtime": {
+      "setup_seconds": 0.002649791,
+      "run_seconds": 24.0956925,
+      "event_seconds": 0.00027997400000001155,
+      "native_rhs_seconds": 2.021963805999999,
+      "native_action_search_apply_seconds": 0.07019898599999992,
+      "native_insert_merge_seconds": 0.05050371099999998,
+      "native_rebuild_seconds": 1.7769103110000004,
+      "ruleset_runs": 10550,
+      "row_events": 0,
+      "union_events": 0,
+      "bootstrap_events": 0,
+      "prepare_seconds": 0.0,
+      "roundtrip_seconds": 0.0,
+      "decode_seconds": 0.0,
+      "device_seconds": 0.0,
+      "native_query_seconds": 8.707547263000006,
+      "audit_seconds": 0.0,
+      "dispatches": 0,
+      "uploaded_bytes": 0,
+      "downloaded_bytes": 0,
+      "first_upload_bytes": 0,
+      "unchanged_notifications": 0,
+      "workers": 0,
+      "shader_compiles": 0,
+      "reused_slots": 0,
+      "peak_live_rows": 0,
+      "output_high_water": 0,
+      "saturation_boundaries": 4275,
+      "skipped_saturations": 0,
+      "partial_saturations": 0,
+      "saturation_hook_seconds": 0.0,
+      "native_only_runs": 6890,
+      "native_only_seconds": 13.342552849999958
+    },
+    "native_only_rulesets": {
+      "add-to-debug-expr": {
+        "runs": 1,
+        "seconds": 2.92e-7,
+        "search_apply_seconds": 0.0,
+        "insert_merge_seconds": 0.0,
+        "rebuild_seconds": 0.0,
+        "matches": 0
+      },
+      "all-optimizations": {
+        "runs": 2,
+        "seconds": 0.067882834,
+        "search_apply_seconds": 0.061549625000000004,
+        "insert_merge_seconds": 0.000158916,
+        "rebuild_seconds": 0.004220958,
+        "matches": 863
+      },
+      "always-run": {
+        "runs": 1798,
+        "seconds": 6.10514965899999,
+        "search_apply_seconds": 5.439458886999994,
+        "insert_merge_seconds": 0.18282150100000016,
+        "rebuild_seconds": 0.221402623,
+        "matches": 2406975
+      },
+      "apply-drop-unions": {
+        "runs": 24,
+        "seconds": 0.0012257510000000002,
+        "search_apply_seconds": 5.541e-6,
+        "insert_merge_seconds": 0.000013124000000000002,
+        "rebuild_seconds": 0.001175708,
+        "matches": 53
+      },
+      "apply-subst-unions": {
+        "runs": 24,
+        "seconds": 0.029555832,
+        "search_apply_seconds": 0.0007316660000000001,
+        "insert_merge_seconds": 0.0002685,
+        "rebuild_seconds": 0.028365583,
+        "matches": 14577
+      },
+      "boundary-analysis": {
+        "runs": 12,
+        "seconds": 0.016061831,
+        "search_apply_seconds": 0.015407708999999999,
+        "insert_merge_seconds": 0.000457875,
+        "rebuild_seconds": 0.0,
+        "matches": 689
+      },
+      "boundary-analysis-prep": {
+        "runs": 12,
+        "seconds": 0.015324417,
+        "search_apply_seconds": 0.015072372,
+        "insert_merge_seconds": 0.000081543,
+        "rebuild_seconds": 0.0,
+        "matches": 915
+      },
+      "canon": {
+        "runs": 19,
+        "seconds": 0.001966458,
+        "search_apply_seconds": 0.0013094570000000002,
+        "insert_merge_seconds": 0.00008204499999999999,
+        "rebuild_seconds": 0.0,
+        "matches": 550
+      },
+      "cell-stable-keys": {
+        "runs": 460,
+        "seconds": 1.2162385580000001,
+        "search_apply_seconds": 1.0459517109999994,
+        "insert_merge_seconds": 0.12142075199999994,
+        "rebuild_seconds": 0.0,
+        "matches": 449185
+      },
+      "cheap-optimizations": {
+        "runs": 4,
+        "seconds": 0.05133075,
+        "search_apply_seconds": 0.044739583,
+        "insert_merge_seconds": 0.00008029,
+        "rebuild_seconds": 0.0055397499999999995,
+        "matches": 846
+      },
+      "cicm-index": {
+        "runs": 23,
+        "seconds": 0.022538459999999996,
+        "search_apply_seconds": 0.021986750000000003,
+        "insert_merge_seconds": 0.000313667,
+        "rebuild_seconds": 0.0,
+        "matches": 10021
+      },
+      "cleanup-drop": {
+        "runs": 24,
+        "seconds": 0.0008775820000000001,
+        "search_apply_seconds": 0.000776,
+        "insert_merge_seconds": 0.000015542,
+        "rebuild_seconds": 0.0,
+        "matches": 42
+      },
+      "context": {
+        "runs": 172,
+        "seconds": 2.092455041,
+        "search_apply_seconds": 0.3205736279999997,
+        "insert_merge_seconds": 0.007562994999999998,
+        "rebuild_seconds": 1.7544827910000012,
+        "matches": 130544
+      },
+      "drop": {
+        "runs": 33,
+        "seconds": 0.03554567199999999,
+        "search_apply_seconds": 0.034429956,
+        "insert_merge_seconds": 0.00008524999999999999,
+        "rebuild_seconds": 0.0,
+        "matches": 108
+      },
+      "error-checking": {
+        "runs": 49,
+        "seconds": 0.15674896100000002,
+        "search_apply_seconds": 0.152945457,
+        "insert_merge_seconds": 0.00012974999999999998,
+        "rebuild_seconds": 0.0,
+        "matches": 0
+      },
+      "interval-analysis": {
+        "runs": 31,
+        "seconds": 0.11741250099999999,
+        "search_apply_seconds": 0.09561037200000003,
+        "insert_merge_seconds": 0.0002462870000000001,
+        "rebuild_seconds": 0.017716164000000003,
+        "matches": 2685
+      },
+      "is-resolved": {
+        "runs": 782,
+        "seconds": 0.48220052700000066,
+        "search_apply_seconds": 0.4446038569999995,
+        "insert_merge_seconds": 0.0025862080000000048,
+        "rebuild_seconds": 0.0051880419999999995,
+        "matches": 41503
+      },
+      "loop-iters-analysis": {
+        "runs": 12,
+        "seconds": 0.17807658199999998,
+        "search_apply_seconds": 0.176021751,
+        "insert_merge_seconds": 0.00010904,
+        "rebuild_seconds": 0.0,
+        "matches": 87
+      },
+      "mem-simple": {
+        "runs": 25,
+        "seconds": 0.08155187700000001,
+        "search_apply_seconds": 0.064428584,
+        "insert_merge_seconds": 0.00024250200000000002,
+        "rebuild_seconds": 0.015114124,
+        "matches": 2863
+      },
+      "non-weakly-linear": {
+        "runs": 1,
+        "seconds": 0.028141208,
+        "search_apply_seconds": 0.006045375,
+        "insert_merge_seconds": 0.000176708,
+        "rebuild_seconds": 0.021863542,
+        "matches": 1613
+      },
+      "passthrough": {
+        "runs": 6,
+        "seconds": 0.069375625,
+        "search_apply_seconds": 0.047609459,
+        "insert_merge_seconds": 0.000077625,
+        "rebuild_seconds": 0.021274542,
+        "matches": 618
+      },
+      "state-edge-passthrough": {
+        "runs": 6,
+        "seconds": 0.036039417,
+        "search_apply_seconds": 0.033783123,
+        "insert_merge_seconds": 0.000033125000000000006,
+        "rebuild_seconds": 0.002004209,
+        "matches": 4
+      },
+      "subst": {
+        "runs": 158,
+        "seconds": 0.28500404200000007,
+        "search_apply_seconds": 0.266060664,
+        "insert_merge_seconds": 0.0026247470000000015,
+        "rebuild_seconds": 0.007511833000000002,
+        "matches": 15020
+      },
+      "subsume-after-helpers": {
+        "runs": 12,
+        "seconds": 0.000050041,
+        "search_apply_seconds": 0.000012666,
+        "insert_merge_seconds": 7.083e-6,
+        "rebuild_seconds": 0.0,
+        "matches": 4
+      },
+      "term-subst": {
+        "runs": 30,
+        "seconds": 0.016440792000000003,
+        "search_apply_seconds": 0.007423078999999998,
+        "insert_merge_seconds": 0.00020321000000000003,
+        "rebuild_seconds": 0.008176250999999999,
+        "matches": 2596
+      },
+      "type-analysis": {
+        "runs": 476,
+        "seconds": 2.0331536600000018,
+        "search_apply_seconds": 1.9549814300000015,
+        "insert_merge_seconds": 0.004912879000000002,
+        "rebuild_seconds": 0.010575417,
+        "matches": 108251
+      },
+      "type-helpers": {
+        "runs": 2694,
+        "seconds": 0.20220447999999955,
+        "search_apply_seconds": 0.019786190000000023,
+        "insert_merge_seconds": 0.002470414000000002,
+        "rebuild_seconds": 0.16193491399999999,
+        "matches": 16775
+      }
+    },
+    "saturation_hook": null,
+    "saturation_diagnostics": null,
+    "audit": false,
+    "backend": "native-sorted-commit",
+    "cells": null,
+    "cell_work": {},
+    "device": null,
+    "shared_tables": 0,
+    "live_rows": 0,
+    "row_slots": 0,
+    "rules": [
+      {
+        "ruleset": "terms",
+        "rule": "(rule ((= lhs (Const c ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConst c) 1)))\n        :ruleset terms )",
+        "stats": {
+          "dispatches": 0,
+          "quiet_runs": 0,
+          "emitted_bindings": 1550,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms",
+        "rule": "(rule ((= lhs (Arg ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermArg ) 1)))\n        :ruleset terms )",
+        "stats": {
+          "dispatches": 0,
+          "quiet_runs": 0,
+          "emitted_bindings": 77,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms",
+        "rule": "(rule ((= lhs (Bop o e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermBop o t1 t2) (+ 1 (+ c1 c2)))))\n        :ruleset terms )",
+        "stats": {
+          "dispatches": 0,
+          "quiet_runs": 0,
+          "emitted_bindings": 16617,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms",
+        "rule": "(rule ((= lhs (Top o e1 e2 e3))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2))\n       (= (TCPair t3 c3) (ExtractedExpr e3)))\n      ((PotentialExtractedExpr lhs (TCPair (TermTop o t1 t2 t3) (+ (+ 1 c1) (+ c2 c3)))))\n        :ruleset terms )",
+        "stats": {
+          "dispatches": 0,
+          "quiet_runs": 0,
+          "emitted_bindings": 4044,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms",
+        "rule": "(rule ((= lhs (Uop o e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermUop o t1) (+ 1 c1))))\n        :ruleset terms )",
+        "stats": {
+          "dispatches": 0,
+          "quiet_runs": 0,
+          "emitted_bindings": 9,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms",
+        "rule": "(rule ((= lhs (Get tup i))\n       (= (TCPair t1 c1) (ExtractedExpr tup)))\n      ((PotentialExtractedExpr lhs (TCPair (TermGet t1 i) c1)))\n        :ruleset terms )",
+        "stats": {
+          "dispatches": 0,
+          "quiet_runs": 0,
+          "emitted_bindings": 33806,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms",
+        "rule": "(rule ((= lhs (Single e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermSingle t1) c1)))\n        :ruleset terms )",
+        "stats": {
+          "dispatches": 0,
+          "quiet_runs": 0,
+          "emitted_bindings": 14610,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms",
+        "rule": "(rule ((= lhs (Concat e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))\n        :ruleset terms )",
+        "stats": {
+          "dispatches": 0,
+          "quiet_runs": 0,
+          "emitted_bindings": 6173,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms-helpers",
+        "rule": "(rule ((PotentialExtractedExpr expr termandcost))\n      ((set (ExtractedExpr expr) (TCPair (NoTerm ) 10000000000000000)))\n        :ruleset terms-helpers )",
+        "stats": {
+          "dispatches": 0,
+          "quiet_runs": 0,
+          "emitted_bindings": 71204,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms-helpers",
+        "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (= (ExtractedExpr expr) (TCPair oldterm oldcost))\n       (< cost oldcost))\n      ((set (ExtractedExpr expr) (TCPair term cost)))\n        :ruleset terms-helpers )",
+        "stats": {
+          "dispatches": 0,
+          "quiet_runs": 0,
+          "emitted_bindings": 42713,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms-helpers",
+        "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (< cost 0))\n      ((panic 'Negative cost'))\n        :ruleset terms-helpers )",
+        "stats": {
+          "dispatches": 0,
+          "quiet_runs": 0,
+          "emitted_bindings": 0,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms-helpers-helpers",
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (< cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+        "stats": {
+          "dispatches": 0,
+          "quiet_runs": 0,
+          "emitted_bindings": 70656,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms-helpers-helpers",
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (> cost1 cost2))\n      ((union lhs (TCPair t2 cost2)))\n        :ruleset terms-helpers-helpers )",
+        "stats": {
+          "dispatches": 0,
+          "quiet_runs": 0,
+          "emitted_bindings": 75534,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms-helpers-helpers",
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (= cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+        "stats": {
+          "dispatches": 0,
+          "quiet_runs": 0,
+          "emitted_bindings": 554,
+          "audit_queries": 0
+        }
+      }
+    ],
+    "scope": "Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."
+  },
+  "same_commit_verification": {
+    "exact_rows_values_equivalence_visibility": true,
+    "rows": 699069,
+    "eclass_mapping": 524631,
+    "tables": {
+      "Abs": 1,
+      "Accum-Bop": 3,
+      "Add": 1,
+      "Add-All-Gets": 7171,
+      "Add-Gets": 18641,
+      "AddContext": 12044,
+      "Alloc": 137,
+      "And": 1,
+      "Arg": 77,
+      "Base": 9,
+      "BinaryOpIsPure": 28,
+      "Bitand": 1,
+      "BodyContainsExpr": 50594,
+      "Bool": 2,
+      "BoolB": 2,
+      "BoolT": 1,
+      "Bop": 3486,
+      "Call": 121,
+      "Concat": 8147,
+      "Const": 1543,
+      "ContextOf": 19160,
+      "DelayedDropUnion": 29,
+      "DelayedSubstUnion": 4470,
+      "DidMemOptimization": 2,
+      "Div": 1,
+      "DoWhile": 84,
+      "DropAt": 2,
+      "DropAtInternal": 29,
+      "Empty": 5,
+      "Eq": 1,
+      "ExpectType": 2312,
+      "Expr-size": 19161,
+      "ExprIsPure": 5402,
+      "ExprIsResolved": 19173,
+      "ExtractedExpr": 7422,
+      "ExtractedExprCache": 9843,
+      "FAdd": 1,
+      "FDiv": 1,
+      "FEq": 1,
+      "FGreaterEq": 1,
+      "FGreaterThan": 1,
+      "FLessEq": 1,
+      "FLessThan": 1,
+      "FMul": 1,
+      "FSub": 1,
+      "Float": 16,
+      "FloatT": 1,
+      "Fmax": 1,
+      "Fmin": 1,
+      "Free": 1,
+      "Function": 29,
+      "FunctionHasType": 29,
+      "Get": 13341,
+      "GreaterEq": 1,
+      "GreaterThan": 1,
+      "HasArgType": 19160,
+      "HasType": 19160,
+      "If": 172,
+      "InFunc": 2,
+      "Int": 18,
+      "IntB": 18,
+      "IntT": 1,
+      "LessEq": 1,
+      "LessThan": 1,
+      "Load": 1,
+      "LoopIsFinite": 4,
+      "LoopNumItersGuess": 84,
+      "Mul": 1,
+      "Neg": 1,
+      "NoAlias": 1552,
+      "NoTerm": 1,
+      "Not": 1,
+      "Not-Just-Concat": 4405,
+      "Or": 1,
+      "PointerT": 5,
+      "PointerishType": 878,
+      "PointerishTypeList": 873,
+      "PotentialExtractedExpr": 69649,
+      "Print": 1,
+      "PtrAdd": 1,
+      "PureBaseType": 2,
+      "PureType": 7,
+      "PureTypeList": 5,
+      "Select": 1,
+      "Shl": 1,
+      "Shr": 1,
+      "Single": 4382,
+      "Smaller": 73372,
+      "Smax": 1,
+      "Smin": 1,
+      "StateT": 1,
+      "Sub": 1,
+      "SubTuple": 21246,
+      "Subst": 4961,
+      "TCPair": 63038,
+      "TCons": 902,
+      "TLConcat": 2705,
+      "TNil": 1,
+      "TermArg": 1,
+      "TermBop": 13798,
+      "TermConcat": 3607,
+      "TermConst": 36,
+      "TermGet": 31119,
+      "TermSingle": 10755,
+      "TermSubst": 635,
+      "TermTop": 3718,
+      "TermUop": 3,
+      "TernaryOpIsPure": 1,
+      "ToSubsumeIf": 4,
+      "Top": 938,
+      "TupleRemoveAt": 10,
+      "TupleT": 903,
+      "TypeList-ith": 5149,
+      "TypeList-length": 903,
+      "TypeListRemoveAt": 1,
+      "UnaryOpIsPure": 3,
+      "Uop": 3,
+      "Write": 1,
+      "___GeneratedFreshTable5": 1,
+      "bop->string": 24,
+      "bop-of-type": 13,
+      "bpred-of-type": 12,
+      "hi-bound": 878,
+      "is-inv-Expr": 1440,
+      "leading-Expr": 553,
+      "lo-bound": 878,
+      "lsr-inv": 122846,
+      "to-hoist": 84,
+      "to-hoist-size": 84,
+      "tuple-length": 11513
+    }
+  },
+  "same_commit_verification_error": null,
+  "gpu": {
+    "runtime": {
+      "setup_seconds": 0.070195208,
+      "run_seconds": 17.973416208,
+      "event_seconds": 0.21502449599999782,
+      "native_rhs_seconds": 2.0305245259999922,
+      "native_action_search_apply_seconds": 0.06968635199999998,
+      "native_insert_merge_seconds": 0.08219391599999992,
+      "native_rebuild_seconds": 1.747550363,
+      "ruleset_runs": 10550,
+      "row_events": 658183,
+      "union_events": 247899,
+      "bootstrap_events": 12262,
+      "prepare_seconds": 0.010173041000000039,
+      "roundtrip_seconds": 2.6709775609999973,
+      "decode_seconds": 0.03137094499999997,
+      "device_seconds": 0.8997212499252782,
+      "native_query_seconds": 0.0,
+      "audit_seconds": 0.0,
+      "dispatches": 3200,
+      "uploaded_bytes": 40152672,
+      "downloaded_bytes": 20252820,
+      "first_upload_bytes": 2218384,
+      "unchanged_notifications": 0,
+      "workers": 1,
+      "shader_compiles": 1,
+      "reused_slots": 102229,
+      "peak_live_rows": 245399,
+      "output_high_water": 2300,
+      "saturation_boundaries": 4275,
+      "skipped_saturations": 0,
+      "partial_saturations": 0,
+      "saturation_hook_seconds": 0.0,
+      "native_only_runs": 6890,
+      "native_only_seconds": 12.947363152000012
+    },
+    "native_only_rulesets": {
+      "add-to-debug-expr": {
+        "runs": 1,
+        "seconds": 2.92e-7,
+        "search_apply_seconds": 0.0,
+        "insert_merge_seconds": 0.0,
+        "rebuild_seconds": 0.0,
+        "matches": 0
+      },
+      "all-optimizations": {
+        "runs": 2,
+        "seconds": 0.065888291,
+        "search_apply_seconds": 0.059615457999999996,
+        "insert_merge_seconds": 0.000128124,
+        "rebuild_seconds": 0.004260709,
+        "matches": 863
+      },
+      "always-run": {
+        "runs": 1798,
+        "seconds": 5.972746342,
+        "search_apply_seconds": 5.342780993999994,
+        "insert_merge_seconds": 0.18180249400000012,
+        "rebuild_seconds": 0.20388679899999998,
+        "matches": 2406954
+      },
+      "apply-drop-unions": {
+        "runs": 24,
+        "seconds": 0.0012159190000000002,
+        "search_apply_seconds": 5.209e-6,
+        "insert_merge_seconds": 0.000012334,
+        "rebuild_seconds": 0.001172625,
+        "matches": 53
+      },
+      "apply-subst-unions": {
+        "runs": 24,
+        "seconds": 0.029247791,
+        "search_apply_seconds": 0.0007285410000000002,
+        "insert_merge_seconds": 0.000226791,
+        "rebuild_seconds": 0.028121501,
+        "matches": 14577
+      },
+      "boundary-analysis": {
+        "runs": 12,
+        "seconds": 0.015708333,
+        "search_apply_seconds": 0.015087708999999998,
+        "insert_merge_seconds": 0.0004380419999999999,
+        "rebuild_seconds": 0.0,
+        "matches": 689
+      },
+      "boundary-analysis-prep": {
+        "runs": 12,
+        "seconds": 0.015087125000000002,
+        "search_apply_seconds": 0.014831042,
+        "insert_merge_seconds": 0.000078376,
+        "rebuild_seconds": 0.0,
+        "matches": 915
+      },
+      "canon": {
+        "runs": 19,
+        "seconds": 0.0019510040000000003,
+        "search_apply_seconds": 0.0012968779999999998,
+        "insert_merge_seconds": 0.00009608,
+        "rebuild_seconds": 0.0,
+        "matches": 550
+      },
+      "cell-stable-keys": {
+        "runs": 460,
+        "seconds": 1.185461998,
+        "search_apply_seconds": 1.017143884,
+        "insert_merge_seconds": 0.12267825499999999,
+        "rebuild_seconds": 0.0,
+        "matches": 449185
+      },
+      "cheap-optimizations": {
+        "runs": 4,
+        "seconds": 0.050188291999999995,
+        "search_apply_seconds": 0.044283042,
+        "insert_merge_seconds": 0.000091833,
+        "rebuild_seconds": 0.004879667,
+        "matches": 846
+      },
+      "cicm-index": {
+        "runs": 23,
+        "seconds": 0.023066625,
+        "search_apply_seconds": 0.021884915999999997,
+        "insert_merge_seconds": 0.000288417,
+        "rebuild_seconds": 0.0,
+        "matches": 10021
+      },
+      "cleanup-drop": {
+        "runs": 24,
+        "seconds": 0.0008649990000000001,
+        "search_apply_seconds": 0.000770541,
+        "insert_merge_seconds": 0.000013708,
+        "rebuild_seconds": 0.0,
+        "matches": 42
+      },
+      "context": {
+        "runs": 172,
+        "seconds": 2.021349457999999,
+        "search_apply_seconds": 0.31048146700000007,
+        "insert_merge_seconds": 0.009636867999999996,
+        "rebuild_seconds": 1.6931476250000008,
+        "matches": 130542
+      },
+      "drop": {
+        "runs": 33,
+        "seconds": 0.035419293,
+        "search_apply_seconds": 0.034396416,
+        "insert_merge_seconds": 0.000089627,
+        "rebuild_seconds": 0.0,
+        "matches": 108
+      },
+      "error-checking": {
+        "runs": 49,
+        "seconds": 0.15496337399999996,
+        "search_apply_seconds": 0.151309833,
+        "insert_merge_seconds": 0.00009703599999999998,
+        "rebuild_seconds": 0.0,
+        "matches": 0
+      },
+      "interval-analysis": {
+        "runs": 31,
+        "seconds": 0.11525550099999998,
+        "search_apply_seconds": 0.09324554400000001,
+        "insert_merge_seconds": 0.0002438290000000001,
+        "rebuild_seconds": 0.018008834,
+        "matches": 2685
+      },
+      "is-resolved": {
+        "runs": 782,
+        "seconds": 0.4679034209999996,
+        "search_apply_seconds": 0.4327550100000004,
+        "insert_merge_seconds": 0.0023827210000000073,
+        "rebuild_seconds": 0.0050394590000000005,
+        "matches": 41505
+      },
+      "loop-iters-analysis": {
+        "runs": 12,
+        "seconds": 0.17285212400000002,
+        "search_apply_seconds": 0.170983417,
+        "insert_merge_seconds": 0.000046749,
+        "rebuild_seconds": 0.0,
+        "matches": 87
+      },
+      "mem-simple": {
+        "runs": 25,
+        "seconds": 0.078892499,
+        "search_apply_seconds": 0.063071541,
+        "insert_merge_seconds": 0.00027258200000000005,
+        "rebuild_seconds": 0.013984833,
+        "matches": 2857
+      },
+      "non-weakly-linear": {
+        "runs": 1,
+        "seconds": 0.028943542,
+        "search_apply_seconds": 0.005747417,
+        "insert_merge_seconds": 0.0002555,
+        "rebuild_seconds": 0.022895584,
+        "matches": 1613
+      },
+      "passthrough": {
+        "runs": 6,
+        "seconds": 0.06860575,
+        "search_apply_seconds": 0.047065750999999996,
+        "insert_merge_seconds": 0.000054457000000000004,
+        "rebuild_seconds": 0.021105166,
+        "matches": 618
+      },
+      "state-edge-passthrough": {
+        "runs": 6,
+        "seconds": 0.035606750000000006,
+        "search_apply_seconds": 0.033348918000000005,
+        "insert_merge_seconds": 0.000025752000000000003,
+        "rebuild_seconds": 0.002039542,
+        "matches": 4
+      },
+      "subst": {
+        "runs": 158,
+        "seconds": 0.2793313429999999,
+        "search_apply_seconds": 0.26062787899999995,
+        "insert_merge_seconds": 0.002868086999999997,
+        "rebuild_seconds": 0.007331125000000001,
+        "matches": 15020
+      },
+      "subsume-after-helpers": {
+        "runs": 12,
+        "seconds": 0.00004487399999999999,
+        "search_apply_seconds": 0.000012375000000000001,
+        "insert_merge_seconds": 7.75e-6,
+        "rebuild_seconds": 0.0,
+        "matches": 4
+      },
+      "term-subst": {
+        "runs": 30,
+        "seconds": 0.016275706000000004,
+        "search_apply_seconds": 0.007489042000000001,
+        "insert_merge_seconds": 0.00023354400000000003,
+        "rebuild_seconds": 0.007965208,
+        "matches": 2596
+      },
+      "type-analysis": {
+        "runs": 476,
+        "seconds": 1.929234414,
+        "search_apply_seconds": 1.8644960900000005,
+        "insert_merge_seconds": 0.0031132120000000006,
+        "rebuild_seconds": 0.009989124,
+        "matches": 108223
+      },
+      "type-helpers": {
+        "runs": 2694,
+        "seconds": 0.1812580919999999,
+        "search_apply_seconds": 0.01742256300000001,
+        "insert_merge_seconds": 0.0017161450000000012,
+        "rebuild_seconds": 0.14726137199999995,
+        "matches": 16775
+      }
+    },
+    "saturation_hook": null,
+    "saturation_diagnostics": null,
+    "audit": false,
+    "backend": "shared-gpu",
+    "cells": {
+      "library": null,
+      "plans": [],
+      "profile": false,
+      "plan_only": false,
+      "cache_only": false,
+      "port_locality": 0,
+      "query_routing": 0,
+      "port_join_groups": 14
+    },
+    "cell_work": {
+      "certificate_reuses": 0,
+      "certification_attempts": 0,
+      "certification_probes": 0,
+      "certified_anchor_hits": 0,
+      "delegated_branches": 0,
+      "direct_row_reuses": 0,
+      "dirty_cells": 0,
+      "invalidated_certificates": 0,
+      "join_probes": 0,
+      "missing_key_waits": 0,
+      "port_bindings": 0,
+      "port_candidate_rows": 0,
+      "port_consumer_checks": 0,
+      "port_context_loads": 0,
+      "port_context_words": 0,
+      "port_join_executions": 0,
+      "port_probes": 0,
+      "port_shared_joins_saved": 0,
+      "ports_published": 0,
+      "prefix_rows_reused": 0,
+      "ready_covered_atom_sum": 0,
+      "ready_matches": 0,
+      "ready_productive_seeds": 0,
+      "ready_query_atom_sum": 0,
+      "ready_reuse_seeds": 0,
+      "ready_reused_atoms": 0,
+      "routed_ready": 0,
+      "routed_suspected": 0,
+      "routed_unmapped": 0,
+      "routing_ambiguous": 0,
+      "routing_delegated_to_port": 0,
+      "routing_earlier_delta_owner": 0,
+      "routing_locator_probes": 0,
+      "routing_locator_rows": 0,
+      "routing_no_next_atom": 0,
+      "routing_unique_hints": 0,
+      "routing_valid_seeds": 0,
+      "shape_fallbacks": 0,
+      "skipped_join_probes": 0,
+      "suspected_matches": 0,
+      "suspected_productive_seeds": 0,
+      "suspected_reuse_seeds": 0,
+      "suspected_reused_atoms": 0,
+      "unmapped_matches": 0,
+      "unmapped_productive_seeds": 0,
+      "unmapped_reuse_seeds": 0,
+      "unmapped_reused_atoms": 0,
+      "watch_entries_checked": 0,
+      "watch_wakes": 0
+    },
+    "device": {
+      "bindings": 3,
+      "cell_cache_bytes": 52,
+      "cell_directory_bytes": 60,
+      "cell_dirty_bytes": 4,
+      "cell_free_slots": 0,
+      "cell_instance_capacity": 1,
+      "cell_instance_slots": 0,
+      "cell_instances": 0,
+      "cell_plans": 0,
+      "cell_port_bytes": 8,
+      "cell_slots_reused": 0,
+      "cell_tables_affected": false,
+      "cell_watch_bytes": 8,
+      "cell_work": {
+        "certificate_reuses": 0,
+        "certification_attempts": 0,
+        "certification_probes": 0,
+        "certified_anchor_hits": 0,
+        "delegated_branches": 0,
+        "direct_row_reuses": 0,
+        "dirty_cells": 0,
+        "invalidated_certificates": 0,
+        "join_probes": 0,
+        "missing_key_waits": 0,
+        "port_bindings": 0,
+        "port_candidate_rows": 0,
+        "port_consumer_checks": 0,
+        "port_context_loads": 0,
+        "port_context_words": 0,
+        "port_join_executions": 0,
+        "port_probes": 0,
+        "port_shared_joins_saved": 0,
+        "ports_published": 0,
+        "prefix_rows_reused": 0,
+        "ready_covered_atom_sum": 0,
+        "ready_matches": 0,
+        "ready_productive_seeds": 0,
+        "ready_query_atom_sum": 0,
+        "ready_reuse_seeds": 0,
+        "ready_reused_atoms": 0,
+        "routed_ready": 0,
+        "routed_suspected": 0,
+        "routed_unmapped": 0,
+        "routing_ambiguous": 0,
+        "routing_delegated_to_port": 0,
+        "routing_earlier_delta_owner": 0,
+        "routing_locator_probes": 0,
+        "routing_locator_rows": 0,
+        "routing_no_next_atom": 0,
+        "routing_unique_hints": 0,
+        "routing_valid_seeds": 0,
+        "shape_fallbacks": 0,
+        "skipped_join_probes": 0,
+        "suspected_matches": 0,
+        "suspected_productive_seeds": 0,
+        "suspected_reuse_seeds": 0,
+        "suspected_reused_atoms": 0,
+        "unmapped_matches": 0,
+        "unmapped_productive_seeds": 0,
+        "unmapped_reuse_seeds": 0,
+        "unmapped_reused_atoms": 0,
+        "watch_entries_checked": 0,
+        "watch_wakes": 0
+      },
+      "compacted": false,
+      "compactions": 3,
+      "device": "Apple M3 Max",
+      "device_bytes": 108308516,
+      "dirty_cells": 0,
+      "epoch": 3200,
+      "event_capacity": 524288,
+      "event_cells": false,
+      "events": 372343,
+      "gpu_seconds": 0.00007879166696511675,
+      "old_events": 372343,
+      "port_capacity": 0,
+      "port_compactions": 0,
+      "port_count": 0,
+      "port_locality": 0,
+      "port_work": false,
+      "queries": 6,
+      "query_routing": 0,
+      "retained_matches": 0,
+      "retries": 0,
+      "route_retries": 0,
+      "routed_seeds": 0,
+      "row_capacity": 262144,
+      "row_slots": 245399,
+      "sparse_cells": true,
+      "watch_capacity": 0,
+      "watch_compactions": 0,
+      "watch_count": 0
+    },
+    "shared_tables": 12,
+    "live_rows": 245398,
+    "row_slots": 245399,
+    "rules": [
+      {
+        "ruleset": "terms",
+        "rule": "(rule ((= lhs (Const c ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConst c) 1)))\n        :ruleset terms )",
+        "stats": {
+          "dispatches": 8,
+          "quiet_runs": 446,
+          "emitted_bindings": 1550,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms",
+        "rule": "(rule ((= lhs (Arg ty ass)))\n      ((PotentialExtractedExpr lhs (TCPair (TermArg ) 1)))\n        :ruleset terms )",
+        "stats": {
+          "dispatches": 4,
+          "quiet_runs": 450,
+          "emitted_bindings": 77,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms",
+        "rule": "(rule ((= lhs (Bop o e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermBop o t1 t2) (+ 1 (+ c1 c2)))))\n        :ruleset terms )",
+        "stats": {
+          "dispatches": 453,
+          "quiet_runs": 1,
+          "emitted_bindings": 16617,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms",
+        "rule": "(rule ((= lhs (Top o e1 e2 e3))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2))\n       (= (TCPair t3 c3) (ExtractedExpr e3)))\n      ((PotentialExtractedExpr lhs (TCPair (TermTop o t1 t2 t3) (+ (+ 1 c1) (+ c2 c3)))))\n        :ruleset terms )",
+        "stats": {
+          "dispatches": 453,
+          "quiet_runs": 1,
+          "emitted_bindings": 4044,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms",
+        "rule": "(rule ((= lhs (Uop o e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermUop o t1) (+ 1 c1))))\n        :ruleset terms )",
+        "stats": {
+          "dispatches": 452,
+          "quiet_runs": 2,
+          "emitted_bindings": 9,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms",
+        "rule": "(rule ((= lhs (Get tup i))\n       (= (TCPair t1 c1) (ExtractedExpr tup)))\n      ((PotentialExtractedExpr lhs (TCPair (TermGet t1 i) c1)))\n        :ruleset terms )",
+        "stats": {
+          "dispatches": 454,
+          "quiet_runs": 0,
+          "emitted_bindings": 33806,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms",
+        "rule": "(rule ((= lhs (Single e1))\n       (= (TCPair t1 c1) (ExtractedExpr e1)))\n      ((PotentialExtractedExpr lhs (TCPair (TermSingle t1) c1)))\n        :ruleset terms )",
+        "stats": {
+          "dispatches": 452,
+          "quiet_runs": 2,
+          "emitted_bindings": 14610,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms",
+        "rule": "(rule ((= lhs (Concat e1 e2))\n       (= (TCPair t1 c1) (ExtractedExpr e1))\n       (= (TCPair t2 c2) (ExtractedExpr e2)))\n      ((PotentialExtractedExpr lhs (TCPair (TermConcat t1 t2) (+ c1 c2))))\n        :ruleset terms )",
+        "stats": {
+          "dispatches": 454,
+          "quiet_runs": 0,
+          "emitted_bindings": 6173,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms-helpers",
+        "rule": "(rule ((PotentialExtractedExpr expr termandcost))\n      ((set (ExtractedExpr expr) (TCPair (NoTerm ) 10000000000000000)))\n        :ruleset terms-helpers )",
+        "stats": {
+          "dispatches": 442,
+          "quiet_runs": 743,
+          "emitted_bindings": 71204,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms-helpers",
+        "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (= (ExtractedExpr expr) (TCPair oldterm oldcost))\n       (< cost oldcost))\n      ((set (ExtractedExpr expr) (TCPair term cost)))\n        :ruleset terms-helpers )",
+        "stats": {
+          "dispatches": 1173,
+          "quiet_runs": 12,
+          "emitted_bindings": 42713,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms-helpers",
+        "rule": "(rule ((PotentialExtractedExpr expr (TCPair term cost))\n       (< cost 0))\n      ((panic 'Negative cost'))\n        :ruleset terms-helpers )",
+        "stats": {
+          "dispatches": 443,
+          "quiet_runs": 742,
+          "emitted_bindings": 0,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms-helpers-helpers",
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (< cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+        "stats": {
+          "dispatches": 1573,
+          "quiet_runs": 448,
+          "emitted_bindings": 70656,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms-helpers-helpers",
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (> cost1 cost2))\n      ((union lhs (TCPair t2 cost2)))\n        :ruleset terms-helpers-helpers )",
+        "stats": {
+          "dispatches": 1573,
+          "quiet_runs": 448,
+          "emitted_bindings": 75534,
+          "audit_queries": 0
+        }
+      },
+      {
+        "ruleset": "terms-helpers-helpers",
+        "rule": "(rule ((= lhs (Smaller (TCPair t1 cost1) (TCPair t2 cost2)))\n       (= cost1 cost2))\n      ((union lhs (TCPair t1 cost1)))\n        :ruleset terms-helpers-helpers )",
+        "stats": {
+          "dispatches": 1573,
+          "quiet_runs": 448,
+          "emitted_bindings": 554,
+          "audit_queries": 0
+        }
+      }
+    ],
+    "scope": "Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."
+  },
+  "native_clone_seconds_excluded": 0.006518541,
+  "gpu_clone_seconds_excluded": 0.004824083,
+  "projection_without_smaller": null,
+  "projection_error": "different final table counts: [(\"TCPair\", Some(63058), Some(63038)), (\"TermConcat\", Some(3627), Some(3607))]",
+  "native_graph": {
+    "table_rows": 786584,
+    "sorts": {
+      "Expr": {
+        "enodes": 70884,
+        "eclasses": 23659
+      },
+      "Term": {
+        "enodes": 63058,
+        "eclasses": 63058
+      },
+      "TermAndCost": {
+        "enodes": 135289,
+        "eclasses": 63058
+      }
+    }
+  },
+  "gpu_graph": {
+    "table_rows": 787665,
+    "sorts": {
+      "Expr": {
+        "enodes": 70884,
+        "eclasses": 23659
+      },
+      "Term": {
+        "enodes": 63038,
+        "eclasses": 63038
+      },
+      "TermAndCost": {
+        "enodes": 136410,
+        "eclasses": 63038
+      }
+    }
+  },
+  "verification": null,
+  "quality": {
+    "same_extracted_costs": true,
+    "input_expr_anchors": 12701,
+    "different_anchors": 0,
+    "native_unresolved": 7779,
+    "gpu_unresolved": 7779,
+    "new_expr_keys_compared": false,
+    "scope": "Each initial Expr anchor is canonicalized independently in each final graph before looking up ExtractedExpr/TCPair. Newly allocated IDs are never compared directly. Equal cost is not identical selected Term syntax or a new Tiger extraction."
+  },
+  "quality_error": null,
+  "same_commit_quality": {
+    "same_extracted_costs": true,
+    "input_expr_anchors": 12701,
+    "different_anchors": 0,
+    "native_unresolved": 7779,
+    "gpu_unresolved": 7779,
+    "new_expr_keys_compared": false,
+    "scope": "Each initial Expr anchor is canonicalized independently in each final graph before looking up ExtractedExpr/TCPair. Newly allocated IDs are never compared directly. Equal cost is not identical selected Term syntax or a new Tiger extraction."
+  },
+  "same_commit_quality_error": null,
+  "native_continuation_unchanged": null,
+  "continuation_error": null,
+  "continuation_seconds_excluded": 0.0,
+  "verification_error": "different final table counts: [(\"Smaller\", Some(72231), Some(73372)), (\"TCPair\", Some(63058), Some(63038)), (\"TermConcat\", Some(3627), Some(3607))]",
+  "extraction": "not inside this packet; exact final fact/equality comparison is the correctness gate"
+}

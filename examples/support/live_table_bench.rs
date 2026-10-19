@@ -266,7 +266,9 @@ pub fn benchmark(
     checked: bool,
     dest: &Path,
 ) -> Result<()> {
-    benchmark_impl(base, commands, label, worker, checked, dest, None, true)
+    benchmark_impl(
+        base, commands, label, worker, checked, dest, None, true, None,
+    )
 }
 pub fn benchmark_hybrid(
     base: &EGraph,
@@ -286,6 +288,28 @@ pub fn benchmark_hybrid(
         dest,
         Some(selected),
         false,
+        None,
+    )
+}
+pub fn benchmark_hybrid_export(
+    base: &EGraph,
+    commands: &[Command],
+    label: &str,
+    worker: &Path,
+    dest: &Path,
+    selected: &[String],
+    exports: &Path,
+) -> Result<()> {
+    benchmark_impl(
+        base,
+        commands,
+        label,
+        worker,
+        false,
+        dest,
+        Some(selected),
+        false,
+        Some(exports),
     )
 }
 fn benchmark_impl(
@@ -297,6 +321,7 @@ fn benchmark_impl(
     dest: &Path,
     selected: Option<&[String]>,
     fixed_point: bool,
+    exports: Option<&Path>,
 ) -> Result<()> {
     let t = Instant::now();
     let mut native = base.clone();
@@ -350,13 +375,35 @@ fn benchmark_impl(
   "native":{"run_seconds":native_seconds,"iterations":report.iterations.len(),"logical_matches":report.num_matches_per_rule.values().sum::<usize>(),
    "search_apply_seconds":report.search_and_apply_time_per_ruleset.values().map(|t|t.as_secs_f64()).sum::<f64>(),
    "insert_merge_seconds":report.merge_time_per_ruleset.values().map(|t|t.as_secs_f64()).sum::<f64>(),
-   "rebuild_seconds":report.rebuild_time_per_ruleset.values().map(|t|t.as_secs_f64()).sum::<f64>()},
+   "rebuild_seconds":report.rebuild_time_per_ruleset.values().map(|t|t.as_secs_f64()).sum::<f64>(),
+   "search_apply_per_ruleset":report.search_and_apply_time_per_ruleset.iter().map(|(s,t)|(s.to_string(),t.as_secs_f64())).collect::<BTreeMap<_,_>>()},
   "sorted_commit_cpu":sorted_stats,"same_commit_verification":same_commit_verification.as_ref().ok(),"same_commit_verification_error":same_commit_verification.as_ref().err().map(ToString::to_string),
   "gpu":stats,"native_clone_seconds_excluded":native_clone,"gpu_clone_seconds_excluded":gpu_clone,
   "projection_without_smaller":projected.as_ref().ok(),"projection_error":projected.as_ref().err().map(ToString::to_string),"native_graph":graph_sizes(&native)?,"gpu_graph":graph_sizes(runtime.engine())?,"verification":verification.as_ref().ok(),"quality":costs.as_ref().ok(),"quality_error":costs.as_ref().err().map(ToString::to_string),"same_commit_quality":same_commit_costs.as_ref().ok(),"same_commit_quality_error":same_commit_costs.as_ref().err().map(ToString::to_string),
         "native_continuation_unchanged":closure,"continuation_error":continuation_error,"continuation_seconds_excluded":closure_seconds,"verification_error":verification.as_ref().err().map(ToString::to_string),
   "extraction":"not inside this packet; exact final fact/equality comparison is the correctness gate"});
     std::fs::write(dest, serde_json::to_vec_pretty(&output)?)?;
+    if let Some(directory) = exports {
+        std::fs::create_dir_all(directory)?;
+        for (name, engine) in [
+            ("native", &native),
+            ("cpu", ordered.engine()),
+            ("gpu", runtime.engine()),
+        ] {
+            let start = Instant::now();
+            let snapshot = engine.serialize(egglog::SerializeConfig::default());
+            if !snapshot.is_complete() {
+                return Err("truncated extraction input".into());
+            }
+            let mut file = std::io::BufWriter::new(std::fs::File::create(
+                directory.join(format!("{name}.json")),
+            )?);
+            // Production Tiger's reader requires whitespace-delimited JSON.
+            serde_json::to_writer_pretty(&mut file, &snapshot.egraph)?;
+            std::io::Write::flush(&mut file)?;
+            eprintln!("[export] {name} {:.3} s", start.elapsed().as_secs_f64());
+        }
+    }
     Ok(())
 }
 

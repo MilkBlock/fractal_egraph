@@ -22,6 +22,7 @@ name = "egg_layout"
 path = "src/main.rs"
 
 [dev-dependencies]
+egglog = { path = "egglog", default-features = false, features = ["serde"] }
 cell-assisted-egglog = { path = "cell-assisted-egglog" }
 egglog-reports = { path = "egglog/egglog-reports" }
 

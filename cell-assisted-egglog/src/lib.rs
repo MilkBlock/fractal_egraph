@@ -25,6 +25,7 @@ mod family_program;
 pub mod cell_prefix;
 pub mod table_query;
 pub mod table_live;
+pub mod stable_choice;
 pub mod program;
 pub mod numeric;
 pub mod numeric_native;

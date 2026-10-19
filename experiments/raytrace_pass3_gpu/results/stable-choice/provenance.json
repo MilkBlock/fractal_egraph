@@ -1,0 +1,18 @@
+{
+  "base_commit": "4221d32325313daafa74271dda517fa2a0b530e8",
+  "source_sha256": {
+    "cell-assisted-egglog/src/stable_choice.rs": "1dfa0a16bf24d4f5851d070c5fca5ad1a0155ae9a26c11f0cff638802650f84f",
+    "examples/raytrace_stable_bench.rs": "fd3a66fd43a5e9ebfdd8bb9926e22b80fafa72229158a100a1cea4650b520986",
+    "examples/support/live_table_bench.rs": "2aca17cb938c63aaaff23ca7dc9093fe2049b0cc142dca5986ee329b3870a908",
+    "Cargo.toml": "3ac653c18c6ccc71f56efceb10838f30805c32797a9366395022f731377ea8d7",
+    "Cargo.lock": "fcbaa75d62fd29a8655b236e9b3695f8da1c2c4a574d4a60814036ee105994d0"
+  },
+  "binary_sha256": "eb1bb543d7fdbd08bd5f31d771e2933645a6d227c9f60fe61b66cfde932046af",
+  "worker_sha256": "63e94ed38d4e8e921201dc3b233cd714e837781ffd3308e6071f5cbf80c235c3",
+  "input_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+  "baseline_tag": "c7553a6c2b16c529c13f3eb7eecd742495b992d3",
+  "cpu": "Apple M3 Max",
+  "thread_count": 1,
+  "repetitions_per_lane": 1,
+  "scope": "Captured Pass-3 replay on modified native fork; original fused native plus same-submit CPU and GPU. Not pristine and no Cell sat skip. Serde export extension adds no timed kernel work."
+}

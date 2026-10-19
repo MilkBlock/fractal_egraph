@@ -1,0 +1,21 @@
+{
+  "inference_speedup_same_submit": 1.3406295286966627,
+  "inference_plus_tiger_speedup_same_submit": 1.2762019710867194,
+  "native_policy_wall_delta_seconds": 0.5342829580000021,
+  "native_policy_wall_delta_fraction": 0.022466056214216268,
+  "single_observation_not_statistical_significance": true,
+  "stable_key_maintenance_gpu_seconds": 1.185461998,
+  "extra_private_key_rows": 88596,
+  "initial_unfrozen_prototype": {
+    "gpu_seconds": 38.705770167,
+    "keys_seconds": 21.387735766999928,
+    "status": "development result, not averaged with final and not a pure one-change timing ablation"
+  },
+  "same_tiger_output_sha256": "c48fe2b212d341b1c3f3de3ef94e77e3252b661e68be3bf60fbd417bb5ad3ce9",
+  "regressions_passed": 25,
+  "original_schedule_runs_excluding_keys": {
+    "gpu": 10090,
+    "sorted_commit_cpu": 10090
+  },
+  "scope": "Exact full original public graph only for stable same-submit CPU vs GPU; fused native intermediates still differ, but all actual Tiger outputs are byte-identical. All timings exclude serialization and verification. No Cell sat skip."
+}

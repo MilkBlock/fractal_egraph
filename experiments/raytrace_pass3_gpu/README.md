@@ -1,5 +1,9 @@
 # Complete captured raytrace Pass 3
 
+The opt-in [stable invariant-choice implementation and new measurements](STABLE_CHOICE.md)
+now pass full same-submit CPU/GPU graph equality and actual Tiger-output checks.
+This page retains the original-policy benchmark and its failing graph gate.
+
 This benchmark replays the real Pass-3 input saved after the preceding production
 passes and their extractions. It executes the **entire last main schedule**, not
 only one `terms` hotspot. It is a saved-input replay on the local modified native
