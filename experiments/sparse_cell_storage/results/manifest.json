@@ -1,0 +1,28 @@
+{
+  "baseline_revision": "f120fba7c4e266012bf20860bae556aa4fd16d81",
+  "pristine_egglog_tag": "c7553a6c2b16c529c13f3eb7eecd742495b992d3",
+  "dense_worker_sha256": "d01881fb7daf17886b07198a8ac0fa4ba145cdc687c87b8686a1bc3aaabbc0e2",
+  "dense_example_sha256": "58e94b860cf79c04e159c2d269362c05034594230ff0a0df40898687fb318c7c",
+  "sparse_worker_sha256": "63e94ed38d4e8e921201dc3b233cd714e837781ffd3308e6071f5cbf80c235c3",
+  "sparse_example_sha256": "4cf7fdc3f182b4cbcaee256033c603357269309ebadf2b5c1df5fbd4026b6658",
+  "sparse_sources_sha256": {
+    "matrix.swift": "50b74fd00770e8074646bd5e1755fe9ee9f157ee22ae829a336084880c5198df",
+    "family.metal": "65586df1ec0080ed7dba3eded1f54d88b24a4d94b7584ea508feed3fd3f18d09",
+    "family_cells.metal": "d0f1ed5fabe67e9d7aff8e916c67f74fe1771b0ae675668d6689fc290b604fb5",
+    "family_events.metal": "e7cb07df398ba2f8e7513fb221bd0b1ca054df78f9d0566804492b9e369cbc8b",
+    "family_registry.metal": "2e8fa767f111b9a8ff67d4d076a46ac7e4b48a0cc6e4ffa30a2ad899c2d4c29c",
+    "family_ports.metal": "f032433f6101aafac3d84cdd802652c35eaa2db7d122b2e2aa49dbd4a8fcad89",
+    "family_route.metal": "16457721ebd8f8b01b956aa7a532a48d3a5ccbebbf6a8ef0674723c7720209c9",
+    "src/family_program.rs": "5d01eccb75019257b55c2921060202b4a493a29c82c442b0fa18778602477cd0",
+    "src/table_live.rs": "3ba20dc0600a71bf59bbb899b765d6172dec869e135afe10baf3b19967f5216a"
+  },
+  "identical_timed_workloads_sha256": {
+    "environment.egg": "9c005ab88f5bbbe1f7dcbf3cb4975cd8142d2effe19109f6f3d167c24b5ed8fa",
+    "heldout.egg": "439ae1269856e2329b10e167edd7647a8312dad029bbbf4609d985101062aa3c",
+    "intact.egg": "274ebc91c5d431055c645d87b55374ada845e264a3c6b704bc412237cd8805f6",
+    "disrupted.egg": "ccae52816f91d46bb7f5b834c1da764a39e42b2c38a77893a90507490116df77"
+  },
+  "timing_runs_per_variant": 1,
+  "memory_metric": "live persistent Metal buffer allocation bytes; not RSS or transient peak",
+  "note": "No Bake state or projection was removed. Profile/check workers precede extra diagnostic byte fields only; execution code is identical. Dense controls were frozen before source changes."
+}

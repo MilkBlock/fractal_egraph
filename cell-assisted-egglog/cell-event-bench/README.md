@@ -115,10 +115,11 @@ queries. The selected port need not be the most profitable port for a workload.
 In particular, a ready port created at bootstrap can receive no subsequent
 internal changes; matches may then be entirely external-delta driven.
 
-Certificates still reserve a row/projection address space. Reverse watches and
-port logs add memory; this is not a storage-compression claim. Normal wake work
-depends on changed rows, matching keyed subscribers and the affected suffixes,
-not a full certificate scan. Anchor-type dispatch still costs O(changed rows *
-projection count), and hash collisions add checks. Compaction is occasional
-linear work over a bounded log, not free work. Setup, device memory and all
-runtime overhead must remain in the reports.
+Certificates now use [sparse observed-instance storage](../../experiments/sparse_cell_storage/README.md).
+Reverse watches and ports are sized from reached keys and actual Ready states;
+they still cost memory. Normal wake work depends on changed rows, matching keyed
+subscribers and affected suffixes. Static per-table lists limit anchor discovery
+to relevant plans; per-row interface lookup and hash collisions add checks.
+Compaction scans retained logs and exact sizing adds synchronization. Setup,
+device memory and all runtime overhead must remain in the reports. Earlier
+results in this directory used the historical dense reservation layout.

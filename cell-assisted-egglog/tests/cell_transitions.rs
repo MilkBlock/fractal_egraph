@@ -143,7 +143,8 @@ fn watch_and_port_compaction_preserve_a_delayed_consumer_without_history_replay(
     );
     assert!(
         stats["device"]["watch_count"].as_u64().unwrap()
-            < stats["device"]["watch_capacity"].as_u64().unwrap()
+            <= stats["device"]["watch_capacity"].as_u64().unwrap(),
+        "an exactly full dependency buffer is valid; publication must not overflow"
     );
 }
 

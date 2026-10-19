@@ -3,16 +3,16 @@
 // Entry: query-in-packet, event, anchor, unique-prefix-length, interface-id,
 //        interface-revision, tier, number-of-covered-atoms.
 #define SEED_WORDS (8+P)
-bool ready_route(device const uint* code,device uint* rows,device uint* cells,uint route,uint row,thread const uint* v,thread const uint* bound){
- uint cp=code[route],base=(row*NC+cp)*CS;
+bool ready_route(device const uint* code,device uint* rows,device uint* cells,device uint* rowCells,device uint* instanceMeta,uint route,uint row,thread const uint* v,thread const uint* bound){
+ uint cp=code[route],id=cell_lookup(rowCells,instanceMeta,row,cp);if(id==NO)return false;uint base=id*CS;
  if(cells[base]!=2 || cells[base+1]!=R(row,2))return false;
  for(uint j=0;j<code[CELL_META+cp*6+5];j++){uint t=code[route+2+j];if(t!=NO&&bound[t]&&v[t]!=cells[base+CV+j*3])return false;}
  return true;
 }
 // Same exact ownership checks as cell_segment, without performing or counting
 // a query. A certified singleton may delegate the WHOLE seed to its ready port.
-uint excluded_route(device const uint* code,device uint* rows,device uint* cells,uint q,uint anchor,uint position,uint route,uint row,uint cutoff,thread uint* v,thread uint* b){
- uint cp=code[route],base=(row*NC+cp)*CS,k=code[route+1];
+uint excluded_route(device const uint* code,device uint* rows,device uint* cells,device uint* rowCells,device uint* instanceMeta,uint q,uint anchor,uint position,uint route,uint row,uint cutoff,thread uint* v,thread uint* b){
+ uint cp=code[route],id=cell_lookup(rowCells,instanceMeta,row,cp);if(id==NO)return 0;uint base=id*CS,k=code[route+1];
  for(uint j=0;j<k;j++){
   uint t=code[PLAN+((q*P+anchor)*(P-1)+position+j)*2];
   if(precedes(code,q,t,anchor)&&R(cells[base+CH+j*2],3)>=cutoff)return 1;
@@ -20,7 +20,7 @@ uint excluded_route(device const uint* code,device uint* rows,device uint* cells
  for(uint j=0;j<code[CELL_META+cp*6+5];j++){uint t=code[route+2+j];if(t!=NO){v[t]=cells[base+CV+j*3];b[t]=1;}}
  if(CELL_EVENTS)for(uint j=0;j<k;j++){
   uint t=code[PLAN+((q*P+anchor)*(P-1)+position+j)*2];
-  if(port_owns(code,rows,cells,q,anchor,t,cells[base+CH+j*2],v,b))return 2;
+  if(port_owns(code,rows,cells,rowCells,instanceMeta,q,anchor,t,cells[base+CH+j*2],v,b))return 2;
  }
  return 0;
 }
@@ -32,7 +32,7 @@ kernel void family_classify(CTX,uint lane [[thread_position_in_grid]]){
  uint v[S],lo[S],hi[S],b[S];for(uint j=0;j<S;j++){v[j]=lo[j]=hi[j]=b[j]=0;}
  if(!bind_atom(code,rows,q,anchor,row,v,lo,hi,b))return;
  atomic_fetch_add_explicit(routing+24,1,memory_order_relaxed);
- if(port_owns(code,rows,cells,q,anchor,anchor,row,v,b)){atomic_fetch_add_explicit(routing+5,1,memory_order_relaxed);return;}
+ if(port_owns(code,rows,cells,rowCells,instanceMeta,q,anchor,anchor,row,v,b)){atomic_fetch_add_explicit(routing+5,1,memory_order_relaxed);return;}
  uint tier=2,cell=NO,revision=0,covered=0,hintCount=0,hints[P];
  if(cfg[16]>=2 && CELL_CERTIFICATES){
   uint start=CELL_ROUTE+((q*P+anchor)*P)*(2+S),route=start,cp=code[route],candidate=row,position=0;
@@ -60,9 +60,9 @@ kernel void family_classify(CTX,uint lane [[thread_position_in_grid]]){
    position++;route=start+position*(2+S);cp=code[route];
   }
   if(cp!=NO && candidate!=NO){
-   cell=candidate*NC+cp;revision=cells[cell*CS+(CELL_EVENTS?2:1)];tier=1;
-   if(ready_route(code,rows,cells,route,candidate,v,b)){
-    uint excluded=excluded_route(code,rows,cells,q,anchor,position,route,candidate,cutoff,v,b);
+   cell=cell_lookup(rowCells,instanceMeta,candidate,cp);revision=cell==NO?0:cells[cell*CS+2];tier=1;
+   if(ready_route(code,rows,cells,rowCells,instanceMeta,route,candidate,v,b)){
+    uint excluded=excluded_route(code,rows,cells,rowCells,instanceMeta,q,anchor,position,route,candidate,cutoff,v,b);
     if(excluded){atomic_fetch_add_explicit(routing+(excluded==2?5:27),1,memory_order_relaxed);return;}
     tier=0;covered=code[route+1]+1;
     atomic_fetch_add_explicit(routing+25,covered,memory_order_relaxed);
@@ -84,13 +84,13 @@ kernel void family_route_scatter(CTX,uint i [[thread_position_in_grid]]){
  if(i>=atomic_load_explicit(routing,memory_order_relaxed))return;
  uint tier=seedQueue[i*SEED_WORDS+6],offset=0;for(uint t=0;t<tier;t++)offset+=atomic_load_explicit(routing+1+t,memory_order_relaxed);
  uint at=(offset+atomic_fetch_add_explicit(routing+8+tier,1,memory_order_relaxed))*SEED_WORDS;
- for(uint j=0;j<SEED_WORDS;j++)orderedSeeds[at+j]=seedQueue[i*SEED_WORDS+j];
+ for(uint j=0;j<8+seedQueue[i*SEED_WORDS+3];j++)orderedSeeds[at+j]=seedQueue[i*SEED_WORDS+j];
 }
 kernel void family_routed_join(CTX,uint lane [[thread_position_in_grid]]){
  uint tier=cfg[17];if(lane>=atomic_load_explicit(routing+1+tier,memory_order_relaxed))return;
  uint offset=0;for(uint t=0;t<tier;t++)offset+=atomic_load_explicit(routing+1+t,memory_order_relaxed);
  uint at=(offset+lane)*SEED_WORDS,cell=orderedSeeds[at+4];
- if(cell!=NO && cells[cell*CS+(CELL_EVENTS?2:1)]!=orderedSeeds[at+5]){atomic_fetch_or_explicit(counters+1,16,memory_order_relaxed);return;}
+ if(cell!=NO && cells[cell*CS+2]!=orderedSeeds[at+5]){atomic_fetch_or_explicit(counters+1,16,memory_order_relaxed);return;}
  uint2 outcome=family_execute(QUERY_PASS,orderedSeeds[at],orderedSeeds[at+1],orderedSeeds[at+2],orderedSeeds+at+8,orderedSeeds[at+3]);
  if(PROFILE_JOIN){
   if(outcome.x)atomic_fetch_add_explicit(counters+29+tier,1,memory_order_relaxed);

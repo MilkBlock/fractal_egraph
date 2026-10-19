@@ -2,9 +2,9 @@
 // supplies admissible alias/literal shapes; the compiler requires a complete native function key for
 // every subsequent read. Those keys determine at most one current row.
 // No CPU instance registry, history, or per-match admission is involved.
-kernel void family_cells(CTX,uint lane [[thread_position_in_grid]]){
- uint r=lane/NC,cp=lane%NC;if(r>=cfg[0])return;
- uint base=(r*NC+cp)*CS,m=CELL_META+cp*6,q=code[m],anchor=code[m+1],k=code[m+2];
+kernel void family_cells(CTX,uint id [[thread_position_in_grid]]){
+ if(id>=atomic_load_explicit(registry,memory_order_relaxed))return;uint r=instanceMeta[id*3],cp=instanceMeta[id*3+1];if(r==NO)return;
+ uint base=id*CS,m=CELL_META+cp*6,q=code[m],anchor=code[m+1],k=code[m+2];
  if(R(r,1)==0 || R(r,0)!=code[ATOM+(q*P+anchor)*(2+2*C)]){cells[base]=0;return;}
  bool fresh=cells[base]==2 && cells[base+1]==R(r,2);
  if(fresh)for(uint j=0;j<k;j++){
@@ -13,6 +13,7 @@ kernel void family_cells(CTX,uint lane [[thread_position_in_grid]]){
  }
  if(fresh){if(PROFILE_JOIN)atomic_fetch_add_explicit(counters+6,1,memory_order_relaxed);return;}
  if(cells[base] && PROFILE_JOIN)atomic_fetch_add_explicit(counters+8,1,memory_order_relaxed);
+ if(cells[base+2]==NO){atomic_fetch_or_explicit(counters+1,4,memory_order_relaxed);return;}cells[base+2]++;
  cells[base]=0;
  uint v[S],lo[S],hi[S],b[S];for(uint i=0;i<S;i++){v[i]=lo[i]=hi[i]=b[i]=0;}
  if(!bind_atom(code,rows,q,anchor,r,v,lo,hi,b))return;

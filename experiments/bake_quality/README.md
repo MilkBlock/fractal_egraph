@@ -1,5 +1,10 @@
 # Does a better Bake put most matching work into known Cell contexts?
 
+The original measurements below use dense row × projection reservation.
+[Sparse-storage follow-up](../sparse_cell_storage/RESULTS.md) reruns the exact
+same libraries/workload without reducing Bake: rich-library persistent GPU
+buffers fall from 729.45 to 40.45 MiB, with unchanged matching/coverage.
+
 A controlled experiment: **keep the test facts, eight consumers, execution and
 boundary perturbations fixed; change only the frozen library**. All bodies are
 produced by `whole_cell::Library::bake`, using native helper saturation followed

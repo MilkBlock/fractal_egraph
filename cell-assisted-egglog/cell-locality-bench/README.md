@@ -59,9 +59,11 @@ ambiguity, not permission to keep only the first.
    overflow. It never truncates candidates. Count identities are checked:
    valid seeds = queued + missing-next + port-delegated + earlier-owner.
 
-The interface ID is `native-row-slot × projection-count + projection-id`; its
-revision belongs to this resident interface instance, not a whole RipSat state
-ID. Native events invalidate/revalidate certificates before classification.
+The interface ID is an allocated slot, found through the native row's observed
+projection list. Its revision belongs to this resident interface instance, not
+a whole RipSat state ID. IDs can be recycled; revisions are preserved across
+reuse. See [sparse storage](../../experiments/sparse_cell_storage/README.md).
+Native events invalidate/revalidate certificates before classification.
 Queue hints never persist across commit/rebuild epochs. New union alternatives,
 subsumed rows, row recycling and new specializations retain normal matching.
 

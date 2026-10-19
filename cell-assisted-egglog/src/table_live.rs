@@ -300,7 +300,7 @@ impl Runtime {
             runtime.cell_evidence = json!({"library":cells.as_ref().map(|c|&c.evidence),"plans":config["cell_evidence"],"profile":options.profile,"plan_only":options.plan_only,"cache_only":options.cache_only,"port_locality":options.port_locality as u32,"query_routing":options.query_routing as u32,"port_join_groups":config["port_join_groups"]});
             let mut device = Service::new(worker)?;
             let installed = device.family_init(config)?;
-            if installed["family_layout"] != json!(5) {
+            if installed["family_layout"] != json!(6) {
                 return Err("GPU family layout changed; rebuild matrix.swift".into());
             }
             if options.port_locality as u32 > 0

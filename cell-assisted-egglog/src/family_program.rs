@@ -483,11 +483,7 @@ pub fn compile(
         u32::from(profile),
         u32::from(certificates && !cell_specs.is_empty())
     );
-    let cell_header = if event_cells && certificates && !cell_specs.is_empty() {
-        8
-    } else {
-        2
-    };
+    let cell_header = 8; // Common revision header for sparse instance reuse.
     shader += &format!(
         "#define CK {max_cell_steps}\n#define CF {max_cell_vars}\n#define CH {cell_header}\n"
     );
@@ -495,7 +491,21 @@ pub fn compile(
         "#define CELL_EVENTS {}\n",
         u32::from(event_cells && certificates && !cell_specs.is_empty())
     );
+    let mut anchor_offsets = vec![0u32];
+    let mut anchor_plans = vec![];
+    for table in 0..tables.len() {
+        for cp in 0..cell_specs.len() {
+            let q = cell_meta[cp * 6] as usize;
+            let atom = cell_meta[cp * 6 + 1] as usize;
+            if atoms[(q * p + atom) * (2 + 2 * c)] == table as u32 {
+                anchor_plans.push(cp as u32);
+            }
+        }
+        anchor_offsets.push(anchor_plans.len() as u32);
+    }
     for (name, values) in [
+        ("ANCHOR_OFFSETS", anchor_offsets),
+        ("ANCHOR_PLANS", anchor_plans),
         ("QMETA", meta),
         ("ATOM", atoms),
         ("PLAN", plans),
@@ -524,9 +534,10 @@ pub fn compile(
     shader += include_str!("../family.metal");
     shader += include_str!("../family_cells.metal");
     shader += include_str!("../family_events.metal");
+    shader += include_str!("../family_registry.metal");
     shader += include_str!("../family_ports.metal");
     shader += include_str!("../family_route.metal");
     Ok(
-        json!({"version":2,"family_layout":5,"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
+        json!({"version":2,"family_layout":6,"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
     )
 }

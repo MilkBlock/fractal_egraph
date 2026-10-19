@@ -62,7 +62,7 @@ void port_query(PORT_ARGS,uint qi,uint cp,uint e,uint stamp,thread const uint* c
 kernel void family_port_join(CTX,uint lane [[thread_position_in_grid]]){
  uint span=((device uint*)state)[12];if(!span)return;uint qi=lane/span,e=lane%span;if(qi>=cfg[3])return;
  e+=packet[7+qi*4];if(e>=atomic_load_explicit(state+2,memory_order_relaxed))return;
- uint id=ports[e*2],cp=id%NC,base=id*CS;
+ uint id=ports[e*2],cp=instanceMeta[id*3+1],base=id*CS;
  if(cells[base]!=2 || cells[base+6]!=ports[e*2+1] || !port_accepts(code,packet,cfg,qi,cp,e,cells[base+7]))return;
  uint context[3*S],fields=code[CELL_META+cp*6+5];
  for(uint j=0;j<fields*3;j++)context[j]=cells[base+CV+j];
@@ -73,7 +73,7 @@ kernel void family_port_join(CTX,uint lane [[thread_position_in_grid]]){
 // once into shared memory. Independent query groups execute in parallel lanes.
 kernel void family_port_locality(CTX,uint group [[threadgroup_position_in_grid]],uint tid [[thread_index_in_threadgroup]],uint width [[threads_per_threadgroup]]){
  uint span=((device uint*)state)[12];if(group>=span)return;
- uint e=((device uint*)state)[13]+group,id=ports[e*2],cp=id%NC,base=id*CS;
+ uint e=((device uint*)state)[13]+group,id=ports[e*2],cp=instanceMeta[id*3+1],base=id*CS;
  if(cells[base]!=2 || cells[base+6]!=ports[e*2+1])return;
  uint stamp=cells[base+7],fields=code[CELL_META+cp*6+5];
  threadgroup uint common[3*S];threadgroup uint needed;

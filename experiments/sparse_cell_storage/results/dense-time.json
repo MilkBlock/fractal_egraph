@@ -1,0 +1,2957 @@
+{
+  "consumer_atoms": [
+    5,
+    5,
+    8,
+    8
+  ],
+  "families": [
+    "Single",
+    "Pair",
+    "Single(Pair)",
+    "Pair(Single,leaf)"
+  ],
+  "instances_per_family": 512,
+  "mode": "time",
+  "schema": "bake-quality-ablation/v1",
+  "scope": "Same held-out facts, consumers, execution and boundary changes; only frozen native-Bake catalog varies. All positive bodies come from actual helper saturation and independent delta replay. Not a whole eggcc benchmark; consumer guards/effects and boundary relations were never baked.",
+  "variants": [
+    {
+      "bake": {
+        "body_rows": 0,
+        "distinct_states": 0,
+        "seconds": 0.0,
+        "training_contexts": 0
+      },
+      "disrupted": {
+        "runtime": {
+          "audit_seconds": 0.0,
+          "bootstrap_events": 0.0,
+          "decode_seconds": 0.000576042,
+          "device_seconds": 0.00045208333335722273,
+          "dispatches": 1.0,
+          "downloaded_bytes": 143360.0,
+          "event_seconds": 2.4590000000000005e-6,
+          "first_upload_bytes": 0.0,
+          "native_action_search_apply_seconds": 0.0007052080000000001,
+          "native_insert_merge_seconds": 0.000272042,
+          "native_query_seconds": 0.0,
+          "native_rebuild_seconds": 0.0,
+          "native_rhs_seconds": 0.002190958,
+          "output_high_water": 0.0,
+          "peak_live_rows": 0.0,
+          "prepare_seconds": 0.00012474999999999997,
+          "reused_slots": 0.0,
+          "roundtrip_seconds": 0.001917292000000001,
+          "row_events": 0.0,
+          "ruleset_runs": 1.0,
+          "run_seconds": 0.005154374999999999,
+          "setup_seconds": 0.0,
+          "shader_compiles": 0.0,
+          "unchanged_notifications": 0.0,
+          "union_events": 0.0,
+          "uploaded_bytes": 136336.0,
+          "workers": 0.0
+        },
+        "verification": {
+          "eclass_mapping": 27584,
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 32448,
+          "tables": {
+            "Allowed": 2048,
+            "Boundary0": 1536,
+            "Boundary1": 1536,
+            "Boundary2": 1536,
+            "Boundary3": 1536,
+            "Get": 4608,
+            "Leaf": 4032,
+            "Offer": 4096,
+            "Pair": 1728,
+            "Seen0_0": 1024,
+            "Seen0_1": 992,
+            "Seen1_0": 1024,
+            "Seen1_1": 992,
+            "Seen2_0": 1024,
+            "Seen2_1": 992,
+            "Seen3_0": 1024,
+            "Seen3_1": 992,
+            "Single": 1728
+          }
+        },
+        "work": {
+          "certificate_reuses": 0.0,
+          "certification_attempts": 0.0,
+          "certification_probes": 0.0,
+          "certified_anchor_hits": 0.0,
+          "delegated_branches": 0.0,
+          "direct_row_reuses": 0.0,
+          "dirty_cells": 0.0,
+          "invalidated_certificates": 0.0,
+          "join_probes": 0.0,
+          "missing_key_waits": 0.0,
+          "port_bindings": 0.0,
+          "port_candidate_rows": 0.0,
+          "port_consumer_checks": 0.0,
+          "port_context_loads": 0.0,
+          "port_context_words": 0.0,
+          "port_join_executions": 0.0,
+          "port_probes": 0.0,
+          "port_shared_joins_saved": 0.0,
+          "ports_published": 0.0,
+          "prefix_rows_reused": 0.0,
+          "ready_covered_atom_sum": 0.0,
+          "ready_matches": 0.0,
+          "ready_productive_seeds": 0.0,
+          "ready_query_atom_sum": 0.0,
+          "ready_reuse_seeds": 0.0,
+          "ready_reused_atoms": 0.0,
+          "routed_ready": 0.0,
+          "routed_suspected": 0.0,
+          "routed_unmapped": 6400.0,
+          "routing_ambiguous": 0.0,
+          "routing_delegated_to_port": 0.0,
+          "routing_earlier_delta_owner": 0.0,
+          "routing_locator_probes": 0.0,
+          "routing_locator_rows": 0.0,
+          "routing_no_next_atom": 0.0,
+          "routing_unique_hints": 0.0,
+          "routing_valid_seeds": 6400.0,
+          "shape_fallbacks": 0.0,
+          "skipped_join_probes": 0.0,
+          "suspected_matches": 0.0,
+          "suspected_productive_seeds": 0.0,
+          "suspected_reuse_seeds": 0.0,
+          "suspected_reused_atoms": 0.0,
+          "unmapped_matches": 0.0,
+          "unmapped_productive_seeds": 0.0,
+          "unmapped_reuse_seeds": 0.0,
+          "unmapped_reused_atoms": 0.0,
+          "watch_entries_checked": 0.0,
+          "watch_wakes": 0.0
+        }
+      },
+      "intact": {
+        "runtime": {
+          "audit_seconds": 0.0,
+          "bootstrap_events": 0.0,
+          "decode_seconds": 0.000448833,
+          "device_seconds": 0.0019086250000555087,
+          "dispatches": 1.0,
+          "downloaded_bytes": 163840.0,
+          "event_seconds": 1.5419999999999998e-6,
+          "first_upload_bytes": 0.0,
+          "native_action_search_apply_seconds": 0.0008445,
+          "native_insert_merge_seconds": 0.00011187500000000001,
+          "native_query_seconds": 0.0,
+          "native_rebuild_seconds": 0.0,
+          "native_rhs_seconds": 0.002178666,
+          "output_high_water": 3712.0,
+          "peak_live_rows": 0.0,
+          "prepare_seconds": 0.000028290999999999977,
+          "reused_slots": 0.0,
+          "roundtrip_seconds": 0.004678500000000002,
+          "row_events": 0.0,
+          "ruleset_runs": 1.0,
+          "run_seconds": 0.0075060410000000015,
+          "setup_seconds": 0.0,
+          "shader_compiles": 0.0,
+          "unchanged_notifications": 0.0,
+          "union_events": 0.0,
+          "uploaded_bytes": 114832.0,
+          "workers": 0.0
+        },
+        "verification": {
+          "eclass_mapping": 21376,
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 25984,
+          "tables": {
+            "Allowed": 2048,
+            "Boundary0": 1024,
+            "Boundary1": 1024,
+            "Boundary2": 1024,
+            "Boundary3": 1024,
+            "Get": 4608,
+            "Leaf": 3584,
+            "Offer": 4096,
+            "Pair": 1536,
+            "Seen0_0": 576,
+            "Seen0_1": 544,
+            "Seen1_0": 576,
+            "Seen1_1": 544,
+            "Seen2_0": 576,
+            "Seen2_1": 544,
+            "Seen3_0": 576,
+            "Seen3_1": 544,
+            "Single": 1536
+          }
+        },
+        "work": {
+          "certificate_reuses": 0.0,
+          "certification_attempts": 0.0,
+          "certification_probes": 0.0,
+          "certified_anchor_hits": 0.0,
+          "delegated_branches": 0.0,
+          "direct_row_reuses": 0.0,
+          "dirty_cells": 0.0,
+          "invalidated_certificates": 0.0,
+          "join_probes": 0.0,
+          "missing_key_waits": 0.0,
+          "port_bindings": 0.0,
+          "port_candidate_rows": 0.0,
+          "port_consumer_checks": 0.0,
+          "port_context_loads": 0.0,
+          "port_context_words": 0.0,
+          "port_join_executions": 0.0,
+          "port_probes": 0.0,
+          "port_shared_joins_saved": 0.0,
+          "ports_published": 0.0,
+          "prefix_rows_reused": 0.0,
+          "ready_covered_atom_sum": 0.0,
+          "ready_matches": 0.0,
+          "ready_productive_seeds": 0.0,
+          "ready_query_atom_sum": 0.0,
+          "ready_reuse_seeds": 0.0,
+          "ready_reused_atoms": 0.0,
+          "routed_ready": 0.0,
+          "routed_suspected": 0.0,
+          "routed_unmapped": 4096.0,
+          "routing_ambiguous": 0.0,
+          "routing_delegated_to_port": 0.0,
+          "routing_earlier_delta_owner": 0.0,
+          "routing_locator_probes": 0.0,
+          "routing_locator_rows": 0.0,
+          "routing_no_next_atom": 0.0,
+          "routing_unique_hints": 0.0,
+          "routing_valid_seeds": 4096.0,
+          "shape_fallbacks": 0.0,
+          "skipped_join_probes": 0.0,
+          "suspected_matches": 0.0,
+          "suspected_productive_seeds": 0.0,
+          "suspected_reuse_seeds": 0.0,
+          "suspected_reused_atoms": 0.0,
+          "unmapped_matches": 0.0,
+          "unmapped_productive_seeds": 0.0,
+          "unmapped_reuse_seeds": 0.0,
+          "unmapped_reused_atoms": 0.0,
+          "watch_entries_checked": 0.0,
+          "watch_wakes": 0.0
+        }
+      },
+      "library": "none",
+      "report": {
+        "audit": false,
+        "backend": "shared-gpu",
+        "cell_work": {
+          "certificate_reuses": 0,
+          "certification_attempts": 0,
+          "certification_probes": 0,
+          "certified_anchor_hits": 0,
+          "delegated_branches": 0,
+          "direct_row_reuses": 0,
+          "dirty_cells": 0,
+          "invalidated_certificates": 0,
+          "join_probes": 0,
+          "missing_key_waits": 0,
+          "port_bindings": 0,
+          "port_candidate_rows": 0,
+          "port_consumer_checks": 0,
+          "port_context_loads": 0,
+          "port_context_words": 0,
+          "port_join_executions": 0,
+          "port_probes": 0,
+          "port_shared_joins_saved": 0,
+          "ports_published": 0,
+          "prefix_rows_reused": 0,
+          "ready_covered_atom_sum": 0,
+          "ready_matches": 0,
+          "ready_productive_seeds": 0,
+          "ready_query_atom_sum": 0,
+          "ready_reuse_seeds": 0,
+          "ready_reused_atoms": 0,
+          "routed_ready": 0,
+          "routed_suspected": 0,
+          "routed_unmapped": 122112,
+          "routing_ambiguous": 0,
+          "routing_delegated_to_port": 0,
+          "routing_earlier_delta_owner": 0,
+          "routing_locator_probes": 0,
+          "routing_locator_rows": 0,
+          "routing_no_next_atom": 0,
+          "routing_unique_hints": 0,
+          "routing_valid_seeds": 122112,
+          "shape_fallbacks": 0,
+          "skipped_join_probes": 0,
+          "suspected_matches": 0,
+          "suspected_productive_seeds": 0,
+          "suspected_reuse_seeds": 0,
+          "suspected_reused_atoms": 0,
+          "unmapped_matches": 0,
+          "unmapped_productive_seeds": 0,
+          "unmapped_reuse_seeds": 0,
+          "unmapped_reused_atoms": 0,
+          "watch_entries_checked": 0,
+          "watch_wakes": 0
+        },
+        "cells": {
+          "cache_only": false,
+          "library": null,
+          "plan_only": false,
+          "plans": [],
+          "port_join_groups": 8,
+          "port_locality": 2,
+          "profile": false,
+          "query_routing": 2
+        },
+        "device": {
+          "bindings": 3584,
+          "cell_cache_bytes": 4,
+          "cell_plans": 0,
+          "cell_tables_affected": false,
+          "cell_work": {
+            "certificate_reuses": 0,
+            "certification_attempts": 0,
+            "certification_probes": 0,
+            "certified_anchor_hits": 0,
+            "delegated_branches": 0,
+            "direct_row_reuses": 0,
+            "dirty_cells": 0,
+            "invalidated_certificates": 0,
+            "join_probes": 0,
+            "missing_key_waits": 0,
+            "port_bindings": 0,
+            "port_candidate_rows": 0,
+            "port_consumer_checks": 0,
+            "port_context_loads": 0,
+            "port_context_words": 0,
+            "port_join_executions": 0,
+            "port_probes": 0,
+            "port_shared_joins_saved": 0,
+            "ports_published": 0,
+            "prefix_rows_reused": 0,
+            "ready_covered_atom_sum": 0,
+            "ready_matches": 0,
+            "ready_productive_seeds": 0,
+            "ready_query_atom_sum": 0,
+            "ready_reuse_seeds": 0,
+            "ready_reused_atoms": 0,
+            "routed_ready": 0,
+            "routed_suspected": 0,
+            "routed_unmapped": 6400,
+            "routing_ambiguous": 0,
+            "routing_delegated_to_port": 0,
+            "routing_earlier_delta_owner": 0,
+            "routing_locator_probes": 0,
+            "routing_locator_rows": 0,
+            "routing_no_next_atom": 0,
+            "routing_unique_hints": 0,
+            "routing_valid_seeds": 6400,
+            "shape_fallbacks": 0,
+            "skipped_join_probes": 0,
+            "suspected_matches": 0,
+            "suspected_productive_seeds": 0,
+            "suspected_reuse_seeds": 0,
+            "suspected_reused_atoms": 0,
+            "unmapped_matches": 0,
+            "unmapped_productive_seeds": 0,
+            "unmapped_reuse_seeds": 0,
+            "unmapped_reused_atoms": 0,
+            "watch_entries_checked": 0,
+            "watch_wakes": 0
+          },
+          "compacted": false,
+          "compactions": 1,
+          "device": "Apple M3 Max",
+          "device_bytes": 27201196,
+          "dirty_cells": 0,
+          "epoch": 3,
+          "event_capacity": 65536,
+          "event_cells": false,
+          "events": 20352,
+          "gpu_seconds": 0.00045208333335722273,
+          "old_events": 17920,
+          "port_capacity": 0,
+          "port_compactions": 0,
+          "port_count": 0,
+          "port_locality": 2,
+          "port_work": false,
+          "queries": 8,
+          "query_routing": 2,
+          "retained_matches": 0,
+          "retries": 0,
+          "route_retries": 0,
+          "routed_seeds": 6400,
+          "row_capacity": 32768,
+          "row_slots": 20096,
+          "watch_capacity": 0,
+          "watch_compactions": 0,
+          "watch_count": 0
+        },
+        "live_rows": 20096,
+        "row_slots": 20096,
+        "rules": [
+          {
+            "rule": "family-0-consumer-0",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 1024,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-0-consumer-1",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 992,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-1-consumer-0",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 1024,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-1-consumer-1",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 992,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-2-consumer-0",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 1024,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-2-consumer-1",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 992,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-3-consumer-0",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 1024,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-3-consumer-1",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 992,
+              "quiet_runs": 0
+            }
+          }
+        ],
+        "runtime": {
+          "audit_seconds": 0.0,
+          "bootstrap_events": 15872,
+          "decode_seconds": 0.001079333,
+          "device_seconds": 0.006209958333442955,
+          "dispatches": 3,
+          "downloaded_bytes": 322560,
+          "event_seconds": 5.793e-6,
+          "first_upload_bytes": 888976,
+          "native_action_search_apply_seconds": 0.001657042,
+          "native_insert_merge_seconds": 0.000398583,
+          "native_query_seconds": 0.0,
+          "native_rebuild_seconds": 0.0,
+          "native_rhs_seconds": 0.004663416,
+          "output_high_water": 4096,
+          "peak_live_rows": 20096,
+          "prepare_seconds": 0.00037141599999999996,
+          "reused_slots": 256,
+          "roundtrip_seconds": 0.023411208000000003,
+          "row_events": 20608,
+          "ruleset_runs": 3,
+          "run_seconds": 0.030199999,
+          "setup_seconds": 0.42064075,
+          "shader_compiles": 1,
+          "unchanged_notifications": 0,
+          "union_events": 256,
+          "uploaded_bytes": 1140144,
+          "workers": 1
+        },
+        "scope": "Native commit deltas drive analyzed Cell interface states and ready-port residual queries; unknown interfaces retain complete queries. Cached-only control is explicit. This is not arbitrary whole-RipSatCell graft execution or virtual storage.",
+        "shared_tables": 9
+      }
+    },
+    {
+      "bake": {
+        "body_rows": 2,
+        "distinct_states": 1,
+        "seconds": 0.002731167,
+        "training_contexts": 1
+      },
+      "disrupted": {
+        "runtime": {
+          "audit_seconds": 0.0,
+          "bootstrap_events": 0.0,
+          "decode_seconds": 0.0003815,
+          "device_seconds": 0.0009967500000129803,
+          "dispatches": 1.0,
+          "downloaded_bytes": 143360.0,
+          "event_seconds": 1.833e-6,
+          "first_upload_bytes": 0.0,
+          "native_action_search_apply_seconds": 0.0006527499999999999,
+          "native_insert_merge_seconds": 0.00009254200000000001,
+          "native_query_seconds": 0.0,
+          "native_rebuild_seconds": 0.0,
+          "native_rhs_seconds": 0.001737542,
+          "output_high_water": 0.0,
+          "peak_live_rows": 0.0,
+          "prepare_seconds": 0.00003358300000000001,
+          "reused_slots": 0.0,
+          "roundtrip_seconds": 0.0043161250000000005,
+          "row_events": 0.0,
+          "ruleset_runs": 1.0,
+          "run_seconds": 0.006646458000000001,
+          "setup_seconds": 0.0,
+          "shader_compiles": 0.0,
+          "unchanged_notifications": 0.0,
+          "union_events": 0.0,
+          "uploaded_bytes": 136336.0,
+          "workers": 0.0
+        },
+        "verification": {
+          "eclass_mapping": 27584,
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 32448,
+          "tables": {
+            "Allowed": 2048,
+            "Boundary0": 1536,
+            "Boundary1": 1536,
+            "Boundary2": 1536,
+            "Boundary3": 1536,
+            "Get": 4608,
+            "Leaf": 4032,
+            "Offer": 4096,
+            "Pair": 1728,
+            "Seen0_0": 1024,
+            "Seen0_1": 992,
+            "Seen1_0": 1024,
+            "Seen1_1": 992,
+            "Seen2_0": 1024,
+            "Seen2_1": 992,
+            "Seen3_0": 1024,
+            "Seen3_1": 992,
+            "Single": 1728
+          }
+        },
+        "work": {
+          "certificate_reuses": 0.0,
+          "certification_attempts": 0.0,
+          "certification_probes": 0.0,
+          "certified_anchor_hits": 0.0,
+          "delegated_branches": 0.0,
+          "direct_row_reuses": 0.0,
+          "dirty_cells": 0.0,
+          "invalidated_certificates": 0.0,
+          "join_probes": 0.0,
+          "missing_key_waits": 0.0,
+          "port_bindings": 0.0,
+          "port_candidate_rows": 0.0,
+          "port_consumer_checks": 0.0,
+          "port_context_loads": 0.0,
+          "port_context_words": 0.0,
+          "port_join_executions": 0.0,
+          "port_probes": 0.0,
+          "port_shared_joins_saved": 0.0,
+          "ports_published": 0.0,
+          "prefix_rows_reused": 0.0,
+          "ready_covered_atom_sum": 5120.0,
+          "ready_matches": 0.0,
+          "ready_productive_seeds": 0.0,
+          "ready_query_atom_sum": 18176.0,
+          "ready_reuse_seeds": 0.0,
+          "ready_reused_atoms": 0.0,
+          "routed_ready": 2560.0,
+          "routed_suspected": 1408.0,
+          "routed_unmapped": 1408.0,
+          "routing_ambiguous": 128.0,
+          "routing_delegated_to_port": 0.0,
+          "routing_earlier_delta_owner": 0.0,
+          "routing_locator_probes": 0.0,
+          "routing_locator_rows": 0.0,
+          "routing_no_next_atom": 1024.0,
+          "routing_unique_hints": 0.0,
+          "routing_valid_seeds": 6400.0,
+          "shape_fallbacks": 0.0,
+          "skipped_join_probes": 0.0,
+          "suspected_matches": 0.0,
+          "suspected_productive_seeds": 0.0,
+          "suspected_reuse_seeds": 0.0,
+          "suspected_reused_atoms": 0.0,
+          "unmapped_matches": 0.0,
+          "unmapped_productive_seeds": 0.0,
+          "unmapped_reuse_seeds": 0.0,
+          "unmapped_reused_atoms": 0.0,
+          "watch_entries_checked": 0.0,
+          "watch_wakes": 0.0
+        }
+      },
+      "intact": {
+        "runtime": {
+          "audit_seconds": 0.0,
+          "bootstrap_events": 0.0,
+          "decode_seconds": 0.000341166,
+          "device_seconds": 0.001245499999868116,
+          "dispatches": 1.0,
+          "downloaded_bytes": 163840.0,
+          "event_seconds": 1.7499999999999998e-6,
+          "first_upload_bytes": 0.0,
+          "native_action_search_apply_seconds": 0.0008032080000000001,
+          "native_insert_merge_seconds": 0.00010475,
+          "native_query_seconds": 0.0,
+          "native_rebuild_seconds": 0.0,
+          "native_rhs_seconds": 0.002022166,
+          "output_high_water": 3712.0,
+          "peak_live_rows": 0.0,
+          "prepare_seconds": 0.000024416999999999993,
+          "reused_slots": 0.0,
+          "roundtrip_seconds": 0.0037865829999999996,
+          "row_events": 0.0,
+          "ruleset_runs": 1.0,
+          "run_seconds": 0.006339833,
+          "setup_seconds": 0.0,
+          "shader_compiles": 0.0,
+          "unchanged_notifications": 0.0,
+          "union_events": 0.0,
+          "uploaded_bytes": 114832.0,
+          "workers": 0.0
+        },
+        "verification": {
+          "eclass_mapping": 21376,
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 25984,
+          "tables": {
+            "Allowed": 2048,
+            "Boundary0": 1024,
+            "Boundary1": 1024,
+            "Boundary2": 1024,
+            "Boundary3": 1024,
+            "Get": 4608,
+            "Leaf": 3584,
+            "Offer": 4096,
+            "Pair": 1536,
+            "Seen0_0": 576,
+            "Seen0_1": 544,
+            "Seen1_0": 576,
+            "Seen1_1": 544,
+            "Seen2_0": 576,
+            "Seen2_1": 544,
+            "Seen3_0": 576,
+            "Seen3_1": 544,
+            "Single": 1536
+          }
+        },
+        "work": {
+          "certificate_reuses": 0.0,
+          "certification_attempts": 0.0,
+          "certification_probes": 0.0,
+          "certified_anchor_hits": 0.0,
+          "delegated_branches": 0.0,
+          "direct_row_reuses": 0.0,
+          "dirty_cells": 0.0,
+          "invalidated_certificates": 0.0,
+          "join_probes": 0.0,
+          "missing_key_waits": 0.0,
+          "port_bindings": 0.0,
+          "port_candidate_rows": 0.0,
+          "port_consumer_checks": 0.0,
+          "port_context_loads": 0.0,
+          "port_context_words": 0.0,
+          "port_join_executions": 0.0,
+          "port_probes": 0.0,
+          "port_shared_joins_saved": 0.0,
+          "ports_published": 0.0,
+          "prefix_rows_reused": 0.0,
+          "ready_covered_atom_sum": 6144.0,
+          "ready_matches": 0.0,
+          "ready_productive_seeds": 0.0,
+          "ready_query_atom_sum": 21504.0,
+          "ready_reuse_seeds": 0.0,
+          "ready_reused_atoms": 0.0,
+          "routed_ready": 3072.0,
+          "routed_suspected": 0.0,
+          "routed_unmapped": 1024.0,
+          "routing_ambiguous": 0.0,
+          "routing_delegated_to_port": 0.0,
+          "routing_earlier_delta_owner": 0.0,
+          "routing_locator_probes": 0.0,
+          "routing_locator_rows": 0.0,
+          "routing_no_next_atom": 0.0,
+          "routing_unique_hints": 0.0,
+          "routing_valid_seeds": 4096.0,
+          "shape_fallbacks": 0.0,
+          "skipped_join_probes": 0.0,
+          "suspected_matches": 0.0,
+          "suspected_productive_seeds": 0.0,
+          "suspected_reuse_seeds": 0.0,
+          "suspected_reused_atoms": 0.0,
+          "unmapped_matches": 0.0,
+          "unmapped_productive_seeds": 0.0,
+          "unmapped_reuse_seeds": 0.0,
+          "unmapped_reused_atoms": 0.0,
+          "watch_entries_checked": 0.0,
+          "watch_wakes": 0.0
+        }
+      },
+      "library": "single",
+      "report": {
+        "audit": false,
+        "backend": "shared-gpu",
+        "cell_work": {
+          "certificate_reuses": 0,
+          "certification_attempts": 0,
+          "certification_probes": 0,
+          "certified_anchor_hits": 0,
+          "delegated_branches": 0,
+          "direct_row_reuses": 0,
+          "dirty_cells": 0,
+          "invalidated_certificates": 0,
+          "join_probes": 0,
+          "missing_key_waits": 0,
+          "port_bindings": 0,
+          "port_candidate_rows": 0,
+          "port_consumer_checks": 0,
+          "port_context_loads": 0,
+          "port_context_words": 0,
+          "port_join_executions": 0,
+          "port_probes": 0,
+          "port_shared_joins_saved": 0,
+          "ports_published": 0,
+          "prefix_rows_reused": 0,
+          "ready_covered_atom_sum": 44032,
+          "ready_matches": 0,
+          "ready_productive_seeds": 0,
+          "ready_query_atom_sum": 155392,
+          "ready_reuse_seeds": 0,
+          "ready_reused_atoms": 0,
+          "routed_ready": 22016,
+          "routed_suspected": 16768,
+          "routed_unmapped": 21888,
+          "routing_ambiguous": 128,
+          "routing_delegated_to_port": 9216,
+          "routing_earlier_delta_owner": 9216,
+          "routing_locator_probes": 0,
+          "routing_locator_rows": 0,
+          "routing_no_next_atom": 43008,
+          "routing_unique_hints": 0,
+          "routing_valid_seeds": 122112,
+          "shape_fallbacks": 0,
+          "skipped_join_probes": 0,
+          "suspected_matches": 0,
+          "suspected_productive_seeds": 0,
+          "suspected_reuse_seeds": 0,
+          "suspected_reused_atoms": 0,
+          "unmapped_matches": 0,
+          "unmapped_productive_seeds": 0,
+          "unmapped_reuse_seeds": 0,
+          "unmapped_reused_atoms": 0,
+          "watch_entries_checked": 0,
+          "watch_wakes": 0
+        },
+        "cells": {
+          "cache_only": false,
+          "library": {
+            "analysis_directory": "out/dense-bake-time-control/single",
+            "contract": "positive projection plus fully keyed versioned witnesses; no saturation or completeness inferred from a historical match",
+            "loaded_states": [
+              0
+            ],
+            "rejected": []
+          },
+          "plan_only": false,
+          "plans": [
+            {
+              "atoms": [
+                1,
+                2
+              ],
+              "internal_joins": 1,
+              "plan": 0,
+              "rule": "family-0-consumer-0",
+              "states": [
+                0
+              ]
+            },
+            {
+              "atoms": [
+                2,
+                1
+              ],
+              "internal_joins": 1,
+              "plan": 1,
+              "rule": "family-0-consumer-0",
+              "states": [
+                0
+              ]
+            }
+          ],
+          "port_join_groups": 5,
+          "port_locality": 2,
+          "profile": false,
+          "query_routing": 2
+        },
+        "device": {
+          "bindings": 3584,
+          "cell_cache_bytes": 4194304,
+          "cell_plans": 2,
+          "cell_tables_affected": true,
+          "cell_work": {
+            "certificate_reuses": 0,
+            "certification_attempts": 0,
+            "certification_probes": 0,
+            "certified_anchor_hits": 0,
+            "delegated_branches": 0,
+            "direct_row_reuses": 0,
+            "dirty_cells": 0,
+            "invalidated_certificates": 0,
+            "join_probes": 0,
+            "missing_key_waits": 0,
+            "port_bindings": 0,
+            "port_candidate_rows": 0,
+            "port_consumer_checks": 0,
+            "port_context_loads": 0,
+            "port_context_words": 0,
+            "port_join_executions": 0,
+            "port_probes": 0,
+            "port_shared_joins_saved": 0,
+            "ports_published": 0,
+            "prefix_rows_reused": 0,
+            "ready_covered_atom_sum": 5120,
+            "ready_matches": 0,
+            "ready_productive_seeds": 0,
+            "ready_query_atom_sum": 18176,
+            "ready_reuse_seeds": 0,
+            "ready_reused_atoms": 0,
+            "routed_ready": 2560,
+            "routed_suspected": 1408,
+            "routed_unmapped": 1408,
+            "routing_ambiguous": 128,
+            "routing_delegated_to_port": 0,
+            "routing_earlier_delta_owner": 0,
+            "routing_locator_probes": 0,
+            "routing_locator_rows": 0,
+            "routing_no_next_atom": 1024,
+            "routing_unique_hints": 0,
+            "routing_valid_seeds": 6400,
+            "shape_fallbacks": 0,
+            "skipped_join_probes": 0,
+            "suspected_matches": 0,
+            "suspected_productive_seeds": 0,
+            "suspected_reuse_seeds": 0,
+            "suspected_reused_atoms": 0,
+            "unmapped_matches": 0,
+            "unmapped_productive_seeds": 0,
+            "unmapped_reuse_seeds": 0,
+            "unmapped_reused_atoms": 0,
+            "watch_entries_checked": 0,
+            "watch_wakes": 0
+          },
+          "compacted": false,
+          "compactions": 1,
+          "device": "Apple M3 Max",
+          "device_bytes": 35328012,
+          "dirty_cells": 576,
+          "epoch": 3,
+          "event_capacity": 65536,
+          "event_cells": true,
+          "events": 20352,
+          "gpu_seconds": 0.0009967500000129803,
+          "old_events": 17920,
+          "port_capacity": 262144,
+          "port_compactions": 1,
+          "port_count": 3072,
+          "port_locality": 2,
+          "port_work": true,
+          "queries": 8,
+          "query_routing": 2,
+          "retained_matches": 0,
+          "retries": 0,
+          "route_retries": 0,
+          "routed_seeds": 5376,
+          "row_capacity": 32768,
+          "row_slots": 20096,
+          "watch_capacity": 262144,
+          "watch_compactions": 1,
+          "watch_count": 4928
+        },
+        "live_rows": 20096,
+        "row_slots": 20096,
+        "rules": [
+          {
+            "rule": "family-0-consumer-0",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 1024,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-0-consumer-1",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 992,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-1-consumer-0",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 1024,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-1-consumer-1",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 992,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-2-consumer-0",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 1024,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-2-consumer-1",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 992,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-3-consumer-0",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 1024,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-3-consumer-1",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 992,
+              "quiet_runs": 0
+            }
+          }
+        ],
+        "runtime": {
+          "audit_seconds": 0.0,
+          "bootstrap_events": 15872,
+          "decode_seconds": 0.000770624,
+          "device_seconds": 0.004384791666439014,
+          "dispatches": 3,
+          "downloaded_bytes": 322560,
+          "event_seconds": 5.833e-6,
+          "first_upload_bytes": 888976,
+          "native_action_search_apply_seconds": 0.001761833,
+          "native_insert_merge_seconds": 0.000213959,
+          "native_query_seconds": 0.0,
+          "native_rebuild_seconds": 0.0,
+          "native_rhs_seconds": 0.004279583,
+          "output_high_water": 4096,
+          "peak_live_rows": 20096,
+          "prepare_seconds": 0.000247208,
+          "reused_slots": 256,
+          "roundtrip_seconds": 0.022113958,
+          "row_events": 20608,
+          "ruleset_runs": 3,
+          "run_seconds": 0.027970083,
+          "setup_seconds": 0.181086583,
+          "shader_compiles": 1,
+          "unchanged_notifications": 0,
+          "union_events": 256,
+          "uploaded_bytes": 1140144,
+          "workers": 1
+        },
+        "scope": "Native commit deltas drive analyzed Cell interface states and ready-port residual queries; unknown interfaces retain complete queries. Cached-only control is explicit. This is not arbitrary whole-RipSatCell graft execution or virtual storage.",
+        "shared_tables": 9
+      }
+    },
+    {
+      "bake": {
+        "body_rows": 2,
+        "distinct_states": 1,
+        "seconds": 0.004855958,
+        "training_contexts": 8
+      },
+      "disrupted": {
+        "runtime": {
+          "audit_seconds": 0.0,
+          "bootstrap_events": 0.0,
+          "decode_seconds": 0.00036070800000000006,
+          "device_seconds": 0.0008712916666127057,
+          "dispatches": 1.0,
+          "downloaded_bytes": 143360.0,
+          "event_seconds": 1.1669999999999996e-6,
+          "first_upload_bytes": 0.0,
+          "native_action_search_apply_seconds": 0.0006958750000000001,
+          "native_insert_merge_seconds": 0.000086709,
+          "native_query_seconds": 0.0,
+          "native_rebuild_seconds": 0.0,
+          "native_rhs_seconds": 0.0017281660000000002,
+          "output_high_water": 0.0,
+          "peak_live_rows": 0.0,
+          "prepare_seconds": 0.000028833,
+          "reused_slots": 0.0,
+          "roundtrip_seconds": 0.004305833999999998,
+          "row_events": 0.0,
+          "ruleset_runs": 1.0,
+          "run_seconds": 0.006580708000000001,
+          "setup_seconds": 0.0,
+          "shader_compiles": 0.0,
+          "unchanged_notifications": 0.0,
+          "union_events": 0.0,
+          "uploaded_bytes": 136336.0,
+          "workers": 0.0
+        },
+        "verification": {
+          "eclass_mapping": 27584,
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 32448,
+          "tables": {
+            "Allowed": 2048,
+            "Boundary0": 1536,
+            "Boundary1": 1536,
+            "Boundary2": 1536,
+            "Boundary3": 1536,
+            "Get": 4608,
+            "Leaf": 4032,
+            "Offer": 4096,
+            "Pair": 1728,
+            "Seen0_0": 1024,
+            "Seen0_1": 992,
+            "Seen1_0": 1024,
+            "Seen1_1": 992,
+            "Seen2_0": 1024,
+            "Seen2_1": 992,
+            "Seen3_0": 1024,
+            "Seen3_1": 992,
+            "Single": 1728
+          }
+        },
+        "work": {
+          "certificate_reuses": 0.0,
+          "certification_attempts": 0.0,
+          "certification_probes": 0.0,
+          "certified_anchor_hits": 0.0,
+          "delegated_branches": 0.0,
+          "direct_row_reuses": 0.0,
+          "dirty_cells": 0.0,
+          "invalidated_certificates": 0.0,
+          "join_probes": 0.0,
+          "missing_key_waits": 0.0,
+          "port_bindings": 0.0,
+          "port_candidate_rows": 0.0,
+          "port_consumer_checks": 0.0,
+          "port_context_loads": 0.0,
+          "port_context_words": 0.0,
+          "port_join_executions": 0.0,
+          "port_probes": 0.0,
+          "port_shared_joins_saved": 0.0,
+          "ports_published": 0.0,
+          "prefix_rows_reused": 0.0,
+          "ready_covered_atom_sum": 5120.0,
+          "ready_matches": 0.0,
+          "ready_productive_seeds": 0.0,
+          "ready_query_atom_sum": 18176.0,
+          "ready_reuse_seeds": 0.0,
+          "ready_reused_atoms": 0.0,
+          "routed_ready": 2560.0,
+          "routed_suspected": 1408.0,
+          "routed_unmapped": 1408.0,
+          "routing_ambiguous": 128.0,
+          "routing_delegated_to_port": 0.0,
+          "routing_earlier_delta_owner": 0.0,
+          "routing_locator_probes": 0.0,
+          "routing_locator_rows": 0.0,
+          "routing_no_next_atom": 1024.0,
+          "routing_unique_hints": 0.0,
+          "routing_valid_seeds": 6400.0,
+          "shape_fallbacks": 0.0,
+          "skipped_join_probes": 0.0,
+          "suspected_matches": 0.0,
+          "suspected_productive_seeds": 0.0,
+          "suspected_reuse_seeds": 0.0,
+          "suspected_reused_atoms": 0.0,
+          "unmapped_matches": 0.0,
+          "unmapped_productive_seeds": 0.0,
+          "unmapped_reuse_seeds": 0.0,
+          "unmapped_reused_atoms": 0.0,
+          "watch_entries_checked": 0.0,
+          "watch_wakes": 0.0
+        }
+      },
+      "intact": {
+        "runtime": {
+          "audit_seconds": 0.0,
+          "bootstrap_events": 0.0,
+          "decode_seconds": 0.000400459,
+          "device_seconds": 0.0012300833333256378,
+          "dispatches": 1.0,
+          "downloaded_bytes": 163840.0,
+          "event_seconds": 9.58e-7,
+          "first_upload_bytes": 0.0,
+          "native_action_search_apply_seconds": 0.0008139169999999999,
+          "native_insert_merge_seconds": 0.000090875,
+          "native_query_seconds": 0.0,
+          "native_rebuild_seconds": 0.0,
+          "native_rhs_seconds": 0.002061291,
+          "output_high_water": 3712.0,
+          "peak_live_rows": 0.0,
+          "prepare_seconds": 0.000021292000000000012,
+          "reused_slots": 0.0,
+          "roundtrip_seconds": 0.005492584,
+          "row_events": 0.0,
+          "ruleset_runs": 1.0,
+          "run_seconds": 0.008145458000000001,
+          "setup_seconds": 0.0,
+          "shader_compiles": 0.0,
+          "unchanged_notifications": 0.0,
+          "union_events": 0.0,
+          "uploaded_bytes": 114832.0,
+          "workers": 0.0
+        },
+        "verification": {
+          "eclass_mapping": 21376,
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 25984,
+          "tables": {
+            "Allowed": 2048,
+            "Boundary0": 1024,
+            "Boundary1": 1024,
+            "Boundary2": 1024,
+            "Boundary3": 1024,
+            "Get": 4608,
+            "Leaf": 3584,
+            "Offer": 4096,
+            "Pair": 1536,
+            "Seen0_0": 576,
+            "Seen0_1": 544,
+            "Seen1_0": 576,
+            "Seen1_1": 544,
+            "Seen2_0": 576,
+            "Seen2_1": 544,
+            "Seen3_0": 576,
+            "Seen3_1": 544,
+            "Single": 1536
+          }
+        },
+        "work": {
+          "certificate_reuses": 0.0,
+          "certification_attempts": 0.0,
+          "certification_probes": 0.0,
+          "certified_anchor_hits": 0.0,
+          "delegated_branches": 0.0,
+          "direct_row_reuses": 0.0,
+          "dirty_cells": 0.0,
+          "invalidated_certificates": 0.0,
+          "join_probes": 0.0,
+          "missing_key_waits": 0.0,
+          "port_bindings": 0.0,
+          "port_candidate_rows": 0.0,
+          "port_consumer_checks": 0.0,
+          "port_context_loads": 0.0,
+          "port_context_words": 0.0,
+          "port_join_executions": 0.0,
+          "port_probes": 0.0,
+          "port_shared_joins_saved": 0.0,
+          "ports_published": 0.0,
+          "prefix_rows_reused": 0.0,
+          "ready_covered_atom_sum": 6144.0,
+          "ready_matches": 0.0,
+          "ready_productive_seeds": 0.0,
+          "ready_query_atom_sum": 21504.0,
+          "ready_reuse_seeds": 0.0,
+          "ready_reused_atoms": 0.0,
+          "routed_ready": 3072.0,
+          "routed_suspected": 0.0,
+          "routed_unmapped": 1024.0,
+          "routing_ambiguous": 0.0,
+          "routing_delegated_to_port": 0.0,
+          "routing_earlier_delta_owner": 0.0,
+          "routing_locator_probes": 0.0,
+          "routing_locator_rows": 0.0,
+          "routing_no_next_atom": 0.0,
+          "routing_unique_hints": 0.0,
+          "routing_valid_seeds": 4096.0,
+          "shape_fallbacks": 0.0,
+          "skipped_join_probes": 0.0,
+          "suspected_matches": 0.0,
+          "suspected_productive_seeds": 0.0,
+          "suspected_reuse_seeds": 0.0,
+          "suspected_reused_atoms": 0.0,
+          "unmapped_matches": 0.0,
+          "unmapped_productive_seeds": 0.0,
+          "unmapped_reuse_seeds": 0.0,
+          "unmapped_reused_atoms": 0.0,
+          "watch_entries_checked": 0.0,
+          "watch_wakes": 0.0
+        }
+      },
+      "library": "repeated_single",
+      "report": {
+        "audit": false,
+        "backend": "shared-gpu",
+        "cell_work": {
+          "certificate_reuses": 0,
+          "certification_attempts": 0,
+          "certification_probes": 0,
+          "certified_anchor_hits": 0,
+          "delegated_branches": 0,
+          "direct_row_reuses": 0,
+          "dirty_cells": 0,
+          "invalidated_certificates": 0,
+          "join_probes": 0,
+          "missing_key_waits": 0,
+          "port_bindings": 0,
+          "port_candidate_rows": 0,
+          "port_consumer_checks": 0,
+          "port_context_loads": 0,
+          "port_context_words": 0,
+          "port_join_executions": 0,
+          "port_probes": 0,
+          "port_shared_joins_saved": 0,
+          "ports_published": 0,
+          "prefix_rows_reused": 0,
+          "ready_covered_atom_sum": 44032,
+          "ready_matches": 0,
+          "ready_productive_seeds": 0,
+          "ready_query_atom_sum": 155392,
+          "ready_reuse_seeds": 0,
+          "ready_reused_atoms": 0,
+          "routed_ready": 22016,
+          "routed_suspected": 16768,
+          "routed_unmapped": 21888,
+          "routing_ambiguous": 128,
+          "routing_delegated_to_port": 9216,
+          "routing_earlier_delta_owner": 9216,
+          "routing_locator_probes": 0,
+          "routing_locator_rows": 0,
+          "routing_no_next_atom": 43008,
+          "routing_unique_hints": 0,
+          "routing_valid_seeds": 122112,
+          "shape_fallbacks": 0,
+          "skipped_join_probes": 0,
+          "suspected_matches": 0,
+          "suspected_productive_seeds": 0,
+          "suspected_reuse_seeds": 0,
+          "suspected_reused_atoms": 0,
+          "unmapped_matches": 0,
+          "unmapped_productive_seeds": 0,
+          "unmapped_reuse_seeds": 0,
+          "unmapped_reused_atoms": 0,
+          "watch_entries_checked": 0,
+          "watch_wakes": 0
+        },
+        "cells": {
+          "cache_only": false,
+          "library": {
+            "analysis_directory": "out/dense-bake-time-control/repeated_single",
+            "contract": "positive projection plus fully keyed versioned witnesses; no saturation or completeness inferred from a historical match",
+            "loaded_states": [
+              0
+            ],
+            "rejected": []
+          },
+          "plan_only": false,
+          "plans": [
+            {
+              "atoms": [
+                1,
+                2
+              ],
+              "internal_joins": 1,
+              "plan": 0,
+              "rule": "family-0-consumer-0",
+              "states": [
+                0
+              ]
+            },
+            {
+              "atoms": [
+                2,
+                1
+              ],
+              "internal_joins": 1,
+              "plan": 1,
+              "rule": "family-0-consumer-0",
+              "states": [
+                0
+              ]
+            }
+          ],
+          "port_join_groups": 5,
+          "port_locality": 2,
+          "profile": false,
+          "query_routing": 2
+        },
+        "device": {
+          "bindings": 3584,
+          "cell_cache_bytes": 4194304,
+          "cell_plans": 2,
+          "cell_tables_affected": true,
+          "cell_work": {
+            "certificate_reuses": 0,
+            "certification_attempts": 0,
+            "certification_probes": 0,
+            "certified_anchor_hits": 0,
+            "delegated_branches": 0,
+            "direct_row_reuses": 0,
+            "dirty_cells": 0,
+            "invalidated_certificates": 0,
+            "join_probes": 0,
+            "missing_key_waits": 0,
+            "port_bindings": 0,
+            "port_candidate_rows": 0,
+            "port_consumer_checks": 0,
+            "port_context_loads": 0,
+            "port_context_words": 0,
+            "port_join_executions": 0,
+            "port_probes": 0,
+            "port_shared_joins_saved": 0,
+            "ports_published": 0,
+            "prefix_rows_reused": 0,
+            "ready_covered_atom_sum": 5120,
+            "ready_matches": 0,
+            "ready_productive_seeds": 0,
+            "ready_query_atom_sum": 18176,
+            "ready_reuse_seeds": 0,
+            "ready_reused_atoms": 0,
+            "routed_ready": 2560,
+            "routed_suspected": 1408,
+            "routed_unmapped": 1408,
+            "routing_ambiguous": 128,
+            "routing_delegated_to_port": 0,
+            "routing_earlier_delta_owner": 0,
+            "routing_locator_probes": 0,
+            "routing_locator_rows": 0,
+            "routing_no_next_atom": 1024,
+            "routing_unique_hints": 0,
+            "routing_valid_seeds": 6400,
+            "shape_fallbacks": 0,
+            "skipped_join_probes": 0,
+            "suspected_matches": 0,
+            "suspected_productive_seeds": 0,
+            "suspected_reuse_seeds": 0,
+            "suspected_reused_atoms": 0,
+            "unmapped_matches": 0,
+            "unmapped_productive_seeds": 0,
+            "unmapped_reuse_seeds": 0,
+            "unmapped_reused_atoms": 0,
+            "watch_entries_checked": 0,
+            "watch_wakes": 0
+          },
+          "compacted": false,
+          "compactions": 1,
+          "device": "Apple M3 Max",
+          "device_bytes": 35328012,
+          "dirty_cells": 576,
+          "epoch": 3,
+          "event_capacity": 65536,
+          "event_cells": true,
+          "events": 20352,
+          "gpu_seconds": 0.0008712916666127057,
+          "old_events": 17920,
+          "port_capacity": 262144,
+          "port_compactions": 1,
+          "port_count": 3072,
+          "port_locality": 2,
+          "port_work": true,
+          "queries": 8,
+          "query_routing": 2,
+          "retained_matches": 0,
+          "retries": 0,
+          "route_retries": 0,
+          "routed_seeds": 5376,
+          "row_capacity": 32768,
+          "row_slots": 20096,
+          "watch_capacity": 262144,
+          "watch_compactions": 1,
+          "watch_count": 4928
+        },
+        "live_rows": 20096,
+        "row_slots": 20096,
+        "rules": [
+          {
+            "rule": "family-0-consumer-0",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 1024,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-0-consumer-1",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 992,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-1-consumer-0",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 1024,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-1-consumer-1",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 992,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-2-consumer-0",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 1024,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-2-consumer-1",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 992,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-3-consumer-0",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 1024,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-3-consumer-1",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 992,
+              "quiet_runs": 0
+            }
+          }
+        ],
+        "runtime": {
+          "audit_seconds": 0.0,
+          "bootstrap_events": 15872,
+          "decode_seconds": 0.000802334,
+          "device_seconds": 0.00453658333333351,
+          "dispatches": 3,
+          "downloaded_bytes": 322560,
+          "event_seconds": 4.083e-6,
+          "first_upload_bytes": 888976,
+          "native_action_search_apply_seconds": 0.001622001,
+          "native_insert_merge_seconds": 0.000197168,
+          "native_query_seconds": 0.0,
+          "native_rebuild_seconds": 0.0,
+          "native_rhs_seconds": 0.004089624,
+          "output_high_water": 4096,
+          "peak_live_rows": 20096,
+          "prepare_seconds": 0.00021079100000000002,
+          "reused_slots": 256,
+          "roundtrip_seconds": 0.024128168,
+          "row_events": 20608,
+          "ruleset_runs": 3,
+          "run_seconds": 0.029722000000000002,
+          "setup_seconds": 0.044048875,
+          "shader_compiles": 1,
+          "unchanged_notifications": 0,
+          "union_events": 256,
+          "uploaded_bytes": 1140144,
+          "workers": 1
+        },
+        "scope": "Native commit deltas drive analyzed Cell interface states and ready-port residual queries; unknown interfaces retain complete queries. Cached-only control is explicit. This is not arbitrary whole-RipSatCell graft execution or virtual storage.",
+        "shared_tables": 9
+      }
+    },
+    {
+      "bake": {
+        "body_rows": 5,
+        "distinct_states": 2,
+        "seconds": 0.001544709,
+        "training_contexts": 2
+      },
+      "disrupted": {
+        "runtime": {
+          "audit_seconds": 0.0,
+          "bootstrap_events": 0.0,
+          "decode_seconds": 0.00034825,
+          "device_seconds": 0.0008352500001365115,
+          "dispatches": 1.0,
+          "downloaded_bytes": 143360.0,
+          "event_seconds": 1.3749999999999995e-6,
+          "first_upload_bytes": 0.0,
+          "native_action_search_apply_seconds": 0.0006993329999999999,
+          "native_insert_merge_seconds": 0.000092667,
+          "native_query_seconds": 0.0,
+          "native_rebuild_seconds": 0.0,
+          "native_rhs_seconds": 0.0017569999999999999,
+          "output_high_water": 0.0,
+          "peak_live_rows": 0.0,
+          "prepare_seconds": 0.000025334000000000012,
+          "reused_slots": 0.0,
+          "roundtrip_seconds": 0.0063237499999999995,
+          "row_events": 0.0,
+          "ruleset_runs": 1.0,
+          "run_seconds": 0.008636375000000002,
+          "setup_seconds": 0.0,
+          "shader_compiles": 0.0,
+          "unchanged_notifications": 0.0,
+          "union_events": 0.0,
+          "uploaded_bytes": 136336.0,
+          "workers": 0.0
+        },
+        "verification": {
+          "eclass_mapping": 27584,
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 32448,
+          "tables": {
+            "Allowed": 2048,
+            "Boundary0": 1536,
+            "Boundary1": 1536,
+            "Boundary2": 1536,
+            "Boundary3": 1536,
+            "Get": 4608,
+            "Leaf": 4032,
+            "Offer": 4096,
+            "Pair": 1728,
+            "Seen0_0": 1024,
+            "Seen0_1": 992,
+            "Seen1_0": 1024,
+            "Seen1_1": 992,
+            "Seen2_0": 1024,
+            "Seen2_1": 992,
+            "Seen3_0": 1024,
+            "Seen3_1": 992,
+            "Single": 1728
+          }
+        },
+        "work": {
+          "certificate_reuses": 0.0,
+          "certification_attempts": 0.0,
+          "certification_probes": 0.0,
+          "certified_anchor_hits": 0.0,
+          "delegated_branches": 0.0,
+          "direct_row_reuses": 0.0,
+          "dirty_cells": 0.0,
+          "invalidated_certificates": 0.0,
+          "join_probes": 0.0,
+          "missing_key_waits": 0.0,
+          "port_bindings": 0.0,
+          "port_candidate_rows": 0.0,
+          "port_consumer_checks": 0.0,
+          "port_context_loads": 0.0,
+          "port_context_words": 0.0,
+          "port_join_executions": 0.0,
+          "port_probes": 0.0,
+          "port_shared_joins_saved": 0.0,
+          "ports_published": 0.0,
+          "prefix_rows_reused": 0.0,
+          "ready_covered_atom_sum": 6656.0,
+          "ready_matches": 0.0,
+          "ready_productive_seeds": 0.0,
+          "ready_query_atom_sum": 22016.0,
+          "ready_reuse_seeds": 0.0,
+          "ready_reused_atoms": 0.0,
+          "routed_ready": 3328.0,
+          "routed_suspected": 2816.0,
+          "routed_unmapped": 0.0,
+          "routing_ambiguous": 256.0,
+          "routing_delegated_to_port": 0.0,
+          "routing_earlier_delta_owner": 0.0,
+          "routing_locator_probes": 0.0,
+          "routing_locator_rows": 0.0,
+          "routing_no_next_atom": 256.0,
+          "routing_unique_hints": 0.0,
+          "routing_valid_seeds": 6400.0,
+          "shape_fallbacks": 0.0,
+          "skipped_join_probes": 0.0,
+          "suspected_matches": 0.0,
+          "suspected_productive_seeds": 0.0,
+          "suspected_reuse_seeds": 0.0,
+          "suspected_reused_atoms": 0.0,
+          "unmapped_matches": 0.0,
+          "unmapped_productive_seeds": 0.0,
+          "unmapped_reuse_seeds": 0.0,
+          "unmapped_reused_atoms": 0.0,
+          "watch_entries_checked": 0.0,
+          "watch_wakes": 0.0
+        }
+      },
+      "intact": {
+        "runtime": {
+          "audit_seconds": 0.0,
+          "bootstrap_events": 0.0,
+          "decode_seconds": 0.000418542,
+          "device_seconds": 0.0009321666666437523,
+          "dispatches": 1.0,
+          "downloaded_bytes": 163840.0,
+          "event_seconds": 1e-6,
+          "first_upload_bytes": 0.0,
+          "native_action_search_apply_seconds": 0.000824375,
+          "native_insert_merge_seconds": 0.000086792,
+          "native_query_seconds": 0.0,
+          "native_rebuild_seconds": 0.0,
+          "native_rhs_seconds": 0.001994917,
+          "output_high_water": 3712.0,
+          "peak_live_rows": 0.0,
+          "prepare_seconds": 0.00002212500000000001,
+          "reused_slots": 0.0,
+          "roundtrip_seconds": 0.005417207999999998,
+          "row_events": 0.0,
+          "ruleset_runs": 1.0,
+          "run_seconds": 0.008020165999999999,
+          "setup_seconds": 0.0,
+          "shader_compiles": 0.0,
+          "unchanged_notifications": 0.0,
+          "union_events": 0.0,
+          "uploaded_bytes": 114832.0,
+          "workers": 0.0
+        },
+        "verification": {
+          "eclass_mapping": 21376,
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 25984,
+          "tables": {
+            "Allowed": 2048,
+            "Boundary0": 1024,
+            "Boundary1": 1024,
+            "Boundary2": 1024,
+            "Boundary3": 1024,
+            "Get": 4608,
+            "Leaf": 3584,
+            "Offer": 4096,
+            "Pair": 1536,
+            "Seen0_0": 576,
+            "Seen0_1": 544,
+            "Seen1_0": 576,
+            "Seen1_1": 544,
+            "Seen2_0": 576,
+            "Seen2_1": 544,
+            "Seen3_0": 576,
+            "Seen3_1": 544,
+            "Single": 1536
+          }
+        },
+        "work": {
+          "certificate_reuses": 0.0,
+          "certification_attempts": 0.0,
+          "certification_probes": 0.0,
+          "certified_anchor_hits": 0.0,
+          "delegated_branches": 0.0,
+          "direct_row_reuses": 0.0,
+          "dirty_cells": 0.0,
+          "invalidated_certificates": 0.0,
+          "join_probes": 0.0,
+          "missing_key_waits": 0.0,
+          "port_bindings": 0.0,
+          "port_candidate_rows": 0.0,
+          "port_consumer_checks": 0.0,
+          "port_context_loads": 0.0,
+          "port_context_words": 0.0,
+          "port_join_executions": 0.0,
+          "port_probes": 0.0,
+          "port_shared_joins_saved": 0.0,
+          "ports_published": 0.0,
+          "prefix_rows_reused": 0.0,
+          "ready_covered_atom_sum": 8192.0,
+          "ready_matches": 0.0,
+          "ready_productive_seeds": 0.0,
+          "ready_query_atom_sum": 26624.0,
+          "ready_reuse_seeds": 0.0,
+          "ready_reused_atoms": 0.0,
+          "routed_ready": 4096.0,
+          "routed_suspected": 0.0,
+          "routed_unmapped": 0.0,
+          "routing_ambiguous": 0.0,
+          "routing_delegated_to_port": 0.0,
+          "routing_earlier_delta_owner": 0.0,
+          "routing_locator_probes": 0.0,
+          "routing_locator_rows": 0.0,
+          "routing_no_next_atom": 0.0,
+          "routing_unique_hints": 0.0,
+          "routing_valid_seeds": 4096.0,
+          "shape_fallbacks": 0.0,
+          "skipped_join_probes": 0.0,
+          "suspected_matches": 0.0,
+          "suspected_productive_seeds": 0.0,
+          "suspected_reuse_seeds": 0.0,
+          "suspected_reused_atoms": 0.0,
+          "unmapped_matches": 0.0,
+          "unmapped_productive_seeds": 0.0,
+          "unmapped_reuse_seeds": 0.0,
+          "unmapped_reused_atoms": 0.0,
+          "watch_entries_checked": 0.0,
+          "watch_wakes": 0.0
+        }
+      },
+      "library": "base_cells",
+      "report": {
+        "audit": false,
+        "backend": "shared-gpu",
+        "cell_work": {
+          "certificate_reuses": 0,
+          "certification_attempts": 0,
+          "certification_probes": 0,
+          "certified_anchor_hits": 0,
+          "delegated_branches": 0,
+          "direct_row_reuses": 0,
+          "dirty_cells": 0,
+          "invalidated_certificates": 0,
+          "join_probes": 0,
+          "missing_key_waits": 0,
+          "port_bindings": 0,
+          "port_candidate_rows": 0,
+          "port_consumer_checks": 0,
+          "port_context_loads": 0,
+          "port_context_words": 0,
+          "port_join_executions": 0,
+          "port_probes": 0,
+          "port_shared_joins_saved": 0,
+          "ports_published": 0,
+          "prefix_rows_reused": 0,
+          "ready_covered_atom_sum": 66048,
+          "ready_matches": 0,
+          "ready_productive_seeds": 0,
+          "ready_query_atom_sum": 222720,
+          "ready_reuse_seeds": 0,
+          "ready_reused_atoms": 0,
+          "routed_ready": 33024,
+          "routed_suspected": 22272,
+          "routed_unmapped": 3072,
+          "routing_ambiguous": 256,
+          "routing_delegated_to_port": 12288,
+          "routing_earlier_delta_owner": 18432,
+          "routing_locator_probes": 0,
+          "routing_locator_rows": 0,
+          "routing_no_next_atom": 33024,
+          "routing_unique_hints": 0,
+          "routing_valid_seeds": 122112,
+          "shape_fallbacks": 0,
+          "skipped_join_probes": 0,
+          "suspected_matches": 0,
+          "suspected_productive_seeds": 0,
+          "suspected_reuse_seeds": 0,
+          "suspected_reused_atoms": 0,
+          "unmapped_matches": 0,
+          "unmapped_productive_seeds": 0,
+          "unmapped_reuse_seeds": 0,
+          "unmapped_reused_atoms": 0,
+          "watch_entries_checked": 0,
+          "watch_wakes": 0
+        },
+        "cells": {
+          "cache_only": false,
+          "library": {
+            "analysis_directory": "out/dense-bake-time-control/base_cells",
+            "contract": "positive projection plus fully keyed versioned witnesses; no saturation or completeness inferred from a historical match",
+            "loaded_states": [
+              0,
+              1
+            ],
+            "rejected": []
+          },
+          "plan_only": false,
+          "plans": [
+            {
+              "atoms": [
+                1,
+                2
+              ],
+              "internal_joins": 1,
+              "plan": 0,
+              "rule": "family-0-consumer-0",
+              "states": [
+                0
+              ]
+            },
+            {
+              "atoms": [
+                2,
+                1
+              ],
+              "internal_joins": 1,
+              "plan": 1,
+              "rule": "family-0-consumer-0",
+              "states": [
+                0
+              ]
+            },
+            {
+              "atoms": [
+                1,
+                2
+              ],
+              "internal_joins": 1,
+              "plan": 2,
+              "rule": "family-1-consumer-0",
+              "states": [
+                1
+              ]
+            },
+            {
+              "atoms": [
+                3,
+                4,
+                5
+              ],
+              "internal_joins": 2,
+              "plan": 3,
+              "rule": "family-2-consumer-0",
+              "states": [
+                1
+              ]
+            },
+            {
+              "atoms": [
+                3,
+                4
+              ],
+              "internal_joins": 1,
+              "plan": 4,
+              "rule": "family-2-consumer-0",
+              "states": [
+                1
+              ]
+            },
+            {
+              "atoms": [
+                4,
+                3
+              ],
+              "internal_joins": 1,
+              "plan": 5,
+              "rule": "family-2-consumer-0",
+              "states": [
+                1
+              ]
+            },
+            {
+              "atoms": [
+                5,
+                3,
+                4
+              ],
+              "internal_joins": 2,
+              "plan": 6,
+              "rule": "family-2-consumer-0",
+              "states": [
+                1
+              ]
+            }
+          ],
+          "port_join_groups": 4,
+          "port_locality": 2,
+          "profile": false,
+          "query_routing": 2
+        },
+        "device": {
+          "bindings": 3584,
+          "cell_cache_bytes": 19267584,
+          "cell_plans": 7,
+          "cell_tables_affected": true,
+          "cell_work": {
+            "certificate_reuses": 0,
+            "certification_attempts": 0,
+            "certification_probes": 0,
+            "certified_anchor_hits": 0,
+            "delegated_branches": 0,
+            "direct_row_reuses": 0,
+            "dirty_cells": 0,
+            "invalidated_certificates": 0,
+            "join_probes": 0,
+            "missing_key_waits": 0,
+            "port_bindings": 0,
+            "port_candidate_rows": 0,
+            "port_consumer_checks": 0,
+            "port_context_loads": 0,
+            "port_context_words": 0,
+            "port_join_executions": 0,
+            "port_probes": 0,
+            "port_shared_joins_saved": 0,
+            "ports_published": 0,
+            "prefix_rows_reused": 0,
+            "ready_covered_atom_sum": 6656,
+            "ready_matches": 0,
+            "ready_productive_seeds": 0,
+            "ready_query_atom_sum": 22016,
+            "ready_reuse_seeds": 0,
+            "ready_reused_atoms": 0,
+            "routed_ready": 3328,
+            "routed_suspected": 2816,
+            "routed_unmapped": 0,
+            "routing_ambiguous": 256,
+            "routing_delegated_to_port": 0,
+            "routing_earlier_delta_owner": 0,
+            "routing_locator_probes": 0,
+            "routing_locator_rows": 0,
+            "routing_no_next_atom": 256,
+            "routing_unique_hints": 0,
+            "routing_valid_seeds": 6400,
+            "shape_fallbacks": 0,
+            "skipped_join_probes": 0,
+            "suspected_matches": 0,
+            "suspected_productive_seeds": 0,
+            "suspected_reuse_seeds": 0,
+            "suspected_reused_atoms": 0,
+            "unmapped_matches": 0,
+            "unmapped_productive_seeds": 0,
+            "unmapped_reuse_seeds": 0,
+            "unmapped_reused_atoms": 0,
+            "watch_entries_checked": 0,
+            "watch_wakes": 0
+          },
+          "compacted": false,
+          "compactions": 1,
+          "device": "Apple M3 Max",
+          "device_bytes": 124982200,
+          "dirty_cells": 2112,
+          "epoch": 3,
+          "event_capacity": 65536,
+          "event_cells": true,
+          "events": 20352,
+          "gpu_seconds": 0.0008352500001365115,
+          "old_events": 17920,
+          "port_capacity": 1048576,
+          "port_compactions": 1,
+          "port_count": 10752,
+          "port_locality": 2,
+          "port_work": true,
+          "queries": 8,
+          "query_routing": 2,
+          "retained_matches": 0,
+          "retries": 0,
+          "route_retries": 0,
+          "routed_seeds": 6144,
+          "row_capacity": 32768,
+          "row_slots": 20096,
+          "watch_capacity": 2097152,
+          "watch_compactions": 1,
+          "watch_count": 19584
+        },
+        "live_rows": 20096,
+        "row_slots": 20096,
+        "rules": [
+          {
+            "rule": "family-0-consumer-0",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 1024,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-0-consumer-1",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 992,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-1-consumer-0",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 1024,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-1-consumer-1",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 992,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-2-consumer-0",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 1024,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-2-consumer-1",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 992,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-3-consumer-0",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 1024,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-3-consumer-1",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 992,
+              "quiet_runs": 0
+            }
+          }
+        ],
+        "runtime": {
+          "audit_seconds": 0.0,
+          "bootstrap_events": 15872,
+          "decode_seconds": 0.000816584,
+          "device_seconds": 0.003829083333471317,
+          "dispatches": 3,
+          "downloaded_bytes": 322560,
+          "event_seconds": 4.042e-6,
+          "first_upload_bytes": 888976,
+          "native_action_search_apply_seconds": 0.0017881659999999999,
+          "native_insert_merge_seconds": 0.000195751,
+          "native_query_seconds": 0.0,
+          "native_rebuild_seconds": 0.0,
+          "native_rhs_seconds": 0.004332,
+          "output_high_water": 4096,
+          "peak_live_rows": 20096,
+          "prepare_seconds": 0.00024216800000000002,
+          "reused_slots": 256,
+          "roundtrip_seconds": 0.026971832999999997,
+          "row_events": 20608,
+          "ruleset_runs": 3,
+          "run_seconds": 0.032864374,
+          "setup_seconds": 0.16786125,
+          "shader_compiles": 1,
+          "unchanged_notifications": 0,
+          "union_events": 256,
+          "uploaded_bytes": 1140144,
+          "workers": 1
+        },
+        "scope": "Native commit deltas drive analyzed Cell interface states and ready-port residual queries; unknown interfaces retain complete queries. Cached-only control is explicit. This is not arbitrary whole-RipSatCell graft execution or virtual storage.",
+        "shared_tables": 9
+      }
+    },
+    {
+      "bake": {
+        "body_rows": 15,
+        "distinct_states": 4,
+        "seconds": 0.003002292,
+        "training_contexts": 4
+      },
+      "disrupted": {
+        "runtime": {
+          "audit_seconds": 0.0,
+          "bootstrap_events": 0.0,
+          "decode_seconds": 0.000423917,
+          "device_seconds": 0.00103312500004904,
+          "dispatches": 1.0,
+          "downloaded_bytes": 143360.0,
+          "event_seconds": 5.792e-6,
+          "first_upload_bytes": 0.0,
+          "native_action_search_apply_seconds": 0.000722791,
+          "native_insert_merge_seconds": 0.000108417,
+          "native_query_seconds": 0.0,
+          "native_rebuild_seconds": 0.0,
+          "native_rhs_seconds": 0.0018480410000000004,
+          "output_high_water": 0.0,
+          "peak_live_rows": 0.0,
+          "prepare_seconds": 0.000031166000000000006,
+          "reused_slots": 0.0,
+          "roundtrip_seconds": 0.038682041,
+          "row_events": 0.0,
+          "ruleset_runs": 1.0,
+          "run_seconds": 0.04116012499999999,
+          "setup_seconds": 0.0,
+          "shader_compiles": 0.0,
+          "unchanged_notifications": 0.0,
+          "union_events": 0.0,
+          "uploaded_bytes": 136336.0,
+          "workers": 0.0
+        },
+        "verification": {
+          "eclass_mapping": 27584,
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 32448,
+          "tables": {
+            "Allowed": 2048,
+            "Boundary0": 1536,
+            "Boundary1": 1536,
+            "Boundary2": 1536,
+            "Boundary3": 1536,
+            "Get": 4608,
+            "Leaf": 4032,
+            "Offer": 4096,
+            "Pair": 1728,
+            "Seen0_0": 1024,
+            "Seen0_1": 992,
+            "Seen1_0": 1024,
+            "Seen1_1": 992,
+            "Seen2_0": 1024,
+            "Seen2_1": 992,
+            "Seen3_0": 1024,
+            "Seen3_1": 992,
+            "Single": 1728
+          }
+        },
+        "work": {
+          "certificate_reuses": 0.0,
+          "certification_attempts": 0.0,
+          "certification_probes": 0.0,
+          "certified_anchor_hits": 0.0,
+          "delegated_branches": 0.0,
+          "direct_row_reuses": 0.0,
+          "dirty_cells": 0.0,
+          "invalidated_certificates": 0.0,
+          "join_probes": 0.0,
+          "missing_key_waits": 0.0,
+          "port_bindings": 0.0,
+          "port_candidate_rows": 0.0,
+          "port_consumer_checks": 0.0,
+          "port_context_loads": 0.0,
+          "port_context_words": 0.0,
+          "port_join_executions": 0.0,
+          "port_probes": 0.0,
+          "port_shared_joins_saved": 0.0,
+          "ports_published": 0.0,
+          "prefix_rows_reused": 0.0,
+          "ready_covered_atom_sum": 12032.0,
+          "ready_matches": 0.0,
+          "ready_productive_seeds": 0.0,
+          "ready_query_atom_sum": 22016.0,
+          "ready_reuse_seeds": 0.0,
+          "ready_reused_atoms": 0.0,
+          "routed_ready": 3328.0,
+          "routed_suspected": 2816.0,
+          "routed_unmapped": 0.0,
+          "routing_ambiguous": 256.0,
+          "routing_delegated_to_port": 0.0,
+          "routing_earlier_delta_owner": 0.0,
+          "routing_locator_probes": 0.0,
+          "routing_locator_rows": 0.0,
+          "routing_no_next_atom": 256.0,
+          "routing_unique_hints": 0.0,
+          "routing_valid_seeds": 6400.0,
+          "shape_fallbacks": 0.0,
+          "skipped_join_probes": 0.0,
+          "suspected_matches": 0.0,
+          "suspected_productive_seeds": 0.0,
+          "suspected_reuse_seeds": 0.0,
+          "suspected_reused_atoms": 0.0,
+          "unmapped_matches": 0.0,
+          "unmapped_productive_seeds": 0.0,
+          "unmapped_reuse_seeds": 0.0,
+          "unmapped_reused_atoms": 0.0,
+          "watch_entries_checked": 0.0,
+          "watch_wakes": 0.0
+        }
+      },
+      "intact": {
+        "runtime": {
+          "audit_seconds": 0.0,
+          "bootstrap_events": 0.0,
+          "decode_seconds": 0.00041629200000000007,
+          "device_seconds": 0.001104583333244591,
+          "dispatches": 1.0,
+          "downloaded_bytes": 163840.0,
+          "event_seconds": 1.166e-6,
+          "first_upload_bytes": 0.0,
+          "native_action_search_apply_seconds": 0.000806667,
+          "native_insert_merge_seconds": 0.000091708,
+          "native_query_seconds": 0.0,
+          "native_rebuild_seconds": 0.0,
+          "native_rhs_seconds": 0.002028,
+          "output_high_water": 3712.0,
+          "peak_live_rows": 0.0,
+          "prepare_seconds": 0.00002462499999999999,
+          "reused_slots": 0.0,
+          "roundtrip_seconds": 0.012166624999999997,
+          "row_events": 0.0,
+          "ruleset_runs": 1.0,
+          "run_seconds": 0.014818208999999999,
+          "setup_seconds": 0.0,
+          "shader_compiles": 0.0,
+          "unchanged_notifications": 0.0,
+          "union_events": 0.0,
+          "uploaded_bytes": 114832.0,
+          "workers": 0.0
+        },
+        "verification": {
+          "eclass_mapping": 21376,
+          "exact_rows_values_equivalence_visibility": true,
+          "rows": 25984,
+          "tables": {
+            "Allowed": 2048,
+            "Boundary0": 1024,
+            "Boundary1": 1024,
+            "Boundary2": 1024,
+            "Boundary3": 1024,
+            "Get": 4608,
+            "Leaf": 3584,
+            "Offer": 4096,
+            "Pair": 1536,
+            "Seen0_0": 576,
+            "Seen0_1": 544,
+            "Seen1_0": 576,
+            "Seen1_1": 544,
+            "Seen2_0": 576,
+            "Seen2_1": 544,
+            "Seen3_0": 576,
+            "Seen3_1": 544,
+            "Single": 1536
+          }
+        },
+        "work": {
+          "certificate_reuses": 0.0,
+          "certification_attempts": 0.0,
+          "certification_probes": 0.0,
+          "certified_anchor_hits": 0.0,
+          "delegated_branches": 0.0,
+          "direct_row_reuses": 0.0,
+          "dirty_cells": 0.0,
+          "invalidated_certificates": 0.0,
+          "join_probes": 0.0,
+          "missing_key_waits": 0.0,
+          "port_bindings": 0.0,
+          "port_candidate_rows": 0.0,
+          "port_consumer_checks": 0.0,
+          "port_context_loads": 0.0,
+          "port_context_words": 0.0,
+          "port_join_executions": 0.0,
+          "port_probes": 0.0,
+          "port_shared_joins_saved": 0.0,
+          "ports_published": 0.0,
+          "prefix_rows_reused": 0.0,
+          "ready_covered_atom_sum": 14336.0,
+          "ready_matches": 0.0,
+          "ready_productive_seeds": 0.0,
+          "ready_query_atom_sum": 26624.0,
+          "ready_reuse_seeds": 0.0,
+          "ready_reused_atoms": 0.0,
+          "routed_ready": 4096.0,
+          "routed_suspected": 0.0,
+          "routed_unmapped": 0.0,
+          "routing_ambiguous": 0.0,
+          "routing_delegated_to_port": 0.0,
+          "routing_earlier_delta_owner": 0.0,
+          "routing_locator_probes": 0.0,
+          "routing_locator_rows": 0.0,
+          "routing_no_next_atom": 0.0,
+          "routing_unique_hints": 0.0,
+          "routing_valid_seeds": 4096.0,
+          "shape_fallbacks": 0.0,
+          "skipped_join_probes": 0.0,
+          "suspected_matches": 0.0,
+          "suspected_productive_seeds": 0.0,
+          "suspected_reuse_seeds": 0.0,
+          "suspected_reused_atoms": 0.0,
+          "unmapped_matches": 0.0,
+          "unmapped_productive_seeds": 0.0,
+          "unmapped_reuse_seeds": 0.0,
+          "unmapped_reused_atoms": 0.0,
+          "watch_entries_checked": 0.0,
+          "watch_wakes": 0.0
+        }
+      },
+      "library": "composed_cells",
+      "report": {
+        "audit": false,
+        "backend": "shared-gpu",
+        "cell_work": {
+          "certificate_reuses": 0,
+          "certification_attempts": 0,
+          "certification_probes": 0,
+          "certified_anchor_hits": 0,
+          "delegated_branches": 0,
+          "direct_row_reuses": 0,
+          "dirty_cells": 0,
+          "invalidated_certificates": 0,
+          "join_probes": 0,
+          "missing_key_waits": 0,
+          "port_bindings": 0,
+          "port_candidate_rows": 0,
+          "port_consumer_checks": 0,
+          "port_context_loads": 0,
+          "port_context_words": 0,
+          "port_join_executions": 0,
+          "port_probes": 0,
+          "port_shared_joins_saved": 0,
+          "ports_published": 0,
+          "prefix_rows_reused": 0,
+          "ready_covered_atom_sum": 81664,
+          "ready_matches": 0,
+          "ready_productive_seeds": 0,
+          "ready_query_atom_sum": 173568,
+          "ready_reuse_seeds": 0,
+          "ready_reused_atoms": 0,
+          "routed_ready": 26880,
+          "routed_suspected": 46848,
+          "routed_unmapped": 3072,
+          "routing_ambiguous": 256,
+          "routing_delegated_to_port": 8192,
+          "routing_earlier_delta_owner": 12288,
+          "routing_locator_probes": 0,
+          "routing_locator_rows": 0,
+          "routing_no_next_atom": 24832,
+          "routing_unique_hints": 0,
+          "routing_valid_seeds": 122112,
+          "shape_fallbacks": 0,
+          "skipped_join_probes": 0,
+          "suspected_matches": 0,
+          "suspected_productive_seeds": 0,
+          "suspected_reuse_seeds": 0,
+          "suspected_reused_atoms": 0,
+          "unmapped_matches": 0,
+          "unmapped_productive_seeds": 0,
+          "unmapped_reuse_seeds": 0,
+          "unmapped_reused_atoms": 0,
+          "watch_entries_checked": 0,
+          "watch_wakes": 0
+        },
+        "cells": {
+          "cache_only": false,
+          "library": {
+            "analysis_directory": "out/dense-bake-time-control/composed_cells",
+            "contract": "positive projection plus fully keyed versioned witnesses; no saturation or completeness inferred from a historical match",
+            "loaded_states": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "rejected": []
+          },
+          "plan_only": false,
+          "plans": [
+            {
+              "atoms": [
+                1,
+                2
+              ],
+              "internal_joins": 1,
+              "plan": 0,
+              "rule": "family-0-consumer-0",
+              "states": [
+                0,
+                2,
+                3
+              ]
+            },
+            {
+              "atoms": [
+                2,
+                1
+              ],
+              "internal_joins": 1,
+              "plan": 1,
+              "rule": "family-0-consumer-0",
+              "states": [
+                0,
+                2,
+                3
+              ]
+            },
+            {
+              "atoms": [
+                1,
+                2
+              ],
+              "internal_joins": 1,
+              "plan": 2,
+              "rule": "family-1-consumer-0",
+              "states": [
+                1,
+                2,
+                3
+              ]
+            },
+            {
+              "atoms": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "internal_joins": 4,
+              "plan": 3,
+              "rule": "family-2-consumer-0",
+              "states": [
+                2
+              ]
+            },
+            {
+              "atoms": [
+                2,
+                3,
+                4,
+                5
+              ],
+              "internal_joins": 3,
+              "plan": 4,
+              "rule": "family-2-consumer-0",
+              "states": [
+                2
+              ]
+            },
+            {
+              "atoms": [
+                3,
+                4,
+                5
+              ],
+              "internal_joins": 2,
+              "plan": 5,
+              "rule": "family-2-consumer-0",
+              "states": [
+                1,
+                2,
+                3
+              ]
+            },
+            {
+              "atoms": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "internal_joins": 3,
+              "plan": 6,
+              "rule": "family-2-consumer-0",
+              "states": [
+                2
+              ]
+            },
+            {
+              "atoms": [
+                2,
+                3,
+                4
+              ],
+              "internal_joins": 2,
+              "plan": 7,
+              "rule": "family-2-consumer-0",
+              "states": [
+                2
+              ]
+            },
+            {
+              "atoms": [
+                3,
+                4
+              ],
+              "internal_joins": 1,
+              "plan": 8,
+              "rule": "family-2-consumer-0",
+              "states": [
+                1,
+                2,
+                3
+              ]
+            },
+            {
+              "atoms": [
+                2,
+                1,
+                3,
+                4
+              ],
+              "internal_joins": 3,
+              "plan": 9,
+              "rule": "family-2-consumer-0",
+              "states": [
+                2
+              ]
+            },
+            {
+              "atoms": [
+                1,
+                3,
+                4
+              ],
+              "internal_joins": 2,
+              "plan": 10,
+              "rule": "family-2-consumer-0",
+              "states": [
+                2
+              ]
+            },
+            {
+              "atoms": [
+                3,
+                2,
+                1,
+                4
+              ],
+              "internal_joins": 3,
+              "plan": 11,
+              "rule": "family-2-consumer-0",
+              "states": [
+                2
+              ]
+            },
+            {
+              "atoms": [
+                2,
+                1,
+                4
+              ],
+              "internal_joins": 2,
+              "plan": 12,
+              "rule": "family-2-consumer-0",
+              "states": [
+                2
+              ]
+            },
+            {
+              "atoms": [
+                1,
+                4
+              ],
+              "internal_joins": 1,
+              "plan": 13,
+              "rule": "family-2-consumer-0",
+              "states": [
+                2
+              ]
+            },
+            {
+              "atoms": [
+                4,
+                2,
+                1,
+                3
+              ],
+              "internal_joins": 3,
+              "plan": 14,
+              "rule": "family-2-consumer-0",
+              "states": [
+                2
+              ]
+            },
+            {
+              "atoms": [
+                2,
+                1,
+                3
+              ],
+              "internal_joins": 2,
+              "plan": 15,
+              "rule": "family-2-consumer-0",
+              "states": [
+                2
+              ]
+            },
+            {
+              "atoms": [
+                1,
+                3
+              ],
+              "internal_joins": 1,
+              "plan": 16,
+              "rule": "family-2-consumer-0",
+              "states": [
+                2,
+                3
+              ]
+            },
+            {
+              "atoms": [
+                5,
+                2,
+                1,
+                3,
+                4
+              ],
+              "internal_joins": 4,
+              "plan": 17,
+              "rule": "family-2-consumer-0",
+              "states": [
+                2
+              ]
+            },
+            {
+              "atoms": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "internal_joins": 4,
+              "plan": 18,
+              "rule": "family-3-consumer-0",
+              "states": [
+                3
+              ]
+            },
+            {
+              "atoms": [
+                3,
+                4,
+                5
+              ],
+              "internal_joins": 2,
+              "plan": 19,
+              "rule": "family-3-consumer-0",
+              "states": [
+                3
+              ]
+            },
+            {
+              "atoms": [
+                2,
+                1,
+                4,
+                5
+              ],
+              "internal_joins": 3,
+              "plan": 20,
+              "rule": "family-3-consumer-0",
+              "states": [
+                3
+              ]
+            },
+            {
+              "atoms": [
+                1,
+                4,
+                5
+              ],
+              "internal_joins": 2,
+              "plan": 21,
+              "rule": "family-3-consumer-0",
+              "states": [
+                3
+              ]
+            },
+            {
+              "atoms": [
+                3,
+                1,
+                2,
+                4,
+                5
+              ],
+              "internal_joins": 4,
+              "plan": 22,
+              "rule": "family-3-consumer-0",
+              "states": [
+                3
+              ]
+            },
+            {
+              "atoms": [
+                1,
+                2,
+                4,
+                5
+              ],
+              "internal_joins": 3,
+              "plan": 23,
+              "rule": "family-3-consumer-0",
+              "states": [
+                3
+              ]
+            }
+          ],
+          "port_join_groups": 4,
+          "port_locality": 2,
+          "profile": false,
+          "query_routing": 2
+        },
+        "device": {
+          "bindings": 3584,
+          "cell_cache_bytes": 88080384,
+          "cell_plans": 24,
+          "cell_tables_affected": true,
+          "cell_work": {
+            "certificate_reuses": 0,
+            "certification_attempts": 0,
+            "certification_probes": 0,
+            "certified_anchor_hits": 0,
+            "delegated_branches": 0,
+            "direct_row_reuses": 0,
+            "dirty_cells": 0,
+            "invalidated_certificates": 0,
+            "join_probes": 0,
+            "missing_key_waits": 0,
+            "port_bindings": 0,
+            "port_candidate_rows": 0,
+            "port_consumer_checks": 0,
+            "port_context_loads": 0,
+            "port_context_words": 0,
+            "port_join_executions": 0,
+            "port_probes": 0,
+            "port_shared_joins_saved": 0,
+            "ports_published": 0,
+            "prefix_rows_reused": 0,
+            "ready_covered_atom_sum": 12032,
+            "ready_matches": 0,
+            "ready_productive_seeds": 0,
+            "ready_query_atom_sum": 22016,
+            "ready_reuse_seeds": 0,
+            "ready_reused_atoms": 0,
+            "routed_ready": 3328,
+            "routed_suspected": 2816,
+            "routed_unmapped": 0,
+            "routing_ambiguous": 256,
+            "routing_delegated_to_port": 0,
+            "routing_earlier_delta_owner": 0,
+            "routing_locator_probes": 0,
+            "routing_locator_rows": 0,
+            "routing_no_next_atom": 256,
+            "routing_unique_hints": 0,
+            "routing_valid_seeds": 6400,
+            "shape_fallbacks": 0,
+            "skipped_join_probes": 0,
+            "suspected_matches": 0,
+            "suspected_productive_seeds": 0,
+            "suspected_reuse_seeds": 0,
+            "suspected_reused_atoms": 0,
+            "unmapped_matches": 0,
+            "unmapped_productive_seeds": 0,
+            "unmapped_reuse_seeds": 0,
+            "unmapped_reused_atoms": 0,
+            "watch_entries_checked": 0,
+            "watch_wakes": 0
+          },
+          "compacted": false,
+          "compactions": 1,
+          "device": "Apple M3 Max",
+          "device_bytes": 764879712,
+          "dirty_cells": 6720,
+          "epoch": 3,
+          "event_capacity": 65536,
+          "event_cells": true,
+          "events": 20352,
+          "gpu_seconds": 0.00103312500004904,
+          "old_events": 17920,
+          "port_capacity": 4194304,
+          "port_compactions": 1,
+          "port_count": 17920,
+          "port_locality": 2,
+          "port_work": true,
+          "queries": 8,
+          "query_routing": 2,
+          "retained_matches": 0,
+          "retries": 0,
+          "route_retries": 0,
+          "routed_seeds": 6144,
+          "row_capacity": 32768,
+          "row_slots": 20096,
+          "watch_capacity": 16777216,
+          "watch_compactions": 1,
+          "watch_count": 88960
+        },
+        "live_rows": 20096,
+        "row_slots": 20096,
+        "rules": [
+          {
+            "rule": "family-0-consumer-0",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 1024,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-0-consumer-1",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 992,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-1-consumer-0",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 1024,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-1-consumer-1",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 992,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-2-consumer-0",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 1024,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-2-consumer-1",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 992,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-3-consumer-0",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 1024,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "family-3-consumer-1",
+            "ruleset": "consume",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 992,
+              "quiet_runs": 0
+            }
+          }
+        ],
+        "runtime": {
+          "audit_seconds": 0.0,
+          "bootstrap_events": 15872,
+          "decode_seconds": 0.000882418,
+          "device_seconds": 0.005175916666644298,
+          "dispatches": 3,
+          "downloaded_bytes": 322560,
+          "event_seconds": 8.958e-6,
+          "first_upload_bytes": 888976,
+          "native_action_search_apply_seconds": 0.001640625,
+          "native_insert_merge_seconds": 0.000215708,
+          "native_query_seconds": 0.0,
+          "native_rebuild_seconds": 0.0,
+          "native_rhs_seconds": 0.004174624,
+          "output_high_water": 4096,
+          "peak_live_rows": 20096,
+          "prepare_seconds": 0.000231333,
+          "reused_slots": 256,
+          "roundtrip_seconds": 0.078588249,
+          "row_events": 20608,
+          "ruleset_runs": 3,
+          "run_seconds": 0.08441958399999999,
+          "setup_seconds": 0.168119833,
+          "shader_compiles": 1,
+          "unchanged_notifications": 0,
+          "union_events": 256,
+          "uploaded_bytes": 1140144,
+          "workers": 1
+        },
+        "scope": "Native commit deltas drive analyzed Cell interface states and ready-port residual queries; unknown interfaces retain complete queries. Cached-only control is explicit. This is not arbitrary whole-RipSatCell graft execution or virtual storage.",
+        "shared_tables": 9
+      }
+    }
+  ]
+}
