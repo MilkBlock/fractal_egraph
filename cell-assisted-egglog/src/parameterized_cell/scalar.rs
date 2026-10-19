@@ -3,6 +3,7 @@
 //! only after their checked LHS and RHS arithmetic succeeds.
 use super::*;
 use egglog::ast::{Action, Expr, Fact, Literal, Rule};
+mod closure;
 
 pub(super) struct Spec {
     pub set: String,
@@ -252,6 +253,8 @@ pub(super) struct Group {
     pub plans: Vec<(usize, Plan)>,
     pub stats: Counters,
     pub others: Vec<String>,
+    pub scope: closure::Scope,
+    pub certify_min: bool,
 }
 impl Runtime {
     pub(super) fn run_scalar(&mut self, set: &str) -> Result<egglog_reports::RunReport> {
@@ -277,18 +280,19 @@ impl Runtime {
                         continue;
                     }
                     let cost = plan.rhs.eval(&self.eg, &b);
-                    let no_op = cost.is_some_and(|c| {
-                        self.rows
-                            .keys
-                            .get(&(table, vec![b[plan.root]]))
-                            .is_some_and(|row| {
-                                self.eg.value_to_base::<i64>(*row.values.last().unwrap()) <= c
-                            })
-                    });
+                    let no_op = group.certify_min
+                        && cost.is_some_and(|c| {
+                            self.rows
+                                .keys
+                                .get(&(table, vec![b[plan.root]]))
+                                .is_some_and(|row| {
+                                    self.eg.value_to_base::<i64>(*row.values.last().unwrap()) <= c
+                                })
+                        });
                     if no_op {
                         group.stats.min_noops += 1;
                     } else {
-                        if let Some(c) = cost {
+                        if let Some(c) = cost.filter(|_| group.certify_min) {
                             let key = (table, b[plan.root]);
                             if let Some((old, old_i, old_j)) = best.get(&key).copied() {
                                 group.stats.batch_dominated += 1;
@@ -316,21 +320,29 @@ impl Runtime {
                 .collect::<Vec<_>>();
             group.stats.prepare_seconds += started.elapsed().as_secs_f64();
             let started = std::time::Instant::now();
-            let report = self.eg.step_cell_mixed_candidates(set, &batches)?;
+            let mut report = self.eg.step_cell_mixed_candidates(set, &batches)?;
             group.stats.commit_seconds += started.elapsed().as_secs_f64();
-            if group.others.iter().all(|n| {
+            let quiet = group.others.iter().all(|n| {
                 report
                     .num_matches_per_rule
                     .get(n.as_str())
                     .copied()
                     .unwrap_or(0)
                     == 0
-            }) {
+            });
+            if quiet {
                 group.stats.other_quiet_runs += 1;
                 group.stats.quiet_structural_candidates +=
                     group.stats.structural_candidates - count_before;
             }
             self.sync()?;
+            if quiet {
+                if report.updated {
+                    report.union(closure::finish(self, &mut group)?);
+                }
+            } else {
+                group.scope.model = None;
+            }
             group.stats.runs += 1;
             Ok(report)
         })();

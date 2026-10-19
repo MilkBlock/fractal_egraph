@@ -642,6 +642,7 @@ impl Runtime {
         let scalar = super::scalar::discover(&eg, &commands);
         let mut r = Self::new_with_scalar(eg, SETS, &seeds, scalar)?;
         r.joint = Some(joint);
+        r.configure_scalar_closure(&commands)?;
         Ok(r)
     }
     pub fn detach_joint(mut self) -> Result<(EGraph, Observer)> {
@@ -684,7 +685,7 @@ impl crate::table_live::SaturationHook for Observer {
         })
     }
     fn handles(&self, s: &Schedule) -> bool {
-        self.0.joint.as_ref().is_some_and(|j| j.accepts(s))
+        self.0.joint.as_ref().is_some_and(|j| j.accepts(s)) || self.0.has_scalar_scope(s)
     }
     fn diagnostics(&self) -> Json {
         self.0.report()
@@ -693,6 +694,7 @@ impl crate::table_live::SaturationHook for Observer {
         self.with(eg,|r|{
             if r.eg.cell_rule_environment_stamp()!=r.identity{return Ok(None)}
             r.sync()?;
+            if r.enter_scalar_scope(s){return Ok(None)}
             if !r.joint.as_ref().is_some_and(|j|j.accepts(s)){return Ok(None)}
             let mut j=r.joint.take().unwrap();let result=j.try_close(r);r.joint=Some(j);
             Ok(result?.map(|updated|json!({"complete":true,"updated":updated,"rulesets":SETS,"proof":"fresh parameterized terms joint closure"})))
@@ -704,6 +706,7 @@ impl crate::table_live::SaturationHook for Observer {
                 return Ok(());
             }
             r.sync()?;
+            r.leave_scalar_scope(s);
             if r.joint.as_ref().is_some_and(|j| j.accepts(s)) {
                 let mut j = r.joint.take().unwrap();
                 let result = j.complete(r);

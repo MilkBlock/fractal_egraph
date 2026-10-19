@@ -32,6 +32,7 @@ struct Rows {
     keys: BTreeMap<(usize, Key), Row>,
     outputs: BTreeMap<(usize, Value), BTreeSet<Key>>,
     hidden: BTreeSet<(usize, Key)>,
+    reverse: BTreeSet<usize>,
 }
 impl Rows {
     fn change(&mut self, table: usize, key: Key, row: Option<Row>) -> Vec<Read> {
@@ -40,7 +41,11 @@ impl Rows {
             return vec![];
         }
         let mut reads = vec![Read::Key(table, key.clone())];
-        if let Some(old) = self.keys.remove(&id) {
+        if let Some(old) = self
+            .keys
+            .remove(&id)
+            .filter(|_| self.reverse.contains(&table))
+        {
             let out = *old.values.last().unwrap();
             reads.push(Read::Output(table, out));
             let keys = self.outputs.get_mut(&(table, out)).unwrap();
@@ -51,8 +56,10 @@ impl Rows {
         }
         if let Some(row) = row {
             let out = *row.values.last().unwrap();
-            reads.push(Read::Output(table, out));
-            self.outputs.entry((table, out)).or_default().insert(key);
+            if self.reverse.contains(&table) {
+                reads.push(Read::Output(table, out));
+                self.outputs.entry((table, out)).or_default().insert(key);
+            }
             self.keys.insert(id, row);
         }
         reads
@@ -356,6 +363,7 @@ pub struct Stats {
 pub struct Runtime {
     eg: EGraph,
     kernels: Vec<Kernel>,
+    wake_tables: Vec<Vec<usize>>,
     sets: BTreeMap<String, Vec<usize>>,
     names: Vec<String>,
     feed: CellCommitFeed,
@@ -442,15 +450,31 @@ impl Runtime {
                 .map(String::as_str);
             kernels.push(Kernel::compile(&eg, sink, tables, seed)?);
         }
+        let mut wake_tables = vec![vec![]; names.len()];
+        let mut reverse = BTreeSet::new();
+        for (id, k) in kernels.iter().enumerate() {
+            for table in k.tables.iter().copied().collect::<BTreeSet<_>>() {
+                wake_tables[table].push(id)
+            }
+            for (atom, access) in &k.steps {
+                if matches!(access, Access::Output) {
+                    reverse.insert(k.tables[*atom]);
+                }
+            }
+        }
         let identity = eg.cell_rule_environment_stamp();
         let (feed, initial) = eg.subscribe_cell_commits(&names)?;
         let mut r = Self {
             eg,
             kernels,
+            wake_tables,
             sets: groups,
             names,
             feed,
-            rows: Rows::default(),
+            rows: Rows {
+                reverse,
+                ..Rows::default()
+            },
             identity,
             failed: false,
             epoch: 0,
@@ -527,8 +551,14 @@ impl Runtime {
         }
         {
             for read in changed {
-                for k in self.kernels.iter_mut().filter(|k| k.watch) {
-                    k.wake(&read)
+                let table = match &read {
+                    Read::Key(t, _) | Read::Output(t, _) => *t,
+                };
+                for id in &self.wake_tables[table] {
+                    let k = &mut self.kernels[*id];
+                    if k.watch {
+                        k.wake(&read)
+                    }
                 }
             }
         }
@@ -544,7 +574,10 @@ impl Runtime {
     /// Independent diagnostic only, outside the update path. Includes row
     /// timestamps, visibility and every reverse-index entry, not just counts.
     pub fn audit_mirror(&self) -> Result<usize> {
-        let mut expected = Rows::default();
+        let mut expected = Rows {
+            reverse: self.rows.reverse.clone(),
+            ..Rows::default()
+        };
         for (i, name) in self.names.iter().enumerate() {
             let n = self.feed.tables[i].keys;
             self.eg.function_for_each(name, |r| {
@@ -648,6 +681,21 @@ impl Runtime {
             }
             GenericSchedule::Saturate(_, x) => {
                 self.sync()?;
+                if self.enter_scalar_scope(x) {
+                    let result = (|| {
+                        let mut c = false;
+                        loop {
+                            let d = self.step(x)?;
+                            c |= d;
+                            if !d {
+                                break;
+                            }
+                        }
+                        Ok(c)
+                    })();
+                    self.leave_scalar_scope(x);
+                    return result;
+                }
                 if self.joint.as_ref().is_some_and(|j| j.accepts(x)) {
                     let mut proof = self.joint.take().unwrap();
                     let result = (|| {
@@ -703,6 +751,6 @@ impl Runtime {
         result
     }
     pub fn report(&self) -> Json {
-        json!({"stats":self.stats,"scalar_cells":self.scalar.iter().map(|(set,g)|json!({"ruleset":set,"rules":g.plans.len(),"stats":g.stats})).collect::<Vec<_>>(),"joint":self.joint.as_ref().map(|j|j.report()),"programs":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|{let k=&self.kernels[*id];json!({"ruleset":set,"rule":k.sink.name,"seed":k.sink.atoms[k.seed].function,"accesses":k.steps.iter().map(|(i,a)|json!({"table":k.sink.atoms[*i].function,"access":a})).collect::<Vec<_>>(),"seed_evaluations":k.executions,"emitted_bindings":k.bindings,"live_seed_instances":k.dependencies.len()})})).collect::<Vec<_>>(),"watched_rows":self.rows.keys.len(),"dependency_edges":self.kernels.iter().map(|k|k.subscribers.values().map(BTreeSet::len).sum::<usize>()).sum::<usize>(),"concrete_closure_catalog_entries":0,"scope":"Parameterized native update program with optional guarded joint saturation transfers. Original schedule and native effects; unsupported boundary states use the ordinary parameterized path. Not a GPU benchmark."})
+        json!({"stats":self.stats,"scalar_cells":self.scalar.iter().map(|(set,g)|json!({"ruleset":set,"rules":g.plans.len(),"stats":g.stats,"scope_allowed":g.scope.allowed,"closure":g.scope.stats})).collect::<Vec<_>>(),"joint":self.joint.as_ref().map(|j|j.report()),"programs":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|{let k=&self.kernels[*id];json!({"ruleset":set,"rule":k.sink.name,"seed":k.sink.atoms[k.seed].function,"accesses":k.steps.iter().map(|(i,a)|json!({"table":k.sink.atoms[*i].function,"access":a})).collect::<Vec<_>>(),"seed_evaluations":k.executions,"emitted_bindings":k.bindings,"live_seed_instances":k.dependencies.len()})})).collect::<Vec<_>>(),"watched_rows":self.rows.keys.len(),"dependency_edges":self.kernels.iter().map(|k|k.subscribers.values().map(BTreeSet::len).sum::<usize>()).sum::<usize>(),"concrete_closure_catalog_entries":0,"scope":"Parameterized native update program with optional guarded joint saturation transfers. Original schedule and native effects; unsupported boundary states use the ordinary parameterized path. Not a GPU benchmark."})
     }
 }

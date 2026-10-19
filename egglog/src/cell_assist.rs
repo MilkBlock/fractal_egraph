@@ -84,6 +84,17 @@ impl EGraph {
     /// Exact engine-environment generation, shared by clones but changed by
     /// original rule/ruleset edits. Preparing private query sinks does not bump it.
     pub fn cell_rule_environment_stamp(&self)->u64{self.cell_environment_stamp}
+    /// Installed merge callbacks can read functions that do not appear in a
+    /// rule's body. Closure isolation must include these transitive reads.
+    pub fn cell_merge_read_dependencies(&self)->Vec<(String,Vec<String>)>{
+        fn walk(e:&ResolvedExpr,out:&mut std::collections::BTreeSet<String>){
+            if let GenericExpr::Call(_,head,args)=e {
+                if let ResolvedCall::Func(f)=head{out.insert(f.name.clone());}
+                for a in args{walk(a,out)}
+            }
+        }
+        self.functions.iter().map(|(name,f)|{let mut out=std::collections::BTreeSet::new();if let Some(e)=&f.decl.merge{walk(e,&mut out)}(name.clone(),out.into_iter().collect())}).collect()
+    }
     /// Opt-in external action receipts for the Cell boundary index. Ordinary
     /// `run_program_with_trace` retains its existing scope and event counts.
     pub fn run_cell_input_with_trace(
@@ -102,6 +113,9 @@ impl EGraph {
             return Err(Error::BackendError("expected direct ruleset".into()));
         };
         Ok(rules.keys().cloned().collect())
+    }
+    pub fn cell_ruleset_is_seminaive(&self,ruleset:&str)->bool{
+        match self.rulesets.get(ruleset){Some(Ruleset::Rules(rules))=>rules.values().all(|(_,id)|self.backend.rule_is_seminaive(*id)),_=>false}
     }
     /// Engine-local identity of immutable compiled rules. Reinstalling a rule
     /// under the same source name must invalidate a fixed-point certificate too.
