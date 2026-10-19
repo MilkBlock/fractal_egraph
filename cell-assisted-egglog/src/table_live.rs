@@ -67,6 +67,7 @@ struct NativeStats {
 /// `complete=false` requires the ordinary backend to finish saturation.
 /// Only invoked for explicit Saturate bodies, never for an ordinary Run.
 pub trait SaturationHook {
+    fn handles(&self,_body:&Schedule)->bool{true}
     fn diagnostics(&self) -> Json {
         Json::Null
     }
@@ -811,7 +812,8 @@ impl Runtime {
             GenericSchedule::Saturate(_, s) => {
                 let mut changed = false;
                 self.stats.saturation_boundaries += 1;
-                if let Some(hook) = self.saturation_hook.as_mut() {
+                let handles=self.saturation_hook.as_ref().is_some_and(|h|h.handles(s));
+                if let Some(hook) = self.saturation_hook.as_mut().filter(|_|handles) {
                     let start = Instant::now();
                     let result = hook.try_boundary(&mut self.eg, s)?;
                     self.stats.saturation_hook_seconds += start.elapsed().as_secs_f64();
@@ -860,7 +862,7 @@ impl Runtime {
                         break;
                     }
                 }
-                if let Some(hook) = self.saturation_hook.as_mut() {
+                if let Some(hook) = self.saturation_hook.as_mut().filter(|_|handles) {
                     hook.after_boundary(&mut self.eg, s)?;
                     self.collect_commits()?;
                 }

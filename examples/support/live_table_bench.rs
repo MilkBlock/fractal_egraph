@@ -425,6 +425,7 @@ fn benchmark_impl(
    "insert_merge_seconds":report.merge_time_per_ruleset.values().map(|t|t.as_secs_f64()).sum::<f64>(),
    "rebuild_seconds":report.rebuild_time_per_ruleset.values().map(|t|t.as_secs_f64()).sum::<f64>(),
    "search_apply_per_ruleset":report.search_and_apply_time_per_ruleset.iter().map(|(s,t)|(s.to_string(),t.as_secs_f64())).collect::<BTreeMap<_,_>>()},
+  "native_per_rule":report.search_and_apply_time_per_rule.iter().map(|(s,t)|json!({"rule":s,"search_apply_seconds":t.as_secs_f64(),"matches":report.num_matches_per_rule.get(s).copied().unwrap_or(0)})).collect::<Vec<_>>(),
   "sorted_commit_cpu":sorted_stats,"same_commit_verification":same_commit_verification.as_ref().ok(),"same_commit_verification_error":same_commit_verification.as_ref().err().map(ToString::to_string),
   "gpu_without_joint":gpu_without_joint_report,"joint_verification":joint_verification.as_ref().and_then(|r|r.as_ref().ok()),"joint_verification_error":joint_verification.as_ref().and_then(|r|r.as_ref().err()).map(ToString::to_string),
   "gpu":stats,"native_clone_seconds_excluded":native_clone,"gpu_clone_seconds_excluded":gpu_clone,

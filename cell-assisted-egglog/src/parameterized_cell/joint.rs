@@ -408,14 +408,17 @@ impl Joint {
             self.counters.quiescent_skips += 1;
             return Ok(Some(false));
         }
-        // A latent subsumed TCPair/Potential/Smaller can be reused by hashcons
-        // without becoming visible. A fresh producer then has different helper
-        // behavior. Conservatively retire materializing macros after removals;
-        // unchanged, already-completed boundaries can still skip above.
-        if r.saw_removals {
-            return Ok(self.decline("removal or subsumption history requires ordinary closure"));
+        // An obsolete key after rebuild is not an invisible fact. Retain the
+        // exact current hidden keys, which hashcons must not silently revive.
+        if r.rows.hidden.iter().any(|(t, _)| {
+            matches!(
+                r.names[*t].as_str(),
+                "TCPair" | "PotentialExtractedExpr" | "Smaller"
+            )
+        }) {
+            return Ok(self.decline("currently subsumed helper row"));
         }
-        if !self.extendable {
+        if !self.extendable && self.closed_epoch.is_some() {
             return Ok(self.decline("changed existing state or external helper work"));
         }
         let tc = Self::table(r, "TCPair");
@@ -438,10 +441,7 @@ impl Joint {
         let f = Self::table(r, "ExtractedExpr");
         for (i, p) in self.producers.iter().enumerate() {
             let table = Self::table(r, &p.constructor);
-            for ((t, key), row) in &r.rows.keys {
-                if *t != table {
-                    continue;
-                }
+            for ((_, key), row) in r.rows.keys.range((table, vec![])..(table + 1, vec![])) {
                 let root = *row.values.last().unwrap();
                 if !roots.insert(root) {
                     return Ok(self.decline("multiple producers for one Expr"));
@@ -582,11 +582,10 @@ impl Joint {
         self.stable.clear();
         for p in &self.producers {
             let table = Self::table(r, &p.constructor);
-            for ((t, _), row) in &r.rows.keys {
-                if *t == table
-                    && r.rows
-                        .keys
-                        .contains_key(&(f, vec![*row.values.last().unwrap()]))
+            for (_, row) in r.rows.keys.range((table, vec![])..(table + 1, vec![])) {
+                if r.rows
+                    .keys
+                    .contains_key(&(f, vec![*row.values.last().unwrap()]))
                 {
                     self.stable.insert(*row.values.last().unwrap());
                 }
@@ -649,6 +648,9 @@ impl Runtime {
             return Err("no joint proof installed".into());
         }
         self.forwarded = Some(vec![]);
+        for k in &mut self.kernels {
+            k.dirty.clear();
+        }
         let eg = std::mem::take(&mut self.eg);
         Ok((eg, Observer(self)))
     }
@@ -666,6 +668,9 @@ impl Observer {
     }
 }
 impl crate::table_live::SaturationHook for Observer {
+    fn handles(&self, s: &Schedule) -> bool {
+        self.0.joint.as_ref().is_some_and(|j| j.accepts(s))
+    }
     fn diagnostics(&self) -> Json {
         self.0.report()
     }

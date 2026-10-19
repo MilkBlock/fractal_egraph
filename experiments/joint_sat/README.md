@@ -76,11 +76,11 @@ The materializing fast path requires:
 4. The producer binding is actually eligible under its native semi-naive
    watermark, or is enabled by a newly planned child result. An old consumed
    producer whose output was deleted is not a new Cell.
-5. No observed removal/subsumption history for materializing macros. This is
-   conservative, including rebuild removals. Hashcons can return an invisible
-   old TCPair/Potential/Smaller without restoring visibility, so absence of a
-   visible row alone cannot justify the fresh-Cell proof. Already completed,
-   unchanged boundaries can still skip.
+5. No currently subsumed helper rows. The mirror retains exact invisible keys
+   separately from missing physical keys: ordinary rebuild removals no longer
+   permanently disable the observer. Hashcons can return an invisible old
+   TCPair/Potential/Smaller without restoring visibility, so those rows still
+   decline the macro. Already completed, unchanged boundaries can still skip.
 
 Under these conditions each new producer has one candidate. The initializer
 establishes S; improvement either does not fire or proposes exactly that one
@@ -195,3 +195,21 @@ Multiple candidates for the same Expr and updates to an existing selected Term
 still use the ordinary matcher. The implemented joint proof avoids exponential
 enumeration by retaining that explicit boundary; it does not certify every
 possible alias/merge interaction as a reusable macro.
+
+### Optimization follow-up: current visibility and scoped callbacks
+
+The next iteration distinguishes actual hidden rows from removed canonical keys,
+validates the first entry against current state, skips callbacks for unrelated
+Saturate bodies, and stops maintaining unused matching subscriptions in the
+observer. A same-run complete Pass-3 control measured 18.663 s with joint off
+and 19.714 s with joint on (strict public graph checks passed). This removes most
+of the previous overhead but does **not** meet the acceleration objective.
+
+There were still zero macro instances: one boundary declined multiple producers
+for one Expr, and eleven declined changed existing state/external helper work.
+The benchmark now records existing native per-rule timers without adding hot
+per-row instrumentation. `Expr-size` propagation accounts for much of the
+remaining always-run work; the Get transfer alone has 956,219 logical matches.
+Current same-run evidence is in
+`out/raytrace-joint-current-visibility/report.json`. This is an intermediate
+optimization measurement; Tiger extraction was not rerun for this iteration.

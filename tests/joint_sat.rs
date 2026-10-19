@@ -181,6 +181,16 @@ fn blocked_inputs_and_sentinel_branches_are_preserved() {
 }
 
 #[test]
+fn canonical_key_replacement_before_the_first_boundary_is_not_a_hidden_fact() {
+    let mut p = Pair::new();
+    p.input("(Bop (Add) (V 0) (V 2)) (union (V 2) (V 1)) (set (ExtractedExpr (V 0)) (TCPair (TermLeaf 0) 2)) (set (ExtractedExpr (V 1)) (TCPair (TermLeaf 1) 3))");
+    p.cell.audit_mirror().unwrap();
+    p.run(SCHEDULE);
+    assert_eq!(p.cell.report()["joint"]["stats"]["macro_instances"], 1);
+    assert_eq!(p.emitted(), 0);
+}
+
+#[test]
 fn shared_cpu_and_gpu_receive_joint_macro_rows_and_handback() {
     use cell_assisted_egglog::table_live;
     let worker = std::env::var_os("CELL_MATRIX_WORKER");

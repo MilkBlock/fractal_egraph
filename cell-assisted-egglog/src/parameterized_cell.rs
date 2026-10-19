@@ -30,6 +30,7 @@ struct Row {
 struct Rows {
     keys: BTreeMap<(usize, Key), Row>,
     outputs: BTreeMap<(usize, Value), BTreeSet<Key>>,
+    hidden: BTreeSet<(usize, Key)>,
 }
 impl Rows {
     fn change(&mut self, table: usize, key: Key, row: Option<Row>) -> Vec<Read> {
@@ -310,7 +311,6 @@ pub struct Runtime {
     identity: Vec<(String, String)>,
     failed: bool,
     epoch: u64,
-    saw_removals: bool,
     joint: Option<joint::Joint>,
     forwarded: Option<Vec<CellCommitBatch>>,
     pub last_updated: bool,
@@ -364,7 +364,6 @@ impl Runtime {
             identity,
             failed: false,
             epoch: 0,
-            saw_removals: false,
             joint: None,
             forwarded: None,
             last_updated: false,
@@ -381,8 +380,6 @@ impl Runtime {
         &self.eg
     }
     fn ingest(&mut self, batch: CellCommitBatch) -> Result<()> {
-        self.saw_removals |=
-            !batch.clears.is_empty() || batch.rows.iter().any(|d| !d.visible || d.row.is_none());
         if let Some(out) = &mut self.forwarded {
             out.push(batch.clone());
         }
@@ -394,7 +391,11 @@ impl Runtime {
         self.stats.committed_row_events += batch.rows.len();
         self.stats.union_events += batch.unions.len();
         let mut changed = vec![];
+        let mut hidden_changed = false;
         for t in batch.clears {
+            let before = self.rows.hidden.len();
+            self.rows.hidden.retain(|(table, _)| *table != t);
+            hidden_changed |= before != self.rows.hidden.len();
             let keys = self
                 .rows
                 .keys
@@ -408,6 +409,12 @@ impl Runtime {
         }
         for delta in batch.rows {
             let t = delta.table;
+            let key = (t, delta.key.clone());
+            hidden_changed |= if delta.row.is_some() && !delta.visible {
+                self.rows.hidden.insert(key)
+            } else {
+                self.rows.hidden.remove(&key)
+            };
             let row = if delta.visible {
                 delta.row.map(|mut values| {
                     values.truncate(self.feed.tables[t].keys + 1);
@@ -421,15 +428,17 @@ impl Runtime {
             };
             changed.extend(self.rows.change(t, delta.key, row));
         }
-        if has_union || !changed.is_empty() {
+        if has_union || hidden_changed || !changed.is_empty() {
             self.epoch = self
                 .epoch
                 .checked_add(1)
                 .ok_or("joint generation exhausted")?;
         }
-        for read in changed {
-            for k in &mut self.kernels {
-                k.wake(&read)
+        if self.forwarded.is_none() {
+            for read in changed {
+                for k in &mut self.kernels {
+                    k.wake(&read)
+                }
             }
         }
         Ok(())
@@ -448,6 +457,9 @@ impl Runtime {
         for (i, name) in self.names.iter().enumerate() {
             let n = self.feed.tables[i].keys;
             self.eg.function_for_each(name, |r| {
+                if r.subsumed {
+                    expected.hidden.insert((i, r.vals[..n].to_vec()));
+                }
                 if !r.subsumed {
                     let values = r.vals[..n + 1].to_vec();
                     expected.change(
