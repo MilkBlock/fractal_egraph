@@ -75,6 +75,13 @@ def report(path, fresh=False):
         print('认证跳过次数：', r['gpu']['runtime'].get('skipped_saturations', 0))
         if not m['exact_cpu_gpu']:
             print('失败原因：', r.get('same_commit_verification_error'))
+    elif 'joint_sat_verified' in r:
+        print('联合 terms 饱和证明；实际 CPU/GPU 调度和原生提交，未报告加速比。')
+        print(r['scope'])
+        for lane in r['lanes']:
+            checked=all(exact(p.get('verification')) for p in lane['phases'])
+            last=lane['phases'][-1]['runtime']['saturation_diagnostics']['joint']
+            print(lane['lane'], '整图检查：', checked, '；联合证明：', last['stats'])
     elif 'lanes' in r:
         print(f"Math sat-skip：{r['instances']} 实例；模式 {r['mode']}。不是 raytrace。")
         print('| 路径 | 边界总秒数 | smooth 逻辑匹配 | 全边界验证 |\n|---|---:|---:|---|')
@@ -106,15 +113,16 @@ def parser():
     p.add_argument('--dry-run', action='store_true')
     sub = p.add_subparsers(dest='mode', required=True)
     q = sub.add_parser('report'); q.add_argument('input', type=Path, nargs='?', default=SAVED)
-    for mode in ['check', 'build', 'run', 'extract', 'audit', 'cpu-pair', 'diff', 'sat-skip', 'parameterized', 'test']:
+    for mode in ['check', 'build', 'run', 'extract', 'audit', 'cpu-pair', 'diff', 'sat-skip', 'parameterized', 'joint-sat', 'test']:
         q = sub.add_parser(mode)
         q.add_argument('--worker', type=Path, default=WORKER)
         q.add_argument('--no-build', action='store_true')
         if mode in ['check', 'run', 'audit', 'cpu-pair', 'diff']:
             q.add_argument('--snapshot', type=Path, default=SNAPSHOT)
+        if mode == 'joint-sat': q.add_argument('--snapshot', type=Path)
         if mode in ['check', 'run', 'extract']:
             q.add_argument('--tiger', type=Path, default=TIGER)
-        if mode in ['run', 'audit', 'cpu-pair', 'diff', 'sat-skip', 'parameterized']:
+        if mode in ['run', 'audit', 'cpu-pair', 'diff', 'sat-skip', 'parameterized', 'joint-sat']:
             q.add_argument('--output', type=Path)
         if mode in ['run', 'extract']:
             q.add_argument('--reference-output', type=Path)
@@ -134,7 +142,7 @@ def commands(a, repo, worker, out):
     """Build an inspectable plan without executing or creating anything."""
     resolve = lambda p: p if p.is_absolute() else repo / p
     binary = lambda n: str(repo / 'target/analyzer/release/examples' / n)
-    source = str(resolve(a.snapshot)) if hasattr(a, 'snapshot') else None
+    source = str(resolve(a.snapshot)) if getattr(a, 'snapshot', None) else None
     if a.mode == 'run':
         c = [[binary('raytrace_stable_bench'), source, str(worker), str(out)] + (['--original'] if a.policy == 'original' else [])]
         if not a.no_extract:
@@ -153,10 +161,12 @@ def commands(a, repo, worker, out):
         c = [[binary('sat_skip_bench'), str(worker), str(out), str(n), 'check' if a.checked else 'time']]
     elif a.mode == 'parameterized':
         c = [[binary('parameterized_cell'), str(out)]]
+    elif a.mode == 'joint-sat':
+        c = [[binary('joint_sat_bench'), str(worker), str(out)] + ([source] if source else [])]
     elif a.mode == 'test':
         c = [['cargo', 'test', '--offline', '--manifest-path', 'cell-assisted-egglog/Cargo.toml', '--test', 'stable_choice', '--test', 'hybrid', '--test', 'table_live', '--target-dir', 'target/analyzer', '--', '--test-threads=1'],
              ['cargo', 'test', '--offline', '--manifest-path', 'cell-assisted-egglog/Cargo.toml', '--lib', 'stable_choice::tests', '--target-dir', 'target/analyzer'],
-             ['cargo', 'test', '--offline', '--test', 'whole_cell', '--test', 'whole_cell_automatic', '--test', 'sat_skip', '--test', 'parameterized_cell', '--example', 'raytrace_stable_bench', '--target-dir', 'target/analyzer', '--', '--test-threads=1']]
+             ['cargo', 'test', '--offline', '--test', 'whole_cell', '--test', 'whole_cell_automatic', '--test', 'sat_skip', '--test', 'parameterized_cell', '--test', 'joint_sat', '--example', 'raytrace_stable_bench', '--target-dir', 'target/analyzer', '--', '--test-threads=1']]
     else: c = []
     if getattr(a, 'reference_output', None): c[-1] += ['--reference-output', str(resolve(a.reference_output))]
     return c
@@ -176,6 +186,9 @@ def saved_gate(mode, out, three_lane=False):
     if mode == 'audit': return load(out/'audit.json').get('complete') is True
     if mode == 'extract': return load(out/'extraction/quality.json').get('passed') is True
     if mode == 'parameterized': return parameterized_gate(load(out/'results.json'))
+    if mode == 'joint-sat':
+        r=load(out/'results.json')
+        return r.get('joint_sat_verified') is True and len(r['lanes'])==2 and all(l['phases'] and all(exact(p.get('verification')) for p in l['phases']) for l in r['lanes'])
     if mode == 'diff':
         rows = load(out/'diff.json')['boundaries']
         return bool(rows) and rows[-1].get('equal') is True
@@ -202,14 +215,14 @@ def main(argv=None):
     if a.mode == 'run' and a.no_extract and a.reference_output:
         raise ValueError('--reference-output requires extraction')
     if not a.dry_run:
-        if hasattr(a, 'snapshot') and not resolve(a.snapshot).is_file(): raise FileNotFoundError(resolve(a.snapshot))
-        if a.mode in ['run','audit','cpu-pair','diff','sat-skip','parameterized'] and out.exists(): raise ValueError('使用新的 output 目录：' + str(out))
+        if getattr(a, 'snapshot', None) and not resolve(a.snapshot).is_file(): raise FileNotFoundError(resolve(a.snapshot))
+        if a.mode in ['run','audit','cpu-pair','diff','sat-skip','parameterized','joint-sat'] and out.exists(): raise ValueError('使用新的 output 目录：' + str(out))
         if a.mode == 'extract':
             for lane in ['native','cpu','gpu']:
                 if not (out/'graphs'/f'{lane}.json').is_file(): raise FileNotFoundError(out/'graphs'/f'{lane}.json')
             if (out/'extraction').exists(): raise ValueError('提取目录已存在；使用 report 查看，不能覆盖')
     plan = commands(a, repo, worker, out)
-    target = {'build': 'raytrace_stable_bench', 'run': 'raytrace_stable_bench', 'audit': 'raytrace_pass3_bench', 'cpu-pair': 'raytrace_pass3_bench', 'diff': 'raytrace_pass3_diff', 'sat-skip': 'sat_skip_bench', 'parameterized': 'parameterized_cell'}.get(a.mode)
+    target = {'build': 'raytrace_stable_bench', 'run': 'raytrace_stable_bench', 'audit': 'raytrace_pass3_bench', 'cpu-pair': 'raytrace_pass3_bench', 'diff': 'raytrace_pass3_diff', 'sat-skip': 'sat_skip_bench', 'parameterized': 'parameterized_cell', 'joint-sat': 'joint_sat_bench'}.get(a.mode)
     targets = [target] if target else []
     if a.mode in ['build', 'extract'] or (a.mode == 'run' and not a.no_extract): targets += ['tiger_output_check']
     build = ['cargo', 'build', '--offline', '--release', '--target-dir', 'target/analyzer'] + [x for t in targets for x in ['--example', t]]
@@ -259,7 +272,7 @@ def main(argv=None):
                           repo=str(repo), source_head=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=repo, text=True).strip(),
                           dirty_files=subprocess.check_output(['git','status','--short'],cwd=repo,text=True),
                           no_build=a.no_build, worker_sha256=sha(worker) if worker.is_file() else None,
-                          snapshot_sha256=sha(resolve(a.snapshot)) if hasattr(a,'snapshot') else None,
+                          snapshot_sha256=sha(resolve(a.snapshot)) if getattr(a,'snapshot',None) else None,
                           binary_sha256={str(p):sha(p) for t in targets if (p:=repo/'target/analyzer/release/examples'/t).is_file()})
         (out / ('workflow-extract.json' if a.mode == 'extract' else 'workflow.json')).write_text(json.dumps(provenance, indent=2) + '\n')
         try: report(out, fresh=True)

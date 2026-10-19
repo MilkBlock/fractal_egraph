@@ -1,5 +1,9 @@
 # Parameterized terms Cell update program
 
+Follow-up: [guarded joint sat-skip](../joint_sat/README.md) now uses this program
+as a fallback and installs conditional joint closure macros in the shared
+CPU/GPU runtime. The experiment below remains the no-macro control.
+
 This experiment tests whether one Bop spine and a fixed update program can
 survive changes to Term/cost ports, without registering a concrete saturated Cell
 for every value combination. It uses the actual egglog commit/merge/rebuild APIs

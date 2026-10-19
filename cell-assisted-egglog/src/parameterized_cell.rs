@@ -12,6 +12,7 @@ use egglog_numeric_id::NumericId;
 use serde::Serialize;
 use serde_json::{Value as Json, json};
 use std::collections::{BTreeMap, BTreeSet};
+pub mod joint;
 
 type Key = Vec<Value>;
 type Binding = Vec<Option<Value>>;
@@ -99,9 +100,17 @@ fn unify(columns: &[CellOperand], row: &[Value], b: &mut Binding) -> bool {
     true
 }
 impl Kernel {
-    fn compile(eg: &EGraph, sink: CellActionSink, tables: Vec<usize>) -> Result<Self> {
+    fn compile(
+        eg: &EGraph,
+        sink: CellActionSink,
+        tables: Vec<usize>,
+        required_seed: Option<&str>,
+    ) -> Result<Self> {
         let mut plans = vec![];
         for seed in 0..sink.atoms.len() {
+            if required_seed.is_some_and(|name| sink.atoms[seed].function != name) {
+                continue;
+            }
             let mut bound = vec![false; sink.slots().len()];
             for x in &sink.atoms[seed].columns {
                 if let CellOperand::Slot(i) = x {
@@ -300,10 +309,22 @@ pub struct Runtime {
     rows: Rows,
     identity: Vec<(String, String)>,
     failed: bool,
+    epoch: u64,
+    saw_removals: bool,
+    joint: Option<joint::Joint>,
+    forwarded: Option<Vec<CellCommitBatch>>,
+    pub last_updated: bool,
     pub stats: Stats,
 }
 impl Runtime {
-    pub fn new(mut eg: EGraph, sets: &[&str]) -> Result<Self> {
+    pub fn new(eg: EGraph, sets: &[&str]) -> Result<Self> {
+        Self::new_with_seeds(eg, sets, &BTreeMap::new())
+    }
+    fn new_with_seeds(
+        mut eg: EGraph,
+        sets: &[&str],
+        seeds: &BTreeMap<String, String>,
+    ) -> Result<Self> {
         let mut sinks = vec![];
         let mut groups = BTreeMap::new();
         let mut names = BTreeSet::new();
@@ -328,7 +349,8 @@ impl Runtime {
                 .iter()
                 .map(|a| names.iter().position(|n| n == &a.function).unwrap())
                 .collect();
-            kernels.push(Kernel::compile(&eg, sink, tables)?);
+            let seed = seeds.get(&sink.name).map(String::as_str);
+            kernels.push(Kernel::compile(&eg, sink, tables, seed)?);
         }
         let identity = eg.cell_rule_environment_identity();
         let (feed, initial) = eg.subscribe_cell_commits(&names)?;
@@ -341,6 +363,11 @@ impl Runtime {
             rows: Rows::default(),
             identity,
             failed: false,
+            epoch: 0,
+            saw_removals: false,
+            joint: None,
+            forwarded: None,
+            last_updated: false,
             stats: Stats {
                 program_compilations: 1,
                 ..Stats::default()
@@ -354,6 +381,16 @@ impl Runtime {
         &self.eg
     }
     fn ingest(&mut self, batch: CellCommitBatch) -> Result<()> {
+        self.saw_removals |=
+            !batch.clears.is_empty() || batch.rows.iter().any(|d| !d.visible || d.row.is_none());
+        if let Some(out) = &mut self.forwarded {
+            out.push(batch.clone());
+        }
+        if let Some(mut proof) = self.joint.take() {
+            proof.observes(self, &batch);
+            self.joint = Some(proof);
+        }
+        let has_union = !batch.unions.is_empty();
         self.stats.committed_row_events += batch.rows.len();
         self.stats.union_events += batch.unions.len();
         let mut changed = vec![];
@@ -383,6 +420,12 @@ impl Runtime {
                 None
             };
             changed.extend(self.rows.change(t, delta.key, row));
+        }
+        if has_union || !changed.is_empty() {
+            self.epoch = self
+                .epoch
+                .checked_add(1)
+                .ok_or("joint generation exhausted")?;
         }
         for read in changed {
             for k in &mut self.kernels {
@@ -496,6 +539,27 @@ impl Runtime {
                 Ok(c)
             }
             GenericSchedule::Saturate(_, x) => {
+                self.sync()?;
+                if self.joint.as_ref().is_some_and(|j| j.accepts(x)) {
+                    let mut proof = self.joint.take().unwrap();
+                    let result = (|| {
+                        if let Some(updated) = proof.try_close(self)? {
+                            return Ok(updated);
+                        }
+                        let mut changed = false;
+                        loop {
+                            let updated = self.step(x)?;
+                            changed |= updated;
+                            if !updated {
+                                break;
+                            }
+                        }
+                        proof.complete(self)?;
+                        Ok(changed)
+                    })();
+                    self.joint = Some(proof);
+                    return result;
+                }
                 let mut c = false;
                 loop {
                     let d = self.step(x)?;
@@ -516,11 +580,12 @@ impl Runtime {
             return Err("rule environment changed".into());
         }
         let result = (|| {
+            self.last_updated = false;
             for c in commands {
                 let Command::RunSchedule(s) = c else {
                     return Err("expected schedule".into());
                 };
-                self.step(s)?;
+                self.last_updated |= self.step(s)?;
             }
             Ok(())
         })();
@@ -530,6 +595,6 @@ impl Runtime {
         result
     }
     pub fn report(&self) -> Json {
-        json!({"stats":self.stats,"programs":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|{let k=&self.kernels[*id];json!({"ruleset":set,"rule":k.sink.name,"seed":k.sink.atoms[k.seed].function,"accesses":k.steps.iter().map(|(i,a)|json!({"table":k.sink.atoms[*i].function,"access":a})).collect::<Vec<_>>(),"seed_evaluations":k.executions,"emitted_bindings":k.bindings,"live_seed_instances":k.dependencies.len()})})).collect::<Vec<_>>(),"watched_rows":self.rows.keys.len(),"dependency_edges":self.kernels.iter().map(|k|k.subscribers.values().map(BTreeSet::len).sum::<usize>()).sum::<usize>(),"concrete_closure_catalog_entries":0,"scope":"Parameterized keyed update program. Native effects and original schedule, no original LHS queries on admitted runs. Committed canonical row deltas handle unions. Not a precomputed whole-saturation skip or GPU benchmark."})
+        json!({"stats":self.stats,"joint":self.joint.as_ref().map(|j|j.report()),"programs":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|{let k=&self.kernels[*id];json!({"ruleset":set,"rule":k.sink.name,"seed":k.sink.atoms[k.seed].function,"accesses":k.steps.iter().map(|(i,a)|json!({"table":k.sink.atoms[*i].function,"access":a})).collect::<Vec<_>>(),"seed_evaluations":k.executions,"emitted_bindings":k.bindings,"live_seed_instances":k.dependencies.len()})})).collect::<Vec<_>>(),"watched_rows":self.rows.keys.len(),"dependency_edges":self.kernels.iter().map(|k|k.subscribers.values().map(BTreeSet::len).sum::<usize>()).sum::<usize>(),"concrete_closure_catalog_entries":0,"scope":"Parameterized native update program with optional guarded joint saturation transfers. Original schedule and native effects; unsupported boundary states use the ordinary parameterized path. Not a GPU benchmark."})
     }
 }

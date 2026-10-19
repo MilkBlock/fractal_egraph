@@ -7,6 +7,7 @@
 - `diff` → `raytrace_pass3_diff`。`--inspect /0/1/r1/12` 对已找到的边界进行回放；`--inspect final` 只做最终检查；`--open PATH` 展开指定 Saturate；`--sequential` CPU 先跑完再跑 GPU。`--sort-hoist` 是旧的“按 raw ID 排序”诊断反例，不是稳定选择修复；不要默认使用。
 - `sat-skip` → `sat_skip_bench WORKER OUT N MODE`。默认 512 个实例/time；`--checked` 默认 32 个/check。它检查实际原生事件交接和每个公开调度边界。
 - `parameterized` → `parameterized_cell OUT`，不启动 GPU。采用真实 Bop 和六条 terms helper 规则，对不同 Term/代价、缺失端口、union 和多候选别名运行同一份固定读取程序。每阶段必须同时通过融合原生整图、同提交协议整图、逐规则匹配计数和增量表镜像核对。没有具体闭包目录，也不表示整套 terms 已获 sat-skip 认证；见 `experiments/parameterized_cell/README.md`。
+- `joint-sat` → `joint_sat_bench WORKER OUT [SNAPSHOT]`，把三个 ruleset 的联合证明接入共享 CPU/GPU saturation hook。默认验证并行新 Cell、三层依赖、继续 graft、普通 Run、更新、union 和静止状态；可选 SNAPSHOT 仅重放其原始输入上的 terms 子调度。结果保留完整整图门槛、宏命中、原始规则匹配、回退计数，不能只看 `skipped_saturations` 宣称加速。实现与边界见 `experiments/joint_sat/README.md`。
 - `test` → shared-backend 的 `hybrid`、`table_live`、`stable_choice`，结构 hash 冲突测试，以及根包 `whole_cell`、`whole_cell_automatic`、`sat_skip` 和 Pass-3 比较器测试。需要实际 matrix worker，不能把缺环境变量后提前返回的测试当成 GPU 通过。
 
 ## 判读

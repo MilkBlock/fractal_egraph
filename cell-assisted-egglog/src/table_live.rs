@@ -63,14 +63,19 @@ struct NativeStats {
     matches: usize,
 }
 /// Trusted saturation compiler, analogous to the complete-frontier provider.
-/// `None` declines WITHOUT effects. Some may publish proven positive closure
-/// deltas; `complete=false` requires the ordinary backend to finish saturation.
+/// `None` declines WITHOUT effects. Some may publish certified closure effects;
+/// `complete=false` requires the ordinary backend to finish saturation.
 /// Only invoked for explicit Saturate bodies, never for an ordinary Run.
 pub trait SaturationHook {
     fn diagnostics(&self) -> Json {
         Json::Null
     }
     fn try_boundary(&mut self, eg: &mut EGraph, body: &Schedule) -> Result<Option<Json>>;
+    /// Ordinary backend completed this exact Saturate body. A joint observer
+    /// may renew its certificate after unsupported changes were handled there.
+    fn after_boundary(&mut self, _eg: &mut EGraph, _body: &Schedule) -> Result<()> {
+        Ok(())
+    }
     /// Forward rows consumed from draining journals; table IDs refer to names.
     /// Union cursors remain independent, so the mirror uses its own union feed.
     fn take_commits(&mut self, eg: &mut EGraph) -> Result<(Vec<String>, Vec<CellCommitBatch>)>;
@@ -824,16 +829,22 @@ impl Runtime {
                         self.collect_commits()?;
                         self.stats.event_seconds += events_started.elapsed().as_secs_f64();
                         if complete {
-                            let set = self.last_saturation["ruleset"]
-                                .as_str()
-                                .ok_or("missing certified ruleset")?;
-                            let ids = self.sets.get(set).ok_or("unknown certified ruleset")?;
-                            if self.cpu || self.audit {
-                                for id in ids {
-                                    self.eg.sync_cell_query_after_saturation(
-                                        &self.sinks[*id],
-                                        &self.reference[*id],
-                                    );
+                            let sets = if let Some(xs) = self.last_saturation["rulesets"].as_array() {
+                                xs.iter()
+                                    .map(|s| s.as_str().ok_or("invalid certified ruleset"))
+                                    .collect::<std::result::Result<Vec<_>, _>>()?
+                            } else {
+                                vec![self.last_saturation["ruleset"].as_str().ok_or("missing certified ruleset")?]
+                            };
+                            for set in sets {
+                                let ids = self.sets.get(set).ok_or("unknown certified ruleset")?;
+                                if self.cpu || self.audit {
+                                    for id in ids {
+                                        self.eg.sync_cell_query_after_saturation(
+                                            &self.sinks[*id],
+                                            &self.reference[*id],
+                                        );
+                                    }
                                 }
                             }
                             self.stats.skipped_saturations += 1;
@@ -848,6 +859,10 @@ impl Runtime {
                     if !c {
                         break;
                     }
+                }
+                if let Some(hook) = self.saturation_hook.as_mut() {
+                    hook.after_boundary(&mut self.eg, s)?;
+                    self.collect_commits()?;
                 }
                 Ok(changed)
             }

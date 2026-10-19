@@ -61,6 +61,19 @@ class WorkflowTests(unittest.TestCase):
         self.assertEqual(plan(['sat-skip', '--checked'])[0][-2:], ['32', 'check'])
         self.assertEqual(plan(['sat-skip'])[0][-2:], ['512', 'time'])
         self.assertEqual(plan(['parameterized'])[0], ['/repo/target/analyzer/release/examples/parameterized_cell', '/new-out'])
+        self.assertEqual(plan(['joint-sat'])[0], ['/repo/target/analyzer/release/examples/joint_sat_bench', '/worker', '/new-out'])
+        self.assertEqual(plan(['joint-sat','--snapshot','/input.egg'])[0][-1],'/input.egg')
+
+    def test_joint_gate_requires_every_lane_and_boundary(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            folder=Path(tmp)
+            proof={'exact_rows_values_equivalence_visibility':True}
+            r={'joint_sat_verified':True,'lanes':[{'phases':[{'verification':proof}]} for _ in range(2)]}
+            (folder/'results.json').write_text(json.dumps(r))
+            self.assertTrue(B.saved_gate('joint-sat',folder))
+            r['lanes'][1]['phases'][0]['verification']=None
+            (folder/'results.json').write_text(json.dumps(r))
+            self.assertFalse(B.saved_gate('joint-sat',folder))
 
     def test_parameterized_gate_requires_both_graphs_and_counts(self):
         phase = dict(same_submit=dict(exact_rows_values_equivalence_visibility=True),

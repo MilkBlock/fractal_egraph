@@ -1,0 +1,40 @@
+; Generated native macro fragment. Requires the original declarations and checked joint entry contract.
+(ruleset joint_macro_0)
+(function joint_gate_0 (Constant Type Assumption Expr) i64 :merge old)
+(rule ((= 0 (joint_gate_0 p0 p1 p2 p3))) ((PotentialExtractedExpr p3 (TCPair (TermConst p0) 1)) (set (ExtractedExpr p3) (TCPair (NoTerm ) 10000000000000000)) ) :ruleset joint_macro_0 :name "high")
+(rule ((= 0 (joint_gate_0 p0 p1 p2 p3))) ((PotentialExtractedExpr p3 (TCPair (TermConst p0) 1)) (set (ExtractedExpr p3) (TCPair (NoTerm ) 10000000000000000)) (set (ExtractedExpr p3) (TCPair (TermConst p0) 1)) (union (Smaller (TCPair (NoTerm ) 10000000000000000) (TCPair (TermConst p0) 1)) (TCPair (TermConst p0) 1))) :ruleset joint_macro_0 :name "low")
+
+(ruleset joint_macro_1)
+(function joint_gate_1 (Type Assumption Expr) i64 :merge old)
+(rule ((= 0 (joint_gate_1 p0 p1 p2))) ((PotentialExtractedExpr p2 (TCPair (TermArg ) 1)) (set (ExtractedExpr p2) (TCPair (NoTerm ) 10000000000000000)) ) :ruleset joint_macro_1 :name "high")
+(rule ((= 0 (joint_gate_1 p0 p1 p2))) ((PotentialExtractedExpr p2 (TCPair (TermArg ) 1)) (set (ExtractedExpr p2) (TCPair (NoTerm ) 10000000000000000)) (set (ExtractedExpr p2) (TCPair (TermArg ) 1)) (union (Smaller (TCPair (NoTerm ) 10000000000000000) (TCPair (TermArg ) 1)) (TCPair (TermArg ) 1))) :ruleset joint_macro_1 :name "low")
+
+(ruleset joint_macro_2)
+(function joint_gate_2 (BinaryOp Expr Expr Expr Term i64 TermAndCost Term i64 TermAndCost) i64 :merge old)
+(rule ((= 0 (joint_gate_2 p0 p1 p2 p3 p4 p5 p6 p7 p8 p9))) ((PotentialExtractedExpr p3 (TCPair (TermBop p0 p4 p7) (+ 1 (+ p5 p8)))) (set (ExtractedExpr p3) (TCPair (NoTerm ) 10000000000000000)) ) :ruleset joint_macro_2 :name "high")
+(rule ((= 0 (joint_gate_2 p0 p1 p2 p3 p4 p5 p6 p7 p8 p9))) ((PotentialExtractedExpr p3 (TCPair (TermBop p0 p4 p7) (+ 1 (+ p5 p8)))) (set (ExtractedExpr p3) (TCPair (NoTerm ) 10000000000000000)) (set (ExtractedExpr p3) (TCPair (TermBop p0 p4 p7) (+ 1 (+ p5 p8)))) (union (Smaller (TCPair (NoTerm ) 10000000000000000) (TCPair (TermBop p0 p4 p7) (+ 1 (+ p5 p8)))) (TCPair (TermBop p0 p4 p7) (+ 1 (+ p5 p8))))) :ruleset joint_macro_2 :name "low")
+
+(ruleset joint_macro_3)
+(function joint_gate_3 (TernaryOp Expr Expr Expr Expr Term i64 TermAndCost Term i64 TermAndCost Term i64 TermAndCost) i64 :merge old)
+(rule ((= 0 (joint_gate_3 p0 p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13))) ((PotentialExtractedExpr p4 (TCPair (TermTop p0 p5 p8 p11) (+ (+ 1 p6) (+ p9 p12)))) (set (ExtractedExpr p4) (TCPair (NoTerm ) 10000000000000000)) ) :ruleset joint_macro_3 :name "high")
+(rule ((= 0 (joint_gate_3 p0 p1 p2 p3 p4 p5 p6 p7 p8 p9 p10 p11 p12 p13))) ((PotentialExtractedExpr p4 (TCPair (TermTop p0 p5 p8 p11) (+ (+ 1 p6) (+ p9 p12)))) (set (ExtractedExpr p4) (TCPair (NoTerm ) 10000000000000000)) (set (ExtractedExpr p4) (TCPair (TermTop p0 p5 p8 p11) (+ (+ 1 p6) (+ p9 p12)))) (union (Smaller (TCPair (NoTerm ) 10000000000000000) (TCPair (TermTop p0 p5 p8 p11) (+ (+ 1 p6) (+ p9 p12)))) (TCPair (TermTop p0 p5 p8 p11) (+ (+ 1 p6) (+ p9 p12))))) :ruleset joint_macro_3 :name "low")
+
+(ruleset joint_macro_4)
+(function joint_gate_4 (UnaryOp Expr Expr Term i64 TermAndCost) i64 :merge old)
+(rule ((= 0 (joint_gate_4 p0 p1 p2 p3 p4 p5))) ((PotentialExtractedExpr p2 (TCPair (TermUop p0 p3) (+ 1 p4))) (set (ExtractedExpr p2) (TCPair (NoTerm ) 10000000000000000)) ) :ruleset joint_macro_4 :name "high")
+(rule ((= 0 (joint_gate_4 p0 p1 p2 p3 p4 p5))) ((PotentialExtractedExpr p2 (TCPair (TermUop p0 p3) (+ 1 p4))) (set (ExtractedExpr p2) (TCPair (NoTerm ) 10000000000000000)) (set (ExtractedExpr p2) (TCPair (TermUop p0 p3) (+ 1 p4))) (union (Smaller (TCPair (NoTerm ) 10000000000000000) (TCPair (TermUop p0 p3) (+ 1 p4))) (TCPair (TermUop p0 p3) (+ 1 p4)))) :ruleset joint_macro_4 :name "low")
+
+(ruleset joint_macro_5)
+(function joint_gate_5 (Expr i64 Expr Term i64 TermAndCost) i64 :merge old)
+(rule ((= 0 (joint_gate_5 p0 p1 p2 p3 p4 p5))) ((PotentialExtractedExpr p2 (TCPair (TermGet p3 p1) p4)) (set (ExtractedExpr p2) (TCPair (NoTerm ) 10000000000000000)) ) :ruleset joint_macro_5 :name "high")
+(rule ((= 0 (joint_gate_5 p0 p1 p2 p3 p4 p5))) ((PotentialExtractedExpr p2 (TCPair (TermGet p3 p1) p4)) (set (ExtractedExpr p2) (TCPair (NoTerm ) 10000000000000000)) (set (ExtractedExpr p2) (TCPair (TermGet p3 p1) p4)) (union (Smaller (TCPair (NoTerm ) 10000000000000000) (TCPair (TermGet p3 p1) p4)) (TCPair (TermGet p3 p1) p4))) :ruleset joint_macro_5 :name "low")
+
+(ruleset joint_macro_6)
+(function joint_gate_6 (Expr Expr Term i64 TermAndCost) i64 :merge old)
+(rule ((= 0 (joint_gate_6 p0 p1 p2 p3 p4))) ((PotentialExtractedExpr p1 (TCPair (TermSingle p2) p3)) (set (ExtractedExpr p1) (TCPair (NoTerm ) 10000000000000000)) ) :ruleset joint_macro_6 :name "high")
+(rule ((= 0 (joint_gate_6 p0 p1 p2 p3 p4))) ((PotentialExtractedExpr p1 (TCPair (TermSingle p2) p3)) (set (ExtractedExpr p1) (TCPair (NoTerm ) 10000000000000000)) (set (ExtractedExpr p1) (TCPair (TermSingle p2) p3)) (union (Smaller (TCPair (NoTerm ) 10000000000000000) (TCPair (TermSingle p2) p3)) (TCPair (TermSingle p2) p3))) :ruleset joint_macro_6 :name "low")
+
+(ruleset joint_macro_7)
+(function joint_gate_7 (Expr Expr Expr Term i64 TermAndCost Term i64 TermAndCost) i64 :merge old)
+(rule ((= 0 (joint_gate_7 p0 p1 p2 p3 p4 p5 p6 p7 p8))) ((PotentialExtractedExpr p2 (TCPair (TermConcat p3 p6) (+ p4 p7))) (set (ExtractedExpr p2) (TCPair (NoTerm ) 10000000000000000)) ) :ruleset joint_macro_7 :name "high")
+(rule ((= 0 (joint_gate_7 p0 p1 p2 p3 p4 p5 p6 p7 p8))) ((PotentialExtractedExpr p2 (TCPair (TermConcat p3 p6) (+ p4 p7))) (set (ExtractedExpr p2) (TCPair (NoTerm ) 10000000000000000)) (set (ExtractedExpr p2) (TCPair (TermConcat p3 p6) (+ p4 p7))) (union (Smaller (TCPair (NoTerm ) 10000000000000000) (TCPair (TermConcat p3 p6) (+ p4 p7))) (TCPair (TermConcat p3 p6) (+ p4 p7)))) :ruleset joint_macro_7 :name "low")

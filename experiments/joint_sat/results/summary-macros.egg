@@ -1,0 +1,5 @@
+; Generated native macro fragment. Requires the original declarations and checked joint entry contract.
+(ruleset joint_macro_0)
+(function joint_gate_0 (Op Expr Expr Expr Term i64 TermAndCost Term i64 TermAndCost) i64 :merge old)
+(rule ((= 0 (joint_gate_0 p0 p1 p2 p3 p4 p5 p6 p7 p8 p9))) ((PotentialExtractedExpr p3 (TCPair (TermBop p0 p4 p7) (+ 1 (+ p5 p8)))) (set (ExtractedExpr p3) (TCPair (NoTerm ) 10000000000000000)) ) :ruleset joint_macro_0 :name "high")
+(rule ((= 0 (joint_gate_0 p0 p1 p2 p3 p4 p5 p6 p7 p8 p9))) ((PotentialExtractedExpr p3 (TCPair (TermBop p0 p4 p7) (+ 1 (+ p5 p8)))) (set (ExtractedExpr p3) (TCPair (NoTerm ) 10000000000000000)) (set (ExtractedExpr p3) (TCPair (TermBop p0 p4 p7) (+ 1 (+ p5 p8)))) (union (Smaller (TCPair (NoTerm ) 10000000000000000) (TCPair (TermBop p0 p4 p7) (+ 1 (+ p5 p8)))) (TCPair (TermBop p0 p4 p7) (+ 1 (+ p5 p8))))) :ruleset joint_macro_0 :name "low")

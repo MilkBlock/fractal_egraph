@@ -1,0 +1,714 @@
+{
+  "joint_sat_verified": true,
+  "snapshot": null,
+  "scope": "Actual native commits and shared CPU/GPU scheduler; joint closure macros on fresh producer DAGs. Original queries retained for uncovered states. Correctness, not a speedup benchmark.",
+  "lanes": [
+    {
+      "lane": "joint-cpu",
+      "phases": [
+        {
+          "phase": 0,
+          "label": "fresh parallel roots and three-deep chain",
+          "verification": {
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 144,
+            "eclass_mapping": 102,
+            "tables": {
+              "Add": 1,
+              "Bop": 14,
+              "ExtractedExpr": 28,
+              "Mul": 1,
+              "NoTerm": 1,
+              "PotentialExtractedExpr": 14,
+              "Smaller": 14,
+              "TCPair": 29,
+              "TermBop": 14,
+              "TermLeaf": 14,
+              "V": 14
+            }
+          },
+          "error": null,
+          "native_smooth_bindings": 70,
+          "runtime": {
+            "backend": "native-sorted-commit",
+            "audit": false,
+            "saturation_diagnostics": {
+              "joint": {
+                "contract": "fresh single-candidate producer DAG plus exact terms helpers/v1",
+                "stats": {
+                  "boundaries": 1,
+                  "skipped_joint_saturations": 1,
+                  "quiescent_skips": 0,
+                  "macro_instances": 14,
+                  "macro_waves": 3,
+                  "fallback_boundaries": 0,
+                  "reasons": {}
+                },
+                "producer_templates": 1,
+                "concrete_closure_entries": 0
+              }
+            },
+            "original_smooth_bindings": 0,
+            "skipped_saturations": 1
+          }
+        },
+        {
+          "phase": 1,
+          "label": "new extension of certified result",
+          "verification": {
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 150,
+            "eclass_mapping": 106,
+            "tables": {
+              "Add": 1,
+              "Bop": 15,
+              "ExtractedExpr": 29,
+              "Mul": 1,
+              "NoTerm": 1,
+              "PotentialExtractedExpr": 15,
+              "Smaller": 15,
+              "TCPair": 30,
+              "TermBop": 15,
+              "TermLeaf": 14,
+              "V": 14
+            }
+          },
+          "error": null,
+          "native_smooth_bindings": 75,
+          "runtime": {
+            "backend": "native-sorted-commit",
+            "audit": false,
+            "saturation_diagnostics": {
+              "joint": {
+                "contract": "fresh single-candidate producer DAG plus exact terms helpers/v1",
+                "stats": {
+                  "boundaries": 2,
+                  "skipped_joint_saturations": 2,
+                  "quiescent_skips": 0,
+                  "macro_instances": 15,
+                  "macro_waves": 4,
+                  "fallback_boundaries": 0,
+                  "reasons": {}
+                },
+                "producer_templates": 1,
+                "concrete_closure_entries": 0
+              }
+            },
+            "original_smooth_bindings": 0,
+            "skipped_saturations": 2
+          }
+        },
+        {
+          "phase": 2,
+          "label": "finite Run has no macro",
+          "verification": {
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 154,
+            "eclass_mapping": 110,
+            "tables": {
+              "Add": 1,
+              "Bop": 16,
+              "ExtractedExpr": 29,
+              "Mul": 1,
+              "NoTerm": 1,
+              "PotentialExtractedExpr": 16,
+              "Smaller": 15,
+              "TCPair": 31,
+              "TermBop": 16,
+              "TermLeaf": 14,
+              "V": 14
+            }
+          },
+          "error": null,
+          "native_smooth_bindings": 76,
+          "runtime": {
+            "backend": "native-sorted-commit",
+            "audit": false,
+            "saturation_diagnostics": {
+              "joint": {
+                "contract": "fresh single-candidate producer DAG plus exact terms helpers/v1",
+                "stats": {
+                  "boundaries": 2,
+                  "skipped_joint_saturations": 2,
+                  "quiescent_skips": 0,
+                  "macro_instances": 15,
+                  "macro_waves": 4,
+                  "fallback_boundaries": 0,
+                  "reasons": {}
+                },
+                "producer_templates": 1,
+                "concrete_closure_entries": 0
+              }
+            },
+            "original_smooth_bindings": 1,
+            "skipped_saturations": 2
+          }
+        },
+        {
+          "phase": 3,
+          "label": "finish finite-run work",
+          "verification": {
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 156,
+            "eclass_mapping": 110,
+            "tables": {
+              "Add": 1,
+              "Bop": 16,
+              "ExtractedExpr": 30,
+              "Mul": 1,
+              "NoTerm": 1,
+              "PotentialExtractedExpr": 16,
+              "Smaller": 16,
+              "TCPair": 31,
+              "TermBop": 16,
+              "TermLeaf": 14,
+              "V": 14
+            }
+          },
+          "error": null,
+          "native_smooth_bindings": 80,
+          "runtime": {
+            "backend": "native-sorted-commit",
+            "audit": false,
+            "saturation_diagnostics": {
+              "joint": {
+                "contract": "fresh single-candidate producer DAG plus exact terms helpers/v1",
+                "stats": {
+                  "boundaries": 3,
+                  "skipped_joint_saturations": 2,
+                  "quiescent_skips": 0,
+                  "macro_instances": 15,
+                  "macro_waves": 4,
+                  "fallback_boundaries": 1,
+                  "reasons": {
+                    "changed existing state or external helper work": 1
+                  }
+                },
+                "producer_templates": 1,
+                "concrete_closure_entries": 0
+              }
+            },
+            "original_smooth_bindings": 5,
+            "skipped_saturations": 2
+          }
+        },
+        {
+          "phase": 4,
+          "label": "external cost update",
+          "verification": {
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 244,
+            "eclass_mapping": 163,
+            "tables": {
+              "Add": 1,
+              "Bop": 16,
+              "ExtractedExpr": 30,
+              "Mul": 1,
+              "NoTerm": 1,
+              "PotentialExtractedExpr": 33,
+              "Smaller": 51,
+              "TCPair": 49,
+              "TermBop": 33,
+              "TermLeaf": 15,
+              "V": 14
+            }
+          },
+          "error": null,
+          "native_smooth_bindings": 201,
+          "runtime": {
+            "backend": "native-sorted-commit",
+            "audit": false,
+            "saturation_diagnostics": {
+              "joint": {
+                "contract": "fresh single-candidate producer DAG plus exact terms helpers/v1",
+                "stats": {
+                  "boundaries": 4,
+                  "skipped_joint_saturations": 2,
+                  "quiescent_skips": 0,
+                  "macro_instances": 15,
+                  "macro_waves": 4,
+                  "fallback_boundaries": 2,
+                  "reasons": {
+                    "changed existing state or external helper work": 2
+                  }
+                },
+                "producer_templates": 1,
+                "concrete_closure_entries": 0
+              }
+            },
+            "original_smooth_bindings": 126,
+            "skipped_saturations": 2
+          }
+        },
+        {
+          "phase": 5,
+          "label": "input union",
+          "verification": {
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 264,
+            "eclass_mapping": 174,
+            "tables": {
+              "Add": 1,
+              "Bop": 16,
+              "ExtractedExpr": 29,
+              "Mul": 1,
+              "NoTerm": 1,
+              "PotentialExtractedExpr": 37,
+              "Smaller": 60,
+              "TCPair": 53,
+              "TermBop": 37,
+              "TermLeaf": 15,
+              "V": 14
+            }
+          },
+          "error": null,
+          "native_smooth_bindings": 244,
+          "runtime": {
+            "backend": "native-sorted-commit",
+            "audit": false,
+            "saturation_diagnostics": {
+              "joint": {
+                "contract": "fresh single-candidate producer DAG plus exact terms helpers/v1",
+                "stats": {
+                  "boundaries": 5,
+                  "skipped_joint_saturations": 2,
+                  "quiescent_skips": 0,
+                  "macro_instances": 15,
+                  "macro_waves": 4,
+                  "fallback_boundaries": 3,
+                  "reasons": {
+                    "changed existing state or external helper work": 2,
+                    "removal or subsumption history requires ordinary closure": 1
+                  }
+                },
+                "producer_templates": 1,
+                "concrete_closure_entries": 0
+              }
+            },
+            "original_smooth_bindings": 169,
+            "skipped_saturations": 2
+          }
+        },
+        {
+          "phase": 6,
+          "label": "quiescent",
+          "verification": {
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 264,
+            "eclass_mapping": 174,
+            "tables": {
+              "Add": 1,
+              "Bop": 16,
+              "ExtractedExpr": 29,
+              "Mul": 1,
+              "NoTerm": 1,
+              "PotentialExtractedExpr": 37,
+              "Smaller": 60,
+              "TCPair": 53,
+              "TermBop": 37,
+              "TermLeaf": 15,
+              "V": 14
+            }
+          },
+          "error": null,
+          "native_smooth_bindings": 244,
+          "runtime": {
+            "backend": "native-sorted-commit",
+            "audit": false,
+            "saturation_diagnostics": {
+              "joint": {
+                "contract": "fresh single-candidate producer DAG plus exact terms helpers/v1",
+                "stats": {
+                  "boundaries": 6,
+                  "skipped_joint_saturations": 3,
+                  "quiescent_skips": 1,
+                  "macro_instances": 15,
+                  "macro_waves": 4,
+                  "fallback_boundaries": 3,
+                  "reasons": {
+                    "changed existing state or external helper work": 2,
+                    "removal or subsumption history requires ordinary closure": 1
+                  }
+                },
+                "producer_templates": 1,
+                "concrete_closure_entries": 0
+              }
+            },
+            "original_smooth_bindings": 169,
+            "skipped_saturations": 3
+          }
+        }
+      ]
+    },
+    {
+      "lane": "joint-gpu",
+      "phases": [
+        {
+          "phase": 0,
+          "label": "fresh parallel roots and three-deep chain",
+          "verification": {
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 144,
+            "eclass_mapping": 102,
+            "tables": {
+              "Add": 1,
+              "Bop": 14,
+              "ExtractedExpr": 28,
+              "Mul": 1,
+              "NoTerm": 1,
+              "PotentialExtractedExpr": 14,
+              "Smaller": 14,
+              "TCPair": 29,
+              "TermBop": 14,
+              "TermLeaf": 14,
+              "V": 14
+            }
+          },
+          "error": null,
+          "native_smooth_bindings": 70,
+          "runtime": {
+            "backend": "shared-gpu",
+            "audit": true,
+            "saturation_diagnostics": {
+              "joint": {
+                "contract": "fresh single-candidate producer DAG plus exact terms helpers/v1",
+                "stats": {
+                  "boundaries": 1,
+                  "skipped_joint_saturations": 1,
+                  "quiescent_skips": 0,
+                  "macro_instances": 14,
+                  "macro_waves": 3,
+                  "fallback_boundaries": 0,
+                  "reasons": {}
+                },
+                "producer_templates": 1,
+                "concrete_closure_entries": 0
+              }
+            },
+            "original_smooth_bindings": 0,
+            "skipped_saturations": 1
+          }
+        },
+        {
+          "phase": 1,
+          "label": "new extension of certified result",
+          "verification": {
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 150,
+            "eclass_mapping": 106,
+            "tables": {
+              "Add": 1,
+              "Bop": 15,
+              "ExtractedExpr": 29,
+              "Mul": 1,
+              "NoTerm": 1,
+              "PotentialExtractedExpr": 15,
+              "Smaller": 15,
+              "TCPair": 30,
+              "TermBop": 15,
+              "TermLeaf": 14,
+              "V": 14
+            }
+          },
+          "error": null,
+          "native_smooth_bindings": 75,
+          "runtime": {
+            "backend": "shared-gpu",
+            "audit": true,
+            "saturation_diagnostics": {
+              "joint": {
+                "contract": "fresh single-candidate producer DAG plus exact terms helpers/v1",
+                "stats": {
+                  "boundaries": 2,
+                  "skipped_joint_saturations": 2,
+                  "quiescent_skips": 0,
+                  "macro_instances": 15,
+                  "macro_waves": 4,
+                  "fallback_boundaries": 0,
+                  "reasons": {}
+                },
+                "producer_templates": 1,
+                "concrete_closure_entries": 0
+              }
+            },
+            "original_smooth_bindings": 0,
+            "skipped_saturations": 2
+          }
+        },
+        {
+          "phase": 2,
+          "label": "finite Run has no macro",
+          "verification": {
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 154,
+            "eclass_mapping": 110,
+            "tables": {
+              "Add": 1,
+              "Bop": 16,
+              "ExtractedExpr": 29,
+              "Mul": 1,
+              "NoTerm": 1,
+              "PotentialExtractedExpr": 16,
+              "Smaller": 15,
+              "TCPair": 31,
+              "TermBop": 16,
+              "TermLeaf": 14,
+              "V": 14
+            }
+          },
+          "error": null,
+          "native_smooth_bindings": 76,
+          "runtime": {
+            "backend": "shared-gpu",
+            "audit": true,
+            "saturation_diagnostics": {
+              "joint": {
+                "contract": "fresh single-candidate producer DAG plus exact terms helpers/v1",
+                "stats": {
+                  "boundaries": 2,
+                  "skipped_joint_saturations": 2,
+                  "quiescent_skips": 0,
+                  "macro_instances": 15,
+                  "macro_waves": 4,
+                  "fallback_boundaries": 0,
+                  "reasons": {}
+                },
+                "producer_templates": 1,
+                "concrete_closure_entries": 0
+              }
+            },
+            "original_smooth_bindings": 1,
+            "skipped_saturations": 2
+          }
+        },
+        {
+          "phase": 3,
+          "label": "finish finite-run work",
+          "verification": {
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 156,
+            "eclass_mapping": 110,
+            "tables": {
+              "Add": 1,
+              "Bop": 16,
+              "ExtractedExpr": 30,
+              "Mul": 1,
+              "NoTerm": 1,
+              "PotentialExtractedExpr": 16,
+              "Smaller": 16,
+              "TCPair": 31,
+              "TermBop": 16,
+              "TermLeaf": 14,
+              "V": 14
+            }
+          },
+          "error": null,
+          "native_smooth_bindings": 80,
+          "runtime": {
+            "backend": "shared-gpu",
+            "audit": true,
+            "saturation_diagnostics": {
+              "joint": {
+                "contract": "fresh single-candidate producer DAG plus exact terms helpers/v1",
+                "stats": {
+                  "boundaries": 3,
+                  "skipped_joint_saturations": 2,
+                  "quiescent_skips": 0,
+                  "macro_instances": 15,
+                  "macro_waves": 4,
+                  "fallback_boundaries": 1,
+                  "reasons": {
+                    "changed existing state or external helper work": 1
+                  }
+                },
+                "producer_templates": 1,
+                "concrete_closure_entries": 0
+              }
+            },
+            "original_smooth_bindings": 5,
+            "skipped_saturations": 2
+          }
+        },
+        {
+          "phase": 4,
+          "label": "external cost update",
+          "verification": {
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 244,
+            "eclass_mapping": 163,
+            "tables": {
+              "Add": 1,
+              "Bop": 16,
+              "ExtractedExpr": 30,
+              "Mul": 1,
+              "NoTerm": 1,
+              "PotentialExtractedExpr": 33,
+              "Smaller": 51,
+              "TCPair": 49,
+              "TermBop": 33,
+              "TermLeaf": 15,
+              "V": 14
+            }
+          },
+          "error": null,
+          "native_smooth_bindings": 201,
+          "runtime": {
+            "backend": "shared-gpu",
+            "audit": true,
+            "saturation_diagnostics": {
+              "joint": {
+                "contract": "fresh single-candidate producer DAG plus exact terms helpers/v1",
+                "stats": {
+                  "boundaries": 4,
+                  "skipped_joint_saturations": 2,
+                  "quiescent_skips": 0,
+                  "macro_instances": 15,
+                  "macro_waves": 4,
+                  "fallback_boundaries": 2,
+                  "reasons": {
+                    "changed existing state or external helper work": 2
+                  }
+                },
+                "producer_templates": 1,
+                "concrete_closure_entries": 0
+              }
+            },
+            "original_smooth_bindings": 126,
+            "skipped_saturations": 2
+          }
+        },
+        {
+          "phase": 5,
+          "label": "input union",
+          "verification": {
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 264,
+            "eclass_mapping": 174,
+            "tables": {
+              "Add": 1,
+              "Bop": 16,
+              "ExtractedExpr": 29,
+              "Mul": 1,
+              "NoTerm": 1,
+              "PotentialExtractedExpr": 37,
+              "Smaller": 60,
+              "TCPair": 53,
+              "TermBop": 37,
+              "TermLeaf": 15,
+              "V": 14
+            }
+          },
+          "error": null,
+          "native_smooth_bindings": 244,
+          "runtime": {
+            "backend": "shared-gpu",
+            "audit": true,
+            "saturation_diagnostics": {
+              "joint": {
+                "contract": "fresh single-candidate producer DAG plus exact terms helpers/v1",
+                "stats": {
+                  "boundaries": 5,
+                  "skipped_joint_saturations": 2,
+                  "quiescent_skips": 0,
+                  "macro_instances": 15,
+                  "macro_waves": 4,
+                  "fallback_boundaries": 3,
+                  "reasons": {
+                    "changed existing state or external helper work": 2,
+                    "removal or subsumption history requires ordinary closure": 1
+                  }
+                },
+                "producer_templates": 1,
+                "concrete_closure_entries": 0
+              }
+            },
+            "original_smooth_bindings": 169,
+            "skipped_saturations": 2
+          }
+        },
+        {
+          "phase": 6,
+          "label": "quiescent",
+          "verification": {
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 264,
+            "eclass_mapping": 174,
+            "tables": {
+              "Add": 1,
+              "Bop": 16,
+              "ExtractedExpr": 29,
+              "Mul": 1,
+              "NoTerm": 1,
+              "PotentialExtractedExpr": 37,
+              "Smaller": 60,
+              "TCPair": 53,
+              "TermBop": 37,
+              "TermLeaf": 15,
+              "V": 14
+            }
+          },
+          "error": null,
+          "native_smooth_bindings": 244,
+          "runtime": {
+            "backend": "shared-gpu",
+            "audit": true,
+            "saturation_diagnostics": {
+              "joint": {
+                "contract": "fresh single-candidate producer DAG plus exact terms helpers/v1",
+                "stats": {
+                  "boundaries": 6,
+                  "skipped_joint_saturations": 3,
+                  "quiescent_skips": 1,
+                  "macro_instances": 15,
+                  "macro_waves": 4,
+                  "fallback_boundaries": 3,
+                  "reasons": {
+                    "changed existing state or external helper work": 2,
+                    "removal or subsumption history requires ordinary closure": 1
+                  }
+                },
+                "producer_templates": 1,
+                "concrete_closure_entries": 0
+              }
+            },
+            "original_smooth_bindings": 169,
+            "skipped_saturations": 3
+          }
+        }
+      ]
+    }
+  ],
+  "provenance": {
+    "base_commit": "4623c5ba98196260f1a884ef2d0ca3fe0befecfc",
+    "profile": "release",
+    "commands": [
+      [
+        "cargo",
+        "build",
+        "--offline",
+        "--release",
+        "--target-dir",
+        "target/analyzer",
+        "--example",
+        "joint_sat_bench"
+      ],
+      [
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/target/analyzer/release/examples/joint_sat_bench",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-locality-worker/matrix",
+        "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/joint-sat-delivery"
+      ]
+    ],
+    "snapshot_sha256": null,
+    "worker_sha256": "63e94ed38d4e8e921201dc3b233cd714e837781ffd3308e6071f5cbf80c235c3",
+    "binary_sha256": {
+      "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/target/analyzer/release/examples/joint_sat_bench": "7ab35356c28e19ce09ba7958ef581ba766f565fa660ffee43554785a520ca8fb"
+    },
+    "source_sha256": {
+      "cell-assisted-egglog/src/parameterized_cell/joint.rs": "eb909a3e9b68db9e15891b22653dc54432a315ae00d6baf859095962620fe1f0",
+      "cell-assisted-egglog/src/parameterized_cell/joint_helpers.egg": "2263b5008ddec824a9cae1683fd606e585d0b480efdfe1f8cd96b26e5737d1df",
+      "cell-assisted-egglog/src/parameterized_cell.rs": "3ce5349bf8a028fb4c726d923ba9ba0c3b98aec713eab3a30b6b7366576deeef",
+      "cell-assisted-egglog/src/table_live.rs": "e58af95de32457d9d28fc81afeb0af416c1a8d664bfe794838c18ce6ccf21386",
+      "examples/joint_sat_bench.rs": "eb19e3a3272ab547df0b484d0d4edfbc786bf5526a1293b6064b22d35a9b10e8"
+    }
+  }
+}

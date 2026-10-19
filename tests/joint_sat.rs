@@ -1,0 +1,244 @@
+#[allow(dead_code)]
+#[path = "../examples/support/live_table_bench.rs"]
+mod compare;
+use cell_assisted_egglog::parameterized_cell::{Runtime, joint::SCHEDULE};
+use egglog::{CommandOutput, EGraph};
+const SOURCE: &str = include_str!("../experiments/parameterized_cell/terms.egg");
+struct Pair {
+    base: EGraph,
+    native: EGraph,
+    cell: Runtime,
+}
+impl Pair {
+    fn new() -> Self {
+        let cell = Runtime::new_joint(SOURCE).unwrap();
+        let base = cell.engine().clone();
+        Self {
+            native: base.clone(),
+            base,
+            cell,
+        }
+    }
+    fn input(&mut self, s: &str) {
+        self.native.parse_and_run_program(None, s).unwrap();
+        self.cell.input(s).unwrap();
+    }
+    fn run(&mut self, s: &str) {
+        let commands = self.native.parse_program(None, s).unwrap();
+        let updated = self
+            .native
+            .run_program(commands.clone())
+            .unwrap()
+            .into_iter()
+            .any(|o| matches!(o,CommandOutput::RunSchedule(r) if r.updated));
+        self.cell.run(&commands).unwrap();
+        self.cell.audit_mirror().unwrap();
+        assert_eq!(updated, self.cell.last_updated, "{s}");
+        compare::equal(&self.base, &self.native, self.cell.engine()).unwrap();
+    }
+    fn emitted(&self) -> u64 {
+        self.cell.report()["programs"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|p| p["emitted_bindings"].as_u64().unwrap())
+            .sum()
+    }
+}
+#[test]
+fn fresh_chain_publishes_joint_closure_without_smooth_matches() {
+    let mut p = Pair::new();
+    p.input("(set (ExtractedExpr (V 0)) (TCPair (TermLeaf 0) 2)) (set (ExtractedExpr (V 1)) (TCPair (TermLeaf 1) 3))
+ (Bop (Add) (V 0) (V 1)) (Bop (Mul) (Bop (Add) (V 0) (V 1)) (V 0))
+ (Bop (Add) (Bop (Mul) (Bop (Add) (V 0) (V 1)) (V 0)) (V 1))");
+    p.run(SCHEDULE);
+    assert_eq!(p.emitted(), 0, "{}", p.cell.report());
+    assert_eq!(p.cell.report()["joint"]["stats"]["macro_instances"], 3);
+    assert!(
+        p.native
+            .get_overall_run_report()
+            .num_matches_per_rule
+            .values()
+            .sum::<usize>()
+            > 0
+    );
+    p.input("(Bop (Mul) (Bop (Add) (V 0) (V 1)) (V 1))");
+    p.run(SCHEDULE);
+    assert_eq!(p.cell.report()["joint"]["stats"]["macro_instances"], 4);
+    assert_eq!(p.emitted(), 0);
+    p.run(SCHEDULE);
+    assert_eq!(p.emitted(), 0);
+    p.run(
+        "(run-schedule (saturate terms (saturate terms-helpers (saturate terms-helpers-helpers))))",
+    );
+    assert_eq!(p.emitted(), 0);
+    p.run("(run terms 1) (run terms-helpers 1) (run terms-helpers-helpers 1)");
+    assert_eq!(p.emitted(), 0);
+}
+
+#[test]
+fn destructive_changes_and_cycles_cannot_replay_stale_closures() {
+    let mut p = Pair::new();
+    p.input("(set (ExtractedExpr (V 0)) (TCPair (TermLeaf 0) 2)) (Bop (Add) (V 0) (V 0))");
+    p.run(SCHEDULE);
+    p.input("(delete (PotentialExtractedExpr (Bop (Add) (V 0) (V 0)) (TCPair (TermBop (Add) (TermLeaf 0) (TermLeaf 0)) 5)))");
+    p.run(SCHEDULE);
+    assert_eq!(p.cell.engine().get_size("PotentialExtractedExpr"), 0);
+    p.input("(subsume (Bop (Add) (V 0) (V 0)))");
+    p.run(SCHEDULE);
+    let mut q = Pair::new();
+    q.input("(union (V 0) (Bop (Add) (V 0) (V 0)))");
+    q.run(SCHEDULE);
+    assert_eq!(q.cell.engine().get_size("PotentialExtractedExpr"), 0);
+    // A consumed producer whose candidate was deleted is not a new Cell simply
+    // because an independent fresh root is appended after the fallback closes.
+    let mut q = Pair::new();
+    q.input("(set (ExtractedExpr (V 0)) (TCPair (TermLeaf 0) 2)) (Bop (Add) (V 0) (V 0))");
+    q.run("(run terms 1)");
+    q.input("(delete (PotentialExtractedExpr (Bop (Add) (V 0) (V 0)) (TCPair (TermBop (Add) (TermLeaf 0) (TermLeaf 0)) 5)))");
+    q.run(SCHEDULE);
+    q.input("(Bop (Mul) (V 0) (V 0))");
+    q.run(SCHEDULE);
+    assert_eq!(q.cell.engine().get_size("PotentialExtractedExpr"), 1);
+}
+
+#[test]
+fn unsafe_numeric_paths_fall_back_before_any_macro_and_keep_native_errors() {
+    for c in [-10, 9223372036854775807i64] {
+        let mut p = Pair::new();
+        p.input(&format!("(set (ExtractedExpr (V 0)) (TCPair (TermLeaf 0) {c})) (set (ExtractedExpr (V 1)) (TCPair (TermLeaf 1) 1)) (Bop (Add) (V 0) (V 1))"));
+        let s = p.native.parse_program(None, SCHEDULE).unwrap();
+        let a = p.native.run_program(s.clone()).unwrap_err().to_string();
+        let b = p.cell.run(&s).unwrap_err().to_string();
+        assert_eq!(a, b);
+        assert_eq!(p.cell.report()["joint"]["stats"]["macro_instances"], 0);
+        assert!(p.cell.run(&s).is_err());
+    }
+    let bad = SOURCE.replace(":merge (Smaller old new)", ":merge new");
+    assert!(Runtime::new_joint(&bad).is_err());
+    let bad = SOURCE.replace("(< cost oldcost)", "(<= cost oldcost)");
+    assert!(Runtime::new_joint(&bad).is_err());
+}
+
+#[test]
+fn aliased_roots_and_another_schedule_are_not_given_the_joint_certificate() {
+    let mut p = Pair::new();
+    p.input("(set (ExtractedExpr (V 0)) (TCPair (TermLeaf 0) 2)) (set (ExtractedExpr (V 1)) (TCPair (TermLeaf 1) 5)) (union (Bop (Add) (V 0) (V 0)) (Bop (Mul) (V 0) (V 1)))");
+    p.run(SCHEDULE);
+    assert_eq!(p.cell.report()["joint"]["stats"]["macro_instances"], 0);
+    let mut p = Pair::new();
+    p.input("(set (ExtractedExpr (V 0)) (TCPair (TermLeaf 0) 2)) (Bop (Add) (V 0) (V 0))");
+    p.run("(run-schedule (saturate (seq terms-helpers-helpers terms-helpers terms)))");
+    assert_eq!(
+        p.cell.report()["joint"]["stats"]["skipped_joint_saturations"],
+        0
+    );
+    assert!(p.emitted() > 0);
+}
+#[test]
+fn finite_run_partial_history_and_external_updates_do_not_get_macroed() {
+    let mut p = Pair::new();
+    p.input("(set (ExtractedExpr (V 0)) (TCPair (TermLeaf 0) 2)) (set (ExtractedExpr (V 1)) (TCPair (TermLeaf 1) 3)) (Bop (Add) (V 0) (V 1))");
+    p.run("(run terms 1)");
+    assert_eq!(p.cell.engine().get_size("ExtractedExpr"), 2);
+    p.run(SCHEDULE);
+    assert!(
+        p.cell.report()["joint"]["stats"]["fallback_boundaries"]
+            .as_u64()
+            .unwrap()
+            > 0
+    );
+    p.input("(set (ExtractedExpr (V 0)) (TCPair (TermLeaf 5) 1))");
+    p.run(SCHEDULE);
+    p.input("(union (V 0) (V 1))");
+    p.run(SCHEDULE);
+    p.input("(union (TCPair (TermLeaf 5) 1) (TCPair (TermLeaf 6) 1))");
+    p.run(SCHEDULE);
+    p.run(SCHEDULE);
+}
+
+#[test]
+fn a_new_instance_cannot_reuse_a_subsumed_candidate_as_a_visible_proof() {
+    let mut p = Pair::new();
+    p.input("(set (ExtractedExpr (V 0)) (TCPair (TermLeaf 0) 2)) (set (ExtractedExpr (V 1)) (TCPair (TermLeaf 1) 3)) (Bop (Add) (V 0) (V 1))");
+    p.run(SCHEDULE);
+    p.input("(subsume (TCPair (TermBop (Add) (TermLeaf 0) (TermLeaf 1)) 6))");
+    p.run(SCHEDULE);
+    p.input("(set (ExtractedExpr (V 2)) (TCPair (TermLeaf 0) 2)) (Bop (Add) (V 2) (V 1))");
+    p.run(SCHEDULE);
+    assert_eq!(p.cell.report()["joint"]["stats"]["macro_instances"], 1);
+}
+#[test]
+fn blocked_inputs_and_sentinel_branches_are_preserved() {
+    let mut p = Pair::new();
+    p.input("(set (ExtractedExpr (V 0)) (TCPair (TermLeaf 0) 10000000000000000)) (Bop (Add) (V 0) (V 1))");
+    p.run(SCHEDULE);
+    assert_eq!(p.cell.engine().get_size("PotentialExtractedExpr"), 0);
+    p.input("(set (ExtractedExpr (V 1)) (TCPair (TermLeaf 1) 2))");
+    p.run(SCHEDULE);
+    assert_eq!(p.emitted(), 0);
+    assert_eq!(p.cell.engine().get_size("Smaller"), 0);
+}
+
+#[test]
+fn shared_cpu_and_gpu_receive_joint_macro_rows_and_handback() {
+    use cell_assisted_egglog::table_live;
+    let worker = std::env::var_os("CELL_MATRIX_WORKER");
+    for gpu in [false, true] {
+        if gpu && worker.is_none() {
+            continue;
+        }
+        let source = format!(
+            "{SOURCE}\n(relation Seen (Expr)) (ruleset observe) (rule ((PotentialExtractedExpr e t)) ((Seen e)) :ruleset observe)"
+        );
+        let (mut base, observer) = Runtime::new_joint(&source).unwrap().detach_joint().unwrap();
+        let schedule = format!("{SCHEDULE}\n(run observe 1)");
+        let commands = base.parse_program(None, &schedule).unwrap();
+        let mut native = base.clone();
+        let mut r = if gpu {
+            table_live::Runtime::new(
+                base.clone(),
+                &commands,
+                std::path::Path::new(worker.as_ref().unwrap()),
+                true,
+            )
+            .unwrap()
+        } else {
+            table_live::Runtime::new_cpu(base.clone(), &commands).unwrap()
+        };
+        r.set_saturation_hook(Box::new(observer));
+        for input in [
+            "(set (ExtractedExpr (V 0)) (TCPair (TermLeaf 0) 2)) (set (ExtractedExpr (V 1)) (TCPair (TermLeaf 1) 3)) (Bop (Add) (V 0) (V 1)) (Bop (Mul) (V 0) (V 1))",
+            "(Bop (Add) (Bop (Mul) (V 0) (V 1)) (V 0))",
+            "(set (ExtractedExpr (V 0)) (TCPair (TermLeaf 8) 1))",
+            "(union (V 0) (V 1))",
+            "",
+        ] {
+            native.parse_and_run_program(None, input).unwrap();
+            r.input(input).unwrap();
+            native.run_program(commands.clone()).unwrap();
+            r.run(&commands).unwrap();
+            compare::equal(&base, &native, r.engine()).unwrap();
+        }
+        assert!(
+            r.report()["runtime"]["skipped_saturations"]
+                .as_u64()
+                .unwrap()
+                >= 2,
+            "{}",
+            r.report()
+        );
+        let mut handed = r.into_engine();
+        for set in ["terms", "terms-helpers", "terms-helpers-helpers"] {
+            assert_eq!(
+                handed
+                    .step_rules(set)
+                    .unwrap()
+                    .num_matches_per_rule
+                    .values()
+                    .sum::<usize>(),
+                0
+            );
+        }
+    }
+}

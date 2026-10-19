@@ -62,10 +62,11 @@ budgets or statistical decisions. The diagnostic report records the reason.
 - Optional independent native saturation verifies complete skipped boundaries.
   Ordinary GPU fallback still has its native incremental-frontier checker.
 - No virtual storage: all original public facts are materialized.
-- **Raytrace `terms` is not certified yet.** Its function updates, numeric guards,
-  custom merges and nested scheduling exceed this library's proof contract.
-  Measuring 98% saturation time identifies a target; it does not certify those
-  effects. No raytrace sat-skip speedup is claimed here.
+- Function updates, numeric guards, custom merges and nested scheduling exceed
+  this positive-only library's contract. A separate [guarded terms joint
+  certificate](../joint_sat/README.md) now handles fresh single-candidate producer
+  DAGs and falls back for other states. This does not certify arbitrary terms
+  closures or establish a full raytrace Pass-3 sat-skip speedup.
 
 ## Reproduce the three-lane microbenchmark
 
