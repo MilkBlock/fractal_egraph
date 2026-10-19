@@ -1,4 +1,4 @@
 interface:
   display_name: "eggcc 分 Pass 统计"
-  short_description: "快速生成各 pass 的执行、提取与 Cell 覆盖率表"
-  default_prompt: "使用 $eggcc-pass-benchmark，复用现有工具，单次测量 eggcc 各 pass 的时间和 Cell 覆盖率。"
+  short_description: "统计各 pass 执行、提取、覆盖率及 Saturate/Run 耗时占比"
+  default_prompt: "使用 $eggcc-pass-benchmark，复用现有工具统计 eggcc 各 pass；按请求选择完整时间/覆盖率或 Saturate/Run 调度耗时。"

@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 
-def summarize(folder):
+def summarize(folder, write=True):
     workloads = []
     for workload in sorted(Path(folder).iterdir()):
         if not workload.is_dir(): continue
@@ -44,12 +44,14 @@ def summarize(folder):
         total['saturate_share_of_cli']=total['saturate_seconds']/measurement['cli_wall_seconds']
         workloads.append({'workload':workload.name,'measurement':measurement,'passes':rows,'total':total,
             'schedule_groups':sorted(groups.values(),key=lambda x:-x['wall_seconds'])})
-    result={'scope':'One fresh production 3-pass pipeline, extraction feeds the next pass. Outermost Saturate is atomic; nested time counted once. No GPU/Cell acceleration, no coverage audit, no raw trace. Includes native per-command preparation; search+apply includes RHS.', 'workloads':workloads}
-    (Path(folder)/'saturation-summary.json').write_text(json.dumps(result,indent=2)+'\n')
-    lines=['# Raytrace saturation time','',result['scope'],'',
-        '| Pass | Saturate s | Ordinary Run s | Saturate / scheduled execution | Execution including setup s | Extraction wall s |',
-        '|---|---:|---:|---:|---:|---:|']
+    result={'scope':'One production 3-pass measurement, extraction feeds the next pass. Outermost Saturate is atomic; nested time counted once. No GPU/Cell acceleration, no coverage audit, no raw trace. Includes native per-command preparation; search+apply includes RHS.', 'workloads':workloads}
+    if write:
+        (Path(folder)/'saturation-summary.json').write_text(json.dumps(result,indent=2)+'\n')
+    lines=['# Eggcc saturation time','',result['scope']]
     for w in workloads:
+        lines+=['',f'## {w["workload"]}','',
+            '| Pass | Saturate s | Ordinary Run s | Saturate / scheduled execution | Execution including setup s | Extraction wall s |',
+            '|---|---:|---:|---:|---:|---:|']
         for p in [*w['passes'],dict(w['total'],**{'pass':'Total'})]:
             lines.append(f'| {p["pass"]} | {p["saturate_seconds"]:.3f} | {p["run_seconds"]:.3f} | {100*p["saturate_share_of_schedule"]:.2f}% | {p["execution_seconds"]:.3f} | {p["extraction_wall_seconds"]:.3f} |')
         t=w['total'];m=w['measurement']
@@ -59,7 +61,8 @@ def summarize(folder):
         for g in w['schedule_groups'][:12]:
             lines.append(f'| `{g["schedule"]}` | {g["calls"]} | {g["wall_seconds"]:.3f} | {g["search_and_apply_seconds"]:.3f} | {g["insert_merge_seconds"]:.3f} | {g["rebuild_seconds"]:.3f} |')
     lines+=['','These are measured schedule boundaries, not certified whole-Cell eligibility. Primitive updates, custom merges, subsume and nested ordering still need their own correctness contracts. No claim that every saturated block is directly replaceable by the existing Cell macro. Timers use monotonic wall time; no per-match instrumentation added.']
-    (Path(folder)/'RESULTS.md').write_text('\n'.join(lines)+'\n')
+    if write:
+        (Path(folder)/'RESULTS.md').write_text('\n'.join(lines)+'\n')
     print('\n'.join(lines))
     return result
 
@@ -67,4 +70,6 @@ def summarize(folder):
 if __name__ == '__main__':
     import argparse
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('folder',type=Path)
-    summarize(p.parse_args().folder)
+    p.add_argument('--no-write',action='store_true',help='Validate and print saved measurements without overwriting their reports')
+    a=p.parse_args();result=summarize(a.folder,write=not a.no_write)
+    if not result['workloads']:p.error('no valid schedule_profile measurements found')

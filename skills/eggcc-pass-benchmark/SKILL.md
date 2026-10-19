@@ -1,6 +1,6 @@
 ---
 name: eggcc-pass-benchmark
-description: 统计 eggcc 各 pass 的执行、search、RHS、insert/merge、rebuild、extraction 时间和 RipSatCell 覆盖率，或用已有结果快速生成表格。适用于 egg_layout/check_statewalk 的分阶段 benchmark，不用于泛泛讨论优化算法。
+description: 统计 eggcc 真实三 pass 的执行、search、RHS、insert/merge、rebuild、extraction、Cell 覆盖率，以及 Saturate/普通 Run 调度耗时和占比；也可只读汇总已有结果。用于生产 eggcc 分阶段 profiling，CPU/GPU 辅助运行时对比使用 cell-assisted-egglog-bench。
 ---
 
 # eggcc 分 Pass 统计
@@ -9,7 +9,34 @@ description: 统计 eggcc 各 pass 的执行、search、RHS、insert/merge、reb
 
 ## 最短路径
 
-`$SKILL` 表示本 SKILL.md 所在目录；脚本也支持 `--repo`。
+`$SKILL` 表示本 SKILL.md 所在目录；用 `/opt/homebrew/bin/python3` 或 Python 3.9+，脚本也支持 `--repo`。为保持已有缓存兼容，原覆盖统计入口默认原仓库；新增 `saturate-*` 默认本 skill 所属的版本化 checkout。两者都会打印实际路径，`--repo` 可统一覆盖。
+
+## Saturate / 普通 Run 统计
+
+直接使用同一个 `scripts/bench.py`，不要重新修改 profiler 或复制命令序列：
+
+| 需求 | 子命令 |
+|---|---|
+| 只读现有 raytrace 三 pass 调度统计 | `saturate-report` |
+| 汇总其它保存结果 | `saturate-report --input 分析目录` |
+| 核验 schedule profiler 和输入 | `saturate-check` |
+| 单次测量真实 raytrace 三 pass | `saturate-run --output out/新目录` |
+| 换程序或指定已有 profiler | `saturate-run --source /绝对路径/程序.rs --profile-binary /绝对路径/eggcc-schedule-profile --output out/新目录` |
+| 缺 schedule profiler 才构建 | `saturate-build --output out/新profiler目录` |
+
+`--source` 可重复；`--production-repo` 可更改生产 checkout，默认仍是共享的 `check_statewalk`，不是 managed worktree 的兄弟目录。`--dry-run` 放在子命令前只展示命令。
+
+此模式调用已有 `build_profile.py --schedule-only` 和 `run.py --timing-only`。**不需要冻结库、flatten、coverage、analyze 或 Bake**。保持真实的 pass→Tiger extraction→下个 pass 输入链。构建只修改/恢复生产 pass driver，不改引擎；不要并发编辑/构建生产目录。缓存指纹和实际采用的路径会显示，缓存存在不代表源码新鲜。
+
+- 只对最外层 Saturate 计整块时间，内部嵌套时间不能重复相加。普通 Run 只统计 saturation 外的独立调用。
+- 分别报告 `Saturate / scheduled execution`、`Saturate / execution including setup`、`Saturate / CLI wall`；extraction、serialization 单列。
+- Native Repeat 与 production experimental `run-schedule` 的 repeat 停止语义不同；保留原调度，不能手工换成 core AST 后称为生产计时。
+- profiler 校验各 packet 的 match、search/apply、merge、rebuild 总和与 native totals 一致。没有有效 `schedule_profile` 是缺失，不能报成 0 秒。
+- Saturate 时间多不代表已获得 Cell 闭包证书；不能直接换算 sat-skip 加速比。这里的 search+apply 包括 RHS，没有独立 RHS 计时就不要拆出猜测数字。
+
+输出：`saturation-summary.json`、各 workload 的 `pass-{1,2,3}.json` 和报告。读取旧结果必须说明未重新测量；`saturate-report` 不覆盖保存的文件。
+
+## 执行与覆盖率统计
 
 - **看已有表／解释结果**：
   `python3 "$SKILL/scripts/bench.py" report`
@@ -43,4 +70,4 @@ description: 统计 eggcc 各 pass 的执行、search、RHS、insert/merge、reb
 
 ## 交付
 
-给两张表：时间和覆盖率。附报告路径，简短说明引擎版本、库口径与未拆分计时。报告复用不能冒充新测量；不从两个小样例推广到整个 eggcc 工作负载。
+覆盖模式给时间、覆盖率两张表；Saturate 模式给各 pass 的 Saturate/Run/提取时间和热点调度块表，不为凑覆盖率重新跑 analyze。附报告路径，说明版本、库口径与未拆分计时。报告复用不能冒充新测量。复现优先给统一 skill 入口，不再重复展开底层构建/运行命令。

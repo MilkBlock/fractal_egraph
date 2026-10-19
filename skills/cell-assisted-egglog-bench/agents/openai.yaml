@@ -1,0 +1,4 @@
+interface:
+  display_name: "Cell-assisted egglog Bench"
+  short_description: "复用 CPU/GPU 计时、整图核对与 Tiger 提取验证流程"
+  default_prompt: "使用 $cell-assisted-egglog-bench，复用现有脚本测量 Cell-assisted egglog，并分别报告整图一致性、提取质量和有效加速比。"

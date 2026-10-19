@@ -1,5 +1,19 @@
 # 仅在缺工具／需要重编译时读取
 
+## Schedule-only profiler
+
+先用 skill 的 `saturate-check`。已保存的生产调度 profiler 通常在版本化 checkout 的
+`out/eggcc-saturate-profiler-v2/eggcc-schedule-profile`，旁边的 `provenance.json`
+包含二进制和 driver 指纹。也接受 `--profile-binary` 指定其它已核验构建。
+
+缺失时执行 `scripts/bench.py saturate-build --output out/新profiler目录`；随后
+`saturate-run --profile-binary out/新profiler目录/eggcc-schedule-profile --output out/新结果`。
+这调用现有 `build_profile.py --schedule-only`，只临时插桩/恢复生产 pass driver，
+不会运行 coverage，不要求冻结 library，也不清理/修改原生引擎依赖。
+构建之外的生产源码修改仍须保留，不并发执行其它生产构建。
+
+## 完整时间 / 覆盖率 profiler
+
 默认在 egg_layout 根目录操作，全部离线。已验证的生产依赖是 egglog ebba7bb、egglog-experimental 08771f9；当前脚本针对这套 API。
 
 ## 缓存路径
