@@ -1,0 +1,13 @@
+{
+  "head_before_commit": "105e29c71db35707f0d8c9a73a2646dd798fb99e",
+  "sha256": {
+    "src/whole_cell.rs": "c2ba3b913e8fb90198855beab554f439f5cadcea6f80a2c1df89ccf75c6c6ebe",
+    "src/whole_cell/automatic.rs": "7ce292313623f1f088f0be2741da316142880c3b7fdd4b758a303a51ff1d1886",
+    "tests/whole_cell_automatic.rs": "b54b5a54793b040c02ab5302cbd14665885c64c33c133543d84a2425d2c557c9",
+    "experiments/whole_cell_automatic/math.egg": "e8996d53c486fc2a75e9af4e570d275257db1408507c2da70af6a88649026732",
+    "experiments/whole_cell_automatic/grafts.egg": "14d74ebca07ce7283c982a35114c40916c6af1f04e6ddc231594763458185b82",
+    "experiments/whole_cell_automatic/heldout.egg": "4ce80b6ce18afa12cc66a651915f04f9d4c41131372bc192d61d747aee9e3369",
+    "experiments/whole_cell_chain/plan.json": "bbf78b6ecf5925aa018cf565948162ea99dd5a971b93c279369107348c519b72"
+  },
+  "binary_sha256": "c4656433a50f30cdd9bab0eec659025013c4a1455c3ae567a762fd6de9e17e85"
+}

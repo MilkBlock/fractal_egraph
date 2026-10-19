@@ -10,6 +10,8 @@
 A → B → C 的完整闭包增量，运行时跳过原始 smooth 匹配，并逐阶段核对全量事实、等价关系与 extraction。
 这是 CPU/native 提交后端，不是接口缓存或 GPU 加速比结论。
 
+新增[原生事件驱动的整 Cell 接续](experiments/whole_cell_automatic/README.md)：多个实例由实际 coarse 提交自动选择完整转移；未知边界保留原生 fallback，逐轮核对完整图。
+
 ## 方法总览
 
 ```text

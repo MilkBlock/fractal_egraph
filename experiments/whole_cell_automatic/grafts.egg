@@ -1,0 +1,11 @@
+; These original coarse queries execute on native egglog, not on the dispatcher.
+; They name neither Cell states nor Bake transitions.
+(ruleset graft)
+(rule ((Start gx gy gk gz))
+      ((Add gx gy)) :ruleset graft :name "start")
+(rule ((Start gx gy gk gz) (= ga (Add gx gy)))
+      ((Mul gk ga)) :ruleset graft :name "grow")
+(rule ((Start gx gy gk gz) (= gb (Mul gk (Add gx gy))))
+      ((Add gb (Mul gk gz))) :ruleset graft :name "grow-again")
+; The check runner adds one complete math saturation boundary after each step.
+(run graft 3)

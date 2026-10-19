@@ -2,6 +2,8 @@
 //! Native saturation is confined to Bake. Hot execution runs a compiled delta
 //! through the native action-only sink and obtains its complete slot frame by
 //! a typed receipt. Original smooth queries remain installed but are not run.
+pub mod automatic;
+
 use crate::{
     pipeline::Result,
     reuse_graph::{ReuseGraph, RipSatEgraph, RipSatId},
