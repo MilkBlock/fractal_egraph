@@ -493,27 +493,30 @@ final class TableExecutor {
 // One device/queue/store for a whole family. Output is scoped to one frozen
 // ruleset boundary; native row timestamps replace historical match receipts.
 final class FamilyExecutor {
- let d:MTLDevice,q:MTLCommandQueue,code:MTLBuffer,c:Int,p:Int,s:Int,ni:Int,nq:Int,rs:Int,nc:Int,cs:Int,ck:Int,ec:Bool
- let cellTables:Set<UInt32>,portMeta:[UInt32]
- var rows:MTLBuffer!,events:MTLBuffer!,links:MTLBuffer!,heads:MTLBuffer!,output:MTLBuffer!,counts:MTLBuffer!,packet:MTLBuffer!,cells:MTLBuffer!,watches:MTLBuffer!,wheads:MTLBuffer!,dirty:MTLBuffer!,state:MTLBuffer!,ports:MTLBuffer!,previous:MTLBuffer!
- var kernels=[String:MTLComputePipelineState](),args=[UInt32](repeating:0,count:16)
- var rowSlots=0,rowCap=0,eventCount=0,eventCap=0,buckets=1,outCap=1,epoch=0
+ let d:MTLDevice,q:MTLCommandQueue,code:MTLBuffer,c:Int,p:Int,s:Int,ni:Int,nq:Int,rs:Int,nc:Int,cs:Int,ck:Int,ec:Bool,locality:Int,routingMode:Int
+ let cellTables:Set<UInt32>,portMeta:[UInt32],portJoinGroup:[UInt32]
+ var rows:MTLBuffer!,events:MTLBuffer!,links:MTLBuffer!,heads:MTLBuffer!,output:MTLBuffer!,counts:MTLBuffer!,packet:MTLBuffer!,cells:MTLBuffer!,watches:MTLBuffer!,wheads:MTLBuffer!,dirty:MTLBuffer!,state:MTLBuffer!,ports:MTLBuffer!,previous:MTLBuffer!,seedQueue:MTLBuffer!,orderedSeeds:MTLBuffer!,routing:MTLBuffer!
+ var kernels=[String:MTLComputePipelineState](),args=[UInt32](repeating:0,count:20)
+ var rowSlots=0,rowCap=0,eventCount=0,eventCap=0,buckets=1,outCap=1,epoch=0,seedCap=1
  var watchCount=0,watchCap=0,watchBuckets=1,portCount=0,portCap=0,watchGCs=0,portGCs=0
  var pcursors:[Int],pendingPortEnd=0
  var cursors:[Int],pending:[Int]=[],pendingEnd=0,compactions=0,gpu=0.0,compileSeconds=0.0
  init(_ x:[String:Any])throws{
-  try require(x["version"] as? Int==2,"family protocol")
+  try require(x["version"] as? Int==2 && x["family_layout"] as? Int==5,"family layout: rebuild both Rust and Swift")
   c=x["columns"] as! Int;p=x["parts"] as! Int;s=x["slots"] as! Int;ni=x["indexes"] as! Int;nq=x["queries"] as! Int;rs=4+3*c;nc=x["cell_plans"] as? Int ?? 0;cs=x["cell_stride"] as? Int ?? 1;ck=x["cell_steps"] as! Int;ec=(x["event_cells"] as? Bool ?? false) && nc>0
-  cellTables=Set(x["cell_tables"] as! [UInt32]);portMeta=x["port_meta"] as! [UInt32]
+  routingMode=x["query_routing"] as? Int ?? 0;try require((0...2).contains(routingMode),"query routing mode")
+  locality=x["port_locality"] as? Int ?? 0;try require((0...2).contains(locality),"Cell locality mode")
+  cellTables=Set(x["cell_tables"] as! [UInt32]);portMeta=x["port_meta"] as! [UInt32];portJoinGroup=x["port_join_group"] as! [UInt32]
   guard let device=MTLCreateSystemDefaultDevice(),let queue=device.makeCommandQueue()else{throw NSError(domain:"Metal unavailable",code:1)}
   d=device;q=queue;cursors=Array(repeating:0,count:nq);pcursors=Array(repeating:0,count:nq)
   let words=x["code"] as! [UInt32];code=words.withUnsafeBytes{device.makeBuffer(bytes:$0.baseAddress!,length:$0.count,options:.storageModeShared)!}
-  rows=try alloc(1);events=try alloc(2);links=try alloc(1);heads=try alloc(1);output=try alloc(1+s);counts=try alloc(20);packet=try alloc(1);cells=try alloc(1);memset(cells.contents(),0,cells.length)
+  rows=try alloc(1);events=try alloc(2);links=try alloc(1);heads=try alloc(1);output=try alloc(1+s);counts=try alloc(41);packet=try alloc(1);cells=try alloc(1);memset(cells.contents(),0,cells.length)
   watches=try alloc(1);wheads=try alloc(1);dirty=try alloc(1);state=try alloc(16);memset(state.contents(),0,state.length);ports=try alloc(2);previous=try alloc(1)
+  seedQueue=try alloc(8+p);orderedSeeds=try alloc(8+p);routing=try alloc(28);memset(routing.contents(),0,routing.length)
   let t=ProcessInfo.processInfo.systemUptime,options=MTLCompileOptions()
   if #available(macOS 15.0, *) {options.mathMode = .safe}else{options.fastMathEnabled=false}
   let lib=try d.makeLibrary(source:x["shader"] as! String,options:options)
-  let names=["family_patch","family_rebase","family_clear","family_index","family_join"] + (ec ? ["family_wake","family_watch_clear","family_watch_compact","family_cell_dispatch","family_cell_events","family_port_compact","family_port_dispatch","family_port_join"] : (nc>0 ? ["family_cells"] : []))
+  let names=["family_patch","family_rebase","family_clear","family_index","family_join"] + (routingMode>0 ? ["family_classify","family_route_dispatch","family_route_scatter","family_routed_join"] : []) + (ec ? ["family_wake","family_watch_clear","family_watch_compact","family_cell_dispatch","family_cell_events","family_port_compact","family_port_dispatch","family_port_join","family_port_locality"] : (nc>0 ? ["family_cells"] : []))
   for name in names{kernels[name]=try d.makeComputePipelineState(function:lib.makeFunction(name:name)!)}
   compileSeconds=ProcessInfo.processInfo.systemUptime-t
  }
@@ -530,7 +533,8 @@ final class FamilyExecutor {
   for (i,b) in [code,rows!,events!,links!,heads!,output!,counts!].enumerated(){e.setBuffer(b,offset:0,index:i)}
   args.withUnsafeBytes{e.setBytes($0.baseAddress!,length:$0.count,index:7)};e.setBuffer(packet,offset:0,index:8);e.setBuffer(cells,offset:0,index:9)
   for(i,b) in [watches!,wheads!,dirty!,state!,ports!,previous!].enumerated(){e.setBuffer(b,offset:0,index:10+i)}
-  if let off=indirect {e.dispatchThreadgroups(indirectBuffer:state,indirectBufferOffset:off,threadsPerThreadgroup:MTLSize(width:128,height:1,depth:1))}
+  for(i,b) in [seedQueue!,orderedSeeds!,routing!].enumerated(){e.setBuffer(b,offset:0,index:16+i)}
+  if let off=indirect {e.dispatchThreadgroups(indirectBuffer:name=="family_routed_join" ? routing : state,indirectBufferOffset:off,threadsPerThreadgroup:MTLSize(width:name=="family_port_locality" ? k.threadExecutionWidth : 128,height:1,depth:1))}
   else{e.dispatchThreads(MTLSize(width:n,height:1,depth:1),threadsPerThreadgroup:MTLSize(width:min(128,k.maxTotalThreadsPerThreadgroup),height:1,depth:1))};e.endEncoding()
  }
  func advance(_ data:Data,ack:Int)throws->([String:Any],[UInt32]){
@@ -573,13 +577,25 @@ final class FamilyExecutor {
   }
   let ctrl=state.contents().assumingMemoryBound(to:UInt32.self);ctrl[0]=UInt32(watchCount);ctrl[1]=0;ctrl[2]=UInt32(portCount)
   rowSlots=total;rowCap=newRowCap;epoch=nextEpoch
-  packet=data.withUnsafeBytes{d.makeBuffer(bytes:$0.baseAddress!,length:$0.count,options:.storageModeShared)!}
-  args=[UInt32(total),UInt32(oldEvents),UInt32(changes),UInt32(n),UInt32(buckets),UInt32(outCap),UInt32(eventCount),compact ? 1:0,0,UInt32(epoch),UInt32(watchBuckets),UInt32(oldRowSlots),UInt32(oldWatchCount),0,UInt32(oldPortCount),0]
+  var expanded=data;expanded.append(Data(count:n*8))
+  packet=expanded.withUnsafeBytes{d.makeBuffer(bytes:$0.baseAddress!,length:$0.count,options:.storageModeShared)!}
+  args=[UInt32(total),UInt32(oldEvents),UInt32(changes),UInt32(n),UInt32(buckets),UInt32(outCap),UInt32(eventCount),compact ? 1:0,0,UInt32(epoch),UInt32(watchBuckets),UInt32(oldRowSlots),UInt32(oldWatchCount),0,UInt32(oldPortCount),UInt32(locality),UInt32(routingMode),0,UInt32(seedCap),0]
   let words=packet.contents().assumingMemoryBound(to:UInt32.self)
   var span=0;for (i,id) in ids.enumerated(){words[6+4*i]=UInt32(cursors[id]);words[7+4*i]=UInt32(pcursors[id]);span=max(span,eventCount-cursors[id])}
+  // Group consumers once per batch, not once per Cell. Equal residual shape,
+  // native watermark AND port cursor imply identical delta ownership.
+  let groupBase=4+4*n+changes*(1+rs)
+  var groups=[[UInt32]:(Int,Int)]()
+  for (i,id) in ids.enumerated(){
+   words[groupBase+i]=UInt32(i);words[groupBase+n+i]=UInt32.max
+   if locality<2{continue}
+   let key=[portJoinGroup[id],words[5+4*i],words[7+4*i]]
+   if let (head,tail)=groups[key]{words[groupBase+i]=UInt32(head);words[groupBase+n+tail]=UInt32(i);groups[key]=(head,i)}
+   else{groups[key]=(i,i)}
+  }
   args[8]=UInt32(span);args[6]=UInt32(eventCount);args[4]=UInt32(buckets)
   let portWork=ec && ids.enumerated().contains{ i,id in portMeta[id*3] != UInt32.max && (words[5+4*i]>0 || portMeta[id*3+2]==0) && (relevant || pcursors[id]<portCount) }
-  var retries=0,count=0
+  var retries=0,count=0,routeRetries=0,routedCount=0
   memset(counts.contents(),0,counts.length)
   while true{
    memset(counts.contents(),0,5*4);memset(counts.contents().advanced(by:13*4),0,3*4);args[5]=UInt32(outCap)
@@ -596,7 +612,27 @@ final class FamilyExecutor {
     if relevant {encode("family_cell_dispatch",1,cb);encode("family_cell_events",1,cb,16)}
     else if !ec && nc>0 && (changes>0 || compact){encode("family_cells",total*nc,cb)}
    }
-   encode("family_join",span*p*n,cb);if portWork {encode("family_port_dispatch",1,cb);encode("family_port_join",1,cb,32)};try submit(cb)
+   var work=cb
+   if routingMode>0 {
+    if retries==0 {
+     memset(routing.contents(),0,routing.length);args[18]=UInt32(seedCap)
+     encode("family_classify",span*p*n,work);try submit(work)
+     routedCount=Int(routing.contents().assumingMemoryBound(to:UInt32.self)[0])
+     if routedCount>seedCap {
+      routeRetries+=1;seedCap=try pow2(routedCount);seedQueue=try alloc(seedCap*(8+p));orderedSeeds=try alloc(seedCap*(8+p));args[18]=UInt32(seedCap)
+      memset(routing.contents(),0,routing.length);work=q.makeCommandBuffer()!;encode("family_classify",span*p*n,work);try submit(work)
+     }
+     try require(routing.contents().assumingMemoryBound(to:UInt32.self)[7]==0,"routing capacity changed within immutable snapshot")
+     let rc=routing.contents().assumingMemoryBound(to:UInt32.self)
+     try require(rc[0]==rc[1]+rc[2]+rc[3] && rc[24]==rc[0]+rc[4]+rc[5]+rc[27],"partial-query routing lost or duplicated a seed")
+     work=q.makeCommandBuffer()!;encode("family_route_dispatch",1,work);encode("family_route_scatter",routedCount,work)
+    }
+    // Each tier reads the same immutable snapshot; effects still commit together.
+    memset(counts.contents().advanced(by:29*4),0,12*4)
+    if portWork {encode("family_port_dispatch",1,work);encode(locality>0 ? "family_port_locality" : "family_port_join",1,work,32)}
+    for tier in 0..<3 {args[17]=UInt32(tier);encode("family_routed_join",1,work,(12+tier*4)*4)}
+   } else {encode("family_join",span*p*n,work)}
+   if routingMode==0 && portWork {encode("family_port_dispatch",1,work);encode(locality>0 ? "family_port_locality" : "family_port_join",1,work,32)};try submit(work)
    let flags=counts.contents().assumingMemoryBound(to:UInt32.self)[1]
    try require(flags&(~UInt32(1))==0,"family count or revision overflow");count=Int(counts.contents().assumingMemoryBound(to:UInt32.self)[0])
    if flags==0{break};outCap=try pow2(max(1,count));output=try alloc(outCap*(1+s));retries+=1
@@ -605,11 +641,11 @@ final class FamilyExecutor {
   try require(result.count<=Int(UInt32.max)/4,"family response too large")
   watchCount=Int(ctrl[0]);portCount=Int(ctrl[2]);pending=ids;pendingEnd=eventCount;pendingPortEnd=portCount
   previous=code // completed GC must not retain an otherwise dead old log
-  return (["epoch":epoch,"queries":n,"bindings":count,"row_slots":rowSlots,"row_capacity":rowCap,"events":eventCount,"event_capacity":eventCap,
+  return (["epoch":epoch,"queries":n,"bindings":count,"port_locality":locality,"query_routing":routingMode,"route_retries":routeRetries,"routed_seeds":routedCount,"row_slots":rowSlots,"row_capacity":rowCap,"events":eventCount,"event_capacity":eventCap,
    "compactions":compactions,"compacted":compact,"old_events":oldEvents,"retries":retries,"gpu_seconds":gpu-before,
    "cell_cache_bytes":cells.length,"cell_plans":nc,"event_cells":ec,"cell_tables_affected":relevant,"port_work":portWork,"watch_count":watchCount,"watch_capacity":watchCap,"port_count":portCount,"port_capacity":portCap,"watch_compactions":watchGCs,"port_compactions":portGCs,"dirty_cells":ctrl[1],
-   "cell_work":["join_probes":counts.contents().assumingMemoryBound(to:UInt32.self)[2],"skipped_join_probes":counts.contents().assumingMemoryBound(to:UInt32.self)[3],"certified_anchor_hits":counts.contents().assumingMemoryBound(to:UInt32.self)[4],"certification_attempts":counts.contents().assumingMemoryBound(to:UInt32.self)[5],"certificate_reuses":counts.contents().assumingMemoryBound(to:UInt32.self)[6],"shape_fallbacks":counts.contents().assumingMemoryBound(to:UInt32.self)[7],"invalidated_certificates":counts.contents().assumingMemoryBound(to:UInt32.self)[8],"certification_probes":counts.contents().assumingMemoryBound(to:UInt32.self)[9],"watch_wakes":counts.contents().assumingMemoryBound(to:UInt32.self)[10],"dirty_cells":counts.contents().assumingMemoryBound(to:UInt32.self)[11],"prefix_rows_reused":counts.contents().assumingMemoryBound(to:UInt32.self)[12],"port_bindings":counts.contents().assumingMemoryBound(to:UInt32.self)[13],"delegated_branches":counts.contents().assumingMemoryBound(to:UInt32.self)[14],"port_probes":counts.contents().assumingMemoryBound(to:UInt32.self)[15],"ports_published":counts.contents().assumingMemoryBound(to:UInt32.self)[16],"missing_key_waits":counts.contents().assumingMemoryBound(to:UInt32.self)[17],"watch_entries_checked":counts.contents().assumingMemoryBound(to:UInt32.self)[18],"direct_row_reuses":counts.contents().assumingMemoryBound(to:UInt32.self)[19]],
-   "device_bytes":[code,rows!,events!,links!,heads!,output!,counts!,packet!,cells!,watches!,wheads!,dirty!,state!,ports!].reduce(0){$0+$1.length},"device":d.name,"retained_matches":0],result)
+   "cell_work":["join_probes":counts.contents().assumingMemoryBound(to:UInt32.self)[2],"skipped_join_probes":counts.contents().assumingMemoryBound(to:UInt32.self)[3],"certified_anchor_hits":counts.contents().assumingMemoryBound(to:UInt32.self)[4],"certification_attempts":counts.contents().assumingMemoryBound(to:UInt32.self)[5],"certificate_reuses":counts.contents().assumingMemoryBound(to:UInt32.self)[6],"shape_fallbacks":counts.contents().assumingMemoryBound(to:UInt32.self)[7],"invalidated_certificates":counts.contents().assumingMemoryBound(to:UInt32.self)[8],"certification_probes":counts.contents().assumingMemoryBound(to:UInt32.self)[9],"watch_wakes":counts.contents().assumingMemoryBound(to:UInt32.self)[10],"dirty_cells":counts.contents().assumingMemoryBound(to:UInt32.self)[11],"prefix_rows_reused":counts.contents().assumingMemoryBound(to:UInt32.self)[12],"port_bindings":counts.contents().assumingMemoryBound(to:UInt32.self)[13],"delegated_branches":counts.contents().assumingMemoryBound(to:UInt32.self)[14],"port_probes":counts.contents().assumingMemoryBound(to:UInt32.self)[15],"ports_published":counts.contents().assumingMemoryBound(to:UInt32.self)[16],"missing_key_waits":counts.contents().assumingMemoryBound(to:UInt32.self)[17],"watch_entries_checked":counts.contents().assumingMemoryBound(to:UInt32.self)[18],"direct_row_reuses":counts.contents().assumingMemoryBound(to:UInt32.self)[19],"port_context_loads":counts.contents().assumingMemoryBound(to:UInt32.self)[20],"port_context_words":counts.contents().assumingMemoryBound(to:UInt32.self)[21],"port_join_executions":counts.contents().assumingMemoryBound(to:UInt32.self)[22],"port_consumer_checks":counts.contents().assumingMemoryBound(to:UInt32.self)[23],"port_shared_joins_saved":counts.contents().assumingMemoryBound(to:UInt32.self)[24],"port_candidate_rows":counts.contents().assumingMemoryBound(to:UInt32.self)[25],"routing_locator_probes":counts.contents().assumingMemoryBound(to:UInt32.self)[26],"routing_locator_rows":counts.contents().assumingMemoryBound(to:UInt32.self)[27],"routing_unique_hints":counts.contents().assumingMemoryBound(to:UInt32.self)[28],"ready_productive_seeds":counts.contents().assumingMemoryBound(to:UInt32.self)[29],"suspected_productive_seeds":counts.contents().assumingMemoryBound(to:UInt32.self)[30],"unmapped_productive_seeds":counts.contents().assumingMemoryBound(to:UInt32.self)[31],"ready_matches":counts.contents().assumingMemoryBound(to:UInt32.self)[32],"suspected_matches":counts.contents().assumingMemoryBound(to:UInt32.self)[33],"unmapped_matches":counts.contents().assumingMemoryBound(to:UInt32.self)[34],"ready_reuse_seeds":counts.contents().assumingMemoryBound(to:UInt32.self)[35],"suspected_reuse_seeds":counts.contents().assumingMemoryBound(to:UInt32.self)[36],"unmapped_reuse_seeds":counts.contents().assumingMemoryBound(to:UInt32.self)[37],"ready_reused_atoms":counts.contents().assumingMemoryBound(to:UInt32.self)[38],"suspected_reused_atoms":counts.contents().assumingMemoryBound(to:UInt32.self)[39],"unmapped_reused_atoms":counts.contents().assumingMemoryBound(to:UInt32.self)[40],"routed_ready":routingMode>0 ? Int(routing.contents().assumingMemoryBound(to:UInt32.self)[1]) : 0,"routed_suspected":routingMode>0 ? Int(routing.contents().assumingMemoryBound(to:UInt32.self)[2]) : 0,"routed_unmapped":routingMode>0 ? Int(routing.contents().assumingMemoryBound(to:UInt32.self)[3]) : 0,"routing_no_next_atom":routingMode>0 ? Int(routing.contents().assumingMemoryBound(to:UInt32.self)[4]) : 0,"routing_delegated_to_port":routingMode>0 ? Int(routing.contents().assumingMemoryBound(to:UInt32.self)[5]) : 0,"routing_ambiguous":routingMode>0 ? Int(routing.contents().assumingMemoryBound(to:UInt32.self)[6]) : 0,"routing_valid_seeds":routingMode>0 ? Int(routing.contents().assumingMemoryBound(to:UInt32.self)[24]) : 0,"ready_covered_atom_sum":routingMode>0 ? Int(routing.contents().assumingMemoryBound(to:UInt32.self)[25]) : 0,"ready_query_atom_sum":routingMode>0 ? Int(routing.contents().assumingMemoryBound(to:UInt32.self)[26]) : 0,"routing_earlier_delta_owner":routingMode>0 ? Int(routing.contents().assumingMemoryBound(to:UInt32.self)[27]) : 0],
+   "device_bytes":[code,rows!,events!,links!,heads!,output!,counts!,packet!,cells!,watches!,wheads!,dirty!,state!,ports!,seedQueue!,orderedSeeds!,routing!].reduce(0){$0+$1.length},"device":d.name,"retained_matches":0],result)
  }
 }
 
@@ -668,7 +704,7 @@ do {
         case "family_init":
           try require(family==nil && tables==nil && current==nil,"family already installed")
           family=try FamilyExecutor(message["config"] as! [String:Any])
-          try sendFrame(["installed":true,"compile_seconds":family!.compileSeconds,"workers":1])
+          try sendFrame(["installed":true,"compile_seconds":family!.compileSeconds,"workers":1,"family_layout":5,"port_locality":family!.locality])
         case "family_step":
           guard let f=family else{throw NSError(domain:"no family",code:1)}
           let (report,body)=try f.advance(readFrame(),ack:message["ack"] as! Int)

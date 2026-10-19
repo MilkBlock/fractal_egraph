@@ -95,6 +95,19 @@ pub fn compile(
                     .find(|i| local_pairs.contains(&(*order.last().unwrap(), *i)));
                 let part = internal
                     .or_else(|| {
+                        // Enter a witnessed Cell fragment as soon as a column
+                        // anchors it, even when the previous atom is external.
+                        remain.iter().copied().find(|i| {
+                            local_pairs
+                                .iter()
+                                .any(|(a, b)| a == i && remain.contains(b))
+                                && q.atoms[*i]
+                                    .columns
+                                    .iter()
+                                    .any(|o| matches!(o,CellOperand::Slot(v) if bound.contains(v)))
+                        })
+                    })
+                    .or_else(|| {
                         remain.iter().copied().find(|i| {
                             q.atoms[*i]
                                 .columns
@@ -396,6 +409,64 @@ pub fn compile(
             }));
         }
     }
+    // A Cell supplies the canonical boundary coordinates. Group only EXACT
+    // alpha-equivalent residual query programs; guards/RHS remain per consumer.
+    let mut join_groups = BTreeMap::<String, usize>::new();
+    let (mut port_join_group, mut port_canon, mut port_uncanon) = (vec![], vec![], vec![]);
+    for (qi, q) in sinks.iter().enumerate() {
+        let mut renaming = BTreeMap::new();
+        let mut shape = vec![];
+        for &slot in &port_map[qi * s..(qi + 1) * s] {
+            if slot != u32::MAX {
+                let n = renaming.len();
+                renaming.entry(slot as usize).or_insert(n);
+            }
+        }
+        let ports = port_map[qi * s..(qi + 1) * s]
+            .iter()
+            .map(|v| {
+                if *v == u32::MAX {
+                    u32::MAX
+                } else {
+                    renaming[&(*v as usize)] as u32
+                }
+            })
+            .collect::<Vec<_>>();
+        for j in 0..port_meta[qi * 3 + 2] as usize {
+            let a = &q.atoms[port_plan[(qi * p + j) * 2] as usize];
+            let cols = a
+                .columns
+                .iter()
+                .map(|o| match o {
+                    CellOperand::Slot(v) => {
+                        let n = renaming.len();
+                        [0, *renaming.entry(*v).or_insert(n) as u32]
+                    }
+                    CellOperand::Constant { value, .. } => [1, value.rep()],
+                })
+                .collect::<Vec<_>>();
+            shape.push(json!([a.function, a.sorts, cols]));
+        }
+        let eligible = port_meta[qi * 3] != u32::MAX && renaming.len() == q.slots().len();
+        let key = if eligible {
+            serde_json::to_string(&json!([port_meta[qi * 3], ports, shape]))?
+        } else {
+            format!("unshared:{qi}")
+        };
+        let next = join_groups.len();
+        let group = *join_groups.entry(key).or_insert(next);
+        port_join_group.push(group as u32);
+        for slot in 0..s {
+            port_canon.push(renaming.get(&slot).map_or(u32::MAX, |v| *v as u32));
+        }
+        let inverse = renaming
+            .iter()
+            .map(|(a, b)| (*b, *a))
+            .collect::<BTreeMap<_, _>>();
+        for slot in 0..s {
+            port_uncanon.push(inverse.get(&slot).map_or(u32::MAX, |v| *v as u32));
+        }
+    }
     if specs.is_empty() {
         index.extend([u32::MAX, 0]);
         index.extend(std::iter::repeat_n(0, c));
@@ -441,6 +512,9 @@ pub fn compile(
         ("PORT_GROUP", port_group),
         ("PORT_PLAN", port_plan),
         ("OWNER", owner),
+        ("PORT_JOIN_GROUP", port_join_group.clone()),
+        ("PORT_CANON", port_canon),
+        ("PORT_UNCANON", port_uncanon),
     ] {
         shader += &format!("#define {name} {}u\n", code.len());
         code.extend(values);
@@ -451,7 +525,8 @@ pub fn compile(
     shader += include_str!("../family_cells.metal");
     shader += include_str!("../family_events.metal");
     shader += include_str!("../family_ports.metal");
+    shader += include_str!("../family_route.metal");
     Ok(
-        json!({"version":2,"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
+        json!({"version":2,"family_layout":5,"port_join_group":port_join_group,"port_join_groups":join_groups.len(),"columns":c,"parts":p,"slots":s,"queries":sinks.len(),"indexes":specs.len().max(1),"code":code,"shader":shader,"cell_plans":if certificates{cell_specs.len()}else{0},"cell_evidence":cell_evidence,"cell_stride":cell_header+2*max_cell_steps+3*max_cell_vars,"cell_steps":max_cell_steps,"cell_tables":cell_tables,"port_meta":port_meta,"event_cells":event_cells&&certificates&&!cell_specs.is_empty(),"profile":profile}),
     )
 }

@@ -1,0 +1,22 @@
+{
+  "head_before_commit": "fcab789b51d919b7a6bf87c0604abf6e0c7f07ee",
+  "hashes": {
+    "cell-assisted-egglog/family.metal": "8e101eae47129b9b422c251fad1cb0bbc9190b026f4f8d003517d451e1b5a63b",
+    "cell-assisted-egglog/family_route.metal": "496ad9a3d5494682711b84a2daedf74424eee927f755e800f36213b20797da5c",
+    "cell-assisted-egglog/family_ports.metal": "7328b2e7cc0b6c308eaf214b953d0a23120351e6148f9bc0f7d53f181ef01be1",
+    "cell-assisted-egglog/matrix.swift": "541fc071793733f99d0c60cc192a84fc019c7fe6a3db4f6ee568c2f012967fa9",
+    "cell-assisted-egglog/src/family_program.rs": "7f45ea32879e4744d420b85bbb1816e047a3f82cdd2ebb0af583a7de3b439f67",
+    "cell-assisted-egglog/src/table_live.rs": "66e83aa2d7bc88846282862d8f481f64534d126a3764f2d8be36d215fa1fb89c",
+    "cell-assisted-egglog/tests/query_routing.rs": "1e0ac6a5957ebc711cda33a2441ee15a990f2947ab39cba06237d863647312fc",
+    "cell-assisted-egglog/tests/port_locality.rs": "8f84a4a6d18e7eb858dbe4d88d2a0dbd0b2170e90ce81ca2e0229cc0dff060d2",
+    "examples/cell_locality_bench.rs": "9d806cd06dcb2cc25a3c18bf7c454e1b78e6bac73aff8100689c3a2d6c048822",
+    "examples/support/live_table_bench.rs": "ba8496fe698152dc39d55562c7b9e2dbe303c8f964b7099f4c750d43cee2b523",
+    "cell-assisted-egglog/cell-locality-bench/summarize.py": "c7dec96034a5fc59088003479ac3292f0283ef17ed49360d32f302ded0ceb9a1",
+    "cell-assisted-egglog/fixtures/analyze/catalog/catalog.json": "b8b7597fbc39804408eff4d0e443b174f9a2e880d503c6daf155217c068acf73",
+    "cell-assisted-egglog/fixtures/analyze/catalog/states/state-0000.json": "4332dfff46c7da9f66a1aabb116e9e20206761abe9c5aa3e7126bb6d91b0efbd",
+    "cell-assisted-egglog/fixtures/analyze/catalog/states/state-0001.json": "fcc308d4cad863bf45e3edb37a72836dd9359161e31ecb03d64c7cba5616b736",
+    "cell-assisted-egglog/fixtures/analyze/history.json": "1c05814e7a63e62b46209d879280135dfecf32fafd8974d3945b9f35c42ba9c3"
+  },
+  "binary_sha256": "0253a7c76d782da046554a8e5c7b8973c9d41c2654cc692170022aea524cbfe2",
+  "worker_sha256": "d01881fb7daf17886b07198a8ac0fa4ba145cdc687c87b8686a1bc3aaabbc0e2"
+}

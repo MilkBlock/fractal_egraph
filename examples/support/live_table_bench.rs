@@ -69,7 +69,7 @@ fn pair(
     inverse.insert(b, a);
     Ok(())
 }
-fn equal(base: &EGraph, a: &EGraph, b: &EGraph) -> Result<Json> {
+pub fn equal(base: &EGraph, a: &EGraph, b: &EGraph) -> Result<Json> {
     equal_projected(base, a, b, false)
 }
 fn equal_projected(base: &EGraph, a: &EGraph, b: &EGraph, omit_smaller: bool) -> Result<Json> {
@@ -329,6 +329,8 @@ pub fn benchmark_cells(
                 plan_only: true,
                 cache_only: false,
                 profile,
+                port_locality: Default::default(),
+                query_routing: Default::default(),
             },
         ),
         (
@@ -338,6 +340,8 @@ pub fn benchmark_cells(
                 plan_only: false,
                 cache_only: true,
                 profile,
+                port_locality: Default::default(),
+                query_routing: Default::default(),
             },
         ),
         (
@@ -347,6 +351,8 @@ pub fn benchmark_cells(
                 plan_only: false,
                 cache_only: false,
                 profile,
+                port_locality: Default::default(),
+                query_routing: Default::default(),
             },
         ),
     ] {

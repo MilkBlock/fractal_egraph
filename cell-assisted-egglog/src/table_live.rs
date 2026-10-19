@@ -61,6 +61,22 @@ struct Row {
     live: bool,
     values: Vec<Value>,
 }
+#[derive(Clone, Copy, Default)]
+#[repr(u32)]
+pub enum PortLocality {
+    #[default]
+    Independent = 0,
+    SharedContext = 1,
+    SharedJoins = 2,
+}
+#[derive(Clone, Copy, Default)]
+#[repr(u32)]
+pub enum QueryRouting {
+    #[default]
+    Direct = 0,
+    Compact = 1,
+    CellPriority = 2,
+}
 #[derive(Default)]
 pub struct Options<'a> {
     pub analysis: Option<&'a Path>,
@@ -68,6 +84,8 @@ pub struct Options<'a> {
     pub plan_only: bool,
     pub cache_only: bool,
     pub profile: bool,
+    pub port_locality: PortLocality,
+    pub query_routing: QueryRouting,
 }
 pub struct Runtime {
     eg: EGraph,
@@ -140,6 +158,8 @@ impl Runtime {
                 profile,
                 plan_only: false,
                 cache_only: false,
+                port_locality: PortLocality::Independent,
+                query_routing: QueryRouting::Direct,
             },
         )
     }
@@ -266,7 +286,7 @@ impl Runtime {
                 .collect();
             runtime.keys = feed.tables.iter().map(|_| BTreeMap::new()).collect();
             runtime.max_stamp = vec![0; feed.tables.len()];
-            let config = family_program::compile(
+            let mut config = family_program::compile(
                 &runtime.eg,
                 &runtime.sinks,
                 &feed.tables,
@@ -275,9 +295,21 @@ impl Runtime {
                 !options.plan_only,
                 !options.cache_only,
             )?;
-            runtime.cell_evidence = json!({"library":cells.as_ref().map(|c|&c.evidence),"plans":config["cell_evidence"],"profile":options.profile,"plan_only":options.plan_only,"cache_only":options.cache_only});
+            config["port_locality"] = json!(options.port_locality as u32);
+            config["query_routing"] = json!(options.query_routing as u32);
+            runtime.cell_evidence = json!({"library":cells.as_ref().map(|c|&c.evidence),"plans":config["cell_evidence"],"profile":options.profile,"plan_only":options.plan_only,"cache_only":options.cache_only,"port_locality":options.port_locality as u32,"query_routing":options.query_routing as u32,"port_join_groups":config["port_join_groups"]});
             let mut device = Service::new(worker)?;
-            device.family_init(config)?;
+            let installed = device.family_init(config)?;
+            if installed["family_layout"] != json!(5) {
+                return Err("GPU family layout changed; rebuild matrix.swift".into());
+            }
+            if options.port_locality as u32 > 0
+                && installed["port_locality"] != json!(options.port_locality as u32)
+            {
+                return Err(
+                    "GPU worker lacks requested Cell locality mode; rebuild matrix.swift".into(),
+                );
+            }
             runtime.device = Some(device);
             runtime.stats.workers = 1;
             runtime.stats.shader_compiles = 1;

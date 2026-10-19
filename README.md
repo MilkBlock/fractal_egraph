@@ -12,6 +12,8 @@ A → B → C 的完整闭包增量，运行时跳过原始 smooth 匹配，并�
 
 新增[原生事件驱动的整 Cell 接续](experiments/whole_cell_automatic/README.md)：多个实例由实际 coarse 提交自动选择完整转移；未知边界保留原生 fallback，逐轮核对完整图。
 
+新增[GPU Cell locality 分级与复用对照](cell-assisted-egglog/cell-locality-bench/README.md)：按部分 binding 定位已知 Cell，携带 context 与唯一前缀索引分流；分别记录实际匹配复用、完整匹配产出和分级开销。
+
 ## 方法总览
 
 ```text
