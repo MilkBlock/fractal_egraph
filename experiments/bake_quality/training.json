@@ -1,0 +1,6 @@
+{"ruleset":"make","stages":[
+ {"name":"single","parent":null,"parameters":[{"name":"x","sort":"Expr"}],"graft":"(Single x)"},
+ {"name":"pair","parent":null,"parameters":[{"name":"x","sort":"Expr"},{"name":"y","sort":"Expr"}],"graft":"(Pair x y)"},
+ {"name":"single-pair","parent":null,"parameters":[{"name":"x","sort":"Expr"},{"name":"y","sort":"Expr"}],"graft":"(Single (Pair x y))"},
+ {"name":"pair-single","parent":null,"parameters":[{"name":"x","sort":"Expr"},{"name":"y","sort":"Expr"}],"graft":"(Pair (Single x) y)"}
+]}

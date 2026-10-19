@@ -14,6 +14,8 @@ A → B → C 的完整闭包增量，运行时跳过原始 smooth 匹配，并�
 
 新增[GPU Cell locality 分级与复用对照](cell-assisted-egglog/cell-locality-bench/README.md)：按部分 binding 定位已知 Cell，携带 context 与唯一前缀索引分流；分别记录实际匹配复用、完整匹配产出和分级开销。
 
+新增[Bake 质量对照](experiments/bake_quality/README.md)：固定待测图和查询，只改变库的结构覆盖；区分 Cell 定位率、匹配复用、边界失效和运行时成本。
+
 ## 方法总览
 
 ```text

@@ -1,0 +1,6 @@
+; Positive tuple helper closure. Consumer guards are deliberately not baked.
+(datatype Expr (Leaf i64) (Single Expr) (Pair Expr Expr) (Get Expr i64))
+(ruleset make)
+(rule ((Single x)) ((union (Get (Single x) 0) x)) :ruleset make :name "single-get")
+(rule ((Pair x y)) ((union (Get (Pair x y) 0) x) (union (Get (Pair x y) 1) y))
+      :ruleset make :name "pair-get")

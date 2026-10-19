@@ -355,3 +355,50 @@ fn whole_frames_and_union_recipes_are_typed_across_multiple_datatypes() {
         ));
     }
 }
+
+#[test]
+fn projection_catalog_uses_the_verified_bodies_and_deduplicates_repeated_training() {
+    use std::time::{SystemTime, UNIX_EPOCH};
+    let mut p = plan();
+    p.stages.truncate(1);
+    let mut repeat = p.stages[0].clone();
+    repeat.name = "again".into();
+    p.stages.push(repeat);
+    let lib = Library::bake(ENV, &p).unwrap();
+    assert_eq!(lib.describe()["states"].as_array().unwrap().len(), 1);
+    let dir = std::env::temp_dir().join(format!(
+        "verified-projection-{}-{}",
+        std::process::id(),
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    lib.export_projection_catalog(&dir).unwrap();
+    let saved: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(dir.join("catalog/states/state-0000.json")).unwrap())
+            .unwrap();
+    assert_eq!(saved, serde_json::to_value(lib.body(0)).unwrap());
+    let catalog: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(dir.join("catalog/catalog.json")).unwrap()).unwrap();
+    assert_eq!(catalog["triggers"].as_array().unwrap().len(), 2);
+    assert!(
+        catalog["triggers"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|t| t["binding_origin"]["bake"]["delta_replay_verified"] == true)
+    );
+    let mut eg = egglog::EGraph::default();
+    eg.parse_and_run_program(None, ENV).unwrap();
+    let loaded = cell_assisted_egglog::cell_prefix::Library::load(&mut eg, &dir).unwrap();
+    assert_eq!(loaded.evidence["loaded_states"], serde_json::json!([0]));
+    assert!(lib.export_projection_catalog(&dir).is_err());
+    assert_eq!(
+        std::fs::read_dir(dir.join("catalog/states"))
+            .unwrap()
+            .count(),
+        1
+    );
+    std::fs::remove_dir_all(dir).unwrap();
+}

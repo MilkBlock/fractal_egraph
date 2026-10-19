@@ -740,6 +740,35 @@ impl Library {
         }
         Ok(lib)
     }
+    /// Export native-certified complete bodies for the existing positive query
+    /// projection reader. This does not add an unchecked macro-program loader.
+    pub fn export_projection_catalog(&self, directory: &std::path::Path) -> Result<()> {
+        if directory.exists() {
+            return Err("Cell projection catalog directory already exists".into());
+        }
+        let catalog = directory.join("catalog");
+        std::fs::create_dir_all(catalog.join("states"))?;
+        for (id, state) in self.states.iter().enumerate() {
+            crate::pipeline::write_json(
+                &catalog.join(format!("states/state-{id:04}.json")),
+                state.graph(),
+            )?;
+        }
+        crate::pipeline::write_json(
+            &catalog.join("catalog.json"),
+            &json!({
+                "schema":"saturated-rule-composition-catalog/v1",
+                "saturated_rule_compositions":self.states.len(),
+                "scope":"Native whole-Cell saturation plus independent delta replay. Exported only for positive witnessed query projection; not an unchecked executable macro library.",
+                "triggers":self.steps.iter().map(|s|json!({
+                    "saturated_rule_composition":s.target,
+                    "binding_origin":{"kind":"native-whole-cell-bake","stage":s.name,"graft":s.graft,"parameters":s.parameters,"bake":s.bake}
+                })).collect::<Vec<_>>()
+            }),
+        )?;
+        crate::pipeline::write_json(&directory.join("bake.json"), self)?;
+        Ok(())
+    }
     pub fn describe(&self) -> Json {
         serde_json::to_value(self).unwrap()
     }
