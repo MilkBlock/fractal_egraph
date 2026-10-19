@@ -1,0 +1,20 @@
+{
+  "base_commit": "775f22cfcc9958beb07da3372e21b62a3181b891",
+  "source_sha256": {
+    "src/whole_cell.rs": "e8ffe8d2d3be37cee41e2f1e1927c2cdc27925666c08e9104cedb768e16b9405",
+    "src/whole_cell/automatic.rs": "018304277ab14d11aee92e2eeb93934562c2b9cf49fef81c921a598ec179d07f",
+    "cell-assisted-egglog/src/table_live.rs": "9719ba422fdfb799c45b0cca0dc359061960196377f52bcae7e3d69d959ac2fa",
+    "egglog/src/cell_assist.rs": "05c23161fec5a5575e00fb7a91abfc3ea2c46f45ae23f32656b0ad7ce50be865",
+    "egglog/src/cell_events.rs": "e7addf36837b812c9d6e2ef53be04247fed7510da915bb14d3ccb80f10d66fb0",
+    "examples/sat_skip_bench.rs": "59b04a7104c254288f91ef10c7cfc5230e7ae6bf613e7f16405ce490566a84a4",
+    "examples/support/saturation_hook.rs": "b0ed64f8d511492b1721260e80e5947d13a96d41ba72a116584aea07c5f4e5bb"
+  },
+  "binary_sha256": "bcc9b87fe22857453c6a959b2fc10a9e6b64ede01580e0ade75c18351f950430",
+  "worker_sha256": "63e94ed38d4e8e921201dc3b233cd714e837781ffd3308e6071f5cbf80c235c3",
+  "source_egg_sha256": "3bd037b1f8de46ec2251890c531077174e5516d415f653315149fcfba3a76a01",
+  "library_sha256": "9109e83dda986cae935d6a18effb50cdb1822fc021073fb7737b36a3d21984a1",
+  "unbatched_and_final_input_schedule_identical": true,
+  "runs_per_final_variant": 1,
+  "native_control": "modified local native kernel, no Cell shortcuts; not pristine upstream",
+  "scope": "Positive Math family; full real native/GPU execution with explicit saturation boundaries. No full eggcc claim."
+}

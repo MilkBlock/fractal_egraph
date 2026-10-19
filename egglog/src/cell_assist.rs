@@ -91,6 +91,43 @@ impl EGraph {
         };
         Ok(rules.keys().cloned().collect())
     }
+    /// Engine-local identity of immutable compiled rules. Reinstalling a rule
+    /// under the same source name must invalidate a fixed-point certificate too.
+    pub fn cell_ruleset_identity(&self, ruleset:&str)->Result<Vec<(String,String)>,Error> {
+        let Some(Ruleset::Rules(rules))=self.rulesets.get(ruleset) else {
+            return Err(Error::BackendError("expected direct ruleset".into()));
+        };
+        let mut identity=rules.iter().map(|(name,(_,id))|(name.clone(),format!("{id:?}"))).collect::<Vec<_>>();
+        identity.sort();Ok(identity)
+    }
+    /// Engine-local identity of the complete installed rule environment. This
+    /// also prevents unverified external effectful consumers being added after
+    /// a positive-only saturation certificate has been installed.
+    pub fn cell_rule_environment_identity(&self)->Vec<(String,String)> {
+        let mut result=self.rulesets.iter().map(|(name,set)| {
+            let identity=match set {
+                Ruleset::Rules(rules)=>{
+                    let mut ids=rules.iter().map(|(n,(_,id))|(n,id)).collect::<Vec<_>>();ids.sort_by_key(|(n,_)|*n);format!("{ids:?}")
+                }
+                Ruleset::Combined(children)=>format!("combined:{children:?}"),
+            };
+            (name.clone(),identity)
+        }).collect::<Vec<_>>();result.sort();result
+    }
+
+    /// Trusted COMPLETE ruleset fixed-point certificate, not partial Cell
+    /// coverage. All effects of this ruleset's current incremental frontier must
+    /// already hold. Advance its cursors without claiming logical matches ran.
+    /// This prevents old bindings being replayed after handback/deletion.
+    pub fn certify_cell_saturation(&mut self, ruleset: &str) -> Result<(), Error> {
+        let Some(Ruleset::Rules(rules)) = self.rulesets.get(ruleset) else {
+            return Err(Error::BackendError("expected direct certified ruleset".into()));
+        };
+        let ids=rules.values().map(|(_,id)|*id).collect::<Vec<_>>();
+        let epoch=self.backend.external_query_epoch();
+        self.backend.complete_external_queries(&ids,epoch);
+        Ok(())
+    }
 
     /// Compile table reads (including custom functions), exact i64 comparisons,
     /// and original RHS actions. Primitive computations on the RHS, custom merge,
@@ -308,6 +345,13 @@ impl EGraph {
     }
     pub fn cell_query_watermark(&self, sink: &CellActionSink) -> u32 {
         self.backend.rule_last_run_value(sink.original).rep()
+    }
+    /// Only after a certified complete saturation skipped this query. Keep the
+    /// independent CPU/audit query at the acknowledged ORIGINAL rule frontier;
+    /// ordinary GPU batches must never use this to hide missing candidates.
+    pub fn sync_cell_query_after_saturation(&mut self, sink:&CellActionSink, query:&CellQuery) {
+        let epoch=self.backend.rule_last_run_value(sink.original);
+        self.backend.complete_external_queries(&[query.rule],epoch);
     }
     pub fn prepare_cell_query(&mut self, sink: &CellActionSink) -> Result<CellQuery, Error> {
         let rows = Arc::new(std::sync::Mutex::new(Vec::new()));

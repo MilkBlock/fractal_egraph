@@ -46,6 +46,23 @@ pub struct Stats {
     pub reused_slots: usize,
     pub peak_live_rows: usize,
     pub output_high_water: usize,
+    pub saturation_boundaries: usize,
+    pub skipped_saturations: usize,
+    pub partial_saturations: usize,
+    pub saturation_hook_seconds: f64,
+}
+/// Trusted saturation compiler, analogous to the complete-frontier provider.
+/// `None` declines WITHOUT effects. Some may publish proven positive closure
+/// deltas; `complete=false` requires the ordinary backend to finish saturation.
+/// Only invoked for explicit Saturate bodies, never for an ordinary Run.
+pub trait SaturationHook {
+    fn diagnostics(&self) -> Json {
+        Json::Null
+    }
+    fn try_boundary(&mut self, eg: &mut EGraph, body: &Schedule) -> Result<Option<Json>>;
+    /// Forward rows consumed from draining journals; table IDs refer to names.
+    /// Union cursors remain independent, so the mirror uses its own union feed.
+    fn take_commits(&mut self, eg: &mut EGraph) -> Result<(Vec<String>, Vec<CellCommitBatch>)>;
 }
 #[derive(Default, Serialize)]
 struct QueryStats {
@@ -112,6 +129,9 @@ pub struct Runtime {
     last_device: Json,
     cell_evidence: Json,
     cell_work: BTreeMap<String, u64>,
+    saturation_hook: Option<Box<dyn SaturationHook>>,
+    hook_table_ids: BTreeMap<String, usize>,
+    last_saturation: Json,
     pub stats: Stats,
 }
 fn collect(s: &Schedule, out: &mut BTreeSet<String>) -> Result<()> {
@@ -132,6 +152,20 @@ fn collect(s: &Schedule, out: &mut BTreeSet<String>) -> Result<()> {
     Ok(())
 }
 impl Runtime {
+    pub fn set_saturation_hook(&mut self, hook: Box<dyn SaturationHook>) {
+        self.hook_table_ids = self
+            .feed
+            .as_ref()
+            .map(|f| {
+                f.tables
+                    .iter()
+                    .enumerate()
+                    .map(|(i, t)| (t.name.clone(), i))
+                    .collect()
+            })
+            .unwrap_or_default();
+        self.saturation_hook = Some(hook);
+    }
     pub fn new(eg: EGraph, commands: &[Command], worker: &Path, audit: bool) -> Result<Self> {
         Self::create(eg, commands, Some(worker), audit, Options::default())
     }
@@ -238,6 +272,9 @@ impl Runtime {
             last_device: Json::Null,
             cell_evidence: Json::Null,
             cell_work: BTreeMap::new(),
+            saturation_hook: None,
+            hook_table_ids: BTreeMap::new(),
+            last_saturation: Json::Null,
             stats: Stats::default(),
         };
         runtime.qstats = runtime
@@ -423,9 +460,35 @@ impl Runtime {
             );
         }
         self.eg.run_program(commands)?;
+        self.collect_commits()?;
+        Ok(())
+    }
+    fn collect_commits(&mut self) -> Result<()> {
+        let forwarded = if let Some(hook) = &mut self.saturation_hook {
+            Some(hook.take_commits(&mut self.eg)?)
+        } else {
+            None
+        };
         if let Some(feed) = &mut self.feed {
-            let b = self.eg.drain_cell_commits(feed)?;
-            self.ingest(b)?;
+            let batch = self.eg.drain_cell_commits(feed)?;
+            if let Some((names, batches)) = forwarded {
+                for b in batches {
+                    let mut mapped = CellCommitBatch::default();
+                    for mut row in b.rows {
+                        if let Some(i) = self.hook_table_ids.get(&names[row.table]) {
+                            row.table = *i;
+                            mapped.rows.push(row);
+                        }
+                    }
+                    for table in b.clears {
+                        if let Some(i) = self.hook_table_ids.get(&names[table]) {
+                            mapped.clears.push(*i);
+                        }
+                    }
+                    self.ingest(mapped)?;
+                }
+            }
+            self.ingest(batch)?;
         }
         Ok(())
     }
@@ -610,10 +673,7 @@ impl Runtime {
             .map(|t| t.as_secs_f64())
             .sum::<f64>();
         let t = Instant::now();
-        if let Some(feed) = &mut self.feed {
-            let b = self.eg.drain_cell_commits(feed)?;
-            self.ingest(b)?;
-        }
+        self.collect_commits()?;
         self.stats.event_seconds += t.elapsed().as_secs_f64();
         self.stats.ruleset_runs += 1;
         if self.stats.ruleset_runs % 100 == 0 {
@@ -648,6 +708,43 @@ impl Runtime {
             }
             GenericSchedule::Saturate(_, s) => {
                 let mut changed = false;
+                self.stats.saturation_boundaries += 1;
+                if let Some(hook) = self.saturation_hook.as_mut() {
+                    let start = Instant::now();
+                    let result = hook.try_boundary(&mut self.eg, s)?;
+                    self.stats.saturation_hook_seconds += start.elapsed().as_secs_f64();
+                    if let Some(r) = result {
+                        let complete = r["complete"]
+                            .as_bool()
+                            .ok_or("missing saturation completion proof")?;
+                        changed = r["updated"]
+                            .as_bool()
+                            .ok_or("missing saturation effect status")?;
+                        self.last_saturation = r;
+                        // Every macro effect must reach the ordinary shared
+                        // table mirror before fallback or any later consumer.
+                        let events_started = Instant::now();
+                        self.collect_commits()?;
+                        self.stats.event_seconds += events_started.elapsed().as_secs_f64();
+                        if complete {
+                            let set = self.last_saturation["ruleset"]
+                                .as_str()
+                                .ok_or("missing certified ruleset")?;
+                            let ids = self.sets.get(set).ok_or("unknown certified ruleset")?;
+                            if self.cpu || self.audit {
+                                for id in ids {
+                                    self.eg.sync_cell_query_after_saturation(
+                                        &self.sinks[*id],
+                                        &self.reference[*id],
+                                    );
+                                }
+                            }
+                            self.stats.skipped_saturations += 1;
+                            return Ok(changed);
+                        }
+                        self.stats.partial_saturations += 1;
+                    }
+                }
                 loop {
                     let c = self.schedule(s)?;
                     changed |= c;
@@ -680,6 +777,6 @@ impl Runtime {
         result
     }
     pub fn report(&self) -> Json {
-        json!({"runtime":self.stats,"audit":self.audit,"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"rules":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|json!({"ruleset":set,"rule":self.sinks[*id].name,"stats":self.qstats[*id]}))).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interface states and ready-port residual queries; unknown interfaces retain complete queries. Cached-only control is explicit. This is not arbitrary whole-RipSatCell graft execution or virtual storage."})
+        json!({"runtime":self.stats,"saturation_hook":self.last_saturation,"saturation_diagnostics":self.saturation_hook.as_ref().map(|h|h.diagnostics()),"audit":self.audit,"backend":if self.cpu{"native-sorted-commit"}else{"shared-gpu"},"cells":self.cell_evidence,"cell_work":self.cell_work,"device":self.last_device,"shared_tables":self.keys.len(),"live_rows":self.live,"row_slots":self.rows.len(),"rules":self.sets.iter().flat_map(|(set,ids)|ids.iter().map(move |id|json!({"ruleset":set,"rule":self.sinks[*id].name,"stats":self.qstats[*id]}))).collect::<Vec<_>>(),"scope":"Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage."})
     }
 }

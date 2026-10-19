@@ -5,6 +5,13 @@ unchanged, but runtime code no longer chooses `advance("B", bindings)`.
 Native committed constructor rows and union/rebuild changes drive a multi-instance
 registry and automatically select the baked A → B → C transitions.
 
+**Current API: observation is deferred.** `commit` and `step_grafts` only
+register facts/possible transitions. Call `run("(run-schedule (saturate math))")`
+or the explicit `saturate()` API to publish a whole closure. Ordinary `run math 1`
+executes the original rule step. The [schedule-gated runtime](../sat_skip/README.md)
+also connects this executor to the shared GPU backend. Earlier result files in
+this directory predate gating; they used an implicit saturation after each input.
+
 The example has two held-out input instances. Three ordinary native coarse rules
 create their initial Add, then Mul, then outer Add. Those rules do not name any
 Cell states or transition IDs. After each coarse step, the dispatcher finishes
@@ -38,7 +45,9 @@ it does not pretend that a macro is interchangeable with an arbitrary finite
 4. A newly published source also wakes matching already-present graft facts.
    This handles a whole nested expression arriving before its intermediate Cell
    instances have been registered. Multiple successors can use the same source.
-5. Exact input/alias checks precede the existing native effect emitter. Its typed
+5. At an explicit certified saturation boundary, recheck current graft facts
+   and exact input/alias conditions. Batch occurrences of one transition through
+   the native effect emitter. Its typed
    receipt supplies the **entire** target frame; state publication follows native
    hashcons/rebuild and equality validation. Small source views remain available;
    dominance does not delete a source that another successor may still need.
@@ -48,8 +57,11 @@ it does not pretend that a macro is interchangeable with an arbitrary finite
 
 `install_grafts` / `step_grafts` provide the native coarse-rule driver.
 `commit` also accepts ordinary constructor/union actions. Neither API asks the
-caller to name a target Cell. The matcher for coarse rules still executes and
-is counted separately. The original smooth rules remain installed.
+caller to name a target Cell. Neither implicitly saturates. The matcher for
+coarse rules still executes and is counted separately. The original smooth rules
+remain installed. Only a complete ruleset closure proof acknowledges the original
+semi-naive cursors; partial coverage never advances them. No smooth query is
+claimed to have run merely because its frontier was certified complete.
 
 ## Why fallback is necessary
 
@@ -91,6 +103,11 @@ skipped native work.
 - The same positive constructor/union and complete-saturation restrictions as
   `whole_cell_chain` remain. Bake does not certify primitive guards, custom
   function updates, destructive operations, or infinite unfinished closures.
+- The attached backend rejects whole-Cell shortcuts after destructive visibility
+  changes or outside the certified schema/rule identity. Unknown positive grafts
+  can publish proven deltas then finish via ordinary CPU/GPU matching. Distinct
+  draining event consumers share forwarded commits; they do not silently steal
+  table journals from each other.
 - The library still comes from supplied coarse graft shapes. It does not
   automatically invent every new Cell or turn all analyzer output into proofs.
 

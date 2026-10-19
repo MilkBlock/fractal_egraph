@@ -7,6 +7,14 @@ use egglog::cell_events::{CellCommitBatch, CellCommitFeed};
 
 type FactKey = (String, Vec<Value>);
 type TypedValue = (String, Value);
+fn direct_ruleset(body: &egglog::ast::Schedule) -> Option<&str> {
+    use egglog::ast::GenericSchedule as S;
+    match body {
+        S::Run(_, c) if c.until.is_none() => Some(&c.ruleset),
+        S::Sequence(_, xs) if xs.len() == 1 => direct_ruleset(&xs[0]),
+        _ => None,
+    }
+}
 #[derive(Clone)]
 enum Term {
     Var(usize),
@@ -238,11 +246,19 @@ pub struct Counters {
     pub union_events: usize,
     pub graft_candidate_rows: usize,
     pub macro_transitions: usize,
+    pub macro_batches: usize,
     pub rejected_specializations: usize,
     pub invalidated_instances: usize,
     pub coverage_rows_checked: usize,
     pub native_fallbacks: usize,
     pub fallback_smooth_matches: usize,
+    pub saturation_boundaries: usize,
+    pub skipped_saturations: usize,
+    pub stale_grafts: usize,
+    pub graft_validation_seconds: f64,
+    pub macro_apply_seconds: f64,
+    pub publication_seconds: f64,
+    pub coverage_seconds: f64,
 }
 /// Multiple overlapping whole-Cell certificates. An instance is a positive
 /// subgraph guarantee, NOT a promise that foreign context cannot activate work.
@@ -264,12 +280,137 @@ pub struct AutomaticRuntime {
     pending: BTreeSet<(usize, Vec<Value>)>,
     dirty: BTreeSet<TypedValue>,
     local_rules: bool,
+    rule_identity: Vec<(String, String)>,
+    scope_functions: BTreeSet<String>,
     graft_rulesets: BTreeSet<String>,
     failed: bool,
+    forward_events: bool,
+    forwarded: Vec<CellCommitBatch>,
+    destructive_seen: bool,
     pub counters: Counters,
     pub transitions: Vec<Json>,
+    pub batch_reports: Vec<Json>,
+}
+
+/// An observer paired with the SAME native engine returned by `detach`.
+/// It borrows that engine during a boundary; the empty placeholder is reused,
+/// so this does not clone a graph or create a fresh engine on every call.
+pub struct SaturationObserver {
+    run: AutomaticRuntime,
+    audit: bool,
+    declined: BTreeMap<String, usize>,
+    rule_environment: Vec<(String,String)>,
+}
+impl SaturationObserver {
+    pub fn diagnostics(&self) -> Json {
+        json!({"scope":"positive constructor/union; exact single-ruleset saturation","declined":self.declined,
+            "destructive_seen":self.run.destructive_seen,"counters":self.run.counters})
+    }
+    fn decline(&mut self, reason: &str) -> Result<Option<Json>> {
+        *self.declined.entry(reason.into()).or_default() += 1;
+        Ok(None)
+    }
+    /// Expensive independent whole-state check, excluded from timing runs.
+    pub fn set_audit(&mut self, audit: bool) {
+        self.audit = audit;
+    }
+    /// Table journals are draining, not independent subscriptions. Forward every
+    /// batch consumed by this observer so a second device mirror cannot miss it.
+    pub fn take_commits(&mut self, eg: &mut EGraph) -> Result<(Vec<String>, Vec<CellCommitBatch>)> {
+        std::mem::swap(eg, &mut self.run.core.eg);
+        let result = self.run.drain();
+        if result.is_err() {
+            self.run.failed = true;
+        }
+        std::mem::swap(eg, &mut self.run.core.eg);
+        result?;
+        Ok((
+            self.run
+                .feed
+                .tables
+                .iter()
+                .map(|t| t.name.clone())
+                .collect(),
+            std::mem::take(&mut self.run.forwarded),
+        ))
+    }
+    pub fn try_boundary(
+        &mut self,
+        eg: &mut EGraph,
+        body: &egglog::ast::Schedule,
+    ) -> Result<Option<Json>> {
+        if direct_ruleset(body) != Some(self.run.core.lib.ruleset.as_str()) {
+            return self.decline("schedule body is not the certified single ruleset");
+        }
+        if self.run.failed {
+            return Err("failed saturation observer cannot resume".into());
+        }
+        if eg.cell_rule_environment_identity()!=self.rule_environment {
+            return self.decline("installed rule environment changed");
+        }
+        if self.run.destructive_seen {
+            return self.decline("destructive visibility change needs a new proof");
+        }
+        if eg.get_function_names().iter().any(|name| {
+            let f = eg.get_function(name).unwrap();
+            !self.run.scope_functions.contains(name) && !f.is_let_binding()
+        }) {
+            return self.decline("foreign schema or merge semantics are not certified");
+        }
+        // The host runtime only accepts schedules/actions after installation;
+        // unexpected additions to the certified ruleset must not use this proof.
+        if eg.cell_ruleset_identity(&self.run.core.lib.ruleset)? != self.run.rule_identity {
+            return self.decline("compiled ruleset identity changed");
+        }
+        std::mem::swap(eg, &mut self.run.core.eg);
+        let result = (|| {
+            self.run.drain()?;
+            if self.run.destructive_seen {
+                return self.decline("destructive visibility change needs a new proof");
+            }
+            let mut reference = self.audit.then(|| self.run.core.eg.clone());
+            let (complete, updated) = self.run.complete_pending()?;
+            let mut verified = false;
+            if complete && let Some(reference) = &mut reference {
+                let r = super::saturate(reference, &self.run.core.lib.ruleset)?;
+                if r["updated"] != updated
+                    || !matches!(
+                        self.run.verify_against(reference)?,
+                        Comparison::Equivalent { .. }
+                    )
+                {
+                    return Err(
+                        "certified saturation disagrees with independent native boundary".into(),
+                    );
+                }
+                verified = true;
+            }
+            Ok(Some(
+                json!({"complete":complete,"updated":updated,"boundary_verified":verified,"ruleset":self.run.core.lib.ruleset,"runtime":{"counters":self.run.counters,"instances":self.run.instances.len(),"pending_transitions":self.run.pending.len(),"native_smooth_matches":self.run.core.smooth_counts()}}),
+            ))
+        })();
+        if result.is_err() {
+            self.run.failed = true;
+        }
+        std::mem::swap(eg, &mut self.run.core.eg);
+        result
+    }
 }
 impl AutomaticRuntime {
+    pub fn detach(mut self) -> (EGraph, SaturationObserver) {
+        self.forward_events = true;
+        let rule_environment=self.core.eg.cell_rule_environment_identity();
+        let eg = std::mem::take(&mut self.core.eg);
+        (
+            eg,
+            SaturationObserver {
+                run: self,
+                audit: false,
+                declined: BTreeMap::new(),
+                rule_environment,
+            },
+        )
+    }
     pub fn new(lib: Library, inputs: &str) -> Result<Self> {
         let mut core = Runtime::new(lib, inputs)?;
         let mut triggers = vec![];
@@ -313,6 +454,8 @@ impl AutomaticRuntime {
             })
             .collect();
         let (feed, initial) = core.eg.subscribe_cell_commits(&core.lib.constructors)?;
+        let rule_identity = core.eg.cell_ruleset_identity(&core.lib.ruleset)?;
+        let scope_functions = core.eg.get_function_names().into_iter().collect();
         let mut run = Self {
             core,
             feed,
@@ -331,13 +474,18 @@ impl AutomaticRuntime {
             pending: BTreeSet::new(),
             dirty: BTreeSet::new(),
             local_rules,
+            rule_identity,
+            scope_functions,
             graft_rulesets: BTreeSet::new(),
             failed: false,
+            forward_events: false,
+            forwarded: vec![],
+            destructive_seen: false,
             counters: Counters::default(),
             transitions: vec![],
+            batch_reports: vec![],
         };
         run.ingest(initial)?;
-        run.settle()?;
         Ok(run)
     }
     pub fn engine(&self) -> &EGraph {
@@ -350,7 +498,7 @@ impl AutomaticRuntime {
         &self.core.lib
     }
     pub fn report(&self) -> Json {
-        json!({"counters":self.counters,"instances":self.instances,"transitions":self.transitions,
+        json!({"counters":self.counters,"instances":self.instances,"transitions":self.transitions,"batch_reports":self.batch_reports,"pending_transitions":self.pending.len(),"native_smooth_matches":self.core.smooth_counts(),
         "original_query_watermarks":self.core.original.iter().map(|(s,w)|json!({"rule":s.name,"initial":w,"current":self.core.eg.cell_query_watermark(s)})).collect::<Vec<_>>()})
     }
     /// Commit ordinary constructor facts/union actions. No stage names, Cell IDs,
@@ -381,7 +529,6 @@ impl AutomaticRuntime {
         let result = (|| {
             self.core.eg.run_program(commands)?;
             self.drain()?;
-            self.settle()?;
             Ok(self.report())
         })();
         if result.is_err() {
@@ -430,7 +577,6 @@ impl AutomaticRuntime {
         let result = (|| {
             let r = self.core.eg.step_rules(ruleset)?;
             self.drain()?;
-            self.settle()?;
             Ok(json!({"coarse_matches":r.num_matches_per_rule,"runtime":self.report()}))
         })();
         if result.is_err() {
@@ -440,7 +586,119 @@ impl AutomaticRuntime {
     }
     fn drain(&mut self) -> Result<()> {
         let b = self.core.eg.drain_cell_commits(&mut self.feed)?;
+        if self.forward_events
+            && (!b.rows.is_empty() || !b.clears.is_empty() || !b.unions.is_empty())
+        {
+            self.forwarded.push(b.clone());
+        }
         self.ingest(b)
+    }
+    /// Observe commits now, publish derived closure effects only at this
+    /// explicitly requested saturation boundary. Ordinary Run never calls it.
+    pub fn saturate(&mut self) -> Result<Json> {
+        if self.failed {
+            return Err("failed automatic runtime cannot resume".into());
+        }
+        let result = (|| {
+            self.drain()?;
+            let (complete, mut updated) = self.complete_pending()?;
+            if !complete {
+                self.counters.native_fallbacks += 1;
+                let r = super::saturate(&mut self.core.eg, &self.core.lib.ruleset)?;
+                updated |= r["updated"] == true;
+                self.counters.fallback_smooth_matches += r["smooth_matches"]
+                    .as_object()
+                    .unwrap()
+                    .values()
+                    .map(|n| n.as_u64().unwrap() as usize)
+                    .sum::<usize>();
+                self.drain()?;
+            }
+            self.dirty.clear();
+            Ok(
+                json!({"updated":updated,"can_stop":!updated,"complete":true,"skipped_native_saturation":complete,"runtime":self.report()}),
+            )
+        })();
+        if result.is_err() {
+            self.failed = true;
+        }
+        result
+    }
+    /// Normal schedules preserve their native timing. Only an exact
+    /// Saturate(Run(selected ruleset)) is eligible for a whole-Cell shortcut.
+    pub fn run(&mut self, code: &str) -> Result<Json> {
+        use egglog::ast::GenericSchedule as S;
+        fn go(r: &mut AutomaticRuntime, s: &egglog::ast::Schedule) -> Result<(bool, bool)> {
+            match s {
+                S::Sequence(_, xs) => {
+                    let (mut changed, mut stop) = (false, true);
+                    for x in xs {
+                        let (c, z) = go(r, x)?;
+                        changed |= c;
+                        stop &= z;
+                    }
+                    Ok((changed, stop))
+                }
+                S::Repeat(_, n, x) => {
+                    let (mut changed, mut stop) = (false, true);
+                    for _ in 0..*n {
+                        let (c, z) = go(r, x)?;
+                        changed |= c;
+                        stop &= z;
+                        if z {
+                            break;
+                        }
+                    }
+                    Ok((changed, stop))
+                }
+                S::Saturate(_, body)
+                    if direct_ruleset(body) == Some(r.core.lib.ruleset.as_str()) =>
+                {
+                    let result = r.saturate()?;
+                    Ok((result["updated"] == true, result["can_stop"] == true))
+                }
+                _ => {
+                    let outputs = r
+                        .core
+                        .eg
+                        .run_program(vec![Command::RunSchedule(s.clone())])?;
+                    let (mut changed, mut stop) = (false, true);
+                    for o in outputs {
+                        if let egglog::CommandOutput::RunSchedule(p) = o {
+                            changed |= p.updated;
+                            stop &= p.can_stop;
+                        }
+                    }
+                    r.drain()?;
+                    Ok((changed, stop))
+                }
+            }
+        }
+        if self.failed {
+            return Err("failed automatic runtime cannot resume".into());
+        }
+        let commands = self.core.eg.parse_program(None, code)?;
+        if commands
+            .iter()
+            .any(|c| !matches!(c, Command::RunSchedule(_)))
+        {
+            return Err("schedule-only request required".into());
+        }
+        let result = (|| {
+            let (mut updated, mut can_stop) = (false, true);
+            for c in commands {
+                if let Command::RunSchedule(s) = c {
+                    let (a, b) = go(self, &s)?;
+                    updated |= a;
+                    can_stop &= b;
+                }
+            }
+            Ok(json!({"updated":updated,"can_stop":can_stop,"runtime":self.report()}))
+        })();
+        if result.is_err() {
+            self.failed = true;
+        }
+        result
     }
     fn fact(&self, row: &Row, frame: &[Value]) -> FactKey {
         (
@@ -464,7 +722,7 @@ impl AutomaticRuntime {
         self.counters.union_events += batch.unions.len();
         let union = !batch.unions.is_empty();
         let mut changed = BTreeSet::new();
-        let affected = batch
+        let mut affected = batch
             .unions
             .iter()
             .flat_map(|(a, b)| [a, b])
@@ -472,15 +730,27 @@ impl AutomaticRuntime {
             .collect::<BTreeSet<_>>();
         for table in batch.clears {
             let name = self.feed.tables[table].name.clone();
+            if !self.rows.ops.get(&name).is_none_or(|s| s.is_empty()) {
+                self.destructive_seen = true;
+            }
             for row in self.rows.ops.get(&name).cloned().unwrap_or_default() {
+                affected.extend(self.owners.get(&row).into_iter().flatten().copied());
                 self.mark(&row);
                 self.rows.change(row, &self.schemas[&name], false);
             }
         }
         for delta in batch.rows {
             let op = self.feed.tables[delta.table].name.clone();
+            // Rebuild removal has a visible canonical replacement. A genuine
+            // deletion/subsumption breaks the positive-only proof contract;
+            // fail closed for this observer rather than resurrecting an
+            // invisible intermediate node with a multi-step macro.
+            if !delta.visible && self.core.eg.cell_visible_row(&op, &delta.key).is_none() {
+                self.destructive_seen = true;
+            }
             // Native journal keys omit the result; rebuild can remove old keys.
             if let Some(row) = self.rows.keys.get(&(op.clone(), delta.key)).cloned() {
+                affected.extend(self.owners.get(&row).into_iter().flatten().copied());
                 self.mark(&row);
                 self.rows.change(row, &self.schemas[&op], false);
             }
@@ -531,8 +801,8 @@ impl AutomaticRuntime {
                     ))
                 })
                 .collect::<Result<_>>()?;
-            self.refresh_instances(&affected)?;
         }
+        self.refresh_instances(&affected)?;
         for row in changed {
             self.discover_row(&row)?;
         }
@@ -703,23 +973,59 @@ impl AutomaticRuntime {
         }
         Ok(())
     }
-    fn settle(&mut self) -> Result<()> {
-        while let Some((id, args)) = self.pending.pop_first() {
-            if !self.attempted.insert((id, args.clone())) {
-                continue;
-            }
+    fn complete_pending(&mut self) -> Result<(bool, bool)> {
+        self.counters.saturation_boundaries += 1;
+        let mut updated = false;
+        while let Some(id) = self.pending.first().map(|(id, _)| *id) {
+            let prepare_start = Instant::now();
             let step = self.core.lib.steps[id].clone();
             let width = step
                 .source
                 .map_or(0, |s| self.core.lib.body(s).values.len());
-            let predecessor = step
-                .source
-                .and_then(|s| self.identities.get(&(s, args[..width].to_vec())).copied());
-            if step.source.is_some() && predecessor.is_none() {
-                continue;
+            let mut prepared = BTreeMap::new();
+            // One native effect batch for all CURRENT occurrences of this
+            // transition. Positive constructor/union deltas are inflationary;
+            // newly enabled successors are discovered after this commit.
+            while self.pending.first().is_some_and(|(s, _)| *s == id) {
+                let (_, args) = self.pending.pop_first().unwrap();
+                if self.attempted.contains(&(id, args.clone())) {
+                    continue;
+                }
+                let predecessor = step
+                    .source
+                    .and_then(|s| self.identities.get(&(s, args[..width].to_vec())).copied());
+                if step.source.is_some() && predecessor.is_none() {
+                    continue;
+                }
+                if partition(&step.input_types, &args) != step.input_partition {
+                    self.counters.rejected_specializations += 1;
+                    continue;
+                }
+                // Events only propose a graft. Its facts may have disappeared since
+                // enqueueing; pin all input slots and recheck current visibility.
+                let trigger = &self.triggers[id];
+                let mut binding = vec![None; trigger.vars];
+                for (i, v) in args.iter().enumerate() {
+                    binding[i] = Some(*v);
+                }
+                let mut witnesses = vec![];
+                solve(
+                    &self.rows,
+                    trigger,
+                    &(0..trigger.atoms.len()).collect::<Vec<_>>(),
+                    binding,
+                    &mut witnesses,
+                    &mut self.counters.graft_candidate_rows,
+                );
+                if witnesses.is_empty() {
+                    self.counters.stale_grafts += 1;
+                    continue;
+                }
+                self.attempted.insert((id, args.clone()));
+                prepared.insert(args, predecessor);
             }
-            if partition(&step.input_types, &args) != step.input_partition {
-                self.counters.rejected_specializations += 1;
+            self.counters.graft_validation_seconds += prepare_start.elapsed().as_secs_f64();
+            if prepared.is_empty() {
                 continue;
             }
             let before = self
@@ -728,7 +1034,17 @@ impl AutomaticRuntime {
                 .iter()
                 .map(|(s, _)| self.core.eg.cell_query_watermark(s))
                 .collect::<Vec<_>>();
-            let (out, old, report) = self.core.emitters[id].apply(&mut self.core.eg, &args)?;
+            let apply_start = Instant::now();
+            let (receipts, report) = self.core.emitters[id].apply_many(
+                &mut self.core.eg,
+                &prepared.keys().cloned().collect::<Vec<_>>(),
+            )?;
+            self.counters.macro_apply_seconds += apply_start.elapsed().as_secs_f64();
+            let batch = self.batch_reports.len();
+            self.counters.macro_batches += 1;
+            self.batch_reports
+                .push(json!({"transition":step.name,"native":report}));
+            updated |= report["updated"] == true;
             if self
                 .core
                 .original
@@ -738,54 +1054,60 @@ impl AutomaticRuntime {
             {
                 return Err("smooth query unexpectedly ran during automatic macro".into());
             }
-            let validated = validate_receipt(
-                &self.core.eg,
-                &step,
-                self.core.lib.body(step.target),
-                &out,
-                &old,
-            );
+            let publication_start = Instant::now();
             self.drain()?;
-            let frame = match validated {
-                Ok(f) => f,
-                Err(_) => {
-                    self.counters.rejected_specializations += 1;
-                    continue;
-                }
-            };
-            let target = if let Some(i) = self.identities.get(&(step.target, frame.clone())) {
-                *i
-            } else {
-                let i = self.instances.len();
-                self.instances.push(LiveInstance {
-                    id: i,
-                    state: step.target,
-                    revision: 0,
-                    valid: true,
-                    frame,
-                });
-                self.index_instance(i);
-                self.discover_instance(i)?;
-                i
-            };
-            self.counters.macro_transitions += 1;
-            self.transitions.push(json!({"transition":step.name,"source_instance":predecessor,"target_instance":target,"source_state":step.source,"target_state":step.target,"native":report}));
+            for (out, old) in receipts {
+                let predecessor = prepared
+                    .remove(&old)
+                    .ok_or("native receipt changed its input binding before commit")?;
+                let validated = validate_receipt(
+                    &self.core.eg,
+                    &step,
+                    self.core.lib.body(step.target),
+                    &out,
+                    &old,
+                );
+                let frame = match validated {
+                    Ok(f) => f,
+                    Err(_) => {
+                        self.counters.rejected_specializations += 1;
+                        continue;
+                    }
+                };
+                let target = if let Some(i) = self.identities.get(&(step.target, frame.clone())) {
+                    *i
+                } else {
+                    let i = self.instances.len();
+                    self.instances.push(LiveInstance {
+                        id: i,
+                        state: step.target,
+                        revision: 0,
+                        valid: true,
+                        frame,
+                    });
+                    self.index_instance(i);
+                    self.discover_instance(i)?;
+                    i
+                };
+                self.counters.macro_transitions += 1;
+                self.transitions.push(json!({"transition":step.name,"source_instance":predecessor,"target_instance":target,"source_state":step.source,"target_state":step.target,"native_batch":batch}));
+            }
+            if !prepared.is_empty() {
+                return Err("missing native transition receipt".into());
+            }
+            self.counters.publication_seconds += publication_start.elapsed().as_secs_f64();
         }
-        if !self.covered() {
-            self.counters.native_fallbacks += 1;
-            let report = saturate(&mut self.core.eg, &self.core.lib.ruleset)?;
-            self.counters.fallback_smooth_matches += report["smooth_matches"]
-                .as_object()
-                .unwrap()
-                .values()
-                .map(|n| n.as_u64().unwrap() as usize)
-                .sum::<usize>();
-            self.drain()?;
-            // The native fixed point is already complete. Retain pending events
-            // for subsequent input, but do not replay work just to label states.
+        let coverage_start = Instant::now();
+        let complete = self.covered();
+        self.counters.coverage_seconds += coverage_start.elapsed().as_secs_f64();
+        if complete {
+            self.counters.skipped_saturations += 1;
+            self.core
+                .eg
+                .certify_cell_saturation(&self.core.lib.ruleset)?;
+            self.dirty.clear();
         }
-        self.dirty.clear();
-        Ok(())
+        Ok((complete, updated))
     }
     /// All active rows in each affected connected component must belong to ONE
     /// certified complete body. Independent certificates alone are insufficient.
@@ -921,11 +1243,12 @@ pub fn run_checked(
     }
     let mut boundaries = vec![];
     for (i, (set, code)) in operations.iter().enumerate() {
-        let smooth = if let Some(set) = set {
+        if let Some(set) = set {
             run.step_grafts(set)?
         } else {
             run.commit(code)?
         };
+        let smooth = run.run(&format!("(run-schedule (saturate {}))", plan.ruleset))?;
         native.parse_and_run_program(None, code)?;
         let reference = saturate(&mut native, &plan.ruleset)?;
         original += &format!("{code}\n(run-schedule (saturate {}))\n", plan.ruleset);

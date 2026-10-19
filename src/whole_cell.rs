@@ -341,8 +341,10 @@ fn saturate(eg: &mut EGraph, ruleset: &str) -> Result<Json> {
     let now = Instant::now();
     let mut counts = BTreeMap::<String, usize>::new();
     let mut steps = 0;
+    let mut updated = false;
     loop {
         let r = eg.step_rules(ruleset)?;
+        updated |= r.updated;
         steps += 1;
         for (n, c) in r.num_matches_per_rule {
             *counts.entry(n.to_string()).or_default() += c;
@@ -352,7 +354,7 @@ fn saturate(eg: &mut EGraph, ruleset: &str) -> Result<Json> {
         }
     }
     Ok(
-        json!({"native_complete":true,"last_step_updated":false,"steps":steps,"smooth_matches":counts,"seconds":now.elapsed().as_secs_f64()}),
+        json!({"native_complete":true,"updated":updated,"can_stop":!updated,"last_step_updated":false,"steps":steps,"smooth_matches":counts,"seconds":now.elapsed().as_secs_f64()}),
     )
 }
 fn scope(env: &str, ruleset: &str) -> Json {
@@ -522,32 +524,47 @@ impl Emitter {
         })
     }
     fn apply(&self, eg: &mut EGraph, args: &[Value]) -> Result<(Vec<Value>, Vec<Value>, Json)> {
-        if args.len() != self.inputs {
+        let (mut frames, report) = self.apply_many(eg, &[args.to_vec()])?;
+        let (out, old) = frames.pop().ok_or("missing native receipt")?;
+        Ok((out, old, report))
+    }
+    fn apply_many(
+        &self,
+        eg: &mut EGraph,
+        args: &[Vec<Value>],
+    ) -> Result<(Vec<(Vec<Value>, Vec<Value>)>, Json)> {
+        if args.iter().any(|a| a.len() != self.inputs) {
             return Err("transition input count".into());
         }
-        let binding = self
-            .sink
-            .slots()
+        let bindings = args
             .iter()
-            .map(|(n, _)| {
-                n.strip_prefix("in")
-                    .and_then(|x| x.parse::<usize>().ok())
-                    .and_then(|i| args.get(i))
-                    .copied()
-                    .ok_or("unexpected macro query slot")
+            .map(|args| {
+                self.sink
+                    .slots()
+                    .iter()
+                    .map(|(n, _)| {
+                        n.strip_prefix("in")
+                            .and_then(|x| x.parse::<usize>().ok())
+                            .and_then(|i| args.get(i))
+                            .copied()
+                            .ok_or("unexpected macro query slot")
+                    })
+                    .collect::<std::result::Result<Vec<_>, _>>()
             })
             .collect::<std::result::Result<Vec<_>, _>>()?;
         self.receipt.lock().unwrap().clear();
-        let report = eg.apply_cell_bindings(&self.sink, &[binding])?;
+        let report = eg.apply_cell_bindings(&self.sink, &bindings)?;
         let mut rows = self.receipt.lock().unwrap();
-        if rows.len() != 1 || rows[0].len() != self.outputs + self.inputs {
+        if rows.len() != args.len() || rows.iter().any(|r| r.len() != self.outputs + self.inputs) {
             return Err("missing or duplicate native commit receipt".into());
         }
         let receipts = rows.len();
-        let row = rows.pop().unwrap();
+        let frames = std::mem::take(&mut *rows)
+            .into_iter()
+            .map(|row| (row[..self.outputs].to_vec(), row[self.outputs..].to_vec()))
+            .collect();
         Ok((
-            row[..self.outputs].to_vec(),
-            row[self.outputs..].to_vec(),
+            frames,
             json!({"macro_action_matches":report.num_matches_per_rule,"updated":report.updated,"frame_receipts":receipts,"returned_target_slots":self.outputs}),
         ))
     }

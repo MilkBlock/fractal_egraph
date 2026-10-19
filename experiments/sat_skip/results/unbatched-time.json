@@ -1,0 +1,975 @@
+{
+  "bake_seconds": 0.004512292,
+  "instances": 512,
+  "lanes": [
+    {
+      "lane": "native",
+      "phases": [
+        {
+          "boundary": 0,
+          "can_stop": false,
+          "kind": "coarse",
+          "seconds": 0.000183167,
+          "updated": true
+        },
+        {
+          "boundary": 1,
+          "can_stop": false,
+          "kind": "saturate",
+          "seconds": 0.000170042,
+          "updated": true
+        },
+        {
+          "boundary": 2,
+          "can_stop": false,
+          "kind": "observe",
+          "seconds": 0.000228541,
+          "updated": true
+        },
+        {
+          "boundary": 3,
+          "can_stop": false,
+          "kind": "coarse",
+          "seconds": 0.000554125,
+          "updated": true
+        },
+        {
+          "boundary": 4,
+          "can_stop": false,
+          "kind": "saturate",
+          "seconds": 0.003750375,
+          "updated": true
+        },
+        {
+          "boundary": 5,
+          "can_stop": false,
+          "kind": "observe",
+          "seconds": 0.000171667,
+          "updated": true
+        },
+        {
+          "boundary": 6,
+          "can_stop": false,
+          "kind": "coarse",
+          "seconds": 0.00090975,
+          "updated": true
+        },
+        {
+          "boundary": 7,
+          "can_stop": false,
+          "kind": "saturate",
+          "seconds": 0.004054375,
+          "updated": true
+        },
+        {
+          "boundary": 8,
+          "can_stop": false,
+          "kind": "observe",
+          "seconds": 0.000467,
+          "updated": true
+        }
+      ],
+      "smooth_matches": 13312
+    },
+    {
+      "lane": "gpu_full",
+      "phases": [
+        {
+          "boundary": 0,
+          "kind": "coarse",
+          "seconds": 0.008283666,
+          "verification": {
+            "eclass_mapping": 3072,
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 3072,
+            "tables": {
+              "Add": 512,
+              "Start": 512,
+              "Var": 2048
+            }
+          }
+        },
+        {
+          "boundary": 1,
+          "kind": "saturate",
+          "seconds": 0.003938459,
+          "verification": {
+            "eclass_mapping": 3072,
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 3584,
+            "tables": {
+              "Add": 1024,
+              "Start": 512,
+              "Var": 2048
+            }
+          }
+        },
+        {
+          "boundary": 2,
+          "kind": "observe",
+          "seconds": 0.002088666,
+          "verification": {
+            "eclass_mapping": 3584,
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 4096,
+            "tables": {
+              "Add": 1024,
+              "Published": 512,
+              "Start": 512,
+              "Var": 2048
+            }
+          }
+        },
+        {
+          "boundary": 3,
+          "kind": "coarse",
+          "seconds": 0.001288666,
+          "verification": {
+            "eclass_mapping": 4096,
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 4608,
+            "tables": {
+              "Add": 1024,
+              "Mul": 512,
+              "Published": 512,
+              "Start": 512,
+              "Var": 2048
+            }
+          }
+        },
+        {
+          "boundary": 4,
+          "kind": "saturate",
+          "seconds": 0.008474042,
+          "verification": {
+            "eclass_mapping": 5120,
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 8192,
+            "tables": {
+              "Add": 2048,
+              "Mul": 3072,
+              "Published": 512,
+              "Start": 512,
+              "Var": 2048
+            }
+          }
+        },
+        {
+          "boundary": 5,
+          "kind": "observe",
+          "seconds": 0.001402542,
+          "verification": {
+            "eclass_mapping": 5632,
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 8704,
+            "tables": {
+              "Add": 2048,
+              "Mul": 3072,
+              "Published": 1024,
+              "Start": 512,
+              "Var": 2048
+            }
+          }
+        },
+        {
+          "boundary": 6,
+          "kind": "coarse",
+          "seconds": 0.001742125,
+          "verification": {
+            "eclass_mapping": 6656,
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 9728,
+            "tables": {
+              "Add": 2560,
+              "Mul": 3584,
+              "Published": 1024,
+              "Start": 512,
+              "Var": 2048
+            }
+          }
+        },
+        {
+          "boundary": 7,
+          "kind": "saturate",
+          "seconds": 0.008101834,
+          "verification": {
+            "eclass_mapping": 7168,
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 12800,
+            "tables": {
+              "Add": 4096,
+              "Mul": 5120,
+              "Published": 1024,
+              "Start": 512,
+              "Var": 2048
+            }
+          }
+        },
+        {
+          "boundary": 8,
+          "kind": "observe",
+          "seconds": 0.001798334,
+          "verification": {
+            "eclass_mapping": 8192,
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 13824,
+            "tables": {
+              "Add": 4096,
+              "Mul": 5120,
+              "Published": 2048,
+              "Start": 512,
+              "Var": 2048
+            }
+          }
+        }
+      ],
+      "report": {
+        "audit": false,
+        "backend": "shared-gpu",
+        "cell_work": {
+          "certificate_reuses": 0,
+          "certification_attempts": 0,
+          "certification_probes": 0,
+          "certified_anchor_hits": 0,
+          "delegated_branches": 0,
+          "direct_row_reuses": 0,
+          "dirty_cells": 0,
+          "invalidated_certificates": 0,
+          "join_probes": 0,
+          "missing_key_waits": 0,
+          "port_bindings": 0,
+          "port_candidate_rows": 0,
+          "port_consumer_checks": 0,
+          "port_context_loads": 0,
+          "port_context_words": 0,
+          "port_join_executions": 0,
+          "port_probes": 0,
+          "port_shared_joins_saved": 0,
+          "ports_published": 0,
+          "prefix_rows_reused": 0,
+          "ready_covered_atom_sum": 0,
+          "ready_matches": 0,
+          "ready_productive_seeds": 0,
+          "ready_query_atom_sum": 0,
+          "ready_reuse_seeds": 0,
+          "ready_reused_atoms": 0,
+          "routed_ready": 0,
+          "routed_suspected": 0,
+          "routed_unmapped": 0,
+          "routing_ambiguous": 0,
+          "routing_delegated_to_port": 0,
+          "routing_earlier_delta_owner": 0,
+          "routing_locator_probes": 0,
+          "routing_locator_rows": 0,
+          "routing_no_next_atom": 0,
+          "routing_unique_hints": 0,
+          "routing_valid_seeds": 0,
+          "shape_fallbacks": 0,
+          "skipped_join_probes": 0,
+          "suspected_matches": 0,
+          "suspected_productive_seeds": 0,
+          "suspected_reuse_seeds": 0,
+          "suspected_reused_atoms": 0,
+          "unmapped_matches": 0,
+          "unmapped_productive_seeds": 0,
+          "unmapped_reuse_seeds": 0,
+          "unmapped_reused_atoms": 0,
+          "watch_entries_checked": 0,
+          "watch_wakes": 0
+        },
+        "cells": {
+          "cache_only": false,
+          "library": null,
+          "plan_only": false,
+          "plans": [],
+          "port_join_groups": 8,
+          "port_locality": 0,
+          "profile": false,
+          "query_routing": 0
+        },
+        "device": {
+          "bindings": 2048,
+          "cell_cache_bytes": 52,
+          "cell_directory_bytes": 60,
+          "cell_dirty_bytes": 4,
+          "cell_free_slots": 0,
+          "cell_instance_capacity": 1,
+          "cell_instance_slots": 0,
+          "cell_instances": 0,
+          "cell_plans": 0,
+          "cell_port_bytes": 8,
+          "cell_slots_reused": 0,
+          "cell_tables_affected": false,
+          "cell_watch_bytes": 8,
+          "cell_work": {
+            "certificate_reuses": 0,
+            "certification_attempts": 0,
+            "certification_probes": 0,
+            "certified_anchor_hits": 0,
+            "delegated_branches": 0,
+            "direct_row_reuses": 0,
+            "dirty_cells": 0,
+            "invalidated_certificates": 0,
+            "join_probes": 0,
+            "missing_key_waits": 0,
+            "port_bindings": 0,
+            "port_candidate_rows": 0,
+            "port_consumer_checks": 0,
+            "port_context_loads": 0,
+            "port_context_words": 0,
+            "port_join_executions": 0,
+            "port_probes": 0,
+            "port_shared_joins_saved": 0,
+            "ports_published": 0,
+            "prefix_rows_reused": 0,
+            "ready_covered_atom_sum": 0,
+            "ready_matches": 0,
+            "ready_productive_seeds": 0,
+            "ready_query_atom_sum": 0,
+            "ready_reuse_seeds": 0,
+            "ready_reused_atoms": 0,
+            "routed_ready": 0,
+            "routed_suspected": 0,
+            "routed_unmapped": 0,
+            "routing_ambiguous": 0,
+            "routing_delegated_to_port": 0,
+            "routing_earlier_delta_owner": 0,
+            "routing_locator_probes": 0,
+            "routing_locator_rows": 0,
+            "routing_no_next_atom": 0,
+            "routing_unique_hints": 0,
+            "routing_valid_seeds": 0,
+            "shape_fallbacks": 0,
+            "skipped_join_probes": 0,
+            "suspected_matches": 0,
+            "suspected_productive_seeds": 0,
+            "suspected_reuse_seeds": 0,
+            "suspected_reused_atoms": 0,
+            "unmapped_matches": 0,
+            "unmapped_productive_seeds": 0,
+            "unmapped_reuse_seeds": 0,
+            "unmapped_reused_atoms": 0,
+            "watch_entries_checked": 0,
+            "watch_wakes": 0
+          },
+          "compacted": false,
+          "compactions": 4,
+          "device": "Apple M3 Max",
+          "device_bytes": 4266380,
+          "dirty_cells": 0,
+          "epoch": 14,
+          "event_capacity": 32768,
+          "event_cells": false,
+          "events": 9728,
+          "gpu_seconds": 0.000026499999876250513,
+          "old_events": 9728,
+          "port_capacity": 0,
+          "port_compactions": 0,
+          "port_count": 0,
+          "port_locality": 0,
+          "port_work": false,
+          "queries": 1,
+          "query_routing": 0,
+          "retained_matches": 0,
+          "retries": 0,
+          "route_retries": 0,
+          "routed_seeds": 0,
+          "row_capacity": 16384,
+          "row_slots": 9728,
+          "sparse_cells": true,
+          "watch_capacity": 0,
+          "watch_compactions": 0,
+          "watch_count": 0
+        },
+        "live_rows": 9728,
+        "row_slots": 9728,
+        "rules": [
+          {
+            "rule": "start",
+            "ruleset": "graft",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 1,
+              "emitted_bindings": 512,
+              "quiet_runs": 2
+            }
+          },
+          {
+            "rule": "grow",
+            "ruleset": "graft",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 512,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "grow-again",
+            "ruleset": "graft",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 512,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "add-comm",
+            "ruleset": "math",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 6,
+              "emitted_bindings": 4096,
+              "quiet_runs": 2
+            }
+          },
+          {
+            "rule": "mul-comm",
+            "ruleset": "math",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 7,
+              "emitted_bindings": 5120,
+              "quiet_runs": 1
+            }
+          },
+          {
+            "rule": "distribute",
+            "ruleset": "math",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 8,
+              "emitted_bindings": 2048,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "factor",
+            "ruleset": "math",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 8,
+              "emitted_bindings": 2048,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "publish-add",
+            "ruleset": "observe",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 4096,
+              "quiet_runs": 0
+            }
+          }
+        ],
+        "runtime": {
+          "audit_seconds": 0.0,
+          "bootstrap_events": 512,
+          "decode_seconds": 0.0012419580000000003,
+          "device_seconds": 0.0016745833345339634,
+          "dispatches": 14,
+          "downloaded_bytes": 606208,
+          "event_seconds": 0.0024035840000000003,
+          "first_upload_bytes": 41024,
+          "native_action_search_apply_seconds": 0.002045669,
+          "native_insert_merge_seconds": 0.001110748,
+          "native_query_seconds": 0.0,
+          "native_rebuild_seconds": 0.000164459,
+          "native_rhs_seconds": 0.007166959999999999,
+          "output_high_water": 3584,
+          "partial_saturations": 0,
+          "peak_live_rows": 9728,
+          "prepare_seconds": 0.00023941600000000003,
+          "reused_slots": 0,
+          "roundtrip_seconds": 0.025204332000000003,
+          "row_events": 10240,
+          "ruleset_runs": 14,
+          "run_seconds": 0.037117834,
+          "saturation_boundaries": 3,
+          "saturation_hook_seconds": 0.0,
+          "setup_seconds": 0.047902125,
+          "shader_compiles": 1,
+          "skipped_saturations": 0,
+          "unchanged_notifications": 0,
+          "union_events": 1536,
+          "uploaded_bytes": 779088,
+          "workers": 1
+        },
+        "saturation_hook": null,
+        "scope": "Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage.",
+        "shared_tables": 3
+      },
+      "setup_seconds": 0.0479065,
+      "smooth_matches": 13312
+    },
+    {
+      "lane": "gpu_sat_skip",
+      "phases": [
+        {
+          "boundary": 0,
+          "kind": "coarse",
+          "seconds": 0.010206083,
+          "verification": {
+            "eclass_mapping": 3072,
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 3072,
+            "tables": {
+              "Add": 512,
+              "Start": 512,
+              "Var": 2048
+            }
+          }
+        },
+        {
+          "boundary": 1,
+          "kind": "saturate",
+          "seconds": 0.139954791,
+          "verification": {
+            "eclass_mapping": 3072,
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 3584,
+            "tables": {
+              "Add": 1024,
+              "Start": 512,
+              "Var": 2048
+            }
+          }
+        },
+        {
+          "boundary": 2,
+          "kind": "observe",
+          "seconds": 0.003916125,
+          "verification": {
+            "eclass_mapping": 3584,
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 4096,
+            "tables": {
+              "Add": 1024,
+              "Published": 512,
+              "Start": 512,
+              "Var": 2048
+            }
+          }
+        },
+        {
+          "boundary": 3,
+          "kind": "coarse",
+          "seconds": 0.003417792,
+          "verification": {
+            "eclass_mapping": 4096,
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 4608,
+            "tables": {
+              "Add": 1024,
+              "Mul": 512,
+              "Published": 512,
+              "Start": 512,
+              "Var": 2048
+            }
+          }
+        },
+        {
+          "boundary": 4,
+          "kind": "saturate",
+          "seconds": 0.267204583,
+          "verification": {
+            "eclass_mapping": 5120,
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 8192,
+            "tables": {
+              "Add": 2048,
+              "Mul": 3072,
+              "Published": 512,
+              "Start": 512,
+              "Var": 2048
+            }
+          }
+        },
+        {
+          "boundary": 5,
+          "kind": "observe",
+          "seconds": 0.004175125,
+          "verification": {
+            "eclass_mapping": 5632,
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 8704,
+            "tables": {
+              "Add": 2048,
+              "Mul": 3072,
+              "Published": 1024,
+              "Start": 512,
+              "Var": 2048
+            }
+          }
+        },
+        {
+          "boundary": 6,
+          "kind": "coarse",
+          "seconds": 0.006734541,
+          "verification": {
+            "eclass_mapping": 6656,
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 9728,
+            "tables": {
+              "Add": 2560,
+              "Mul": 3584,
+              "Published": 1024,
+              "Start": 512,
+              "Var": 2048
+            }
+          }
+        },
+        {
+          "boundary": 7,
+          "kind": "saturate",
+          "seconds": 0.439488334,
+          "verification": {
+            "eclass_mapping": 7168,
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 12800,
+            "tables": {
+              "Add": 4096,
+              "Mul": 5120,
+              "Published": 1024,
+              "Start": 512,
+              "Var": 2048
+            }
+          }
+        },
+        {
+          "boundary": 8,
+          "kind": "observe",
+          "seconds": 0.00833,
+          "verification": {
+            "eclass_mapping": 8192,
+            "exact_rows_values_equivalence_visibility": true,
+            "rows": 13824,
+            "tables": {
+              "Add": 4096,
+              "Mul": 5120,
+              "Published": 2048,
+              "Start": 512,
+              "Var": 2048
+            }
+          }
+        }
+      ],
+      "report": {
+        "audit": false,
+        "backend": "shared-gpu",
+        "cell_work": {
+          "certificate_reuses": 0,
+          "certification_attempts": 0,
+          "certification_probes": 0,
+          "certified_anchor_hits": 0,
+          "delegated_branches": 0,
+          "direct_row_reuses": 0,
+          "dirty_cells": 0,
+          "invalidated_certificates": 0,
+          "join_probes": 0,
+          "missing_key_waits": 0,
+          "port_bindings": 0,
+          "port_candidate_rows": 0,
+          "port_consumer_checks": 0,
+          "port_context_loads": 0,
+          "port_context_words": 0,
+          "port_join_executions": 0,
+          "port_probes": 0,
+          "port_shared_joins_saved": 0,
+          "ports_published": 0,
+          "prefix_rows_reused": 0,
+          "ready_covered_atom_sum": 0,
+          "ready_matches": 0,
+          "ready_productive_seeds": 0,
+          "ready_query_atom_sum": 0,
+          "ready_reuse_seeds": 0,
+          "ready_reused_atoms": 0,
+          "routed_ready": 0,
+          "routed_suspected": 0,
+          "routed_unmapped": 0,
+          "routing_ambiguous": 0,
+          "routing_delegated_to_port": 0,
+          "routing_earlier_delta_owner": 0,
+          "routing_locator_probes": 0,
+          "routing_locator_rows": 0,
+          "routing_no_next_atom": 0,
+          "routing_unique_hints": 0,
+          "routing_valid_seeds": 0,
+          "shape_fallbacks": 0,
+          "skipped_join_probes": 0,
+          "suspected_matches": 0,
+          "suspected_productive_seeds": 0,
+          "suspected_reuse_seeds": 0,
+          "suspected_reused_atoms": 0,
+          "unmapped_matches": 0,
+          "unmapped_productive_seeds": 0,
+          "unmapped_reuse_seeds": 0,
+          "unmapped_reused_atoms": 0,
+          "watch_entries_checked": 0,
+          "watch_wakes": 0
+        },
+        "cells": {
+          "cache_only": false,
+          "library": null,
+          "plan_only": false,
+          "plans": [],
+          "port_join_groups": 8,
+          "port_locality": 0,
+          "profile": false,
+          "query_routing": 0
+        },
+        "device": {
+          "bindings": 2048,
+          "cell_cache_bytes": 52,
+          "cell_directory_bytes": 60,
+          "cell_dirty_bytes": 4,
+          "cell_free_slots": 0,
+          "cell_instance_capacity": 1,
+          "cell_instance_slots": 0,
+          "cell_instances": 0,
+          "cell_plans": 0,
+          "cell_port_bytes": 8,
+          "cell_slots_reused": 0,
+          "cell_tables_affected": false,
+          "cell_watch_bytes": 8,
+          "cell_work": {
+            "certificate_reuses": 0,
+            "certification_attempts": 0,
+            "certification_probes": 0,
+            "certified_anchor_hits": 0,
+            "delegated_branches": 0,
+            "direct_row_reuses": 0,
+            "dirty_cells": 0,
+            "invalidated_certificates": 0,
+            "join_probes": 0,
+            "missing_key_waits": 0,
+            "port_bindings": 0,
+            "port_candidate_rows": 0,
+            "port_consumer_checks": 0,
+            "port_context_loads": 0,
+            "port_context_words": 0,
+            "port_join_executions": 0,
+            "port_probes": 0,
+            "port_shared_joins_saved": 0,
+            "ports_published": 0,
+            "prefix_rows_reused": 0,
+            "ready_covered_atom_sum": 0,
+            "ready_matches": 0,
+            "ready_productive_seeds": 0,
+            "ready_query_atom_sum": 0,
+            "ready_reuse_seeds": 0,
+            "ready_reused_atoms": 0,
+            "routed_ready": 0,
+            "routed_suspected": 0,
+            "routed_unmapped": 0,
+            "routing_ambiguous": 0,
+            "routing_delegated_to_port": 0,
+            "routing_earlier_delta_owner": 0,
+            "routing_locator_probes": 0,
+            "routing_locator_rows": 0,
+            "routing_no_next_atom": 0,
+            "routing_unique_hints": 0,
+            "routing_valid_seeds": 0,
+            "shape_fallbacks": 0,
+            "skipped_join_probes": 0,
+            "suspected_matches": 0,
+            "suspected_productive_seeds": 0,
+            "suspected_reuse_seeds": 0,
+            "suspected_reused_atoms": 0,
+            "unmapped_matches": 0,
+            "unmapped_productive_seeds": 0,
+            "unmapped_reuse_seeds": 0,
+            "unmapped_reused_atoms": 0,
+            "watch_entries_checked": 0,
+            "watch_wakes": 0
+          },
+          "compacted": true,
+          "compactions": 3,
+          "device": "Apple M3 Max",
+          "device_bytes": 4528524,
+          "dirty_cells": 0,
+          "epoch": 6,
+          "event_capacity": 32768,
+          "event_cells": false,
+          "events": 9728,
+          "gpu_seconds": 0.00015479166631848784,
+          "old_events": 5632,
+          "port_capacity": 0,
+          "port_compactions": 0,
+          "port_count": 0,
+          "port_locality": 0,
+          "port_work": false,
+          "queries": 1,
+          "query_routing": 0,
+          "retained_matches": 0,
+          "retries": 1,
+          "route_retries": 0,
+          "routed_seeds": 0,
+          "row_capacity": 16384,
+          "row_slots": 9728,
+          "sparse_cells": true,
+          "watch_capacity": 0,
+          "watch_compactions": 0,
+          "watch_count": 0
+        },
+        "live_rows": 9728,
+        "row_slots": 9728,
+        "rules": [
+          {
+            "rule": "start",
+            "ruleset": "graft",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 1,
+              "emitted_bindings": 512,
+              "quiet_runs": 2
+            }
+          },
+          {
+            "rule": "grow",
+            "ruleset": "graft",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 512,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "grow-again",
+            "ruleset": "graft",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 512,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "add-comm",
+            "ruleset": "math",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 0,
+              "emitted_bindings": 0,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "mul-comm",
+            "ruleset": "math",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 0,
+              "emitted_bindings": 0,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "distribute",
+            "ruleset": "math",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 0,
+              "emitted_bindings": 0,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "factor",
+            "ruleset": "math",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 0,
+              "emitted_bindings": 0,
+              "quiet_runs": 0
+            }
+          },
+          {
+            "rule": "publish-add",
+            "ruleset": "observe",
+            "stats": {
+              "audit_queries": 0,
+              "dispatches": 3,
+              "emitted_bindings": 4096,
+              "quiet_runs": 0
+            }
+          }
+        ],
+        "runtime": {
+          "audit_seconds": 0.0,
+          "bootstrap_events": 512,
+          "decode_seconds": 0.000379833,
+          "device_seconds": 0.0006287500000325963,
+          "dispatches": 6,
+          "downloaded_bytes": 180224,
+          "event_seconds": 0.014582583,
+          "first_upload_bytes": 41024,
+          "native_action_search_apply_seconds": 0.000895375,
+          "native_insert_merge_seconds": 0.000369751,
+          "native_query_seconds": 0.0,
+          "native_rebuild_seconds": 0.000113167,
+          "native_rhs_seconds": 0.002659958,
+          "output_high_water": 2048,
+          "partial_saturations": 0,
+          "peak_live_rows": 9728,
+          "prepare_seconds": 0.000220042,
+          "reused_slots": 0,
+          "roundtrip_seconds": 0.018477457,
+          "row_events": 9728,
+          "ruleset_runs": 6,
+          "run_seconds": 0.883426168,
+          "saturation_boundaries": 3,
+          "saturation_hook_seconds": 0.8446583329999999,
+          "setup_seconds": 0.057868541,
+          "shader_compiles": 1,
+          "skipped_saturations": 3,
+          "unchanged_notifications": 0,
+          "union_events": 6656,
+          "uploaded_bytes": 778496,
+          "workers": 1
+        },
+        "saturation_hook": {
+          "boundary_verified": false,
+          "complete": true,
+          "ruleset": "math",
+          "runtime": {
+            "counters": {
+              "committed_rows": 12800,
+              "coverage_rows_checked": 15360,
+              "fallback_smooth_matches": 0,
+              "graft_candidate_rows": 10752,
+              "invalidated_instances": 0,
+              "macro_transitions": 3072,
+              "native_fallbacks": 0,
+              "rejected_specializations": 0,
+              "saturation_boundaries": 3,
+              "skipped_saturations": 3,
+              "stale_grafts": 0,
+              "union_events": 5632
+            },
+            "instances": 3072,
+            "native_smooth_matches": {
+              "add-comm": 0,
+              "distribute": 0,
+              "factor": 0,
+              "mul-comm": 0
+            },
+            "pending_transitions": 0
+          },
+          "updated": true
+        },
+        "scope": "Native commit deltas drive analyzed Cell interfaces. Optional certified whole-closure handler runs only at explicit saturation boundaries; unknown contexts retain complete queries. No virtual storage.",
+        "shared_tables": 3
+      },
+      "setup_seconds": 0.057870209,
+      "smooth_matches": 0
+    }
+  ],
+  "mode": "time",
+  "scope": "Actual native/GPU runtime; finite positive Math A-B-C Cell family. Ordinary graft/observer runs preserved. Every boundary checks full original rows, values, equivalence and visibility. Not raytrace or support for custom-merge terms. Setup, Bake, input and verification excluded from per-boundary timers. No averaging.",
+  "shared_preparation_seconds": 0.026384833
+}

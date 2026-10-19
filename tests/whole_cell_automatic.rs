@@ -16,6 +16,8 @@ fn setup(env: &str, p: Plan, input: &str) -> (AutomaticRuntime, egglog::EGraph) 
 }
 fn check(run: &mut AutomaticRuntime, native: &mut egglog::EGraph, code: &str, set: &str) {
     run.commit(code).unwrap();
+    run.run(&format!("(run-schedule (saturate {set}))"))
+        .unwrap();
     native
         .parse_and_run_program(None, &format!("{code}\n(run-schedule (saturate {set}))"))
         .unwrap();
@@ -54,11 +56,11 @@ fn automatically_routes_multiple_interleaved_whole_cells_without_smooth_queries(
             >= 2
     );
     assert!(
-        run.report()["original_query_watermarks"]
-            .as_array()
+        run.report()["native_smooth_matches"]
+            .as_object()
             .unwrap()
-            .iter()
-            .all(|r| r["initial"] == r["current"])
+            .values()
+            .all(|n| n == 0)
     );
     assert!(
         run.transitions
@@ -67,6 +69,7 @@ fn automatically_routes_multiple_interleaved_whole_cells_without_smooth_queries(
     );
     let n = run.counters.macro_transitions;
     run.commit("(Add b (Mul k z))").unwrap();
+    run.saturate().unwrap();
     assert_eq!(
         run.counters.macro_transitions, n,
         "deduplicated facts must not replay macros"
@@ -88,6 +91,7 @@ fn native_coarse_rule_commits_drive_the_same_dispatcher() {
     native.parse_and_run_program(None, rules).unwrap();
     for _ in 0..3 {
         run.step_grafts("graft").unwrap();
+        run.saturate().unwrap();
         native
             .parse_and_run_program(None, "(run graft 1) (run-schedule (saturate math))")
             .unwrap();

@@ -14,7 +14,7 @@ pub struct CellTable {
     function: FunctionId,
     subsume: bool,
 }
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct CellRowDelta {
     pub table: usize,
     pub key: Vec<Value>,
@@ -23,7 +23,7 @@ pub struct CellRowDelta {
     /// Native table version, not the fact that a journal key was touched.
     pub timestamp: Option<u32>,
 }
-#[derive(Default, Debug)]
+#[derive(Clone, Default, Debug)]
 pub struct CellCommitBatch {
     pub rows: Vec<CellRowDelta>,
     pub clears: Vec<usize>,
