@@ -56,6 +56,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertNotIn('--original', stable[0])
         self.assertTrue(stable[1][1].endswith('/extract.py'))
         self.assertIn('--original', plan(['run', '--policy', 'original'])[0])
+        self.assertIn('--joint-sat', plan(['run', '--joint-sat'])[0])
         self.assertEqual(plan(['audit'])[0][-1], 'audit')
         self.assertEqual(plan(['audit', '--three-lane-check'])[0][-1], 'check')
         self.assertEqual(plan(['sat-skip', '--checked'])[0][-2:], ['32', 'check'])
@@ -74,6 +75,13 @@ class WorkflowTests(unittest.TestCase):
             r['lanes'][1]['phases'][0]['verification']=None
             (folder/'results.json').write_text(json.dumps(r))
             self.assertFalse(B.saved_gate('joint-sat',folder))
+
+    def test_joint_speedup_requires_its_gpu_control_graph_check(self):
+        r=fixture();r['gpu_without_joint']=dict(audit=False,runtime=dict(run_seconds=5))
+        self.assertIsNone(B.metrics(r)['joint_speedup'])
+        self.assertIsNone(B.metrics(r)['inference_speedup'])
+        r['joint_verification']=dict(exact_rows_values_equivalence_visibility=True)
+        self.assertEqual(B.metrics(r)['joint_speedup'],1.25)
 
     def test_parameterized_gate_requires_both_graphs_and_counts(self):
         phase = dict(same_submit=dict(exact_rows_values_equivalence_visibility=True),

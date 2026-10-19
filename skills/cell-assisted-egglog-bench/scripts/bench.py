@@ -38,11 +38,15 @@ def metrics(r, quality=None, extraction=None):
     audit = r.get('gpu', {}).get('audit')
     cpu = r['sorted_commit_cpu']['runtime']['run_seconds']
     gpu = r['gpu']['runtime']['run_seconds']
-    eligible = ok and r.get('benchmark_finished') is True and audit is False and cpu > 0 and gpu > 0
+    control=r.get('gpu_without_joint')
+    joint_ok=not control or exact(r.get('joint_verification'))
+    eligible = ok and joint_ok and r.get('benchmark_finished') is True and audit is False and cpu > 0 and gpu > 0
     result = dict(exact_cpu_gpu=ok, exact_fused_native_gpu=exact(r.get('verification')),
                   timing_eligible=eligible, inference_speedup=cpu / gpu if eligible else None,
                   extraction_passed=bool(quality and quality.get('passed') is True),
-                  inference_plus_tiger_speedup=None)
+                  inference_plus_tiger_speedup=None, joint_speedup=None)
+    if eligible and control and control.get('audit') is False:
+        result['joint_speedup']=control['runtime']['run_seconds']/gpu
     if eligible and result['extraction_passed'] and extraction:
         times = {v['lane']: v['seconds'] for v in extraction['runs'] if v['returncode'] == 0}
         if 'cpu' in times and 'gpu' in times:
@@ -66,6 +70,8 @@ def report(path, fresh=False):
                           ('CPU 同提交协议', r['sorted_commit_cpu']['runtime']['run_seconds']),
                           ('GPU', r['gpu']['runtime']['run_seconds'])]:
             print(f'| {name} | {sec:.6f} |')
+        if r.get('gpu_without_joint'):
+            print(f"| GPU 关闭 joint sat-skip | {r['gpu_without_joint']['runtime']['run_seconds']:.6f} |")
         print('\nCPU/GPU 整图：', m['exact_cpu_gpu'], '；融合原生/GPU 整图：', m['exact_fused_native_gpu'])
         print('实际 Tiger 选定 DAG 检查：', m['extraction_passed'] if qpath.is_file() else '尚未运行')
         print('有效推理加速比：', f"{m['inference_speedup']:.4f}x" if m['timing_eligible'] else '不报告（整图门槛失败或这是 audit）')
@@ -73,6 +79,9 @@ def report(path, fresh=False):
             print(f"推理＋Tiger：{m['inference_plus_tiger_speedup']:.4f}x")
         print('以上不含序列化、诊断、共享输入准备；worker setup 见原始报告。当前 fork，不是 pristine。')
         print('认证跳过次数：', r['gpu']['runtime'].get('skipped_saturations', 0))
+        if r.get('gpu_without_joint'):
+            print('joint 单独收益（GPU 关闭÷开启）：',f"{m['joint_speedup']:.4f}x" if m['joint_speedup'] is not None else '未通过整图门槛')
+            print('joint 实际命中/回退：',r['gpu'].get('saturation_diagnostics',{}).get('joint',{}).get('stats'))
         if not m['exact_cpu_gpu']:
             print('失败原因：', r.get('same_commit_verification_error'))
     elif 'joint_sat_verified' in r:
@@ -130,6 +139,7 @@ def parser():
         if mode == 'run':
             q.add_argument('--policy', choices=['stable', 'original'], default='stable')
             q.add_argument('--no-extract', action='store_true')
+            q.add_argument('--joint-sat', action='store_true')
         if mode == 'audit': q.add_argument('--three-lane-check', action='store_true')
         if mode == 'diff':
             q.add_argument('--inspect'); q.add_argument('--open')
@@ -145,6 +155,7 @@ def commands(a, repo, worker, out):
     source = str(resolve(a.snapshot)) if getattr(a, 'snapshot', None) else None
     if a.mode == 'run':
         c = [[binary('raytrace_stable_bench'), source, str(worker), str(out)] + (['--original'] if a.policy == 'original' else [])]
+        if a.joint_sat: c[0].append('--joint-sat')
         if not a.no_extract:
             c += [[sys.executable, str(repo / 'experiments/raytrace_pass3_gpu/extract.py'), str(out), '--tiger', str(resolve(a.tiger))]]
     elif a.mode == 'extract':
@@ -181,7 +192,8 @@ def parameterized_gate(r):
 def saved_gate(mode, out, three_lane=False):
     """Some old diagnostic binaries save a failed check but still return zero."""
     if mode == 'run' or (mode == 'audit' and three_lane):
-        return exact(load(out/'report.json').get('same_commit_verification'))
+        r=load(out/'report.json')
+        return exact(r.get('same_commit_verification')) and (not r.get('gpu_without_joint') or exact(r.get('joint_verification')))
     if mode == 'cpu-pair': return exact(load(out/'cpu-pair.json').get('exact_graph'))
     if mode == 'audit': return load(out/'audit.json').get('complete') is True
     if mode == 'extract': return load(out/'extraction/quality.json').get('passed') is True

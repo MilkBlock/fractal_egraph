@@ -1,5 +1,10 @@
 # Guarded joint terms saturation skip
 
+**Full Pass-3 follow-up:** [the complete benchmark](../raytrace_pass3_gpu/JOINT_PASS3.md)
+finds zero macro admissions: all 12 boundaries hit the global removal-history
+guard. GPU time rises from 19.025 s to 28.111 s with the observer enabled. The
+initialization-only successes below therefore do not establish a Pass-3 benefit.
+
 This completes an **executable, guarded joint transfer** for
 `terms`, `terms-helpers`, and `terms-helpers-helpers`. It runs in the same
 native engine and shared CPU/GPU event loop. New covered Cells publish the

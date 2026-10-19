@@ -1,0 +1,43 @@
+{
+  "mode": "run",
+  "policy": "stable",
+  "commands": [
+    [
+      "cargo",
+      "build",
+      "--offline",
+      "--release",
+      "--target-dir",
+      "target/analyzer",
+      "--example",
+      "raytrace_stable_bench",
+      "--example",
+      "tiger_output_check"
+    ],
+    [
+      "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/target/analyzer/release/examples/raytrace_stable_bench",
+      "/Users/mineralsteins/Repos/egg_related/egg_layout/out/raytrace-interactive-20261010/pass-3-flat.egg",
+      "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/cell-locality-worker/matrix",
+      "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/raytrace-pass3-joint-complete",
+      "--joint-sat"
+    ],
+    [
+      "/opt/homebrew/opt/python@3.14/bin/python3.14",
+      "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/experiments/raytrace_pass3_gpu/extract.py",
+      "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/out/raytrace-pass3-joint-complete",
+      "--tiger",
+      "/Users/mineralsteins/Repos/egg_related/check_statewalk/target/release/tiger"
+    ]
+  ],
+  "returncode": 0,
+  "repo": "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout",
+  "source_head": "b8d4ac2cb5a18bb9471eb31422da128f19928147",
+  "dirty_files": " M cell-assisted-egglog/resident.swift\n M cell-assisted-egglog/src/parameterized_cell/joint.rs\n M examples/raytrace_stable_bench.rs\n M examples/support/live_table_bench.rs\n M skills/cell-assisted-egglog-bench/SKILL.md\n M skills/cell-assisted-egglog-bench/references/modes.md\n M skills/cell-assisted-egglog-bench/scripts/bench.py\n M skills/cell-assisted-egglog-bench/scripts/test_bench.py\n",
+  "no_build": false,
+  "worker_sha256": "63e94ed38d4e8e921201dc3b233cd714e837781ffd3308e6071f5cbf80c235c3",
+  "snapshot_sha256": "c727cdf724b020ae585c4051fda36b66576c1ce4252a4d9d59fbb7522d0c7d4f",
+  "binary_sha256": {
+    "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/target/analyzer/release/examples/raytrace_stable_bench": "fea8b6d8246adb233f9b530fde78dcd76898b7387d2214bcea7c3dbc9154be92",
+    "/Users/mineralsteins/.codex/worktrees/cell-assisted-egglog/egg_layout/target/analyzer/release/examples/tiger_output_check": "2440f06335f794b9d2fe469c075caf7ae6ec3bb1bff3b65620a92a7b4bf0336c"
+  }
+}

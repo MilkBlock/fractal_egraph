@@ -1,4 +1,4 @@
-//! SOURCE.egg MATRIX_WORKER NEW_OUTPUT [--original]. Full Pass-3 plus export.
+//! SOURCE.egg MATRIX_WORKER NEW_OUTPUT [--original] [--joint-sat].
 #[allow(dead_code)]
 #[path = "support/live_table_bench.rs"]
 mod bench;
@@ -7,8 +7,12 @@ use egglog::{EGraph, ast::Command};
 use std::{path::Path, time::Instant};
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let a = std::env::args().skip(1).collect::<Vec<_>>();
-    if a.len() < 3 || a.len() > 4 || (a.len() == 4 && a[3] != "--original") {
-        return Err("SOURCE WORKER NEW_OUTPUT [--original]".into());
+    if a.len() < 3
+        || a[3..]
+            .iter()
+            .any(|s| s != "--original" && s != "--joint-sat")
+    {
+        return Err("SOURCE WORKER NEW_OUTPUT [--original] [--joint-sat]".into());
     }
     EGraph::set_num_threads(1);
     egglog::set_probe_counts_enabled(false);
@@ -23,9 +27,30 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     if last + 1 != c.len() {
         return Err("commands after main schedule".into());
     }
-    let stable = a.len() == 3;
+    let stable = !a[3..].iter().any(|s| s == "--original");
+    let joint = a[3..].iter().any(|s| s == "--joint-sat");
     let start = Instant::now();
-    let commands = if stable {
+    let mut hook = None;
+    let commands = if joint {
+        let r = if stable {
+            cell_assisted_egglog::parameterized_cell::Runtime::new_joint_stable_commands(
+                c[..last].to_vec(),
+            )?
+        } else {
+            cell_assisted_egglog::parameterized_cell::Runtime::new_joint_commands(
+                c[..last].to_vec(),
+            )?
+        };
+        let (engine, observer) = r.detach_joint()?;
+        eg = engine;
+        hook =
+            Some(Box::new(observer) as Box<dyn cell_assisted_egglog::table_live::SaturationHook>);
+        if stable {
+            stable_choice::schedule(&mut eg, &c[last..])?
+        } else {
+            c[last..].to_vec()
+        }
+    } else if stable {
         stable_choice::setup(&mut eg, &c[..last])?;
         stable_choice::schedule(&mut eg, &c[last..])?
     } else {
@@ -40,23 +65,36 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     std::fs::write(
         out.join("setup.json"),
         serde_json::to_vec_pretty(
-            &serde_json::json!({"stable_choice":stable,"setup_seconds_excluded":start.elapsed().as_secs_f64(),"schedule":commands.iter().map(ToString::to_string).collect::<Vec<_>>(),"sat_skip_installed":false,"policy":policy}),
+            &serde_json::json!({"stable_choice":stable,"setup_seconds_excluded":start.elapsed().as_secs_f64(),"schedule":commands.iter().map(ToString::to_string).collect::<Vec<_>>(),"sat_skip_installed":joint,"policy":policy}),
         )?,
     )?;
     let selected = ["terms", "terms-helpers", "terms-helpers-helpers"].map(String::from);
-    bench::benchmark_hybrid_export(
-        &eg,
-        &commands,
-        if stable {
-            "complete raytrace Pass 3, shared structural choice"
-        } else {
-            "complete raytrace Pass 3, original merge-new policy"
-        },
-        Path::new(&a[1]),
-        &out.join("report.json"),
-        &selected,
-        &out.join("graphs"),
-    )?;
+    if let Some(hook) = hook {
+        bench::benchmark_hybrid_export_joint(
+            &eg,
+            &commands,
+            "complete raytrace Pass 3, joint sat-skip enabled",
+            Path::new(&a[1]),
+            &out.join("report.json"),
+            &selected,
+            &out.join("graphs"),
+            hook,
+        )?;
+    } else {
+        bench::benchmark_hybrid_export(
+            &eg,
+            &commands,
+            if stable {
+                "complete raytrace Pass 3, shared structural choice"
+            } else {
+                "complete raytrace Pass 3, original merge-new policy"
+            },
+            Path::new(&a[1]),
+            &out.join("report.json"),
+            &selected,
+            &out.join("graphs"),
+        )?;
+    }
     let r: serde_json::Value = serde_json::from_slice(&std::fs::read(out.join("report.json"))?)?;
     println!(
         "native={} cpu={} gpu={} exact_native={} exact_cpu={}",
@@ -68,6 +106,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     if !r["same_commit_verification"].is_object() {
         return Err("strict same-commit graph gate failed; exports retained".into());
+    }
+    if joint && !r["joint_verification"].is_object() {
+        return Err("joint hook differs from GPU control; exports retained".into());
     }
     Ok(())
 }

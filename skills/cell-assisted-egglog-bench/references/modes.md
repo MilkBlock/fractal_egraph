@@ -1,6 +1,7 @@
 # 模式与现有实现
 
 - `run` → `examples/raytrace_stable_bench.rs`，默认稳定选择；`--policy original` 加 `--original`。保存 `report.json`、`setup.json`、完整 `graphs/{native,cpu,gpu}.json`。同提交协议整图失败会退出非零，仍保留导出供提取核对。
+- `run --joint-sat` 在同一完整 Pass-3 调度中安装三个 terms ruleset 的联合证明，并额外运行一个 GPU 无 joint 控制。`gpu_without_joint` 和 `joint_verification` 用于归因 Cell 的独立成本/收益；CPU 控制不装 joint。三份导出的 extraction 图对应原生、CPU 控制、GPU＋joint，不能把初始化后的 `joint-sat --snapshot` 子调度结果当作这一项。
 - `extract RUN` → `experiments/raytrace_pass3_gpu/extract.py RUN`，可加 `--reference-output OLD/extraction/native.egg`。Tiger 的生产 reader 要 pretty JSON；现有脚本已经处理，不能直接给它一行紧凑 JSON。输出 `extraction/{timing,quality}.json`。该目录已存在时不要覆盖，用 `report` 查看，或明确安排新的提取目录。
 - `audit` → `raytrace_pass3_bench ... audit`，原策略 GPU 路径的独立 native-frontier oracle。没有新计时结论。`--three-lane-check` 改为原策略 `check`，附完整三路径整图核对，可能因已知原策略分歧返回非零。
 - `cpu-pair` → `raytrace_pass3_bench ... cpu-pair`，原策略 CPU 自对照，检查两次完整图的一致性，不对两次计时求平均。

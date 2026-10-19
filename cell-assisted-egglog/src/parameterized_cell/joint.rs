@@ -618,8 +618,20 @@ impl Runtime {
     /// Execute explicit setup (including initialization), then compile the
     /// certificate against that engine. Main inference is not part of setup.
     pub fn new_joint_commands(commands: Vec<Command>) -> Result<Self> {
+        Self::setup_joint(commands, false)
+    }
+    /// The full eggcc benchmark's shared stable-choice setup. Only to-hoist is
+    /// changed by that setup; the three certified terms rulesets stay original.
+    pub fn new_joint_stable_commands(commands: Vec<Command>) -> Result<Self> {
+        Self::setup_joint(commands, true)
+    }
+    fn setup_joint(commands: Vec<Command>, stable: bool) -> Result<Self> {
         let mut eg = EGraph::default();
-        eg.run_program(commands.clone())?;
+        if stable {
+            crate::stable_choice::setup(&mut eg, &commands)?;
+        } else {
+            eg.run_program(commands.clone())?;
+        }
         let joint = Joint::compile(&mut eg, &commands)?;
         // The producer's source constructor is specified by the checked
         // transfer contract, not picked by a cost heuristic among seed plans.

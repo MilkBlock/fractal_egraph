@@ -267,7 +267,7 @@ pub fn benchmark(
     dest: &Path,
 ) -> Result<()> {
     benchmark_impl(
-        base, commands, label, worker, checked, dest, None, true, None,
+        base, commands, label, worker, checked, dest, None, true, None, None,
     )
 }
 pub fn benchmark_hybrid(
@@ -288,6 +288,7 @@ pub fn benchmark_hybrid(
         dest,
         Some(selected),
         false,
+        None,
         None,
     )
 }
@@ -310,6 +311,32 @@ pub fn benchmark_hybrid_export(
         Some(selected),
         false,
         Some(exports),
+        None,
+    )
+}
+/// The extra GPU-without-hook lane isolates Cell proof/maintenance from the
+/// existing GPU join backend. Each lane runs once, sequentially.
+pub fn benchmark_hybrid_export_joint(
+    base: &EGraph,
+    commands: &[Command],
+    label: &str,
+    worker: &Path,
+    dest: &Path,
+    selected: &[String],
+    exports: &Path,
+    hook: Box<dyn cell_assisted_egglog::table_live::SaturationHook>,
+) -> Result<()> {
+    benchmark_impl(
+        base,
+        commands,
+        label,
+        worker,
+        false,
+        dest,
+        Some(selected),
+        false,
+        Some(exports),
+        Some(hook),
     )
 }
 fn benchmark_impl(
@@ -322,6 +349,7 @@ fn benchmark_impl(
     selected: Option<&[String]>,
     fixed_point: bool,
     exports: Option<&Path>,
+    hook: Option<Box<dyn cell_assisted_egglog::table_live::SaturationHook>>,
 ) -> Result<()> {
     let t = Instant::now();
     let mut native = base.clone();
@@ -343,6 +371,19 @@ fn benchmark_impl(
     };
     ordered.run(commands)?;
     let sorted_stats = ordered.report();
+    let gpu_without_joint = if hook.is_some() {
+        let mut r = Runtime::new_hybrid(
+            base.clone(),
+            commands,
+            Some(worker),
+            false,
+            selected.ok_or("joint comparison requires an explicit partition")?,
+        )?;
+        r.run(commands)?;
+        Some((r.report(), r.into_engine()))
+    } else {
+        None
+    };
     let t = Instant::now();
     let copy = base.clone();
     let gpu_clone = t.elapsed().as_secs_f64();
@@ -351,11 +392,18 @@ fn benchmark_impl(
     } else {
         Runtime::new(copy, commands, worker, checked)?
     };
+    if let Some(hook) = hook {
+        runtime.set_saturation_hook(hook);
+    }
     runtime.run(commands)?;
     egglog::set_probe_counts_enabled(old);
     let stats = runtime.report();
     let verification = equal(base, &native, runtime.engine());
     let same_commit_verification = equal(base, ordered.engine(), runtime.engine());
+    let joint_verification = gpu_without_joint
+        .as_ref()
+        .map(|(_, eg)| equal(base, eg, runtime.engine()));
+    let gpu_without_joint_report = gpu_without_joint.as_ref().map(|(report, _)| report);
     let costs = extraction_costs(base, &native, runtime.engine());
     let same_commit_costs = extraction_costs(base, ordered.engine(), runtime.engine());
     let projected = equal_projected(base, &native, runtime.engine(), true);
@@ -371,13 +419,14 @@ fn benchmark_impl(
     };
 
     let output = json!({"complete":verification.is_ok(),"benchmark_finished":true,"label":label,"assisted_rulesets":selected,"schedule":commands.iter().map(ToString::to_string).collect::<Vec<_>>(),
-  "scope":"Full original schedule; GPU persistent table joins drive original native RHS/merge/rebuild. Explicit tables, not certified Cell shortcuts. Same native fork, not pristine. Preparation included separately; no repeated cold queries.",
+  "scope":"Full original schedule, same native fork and selection policy, not pristine. Optional joint hook is measured against a separate GPU-without-hook lane; explicit original tables, native commit/rebuild. Preparation and verification excluded from inference timings.",
   "native":{"run_seconds":native_seconds,"iterations":report.iterations.len(),"logical_matches":report.num_matches_per_rule.values().sum::<usize>(),
    "search_apply_seconds":report.search_and_apply_time_per_ruleset.values().map(|t|t.as_secs_f64()).sum::<f64>(),
    "insert_merge_seconds":report.merge_time_per_ruleset.values().map(|t|t.as_secs_f64()).sum::<f64>(),
    "rebuild_seconds":report.rebuild_time_per_ruleset.values().map(|t|t.as_secs_f64()).sum::<f64>(),
    "search_apply_per_ruleset":report.search_and_apply_time_per_ruleset.iter().map(|(s,t)|(s.to_string(),t.as_secs_f64())).collect::<BTreeMap<_,_>>()},
   "sorted_commit_cpu":sorted_stats,"same_commit_verification":same_commit_verification.as_ref().ok(),"same_commit_verification_error":same_commit_verification.as_ref().err().map(ToString::to_string),
+  "gpu_without_joint":gpu_without_joint_report,"joint_verification":joint_verification.as_ref().and_then(|r|r.as_ref().ok()),"joint_verification_error":joint_verification.as_ref().and_then(|r|r.as_ref().err()).map(ToString::to_string),
   "gpu":stats,"native_clone_seconds_excluded":native_clone,"gpu_clone_seconds_excluded":gpu_clone,
   "projection_without_smaller":projected.as_ref().ok(),"projection_error":projected.as_ref().err().map(ToString::to_string),"native_graph":graph_sizes(&native)?,"gpu_graph":graph_sizes(runtime.engine())?,"verification":verification.as_ref().ok(),"quality":costs.as_ref().ok(),"quality_error":costs.as_ref().err().map(ToString::to_string),"same_commit_quality":same_commit_costs.as_ref().ok(),"same_commit_quality_error":same_commit_costs.as_ref().err().map(ToString::to_string),
         "native_continuation_unchanged":closure,"continuation_error":continuation_error,"continuation_seconds_excluded":closure_seconds,"verification_error":verification.as_ref().err().map(ToString::to_string),
